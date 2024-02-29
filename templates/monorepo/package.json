@@ -1,0 +1,27 @@
+{
+  "name": "monorepo",
+  "private": true,
+  "scripts": {
+    "typecheck": "turbo typecheck",
+    "build": "turbo build",
+    "test": "turbo test",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "@pagopa/eslint-config-node": "*",
+    "@pagopa/typescript-config-node": "*",
+    "prettier": "^3.1.1",
+    "turbo": "^1.12.5"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "yarn@3.3.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "configs/*",
+    "tests/*"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "**/.env.*local"
+  ],
+  "pipeline": {
+    "build": {
+      "inputs": [
+        "src/**/*.ts",
+        "package.json",
+        "tsconfig.json"
+      ],
+      "outputs": [
+        "dist/**"
+      ],
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "typecheck": {
+      "inputs": [
+        "src/**/*.ts",
+        "package.json",
+        "tsconfig.json"
+      ],
+      "outputs": [],
+      "dependsOn": [
+        "^typecheck",
+        "^build"
+      ]
+    },
+    "format": {},
+    "lint": {
+      "inputs": [
+        "src/**/*.ts"
+      ],
+      "outputs": [],
+      "dependsOn": [
+        "^lint",
+        "^build"
+      ]
+    },
+    "test": {
+      "inputs": [
+        "src/**/*.ts"
+      ],
+      "outputs": [],
+      "outputMode": "errors-only",
+      "dependsOn": [
+        "^test",
+        "^build"
+      ]
+    }
+  }
+}
