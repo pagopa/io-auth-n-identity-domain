@@ -1,7 +1,12 @@
 locals {
+  prefix    = "dx"
   env_short = "p"
+  env       = "prod"
+  domain    = "typescript"
+  location  = "westeurope"
+  project   = "${local.prefix}-${local.env_short}"
 
-  location = "westeurope"
+  repo_name = "dx-typescript"
 
   tags = {
     CostCenter  = "TS310 - PAGAMENTI & SERVIZI"

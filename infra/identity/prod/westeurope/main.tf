@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "<= 3.94.0"
+      version = "<= 3.97.1"
     }
   }
 
@@ -19,6 +19,27 @@ provider "azurerm" {
   }
 }
 
-data "azurerm_subscription" "current" {}
+resource "azurerm_resource_group" "rg_identity" {
+  name     = "${local.project}-identity-rg"
+  location = local.location
 
-data "azurerm_client_config" "current" {}
+  tags = local.tags
+}
+
+module "federated_identities" {
+  source = "../../../modules/azure_federated_identity_with_github"
+
+  prefix    = local.prefix
+  env_short = local.env_short
+  env       = local.env
+  domain    = local.domain
+
+  repositories = [local.repo_name]
+
+  tags = local.tags
+
+  depends_on = [
+    azurerm_resource_group.rg_identity
+  ]
+}
+
