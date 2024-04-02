@@ -1,8 +1,7 @@
 locals {
-  prefix    = "dx"
+  prefix    = "dxt"
   env_short = "p"
   env       = "prod"
-  domain    = "typescript"
   location  = "westeurope"
   project   = "${local.prefix}-${local.env_short}"
 
@@ -13,6 +12,6 @@ locals {
     CreatedBy   = "Terraform"
     Environment = "Prod"
     Owner       = "DevEx"
-    Source      = "https://github.com/pagopa/dx-typescript"
+    Source      = "https://github.com/pagopa/dx-typescript/blob/main/infra/identity/prod/westeurope"
   }
 }

@@ -1,5 +1,5 @@
 locals {
-  project = "dx-p"
+  project = "dxt-p"
 
   identity_resource_group_name = "${local.project}-identity-rg"
 
