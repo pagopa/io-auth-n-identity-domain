@@ -20,6 +20,8 @@ jobs:
   builder:
     name: 'Builder'
     runs-on: ubuntu-20.04
+    env:
+      GH_TOKEN: ${{ secrets.GH_PAT }}
 
     steps:
 
@@ -27,14 +29,16 @@ jobs:
         if: inputs.technology == 'none'
         run: |
           gh repo create pagopa/${{ inputs.name }} \
-            --disable-wiki
+            --disable-wiki \
+            --public
 
       - name: 'Create Repository from Template'
         if: inputs.technology != 'none'
         run: |
           gh repo create pagopa/${{ inputs.name }} \
             --disable-wiki \
-            --template pagopa/${{ inputs.technology }}-template
+            --template pagopa/${{ inputs.technology }}-template \
+            --public
 
   repo_setup:
     name: 'Repository setup'
@@ -51,7 +55,7 @@ jobs:
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_TOKEN: ${{ secrets.GH_PAT }}
-      # we assume that the template repository contains this directory  
+      # we assume that the template repository contains this directory
       TEMPLATE_INFRA_DIR: repo/infra/repository
     permissions:
       id-token: write
@@ -101,7 +105,7 @@ jobs:
           terraform plan \
             -lock-timeout=3000s \
             -input=false
-        
+
       - name: Terraform Apply
         working-directory: ${{env.TEMPLATE_INFRA_DIR}}
         run: |
@@ -109,4 +113,3 @@ jobs:
             -lock-timeout=3000s \
             -auto-approve \
             -input=false
- 
