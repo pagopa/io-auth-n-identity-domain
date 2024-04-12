@@ -3,6 +3,11 @@
 Scaffold a new project using a monorepo structure.
 Each monorepo is meant to include all the published artifacts for the project as well as the infrastructure definition.
 
+## Requirements
+
+- `Node.js` v20
+- `Terraform` v1.7.5
+
 ## Tasks
 
 Tasks are defined in the `turbo.json` and `package.json` files. To execute a task, just run the command at the project root:
@@ -21,6 +26,7 @@ To define a new task:
 Defined tasks are _lint_, _test_, and _typecheck_.
 
 ## Dependencies
+
 ```sh
 # install all dependencies for the project
 yarn
@@ -61,6 +67,7 @@ Packages that are meant for internal code sharing have `private: true` in their 
 Each sub-folder is a workspace.
 
 ### `/infra`
+
 It contains the _infrastructure-as-code_ project that defines the resources for the project as well as the executuion environments. Database schemas and migrations are defined here too, in case they are needed.
 
 ### `/docs`
@@ -68,3 +75,68 @@ It contains the _infrastructure-as-code_ project that defines the resources for 
 Technical documentation about the project. Topics that may be included are architecture overviews, [ADRs](https://adr.github.io/), coding standards, and anything that can be relevant for a developer approaching the project as a contributor or as an auditor.
 
 User documentation doesn't usually go in here. For public packages, it must go in the package's `README` file so that it will also be uploaded to the registry; user-faced documentation websites, when needed by the project, go under the `/apps` folder as they are treated as end-user applications.
+
+## Infrastructure as Code
+
+### Folder structure
+
+The IaC template contains the following projects:
+
+#### identity
+
+Handle the identity federation between GitHub and Azure. The identity defines the grants the GitHub Workflows have on the Azure subscription.
+Configurations are intended for the pair (environment, region); each configuration is a Terraform project in the folder `infra/identity/<env>/<region>`
+It's intended to be executed once on a local machine at project initialization.
+
+⚠️ The following edits have to be done to work on the repository:
+
+- Define the project in the right env/region folder.
+- Edit `locals.tf` according to the intended configuration.
+- Edit `main.tf` with the actual Terraform state file location and name.
+
+```sh
+# Substitute env and region with actual values
+cd infra/identity/<env>/<region>
+
+# Substitute subscription_name with the actual subscription name
+az account set --name <subscription_name>
+
+terraform init
+terraform plan
+terraform apply
+```
+
+#### repository
+
+Set up the current repository settings.
+It's intended to be executed once on a local machine at project initialization.
+
+⚠️ The following edits have to be done to work on the repository:
+
+- Edit `locals.tf` according to the intended configuration.
+- Edit `main.tf` with the actual Terraform state file location and name.
+
+```sh
+cd infra/repository
+
+# Substitute subscription_name with the actual subscription name
+az account set --name <subscription_name>
+
+terraform init
+terraform plan
+terraform apply
+```
+
+#### resources
+
+Contains the actual resources for the developed applications.
+Configurations are intended for the pair (environment, region); each configuration is a Terraform project in the folder `infra/identity/<env>/<region>`
+
+⚠️ The following edits have to be done to work on the repository:
+
+- Edit `locals.tf` according to the intended configuration.
+- Edit `main.tf` with the actual Terraform state file location and name.
+
+### Workflow automation
+
+The workflow `pr_infra.yaml` is executed on every PR that edits the `infra/resources` folder or the workflow definition itself. It executes a `terraform plan` and comments the PR with the result. If the plan fails, the workflow fails.
