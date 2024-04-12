@@ -76,6 +76,19 @@ Technical documentation about the project. Topics that may be included are archi
 
 User documentation doesn't usually go in here. For public packages, it must go in the package's `README` file so that it will also be uploaded to the registry; user-faced documentation websites, when needed by the project, go under the `/apps` folder as they are treated as end-user applications.
 
+## Releases
+
+Releases are handled using [Changeset](https://github.com/changesets/changesets).
+Changeset takes care of bumping packages, updating the changelog, and tag the repository accordingly.
+
+#### How it works
+* When opening a Pull Request with a change intended to be published, [add a changeset file](https://github.com/changesets/changesets/blob/main/docs/adding-a-changeset.md) to the proposed changes.
+* Once the Pull Request is merged, a new Pull Request named `Version Packages` will be automatically opened with all the release changes such as version bumping for each involved app or package and changelog update; if an open `Version Packages` PR already exists, it will be updated and the package versions calculated accordingly (see https://github.com/changesets/changesets/blob/main/docs/decisions.md#how-changesets-are-combined).
+Only apps and packages mentioned in the changeset files will be bumped.
+* Review the `Version Packages` PR and merge it when ready. Changeset files will be deleted.
+* A Release entry is created for each app or package whose version has been bumped.
+
+
 ## Infrastructure as Code
 
 ### Folder structure
