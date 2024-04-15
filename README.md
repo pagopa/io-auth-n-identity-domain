@@ -143,7 +143,7 @@ terraform apply
 #### resources
 
 Contains the actual resources for the developed applications.
-Configurations are intended for the pair (environment, region); each configuration is a Terraform project in the folder `infra/identity/<env>/<region>`
+Configurations are intended for the pair (environment, region); each configuration is a Terraform project in the folder `infra/resources/<env>/<region>`
 
 ⚠️ The following edits have to be done to work on the repository:
 
