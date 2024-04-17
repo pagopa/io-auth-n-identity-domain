@@ -1,5 +1,5 @@
 {
-  "name": "monorepo",
+  "name": "io-auth-n-identity-domain",
   "private": true,
   "scripts": {
     "code-review": "turbo run format:check lint:check test:coverage",

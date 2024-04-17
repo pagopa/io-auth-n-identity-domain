@@ -1,7 +1,4 @@
-# TypeScript Monorepo Template
-
-Scaffold a new project using a monorepo structure.
-Each monorepo is meant to include all the published artifacts for the project as well as the infrastructure definition.
+# Auth and Identity domain monorepo
 
 ## Requirements
 
@@ -110,12 +107,6 @@ Each sub-folder is a workspace.
 ### `/infra`
 
 It contains the _infrastructure-as-code_ project that defines the resources for the project as well as the executuion environments. Database schemas and migrations are defined here too, in case they are needed.
-
-### `/docs`
-
-Technical documentation about the project. Topics that may be included are architecture overviews, [ADRs](https://adr.github.io/), coding standards, and anything that can be relevant for a developer approaching the project as a contributor or as an auditor.
-
-User documentation doesn't usually go in here. For public packages, it must go in the package's `README` file so that it will also be uploaded to the registry; user-faced documentation websites, when needed by the project, go under the `/apps` folder as they are treated as end-user applications.
 
 ## Releases
 
