@@ -31,7 +31,6 @@ override.tf.json
 *.DS_Store
 *.log
 *.h2.db
-settings.json
 __TMP
 .metals/
 __azurite_*
@@ -43,9 +42,13 @@ __azurite_*
 
 # Dependencies
 node_modules
-.pnp
-.pnp.js
-.yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
 
 # Local env files
 .env

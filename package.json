@@ -2,29 +2,29 @@
   "name": "monorepo",
   "private": true,
   "scripts": {
-    "typecheck": "turbo typecheck",
-    "build": "turbo build",
-    "test": "turbo test",
-    "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "code-review": "turbo run format:check lint:check test:coverage",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "test": "turbo run test",
+    "test:coverage": "turbo run test:coverage",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
     "version": "changeset version",
     "release": "changeset tag"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
-    "@pagopa/eslint-config-node": "*",
     "@pagopa/typescript-config-node": "*",
-    "prettier": "^3.1.1",
-    "turbo": "^1.12.5"
+    "prettier": "3.1.1",
+    "turbo": "^1.12.5",
+    "typescript": "^5.4.5"
   },
   "engines": {
     "node": ">=20"
   },
-  "packageManager": "yarn@3.3.0",
+  "packageManager": "yarn@4.1.1",
   "workspaces": [
     "apps/*",
-    "packages/*",
-    "configs/*",
-    "tests/*"
+    "packages/*"
   ]
 }

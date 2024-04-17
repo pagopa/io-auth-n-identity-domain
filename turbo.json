@@ -30,21 +30,31 @@
       ]
     },
     "format": {},
+    "format:check": {},
     "lint": {
       "inputs": [
         "src/**/*.ts"
-      ],
-      "outputs": [],
-      "dependsOn": [
-        "^lint",
-        "^build"
+      ]
+    },
+    "lint:check": {
+      "inputs": [
+        "src/**/*.ts"
       ]
     },
     "test": {
       "inputs": [
         "src/**/*.ts"
       ],
-      "outputs": [],
+      "outputMode": "errors-only",
+      "dependsOn": [
+        "^test",
+        "^build"
+      ]
+    },
+    "test:coverage": {
+      "inputs": [
+        "src/**/*.ts"
+      ],
       "outputMode": "errors-only",
       "dependsOn": [
         "^test",
