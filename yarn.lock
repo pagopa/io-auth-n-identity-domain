@@ -1267,6 +1267,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"io-auth-n-identity-domain@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "io-auth-n-identity-domain@workspace:."
+  dependencies:
+    "@changesets/cli": "npm:^2.27.1"
+    "@pagopa/typescript-config-node": "npm:*"
+    prettier: "npm:3.1.1"
+    turbo: "npm:^1.12.5"
+    typescript: "npm:^5.4.5"
+  languageName: unknown
+  linkType: soft
+
 "is-array-buffer@npm:^3.0.4":
   version: 3.0.4
   resolution: "is-array-buffer@npm:3.0.4"
@@ -1664,18 +1676,6 @@ __metadata:
   checksum: 10c0/409b2124b75b5f489b1521bc470f6201d748499bf656db0aa43a07e654449f3bcc8a0277cd05ca3c3e305281a5934b6e75219866200b70a9e3e105f9cf08baf1
   languageName: node
   linkType: hard
-
-"monorepo@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "monorepo@workspace:."
-  dependencies:
-    "@changesets/cli": "npm:^2.27.1"
-    "@pagopa/typescript-config-node": "npm:*"
-    prettier: "npm:3.1.1"
-    turbo: "npm:^1.12.5"
-    typescript: "npm:^5.4.5"
-  languageName: unknown
-  linkType: soft
 
 "normalize-package-data@npm:^2.5.0":
   version: 2.5.0
