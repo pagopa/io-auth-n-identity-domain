@@ -40,4 +40,4 @@ jobs:
             ${{ runner.os }}-turbo-
 
       - name: 'Code review'
-        run: yarn test
+        run: yarn code-review
