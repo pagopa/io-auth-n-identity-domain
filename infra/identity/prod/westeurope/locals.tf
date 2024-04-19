@@ -1,5 +1,5 @@
 locals {
-  prefix    = "dxt"
+  prefix    = "io"
   env_short = "p"
   env       = "prod"
   location  = "westeurope"
@@ -7,11 +7,13 @@ locals {
 
   repo_name = "io-auth-n-identity-domain"
 
+  identity_rg = "${local.project}-auth-n-identity-identity-rg"
+
   tags = {
     CostCenter  = "TS310 - PAGAMENTI & SERVIZI"
     CreatedBy   = "Terraform"
     Environment = "Prod"
-    Owner       = "DevEx"
+    Owner       = "Auth&Identity"
     Source      = "https://github.com/pagopa/io-auth-n-identity-domain/blob/main/infra/identity/prod/westeurope"
   }
 }

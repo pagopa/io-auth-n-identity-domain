@@ -8,7 +8,7 @@ terraform {
 
   backend "azurerm" {
     resource_group_name  = "terraform-state-rg"
-    storage_account_name = "tfproddx"
+    storage_account_name = "tfinfprodio"
     container_name       = "terraform-state"
     key                  = "io-auth-n-identity-domain.identity.tfstate"
   }
@@ -20,7 +20,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg_identity" {
-  name     = "${local.project}-identity-rg"
+  name     = local.identity_rg
   location = local.location
 
   tags = local.tags
