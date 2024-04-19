@@ -10,7 +10,7 @@ terraform {
     resource_group_name  = "terraform-state-rg"
     storage_account_name = "tfproddx"
     container_name       = "terraform-state"
-    key                  = "dx-typescript.identity.tfstate"
+    key                  = "io-auth-n-identity-domain.identity.tfstate"
   }
 }
 

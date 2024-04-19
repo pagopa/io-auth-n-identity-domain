@@ -1,6 +1,6 @@
 resource "github_repository" "this" {
-  name        = "dx-typescript"
-  description = "Initial repository for DevEx activities."
+  name        = "io-auth-n-identity-domain"
+  description = "Auth&Identity Monorepo"
 
   visibility = "public"
 
@@ -19,7 +19,7 @@ resource "github_repository" "this" {
   has_issues      = false
   has_downloads   = false
 
-  topics = ["dx", "typescript"]
+  topics = []
 
   vulnerability_alerts = true
 
