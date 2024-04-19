@@ -1,0 +1,20 @@
+{
+  // We extend it from here, asap!
+  "extends": "@pagopa/typescript-config-node/tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
+  "compilerOptions": {
+    "module": "Node16",
+    "target": "es2022",
+    "outDir": "dist",
+    "sourceMap": true,
+    "inlineSources": true,
+    "strict": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "esModuleInterop": true
+  }
+}
