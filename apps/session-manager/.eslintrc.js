@@ -1,11 +1,10 @@
-require("@rushstack/eslint-patch/modern-module-resolution");
-
+/** @type {import("eslint").Linter.Config} */
 module.exports = {
   env: {
     es2021: true,
     node: true
   },
-  extends: ["@pagopa/eslint-config/recommended"],
+  extends: ["monorepo/index.js"],
   ignorePatterns: [
     "*.yaml",
     "**/*.test.ts",

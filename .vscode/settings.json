@@ -16,7 +16,9 @@
     }
   ],
   "prettier.prettierPath": ".yarn/sdks/prettier/index.cjs",
+  "eslint.nodePath": ".yarn/sdks",  
+
+  // Warning: if you're using workspace, apply this settings in .code-workspace file too
   "typescript.tsdk": ".yarn/sdks/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
-  "eslint.nodePath": ".yarn/sdks"
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

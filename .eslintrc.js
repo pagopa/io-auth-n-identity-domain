@@ -2,7 +2,8 @@
 /** @type {import("eslint").Linter.Config} */
 module.exports = {
   ignorePatterns: ["apps/**", "packages/**"],
-  extends: ["@pagopa/eslint-config/library.js"],
+  // retrieved from packages/eslint-config-monorepo
+  extends: ["monorepo/index.js"],
   parser: "@typescript-eslint/parser",
   parserOptions: {
     project: true,
