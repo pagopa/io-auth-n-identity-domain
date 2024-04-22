@@ -21,16 +21,19 @@ provider "azurerm" {
 
 // `io-p-identity-rg` is already defined, it contains all the managed identity for io projects
 data "azurerm_resource_group" "rg_identity" {
-  name     = local.identity_rg
+  name = local.identity_rg
 }
 
 module "federated_identities" {
   source = "../../../modules/azure_federated_identity_with_github"
 
-  prefix    = local.prefix
-  env_short = local.env_short
-  env       = local.env
+  # To-Do not working
+  # continuos_integration = {enable = false, roles = null}
+
+  prefix       = local.prefix
+  env_short    = local.env_short
+  env          = local.env
   repositories = [local.repo_name]
-  tags = local.tags
+  tags         = local.tags
 }
 

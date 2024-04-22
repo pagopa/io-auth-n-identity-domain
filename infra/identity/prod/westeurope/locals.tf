@@ -1,10 +1,11 @@
 locals {
-  prefix    = "io"
-  env_short = "p"
-  env       = "prod"
-  location  = "westeurope"
-  domain    = "auth-n-identity"
-  project   = "${local.prefix}-${local.env_short}-${local.domain}"
+  prefix         = "io"
+  env_short      = "p"
+  env            = "prod"
+  location_short = "weu"
+  location       = "westeurope"
+  domain         = "auth-n-identity"
+  project        = "${local.prefix}-${local.env_short}-${local.location_short}-${local.domain}"
 
   repo_name = "io-auth-n-identity-domain"
 
