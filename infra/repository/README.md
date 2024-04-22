@@ -30,9 +30,10 @@ No modules.
 | [github_branch_default.default_main](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/branch_default) | resource |
 | [github_branch_protection.protection_main](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/branch_protection) | resource |
 | [github_repository.this](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/repository) | resource |
-| [github_repository_environment.github_repository_environment_prod_cd](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/repository_environment) | resource |
 | [github_repository_environment.github_repository_environment_prod_ci](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/repository_environment) | resource |
+| [github_repository_environment.github_repository_environment_session_manager_prod_cd](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/repository_environment) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
+| [azurerm_linux_web_app.session_manager](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/linux_web_app) | data source |
 | [azurerm_subscription.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subscription) | data source |
 | [azurerm_user_assigned_identity.identity_prod_cd](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) | data source |
 | [azurerm_user_assigned_identity.identity_prod_ci](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) | data source |
