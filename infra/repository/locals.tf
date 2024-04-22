@@ -4,8 +4,6 @@ locals {
 
   identity_resource_group_name = "${local.project}-identity-rg"
 
-
-
   repo_secrets = {
     "AZURE_TENANT_ID"       = data.azurerm_client_config.current.tenant_id,
     "AZURE_SUBSCRIPTION_ID" = data.azurerm_subscription.current.id
@@ -17,14 +15,11 @@ locals {
     }
   }
 
-
   # -------------------------
   # Session Manager Data
   # -------------------------
-  session_manager_name                = "${local.project}-${location.short}-session-manager"
-  session_manager_resource_group_name = "${local.project}-${location.short}-session-manager-rg"
-
-
+  session_manager_name                = "${local.project}-${local.location_short}-session-manager"
+  session_manager_resource_group_name = "${local.project}-${local.location_short}-session-manager-rg"
 
   session_manager_cd = {
     secrets = {

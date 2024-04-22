@@ -13,6 +13,6 @@ resource "github_actions_environment_secret" "env_prod_cd_secrets" {
 
   repository      = github_repository.this.name
   environment     = github_repository_environment.github_repository_environment_session_manager_prod_cd.environment
-  secret_name      = each.key
+  secret_name     = each.key
   plaintext_value = each.value
 }

@@ -3,7 +3,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.96.0"
+      version = "<= 3.100.0"
     }
 
     github = {
@@ -14,7 +14,7 @@ terraform {
 
   backend "azurerm" {
     resource_group_name  = "terraform-state-rg"
-    storage_account_name = "tfinfprodio"
+    storage_account_name = "tfappprodio"
     container_name       = "terraform-state"
     key                  = "io-auth-n-identity-domain.repository.tfstate"
   }
