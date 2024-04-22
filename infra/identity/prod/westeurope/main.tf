@@ -19,11 +19,9 @@ provider "azurerm" {
   }
 }
 
-resource "azurerm_resource_group" "rg_identity" {
+// `io-p-identity-rg` is already defined, it contains all the managed identity for io projects
+data "azurerm_resource_group" "rg_identity" {
   name     = local.identity_rg
-  location = local.location
-
-  tags = local.tags
 }
 
 module "federated_identities" {
@@ -32,13 +30,7 @@ module "federated_identities" {
   prefix    = local.prefix
   env_short = local.env_short
   env       = local.env
-
   repositories = [local.repo_name]
-
   tags = local.tags
-
-  depends_on = [
-    azurerm_resource_group.rg_identity
-  ]
 }
 

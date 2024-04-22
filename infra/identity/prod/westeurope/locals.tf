@@ -3,11 +3,12 @@ locals {
   env_short = "p"
   env       = "prod"
   location  = "westeurope"
-  project   = "${local.prefix}-${local.env_short}"
+  domain    = "auth-n-identity"
+  project   = "${local.prefix}-${local.env_short}-${local.domain}"
 
   repo_name = "io-auth-n-identity-domain"
 
-  identity_rg = "${local.project}-auth-n-identity-identity-rg"
+  identity_rg = "${local.prefix}-${local.env_short}-identity-rg"
 
   tags = {
     CostCenter  = "TS310 - PAGAMENTI & SERVIZI"
