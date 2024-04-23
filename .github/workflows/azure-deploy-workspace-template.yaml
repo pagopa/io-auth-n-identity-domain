@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 2
 
       - name: Build workspace
-        uses: pagopa/io-auth-n-identity-domain/.github/actions/build-workspace
+        uses: pagopa/io-auth-n-identity-domain/.github/actions/build-workspace@fix-cd-pipeline
         with:
           workspace-name: ${{ inputs.workspace-name }}
 
