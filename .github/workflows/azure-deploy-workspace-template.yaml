@@ -30,14 +30,18 @@ jobs:
 
       - name: Make workspace artifact
         id: make_artifact
-        uses: "pagopa/io-std/make-workspace-artifact@main"
-        with:
-          workspace-name: ${{ inputs.app-name }}
+        working-directory: ./out/apps/${{ inputs.app-name }}
+        run: |
+          npm pkg set --json "bundledDependencies"=true
+          npm pkg set --json "files"='["dist"]'
+          npx npm-pack-zip
+          echo "artifact-path=$(realpath ${{ inputs.app-name }}.zip)" >> "$GITHUB_OUTPUT"
+        shell: bash
 
       - name: Upload workspace artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.workspace-name }}
+          name: ${{ inputs.app-name }}
           path: ${{ steps.make_artifact.outputs.artifact-path }}
 
   deploy:
@@ -55,7 +59,7 @@ jobs:
       - name: Download workspace artifact
         uses: actions/download-artifact@v3
         with:
-          name: ${{ inputs.workspace-name }}
+          name: ${{ inputs.app-name }}
 
       - name: Login to Azure
         uses: azure/login@v1
@@ -70,7 +74,7 @@ jobs:
           resource-group-name: ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }}
           app-name: ${{ vars.AZURE_WEB_APP_NAME }}
           slot-name: staging
-          package: ${{ inputs.workspace-name }}.zip
+          package: ${{ inputs.app-name }}.zip
 
       - name: Check staging health
         run: curl --retry 5 --retry-max-time 120 --retry-all-errors -f 'https://${{ vars.AZURE_WEB_APP_NAME }}-staging.azurewebsites.net${{ vars.HEALTH_CHECK_PATH }}'
