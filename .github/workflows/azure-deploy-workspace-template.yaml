@@ -27,7 +27,7 @@ jobs:
 
       - name: Make workspace artifact
         id: make_artifact
-        uses: "pagopa/io-std/make-workspace-artifact"
+        uses: "pagopa/io-std/make-workspace-artifact@main"
         with:
           workspace-name: ${{ inputs.workspace-name }}
 
