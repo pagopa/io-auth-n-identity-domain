@@ -20,10 +20,10 @@ jobs:
         with:
           fetch-depth: 2
 
-  #     - name: Build workspace
-  #       uses: pagopa/io-auth-n-identity-domain/.github/actions/build-workspace@main
-  #       with:
-  #         workspace-name: ${{ inputs.workspace-name }}
+      - name: Build workspace
+        uses: pagopa/io-auth-n-identity-domain/.github/actions/build-workspace@main
+        with:
+          workspace-name: ${{ inputs.workspace-name }}
 
   #     - name: Make workspace artifact
   #       id: make_artifact
