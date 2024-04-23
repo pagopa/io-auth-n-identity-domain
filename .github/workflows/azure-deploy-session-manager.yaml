@@ -10,4 +10,5 @@ jobs:
     with:
       environment: session-manager-prod-cd
       workspace-name: '@pagopa/io-session-manager'
+      app-name: 'session-manager'
     secrets: inherit

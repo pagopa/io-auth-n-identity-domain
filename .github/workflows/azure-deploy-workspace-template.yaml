@@ -6,6 +6,9 @@ on:
       workspace-name:
         required: true
         type: string
+      app-name:
+        required: true
+        type: string
       environment:
         required: true
         type: string
@@ -29,7 +32,7 @@ jobs:
         id: make_artifact
         uses: "pagopa/io-std/make-workspace-artifact@main"
         with:
-          workspace-name: ${{ inputs.workspace-name }}
+          workspace-name: ${{ inputs.app-name }}
 
       - name: Upload workspace artifact
         uses: actions/upload-artifact@v3
