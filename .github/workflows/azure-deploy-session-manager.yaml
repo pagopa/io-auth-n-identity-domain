@@ -9,5 +9,5 @@ jobs:
     uses: pagopa/io-std/.github/workflows/deploy-workspace.yaml@main
     with:
       environment: session-manager-prod-cd
-      workspace-name: session-manager
+      workspace-name: '@pagopa/io-session-manager'
     secrets: inherit
