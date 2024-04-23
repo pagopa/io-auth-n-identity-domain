@@ -1,0 +1,39 @@
+name: "Build workspace"
+description: "Build a workspace"
+
+inputs:
+  workspace-name:
+    required: true
+    description: "The workspace name"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prune monorepo targeting ${{ inputs.workspace-name }}
+      run: npx turbo@1.12.5 prune --scope ${{ inputs.workspace-name }}
+      shell: bash
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version-file: ".node-version"
+        cache: "yarn"
+        cache-dependency-path: "./out/yarn.lock"
+
+    - name: Install dependencies
+      run: yarn install --immutable
+      shell: bash
+      working-directory: ./out
+
+    - name: Restore turbo cache
+      uses: actions/cache@v3
+      with:
+        path: ./out/node_modules/.cache/turbo
+        key: ${{ runner.os }}-turbo-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-turbo-
+
+    - name: Build ${{ inputs.workspace-name }}
+      run: yarn build
+      shell: bash
+      working-directory: ./out

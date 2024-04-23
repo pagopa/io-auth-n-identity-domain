@@ -6,7 +6,7 @@ on:
 jobs:
   deploy_to_azure:
     name: Deploy to Azure
-    uses: pagopa/io-std/.github/workflows/deploy-workspace.yaml@main
+    uses: ./azure-deploy-workspace-template.yaml
     with:
       environment: session-manager-prod-cd
       workspace-name: '@pagopa/io-session-manager'
