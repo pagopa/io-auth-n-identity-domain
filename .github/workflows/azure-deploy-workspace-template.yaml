@@ -25,52 +25,52 @@ jobs:
         with:
           workspace-name: ${{ inputs.workspace-name }}
 
-  #     - name: Make workspace artifact
-  #       id: make_artifact
-  #       uses: "pagopa/io-std/make-workspace-artifact"
-  #       with:
-  #         workspace-name: ${{ inputs.workspace-name }}
+      - name: Make workspace artifact
+        id: make_artifact
+        uses: "pagopa/io-std/make-workspace-artifact@main"
+        with:
+          workspace-name: ${{ inputs.workspace-name }}
 
-  #     - name: Upload workspace artifact
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: ${{ inputs.workspace-name }}
-  #         path: ${{ steps.make_artifact.outputs.artifact-path }}
+      - name: Upload workspace artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.workspace-name }}
+          path: ${{ steps.make_artifact.outputs.artifact-path }}
 
-  # deploy:
-  #   name: Deploy
-  #   if: ${{ !github.event.act }}
-  #   needs: [build]
-  #   runs-on: self-hosted
-  #   environment: ${{ inputs.environment }}
+  deploy:
+    name: Deploy
+    if: ${{ !github.event.act }}
+    needs: [build]
+    runs-on: self-hosted
+    environment: ${{ inputs.environment }}
 
-  #   permissions:
-  #     id-token: write
-  #     contents: read
+    permissions:
+      id-token: write
+      contents: read
 
-  #   steps:
-  #     - name: Download workspace artifact
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: ${{ inputs.workspace-name }}
+    steps:
+      - name: Download workspace artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.workspace-name }}
 
-  #     - name: Login to Azure
-  #       uses: azure/login@v1
-  #       with:
-  #         client-id: ${{ secrets.AZURE_CLIENT_ID }}
-  #         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-  #         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-  #     - name: Deploy to ${{ vars.AZURE_WEB_APP_NAME }} staging slot
-  #       uses: azure/webapps-deploy@v2
-  #       with:
-  #         resource-group-name: ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }}
-  #         app-name: ${{ vars.AZURE_WEB_APP_NAME }}
-  #         slot-name: staging
-  #         package: ${{ inputs.workspace-name }}.zip
+      - name: Deploy to ${{ vars.AZURE_WEB_APP_NAME }} staging slot
+        uses: azure/webapps-deploy@v2
+        with:
+          resource-group-name: ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }}
+          app-name: ${{ vars.AZURE_WEB_APP_NAME }}
+          slot-name: staging
+          package: ${{ inputs.workspace-name }}.zip
 
-  #     - name: Check staging health
-  #       run: curl --retry 5 --retry-max-time 120 --retry-all-errors -f 'https://${{ vars.AZURE_WEB_APP_NAME }}-staging.azurewebsites.net${{ vars.HEALTH_CHECK_PATH }}'
+      - name: Check staging health
+        run: curl --retry 5 --retry-max-time 120 --retry-all-errors -f 'https://${{ vars.AZURE_WEB_APP_NAME }}-staging.azurewebsites.net${{ vars.HEALTH_CHECK_PATH }}'
 
-  #     - name: Swap staging slot with production
-  #       run: az webapp deployment slot swap -g ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }} -n ${{ vars.AZURE_WEB_APP_NAME }} --slot staging --target-slot production
+      - name: Swap staging slot with production
+        run: az webapp deployment slot swap -g ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }} -n ${{ vars.AZURE_WEB_APP_NAME }} --slot staging --target-slot production

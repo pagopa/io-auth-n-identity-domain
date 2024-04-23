@@ -6,7 +6,7 @@ on:
 jobs:
   deploy_to_azure:
     name: Deploy to Azure
-    uses: pagopa/io-auth-n-identity-domain/.github/workflows/azure-deploy-workspace-template.yaml@IOPID-1764--fix-temptative-3
+    uses: pagopa/io-auth-n-identity-domain/.github/workflows/azure-deploy-workspace-template.yaml@main
     with:
       environment: session-manager-prod-cd
       workspace-name: '@pagopa/io-session-manager'
