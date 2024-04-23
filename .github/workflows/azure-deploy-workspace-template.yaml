@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 2
 
       - name: Build workspace
-        uses: pagopa/io-auth-n-identity-domain/.github/actions/build-workspace@main
+        uses: pagopa/io-auth-n-identity-domain/.github/actions/build-workspace
         with:
           workspace-name: ${{ inputs.workspace-name }}
 
@@ -36,6 +36,7 @@ jobs:
           npm pkg set --json "files"='["dist"]'
           npx npm-pack-zip
           echo "artifact-path=$(realpath ${{ inputs.app-name }}.zip)" >> "$GITHUB_OUTPUT"
+          echo "$(ls -alh)"
         shell: bash
 
       - name: Upload workspace artifact
@@ -48,7 +49,7 @@ jobs:
     name: Deploy
     if: ${{ !github.event.act }}
     needs: [build]
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
     permissions:
