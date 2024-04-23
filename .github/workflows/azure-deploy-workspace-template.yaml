@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 2
 
       - name: Build workspace
-        uses: "../actions/build-workspace"
+        uses: "./.github/actions/build-workspace"
         with:
           workspace-name: ${{ inputs.workspace-name }}
 
