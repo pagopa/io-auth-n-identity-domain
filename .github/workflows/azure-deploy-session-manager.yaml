@@ -1,0 +1,13 @@
+name: Deploy (session-manager)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_to_azure:
+    name: Deploy to Azure
+    uses: pagopa/io-std/.github/workflows/deploy-workspace.yaml@main
+    with:
+      environment: session-manager-prod-cd
+      workspace-name: session-manager
+    secrets: inherit
