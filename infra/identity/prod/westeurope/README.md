@@ -1,4 +1,4 @@
-# DX Typescript - GitHub federated Managed Identities
+# IO AuthNIdentityDomain - GitHub federated Managed Identities
 
 <!-- markdownlint-disable -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
