@@ -1,7 +1,7 @@
 import express from "express";
 
 const app = express();
-const port = 3000;
+const port = process.env.WEBSITES_PORT ?? 3000;
 
 app.get("/healthcheck", (_req: express.Request, res: express.Response) => {
   res.send("Hello World!");
