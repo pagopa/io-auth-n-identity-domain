@@ -35,7 +35,7 @@ jobs:
           npm pkg set --json "bundledDependencies"=true
           npm pkg set --json "files"='["dist"]'
           npx npm-pack-zip
-          echo "artifact-path=$(realpath ${{ inputs.app-name }}.zip)" >> "$GITHUB_OUTPUT"
+          echo "artifact-path=$(realpath *.zip)" >> "$GITHUB_OUTPUT"
         shell: bash
 
       - name: Upload workspace artifact
