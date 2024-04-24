@@ -1,7 +1,9 @@
 locals {
-  prefix         = "io"
-  env_short      = "p"
-  env            = "prod"
+  prefix    = "io"
+  env_short = "p"
+
+  session_manager_environment = "session-manager-prod"
+
   location_short = "weu"
   location       = "westeurope"
   domain         = "auth-n-identity"

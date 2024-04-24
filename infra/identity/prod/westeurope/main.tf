@@ -27,7 +27,7 @@ module "federated_identities" {
 
   prefix       = local.prefix
   env_short    = local.env_short
-  env          = local.env
+  env          = local.session_manager_environment
   domain       = local.domain
   repositories = [local.repo_name]
   tags         = local.tags
