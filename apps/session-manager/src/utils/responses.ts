@@ -7,10 +7,12 @@ import {
 } from "@pagopa/ts-commons/lib/responses";
 import * as t from "io-ts";
 import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
 
 /**
  * Calls the provided function with the valid response, or else returns an
  * IResponseErrorValidation with the validation errors.
+ * @deprecated
  */
 export const withValidatedOrValidationError = <T, U>(
   response: t.Validation<T>,
@@ -20,6 +22,23 @@ export const withValidatedOrValidationError = <T, U>(
     ? ResponseErrorValidation(
         "Bad request",
         errorsToReadableMessages(response.left).join(" / "),
+      )
+    : f(response.right);
+
+/**
+ * Calls the provided function with the valid response, or else returns an
+ * IResponseErrorValidation with the validation errors.
+ */
+export const withValidatedOrValidationErrorRTE = <T, U, E>(
+  response: t.Validation<T>,
+  f: (p: T) => TE.TaskEither<E, U>,
+): TE.TaskEither<E, U | IResponseErrorValidation> =>
+  E.isLeft(response)
+    ? TE.right(
+        ResponseErrorValidation(
+          "Bad request",
+          errorsToReadableMessages(response.left).join(" / "),
+        ),
       )
     : f(response.right);
 

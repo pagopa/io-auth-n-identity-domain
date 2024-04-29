@@ -14,7 +14,7 @@ import {
   update,
 } from "../services/redis-session-storage";
 import * as E from "fp-ts/Either";
-import { UserV2, UserV3, UserV4, UserV5 } from "../types/user";
+import { User, UserV2, UserV3, UserV4, UserV5 } from "../types/user";
 import { pipe } from "fp-ts/lib/function";
 import { RedisClientSelectorType } from "../repositories/redis";
 import * as O from "fp-ts/Option";
@@ -123,3 +123,96 @@ export const getSessionState =
         TE.toUnion,
       )();
     });
+
+export const getSessionStateRTE = (deps: {
+  redisClientSelector: RedisClientSelectorType;
+  apiClient: ReturnType<APIClient>;
+  req: express.Request;
+  user: User;
+}): TE.TaskEither<
+  Error,
+  | IResponseErrorInternal
+  | IResponseErrorValidation
+  | IResponseSuccessJson<PublicSession>
+> =>
+  TE.tryCatch(
+    async () => {
+      const zendeskSuffix = await pipe(
+        profileWithEmailValidatedOrError(deps.apiClient)(deps.user),
+        TE.bimap(
+          // we generate 4 bytes and convert them to hex string for a length of 8 chars
+          (_) => crypto.randomBytes(4).toString("hex"),
+          // or we take 8 chars from the hash hex string
+          (p) =>
+            crypto
+              .createHash("sha256")
+              .update(p.email)
+              .digest("hex")
+              .substring(0, 8),
+        ),
+        TE.toUnion,
+      )();
+
+      // Read the assertionRef related to the User for Lollipop.
+      const errorOrMaybeAssertionRef = await getLollipopAssertionRefForUser(
+        deps.redisClientSelector,
+      )(deps.user.fiscal_code)();
+      if (E.isLeft(errorOrMaybeAssertionRef)) {
+        return ResponseErrorInternal(
+          `Error retrieving the assertionRef: ${errorOrMaybeAssertionRef.left.message}`,
+        );
+      }
+
+      if (UserV5.is(deps.user)) {
+        // All required tokens are present on the current session, no update is required
+        return ResponseSuccessJson({
+          bpdToken: deps.user.bpd_token,
+          fimsToken: deps.user.fims_token,
+          lollipopAssertionRef: O.toUndefined(errorOrMaybeAssertionRef.right),
+          myPortalToken: deps.user.myportal_token,
+          spidLevel: deps.user.spid_level,
+          walletToken: deps.user.wallet_token,
+          zendeskToken: `${deps.user.zendesk_token}${zendeskSuffix}`,
+        });
+      }
+
+      // If the myportal_token, zendesk_token or bpd_token are missing into the user session,
+      // new tokens are generated and the session is updated
+      const updatedUser: UserV5 = {
+        ...deps.user,
+        bpd_token: UserV3.is(deps.user)
+          ? deps.user.bpd_token
+          : (getNewToken(SESSION_TOKEN_LENGTH_BYTES) as BPDToken),
+        fims_token: getNewToken(SESSION_TOKEN_LENGTH_BYTES) as FIMSToken,
+        myportal_token: UserV2.is(deps.user)
+          ? deps.user.myportal_token
+          : (getNewToken(SESSION_TOKEN_LENGTH_BYTES) as MyPortalToken),
+        zendesk_token: UserV4.is(deps.user)
+          ? deps.user.zendesk_token
+          : (getNewToken(SESSION_TOKEN_LENGTH_BYTES) as ZendeskToken),
+      };
+
+      return pipe(
+        update(deps.redisClientSelector)(updatedUser),
+        TE.mapLeft((err) => {
+          log.error(`getSessionState: ${err.message}`);
+          return ResponseErrorInternal(
+            `Error updating user session [${err.message}]`,
+          );
+        }),
+        TE.map((_) =>
+          ResponseSuccessJson({
+            bpdToken: updatedUser.bpd_token,
+            fimsToken: updatedUser.fims_token,
+            lollipopAssertionRef: O.toUndefined(errorOrMaybeAssertionRef.right),
+            myPortalToken: updatedUser.myportal_token,
+            spidLevel: updatedUser.spid_level,
+            walletToken: updatedUser.wallet_token,
+            zendeskToken: `${updatedUser.zendesk_token}${zendeskSuffix}`,
+          }),
+        ),
+        TE.toUnion,
+      )();
+    },
+    (err) => new Error(String(err)),
+  );
