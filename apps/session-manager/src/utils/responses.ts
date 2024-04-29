@@ -8,6 +8,7 @@ import {
 import * as t from "io-ts";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
+import { log } from "./logger";
 
 /**
  * Calls the provided function with the valid response, or else returns an
@@ -65,7 +66,7 @@ export const withCatchAsInternalError = <T>(
 ): Promise<T | IResponseErrorInternal> =>
   f().catch((_) => {
     // eslint-disable-next-line no-console
-    console.error(_);
+    log.error(_);
     return ResponseErrorInternal(`${message} [${_}]`);
   });
 
