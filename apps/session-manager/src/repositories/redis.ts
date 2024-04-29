@@ -28,7 +28,7 @@ export const keyPrefixes = [
   noticeEmailPrefix,
   blockedUserSetKey,
   lollipopDataPrefix,
-];
+] as const;
 export const sessionNotFoundError = new Error("Session not found");
 
 export const obfuscateTokensInfo = (message: string) =>
