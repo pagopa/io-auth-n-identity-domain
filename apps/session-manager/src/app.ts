@@ -10,6 +10,8 @@ import { httpOrHttpsApiFetch } from "./utils/fetch";
 import { Express } from "express";
 import { toExpressHandlerRTE } from "./utils/express";
 import { withUserFromRequestRTE } from "./utils/user";
+import { ap } from "fp-ts/lib/Identity";
+import { pipe } from "fp-ts/lib/function";
 
 export const newApp = async (): Promise<Express> => {
   // Create the Session Storage service
@@ -50,10 +52,13 @@ export const newApp = async (): Promise<Express> => {
   app.get(
     `${API_BASE_PATH}/session`,
     authMiddlewares.bearerSession,
-    toExpressHandlerRTE({
-      redisClientSelector: REDIS_CLIENT_SELECTOR,
-      apiClient: API_CLIENT,
-    })(withUserFromRequestRTE(getSessionStateRTE)),
+    pipe(
+      toExpressHandlerRTE({
+        redisClientSelector: REDIS_CLIENT_SELECTOR,
+        apiClient: API_CLIENT,
+      }),
+      ap(withUserFromRequestRTE(getSessionStateRTE)),
+    ),
   );
 
   return app;

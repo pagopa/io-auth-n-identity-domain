@@ -13,10 +13,8 @@ export type WithExpressRequest = {
 };
 
 export const toExpressHandlerRTE =
-  <D, T>(deps4: D) =>
-  (
-    handler: RTE.ReaderTaskEither<D & WithExpressRequest, Error, IResponse<T>>,
-  ) =>
+  <D, R extends IResponse<T>, T>(deps4: D) =>
+  (handler: RTE.ReaderTaskEither<D & WithExpressRequest, Error, R>) =>
   (req: express.Request, res: express.Response): Promise<void> =>
     pipe(
       handler({
