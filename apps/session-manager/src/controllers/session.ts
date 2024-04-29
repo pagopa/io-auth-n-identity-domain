@@ -1,5 +1,4 @@
-import * as express from "express";
-import { withUserFromRequest } from "../utils/user";
+import { WithUser } from "../utils/user";
 import {
   IResponseErrorInternal,
   IResponseErrorValidation,
@@ -25,111 +24,24 @@ import {
   ZendeskToken,
 } from "../types/token";
 import { log } from "../utils/logger";
-import { profileWithEmailValidatedOrError } from "./profile";
 import { APIClient } from "../repositories/api";
 import { PublicSession } from "../generated/backend/PublicSession";
 import { getNewToken } from "../services/token";
+import { WithExpressRequest } from "../utils/express";
+import { getProfile } from "../services/profile";
+import { InitializedProfile } from "../generated/backend/InitializedProfile";
+import { ProfileWithEmailValidated } from "../types/profile";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
 
-export const getSessionState =
-  (
-    redisClientSelector: RedisClientSelectorType,
-    apiClient: ReturnType<APIClient>,
-  ) =>
-  (
-    req: express.Request,
-  ): Promise<
-    | IResponseErrorInternal
-    | IResponseErrorValidation
-    | IResponseSuccessJson<PublicSession>
-  > =>
-    withUserFromRequest(req, async (user) => {
-      const zendeskSuffix = await pipe(
-        profileWithEmailValidatedOrError(apiClient)(user),
-        TE.bimap(
-          // we generate 4 bytes and convert them to hex string for a length of 8 chars
-          (_) => crypto.randomBytes(4).toString("hex"),
-          // or we take 8 chars from the hash hex string
-          (p) =>
-            crypto
-              .createHash("sha256")
-              .update(p.email)
-              .digest("hex")
-              .substring(0, 8),
-        ),
-        TE.toUnion,
-      )();
-
-      // Read the assertionRef related to the User for Lollipop.
-      const errorOrMaybeAssertionRef = await getLollipopAssertionRefForUser(
-        redisClientSelector,
-      )(user.fiscal_code)();
-      if (E.isLeft(errorOrMaybeAssertionRef)) {
-        return ResponseErrorInternal(
-          `Error retrieving the assertionRef: ${errorOrMaybeAssertionRef.left.message}`,
-        );
-      }
-
-      if (UserV5.is(user)) {
-        // All required tokens are present on the current session, no update is required
-        return ResponseSuccessJson({
-          bpdToken: user.bpd_token,
-          fimsToken: user.fims_token,
-          lollipopAssertionRef: O.toUndefined(errorOrMaybeAssertionRef.right),
-          myPortalToken: user.myportal_token,
-          spidLevel: user.spid_level,
-          walletToken: user.wallet_token,
-          zendeskToken: `${user.zendesk_token}${zendeskSuffix}`,
-        });
-      }
-
-      // If the myportal_token, zendesk_token or bpd_token are missing into the user session,
-      // new tokens are generated and the session is updated
-      const updatedUser: UserV5 = {
-        ...user,
-        bpd_token: UserV3.is(user)
-          ? user.bpd_token
-          : (getNewToken(SESSION_TOKEN_LENGTH_BYTES) as BPDToken),
-        fims_token: getNewToken(SESSION_TOKEN_LENGTH_BYTES) as FIMSToken,
-        myportal_token: UserV2.is(user)
-          ? user.myportal_token
-          : (getNewToken(SESSION_TOKEN_LENGTH_BYTES) as MyPortalToken),
-        zendesk_token: UserV4.is(user)
-          ? user.zendesk_token
-          : (getNewToken(SESSION_TOKEN_LENGTH_BYTES) as ZendeskToken),
-      };
-
-      return pipe(
-        update(redisClientSelector)(updatedUser),
-        TE.mapLeft((err) => {
-          log.error(`getSessionState: ${err.message}`);
-          return ResponseErrorInternal(
-            `Error updating user session [${err.message}]`,
-          );
-        }),
-        TE.map((_) =>
-          ResponseSuccessJson({
-            bpdToken: updatedUser.bpd_token,
-            fimsToken: updatedUser.fims_token,
-            lollipopAssertionRef: O.toUndefined(errorOrMaybeAssertionRef.right),
-            myPortalToken: updatedUser.myportal_token,
-            spidLevel: updatedUser.spid_level,
-            walletToken: updatedUser.wallet_token,
-            zendeskToken: `${updatedUser.zendesk_token}${zendeskSuffix}`,
-          }),
-        ),
-        TE.toUnion,
-      )();
-    });
-
-export const getSessionStateRTE = (deps: {
-  redisClientSelector: RedisClientSelectorType;
-  apiClient: ReturnType<APIClient>;
-  req: express.Request;
-  user: User;
-}): TE.TaskEither<
+export const getSessionStateRTE = (
+  deps: {
+    redisClientSelector: RedisClientSelectorType;
+    apiClient: ReturnType<APIClient>;
+  } & WithUser &
+    WithExpressRequest,
+): TE.TaskEither<
   Error,
   | IResponseErrorInternal
   | IResponseErrorValidation
@@ -216,3 +128,29 @@ export const getSessionStateRTE = (deps: {
     },
     (err) => new Error(String(err)),
   );
+
+const profileWithEmailValidatedOrError =
+  (apiClient: ReturnType<APIClient>) => (user: User) =>
+    pipe(
+      TE.tryCatch(
+        () => getProfile(apiClient)(user),
+        () => new Error("Error retrieving user profile"),
+      ),
+      TE.chain(
+        TE.fromPredicate(
+          (r): r is IResponseSuccessJson<InitializedProfile> =>
+            r.kind === "IResponseSuccessJson",
+          (e) => new Error(`Error retrieving user profile | ${e.detail}`),
+        ),
+      ),
+      TE.chainW((profile) =>
+        pipe(
+          profile.value,
+          ProfileWithEmailValidated.decode,
+          E.mapLeft(
+            (_) => new Error("Profile has not a validated email address"),
+          ),
+          TE.fromEither,
+        ),
+      ),
+    );

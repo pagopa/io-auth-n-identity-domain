@@ -6,6 +6,7 @@ import * as express from "express";
 import * as TE from "fp-ts/TaskEither";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/function";
+import * as RTE from "fp-ts/ReaderTaskEither";
 
 export type WithExpressRequest = {
   req: express.Request;
@@ -14,9 +15,7 @@ export type WithExpressRequest = {
 export const toExpressHandlerRTE =
   <D, T>(deps4: D) =>
   (
-    handler: (
-      depsWithReq: D & WithExpressRequest,
-    ) => TE.TaskEither<Error, IResponse<T>>,
+    handler: RTE.ReaderTaskEither<D & WithExpressRequest, Error, IResponse<T>>,
   ) =>
   (req: express.Request, res: express.Response): Promise<void> =>
     pipe(

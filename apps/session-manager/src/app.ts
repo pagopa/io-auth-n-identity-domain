@@ -47,21 +47,14 @@ export const newApp = async (): Promise<Express> => {
 
   const API_BASE_PATH = getRequiredENVVar("API_BASE_PATH");
 
-  /** Old Code
-  app.get(
-    `${API_BASE_PATH}/session`,
-    authMiddlewares.bearerSession,
-    toExpressHandler(getSessionState(REDIS_CLIENT_SELECTOR, API_CLIENT)),
-  );
-  **/
-
   app.get(
     `${API_BASE_PATH}/session`,
     authMiddlewares.bearerSession,
     toExpressHandlerRTE({
       redisClientSelector: REDIS_CLIENT_SELECTOR,
       apiClient: API_CLIENT,
-    })(withUserFromRequestRTE((_) => getSessionStateRTE(_))),
+    })(withUserFromRequestRTE(getSessionStateRTE)),
   );
+
   return app;
 };
