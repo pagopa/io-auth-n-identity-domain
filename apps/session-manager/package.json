@@ -49,6 +49,8 @@
         "helmet": "^7.1.0",
         "io-ts": "^2.2.21",
         "io-ts-types": "^0.5.16",
+        "monocle-ts": "^2.3.13",
+        "newtype-ts": "^0.3.5",
         "node-fetch": "^2.6.1",
         "passport": "^0.6.0",
         "passport-http-bearer": "^1.0.1",
