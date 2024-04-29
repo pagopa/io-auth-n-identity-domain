@@ -18,8 +18,8 @@ locals {
   # -------------------------
   # Session Manager Data
   # -------------------------
-  session_manager_name                = "${local.project}-${local.location_short}-session-manager"
-  session_manager_resource_group_name = "${local.project}-${local.location_short}-session-manager-rg"
+  session_manager_name                = "${local.project}-${local.location_short}-session-manager-app-01"
+  session_manager_resource_group_name = "${local.project}-${local.location_short}-session-manager-rg-01"
 
   session_manager_cd = {
     secrets = {
