@@ -12,6 +12,7 @@ import { toExpressHandlerRTE } from "./utils/express";
 import { withUserFromRequestRTE } from "./utils/user";
 import { ap } from "fp-ts/lib/Identity";
 import { pipe } from "fp-ts/lib/function";
+import helmet from "helmet";
 
 export const newApp = async (): Promise<Express> => {
   // Create the Session Storage service
@@ -40,6 +41,8 @@ export const newApp = async (): Promise<Express> => {
   //
 
   app.use(passport.initialize());
+
+  app.use(helmet());
 
   const authMiddlewares = {
     bearerSession: passport.authenticate("bearer.session", {
