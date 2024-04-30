@@ -14,8 +14,8 @@
         "dist/**"
       ],
       "dependsOn": [
-        "^build",
-        "^generate"
+        "^generate",
+        "^build"
       ]
     },
     "typecheck": {
@@ -26,6 +26,7 @@
       ],
       "outputs": [],
       "dependsOn": [
+        "^generate",
         "^typecheck",
         "^build"
       ]
@@ -48,6 +49,7 @@
       ],
       "outputMode": "errors-only",
       "dependsOn": [
+        "^generate",
         "^test",
         "^build"
       ]
@@ -58,6 +60,7 @@
       ],
       "outputMode": "errors-only",
       "dependsOn": [
+        "^generate",
         "^test",
         "^build"
       ]
