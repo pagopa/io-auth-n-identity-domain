@@ -15,6 +15,7 @@
       ],
       "dependsOn": [
         "^generate",
+        "generate",
         "^build"
       ]
     },
@@ -26,9 +27,8 @@
       ],
       "outputs": [],
       "dependsOn": [
-        "^generate",
-        "^typecheck",
-        "^build"
+        "^build",
+        "^typecheck"
       ]
     },
     "format": {},
@@ -49,9 +49,8 @@
       ],
       "outputMode": "errors-only",
       "dependsOn": [
-        "^generate",
-        "^test",
-        "^build"
+        "^build",
+        "^test"
       ]
     },
     "test:coverage": {
@@ -60,9 +59,8 @@
       ],
       "outputMode": "errors-only",
       "dependsOn": [
-        "^generate",
-        "^test",
-        "^build"
+        "^build",
+        "^test"
       ]
     },
     "generate": {
