@@ -10,6 +10,7 @@ on:
       - apps/**
       - packages/**
       - package.json
+      - turbo.json
   workflow_dispatch:
 
 jobs:
