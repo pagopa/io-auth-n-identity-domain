@@ -8,6 +8,7 @@
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",
     "build": "turbo run build",
+    "generate": "turbo run generate",
     "typecheck": "turbo run typecheck",
     "version": "changeset version",
     "release": "changeset tag"

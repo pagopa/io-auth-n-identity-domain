@@ -14,7 +14,8 @@
         "dist/**"
       ],
       "dependsOn": [
-        "^build"
+        "^build",
+        "^generate"
       ]
     },
     "typecheck": {
@@ -60,6 +61,11 @@
         "^test",
         "^build"
       ]
+    },
+    "generate": {
+      "inputs": ["api/**/*.yaml"],
+      "outputs": ["src/generated/**/*.ts"],
+      "outputMode": "errors-only"
     }
   }
 }
