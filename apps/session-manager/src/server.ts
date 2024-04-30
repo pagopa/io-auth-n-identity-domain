@@ -7,7 +7,7 @@ const port = process.env.WEBSITES_PORT ?? 3000;
 
 newApp()
   .then((app) => {
-    app.get("/", (_req: express.Request, res: express.Response) => {
+    app.get("/healthcheck", (_req: express.Request, res: express.Response) => {
       res.send("Hello World!");
     });
 
