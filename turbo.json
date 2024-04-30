@@ -14,6 +14,7 @@
         "dist/**"
       ],
       "dependsOn": [
+        "^generate",
         "^build"
       ]
     },
@@ -25,6 +26,7 @@
       ],
       "outputs": [],
       "dependsOn": [
+        "^generate",
         "^typecheck",
         "^build"
       ]
@@ -47,6 +49,7 @@
       ],
       "outputMode": "errors-only",
       "dependsOn": [
+        "^generate",
         "^test",
         "^build"
       ]
@@ -57,9 +60,15 @@
       ],
       "outputMode": "errors-only",
       "dependsOn": [
+        "^generate",
         "^test",
         "^build"
       ]
+    },
+    "generate": {
+      "inputs": ["api/**/*.yaml"],
+      "outputs": ["src/generated/**/*.ts"],
+      "outputMode": "errors-only"
     }
   }
 }
