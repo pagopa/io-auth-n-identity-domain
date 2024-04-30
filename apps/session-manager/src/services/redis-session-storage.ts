@@ -8,7 +8,7 @@ import * as T from "fp-ts/Task";
 import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { SessionToken } from "../types/token";
-import { User, UserV1, UserV2, UserV3, UserV4, UserV5 } from "../types/user";
+import { User } from "../types/user";
 import {
   RedisClientMode,
   RedisClientSelectorType,
@@ -211,7 +211,7 @@ const readSessionInfoKeys =
 const getUserTokens = (
   user: User,
 ): Record<string, { readonly prefix: string; readonly value: string }> => {
-  const requiredTokens = {
+  return {
     session_info: {
       prefix: sessionInfoKeyPrefix,
       value: user.session_token,
@@ -224,73 +224,23 @@ const getUserTokens = (
       prefix: walletKeyPrefix,
       value: user.wallet_token,
     },
+    bpd_token: {
+      prefix: bpdTokenPrefix,
+      value: user.bpd_token,
+    },
+    fims_token: {
+      prefix: fimsTokenPrefix,
+      value: user.fims_token,
+    },
+    myportal_token: {
+      prefix: myPortalTokenPrefix,
+      value: user.myportal_token,
+    },
+    zendesk_token: {
+      prefix: zendeskTokenPrefix,
+      value: user.zendesk_token,
+    },
   };
-  if (UserV5.is(user)) {
-    return {
-      ...requiredTokens,
-      bpd_token: {
-        prefix: bpdTokenPrefix,
-        value: user.bpd_token,
-      },
-      fims_token: {
-        prefix: fimsTokenPrefix,
-        value: user.fims_token,
-      },
-      myportal_token: {
-        prefix: myPortalTokenPrefix,
-        value: user.myportal_token,
-      },
-      zendesk_token: {
-        prefix: zendeskTokenPrefix,
-        value: user.zendesk_token,
-      },
-    };
-  }
-  if (UserV4.is(user)) {
-    return {
-      ...requiredTokens,
-      bpd_token: {
-        prefix: bpdTokenPrefix,
-        value: user.bpd_token,
-      },
-      myportal_token: {
-        prefix: myPortalTokenPrefix,
-        value: user.myportal_token,
-      },
-      zendesk_token: {
-        prefix: zendeskTokenPrefix,
-        value: user.zendesk_token,
-      },
-    };
-  }
-  if (UserV3.is(user)) {
-    return {
-      ...requiredTokens,
-      bpd_token: {
-        prefix: bpdTokenPrefix,
-        value: user.bpd_token,
-      },
-      myportal_token: {
-        prefix: myPortalTokenPrefix,
-        value: user.myportal_token,
-      },
-    };
-  }
-  if (UserV2.is(user)) {
-    return {
-      ...requiredTokens,
-      myportal_token: {
-        prefix: myPortalTokenPrefix,
-        value: user.myportal_token,
-      },
-    };
-  }
-  if (UserV1.is(user)) {
-    return {
-      ...requiredTokens,
-    };
-  }
-  return assertUnreachable(user);
 };
 
 const clearExpiredSetValues =
@@ -355,7 +305,7 @@ const clearExpiredSetValues =
 
 const removeOtherUserSessions =
   (redisClientSelector: RedisClientSelectorType) =>
-  async (user: UserV5): Promise<E.Either<Error, boolean>> => {
+  async (user: User): Promise<E.Either<Error, boolean>> => {
     const errorOrSessionInfoKeys = await readSessionInfoKeys(
       redisClientSelector,
     )(user.fiscal_code);
@@ -511,7 +461,7 @@ const saveSessionInfo =
 export const set =
   (redisClientSelector: RedisClientSelectorType, expireSec: number) =>
   (
-    user: UserV5,
+    user: User,
     isUserSessionUpdate: boolean = false,
   ): TE.TaskEither<Error, boolean> => {
     const setSessionTokenV2 = pipe(
@@ -647,11 +597,13 @@ export const set =
       ]),
       TE.fromTask,
       TE.chain(
-        TE.fromPredicate(A.some(E.isLeft), (results) =>
-          multipleErrorsFormatter(
-            results.filter(E.isLeft).map((result) => result.left),
-            "RedisSessionStorage.set",
-          ),
+        TE.fromPredicate(
+          (tasksResults) => !A.some(E.isLeft)(tasksResults),
+          (results) =>
+            multipleErrorsFormatter(
+              results.filter(E.isLeft).map((result) => result.left),
+              "RedisSessionStorage.set",
+            ),
         ),
       ),
       TE.map(() => true),
@@ -660,7 +612,7 @@ export const set =
 
 export const update =
   (redisClientSelector: RedisClientSelectorType) =>
-  (updatedUser: UserV5): TE.TaskEither<Error, boolean> =>
+  (updatedUser: User): TE.TaskEither<Error, boolean> =>
     pipe(
       getSessionTtl(redisClientSelector)(updatedUser.session_token),
       TE.mapLeft(
