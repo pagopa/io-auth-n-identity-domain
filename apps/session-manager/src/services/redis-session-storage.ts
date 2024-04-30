@@ -131,21 +131,6 @@ const getLollipopDataForUser =
       ),
     );
 
-const ttl = (redisClientSelector: RedisClientSelectorType) => (key: string) => {
-  const redis_client = redisClientSelector.selectOne(RedisClientMode.FAST);
-  return redis_client.ttl.bind(redis_client)(key);
-};
-
-const getSessionTtl =
-  (redisClientSelector: RedisClientSelectorType) =>
-  (token: SessionToken): TE.TaskEither<Error, number> =>
-    // Returns the key ttl in seconds
-    // -2 if the key doesn't exist or -1 if the key has no expire
-    // @see https://redis.io/commands/ttl
-    TE.tryCatch(
-      () => ttl(redisClientSelector)(`${sessionKeyPrefix}${token}`),
-      E.toError,
-    );
 const singleStringReplyAsync = (command: TE.TaskEither<Error, string | null>) =>
   pipe(
     command,
@@ -596,28 +581,3 @@ export const set =
       TE.map(() => true),
     );
   };
-
-export const update =
-  (redisClientSelector: RedisClientSelectorType) =>
-  (updatedUser: User): TE.TaskEither<Error, boolean> =>
-    pipe(
-      getSessionTtl(redisClientSelector)(updatedUser.session_token),
-      TE.mapLeft(
-        (err) =>
-          new Error(`Error retrieving user session ttl [${err.message}]`),
-      ),
-      TE.chain(
-        TE.fromPredicate(
-          (sessionTtl) => sessionTtl >= 0,
-          (sessionTtl) =>
-            new Error(`Unexpected session TTL value [${sessionTtl}]`),
-        ),
-      ),
-      TE.chain((sessionTtl) =>
-        set(redisClientSelector, sessionTtl)(updatedUser, true),
-      ),
-      TE.mapLeft(
-        (err) => new Error(`Error updating user session [${err.message}]`),
-      ),
-      TE.map(() => true),
-    );
