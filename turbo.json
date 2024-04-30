@@ -15,6 +15,7 @@
       ],
       "dependsOn": [
         "^clean",
+        "clean",
         "^generate",
         "generate",
         "^build"
@@ -70,7 +71,8 @@
       "outputMode": "errors-only"
     },
     "clean": {
-      "inputs": ["dist/**"]
+      "inputs": ["dist/**"],
+      "cache": false
     }
   }
 }
