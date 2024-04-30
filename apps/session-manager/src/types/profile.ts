@@ -4,8 +4,8 @@ import { ExtendedProfile } from "@pagopa/io-functions-app-sdk/ExtendedProfile";
 import * as t from "io-ts";
 import { formatDate } from "../utils/date";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
-import { User } from "./user";
 import { EmailAddress } from "../generated/backend/EmailAddress";
+import { User } from "./user";
 
 /**
  * Converts an existing ExtendedProfile to a Proxy profile.

@@ -1,18 +1,18 @@
 import * as passport from "passport";
+import express from "express";
+import { Express } from "express";
+import { ap } from "fp-ts/lib/Identity";
+import { pipe } from "fp-ts/lib/function";
+import helmet from "helmet";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import { RedisClientSelector } from "./repositories/redis";
 import { attachTrackingData } from "./utils/appinsights";
 import { getRequiredENVVar } from "./utils/environment";
-import express from "express";
 import { APIClient } from "./repositories/api";
 import { getSessionStateRTE } from "./controllers/session";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
-import { Express } from "express";
 import { toExpressHandlerRTE } from "./utils/express";
 import { withUserFromRequestRTE } from "./utils/user";
-import { ap } from "fp-ts/lib/Identity";
-import { pipe } from "fp-ts/lib/function";
-import helmet from "helmet";
 
 export const newApp = async (): Promise<Express> => {
   // Create the Session Storage service

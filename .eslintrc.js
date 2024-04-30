@@ -3,7 +3,7 @@
 module.exports = {
   ignorePatterns: ["apps/**", "packages/**"],
   // retrieved from packages/eslint-config-monorepo
-  extends: ["monorepo/index.js"],
+  extends: ["eslint-config-monorepo/index.js"],
   parser: "@typescript-eslint/parser",
   parserOptions: {
     project: true,

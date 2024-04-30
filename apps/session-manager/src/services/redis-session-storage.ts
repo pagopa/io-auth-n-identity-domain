@@ -1,3 +1,4 @@
+import { isArray } from "util";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { flow, identity, pipe } from "fp-ts/lib/function";
@@ -7,6 +8,9 @@ import * as A from "fp-ts/Array";
 import * as T from "fp-ts/Task";
 import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { isNumber } from "fp-ts/lib/number";
+import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
+import * as ROA from "fp-ts/ReadonlyArray";
 import { SessionToken } from "../types/token";
 import { User } from "../types/user";
 import {
@@ -30,11 +34,6 @@ import {
 import { LoginTypeEnum } from "../types/fast-login";
 import { AssertionRef } from "../generated/backend/AssertionRef";
 import { SessionInfo } from "../generated/backend/SessionInfo";
-import { isNumber } from "fp-ts/lib/number";
-import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
-import { isArray } from "util";
-import * as ROA from "fp-ts/ReadonlyArray";
-import { assertUnreachable } from "../types/common";
 import { log } from "../utils/logger";
 import { multipleErrorsFormatter } from "../utils/errors";
 
@@ -139,28 +138,22 @@ const ttl = (redisClientSelector: RedisClientSelectorType) => (key: string) => {
 
 const getSessionTtl =
   (redisClientSelector: RedisClientSelectorType) =>
-  (token: SessionToken): TE.TaskEither<Error, number> => {
+  (token: SessionToken): TE.TaskEither<Error, number> =>
     // Returns the key ttl in seconds
     // -2 if the key doesn't exist or -1 if the key has no expire
     // @see https://redis.io/commands/ttl
-    return TE.tryCatch(
+    TE.tryCatch(
       () => ttl(redisClientSelector)(`${sessionKeyPrefix}${token}`),
       E.toError,
     );
-  };
-
-const singleStringReplyAsync = (
-  command: TE.TaskEither<Error, string | null>,
-) => {
-  return pipe(
+const singleStringReplyAsync = (command: TE.TaskEither<Error, string | null>) =>
+  pipe(
     command,
     TE.map((reply) => reply === "OK"),
   );
-};
-const integerReplyAsync = (expectedReply?: number) => {
-  return (
-    command: TE.TaskEither<Error, unknown>,
-  ): TE.TaskEither<Error, boolean> =>
+const integerReplyAsync =
+  (expectedReply?: number) =>
+  (command: TE.TaskEither<Error, unknown>): TE.TaskEither<Error, boolean> =>
     pipe(
       command,
       TE.chain((reply) => {
@@ -170,21 +163,18 @@ const integerReplyAsync = (expectedReply?: number) => {
         return TE.right(isNumber(reply));
       }),
     );
-};
 
-const falsyResponseToErrorAsync = (error: Error) => {
-  return (
-    response: TE.TaskEither<Error, boolean>,
-  ): TE.TaskEither<Error, true> =>
+const falsyResponseToErrorAsync =
+  (error: Error) =>
+  (response: TE.TaskEither<Error, boolean>): TE.TaskEither<Error, true> =>
     pipe(
       response,
       TE.chain((_) => (_ ? TE.right(_) : TE.left(error))),
     );
-};
 const arrayStringReplyAsync = (
   command: TE.TaskEither<Error, ReadonlyArray<string | null>>,
-): Promise<E.Either<Error, NonEmptyArray<string>>> => {
-  return pipe(
+): Promise<E.Either<Error, NonEmptyArray<string>>> =>
+  pipe(
     command,
     TE.chain(
       TE.fromPredicate(
@@ -193,7 +183,6 @@ const arrayStringReplyAsync = (
       ),
     ),
   )();
-};
 const readSessionInfoKeys =
   (redisClientSelector: RedisClientSelectorType) =>
   (fiscalCode: FiscalCode): Promise<E.Either<Error, ReadonlyArray<string>>> =>
@@ -210,38 +199,36 @@ const readSessionInfoKeys =
 
 const getUserTokens = (
   user: User,
-): Record<string, { readonly prefix: string; readonly value: string }> => {
-  return {
-    session_info: {
-      prefix: sessionInfoKeyPrefix,
-      value: user.session_token,
-    },
-    session_token: {
-      prefix: sessionKeyPrefix,
-      value: user.session_token,
-    },
-    wallet_token: {
-      prefix: walletKeyPrefix,
-      value: user.wallet_token,
-    },
-    bpd_token: {
-      prefix: bpdTokenPrefix,
-      value: user.bpd_token,
-    },
-    fims_token: {
-      prefix: fimsTokenPrefix,
-      value: user.fims_token,
-    },
-    myportal_token: {
-      prefix: myPortalTokenPrefix,
-      value: user.myportal_token,
-    },
-    zendesk_token: {
-      prefix: zendeskTokenPrefix,
-      value: user.zendesk_token,
-    },
-  };
-};
+): Record<string, { readonly prefix: string; readonly value: string }> => ({
+  session_info: {
+    prefix: sessionInfoKeyPrefix,
+    value: user.session_token,
+  },
+  session_token: {
+    prefix: sessionKeyPrefix,
+    value: user.session_token,
+  },
+  wallet_token: {
+    prefix: walletKeyPrefix,
+    value: user.wallet_token,
+  },
+  bpd_token: {
+    prefix: bpdTokenPrefix,
+    value: user.bpd_token,
+  },
+  fims_token: {
+    prefix: fimsTokenPrefix,
+    value: user.fims_token,
+  },
+  myportal_token: {
+    prefix: myPortalTokenPrefix,
+    value: user.myportal_token,
+  },
+  zendesk_token: {
+    prefix: zendeskTokenPrefix,
+    value: user.zendesk_token,
+  },
+});
 
 const clearExpiredSetValues =
   (redisClientSelector: RedisClientSelectorType) =>

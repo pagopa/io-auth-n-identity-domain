@@ -1,4 +1,4 @@
-import { WithUser } from "../utils/user";
+import crypto from "crypto";
 import {
   IResponseErrorInternal,
   IResponseErrorValidation,
@@ -6,27 +6,16 @@ import {
   ResponseErrorInternal,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
-import crypto from "crypto";
 import * as TE from "fp-ts/TaskEither";
-import {
-  getLollipopAssertionRefForUser,
-  update,
-} from "../services/redis-session-storage";
 import * as E from "fp-ts/Either";
-import { User } from "../types/user";
 import { pipe } from "fp-ts/lib/function";
-import { RedisClientSelectorType } from "../repositories/redis";
 import * as O from "fp-ts/Option";
-import {
-  BPDToken,
-  FIMSToken,
-  MyPortalToken,
-  ZendeskToken,
-} from "../types/token";
-import { log } from "../utils/logger";
+import { getLollipopAssertionRefForUser } from "../services/redis-session-storage";
+import { User } from "../types/user";
+import { RedisClientSelectorType } from "../repositories/redis";
+import { WithUser } from "../utils/user";
 import { APIClient } from "../repositories/api";
 import { PublicSession } from "../generated/backend/PublicSession";
-import { getNewToken } from "../services/token";
 import { WithExpressRequest } from "../utils/express";
 import { getProfile } from "../services/profile";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";

@@ -8,6 +8,7 @@ import {
   ResponseErrorTooManyRequests,
   ResponseErrorInternal,
 } from "@pagopa/ts-commons/lib/responses";
+import { ExtendedProfile as ExtendedProfileApi } from "@pagopa/io-functions-app-sdk/ExtendedProfile";
 import { User } from "../types/user";
 import {
   unhandledResponseStatus,
@@ -16,7 +17,6 @@ import {
 } from "../utils/responses";
 import { APIClient } from "../repositories/api";
 import { toInitializedProfile } from "../types/profile";
-import { ExtendedProfile as ExtendedProfileApi } from "@pagopa/io-functions-app-sdk/ExtendedProfile";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
 
 export const getProfile =
@@ -28,8 +28,8 @@ export const getProfile =
     | IResponseErrorTooManyRequests
     | IResponseErrorNotFound
     | IResponseSuccessJson<InitializedProfile>
-  > => {
-    return withCatchAsInternalError(async () => {
+  > =>
+    withCatchAsInternalError(async () => {
       const validated = await apiClient.getProfile({
         fiscal_code: user.fiscal_code,
       });
@@ -67,4 +67,3 @@ export const getProfile =
         return unhandledResponseStatus(response.status);
       });
     });
-  };
