@@ -784,7 +784,7 @@ __metadata:
     "@types/express": "npm:^4.17.21"
     "@types/node": "npm:~18.13.0"
     "@types/node-fetch": "npm:^2.1.2"
-    "@types/passport": "npm:^1.0.2"
+    "@types/passport": "npm:^1.0.3"
     "@types/passport-http-bearer": "npm:^1.0.34"
     date-fns: "npm:^1.30.1"
     dotenv-cli: "npm:^7.4.1"
@@ -803,6 +803,7 @@ __metadata:
     passport-http-bearer: "npm:^1.0.1"
     passport-strategy: "npm:^1.0.0"
     prettier: "npm:^3.2.5"
+    redis: "npm:^4.5.1"
     shx: "npm:^0.3.2"
     swagger-cli: "npm:^4.0.4"
     typescript: "npm:^5.4.3"
@@ -1301,7 +1302,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/passport@npm:*, @types/passport@npm:^1.0.2":
+"@types/passport@npm:*, @types/passport@npm:^1.0.3":
   version: 1.0.16
   resolution: "@types/passport@npm:1.0.16"
   dependencies:

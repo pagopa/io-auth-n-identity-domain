@@ -1,4 +1,4 @@
-import * as passport from "passport";
+import passport from "passport";
 import express from "express";
 import { Express } from "express";
 import { ap } from "fp-ts/lib/Identity";

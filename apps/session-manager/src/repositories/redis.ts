@@ -58,7 +58,7 @@ export const createClusterRedisClient =
     const completeRedisUrl = `${prefixUrl}${redisUrl}`;
 
     const redisPort: number = parseInt(port || DEFAULT_REDIS_PORT, 10);
-    log.info("Creating CLUSTER redis client", { url: completeRedisUrl });
+    log.info("Creating CLUSTER redis client %s", { url: completeRedisUrl });
 
     const redisClient = redis.createCluster<
       Record<string, never>,
