@@ -1,6 +1,7 @@
 locals {
-  project        = "io-p"
-  location_short = "itn"
+  project         = "io-p"
+  location_short  = "itn"
+  location_legacy = "weu"
 
   identity_resource_group_name = "${local.project}-identity-rg"
 
@@ -18,7 +19,7 @@ locals {
   # -------------------------
   # Session Manager Data
   # -------------------------
-  session_manager_name                = "${local.project}-${local.location_short}-session-manager-app-01"
+  session_manager_name                = "${local.project}-${local.location_legacy}-session-manager-app-02"
   session_manager_resource_group_name = "${local.project}-${local.location_short}-session-manager-rg-01"
 
   session_manager_cd = {
