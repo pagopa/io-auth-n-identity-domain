@@ -4,6 +4,10 @@ import { Express } from "express";
 import { ap } from "fp-ts/lib/Identity";
 import { pipe } from "fp-ts/lib/function";
 import helmet from "helmet";
+import {
+  NodeEnvironmentEnum,
+  getNodeEnvironmentFromProcessEnv,
+} from "@pagopa/ts-commons/lib/environment";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import { RedisClientSelector } from "./repositories/redis";
 import { attachTrackingData } from "./utils/appinsights";
@@ -13,10 +17,6 @@ import { getSessionStateRTE } from "./controllers/session";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
 import { toExpressHandlerRTE } from "./utils/express";
 import { withUserFromRequestRTE } from "./utils/user";
-import {
-  NodeEnvironmentEnum,
-  getNodeEnvironmentFromProcessEnv,
-} from "@pagopa/ts-commons/lib/environment";
 
 export const newApp = async (): Promise<Express> => {
   const isDevEnv =
