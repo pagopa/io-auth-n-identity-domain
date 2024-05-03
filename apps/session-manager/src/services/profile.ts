@@ -15,12 +15,12 @@ import {
   withCatchAsInternalError,
   withValidatedOrInternalError,
 } from "../utils/responses";
-import { APIClient } from "../repositories/api";
+import { FnAppAPIClient } from "../repositories/api";
 import { toInitializedProfile } from "../types/profile";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
 
 export const getProfile =
-  (apiClient: ReturnType<APIClient>) =>
+  (apiClient: ReturnType<FnAppAPIClient>) =>
   (
     user: User,
   ): Promise<

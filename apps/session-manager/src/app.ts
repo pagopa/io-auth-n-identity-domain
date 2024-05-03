@@ -12,8 +12,8 @@ import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import { RedisClientSelector } from "./repositories/redis";
 import { attachTrackingData } from "./utils/appinsights";
 import { getRequiredENVVar } from "./utils/environment";
-import { APIClient } from "./repositories/api";
-import { getSessionStateRTE } from "./controllers/session";
+import { FnAppAPIClient } from "./repositories/api";
+import { getSessionState } from "./controllers/session";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
 import { toExpressHandlerRTE } from "./utils/express";
 import { withUserFromRequestRTE } from "./utils/user";
@@ -31,7 +31,7 @@ export const newApp = async (): Promise<Express> => {
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     process.env.REDIS_PORT,
   );
-  const API_CLIENT = APIClient(
+  const API_CLIENT = FnAppAPIClient(
     getRequiredENVVar("API_URL"),
     getRequiredENVVar("API_KEY"),
     httpOrHttpsApiFetch,
@@ -66,9 +66,9 @@ export const newApp = async (): Promise<Express> => {
     pipe(
       toExpressHandlerRTE({
         redisClientSelector: REDIS_CLIENT_SELECTOR,
-        apiClient: API_CLIENT,
+        fnAppAPIClient: API_CLIENT,
       }),
-      ap(withUserFromRequestRTE(getSessionStateRTE)),
+      ap(withUserFromRequestRTE(getSessionState)),
     ),
   );
 

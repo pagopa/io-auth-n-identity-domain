@@ -181,3 +181,9 @@ export const RedisClientSelector =
       selectOne: (t) => select(t)[0],
     };
   };
+
+type RedisRepositoryDeps = {
+  redisClientSelector: RedisClientSelectorType;
+};
+
+export { RedisRepositoryDeps };
