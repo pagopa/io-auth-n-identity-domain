@@ -93,10 +93,8 @@ const profileWithEmailValidatedOrError: RTE.ReaderTaskEither<
   ProfileWithEmailValidated
 > = (deps) =>
   pipe(
-    TE.tryCatch(
-      () => getProfile(deps.fnAppAPIClient)(deps.user),
-      () => new Error("Error retrieving user profile"),
-    ),
+    getProfile(deps),
+    TE.fromTask,
     TE.chain(
       TE.fromPredicate(
         (r): r is IResponseSuccessJson<InitializedProfile> =>

@@ -8,6 +8,8 @@ import {
 import * as t from "io-ts";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
+import { Task } from "fp-ts/Task";
+import { pipe } from "fp-ts/lib/function";
 import { log } from "./logger";
 
 /**
@@ -59,6 +61,7 @@ export const withValidatedOrInternalError = <T, U>(
 
 /**
  * Transforms async failures into internal errors
+ * @deprecated
  */
 export const withCatchAsInternalError = <T>(
   f: () => Promise<T>,
@@ -69,6 +72,19 @@ export const withCatchAsInternalError = <T>(
     log.error(_);
     return ResponseErrorInternal(`${message} [${_}]`);
   });
+
+export const withLeftAsInternalError = <T>(
+  te: TE.TaskEither<Error, T>,
+  message: string = "Exception while calling upstream API (likely a timeout).",
+): Task<T | IResponseErrorInternal> =>
+  pipe(
+    te,
+    TE.mapLeft((err) => {
+      log.error(err);
+      return ResponseErrorInternal(`${message} [${err}]`);
+    }),
+    TE.toUnion,
+  );
 
 export const unhandledResponseStatus = (
   status: number,
