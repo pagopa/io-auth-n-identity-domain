@@ -4,6 +4,7 @@ import {
   PreferredLanguageEnum,
 } from "@pagopa/io-functions-app-sdk/PreferredLanguage";
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-app-sdk/ServicesPreferencesMode";
+import { ExtendedProfile } from "@pagopa/io-functions-app-sdk/ExtendedProfile";
 import { EmailAddress } from "../generated/backend/EmailAddress";
 import { FiscalCode } from "../generated/backend/FiscalCode";
 import { SpidLevelEnum } from "../types/spid-level";
@@ -86,4 +87,11 @@ export const mockedInitializedProfile: InitializedProfile = {
   preferred_languages: aPreferredLanguages,
   service_preferences_settings: aServicePreferencesSettings,
   version: 42,
+};
+
+export const mockedExtendedProfile: ExtendedProfile = {
+  ...mockedInitializedProfile,
+  is_email_already_taken: false,
+  is_email_validated: true,
+  blocked_inbox_or_channels: {},
 };
