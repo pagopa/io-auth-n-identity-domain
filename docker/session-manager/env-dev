@@ -1,0 +1,10 @@
+API_URL=https://localhost:8080/functions-app
+API_KEY=key
+API_BASE_PATH=/api/v1
+
+REDIS_URL=redis-cluster
+REDIS_PASSWORD=bitnami
+REDIS_PORT=6379
+
+NODE_TLS_REJECT_UNAUTHORIZED=0
+NODE_ENV=dev

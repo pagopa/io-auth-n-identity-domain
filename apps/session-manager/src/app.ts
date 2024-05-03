@@ -13,10 +13,18 @@ import { getSessionStateRTE } from "./controllers/session";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
 import { toExpressHandlerRTE } from "./utils/express";
 import { withUserFromRequestRTE } from "./utils/user";
+import {
+  NodeEnvironmentEnum,
+  getNodeEnvironmentFromProcessEnv,
+} from "@pagopa/ts-commons/lib/environment";
 
 export const newApp = async (): Promise<Express> => {
+  const isDevEnv =
+    getNodeEnvironmentFromProcessEnv(process.env) ===
+    NodeEnvironmentEnum.DEVELOPMENT;
+
   // Create the Session Storage service
-  const REDIS_CLIENT_SELECTOR = await RedisClientSelector(true)(
+  const REDIS_CLIENT_SELECTOR = await RedisClientSelector(!isDevEnv)(
     getRequiredENVVar("REDIS_URL"),
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     process.env.REDIS_PASSWORD,

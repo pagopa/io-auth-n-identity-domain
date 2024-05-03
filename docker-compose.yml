@@ -1,0 +1,163 @@
+# this will ensure compatibility with io-mock docker-compose
+# you can, for example, run io-backend and functions-app on io-mock and
+# redis-cluster and session-manager here
+#
+# NOTE: make sure to disable redis-cluster dependency for io-backend service in
+# io-mock docker-compose
+name: io-mock
+
+services:
+  session-manager:
+    image: session-manager
+    build:
+      dockerfile: ./docker/session-manager/Dockerfile
+    env_file:
+      - ./docker/session-manager/env-dev
+    ports:
+      - 8081:3000
+    command: [ "yarn", "start" ]
+    depends_on:
+      redis-cluster:
+        condition: service_healthy
+    networks:
+      - io-fn
+
+  #
+  #                   __ __            __             __
+  #   .----.-----.--|  |__.-----.----|  .--.--.-----|  |_.-----.----.
+  #  |   _|  -__|  _  |  |__ --|  __|  |  |  |__ --|   _|  -__|   _|
+  # |__| |_____|_____|__|_____|____|__|_____|_____|____|_____|__|
+  #
+  #
+  redis-node-0:
+    image: docker.io/bitnami/redis-cluster:6.2
+    networks:
+      - io-fn
+    ports:
+      - 6380:6379
+    volumes:
+      - redis-node-0-data:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=bitnami'
+      - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6'
+
+  redis-node-1:
+    image: docker.io/bitnami/redis-cluster:6.2
+    networks:
+      - io-fn
+    ports:
+      - 6381:6379
+    volumes:
+      - redis-node-1-data:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=bitnami'
+      - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6'
+
+  redis-node-2:
+    image: docker.io/bitnami/redis-cluster:6.2
+    networks:
+      - io-fn
+    ports:
+      - 6382:6379
+    volumes:
+      - redis-node-2-data:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=bitnami'
+      - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6'
+
+  redis-node-3:
+    image: docker.io/bitnami/redis-cluster:6.2
+    networks:
+      - io-fn
+    ports:
+      - 6383:6379
+    volumes:
+      - redis-node-3-data:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=bitnami'
+      - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6'
+
+  redis-node-4:
+    image: docker.io/bitnami/redis-cluster:6.2
+    networks:
+      - io-fn
+    ports:
+      - 6384:6379
+    volumes:
+      - redis-node-4-data:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=bitnami'
+      - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6'
+
+  redis-node-5:
+    image: docker.io/bitnami/redis-cluster:6.2
+    networks:
+      - io-fn
+    ports:
+      - 6385:6379
+    volumes:
+      - redis-node-5-data:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=bitnami'
+      - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6'
+
+  redis-node-6:
+    image: docker.io/bitnami/redis-cluster:6.2
+    networks:
+      - io-fn
+    ports:
+      - 6386:6379
+    volumes:
+      - redis-node-6-data:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=bitnami'
+      - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6'
+
+  redis-cluster:
+    image: docker.io/bitnami/redis-cluster:6.2
+    networks:
+      - io-fn
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-cluster-data:/bitnami/redis/data
+    healthcheck:
+      test: ["CMD","redis-cli", "-a","bitnami","-c","--raw","incr","ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      - redis-node-0
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+      - redis-node-5
+      - redis-node-6
+    environment:
+      - 'REDIS_PASSWORD=bitnami'
+      - 'REDISCLI_AUTH=bitnami'
+      - 'REDIS_CLUSTER_REPLICAS=1'
+      - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6'
+      - 'REDIS_CLUSTER_CREATOR=yes'
+  #
+  #
+  #
+  #
+
+networks:
+  # same network name for interoperability with io-mock docker-compose
+  io-fn:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1450
+
+volumes:
+  redis-node-0-data:
+  redis-node-1-data:
+  redis-node-2-data:
+  redis-node-3-data:
+  redis-node-4-data:
+  redis-node-5-data:
+  redis-node-6-data:
+  redis-cluster-data:
