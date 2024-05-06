@@ -11,10 +11,12 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { isNumber } from "fp-ts/lib/number";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as ROA from "fp-ts/ReadonlyArray";
+import * as RTE from "fp-ts/ReaderTaskEither";
 import { SessionToken } from "../types/token";
 import { User } from "../types/user";
 import {
   RedisClientMode,
+  RedisRepositoryDeps,
   bpdTokenPrefix,
   fimsTokenPrefix,
   lollipopDataPrefix,
@@ -48,40 +50,55 @@ const parseUser = (value: string): E.Either<Error, User> =>
     ),
   );
 
-const loadSessionBySessionToken =
-  (redisClientSelector: RedisClientSelectorType) =>
-  (token: SessionToken): TE.TaskEither<Error, User> =>
-    pipe(
-      TE.tryCatch(
-        () =>
-          redisClientSelector
-            .selectOne(RedisClientMode.FAST)
-            .get(`${sessionKeyPrefix}${token}`),
-        E.toError,
+/**
+ * Read the user data related to a session token and parse it when is present.
+ * @param deps the Redis repository and the session token
+ * @returns The parsed used data object or an error.
+ */
+const loadSessionBySessionToken: RTE.ReaderTaskEither<
+  RedisRepositoryDeps & { token: SessionToken },
+  Error,
+  User
+> = (deps) =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        deps.redisClientSelector
+          .selectOne(RedisClientMode.FAST)
+          .get(`${sessionKeyPrefix}${deps.token}`),
+      E.toError,
+    ),
+    TE.chain(
+      flow(
+        O.fromNullable,
+        E.fromOption(() => sessionNotFoundError),
+        E.chain(parseUser),
+        TE.fromEither,
       ),
-      TE.chain(
-        flow(
-          O.fromNullable,
-          E.fromOption(() => sessionNotFoundError),
-          E.chain(parseUser),
-          TE.fromEither,
-        ),
-      ),
-    );
+    ),
+  );
 
-const getBySessionToken =
-  (redisClientSelector: RedisClientSelectorType) =>
-  (token: SessionToken): TE.TaskEither<Error, O.Option<User>> =>
-    pipe(
-      loadSessionBySessionToken(redisClientSelector)(token),
-      TE.foldW(
-        (err) =>
-          err === sessionNotFoundError
-            ? TE.right<Error, O.Option<User>>(O.none)
-            : TE.left<Error, O.Option<User>>(err),
-        (_) => TE.right<Error, O.Option<User>>(O.some(_)),
-      ),
-    );
+/**
+ * Return an optional `User` object related to a `SessionToken`
+ * @param deps the required dependencies are the Redis repository and the session token
+ * @returns an optional User if the session exists / not exist or an error otherwise
+ */
+const getBySessionToken: RTE.ReaderTaskEither<
+  RedisRepositoryDeps & { token: SessionToken },
+  Error,
+  O.Option<User>
+> = (deps) =>
+  pipe(
+    deps,
+    loadSessionBySessionToken,
+    TE.foldW(
+      (err) =>
+        err === sessionNotFoundError
+          ? TE.right<Error, O.Option<User>>(O.none)
+          : TE.left<Error, O.Option<User>>(err),
+      (_) => TE.right<Error, O.Option<User>>(O.some(_)),
+    ),
+  );
 
 const getLollipopAssertionRefForUser =
   (redisClientSelector: RedisClientSelectorType) =>

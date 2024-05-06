@@ -27,7 +27,10 @@ const bearerSessionTokenStrategy =
     return new passport.Strategy<passport.VerifyFunctionWithRequest>(
       options,
       (_: express.Request, token: string, done: StrategyDoneFunction) => {
-        getBySessionToken(redisClientSelector)(token as SessionToken)().then(
+        getBySessionToken({
+          redisClientSelector,
+          token: token as SessionToken,
+        })().then(
           (errorOrUser: Either<Error, Option<User>>) => {
             try {
               if (
