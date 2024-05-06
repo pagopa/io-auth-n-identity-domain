@@ -8,3 +8,7 @@ REDIS_PORT=6379
 
 NODE_TLS_REJECT_UNAUTHORIZED=0
 NODE_ENV=dev
+
+FAST_LOGIN_API_KEY=key
+# mocked with mockoon for now
+FAST_LOGIN_API_URL=http://host.docker.internal:3000
