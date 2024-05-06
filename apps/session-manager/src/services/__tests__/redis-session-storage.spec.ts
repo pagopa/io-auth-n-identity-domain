@@ -4,6 +4,8 @@ import * as O from "fp-ts/Option";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
 import { ValidationError } from "io-ts";
+import { pipe } from "fp-ts/lib/function";
+import * as TE from "fp-ts/TaskEither";
 import { multipleErrorsFormatter } from "../../utils/errors";
 import {
   mockSadd,
@@ -174,13 +176,17 @@ describe("RedisSessionStorage#set", () => {
 
 describe("RedisSessionStorage#getBySessionToken", () => {
   test("should fail getting a session for an inexistent token", async () => {
+    // This test could be a duplication of "should return error if the session is expired"
     mockGet.mockImplementationOnce((_) => Promise.resolve(null));
 
-    const response = await getBySessionToken({
-      redisClientSelector: mockRedisClientSelector,
-      token: "inexistent token" as SessionToken,
-    })();
-    expect(response).toEqual(E.right(O.none));
+    await pipe(
+      getBySessionToken({
+        redisClientSelector: mockRedisClientSelector,
+        token: "inexistent token" as SessionToken,
+      }),
+      TE.map((result) => expect(result).toEqual(O.none)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
   });
 
   test("should fail getting a session with invalid value", async () => {
@@ -194,40 +200,52 @@ describe("RedisSessionStorage#getBySessionToken", () => {
     const expectedError = new Error(
       errorsToReadableMessages(expectedDecodedError.left).join("/"),
     );
-    const response = await getBySessionToken({
-      redisClientSelector: mockRedisClientSelector,
-      token: aValidUser.session_token,
-    })();
+    await pipe(
+      getBySessionToken({
+        redisClientSelector: mockRedisClientSelector,
+        token: aValidUser.session_token,
+      }),
+      TE.map((result) => expect(result).toBeFalsy()),
+      TE.mapLeft((err) => expect(err).toEqual(expectedError)),
+    )();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toHaveBeenCalledWith(`SESSION-${aValidUser.session_token}`);
-    expect(response).toEqual(E.left(expectedError));
   });
 
   test("should fail parse of user payload", async () => {
     mockGet.mockImplementationOnce((_) => Promise.resolve("Invalid JSON"));
 
-    const response = await getBySessionToken({
-      redisClientSelector: mockRedisClientSelector,
-      token: aValidUser.session_token,
-    })();
+    await pipe(
+      getBySessionToken({
+        redisClientSelector: mockRedisClientSelector,
+        token: aValidUser.session_token,
+      }),
+      TE.map((result) => expect(result).toBeFalsy()),
+      TE.mapLeft((err) =>
+        expect(err).toEqual(
+          new SyntaxError("Unexpected token I in JSON at position 0"),
+        ),
+      ),
+    )();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toHaveBeenCalledWith(`SESSION-${aValidUser.session_token}`);
-    expect(response).toEqual(
-      E.left(new SyntaxError("Unexpected token I in JSON at position 0")),
-    );
   });
 
   test("should return error if the session is expired", async () => {
     mockGet.mockImplementationOnce((_) => Promise.resolve(null));
-    const response = await getBySessionToken({
-      redisClientSelector: mockRedisClientSelector,
-      token: aValidUser.session_token,
-    })();
+    await pipe(
+      getBySessionToken({
+        redisClientSelector: mockRedisClientSelector,
+        token: aValidUser.session_token,
+      }),
+      TE.map((result) => expect(result).toEqual(O.none)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
-    expect(response).toEqual(E.right(O.none));
+    expect(mockGet).toHaveBeenCalledWith(`SESSION-${aValidUser.session_token}`);
   });
 
   test("should get a session with valid values", async () => {
@@ -235,29 +253,34 @@ describe("RedisSessionStorage#getBySessionToken", () => {
       Promise.resolve(JSON.stringify(aValidUser)),
     );
 
-    const response = await getBySessionToken({
-      redisClientSelector: mockRedisClientSelector,
-      token: aValidUser.session_token,
-    })();
+    await pipe(
+      getBySessionToken({
+        redisClientSelector: mockRedisClientSelector,
+        token: aValidUser.session_token,
+      }),
+      TE.map((result) => expect(result).toEqual(O.some(aValidUser))),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toHaveBeenCalledWith(`SESSION-${aValidUser.session_token}`);
-    expect(response).toEqual(E.right(O.some(aValidUser)));
   });
 });
 
 describe("RedisSessionStorage#getLollipopAssertionRefForUser", () => {
   test("should success and return an assertionRef", async () => {
     mockGet.mockImplementationOnce((_) => Promise.resolve(anAssertionRef));
-    const response = await getLollipopAssertionRefForUser({
-      redisClientSelector: mockRedisClientSelector,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    await pipe(
+      getLollipopAssertionRefForUser({
+        redisClientSelector: mockRedisClientSelector,
+        fiscalCode: aValidUser.fiscal_code,
+      }),
+      TE.map((result) => expect(result).toEqual(O.some(anAssertionRef))),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
-
-    expect(response).toEqual(E.right(O.some(anAssertionRef)));
   });
 
   test("should success and return an assertionRef, if data is stored in new format", async () => {
@@ -266,52 +289,62 @@ describe("RedisSessionStorage#getLollipopAssertionRefForUser", () => {
         JSON.stringify({ a: anAssertionRef, t: LoginTypeEnum.LEGACY }),
       ),
     );
-    const response = await getLollipopAssertionRefForUser({
-      redisClientSelector: mockRedisClientSelector,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    await pipe(
+      getLollipopAssertionRefForUser({
+        redisClientSelector: mockRedisClientSelector,
+        fiscalCode: aValidUser.fiscal_code,
+      }),
+      TE.map((result) => expect(result).toEqual(O.some(anAssertionRef))),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
-
-    expect(response).toEqual(E.right(O.some(anAssertionRef)));
   });
 
   test("should success and return none if assertionRef is missing", async () => {
     mockGet.mockImplementationOnce((_) => Promise.resolve(null));
-    const response = await getLollipopAssertionRefForUser({
-      redisClientSelector: mockRedisClientSelector,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    await pipe(
+      getLollipopAssertionRefForUser({
+        redisClientSelector: mockRedisClientSelector,
+        fiscalCode: aValidUser.fiscal_code,
+      }),
+      TE.map((result) => expect(result).toEqual(O.none)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
-    expect(E.isRight(response)).toBeTruthy();
-    if (E.isRight(response)) expect(O.isNone(response.right)).toBeTruthy();
   });
+
   test("should fail with a left response if an error occurs on redis", async () => {
     const expectedError = new Error("redis Error");
     mockGet.mockImplementationOnce((_) => Promise.reject(expectedError));
-    const response = await getLollipopAssertionRefForUser({
-      redisClientSelector: mockRedisClientSelector,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    await pipe(
+      getLollipopAssertionRefForUser({
+        redisClientSelector: mockRedisClientSelector,
+        fiscalCode: aValidUser.fiscal_code,
+      }),
+      TE.map((result) => expect(result).toBeFalsy()),
+      TE.mapLeft((err) => expect(err).toEqual(expectedError)),
+    )();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
-    expect(E.isLeft(response)).toBeTruthy();
-    if (E.isLeft(response)) expect(response.left).toEqual(expectedError);
   });
 
   test("should fail with a left response if the value stored is invalid", async () => {
     mockGet.mockImplementationOnce((_) => Promise.resolve("an invalid value"));
-    const response = await getLollipopAssertionRefForUser({
-      redisClientSelector: mockRedisClientSelector,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    await pipe(
+      getLollipopAssertionRefForUser({
+        redisClientSelector: mockRedisClientSelector,
+        fiscalCode: aValidUser.fiscal_code,
+      }),
+      TE.map((result) => expect(result).toBeFalsy()),
+      TE.mapLeft((err) => expect(err).toBeTruthy()),
+    )();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
-    expect(E.isLeft(response)).toBeTruthy();
   });
 });
