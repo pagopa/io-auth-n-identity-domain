@@ -100,53 +100,66 @@ const getBySessionToken: RTE.ReaderTaskEither<
     ),
   );
 
-const getLollipopAssertionRefForUser =
-  (redisClientSelector: RedisClientSelectorType) =>
-  (
-    fiscalCode: FiscalCode,
-    // TODO: Use BackendAssertionRef instead
-  ): TE.TaskEither<Error, O.Option<AssertionRef>> =>
-    pipe(
-      getLollipopDataForUser(redisClientSelector)(fiscalCode),
-      TE.map(O.map((data) => data.assertionRef)),
-    );
+/**
+ * Returns an optional `AssertionRef` related to an user fical code.
+ * @param deps the required dependencies are the Redis repository and the user fiscal code
+ * @returns An optional assertion ref or error
+ */
+const getLollipopAssertionRefForUser: RTE.ReaderTaskEither<
+  RedisRepositoryDeps & { fiscalCode: FiscalCode },
+  Error,
+  O.Option<AssertionRef>
+> = (deps) =>
+  pipe(
+    deps,
+    getLollipopDataForUser,
+    TE.map(O.map((data) => data.assertionRef)),
+  );
 
-const getLollipopDataForUser =
-  (redisClientSelector: RedisClientSelectorType) =>
-  (fiscalCode: FiscalCode): TE.TaskEither<Error, O.Option<LollipopData>> =>
-    pipe(
-      TE.tryCatch(
-        () =>
-          redisClientSelector
-            .selectOne(RedisClientMode.SAFE)
-            .get(`${lollipopDataPrefix}${fiscalCode}`),
-        E.toError,
-      ),
-      TE.chain(
-        flow(
-          NullableBackendAssertionRefFromString.decode,
-          E.map(
-            flow(
-              O.fromNullable,
-              O.map((storedValue) =>
-                LollipopData.is(storedValue)
-                  ? storedValue
-                  : // Remap plain string to LollipopData
-                    {
-                      assertionRef: storedValue,
-                      loginType: LoginTypeEnum.LEGACY,
-                    },
-              ),
+/**
+ * Returns an optional `LollipopData` with assertion ref and login type
+ * related to an user fical code.
+ * @param deps the required dependencies are the Redis repository and the user fiscal code
+ * @returns An optional LollipopData or error
+ */
+const getLollipopDataForUser: RTE.ReaderTaskEither<
+  RedisRepositoryDeps & { fiscalCode: FiscalCode },
+  Error,
+  O.Option<LollipopData>
+> = (deps) =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        deps.redisClientSelector
+          .selectOne(RedisClientMode.SAFE)
+          .get(`${lollipopDataPrefix}${deps.fiscalCode}`),
+      E.toError,
+    ),
+    TE.chain(
+      flow(
+        NullableBackendAssertionRefFromString.decode,
+        E.map(
+          flow(
+            O.fromNullable,
+            O.map((storedValue) =>
+              LollipopData.is(storedValue)
+                ? storedValue
+                : // Remap plain string to LollipopData
+                  {
+                    assertionRef: storedValue,
+                    loginType: LoginTypeEnum.LEGACY,
+                  },
             ),
           ),
-          E.mapLeft(
-            (validationErrors) =>
-              new Error(errorsToReadableMessages(validationErrors).join("/")),
-          ),
-          TE.fromEither,
         ),
+        E.mapLeft(
+          (validationErrors) =>
+            new Error(errorsToReadableMessages(validationErrors).join("/")),
+        ),
+        TE.fromEither,
       ),
-    );
+    ),
+  );
 
 const singleStringReplyAsync = (command: TE.TaskEither<Error, string | null>) =>
   pipe(

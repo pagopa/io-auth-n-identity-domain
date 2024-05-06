@@ -65,9 +65,10 @@ const getSessionState: RTE.ReaderTaskEither<
       )();
 
       // Read the assertionRef related to the User for Lollipop.
-      const errorOrMaybeAssertionRef = await getLollipopAssertionRefForUser(
-        deps.redisClientSelector,
-      )(deps.user.fiscal_code)();
+      const errorOrMaybeAssertionRef = await getLollipopAssertionRefForUser({
+        ...deps,
+        fiscalCode: deps.user.fiscal_code,
+      })();
       if (E.isLeft(errorOrMaybeAssertionRef)) {
         return ResponseErrorInternal(
           `Error retrieving the assertionRef: ${errorOrMaybeAssertionRef.left.message}`,
