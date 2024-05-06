@@ -1,4 +1,4 @@
-import { describe, beforeEach, vi, it, expect } from "vitest";
+import { describe, beforeEach, vi, it, expect, assert } from "vitest";
 import { generateNonceEndpoint } from "../fast-login";
 import { getFastLoginLollipopConsumerClient } from "../../repositories/fast-login-api";
 import * as E from "fp-ts/Either";
@@ -12,7 +12,6 @@ import {
   ResponseErrorUnexpectedAuthProblem,
 } from "../../utils/responses";
 import { readableProblem } from "../../utils/errors";
-import mockRes from "../../__mocks__/responses";
 
 const aValidGenerateNonceResponse = {
   nonce: "870c6d89-a3c4-48b1-a796-cdacddaf94b4",
@@ -32,12 +31,12 @@ describe("fastLoginController#generateNonce", () => {
     vi.clearAllMocks();
   });
 
-  const res = mockRes();
-
-  const generateNonceController = generateNonceEndpoint(fastLoginLCClient);
+  const generateNonceController = generateNonceEndpoint({
+    client: fastLoginLCClient,
+  });
 
   it("should return the nonce, when the the downstream component returns it", async () => {
-    const result = await generateNonceController(res);
+    const result = await generateNonceController();
 
     expectToMatchResult(
       result,
@@ -55,7 +54,7 @@ describe("fastLoginController#generateNonce", () => {
   `("$title", async ({ clientResponse, expectedResult }) => {
     mockGenerateNonce.mockResolvedValue(clientResponse);
 
-    const result = await generateNonceController(res);
+    const result = await generateNonceController();
 
     expectToMatchResult(result, expectedResult);
   });
@@ -66,10 +65,11 @@ describe("fastLoginController#generateNonce", () => {
 // ------------------------
 
 function expectToMatchResult(
-  result: IResponse<any>,
-  expectedResult: IResponse<any>,
+  result: E.Either<Error, IResponse<unknown>>,
+  expectedResult: IResponse<unknown>,
 ) {
-  expect(result).toMatchObject({
+  assert(E.isRight(result), "Unexpected left either");
+  expect(result.right).toMatchObject({
     ...expectedResult,
     apply: expect.any(Function),
   });

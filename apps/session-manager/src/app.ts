@@ -80,7 +80,10 @@ export const newApp = async (): Promise<Express> => {
 
   app.post(
     `${API_BASE_PATH}/fast-login/nonce/generate`,
-    toExpressHandler(generateNonceEndpoint(FAST_LOGIN_CLIENT)),
+    pipe(
+      toExpressHandler({ client: FAST_LOGIN_CLIENT }),
+      ap(generateNonceEndpoint),
+    ),
   );
 
   return app;
