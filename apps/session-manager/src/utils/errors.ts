@@ -1,3 +1,5 @@
+import { ProblemJson } from "@pagopa/ts-commons/lib/responses";
+
 /**
  * Merge into one single Error several errors provided in input and add a context description
  *
@@ -15,3 +17,6 @@ export function multipleErrorsFormatter(
       .join(` at [context: ${context}]\n`),
   );
 }
+
+export const readableProblem = (problem: ProblemJson) =>
+  `${problem.title} (${problem.type || "no problem type specified"})`;

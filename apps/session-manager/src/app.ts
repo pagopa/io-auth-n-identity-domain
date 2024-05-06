@@ -17,6 +17,8 @@ import { getSessionState } from "./controllers/session";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
 import { toExpressHandler } from "./utils/express";
 import { withUserFromRequest } from "./utils/user";
+import { getFastLoginLollipopConsumerClient } from "./repositories/fast-login-api";
+import { generateNonceEndpoint } from "./controllers/fast-login";
 
 export const newApp = async (): Promise<Express> => {
   const isDevEnv =
@@ -35,6 +37,10 @@ export const newApp = async (): Promise<Express> => {
     getRequiredENVVar("API_URL"),
     getRequiredENVVar("API_KEY"),
     httpOrHttpsApiFetch,
+  );
+  const FAST_LOGIN_CLIENT = getFastLoginLollipopConsumerClient(
+    getRequiredENVVar("FAST_LOGIN_API_KEY"),
+    getRequiredENVVar("FAST_LOGIN_API_URL"),
   );
 
   passport.use(
@@ -70,6 +76,11 @@ export const newApp = async (): Promise<Express> => {
       }),
       ap(withUserFromRequest(getSessionState)),
     ),
+  );
+
+  app.post(
+    `${API_BASE_PATH}/fast-login/nonce/generate`,
+    toExpressHandler(generateNonceEndpoint(FAST_LOGIN_CLIENT)),
   );
 
   return app;
