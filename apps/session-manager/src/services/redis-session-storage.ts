@@ -15,7 +15,6 @@ import { SessionToken } from "../types/token";
 import { User } from "../types/user";
 import {
   RedisClientMode,
-  RedisClientSelectorType,
   bpdTokenPrefix,
   fimsTokenPrefix,
   lollipopDataPrefix,
@@ -36,6 +35,7 @@ import { AssertionRef } from "../generated/backend/AssertionRef";
 import { SessionInfo } from "../generated/backend/SessionInfo";
 import { log } from "../utils/logger";
 import { multipleErrorsFormatter } from "../utils/errors";
+import { RedisClientSelectorType } from "../types/redis";
 
 const parseUser = (value: string): E.Either<Error, User> =>
   pipe(
@@ -69,7 +69,7 @@ const loadSessionBySessionToken =
       ),
     );
 
-export const getBySessionToken =
+const getBySessionToken =
   (redisClientSelector: RedisClientSelectorType) =>
   (token: SessionToken): TE.TaskEither<Error, O.Option<User>> =>
     pipe(
@@ -83,7 +83,7 @@ export const getBySessionToken =
       ),
     );
 
-export const getLollipopAssertionRefForUser =
+const getLollipopAssertionRefForUser =
   (redisClientSelector: RedisClientSelectorType) =>
   (
     fiscalCode: FiscalCode,
@@ -430,7 +430,7 @@ const saveSessionInfo =
     );
   };
 
-export const set =
+const set =
   (redisClientSelector: RedisClientSelectorType, expireSec: number) =>
   (
     user: User,
@@ -581,3 +581,5 @@ export const set =
       TE.map(() => true),
     );
   };
+
+export { getBySessionToken, getLollipopAssertionRefForUser, set };

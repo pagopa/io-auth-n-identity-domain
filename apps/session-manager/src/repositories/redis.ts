@@ -4,6 +4,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as RA from "fp-ts/lib/ReadonlyArray";
 import * as O from "fp-ts/lib/Option";
 import { log } from "../utils/logger";
+import { RedisClientSelectorType } from "../types/redis";
 
 export const sessionKeyPrefix = "SESSION-";
 export const walletKeyPrefix = "WALLET-";
@@ -42,7 +43,7 @@ export const obfuscateTokensInfo = (message: string) =>
     O.getOrElse(() => message),
   );
 
-export const createClusterRedisClient =
+const createClusterRedisClient =
   (
     enableTls: boolean,
     appInsightsClient?: appInsights.TelemetryClient,
@@ -127,24 +128,13 @@ export const createClusterRedisClient =
     return redisClient;
   };
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type Selector<T, S> = {
-  readonly select: (type: T) => ReadonlyArray<S>;
-  readonly selectOne: (type: T) => S;
-};
-
-export type RedisClientSelectorType = Selector<
-  RedisClientMode,
-  redis.RedisClusterType
->;
-
 export enum RedisClientMode {
   "ALL" = "ALL",
   "SAFE" = "SAFE",
   "FAST" = "FAST",
 }
 
-export const RedisClientSelector =
+const RedisClientSelector =
   (enableTls: boolean, appInsightsClient?: appInsights.TelemetryClient) =>
   async (
     redisUrl: string,
@@ -186,4 +176,4 @@ type RedisRepositoryDeps = {
   redisClientSelector: RedisClientSelectorType;
 };
 
-export { RedisRepositoryDeps };
+export { RedisRepositoryDeps, RedisClientSelector };

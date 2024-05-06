@@ -1,6 +1,6 @@
 import * as redis from "redis";
 import { vi } from "vitest";
-import { RedisClientSelectorType } from "../repositories/redis";
+import { RedisClientSelectorType } from "../types/redis";
 
 export const mockGet = vi.fn();
 export const mockSet = vi.fn();

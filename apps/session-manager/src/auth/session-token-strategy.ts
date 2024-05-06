@@ -11,8 +11,8 @@ import * as passport from "passport-http-bearer";
 import { SessionToken } from "../types/token";
 import { User } from "../types/user";
 import { fulfill, StrategyDoneFunction } from "../utils/strategies";
-import { RedisClientSelectorType } from "../repositories/redis";
 import { getBySessionToken } from "../services/redis-session-storage";
+import { RedisClientSelectorType } from "../types/redis";
 
 const bearerSessionTokenStrategy =
   (redisClientSelector: RedisClientSelectorType) =>

@@ -21,7 +21,13 @@ import { toInitializedProfile } from "../types/profile";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
 import { WithUser } from "../utils/user";
 
-export const getProfile: RT.ReaderTask<
+/**
+ * Retrieves the profile for a specific user converting an `ExtendedProfile`
+ * obtained from the Fn App API Client to an `InitializedProfile`
+ * @param dependencies The fn-app Client and the user data related to the session
+ * @returns Responses
+ */
+const getProfile: RT.ReaderTask<
   FnAppAPIRepositoryDeps & WithUser,
   | IResponseErrorInternal
   | IResponseErrorTooManyRequests
@@ -72,3 +78,5 @@ export const getProfile: RT.ReaderTask<
         new Error(`An Error occurs calling the getProfile API: [${err}]`),
     ),
   );
+
+export { getProfile };
