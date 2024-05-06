@@ -14,6 +14,8 @@
         "dist/**"
       ],
       "dependsOn": [
+        "^clean",
+        "clean",
         "^generate",
         "generate",
         "^build"
@@ -67,6 +69,10 @@
       "inputs": ["api/**/*.yaml"],
       "outputs": ["src/generated/**/*.ts"],
       "outputMode": "errors-only"
+    },
+    "clean": {
+      "inputs": ["dist/**"],
+      "cache": false
     }
   }
 }
