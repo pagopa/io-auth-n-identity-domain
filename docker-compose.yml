@@ -10,6 +10,7 @@ services:
   session-manager:
     image: session-manager
     build:
+      context: ./
       dockerfile: ./docker/session-manager/Dockerfile
     env_file:
       - ./docker/session-manager/env-dev
