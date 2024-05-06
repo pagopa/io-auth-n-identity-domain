@@ -4,6 +4,10 @@ import { Express } from "express";
 import { ap } from "fp-ts/lib/Identity";
 import { pipe } from "fp-ts/lib/function";
 import helmet from "helmet";
+import {
+  NodeEnvironmentEnum,
+  getNodeEnvironmentFromProcessEnv,
+} from "@pagopa/ts-commons/lib/environment";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import { RedisClientSelector } from "./repositories/redis";
 import { attachTrackingData } from "./utils/appinsights";
@@ -15,8 +19,12 @@ import { toExpressHandlerRTE } from "./utils/express";
 import { withUserFromRequestRTE } from "./utils/user";
 
 export const newApp = async (): Promise<Express> => {
+  const isDevEnv =
+    getNodeEnvironmentFromProcessEnv(process.env) ===
+    NodeEnvironmentEnum.DEVELOPMENT;
+
   // Create the Session Storage service
-  const REDIS_CLIENT_SELECTOR = await RedisClientSelector(true)(
+  const REDIS_CLIENT_SELECTOR = await RedisClientSelector(!isDevEnv)(
     getRequiredENVVar("REDIS_URL"),
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     process.env.REDIS_PASSWORD,
