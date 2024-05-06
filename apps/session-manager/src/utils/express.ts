@@ -12,14 +12,14 @@ export type WithExpressRequest = {
   req: express.Request;
 };
 
-export const toExpressHandlerRTE =
-  <D, R extends IResponse<T>, T>(deps4: D) =>
+export const toExpressHandler =
+  <D, R extends IResponse<T>, T>(deps: D) =>
   (handler: RTE.ReaderTaskEither<D & WithExpressRequest, Error, R>) =>
   (req: express.Request, res: express.Response): Promise<void> =>
     pipe(
       handler({
         req,
-        ...deps4,
+        ...deps,
       }),
       TE.mapLeft((err) => ResponseErrorInternal(String(err))),
       TE.toUnion,

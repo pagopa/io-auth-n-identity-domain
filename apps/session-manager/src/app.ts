@@ -15,8 +15,8 @@ import { getRequiredENVVar } from "./utils/environment";
 import { FnAppAPIClient } from "./repositories/api";
 import { getSessionState } from "./controllers/session";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
-import { toExpressHandlerRTE } from "./utils/express";
-import { withUserFromRequestRTE } from "./utils/user";
+import { toExpressHandler } from "./utils/express";
+import { withUserFromRequest } from "./utils/user";
 
 export const newApp = async (): Promise<Express> => {
   const isDevEnv =
@@ -64,11 +64,11 @@ export const newApp = async (): Promise<Express> => {
     `${API_BASE_PATH}/session`,
     authMiddlewares.bearerSession,
     pipe(
-      toExpressHandlerRTE({
+      toExpressHandler({
         redisClientSelector: REDIS_CLIENT_SELECTOR,
         fnAppAPIClient: API_CLIENT,
       }),
-      ap(withUserFromRequestRTE(getSessionState)),
+      ap(withUserFromRequest(getSessionState)),
     ),
   );
 
