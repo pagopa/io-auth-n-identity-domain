@@ -1,4 +1,4 @@
-API_URL=https://localhost:8080/functions-app
+API_URL=http://functions-app:7071/api/v1
 API_KEY=key
 API_BASE_PATH=/api/v1
 
