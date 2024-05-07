@@ -16,7 +16,8 @@ No providers.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_federated_identities"></a> [federated\_identities](#module\_federated\_identities) | github.com/pagopa/dx//infra/modules/azure_federated_identity_with_github | n/a |
+| <a name="module_federated_identities"></a> [federated\_identities](#module\_federated\_identities) | github.com/pagopa/dx//infra/modules/azure_federated_identity_with_github | main |
+| <a name="module_federated_identities_session_manager"></a> [federated\_identities\_session\_manager](#module\_federated\_identities\_session\_manager) | github.com/pagopa/dx//infra/modules/azure_federated_identity_with_github | main |
 
 ## Resources
 
