@@ -11,13 +11,11 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
-import { getLollipopAssertionRefForUser } from "../services/redis-session-storage";
-import { RedisRepositoryDeps } from "../repositories/redis";
+import { RedisRepo, FnAppRepo } from "../repositories";
 import { WithUser } from "../utils/user";
-import { FnAppAPIRepositoryDeps } from "../repositories/api";
 import { PublicSession } from "../generated/backend/PublicSession";
 import { WithExpressRequest } from "../utils/express";
-import { getProfile } from "../services/profile";
+import { ProfileService, RedisSessionStorageService } from "../services";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
 import { ProfileWithEmailValidated } from "../types/profile";
 
@@ -27,8 +25,8 @@ export const SESSION_TOKEN_LENGTH_BYTES = 48;
 /**
  * @type Reader depedencies for GetSession handler of SessionController.
  */
-type GetSessionDependencies = RedisRepositoryDeps &
-  FnAppAPIRepositoryDeps &
+type GetSessionDependencies = RedisRepo.RedisRepositoryDeps &
+  FnAppRepo.FnAppAPIRepositoryDeps &
   WithUser &
   WithExpressRequest;
 
@@ -39,7 +37,7 @@ type GetSessionDependencies = RedisRepositoryDeps &
  * @param deps Input dependencies to execute the controller containing services and data from middlewares
  * @returns A TaskEither with Error or handled responses.
  */
-const getSessionState: RTE.ReaderTaskEither<
+export const getSessionState: RTE.ReaderTaskEither<
   GetSessionDependencies,
   Error,
   | IResponseErrorInternal
@@ -65,10 +63,11 @@ const getSessionState: RTE.ReaderTaskEither<
       )();
 
       // Read the assertionRef related to the User for Lollipop.
-      const errorOrMaybeAssertionRef = await getLollipopAssertionRefForUser({
-        ...deps,
-        fiscalCode: deps.user.fiscal_code,
-      })();
+      const errorOrMaybeAssertionRef =
+        await RedisSessionStorageService.getLollipopAssertionRefForUser({
+          ...deps,
+          fiscalCode: deps.user.fiscal_code,
+        })();
       if (E.isLeft(errorOrMaybeAssertionRef)) {
         return ResponseErrorInternal(
           `Error retrieving the assertionRef: ${errorOrMaybeAssertionRef.left.message}`,
@@ -89,12 +88,12 @@ const getSessionState: RTE.ReaderTaskEither<
   );
 
 const profileWithEmailValidatedOrError: RTE.ReaderTaskEither<
-  FnAppAPIRepositoryDeps & WithUser,
+  FnAppRepo.FnAppAPIRepositoryDeps & WithUser,
   Error,
   ProfileWithEmailValidated
 > = (deps) =>
   pipe(
-    getProfile(deps),
+    ProfileService.getProfile(deps),
     TE.chain(
       TE.fromPredicate(
         (r): r is IResponseSuccessJson<InitializedProfile> =>
@@ -113,5 +112,3 @@ const profileWithEmailValidatedOrError: RTE.ReaderTaskEither<
       ),
     ),
   );
-
-export { getSessionState };

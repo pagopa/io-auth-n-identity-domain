@@ -15,7 +15,7 @@ import {
   unhandledResponseStatus,
   withValidatedOrInternalError,
 } from "../utils/responses";
-import { FnAppAPIRepositoryDeps } from "../repositories/api";
+import { FnAppRepo } from "../repositories";
 import { toInitializedProfile } from "../types/profile";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
 import { WithUser } from "../utils/user";
@@ -26,8 +26,8 @@ import { WithUser } from "../utils/user";
  * @param dependencies The fn-app Client and the user data related to the session
  * @returns Responses
  */
-const getProfile: RTE.ReaderTaskEither<
-  FnAppAPIRepositoryDeps & WithUser,
+export const getProfile: RTE.ReaderTaskEither<
+  FnAppRepo.FnAppAPIRepositoryDeps & WithUser,
   Error,
   | IResponseErrorInternal
   | IResponseErrorTooManyRequests
@@ -75,5 +75,3 @@ const getProfile: RTE.ReaderTaskEither<
     },
     (err) => new Error(`An Error occurs calling the getProfile API: [${err}]`),
   );
-
-export { getProfile };

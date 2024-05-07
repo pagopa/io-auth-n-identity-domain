@@ -9,11 +9,10 @@ import {
   getNodeEnvironmentFromProcessEnv,
 } from "@pagopa/ts-commons/lib/environment";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
-import { RedisClientSelector } from "./repositories/redis";
+import { RedisRepo, FnAppRepo } from "./repositories";
 import { attachTrackingData } from "./utils/appinsights";
 import { getRequiredENVVar } from "./utils/environment";
-import { FnAppAPIClient } from "./repositories/api";
-import { getSessionState } from "./controllers/session";
+import { SessionController } from "./controllers";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
 import { toExpressHandler } from "./utils/express";
 import { withUserFromRequest } from "./utils/user";
@@ -24,14 +23,14 @@ export const newApp = async (): Promise<Express> => {
     NodeEnvironmentEnum.DEVELOPMENT;
 
   // Create the Session Storage service
-  const REDIS_CLIENT_SELECTOR = await RedisClientSelector(!isDevEnv)(
+  const REDIS_CLIENT_SELECTOR = await RedisRepo.RedisClientSelector(!isDevEnv)(
     getRequiredENVVar("REDIS_URL"),
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     process.env.REDIS_PASSWORD,
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     process.env.REDIS_PORT,
   );
-  const API_CLIENT = FnAppAPIClient(
+  const API_CLIENT = FnAppRepo.FnAppAPIClient(
     getRequiredENVVar("API_URL"),
     getRequiredENVVar("API_KEY"),
     httpOrHttpsApiFetch,
@@ -68,7 +67,7 @@ export const newApp = async (): Promise<Express> => {
         redisClientSelector: REDIS_CLIENT_SELECTOR,
         fnAppAPIClient: API_CLIENT,
       }),
-      ap(withUserFromRequest(getSessionState)),
+      ap(withUserFromRequest(SessionController.getSessionState)),
     ),
   );
 

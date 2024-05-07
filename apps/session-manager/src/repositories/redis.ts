@@ -128,7 +128,7 @@ const createClusterRedisClient =
     return redisClient;
   };
 
-const RedisClientSelector =
+export const RedisClientSelector =
   (enableTls: boolean, appInsightsClient?: appInsights.TelemetryClient) =>
   async (
     redisUrl: string,
@@ -166,8 +166,6 @@ const RedisClientSelector =
     };
   };
 
-type RedisRepositoryDeps = {
+export type RedisRepositoryDeps = {
   redisClientSelector: RedisClientSelectorType;
 };
-
-export { RedisRepositoryDeps, RedisClientSelector };

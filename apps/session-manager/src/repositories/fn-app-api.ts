@@ -1,7 +1,7 @@
 import nodeFetch from "node-fetch";
 import { Client, createClient } from "@pagopa/io-functions-app-sdk/client";
 
-const FnAppAPIClient = (
+export const FnAppAPIClient = (
   baseUrl: string,
   token: string,
   fetchApi: typeof fetch = nodeFetch as unknown as typeof fetch, // TODO: customize fetch with timeout
@@ -21,8 +21,6 @@ const FnAppAPIClient = (
 
 type FnAppAPIClient = typeof FnAppAPIClient;
 
-type FnAppAPIRepositoryDeps = {
+export type FnAppAPIRepositoryDeps = {
   fnAppAPIClient: ReturnType<FnAppAPIClient>;
 };
-
-export { FnAppAPIClient, FnAppAPIRepositoryDeps };
