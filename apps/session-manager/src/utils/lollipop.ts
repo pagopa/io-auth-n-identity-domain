@@ -25,10 +25,20 @@ import {
   ResponseErrorInternal,
 } from "@pagopa/ts-commons/lib/responses";
 import { IResponseType } from "@pagopa/ts-commons/lib/requests";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { LollipopContentDigest } from "../generated/lollipop/LollipopContentDigest";
+import { JwkPubKeyToken } from "../generated/lollipop-api/JwkPubKeyToken";
+import { AssertionType } from "../generated/fast-login-api/AssertionType";
+import { AssertionRef } from "../generated/backend/AssertionRef";
+import { LollipopOriginalURL } from "../generated/fast-login-api/LollipopOriginalURL";
+import { LollipopMethod } from "../generated/fast-login-api/LollipopMethod";
+import { LollipopSignatureInput } from "../generated/fast-login-api/LollipopSignatureInput";
+import { LollipopSignature } from "../generated/fast-login-api/LollipopSignature";
 import { withValidatedOrValidationError } from "../utils/responses";
 import { NewPubKey } from "../generated/lollipop-api/NewPubKey";
 import { LollipopApi } from "../repositories";
 import { JwkPubKeyHashAlgorithmEnum } from "../generated/lollipop-api/JwkPubKeyHashAlgorithm";
+import { ResLocals } from "./express";
 import { errorsToError } from "./errors";
 
 const getLoginErrorEventName = "lollipop.error.get-login";
@@ -178,3 +188,48 @@ export const lollipopLoginMiddleware =
       lollipopApiClient,
       appInsightsTelemetryClient,
     )(req).then((_) => (LollipopLoginParams.is(_) ? undefined : _));
+
+export const LollipopRequiredHeaders = t.intersection([
+  t.type({
+    signature: LollipopSignature,
+    ["signature-input"]: LollipopSignatureInput,
+    ["x-pagopa-lollipop-original-method"]: LollipopMethod,
+    ["x-pagopa-lollipop-original-url"]: LollipopOriginalURL,
+  }),
+  t.partial({ ["content-digest"]: LollipopContentDigest }),
+]);
+export type LollipopRequiredHeaders = t.TypeOf<typeof LollipopRequiredHeaders>;
+
+export const LollipopLocalsType = t.intersection([
+  LollipopRequiredHeaders,
+  t.type({
+    ["x-pagopa-lollipop-assertion-ref"]: AssertionRef,
+    ["x-pagopa-lollipop-assertion-type"]: AssertionType,
+    ["x-pagopa-lollipop-auth-jwt"]: NonEmptyString,
+    ["x-pagopa-lollipop-public-key"]: JwkPubKeyToken,
+    ["x-pagopa-lollipop-user-id"]: FiscalCode,
+  }),
+  t.partial({
+    body: t.any,
+    ["content-digest"]: LollipopContentDigest,
+  }),
+]);
+export type LollipopLocalsType = t.TypeOf<typeof LollipopLocalsType>;
+
+/**
+ * Utility function that validate locals to check if all
+ * the properties required for lollipop are present.
+ * The type guard is used to keep unchanged the original locals.
+ * If the type doesn't match a IResponseErrorValidation is returned on left.
+ *
+ * @param locals express res.locals vars injected by toExpressHandler middleware
+ */
+export const withLollipopLocals = <T extends ResLocals>(
+  locals?: T,
+): E.Either<IResponseErrorValidation, LollipopLocalsType> =>
+  pipe(
+    locals,
+    E.fromPredicate(LollipopLocalsType.is, () =>
+      ResponseErrorValidation("Bad request", "Error initializiang lollipop"),
+    ),
+  );

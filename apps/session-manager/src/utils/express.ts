@@ -21,6 +21,13 @@ export type ExpressMiddleware = (
   next: express.NextFunction,
 ) => void;
 
+export type ResLocals = Record<string, unknown> & {
+  // eslint-disable-next-line functional/prefer-readonly-type
+  detail?: string;
+  // eslint-disable-next-line functional/prefer-readonly-type
+  body?: Buffer;
+};
+
 export type WithExpressRequest = {
   req: express.Request;
 };

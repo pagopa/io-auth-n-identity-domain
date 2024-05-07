@@ -22,6 +22,9 @@ import { ProfileWithEmailValidated } from "../types/profile";
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
 
+// how many random bytes to generate for each session ID
+export const SESSION_ID_LENGTH_BYTES = 32;
+
 /**
  * @type Reader depedencies for GetSession handler of SessionController.
  */

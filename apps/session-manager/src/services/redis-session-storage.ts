@@ -16,6 +16,21 @@ import { SessionToken } from "../types/token";
 import { User } from "../types/user";
 import { RedisRepo } from "../repositories";
 import {
+  RedisClientMode,
+  RedisClientSelectorType,
+  blockedUserSetKey,
+  bpdTokenPrefix,
+  fimsTokenPrefix,
+  lollipopDataPrefix,
+  myPortalTokenPrefix,
+  sessionInfoKeyPrefix,
+  sessionKeyPrefix,
+  sessionNotFoundError,
+  userSessionsSetKeyPrefix,
+  walletKeyPrefix,
+  zendeskTokenPrefix,
+} from "../repositories/redis";
+import {
   LollipopData,
   NullableBackendAssertionRefFromString,
 } from "../types/assertion-ref";
@@ -601,3 +616,28 @@ export const set =
       TE.map(() => true),
     );
   };
+
+/**
+ * Check if a user is blocked
+ *
+ * @param fiscalCode id of the user
+ *
+ * @returns a promise with either an error or a boolean indicating if the user is blocked
+ */
+export const isBlockedUser = (
+  selector: RedisClientSelectorType,
+  fiscalCode: FiscalCode,
+): TE.TaskEither<Error, boolean> =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        selector
+          .selectOne(RedisClientMode.FAST)
+          .sIsMember(blockedUserSetKey, fiscalCode),
+      E.toError,
+    ),
+    TE.bimap(
+      (err) => new Error(`Error accessing blocked users collection: ${err}`),
+      identity,
+    ),
+  );
