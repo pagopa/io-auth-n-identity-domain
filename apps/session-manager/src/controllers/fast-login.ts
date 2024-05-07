@@ -1,4 +1,3 @@
-import type * as express from "express";
 import {
   IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
