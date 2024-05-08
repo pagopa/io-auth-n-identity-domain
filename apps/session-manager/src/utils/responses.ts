@@ -73,19 +73,6 @@ export const withCatchAsInternalError = <T>(
     return ResponseErrorInternal(`${message} [${_}]`);
   });
 
-export const withLeftAsInternalError = <T>(
-  te: TE.TaskEither<Error, T>,
-  message: string = "Exception while calling upstream API (likely a timeout).",
-): Task<T | IResponseErrorInternal> =>
-  pipe(
-    te,
-    TE.mapLeft((err) => {
-      log.error(err);
-      return ResponseErrorInternal(`${message} [${err}]`);
-    }),
-    TE.toUnion,
-  );
-
 export const unhandledResponseStatus = (
   status: number,
 ): IResponseErrorInternal =>
