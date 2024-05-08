@@ -1,10 +1,7 @@
 import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
 import {
-  HttpStatusCodeEnum,
-  IResponse,
   IResponseErrorInternal,
   IResponseErrorValidation,
-  ResponseErrorGeneric,
   ResponseErrorInternal,
   ResponseErrorValidation,
 } from "@pagopa/ts-commons/lib/responses";

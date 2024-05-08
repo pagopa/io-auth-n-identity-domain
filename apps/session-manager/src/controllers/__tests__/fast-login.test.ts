@@ -1,6 +1,6 @@
 import { describe, beforeEach, vi, it, expect, assert } from "vitest";
 import { generateNonceEndpoint } from "../fast-login";
-import { getFastLoginLollipopConsumerClient } from "../../repositories/fast-login-api";
+import { getFnFastLoginAPIClient } from "../../repositories/fast-login-api";
 import * as E from "fp-ts/Either";
 import {
   IResponse,
@@ -24,7 +24,7 @@ const mockGenerateNonce = vi
 
 const fastLoginLCClient = {
   generateNonce: mockGenerateNonce,
-} as unknown as ReturnType<getFastLoginLollipopConsumerClient>;
+} as unknown as ReturnType<getFnFastLoginAPIClient>;
 
 describe("fastLoginController#generateNonce", () => {
   beforeEach(() => {
@@ -32,45 +32,35 @@ describe("fastLoginController#generateNonce", () => {
   });
 
   const generateNonceController = generateNonceEndpoint({
-    client: fastLoginLCClient,
+    fnFastLoginAPIClient: fastLoginLCClient,
   });
 
   it("should return the nonce, when the the downstream component returns it", async () => {
     const result = await generateNonceController();
+    const expectedResult = ResponseSuccessJson(aValidGenerateNonceResponse);
 
-    expectToMatchResult(
-      result,
-      ResponseSuccessJson(aValidGenerateNonceResponse),
+    expect(mockGenerateNonce).toHaveBeenCalled();
+    expect(result).toEqual(
+      E.right({
+        ...expectedResult,
+        apply: expect.any(Function),
+      }),
     );
   });
 
   it.each`
-    title                                                                                           | clientResponse                                            | expectedResult
-    ${"should return InternalServerError when the client return 401"}                               | ${E.right({ status: 401 })}                               | ${ResponseErrorUnexpectedAuthProblem()}
-    ${"should return InternalServerError when the client return 500"}                               | ${E.right({ status: 500, value: { title: "an Error" } })} | ${ResponseErrorInternal(readableProblem({ title: "an Error" }))}
-    ${"should return InternalServerError when the client return 502"}                               | ${E.right({ status: 502 })}                               | ${ResponseErrorInternal("An error occurred on upstream service")}
-    ${"should return InternalServerError when the client return 504"}                               | ${E.right({ status: 504 })}                               | ${ResponseErrorInternal("An error occurred on upstream service")}
-    ${"should return InternalServerError when the client return a status code not defied in specs"} | ${E.right({ status: 418 })}                               | ${ResponseErrorStatusNotDefinedInSpec({ status: 418 } as never)}
+    title                                                                                            | clientResponse                                            | expectedResult
+    ${"should return InternalServerError when the client return 401"}                                | ${E.right({ status: 401 })}                               | ${Error("Underlying API fails with an unexpected 401")}
+    ${"should return InternalServerError when the client return 500"}                                | ${E.right({ status: 500, value: { title: "an Error" } })} | ${Error(readableProblem({ title: "an Error" }))}
+    ${"should return InternalServerError when the client return 502"}                                | ${E.right({ status: 502 })}                               | ${Error("An error occurred on upstream service")}
+    ${"should return InternalServerError when the client return 504"}                                | ${E.right({ status: 504 })}                               | ${Error("An error occurred on upstream service")}
+    ${"should return InternalServerError when the client return a status code not defined in specs"} | ${E.right({ status: 418 })}                               | ${Error(ResponseErrorStatusNotDefinedInSpec({ status: 418 } as never).detail)}
   `("$title", async ({ clientResponse, expectedResult }) => {
     mockGenerateNonce.mockResolvedValue(clientResponse);
 
     const result = await generateNonceController();
 
-    expectToMatchResult(result, expectedResult);
+    expect(mockGenerateNonce).toHaveBeenCalled();
+    expect(result).toEqual(E.left(Error(expectedResult.message)));
   });
 });
-
-// ------------------------
-// utilities
-// ------------------------
-
-function expectToMatchResult(
-  result: E.Either<Error, IResponse<unknown>>,
-  expectedResult: IResponse<unknown>,
-) {
-  assert(E.isRight(result), "Unexpected left either");
-  expect(result.right).toMatchObject({
-    ...expectedResult,
-    apply: expect.any(Function),
-  });
-}
