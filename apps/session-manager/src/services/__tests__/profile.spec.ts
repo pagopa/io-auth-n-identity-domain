@@ -47,19 +47,19 @@ describe("getProfile", () => {
   });
 
   test.each`
-    properyName                          | propertyValue
+    propertyName                         | propertyValue
     ${"last_app_version"}                | ${"1.0.0"}
     ${"reminder_status"}                 | ${ReminderStatusEnum.DISABLED}
     ${"push_notifications_content_type"} | ${PushNotificationsContentTypeEnum.ANONYMOUS}
   `(
     "GIVEN a valid dependencies WHEN the API client return an valid ExtendedProfile with $propertyName THEN return the InitializedProfile",
-    async ({ properyName, propertyValue }) => {
+    async ({ propertyName, propertyValue }) => {
       mockAPIGetProfile.mockResolvedValueOnce(
         t.success({
           ...validApiProfileResponse,
           value: {
             ...validApiProfileResponse.value,
-            [properyName]: propertyValue,
+            [propertyName]: propertyValue,
           },
         }),
       );
@@ -74,7 +74,7 @@ describe("getProfile", () => {
             kind: "IResponseSuccessJson",
             value: {
               ...toInitializedProfile(mockedExtendedProfile, mockedUser),
-              [properyName]: propertyValue,
+              [propertyName]: propertyValue,
             },
           });
         }),
