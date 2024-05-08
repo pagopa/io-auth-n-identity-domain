@@ -7,34 +7,18 @@ import {
 import {
   errorsToReadableMessages,
   readableReport,
-  readableReportSimplified,
 } from "@pagopa/ts-commons/lib/reporters";
 import * as E from "fp-ts/Either";
 import { flow, pipe } from "fp-ts/lib/function";
-import {
-  NodeEnvironmentEnum,
-  getNodeEnvironmentFromProcessEnv,
-} from "@pagopa/ts-commons/lib/environment";
+import { NodeEnvironmentEnum } from "@pagopa/ts-commons/lib/environment";
 import * as O from "fp-ts/Option";
 import * as t from "io-ts";
 import { IntegerFromString } from "@pagopa/ts-commons/lib/numbers";
-import { log } from "./utils/logger";
-import { IoLoginHostUrl, STRINGS_RECORD, readFile } from "./types/common";
-import { SpidLevelArray } from "./types/spid";
-import { getRequiredENVVar } from "./utils/environment";
-
-export const ENV = getNodeEnvironmentFromProcessEnv(process.env);
-
-export const BACKEND_HOST = pipe(
-  process.env.BACKEND_HOST,
-  IoLoginHostUrl.decode,
-  E.getOrElseW((errors) => {
-    log.error(
-      `BACKEND_HOST env variable error | ${readableReportSimplified(errors)}`,
-    );
-    return process.exit(1);
-  }),
-);
+import { log } from "../utils/logger";
+import { STRINGS_RECORD, readFile } from "../types/common";
+import { SpidLevelArray } from "../types/spid";
+import { getRequiredENVVar } from "../utils/environment";
+import { ENV, BACKEND_HOST } from "./index";
 
 // Redirection urls
 export const CLIENT_ERROR_REDIRECTION_URL = `${BACKEND_HOST}/error.html`;
@@ -226,9 +210,3 @@ export const samlConfig: SamlConfig = {
   privateCert: SAML_KEY,
   requestIdExpirationPeriodMs: SAML_REQUEST_EXPIRATION_PERIOD_MS,
 };
-
-// Needed to forward SPID requests for logging
-export const SPID_LOG_STORAGE_CONNECTION_STRING = getRequiredENVVar(
-  "SPID_LOG_STORAGE_CONNECTION_STRING",
-);
-export const SPID_LOG_QUEUE_NAME = getRequiredENVVar("SPID_LOG_QUEUE_NAME");

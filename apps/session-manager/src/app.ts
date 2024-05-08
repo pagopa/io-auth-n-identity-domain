@@ -30,16 +30,10 @@ import { withUserFromRequest } from "./utils/user";
 import { getFnFastLoginAPIClient } from "./repositories/fast-login-api";
 import { generateNonceEndpoint } from "./controllers/fast-login";
 import { getLollipopApiClient } from "./repositories/lollipop-api";
-import {
-  SPID_LOG_QUEUE_NAME,
-  SPID_LOG_STORAGE_CONNECTION_STRING,
-  appConfig,
-  samlConfig,
-  serviceProviderConfig,
-} from "./config";
 import { LoginTypeEnum } from "./types/fast-login";
 import { TimeTracer } from "./utils/timer";
 import { RedisClientMode } from "./types/redis";
+import { SpidLogConfig, SpidConfig } from "./config";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -79,8 +73,8 @@ export const newApp: (
 
   // Create the Client to the Spid Log Queue
   const SPID_LOG_QUEUE_CLIENT = new QueueClient(
-    SPID_LOG_STORAGE_CONNECTION_STRING,
-    SPID_LOG_QUEUE_NAME,
+    SpidLogConfig.SPID_LOG_STORAGE_CONNECTION_STRING,
+    SpidLogConfig.SPID_LOG_QUEUE_NAME,
   );
 
   passport.use(
@@ -154,7 +148,7 @@ export const newApp: (
             Promise.resolve(ResponseErrorInternal("not implemented yet")),
           app,
           appConfig: {
-            ...appConfig,
+            ...SpidConfig.appConfig,
             eventTraker: (event) => {
               appInsightsClient?.trackEvent({
                 name: event.name,
@@ -176,8 +170,8 @@ export const newApp: (
               ResponsePermanentRedirect({ href: "/" } as ValidUrl),
             ),
           redisClient: REDIS_CLIENT_SELECTOR.selectOne(RedisClientMode.FAST),
-          samlConfig,
-          serviceProviderConfig,
+          samlConfig: SpidConfig.samlConfig,
+          serviceProviderConfig: SpidConfig.serviceProviderConfig,
         })(),
       (err) => new Error(`Unexpected error initizing Spid Login: [${err}]`),
     ),
