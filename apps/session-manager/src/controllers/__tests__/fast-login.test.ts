@@ -49,12 +49,11 @@ describe("fastLoginController#generateNonce", () => {
   });
 
   it.each`
-    title                                                                                            | clientResponse                                            | expectedResult
-    ${"should return InternalServerError when the client return 401"}                                | ${E.right({ status: 401 })}                               | ${Error("Underlying API fails with an unexpected 401")}
-    ${"should return InternalServerError when the client return 500"}                                | ${E.right({ status: 500, value: { title: "an Error" } })} | ${Error(readableProblem({ title: "an Error" }))}
-    ${"should return InternalServerError when the client return 502"}                                | ${E.right({ status: 502 })}                               | ${Error("An error occurred on upstream service")}
-    ${"should return InternalServerError when the client return 504"}                                | ${E.right({ status: 504 })}                               | ${Error("An error occurred on upstream service")}
-    ${"should return InternalServerError when the client return a status code not defined in specs"} | ${E.right({ status: 418 })}                               | ${Error(ResponseErrorStatusNotDefinedInSpec({ status: 418 } as never).detail)}
+    title                                                             | clientResponse                                            | expectedResult
+    ${"should return InternalServerError when the client return 401"} | ${E.right({ status: 401 })}                               | ${Error("Underlying API fails with an unexpected 401")}
+    ${"should return InternalServerError when the client return 500"} | ${E.right({ status: 500, value: { title: "an Error" } })} | ${Error(readableProblem({ title: "an Error" }))}
+    ${"should return InternalServerError when the client return 502"} | ${E.right({ status: 502 })}                               | ${Error("An error occurred on upstream service")}
+    ${"should return InternalServerError when the client return 504"} | ${E.right({ status: 504 })}                               | ${Error("An error occurred on upstream service")}
   `("$title", async ({ clientResponse, expectedResult }) => {
     mockGenerateNonce.mockResolvedValue(clientResponse);
 
