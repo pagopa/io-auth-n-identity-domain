@@ -17,7 +17,7 @@ import { getSessionState } from "./controllers/session";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
 import { toExpressHandler } from "./utils/express";
 import { withUserFromRequest } from "./utils/user";
-import { getFastLoginLollipopConsumerClient } from "./repositories/fast-login-api";
+import { getFnFastLoginAPIClient } from "./repositories/fast-login-api";
 import { generateNonceEndpoint } from "./controllers/fast-login";
 
 export const newApp = async (): Promise<Express> => {
@@ -38,7 +38,7 @@ export const newApp = async (): Promise<Express> => {
     getRequiredENVVar("API_KEY"),
     httpOrHttpsApiFetch,
   );
-  const FAST_LOGIN_CLIENT = getFastLoginLollipopConsumerClient(
+  const FAST_LOGIN_CLIENT = getFnFastLoginAPIClient(
     getRequiredENVVar("FAST_LOGIN_API_KEY"),
     getRequiredENVVar("FAST_LOGIN_API_URL"),
   );
@@ -81,7 +81,7 @@ export const newApp = async (): Promise<Express> => {
   app.post(
     `${API_BASE_PATH}/fast-login/nonce/generate`,
     pipe(
-      toExpressHandler({ client: FAST_LOGIN_CLIENT }),
+      toExpressHandler({ fnFastLoginAPIClient: FAST_LOGIN_CLIENT }),
       ap(generateNonceEndpoint),
     ),
   );

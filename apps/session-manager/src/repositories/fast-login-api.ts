@@ -1,11 +1,11 @@
 import * as nodeFetch from "node-fetch";
 import { createClient, Client } from "../generated/fast-login-api/client";
 
-export function getFastLoginLollipopConsumerClient(
+export function getFnFastLoginAPIClient(
   token: string,
   baseUrl: string,
   basePath?: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // TODO: customize fetch with timeout
   fetchApi: typeof fetch = nodeFetch as unknown as typeof fetch,
 ): Client<"ApiKeyAuth"> {
   return createClient<"ApiKeyAuth">({
@@ -20,5 +20,4 @@ export function getFastLoginLollipopConsumerClient(
   });
 }
 
-export type getFastLoginLollipopConsumerClient =
-  typeof getFastLoginLollipopConsumerClient;
+export type getFnFastLoginAPIClient = typeof getFnFastLoginAPIClient;

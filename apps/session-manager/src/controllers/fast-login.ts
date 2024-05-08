@@ -1,8 +1,5 @@
 import {
-  IResponseErrorForbiddenNotAuthorized,
-  IResponseErrorInternal,
   IResponseSuccessJson,
-  ResponseErrorInternal,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import { flow, pipe } from "fp-ts/function";
@@ -12,56 +9,44 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { GenerateNonceResponse } from "../generated/fast-login-api/GenerateNonceResponse";
 import { readableProblem } from "../utils/errors";
-import {
-  ResponseErrorStatusNotDefinedInSpec,
-  ResponseErrorUnexpectedAuthProblem,
-} from "../utils/responses";
-import { getFastLoginLollipopConsumerClient } from "../repositories/fast-login-api";
+import { ResponseErrorStatusNotDefinedInSpec } from "../utils/responses";
+import { getFnFastLoginAPIClient } from "../repositories/fast-login-api";
 
 export const generateNonceEndpoint: RTE.ReaderTaskEither<
   {
-    client: ReturnType<getFastLoginLollipopConsumerClient>;
+    fnFastLoginAPIClient: ReturnType<getFnFastLoginAPIClient>;
   },
   Error,
-  IResponseErrorInternal | IResponseSuccessJson<GenerateNonceResponse>
-> = ({ client }) =>
-  TE.tryCatch(
-    async () =>
-      pipe(
-        TE.tryCatch(
-          () => client.generateNonce({}),
-          (_) =>
-            ResponseErrorInternal("Error while calling fast-login service"),
+  IResponseSuccessJson<GenerateNonceResponse>
+> = ({ fnFastLoginAPIClient }) =>
+  pipe(
+    TE.tryCatch(
+      () => fnFastLoginAPIClient.generateNonce({}),
+      (_) => Error("Error while calling fast-login service"),
+    ),
+    TE.chainEitherK(
+      E.mapLeft(
+        flow(readableReportSimplified, (message) =>
+          Error(`Unexpected response from fast-login service: ${message}`),
         ),
-        TE.chainEitherKW(
-          E.mapLeft(
-            flow(readableReportSimplified, (message) =>
-              ResponseErrorInternal(
-                `Unexpected response from fast-login service: ${message}`,
-              ),
-            ),
-          ),
-        ),
-        TE.chainW((response) => {
-          switch (response.status) {
-            case 200:
-              return TE.right(ResponseSuccessJson(response.value));
-            case 401:
-              return TE.left(ResponseErrorUnexpectedAuthProblem());
-            case 500:
-              return TE.left(
-                ResponseErrorInternal(readableProblem(response.value)),
-              );
-            case 502:
-            case 504:
-              return TE.left(
-                ResponseErrorInternal("An error occurred on upstream service"),
-              );
-            default:
-              return TE.left(ResponseErrorStatusNotDefinedInSpec(response));
-          }
-        }),
-        TE.toUnion,
-      )(),
-    (e) => Error(String(e)),
+      ),
+    ),
+    TE.chain((response) => {
+      switch (response.status) {
+        case 200:
+          return TE.right(ResponseSuccessJson(response.value));
+        case 401:
+          return TE.left(Error("Underlying API fails with an unexpected 401"));
+        case 500:
+          return TE.left(Error(readableProblem(response.value)));
+        case 502:
+        case 504:
+          return TE.left(Error("An error occurred on upstream service"));
+        default:
+          return TE.left(
+            // exhaustive check function
+            Error(ResponseErrorStatusNotDefinedInSpec(response).detail),
+          );
+      }
+    }),
   );
