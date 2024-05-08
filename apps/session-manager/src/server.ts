@@ -5,7 +5,7 @@ import { log } from "./utils/logger";
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 const port = process.env.WEBSITES_PORT ?? 3000;
 
-newApp()
+newApp({})
   .then((app) => {
     app.get("/healthcheck", (_req: express.Request, res: express.Response) => {
       res.send("Hello World!");

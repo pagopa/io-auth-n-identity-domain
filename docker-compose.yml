@@ -14,12 +14,24 @@ services:
       dockerfile: ./docker/session-manager/Dockerfile
     env_file:
       - ./docker/session-manager/env-dev
+    volumes:
+      - ./apps/session-manager/certs:/usr/src/app/apps/session-manager/certs:cached
     ports:
       - 8081:3000
     command: ["yarn", "start"]
     depends_on:
       redis-cluster:
         condition: service_healthy
+    networks:
+      - io-fn
+
+  spid-testenv2:
+    container_name: spid-testenv2
+    image: italia/spid-testenv2
+    ports:
+      - "8088:8088"
+    volumes:
+      - "./docker/testenv2/conf:/app/conf:cached"
     networks:
       - io-fn
 
@@ -145,6 +157,19 @@ services:
   #
   #
   #
+
+  storage:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: storage
+    hostname: azurite
+    restart: always
+    command: "azurite --blobHost 127.0.0.1 --blobPort 20003 --queueHost 127.0.0.1 --queuePort 20004 --tableHost 127.0.0.1 --tablePort 20005"
+    ports:
+      - "20003:20003"
+      - "20004:20004"
+      - "20005:20005"
+    networks:
+       - io-fn
 
 networks:
   # same network name for interoperability with io-mock docker-compose

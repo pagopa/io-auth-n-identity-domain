@@ -11,7 +11,7 @@ import * as passport from "passport-http-bearer";
 import { SessionToken } from "../types/token";
 import { User } from "../types/user";
 import { fulfill, StrategyDoneFunction } from "../utils/strategies";
-import { getBySessionToken } from "../services/redis-session-storage";
+import { RedisSessionStorageService } from "../services";
 import { RedisClientSelectorType } from "../types/redis";
 
 const bearerSessionTokenStrategy =
@@ -27,7 +27,7 @@ const bearerSessionTokenStrategy =
     return new passport.Strategy<passport.VerifyFunctionWithRequest>(
       options,
       (_: express.Request, token: string, done: StrategyDoneFunction) => {
-        getBySessionToken({
+        RedisSessionStorageService.getBySessionToken({
           redisClientSelector,
           token: token as SessionToken,
         })().then(

@@ -16,3 +16,13 @@ FAST_LOGIN_API_URL=http://host.docker.internal:3000
 LOLLIPOP_API_KEY=aKey
 LOLLIPOP_API_BASE_PATH=/api/v1
 LOLLIPOP_API_URL=http://functions-lollipop:7071
+
+BACKEND_HOST=https://localhost
+SPID_TESTENV_URL=https://spid-testenv2:8088
+SAML_CALLBACK_URL=http://localhost:8081/assertionConsumerService
+
+CIE_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/cie/latest
+IDP_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/spid/latest
+
+SPID_LOG_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:20003/devstoreaccount1;QueueEndpoint=http://127.0.0.1:20004/devstoreaccount1;TableEndpoint=http://127.0.0.1:20005/devstoreaccount1;
+SPID_LOG_QUEUE_NAME=spidlogsqueue
