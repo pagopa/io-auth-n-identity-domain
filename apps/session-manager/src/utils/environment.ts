@@ -6,6 +6,7 @@ import { log } from "./logger";
  *
  * @param envName the ENV variable name
  * @returns the value contained inside the env variables
+ * @fires process exit in case the env is missing
  */
 export function getRequiredENVVar(envName: string): string {
   const envVal = process.env[envName];
