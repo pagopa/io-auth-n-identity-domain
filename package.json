@@ -2,6 +2,7 @@
   "name": "io-auth-n-identity-domain",
   "private": true,
   "scripts": {
+    "clean": "turbo run clean",
     "code-review": "turbo run generate && turbo run format:check lint:check test",
     "lint": "turbo run lint",
     "format": "turbo run format",
