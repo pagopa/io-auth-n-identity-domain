@@ -13,7 +13,6 @@ import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { GenerateNonceResponse } from "../generated/fast-login-api/GenerateNonceResponse";
 import { readableProblem } from "../utils/errors";
 import {
-  IResponseErrorUnauthorized,
   ResponseErrorStatusNotDefinedInSpec,
   ResponseErrorUnexpectedAuthProblem,
 } from "../utils/responses";
@@ -24,10 +23,7 @@ export const generateNonceEndpoint: RTE.ReaderTaskEither<
     client: ReturnType<getFastLoginLollipopConsumerClient>;
   },
   Error,
-  | IResponseErrorUnauthorized
-  | IResponseErrorForbiddenNotAuthorized
-  | IResponseErrorInternal
-  | IResponseSuccessJson<GenerateNonceResponse>
+  IResponseErrorInternal | IResponseSuccessJson<GenerateNonceResponse>
 > = ({ client }) =>
   TE.tryCatch(
     async () =>
