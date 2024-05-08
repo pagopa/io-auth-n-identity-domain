@@ -5,7 +5,8 @@
   "exclude": [
     "node_modules",
     "dist",
-    "**/__tests__/**"
+    "**/__tests__/**",
+    "**/__mocks__/**"
   ],
   "compilerOptions": {
     "module": "Node16",

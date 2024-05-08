@@ -11,14 +11,20 @@ export type WithUser = {
   user: User;
 };
 
-export const withUserFromRequestRTE =
+/**
+ * Extends the RTE dependencies in input with the User retrieved
+ * from the express Request and pass they to an hendler. If the user is missing or
+ * malformed a validation error is returned.
+ * @param controllerHandler The handler of the API requests
+ */
+export const withUserFromRequest =
   <D extends WithExpressRequest, R extends IResponse<T>, T>(
-    controller: RTE.ReaderTaskEither<D & WithUser, Error, R>,
+    controllerHandler: RTE.ReaderTaskEither<D & WithUser, Error, R>,
   ): RTE.ReaderTaskEither<D, Error, IResponseErrorValidation | R> =>
-  (deps3) =>
-    withValidatedOrValidationErrorRTE(User.decode(deps3.req.user), (user) =>
-      controller({
+  (deps) =>
+    withValidatedOrValidationErrorRTE(User.decode(deps.req.user), (user) =>
+      controllerHandler({
         user,
-        ...deps3,
+        ...deps,
       }),
     );

@@ -1,12 +1,12 @@
 import nodeFetch from "node-fetch";
 import { Client, createClient } from "@pagopa/io-functions-app-sdk/client";
 
-export function APIClient(
+const FnAppAPIClient = (
   baseUrl: string,
   token: string,
   fetchApi: typeof fetch = nodeFetch as unknown as typeof fetch, // TODO: customize fetch with timeout
-): Client<"SubscriptionKey"> {
-  return createClient<"SubscriptionKey">({
+): Client<"SubscriptionKey"> =>
+  createClient<"SubscriptionKey">({
     basePath: "",
     baseUrl,
     fetchApi,
@@ -18,6 +18,11 @@ export function APIClient(
         SubscriptionKey: token,
       }),
   });
-}
 
-export type APIClient = typeof APIClient;
+type FnAppAPIClient = typeof FnAppAPIClient;
+
+type FnAppAPIRepositoryDeps = {
+  fnAppAPIClient: ReturnType<FnAppAPIClient>;
+};
+
+export { FnAppAPIClient, FnAppAPIRepositoryDeps };

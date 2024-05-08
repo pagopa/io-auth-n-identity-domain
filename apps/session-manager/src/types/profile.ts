@@ -64,3 +64,6 @@ export const ProfileWithEmailValidated = t.brand(
     !!(p.email && p.is_email_validated),
   "HasValidEmailAddress",
 );
+export type ProfileWithEmailValidated = t.TypeOf<
+  typeof ProfileWithEmailValidated
+>;

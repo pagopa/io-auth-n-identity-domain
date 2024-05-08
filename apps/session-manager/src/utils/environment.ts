@@ -4,8 +4,9 @@ import { log } from "./logger";
  * Get a required value reading from the environment.
  * The process will be killed with exit code 1 if the env var is not provided
  *
- * @param {string} envName
- * @param {string} valueName
+ * @param envName the ENV variable name
+ * @returns the value contained inside the env variables
+ * @fires process exit in case the env is missing
  */
 export function getRequiredENVVar(envName: string): string {
   const envVal = process.env[envName];

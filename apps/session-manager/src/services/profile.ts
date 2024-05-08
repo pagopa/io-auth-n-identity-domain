@@ -9,28 +9,34 @@ import {
   ResponseErrorInternal,
 } from "@pagopa/ts-commons/lib/responses";
 import { ExtendedProfile as ExtendedProfileApi } from "@pagopa/io-functions-app-sdk/ExtendedProfile";
-import { User } from "../types/user";
+import * as TE from "fp-ts/TaskEither";
+import * as RTE from "fp-ts/ReaderTaskEither";
 import {
   unhandledResponseStatus,
-  withCatchAsInternalError,
   withValidatedOrInternalError,
 } from "../utils/responses";
-import { APIClient } from "../repositories/api";
+import { FnAppAPIRepositoryDeps } from "../repositories/api";
 import { toInitializedProfile } from "../types/profile";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
+import { WithUser } from "../utils/user";
 
-export const getProfile =
-  (apiClient: ReturnType<APIClient>) =>
-  (
-    user: User,
-  ): Promise<
-    | IResponseErrorInternal
-    | IResponseErrorTooManyRequests
-    | IResponseErrorNotFound
-    | IResponseSuccessJson<InitializedProfile>
-  > =>
-    withCatchAsInternalError(async () => {
-      const validated = await apiClient.getProfile({
+/**
+ * Retrieves the profile for a specific user converting an `ExtendedProfile`
+ * obtained from the Fn App API Client to an `InitializedProfile`
+ * @param dependencies The fn-app Client and the user data related to the session
+ * @returns Responses
+ */
+const getProfile: RTE.ReaderTaskEither<
+  FnAppAPIRepositoryDeps & WithUser,
+  Error,
+  | IResponseErrorInternal
+  | IResponseErrorTooManyRequests
+  | IResponseErrorNotFound
+  | IResponseSuccessJson<InitializedProfile>
+> = ({ fnAppAPIClient, user }) =>
+  TE.tryCatch(
+    async () => {
+      const validated = await fnAppAPIClient.getProfile({
         fiscal_code: user.fiscal_code,
       });
 
@@ -66,4 +72,8 @@ export const getProfile =
 
         return unhandledResponseStatus(response.status);
       });
-    });
+    },
+    (err) => new Error(`An Error occurs calling the getProfile API: [${err}]`),
+  );
+
+export { getProfile };

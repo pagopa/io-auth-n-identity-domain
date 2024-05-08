@@ -5,9 +5,12 @@ module.exports = {
     node: true
   },
   extends: ["eslint-config-monorepo/index.js"],
+  parserOptions: {
+    project: "./tsconfig.eslint.json",
+    tsconfigRootDir: __dirname,
+  },
   ignorePatterns: [
     "*.yaml",
-    "**/*.test.ts",
     "src/generated/**/*",
     "dist/**/*",
   ],

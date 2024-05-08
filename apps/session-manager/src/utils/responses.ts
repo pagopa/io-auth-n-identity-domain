@@ -59,6 +59,7 @@ export const withValidatedOrInternalError = <T, U>(
 
 /**
  * Transforms async failures into internal errors
+ * @deprecated
  */
 export const withCatchAsInternalError = <T>(
   f: () => Promise<T>,

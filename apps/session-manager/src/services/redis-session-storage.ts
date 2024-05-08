@@ -11,11 +11,11 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { isNumber } from "fp-ts/lib/number";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as ROA from "fp-ts/ReadonlyArray";
+import * as RTE from "fp-ts/ReaderTaskEither";
 import { SessionToken } from "../types/token";
 import { User } from "../types/user";
 import {
-  RedisClientMode,
-  RedisClientSelectorType,
+  RedisRepositoryDeps,
   bpdTokenPrefix,
   fimsTokenPrefix,
   lollipopDataPrefix,
@@ -36,6 +36,7 @@ import { AssertionRef } from "../generated/backend/AssertionRef";
 import { SessionInfo } from "../generated/backend/SessionInfo";
 import { log } from "../utils/logger";
 import { multipleErrorsFormatter } from "../utils/errors";
+import { RedisClientMode, RedisClientSelectorType } from "../types/redis";
 
 const parseUser = (value: string): E.Either<Error, User> =>
   pipe(
@@ -48,88 +49,116 @@ const parseUser = (value: string): E.Either<Error, User> =>
     ),
   );
 
-const loadSessionBySessionToken =
-  (redisClientSelector: RedisClientSelectorType) =>
-  (token: SessionToken): TE.TaskEither<Error, User> =>
-    pipe(
-      TE.tryCatch(
-        () =>
-          redisClientSelector
-            .selectOne(RedisClientMode.FAST)
-            .get(`${sessionKeyPrefix}${token}`),
-        E.toError,
+/**
+ * Read the user data related to a session token and parse it when is present.
+ * @param deps the Redis repository and the session token
+ * @returns The parsed used data object or an error.
+ */
+const loadSessionBySessionToken: RTE.ReaderTaskEither<
+  RedisRepositoryDeps & { token: SessionToken },
+  Error,
+  User
+> = (deps) =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        deps.redisClientSelector
+          .selectOne(RedisClientMode.FAST)
+          .get(`${sessionKeyPrefix}${deps.token}`),
+      E.toError,
+    ),
+    TE.chain(
+      flow(
+        O.fromNullable,
+        E.fromOption(() => sessionNotFoundError),
+        E.chain(parseUser),
+        TE.fromEither,
       ),
-      TE.chain(
-        flow(
-          O.fromNullable,
-          E.fromOption(() => sessionNotFoundError),
-          E.chain(parseUser),
-          TE.fromEither,
-        ),
-      ),
-    );
+    ),
+  );
 
-export const getBySessionToken =
-  (redisClientSelector: RedisClientSelectorType) =>
-  (token: SessionToken): TE.TaskEither<Error, O.Option<User>> =>
-    pipe(
-      loadSessionBySessionToken(redisClientSelector)(token),
-      TE.foldW(
-        (err) =>
-          err === sessionNotFoundError
-            ? TE.right<Error, O.Option<User>>(O.none)
-            : TE.left<Error, O.Option<User>>(err),
-        (_) => TE.right<Error, O.Option<User>>(O.some(_)),
-      ),
-    );
+/**
+ * Return an optional `User` object related to a `SessionToken`
+ * @param deps the required dependencies are the Redis repository and the session token
+ * @returns an optional User if the session exists / not exist or an error otherwise
+ */
+const getBySessionToken: RTE.ReaderTaskEither<
+  RedisRepositoryDeps & { token: SessionToken },
+  Error,
+  O.Option<User>
+> = (deps) =>
+  pipe(
+    deps,
+    loadSessionBySessionToken,
+    TE.foldW(
+      (err) =>
+        err === sessionNotFoundError
+          ? TE.right<Error, O.Option<User>>(O.none)
+          : TE.left<Error, O.Option<User>>(err),
+      (_) => TE.right<Error, O.Option<User>>(O.some(_)),
+    ),
+  );
 
-export const getLollipopAssertionRefForUser =
-  (redisClientSelector: RedisClientSelectorType) =>
-  (
-    fiscalCode: FiscalCode,
-    // TODO: Use BackendAssertionRef instead
-  ): TE.TaskEither<Error, O.Option<AssertionRef>> =>
-    pipe(
-      getLollipopDataForUser(redisClientSelector)(fiscalCode),
-      TE.map(O.map((data) => data.assertionRef)),
-    );
+/**
+ * Returns an optional `AssertionRef` related to an user fical code.
+ * @param deps the required dependencies are the Redis repository and the user fiscal code
+ * @returns An optional assertion ref or error
+ */
+const getLollipopAssertionRefForUser: RTE.ReaderTaskEither<
+  RedisRepositoryDeps & { fiscalCode: FiscalCode },
+  Error,
+  O.Option<AssertionRef>
+> = (deps) =>
+  pipe(
+    deps,
+    getLollipopDataForUser,
+    TE.map(O.map((data) => data.assertionRef)),
+  );
 
-const getLollipopDataForUser =
-  (redisClientSelector: RedisClientSelectorType) =>
-  (fiscalCode: FiscalCode): TE.TaskEither<Error, O.Option<LollipopData>> =>
-    pipe(
-      TE.tryCatch(
-        () =>
-          redisClientSelector
-            .selectOne(RedisClientMode.SAFE)
-            .get(`${lollipopDataPrefix}${fiscalCode}`),
-        E.toError,
-      ),
-      TE.chain(
-        flow(
-          NullableBackendAssertionRefFromString.decode,
-          E.map(
-            flow(
-              O.fromNullable,
-              O.map((storedValue) =>
-                LollipopData.is(storedValue)
-                  ? storedValue
-                  : // Remap plain string to LollipopData
-                    {
-                      assertionRef: storedValue,
-                      loginType: LoginTypeEnum.LEGACY,
-                    },
-              ),
+/**
+ * Returns an optional `LollipopData` with assertion ref and login type
+ * related to an user fical code.
+ * @param deps the required dependencies are the Redis repository and the user fiscal code
+ * @returns An optional LollipopData or error
+ */
+const getLollipopDataForUser: RTE.ReaderTaskEither<
+  RedisRepositoryDeps & { fiscalCode: FiscalCode },
+  Error,
+  O.Option<LollipopData>
+> = (deps) =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        deps.redisClientSelector
+          .selectOne(RedisClientMode.SAFE)
+          .get(`${lollipopDataPrefix}${deps.fiscalCode}`),
+      E.toError,
+    ),
+    TE.chain(
+      flow(
+        NullableBackendAssertionRefFromString.decode,
+        E.map(
+          flow(
+            O.fromNullable,
+            O.map((storedValue) =>
+              LollipopData.is(storedValue)
+                ? storedValue
+                : // Remap plain string to LollipopData
+                  {
+                    assertionRef: storedValue,
+                    loginType: LoginTypeEnum.LEGACY,
+                  },
             ),
           ),
-          E.mapLeft(
-            (validationErrors) =>
-              new Error(errorsToReadableMessages(validationErrors).join("/")),
-          ),
-          TE.fromEither,
         ),
+        E.mapLeft(
+          (validationErrors) =>
+            new Error(errorsToReadableMessages(validationErrors).join("/")),
+        ),
+        TE.fromEither,
       ),
-    );
+    ),
+  );
 
 const singleStringReplyAsync = (command: TE.TaskEither<Error, string | null>) =>
   pipe(
@@ -430,7 +459,7 @@ const saveSessionInfo =
     );
   };
 
-export const set =
+const set =
   (redisClientSelector: RedisClientSelectorType, expireSec: number) =>
   (
     user: User,
@@ -581,3 +610,5 @@ export const set =
       TE.map(() => true),
     );
   };
+
+export { getBySessionToken, getLollipopAssertionRefForUser, set };
