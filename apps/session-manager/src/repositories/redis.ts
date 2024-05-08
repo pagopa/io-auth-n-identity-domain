@@ -4,7 +4,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as RA from "fp-ts/lib/ReadonlyArray";
 import * as O from "fp-ts/lib/Option";
 import { log } from "../utils/logger";
-import { RedisClientSelectorType } from "../types/redis";
+import { RedisClientMode, RedisClientSelectorType } from "../types/redis";
 
 export const sessionKeyPrefix = "SESSION-";
 export const walletKeyPrefix = "WALLET-";
@@ -127,12 +127,6 @@ const createClusterRedisClient =
     await redisClient.connect();
     return redisClient;
   };
-
-export enum RedisClientMode {
-  "ALL" = "ALL",
-  "SAFE" = "SAFE",
-  "FAST" = "FAST",
-}
 
 const RedisClientSelector =
   (enableTls: boolean, appInsightsClient?: appInsights.TelemetryClient) =>

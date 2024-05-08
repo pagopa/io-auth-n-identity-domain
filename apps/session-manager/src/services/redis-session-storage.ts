@@ -15,7 +15,6 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import { SessionToken } from "../types/token";
 import { User } from "../types/user";
 import {
-  RedisClientMode,
   RedisRepositoryDeps,
   bpdTokenPrefix,
   fimsTokenPrefix,
@@ -37,7 +36,7 @@ import { AssertionRef } from "../generated/backend/AssertionRef";
 import { SessionInfo } from "../generated/backend/SessionInfo";
 import { log } from "../utils/logger";
 import { multipleErrorsFormatter } from "../utils/errors";
-import { RedisClientSelectorType } from "../types/redis";
+import { RedisClientMode, RedisClientSelectorType } from "../types/redis";
 
 const parseUser = (value: string): E.Either<Error, User> =>
   pipe(
