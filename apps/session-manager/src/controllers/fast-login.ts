@@ -8,8 +8,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { GenerateNonceResponse } from "../generated/fast-login-api/GenerateNonceResponse";
-import { readableProblem } from "../utils/errors";
-import { ResponseErrorStatusNotDefinedInSpec } from "../utils/responses";
+import { assertNever, readableProblem } from "../utils/errors";
 import { getFnFastLoginAPIClient } from "../repositories/fast-login-api";
 
 export const generateNonceEndpoint: RTE.ReaderTaskEither<
@@ -43,10 +42,7 @@ export const generateNonceEndpoint: RTE.ReaderTaskEither<
         case 504:
           return TE.left(Error("An error occurred on upstream service"));
         default:
-          return TE.left(
-            // exhaustive check function
-            Error(ResponseErrorStatusNotDefinedInSpec(response).detail),
-          );
+          return assertNever(response);
       }
     }),
   );

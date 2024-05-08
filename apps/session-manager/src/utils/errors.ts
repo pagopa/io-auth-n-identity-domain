@@ -20,3 +20,7 @@ export function multipleErrorsFormatter(
 
 export const readableProblem = (problem: ProblemJson) =>
   `${problem.title} (${problem.type || "no problem type specified"})`;
+
+export const assertNever = (arg: never): never => {
+  throw new Error(`Unexpected scenario: ${JSON.stringify(arg)}`);
+};
