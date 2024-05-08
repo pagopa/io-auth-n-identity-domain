@@ -14,7 +14,6 @@ import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
-import * as t from "io-ts";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import express from "express";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
@@ -26,6 +25,7 @@ import {
   FIMSToken,
   MyPortalToken,
   SessionToken,
+  UserTokens,
   WalletToken,
   ZendeskToken,
 } from "../types/token";
@@ -38,23 +38,8 @@ import { makeProxyUserFromSAMLResponse } from "../utils/spid";
 import { decodeIPAddressFromReq } from "../utils/network";
 import { isBlockedUser, set } from "../services/redis-session-storage";
 import { RedisClientSelectorType } from "../repositories/redis";
+import { FastLoginResponse } from "../types/fast-login";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
-
-const FastLoginResponse = t.type({
-  token: NonEmptyString,
-});
-
-type FastLoginResponse = t.TypeOf<typeof FastLoginResponse>;
-
-interface UserTokens {
-  readonly session_token: SessionToken;
-  readonly wallet_token: WalletToken;
-  readonly myportal_token: MyPortalToken;
-  readonly bpd_token: BPDToken;
-  readonly zendesk_token: ZendeskToken;
-  readonly fims_token: FIMSToken;
-  readonly session_tracking_id: string;
-}
 
 const generateSessionTokens = (
   userFiscalCode: FiscalCode,
@@ -90,7 +75,10 @@ const generateSessionTokens = (
 
   return pipe(
     // ask the session storage whether this user is blocked
-    isBlockedUser(redisClientSelector, userFiscalCode),
+    isBlockedUser({
+      selector: redisClientSelector,
+      fiscalCode: userFiscalCode,
+    }),
     TE.mapLeft(() => ResponseErrorInternal(`Error while validating user`)),
     TE.chainW((isUserBlocked) =>
       isUserBlocked

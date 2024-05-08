@@ -38,6 +38,7 @@ import { withValidatedOrValidationError } from "../utils/responses";
 import { NewPubKey } from "../generated/lollipop-api/NewPubKey";
 import { LollipopApi } from "../repositories";
 import { JwkPubKeyHashAlgorithmEnum } from "../generated/lollipop-api/JwkPubKeyHashAlgorithm";
+import { LollipopLocalsType } from "../types/lollipop";
 import { ResLocals } from "./express";
 import { errorsToError } from "./errors";
 
@@ -188,33 +189,6 @@ export const lollipopLoginMiddleware =
       lollipopApiClient,
       appInsightsTelemetryClient,
     )(req).then((_) => (LollipopLoginParams.is(_) ? undefined : _));
-
-export const LollipopRequiredHeaders = t.intersection([
-  t.type({
-    signature: LollipopSignature,
-    ["signature-input"]: LollipopSignatureInput,
-    ["x-pagopa-lollipop-original-method"]: LollipopMethod,
-    ["x-pagopa-lollipop-original-url"]: LollipopOriginalURL,
-  }),
-  t.partial({ ["content-digest"]: LollipopContentDigest }),
-]);
-export type LollipopRequiredHeaders = t.TypeOf<typeof LollipopRequiredHeaders>;
-
-export const LollipopLocalsType = t.intersection([
-  LollipopRequiredHeaders,
-  t.type({
-    ["x-pagopa-lollipop-assertion-ref"]: AssertionRef,
-    ["x-pagopa-lollipop-assertion-type"]: AssertionType,
-    ["x-pagopa-lollipop-auth-jwt"]: NonEmptyString,
-    ["x-pagopa-lollipop-public-key"]: JwkPubKeyToken,
-    ["x-pagopa-lollipop-user-id"]: FiscalCode,
-  }),
-  t.partial({
-    body: t.any,
-    ["content-digest"]: LollipopContentDigest,
-  }),
-]);
-export type LollipopLocalsType = t.TypeOf<typeof LollipopLocalsType>;
 
 /**
  * Utility function that validate locals to check if all
