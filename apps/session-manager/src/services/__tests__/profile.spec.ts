@@ -1,7 +1,10 @@
-import { describe, test, expect, vi } from "vitest";
+import { describe, test, expect, vi, afterEach } from "vitest";
 import * as t from "io-ts";
 import { ReminderStatusEnum } from "@pagopa/io-functions-app-sdk/ReminderStatus";
 import { PushNotificationsContentTypeEnum } from "@pagopa/io-functions-app-sdk/PushNotificationsContentType";
+import { pipe } from "fp-ts/lib/function";
+import * as TE from "fp-ts/TaskEither";
+import * as E from "fp-ts/Either";
 import { FnAppAPIClient } from "../../repositories/api";
 import { mockedExtendedProfile, mockedUser } from "../../__mocks__/user.mocks";
 import { getProfile } from "../profile";
@@ -18,20 +21,28 @@ const validApiProfileResponse = {
 };
 
 describe("getProfile", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
   test("GIVEN a valid dependencies WHEN the API client return an valid ExtendedProfile THEN return the InitializedProfile", async () => {
     mockAPIGetProfile.mockResolvedValueOnce(t.success(validApiProfileResponse));
 
-    const res = await getProfile({
-      fnAppAPIClient: mockedFnAppAPIClient,
-      user: mockedUser,
-    })();
+    const result = await pipe(
+      getProfile({
+        fnAppAPIClient: mockedFnAppAPIClient,
+        user: mockedUser,
+      }),
+      TE.map((res) => {
+        expect(res).toMatchObject({
+          kind: "IResponseSuccessJson",
+          value: toInitializedProfile(mockedExtendedProfile, mockedUser),
+        });
+      }),
+    )();
 
+    expect(E.isRight(result)).toBeTruthy();
     expect(mockAPIGetProfile).toHaveBeenCalledWith({
       fiscal_code: mockedUser.fiscal_code,
-    });
-    expect(res).toMatchObject({
-      kind: "IResponseSuccessJson",
-      value: toInitializedProfile(mockedExtendedProfile, mockedUser),
     });
   });
 
@@ -53,57 +64,71 @@ describe("getProfile", () => {
         }),
       );
 
-      const res = await getProfile({
-        fnAppAPIClient: mockedFnAppAPIClient,
-        user: mockedUser,
-      })();
+      const result = await pipe(
+        getProfile({
+          fnAppAPIClient: mockedFnAppAPIClient,
+          user: mockedUser,
+        }),
+        TE.map((res) => {
+          expect(res).toMatchObject({
+            kind: "IResponseSuccessJson",
+            value: {
+              ...toInitializedProfile(mockedExtendedProfile, mockedUser),
+              [properyName]: propertyValue,
+            },
+          });
+        }),
+      )();
 
+      expect(E.isRight(result)).toBeTruthy();
       expect(mockAPIGetProfile).toHaveBeenCalledWith({
         fiscal_code: mockedUser.fiscal_code,
-      });
-      expect(res).toMatchObject({
-        kind: "IResponseSuccessJson",
-        value: {
-          ...toInitializedProfile(mockedExtendedProfile, mockedUser),
-          [properyName]: propertyValue,
-        },
       });
     },
   );
 
   test.each`
-    status | response
-    ${404} | ${"IResponseErrorNotFound"}
-    ${429} | ${"IResponseErrorTooManyRequests"}
-    ${500} | ${"IResponseErrorInternal"}
+    serviceResponse                                | expectedResponse
+    ${{ status: 404 }}                             | ${"IResponseErrorNotFound"}
+    ${{ status: 429 }}                             | ${"IResponseErrorTooManyRequests"}
+    ${{ status: 500, value: { detail: "error" } }} | ${"IResponseErrorInternal"}
   `(
-    "GIVEN a valid dependencies WHEN the API client return a $status response THEN return $response",
-    async ({ status, response }) => {
-      mockAPIGetProfile.mockResolvedValueOnce(t.success({ status }));
+    "GIVEN a valid dependencies WHEN the API client return a $status response THEN return $expectedResponse",
+    async ({ serviceResponse, expectedResponse }) => {
+      mockAPIGetProfile.mockResolvedValueOnce(t.success(serviceResponse));
 
-      const res = await getProfile({
-        fnAppAPIClient: mockedFnAppAPIClient,
-        user: mockedUser,
-      })();
+      const result = await pipe(
+        getProfile({
+          fnAppAPIClient: mockedFnAppAPIClient,
+          user: mockedUser,
+        }),
+        TE.map((res) => {
+          expect(res.kind).toEqual(expectedResponse);
+        }),
+      )();
 
+      expect(E.isRight(result)).toBeTruthy();
       expect(mockAPIGetProfile).toHaveBeenCalledWith({
         fiscal_code: mockedUser.fiscal_code,
       });
-      expect(res.kind).toEqual(response);
     },
   );
 
   test("GIVEN a valid dependencies WHEN the API client throw an exception THEN return InternalServerError", async () => {
-    mockAPIGetProfile.mockRejectedValueOnce(new Error("Network Error"));
+    const expectedError = new Error("Network Error");
+    mockAPIGetProfile.mockRejectedValueOnce(expectedError);
 
-    const res = await getProfile({
-      fnAppAPIClient: mockedFnAppAPIClient,
-      user: mockedUser,
-    })();
+    const result = await pipe(
+      getProfile({
+        fnAppAPIClient: mockedFnAppAPIClient,
+        user: mockedUser,
+      }),
+      TE.mapLeft((err) => expect(err.message).contain(expectedError.message)),
+    )();
 
+    expect(E.isRight(result)).toBeFalsy();
     expect(mockAPIGetProfile).toHaveBeenCalledWith({
       fiscal_code: mockedUser.fiscal_code,
     });
-    expect(res.kind).toEqual("IResponseErrorInternal");
   });
 });

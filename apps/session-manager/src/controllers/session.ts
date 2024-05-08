@@ -95,7 +95,6 @@ const profileWithEmailValidatedOrError: RTE.ReaderTaskEither<
 > = (deps) =>
   pipe(
     getProfile(deps),
-    TE.fromTask,
     TE.chain(
       TE.fromPredicate(
         (r): r is IResponseSuccessJson<InitializedProfile> =>

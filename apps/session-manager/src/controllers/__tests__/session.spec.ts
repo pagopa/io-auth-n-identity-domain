@@ -3,11 +3,7 @@ import { describe, test, expect, vi } from "vitest";
 import { Request, Response } from "express";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
-import {
-  ResponseErrorInternal,
-  ResponseSuccessJson,
-} from "@pagopa/ts-commons/lib/responses";
-import * as T from "fp-ts/Task";
+import { ResponseSuccessJson } from "@pagopa/ts-commons/lib/responses";
 import mockRes from "../../__mocks__/response.mocks";
 import {
   mockedInitializedProfile,
@@ -26,7 +22,7 @@ describe("getSessionState", () => {
 
   const mockGetProfile = vi.spyOn(profileService, "getProfile");
   mockGetProfile.mockReturnValue(
-    T.of(ResponseSuccessJson(mockedInitializedProfile)),
+    TE.of(ResponseSuccessJson(mockedInitializedProfile)),
   );
 
   const zendeskSuffixForCorrectlyRetrievedProfile = crypto
@@ -119,7 +115,8 @@ describe("getSessionState", () => {
   });
 
   test("GIVEN a valid request WHEN an error occurs retrieving the user profile THEN it should return a correct session state", async () => {
-    mockGetProfile.mockReturnValueOnce(T.of(ResponseErrorInternal("Error")));
+    const expectedError = new Error("Network Error");
+    mockGetProfile.mockReturnValueOnce(TE.left(expectedError));
     mockGet.mockResolvedValueOnce(null);
 
     await pipe(
