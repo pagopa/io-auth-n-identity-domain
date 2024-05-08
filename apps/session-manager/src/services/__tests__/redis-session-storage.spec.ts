@@ -16,6 +16,7 @@ import {
 } from "../../__mocks__/redis.mocks";
 import { mockedUser } from "../../__mocks__/user.mocks";
 import {
+  getByFIMSToken,
   getBySessionToken,
   getLollipopAssertionRefForUser,
   set,
@@ -264,6 +265,118 @@ describe("RedisSessionStorage#getBySessionToken", () => {
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toHaveBeenCalledWith(`SESSION-${aValidUser.session_token}`);
+  });
+});
+
+describe("RedisSessionStorage#getByFIMSToken", () => {
+  const mockedDependencies = {
+    redisClientSelector: mockRedisClientSelector,
+  };
+
+  test("should get the session with a valid token", async () => {
+    mockGet.mockImplementationOnce((_) => Promise.resolve(mockSessionToken));
+    mockGet.mockImplementationOnce((_) =>
+      Promise.resolve(JSON.stringify(aValidUser)),
+    );
+
+    await pipe(
+      mockedDependencies,
+      getByFIMSToken(aValidUser.fims_token),
+      TE.map((result) => expect(result).toEqual(O.some(aValidUser))),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    expect(mockGet).toHaveBeenCalledTimes(2);
+    expect(mockGet).toHaveBeenCalledWith(`FIMS-${aValidUser.fims_token}`);
+    expect(mockGet).toHaveBeenCalledWith(`SESSION-${aValidUser.session_token}`);
+  });
+
+  test.each`
+    title                           | token
+    ${"token is invalid"}           | ${"inexistent token"}
+    ${"token is valid but expired"} | ${aValidUser.fims_token}
+  `("should return O.none if token", async ({ token }) => {
+    mockGet.mockImplementationOnce((_) => Promise.resolve(null));
+
+    await pipe(
+      mockedDependencies,
+      getByFIMSToken(token),
+      TE.map((result) => expect(result).toEqual(O.none)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+  });
+
+  test("should fail getting a session with invalid value", async () => {
+    mockGet.mockImplementationOnce((_) => Promise.resolve(mockSessionToken));
+    mockGet.mockImplementationOnce((_) =>
+      Promise.resolve(JSON.stringify(anInvalidUser)),
+    );
+
+    const expectedDecodedError = User.decode(anInvalidUser) as E.Left<
+      ReadonlyArray<ValidationError>
+    >;
+    const expectedError = new Error(
+      errorsToReadableMessages(expectedDecodedError.left).join("/"),
+    );
+
+    await pipe(
+      mockedDependencies,
+      getByFIMSToken(aValidUser.fims_token),
+      TE.map((result) => expect(result).toEqual(O.none)),
+      TE.mapLeft((err) => expect(err).toEqual(expectedError)),
+    )();
+
+    expect(mockGet).toHaveBeenCalledTimes(2);
+    expect(mockGet.mock.calls[0][0]).toBe(`FIMS-${aValidUser.fims_token}`);
+    expect(mockGet.mock.calls[1][0]).toBe(
+      `SESSION-${aValidUser.session_token}`,
+    );
+  });
+
+  test("should return error if the session is expired", async () => {
+    mockGet.mockImplementationOnce((_) => Promise.resolve(mockSessionToken));
+    mockGet.mockImplementationOnce((_) => Promise.resolve("Invalid JSON"));
+
+    await pipe(
+      mockedDependencies,
+      getByFIMSToken(aValidUser.fims_token),
+      TE.map((result) => expect(result).toEqual(O.none)),
+      TE.mapLeft((err) =>
+        expect(err).toEqual(
+          new SyntaxError("Unexpected token I in JSON at position 0"),
+        ),
+      ),
+    )();
+
+    expect(mockGet).toHaveBeenCalledTimes(2);
+    expect(mockGet.mock.calls[0][0]).toBe(`FIMS-${aValidUser.fims_token}`);
+    expect(mockGet.mock.calls[1][0]).toBe(
+      `SESSION-${aValidUser.session_token}`,
+    );
+  });
+
+  test("should fail parse of user payload", async () => {
+    mockGet.mockImplementationOnce((_) => Promise.resolve(mockSessionToken));
+    mockGet.mockImplementationOnce((_) => Promise.resolve("Invalid JSON"));
+
+    await pipe(
+      {
+        redisClientSelector: mockRedisClientSelector,
+      },
+      getByFIMSToken(aValidUser.fims_token),
+      TE.map((result) => expect(result).toEqual(O.none)),
+      TE.mapLeft((err) =>
+        expect(err).toEqual(
+          new SyntaxError("Unexpected token I in JSON at position 0"),
+        ),
+      ),
+    )();
+
+    expect(mockGet).toHaveBeenCalledTimes(2);
+    expect(mockGet.mock.calls[0][0]).toBe(`FIMS-${aValidUser.fims_token}`);
+    expect(mockGet.mock.calls[1][0]).toBe(
+      `SESSION-${aValidUser.session_token}`,
+    );
   });
 });
 
