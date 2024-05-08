@@ -1,12 +1,12 @@
 import { describe, beforeEach, vi, it, expect, assert } from "vitest";
-import { generateNonceEndpoint } from "../fast-login";
-import { getFnFastLoginAPIClient } from "../../repositories/fast-login-api";
 import * as E from "fp-ts/Either";
 import {
   IResponse,
   ResponseErrorInternal,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
+import { generateNonceEndpoint } from "../fast-login";
+import { getFnFastLoginAPIClient } from "../../repositories/fast-login-api";
 import {
   ResponseErrorStatusNotDefinedInSpec,
   ResponseErrorUnexpectedAuthProblem,
@@ -51,7 +51,7 @@ describe("fastLoginController#generateNonce", () => {
   it.each`
     title                                                             | clientResponse                                            | expectedResult
     ${"should return InternalServerError when the client return 401"} | ${E.right({ status: 401 })}                               | ${Error("Underlying API fails with an unexpected 401")}
-    ${"should return InternalServerError when the client return 500"} | ${E.right({ status: 500, value: { title: "an Error" } })} | ${Error(readableProblem({ title: "an Error" }))}
+    ${"should return InternalServerError when the client return 500"} | ${E.right({ status: 500, value: { title: "an Error" } })} | ${Error(readableProblem({ detail: "an Error" }))}
     ${"should return InternalServerError when the client return 502"} | ${E.right({ status: 502 })}                               | ${Error("An error occurred on upstream service")}
     ${"should return InternalServerError when the client return 504"} | ${E.right({ status: 504 })}                               | ${Error("An error occurred on upstream service")}
   `("$title", async ({ clientResponse, expectedResult }) => {
