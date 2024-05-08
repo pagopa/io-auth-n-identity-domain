@@ -37,7 +37,7 @@ export const generateNonceEndpoint: RTE.ReaderTaskEither<
         case 401:
           return TE.left(Error("Underlying API fails with an unexpected 401"));
         case 500:
-          return TE.left(Error(readableProblem(response.value)));
+          return TE.left(Error(readableProblem(response)));
         case 502:
         case 504:
           return TE.left(Error("An error occurred on upstream service"));
