@@ -8,8 +8,6 @@ import {
 import * as t from "io-ts";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
-import { Task } from "fp-ts/Task";
-import { pipe } from "fp-ts/lib/function";
 import { log } from "./logger";
 
 /**
