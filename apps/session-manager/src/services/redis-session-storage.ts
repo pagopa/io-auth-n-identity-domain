@@ -14,19 +14,7 @@ import * as ROA from "fp-ts/ReadonlyArray";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import { SessionToken } from "../types/token";
 import { User } from "../types/user";
-import {
-  RedisRepositoryDeps,
-  bpdTokenPrefix,
-  fimsTokenPrefix,
-  lollipopDataPrefix,
-  myPortalTokenPrefix,
-  sessionInfoKeyPrefix,
-  sessionKeyPrefix,
-  sessionNotFoundError,
-  userSessionsSetKeyPrefix,
-  walletKeyPrefix,
-  zendeskTokenPrefix,
-} from "../repositories/redis";
+import { RedisRepo } from "../repositories";
 import {
   LollipopData,
   NullableBackendAssertionRefFromString,
@@ -55,7 +43,7 @@ const parseUser = (value: string): E.Either<Error, User> =>
  * @returns The parsed used data object or an error.
  */
 const loadSessionBySessionToken: RTE.ReaderTaskEither<
-  RedisRepositoryDeps & { token: SessionToken },
+  RedisRepo.RedisRepositoryDeps & { token: SessionToken },
   Error,
   User
 > = (deps) =>
@@ -64,13 +52,13 @@ const loadSessionBySessionToken: RTE.ReaderTaskEither<
       () =>
         deps.redisClientSelector
           .selectOne(RedisClientMode.FAST)
-          .get(`${sessionKeyPrefix}${deps.token}`),
+          .get(`${RedisRepo.sessionKeyPrefix}${deps.token}`),
       E.toError,
     ),
     TE.chain(
       flow(
         O.fromNullable,
-        E.fromOption(() => sessionNotFoundError),
+        E.fromOption(() => RedisRepo.sessionNotFoundError),
         E.chain(parseUser),
         TE.fromEither,
       ),
@@ -82,8 +70,8 @@ const loadSessionBySessionToken: RTE.ReaderTaskEither<
  * @param deps the required dependencies are the Redis repository and the session token
  * @returns an optional User if the session exists / not exist or an error otherwise
  */
-const getBySessionToken: RTE.ReaderTaskEither<
-  RedisRepositoryDeps & { token: SessionToken },
+export const getBySessionToken: RTE.ReaderTaskEither<
+  RedisRepo.RedisRepositoryDeps & { token: SessionToken },
   Error,
   O.Option<User>
 > = (deps) =>
@@ -92,7 +80,7 @@ const getBySessionToken: RTE.ReaderTaskEither<
     loadSessionBySessionToken,
     TE.foldW(
       (err) =>
-        err === sessionNotFoundError
+        err === RedisRepo.sessionNotFoundError
           ? TE.right<Error, O.Option<User>>(O.none)
           : TE.left<Error, O.Option<User>>(err),
       (_) => TE.right<Error, O.Option<User>>(O.some(_)),
@@ -104,8 +92,8 @@ const getBySessionToken: RTE.ReaderTaskEither<
  * @param deps the required dependencies are the Redis repository and the user fiscal code
  * @returns An optional assertion ref or error
  */
-const getLollipopAssertionRefForUser: RTE.ReaderTaskEither<
-  RedisRepositoryDeps & { fiscalCode: FiscalCode },
+export const getLollipopAssertionRefForUser: RTE.ReaderTaskEither<
+  RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
   Error,
   O.Option<AssertionRef>
 > = (deps) =>
@@ -122,7 +110,7 @@ const getLollipopAssertionRefForUser: RTE.ReaderTaskEither<
  * @returns An optional LollipopData or error
  */
 const getLollipopDataForUser: RTE.ReaderTaskEither<
-  RedisRepositoryDeps & { fiscalCode: FiscalCode },
+  RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
   Error,
   O.Option<LollipopData>
 > = (deps) =>
@@ -131,7 +119,7 @@ const getLollipopDataForUser: RTE.ReaderTaskEither<
       () =>
         deps.redisClientSelector
           .selectOne(RedisClientMode.SAFE)
-          .get(`${lollipopDataPrefix}${deps.fiscalCode}`),
+          .get(`${RedisRepo.lollipopDataPrefix}${deps.fiscalCode}`),
       E.toError,
     ),
     TE.chain(
@@ -193,7 +181,7 @@ const arrayStringReplyAsync = (
     TE.chain(
       TE.fromPredicate(
         (res): res is NonEmptyArray<string> => isArray(res) && res.length > 0,
-        () => sessionNotFoundError,
+        () => RedisRepo.sessionNotFoundError,
       ),
     ),
   )();
@@ -205,7 +193,7 @@ const readSessionInfoKeys =
         () =>
           redisClientSelector
             .selectOne(RedisClientMode.FAST)
-            .sMembers(`${userSessionsSetKeyPrefix}${fiscalCode}`),
+            .sMembers(`${RedisRepo.userSessionsSetKeyPrefix}${fiscalCode}`),
         E.toError,
       ),
       arrayStringReplyAsync,
@@ -215,31 +203,31 @@ const getUserTokens = (
   user: User,
 ): Record<string, { readonly prefix: string; readonly value: string }> => ({
   session_info: {
-    prefix: sessionInfoKeyPrefix,
+    prefix: RedisRepo.sessionInfoKeyPrefix,
     value: user.session_token,
   },
   session_token: {
-    prefix: sessionKeyPrefix,
+    prefix: RedisRepo.sessionKeyPrefix,
     value: user.session_token,
   },
   wallet_token: {
-    prefix: walletKeyPrefix,
+    prefix: RedisRepo.walletKeyPrefix,
     value: user.wallet_token,
   },
   bpd_token: {
-    prefix: bpdTokenPrefix,
+    prefix: RedisRepo.bpdTokenPrefix,
     value: user.bpd_token,
   },
   fims_token: {
-    prefix: fimsTokenPrefix,
+    prefix: RedisRepo.fimsTokenPrefix,
     value: user.fims_token,
   },
   myportal_token: {
-    prefix: myPortalTokenPrefix,
+    prefix: RedisRepo.myPortalTokenPrefix,
     value: user.myportal_token,
   },
   zendesk_token: {
-    prefix: zendeskTokenPrefix,
+    prefix: RedisRepo.zendeskTokenPrefix,
     value: user.zendesk_token,
   },
 });
@@ -249,7 +237,7 @@ const clearExpiredSetValues =
   async (
     fiscalCode: string,
   ): Promise<ReadonlyArray<E.Either<Error, boolean>>> => {
-    const userSessionSetKey = `${userSessionsSetKeyPrefix}${fiscalCode}`;
+    const userSessionSetKey = `${RedisRepo.userSessionsSetKeyPrefix}${fiscalCode}`;
     const keysV2 = await pipe(
       TE.tryCatch(
         () =>
@@ -313,13 +301,14 @@ const removeOtherUserSessions =
     if (E.isRight(errorOrSessionInfoKeys)) {
       const oldSessionInfoKeys = errorOrSessionInfoKeys.right.filter(
         (_) =>
-          _.startsWith(sessionInfoKeyPrefix) &&
-          _ !== `${sessionInfoKeyPrefix}${user.session_token}`,
+          _.startsWith(RedisRepo.sessionInfoKeyPrefix) &&
+          _ !== `${RedisRepo.sessionInfoKeyPrefix}${user.session_token}`,
       );
       // Generate old session keys list from session info keys list
       // transforming pattern SESSIONINFO-token into pattern SESSION-token with token as the same value
       const oldSessionKeys = oldSessionInfoKeys.map(
-        (_) => `${sessionKeyPrefix}${_.split(sessionInfoKeyPrefix)[1]}`,
+        (_) =>
+          `${RedisRepo.sessionKeyPrefix}${_.split(RedisRepo.sessionInfoKeyPrefix)[1]}`,
       );
 
       // Retrieve all user data related to session tokens.
@@ -359,26 +348,28 @@ const removeOtherUserSessions =
               R.filter(
                 (p) =>
                   !(
-                    p.prefix === sessionInfoKeyPrefix ||
-                    p.prefix === sessionKeyPrefix
+                    p.prefix === RedisRepo.sessionInfoKeyPrefix ||
+                    p.prefix === RedisRepo.sessionKeyPrefix
                   ) &&
                   !(
-                    p.prefix === walletKeyPrefix &&
+                    p.prefix === RedisRepo.walletKeyPrefix &&
                     p.value === user.wallet_token
                   ) &&
                   !(
-                    p.prefix === myPortalTokenPrefix &&
+                    p.prefix === RedisRepo.myPortalTokenPrefix &&
                     p.value === user.myportal_token
                   ) &&
                   !(
-                    p.prefix === bpdTokenPrefix && p.value === user.bpd_token
+                    p.prefix === RedisRepo.bpdTokenPrefix &&
+                    p.value === user.bpd_token
                   ) &&
                   !(
-                    p.prefix === zendeskTokenPrefix &&
+                    p.prefix === RedisRepo.zendeskTokenPrefix &&
                     p.value === user.zendesk_token
                   ) &&
                   !(
-                    p.prefix === fimsTokenPrefix && p.value === user.fims_token
+                    p.prefix === RedisRepo.fimsTokenPrefix &&
+                    p.value === user.fims_token
                   ),
               ),
               R.collect((_1, { prefix, value }) => `${prefix}${value}`),
@@ -415,7 +406,7 @@ const removeOtherUserSessions =
       await clearExpiredSetValues(redisClientSelector)(user.fiscal_code);
       return deleteOldKeysResponseV2;
     }
-    return errorOrSessionInfoKeys.left === sessionNotFoundError
+    return errorOrSessionInfoKeys.left === RedisRepo.sessionNotFoundError
       ? E.right(true)
       : E.left(errorOrSessionInfoKeys.left);
   };
@@ -427,7 +418,7 @@ const saveSessionInfo =
     fiscalCode: FiscalCode,
     expireSec: number,
   ): TE.TaskEither<Error, boolean> => {
-    const sessionInfoKey = `${sessionInfoKeyPrefix}${sessionInfo.sessionToken}`;
+    const sessionInfoKey = `${RedisRepo.sessionInfoKeyPrefix}${sessionInfo.sessionToken}`;
     return pipe(
       TE.tryCatch(
         () =>
@@ -445,7 +436,7 @@ const saveSessionInfo =
               redisClientSelector
                 .selectOne(RedisClientMode.FAST)
                 .sAdd(
-                  `${userSessionsSetKeyPrefix}${fiscalCode}`,
+                  `${RedisRepo.userSessionsSetKeyPrefix}${fiscalCode}`,
                   sessionInfoKey,
                 ),
             E.toError,
@@ -459,7 +450,7 @@ const saveSessionInfo =
     );
   };
 
-const set =
+export const set =
   (redisClientSelector: RedisClientSelectorType, expireSec: number) =>
   (
     user: User,
@@ -473,7 +464,7 @@ const set =
           redisClientSelector
             .selectOne(RedisClientMode.FAST)
             .setEx(
-              `${sessionKeyPrefix}${user.session_token}`,
+              `${RedisRepo.sessionKeyPrefix}${user.session_token}`,
               expireSec,
               JSON.stringify(user),
             ),
@@ -489,7 +480,7 @@ const set =
           redisClientSelector
             .selectOne(RedisClientMode.FAST)
             .setEx(
-              `${walletKeyPrefix}${user.wallet_token}`,
+              `${RedisRepo.walletKeyPrefix}${user.wallet_token}`,
               expireSec,
               user.session_token,
             ),
@@ -505,7 +496,7 @@ const set =
           redisClientSelector
             .selectOne(RedisClientMode.FAST)
             .setEx(
-              `${myPortalTokenPrefix}${user.myportal_token}`,
+              `${RedisRepo.myPortalTokenPrefix}${user.myportal_token}`,
               expireSec,
               user.session_token,
             ),
@@ -521,7 +512,7 @@ const set =
           redisClientSelector
             .selectOne(RedisClientMode.FAST)
             .setEx(
-              `${bpdTokenPrefix}${user.bpd_token}`,
+              `${RedisRepo.bpdTokenPrefix}${user.bpd_token}`,
               expireSec,
               user.session_token,
             ),
@@ -537,7 +528,7 @@ const set =
           redisClientSelector
             .selectOne(RedisClientMode.FAST)
             .setEx(
-              `${zendeskTokenPrefix}${user.zendesk_token}`,
+              `${RedisRepo.zendeskTokenPrefix}${user.zendesk_token}`,
               expireSec,
               user.session_token,
             ),
@@ -553,7 +544,7 @@ const set =
           redisClientSelector
             .selectOne(RedisClientMode.FAST)
             .setEx(
-              `${fimsTokenPrefix}${user.fims_token}`,
+              `${RedisRepo.fimsTokenPrefix}${user.fims_token}`,
               expireSec,
               user.session_token,
             ),
@@ -610,5 +601,3 @@ const set =
       TE.map(() => true),
     );
   };
-
-export { getBySessionToken, getLollipopAssertionRefForUser, set };
