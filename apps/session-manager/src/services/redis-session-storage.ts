@@ -2,6 +2,7 @@ import { isArray } from "util";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { flow, identity, pipe } from "fp-ts/lib/function";
+import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import * as R from "fp-ts/lib/Record";
 import * as A from "fp-ts/Array";
@@ -620,14 +621,17 @@ export const set =
 /**
  * Check if a user is blocked
  *
- * @param fiscalCode id of the user
+ * @param dependencies - RedisClientSelector and fiscalCode of the user
  *
  * @returns a promise with either an error or a boolean indicating if the user is blocked
  */
-export const isBlockedUser = (
-  selector: RedisClientSelectorType,
-  fiscalCode: FiscalCode,
-): TE.TaskEither<Error, boolean> =>
+export const isBlockedUser: RTE.ReaderTaskEither<
+  {
+    selector: RedisClientSelectorType;
+  } & { fiscalCode: FiscalCode },
+  Error,
+  boolean
+> = ({ selector, fiscalCode }) =>
   pipe(
     TE.tryCatch(
       () =>
