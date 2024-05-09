@@ -3,7 +3,6 @@ import { describe, test, expect, vi, beforeEach } from "vitest";
 import * as express from "express";
 
 import * as E from "fp-ts/Either";
-import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 

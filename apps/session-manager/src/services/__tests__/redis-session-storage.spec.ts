@@ -28,6 +28,11 @@ import { LoginTypeEnum } from "../../types/fast-login";
 
 const anInvalidFiscalCode = "INVALID-FC" as FiscalCode;
 
+const INVALID_JSON = "Invalid JSON";
+const expectedInvalidJSONError = new SyntaxError(
+  "Unexpected token I in JSON at position 0",
+);
+
 const redisMethodImplFromError = (
   mockFunction: Mock,
   success?: unknown,
@@ -215,7 +220,7 @@ describe("RedisSessionStorage#getBySessionToken", () => {
   });
 
   test("should fail parse of user payload", async () => {
-    mockGet.mockImplementationOnce((_) => Promise.resolve("Invalid JSON"));
+    mockGet.mockImplementationOnce((_) => Promise.resolve(INVALID_JSON));
 
     await pipe(
       getBySessionToken({
@@ -223,11 +228,7 @@ describe("RedisSessionStorage#getBySessionToken", () => {
         token: aValidUser.session_token,
       }),
       TE.map((result) => expect(result).toBeFalsy()),
-      TE.mapLeft((err) =>
-        expect(err).toEqual(
-          new SyntaxError("Unexpected token I in JSON at position 0"),
-        ),
-      ),
+      TE.mapLeft((err) => expect(err).toEqual(expectedInvalidJSONError)),
     )();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
@@ -335,17 +336,13 @@ describe("RedisSessionStorage#getByFIMSToken", () => {
 
   test("should return error if the session is expired", async () => {
     mockGet.mockImplementationOnce((_) => Promise.resolve(mockSessionToken));
-    mockGet.mockImplementationOnce((_) => Promise.resolve("Invalid JSON"));
+    mockGet.mockImplementationOnce((_) => Promise.resolve(INVALID_JSON));
 
     await pipe(
       mockedDependencies,
       getByFIMSToken(aValidUser.fims_token),
       TE.map((result) => expect(result).toEqual(O.none)),
-      TE.mapLeft((err) =>
-        expect(err).toEqual(
-          new SyntaxError("Unexpected token I in JSON at position 0"),
-        ),
-      ),
+      TE.mapLeft((err) => expect(err).toEqual(expectedInvalidJSONError)),
     )();
 
     expect(mockGet).toHaveBeenCalledTimes(2);
@@ -357,7 +354,7 @@ describe("RedisSessionStorage#getByFIMSToken", () => {
 
   test("should fail parse of user payload", async () => {
     mockGet.mockImplementationOnce((_) => Promise.resolve(mockSessionToken));
-    mockGet.mockImplementationOnce((_) => Promise.resolve("Invalid JSON"));
+    mockGet.mockImplementationOnce((_) => Promise.resolve(INVALID_JSON));
 
     await pipe(
       {
@@ -365,11 +362,7 @@ describe("RedisSessionStorage#getByFIMSToken", () => {
       },
       getByFIMSToken(aValidUser.fims_token),
       TE.map((result) => expect(result).toEqual(O.none)),
-      TE.mapLeft((err) =>
-        expect(err).toEqual(
-          new SyntaxError("Unexpected token I in JSON at position 0"),
-        ),
-      ),
+      TE.mapLeft((err) => expect(err).toEqual(expectedInvalidJSONError)),
     )();
 
     expect(mockGet).toHaveBeenCalledTimes(2);
