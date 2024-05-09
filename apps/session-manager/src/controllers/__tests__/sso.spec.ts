@@ -32,7 +32,7 @@ import { FIMSUser } from "../../generated/fims/FIMSUser";
 
 const mockGetProfile = vi.spyOn(profileService, "getProfile");
 mockGetProfile.mockReturnValue(
-  T.of(ResponseSuccessJson(mockedInitializedProfile)),
+  TE.of(ResponseSuccessJson(mockedInitializedProfile)),
 );
 
 beforeEach(() => {
@@ -81,7 +81,7 @@ describe("SSOController#getUserForFIMS", () => {
 
   test("when the profile does not contain a validated email, then it returns a FIMS user without the email", async () => {
     mockGetProfile.mockReturnValueOnce(
-      T.of(
+      TE.of(
         ResponseSuccessJson({
           ...mockedInitializedProfile,
           is_email_validated: false,
@@ -116,7 +116,7 @@ describe("SSOController#getUserForFIMS", () => {
       expectedTitle,
       expectedDetail,
     }) => {
-      mockGetProfile.mockReturnValueOnce(T.of(getProfileResponse));
+      mockGetProfile.mockReturnValueOnce(TE.of(getProfileResponse));
 
       await pipe(
         mockedDependencies,

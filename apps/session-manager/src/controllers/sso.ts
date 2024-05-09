@@ -45,41 +45,58 @@ export const getUserForFIMS: RTE.ReaderTaskEither<
 > = (deps) =>
   pipe(
     ProfileService.getProfile(deps),
-    TE.fromTask,
-    TE.chain(
-      TE.fromPredicate(
-        (r): r is IResponseSuccessJson<InitializedProfile> =>
-          r.kind === "IResponseSuccessJson",
-        (err) =>
-          err as
-            | IResponseErrorInternal
-            | IResponseErrorTooManyRequests
-            | IResponseErrorNotFound,
-      ),
+    filterGetProfileSuccessResponse,
+    TE.map((response) => response.value),
+    TE.chainW(toFIMSUser(deps)),
+    TE.orElseW((e) =>
+      e instanceof Error ? TE.of(ResponseErrorInternal(e.message)) : TE.of(e),
     ),
-    TE.chainW(({ value: userProfile }) =>
-      pipe(
-        FIMSUser.decode({
-          acr: deps.user.spid_level,
-          auth_time: deps.user.created_at,
-          date_of_birth: deps.user.date_of_birth,
-          // If the email is not validated yet, the value returned will be undefined
-          email: pipe(
-            O.fromNullable(userProfile.is_email_validated),
-            O.chain(O.fromPredicate(identity)),
-            O.chain(() => O.fromNullable(userProfile.email)),
-            O.toUndefined,
-          ),
-          family_name: deps.user.family_name,
-          fiscal_code: deps.user.fiscal_code,
-          name: deps.user.name,
-        }),
-        E.map(ResponseSuccessJson),
-        E.mapLeft((_) =>
-          ResponseErrorInternal(errorsToReadableMessages(_).join(" / ")),
-        ),
-        TE.fromEither,
-      ),
-    ),
-    TE.orElseW(TE.of),
   );
+
+// -------------------
+// Private methods
+// -------------------
+
+type RightOf<T> = T extends TE.TaskEither<unknown, infer _> ? _ : never;
+
+const filterGetProfileSuccessResponse = (
+  response: ReturnType<typeof ProfileService.getProfile>,
+) =>
+  pipe(
+    response,
+    TE.filterOrElseW(
+      (r): r is IResponseSuccessJson<InitializedProfile> =>
+        r.kind === "IResponseSuccessJson",
+      (err) =>
+        err as Exclude<
+          RightOf<typeof response>,
+          IResponseSuccessJson<InitializedProfile>
+        >,
+    ),
+  );
+
+const toFIMSUser =
+  (deps: GetUserForFIMSDependencies) => (userProfile: InitializedProfile) =>
+    pipe(
+      {
+        acr: deps.user.spid_level,
+        auth_time: deps.user.created_at,
+        date_of_birth: deps.user.date_of_birth,
+        // If the email is not validated yet, the value returned will be undefined
+        email: pipe(
+          O.fromNullable(userProfile.is_email_validated),
+          O.chain(O.fromPredicate(identity)),
+          O.chain(() => O.fromNullable(userProfile.email)),
+          O.toUndefined,
+        ),
+        family_name: deps.user.family_name,
+        fiscal_code: deps.user.fiscal_code,
+        name: deps.user.name,
+      },
+      FIMSUser.decode,
+      E.map(ResponseSuccessJson),
+      E.mapLeft((_) =>
+        ResponseErrorInternal(errorsToReadableMessages(_).join(" / ")),
+      ),
+      TE.fromEither,
+    );
