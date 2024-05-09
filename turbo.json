@@ -63,7 +63,8 @@
       "dependsOn": [
         "^build",
         "^test"
-      ]
+      ],
+      "cache": false
     },
     "generate": {
       "inputs": ["api/**/*.yaml"],
