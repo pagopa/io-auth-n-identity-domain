@@ -1135,7 +1135,6 @@ __metadata:
     swagger-cli: "npm:^4.0.4"
     typescript: "npm:^5.4.3"
     vitest: "npm:^1.5.0"
-    vitest-sonar-reporter: "npm:^2.0.0"
     winston: "npm:^3.13.0"
     xmldom: "npm:^0.6.0"
   languageName: unknown
@@ -8751,15 +8750,6 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 10c0/2bf8faa7ae84d5fffabc28b2b2462128a839b8a7ce6d4dde1794975c8c896443df49a54ef95ad8f0326457648426fd9317a618479ef28049cb195d91985729ed
-  languageName: node
-  linkType: hard
-
-"vitest-sonar-reporter@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "vitest-sonar-reporter@npm:2.0.0"
-  peerDependencies:
-    vitest: ">=1"
-  checksum: 10c0/5b589468ddc9df8122b2b3b98ab63ae3114c53455339174678d1684cd20053815aad6d6e531917fc06bac2f9de2346e6568d2b068b11e7d450baf60be05c16c5
   languageName: node
   linkType: hard
 
