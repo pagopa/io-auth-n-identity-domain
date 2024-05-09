@@ -46,23 +46,10 @@ jobs:
       - name: 'Code review'
         run: yarn code-review
 
-      # Example from https://raw.githubusercontent.com/pagopa/pagopa-api-config-fe/80d5c94d4732714be94d3b6b9df6f2156bb962d2/package.json
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@19888635fa64d24e533d388efe8264402dfd721b
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          args: >
-            -Dsonar.organization=pagopa
-            -Dsonar.projectKey=pagopa_io-auth-n-identity-domain
-            -Dsonar.javascript.file.suffixes=.js,.jsx
-            -Dsonar.typescript.file.suffixes=.ts,.tsx
-            -Dsonar.sources=./src
-            -Dsonar.exclusions=**/__tests__/**,**/__mocks__/**
-            -Dsonar.tests=**/__tests__/**/*.spec.ts
-            -Dsonar.sourceEncoding=UTF-8
-            -Dsonar.verbose=true
-            -Dsonar.javascript.lcov.reportPaths=./coverage/lcov.info
-            -Dsonar.typescript.tsconfigPath=./tsconfig.json
         with:
           projectBaseDir: apps/session-manager/
