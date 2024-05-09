@@ -47,7 +47,8 @@
     },
     "test": {
       "inputs": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "**/vite.config.mts"
       ],
       "outputMode": "errors-only",
       "dependsOn": [
@@ -57,14 +58,17 @@
     },
     "test:coverage": {
       "inputs": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "vite.config.mts"
+      ],
+      "outputs": [
+        "coverage/**"
       ],
       "outputMode": "errors-only",
       "dependsOn": [
         "^build",
         "^test"
-      ],
-      "cache": false
+      ]
     },
     "generate": {
       "inputs": ["api/**/*.yaml"],
