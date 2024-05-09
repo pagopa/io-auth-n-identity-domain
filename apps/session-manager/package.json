@@ -45,7 +45,8 @@
         "passport-http-bearer": "^1.0.1",
         "passport-strategy": "^1.0.0",
         "redis": "^4.5.1",
-        "winston": "^3.13.0"
+        "winston": "^3.13.0",
+        "xmldom": "^0.6.0"
     },
     "devDependencies": {
         "@pagopa/eslint-config": "^3.0.0",
@@ -57,6 +58,7 @@
         "@types/node-fetch": "^2.1.2",
         "@types/passport": "^1.0.3",
         "@types/passport-http-bearer": "^1.0.34",
+        "@types/xmldom": "^0",
         "@vitest/coverage-v8": "^1.5.3",
         "dependency-check": "^4.1.0",
         "dotenv-cli": "^7.4.1",

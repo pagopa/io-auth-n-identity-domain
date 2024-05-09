@@ -12,9 +12,3 @@ export const log = createLogger({
   ),
   transports: [new transports.Console()],
 });
-
-import * as RTE from "fp-ts/ReaderTaskEither";
-
-type ContextReaderTaskEither = <C, D, E, T>(
-  context: C,
-) => RTE.ReaderTaskEither<D, E, T>;

@@ -12,7 +12,6 @@ newApp({})
     });
 
     app.listen(port, () => {
-      // eslint-disable-next-line no-console
       log.info(`Example app listening on port ${port}`);
     });
   })

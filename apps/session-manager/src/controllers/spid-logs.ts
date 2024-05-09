@@ -14,6 +14,7 @@ import * as A from "fp-ts/lib/Array";
 import * as S from "fp-ts/lib/string";
 import * as R from "fp-ts/Reader";
 import { DoneCallbackT } from "@pagopa/io-spid-commons";
+import { DOMParser } from "xmldom";
 import { SpidLogsRepo } from "../repositories";
 import { LoginTypeEnum } from "../types/fast-login";
 import { log } from "../utils/logger";
@@ -31,7 +32,7 @@ const getRequestIDFromPayload =
       ),
     );
 
-const getRequestIDFromResponse = getRequestIDFromPayload(
+export const getRequestIDFromResponse = getRequestIDFromPayload(
   "Response",
   "InResponseTo",
 );
@@ -51,18 +52,19 @@ const getUserAttributeFromAssertion =
       O.chain((value) => O.fromEither(NonEmptyString.decode(value))),
     );
 
-const getFiscalNumberFromPayload: (doc: Document) => O.Option<FiscalCode> =
-  flow(
-    getUserAttributeFromAssertion("fiscalNumber"),
-    O.map(S.toUpperCase),
-    O.map((fiscalCode) =>
-      // Remove the international prefix from fiscal code.
-      fiscalCode.replace("TINIT-", ""),
-    ),
-    O.chain((nationalFiscalCode) =>
-      O.fromEither(FiscalCode.decode(nationalFiscalCode)),
-    ),
-  );
+export const getFiscalNumberFromPayload: (
+  doc: Document,
+) => O.Option<FiscalCode> = flow(
+  getUserAttributeFromAssertion("fiscalNumber"),
+  O.map(S.toUpperCase),
+  O.map((fiscalCode) =>
+    // Remove the international prefix from fiscal code.
+    fiscalCode.replace("TINIT-", ""),
+  ),
+  O.chain((nationalFiscalCode) =>
+    O.fromEither(FiscalCode.decode(nationalFiscalCode)),
+  ),
+);
 
 type SpidLogDeps = {
   spidLogQueueClient: QueueClient;
@@ -84,6 +86,7 @@ export const makeSpidLogCallback: R.Reader<SpidLogDeps, DoneCallbackT<never>> =
     sourceIp: string | null,
     requestPayload: string,
     responsePayload: string,
+    // TODO: Add additional login props
   ): void => {
     const logPrefix = `SpidLogCallback`;
     pipe(
