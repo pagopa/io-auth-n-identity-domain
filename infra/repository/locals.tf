@@ -24,7 +24,7 @@ locals {
 
   session_manager_cd = {
     secrets = {
-      "ARM_CLIENT_ID" = data.azurerm_user_assigned_identity.identity_prod_cd.client_id,
+      "ARM_CLIENT_ID" = data.azurerm_user_assigned_identity.identity_session_manager_prod_cd.client_id,
     },
     variables = {
       "AZURE_WEB_APP_RESOURCE_GROUP" = local.session_manager_resource_group_name,

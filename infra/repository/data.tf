@@ -3,8 +3,8 @@ data "azurerm_user_assigned_identity" "identity_prod_ci" {
   resource_group_name = local.identity_resource_group_name
 }
 
-data "azurerm_user_assigned_identity" "identity_prod_cd" {
-  name                = "${local.project}-auth-n-identity-github-cd-identity"
+data "azurerm_user_assigned_identity" "identity_session_manager_prod_cd" {
+  name                = "${local.project}-auth-n-identity-session-manager-github-cd-identity"
   resource_group_name = local.identity_resource_group_name
 }
 
