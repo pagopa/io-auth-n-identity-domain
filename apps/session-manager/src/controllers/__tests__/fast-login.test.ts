@@ -1,16 +1,8 @@
-import { describe, beforeEach, vi, it, expect, assert } from "vitest";
+import { describe, beforeEach, vi, it, expect } from "vitest";
 import * as E from "fp-ts/Either";
-import {
-  IResponse,
-  ResponseErrorInternal,
-  ResponseSuccessJson,
-} from "@pagopa/ts-commons/lib/responses";
+import { ResponseSuccessJson } from "@pagopa/ts-commons/lib/responses";
 import { generateNonceEndpoint } from "../fast-login";
 import { getFnFastLoginAPIClient } from "../../repositories/fast-login-api";
-import {
-  ResponseErrorStatusNotDefinedInSpec,
-  ResponseErrorUnexpectedAuthProblem,
-} from "../../utils/responses";
 import { readableProblem } from "../../utils/errors";
 
 const aValidGenerateNonceResponse = {
