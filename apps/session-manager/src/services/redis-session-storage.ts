@@ -2,7 +2,6 @@ import { isArray } from "util";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { flow, identity, pipe } from "fp-ts/lib/function";
-import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import * as R from "fp-ts/lib/Record";
 import * as A from "fp-ts/Array";
@@ -16,21 +15,7 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import { SessionToken } from "../types/token";
 import { User } from "../types/user";
 import { RedisRepo } from "../repositories";
-import {
-  RedisClientMode,
-  RedisClientSelectorType,
-  blockedUserSetKey,
-  bpdTokenPrefix,
-  fimsTokenPrefix,
-  lollipopDataPrefix,
-  myPortalTokenPrefix,
-  sessionInfoKeyPrefix,
-  sessionKeyPrefix,
-  sessionNotFoundError,
-  userSessionsSetKeyPrefix,
-  walletKeyPrefix,
-  zendeskTokenPrefix,
-} from "../repositories/redis";
+import { blockedUserSetKey } from "../repositories/redis";
 import {
   LollipopData,
   NullableBackendAssertionRefFromString,

@@ -37,8 +37,8 @@ import { FastLoginResponse as LCFastLoginResponse } from "../generated/fast-logi
 import { makeProxyUserFromSAMLResponse } from "../utils/spid";
 import { decodeIPAddressFromReq } from "../utils/network";
 import { isBlockedUser, set } from "../services/redis-session-storage";
-import { RedisClientSelectorType } from "../repositories/redis";
 import { FastLoginResponse } from "../types/fast-login";
+import { RedisClientSelectorType } from "../types/redis";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 
 const generateSessionTokens = (
