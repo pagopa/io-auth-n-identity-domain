@@ -5,7 +5,7 @@ import { PushNotificationsContentTypeEnum } from "@pagopa/io-functions-app-sdk/P
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
-import { FnAppAPIClient } from "../../repositories/api";
+import { FnAppAPIClient } from "../../repositories/fn-app-api";
 import { mockedExtendedProfile, mockedUser } from "../../__mocks__/user.mocks";
 import { getProfile } from "../profile";
 import { toInitializedProfile } from "../../types/profile";
@@ -13,7 +13,7 @@ import { toInitializedProfile } from "../../types/profile";
 const mockAPIGetProfile = vi.fn();
 const mockedFnAppAPIClient = {
   getProfile: mockAPIGetProfile,
-} as unknown as ReturnType<FnAppAPIClient>;
+} as unknown as ReturnType<typeof FnAppAPIClient>;
 
 const validApiProfileResponse = {
   status: 200,

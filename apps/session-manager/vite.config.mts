@@ -10,5 +10,10 @@ export default defineConfig({
     env: {
       ...config({ path: "env.example" }).parsed,
     },
+    typecheck: {
+      enabled: true,
+      tsconfig: "tsconfig.eslint.json",
+      include: ["**/*.spec.ts"],
+    },
   },
 });
