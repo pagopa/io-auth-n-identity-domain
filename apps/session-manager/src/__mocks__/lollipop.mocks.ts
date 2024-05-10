@@ -74,11 +74,11 @@ export const anEncodedJwkPubKey = jose.base64url.encode(
 
 export const aLollipopAssertion = getASAMLResponse(
   aFiscalCode,
-  anotherAssertionRef as any,
+  anotherAssertionRef as unknown as NonEmptyString,
 ) as NonEmptyString;
 export const aSpidL3LollipopAssertion = getASAMLResponse(
   aFiscalCode,
-  anotherAssertionRef as any,
+  anotherAssertionRef as unknown as NonEmptyString,
   SpidLevelEnum["https://www.spid.gov.it/SpidL3"],
 ) as NonEmptyString;
 

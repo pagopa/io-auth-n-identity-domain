@@ -6,7 +6,6 @@ import {
   ResponseErrorUnauthorized,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
-import { Second } from "@pagopa/ts-commons/lib/units";
 import { IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { Errors } from "io-ts";
@@ -78,8 +77,6 @@ const mockSetSession = vi.spyOn(RedisSessionStorageService, "set");
 
 const sessionTTL = 60 * 15;
 const aClientIP = "10.0.0.2" as IPString;
-
-const aDefaultLollipopAssertionRefDurationSec = (3600 * 24 * 365 * 2) as Second;
 
 const constructInternalError = (message: string) =>
   E.left(Error(`Internal server error: ${message}`));

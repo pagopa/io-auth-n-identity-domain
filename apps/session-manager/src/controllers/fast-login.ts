@@ -14,11 +14,7 @@ import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
-import {
-  FiscalCode,
-  IPString,
-  NonEmptyString,
-} from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import { GenerateNonceResponse } from "../generated/fast-login-api/GenerateNonceResponse";
 import { assertNever, readableProblem } from "../utils/errors";

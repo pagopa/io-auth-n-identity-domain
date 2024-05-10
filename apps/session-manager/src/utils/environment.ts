@@ -1,6 +1,4 @@
 import { pipe } from "fp-ts/lib/function";
-import { withDefault } from "@pagopa/ts-commons/lib/types";
-import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as t from "io-ts";
 import { log } from "./logger";

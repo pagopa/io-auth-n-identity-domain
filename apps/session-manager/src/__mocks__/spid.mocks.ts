@@ -5,6 +5,8 @@ import { aFiscalCode } from "./user.mocks";
 export const aSamlRequestId: NonEmptyString =
   "_2d2a89e99c7583e221b4" as NonEmptyString;
 
+const spidL2 = SpidLevelEnum["https://www.spid.gov.it/SpidL2"];
+
 export const aSAMLRequest = `<?xml version="1.0"?>
 <samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" ID="A-REQUEST-ID" Version="2.0"
   IssueInstant="2020-02-17T10:20:28.417Z"
@@ -150,7 +152,7 @@ export const getASAMLResponse = (
 export const getASAMLAssertion_saml2Namespace = (
   fiscalCode: FiscalCode,
   inResponseTo: NonEmptyString,
-  spidLevel: SpidLevel = SpidLevelEnum["https://www.spid.gov.it/SpidL2"],
+  spidLevel: SpidLevel = spidL2,
   name?: string,
   familyName?: string,
   dateOfBirth?: string,
@@ -286,7 +288,7 @@ export const getASAMLAssertion_saml2Namespace = (
 export const getASAMLResponse_saml2Namespace = (
   fiscalCode: FiscalCode,
   inResponseTo: NonEmptyString,
-  spidLevel: SpidLevel = SpidLevelEnum["https://www.spid.gov.it/SpidL2"],
+  spidLevel: SpidLevel = spidL2,
   name?: string,
   familyName?: string,
   dateOfBirth?: string,
@@ -357,4 +359,3 @@ export const aSAMLResponse_saml2Namespace = getASAMLResponse_saml2Namespace(
   "GDASDV00A01H501J" as FiscalCode,
   "_2d2a89e99c7583e221b4" as NonEmptyString,
 );
->>>>>>> b71f4f0 ([#IOPID-1820] added required mocks for testing)
