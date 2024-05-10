@@ -72,7 +72,7 @@
     },
     "generate": {
       "inputs": ["api/**/*.yaml"],
-      "outputs": ["src/generated/**/*.ts"],
+      "outputs": ["src/generated/**/*.ts", "certs"],
       "outputMode": "errors-only"
     },
     "clean": {
