@@ -50,7 +50,7 @@
         "src/**/*.ts",
         "**/vite.config.mts"
       ],
-      "outputMode": "errors-only",
+      "outputMode": "full",
       "dependsOn": [
         "^build",
         "^test"
