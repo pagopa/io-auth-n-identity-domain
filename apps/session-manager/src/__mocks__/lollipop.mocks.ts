@@ -1,9 +1,10 @@
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 
 import { JwkPublicKey } from "@pagopa/ts-commons/lib/jwk";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { NonEmptyString, PatternString } from "@pagopa/ts-commons/lib/strings";
 import * as jose from "jose";
 import { vi } from "vitest";
+import * as t from "io-ts";
 import { AssertionFileName } from "../generated/lollipop-api/AssertionFileName";
 import { PubKeyStatusEnum } from "../generated/lollipop-api/PubKeyStatus";
 import { LcParams } from "../generated/lollipop-api/LcParams";
@@ -21,6 +22,17 @@ import { LollipopJWTAuthorization } from "../generated/fast-login-api/LollipopJW
 import { LollipopPublicKey } from "../generated/fast-login-api/LollipopPublicKey";
 import { aFiscalCode } from "./user.mocks";
 import { getASAMLResponse } from "./spid.mocks";
+
+const Sha256Thumbprint = PatternString("^([A-Za-z0-9-_=]{1,44})$");
+const Sha384Thumbprint = PatternString("^([A-Za-z0-9-_=]{1,66})$");
+const Sha512Thumbprint = PatternString("^([A-Za-z0-9-_=]{1,88})$");
+
+export const Thumbprint = t.union(
+  [Sha256Thumbprint, Sha384Thumbprint, Sha512Thumbprint],
+  "Thumbprint",
+);
+
+export type Thumbprint = t.TypeOf<typeof Thumbprint>;
 
 export const anAssertionRef =
   "sha256-6LvipIvFuhyorHpUqK3HjySC5Y6gshXHFBhU9EJ4DoM=" as AssertionRefSha256;
