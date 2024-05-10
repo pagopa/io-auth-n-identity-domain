@@ -8,7 +8,7 @@ export default defineConfig({
       exclude: ["**/__mocks__/**", "*.js", "src/generated/**"],
     },
     env: {
-      ...config({ path: ".env" }).parsed,
+      ...config({ path: "env.example" }).parsed,
     },
   },
 });
