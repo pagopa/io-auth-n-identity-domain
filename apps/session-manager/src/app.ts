@@ -117,6 +117,10 @@ export const newApp: (
 
   const API_BASE_PATH = getRequiredENVVar("API_BASE_PATH");
 
+  app.get("/healthcheck", (_req: express.Request, res: express.Response) => {
+    res.send("ok");
+  });
+
   app.get(
     `${API_BASE_PATH}/session`,
     authMiddlewares.bearerSession,
