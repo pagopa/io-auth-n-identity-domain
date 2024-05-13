@@ -48,6 +48,7 @@ import { TimeTracer } from "./utils/timer";
 import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
 import { SpidLogConfig, SpidConfig } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
+import { LollipopService, RedisSessionStorageService } from "./services";
 import {
   FF_LOLLIPOP_ENABLED,
   LOLLIPOP_API_BASE_PATH,
@@ -191,6 +192,23 @@ export const newApp: (
         fnAppAPIClient: API_CLIENT,
       }),
       ap(withUserFromRequest(SSOController.getUserForFIMS)),
+    ),
+  );
+
+  app.post(
+    `${FIMS_BASE_PATH}/lollipop-user`,
+    authMiddlewares.bearerFIMS,
+    pipe(
+      toExpressHandler({
+        // Clients
+        redisClientSelector: REDIS_CLIENT_SELECTOR,
+        fnAppAPIClient: API_CLIENT,
+        lollipopApiClient: LOLLIPOP_CLIENT,
+        // Services
+        lollipopService: LollipopService,
+        redisSessionStorageService: RedisSessionStorageService,
+      }),
+      ap(withUserFromRequest(SSOController.getUserForFIMSPlus)),
     ),
   );
 

@@ -46,7 +46,77 @@ paths:
           description: There was an error in retrieving the user data.
           schema:
             $ref: "#/definitions/ProblemJson"
+
+  "/lollipop-user":
+    x-swagger-router-controller: SSOController
+    post:
+      operationId: getUserForFIMSPlus
+      summary: Get user's data and generate LCParams
+      description: Returns the user data needed by FIMS backend and the LCParams needed by the RC to verify the Lollipop request.
+      parameters:
+        - name: body
+          required: true
+          in: body
+          schema:
+            $ref: "#/definitions/GetUserForFIMSPlusPayload"
+      responses:
+        "200":
+          description: Found.
+          schema:
+            $ref: "#/definitions/FIMSPlusUser"
+        "400":
+          description: Validation error
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "401":
+          description: Token null or expired.
+        "403":
+          description: Forbidden - Not Authorized
+        "404":
+          description: User or Lollipop Data not found
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "429":
+          description: Too may requests
+        "500":
+          description: There was an error in retrieving the user data.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+
 definitions:
+  AssertionRefSha256:
+    type: string
+    pattern: ^(sha256-[A-Za-z0-9-_=]{1,44})$
+  AssertionRefSha384:
+    type: string
+    pattern: ^(sha384-[A-Za-z0-9-_=]{1,66})$
+  AssertionRefSha512:
+    type: string
+    pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
+  AssertionRef:
+    oneOf:
+      - $ref: "#/definitions/AssertionRefSha256"
+      - $ref: "#/definitions/AssertionRefSha384"
+      - $ref: "#/definitions/AssertionRefSha512"
+  JwkPubKeyToken:
+    type: string
+    minLength: 1
+    description: represents a base64 url encoded JWK Public Key
+  LCParamsForFims:
+    type: object
+    properties:
+      assertion_ref:
+        $ref: "#/definitions/AssertionRef"
+      pub_key:
+        $ref: "#/definitions/JwkPubKeyToken"
+      lc_authentication_bearer:
+        type: string
+        minLength: 1
+    required:
+      - assertion_ref
+      - pub_key
+      - lc_authentication_bearer
+
   FederatedUser:
     $ref: "internal.yaml#/definitions/FederatedUser"
   FIMSUser:
@@ -67,6 +137,26 @@ definitions:
           - auth_time
           - acr
       - $ref: "#/definitions/FederatedUser"
+  FIMSPlusUser:
+    type: object
+    properties:
+      user:
+        $ref: "#/definitions/FIMSUser"
+      lc_params:
+        $ref: "#/definitions/LCParamsForFims"
+    required:
+      - user
+      - lc_params
+
+  GetUserForFIMSPlusPayload:
+    type: object
+    properties:
+      operation_id:
+        type: string
+        minLength: 1
+    required:
+      - operation_id
+
   ProblemJson:
     $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ProblemJson"
   FiscalCode:
