@@ -18,6 +18,10 @@ export type RedisSessionStorageServiceDepencency = {
   redisSessionStorageService: typeof RedisSessionStorageService;
 } & RedisRepo.RedisRepositoryDeps;
 
+export type ProfileServiceDepencency = {
+  profileService: typeof ProfileService;
+} & FnAppRepo.FnAppAPIRepositoryDeps;
+
 export type LollipopServiceDepencency = {
   lollipopService: typeof LollipopService;
 } & LollipopApi.LollipopApiDeps;
