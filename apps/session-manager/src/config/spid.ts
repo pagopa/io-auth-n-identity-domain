@@ -14,6 +14,10 @@ import { NodeEnvironmentEnum } from "@pagopa/ts-commons/lib/environment";
 import * as O from "fp-ts/Option";
 import * as t from "io-ts";
 import { IntegerFromString } from "@pagopa/ts-commons/lib/numbers";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { record } from "fp-ts";
+import { UrlFromString } from "@pagopa/ts-commons/lib/url";
+import * as S from "fp-ts/lib/string";
 import { log } from "../utils/logger";
 import { STRINGS_RECORD, readFile } from "../types/common";
 import { SpidLevelArray } from "../types/spid";
@@ -214,3 +218,43 @@ export const IDP_METADATA_REFRESH_INTERVAL_SECONDS: number = process.env
   .IDP_METADATA_REFRESH_INTERVAL_SECONDS
   ? parseInt(process.env.IDP_METADATA_REFRESH_INTERVAL_SECONDS, 10)
   : DEFAULT_IDP_METADATA_REFRESH_INTERVAL_SECONDS;
+
+export const ClientErrorRedirectionUrlParams = t.union([
+  t.intersection([
+    t.interface({
+      errorMessage: NonEmptyString,
+    }),
+    t.partial({
+      errorCode: t.number,
+    }),
+  ]),
+  t.intersection([
+    t.partial({
+      errorMessage: NonEmptyString,
+    }),
+    t.interface({
+      errorCode: t.number,
+    }),
+  ]),
+  t.interface({
+    errorCode: t.number,
+    errorMessage: NonEmptyString,
+  }),
+]);
+export type ClientErrorRedirectionUrlParams = t.TypeOf<
+  typeof ClientErrorRedirectionUrlParams
+>;
+
+export const getClientErrorRedirectionUrl = (
+  params: ClientErrorRedirectionUrlParams,
+): UrlFromString =>
+  pipe(
+    record
+      .collect(S.Ord)((key, value) => `${key}=${value}`)(params)
+      .join("&"),
+    (errorParams) => CLIENT_ERROR_REDIRECTION_URL.concat(`?${errorParams}`),
+    UrlFromString.decode,
+    E.getOrElseW(() => {
+      throw new Error("Invalid url");
+    }),
+  );

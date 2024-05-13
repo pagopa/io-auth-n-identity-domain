@@ -14,10 +14,7 @@ import * as bodyParser from "body-parser";
 import { withSpid } from "@pagopa/io-spid-commons";
 import * as TE from "fp-ts/TaskEither";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
-import {
-  ResponseErrorInternal,
-  ResponsePermanentRedirect,
-} from "@pagopa/ts-commons/lib/responses";
+import { ResponsePermanentRedirect } from "@pagopa/ts-commons/lib/responses";
 import * as E from "fp-ts/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
@@ -28,6 +25,7 @@ import { RedisRepo, FnAppRepo, FnLollipopRepo } from "./repositories";
 import { attachTrackingData } from "./utils/appinsights";
 import { getENVVarWithDefault, getRequiredENVVar } from "./utils/environment";
 import {
+  AuthenticationController,
   SessionController,
   FastLoginController,
   SpidLogsController,
@@ -62,6 +60,7 @@ import { expressLollipopMiddleware } from "./utils/lollipop";
 import { bearerZendeskTokenStrategy } from "./auth/bearer-zendesk-token-strategy";
 import { bearerBPDTokenStrategy } from "./auth/bearer-BPD-token-strategy";
 import { initAPIClientsDependencies } from "./utils/api-clients";
+import { getClientErrorRedirectionUrl } from "./config/spid";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -252,9 +251,13 @@ export const newApp: (
     TE.tryCatch(
       () =>
         withSpid({
-          // TODO: Not implemented acs
-          acs: () =>
-            Promise.resolve(ResponseErrorInternal("not implemented yet")),
+          acs: AuthenticationController.acs({
+            redisClientSelector: REDIS_CLIENT_SELECTOR,
+            fnAppAPIClient: APIClients.fnAppAPIClient,
+            isLollipopEnabled: true,
+            appInsightsTelemetryClient: appInsightsClient,
+            getClientErrorRedirectionUrl,
+          }),
           app,
           appConfig: {
             ...SpidConfig.appConfig,
