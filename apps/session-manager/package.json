@@ -47,6 +47,7 @@
         "passport-http-bearer": "^1.0.1",
         "passport-strategy": "^1.0.0",
         "redis": "^4.5.1",
+        "ulid": "^2.3.0",
         "winston": "^3.13.0"
     },
     "devDependencies": {

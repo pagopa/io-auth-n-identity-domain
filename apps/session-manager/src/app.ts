@@ -51,6 +51,7 @@ import {
   generateNonceEndpoint,
 } from "./controllers/fast-login";
 import { withIPFromRequest } from "./utils/network";
+import { expressLollipopMiddleware } from "./utils/lollipop";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -167,13 +168,12 @@ export const newApp: (
 
   app.post(
     `${API_BASE_PATH}/fast-login`,
+    expressLollipopMiddleware(LOLLIPOP_CLIENT, REDIS_CLIENT_SELECTOR),
     pipe(
       toExpressHandler({
         redisClientSelector: REDIS_CLIENT_SELECTOR,
         fnFastLoginAPIClient: FAST_LOGIN_CLIENT,
         sessionTTL,
-        // TODO: lollipopMiddleware
-        locals: undefined,
       }),
       ap(withIPFromRequest(fastLoginEndpoint)),
     ),

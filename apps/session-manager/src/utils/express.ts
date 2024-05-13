@@ -39,6 +39,7 @@ export const toExpressHandler =
     pipe(
       handler({
         req,
+        locals: res.locals,
         ...deps,
       }),
       TE.mapLeft((err) => ResponseErrorInternal(String(err))),

@@ -1,5 +1,9 @@
 import * as t from "io-ts";
-import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import {
+  FiscalCode,
+  NonEmptyString,
+  PatternString,
+} from "@pagopa/ts-commons/lib/strings";
 import { LollipopSignature } from "../generated/fast-login-api/LollipopSignature";
 import { LollipopSignatureInput } from "../generated/fast-login-api/LollipopSignatureInput";
 import { LollipopMethod } from "../generated/fast-login-api/LollipopMethod";
@@ -35,3 +39,14 @@ export const LollipopLocalsType = t.intersection([
   }),
 ]);
 export type LollipopLocalsType = t.TypeOf<typeof LollipopLocalsType>;
+
+const Sha256Thumbprint = PatternString("^([A-Za-z0-9-_=]{1,44})$");
+const Sha384Thumbprint = PatternString("^([A-Za-z0-9-_=]{1,66})$");
+const Sha512Thumbprint = PatternString("^([A-Za-z0-9-_=]{1,88})$");
+
+export const Thumbprint = t.union(
+  [Sha256Thumbprint, Sha384Thumbprint, Sha512Thumbprint],
+  "Thumbprint",
+);
+
+export type Thumbprint = t.TypeOf<typeof Thumbprint>;
