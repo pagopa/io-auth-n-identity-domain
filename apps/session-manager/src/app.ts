@@ -19,6 +19,7 @@ import {
 } from "@pagopa/ts-commons/lib/responses";
 import { QueueClient } from "@azure/storage-queue";
 import * as E from "fp-ts/Either";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import { RedisRepo, FnAppRepo } from "./repositories";
 import { attachTrackingData } from "./utils/appinsights";
@@ -34,6 +35,14 @@ import { LoginTypeEnum } from "./types/fast-login";
 import { TimeTracer } from "./utils/timer";
 import { RedisClientMode } from "./types/redis";
 import { SpidLogConfig, SpidConfig } from "./config";
+import { getLoginTypeOnElegible } from "./utils/fast-login";
+import {
+  FF_LOLLIPOP_ENABLED,
+  LOLLIPOP_API_BASE_PATH,
+  LOLLIPOP_API_KEY,
+  LOLLIPOP_API_URL,
+} from "./config/lollipop";
+import { isUserElegibleForFastLogin } from "./config/fast-login";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -65,9 +74,9 @@ export const newApp: (
     getRequiredENVVar("FAST_LOGIN_API_URL"),
   );
   const LOLLIPOP_CLIENT = getLollipopApiClient(
-    getRequiredENVVar("LOLLIPOP_API_KEY"),
-    getRequiredENVVar("LOLLIPOP_API_URL"),
-    getRequiredENVVar("LOLLIPOP_API_BASE_PATH"),
+    LOLLIPOP_API_KEY,
+    LOLLIPOP_API_URL,
+    LOLLIPOP_API_BASE_PATH,
     httpOrHttpsApiFetch,
   );
 
@@ -165,8 +174,12 @@ export const newApp: (
           },
           doneCb: SpidLogsController.makeSpidLogCallback({
             spidLogQueueClient: SPID_LOG_QUEUE_CLIENT,
-            // TODO: Not implemented
-            getLoginType: () => LoginTypeEnum.LEGACY,
+            getLoginType: (fiscalCode: FiscalCode, loginType?: LoginTypeEnum) =>
+              getLoginTypeOnElegible(
+                loginType,
+                isUserElegibleForFastLogin(fiscalCode),
+                FF_LOLLIPOP_ENABLED,
+              ),
           }),
           // TODO: Not implemented
           logout: () =>

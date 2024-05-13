@@ -16,7 +16,7 @@ import * as R from "fp-ts/Reader";
 import { DoneCallbackT } from "@pagopa/io-spid-commons";
 import { DOMParser } from "xmldom";
 import { SpidLogsRepo } from "../repositories";
-import { LoginTypeEnum } from "../types/fast-login";
+import { AdditionalLoginPropsT, LoginTypeEnum } from "../types/fast-login";
 import { log } from "../utils/logger";
 import { SAML_NAMESPACE } from "../types/spid";
 
@@ -86,7 +86,7 @@ export const makeSpidLogCallback: R.Reader<SpidLogDeps, DoneCallbackT<never>> =
     sourceIp: string | null,
     requestPayload: string,
     responsePayload: string,
-    // TODO: Add additional login props
+    additionalProps?: AdditionalLoginPropsT,
   ): void => {
     const logPrefix = `SpidLogCallback`;
     pipe(
@@ -116,7 +116,7 @@ export const makeSpidLogCallback: R.Reader<SpidLogDeps, DoneCallbackT<never>> =
           createdAtDay: format(new Date(), "YYYY-MM-DD"),
           fiscalCode,
           ip: sourceIp as IPString,
-          loginType: deps.getLoginType(fiscalCode),
+          loginType: deps.getLoginType(fiscalCode, additionalProps?.loginType),
           requestPayload,
           responsePayload,
           spidRequestId: requestId,
