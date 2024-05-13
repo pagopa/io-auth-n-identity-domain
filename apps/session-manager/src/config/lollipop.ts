@@ -1,3 +1,4 @@
+/* eslint-disable turbo/no-undeclared-env-vars */
 import { getRequiredENVVar } from "../utils/environment";
 
 export const FF_LOLLIPOP_ENABLED = process.env.FF_LOLLIPOP_ENABLED === "1";

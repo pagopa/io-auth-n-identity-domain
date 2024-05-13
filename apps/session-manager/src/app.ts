@@ -26,16 +26,16 @@ import { attachTrackingData } from "./utils/appinsights";
 import { getRequiredENVVar } from "./utils/environment";
 import { SessionController, SpidLogsController } from "./controllers";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
-import { toExpressHandler } from "./utils/express";
+import { toExpressHandler, toExpressMiddleware } from "./utils/express";
 import { withUserFromRequest } from "./utils/user";
 import { getFnFastLoginAPIClient } from "./repositories/fast-login-api";
 import { generateNonceEndpoint } from "./controllers/fast-login";
 import { getLollipopApiClient } from "./repositories/lollipop-api";
-import { LoginTypeEnum } from "./types/fast-login";
+import { AdditionalLoginProps, LoginTypeEnum } from "./types/fast-login";
 import { TimeTracer } from "./utils/timer";
 import { RedisClientMode } from "./types/redis";
 import { SpidLogConfig, SpidConfig } from "./config";
-import { getLoginTypeOnElegible } from "./utils/fast-login";
+import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import {
   FF_LOLLIPOP_ENABLED,
   LOLLIPOP_API_BASE_PATH,
@@ -43,6 +43,7 @@ import {
   LOLLIPOP_API_URL,
 } from "./config/lollipop";
 import { isUserElegibleForFastLogin } from "./config/fast-login";
+import { lollipopLoginMiddleware } from "./utils/lollipop";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -156,7 +157,7 @@ export const newApp: (
     TE.tryCatch(
       () =>
         withSpid({
-          // TODO: Not implemented
+          // TODO: Not implemented acs
           acs: () =>
             Promise.resolve(ResponseErrorInternal("not implemented yet")),
           app,
@@ -171,6 +172,10 @@ export const newApp: (
                 },
               });
             },
+            extraLoginRequestParamConfig: {
+              codec: AdditionalLoginProps,
+              requestMapper: acsRequestMapper,
+            },
           },
           doneCb: SpidLogsController.makeSpidLogCallback({
             spidLogQueueClient: SPID_LOG_QUEUE_CLIENT,
@@ -181,7 +186,14 @@ export const newApp: (
                 FF_LOLLIPOP_ENABLED,
               ),
           }),
-          // TODO: Not implemented
+          lollipopMiddleware: toExpressMiddleware(
+            lollipopLoginMiddleware(
+              FF_LOLLIPOP_ENABLED,
+              LOLLIPOP_CLIENT,
+              appInsightsClient,
+            ),
+          ),
+          // TODO: Not implemented logout
           logout: () =>
             Promise.resolve(
               ResponsePermanentRedirect({ href: "/" } as ValidUrl),

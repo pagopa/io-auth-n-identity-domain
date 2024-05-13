@@ -1,6 +1,12 @@
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import express from "express";
+import * as t from "io-ts";
 import { FeatureFlag } from "../types/fature-flag";
-import { LoginTypeEnum } from "../types/fast-login";
+import {
+  AdditionalLoginProps,
+  AdditionalLoginPropsT,
+  LoginTypeEnum,
+} from "../types/fast-login";
 import { getIsUserEligibleForNewFeature } from "./feature-flag";
 
 export const getIsUserElegibleForfastLogin = (
@@ -23,3 +29,10 @@ export const getLoginTypeOnElegible = (
   isUserEligibleForFastLogin
     ? LoginTypeEnum.LV
     : LoginTypeEnum.LEGACY;
+
+export const acsRequestMapper = (
+  req: express.Request,
+): t.Validation<AdditionalLoginPropsT> =>
+  AdditionalLoginProps.decode({
+    loginType: req.header("x-pagopa-login-type"),
+  });

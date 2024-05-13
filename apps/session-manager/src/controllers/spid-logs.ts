@@ -80,7 +80,10 @@ type SpidLogDeps = {
  * @param deps the required dependencies with the queue client and the login type selector
  * @returns The done callback used by the `io-spid-common` library
  */
-export const makeSpidLogCallback: R.Reader<SpidLogDeps, DoneCallbackT<never>> =
+export const makeSpidLogCallback: R.Reader<
+  SpidLogDeps,
+  DoneCallbackT<AdditionalLoginPropsT>
+> =
   (deps) =>
   (
     sourceIp: string | null,
