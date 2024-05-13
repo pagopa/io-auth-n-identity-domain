@@ -58,6 +58,7 @@ import { RedisClientSelectorType } from "../types/redis";
 import { generateLCParams } from "../services/lollipop";
 import { AssertionRefSha384 } from "../generated/lollipop-api/AssertionRefSha384";
 import { AssertionRefSha512 } from "../generated/lollipop-api/AssertionRefSha512";
+import { DomainErrorTypes } from "../models/domain-errors";
 import { errorsToError } from "./errors";
 import { ResLocals } from "./express";
 import { withOptionalUserFromRequest } from "./user";
@@ -329,7 +330,7 @@ const withLollipopHeadersFromRequest = async <T>(
     f,
   );
 
-const extractLollipopLocalsFromLollipopHeaders = (
+export const extractLollipopLocalsFromLollipopHeaders = (
   lollipopClient: LollipopApiClient,
   redisClientSelector: RedisClientSelectorType,
   lollipopHeaders: LollipopRequiredHeaders,
@@ -341,7 +342,7 @@ const extractLollipopLocalsFromLollipopHeaders = (
   pipe(
     TE.of(getNonceOrUlid(lollipopHeaders["signature-input"])),
     TE.bindTo("operationId"),
-    TE.bind("keyThumbprint", ({ operationId }) =>
+    TE.bind("keyThumbprint", ({ operationId: _operationId }) =>
       pipe(
         getKeyThumbprintFromSignature(lollipopHeaders["signature-input"]),
         // TODO: send error event if either results to left
@@ -351,7 +352,7 @@ const extractLollipopLocalsFromLollipopHeaders = (
         TE.fromEither,
       ),
     ),
-    TE.bind("assertionRefSet", ({ keyThumbprint, operationId }) =>
+    TE.bind("assertionRefSet", ({ keyThumbprint, operationId: _operationId }) =>
       pipe(
         O.fromNullable(fiscalCode),
         O.map((fc) =>
@@ -389,14 +390,18 @@ const extractLollipopLocalsFromLollipopHeaders = (
         ),
         // we have the left part with the found assertionRef, so we go forward
         // with a TE.right
-        TE.fold(TE.right, (_domainErrors) =>
+        TE.foldW(TE.right, (domainErrors) =>
           // at the end of the traversal, if we didn't found the assertion ref we
           // return an error
-          TE.left(ResponseErrorInternal("Missing assertion ref")),
+          domainErrors.some((e) => e.kind === DomainErrorTypes.UNAUTHORIZED)
+            ? TE.left<
+                IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized
+              >(ResponseErrorForbiddenNotAuthorized)
+            : TE.left(ResponseErrorInternal("Missing assertion ref")),
         ),
       ),
     ),
-    TE.chainFirst(({ operationId, lcParams, keyThumbprint }) =>
+    TE.chainFirst(({ operationId: _operationId, lcParams, keyThumbprint }) =>
       pipe(
         O.fromNullable(fiscalCode),
         O.map(() => TE.of(true)),
