@@ -15,7 +15,7 @@ import {
 } from "@pagopa/ts-commons/lib/responses";
 import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
 
-import { RedisRepo, FnAppRepo } from "../repositories";
+import { FnAppRepo } from "../repositories";
 import { ProfileService } from "../services";
 import { WithExpressRequest } from "../utils/express";
 import { WithUser } from "../utils/user";
@@ -26,8 +26,7 @@ import { InitializedProfile } from "../generated/backend/InitializedProfile";
 /**
  * @type Reader depedencies for GetSession handler of SessionController.
  */
-type GetUserForFIMSDependencies = RedisRepo.RedisRepositoryDeps &
-  FnAppRepo.FnAppAPIRepositoryDeps &
+type GetUserForFIMSDependencies = FnAppRepo.FnAppAPIRepositoryDeps &
   WithUser &
   WithExpressRequest;
 
@@ -43,22 +42,31 @@ export const getUserForFIMS: RTE.ReaderTaskEither<
   | IResponseErrorNotFound
   | IResponseSuccessJson<FIMSUser>
 > = (deps) =>
-  pipe(
-    ProfileService.getProfile(deps),
-    filterGetProfileSuccessResponse,
-    TE.map((response) => response.value),
-    TE.chainW(toFIMSUser(deps)),
-    TE.orElseW((e) =>
-      e instanceof Error ? TE.of(ResponseErrorInternal(e.message)) : TE.of(e),
-    ),
-  );
+  pipe(getFimsUser(deps), TE.map(ResponseSuccessJson), TE.orElseW(TE.of));
 
 // -------------------
 // Private methods
 // -------------------
 
-type RightOf<T> = T extends TE.TaskEither<unknown, infer _> ? _ : never;
+const getFimsUser: RTE.ReaderTaskEither<
+  GetUserForFIMSDependencies,
+  | IResponseErrorValidation
+  | IResponseErrorInternal
+  | IResponseErrorTooManyRequests
+  | IResponseErrorNotFound,
+  FIMSUser
+> = (deps) =>
+  pipe(
+    ProfileService.getProfile(deps),
+    filterGetProfileSuccessResponse,
+    TE.map((response) => response.value),
+    TE.chainW(toFIMSUser(deps)),
+    TE.mapLeft((e) =>
+      e instanceof Error ? ResponseErrorInternal(e.message) : e,
+    ),
+  );
 
+type RightOf<T> = T extends TE.TaskEither<unknown, infer _> ? _ : never;
 const filterGetProfileSuccessResponse = (
   response: ReturnType<typeof ProfileService.getProfile>,
 ) =>
@@ -94,7 +102,6 @@ const toFIMSUser =
         name: deps.user.name,
       },
       FIMSUser.decode,
-      E.map(ResponseSuccessJson),
       E.mapLeft((_) =>
         ResponseErrorInternal(errorsToReadableMessages(_).join(" / ")),
       ),
