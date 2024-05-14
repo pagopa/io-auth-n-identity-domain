@@ -22,8 +22,7 @@ export function getRequiredENVVar(envName: string): string {
 }
 
 /**
- * Get a value reading from the environment, providing a default if not found or
- * null | undefined.
+ * Get a value reading from the environment, providing a default if invalid or missing
  *
  * @param envName - the ENV variable name
  * @param type - the io-ts decoder

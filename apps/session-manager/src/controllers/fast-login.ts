@@ -85,6 +85,7 @@ const generateSessionTokens = (
         ? TE.left(ResponseErrorUnauthorized("User is blocked"))
         : TE.right(true),
     ),
+    // TODO: refactor this part, removing async token generation behaviour
     TE.chainW(() => pipe(tokenTasks, AP.sequenceS(T.ApplyPar), TE.fromTask)),
   );
 };

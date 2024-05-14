@@ -10,6 +10,9 @@ export const getNewToken = (length: number): string =>
   // Use the crypto.randomBytes as token.
   crypto.randomBytes(length).toString("hex");
 
+/**
+ * @deprecated
+ */
 export const getNewTokenAsync = (length: number): Promise<string> =>
   promisify(crypto.randomBytes)(length).then((result) =>
     result.toString("hex"),
