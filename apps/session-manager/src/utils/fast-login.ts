@@ -1,13 +1,15 @@
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import express from "express";
 import * as t from "io-ts";
-import { FeatureFlag } from "../types/fature-flag";
+import {
+  FeatureFlag,
+  getIsUserEligibleForNewFeature,
+} from "@pagopa/ts-commons/lib/featureFlag";
 import {
   AdditionalLoginProps,
   AdditionalLoginPropsT,
   LoginTypeEnum,
 } from "../types/fast-login";
-import { getIsUserEligibleForNewFeature } from "./feature-flag";
 
 export const getIsUserElegibleForfastLogin = (
   betaTesters: ReadonlyArray<FiscalCode>,

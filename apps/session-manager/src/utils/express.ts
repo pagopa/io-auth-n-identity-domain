@@ -44,6 +44,7 @@ export const toExpressHandler =
  * which takes an express.Request as input and returns an IResponse,
  * into an express middleware. If handler returns undefined
  * the next middleware is called
+ * @deprecated
  */
 export function toExpressMiddleware<T, P>(
   handler: (req: express.Request) => Promise<IResponse<T> | undefined>,
