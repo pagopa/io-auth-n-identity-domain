@@ -26,7 +26,13 @@ import { attachTrackingData } from "./utils/appinsights";
 import { getRequiredENVVar } from "./utils/environment";
 import { SessionController, SpidLogsController } from "./controllers";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
-import { toExpressHandler, toExpressMiddleware } from "./utils/express";
+import {
+  applyErrorMiddleware,
+  checkIdpConfiguration,
+  toExpressHandler,
+  toExpressMiddleware,
+  setupMetadataRefresherAndGS,
+} from "./utils/express";
 import { withUserFromRequest } from "./utils/user";
 import { getFnFastLoginAPIClient } from "./repositories/fast-login-api";
 import { generateNonceEndpoint } from "./controllers/fast-login";
@@ -208,8 +214,12 @@ export const newApp: (
       ...withSpidApp,
       spidConfigTime: TIMER.getElapsedMilliseconds(),
     })),
+    TE.chain(setupMetadataRefresherAndGS(REDIS_CLIENT_SELECTOR)),
+    TE.chainFirst(checkIdpConfiguration),
+    TE.chainFirstTaskK(applyErrorMiddleware),
   )();
   return E.getOrElseW(() => {
+    app.emit("server:stop");
     throw new Error("Error configuring the application");
-  })(withSpidApp).app;
+  })(withSpidApp);
 };

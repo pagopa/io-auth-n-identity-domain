@@ -210,3 +210,10 @@ export const samlConfig: SamlConfig = {
   privateCert: SAML_KEY,
   requestIdExpirationPeriodMs: SAML_REQUEST_EXPIRATION_PERIOD_MS,
 };
+
+// Set default idp metadata refresh time to 7 days
+export const DEFAULT_IDP_METADATA_REFRESH_INTERVAL_SECONDS = 3600 * 24 * 7;
+export const IDP_METADATA_REFRESH_INTERVAL_SECONDS: number = process.env
+  .IDP_METADATA_REFRESH_INTERVAL_SECONDS
+  ? parseInt(process.env.IDP_METADATA_REFRESH_INTERVAL_SECONDS, 10)
+  : DEFAULT_IDP_METADATA_REFRESH_INTERVAL_SECONDS;
