@@ -1,4 +1,4 @@
-import { describe, test, vi, expect, afterAll } from "vitest";
+import { describe, test, vi, expect, afterAll, beforeEach } from "vitest";
 import request from "supertest";
 import { RedisRepo } from "../repositories";
 import {
@@ -19,12 +19,13 @@ vi.spyOn(RedisRepo, "RedisClientSelector").mockImplementation(
 );
 
 const X_FORWARDED_PROTO_HEADER = "X-Forwarded-Proto";
+const STOP_EVENT_NAME = "server:stop";
 
 describe("Test redirect to HTTPS", async () => {
   const app = await newApp({});
 
   afterAll(() => {
-    app.emit("server:stop");
+    app.emit(STOP_EVENT_NAME);
   });
   // test case: ping. Cannot fail.
   test("should 200 and ok if heathcheck API is called", async () => {
@@ -38,9 +39,19 @@ describe("Test redirect to HTTPS", async () => {
       .set(X_FORWARDED_PROTO_HEADER, "https")
       .expect(200);
   });
+});
 
+describe("Graceful Shutdown", async () => {
+  const app = await newApp({});
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterAll(() => {
+    app.emit(STOP_EVENT_NAME);
+  });
   test("should call quit method for each redis when the server stops", async () => {
-    app.emit("server:stop");
+    app.emit(STOP_EVENT_NAME);
     expect(mockQuit).toBeCalledTimes(mockSelect().length);
   });
 });
