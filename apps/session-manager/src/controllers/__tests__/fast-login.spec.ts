@@ -6,7 +6,11 @@ import {
   ResponseErrorUnauthorized,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
-import { IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import {
+  FiscalCode,
+  IPString,
+  NonEmptyString,
+} from "@pagopa/ts-commons/lib/strings";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { Errors } from "io-ts";
 import { pipe } from "fp-ts/lib/function";
@@ -22,7 +26,7 @@ import {
   ZendeskToken,
 } from "../../types/token";
 import { SpidLevelEnum } from "../../types/spid-level";
-import { aSAMLResponse } from "../../__mocks__/spid.mocks";
+import { getASAMLResponse } from "../../__mocks__/spid.mocks";
 import { FastLoginResponse as LCFastLoginResponse } from "../../generated/fast-login-api/FastLoginResponse";
 import { LollipopJWTAuthorization } from "../../generated/fast-login-api/LollipopJWTAuthorization";
 import { LollipopPublicKey } from "../../generated/fast-login-api/LollipopPublicKey";
@@ -47,7 +51,10 @@ const validFastLoginControllerResponse = {
   token: aRandomToken as SessionToken,
 };
 const validFastLoginLCResponse = {
-  saml_response: aSAMLResponse,
+  saml_response: getASAMLResponse(
+    "GDASDV00A01H501J" as FiscalCode,
+    "_2d2a89e99c7583e221b4" as NonEmptyString,
+  ),
 } as LCFastLoginResponse;
 const aValidGenerateNonceResponse = {
   nonce: "870c6d89-a3c4-48b1-a796-cdacddaf94b4",
@@ -147,7 +154,7 @@ describe("fastLoginController#fastLogin", () => {
     expect(mockIsBlockedUser).toHaveBeenCalledTimes(1);
     expect(mockIsBlockedUser).toHaveBeenCalledWith({
       fiscalCode: aFiscalCode,
-      selector: mockRedisClientSelector,
+      redisClientSelector: mockRedisClientSelector,
     });
 
     expect(mockSetSession).toHaveBeenCalledTimes(1);

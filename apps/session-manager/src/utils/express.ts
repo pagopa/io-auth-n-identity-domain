@@ -22,10 +22,8 @@ export type ExpressMiddleware = (
 ) => void;
 
 export type ResLocals = Record<string, unknown> & {
-  // eslint-disable-next-line functional/prefer-readonly-type
-  detail?: string;
-  // eslint-disable-next-line functional/prefer-readonly-type
-  body?: Buffer;
+  readonly detail?: string;
+  readonly body?: Buffer;
 };
 
 export type WithExpressRequest = {

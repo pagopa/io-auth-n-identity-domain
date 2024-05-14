@@ -76,7 +76,7 @@ const generateSessionTokens = (
   return pipe(
     // ask the session storage whether this user is blocked
     isBlockedUser({
-      selector: redisClientSelector,
+      redisClientSelector,
       fiscalCode: userFiscalCode,
     }),
     TE.mapLeft(() => ResponseErrorInternal(`Error while validating user`)),

@@ -97,11 +97,12 @@ describe("extractLollipopLocalsFromLollipopHeaders|>missing fiscal code", () => 
       mockGet.mockResolvedValue(anAssertionRef);
       lcParamsTo404(generateLCParamsCalls - 1);
       const res = await extractLollipopLocalsFromLollipopHeaders(
-        mockLollipopClient,
-        mockRedisClientSelector,
         lollipopRequiredHeaders as LollipopRequiredHeaders,
         undefined,
-      )();
+      )({
+        redisClientSelector: mockRedisClientSelector,
+        lollipopApiClient: mockLollipopClient,
+      })();
 
       expect(mockGenerateLCParams).toHaveBeenCalledTimes(generateLCParamsCalls);
       expect(res).toMatchObject(
@@ -121,11 +122,12 @@ describe("extractLollipopLocalsFromLollipopHeaders|>missing fiscal code", () => 
   it("should return Internal Server Error when no assertion ref was found for the keyId", async () => {
     lcParamsTo404(3);
     const res = await extractLollipopLocalsFromLollipopHeaders(
-      mockLollipopClient,
-      mockRedisClientSelector,
       lollipopRequiredHeaders as LollipopRequiredHeaders,
       undefined,
-    )();
+    )({
+      redisClientSelector: mockRedisClientSelector,
+      lollipopApiClient: mockLollipopClient,
+    })();
 
     expect(mockGenerateLCParams).toHaveBeenCalledTimes(3);
     expect(res).toMatchObject(
@@ -258,6 +260,7 @@ describe("lollipopMiddleware", () => {
     }) as unknown as Request;
     const res = mockRes() as unknown as Response;
     // Delete the default user value
+    // eslint-disable-next-line functional/immutable-data
     req.user = undefined;
     const middleware = expressLollipopMiddleware(
       mockLollipopClient,

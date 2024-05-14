@@ -612,15 +612,15 @@ export const set =
  */
 export const isBlockedUser: RTE.ReaderTaskEither<
   {
-    selector: RedisClientSelectorType;
+    redisClientSelector: RedisClientSelectorType;
   } & { fiscalCode: FiscalCode },
   Error,
   boolean
-> = ({ selector, fiscalCode }) =>
+> = ({ redisClientSelector, fiscalCode }) =>
   pipe(
     TE.tryCatch(
       () =>
-        selector
+        redisClientSelector
           .selectOne(RedisClientMode.FAST)
           .sIsMember(blockedUserSetKey, fiscalCode),
       E.toError,

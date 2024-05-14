@@ -21,6 +21,15 @@ export function getRequiredENVVar(envName: string): string {
   }
 }
 
+/**
+ * Get a value reading from the environment, providing a default if not found or
+ * null | undefined.
+ *
+ * @param envName - the ENV variable name
+ * @param type - the io-ts decoder
+ * @param fallback - default value for the wanted type
+ * @returns value from environment or fallback
+ */
 export const getENVVarWithDefault = <T>(
   envName: string,
   type: t.Type<T>,

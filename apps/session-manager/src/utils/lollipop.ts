@@ -256,43 +256,45 @@ const getKeyThumbprintFromSignature = (
   return Thumbprint.decode(thumbprint);
 };
 
-const getAndValidateAssertionRefForUser = (
-  redisClientSelector: RedisClientSelectorType,
-  fiscalCode: FiscalCode,
-  /* TODO: add event logging
-   * operationId: NonEmptyString,
-   */
-  keyThumbprint: Thumbprint,
-): TE.TaskEither<
-  IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized,
-  AssertionRef
-> =>
-  pipe(
-    RedisSessionStorageService.getLollipopAssertionRefForUser({
-      redisClientSelector,
-      fiscalCode,
-    }),
-    // TODO: send error event if taskEither results to left
-    TE.mapLeft((err) => {
-      log.error(
-        "lollipopMiddleware|error reading the assertionRef from redis [%s]",
-        err.message,
-      );
-      return ResponseErrorInternal("Error retrieving the assertionRef");
-    }),
-    TE.chainW(TE.fromOption(() => ResponseErrorForbiddenNotAuthorized)),
-    TE.chainW(
-      flow(
-        TE.fromPredicate(
-          (assertionRef) =>
-            assertionRef ===
-            `${getAlgoFromAssertionRef(assertionRef)}-${keyThumbprint}`,
-          () => ResponseErrorForbiddenNotAuthorized,
+const getAndValidateAssertionRefForUser =
+  (
+    fiscalCode: FiscalCode,
+    /* TODO: add event logging
+     * operationId: NonEmptyString,
+     */
+    keyThumbprint: Thumbprint,
+  ): RTE.ReaderTaskEither<
+    { redisClientSelector: RedisClientSelectorType },
+    IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized,
+    AssertionRef
+  > =>
+  ({ redisClientSelector }) =>
+    pipe(
+      RedisSessionStorageService.getLollipopAssertionRefForUser({
+        redisClientSelector,
+        fiscalCode,
+      }),
+      // TODO: send error event if taskEither results to left
+      TE.mapLeft((err) => {
+        log.error(
+          "lollipopMiddleware|error reading the assertionRef from redis [%s]",
+          err.message,
+        );
+        return ResponseErrorInternal("Error retrieving the assertionRef");
+      }),
+      TE.chainW(TE.fromOption(() => ResponseErrorForbiddenNotAuthorized)),
+      TE.chainW(
+        flow(
+          TE.fromPredicate(
+            (assertionRef) =>
+              assertionRef ===
+              `${getAlgoFromAssertionRef(assertionRef)}-${keyThumbprint}`,
+            () => ResponseErrorForbiddenNotAuthorized,
+          ),
+          // TODO: send error event if taskEither results to left
         ),
-        // TODO: send error event if taskEither results to left
       ),
-    ),
-  );
+    );
 
 /**
  * Utility function that validate locals to check if all
@@ -330,115 +332,119 @@ const withLollipopHeadersFromRequest = async <T>(
     f,
   );
 
-export const extractLollipopLocalsFromLollipopHeaders = (
-  lollipopClient: LollipopApiClient,
-  redisClientSelector: RedisClientSelectorType,
-  lollipopHeaders: LollipopRequiredHeaders,
-  fiscalCode?: FiscalCode,
-): TE.TaskEither<
-  IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized,
-  LollipopLocalsType
-> =>
-  pipe(
-    TE.of(getNonceOrUlid(lollipopHeaders["signature-input"])),
-    TE.bindTo("operationId"),
-    TE.bind("keyThumbprint", ({ operationId: _operationId }) =>
-      pipe(
-        getKeyThumbprintFromSignature(lollipopHeaders["signature-input"]),
-        // TODO: send error event if either results to left
-        E.mapLeft(() =>
-          ResponseErrorInternal("Invalid assertionRef in signature params"),
+export const extractLollipopLocalsFromLollipopHeaders =
+  (
+    lollipopHeaders: LollipopRequiredHeaders,
+    fiscalCode?: FiscalCode,
+  ): RTE.ReaderTaskEither<
+    {
+      lollipopApiClient: LollipopApiClient;
+      redisClientSelector: RedisClientSelectorType;
+    },
+    IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized,
+    LollipopLocalsType
+  > =>
+  ({ lollipopApiClient, redisClientSelector }) =>
+    pipe(
+      TE.of(getNonceOrUlid(lollipopHeaders["signature-input"])),
+      TE.bindTo("operationId"),
+      TE.bind("keyThumbprint", ({ operationId: _operationId }) =>
+        pipe(
+          getKeyThumbprintFromSignature(lollipopHeaders["signature-input"]),
+          // TODO: send error event if either results to left
+          E.mapLeft(() =>
+            ResponseErrorInternal("Invalid assertionRef in signature params"),
+          ),
+          TE.fromEither,
         ),
-        TE.fromEither,
       ),
-    ),
-    TE.bind("assertionRefSet", ({ keyThumbprint, operationId: _operationId }) =>
-      pipe(
-        O.fromNullable(fiscalCode),
-        O.map((fc) =>
+      TE.bind(
+        "assertionRefSet",
+        ({ keyThumbprint, operationId: _operationId }) =>
           pipe(
-            getAndValidateAssertionRefForUser(
-              redisClientSelector,
-              fc,
-              /* operationId, */
-              keyThumbprint,
+            O.fromNullable(fiscalCode),
+            O.map((fc) =>
+              pipe(
+                getAndValidateAssertionRefForUser(
+                  fc,
+                  /* operationId, */
+                  keyThumbprint,
+                )({ redisClientSelector }),
+                TE.map((assertionRef) => [assertionRef]),
+              ),
             ),
-            TE.map((assertionRef) => [assertionRef]),
-          ),
-        ),
-        O.getOrElse(() =>
-          TE.of([
-            `sha256-${keyThumbprint}` as AssertionRef,
-            `sha384-${keyThumbprint}` as AssertionRef,
-            `sha512-${keyThumbprint}` as AssertionRef,
-          ]),
-        ),
-      ),
-    ),
-    TE.bindW("lcParams", ({ assertionRefSet, operationId }) =>
-      pipe(
-        assertionRefSet,
-        RA.traverse(TE.ApplicativeSeq)((assertionRef) =>
-          pipe(
-            generateLCParams(
-              assertionRef,
-              operationId,
-            )({ lollipopApiClient: lollipopClient }),
-            // this swap has the purpose to interrupt the traversal if assertionRef was found
-            TE.swap,
-          ),
-        ),
-        // we have the left part with the found assertionRef, so we go forward
-        // with a TE.right
-        TE.foldW(TE.right, (domainErrors) =>
-          // at the end of the traversal, if we didn't found the assertion ref we
-          // return an error
-          domainErrors.some((e) => e.kind === DomainErrorTypes.UNAUTHORIZED)
-            ? TE.left<
-                IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized
-              >(ResponseErrorForbiddenNotAuthorized)
-            : TE.left(ResponseErrorInternal("Missing assertion ref")),
-        ),
-      ),
-    ),
-    TE.chainFirst(({ operationId: _operationId, lcParams, keyThumbprint }) =>
-      pipe(
-        O.fromNullable(fiscalCode),
-        O.map(() => TE.of(true)),
-        O.getOrElse(() =>
-          pipe(
-            getAndValidateAssertionRefForUser(
-              redisClientSelector,
-              lcParams.fiscal_code,
-              /* operationId, */
-              keyThumbprint,
+            O.getOrElse(() =>
+              TE.of([
+                `sha256-${keyThumbprint}` as AssertionRef,
+                `sha384-${keyThumbprint}` as AssertionRef,
+                `sha512-${keyThumbprint}` as AssertionRef,
+              ]),
             ),
-            TE.map(() => true),
+          ),
+      ),
+      TE.bindW("lcParams", ({ assertionRefSet, operationId }) =>
+        pipe(
+          assertionRefSet,
+          RA.traverse(TE.ApplicativeSeq)((assertionRef) =>
+            pipe(
+              generateLCParams(
+                assertionRef,
+                operationId,
+              )({ lollipopApiClient }),
+              // this swap has the purpose to interrupt the traversal if assertionRef was found
+              TE.swap,
+            ),
+          ),
+          // we have the left part with the found assertionRef, so we go forward
+          // with a TE.right
+          TE.foldW(TE.right, (domainErrors) =>
+            // at the end of the traversal, if we didn't found the assertion ref we
+            // return an error
+            domainErrors.some((e) => e.kind === DomainErrorTypes.UNAUTHORIZED)
+              ? TE.left<
+                  IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized
+                >(ResponseErrorForbiddenNotAuthorized)
+              : TE.left(ResponseErrorInternal("Missing assertion ref")),
           ),
         ),
       ),
-    ),
-    TE.map(
-      ({ lcParams }) =>
-        ({
-          ["x-pagopa-lollipop-assertion-ref"]: lcParams.assertion_ref,
-          ["x-pagopa-lollipop-assertion-type"]: lcParams.assertion_type,
-          ["x-pagopa-lollipop-auth-jwt"]: lcParams.lc_authentication_bearer,
-          ["x-pagopa-lollipop-public-key"]: lcParams.pub_key,
-          // It's possible to improve security by verifying that the fiscal code from
-          // the authorization is equal to the one from the lollipop function
-          ["x-pagopa-lollipop-user-id"]: fiscalCode || lcParams.fiscal_code,
-          ...lollipopHeaders,
-        }) as LollipopLocalsType,
-    ),
-    // TODO: info event of the sending data to the third party
-  );
+      TE.chainFirst(({ operationId: _operationId, lcParams, keyThumbprint }) =>
+        pipe(
+          O.fromNullable(fiscalCode),
+          O.map(() => TE.of(true)),
+          O.getOrElse(() =>
+            pipe(
+              getAndValidateAssertionRefForUser(
+                lcParams.fiscal_code,
+                /* operationId, */
+                keyThumbprint,
+              )({ redisClientSelector }),
+              TE.map(() => true),
+            ),
+          ),
+        ),
+      ),
+      TE.map(
+        ({ lcParams }) =>
+          ({
+            ["x-pagopa-lollipop-assertion-ref"]: lcParams.assertion_ref,
+            ["x-pagopa-lollipop-assertion-type"]: lcParams.assertion_type,
+            ["x-pagopa-lollipop-auth-jwt"]: lcParams.lc_authentication_bearer,
+            ["x-pagopa-lollipop-public-key"]: lcParams.pub_key,
+            // It's possible to improve security by verifying that the fiscal code from
+            // the authorization is equal to the one from the lollipop function
+            ["x-pagopa-lollipop-user-id"]: fiscalCode || lcParams.fiscal_code,
+            ...lollipopHeaders,
+          }) as LollipopLocalsType,
+      ),
+      // TODO: info event of the sending data to the third party
+    );
 
 export const expressLollipopMiddleware: (
-  lollipopClient: LollipopApiClient,
+  lollipopApiClient: LollipopApiClient,
   redisClientSelector: RedisClientSelectorType,
 ) => (req: Request, res: Response, next: NextFunction) => Promise<void> =
-  (lollipopClient, sessionStorage) => (req, res, next) =>
+  (lollipopApiClient, redisClientSelector) => (req, res, next) =>
     pipe(
       TE.tryCatch(
         () =>
@@ -446,11 +452,9 @@ export const expressLollipopMiddleware: (
             withLollipopHeadersFromRequest(req, async (lollipopHeaders) =>
               pipe(
                 extractLollipopLocalsFromLollipopHeaders(
-                  lollipopClient,
-                  sessionStorage,
                   lollipopHeaders,
                   O.toUndefined(user)?.fiscal_code,
-                ),
+                )({ lollipopApiClient, redisClientSelector }),
                 TE.map((lollipopLocals) => {
                   // eslint-disable-next-line functional/immutable-data
                   res.locals = { ...res.locals, ...lollipopLocals };

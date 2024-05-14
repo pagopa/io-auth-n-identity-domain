@@ -37,7 +37,7 @@ export interface IFIMSTokenTag {
 export const FIMSToken = tag<IFIMSTokenTag>()(t.string);
 export type FIMSToken = t.TypeOf<typeof FIMSToken>;
 
-export interface UserTokens {
+export type UserTokens = {
   readonly session_token: SessionToken;
   readonly wallet_token: WalletToken;
   readonly myportal_token: MyPortalToken;
@@ -45,4 +45,4 @@ export interface UserTokens {
   readonly zendesk_token: ZendeskToken;
   readonly fims_token: FIMSToken;
   readonly session_tracking_id: string;
-}
+};

@@ -22,6 +22,10 @@ import * as E from "fp-ts/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
+import { RedisRepo, FnAppRepo } from "./repositories";
+import { attachTrackingData } from "./utils/appinsights";
+import { getENVVarWithDefault, getRequiredENVVar } from "./utils/environment";
+import { SessionController, FastLoginController } from "./controllers";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
 import {
   applyErrorMiddleware,
@@ -46,10 +50,6 @@ import {
 } from "./config/lollipop";
 import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { lollipopLoginMiddleware } from "./utils/lollipop";
-import {
-  fastLoginEndpoint,
-  generateNonceEndpoint,
-} from "./controllers/fast-login";
 import { withIPFromRequest } from "./utils/network";
 import { expressLollipopMiddleware } from "./utils/lollipop";
 
@@ -155,7 +155,7 @@ export const newApp: (
     `${API_BASE_PATH}/fast-login/nonce/generate`,
     pipe(
       toExpressHandler({ fnFastLoginAPIClient: FAST_LOGIN_CLIENT }),
-      ap(generateNonceEndpoint),
+      ap(FastLoginController.generateNonceEndpoint),
     ),
   );
 
@@ -175,7 +175,7 @@ export const newApp: (
         fnFastLoginAPIClient: FAST_LOGIN_CLIENT,
         sessionTTL,
       }),
-      ap(withIPFromRequest(fastLoginEndpoint)),
+      ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
     ),
   );
 

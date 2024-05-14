@@ -349,13 +349,3 @@ export const getASAMLResponse_saml2Namespace = (
   )}
 </saml2p:Response>
 `;
-
-export const aSAMLResponse = getASAMLResponse(
-  "GDASDV00A01H501J" as FiscalCode,
-  "_2d2a89e99c7583e221b4" as NonEmptyString,
-);
-
-export const aSAMLResponse_saml2Namespace = getASAMLResponse_saml2Namespace(
-  "GDASDV00A01H501J" as FiscalCode,
-  "_2d2a89e99c7583e221b4" as NonEmptyString,
-);
