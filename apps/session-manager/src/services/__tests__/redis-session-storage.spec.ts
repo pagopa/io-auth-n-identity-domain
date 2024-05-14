@@ -275,7 +275,7 @@ describe("RedisSessionStorage#getByFIMSToken", () => {
   };
 
   test("should get the session with a valid token", async () => {
-    mockGet.mockImplementationOnce((_) => Promise.resolve(mockSessionToken));
+    mockGet.mockResolvedValueOnce(mockSessionToken);
     mockGet.mockImplementationOnce((_) =>
       Promise.resolve(JSON.stringify(aValidUser)),
     );
