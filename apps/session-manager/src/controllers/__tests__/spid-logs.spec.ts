@@ -58,36 +58,6 @@ describe("SpidLogController#makeSpidLogCallback", () => {
 
   const getLoginTypeMock = vi.fn().mockReturnValue(LoginTypeEnum.LEGACY);
 
-  /* test.each`
-    finalLoginType
-    ${LoginTypeEnum.LEGACY}
-    ${LoginTypeEnum.LV}
-  `(
-    "should enqueue valid payload on SPID response when final login type is $finalLoginType",
-    ({ finalLoginType }) => {
-
-      getLoginTypeMock.mockReturnValueOnce(finalLoginType);
-
-      makeSpidLogCallback({
-        spidLogQueueClient: mockQueueClient,
-        getLoginType: getLoginTypeMock,
-      })(anIP, aSAMLRequest, getASAMLResponse(), {
-        // NOTE: this is relevant for this test, only getLoginType result will be considered
-        loginType: LoginTypeEnum.LEGACY,
-      });
-      expect(mockQueueClient.sendMessage).toHaveBeenCalled();
-
-      const b64 = mockQueueClient.sendMessage.mock.calls[0][0];
-      const val = JSON.parse(Buffer.from(b64, "base64").toString("binary"));
-
-      expect(val).toMatchObject(
-        expect.objectContaining({
-          loginType: finalLoginType,
-        }),
-      );
-    },
-  ); */
-
   test("should enqueue valid payload on SPID response", async () => {
     const dependencies = {
       spidLogQueueClient: mockQueueClient,
