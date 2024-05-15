@@ -14,7 +14,7 @@ import * as A from "fp-ts/lib/Array";
 import * as S from "fp-ts/lib/string";
 import * as R from "fp-ts/Reader";
 import { DoneCallbackT } from "@pagopa/io-spid-commons";
-import { DOMParser } from "xmldom";
+import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import { SpidLogsRepo } from "../repositories";
 import { AdditionalLoginPropsT, LoginTypeEnum } from "../types/fast-login";
 import { log } from "../utils/logger";
@@ -93,46 +93,46 @@ export const makeSpidLogCallback: R.Reader<
   ): void => {
     const logPrefix = `SpidLogCallback`;
     pipe(
-      TE.tryCatch(async () => {
-        const responseXML = new DOMParser().parseFromString(
-          responsePayload,
-          "text/xml",
-        );
-        if (!responseXML) {
-          throw new Error("Cannot parse SPID XML");
-        }
+      responsePayload,
+      safeXMLParseFromString,
+      TE.fromOption(() => new Error("Cannot parse SPID XML")),
+      TE.chain((responseXML) =>
+        TE.tryCatch(async () => {
+          const maybeRequestId = getRequestIDFromResponse(responseXML);
+          if (O.isNone(maybeRequestId)) {
+            throw new Error("Cannot get Request ID from SPID XML");
+          }
+          const requestId = maybeRequestId.value;
 
-        const maybeRequestId = getRequestIDFromResponse(responseXML);
-        if (O.isNone(maybeRequestId)) {
-          throw new Error("Cannot get Request ID from SPID XML");
-        }
-        const requestId = maybeRequestId.value;
+          const maybeFiscalCode = getFiscalNumberFromPayload(responseXML);
+          if (O.isNone(maybeFiscalCode)) {
+            throw new Error("Cannot get user's fiscal Code from SPID XML");
+          }
+          const fiscalCode = maybeFiscalCode.value;
 
-        const maybeFiscalCode = getFiscalNumberFromPayload(responseXML);
-        if (O.isNone(maybeFiscalCode)) {
-          throw new Error("Cannot get user's fiscal Code from SPID XML");
-        }
-        const fiscalCode = maybeFiscalCode.value;
+          const errorOrSpidMsg = SpidLogsRepo.SpidLogMessage.decode({
+            createdAt: new Date(),
+            createdAtDay: format(new Date(), "YYYY-MM-DD"),
+            fiscalCode,
+            ip: sourceIp as IPString,
+            loginType: deps.getLoginType(
+              fiscalCode,
+              additionalProps?.loginType,
+            ),
+            requestPayload,
+            responsePayload,
+            spidRequestId: requestId,
+          } as SpidLogsRepo.SpidLogMessage);
 
-        const errorOrSpidMsg = SpidLogsRepo.SpidLogMessage.decode({
-          createdAt: new Date(),
-          createdAtDay: format(new Date(), "YYYY-MM-DD"),
-          fiscalCode,
-          ip: sourceIp as IPString,
-          loginType: deps.getLoginType(fiscalCode, additionalProps?.loginType),
-          requestPayload,
-          responsePayload,
-          spidRequestId: requestId,
-        } as SpidLogsRepo.SpidLogMessage);
-
-        if (E.isLeft(errorOrSpidMsg)) {
-          log.debug(
-            `${logPrefix}|ERROR_DETAILS=${readableReport(errorOrSpidMsg.left)}`,
-          );
-          throw new Error("Invalid format for SPID log payload");
-        }
-        return errorOrSpidMsg.right;
-      }, E.toError),
+          if (E.isLeft(errorOrSpidMsg)) {
+            log.debug(
+              `${logPrefix}|ERROR_DETAILS=${readableReport(errorOrSpidMsg.left)}`,
+            );
+            throw new Error("Invalid format for SPID log payload");
+          }
+          return errorOrSpidMsg.right;
+        }, E.toError),
+      ),
       TE.chain((spidLogMessage) =>
         SpidLogsRepo.sendSpidLogsMessage({ ...deps, spidLogMessage }),
       ),

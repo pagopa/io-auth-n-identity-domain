@@ -1,10 +1,10 @@
 import { describe, test, expect, vi, beforeEach, afterAll } from "vitest";
-import { DOMParser } from "xmldom";
 import * as O from "fp-ts/Option";
 import { QueueClient } from "@azure/storage-queue";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import * as spidLogsRepo from "../../repositories/spid-logs";
 import {
   aSAMLRequest,
@@ -19,10 +19,9 @@ import {
 import { LoginTypeEnum } from "../../types/fast-login";
 import { aFiscalCode } from "../../__mocks__/user.mocks";
 
-const aDOMSamlResponse = new DOMParser().parseFromString(
-  getASAMLResponse(),
-  "text/xml",
-);
+const aDOMSamlResponse = O.getOrElseW(() => {
+  throw new Error("Invalid mock");
+})(safeXMLParseFromString(getASAMLResponse()));
 
 describe("SPID logs", () => {
   test("should get SPID request id from response", () => {
