@@ -3,6 +3,7 @@ import {
   IResponseErrorInternal,
   IResponseErrorUnauthorized,
   IResponseSuccessJson,
+  ResponseErrorForbiddenNotAuthorized,
   ResponseErrorInternal,
   ResponseErrorUnauthorized,
   ResponseSuccessJson,
@@ -39,6 +40,7 @@ import { FastLoginResponse } from "../types/fast-login";
 import { RedisClientSelectorType } from "../types/redis";
 import { RedisRepositoryDeps } from "../repositories/redis";
 import { WithIP } from "../utils/network";
+import { isUserElegibleForFastLogin } from "../config/fast-login";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 
 const generateSessionTokens = (
@@ -189,6 +191,15 @@ export const fastLoginEndpoint: FastLoginHandler = ({
     TE.bind("userFiscalCode", ({ lollipopLocals }) =>
       TE.of(lollipopLocals["x-pagopa-lollipop-user-id"]),
     ),
+    // fast login feature flag check
+    // ---------------
+    TE.chainFirstW(
+      TE.fromPredicate(
+        ({ userFiscalCode }) => isUserElegibleForFastLogin(userFiscalCode),
+        () => ResponseErrorForbiddenNotAuthorized,
+      ),
+    ),
+    // ---------------
     TE.bindW("client_response", ({ lollipopLocals }) =>
       pipe(
         TE.tryCatch(
