@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.4.0
+
+### Minor Changes
+
+- c7407c5: Expose getFimsToken endpoint
+
 ## 0.3.0
 
 ### Minor Changes

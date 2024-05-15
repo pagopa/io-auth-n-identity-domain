@@ -1,6 +1,6 @@
 {
     "name": "@pagopa/io-session-manager",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "API for IO session",
     "engines": {
         "node": ">= 18.0.0"
@@ -26,7 +26,7 @@
         "generate:proxy:lollipop": "shx rm -rf src/generated/lollipop-api && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-functions-lollipop/724c3ba79d272d4e2555dbc2a8e1657bec9f84ce/openapi/internal.yaml --out-dir src/generated/lollipop-api --no-strict --request-types --response-decoders --client",
         "generate:lollipop-definitions": "shx rm -rf src/generated/lollipop && gen-api-models --api-spec api/lollipop_definitions.yaml --out-dir src/generated/lollipop",
         "generate:proxy:fims-models": "shx rm -rf src/generated/fims && gen-api-models --api-spec api/fims.yaml --out-dir src/generated/fims"
-  },
+    },
     "dependencies": {
         "@azure/storage-queue": "^12.16.0",
         "@pagopa/io-functions-app-sdk": "x",
