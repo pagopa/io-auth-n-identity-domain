@@ -19,6 +19,7 @@ import { FnAppRepo } from "../repositories";
 import { ProfileService } from "../services";
 import { WithExpressRequest } from "../utils/express";
 import { WithUser } from "../utils/user";
+import { RightOf } from "../types/taskEither-utils";
 
 import { FIMSUser } from "../generated/fims/FIMSUser";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
@@ -58,21 +59,18 @@ const getFimsUser: RTE.ReaderTaskEither<
 > = (deps) =>
   pipe(
     ProfileService.getProfile(deps),
-    filterGetProfileSuccessResponse,
+    TE.mapLeft((e) => ResponseErrorInternal(e.message)),
+    TE.chainW(filterGetProfileSuccessResponse),
     TE.map((response) => response.value),
     TE.chainW(toFIMSUser(deps)),
-    TE.mapLeft((e) =>
-      e instanceof Error ? ResponseErrorInternal(e.message) : e,
-    ),
   );
 
-type RightOf<T> = T extends TE.TaskEither<unknown, infer _> ? _ : never;
 const filterGetProfileSuccessResponse = (
-  response: ReturnType<typeof ProfileService.getProfile>,
+  response: RightOf<ReturnType<typeof ProfileService.getProfile>>,
 ) =>
   pipe(
     response,
-    TE.filterOrElseW(
+    TE.fromPredicate(
       (r): r is IResponseSuccessJson<InitializedProfile> =>
         r.kind === "IResponseSuccessJson",
       (err) =>
