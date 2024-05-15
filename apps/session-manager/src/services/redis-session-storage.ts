@@ -12,7 +12,14 @@ import { isNumber } from "fp-ts/lib/number";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as ROA from "fp-ts/ReadonlyArray";
 import * as RTE from "fp-ts/ReaderTaskEither";
-import { SessionToken } from "../types/token";
+import {
+  BPDToken,
+  FIMSToken,
+  MyPortalToken,
+  SessionToken,
+  WalletToken,
+  ZendeskToken,
+} from "../types/token";
 import { User } from "../types/user";
 import { RedisRepo } from "../repositories";
 import { blockedUserSetKey } from "../repositories/redis";
@@ -65,6 +72,40 @@ const loadSessionBySessionToken: RTE.ReaderTaskEither<
       ),
     ),
   );
+
+/**
+ * Returns an RTE that returns the User session based on this token.
+ * @param prefix
+ * @returns The parsed used data object or an error.
+ */
+export const loadSessionByToken: (
+  prefix:
+    | typeof RedisRepo.walletKeyPrefix
+    | typeof RedisRepo.myPortalTokenPrefix
+    | typeof RedisRepo.bpdTokenPrefix
+    | typeof RedisRepo.zendeskTokenPrefix
+    | typeof RedisRepo.fimsTokenPrefix,
+  token: WalletToken | MyPortalToken | BPDToken | ZendeskToken | FIMSToken,
+) => RTE.ReaderTaskEither<RedisRepo.RedisRepositoryDeps, Error, User> =
+  (prefix, token) => (deps) =>
+    pipe(
+      TE.tryCatch(
+        () =>
+          deps.redisClientSelector
+            .selectOne(RedisClientMode.FAST)
+            .get(`${prefix}${token}`),
+        E.toError,
+      ),
+      TE.chain(
+        flow(
+          O.fromNullable,
+          TE.fromOption(() => RedisRepo.sessionNotFoundError),
+        ),
+      ),
+      TE.chain((value) =>
+        loadSessionBySessionToken({ ...deps, token: value as SessionToken }),
+      ),
+    );
 
 /**
  * Return an optional `User` object related to a `SessionToken`
@@ -200,6 +241,10 @@ const readSessionInfoKeys =
       arrayStringReplyAsync,
     );
 
+// ---------------------------------
+// User tokens
+// ---------------------------------
+
 const getUserTokens = (
   user: User,
 ): Record<string, { readonly prefix: string; readonly value: string }> => ({
@@ -232,6 +277,32 @@ const getUserTokens = (
     value: user.zendesk_token,
   },
 });
+
+/**
+ * Retrieves a value from the cache using the FIMS token.
+ * @param token the fims token
+ * @returns an RTE that returns either an Error or an user, if exists
+ */
+export const getByFIMSToken: (
+  token: FIMSToken,
+) => RTE.ReaderTaskEither<
+  RedisRepo.RedisRepositoryDeps,
+  Error,
+  O.Option<User>
+> = (token) =>
+  pipe(
+    loadSessionByToken(RedisRepo.fimsTokenPrefix, token),
+    RTE.map(O.some),
+    RTE.orElseW((error) =>
+      error === RedisRepo.sessionNotFoundError
+        ? RTE.right(O.none)
+        : RTE.left(error),
+    ),
+  );
+
+// ---------------------------------
+// End\ User tokens
+// ---------------------------------
 
 const clearExpiredSetValues =
   (redisClientSelector: RedisClientSelectorType) =>

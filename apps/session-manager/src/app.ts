@@ -1,4 +1,5 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
+import { QueueClient } from "@azure/storage-queue";
 import passport from "passport";
 import express from "express";
 import { Express } from "express";
@@ -17,11 +18,11 @@ import {
   ResponseErrorInternal,
   ResponsePermanentRedirect,
 } from "@pagopa/ts-commons/lib/responses";
-import { QueueClient } from "@azure/storage-queue";
 import * as E from "fp-ts/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
+import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
 import { RedisRepo, FnAppRepo } from "./repositories";
 import { attachTrackingData } from "./utils/appinsights";
 import { getENVVarWithDefault, getRequiredENVVar } from "./utils/environment";
@@ -29,6 +30,7 @@ import {
   SessionController,
   FastLoginController,
   SpidLogsController,
+  SSOController,
 } from "./controllers";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
 import {
@@ -43,7 +45,7 @@ import { getFnFastLoginAPIClient } from "./repositories/fast-login-api";
 import { getLollipopApiClient } from "./repositories/lollipop-api";
 import { AdditionalLoginProps, LoginTypeEnum } from "./types/fast-login";
 import { TimeTracer } from "./utils/timer";
-import { RedisClientMode } from "./types/redis";
+import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
 import { SpidLogConfig, SpidConfig } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import {
@@ -99,10 +101,7 @@ export const newApp: (
     SpidLogConfig.SPID_LOG_QUEUE_NAME,
   );
 
-  passport.use(
-    "bearer.session",
-    bearerSessionTokenStrategy(REDIS_CLIENT_SELECTOR)(attachTrackingData),
-  );
+  setupAuthentication(REDIS_CLIENT_SELECTOR);
 
   const app = express();
 
@@ -131,13 +130,12 @@ export const newApp: (
 
   app.use(helmet());
 
-  const authMiddlewares = {
-    bearerSession: passport.authenticate("bearer.session", {
-      session: false,
-    }),
-  };
+  const authMiddlewares = setupAuthenticationMiddlewares();
 
   const API_BASE_PATH = getRequiredENVVar("API_BASE_PATH");
+  const FIMS_BASE_PATH = getRequiredENVVar("FIMS_BASE_PATH");
+
+  // Setup paths
 
   app.get("/healthcheck", (_req: express.Request, res: express.Response) => {
     res.send("ok");
@@ -180,6 +178,19 @@ export const newApp: (
         sessionTTL,
       }),
       ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
+    ),
+  );
+
+  // TODO: Do we need a IP filtering for this API?
+  app.get(
+    `${FIMS_BASE_PATH}/user`,
+    authMiddlewares.bearerFIMS,
+    pipe(
+      toExpressHandler({
+        redisClientSelector: REDIS_CLIENT_SELECTOR,
+        fnAppAPIClient: API_CLIENT,
+      }),
+      ap(withUserFromRequest(SSOController.getUserForFIMS)),
     ),
   );
 
@@ -249,3 +260,36 @@ export const newApp: (
     throw new Error("Error configuring the application");
   })(withSpidApp);
 };
+
+// -------------------------------------
+// Private methods
+// -------------------------------------
+
+/**
+ * Setup passport authentication strategies
+ */
+const setupAuthentication = (
+  REDIS_CLIENT_SELECTOR: RedisClientSelectorType,
+) => {
+  passport.use(
+    "bearer.session",
+    bearerSessionTokenStrategy(REDIS_CLIENT_SELECTOR)(attachTrackingData),
+  );
+
+  // Add the strategy to authenticate FIMS clients.
+  passport.use("bearer.fims", bearerFIMSTokenStrategy(REDIS_CLIENT_SELECTOR));
+};
+
+/**
+ * Setup middlewares for user authentication
+ */
+function setupAuthenticationMiddlewares() {
+  return {
+    bearerSession: passport.authenticate("bearer.session", {
+      session: false,
+    }),
+    bearerFIMS: passport.authenticate("bearer.fims", {
+      session: false,
+    }),
+  };
+}
