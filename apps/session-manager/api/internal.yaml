@@ -650,13 +650,6 @@ parameters:
     description: A representation of a user data processing choice
     required: true
     x-example: DOWNLOAD
-  SpidLevel:
-    type: string
-    description: A SPID level.
-    x-extensible-enum:
-      - https://www.spid.gov.it/SpidL1
-      - https://www.spid.gov.it/SpidL2
-      - https://www.spid.gov.it/SpidL3
 consumes:
   - application/json
 produces:
