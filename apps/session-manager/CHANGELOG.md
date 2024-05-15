@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.4.1
+
+### Patch Changes
+
+- 20ffe6c: fix fnApp client basePath
+
 ## 0.4.0
 
 ### Minor Changes
