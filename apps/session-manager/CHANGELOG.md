@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.3.0
+
+### Minor Changes
+
+- 2298397: Migrated fast-login endpoint
+
 ## 0.2.0
 
 ### Minor Changes
