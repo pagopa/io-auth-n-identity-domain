@@ -21,6 +21,11 @@ export type ExpressMiddleware = (
   next: express.NextFunction,
 ) => void;
 
+export type ResLocals = Record<string, unknown> & {
+  readonly detail?: string;
+  readonly body?: Buffer;
+};
+
 export type WithExpressRequest = {
   req: express.Request;
 };
@@ -32,6 +37,7 @@ export const toExpressHandler =
     pipe(
       handler({
         req,
+        locals: res.locals,
         ...deps,
       }),
       TE.mapLeft((err) => ResponseErrorInternal(String(err))),

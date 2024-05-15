@@ -1,3 +1,6 @@
+import { pipe } from "fp-ts/lib/function";
+import * as E from "fp-ts/Either";
+import * as t from "io-ts";
 import { log } from "./logger";
 
 /**
@@ -17,3 +20,22 @@ export function getRequiredENVVar(envName: string): string {
     return envVal;
   }
 }
+
+/**
+ * Get a value reading from the environment, providing a default if invalid or missing
+ *
+ * @param envName - the ENV variable name
+ * @param type - the io-ts decoder
+ * @param fallback - default value for the wanted type
+ * @returns value from environment or fallback
+ */
+export const getENVVarWithDefault = <T>(
+  envName: string,
+  type: t.Type<T>,
+  fallback: T,
+): T =>
+  pipe(
+    process.env[envName],
+    type.decode,
+    E.getOrElseW(() => fallback),
+  );

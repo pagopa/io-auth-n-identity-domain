@@ -1,4 +1,7 @@
-import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
+import {
+  errorsToReadableMessages,
+  readableReportSimplified,
+} from "@pagopa/ts-commons/lib/reporters";
 import {
   IResponseErrorInternal,
   IResponseErrorValidation,
@@ -46,6 +49,7 @@ export const withValidatedOrValidationErrorRTE = <T, U, E>(
 /**
  * Calls the provided function with the valid response, or else returns an
  * IResponseErrorInternal with the validation errors.
+ * @deprecated use RTE variant instead
  */
 export const withValidatedOrInternalError = <T, U>(
   validated: t.Validation<T>,
@@ -55,6 +59,18 @@ export const withValidatedOrInternalError = <T, U>(
     ? ResponseErrorInternal(
         errorsToReadableMessages(validated.left).join(" / "),
       )
+    : f(validated.right);
+
+/**
+ * Calls the provided function with the valid response, or else returns an
+ * IResponseErrorInternal with the validation errors.
+ */
+export const withValidatedOrInternalErrorRTE = <T, U, E>(
+  validated: t.Validation<T>,
+  f: (p: T) => TE.TaskEither<E, U>,
+): TE.TaskEither<E, U | IResponseErrorInternal> =>
+  E.isLeft(validated)
+    ? TE.right(ResponseErrorInternal(readableReportSimplified(validated.left)))
     : f(validated.right);
 
 /**

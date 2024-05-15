@@ -3,8 +3,15 @@ import {
   IResponseErrorValidation,
 } from "@pagopa/ts-commons/lib/responses";
 import * as RTE from "fp-ts/ReaderTaskEither";
+import express from "express";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/lib/function";
 import { User } from "../types/user";
-import { withValidatedOrValidationErrorRTE } from "./responses";
+import {
+  withValidatedOrValidationError,
+  withValidatedOrValidationErrorRTE,
+} from "./responses";
 import { WithExpressRequest } from "./express";
 
 export type WithUser = {
@@ -28,3 +35,12 @@ export const withUserFromRequest =
         ...deps,
       }),
     );
+
+export const withOptionalUserFromRequest = async <T>(
+  req: express.Request,
+  f: (user: O.Option<User>) => Promise<T>,
+): Promise<IResponseErrorValidation | T> =>
+  withValidatedOrValidationError(
+    req.user ? pipe(User.decode(req.user), E.map(O.some)) : E.right(O.none),
+    f,
+  );

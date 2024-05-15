@@ -15,6 +15,7 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import { SessionToken } from "../types/token";
 import { User } from "../types/user";
 import { RedisRepo } from "../repositories";
+import { blockedUserSetKey } from "../repositories/redis";
 import {
   LollipopData,
   NullableBackendAssertionRefFromString,
@@ -601,3 +602,31 @@ export const set =
       TE.map(() => true),
     );
   };
+
+/**
+ * Check if a user is blocked
+ *
+ * @param dependencies - RedisClientSelector and fiscalCode of the user
+ *
+ * @returns a promise with either an error or a boolean indicating if the user is blocked
+ */
+export const isBlockedUser: RTE.ReaderTaskEither<
+  {
+    redisClientSelector: RedisClientSelectorType;
+  } & { fiscalCode: FiscalCode },
+  Error,
+  boolean
+> = ({ redisClientSelector, fiscalCode }) =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        redisClientSelector
+          .selectOne(RedisClientMode.FAST)
+          .sIsMember(blockedUserSetKey, fiscalCode),
+      E.toError,
+    ),
+    TE.bimap(
+      (err) => new Error(`Error accessing blocked users collection: ${err}`),
+      identity,
+    ),
+  );

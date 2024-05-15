@@ -20,11 +20,16 @@ import {
 import { QueueClient } from "@azure/storage-queue";
 import * as E from "fp-ts/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import { RedisRepo, FnAppRepo } from "./repositories";
 import { attachTrackingData } from "./utils/appinsights";
-import { getRequiredENVVar } from "./utils/environment";
-import { SessionController, SpidLogsController } from "./controllers";
+import { getENVVarWithDefault, getRequiredENVVar } from "./utils/environment";
+import {
+  SessionController,
+  FastLoginController,
+  SpidLogsController,
+} from "./controllers";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
 import {
   applyErrorMiddleware,
@@ -35,7 +40,6 @@ import {
 } from "./utils/express";
 import { withUserFromRequest } from "./utils/user";
 import { getFnFastLoginAPIClient } from "./repositories/fast-login-api";
-import { generateNonceEndpoint } from "./controllers/fast-login";
 import { getLollipopApiClient } from "./repositories/lollipop-api";
 import { AdditionalLoginProps, LoginTypeEnum } from "./types/fast-login";
 import { TimeTracer } from "./utils/timer";
@@ -50,6 +54,8 @@ import {
 } from "./config/lollipop";
 import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { lollipopLoginMiddleware } from "./utils/lollipop";
+import { withIPFromRequest } from "./utils/network";
+import { expressLollipopMiddleware } from "./utils/lollipop";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -153,7 +159,27 @@ export const newApp: (
     `${API_BASE_PATH}/fast-login/nonce/generate`,
     pipe(
       toExpressHandler({ fnFastLoginAPIClient: FAST_LOGIN_CLIENT }),
-      ap(generateNonceEndpoint),
+      ap(FastLoginController.generateNonceEndpoint),
+    ),
+  );
+
+  const DEFAULT_LV_TOKEN_DURATION_IN_SECONDS = (60 * 15) as NonNegativeInteger;
+  const sessionTTL = getENVVarWithDefault(
+    "LV_TOKEN_DURATION_IN_SECONDS",
+    NonNegativeInteger,
+    DEFAULT_LV_TOKEN_DURATION_IN_SECONDS,
+  );
+
+  app.post(
+    `${API_BASE_PATH}/fast-login`,
+    expressLollipopMiddleware(LOLLIPOP_CLIENT, REDIS_CLIENT_SELECTOR),
+    pipe(
+      toExpressHandler({
+        redisClientSelector: REDIS_CLIENT_SELECTOR,
+        fnFastLoginAPIClient: FAST_LOGIN_CLIENT,
+        sessionTTL,
+      }),
+      ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
     ),
   );
 

@@ -1,39 +1,13 @@
 import { describe, test, expect, vi, beforeEach, afterAll } from "vitest";
-import * as O from "fp-ts/Option";
 import { QueueClient } from "@azure/storage-queue";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import * as spidLogsRepo from "../../repositories/spid-logs";
-import {
-  aSAMLRequest,
-  aSamlRequestId,
-  getASAMLResponse,
-} from "../../__mocks__/spid.mocks";
-import {
-  getFiscalNumberFromPayload,
-  getRequestIDFromResponse,
-  makeSpidLogCallback,
-} from "../spid-logs";
+import { aSAMLRequest, getASAMLResponse } from "../../__mocks__/spid.mocks";
+import { makeSpidLogCallback } from "../spid-logs";
 import { LoginTypeEnum } from "../../types/fast-login";
 import { aFiscalCode } from "../../__mocks__/user.mocks";
-
-const aDOMSamlResponse = O.getOrElseW(() => {
-  throw new Error("Invalid mock");
-})(safeXMLParseFromString(getASAMLResponse()));
-
-describe("SPID logs", () => {
-  test("should get SPID request id from response", () => {
-    const requestId = getRequestIDFromResponse(aDOMSamlResponse);
-    expect(requestId).toEqual(O.some(aSamlRequestId));
-  });
-
-  test("should get SPID user's fiscal code from response", () => {
-    const fiscalCode = getFiscalNumberFromPayload(aDOMSamlResponse);
-    expect(fiscalCode).toEqual(O.some(aFiscalCode));
-  });
-});
 
 describe("SpidLogController#makeSpidLogCallback", () => {
   beforeEach(() => {
