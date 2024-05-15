@@ -45,3 +45,11 @@ jobs:
 
       - name: 'Code review'
         run: yarn code-review
+
+      - name: SonarCloud session-manager scan
+        uses: SonarSource/sonarcloud-github-action@19888635fa64d24e533d388efe8264402dfd721b
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: apps/session-manager/

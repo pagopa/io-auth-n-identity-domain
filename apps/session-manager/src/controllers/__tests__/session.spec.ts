@@ -11,9 +11,9 @@ import {
 } from "../../__mocks__/user.mocks";
 import { mockGet, mockRedisClientSelector } from "../../__mocks__/redis.mocks";
 import { anAssertionRef } from "../../__mocks__/lollipop.mocks";
-import { FnAppAPIClient } from "../../repositories/api";
 import mockReq from "../../__mocks__/request.mocks";
 import * as profileService from "../../services/profile";
+import { FnAppAPIClient } from "../../repositories/fn-app-api";
 import { getSessionState } from "../session";
 
 describe("getSessionState", () => {
@@ -37,7 +37,7 @@ describe("getSessionState", () => {
 
     await pipe(
       {
-        fnAppAPIClient: {} as ReturnType<FnAppAPIClient>,
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
         redisClientSelector: mockRedisClientSelector,
         req,
         user: mockedUser,
@@ -65,7 +65,7 @@ describe("getSessionState", () => {
 
     await pipe(
       {
-        fnAppAPIClient: {} as ReturnType<FnAppAPIClient>,
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
         redisClientSelector: mockRedisClientSelector,
         req,
         user: mockedUser,
@@ -93,7 +93,7 @@ describe("getSessionState", () => {
 
     await pipe(
       {
-        fnAppAPIClient: {} as ReturnType<FnAppAPIClient>,
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
         redisClientSelector: mockRedisClientSelector,
         req,
         user: mockedUser,
@@ -121,7 +121,7 @@ describe("getSessionState", () => {
 
     await pipe(
       {
-        fnAppAPIClient: {} as ReturnType<FnAppAPIClient>,
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
         redisClientSelector: mockRedisClientSelector,
         req,
         user: mockedUser,

@@ -1,5 +1,10 @@
 # Auth and Identity domain monorepo
 
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=pagopa_io-auth-n-identity-domain&metric=coverage)](https://sonarcloud.io/summary/new_code?id=pagopa_io-auth-n-identity-domain)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=pagopa_io-auth-n-identity-domain&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=pagopa_io-auth-n-identity-domain)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=pagopa_io-auth-n-identity-domain&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=pagopa_io-auth-n-identity-domain)
+
+
 ## Requirements
 
 This project requires specific versions of the following tools. To make sure your development setup matches with production follow the recommended installation methods.
@@ -58,7 +63,7 @@ Defined tasks are _lint_, _test_, and _typecheck_.
 
 ## Dependencies
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > This project uses Yarn Plug'n'Play as installation strategy for dependencies. [Check out](https://yarnpkg.com/features/pnp) the official Yarn documentation to lean about pnp and its difference from the classic `node_modules` approach.
 
 ```sh

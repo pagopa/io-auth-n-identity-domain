@@ -7,7 +7,8 @@ locals {
 
   repo_secrets = {
     "ARM_TENANT_ID"       = data.azurerm_client_config.current.tenant_id,
-    "ARM_SUBSCRIPTION_ID" = data.azurerm_subscription.current.subscription_id
+    "ARM_SUBSCRIPTION_ID" = data.azurerm_subscription.current.subscription_id,
+    "SONAR_TOKEN"         = data.azurerm_key_vault_secret.sonacloud_token.value
   }
 
   ci = {
@@ -21,6 +22,9 @@ locals {
   # -------------------------
   session_manager_name                = "${local.project}-${local.location_legacy}-session-manager-app-02"
   session_manager_resource_group_name = "${local.project}-${local.location_short}-session-manager-rg-01"
+  citizen_auth_kv_name                = "io-p-citizen-auth-kv"
+  citizen_auth_kv_rg                  = "io-p-citizen-auth-sec-rg"
+  sonacloud_token_key                 = "session-manager-repo-sonarcloud-token"
 
   session_manager_cd = {
     secrets = {

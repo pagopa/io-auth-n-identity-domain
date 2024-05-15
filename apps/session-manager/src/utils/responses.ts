@@ -66,7 +66,6 @@ export const withCatchAsInternalError = <T>(
   message: string = "Exception while calling upstream API (likely a timeout).",
 ): Promise<T | IResponseErrorInternal> =>
   f().catch((_) => {
-    // eslint-disable-next-line no-console
     log.error(_);
     return ResponseErrorInternal(`${message} [${_}]`);
   });

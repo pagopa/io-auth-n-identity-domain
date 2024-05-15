@@ -7,3 +7,6 @@ export enum LoginTypeEnum {
 }
 export type LoginTypeT = t.TypeOf<typeof LoginType>;
 export const LoginType = enumType<LoginTypeEnum>(LoginTypeEnum, "LoginType");
+
+export type AdditionalLoginPropsT = t.TypeOf<typeof AdditionalLoginProps>;
+export const AdditionalLoginProps = t.partial({ loginType: LoginType });
