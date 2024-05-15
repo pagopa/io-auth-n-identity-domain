@@ -67,12 +67,13 @@ describe("SSOController#getUserForFIMS", () => {
   };
 
   test("when the profile contains a validated email, then it returns a FIMS user with email", async () => {
-    await pipe(
+    const result = await pipe(
       mockedDependencies,
       getUserForFIMS,
       TE.map((response) => response.apply(res)),
-      TE.mapLeft((err) => expect(err).toBeFalsy()),
     )();
+
+    expect(E.isLeft(result)).toBeFalsy();
 
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expectedFIMSUserResponse);
@@ -88,12 +89,13 @@ describe("SSOController#getUserForFIMS", () => {
       ),
     );
 
-    await pipe(
+    const result = await pipe(
       mockedDependencies,
       getUserForFIMS,
       TE.map((response) => response.apply(res)),
-      TE.mapLeft((err) => expect(err).toBeFalsy()),
     )();
+
+    expect(E.isLeft(result)).toBeFalsy();
 
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
@@ -117,12 +119,13 @@ describe("SSOController#getUserForFIMS", () => {
     }) => {
       mockGetProfile.mockReturnValueOnce(TE.of(getProfileResponse));
 
-      await pipe(
+      const result = await pipe(
         mockedDependencies,
         getUserForFIMS,
         TE.map((response) => response.apply(res)),
-        TE.mapLeft((err) => expect(err).toBeFalsy()),
       )();
+
+      expect(E.isLeft(result)).toBeFalsy();
 
       expect(res.status).toHaveBeenCalledWith(expectedStatusCode);
       expect(res.json).toHaveBeenCalledWith({

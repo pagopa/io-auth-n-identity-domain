@@ -220,7 +220,7 @@ describe("RedisSessionStorage#getBySessionToken", () => {
   });
 
   test("should fail parse of user payload", async () => {
-    mockGet.mockImplementationOnce((_) => Promise.resolve(INVALID_JSON));
+    mockGet.mockResolvedValueOnce(INVALID_JSON);
 
     await pipe(
       getBySessionToken({
@@ -335,8 +335,8 @@ describe("RedisSessionStorage#getByFIMSToken", () => {
   });
 
   test("should return error if the session is expired", async () => {
-    mockGet.mockImplementationOnce((_) => Promise.resolve(mockSessionToken));
-    mockGet.mockImplementationOnce((_) => Promise.resolve(INVALID_JSON));
+    mockGet.mockResolvedValueOnce(mockSessionToken);
+    mockGet.mockResolvedValueOnce(INVALID_JSON);
 
     await pipe(
       mockedDependencies,
@@ -353,8 +353,8 @@ describe("RedisSessionStorage#getByFIMSToken", () => {
   });
 
   test("should fail parse of user payload", async () => {
-    mockGet.mockImplementationOnce((_) => Promise.resolve(mockSessionToken));
-    mockGet.mockImplementationOnce((_) => Promise.resolve(INVALID_JSON));
+    mockGet.mockResolvedValueOnce(mockSessionToken);
+    mockGet.mockResolvedValueOnce(INVALID_JSON);
 
     await pipe(
       {

@@ -33,14 +33,6 @@ import { SessionInfo } from "../generated/backend/SessionInfo";
 import { log } from "../utils/logger";
 import { multipleErrorsFormatter } from "../utils/errors";
 import { RedisClientMode, RedisClientSelectorType } from "../types/redis";
-import {
-  bpdTokenPrefix,
-  fimsTokenPrefix,
-  myPortalTokenPrefix,
-  sessionNotFoundError,
-  walletKeyPrefix,
-  zendeskTokenPrefix,
-} from "../repositories/redis";
 
 const parseUser = (value: string): E.Either<Error, User> =>
   pipe(
@@ -88,11 +80,11 @@ const loadSessionBySessionToken: RTE.ReaderTaskEither<
  */
 export const loadSessionByToken: (
   prefix:
-    | typeof walletKeyPrefix
-    | typeof myPortalTokenPrefix
-    | typeof bpdTokenPrefix
-    | typeof zendeskTokenPrefix
-    | typeof fimsTokenPrefix,
+    | typeof RedisRepo.walletKeyPrefix
+    | typeof RedisRepo.myPortalTokenPrefix
+    | typeof RedisRepo.bpdTokenPrefix
+    | typeof RedisRepo.zendeskTokenPrefix
+    | typeof RedisRepo.fimsTokenPrefix,
   token: WalletToken | MyPortalToken | BPDToken | ZendeskToken | FIMSToken,
 ) => RTE.ReaderTaskEither<RedisRepo.RedisRepositoryDeps, Error, User> =
   (prefix, token) => (deps) =>
@@ -299,10 +291,12 @@ export const getByFIMSToken: (
   O.Option<User>
 > = (token) =>
   pipe(
-    loadSessionByToken(fimsTokenPrefix, token),
+    loadSessionByToken(RedisRepo.fimsTokenPrefix, token),
     RTE.map(O.some),
     RTE.orElseW((error) =>
-      error === sessionNotFoundError ? RTE.right(O.none) : RTE.left(error),
+      error === RedisRepo.sessionNotFoundError
+        ? RTE.right(O.none)
+        : RTE.left(error),
     ),
   );
 
