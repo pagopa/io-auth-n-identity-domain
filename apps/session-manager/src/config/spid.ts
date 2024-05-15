@@ -58,11 +58,8 @@ const SPID_LEVEL_WHITELIST = pipe(
 );
 
 // SAML settings.
-const SAML_CALLBACK_URL =
-  process.env.SAML_CALLBACK_URL ||
-  "http://italia-backend/assertionConsumerService";
-const SAML_LOGOUT_CALLBACK_URL =
-  process.env.SAML_LOGOUT_CALLBACK_URL || "http://italia-backend/slo";
+const SAML_CALLBACK_URL = getRequiredENVVar("SAML_CALLBACK_URL");
+const SAML_LOGOUT_CALLBACK_URL = getRequiredENVVar("SAML_LOGOUT_CALLBACK_URL");
 const SAML_ISSUER = process.env.SAML_ISSUER || "https://spid.agid.gov.it/cd";
 const DEFAULT_SAML_ATTRIBUTE_CONSUMING_SERVICE_INDEX = "1";
 const SAML_ATTRIBUTE_CONSUMING_SERVICE_INDEX =

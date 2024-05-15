@@ -22,6 +22,7 @@ LOLLIPOP_REVOKE_QUEUE_NAME=revokequeue
 BACKEND_HOST=https://localhost
 SPID_TESTENV_URL=https://spid-testenv2:8088
 SAML_CALLBACK_URL=http://localhost:8081/assertionConsumerService
+SAML_LOGOUT_CALLBACK_URL=http://localhost:8081/slo
 
 CIE_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/cie/latest
 IDP_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/spid/latest
