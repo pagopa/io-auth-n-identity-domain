@@ -69,7 +69,7 @@ A Linux/macOS environment is required at the moment.
 4. launch the docker compose with `docker compose up -d` to start the containers
 5. point your browser to [http://localhost:8081/metadata](http://localhost:8081/metadata) and copy the source of the page to a new `docker/testenv2/conf/sp_metadata.xml` file
 6. run `docker-compose up -d` again to restart the containers
-7. point your browser to [[http://localhost:8081/login?](https://io-backend)](http://localhost:8081/login?entityID=xx_testenv2&authLevel=SpidL2) to execute a test login
+7. point your browser to [http://localhost:8081/login](http://localhost:8081/login?entityID=xx_testenv2&authLevel=SpidL2) to execute a test login
 
 
 ### SPID user management
