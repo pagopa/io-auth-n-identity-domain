@@ -25,7 +25,11 @@ import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import { RedisRepo, FnAppRepo } from "./repositories";
 import { attachTrackingData } from "./utils/appinsights";
 import { getENVVarWithDefault, getRequiredENVVar } from "./utils/environment";
-import { SessionController, FastLoginController } from "./controllers";
+import {
+  SessionController,
+  FastLoginController,
+  SpidLogsController,
+} from "./controllers";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
 import {
   applyErrorMiddleware,
