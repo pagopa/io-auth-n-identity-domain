@@ -7,7 +7,6 @@ export const FnAppAPIClient = (
   fetchApi: typeof fetch = nodeFetch as unknown as typeof fetch, // TODO: customize fetch with timeout
 ): Client<"SubscriptionKey"> =>
   createClient<"SubscriptionKey">({
-    basePath: "",
     baseUrl,
     fetchApi,
     withDefaults: (op) => (params) =>
