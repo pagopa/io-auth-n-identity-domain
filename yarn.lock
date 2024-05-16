@@ -1103,6 +1103,7 @@ __metadata:
     "@pagopa/typescript-config-node": "npm:*"
     "@types/body-parser": "npm:^1"
     "@types/express": "npm:^4.17.21"
+    "@types/jsonwebtoken": "npm:^9"
     "@types/node": "npm:~18.13.0"
     "@types/node-fetch": "npm:^2.1.2"
     "@types/passport": "npm:^1.0.3"
@@ -1123,12 +1124,14 @@ __metadata:
     helmet: "npm:^7.1.0"
     io-ts: "npm:^2.2.21"
     io-ts-types: "npm:^0.5.16"
+    jsonwebtoken: "npm:^9.0.2"
     logform: "npm:^2.6.0"
     monocle-ts: "npm:^2.3.13"
     newtype-ts: "npm:^0.3.5"
     node-fetch: "npm:^2.6.1"
     passport: "npm:^0.6.0"
     passport-http-bearer: "npm:^1.0.1"
+    passport-http-custom-bearer: "npm:^1.0.15"
     passport-strategy: "npm:^1.0.0"
     prettier: "npm:^3.2.5"
     redis: "npm:^4.5.1"
@@ -1561,6 +1564,15 @@ __metadata:
   version: 0.0.29
   resolution: "@types/json5@npm:0.0.29"
   checksum: 10c0/6bf5337bc447b706bb5b4431d37686aa2ea6d07cfd6f79cc31de80170d6ff9b1c7384a9c0ccbc45b3f512bae9e9f75c2e12109806a15331dc94e8a8db6dbb4ac
+  languageName: node
+  linkType: hard
+
+"@types/jsonwebtoken@npm:^9":
+  version: 9.0.6
+  resolution: "@types/jsonwebtoken@npm:9.0.6"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/9c29e3896e5fb6056e54d87514643e59e0cfb966ae25171a107776270195bba955f0373e98c8ed6450c145b18984f5df9cf0fcac360f382cec3c7c4d3510b202
   languageName: node
   linkType: hard
 
@@ -5763,7 +5775,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonwebtoken@npm:^9.0.1":
+"jsonwebtoken@npm:^9.0.1, jsonwebtoken@npm:^9.0.2":
   version: 9.0.2
   resolution: "jsonwebtoken@npm:9.0.2"
   dependencies:
@@ -6846,6 +6858,15 @@ __metadata:
   dependencies:
     passport-strategy: "npm:1.x.x"
   checksum: 10c0/e6de1de6a940857581c5add7c54ecb3a8573a17b0d2b78e21e888b6a4b375f85cad8d482dcb3cbf313b479e303c337e720028feb9ff9fb26d2ecef55a6b2f55a
+  languageName: node
+  linkType: hard
+
+"passport-http-custom-bearer@npm:^1.0.15":
+  version: 1.0.15
+  resolution: "passport-http-custom-bearer@npm:1.0.15"
+  dependencies:
+    passport-strategy: "npm:1.x.x"
+  checksum: 10c0/a839637ba447794ebebdfe536d4accd3f644f4341cae486a5f21019b705a1a32a9277de1c403b2da05ee3cf6186f387fd8ee82a9cd7743d4e4c8ddb34f3e578a
   languageName: node
   linkType: hard
 
