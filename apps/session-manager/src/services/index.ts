@@ -4,8 +4,10 @@ import * as ProfileService from "./profile";
 import * as RedisSessionStorageService from "./redis-session-storage";
 import * as TokenService from "./token";
 import * as LollipopService from "./lollipop";
+import * as AuthenticationLockService from "./authentication-lock";
 
 export {
+  AuthenticationLockService,
   ProfileService,
   RedisSessionStorageService,
   TokenService,
