@@ -4,6 +4,7 @@ import * as S from "fp-ts/lib/string";
 import * as A from "fp-ts/lib/Array";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { flow, pipe } from "fp-ts/lib/function";
+import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import { UserWithoutTokens } from "../types/user";
 import { SpidLevel, SpidLevelEnum } from "../types/spid-level";
 import { EmailAddress } from "../generated/backend/EmailAddress";
@@ -127,3 +128,18 @@ export const getRequestIDFromResponse = getRequestIDFromPayload(
   "Response",
   "InResponseTo",
 );
+
+/**
+ * Extract AuthnContextClassRef from SAML response
+ *
+ * ie. for <saml2:AuthnContextClassRef>https://www.spid.gov.it/SpidL2</saml2:AuthnContextClassRef>
+ * returns "https://www.spid.gov.it/SpidL2"
+ */
+export function getAuthnContextFromResponse(xml: string): O.Option<string> {
+  return pipe(
+    O.fromNullable(xml),
+    O.chain(safeXMLParseFromString),
+    O.chain(O.fromNullable),
+    O.chain(getSpidLevelFromSAMLResponse),
+  );
+}
