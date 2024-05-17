@@ -69,3 +69,25 @@ export const toGenericError = (msg?: string): GenericError => ({
   causedBy: msg ? new Error(msg) : undefined,
   kind: DomainErrorTypes.GENERIC_ERROR,
 });
+
+// -----------------
+// Type Checkers
+// ----------------
+
+export const isGenericError = (error: DomainError): error is GenericError =>
+  error.kind === DomainErrorTypes.GENERIC_ERROR;
+
+export const isUnauthorizedError = (
+  error: DomainError,
+): error is UnauthorizedError => error.kind === DomainErrorTypes.UNAUTHORIZED;
+
+export const isNotFoundError = (error: DomainError): error is NotFoundError =>
+  error.kind === DomainErrorTypes.NOT_FOUND;
+
+export const isNotImplementedError = (
+  error: DomainError,
+): error is NotImplementedError =>
+  error.kind === DomainErrorTypes.NOT_IMPLEMENTED;
+
+export const isFormatError = (error: DomainError): error is FormatError =>
+  error.kind === DomainErrorTypes.FORMAT_ERROR;

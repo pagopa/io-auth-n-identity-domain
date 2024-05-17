@@ -23,7 +23,7 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
-import { RedisRepo, FnAppRepo } from "./repositories";
+import { RedisRepo, FnAppRepo, LollipopApi } from "./repositories";
 import { attachTrackingData } from "./utils/appinsights";
 import { getENVVarWithDefault, getRequiredENVVar } from "./utils/environment";
 import {
@@ -48,6 +48,7 @@ import { TimeTracer } from "./utils/timer";
 import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
 import { SpidLogConfig, SpidConfig } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
+import { LollipopService, RedisSessionStorageService } from "./services";
 import {
   FF_LOLLIPOP_ENABLED,
   LOLLIPOP_API_BASE_PATH,
@@ -181,17 +182,13 @@ export const newApp: (
     ),
   );
 
-  // TODO: Do we need a IP filtering for this API?
-  app.get(
-    `${FIMS_BASE_PATH}/user`,
-    authMiddlewares.bearerFIMS,
-    pipe(
-      toExpressHandler({
-        redisClientSelector: REDIS_CLIENT_SELECTOR,
-        fnAppAPIClient: API_CLIENT,
-      }),
-      ap(withUserFromRequest(SSOController.getUserForFIMS)),
-    ),
+  setupFIMSEndpoints(
+    app,
+    FIMS_BASE_PATH,
+    authMiddlewares,
+    REDIS_CLIENT_SELECTOR,
+    API_CLIENT,
+    LOLLIPOP_CLIENT,
   );
 
   const TIMER = TimeTracer();
@@ -279,6 +276,51 @@ const setupAuthentication = (
   // Add the strategy to authenticate FIMS clients.
   passport.use("bearer.fims", bearerFIMSTokenStrategy(REDIS_CLIENT_SELECTOR));
 };
+
+// TODO [#IOPID-1858]: Add IP Filtering
+/**
+ * Setup FIMS Endpoint
+ */
+function setupFIMSEndpoints(
+  app: express.Application,
+  FIMS_BASE_PATH: string,
+  authMiddlewares: {
+    bearerSession: express.RequestHandler;
+    bearerFIMS: express.RequestHandler;
+  },
+  REDIS_CLIENT_SELECTOR: RedisClientSelectorType,
+  API_CLIENT: FnAppRepo.FnAppAPIRepositoryDeps["fnAppAPIClient"],
+  LOLLIPOP_CLIENT: LollipopApi.LollipopApiClient,
+) {
+  app.get(
+    `${FIMS_BASE_PATH}/user`,
+    authMiddlewares.bearerFIMS,
+    pipe(
+      toExpressHandler({
+        redisClientSelector: REDIS_CLIENT_SELECTOR,
+        fnAppAPIClient: API_CLIENT,
+      }),
+      ap(withUserFromRequest(SSOController.getUserForFIMS)),
+    ),
+  );
+
+  app.post(
+    `${FIMS_BASE_PATH}/lollipop-user`,
+    authMiddlewares.bearerFIMS,
+    pipe(
+      toExpressHandler({
+        // Clients
+        redisClientSelector: REDIS_CLIENT_SELECTOR,
+        fnAppAPIClient: API_CLIENT,
+        lollipopApiClient: LOLLIPOP_CLIENT,
+        // Services
+        lollipopService: LollipopService,
+        redisSessionStorageService: RedisSessionStorageService,
+      }),
+      ap(withUserFromRequest(SSOController.getLollipopUserForFIMS)),
+    ),
+  );
+}
 
 /**
  * Setup middlewares for user authentication

@@ -25,7 +25,7 @@ export const anAssertionRef =
   "sha256-6LvipIvFuhyorHpUqK3HjySC5Y6gshXHFBhU9EJ4DoM=" as AssertionRefSha256;
 
 const aBearerToken = "aBearerTokenJWT" as NonEmptyString;
-const aPubKey = "aPubKey" as NonEmptyString;
+export const aPubKey = "aPubKey" as NonEmptyString;
 export const aValidLCParamsResult: LcParams = {
   fiscal_code: aFiscalCode,
   assertion_file_name: `${aFiscalCode}-${anAssertionRef}` as AssertionFileName,
