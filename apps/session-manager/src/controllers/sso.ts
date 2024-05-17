@@ -41,7 +41,7 @@ import {
   toNotFoundError,
 } from "../models/domain-errors";
 import { LCParamsForFims } from "../generated/fims/LCParamsForFims";
-import { GetUserForFIMSPlusPayload } from "../generated/fims/GetUserForFIMSPlusPayload";
+import { GetLollipopUserForFIMSPayload } from "../generated/fims/GetLollipopUserForFIMSPayload";
 
 /**
  * @type Reader depedencies for GetSession handler of SessionController.
@@ -65,10 +65,10 @@ export const getUserForFIMS: RTE.ReaderTaskEither<
   pipe(getFimsUser(deps), TE.map(ResponseSuccessJson), TE.orElseW(TE.of));
 
 /**
- * getUserForFIMSPlus
+ * getLollipopUserForFIMS
  */
 
-type GetUserForFIMSPlusDependencies = GetUserForFIMSDependencies &
+type GetLollipopUserForFIMSDependencies = GetUserForFIMSDependencies &
   RedisSessionStorageServiceDepencency &
   LollipopServiceDepencency;
 
@@ -79,15 +79,14 @@ type GetuserForFIMSPlusErrors =
   | IResponseErrorTooManyRequests
   | IResponseErrorNotFound;
 
-export const getUserForFIMSPlus: RTE.ReaderTaskEither<
-  GetUserForFIMSPlusDependencies,
+export const getLollipopUserForFIMS: RTE.ReaderTaskEither<
+  GetLollipopUserForFIMSDependencies,
   never,
   GetuserForFIMSPlusErrors | IResponseSuccessJson<FIMSPlusUser>
-> = (deps) => {
-  // eslint-disable-next-line sonarjs/prefer-immediate-return
-  const r = pipe(
+> = (deps) =>
+  pipe(
     deps.req.body,
-    GetUserForFIMSPlusPayload.decode,
+    GetLollipopUserForFIMSPayload.decode,
     TE.fromEither,
     TE.mapLeft((error) =>
       ResponseErrorValidation(
@@ -101,7 +100,7 @@ export const getUserForFIMSPlus: RTE.ReaderTaskEither<
           deps.user.fiscal_code,
           payload.operation_id,
         )(deps) as TE.TaskEither<GetuserForFIMSPlusErrors, LCParamsForFims>,
-        user: getFimsUser(deps) as TE.TaskEither<
+        profile: getFimsUser(deps) as TE.TaskEither<
           GetuserForFIMSPlusErrors,
           FIMSUser
         >,
@@ -110,9 +109,6 @@ export const getUserForFIMSPlus: RTE.ReaderTaskEither<
     TE.map(ResponseSuccessJson),
     TE.orElseW(TE.of),
   );
-
-  return r;
-};
 
 // -------------------
 // Private methods
@@ -179,14 +175,13 @@ const generateLCParamsForFIMSUser: (
   fiscalCode: FiscalCode,
   operationId: NonEmptyString,
 ) => RTE.ReaderTaskEither<
-  GetUserForFIMSPlusDependencies,
+  GetLollipopUserForFIMSDependencies,
   | IResponseErrorInternal
   | IResponseErrorNotFound
   | IResponseErrorForbiddenNotAuthorized,
   LCParamsForFims
-> = (fiscalCode, operationId) => (deps) => {
-  // eslint-disable-next-line sonarjs/prefer-immediate-return
-  const res = pipe(
+> = (fiscalCode, operationId) => (deps) =>
+  pipe(
     deps.redisSessionStorageService.getLollipopAssertionRefForUser({
       ...deps,
       fiscalCode,
@@ -220,6 +215,3 @@ const generateLCParamsForFIMSUser: (
                 ),
     ),
   );
-
-  return res;
-};

@@ -19,7 +19,7 @@ import { LollipopApiClient } from "../../repositories/lollipop-api";
 
 import { GenerateLCParamsErrors } from "../../services/lollipop";
 import * as profileService from "../../services/profile";
-import { getUserForFIMS, getUserForFIMSPlus } from "../sso";
+import { getUserForFIMS, getLollipopUserForFIMS } from "../sso";
 
 import { RedisClientSelectorType } from "../../types/redis";
 import {
@@ -153,14 +153,14 @@ describe("SSOController#getUserForFIMS", () => {
   );
 });
 
-describe("SSOController#getUserForFIMSPlus", () => {
+describe("SSOController#getLollipopUserForFIMS", () => {
   const res = mockRes() as unknown as express.Response;
   const req = mockReq({
     body: { operation_id: "anId" },
   }) as unknown as express.Request;
 
   const expectedFIMSPlusUserResponse: FIMSPlusUser = {
-    user: {
+    profile: {
       acr: mockedUser.spid_level,
       auth_time: mockedUser.created_at,
       date_of_birth: pipe(
@@ -197,7 +197,7 @@ describe("SSOController#getUserForFIMSPlus", () => {
   test("when the profile contains a validated email, then it returns a FIMS+ user with email", async () => {
     await pipe(
       mockedDependencies,
-      getUserForFIMSPlus,
+      getLollipopUserForFIMS,
       TE.map((response) => response.apply(res)),
       TE.mapLeft((err) => expect(err).toBeFalsy()),
     )();
@@ -218,7 +218,7 @@ describe("SSOController#getUserForFIMSPlus", () => {
 
     await pipe(
       mockedDependencies,
-      getUserForFIMSPlus,
+      getLollipopUserForFIMS,
       TE.map((response) => response.apply(res)),
       TE.mapLeft((err) => expect(err).toBeFalsy()),
     )();
@@ -226,14 +226,14 @@ describe("SSOController#getUserForFIMSPlus", () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       ...expectedFIMSPlusUserResponse,
-      user: { ...expectedFIMSPlusUserResponse.user, email: undefined },
+      profile: { ...expectedFIMSPlusUserResponse.profile, email: undefined },
     });
   });
 
   test("when input is wrong, then it returns a 400", async () => {
     await pipe(
       { ...mockedDependencies, req: mockReq() as unknown as express.Request },
-      getUserForFIMSPlus,
+      getLollipopUserForFIMS,
       TE.map((response) => response.apply(res)),
       TE.mapLeft((err) => expect(err).toBeFalsy()),
     )();
@@ -263,7 +263,7 @@ describe("SSOController#getUserForFIMSPlus", () => {
 
       await pipe(
         mockedDependencies,
-        getUserForFIMSPlus,
+        getLollipopUserForFIMS,
         TE.map((response) => response.apply(res)),
         TE.mapLeft((err) => expect(err).toBeFalsy()),
       )();
@@ -300,7 +300,7 @@ describe("SSOController#getUserForFIMSPlus", () => {
 
       await pipe(
         mockedDependencies,
-        getUserForFIMSPlus,
+        getLollipopUserForFIMS,
         TE.map((response) => response.apply(res)),
         TE.mapLeft((err) => expect(err).toBeFalsy()),
       )();

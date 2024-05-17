@@ -208,7 +208,7 @@ export const newApp: (
         lollipopService: LollipopService,
         redisSessionStorageService: RedisSessionStorageService,
       }),
-      ap(withUserFromRequest(SSOController.getUserForFIMSPlus)),
+      ap(withUserFromRequest(SSOController.getLollipopUserForFIMS)),
     ),
   );
 
