@@ -300,6 +300,28 @@ export const getByFIMSToken: (
     ),
   );
 
+/**
+ * Retrieves a value from the cache using the Zendesk token.
+ * @param token - the zendesk token
+ * @returns an RTE that returns either an Error or an user, if exists
+ */
+export const getByZendeskToken: (
+  token: ZendeskToken,
+) => RTE.ReaderTaskEither<
+  RedisRepo.RedisRepositoryDeps,
+  Error,
+  O.Option<User>
+> = (token) =>
+  pipe(
+    loadSessionByToken(RedisRepo.zendeskTokenPrefix, token),
+    RTE.map(O.some),
+    RTE.orElse((err) =>
+      err === RedisRepo.sessionNotFoundError
+        ? RTE.right(O.none)
+        : RTE.left(err),
+    ),
+  );
+
 // ---------------------------------
 // End\ User tokens
 // ---------------------------------

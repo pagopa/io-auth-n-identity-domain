@@ -11,12 +11,17 @@ import {
 import { ExtendedProfile as ExtendedProfileApi } from "@pagopa/io-functions-app-sdk/ExtendedProfile";
 import * as TE from "fp-ts/TaskEither";
 import * as RTE from "fp-ts/ReaderTaskEither";
+import { pipe } from "fp-ts/function";
+import * as E from "fp-ts/Either";
 import {
   unhandledResponseStatus,
   withValidatedOrInternalError,
 } from "../utils/responses";
 import { FnAppRepo } from "../repositories";
-import { toInitializedProfile } from "../types/profile";
+import {
+  ProfileWithEmailValidated,
+  toInitializedProfile,
+} from "../types/profile";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
 import { WithUser } from "../utils/user";
 
@@ -74,4 +79,30 @@ export const getProfile: RTE.ReaderTaskEither<
       });
     },
     (err) => new Error(`An Error occurs calling the getProfile API: [${err}]`),
+  );
+
+export const profileWithEmailValidatedOrError: RTE.ReaderTaskEither<
+  FnAppRepo.FnAppAPIRepositoryDeps & WithUser,
+  Error,
+  ProfileWithEmailValidated
+> = (deps) =>
+  pipe(
+    getProfile(deps),
+    TE.chain(
+      TE.fromPredicate(
+        (r): r is IResponseSuccessJson<InitializedProfile> =>
+          r.kind === "IResponseSuccessJson",
+        (e) => new Error(`Error retrieving user profile | ${e.detail}`),
+      ),
+    ),
+    TE.chainW((profile) =>
+      pipe(
+        profile.value,
+        ProfileWithEmailValidated.decode,
+        E.mapLeft(
+          (_) => new Error("Profile has not a validated email address"),
+        ),
+        TE.fromEither,
+      ),
+    ),
   );

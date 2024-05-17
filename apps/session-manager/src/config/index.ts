@@ -8,6 +8,7 @@ import { IoLoginHostUrl } from "../types/common";
 
 import * as SpidConfig from "./spid";
 import * as SpidLogConfig from "./spid-logs";
+import * as ZendeskConfig from "./zendesk";
 
 export const ENV = getNodeEnvironmentFromProcessEnv(process.env);
 
@@ -22,4 +23,4 @@ export const BACKEND_HOST = pipe(
   }),
 );
 
-export { SpidConfig, SpidLogConfig };
+export { SpidConfig, SpidLogConfig, ZendeskConfig };

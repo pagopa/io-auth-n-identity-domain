@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare module "passport-http-custom-bearer" {
   import passport = require("passport");
   import express = require("express");
@@ -48,6 +49,6 @@ declare module "passport-http-custom-bearer" {
     constructor(options: IStrategyOptions, verify: T);
 
     name: string;
-    authenticate(req: express.Request, options?: Object): void;
+    authenticate(req: express.Request, options?: object): void;
   }
 }

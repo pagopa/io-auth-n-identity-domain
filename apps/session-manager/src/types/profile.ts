@@ -2,6 +2,11 @@ import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import { ExtendedProfile } from "@pagopa/io-functions-app-sdk/ExtendedProfile";
 import * as t from "io-ts";
+import {
+  EmailString,
+  FiscalCode,
+  NonEmptyString,
+} from "@pagopa/ts-commons/lib/strings";
 import { formatDate } from "../utils/date";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
 import { EmailAddress } from "../generated/backend/EmailAddress";
@@ -67,3 +72,12 @@ export const ProfileWithEmailValidated = t.brand(
 export type ProfileWithEmailValidated = t.TypeOf<
   typeof ProfileWithEmailValidated
 >;
+
+// define a ValidZendeskProfile as a subset of InitializedProfile model
+export const ValidZendeskProfile = t.type({
+  email: EmailString,
+  family_name: NonEmptyString,
+  fiscal_code: FiscalCode,
+  name: NonEmptyString,
+});
+type ValidZendeskProfile = t.TypeOf<typeof ValidZendeskProfile>;
