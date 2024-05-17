@@ -22,6 +22,10 @@ services:
     depends_on:
       redis-cluster:
         condition: service_healthy
+      spid-testenv2:
+        condition: service_started
+      storage:
+        condition: service_started
     networks:
       - io-fn
 
@@ -169,7 +173,7 @@ services:
       - "20004:20004"
       - "20005:20005"
     networks:
-       - io-fn
+      - io-fn
 
 networks:
   # same network name for interoperability with io-mock docker-compose
