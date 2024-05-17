@@ -16,7 +16,7 @@ import { WithUser } from "../utils/user";
 import { PublicSession } from "../generated/backend/PublicSession";
 import { WithExpressRequest } from "../utils/express";
 import { RedisSessionStorageService } from "../services";
-import { profileWithEmailValidatedOrError } from "../services/profile";
+import { profileWithEmailValidatedOrError } from "../utils/profile";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
@@ -50,10 +50,6 @@ export const getSessionState: RTE.ReaderTaskEither<
     async () => {
       const zendeskSuffix = await pipe(
         profileWithEmailValidatedOrError(deps),
-        TE.mapLeft((x) => {
-          console.log("left", x);
-          return x;
-        }),
         TE.bimap(
           // we generate 4 bytes and convert them to hex string for a length of 8 chars
           (_) => crypto.randomBytes(4).toString("hex"),
