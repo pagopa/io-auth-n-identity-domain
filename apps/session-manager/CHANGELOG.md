@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.5.0
+
+### Minor Changes
+
+- d7fdd85: Expose getLollipopUserForFims endpoint
+
 ## 0.4.1
 
 ### Patch Changes
