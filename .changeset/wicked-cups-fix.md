@@ -2,4 +2,4 @@
 "@pagopa/io-session-manager": minor
 ---
 
-Expose getFimsPlusToken endpoint
+Expose getLollipopUserForFims endpoint
