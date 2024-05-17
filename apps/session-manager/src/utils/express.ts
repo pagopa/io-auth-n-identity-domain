@@ -89,7 +89,7 @@ export const expressErrorMiddleware: (
   _: express.Request,
   res: express.Response,
   __: express.NextFunction,
-) => void = (err, _, res) => {
+) => void = (err, _, res, __) => {
   log.error("An exception occurred during http request: %s", err.message);
   // Send a ResponseErrorInternal only if a response was not already sent to the client
   if (!res.headersSent) {
