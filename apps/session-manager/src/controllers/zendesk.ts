@@ -11,12 +11,12 @@ import { Second } from "@pagopa/ts-commons/lib/units";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { RedisRepositoryDeps } from "../repositories/redis";
 import { WithUser } from "../utils/user";
-import { profileWithEmailValidatedOrError } from "../services/profile";
 import { FnAppAPIRepositoryDeps } from "../repositories/fn-app-api";
 import { ValidZendeskProfile } from "../types/profile";
 import { TokenService } from "../services";
 import { ZendeskToken } from "../generated/zendesk/ZendeskToken";
 import { WithExpressRequest } from "../utils/express";
+import { profileWithEmailValidatedOrError } from "../utils/profile";
 
 type GetZendeskSupportTokenHandler = RTE.ReaderTaskEither<
   {
