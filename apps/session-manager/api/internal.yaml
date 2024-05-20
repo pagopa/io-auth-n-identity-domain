@@ -10,8 +10,7 @@ schemes:
 security:
   - Bearer: []
 paths:
-  "/session":
-    x-swagger-router-controller: AuthenticationController
+  /session:
     get:
       operationId: getSessionState
       summary: Get the user current session
@@ -35,17 +34,19 @@ paths:
           description: Internal server error
           schema:
             $ref: "#/definitions/ProblemJson"
-  "/sessions":
-    x-swagger-router-controller: AuthenticationController
-    get:
-      operationId: listUserSessions
-      summary: List sessions of a User
-      description: Return all the active sessions for an authenticated User.
+  /logout:
+    post:
+      operationId: logout
+      summary: Execute the logout
+      description: Delete user's active session and tokens.
       responses:
         "200":
-          description: Found.
+          description: Logout succeeded
           schema:
-            $ref: "#/definitions/SessionsList"
+            $ref: "#/definitions/SuccessResponse"
+          examples:
+            application/json:
+              message: ok
         "400":
           description: Bad request
           schema:
@@ -53,30 +54,10 @@ paths:
         "401":
           description: Bearer token null or expired.
         "500":
-          description: Unavailable service
+          description: There was an error deleting user's session.
           schema:
             $ref: "#/definitions/ProblemJson"
-  "/token/support":
-    x-swagger-router-controller: SupportController
-    get:
-      operationId: getSupportToken
-      summary: Get a JWT Support Token
-      description: Return a JWT Support Token for the authenticated user.
-      responses:
-        "200":
-          description: Created.
-          schema:
-            $ref: "#/definitions/SupportToken"
-        "400":
-          description: Bad request
-          schema:
-            $ref: "#/definitions/ProblemJson"
-        "401":
-          description: Bearer token null or expired.
-        "500":
-          description: Unavailable service
-          schema:
-            $ref: "#/definitions/ProblemJson"
+
 definitions:
   # Definitions from the digital citizenship APIs
   AcceptedTosVersion:
@@ -327,9 +308,9 @@ definitions:
   AssertionRef:
     x-one-of: true
     allOf:
-      - $ref: '#/definitions/AssertionRefSha512'
-      - $ref: '#/definitions/AssertionRefSha384'
-      - $ref: '#/definitions/AssertionRefSha256'
+      - $ref: "#/definitions/AssertionRefSha512"
+      - $ref: "#/definitions/AssertionRefSha384"
+      - $ref: "#/definitions/AssertionRefSha256"
   MessageContentWithAttachments:
     allOf:
       - type: object
@@ -369,9 +350,9 @@ definitions:
     description: Describes an app installation.
     properties:
       platform:
-        $ref: '#/definitions/Platform'
+        $ref: "#/definitions/Platform"
       pushChannel:
-        $ref: '#/definitions/PushChannel'
+        $ref: "#/definitions/PushChannel"
     required:
       - platform
       - pushChannel
@@ -383,7 +364,7 @@ definitions:
       accepted_tos_version:
         $ref: "#/definitions/AcceptedTosVersion"
       email:
-        $ref: '#/definitions/EmailAddress'
+        $ref: "#/definitions/EmailAddress"
       blocked_inbox_or_channels:
         $ref: "#/definitions/BlockedInboxOrChannels"
       preferred_languages:
@@ -399,13 +380,13 @@ definitions:
       reminder_status:
         $ref: "#/definitions/ReminderStatus"
       push_notifications_content_type:
-        $ref: '#/definitions/PushNotificationsContentType'
+        $ref: "#/definitions/PushNotificationsContentType"
       is_webhook_enabled:
         $ref: "#/definitions/IsWebhookEnabled"
       family_name:
         type: string
       fiscal_code:
-        $ref: '#/definitions/FiscalCode'
+        $ref: "#/definitions/FiscalCode"
       has_profile:
         $ref: "#/definitions/HasProfile"
       last_app_version:
@@ -413,14 +394,14 @@ definitions:
       name:
         type: string
       spid_email:
-        $ref: '#/definitions/EmailAddress'
+        $ref: "#/definitions/EmailAddress"
       date_of_birth:
         type: string
         format: date
       service_preferences_settings:
-        $ref: '#/definitions/ServicePreferencesSettings'
+        $ref: "#/definitions/ServicePreferencesSettings"
       version:
-        $ref: '#/definitions/Version'
+        $ref: "#/definitions/Version"
     required:
       - family_name
       - fiscal_code
@@ -448,7 +429,7 @@ definitions:
     description: Describe the current session of an authenticated user.
     properties:
       spidLevel:
-        $ref: '#/definitions/SpidLevel'
+        $ref: "#/definitions/SpidLevel"
       lollipopAssertionRef:
         $ref: "#/definitions/AssertionRef"
       walletToken:
@@ -474,7 +455,7 @@ definitions:
     description: Decribe a session of an authenticated user.
     properties:
       createdAt:
-        $ref: '#/definitions/Timestamp'
+        $ref: "#/definitions/Timestamp"
       sessionToken:
         type: string
     required:
@@ -487,7 +468,7 @@ definitions:
       sessions:
         type: array
         items:
-          $ref: '#/definitions/SessionInfo'
+          $ref: "#/definitions/SessionInfo"
     required:
       - sessions
   InstallationID:
@@ -505,7 +486,7 @@ definitions:
   IsEmailSet:
     type: boolean
     default: false
-    description:  True if the user has presonalized the email.
+    description: True if the user has presonalized the email.
   Version:
     type: integer
     description: The entity version.
@@ -538,7 +519,7 @@ definitions:
     type: object
     properties:
       fiscal_code:
-        $ref: '#/definitions/FiscalCode'
+        $ref: "#/definitions/FiscalCode"
     required:
       - fiscal_code
   FederatedUser:
