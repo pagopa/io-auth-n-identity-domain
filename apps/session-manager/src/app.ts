@@ -1,5 +1,4 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
-import { QueueClient } from "@azure/storage-queue";
 import passport from "passport";
 import express from "express";
 import { Express } from "express";
@@ -17,14 +16,12 @@ import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { ResponsePermanentRedirect } from "@pagopa/ts-commons/lib/responses";
 import * as E from "fp-ts/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { pick } from "@pagopa/ts-commons/lib/types";
-import { TableClient } from "@azure/data-tables";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
 import { RedisRepo, FnAppRepo, FnLollipopRepo } from "./repositories";
 import { attachTrackingData } from "./utils/appinsights";
-import { getENVVarWithDefault, getRequiredENVVar } from "./utils/environment";
+import { getRequiredENVVar } from "./utils/environment";
 import {
   AuthenticationController,
   SessionController,
@@ -49,7 +46,6 @@ import {
   BPDConfig,
   FastLoginConfig,
   LollipopConfig,
-  SpidLogConfig,
   SpidConfig,
   ZendeskConfig,
 } from "./config";
@@ -74,19 +70,11 @@ import {
   IOLOGIN_USERS_LIST,
   IS_SPID_EMAIL_PERSISTENCE_ENABLED,
   TEST_LOGIN_FISCAL_CODES,
-  USERS_LOGIN_QUEUE_NAME,
-  USERS_LOGIN_STORAGE_CONNECTION_STRING,
   standardTokenDurationSecs,
 } from "./config/login";
 import { getIsUserElegibleForIoLoginUrlScheme } from "./utils/login-uri-scheme";
-import {
-  LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
-  LOCKED_PROFILES_TABLE_NAME,
-} from "./config/lock-profile";
-import {
-  NOTIFICATIONS_QUEUE_NAME,
-  NOTIFICATIONS_STORAGE_CONNECTION_STRING,
-} from "./config/notifications";
+import { initStorageDependencies } from "./utils/storages";
+import { omit } from "./utils/types";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -110,17 +98,7 @@ export const newApp: (
   );
   // Create the API client for the Azure Functions App
   const APIClients = initAPIClientsDependencies();
-
-  // Create the Client to the Spid Log Queue
-  const SPID_LOG_QUEUE_CLIENT = new QueueClient(
-    SpidLogConfig.SPID_LOG_STORAGE_CONNECTION_STRING,
-    SpidLogConfig.SPID_LOG_QUEUE_NAME,
-  );
-
-  const lollipopRevokeQueueClient = new QueueClient(
-    LollipopConfig.LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING,
-    LollipopConfig.LOLLIPOP_REVOKE_QUEUE_NAME,
-  );
+  const storageDependencies = initStorageDependencies();
 
   setupAuthentication(REDIS_CLIENT_SELECTOR);
 
@@ -191,7 +169,8 @@ export const newApp: (
         // Clients
         redisClientSelector: REDIS_CLIENT_SELECTOR,
         lollipopApiClient: APIClients.fnLollipopAPIClient,
-        lollipopRevokeQueueClient,
+        lollipopRevokeQueueClient:
+          storageDependencies.lollipopRevokeQueueClient,
         // Services
         redisSessionStorageService: RedisSessionStorageService,
         lollipopService: LollipopService,
@@ -210,13 +189,6 @@ export const newApp: (
     ),
   );
 
-  const DEFAULT_LV_TOKEN_DURATION_IN_SECONDS = (60 * 15) as NonNegativeInteger;
-  const sessionTTL = getENVVarWithDefault(
-    "LV_TOKEN_DURATION_IN_SECONDS",
-    NonNegativeInteger,
-    DEFAULT_LV_TOKEN_DURATION_IN_SECONDS,
-  );
-
   app.post(
     `${API_BASE_PATH}/fast-login`,
     expressLollipopMiddleware(
@@ -227,7 +199,7 @@ export const newApp: (
       toExpressHandler({
         redisClientSelector: REDIS_CLIENT_SELECTOR,
         fnFastLoginAPIClient: APIClients.fnFastLoginAPIClient,
-        sessionTTL,
+        sessionTTL: FastLoginConfig.lvTokenDurationSecs,
       }),
       ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
     ),
@@ -280,47 +252,28 @@ export const newApp: (
       FF_IOLOGIN,
     );
 
-  const lockUserTableClient = TableClient.fromConnectionString(
-    LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
-    LOCKED_PROFILES_TABLE_NAME,
-  );
-
-  const loginUserEventQueue = new QueueClient(
-    USERS_LOGIN_STORAGE_CONNECTION_STRING,
-    USERS_LOGIN_QUEUE_NAME,
-  );
-
-  const notificationQueueClient = new QueueClient(
-    NOTIFICATIONS_STORAGE_CONNECTION_STRING,
-    NOTIFICATIONS_QUEUE_NAME,
-  );
-
   const withSpidApp = await pipe(
     TE.tryCatch(
       () =>
         withSpid({
           acs: AuthenticationController.acs({
             redisClientSelector: REDIS_CLIENT_SELECTOR,
-            fnAppAPIClient: APIClients.fnAppAPIClient,
             isLollipopEnabled: true,
             appInsightsTelemetryClient: appInsightsClient,
             getClientErrorRedirectionUrl,
             getClientProfileRedirectionUrl,
             isUserElegibleForIoLoginUrlScheme,
-            lockUserTableClient,
-            loginUserEventQueue,
-            fnLollipopAPIClient: APIClients.fnLollipopAPIClient,
-            lollipopRevokeQueueClient,
             FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
             isSpidEmailPersistenceEnabled: IS_SPID_EMAIL_PERSISTENCE_ENABLED,
             testLoginFiscalCodes: TEST_LOGIN_FISCAL_CODES,
-            notificationQueueClient,
             hasUserAgeLimitEnabled: FF_USER_AGE_LIMIT_ENABLED,
             allowedCieTestFiscalCodes: ALLOWED_CIE_TEST_FISCAL_CODES,
             standardTokenDurationSecs,
             lvTokenDurationSecs: FastLoginConfig.lvTokenDurationSecs,
             lvLongSessionDurationSecs:
               FastLoginConfig.lvLongSessionDurationSecs,
+            ...pick(["fnAppAPIClient", "fnLollipopAPIClient"], APIClients),
+            ...omit(["spidLogQueueClient"], storageDependencies),
           }),
           app,
           appConfig: {
@@ -340,7 +293,7 @@ export const newApp: (
             },
           },
           doneCb: SpidLogsController.makeSpidLogCallback({
-            spidLogQueueClient: SPID_LOG_QUEUE_CLIENT,
+            spidLogQueueClient: storageDependencies.spidLogQueueClient,
             getLoginType: (fiscalCode: FiscalCode, loginType?: LoginTypeEnum) =>
               getLoginTypeOnElegible(
                 loginType,
