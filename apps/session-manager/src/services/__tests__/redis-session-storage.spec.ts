@@ -14,10 +14,12 @@ import {
   mockRedisClientSelector,
   mockGet,
   mockDel,
+  mockSrem,
 } from "../../__mocks__/redis.mocks";
 import { aFiscalCode, mockedUser } from "../../__mocks__/user.mocks";
 import {
   delLollipopDataForUser,
+  deleteUser,
   getByFIMSToken,
   getBySessionToken,
   getLollipopAssertionRefForUser,
@@ -503,5 +505,83 @@ describe("RedisSessionStorage#delLollipopDataForUser", () => {
       }),
     )();
     expect(E.isRight(result)).toBeTruthy();
+  });
+});
+
+describe("RedisSessionStorage#deleteUser", () => {
+  const mockedDependencies = {
+    redisClientSelector: mockRedisClientSelector,
+  };
+
+  const TOKENS = [
+    `BPD-${aValidUser.bpd_token}`,
+    `FIMS-${aValidUser.fims_token}`,
+    `MYPORTAL-${aValidUser.myportal_token}`,
+    `SESSIONINFO-${aValidUser.session_token}`,
+    `SESSION-${aValidUser.session_token}`,
+    `WALLET-${aValidUser.wallet_token}`,
+    `ZENDESK-${aValidUser.zendesk_token}`,
+  ];
+
+  test("should succeed deleting all user tokens, if no error occurrs", async () => {
+    mockSrem.mockImplementationOnce((_, __) => Promise.resolve(1));
+    for (let i = 0; i < TOKENS.length; i++)
+      redisMethodImplFromError(mockDel, 1, undefined);
+
+    const response = await pipe(mockedDependencies, deleteUser(aValidUser))();
+
+    expect(response).toEqual(E.right(true));
+
+    expect(mockDel).toHaveBeenCalledTimes(TOKENS.length);
+    expect(mockSrem).toHaveBeenCalledTimes(1);
+
+    for (let i = 0; i < TOKENS.length; i++)
+      expect(mockDel).toHaveBeenNthCalledWith(i + 1, TOKENS[i]);
+    expect(mockSrem).toHaveBeenCalledWith(
+      `USERSESSIONS-${aValidUser.fiscal_code}`,
+      `SESSIONINFO-${aValidUser.session_token}`,
+    );
+  });
+
+  test("should fail when Redis client returns an error on deleting the user tokens", async () => {
+    const errorMessage = "a delete error";
+    const successDeletion = 3;
+
+    redisMethodImplFromError(mockDel, 1, undefined);
+    redisMethodImplFromError(mockDel, 1, undefined);
+    redisMethodImplFromError(mockDel, 1, Error(errorMessage));
+
+    const response = await pipe(mockedDependencies, deleteUser(aValidUser))();
+
+    expect(response).toEqual(
+      E.left(Error(`value [${errorMessage}] at RedisSessionStorage.del`)),
+    );
+
+    expect(mockDel).toHaveBeenCalledTimes(successDeletion);
+    expect(mockSrem).toHaveBeenCalledTimes(0);
+
+    for (let i = 0; i < successDeletion; i++)
+      expect(mockDel).toHaveBeenNthCalledWith(i + 1, TOKENS[i]);
+  });
+
+  test("should fail if Redis client returns an error deleting the session and false deleting the mapping", async () => {
+    const errorMessage =
+      "Unexpected response from redis client deleting user tokens.";
+
+    mockSrem.mockImplementationOnce((_, __) => Promise.resolve(1));
+    for (let i = 0; i < TOKENS.length; i++)
+      redisMethodImplFromError(mockDel, 0, undefined);
+
+    const response = await pipe(mockedDependencies, deleteUser(aValidUser))();
+
+    expect(response).toEqual(
+      E.left(Error(`value [${errorMessage}] at RedisSessionStorage.del`)),
+    );
+
+    expect(mockDel).toHaveBeenCalledTimes(TOKENS.length);
+    expect(mockSrem).toHaveBeenCalledTimes(0);
+
+    for (let i = 0; i < TOKENS.length; i++)
+      expect(mockDel).toHaveBeenNthCalledWith(i + 1, TOKENS[i]);
   });
 });

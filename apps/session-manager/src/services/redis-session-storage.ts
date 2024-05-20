@@ -4,6 +4,7 @@ import * as O from "fp-ts/Option";
 import { flow, identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as R from "fp-ts/lib/Record";
+import * as S from "fp-ts/lib/string";
 import * as A from "fp-ts/Array";
 import * as T from "fp-ts/Task";
 import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
@@ -731,6 +732,71 @@ export const set =
         ),
       ),
       TE.map(() => true),
+    );
+  };
+
+/**
+ * Delete all tokens related to the user
+ * @param user
+ * @returns
+ */
+export const deleteUser: (
+  user: User,
+) => (deps: RedisRepo.RedisRepositoryDeps) => TE.TaskEither<Error, boolean> =
+  (user) => (deps) => {
+    const tokens: ReadonlyArray<string> = pipe(
+      getUserTokens(user),
+      R.collect(S.Ord)((_, { prefix, value }) => `${prefix}${value}`),
+    );
+
+    return pipe(
+      tokens,
+      ROA.map((singleToken) =>
+        TE.tryCatch(
+          () =>
+            deps.redisClientSelector
+              .selectOne(RedisClientMode.FAST)
+              .del(singleToken),
+          E.toError,
+        ),
+      ),
+      ROA.sequence(TE.ApplicativeSeq),
+      TE.map(ROA.reduce(0, (current, next) => current + next)),
+      integerReplyAsync(tokens.length),
+      falsyResponseToErrorAsync(
+        new Error(
+          "Unexpected response from redis client deleting user tokens.",
+        ),
+      ),
+      TE.mapLeft(
+        (err) => new Error(`value [${err.message}] at RedisSessionStorage.del`),
+      ),
+      TE.chainFirst((_) =>
+        // Remove SESSIONINFO reference from USERSESSIONS Set
+        // this operation is executed in background and doesn't compromise
+        // the logout process.
+        pipe(
+          TE.tryCatch(
+            () =>
+              // fire&forget mode
+              new Promise<true>((resolve) => {
+                deps.redisClientSelector
+                  .selectOne(RedisClientMode.FAST)
+                  .sRem(
+                    `${RedisRepo.userSessionsSetKeyPrefix}${user.fiscal_code}`,
+                    `${RedisRepo.sessionInfoKeyPrefix}${user.session_token}`,
+                  )
+                  .catch((_) => {
+                    log.warn(
+                      `Error deleting USERSESSIONS Set for ${user.fiscal_code}`,
+                    );
+                  });
+                resolve(true);
+              }),
+            E.toError,
+          ),
+        ),
+      ),
     );
   };
 
