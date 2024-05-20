@@ -14,10 +14,11 @@ import { NodeEnvironmentEnum } from "@pagopa/ts-commons/lib/environment";
 import * as O from "fp-ts/Option";
 import * as t from "io-ts";
 import { IntegerFromString } from "@pagopa/ts-commons/lib/numbers";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { record } from "fp-ts";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 import * as S from "fp-ts/lib/string";
+import { CommaSeparatedListOf } from "@pagopa/ts-commons/lib/comma-separated-list";
 import { log } from "../utils/logger";
 import { STRINGS_RECORD, readFile } from "../types/common";
 import { SpidLevelArray } from "../types/spid";
@@ -28,6 +29,15 @@ import { ENV, BACKEND_HOST } from "./index";
 export const CLIENT_ERROR_REDIRECTION_URL = `${BACKEND_HOST}/error.html`;
 
 export const clientProfileRedirectionUrl = `${BACKEND_HOST}/profile.html?token={token}`;
+
+export const getClientProfileRedirectionUrl = (token: string): UrlFromString =>
+  pipe(
+    clientProfileRedirectionUrl.replace("{token}", token),
+    UrlFromString.decode,
+    E.getOrElseW(() => {
+      throw new Error("Invalid url");
+    }),
+  );
 
 export const CLIENT_REDIRECTION_URL =
   process.env.CLIENT_REDIRECTION_URL || "/login";
@@ -258,3 +268,18 @@ export const getClientErrorRedirectionUrl = (
       throw new Error("Invalid url");
     }),
   );
+
+export const ALLOWED_CIE_TEST_FISCAL_CODES = pipe(
+  process.env.ALLOWED_CIE_TEST_FISCAL_CODES,
+  NonEmptyString.decode,
+  E.chain(CommaSeparatedListOf(FiscalCode).decode),
+  E.getOrElseW((errs) => {
+    log.warn(
+      `Missing or invalid ALLOWED_CIE_TEST_FISCAL_CODES environment variable: ${readableReport(
+        errs,
+      )}`,
+    );
+
+    return [] as ReadonlyArray<FiscalCode>;
+  }),
+);
