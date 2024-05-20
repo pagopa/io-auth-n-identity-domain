@@ -10,18 +10,14 @@ on:
       - reopened
       - ready_for_review
     paths:
-      # Trigger the workflow when resources are modified
       - "infra/resources"
-      # Trigger the workflow when the involved workflows are modified
-      - ".github/workflows/pr_infra.yaml"
-      - ".github/workflows/templates/infra_**"
+      - ".github/workflows/**_infra.yaml"
 
 jobs:
   code_review_prod:
-    uses: ./.github/workflows/infra_plan.yaml
+    uses: pagopa/dx/.github/workflows/infra_plan.yaml@main
     name: Code Review Infrastructure Plan
     secrets: inherit
     with:
       environment: prod
-      region: westeurope
       base_path: infra/resources
