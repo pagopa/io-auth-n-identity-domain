@@ -7,18 +7,26 @@ import {
   ResponseErrorNotFound,
   ResponseErrorTooManyRequests,
   ResponseErrorInternal,
+  IResponseErrorConflict,
+  ResponseErrorConflict,
 } from "@pagopa/ts-commons/lib/responses";
 import { ExtendedProfile as ExtendedProfileApi } from "@pagopa/io-functions-app-sdk/ExtendedProfile";
 import * as TE from "fp-ts/TaskEither";
+import * as E from "fp-ts/Either";
 import * as RTE from "fp-ts/ReaderTaskEither";
+import { pipe } from "fp-ts/lib/function";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { NewProfile } from "@pagopa/io-functions-app-sdk/NewProfile";
 import {
   unhandledResponseStatus,
   withValidatedOrInternalError,
+  withValidatedOrInternalErrorRTE,
 } from "../utils/responses";
 import { FnAppRepo } from "../repositories";
 import { toInitializedProfile } from "../types/profile";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
 import { WithUser } from "../utils/user";
+import { SpidUser, User } from "../types/user";
 
 /**
  * Retrieves the profile for a specific user converting an `ExtendedProfile`
@@ -75,3 +83,68 @@ export const getProfile: RTE.ReaderTaskEither<
     },
     (err) => new Error(`An Error occurs calling the getProfile API: [${err}]`),
   );
+
+export type CreateNewProfileDependencies = {
+  testLoginFiscalCodes: ReadonlyArray<FiscalCode>;
+  FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED: (fiscalCode: FiscalCode) => boolean;
+  isSpidEmailPersistenceEnabled: boolean;
+};
+
+export const createProfile: (
+  user: User,
+  spidUser: SpidUser,
+) => RTE.ReaderTaskEither<
+  FnAppRepo.FnAppAPIRepositoryDeps & CreateNewProfileDependencies,
+  Error,
+  | IResponseErrorInternal
+  | IResponseErrorTooManyRequests
+  | IResponseErrorConflict
+  // This Service response is not binded with any API response, so we remove any payload
+  // from this Response Success JSON.
+  | IResponseSuccessJson<NewProfile>
+> = (user, spidUser) => (deps) => {
+  // --------------------
+  // If the specified user is NOT eligible for the unique email enforcement
+  // set isEmailValidated true if there is a SPID email, otherwhise set false.
+  const isEmailValidated =
+    !deps.FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED(user.fiscal_code) &&
+    deps.isSpidEmailPersistenceEnabled &&
+    spidUser.email
+      ? true
+      : false;
+  // --------------------
+  const isTestProfile = deps.testLoginFiscalCodes.includes(user.fiscal_code);
+  const newProfile = {
+    email: deps.isSpidEmailPersistenceEnabled ? spidUser.email : undefined,
+    is_email_validated: isEmailValidated,
+    is_test_profile: isTestProfile,
+  };
+
+  return pipe(
+    TE.tryCatch(
+      () =>
+        deps.fnAppAPIClient.createProfile({
+          body: newProfile,
+          fiscal_code: user.fiscal_code,
+        }),
+      E.toError,
+    ),
+    TE.chain((validated) =>
+      withValidatedOrInternalErrorRTE(validated, (response) =>
+        TE.of(
+          response.status === 200
+            ? // An empty response.
+              ResponseSuccessJson(newProfile)
+            : response.status === 409
+              ? ResponseErrorConflict(
+                  response.value ||
+                    "A user with the provided fiscal code already exists",
+                )
+              : response.status === 429
+                ? ResponseErrorTooManyRequests()
+                : unhandledResponseStatus(response.status),
+        ),
+      ),
+    ),
+  );
+};
