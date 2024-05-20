@@ -3,10 +3,12 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import { flow, pipe } from "fp-ts/lib/function";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
+import { IO } from "fp-ts/lib/IO";
 
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 
+import { IResponseType } from "@pagopa/ts-commons/lib/requests";
 import { FnLollipopRepo, LollipopRevokeRepo } from "../repositories";
 
 import { log } from "../utils/logger";
@@ -20,10 +22,14 @@ import {
   toNotFoundError,
   unauthorizedError,
 } from "../models/domain-errors";
-import { assertNever } from "../utils/errors";
+import { assertNever, errorsToError } from "../utils/errors";
 import { LcParams } from "../generated/lollipop-api/LcParams";
 import { RedisRepositoryDeps } from "../repositories/redis";
+import { ActivatedPubKey } from "../generated/lollipop-api/ActivatedPubKey";
+import { AssertionTypeEnum } from "../generated/lollipop-api/AssertionType";
 import { RedisSessionStorageService } from ".";
+
+const LOLLIPOP_ERROR_EVENT_NAME = "lollipop.error.acs";
 
 export type GenerateLCParamsDeps = FnLollipopRepo.LollipopApiDeps;
 export type GenerateLCParamsErrors =
@@ -86,6 +92,71 @@ export const generateLCParams: (
         }
       }),
     );
+
+export const activateLolliPoPKey = (
+  deps: {
+    assertionRef: AssertionRef;
+    fiscalCode: FiscalCode;
+    assertion: NonEmptyString;
+    getExpirePubKeyFn: IO<Date>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    appInsightsTelemetryClient?: any;
+  } & GenerateLCParamsDeps,
+): TE.TaskEither<Error, ActivatedPubKey> =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        deps.fnLollipopAPIClient.activatePubKey({
+          assertion_ref: deps.assertionRef,
+          body: {
+            assertion: deps.assertion,
+            assertion_type: AssertionTypeEnum.SAML,
+            expired_at: deps.getExpirePubKeyFn(),
+            fiscal_code: deps.fiscalCode,
+          },
+        }),
+      (e) => {
+        const error = E.toError(e);
+        deps.appInsightsTelemetryClient?.trackEvent({
+          name: LOLLIPOP_ERROR_EVENT_NAME,
+          properties: {
+            assertion_ref: deps.assertionRef,
+            fiscal_code: sha256(deps.fiscalCode),
+            message: `Error activating lollipop pub key | ${error.message}`,
+          },
+        });
+        return error;
+      },
+    ),
+    TE.chain(
+      flow(
+        TE.fromEither,
+        TE.mapLeft((errors) => {
+          const error = errorsToError(errors);
+          deps.appInsightsTelemetryClient?.trackEvent({
+            name: LOLLIPOP_ERROR_EVENT_NAME,
+            properties: {
+              assertion_ref: deps.assertionRef,
+              fiscal_code: sha256(deps.fiscalCode),
+              message: `Error activating lollipop pub key | ${error.message}`,
+            },
+          });
+          return error;
+        }),
+      ),
+    ),
+    TE.chain(
+      TE.fromPredicate(
+        (res): res is IResponseType<200, ActivatedPubKey, never> =>
+          res.status === 200,
+        () =>
+          new Error(
+            "Error calling the function lollipop api for pubkey activation",
+          ),
+      ),
+    ),
+    TE.map((res) => res.value),
+  );
 
 export const deleteAssertionRefAssociation: (
   fiscalCode: FiscalCode,
