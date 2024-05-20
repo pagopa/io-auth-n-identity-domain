@@ -19,6 +19,7 @@ import * as E from "fp-ts/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { pick } from "@pagopa/ts-commons/lib/types";
+import { TableClient } from "@azure/data-tables";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
 import { RedisRepo, FnAppRepo, FnLollipopRepo } from "./repositories";
@@ -46,6 +47,7 @@ import { TimeTracer } from "./utils/timer";
 import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
 import {
   BPDConfig,
+  FastLoginConfig,
   LollipopConfig,
   SpidLogConfig,
   SpidConfig,
@@ -53,14 +55,38 @@ import {
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import { LollipopService, RedisSessionStorageService } from "./services";
-import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { lollipopLoginMiddleware } from "./utils/lollipop";
 import { checkIP, withIPFromRequest } from "./utils/network";
 import { expressLollipopMiddleware } from "./utils/lollipop";
 import { bearerZendeskTokenStrategy } from "./auth/bearer-zendesk-token-strategy";
 import { bearerBPDTokenStrategy } from "./auth/bearer-BPD-token-strategy";
 import { initAPIClientsDependencies } from "./utils/api-clients";
-import { getClientErrorRedirectionUrl } from "./config/spid";
+import {
+  ALLOWED_CIE_TEST_FISCAL_CODES,
+  getClientErrorRedirectionUrl,
+  getClientProfileRedirectionUrl,
+} from "./config/spid";
+import {
+  FF_IOLOGIN,
+  FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
+  FF_USER_AGE_LIMIT_ENABLED,
+  IOLOGIN_CANARY_USERS_SHA_REGEX,
+  IOLOGIN_USERS_LIST,
+  IS_SPID_EMAIL_PERSISTENCE_ENABLED,
+  TEST_LOGIN_FISCAL_CODES,
+  USERS_LOGIN_QUEUE_NAME,
+  USERS_LOGIN_STORAGE_CONNECTION_STRING,
+  standardTokenDurationSecs,
+} from "./config/login";
+import { getIsUserElegibleForIoLoginUrlScheme } from "./utils/login-uri-scheme";
+import {
+  LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
+  LOCKED_PROFILES_TABLE_NAME,
+} from "./config/lock-profile";
+import {
+  NOTIFICATIONS_QUEUE_NAME,
+  NOTIFICATIONS_STORAGE_CONNECTION_STRING,
+} from "./config/notifications";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -247,6 +273,28 @@ export const newApp: (
 
   const TIMER = TimeTracer();
 
+  const isUserElegibleForIoLoginUrlScheme =
+    getIsUserElegibleForIoLoginUrlScheme(
+      IOLOGIN_USERS_LIST,
+      IOLOGIN_CANARY_USERS_SHA_REGEX,
+      FF_IOLOGIN,
+    );
+
+  const lockUserTableClient = TableClient.fromConnectionString(
+    LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
+    LOCKED_PROFILES_TABLE_NAME,
+  );
+
+  const loginUserEventQueue = new QueueClient(
+    USERS_LOGIN_STORAGE_CONNECTION_STRING,
+    USERS_LOGIN_QUEUE_NAME,
+  );
+
+  const notificationQueueClient = new QueueClient(
+    NOTIFICATIONS_STORAGE_CONNECTION_STRING,
+    NOTIFICATIONS_QUEUE_NAME,
+  );
+
   const withSpidApp = await pipe(
     TE.tryCatch(
       () =>
@@ -257,6 +305,22 @@ export const newApp: (
             isLollipopEnabled: true,
             appInsightsTelemetryClient: appInsightsClient,
             getClientErrorRedirectionUrl,
+            getClientProfileRedirectionUrl,
+            isUserElegibleForIoLoginUrlScheme,
+            lockUserTableClient,
+            loginUserEventQueue,
+            fnLollipopAPIClient: APIClients.fnLollipopAPIClient,
+            lollipopRevokeQueueClient,
+            FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
+            isSpidEmailPersistenceEnabled: IS_SPID_EMAIL_PERSISTENCE_ENABLED,
+            testLoginFiscalCodes: TEST_LOGIN_FISCAL_CODES,
+            notificationQueueClient,
+            hasUserAgeLimitEnabled: FF_USER_AGE_LIMIT_ENABLED,
+            allowedCieTestFiscalCodes: ALLOWED_CIE_TEST_FISCAL_CODES,
+            standardTokenDurationSecs,
+            lvTokenDurationSecs: FastLoginConfig.lvTokenDurationSecs,
+            lvLongSessionDurationSecs:
+              FastLoginConfig.lvLongSessionDurationSecs,
           }),
           app,
           appConfig: {
@@ -280,7 +344,7 @@ export const newApp: (
             getLoginType: (fiscalCode: FiscalCode, loginType?: LoginTypeEnum) =>
               getLoginTypeOnElegible(
                 loginType,
-                isUserElegibleForFastLogin(fiscalCode),
+                FastLoginConfig.isUserElegibleForFastLogin(fiscalCode),
                 LollipopConfig.FF_LOLLIPOP_ENABLED,
               ),
           }),

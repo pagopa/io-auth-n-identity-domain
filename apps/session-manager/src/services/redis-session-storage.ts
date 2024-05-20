@@ -138,22 +138,6 @@ export const getBySessionToken: RTE.ReaderTaskEither<
     ),
   );
 
-export const delLollipopDataForUser: RTE.ReaderTaskEither<
-  RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
-  Error,
-  boolean
-> = (deps) =>
-  pipe(
-    TE.tryCatch(
-      () =>
-        deps.redisClientSelector
-          .selectOne(RedisClientMode.FAST)
-          .del(`${lollipopDataPrefix}${deps.fiscalCode}`),
-      E.toError,
-    ),
-    integerReplyAsync(),
-  );
-
 /**
  * Returns an optional `AssertionRef` related to an user fical code.
  * @param deps the required dependencies are the Redis repository and the user fiscal code
