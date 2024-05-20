@@ -5,6 +5,7 @@ import * as RedisRepo from "./redis";
 import * as SpidLogsRepo from "./spid-logs";
 import * as LockedProfileRepo from "./locked-profile";
 import * as LollipopRevokeRepo from "./lollipop-revoke-queue";
+import * as LoginUserEventRepo from "./login-user-queue";
 import * as NotificationsRepo from "./notifications";
 
 export {
@@ -13,6 +14,7 @@ export {
   FnFastLoginRepo,
   RedisRepo,
   LockedProfileRepo,
+  LoginUserEventRepo,
   LollipopRevokeRepo,
   NotificationsRepo,
   SpidLogsRepo,
