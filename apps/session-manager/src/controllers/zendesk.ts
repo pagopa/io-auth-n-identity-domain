@@ -23,8 +23,7 @@ type GetZendeskSupportTokenHandler = RTE.ReaderTaskEither<
     jwtZendeskSupportTokenSecret: NonEmptyString;
     jwtZendeskSupportTokenExpiration: Second;
     jwtZendeskSupportTokenIssuer: NonEmptyString;
-  } & RedisRepositoryDeps &
-    FnAppAPIRepositoryDeps &
+  } & FnAppAPIRepositoryDeps &
     WithUser &
     WithExpressRequest,
   Error,
@@ -33,7 +32,7 @@ type GetZendeskSupportTokenHandler = RTE.ReaderTaskEither<
 
 export const getZendeskSupportToken: GetZendeskSupportTokenHandler = (deps) =>
   pipe(
-    profileWithEmailValidatedOrError({ ...deps }),
+    profileWithEmailValidatedOrError(deps),
     TE.mapLeft((e) =>
       Error(
         `Error retrieving a user profile with validated email address | ${e.message}`,
@@ -65,6 +64,5 @@ export const getZendeskSupportToken: GetZendeskSupportTokenHandler = (deps) =>
         jwt: token,
       }),
     ),
-    // TODO: track event in case of error(obfuscating the fiscalcode)
     TE.map(ResponseSuccessJson),
   );

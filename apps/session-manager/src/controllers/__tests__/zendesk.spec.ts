@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import { describe, it, vi, expect, beforeEach } from "vitest";
+import { describe, it, vi, expect, beforeEach, assert } from "vitest";
 import {
   ResponseErrorInternal,
   ResponseErrorNotFound,
@@ -20,7 +20,6 @@ import {
 } from "../../__mocks__/user.mocks";
 import mockRes from "../../__mocks__/response.mocks";
 import { FnAppAPIClient } from "../../repositories/fn-app-api";
-import { mockRedisClientSelector } from "../../__mocks__/redis.mocks";
 import { ProfileService, TokenService } from "../../services";
 
 const mockGetProfile = vi.spyOn(ProfileService, "getProfile");
@@ -43,7 +42,6 @@ describe("ZendeskController#getZendeskSupportToken", () => {
   const mockedDependencies = {
     // Repositories are not used, since we mocked the service layer
     fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
-    redisClientSelector: mockRedisClientSelector,
     user: mockedUser,
     req,
     jwtZendeskSupportTokenSecret: "aSecret" as NonEmptyString,
@@ -52,7 +50,7 @@ describe("ZendeskController#getZendeskSupportToken", () => {
   };
 
   it("should return a valid Zendesk support token when user has a validated email", async () => {
-    mockGetProfile.mockReturnValue(
+    mockGetProfile.mockReturnValueOnce(
       TE.right(ResponseSuccessJson(mockedInitializedProfile)),
     );
 
@@ -71,7 +69,7 @@ describe("ZendeskController#getZendeskSupportToken", () => {
   });
 
   it("should return an IResponseErrorInternal if user does not have any email address", async () => {
-    mockGetProfile.mockReturnValue(
+    mockGetProfile.mockReturnValueOnce(
       TE.right(
         ResponseSuccessJson({
           ...mockedInitializedProfile,
@@ -85,6 +83,7 @@ describe("ZendeskController#getZendeskSupportToken", () => {
     await pipe(
       mockedDependencies,
       ZendeskController.getZendeskSupportToken,
+      TE.map(() => assert.fail()),
       TE.mapLeft((response) =>
         expect(response).toEqual(
           Error(
@@ -96,7 +95,7 @@ describe("ZendeskController#getZendeskSupportToken", () => {
   });
 
   it("should return an IResponseErrorInternal if Profile has not a validated email address", async () => {
-    mockGetProfile.mockReturnValue(
+    mockGetProfile.mockReturnValueOnce(
       TE.right(
         ResponseSuccessJson({
           ...mockedInitializedProfile,
@@ -108,6 +107,7 @@ describe("ZendeskController#getZendeskSupportToken", () => {
     await pipe(
       mockedDependencies,
       ZendeskController.getZendeskSupportToken,
+      TE.map(() => assert.fail()),
       TE.mapLeft((response) =>
         expect(response).toEqual(
           Error(
@@ -119,7 +119,7 @@ describe("ZendeskController#getZendeskSupportToken", () => {
   });
 
   it("should return an IResponseErrorInternal if user has only the spid email", async () => {
-    mockGetProfile.mockReturnValue(
+    mockGetProfile.mockReturnValueOnce(
       TE.right(
         ResponseSuccessJson({
           ...mockedInitializedProfile,
@@ -132,6 +132,7 @@ describe("ZendeskController#getZendeskSupportToken", () => {
     await pipe(
       mockedDependencies,
       ZendeskController.getZendeskSupportToken,
+      TE.map(() => assert.fail()),
       TE.mapLeft((response) =>
         expect(response).toEqual(
           Error(
@@ -143,17 +144,18 @@ describe("ZendeskController#getZendeskSupportToken", () => {
   });
 
   it("should return a IResponseErrorInternal if getJwtZendeskSupportToken returns an Error", async () => {
-    mockGetProfile.mockReturnValue(
+    mockGetProfile.mockReturnValueOnce(
       TE.right(ResponseSuccessJson(mockedInitializedProfile)),
     );
 
-    mockGetZendeskSupportToken.mockReturnValue(
+    mockGetZendeskSupportToken.mockReturnValueOnce(
       TE.left(new Error("ERROR while generating JWT support token")),
     );
 
     await pipe(
       mockedDependencies,
       ZendeskController.getZendeskSupportToken,
+      TE.map(() => assert.fail()),
       TE.mapLeft((response) =>
         expect(response).toEqual(
           Error("ERROR while generating JWT support token"),
@@ -163,15 +165,16 @@ describe("ZendeskController#getZendeskSupportToken", () => {
   });
 
   it("should return a IResponseErrorInternal if getProfile returns an error", async () => {
-    mockGetProfile.mockReturnValue(TE.left(Error("")));
+    mockGetProfile.mockReturnValueOnce(TE.left(Error("502 Bad Gateway")));
 
     await pipe(
       mockedDependencies,
       ZendeskController.getZendeskSupportToken,
+      TE.map(() => assert.fail()),
       TE.mapLeft((response) =>
         expect(response).toEqual(
           Error(
-            "Error retrieving a user profile with validated email address | ",
+            "Error retrieving a user profile with validated email address | 502 Bad Gateway",
           ),
         ),
       ),
@@ -179,13 +182,14 @@ describe("ZendeskController#getZendeskSupportToken", () => {
   });
 
   it("should return a IResponseErrorInternal if getProfile promise gets resolved with a IResponseErrorInternal", async () => {
-    mockGetProfile.mockReturnValue(
+    mockGetProfile.mockReturnValueOnce(
       TE.right(ResponseErrorInternal("Any Error")),
     );
 
     await pipe(
       mockedDependencies,
       ZendeskController.getZendeskSupportToken,
+      TE.map(() => assert.fail()),
       TE.mapLeft((response) =>
         expect(response).toEqual(
           Error(
@@ -197,13 +201,14 @@ describe("ZendeskController#getZendeskSupportToken", () => {
   });
 
   it("should return a IResponseErrorInternal if getProfile promise gets resolved with a IResponseErrorTooManyRequests", async () => {
-    mockGetProfile.mockReturnValue(
+    mockGetProfile.mockReturnValueOnce(
       TE.right(ResponseErrorTooManyRequests("Rate limit triggered")),
     );
 
     await pipe(
       mockedDependencies,
       ZendeskController.getZendeskSupportToken,
+      TE.map(() => assert.fail()),
       TE.mapLeft((response) =>
         expect(response).toEqual(
           Error(
@@ -215,29 +220,20 @@ describe("ZendeskController#getZendeskSupportToken", () => {
   });
 
   it("should return a IResponseErrorInternal if getProfile promise gets resolved with a IResponseErrorNotFound", async () => {
-    mockGetProfile.mockReturnValue(
+    mockGetProfile.mockReturnValueOnce(
       TE.right(ResponseErrorNotFound("User not found", "Cannot find user")),
     );
 
     await pipe(
       mockedDependencies,
       ZendeskController.getZendeskSupportToken,
+      TE.map(() => assert.fail()),
       TE.mapLeft((response) =>
         expect(response).toEqual(
           Error(
             "Error retrieving a user profile with validated email address | Error retrieving user profile | User not found: Cannot find user",
           ),
         ),
-      ),
-    )();
-  });
-
-  it("should return a IResponseErrorValidation if request's user cannot be validated", async () => {
-    await pipe(
-      mockedDependencies,
-      ZendeskController.getZendeskSupportToken,
-      TE.map((response) =>
-        expect(response.kind).toEqual("IResponseErrorValidation"),
       ),
     )();
   });
