@@ -4,7 +4,7 @@ info:
   title: Zendesk API
   description: User authentication for zendesk
 host: localhost
-basePath: /zendesk/api/v1/
+basePath: /api/backend/zendesk/v1/
 schemes:
   - https
 paths:
