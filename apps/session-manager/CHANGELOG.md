@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.6.0
+
+### Minor Changes
+
+- 82f95df: Added zendesk token endpoint
+
 ## 0.5.1
 
 ### Patch Changes
