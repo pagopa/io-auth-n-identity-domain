@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.6.1
+
+### Patch Changes
+
+- ae27de3: Enabled receivance of client IP
+
 ## 0.6.0
 
 ### Minor Changes
