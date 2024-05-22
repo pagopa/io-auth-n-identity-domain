@@ -199,22 +199,6 @@ const getLollipopDataForUser: RTE.ReaderTaskEither<
     ),
   );
 
-export const delLollipopDataForUser: RTE.ReaderTaskEither<
-  RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
-  Error,
-  boolean
-> = (deps) =>
-  pipe(
-    TE.tryCatch(
-      () =>
-        deps.redisClientSelector
-          .selectOne(RedisClientMode.FAST)
-          .del(`${lollipopDataPrefix}${deps.fiscalCode}`),
-      E.toError,
-    ),
-    integerReplyAsync(),
-  );
-
 export const setLollipopAssertionRefForUser: (
   user: User,
   assertionRef: BackendAssertionRef,
