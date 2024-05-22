@@ -19,7 +19,6 @@ import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import { GenerateNonceResponse } from "../generated/fast-login-api/GenerateNonceResponse";
 import { assertNever, readableProblem } from "../utils/errors";
-import { getFnFastLoginAPIClient } from "../repositories/fast-login-api";
 import {
   BPDToken,
   FIMSToken,
@@ -41,6 +40,7 @@ import { RedisClientSelectorType } from "../types/redis";
 import { RedisRepositoryDeps } from "../repositories/redis";
 import { WithIP } from "../utils/network";
 import { isUserElegibleForFastLogin } from "../config/fast-login";
+import { FnFastLoginRepo } from "../repositories";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 
 const generateSessionTokens = (
@@ -124,9 +124,7 @@ const callLcSetSession = (): TE.TaskEither<IResponseErrorInternal, true> =>
 // Endpoints
 //
 export const generateNonceEndpoint: RTE.ReaderTaskEither<
-  {
-    fnFastLoginAPIClient: ReturnType<getFnFastLoginAPIClient>;
-  },
+  FnFastLoginRepo.FnFastLoginRepositoryDeps,
   Error,
   IResponseSuccessJson<GenerateNonceResponse>
 > = ({ fnFastLoginAPIClient }) =>
@@ -160,7 +158,7 @@ export const generateNonceEndpoint: RTE.ReaderTaskEither<
   );
 
 type FastLoginDeps<T extends ResLocals> = {
-  fnFastLoginAPIClient: ReturnType<getFnFastLoginAPIClient>;
+  fnFastLoginAPIClient: ReturnType<FnFastLoginRepo.FnFastLoginAPIClient>;
   sessionTTL: number;
   locals?: T;
 } & WithIP;

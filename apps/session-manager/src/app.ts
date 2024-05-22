@@ -21,6 +21,7 @@ import {
 import * as E from "fp-ts/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
+import { pick } from "@pagopa/ts-commons/lib/types";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
 import { RedisRepo, FnAppRepo, FnLollipopRepo } from "./repositories";
@@ -34,7 +35,6 @@ import {
   ZendeskController,
   BPDController,
 } from "./controllers";
-import { httpOrHttpsApiFetch } from "./utils/fetch";
 import {
   applyErrorMiddleware,
   checkIdpConfiguration,
@@ -43,8 +43,6 @@ import {
   setupMetadataRefresherAndGS,
 } from "./utils/express";
 import { withUserFromRequest } from "./utils/user";
-import { getFnFastLoginAPIClient } from "./repositories/fast-login-api";
-import { getLollipopApiClient } from "./repositories/lollipop-api";
 import { AdditionalLoginProps, LoginTypeEnum } from "./types/fast-login";
 import { TimeTracer } from "./utils/timer";
 import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
@@ -53,9 +51,6 @@ import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import { LollipopService, RedisSessionStorageService } from "./services";
 import {
   FF_LOLLIPOP_ENABLED,
-  LOLLIPOP_API_BASE_PATH,
-  LOLLIPOP_API_KEY,
-  LOLLIPOP_API_URL,
   LOLLIPOP_REVOKE_QUEUE_NAME,
   LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING,
 } from "./config/lollipop";
@@ -65,6 +60,7 @@ import { checkIP, withIPFromRequest } from "./utils/network";
 import { expressLollipopMiddleware } from "./utils/lollipop";
 import { bearerZendeskTokenStrategy } from "./auth/bearer-zendesk-token-strategy";
 import { bearerBPDTokenStrategy } from "./auth/bearer-BPD-token-strategy";
+import { initAPIClientsDependencies } from "./utils/api-clients";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -87,21 +83,7 @@ export const newApp: (
     process.env.REDIS_PORT,
   );
   // Create the API client for the Azure Functions App
-  const API_CLIENT = FnAppRepo.FnAppAPIClient(
-    getRequiredENVVar("API_URL"),
-    getRequiredENVVar("API_KEY"),
-    httpOrHttpsApiFetch,
-  );
-  const FAST_LOGIN_CLIENT = getFnFastLoginAPIClient(
-    getRequiredENVVar("FAST_LOGIN_API_KEY"),
-    getRequiredENVVar("FAST_LOGIN_API_URL"),
-  );
-  const LOLLIPOP_CLIENT = getLollipopApiClient(
-    LOLLIPOP_API_KEY,
-    LOLLIPOP_API_URL,
-    LOLLIPOP_API_BASE_PATH,
-    httpOrHttpsApiFetch,
-  );
+  const APIClients = initAPIClientsDependencies();
 
   // Create the Client to the Spid Log Queue
   const SPID_LOG_QUEUE_CLIENT = new QueueClient(
@@ -169,7 +151,7 @@ export const newApp: (
     pipe(
       toExpressHandler({
         redisClientSelector: REDIS_CLIENT_SELECTOR,
-        fnAppAPIClient: API_CLIENT,
+        fnAppAPIClient: APIClients.fnAppAPIClient,
       }),
       ap(withUserFromRequest(SessionController.getSessionState)),
     ),
@@ -182,7 +164,7 @@ export const newApp: (
       toExpressHandler({
         // Clients
         redisClientSelector: REDIS_CLIENT_SELECTOR,
-        lollipopApiClient: LOLLIPOP_CLIENT,
+        lollipopApiClient: APIClients.fnLollipopAPIClient,
         lollipopRevokeQueueClient,
         // Services
         redisSessionStorageService: RedisSessionStorageService,
@@ -195,7 +177,9 @@ export const newApp: (
   app.post(
     `${API_BASE_PATH}/fast-login/nonce/generate`,
     pipe(
-      toExpressHandler({ fnFastLoginAPIClient: FAST_LOGIN_CLIENT }),
+      toExpressHandler({
+        fnFastLoginAPIClient: APIClients.fnFastLoginAPIClient,
+      }),
       ap(FastLoginController.generateNonceEndpoint),
     ),
   );
@@ -209,11 +193,14 @@ export const newApp: (
 
   app.post(
     `${API_BASE_PATH}/fast-login`,
-    expressLollipopMiddleware(LOLLIPOP_CLIENT, REDIS_CLIENT_SELECTOR),
+    expressLollipopMiddleware(
+      APIClients.fnLollipopAPIClient,
+      REDIS_CLIENT_SELECTOR,
+    ),
     pipe(
       toExpressHandler({
         redisClientSelector: REDIS_CLIENT_SELECTOR,
-        fnFastLoginAPIClient: FAST_LOGIN_CLIENT,
+        fnFastLoginAPIClient: APIClients.fnFastLoginAPIClient,
         sessionTTL,
       }),
       ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
@@ -225,8 +212,8 @@ export const newApp: (
     FIMS_BASE_PATH,
     authMiddlewares,
     REDIS_CLIENT_SELECTOR,
-    API_CLIENT,
-    LOLLIPOP_CLIENT,
+    APIClients.fnAppAPIClient,
+    APIClients.fnLollipopAPIClient,
   );
 
   app.post(
@@ -235,7 +222,8 @@ export const newApp: (
     authMiddlewares.bearerZendesk,
     pipe(
       toExpressHandler({
-        fnAppAPIClient: API_CLIENT,
+        fnAppAPIClient: APIClients.fnAppAPIClient,
+        redisClientSelector: REDIS_CLIENT_SELECTOR,
         jwtZendeskSupportTokenSecret:
           ZendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_SECRET,
         jwtZendeskSupportTokenExpiration:
@@ -252,7 +240,7 @@ export const newApp: (
     checkIP(BPDConfig.ALLOW_BPD_IP_SOURCE_RANGE),
     authMiddlewares.bearerBPD,
     pipe(
-      toExpressHandler({ fnAppAPIClient: API_CLIENT }),
+      toExpressHandler(pick(["fnAppAPIClient"], APIClients)),
       ap(withUserFromRequest(BPDController.getUserForBPD)),
     ),
   );
@@ -295,7 +283,7 @@ export const newApp: (
           lollipopMiddleware: toExpressMiddleware(
             lollipopLoginMiddleware(
               FF_LOLLIPOP_ENABLED,
-              LOLLIPOP_CLIENT,
+              APIClients.fnLollipopAPIClient,
               appInsightsClient,
             ),
           ),
@@ -387,7 +375,7 @@ function setupFIMSEndpoints(
         // Clients
         redisClientSelector: REDIS_CLIENT_SELECTOR,
         fnAppAPIClient: API_CLIENT,
-        lollipopApiClient: LOLLIPOP_CLIENT,
+        fnLollipopAPIClient: LOLLIPOP_CLIENT,
         // Services
         lollipopService: LollipopService,
         redisSessionStorageService: RedisSessionStorageService,

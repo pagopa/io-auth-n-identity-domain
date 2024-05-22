@@ -101,7 +101,7 @@ describe("extractLollipopLocalsFromLollipopHeaders|>missing fiscal code", () => 
         undefined,
       )({
         redisClientSelector: mockRedisClientSelector,
-        lollipopApiClient: mockLollipopClient,
+        fnLollipopAPIClient: mockLollipopClient,
       })();
 
       expect(mockGenerateLCParams).toHaveBeenCalledTimes(generateLCParamsCalls);
@@ -126,7 +126,7 @@ describe("extractLollipopLocalsFromLollipopHeaders|>missing fiscal code", () => 
       undefined,
     )({
       redisClientSelector: mockRedisClientSelector,
-      lollipopApiClient: mockLollipopClient,
+      fnLollipopAPIClient: mockLollipopClient,
     })();
 
     expect(mockGenerateLCParams).toHaveBeenCalledTimes(3);

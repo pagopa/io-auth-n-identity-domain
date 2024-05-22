@@ -48,7 +48,7 @@ describe("LollipopService#generateLCParams", () => {
     vi.clearAllMocks();
   });
 
-  const mockedDependencies = { lollipopApiClient: mockedLollipopApiClient };
+  const mockedDependencies = { fnLollipopAPIClient: mockedLollipopApiClient };
 
   test("should return an LCParam object, when all dependencies are ok", async () => {
     const result = await pipe(

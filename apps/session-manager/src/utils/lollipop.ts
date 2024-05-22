@@ -54,6 +54,7 @@ import { generateLCParams } from "../services/lollipop";
 import { AssertionRefSha384 } from "../generated/lollipop-api/AssertionRefSha384";
 import { AssertionRefSha512 } from "../generated/lollipop-api/AssertionRefSha512";
 import { DomainErrorTypes } from "../models/domain-errors";
+import { RedisRepositoryDeps } from "../repositories/redis";
 import { errorsToError } from "./errors";
 import { ResLocals } from "./express";
 import { withOptionalUserFromRequest } from "./user";
@@ -332,14 +333,11 @@ export const extractLollipopLocalsFromLollipopHeaders =
     lollipopHeaders: LollipopRequiredHeaders,
     fiscalCode?: FiscalCode,
   ): RTE.ReaderTaskEither<
-    {
-      lollipopApiClient: LollipopApiClient;
-      redisClientSelector: RedisClientSelectorType;
-    },
+    FnLollipopRepo.LollipopApiDeps & RedisRepositoryDeps,
     IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized,
     LollipopLocalsType
   > =>
-  ({ lollipopApiClient, redisClientSelector }) =>
+  ({ fnLollipopAPIClient, redisClientSelector }) =>
     pipe(
       TE.of(getNonceOrUlid(lollipopHeaders["signature-input"])),
       TE.bindTo("operationId"),
@@ -385,7 +383,7 @@ export const extractLollipopLocalsFromLollipopHeaders =
               generateLCParams(
                 assertionRef,
                 operationId,
-              )({ lollipopApiClient }),
+              )({ fnLollipopAPIClient }),
               // this swap has the purpose to interrupt the traversal if assertionRef was found
               TE.swap,
             ),
@@ -439,7 +437,7 @@ export const expressLollipopMiddleware: (
   lollipopApiClient: LollipopApiClient,
   redisClientSelector: RedisClientSelectorType,
 ) => (req: Request, res: Response, next: NextFunction) => Promise<void> =
-  (lollipopApiClient, redisClientSelector) => (req, res, next) =>
+  (fnLollipopAPIClient, redisClientSelector) => (req, res, next) =>
     pipe(
       TE.tryCatch(
         () =>
@@ -449,7 +447,7 @@ export const expressLollipopMiddleware: (
                 extractLollipopLocalsFromLollipopHeaders(
                   lollipopHeaders,
                   O.toUndefined(user)?.fiscal_code,
-                )({ lollipopApiClient, redisClientSelector }),
+                )({ fnLollipopAPIClient, redisClientSelector }),
                 TE.map((lollipopLocals) => {
                   // eslint-disable-next-line functional/immutable-data
                   res.locals = { ...res.locals, ...lollipopLocals };

@@ -20,4 +20,8 @@ export function getFnFastLoginAPIClient(
   });
 }
 
-export type getFnFastLoginAPIClient = typeof getFnFastLoginAPIClient;
+export type FnFastLoginAPIClient = typeof getFnFastLoginAPIClient;
+
+export type FnFastLoginRepositoryDeps = {
+  fnFastLoginAPIClient: ReturnType<FnFastLoginAPIClient>;
+};

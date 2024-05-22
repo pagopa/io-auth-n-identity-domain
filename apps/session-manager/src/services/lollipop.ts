@@ -40,11 +40,11 @@ export const generateLCParams: (
   LcParams
 > =
   (assertionRef, operationId) =>
-  ({ lollipopApiClient }) =>
+  ({ fnLollipopAPIClient }) =>
     pipe(
       TE.tryCatch(
         () =>
-          lollipopApiClient.generateLCParams({
+          fnLollipopAPIClient.generateLCParams({
             assertion_ref: assertionRef,
             body: {
               operation_id: operationId,
