@@ -66,6 +66,8 @@ export const decodeCIDRs = (
 
 /**
  * An Express middleware that checks if source IP falls into a CIDR range.
+ * This middleware may need trust proxy enabled in express to work properly with
+ * proxy
  */
 export const checkIP =
   (range: ReadonlyArray<CIDR>) =>
