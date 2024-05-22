@@ -31,6 +31,7 @@ import {
   FastLoginController,
   SpidLogsController,
   SSOController,
+  ZendeskController,
 } from "./controllers";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
 import {
@@ -46,7 +47,7 @@ import { getLollipopApiClient } from "./repositories/lollipop-api";
 import { AdditionalLoginProps, LoginTypeEnum } from "./types/fast-login";
 import { TimeTracer } from "./utils/timer";
 import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
-import { SpidLogConfig, SpidConfig } from "./config";
+import { SpidLogConfig, SpidConfig, ZendeskConfig } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import { LollipopService, RedisSessionStorageService } from "./services";
 import {
@@ -57,8 +58,10 @@ import {
 } from "./config/lollipop";
 import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { lollipopLoginMiddleware } from "./utils/lollipop";
-import { withIPFromRequest } from "./utils/network";
+import { checkIP, withIPFromRequest } from "./utils/network";
 import { expressLollipopMiddleware } from "./utils/lollipop";
+import { bearerZendeskTokenStrategy } from "./auth/bearer-zendesk-token-strategy";
+import { ALLOW_ZENDESK_IP_SOURCE_RANGE } from "./config/zendesk";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -135,6 +138,7 @@ export const newApp: (
 
   const API_BASE_PATH = getRequiredENVVar("API_BASE_PATH");
   const FIMS_BASE_PATH = getRequiredENVVar("FIMS_BASE_PATH");
+  const ZENDESK_BASE_PATH = getRequiredENVVar("ZENDESK_BASE_PATH");
 
   // Setup paths
 
@@ -189,6 +193,25 @@ export const newApp: (
     REDIS_CLIENT_SELECTOR,
     API_CLIENT,
     LOLLIPOP_CLIENT,
+  );
+
+  app.post(
+    `${ZENDESK_BASE_PATH}/jwt`,
+    checkIP(ALLOW_ZENDESK_IP_SOURCE_RANGE),
+    authMiddlewares.bearerZendesk,
+    pipe(
+      toExpressHandler({
+        fnAppAPIClient: API_CLIENT,
+        redisClientSelector: REDIS_CLIENT_SELECTOR,
+        jwtZendeskSupportTokenSecret:
+          ZendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_SECRET,
+        jwtZendeskSupportTokenExpiration:
+          ZendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_EXPIRATION,
+        jwtZendeskSupportTokenIssuer:
+          ZendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_ISSUER,
+      }),
+      ap(withUserFromRequest(ZendeskController.getZendeskSupportToken)),
+    ),
   );
 
   const TIMER = TimeTracer();
@@ -275,6 +298,12 @@ const setupAuthentication = (
 
   // Add the strategy to authenticate FIMS clients.
   passport.use("bearer.fims", bearerFIMSTokenStrategy(REDIS_CLIENT_SELECTOR));
+
+  // Add the strategy to authenticate Zendesk clients.
+  passport.use(
+    "bearer.zendesk",
+    bearerZendeskTokenStrategy(REDIS_CLIENT_SELECTOR),
+  );
 };
 
 // TODO [#IOPID-1858]: Add IP Filtering
@@ -331,6 +360,9 @@ function setupAuthenticationMiddlewares() {
       session: false,
     }),
     bearerFIMS: passport.authenticate("bearer.fims", {
+      session: false,
+    }),
+    bearerZendesk: passport.authenticate("bearer.zendesk", {
       session: false,
     }),
   };

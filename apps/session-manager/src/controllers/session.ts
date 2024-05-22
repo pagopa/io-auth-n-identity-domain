@@ -15,9 +15,8 @@ import { RedisRepo, FnAppRepo } from "../repositories";
 import { WithUser } from "../utils/user";
 import { PublicSession } from "../generated/backend/PublicSession";
 import { WithExpressRequest } from "../utils/express";
-import { ProfileService, RedisSessionStorageService } from "../services";
-import { InitializedProfile } from "../generated/backend/InitializedProfile";
-import { ProfileWithEmailValidated } from "../types/profile";
+import { RedisSessionStorageService } from "../services";
+import { profileWithEmailValidatedOrError } from "../utils/profile";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
@@ -88,30 +87,4 @@ export const getSessionState: RTE.ReaderTaskEither<
       });
     },
     (err) => new Error(String(err)),
-  );
-
-const profileWithEmailValidatedOrError: RTE.ReaderTaskEither<
-  FnAppRepo.FnAppAPIRepositoryDeps & WithUser,
-  Error,
-  ProfileWithEmailValidated
-> = (deps) =>
-  pipe(
-    ProfileService.getProfile(deps),
-    TE.chain(
-      TE.fromPredicate(
-        (r): r is IResponseSuccessJson<InitializedProfile> =>
-          r.kind === "IResponseSuccessJson",
-        (e) => new Error(`Error retrieving user profile | ${e.detail}`),
-      ),
-    ),
-    TE.chainW((profile) =>
-      pipe(
-        profile.value,
-        ProfileWithEmailValidated.decode,
-        E.mapLeft(
-          (_) => new Error("Profile has not a validated email address"),
-        ),
-        TE.fromEither,
-      ),
-    ),
   );
