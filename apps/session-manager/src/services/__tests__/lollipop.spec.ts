@@ -1,11 +1,13 @@
-import { describe, test, expect, vi, afterEach } from "vitest";
+import { describe, test, expect, vi, afterEach, afterAll } from "vitest";
 
 import { pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
-import { generateLCParams } from "../lollipop";
+import { QueueClient } from "@azure/storage-queue";
+import { deleteAssertionRefAssociation, generateLCParams } from "../lollipop";
 import {
   anAssertionRef,
   aValidLCParamsResult,
@@ -20,10 +22,16 @@ import {
   toNotFoundError,
   unauthorizedError,
 } from "../../models/domain-errors";
+import { RedisSessionStorageService } from "..";
+import { LollipopRevokeRepo } from "../../repositories";
+import { aFiscalCode } from "../../__mocks__/user.mocks";
+import { RedisClientSelectorType } from "../../types/redis";
+import { beforeEach } from "node:test";
+import * as Logger from "../../utils/logger";
 
 const anOperationId = "operationIdTest" as NonEmptyString;
 
-describe("generateLCParams", () => {
+describe("LollipopService#generateLCParams", () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -103,5 +111,99 @@ describe("generateLCParams", () => {
         }),
       }),
     );
+  });
+});
+
+describe("LollipopService#deleteAssertionRefAssociation", () => {
+  const mockRevokePreviousAssertionRef = vi
+    .spyOn(LollipopRevokeRepo, "revokePreviousAssertionRef")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .mockImplementation(() => () => TE.of({} as any));
+  const mockDelLollipopDataForUser = vi
+    .spyOn(RedisSessionStorageService, "delLollipopDataForUser")
+    .mockImplementation(() => TE.of<Error, boolean>(true));
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterAll(() => {
+    vi.restoreAllMocks();
+  });
+  test("should return success if all the Lollipop data are removed successfully", async () => {
+    const result = await pipe(
+      deleteAssertionRefAssociation(
+        aFiscalCode,
+        anAssertionRef,
+        "anEventName",
+        "anEventMessage",
+      )({
+        lollipopRevokeQueueClient: {} as QueueClient,
+        redisClientSelector: {} as RedisClientSelectorType,
+      }),
+      TE.map((value) => {
+        expect(value).toEqual(true);
+      }),
+    )();
+
+    expect(mockRevokePreviousAssertionRef).toBeCalledWith(anAssertionRef);
+    expect(mockDelLollipopDataForUser).toBeCalledWith(
+      expect.objectContaining({ fiscalCode: aFiscalCode }),
+    );
+    expect(E.isRight(result)).toBeTruthy();
+  });
+
+  test("should return an error if delLollipopDataForUser fail", async () => {
+    const expectedError = new Error("an Error");
+    mockDelLollipopDataForUser.mockImplementationOnce(() =>
+      TE.left(expectedError),
+    );
+    const result = await pipe(
+      deleteAssertionRefAssociation(
+        aFiscalCode,
+        anAssertionRef,
+        "anEventName",
+        "anEventMessage",
+      )({
+        lollipopRevokeQueueClient: {} as QueueClient,
+        redisClientSelector: {} as RedisClientSelectorType,
+      }),
+      TE.mapLeft((value) => {
+        expect(value).toEqual(expectedError);
+      }),
+    )();
+
+    expect(mockRevokePreviousAssertionRef).toBeCalledWith(anAssertionRef);
+    expect(mockDelLollipopDataForUser).toBeCalledWith(
+      expect.objectContaining({ fiscalCode: aFiscalCode }),
+    );
+    expect(E.isLeft(result)).toBeTruthy();
+  });
+
+  test("should success if fire and forget revokePreviousAssertionRef fails", async () => {
+    const expectedError = new Error("an Error");
+    mockRevokePreviousAssertionRef.mockImplementationOnce(
+      () => () => TE.left(expectedError),
+    );
+    const result = await pipe(
+      deleteAssertionRefAssociation(
+        aFiscalCode,
+        anAssertionRef,
+        "anEventName",
+        "anEventMessage",
+      )({
+        lollipopRevokeQueueClient: {} as QueueClient,
+        redisClientSelector: {} as RedisClientSelectorType,
+      }),
+      TE.map((value) => {
+        expect(value).toEqual(true);
+      }),
+    )();
+
+    expect(mockRevokePreviousAssertionRef).toBeCalledWith(anAssertionRef);
+    expect(mockDelLollipopDataForUser).toBeCalledWith(
+      expect.objectContaining({ fiscalCode: aFiscalCode }),
+    );
+    expect(E.isRight(result)).toBeTruthy();
   });
 });
