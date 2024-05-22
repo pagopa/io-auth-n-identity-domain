@@ -235,7 +235,7 @@ describe("LollipopService#deleteAssertionRefAssociation", () => {
         assertion_ref: anAssertionRef,
         error: expectedError,
         fiscal_code: sha256(aFiscalCode),
-        message: "acs: error sending revoke message for previous assertionRef",
+        message: "error sending revoke message for previous assertionRef",
       },
     });
   });

@@ -8,7 +8,7 @@ import { aValidLCParamsResult } from "../lollipop.mocks";
 
 type GenerateLCParams = (typeof LollipopService)["generateLCParams"];
 type RevokeAssertionRefAssociation =
-  (typeof LollipopService)["revokeAssertionRefAssociation"];
+  (typeof LollipopService)["deleteAssertionRefAssociation"];
 
 export const mockGenerateLCParams: Mock<
   Parameters<GenerateLCParams>,
@@ -24,5 +24,5 @@ export const mockRevokeAssertionRefAssociation: Mock<
 
 export const mockedLollipopService: typeof LollipopService = {
   generateLCParams: mockGenerateLCParams,
-  revokeAssertionRefAssociation: mockRevokeAssertionRefAssociation,
+  deleteAssertionRefAssociation: mockRevokeAssertionRefAssociation,
 };
