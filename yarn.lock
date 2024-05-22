@@ -1134,6 +1134,7 @@ __metadata:
     passport-http-custom-bearer: "npm:^1.0.15"
     passport-strategy: "npm:^1.0.0"
     prettier: "npm:^3.2.5"
+    range_check: "npm:^2.0.4"
     redis: "npm:^4.5.1"
     shx: "npm:^0.3.2"
     supertest: "npm:^7.0.0"
@@ -5247,7 +5248,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ipaddr.js@npm:1.9.1":
+"ip6@npm:^0.2.0":
+  version: 0.2.10
+  resolution: "ip6@npm:0.2.10"
+  bin:
+    ip6: ip6-cli.js
+  checksum: 10c0/932486bfce17e87da759046819b8dae3f2b571eae8913d98b8d84a29b74b79115fad1c6e6f309d9fd0286bc588664f63a31e019bdb334a604eece0ffc5ec4cbd
+  languageName: node
+  linkType: hard
+
+"ipaddr.js@npm:1.9.1, ipaddr.js@npm:^1.9.1":
   version: 1.9.1
   resolution: "ipaddr.js@npm:1.9.1"
   checksum: 10c0/0486e775047971d3fdb5fb4f063829bac45af299ae0b82dcf3afa2145338e08290563a2a70f34b732d795ecc8311902e541a8530eeb30d75860a78ff4e94ce2a
@@ -7243,6 +7253,16 @@ __metadata:
   version: 1.2.1
   resolution: "range-parser@npm:1.2.1"
   checksum: 10c0/96c032ac2475c8027b7a4e9fe22dc0dfe0f6d90b85e496e0f016fbdb99d6d066de0112e680805075bd989905e2123b3b3d002765149294dce0c1f7f01fcc2ea0
+  languageName: node
+  linkType: hard
+
+"range_check@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "range_check@npm:2.0.4"
+  dependencies:
+    ip6: "npm:^0.2.0"
+    ipaddr.js: "npm:^1.9.1"
+  checksum: 10c0/44fd0ff4af0aca6902a6325e21715b693c18059c5dc0e15c3c32e97ba5cf298076400fcd0beff96eabc183e0e25118746be5637e2d5e01b4cbbf30c66bcaf587
   languageName: node
   linkType: hard
 

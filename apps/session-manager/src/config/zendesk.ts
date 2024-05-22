@@ -9,6 +9,7 @@ import {
   readableReportSimplified,
 } from "@pagopa/ts-commons/lib/reporters";
 import { log } from "../utils/logger";
+import { decodeCIDRs } from "../utils/network";
 
 const DEFAULT_JWT_ZENDESK_SUPPORT_TOKEN_EXPIRATION = 604800 as Second;
 export const JWT_ZENDESK_SUPPORT_TOKEN_EXPIRATION: Second = pipe(
@@ -41,6 +42,20 @@ export const JWT_ZENDESK_SUPPORT_TOKEN_ISSUER = pipe(
   E.getOrElseW((errs) => {
     log.error(
       `Missing or invalid JWT_ZENDESK_SUPPORT_TOKEN_ISSUER environment variable: ${readableReport(
+        errs,
+      )}`,
+    );
+    return process.exit(1);
+  }),
+);
+
+// IP(s) or CIDR(s) allowed for zendesk endpoint
+export const ALLOW_ZENDESK_IP_SOURCE_RANGE = pipe(
+  process.env.ALLOW_ZENDESK_IP_SOURCE_RANGE,
+  decodeCIDRs,
+  E.getOrElseW((errs) => {
+    log.error(
+      `Missing or invalid ALLOW_ZENDESK_IP_SOURCE_RANGE environment variable: ${readableReport(
         errs,
       )}`,
     );

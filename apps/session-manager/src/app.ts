@@ -58,9 +58,10 @@ import {
 } from "./config/lollipop";
 import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { lollipopLoginMiddleware } from "./utils/lollipop";
-import { withIPFromRequest } from "./utils/network";
+import { checkIP, withIPFromRequest } from "./utils/network";
 import { expressLollipopMiddleware } from "./utils/lollipop";
 import { bearerZendeskTokenStrategy } from "./auth/bearer-zendesk-token-strategy";
+import { ALLOW_ZENDESK_IP_SOURCE_RANGE } from "./config/zendesk";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -196,6 +197,7 @@ export const newApp: (
 
   app.post(
     `${ZENDESK_BASE_PATH}/jwt`,
+    checkIP(ALLOW_ZENDESK_IP_SOURCE_RANGE),
     authMiddlewares.bearerZendesk,
     pipe(
       toExpressHandler({
