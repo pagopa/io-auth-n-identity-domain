@@ -134,6 +134,14 @@ export const newApp: (
 
   app.use(helmet());
 
+  //
+  // Ensure that checkIP middleware has the client IP
+  //
+  if (!isDevEnv) {
+    // Trust proxy uses proxy X-Forwarded-Proto for ssl.
+    app.enable("trust proxy");
+  }
+
   const authMiddlewares = setupAuthenticationMiddlewares();
 
   const API_BASE_PATH = getRequiredENVVar("API_BASE_PATH");
