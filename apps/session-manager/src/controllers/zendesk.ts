@@ -9,7 +9,6 @@ import {
 import { pipe } from "fp-ts/function";
 import { Second } from "@pagopa/ts-commons/lib/units";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { RedisRepositoryDeps } from "../repositories/redis";
 import { WithUser } from "../utils/user";
 import { FnAppAPIRepositoryDeps } from "../repositories/fn-app-api";
 import { ValidZendeskProfile } from "../types/profile";

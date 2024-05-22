@@ -38,6 +38,9 @@ describe("ZendeskController#getZendeskSupportToken", () => {
   });
   const res = mockRes() as unknown as express.Response;
   const req = mockReq() as unknown as express.Request;
+  const emailNotValidatedError = Error(
+    "Error retrieving a user profile with validated email address | Profile has not a validated email address",
+  );
 
   const mockedDependencies = {
     // Repositories are not used, since we mocked the service layer
@@ -85,11 +88,7 @@ describe("ZendeskController#getZendeskSupportToken", () => {
       ZendeskController.getZendeskSupportToken,
       TE.map(() => assert.fail()),
       TE.mapLeft((response) =>
-        expect(response).toEqual(
-          Error(
-            "Error retrieving a user profile with validated email address | Profile has not a validated email address",
-          ),
-        ),
+        expect(response).toEqual(emailNotValidatedError),
       ),
     )();
   });
@@ -109,11 +108,7 @@ describe("ZendeskController#getZendeskSupportToken", () => {
       ZendeskController.getZendeskSupportToken,
       TE.map(() => assert.fail()),
       TE.mapLeft((response) =>
-        expect(response).toEqual(
-          Error(
-            "Error retrieving a user profile with validated email address | Profile has not a validated email address",
-          ),
-        ),
+        expect(response).toEqual(emailNotValidatedError),
       ),
     )();
   });
@@ -134,11 +129,7 @@ describe("ZendeskController#getZendeskSupportToken", () => {
       ZendeskController.getZendeskSupportToken,
       TE.map(() => assert.fail()),
       TE.mapLeft((response) =>
-        expect(response).toEqual(
-          Error(
-            "Error retrieving a user profile with validated email address | Profile has not a validated email address",
-          ),
-        ),
+        expect(response).toEqual(emailNotValidatedError),
       ),
     )();
   });
