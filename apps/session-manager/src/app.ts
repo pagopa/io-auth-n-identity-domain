@@ -32,6 +32,7 @@ import {
   SpidLogsController,
   SSOController,
   ZendeskController,
+  BPDController,
 } from "./controllers";
 import { httpOrHttpsApiFetch } from "./utils/fetch";
 import {
@@ -47,7 +48,7 @@ import { getLollipopApiClient } from "./repositories/lollipop-api";
 import { AdditionalLoginProps, LoginTypeEnum } from "./types/fast-login";
 import { TimeTracer } from "./utils/timer";
 import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
-import { SpidLogConfig, SpidConfig, ZendeskConfig } from "./config";
+import { SpidLogConfig, SpidConfig, ZendeskConfig, BPDConfig } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import { LollipopService, RedisSessionStorageService } from "./services";
 import {
@@ -61,7 +62,7 @@ import { lollipopLoginMiddleware } from "./utils/lollipop";
 import { checkIP, withIPFromRequest } from "./utils/network";
 import { expressLollipopMiddleware } from "./utils/lollipop";
 import { bearerZendeskTokenStrategy } from "./auth/bearer-zendesk-token-strategy";
-import { ALLOW_ZENDESK_IP_SOURCE_RANGE } from "./config/zendesk";
+import { bearerBPDTokenStrategy } from "./auth/bearer-BPD-token-strategy";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -205,12 +206,11 @@ export const newApp: (
 
   app.post(
     `${ZENDESK_BASE_PATH}/jwt`,
-    checkIP(ALLOW_ZENDESK_IP_SOURCE_RANGE),
+    checkIP(ZendeskConfig.ALLOW_ZENDESK_IP_SOURCE_RANGE),
     authMiddlewares.bearerZendesk,
     pipe(
       toExpressHandler({
         fnAppAPIClient: API_CLIENT,
-        redisClientSelector: REDIS_CLIENT_SELECTOR,
         jwtZendeskSupportTokenSecret:
           ZendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_SECRET,
         jwtZendeskSupportTokenExpiration:
@@ -219,6 +219,16 @@ export const newApp: (
           ZendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_ISSUER,
       }),
       ap(withUserFromRequest(ZendeskController.getZendeskSupportToken)),
+    ),
+  );
+
+  app.get(
+    `${BPDConfig.BPD_BASE_PATH}/user`,
+    checkIP(BPDConfig.ALLOW_BPD_IP_SOURCE_RANGE),
+    authMiddlewares.bearerBPD,
+    pipe(
+      toExpressHandler({ fnAppAPIClient: API_CLIENT }),
+      ap(withUserFromRequest(BPDController.getUserForBPD)),
     ),
   );
 
@@ -312,6 +322,9 @@ const setupAuthentication = (
     "bearer.zendesk",
     bearerZendeskTokenStrategy(REDIS_CLIENT_SELECTOR),
   );
+
+  // Add the strategy to authenticate BPD clients.
+  passport.use("bearer.bpd", bearerBPDTokenStrategy(REDIS_CLIENT_SELECTOR));
 };
 
 // TODO [#IOPID-1858]: Add IP Filtering
@@ -371,6 +384,9 @@ function setupAuthenticationMiddlewares() {
       session: false,
     }),
     bearerZendesk: passport.authenticate("bearer.zendesk", {
+      session: false,
+    }),
+    bearerBPD: passport.authenticate("bearer.bpd", {
       session: false,
     }),
   };

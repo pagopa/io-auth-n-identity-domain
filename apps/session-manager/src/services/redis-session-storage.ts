@@ -322,6 +322,28 @@ export const getByZendeskToken: (
     ),
   );
 
+/**
+ * Retrieves a value from the cache using the BPD token.
+ * @param token the BPD token
+ * @returns an RTE that returns either an Error or an user, if exists
+ */
+export const getByBPDToken: (
+  token: BPDToken,
+) => RTE.ReaderTaskEither<
+  RedisRepo.RedisRepositoryDeps,
+  Error,
+  O.Option<User>
+> = (token) =>
+  pipe(
+    loadSessionByToken(RedisRepo.bpdTokenPrefix, token),
+    RTE.map(O.some),
+    RTE.orElse((error) =>
+      error === RedisRepo.sessionNotFoundError
+        ? RTE.right(O.none)
+        : RTE.left(error),
+    ),
+  );
+
 // ---------------------------------
 // End\ User tokens
 // ---------------------------------
