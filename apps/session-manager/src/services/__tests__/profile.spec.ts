@@ -5,15 +5,13 @@ import { PushNotificationsContentTypeEnum } from "@pagopa/io-functions-app-sdk/P
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
-import { FnAppAPIClient } from "../../repositories/fn-app-api";
 import { mockedExtendedProfile, mockedUser } from "../../__mocks__/user.mocks";
 import { getProfile } from "../profile";
 import { toInitializedProfile } from "../../types/profile";
-
-const mockAPIGetProfile = vi.fn();
-const mockedFnAppAPIClient = {
-  getProfile: mockAPIGetProfile,
-} as unknown as ReturnType<typeof FnAppAPIClient>;
+import {
+  mockGetProfile,
+  mockedFnAppAPIClient,
+} from "../../__mocks__/repositories/fn-app-api-mocks";
 
 const validApiProfileResponse = {
   status: 200,
@@ -25,7 +23,7 @@ describe("getProfile", () => {
     vi.clearAllMocks();
   });
   test("GIVEN a valid dependencies WHEN the API client return an valid ExtendedProfile THEN return the InitializedProfile", async () => {
-    mockAPIGetProfile.mockResolvedValueOnce(t.success(validApiProfileResponse));
+    mockGetProfile.mockResolvedValueOnce(t.success(validApiProfileResponse));
 
     const result = await pipe(
       getProfile({
@@ -41,7 +39,7 @@ describe("getProfile", () => {
     )();
 
     expect(E.isRight(result)).toBeTruthy();
-    expect(mockAPIGetProfile).toHaveBeenCalledWith({
+    expect(mockGetProfile).toHaveBeenCalledWith({
       fiscal_code: mockedUser.fiscal_code,
     });
   });
@@ -54,7 +52,7 @@ describe("getProfile", () => {
   `(
     "GIVEN a valid dependencies WHEN the API client return an valid ExtendedProfile with $propertyName THEN return the InitializedProfile",
     async ({ propertyName, propertyValue }) => {
-      mockAPIGetProfile.mockResolvedValueOnce(
+      mockGetProfile.mockResolvedValueOnce(
         t.success({
           ...validApiProfileResponse,
           value: {
@@ -81,7 +79,7 @@ describe("getProfile", () => {
       )();
 
       expect(E.isRight(result)).toBeTruthy();
-      expect(mockAPIGetProfile).toHaveBeenCalledWith({
+      expect(mockGetProfile).toHaveBeenCalledWith({
         fiscal_code: mockedUser.fiscal_code,
       });
     },
@@ -95,7 +93,7 @@ describe("getProfile", () => {
   `(
     "GIVEN a valid dependencies WHEN the API client return a $status response THEN return $expectedResponse",
     async ({ serviceResponse, expectedResponse }) => {
-      mockAPIGetProfile.mockResolvedValueOnce(t.success(serviceResponse));
+      mockGetProfile.mockResolvedValueOnce(t.success(serviceResponse));
 
       const result = await pipe(
         getProfile({
@@ -108,7 +106,7 @@ describe("getProfile", () => {
       )();
 
       expect(E.isRight(result)).toBeTruthy();
-      expect(mockAPIGetProfile).toHaveBeenCalledWith({
+      expect(mockGetProfile).toHaveBeenCalledWith({
         fiscal_code: mockedUser.fiscal_code,
       });
     },
@@ -116,7 +114,7 @@ describe("getProfile", () => {
 
   test("GIVEN a valid dependencies WHEN the API client throw an exception THEN return InternalServerError", async () => {
     const expectedError = new Error("Network Error");
-    mockAPIGetProfile.mockRejectedValueOnce(expectedError);
+    mockGetProfile.mockRejectedValueOnce(expectedError);
 
     const result = await pipe(
       getProfile({
@@ -127,7 +125,7 @@ describe("getProfile", () => {
     )();
 
     expect(E.isRight(result)).toBeFalsy();
-    expect(mockAPIGetProfile).toHaveBeenCalledWith({
+    expect(mockGetProfile).toHaveBeenCalledWith({
       fiscal_code: mockedUser.fiscal_code,
     });
   });
