@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.7.0
+
+### Minor Changes
+
+- 641d0e5: Added BPD user endpoint
+
 ## 0.6.1
 
 ### Patch Changes
