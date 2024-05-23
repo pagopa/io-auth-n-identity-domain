@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.8.0
+
+### Minor Changes
+
+- c24842e: Expose logout endpoint
+
 ## 0.7.0
 
 ### Minor Changes
