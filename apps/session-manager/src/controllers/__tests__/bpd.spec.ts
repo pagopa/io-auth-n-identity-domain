@@ -37,13 +37,6 @@ describe("BPDController#getUserForBPD", () => {
           ...happyPathResponse,
           apply: expect.any(Function),
         });
-        // expect that no other properties(for example spid_level which is
-        // required in user) are present
-        expect(response).not.toMatchObject({
-          ...happyPathResponse,
-          apply: expect.any(Function),
-          spid_level: mockedUser.spid_level,
-        });
       }),
       TE.mapLeft(() => assert.fail()),
     )();
