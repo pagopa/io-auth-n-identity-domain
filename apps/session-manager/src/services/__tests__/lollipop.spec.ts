@@ -15,6 +15,7 @@ import * as TE from "fp-ts/TaskEither";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
 import { QueueClient } from "@azure/storage-queue";
+import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { deleteAssertionRefAssociation, generateLCParams } from "../lollipop";
 import {
   anAssertionRef,
@@ -34,8 +35,13 @@ import { RedisSessionStorageService } from "..";
 import { LollipopRevokeRepo } from "../../repositories";
 import { aFiscalCode } from "../../__mocks__/user.mocks";
 import { RedisClientSelectorType } from "../../types/redis";
+import {
+  mockTrackEvent,
+  mockedAppinsightsTelemetryClient,
+} from "../../__mocks__/appinsights";
 
 const anOperationId = "operationIdTest" as NonEmptyString;
+const anEventName = "anEventName";
 
 describe("LollipopService#generateLCParams", () => {
   afterEach(() => {
@@ -141,7 +147,7 @@ describe("LollipopService#deleteAssertionRefAssociation", () => {
       deleteAssertionRefAssociation(
         aFiscalCode,
         anAssertionRef,
-        "anEventName",
+        anEventName,
         "anEventMessage",
       )({
         lollipopRevokeQueueClient: {} as QueueClient,
@@ -168,11 +174,12 @@ describe("LollipopService#deleteAssertionRefAssociation", () => {
       deleteAssertionRefAssociation(
         aFiscalCode,
         anAssertionRef,
-        "anEventName",
+        anEventName,
         "anEventMessage",
       )({
         lollipopRevokeQueueClient: {} as QueueClient,
         redisClientSelector: {} as RedisClientSelectorType,
+        appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
       }),
       TE.mapLeft((value) => {
         expect(value).toEqual(expectedError);
@@ -184,6 +191,15 @@ describe("LollipopService#deleteAssertionRefAssociation", () => {
       expect.objectContaining({ fiscalCode: aFiscalCode }),
     );
     expect(E.isLeft(result)).toBeTruthy();
+    await new Promise((resolve) => setTimeout(() => resolve(""), 10));
+    expect(mockTrackEvent).toBeCalledWith({
+      name: anEventName + ".delete",
+      properties: {
+        error: expectedError.message,
+        fiscal_code: sha256(aFiscalCode),
+        message: "anEventMessage",
+      },
+    });
   });
 
   test("should success if fire and forget revokePreviousAssertionRef fails", async () => {
@@ -195,11 +211,12 @@ describe("LollipopService#deleteAssertionRefAssociation", () => {
       deleteAssertionRefAssociation(
         aFiscalCode,
         anAssertionRef,
-        "anEventName",
+        anEventName,
         "anEventMessage",
       )({
         lollipopRevokeQueueClient: {} as QueueClient,
         redisClientSelector: {} as RedisClientSelectorType,
+        appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
       }),
       TE.map((value) => {
         expect(value).toEqual(true);
@@ -211,5 +228,15 @@ describe("LollipopService#deleteAssertionRefAssociation", () => {
       expect.objectContaining({ fiscalCode: aFiscalCode }),
     );
     expect(E.isRight(result)).toBeTruthy();
+    await new Promise((resolve) => setTimeout(() => resolve(""), 10));
+    expect(mockTrackEvent).toBeCalledWith({
+      name: anEventName,
+      properties: {
+        assertion_ref: anAssertionRef,
+        error: expectedError,
+        fiscal_code: sha256(aFiscalCode),
+        message: "acs: error sending revoke message for previous assertionRef",
+      },
+    });
   });
 });
