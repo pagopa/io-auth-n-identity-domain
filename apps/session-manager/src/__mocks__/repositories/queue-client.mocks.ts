@@ -1,7 +1,10 @@
 import { QueueClient } from "@azure/storage-queue";
-import { vi } from "vitest";
+import { Mock, vi } from "vitest";
 
-export const mockSendMessage = vi.fn();
+export const mockSendMessage: Mock<
+  Parameters<QueueClient["sendMessage"]>,
+  ReturnType<QueueClient["sendMessage"]>
+> = vi.fn();
 
 export const mockQueueClient = {
   sendMessage: mockSendMessage,
