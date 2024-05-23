@@ -5,7 +5,7 @@ import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
-import { KindEnum as DeleteKind } from "../types/notifications";
+import { DeleteInstallationKindEnum } from "../types/notifications";
 import {
   DeleteInstallationMessage,
   NotificationMessageKindEnum,
@@ -25,7 +25,9 @@ export const deleteInstallation: (
 > = (fiscalCode) => (deps) => {
   const deleteMessage: DeleteInstallationMessage = {
     installationId: sha256(fiscalCode),
-    kind: DeleteKind[NotificationMessageKindEnum.DeleteInstallation],
+    kind: DeleteInstallationKindEnum[
+      NotificationMessageKindEnum.DeleteInstallation
+    ],
   };
   return pipe(
     TE.tryCatch(

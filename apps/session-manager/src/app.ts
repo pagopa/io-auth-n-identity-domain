@@ -23,7 +23,7 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
-import { RedisRepo, FnAppRepo, FnFastLoginRepo } from "./repositories";
+import { RedisRepo, FnAppRepo, FnLollipopRepo } from "./repositories";
 import { attachTrackingData } from "./utils/appinsights";
 import { getENVVarWithDefault, getRequiredENVVar } from "./utils/environment";
 import {
@@ -71,6 +71,7 @@ export interface IAppFactoryParameters {
 
 export const newApp: (
   params: IAppFactoryParameters,
+  // eslint-disable-next-line max-lines-per-function
 ) => Promise<Express> = async ({ appInsightsClient }) => {
   const isDevEnv =
     getNodeEnvironmentFromProcessEnv(process.env) ===
@@ -327,7 +328,7 @@ function setupFIMSEndpoints(
   },
   REDIS_CLIENT_SELECTOR: RedisClientSelectorType,
   API_CLIENT: FnAppRepo.FnAppAPIRepositoryDeps["fnAppAPIClient"],
-  LOLLIPOP_CLIENT: FnFastLoginRepo.LollipopApiClient,
+  LOLLIPOP_CLIENT: FnLollipopRepo.LollipopApiClient,
 ) {
   app.get(
     `${FIMS_BASE_PATH}/user`,

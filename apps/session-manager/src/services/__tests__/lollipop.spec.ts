@@ -1,4 +1,12 @@
-import { describe, test, expect, vi, afterEach, afterAll } from "vitest";
+import {
+  describe,
+  test,
+  expect,
+  vi,
+  afterEach,
+  afterAll,
+  beforeEach,
+} from "vitest";
 
 import { pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
@@ -26,8 +34,6 @@ import { RedisSessionStorageService } from "..";
 import { LollipopRevokeRepo } from "../../repositories";
 import { aFiscalCode } from "../../__mocks__/user.mocks";
 import { RedisClientSelectorType } from "../../types/redis";
-import { beforeEach } from "node:test";
-import * as Logger from "../../utils/logger";
 
 const anOperationId = "operationIdTest" as NonEmptyString;
 

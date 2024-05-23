@@ -16,18 +16,23 @@ export const NotificationMessageKind = enumType<NotificationMessageKindEnum>(
   "NotificationMessageKind",
 );
 
-export enum KindEnum {
+export enum DeleteInstallationKindEnum {
   "DeleteInstallation" = "DeleteInstallation",
 }
 
 /**
  * Message sent to the queue for a new Delete Installation event
  */
-const DeleteInstallationMessage = t.type({
-  installationId: NonEmptyString,
+const DeleteInstallationMessage = t.exact(
+  t.type({
+    installationId: NonEmptyString,
 
-  kind: enumType<KindEnum>(KindEnum, "kind"),
-});
+    kind: enumType<DeleteInstallationKindEnum>(
+      DeleteInstallationKindEnum,
+      "kind",
+    ),
+  }),
+);
 
 export type DeleteInstallationMessage = t.TypeOf<
   typeof DeleteInstallationMessage

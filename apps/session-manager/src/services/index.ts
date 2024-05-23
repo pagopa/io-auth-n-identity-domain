@@ -1,4 +1,4 @@
-import { FnAppRepo, FnFastLoginRepo, RedisRepo } from "../repositories";
+import { FnAppRepo, FnLollipopRepo, RedisRepo } from "../repositories";
 
 import * as ProfileService from "./profile";
 import * as RedisSessionStorageService from "./redis-session-storage";
@@ -24,4 +24,4 @@ export type ProfileServiceDepencency = {
 
 export type LollipopServiceDepencency = {
   lollipopService: typeof LollipopService;
-} & FnFastLoginRepo.LollipopApiDeps;
+} & FnLollipopRepo.LollipopApiDeps;

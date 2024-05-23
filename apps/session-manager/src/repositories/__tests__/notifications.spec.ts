@@ -10,7 +10,7 @@ import {
 
 import { base64EncodeObject } from "../../utils/encoding";
 import { aFiscalCode } from "../../__mocks__/user.mocks";
-import { KindEnum as DeleteKind } from "../../types/notifications";
+import { DeleteInstallationKindEnum } from "../../types/notifications";
 import { NotificationMessageKindEnum } from "../../types/notifications";
 import { deleteInstallation } from "../notifications";
 
@@ -20,7 +20,9 @@ describe("NotificationsRepo#deleteInstallation", () => {
   });
   const expectedMessage = base64EncodeObject({
     installationId: sha256(aFiscalCode),
-    kind: DeleteKind[NotificationMessageKindEnum.DeleteInstallation],
+    kind: DeleteInstallationKindEnum[
+      NotificationMessageKindEnum.DeleteInstallation
+    ],
   });
   test("should enqueue the message and return the expected response", async () => {
     const expectedResponse = {

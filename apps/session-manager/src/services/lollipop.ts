@@ -7,7 +7,7 @@ import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 
-import { FnFastLoginRepo, LollipopRevokeRepo } from "../repositories";
+import { FnLollipopRepo, LollipopRevokeRepo } from "../repositories";
 
 import { log } from "../utils/logger";
 
@@ -25,7 +25,7 @@ import { LcParams } from "../generated/lollipop-api/LcParams";
 import { RedisRepositoryDeps } from "../repositories/redis";
 import { RedisSessionStorageService } from ".";
 
-export type GenerateLCParamsDeps = FnFastLoginRepo.LollipopApiDeps;
+export type GenerateLCParamsDeps = FnLollipopRepo.LollipopApiDeps;
 export type GenerateLCParamsErrors =
   | UnauthorizedError
   | NotFoundError
