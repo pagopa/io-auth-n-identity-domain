@@ -25,6 +25,7 @@ import { DependencyOf } from "../types/taskEither-utils";
 
 import { PublicSession } from "../generated/backend/PublicSession";
 import { SuccessResponse } from "../generated/backend/SuccessResponse";
+import { log } from "../utils/logger";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
@@ -98,11 +99,9 @@ export const getSessionState: RTE.ReaderTaskEither<
   );
 
 export type LogoutDependencies = {
-  lollipopService: {
-    deleteAssertionRefAssociation: (typeof LollipopService)["deleteAssertionRefAssociation"];
-  };
+  lollipopService: typeof LollipopService;
 } & DependencyOf<
-  ReturnType<(typeof LollipopService)["deleteAssertionRefAssociation"]>
+  ReturnType<typeof LollipopService.deleteAssertionRefAssociation>
 > &
   RedisSessionStorageServiceDepencency &
   WithUser &
@@ -152,5 +151,9 @@ export const logout: RTE.ReaderTaskEither<
         ),
       ),
     ),
+    TE.mapLeft((err) => {
+      log.error(err.message);
+      return err;
+    }),
     TE.map((_) => ResponseSuccessJson({ message: "ok" })),
   );

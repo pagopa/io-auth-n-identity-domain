@@ -28,7 +28,7 @@ import {
   mockGetLollipopAssertionRefForUser,
   mockedRedisSessionStorageService,
 } from "../../__mocks__/services/redisSessionStorageService.mocks";
-import { toExpectedResponse } from "../../__mocks__/utils.mocks";
+import { toExpectedResponse } from "../../__tests__/utils";
 
 describe("getSessionState", () => {
   const res = mockRes() as unknown as Response;

@@ -526,7 +526,7 @@ describe("RedisSessionStorage#deleteUser", () => {
   test("should succeed deleting all user tokens, if no error occurrs", async () => {
     mockSrem.mockImplementationOnce((_, __) => Promise.resolve(1));
     for (let i = 0; i < TOKENS.length; i++)
-      redisMethodImplFromError(mockDel, 1, undefined);
+      redisMethodImplFromError(mockDel, 1);
 
     const response = await pipe(mockedDependencies, deleteUser(aValidUser))();
 
@@ -545,11 +545,11 @@ describe("RedisSessionStorage#deleteUser", () => {
 
   test("should fail when Redis client returns an error on deleting the user tokens", async () => {
     const errorMessage = "a delete error";
-    const successDeletion = 3;
+    const expectedDeleteCalls = 3;
 
-    redisMethodImplFromError(mockDel, 1, undefined);
-    redisMethodImplFromError(mockDel, 1, undefined);
-    redisMethodImplFromError(mockDel, 1, Error(errorMessage));
+    redisMethodImplFromError(mockDel, 1);
+    redisMethodImplFromError(mockDel, 1);
+    redisMethodImplFromError(mockDel, undefined, Error(errorMessage));
 
     const response = await pipe(mockedDependencies, deleteUser(aValidUser))();
 
@@ -557,10 +557,10 @@ describe("RedisSessionStorage#deleteUser", () => {
       E.left(Error(`value [${errorMessage}] at RedisSessionStorage.del`)),
     );
 
-    expect(mockDel).toHaveBeenCalledTimes(successDeletion);
+    expect(mockDel).toHaveBeenCalledTimes(expectedDeleteCalls);
     expect(mockSrem).toHaveBeenCalledTimes(0);
 
-    for (let i = 0; i < successDeletion; i++)
+    for (let i = 0; i < expectedDeleteCalls; i++)
       expect(mockDel).toHaveBeenNthCalledWith(i + 1, TOKENS[i]);
   });
 
@@ -570,7 +570,7 @@ describe("RedisSessionStorage#deleteUser", () => {
 
     mockSrem.mockImplementationOnce((_, __) => Promise.resolve(1));
     for (let i = 0; i < TOKENS.length; i++)
-      redisMethodImplFromError(mockDel, 0, undefined);
+      redisMethodImplFromError(mockDel, 0);
 
     const response = await pipe(mockedDependencies, deleteUser(aValidUser))();
 

@@ -10,10 +10,10 @@ import { AssertionRef } from "../../generated/lollipop-api/AssertionRef";
 import { anAssertionRef } from "../lollipop.mocks";
 
 type GetLollipopAssertionRefForUser =
-  (typeof RedisSessionStorageService)["getLollipopAssertionRefForUser"];
+  typeof RedisSessionStorageService.getLollipopAssertionRefForUser;
 type DelLollipopDataForUser =
-  (typeof RedisSessionStorageService)["delLollipopDataForUser"];
-type DeleteUser = (typeof RedisSessionStorageService)["deleteUser"];
+  typeof RedisSessionStorageService.delLollipopDataForUser;
+type DeleteUser = typeof RedisSessionStorageService.deleteUser;
 
 export const mockGetLollipopAssertionRefForUser: Mock<
   Parameters<GetLollipopAssertionRefForUser>,
@@ -35,6 +35,7 @@ export const mockedRedisSessionStorageService: typeof RedisSessionStorageService
     getLollipopAssertionRefForUser: mockGetLollipopAssertionRefForUser,
     delLollipopDataForUser: mockDelLollipopDataForUser,
     getByFIMSToken: vi.fn(),
+    getByBPDToken: vi.fn(),
     getByZendeskToken: vi.fn(),
     getBySessionToken: vi.fn(),
     loadSessionByToken: vi.fn(),

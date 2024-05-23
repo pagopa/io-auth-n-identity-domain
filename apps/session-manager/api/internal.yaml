@@ -4,13 +4,13 @@ info:
   title: Proxy API
   description: Mobile and web proxy API gateway.
 host: localhost
-basePath: /api/v1
+basePath: /
 schemes:
   - https
 security:
   - Bearer: []
 paths:
-  /session:
+  /api/v1/session:
     get:
       operationId: getSessionState
       summary: Get the user current session

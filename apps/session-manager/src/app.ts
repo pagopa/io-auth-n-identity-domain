@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 /* eslint-disable turbo/no-undeclared-env-vars */
 import { QueueClient } from "@azure/storage-queue";
 import passport from "passport";
@@ -177,7 +176,7 @@ export const newApp: (
   );
 
   app.post(
-    `${API_BASE_PATH}/logout`,
+    `/logout`,
     authMiddlewares.bearerSession,
     pipe(
       toExpressHandler({
