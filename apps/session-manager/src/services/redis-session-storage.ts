@@ -295,6 +295,13 @@ const getUserTokens = (
   },
 });
 
+const noneOrErrorWhenNotFound: <T>(
+  error: Error,
+) => RTE.ReaderTaskEither<T, Error, O.Option<never>> = (error) =>
+  error === RedisRepo.sessionNotFoundError
+    ? RTE.right(O.none)
+    : RTE.left(error);
+
 /**
  * Retrieves a value from the cache using the FIMS token.
  * @param token the fims token
@@ -310,11 +317,7 @@ export const getByFIMSToken: (
   pipe(
     loadSessionByToken(RedisRepo.fimsTokenPrefix, token),
     RTE.map(O.some),
-    RTE.orElseW((error) =>
-      error === RedisRepo.sessionNotFoundError
-        ? RTE.right(O.none)
-        : RTE.left(error),
-    ),
+    RTE.orElseW(noneOrErrorWhenNotFound),
   );
 
 /**
@@ -354,11 +357,7 @@ export const getByBPDToken: (
   pipe(
     loadSessionByToken(RedisRepo.bpdTokenPrefix, token),
     RTE.map(O.some),
-    RTE.orElse((error) =>
-      error === RedisRepo.sessionNotFoundError
-        ? RTE.right(O.none)
-        : RTE.left(error),
-    ),
+    RTE.orElseW(noneOrErrorWhenNotFound),
   );
 
 // ---------------------------------
