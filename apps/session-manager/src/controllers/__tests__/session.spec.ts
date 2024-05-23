@@ -1,8 +1,10 @@
 import crypto from "crypto";
-import { describe, test, expect, vi } from "vitest";
+import { describe, test, expect, vi, beforeEach } from "vitest";
 import { Request, Response } from "express";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
+import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import { ResponseSuccessJson } from "@pagopa/ts-commons/lib/responses";
 import mockRes from "../../__mocks__/response.mocks";
 import {
@@ -14,7 +16,19 @@ import { anAssertionRef } from "../../__mocks__/lollipop.mocks";
 import mockReq from "../../__mocks__/request.mocks";
 import * as profileService from "../../services/profile";
 import { FnAppAPIClient } from "../../repositories/fn-app-api";
-import { getSessionState } from "../session";
+import { getSessionState, logout } from "../session";
+import { RedisClientSelectorType } from "../../types/redis";
+import { LollipopApiClient } from "../../repositories/lollipop-api";
+import {
+  mockRevokeAssertionRefAssociation,
+  mockedLollipopService,
+} from "../../__mocks__/services/lollipopService.mocks";
+import {
+  mockDeleteUser,
+  mockGetLollipopAssertionRefForUser,
+  mockedRedisSessionStorageService,
+} from "../../__mocks__/services/redisSessionStorageService.mocks";
+import { toExpectedResponse } from "../../__tests__/utils";
 
 describe("getSessionState", () => {
   const res = mockRes() as unknown as Response;
@@ -141,5 +155,145 @@ describe("getSessionState", () => {
       walletToken: mockedUser.wallet_token,
       zendeskToken: expect.stringContaining(mockedUser.zendesk_token),
     });
+  });
+});
+
+describe("logout", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const req = mockReq() as unknown as Request;
+
+  const mockedDependencies = {
+    // Repositories are not used, since we mocked the service layer
+    lollipopApiClient: {} as LollipopApiClient,
+    redisClientSelector: {} as RedisClientSelectorType,
+    lollipopRevokeQueueClient: {} as any,
+    // Services
+    lollipopService: mockedLollipopService,
+    redisSessionStorageService: mockedRedisSessionStorageService,
+
+    user: mockedUser,
+    req,
+  };
+
+  test(`
+    GIVEN a valid request
+    WHEN assertionRef exists on redis
+    THEN it should send the pub key revokal message and succeed deleting the assertionRef and the session token`, async () => {
+    const result = await logout(mockedDependencies)();
+
+    expect(result).toEqual(
+      E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
+    );
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledWith({
+      ...mockedDependencies,
+      fiscalCode: mockedUser.fiscal_code,
+    });
+    expect(mockRevokeAssertionRefAssociation).toHaveBeenCalledWith(
+      mockedUser.fiscal_code,
+      anAssertionRef,
+      "lollipop.error.logout",
+      "logout from lollipop session",
+    );
+    expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
+  });
+
+  test(`
+    GIVEN a valid request
+    WHEN there is no assertionRef on redis
+    THEN it should NOT send the pub key revokal message and succeed deleting the assertionRef and the session token`, async () => {
+    mockGetLollipopAssertionRefForUser.mockImplementationOnce((_deps) =>
+      TE.of(O.none),
+    );
+
+    const result = await logout(mockedDependencies)();
+
+    expect(result).toEqual(
+      E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
+    );
+
+    expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
+    expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
+  });
+
+  test(`
+    GIVEN a valid request
+    WHEN it can't retrieve the assertionRef from redis because of an error
+    THEN it should fail not sending the pub key revokal message and not deleting the assertionRef and the session tokens`, async () => {
+    mockGetLollipopAssertionRefForUser.mockImplementationOnce((_deps) =>
+      TE.left(Error("getLollipopAssertionRefForUser Error")),
+    );
+
+    const result = await logout(mockedDependencies)();
+
+    expect(result).toEqual(
+      E.left(Error("getLollipopAssertionRefForUser Error")),
+    );
+
+    expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
+    expect(mockDeleteUser).not.toHaveBeenCalled();
+  });
+
+  test(`
+   GIVEN a valid request
+   WHEN the assertionRef can not be destroyed
+   THEN it should fail after sending the pub key revokal message but not deleting the session tokens`, async () => {
+    mockRevokeAssertionRefAssociation.mockImplementationOnce(
+      () => (_deps) => TE.right(false),
+    );
+
+    const result = await logout(mockedDependencies)();
+
+    expect(result).toEqual(E.left(Error("Error revoking the AssertionRef")));
+
+    expect(mockDeleteUser).not.toHaveBeenCalled();
+  });
+
+  test(`
+   GIVEN a valid request
+   WHEN it can't delete the assertionRef from redis because of an error
+   THEN it should fail after sending the pub key revokal message but not deleting the session tokens`, async () => {
+    mockRevokeAssertionRefAssociation.mockImplementationOnce(
+      () => (_deps) => TE.left(Error("revokeAssertionRefAssociation Error")),
+    );
+
+    const result = await logout(mockedDependencies)();
+
+    expect(result).toEqual(
+      E.left(Error("revokeAssertionRefAssociation Error")),
+    );
+
+    expect(mockDeleteUser).not.toHaveBeenCalled();
+  });
+
+  test(`
+  GIVEN an enabled lollipop flow
+  WHEN the session can not be destroyed
+  THEN it should fail after sending the pub key revokal message and deleting the assertionRef`, async () => {
+    mockDeleteUser.mockImplementationOnce(() => (_deps) => TE.right(false));
+
+    const result = await logout(mockedDependencies)();
+
+    expect(result).toEqual(E.left(Error("Error destroying the user session")));
+
+    expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
+  });
+
+  test(`
+  GIVEN an enabled lollipop flow
+  WHEN the Redis client returns an error
+  THEN it should fail after sending the pub key revokal message and deleting the assertionRef`, async () => {
+    mockDeleteUser.mockImplementationOnce(
+      () => (_deps) => TE.left(Error("deleteUser error")),
+    );
+
+    const result = await logout(mockedDependencies)();
+
+    expect(result).toEqual(E.left(Error("deleteUser error")));
+
+    expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
   });
 });

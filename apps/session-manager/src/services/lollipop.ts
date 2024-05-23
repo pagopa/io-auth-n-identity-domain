@@ -112,12 +112,11 @@ export const deleteAssertionRefAssociation: (
           assertion_ref: assertionRefToRevoke,
           error: err,
           fiscal_code: sha256(fiscalCode),
-          message:
-            "acs: error sending revoke message for previous assertionRef",
+          message: "error sending revoke message for previous assertionRef",
         },
       });
       log.error(
-        "acs: error sending revoke message for previous assertionRef [%s]",
+        "error sending revoke message for previous assertionRef [%s]",
         err,
       );
     }),

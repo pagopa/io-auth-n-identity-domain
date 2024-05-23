@@ -38,7 +38,7 @@ import { RedisClientSelectorType } from "../../types/redis";
 import {
   mockTrackEvent,
   mockedAppinsightsTelemetryClient,
-} from "../../__mocks__/appinsights";
+} from "../../__mocks__/appinsights.mocks";
 
 const anOperationId = "operationIdTest" as NonEmptyString;
 const anEventName = "anEventName";
@@ -235,7 +235,7 @@ describe("LollipopService#deleteAssertionRefAssociation", () => {
         assertion_ref: anAssertionRef,
         error: expectedError,
         fiscal_code: sha256(aFiscalCode),
-        message: "acs: error sending revoke message for previous assertionRef",
+        message: "error sending revoke message for previous assertionRef",
       },
     });
   });

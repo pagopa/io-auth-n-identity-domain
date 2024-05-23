@@ -192,7 +192,6 @@ describe("SSOController#getLollipopUserForFIMS", () => {
     lollipopApiClient: {} as LollipopApiClient,
     lollipopService: mockedLollipopService,
     redisSessionStorageService: mockedRedisSessionStorageService,
-    redis: mockedLollipopService,
     user: mockedUser,
     req,
   };

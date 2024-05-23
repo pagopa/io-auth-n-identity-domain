@@ -56,6 +56,8 @@ import {
   LOLLIPOP_API_BASE_PATH,
   LOLLIPOP_API_KEY,
   LOLLIPOP_API_URL,
+  LOLLIPOP_REVOKE_QUEUE_NAME,
+  LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING,
 } from "./config/lollipop";
 import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { lollipopLoginMiddleware } from "./utils/lollipop";
@@ -105,6 +107,11 @@ export const newApp: (
   const SPID_LOG_QUEUE_CLIENT = new QueueClient(
     SpidLogConfig.SPID_LOG_STORAGE_CONNECTION_STRING,
     SpidLogConfig.SPID_LOG_QUEUE_NAME,
+  );
+
+  const lollipopRevokeQueueClient = new QueueClient(
+    LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING,
+    LOLLIPOP_REVOKE_QUEUE_NAME,
   );
 
   setupAuthentication(REDIS_CLIENT_SELECTOR);
@@ -165,6 +172,23 @@ export const newApp: (
         fnAppAPIClient: API_CLIENT,
       }),
       ap(withUserFromRequest(SessionController.getSessionState)),
+    ),
+  );
+
+  app.post(
+    `/logout`,
+    authMiddlewares.bearerSession,
+    pipe(
+      toExpressHandler({
+        // Clients
+        redisClientSelector: REDIS_CLIENT_SELECTOR,
+        lollipopApiClient: LOLLIPOP_CLIENT,
+        lollipopRevokeQueueClient,
+        // Services
+        redisSessionStorageService: RedisSessionStorageService,
+        lollipopService: LollipopService,
+      }),
+      ap(withUserFromRequest(SessionController.logout)),
     ),
   );
 

@@ -9,14 +9,23 @@ import {
 import * as TE from "fp-ts/TaskEither";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as E from "fp-ts/Either";
-import { pipe } from "fp-ts/lib/function";
+import { flow, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
+
 import { RedisRepo, FnAppRepo } from "../repositories";
+import {
+  LollipopService,
+  RedisSessionStorageService,
+  RedisSessionStorageServiceDepencency,
+} from "../services";
 import { WithUser } from "../utils/user";
-import { PublicSession } from "../generated/backend/PublicSession";
 import { WithExpressRequest } from "../utils/express";
-import { RedisSessionStorageService } from "../services";
 import { profileWithEmailValidatedOrError } from "../utils/profile";
+import { DependencyOf } from "../types/taskEither-utils";
+
+import { PublicSession } from "../generated/backend/PublicSession";
+import { SuccessResponse } from "../generated/backend/SuccessResponse";
+import { log } from "../utils/logger";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
@@ -87,4 +96,64 @@ export const getSessionState: RTE.ReaderTaskEither<
       });
     },
     (err) => new Error(String(err)),
+  );
+
+export type LogoutDependencies = {
+  lollipopService: typeof LollipopService;
+} & DependencyOf<
+  ReturnType<typeof LollipopService.deleteAssertionRefAssociation>
+> &
+  RedisSessionStorageServiceDepencency &
+  WithUser &
+  WithExpressRequest;
+
+export const logout: RTE.ReaderTaskEither<
+  LogoutDependencies,
+  Error,
+  IResponseSuccessJson<SuccessResponse>
+> = (deps) =>
+  pipe(
+    // retrieve the assertionRef for the user
+    deps.redisSessionStorageService.getLollipopAssertionRefForUser({
+      ...deps,
+      fiscalCode: deps.user.fiscal_code,
+    }),
+    TE.chain(
+      flow(
+        O.map((assertionRef) =>
+          pipe(
+            deps.lollipopService.deleteAssertionRefAssociation(
+              deps.user.fiscal_code,
+              assertionRef,
+              "lollipop.error.logout",
+              "logout from lollipop session",
+            )(deps),
+            TE.chain(
+              TE.fromPredicate(
+                (result) => result === true,
+                () => new Error("Error revoking the AssertionRef"),
+              ),
+            ),
+          ),
+        ),
+        // continue if there's no assertionRef on redis
+        O.getOrElseW(() => TE.of(true)),
+      ),
+    ),
+    TE.chain((_) =>
+      pipe(
+        deps.redisSessionStorageService.deleteUser(deps.user)(deps),
+        TE.chain(
+          TE.fromPredicate(
+            (result) => result === true,
+            () => new Error("Error destroying the user session"),
+          ),
+        ),
+      ),
+    ),
+    TE.mapLeft((err) => {
+      log.error(err.message);
+      return err;
+    }),
+    TE.map((_) => ResponseSuccessJson({ message: "ok" })),
   );
