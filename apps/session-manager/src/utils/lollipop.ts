@@ -36,7 +36,7 @@ import { ulid } from "ulid";
 import { Errors } from "io-ts";
 import { withValidatedOrValidationError } from "../utils/responses";
 import { NewPubKey } from "../generated/lollipop-api/NewPubKey";
-import { LollipopApi } from "../repositories";
+import { FnLollipopRepo } from "../repositories";
 import { JwkPubKeyHashAlgorithmEnum } from "../generated/lollipop-api/JwkPubKeyHashAlgorithm";
 import {
   LollipopLocalsType,
@@ -84,7 +84,7 @@ export type LollipopLoginParams = t.TypeOf<typeof LollipopLoginParams>;
 export const lollipopLoginHandler =
   (
     isLollipopEnabled: boolean,
-    lollipopApiClient: LollipopApi.LollipopApiClient,
+    lollipopApiClient: FnLollipopRepo.LollipopApiClient,
     appInsightsTelemetryClient?: appInsights.TelemetryClient,
   ) =>
   async (
@@ -190,7 +190,7 @@ export const lollipopLoginHandler =
 export const lollipopLoginMiddleware =
   (
     isLollipopEnabled: boolean,
-    lollipopApiClient: LollipopApi.LollipopApiClient,
+    lollipopApiClient: FnLollipopRepo.LollipopApiClient,
     appInsightsTelemetryClient?: appInsights.TelemetryClient,
   ) =>
   (

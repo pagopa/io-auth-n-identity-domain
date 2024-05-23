@@ -2,11 +2,12 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import { flow, pipe } from "fp-ts/lib/function";
+import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 
-import { LollipopApi } from "../repositories";
+import { FnLollipopRepo, LollipopRevokeRepo } from "../repositories";
 
 import { log } from "../utils/logger";
 
@@ -21,8 +22,10 @@ import {
 } from "../models/domain-errors";
 import { assertNever } from "../utils/errors";
 import { LcParams } from "../generated/lollipop-api/LcParams";
+import { RedisRepositoryDeps } from "../repositories/redis";
+import { RedisSessionStorageService } from ".";
 
-export type GenerateLCParamsDeps = LollipopApi.LollipopApiDeps;
+export type GenerateLCParamsDeps = FnLollipopRepo.LollipopApiDeps;
 export type GenerateLCParamsErrors =
   | UnauthorizedError
   | NotFoundError
@@ -83,3 +86,58 @@ export const generateLCParams: (
         }
       }),
     );
+
+export const deleteAssertionRefAssociation: (
+  fiscalCode: FiscalCode,
+  assertionRefToRevoke: AssertionRef,
+  eventName: string,
+  eventMessage: string,
+) => RTE.ReaderTaskEither<
+  LollipopRevokeRepo.RevokeAssertionRefDeps &
+    RedisRepositoryDeps & {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      appInsightsTelemetryClient?: any;
+    },
+  Error,
+  boolean
+> = (fiscalCode, assertionRefToRevoke, eventName, eventMessage) => (deps) => {
+  // Sending a revoke message for assertionRef
+  // This operation is fire and forget
+  pipe(
+    LollipopRevokeRepo.revokePreviousAssertionRef(assertionRefToRevoke)(deps),
+    TE.mapLeft((err) => {
+      deps.appInsightsTelemetryClient?.trackEvent({
+        name: eventName,
+        properties: {
+          assertion_ref: assertionRefToRevoke,
+          error: err,
+          fiscal_code: sha256(fiscalCode),
+          message:
+            "acs: error sending revoke message for previous assertionRef",
+        },
+      });
+      log.error(
+        "acs: error sending revoke message for previous assertionRef [%s]",
+        err,
+      );
+    }),
+  )().catch(() => void 0); // This promise should never throw
+
+  return pipe(
+    RedisSessionStorageService.delLollipopDataForUser({
+      ...deps,
+      fiscalCode,
+    }),
+    TE.mapLeft((err) => {
+      deps.appInsightsTelemetryClient?.trackEvent({
+        name: eventName + ".delete",
+        properties: {
+          error: err.message,
+          fiscal_code: sha256(fiscalCode),
+          message: eventMessage,
+        },
+      });
+      return err;
+    }),
+  );
+};

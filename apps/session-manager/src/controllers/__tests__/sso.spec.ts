@@ -54,6 +54,9 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+const missingProfileMessage = "Missing profile";
+const internalServerErrorMessage = "Internal server error";
+
 describe("SSOController#getUserForFIMS", () => {
   const res = mockRes() as unknown as express.Response;
   const req = mockReq() as unknown as express.Request;
@@ -121,10 +124,10 @@ describe("SSOController#getUserForFIMS", () => {
   });
 
   test.each`
-    scenario | getProfileResponse                                       | expectedStatusCode | expectedTitle              | expectedDetail
-    ${"404"} | ${ResponseErrorNotFound("Not Found", "Missing profile")} | ${404}             | ${"Not Found"}             | ${"Missing profile"}
-    ${"429"} | ${ResponseErrorTooManyRequests()}                        | ${429}             | ${"Too many requests"}     | ${""}
-    ${"500"} | ${ResponseErrorInternal("an Error")}                     | ${500}             | ${"Internal server error"} | ${"an Error"}
+    scenario | getProfileResponse                                           | expectedStatusCode | expectedTitle                 | expectedDetail
+    ${"404"} | ${ResponseErrorNotFound("Not Found", missingProfileMessage)} | ${404}             | ${"Not Found"}                | ${missingProfileMessage}
+    ${"429"} | ${ResponseErrorTooManyRequests()}                            | ${429}             | ${"Too many requests"}        | ${""}
+    ${"500"} | ${ResponseErrorInternal("an Error")}                         | ${500}             | ${internalServerErrorMessage} | ${"an Error"}
   `(
     "when the profile service returns $scenario, then it returns $expectedStatusCode",
     async ({
@@ -247,10 +250,10 @@ describe("SSOController#getLollipopUserForFIMS", () => {
   });
 
   test.each`
-    scenario | getProfileResponse                                       | expectedStatusCode | expectedTitle              | expectedDetail
-    ${"404"} | ${ResponseErrorNotFound("Not Found", "Missing profile")} | ${404}             | ${"Not Found"}             | ${"Missing profile"}
-    ${"429"} | ${ResponseErrorTooManyRequests()}                        | ${429}             | ${"Too many requests"}     | ${""}
-    ${"500"} | ${ResponseErrorInternal("an Error")}                     | ${500}             | ${"Internal server error"} | ${"an Error"}
+    scenario | getProfileResponse                                           | expectedStatusCode | expectedTitle                 | expectedDetail
+    ${"404"} | ${ResponseErrorNotFound("Not Found", missingProfileMessage)} | ${404}             | ${"Not Found"}                | ${missingProfileMessage}
+    ${"429"} | ${ResponseErrorTooManyRequests()}                            | ${429}             | ${"Too many requests"}        | ${""}
+    ${"500"} | ${ResponseErrorInternal("an Error")}                         | ${500}             | ${internalServerErrorMessage} | ${"an Error"}
   `(
     "when the profile service returns $scenario, then it returns $expectedStatusCode",
     async ({
@@ -281,9 +284,9 @@ describe("SSOController#getLollipopUserForFIMS", () => {
     lollipopServiceResponse              | expectedStatusCode | expectedTitle                 | expectedDetail
     ${toNotFoundError("LollipopPubKey")} | ${404}             | ${"Not Found"}                | ${"Unable to find entity of type LollipopPubKey"}
     ${unauthorizedError}                 | ${403}             | ${"You are not allowed here"} | ${"You do not have enough permission to complete the operation you requested"}
-    ${toGenericError("an error")}        | ${500}             | ${"Internal server error"}    | ${"an error"}
-    ${toGenericError()}                  | ${500}             | ${"Internal server error"}    | ${"Generic error while generating LC Params for FIMS+ User"}
-    ${Error("another error")}            | ${500}             | ${"Internal server error"}    | ${"another error"}
+    ${toGenericError("an error")}        | ${500}             | ${internalServerErrorMessage} | ${"an error"}
+    ${toGenericError()}                  | ${500}             | ${internalServerErrorMessage} | ${"Generic error while generating LC Params for FIMS+ User"}
+    ${Error("another error")}            | ${500}             | ${internalServerErrorMessage} | ${"another error"}
   `(
     "when the lollipop service returns $scenario, then it returns $expectedStatusCode",
     async ({

@@ -22,7 +22,7 @@ import {
 } from "../types/token";
 import { User } from "../types/user";
 import { RedisRepo } from "../repositories";
-import { blockedUserSetKey } from "../repositories/redis";
+import { blockedUserSetKey, lollipopDataPrefix } from "../repositories/redis";
 import {
   LollipopData,
   NullableBackendAssertionRefFromString,
@@ -127,6 +127,22 @@ export const getBySessionToken: RTE.ReaderTaskEither<
           : TE.left<Error, O.Option<User>>(err),
       (_) => TE.right<Error, O.Option<User>>(O.some(_)),
     ),
+  );
+
+export const delLollipopDataForUser: RTE.ReaderTaskEither<
+  RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
+  Error,
+  boolean
+> = (deps) =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        deps.redisClientSelector
+          .selectOne(RedisClientMode.FAST)
+          .del(`${lollipopDataPrefix}${deps.fiscalCode}`),
+      E.toError,
+    ),
+    integerReplyAsync(),
   );
 
 /**

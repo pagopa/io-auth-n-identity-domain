@@ -13,9 +13,11 @@ import {
   mockSmembers,
   mockRedisClientSelector,
   mockGet,
+  mockDel,
 } from "../../__mocks__/redis.mocks";
-import { mockedUser } from "../../__mocks__/user.mocks";
+import { aFiscalCode, mockedUser } from "../../__mocks__/user.mocks";
 import {
+  delLollipopDataForUser,
   getByFIMSToken,
   getBySessionToken,
   getLollipopAssertionRefForUser,
@@ -452,5 +454,54 @@ describe("RedisSessionStorage#getLollipopAssertionRefForUser", () => {
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
+  });
+});
+
+describe("RedisSessionStorage#delLollipopDataForUser", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("should success and return true if one element if removed", async () => {
+    mockDel.mockResolvedValueOnce(1);
+    const result = await pipe(
+      delLollipopDataForUser({
+        fiscalCode: aFiscalCode,
+        redisClientSelector: mockRedisClientSelector,
+      }),
+      TE.map((value) => {
+        expect(value).toEqual(true);
+      }),
+    )();
+    expect(E.isRight(result)).toBeTruthy();
+  });
+
+  test("should return an error if delete rise an error", async () => {
+    const expectedError = new Error("redis error");
+    mockDel.mockRejectedValueOnce(expectedError);
+    const result = await pipe(
+      delLollipopDataForUser({
+        fiscalCode: aFiscalCode,
+        redisClientSelector: mockRedisClientSelector,
+      }),
+      TE.mapLeft((value) => {
+        expect(value).toEqual(expectedError);
+      }),
+    )();
+    expect(E.isLeft(result)).toBeTruthy();
+  });
+
+  test("should return success if the delete operation doesn't found any document to delete", async () => {
+    mockDel.mockResolvedValueOnce(0);
+    const result = await pipe(
+      delLollipopDataForUser({
+        fiscalCode: aFiscalCode,
+        redisClientSelector: mockRedisClientSelector,
+      }),
+      TE.map((value) => {
+        expect(value).toEqual(true);
+      }),
+    )();
+    expect(E.isRight(result)).toBeTruthy();
   });
 });
