@@ -45,6 +45,7 @@ import { RedisSessionStorageService } from "../../services";
 import { BadRequest } from "../../generated/fast-login-api/BadRequest";
 import * as spidUtils from "../../utils/spid";
 import { UserWithoutTokens } from "../../types/user";
+import { FastLoginConfig } from "../../config";
 
 const aRandomToken = "RANDOMTOKEN";
 const validFastLoginControllerResponse = {
@@ -113,6 +114,7 @@ const fastLoginBaseDeps = {
   redisClientSelector: mockRedisClientSelector,
   clientIP: aClientIP,
   locals: fastLoginLollipopLocals,
+  sessionTTL: FastLoginConfig.lvTokenDurationSecs,
 };
 
 // eslint-disable-next-line max-lines-per-function
