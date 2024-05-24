@@ -1,8 +1,4 @@
-import {
-  LOLLIPOP_API_KEY,
-  LOLLIPOP_API_URL,
-  LOLLIPOP_API_BASE_PATH,
-} from "../config/lollipop";
+import { LollipopConfig } from "../config/index";
 import { FnAppRepo, FnFastLoginRepo, FnLollipopRepo } from "../repositories";
 import { getRequiredENVVar } from "./environment";
 import { httpOrHttpsApiFetch } from "./fetch";
@@ -21,9 +17,9 @@ export const initAPIClientsDependencies: () => FnAppRepo.FnAppAPIRepositoryDeps 
     getRequiredENVVar("FAST_LOGIN_API_URL"),
   );
   const fnLollipopAPIClient = FnLollipopRepo.getLollipopApiClient(
-    LOLLIPOP_API_KEY,
-    LOLLIPOP_API_URL,
-    LOLLIPOP_API_BASE_PATH,
+    LollipopConfig.LOLLIPOP_API_KEY,
+    LollipopConfig.LOLLIPOP_API_URL,
+    LollipopConfig.LOLLIPOP_API_BASE_PATH,
     httpOrHttpsApiFetch,
   );
 

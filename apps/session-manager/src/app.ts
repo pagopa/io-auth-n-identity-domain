@@ -46,14 +46,15 @@ import { withUserFromRequest } from "./utils/user";
 import { AdditionalLoginProps, LoginTypeEnum } from "./types/fast-login";
 import { TimeTracer } from "./utils/timer";
 import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
-import { SpidLogConfig, SpidConfig, ZendeskConfig, BPDConfig } from "./config";
+import {
+  BPDConfig,
+  LollipopConfig,
+  SpidLogConfig,
+  SpidConfig,
+  ZendeskConfig,
+} from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import { LollipopService, RedisSessionStorageService } from "./services";
-import {
-  FF_LOLLIPOP_ENABLED,
-  LOLLIPOP_REVOKE_QUEUE_NAME,
-  LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING,
-} from "./config/lollipop";
 import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { lollipopLoginMiddleware } from "./utils/lollipop";
 import { checkIP, withIPFromRequest } from "./utils/network";
@@ -92,8 +93,8 @@ export const newApp: (
   );
 
   const lollipopRevokeQueueClient = new QueueClient(
-    LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING,
-    LOLLIPOP_REVOKE_QUEUE_NAME,
+    LollipopConfig.LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING,
+    LollipopConfig.LOLLIPOP_REVOKE_QUEUE_NAME,
   );
 
   setupAuthentication(REDIS_CLIENT_SELECTOR);
@@ -277,12 +278,12 @@ export const newApp: (
               getLoginTypeOnElegible(
                 loginType,
                 isUserElegibleForFastLogin(fiscalCode),
-                FF_LOLLIPOP_ENABLED,
+                LollipopConfig.FF_LOLLIPOP_ENABLED,
               ),
           }),
           lollipopMiddleware: toExpressMiddleware(
             lollipopLoginMiddleware(
-              FF_LOLLIPOP_ENABLED,
+              LollipopConfig.FF_LOLLIPOP_ENABLED,
               APIClients.fnLollipopAPIClient,
               appInsightsClient,
             ),
