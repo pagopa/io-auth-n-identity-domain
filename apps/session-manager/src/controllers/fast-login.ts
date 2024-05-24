@@ -157,11 +157,11 @@ export const generateNonceEndpoint: RTE.ReaderTaskEither<
     }),
   );
 
-type FastLoginDeps<T extends ResLocals> = {
-  fnFastLoginAPIClient: ReturnType<FnFastLoginRepo.FnFastLoginAPIClient>;
-  sessionTTL: number;
-  locals?: T;
-} & WithIP;
+type FastLoginDeps<T extends ResLocals> =
+  FnFastLoginRepo.FnFastLoginRepositoryDeps & {
+    sessionTTL: number;
+    locals?: T;
+  } & WithIP;
 
 type FastLoginHandler = <T extends ResLocals>(
   deps: RedisRepositoryDeps & FastLoginDeps<T>,

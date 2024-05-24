@@ -4,9 +4,8 @@ import { flow } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as ROA from "fp-ts/ReadonlyArray";
 import { LockedProfileRepo } from "../repositories";
-import { LockUserAuthenticationDeps } from "../repositories/locked-profile";
 
-type AuthLockServiceDeps = LockUserAuthenticationDeps;
+type AuthLockServiceDeps = LockedProfileRepo.LockUserAuthenticationDeps;
 
 export const isUserAuthenticationLocked: (
   fiscalCode: FiscalCode,
