@@ -23,7 +23,15 @@ import { log } from "./logger";
  */
 const decodeIPAddressFromReq = (
   req: express.Request,
-): Either<Errors, IPString> => IPString.decode(req.ip);
+): Either<Errors, IPString> =>
+  pipe(
+    IPString.decode(req.ip),
+    E.alt(() =>
+      // use x-client-ip instead of x-forwarded-for
+      // for internal calls (same vnet)
+      IPString.decode(req.headers["x-client-ip"]),
+    ),
+  );
 
 export type WithIP = {
   clientIP: IPString;
@@ -78,11 +86,6 @@ export const checkIP =
   ): void =>
     pipe(
       decodeIPAddressFromReq(req),
-      E.alt(() =>
-        // use x-client-ip instead of x-forwarded-for
-        // for internal calls (same vnet)
-        IPString.decode(req.headers["x-client-ip"]),
-      ),
       E.mapLeft((errors) => {
         log.error(
           `Cannot decode source IP: (req.ip=${req.ip},x-client-ip=${
