@@ -335,11 +335,7 @@ export const getByZendeskToken: (
   pipe(
     loadSessionByToken(RedisRepo.zendeskTokenPrefix, token),
     RTE.map(O.some),
-    RTE.orElse((err) =>
-      err === RedisRepo.sessionNotFoundError
-        ? RTE.right(O.none)
-        : RTE.left(err),
-    ),
+    RTE.orElseW(noneOrErrorWhenNotFound),
   );
 
 /**
