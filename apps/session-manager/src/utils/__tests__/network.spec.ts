@@ -27,7 +27,12 @@ it("should return 500 when the user IP has an unexpected value", async () => {
   const decodeErrors = (IPString.decode(wrongIp) as E.Left<Errors>).left;
 
   const result = await pipe(withIPFromRequest(dummyHandler), (f) =>
-    f({ req: mockReq({ ip: wrongIp }) as unknown as express.Request }),
+    f({
+      req: mockReq({
+        ip: wrongIp,
+        headers: { ["x-client-ip"]: wrongIp },
+      }) as unknown as express.Request,
+    }),
   )();
 
   expect(result).toEqual(
