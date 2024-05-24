@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.8.1
+
+### Patch Changes
+
+- a718a81: fix: Try decode client ip from x-client-ip header
+
 ## 0.8.0
 
 ### Minor Changes
