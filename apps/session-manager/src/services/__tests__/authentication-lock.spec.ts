@@ -1,10 +1,10 @@
 import { describe, test, expect, vi, afterEach } from "vitest";
-import { PagedAsyncIterableIterator } from "@azure/data-tables/dist/index";
 import { pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
 import { TableEntityResultPage } from "@azure/data-tables";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import {
+  getLockedProfileIterator,
   mockListEntities,
   mockedTableClient,
 } from "../../__mocks__/repositories/table-client-mocks";
@@ -19,16 +19,6 @@ describe("AuthLockService#isUserAuthenticationLocked", () => {
   });
 
   const mockedDependencies = { lockUserTableClient: mockedTableClient };
-  const getIterator = (expectedResults: NotReleasedAuthenticationLockData[]) =>
-    (async function* () {
-      for (const data of expectedResults) {
-        yield data;
-      }
-    })() as PagedAsyncIterableIterator<
-      NotReleasedAuthenticationLockData,
-      undefined,
-      undefined
-    >;
 
   test("should return true if the user has active locks", async () => {
     const expectedResults = [
@@ -36,16 +26,18 @@ describe("AuthLockService#isUserAuthenticationLocked", () => {
         etag: "a",
         partitionKey: aFiscalCode,
         rowKey: "001122330" as UnlockCode,
-        CreatedAt: new Date().toISOString() as unknown as Date,
+        CreatedAt: new Date(),
       },
       {
         etag: "a",
         partitionKey: aFiscalCode,
         rowKey: "001122999" as UnlockCode,
-        CreatedAt: new Date().toISOString() as unknown as Date,
+        CreatedAt: new Date(),
       },
     ] as TableEntityResultPage<NotReleasedAuthenticationLockData>;
-    mockListEntities.mockImplementation(() => getIterator(expectedResults));
+    mockListEntities.mockImplementation(() =>
+      getLockedProfileIterator(expectedResults),
+    );
 
     const result = await pipe(
       mockedDependencies,
@@ -57,7 +49,7 @@ describe("AuthLockService#isUserAuthenticationLocked", () => {
   });
 
   test("should return false if the user don't has active locks", async () => {
-    mockListEntities.mockImplementation(() => getIterator([]));
+    mockListEntities.mockImplementation(() => getLockedProfileIterator([]));
 
     const result = await pipe(
       mockedDependencies,
@@ -70,7 +62,7 @@ describe("AuthLockService#isUserAuthenticationLocked", () => {
 
   test("should return an error if a decode error occurs reading from the storage", async () => {
     mockListEntities.mockImplementation(() =>
-      getIterator([
+      getLockedProfileIterator([
         {
           partitionKey: "anInvalidFiscalCode" as FiscalCode,
           rowKey: "001122330" as UnlockCode,
