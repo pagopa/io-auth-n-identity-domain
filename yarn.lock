@@ -1206,6 +1206,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@pagopa/io-session-manager@workspace:apps/session-manager"
   dependencies:
+    "@azure/data-tables": "npm:^13.2.2"
     "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/io-functions-app-sdk": "npm:x"

@@ -23,5 +23,5 @@ export function getLollipopApiClient(
 export type LollipopApiClient = ReturnType<typeof getLollipopApiClient>;
 
 export type LollipopApiDeps = {
-  lollipopApiClient: LollipopApiClient;
+  fnLollipopAPIClient: LollipopApiClient;
 };

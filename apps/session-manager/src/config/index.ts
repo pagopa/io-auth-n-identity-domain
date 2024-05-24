@@ -6,10 +6,12 @@ import { getNodeEnvironmentFromProcessEnv } from "@pagopa/ts-commons/lib/environ
 import { log } from "../utils/logger";
 import { IoLoginHostUrl } from "../types/common";
 
+import * as BPDConfig from "./bpd";
+import * as LockProfileConfig from "./lock-profile";
+import * as LollipopConfig from "./lollipop";
 import * as SpidConfig from "./spid";
 import * as SpidLogConfig from "./spid-logs";
 import * as ZendeskConfig from "./zendesk";
-import * as BPDConfig from "./bpd";
 
 export const ENV = getNodeEnvironmentFromProcessEnv(process.env);
 
@@ -24,4 +26,11 @@ export const BACKEND_HOST = pipe(
   }),
 );
 
-export { SpidConfig, SpidLogConfig, ZendeskConfig, BPDConfig };
+export {
+  BPDConfig,
+  LockProfileConfig,
+  LollipopConfig,
+  SpidConfig,
+  SpidLogConfig,
+  ZendeskConfig,
+};

@@ -30,6 +30,7 @@
         "generate:proxy:bpd-models": "shx rm -rf src/generated/bpd && gen-api-models --api-spec api/bpd.yaml --out-dir src/generated/bpd"
     },
     "dependencies": {
+        "@azure/data-tables": "^13.2.2",
         "@azure/storage-queue": "^12.16.0",
         "@pagopa/io-functions-app-sdk": "x",
         "@pagopa/io-functions-commons": "^29.0.4",
