@@ -21,7 +21,6 @@ import { Second } from "@pagopa/ts-commons/lib/units";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import * as TE from "fp-ts/TaskEither";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
-import * as AP from "fp-ts/lib/Apply";
 import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
 import { UserLoginParams } from "@pagopa/io-functions-app-sdk/UserLoginParams";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
@@ -46,7 +45,6 @@ import {
   getIsUserElegibleForIoLoginUrlScheme,
   internalErrorOrIoLoginRedirect,
 } from "../utils/login-uri-scheme";
-import { isUserElegibleForFastLogin } from "../config/fast-login";
 import { getLoginTypeOnElegible } from "../utils/fast-login";
 import {
   AuthenticationLockService,
@@ -78,7 +76,7 @@ export const AGE_LIMIT = 14;
 export const AGE_LIMIT_ERROR_CODE = 1001;
 export const AUTHENTICATION_LOCKED_ERROR = 1002;
 
-type AcsDependencies = RedisRepo.RedisRepositoryDeps &
+export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   FnAppAPIRepositoryDeps &
   LockUserAuthenticationDeps &
   LoginUserEventRepo.LoginUserEventDeps &
@@ -101,6 +99,7 @@ type AcsDependencies = RedisRepo.RedisRepositoryDeps &
     isUserElegibleForIoLoginUrlScheme: ReturnType<
       typeof getIsUserElegibleForIoLoginUrlScheme
     >;
+    isUserElegibleForFastLogin: (fiscalCode: FiscalCode) => boolean;
   };
 
 export const acs: (
@@ -174,7 +173,7 @@ export const acs: (
       );
     }
 
-    const isUserElegibleForFastLoginResult = isUserElegibleForFastLogin(
+    const isUserElegibleForFastLoginResult = deps.isUserElegibleForFastLogin(
       spidUser.fiscalNumber,
     );
     // LV functionality is enable only if Lollipop is enabled.
@@ -315,28 +314,32 @@ export const acs: (
       );
     }
 
+    // TODO: When we remove the feature flag try to use the method `deleteAssertionRefAssociation`
     if (deps.isLollipopEnabled && O.isSome(errorOrMaybeAssertionRef.right)) {
       const assertionRefToRevoke = errorOrMaybeAssertionRef.right.value;
       // Sending a revoke message for previous assertionRef related to the same fiscalCode
       // This operation is fire and forget
-      LollipopRevokeRepo.revokePreviousAssertionRef(assertionRefToRevoke)(
-        deps,
-      )().catch((err) => {
-        deps.appInsightsTelemetryClient?.trackEvent({
-          name: lollipopErrorEventName,
-          properties: {
-            assertion_ref: assertionRefToRevoke,
-            error: err,
-            fiscal_code: sha256(user.fiscal_code),
-            message:
-              "acs: error sending revoke message for previous assertionRef",
-          },
-        });
-        log.error(
-          "acs: error sending revoke message for previous assertionRef [%s]",
-          err,
-        );
-      });
+      pipe(
+        LollipopRevokeRepo.revokePreviousAssertionRef(assertionRefToRevoke)(
+          deps,
+        ),
+        TE.mapLeft((err) => {
+          deps.appInsightsTelemetryClient?.trackEvent({
+            name: lollipopErrorEventName,
+            properties: {
+              assertion_ref: assertionRefToRevoke,
+              error: err,
+              fiscal_code: sha256(user.fiscal_code),
+              message:
+                "acs: error sending revoke message for previous assertionRef",
+            },
+          });
+          log.error(
+            "acs: error sending revoke message for previous assertionRef [%s]",
+            err,
+          );
+        }),
+      )().catch(() => void 0 as never);
     }
 
     const errorOrActivatedPubKey = await pipe(
@@ -382,15 +385,15 @@ export const acs: (
       ),
       TE.chainW((assertionRef) =>
         pipe(
-          AP.sequenceT(TE.ApplicativeSeq)(
-            LollipopService.activateLolliPoPKey({
-              assertionRef,
-              fiscalCode: user.fiscal_code,
-              assertion: spidUser.getSamlResponseXml(),
-              getExpirePubKeyFn: () => addSeconds(new Date(), lollipopKeyTTL),
-              appInsightsTelemetryClient: deps.appInsightsTelemetryClient,
-              fnLollipopAPIClient: deps.fnLollipopAPIClient,
-            }),
+          LollipopService.activateLolliPoPKey({
+            assertionRef,
+            fiscalCode: user.fiscal_code,
+            assertion: spidUser.getSamlResponseXml(),
+            getExpirePubKeyFn: () => addSeconds(new Date(), lollipopKeyTTL),
+            appInsightsTelemetryClient: deps.appInsightsTelemetryClient,
+            fnLollipopAPIClient: deps.fnLollipopAPIClient,
+          }),
+          TE.chainFirst(() =>
             pipe(
               isUserElegibleForFastLoginResult,
               B.fold(
@@ -516,7 +519,7 @@ export const acs: (
       if (E.isRight(errorOrActivatedPubKey)) {
         await LollipopService.deleteAssertionRefAssociation(
           user.fiscal_code,
-          errorOrActivatedPubKey.right[0].assertion_ref,
+          errorOrActivatedPubKey.right.assertion_ref,
           lollipopErrorEventName,
           "acs: error deleting lollipop data while fallbacking from getProfile response error",
         )(deps)();
@@ -632,7 +635,7 @@ export const acs: (
         if (E.isRight(errorOrActivatedPubKey)) {
           await LollipopService.deleteAssertionRefAssociation(
             user.fiscal_code,
-            errorOrActivatedPubKey.right[0].assertion_ref,
+            errorOrActivatedPubKey.right.assertion_ref,
             lollipopErrorEventName,
             "acs: error deleting lollipop data while fallbacking from notify login failure",
           )(deps)();

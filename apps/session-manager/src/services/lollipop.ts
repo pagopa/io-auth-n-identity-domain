@@ -191,7 +191,7 @@ export const deleteAssertionRefAssociation: (
         err,
       );
     }),
-  )().catch(() => void 0); // This promise should never throw
+  )().catch(() => void 0 as never); // This promise should never throw
 
   return pipe(
     RedisSessionStorageService.delLollipopDataForUser({

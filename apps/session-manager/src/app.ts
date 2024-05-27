@@ -75,6 +75,7 @@ import {
 import { getIsUserElegibleForIoLoginUrlScheme } from "./utils/login-uri-scheme";
 import { initStorageDependencies } from "./utils/storages";
 import { omit } from "./utils/types";
+import { isUserElegibleForFastLogin } from "./config/fast-login";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -274,6 +275,7 @@ export const newApp: (
               FastLoginConfig.lvLongSessionDurationSecs,
             ...pick(["fnAppAPIClient", "fnLollipopAPIClient"], APIClients),
             ...omit(["spidLogQueueClient"], storageDependencies),
+            isUserElegibleForFastLogin,
           }),
           app,
           appConfig: {

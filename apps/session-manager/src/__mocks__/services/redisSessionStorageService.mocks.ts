@@ -3,6 +3,7 @@ import { Mock, vi } from "vitest";
 import * as TE from "fp-ts/TaskEither";
 import * as O from "fp-ts/Option";
 
+import { Second } from "@pagopa/ts-commons/lib/units";
 import { RedisSessionStorageService } from "../../services";
 
 import { AssertionRef } from "../../generated/lollipop-api/AssertionRef";
@@ -42,4 +43,7 @@ export const mockedRedisSessionStorageService: typeof RedisSessionStorageService
     set: vi.fn(),
     deleteUser: mockDeleteUser,
     isBlockedUser: vi.fn(),
+    DEFAULT_LOLLIPOP_ASSERTION_REF_DURATION: 100 as Second,
+    setLollipopAssertionRefForUser: vi.fn(),
+    setLollipopDataForUser: vi.fn(),
   };
