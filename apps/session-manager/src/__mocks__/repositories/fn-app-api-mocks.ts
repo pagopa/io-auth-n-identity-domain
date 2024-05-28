@@ -1,7 +1,13 @@
-import { vi } from "vitest";
-import { FnAppAPIRepositoryDeps } from "../../repositories/fn-app-api";
+import { Mock, vi } from "vitest";
+import {
+  FnAppAPIClient,
+  FnAppAPIRepositoryDeps,
+} from "../../repositories/fn-app-api";
 
-export const mockGetProfile = vi.fn();
+export const mockGetProfile: Mock<
+  Parameters<ReturnType<FnAppAPIClient>["getProfile"]>,
+  ReturnType<ReturnType<FnAppAPIClient>["getProfile"]>
+> = vi.fn();
 export const mockStartNotifyLoginProcess = vi.fn();
 export const mockCreateProfile = vi.fn();
 
