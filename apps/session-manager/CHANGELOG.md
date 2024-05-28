@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.9.0
+
+### Minor Changes
+
+- 3f489de: Add the acs endpoint for SPID/CIE login
+
 ## 0.8.1
 
 ### Patch Changes

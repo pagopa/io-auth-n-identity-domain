@@ -1,6 +1,6 @@
 {
     "name": "@pagopa/io-session-manager",
-    "version": "0.8.1",
+    "version": "0.9.0",
     "description": "API for IO session",
     "engines": {
         "node": ">= 18.0.0"
