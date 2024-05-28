@@ -63,28 +63,28 @@ export default function mockRes() {
 /**
  * resetMock
  */
-function resetMock(this: ReturnType<typeof mockRes>) {
-  this.append.mockClear();
-  this.attachment.mockClear();
-  this.cookie.mockClear();
-  this.clearCookie.mockClear();
-  this.download.mockClear();
-  this.end.mockClear();
-  this.format.mockClear();
-  this.get.mockClear();
-  this.json.mockClear();
-  this.jsonp.mockClear();
-  this.links.mockClear();
-  this.location.mockClear();
-  this.redirect.mockClear();
-  this.render.mockClear();
-  this.send.mockClear();
-  this.sendFile.mockClear();
-  this.sendStatus.mockClear();
-  this.links.mockClear();
-  this.set.mockClear();
-  this.status.mockClear();
-  this.type.mockClear();
-  this.vary.mockClear();
-  this.header.mockClear();
+export function resetMock(res: ReturnType<typeof mockRes>) {
+  res.append.mockClear();
+  res.attachment.mockClear();
+  res.cookie.mockClear();
+  res.clearCookie.mockClear();
+  res.download.mockClear();
+  res.end.mockClear();
+  res.format.mockClear();
+  res.get.mockClear();
+  res.json.mockClear();
+  res.jsonp.mockClear();
+  res.links.mockClear();
+  res.location.mockClear();
+  res.redirect.mockClear();
+  res.render.mockClear();
+  res.send.mockClear();
+  res.sendFile.mockClear();
+  res.sendStatus.mockClear();
+  res.links.mockClear();
+  res.set.mockClear();
+  res.status.mockClear();
+  res.type.mockClear();
+  res.vary.mockClear();
+  res.header.mockClear();
 }

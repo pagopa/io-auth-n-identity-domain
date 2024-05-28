@@ -1,5 +1,4 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
-import { QueueClient } from "@azure/storage-queue";
 import passport from "passport";
 import express from "express";
 import { Express } from "express";
@@ -14,20 +13,17 @@ import * as bodyParser from "body-parser";
 import { withSpid } from "@pagopa/io-spid-commons";
 import * as TE from "fp-ts/TaskEither";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
-import {
-  ResponseErrorInternal,
-  ResponsePermanentRedirect,
-} from "@pagopa/ts-commons/lib/responses";
+import { ResponsePermanentRedirect } from "@pagopa/ts-commons/lib/responses";
 import * as E from "fp-ts/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { pick } from "@pagopa/ts-commons/lib/types";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
 import { RedisRepo, FnAppRepo, FnLollipopRepo } from "./repositories";
 import { attachTrackingData } from "./utils/appinsights";
-import { getENVVarWithDefault, getRequiredENVVar } from "./utils/environment";
+import { getRequiredENVVar } from "./utils/environment";
 import {
+  AuthenticationController,
   SessionController,
   FastLoginController,
   SpidLogsController,
@@ -48,20 +44,35 @@ import { TimeTracer } from "./utils/timer";
 import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
 import {
   BPDConfig,
+  FastLoginConfig,
   LollipopConfig,
-  SpidLogConfig,
   SpidConfig,
   ZendeskConfig,
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import { LollipopService, RedisSessionStorageService } from "./services";
-import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { lollipopLoginMiddleware } from "./utils/lollipop";
 import { checkIP, withIPFromRequest } from "./utils/network";
 import { expressLollipopMiddleware } from "./utils/lollipop";
 import { bearerZendeskTokenStrategy } from "./auth/bearer-zendesk-token-strategy";
 import { bearerBPDTokenStrategy } from "./auth/bearer-BPD-token-strategy";
 import { initAPIClientsDependencies } from "./utils/api-clients";
+import {
+  ALLOWED_CIE_TEST_FISCAL_CODES,
+  getClientErrorRedirectionUrl,
+  getClientProfileRedirectionUrl,
+} from "./config/spid";
+import {
+  FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
+  FF_USER_AGE_LIMIT_ENABLED,
+  IS_SPID_EMAIL_PERSISTENCE_ENABLED,
+  TEST_LOGIN_FISCAL_CODES,
+  isUserElegibleForIoLoginUrlScheme,
+  standardTokenDurationSecs,
+} from "./config/login";
+import { initStorageDependencies } from "./utils/storages";
+import { omit } from "./utils/types";
+import { isUserElegibleForFastLogin } from "./config/fast-login";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -85,17 +96,7 @@ export const newApp: (
   );
   // Create the API client for the Azure Functions App
   const APIClients = initAPIClientsDependencies();
-
-  // Create the Client to the Spid Log Queue
-  const SPID_LOG_QUEUE_CLIENT = new QueueClient(
-    SpidLogConfig.SPID_LOG_STORAGE_CONNECTION_STRING,
-    SpidLogConfig.SPID_LOG_QUEUE_NAME,
-  );
-
-  const lollipopRevokeQueueClient = new QueueClient(
-    LollipopConfig.LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING,
-    LollipopConfig.LOLLIPOP_REVOKE_QUEUE_NAME,
-  );
+  const storageDependencies = initStorageDependencies();
 
   setupAuthentication(REDIS_CLIENT_SELECTOR);
 
@@ -166,7 +167,8 @@ export const newApp: (
         // Clients
         redisClientSelector: REDIS_CLIENT_SELECTOR,
         lollipopApiClient: APIClients.fnLollipopAPIClient,
-        lollipopRevokeQueueClient,
+        lollipopRevokeQueueClient:
+          storageDependencies.lollipopRevokeQueueClient,
         // Services
         redisSessionStorageService: RedisSessionStorageService,
         lollipopService: LollipopService,
@@ -185,13 +187,6 @@ export const newApp: (
     ),
   );
 
-  const DEFAULT_LV_TOKEN_DURATION_IN_SECONDS = (60 * 15) as NonNegativeInteger;
-  const sessionTTL = getENVVarWithDefault(
-    "LV_TOKEN_DURATION_IN_SECONDS",
-    NonNegativeInteger,
-    DEFAULT_LV_TOKEN_DURATION_IN_SECONDS,
-  );
-
   app.post(
     `${API_BASE_PATH}/fast-login`,
     expressLollipopMiddleware(
@@ -202,7 +197,7 @@ export const newApp: (
       toExpressHandler({
         redisClientSelector: REDIS_CLIENT_SELECTOR,
         fnFastLoginAPIClient: APIClients.fnFastLoginAPIClient,
-        sessionTTL,
+        sessionTTL: FastLoginConfig.lvTokenDurationSecs,
       }),
       ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
     ),
@@ -252,9 +247,26 @@ export const newApp: (
     TE.tryCatch(
       () =>
         withSpid({
-          // TODO: Not implemented acs
-          acs: () =>
-            Promise.resolve(ResponseErrorInternal("not implemented yet")),
+          acs: AuthenticationController.acs({
+            redisClientSelector: REDIS_CLIENT_SELECTOR,
+            isLollipopEnabled: true,
+            appInsightsTelemetryClient: appInsightsClient,
+            getClientErrorRedirectionUrl,
+            getClientProfileRedirectionUrl,
+            isUserElegibleForIoLoginUrlScheme,
+            FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
+            isSpidEmailPersistenceEnabled: IS_SPID_EMAIL_PERSISTENCE_ENABLED,
+            testLoginFiscalCodes: TEST_LOGIN_FISCAL_CODES,
+            hasUserAgeLimitEnabled: FF_USER_AGE_LIMIT_ENABLED,
+            allowedCieTestFiscalCodes: ALLOWED_CIE_TEST_FISCAL_CODES,
+            standardTokenDurationSecs,
+            lvTokenDurationSecs: FastLoginConfig.lvTokenDurationSecs,
+            lvLongSessionDurationSecs:
+              FastLoginConfig.lvLongSessionDurationSecs,
+            ...pick(["fnAppAPIClient", "fnLollipopAPIClient"], APIClients),
+            ...omit(["spidLogQueueClient"], storageDependencies),
+            isUserElegibleForFastLogin,
+          }),
           app,
           appConfig: {
             ...SpidConfig.appConfig,
@@ -273,11 +285,11 @@ export const newApp: (
             },
           },
           doneCb: SpidLogsController.makeSpidLogCallback({
-            spidLogQueueClient: SPID_LOG_QUEUE_CLIENT,
+            spidLogQueueClient: storageDependencies.spidLogQueueClient,
             getLoginType: (fiscalCode: FiscalCode, loginType?: LoginTypeEnum) =>
               getLoginTypeOnElegible(
                 loginType,
-                isUserElegibleForFastLogin(fiscalCode),
+                FastLoginConfig.isUserElegibleForFastLogin(fiscalCode),
                 LollipopConfig.FF_LOLLIPOP_ENABLED,
               ),
           }),

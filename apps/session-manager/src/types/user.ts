@@ -1,6 +1,12 @@
 import * as t from "io-ts";
-import { EmailString, FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { SpidLevel } from "./spid-level";
+import {
+  EmailString,
+  FiscalCode,
+  NonEmptyString,
+} from "@pagopa/ts-commons/lib/strings";
+import { Issuer } from "@pagopa/io-spid-commons/dist/config";
+import { ALLOWED_TEST_ISSUER } from "../config/spid";
+import { EmailAddress } from "../generated/backend/EmailAddress";
 import {
   BPDToken,
   FIMSToken,
@@ -9,6 +15,7 @@ import {
   WalletToken,
   ZendeskToken,
 } from "./token";
+import { SpidLevel } from "./spid-level";
 
 // required attributes
 export const UserWithoutTokens = t.intersection([
@@ -44,3 +51,41 @@ const RequiredUserTokens = t.interface({
 
 export const User = t.intersection([UserWithoutTokens, RequiredUserTokens]);
 export type User = t.TypeOf<typeof User>;
+
+// required attributes
+export const SpidUser = t.intersection([
+  t.interface({
+    authnContextClassRef: SpidLevel,
+    dateOfBirth: t.string,
+    familyName: t.string,
+    fiscalNumber: FiscalCode,
+    getAcsOriginalRequest: t.Function,
+    getAssertionXml: t.Function,
+    getSamlResponseXml: t.Function,
+    // The allowed issuer must include development Issuer
+    // and Spid SAML Check even in production if provided in config.
+    issuer: ALLOWED_TEST_ISSUER ? NonEmptyString : Issuer,
+    name: t.string,
+  }),
+  t.partial({
+    email: EmailAddress,
+    nameID: t.string,
+    nameIDFormat: t.string,
+    sessionIndex: t.string,
+  }),
+]);
+
+export type SpidUser = t.TypeOf<typeof SpidUser>;
+
+export const SpidObject = t.intersection([
+  t.interface({
+    fiscalNumber: t.string,
+    getAcsOriginalRequest: t.Function,
+    getAssertionXml: t.Function,
+    getSamlResponseXml: t.Function,
+  }),
+  t.partial({
+    authnContextClassRef: t.any,
+    issuer: t.any,
+  }),
+]);

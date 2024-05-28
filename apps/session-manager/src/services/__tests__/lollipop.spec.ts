@@ -16,14 +16,21 @@ import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
 import { QueueClient } from "@azure/storage-queue";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
-import { deleteAssertionRefAssociation, generateLCParams } from "../lollipop";
 import {
+  activateLolliPoPKey,
+  deleteAssertionRefAssociation,
+  generateLCParams,
+} from "../lollipop";
+import {
+  aLollipopAssertion,
+  anActivatedPubKey,
   anAssertionRef,
   aValidLCParamsResult,
 } from "../../__mocks__/lollipop.mocks";
 import {
   mockedLollipopApiClient,
   mockGenerateLCParams,
+  mockActivatePubKey,
 } from "../../__mocks__/repositories/lollipop-api.mocks";
 import {
   DomainErrorTypes,
@@ -39,16 +46,17 @@ import {
   mockTrackEvent,
   mockedAppinsightsTelemetryClient,
 } from "../../__mocks__/appinsights.mocks";
+import { AssertionTypeEnum } from "../../generated/fast-login-api/AssertionType";
 
 const anOperationId = "operationIdTest" as NonEmptyString;
 const anEventName = "anEventName";
+
+const mockedDependencies = { fnLollipopAPIClient: mockedLollipopApiClient };
 
 describe("LollipopService#generateLCParams", () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
-
-  const mockedDependencies = { fnLollipopAPIClient: mockedLollipopApiClient };
 
   test("should return an LCParam object, when all dependencies are ok", async () => {
     const result = await pipe(
@@ -238,5 +246,177 @@ describe("LollipopService#deleteAssertionRefAssociation", () => {
         message: "error sending revoke message for previous assertionRef",
       },
     });
+  });
+});
+
+describe("LollipopService#activateLolliPoPKey", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+  test(`
+  GIVEN lollipop params on user login
+  WHEN the lollipop function is reachable and working
+  THEN returns an ActivatedPubKey object
+  `, async () => {
+    mockActivatePubKey.mockResolvedValueOnce(
+      E.right({
+        status: 200,
+        value: anActivatedPubKey,
+      }),
+    );
+
+    const response = await activateLolliPoPKey({
+      ...mockedDependencies,
+      assertion: aLollipopAssertion,
+      assertionRef: anAssertionRef,
+      fiscalCode: aFiscalCode,
+      getExpirePubKeyFn: () => new Date(),
+      appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
+    })();
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    expect(mockActivatePubKey).toBeCalledTimes(1);
+    expect(mockActivatePubKey).toBeCalledWith({
+      assertion_ref: anAssertionRef,
+      body: expect.objectContaining({
+        assertion: aLollipopAssertion,
+        assertion_type: AssertionTypeEnum.SAML,
+        expired_at: expect.any(Date),
+        fiscal_code: aFiscalCode,
+      }),
+    });
+    expect(E.isRight(response)).toBeTruthy();
+    if (E.isRight(response)) {
+      expect(response.right).toEqual(anActivatedPubKey);
+    }
+  });
+
+  test(`
+  GIVEN lollipop params on user login
+  WHEN the lollipop function is reachable returns a not success response
+  THEN returns an error
+  `, async () => {
+    mockActivatePubKey.mockResolvedValueOnce(
+      E.right({
+        status: 400,
+        value: "Error",
+      }),
+    );
+
+    const response = await activateLolliPoPKey({
+      ...mockedDependencies,
+      assertion: aLollipopAssertion,
+      assertionRef: anAssertionRef,
+      fiscalCode: aFiscalCode,
+      getExpirePubKeyFn: () => new Date(),
+      appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
+    })();
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    expect(mockActivatePubKey).toBeCalledTimes(1);
+    expect(mockActivatePubKey).toBeCalledWith({
+      assertion_ref: anAssertionRef,
+      body: expect.objectContaining({
+        assertion: aLollipopAssertion,
+        assertion_type: AssertionTypeEnum.SAML,
+        expired_at: expect.any(Date),
+        fiscal_code: aFiscalCode,
+      }),
+    });
+    expect(E.isLeft(response)).toBeTruthy();
+    if (E.isLeft(response)) {
+      expect(response.left).toEqual(
+        new Error(
+          "Error calling the function lollipop api for pubkey activation",
+        ),
+      );
+    }
+  });
+
+  test(`
+  GIVEN lollipop params on user login
+  WHEN the lollipop function is reachable and the client returns a decoding error
+  THEN returns an error
+  `, async () => {
+    // We use a failed decode to map a generic Validation Errors
+    mockActivatePubKey.mockResolvedValueOnce(NonEmptyString.decode(""));
+    const response = await activateLolliPoPKey({
+      ...mockedDependencies,
+      assertion: aLollipopAssertion,
+      assertionRef: anAssertionRef,
+      fiscalCode: aFiscalCode,
+      getExpirePubKeyFn: () => new Date(),
+      appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
+    })();
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith({
+      name: "lollipop.error.acs",
+      properties: expect.objectContaining({
+        assertion_ref: anAssertionRef,
+        fiscal_code: sha256(aFiscalCode),
+        message:
+          'Error activating lollipop pub key | value [""] at [root] is not a valid [non empty string]',
+      }),
+    });
+
+    expect(mockActivatePubKey).toBeCalledTimes(1);
+    expect(mockActivatePubKey).toBeCalledWith({
+      assertion_ref: anAssertionRef,
+      body: expect.objectContaining({
+        assertion: aLollipopAssertion,
+        assertion_type: AssertionTypeEnum.SAML,
+        expired_at: expect.any(Date),
+        fiscal_code: aFiscalCode,
+      }),
+    });
+    expect(E.isLeft(response)).toBeTruthy();
+    if (E.isLeft(response)) {
+      expect(response.left).toEqual(expect.any(Error));
+    }
+  });
+
+  test(`
+  GIVEN lollipop params on user login
+  WHEN the lollipop function is not reachable
+  THEN returns an error
+  `, async () => {
+    mockActivatePubKey.mockRejectedValueOnce(new Error("Error"));
+
+    const response = await activateLolliPoPKey({
+      ...mockedDependencies,
+      assertion: aLollipopAssertion,
+      assertionRef: anAssertionRef,
+      fiscalCode: aFiscalCode,
+      getExpirePubKeyFn: () => new Date(),
+      appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
+    })();
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith({
+      name: "lollipop.error.acs",
+      properties: expect.objectContaining({
+        assertion_ref: anAssertionRef,
+        fiscal_code: sha256(aFiscalCode),
+        message: "Error activating lollipop pub key | Error",
+      }),
+    });
+
+    expect(mockActivatePubKey).toBeCalledTimes(1);
+    expect(mockActivatePubKey).toBeCalledWith({
+      assertion_ref: anAssertionRef,
+      body: expect.objectContaining({
+        assertion: aLollipopAssertion,
+        assertion_type: AssertionTypeEnum.SAML,
+        expired_at: expect.any(Date),
+        fiscal_code: aFiscalCode,
+      }),
+    });
+    expect(E.isLeft(response)).toBeTruthy();
+    if (E.isLeft(response)) {
+      expect(response.left).toEqual(new Error("Error"));
+    }
   });
 });

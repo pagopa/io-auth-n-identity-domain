@@ -9,7 +9,7 @@ import {
   mockedTableClient,
 } from "../../__mocks__/repositories/table-client-mocks";
 import { aFiscalCode } from "../../__mocks__/user.mocks";
-import { NotReleasedAuthenticationLockData } from "../../repositories/locked-profile";
+import { NotReleasedAuthenticationLockData } from "../../repositories/locked-profiles";
 import { isUserAuthenticationLocked } from "../authentication-lock";
 import { UnlockCode } from "../../generated/fast-login-api/UnlockCode";
 

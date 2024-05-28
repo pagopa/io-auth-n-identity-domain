@@ -7,6 +7,7 @@ import { log } from "../utils/logger";
 import { IoLoginHostUrl } from "../types/common";
 
 import * as BPDConfig from "./bpd";
+import * as FastLoginConfig from "./fast-login";
 import * as LockProfileConfig from "./lock-profile";
 import * as LollipopConfig from "./lollipop";
 import * as SpidConfig from "./spid";
@@ -28,6 +29,7 @@ export const BACKEND_HOST = pipe(
 
 export {
   BPDConfig,
+  FastLoginConfig,
   LockProfileConfig,
   LollipopConfig,
   SpidConfig,

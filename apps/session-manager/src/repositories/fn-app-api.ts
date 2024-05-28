@@ -18,7 +18,7 @@ export const FnAppAPIClient = (
       }),
   });
 
-type FnAppAPIClient = typeof FnAppAPIClient;
+export type FnAppAPIClient = typeof FnAppAPIClient;
 
 export type FnAppAPIRepositoryDeps = {
   fnAppAPIClient: ReturnType<FnAppAPIClient>;

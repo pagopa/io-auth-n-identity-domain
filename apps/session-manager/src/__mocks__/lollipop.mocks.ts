@@ -18,6 +18,7 @@ import { LoginTypeEnum } from "../types/fast-login";
 import { AssertionTypeEnum } from "../generated/fast-login-api/AssertionType";
 import { LollipopJWTAuthorization } from "../generated/fast-login-api/LollipopJWTAuthorization";
 import { LollipopPublicKey } from "../generated/fast-login-api/LollipopPublicKey";
+import { ActivatedPubKey } from "../generated/lollipop-api/ActivatedPubKey";
 import { aFiscalCode } from "./user.mocks";
 import { getASAMLResponse } from "./spid.mocks";
 
@@ -100,4 +101,16 @@ export const lollipopParams: LollipopLocalsType = {
   "x-pagopa-lollipop-auth-jwt": "a bearer token" as LollipopJWTAuthorization,
   "x-pagopa-lollipop-public-key": "a pub key" as LollipopPublicKey,
   "x-pagopa-lollipop-user-id": aFiscalCode,
+};
+
+export const anActivatedPubKey: ActivatedPubKey = {
+  assertion_file_name: `${aFiscalCode}-${anAssertionRef}` as AssertionFileName,
+  assertion_ref: anAssertionRef,
+  assertion_type: AssertionTypeEnum.SAML,
+  expired_at: new Date(),
+  fiscal_code: aFiscalCode,
+  pub_key: anEncodedJwkPubKey,
+  status: PubKeyStatusEnum.VALID,
+  ttl: 1200 as NonNegativeInteger,
+  version: 1 as NonNegativeInteger,
 };

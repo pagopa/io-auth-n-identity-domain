@@ -15,7 +15,7 @@ import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { Errors } from "io-ts";
 import { pipe } from "fp-ts/lib/function";
 import { fastLoginEndpoint, generateNonceEndpoint } from "../fast-login";
-import { getFnFastLoginAPIClient } from "../../repositories/fast-login-api";
+import { FnFastLoginAPIClient } from "../../repositories/fast-login-api";
 import { readableProblem } from "../../utils/errors";
 import {
   BPDToken,
@@ -45,6 +45,7 @@ import { RedisSessionStorageService } from "../../services";
 import { BadRequest } from "../../generated/fast-login-api/BadRequest";
 import * as spidUtils from "../../utils/spid";
 import { UserWithoutTokens } from "../../types/user";
+import { FastLoginConfig } from "../../config";
 
 const aRandomToken = "RANDOMTOKEN";
 const validFastLoginControllerResponse = {
@@ -71,7 +72,7 @@ const mockLCFastLogin = vi
 const fastLoginLCClient = {
   generateNonce: mockGenerateNonce,
   fastLogin: mockLCFastLogin,
-} as unknown as ReturnType<getFnFastLoginAPIClient>;
+} as unknown as ReturnType<FnFastLoginAPIClient>;
 
 const mockGetNewToken = vi.fn().mockResolvedValue(aRandomToken);
 vi.mock("../../services/token", () => ({
@@ -109,10 +110,11 @@ const fastLoginLollipopLocals: LollipopLocalsType = {
 
 const fastLoginBaseDeps = {
   fnFastLoginAPIClient: fastLoginLCClient,
-  sessionTTL,
+  lvTokenDurationSecs: sessionTTL,
   redisClientSelector: mockRedisClientSelector,
   clientIP: aClientIP,
   locals: fastLoginLollipopLocals,
+  sessionTTL: FastLoginConfig.lvTokenDurationSecs,
 };
 
 // eslint-disable-next-line max-lines-per-function

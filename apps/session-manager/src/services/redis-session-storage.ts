@@ -13,6 +13,7 @@ import { isNumber } from "fp-ts/lib/number";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as ROA from "fp-ts/ReadonlyArray";
 import * as RTE from "fp-ts/ReaderTaskEither";
+import { Second } from "@pagopa/ts-commons/lib/units";
 import {
   BPDToken,
   FIMSToken,
@@ -26,14 +27,21 @@ import { RedisRepo } from "../repositories";
 import { blockedUserSetKey, lollipopDataPrefix } from "../repositories/redis";
 import {
   LollipopData,
+  LollipopDataFromString,
   NullableBackendAssertionRefFromString,
 } from "../types/assertion-ref";
 import { LoginTypeEnum } from "../types/fast-login";
-import { AssertionRef } from "../generated/backend/AssertionRef";
+import { AssertionRef as BackendAssertionRef } from "../generated/backend/AssertionRef";
 import { SessionInfo } from "../generated/backend/SessionInfo";
 import { log } from "../utils/logger";
 import { multipleErrorsFormatter } from "../utils/errors";
 import { RedisClientMode, RedisClientSelectorType } from "../types/redis";
+
+// LolliPoP protocol configuration params
+export const DEFAULT_LOLLIPOP_ASSERTION_REF_DURATION = (3600 *
+  24 *
+  365 *
+  2) as Second; // 2y default assertionRef duration on redis cache
 
 const parseUser = (value: string): E.Either<Error, User> =>
   pipe(
@@ -154,7 +162,7 @@ export const delLollipopDataForUser: RTE.ReaderTaskEither<
 export const getLollipopAssertionRefForUser: RTE.ReaderTaskEither<
   RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
   Error,
-  O.Option<AssertionRef>
+  O.Option<BackendAssertionRef>
 > = (deps) =>
   pipe(
     deps,
@@ -206,6 +214,60 @@ const getLollipopDataForUser: RTE.ReaderTaskEither<
       ),
     ),
   );
+
+export const setLollipopAssertionRefForUser: (
+  user: User,
+  assertionRef: BackendAssertionRef,
+  expireAssertionRefSec?: Second,
+) => RTE.ReaderTaskEither<RedisRepo.RedisRepositoryDeps, Error, boolean> =
+  (
+    user,
+    assertionRef,
+    expireAssertionRefSec = DEFAULT_LOLLIPOP_ASSERTION_REF_DURATION,
+  ) =>
+  (deps) =>
+    pipe(
+      TE.tryCatch(
+        () =>
+          deps.redisClientSelector
+            .selectOne(RedisClientMode.FAST)
+            .setEx(
+              `${lollipopDataPrefix}${user.fiscal_code}`,
+              expireAssertionRefSec,
+              assertionRef,
+            ),
+        E.toError,
+      ),
+      singleStringReplyAsync,
+      falsyResponseToErrorAsync(new Error("Error setting user key")),
+    );
+
+export const setLollipopDataForUser: (
+  user: User,
+  data: LollipopData,
+  expireAssertionRefSec?: Second,
+) => RTE.ReaderTaskEither<RedisRepo.RedisRepositoryDeps, Error, boolean> =
+  (
+    user,
+    data,
+    expireAssertionRefSec = DEFAULT_LOLLIPOP_ASSERTION_REF_DURATION,
+  ) =>
+  (deps) =>
+    pipe(
+      TE.tryCatch(
+        () =>
+          deps.redisClientSelector
+            .selectOne(RedisClientMode.FAST)
+            .setEx(
+              `${lollipopDataPrefix}${user.fiscal_code}`,
+              expireAssertionRefSec,
+              LollipopDataFromString.encode(data),
+            ),
+        E.toError,
+      ),
+      singleStringReplyAsync,
+      falsyResponseToErrorAsync(new Error("Error setting user key")),
+    );
 
 const singleStringReplyAsync = (command: TE.TaskEither<Error, string | null>) =>
   pipe(
