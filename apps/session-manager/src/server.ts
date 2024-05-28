@@ -20,7 +20,7 @@ const maybeAppInsightsClient = pipe(
       samplingPercentage: AppInsightsConfig.APPINSIGHTS_SAMPLING_PERCENTAGE,
     }),
   ),
-  O.getOrElseW(() => undefined),
+  O.toUndefined,
 );
 
 newApp({ appInsightsClient: maybeAppInsightsClient })
