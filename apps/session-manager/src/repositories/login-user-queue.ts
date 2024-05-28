@@ -29,10 +29,12 @@ export const logUserLogin: (
   Error,
   QueueSendMessageResponse
 > = (userLogin) => (deps) => {
-  const revokeMessage = UserLogin.encode(userLogin);
+  const userLoginMessage = UserLogin.encode(userLogin);
   return TE.tryCatch(
     () =>
-      deps.loginUserEventQueue.sendMessage(base64EncodeObject(revokeMessage)),
+      deps.loginUserEventQueue.sendMessage(
+        base64EncodeObject(userLoginMessage),
+      ),
     E.toError,
   );
 };
