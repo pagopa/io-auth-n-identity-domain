@@ -1,4 +1,4 @@
-import * as AuthenticationController from "./autentication";
+import * as AuthenticationController from "./authentication";
 import * as SessionController from "./session";
 import * as FastLoginController from "./fast-login";
 import * as SpidLogsController from "./spid-logs";

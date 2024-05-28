@@ -63,16 +63,13 @@ import {
   getClientProfileRedirectionUrl,
 } from "./config/spid";
 import {
-  FF_IOLOGIN,
   FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
   FF_USER_AGE_LIMIT_ENABLED,
-  IOLOGIN_CANARY_USERS_SHA_REGEX,
-  IOLOGIN_USERS_LIST,
   IS_SPID_EMAIL_PERSISTENCE_ENABLED,
   TEST_LOGIN_FISCAL_CODES,
+  isUserElegibleForIoLoginUrlScheme,
   standardTokenDurationSecs,
 } from "./config/login";
-import { getIsUserElegibleForIoLoginUrlScheme } from "./utils/login-uri-scheme";
 import { initStorageDependencies } from "./utils/storages";
 import { omit } from "./utils/types";
 import { isUserElegibleForFastLogin } from "./config/fast-login";
@@ -245,13 +242,6 @@ export const newApp: (
   );
 
   const TIMER = TimeTracer();
-
-  const isUserElegibleForIoLoginUrlScheme =
-    getIsUserElegibleForIoLoginUrlScheme(
-      IOLOGIN_USERS_LIST,
-      IOLOGIN_CANARY_USERS_SHA_REGEX,
-      FF_IOLOGIN,
-    );
 
   const withSpidApp = await pipe(
     TE.tryCatch(

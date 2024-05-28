@@ -18,9 +18,9 @@ import { LoginTypeEnum } from "../types/fast-login";
 import { AssertionTypeEnum } from "../generated/fast-login-api/AssertionType";
 import { LollipopJWTAuthorization } from "../generated/fast-login-api/LollipopJWTAuthorization";
 import { LollipopPublicKey } from "../generated/fast-login-api/LollipopPublicKey";
+import { ActivatedPubKey } from "../generated/lollipop-api/ActivatedPubKey";
 import { aFiscalCode } from "./user.mocks";
 import { getASAMLResponse } from "./spid.mocks";
-import { ActivatedPubKey } from "../generated/lollipop-api/ActivatedPubKey";
 
 export const anAssertionRef =
   "sha256-6LvipIvFuhyorHpUqK3HjySC5Y6gshXHFBhU9EJ4DoM=" as AssertionRefSha256;

@@ -13,6 +13,7 @@ import * as O from "fp-ts/Option";
 import * as A from "fp-ts/lib/Array";
 import { Second } from "@pagopa/ts-commons/lib/units";
 import { getRequiredENVVar } from "../utils/environment";
+import { getIsUserElegibleForIoLoginUrlScheme } from "../utils/login-uri-scheme";
 
 // Password login params
 export const TEST_LOGIN_FISCAL_CODES: ReadonlyArray<FiscalCode> = pipe(
@@ -110,3 +111,10 @@ const DEFAULT_TOKEN_DURATION_IN_SECONDS = (3600 * 24 * 30) as Second;
 export const standardTokenDurationSecs = process.env.TOKEN_DURATION_IN_SECONDS
   ? (parseInt(process.env.TOKEN_DURATION_IN_SECONDS, 10) as Second)
   : DEFAULT_TOKEN_DURATION_IN_SECONDS;
+
+export const isUserElegibleForIoLoginUrlScheme =
+  getIsUserElegibleForIoLoginUrlScheme(
+    IOLOGIN_USERS_LIST,
+    IOLOGIN_CANARY_USERS_SHA_REGEX,
+    FF_IOLOGIN,
+  );

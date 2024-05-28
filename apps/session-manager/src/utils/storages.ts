@@ -13,8 +13,8 @@ import {
   LOLLIPOP_REVOKE_QUEUE_NAME,
 } from "../config/lollipop";
 import {
-  NOTIFICATIONS_STORAGE_CONNECTION_STRING,
-  NOTIFICATIONS_QUEUE_NAME,
+  PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING,
+  PUSH_NOTIFICATIONS_QUEUE_NAME,
 } from "../config/notifications";
 import { SpidLogConfig } from "../config";
 
@@ -35,8 +35,8 @@ export const initStorageDependencies = () => {
   );
 
   const notificationQueueClient = new QueueClient(
-    NOTIFICATIONS_STORAGE_CONNECTION_STRING,
-    NOTIFICATIONS_QUEUE_NAME,
+    PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING,
+    PUSH_NOTIFICATIONS_QUEUE_NAME,
   );
 
   // Create the Client to the Spid Log Queue
