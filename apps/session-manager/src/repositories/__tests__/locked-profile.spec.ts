@@ -6,7 +6,7 @@ import {
   getUserAuthenticationLocks,
   lockUserAuthentication,
   unlockUserAuthentication,
-} from "../locked-profile";
+} from "../locked-profiles";
 import {
   aNotReleasedData,
   anUnlockCode,

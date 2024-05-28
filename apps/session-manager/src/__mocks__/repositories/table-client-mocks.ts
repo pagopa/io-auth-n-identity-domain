@@ -6,7 +6,7 @@ import {
 import { Mock, vi } from "vitest";
 import { PagedAsyncIterableIterator } from "@azure/data-tables/dist/index";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { NotReleasedAuthenticationLockData } from "../../repositories/locked-profile";
+import { NotReleasedAuthenticationLockData } from "../../repositories/locked-profiles";
 import { aFiscalCode } from "../user.mocks";
 import { UnlockCode } from "../../generated/fast-login-api/UnlockCode";
 

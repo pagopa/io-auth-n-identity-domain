@@ -23,7 +23,7 @@ import {
   AUTHENTICATION_LOCKED_ERROR,
   AcsDependencies,
   acs,
-} from "../autentication";
+} from "../authentication";
 import { mockedFnAppAPIClient } from "../../__mocks__/repositories/fn-app-api-mocks";
 import { mockedTableClient } from "../../__mocks__/repositories/table-client-mocks";
 import { mockQueueClient } from "../../__mocks__/repositories/queue-client.mocks";
