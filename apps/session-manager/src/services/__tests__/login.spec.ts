@@ -31,7 +31,7 @@ describe("LoginController#onUserLogin", () => {
   }
   test.each`
     title                                                               | startNotifyLoginProcess       | type                    | expectedResult
-    ${"returns true when remote service success"}                       | ${E.right({ status: 202 })}   | ${ResponseType.RESOLVE} | ${E.right(true)}
+    ${"returns true when remote service succeeded"}                       | ${E.right({ status: 202 })}   | ${ResponseType.RESOLVE} | ${E.right(true)}
     ${"returns an error when a network error occurs"}                   | ${new Error("network error")} | ${ResponseType.REJECT}  | ${"Error calling startNotifyLoginProcess:"}
     ${"returns an error when remote service response not success"}      | ${E.right({ status: 404 })}   | ${ResponseType.RESOLVE} | ${"startNotifyLoginProcess returned"}
     ${"returns an error when the API client return a validation error"} | ${t.string.decode(1)}         | ${ResponseType.RESOLVE} | ${"Error decoding startNotifyLoginProcess response:"}
