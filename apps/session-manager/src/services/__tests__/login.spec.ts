@@ -31,10 +31,10 @@ describe("LoginController#onUserLogin", () => {
   }
   test.each`
     title                                                               | startNotifyLoginProcess       | type                    | expectedResult
-    ${"returns true when remote service succeeded"}                       | ${E.right({ status: 202 })}   | ${ResponseType.RESOLVE} | ${E.right(true)}
-    ${"returns an error when a network error occurs"}                   | ${new Error("network error")} | ${ResponseType.REJECT}  | ${"Error calling startNotifyLoginProcess:"}
-    ${"returns an error when remote service response not success"}      | ${E.right({ status: 404 })}   | ${ResponseType.RESOLVE} | ${"startNotifyLoginProcess returned"}
-    ${"returns an error when the API client return a validation error"} | ${t.string.decode(1)}         | ${ResponseType.RESOLVE} | ${"Error decoding startNotifyLoginProcess response:"}
+    ${"returns true when remote service succeeded"}                     | ${E.right({ status: 202 })}   | ${ResponseType.RESOLVE} | ${E.right(true)}
+    ${"returns an error when a network error occurs"}                   | ${new Error("network error")} | ${ResponseType.REJECT}  | ${E.left(new Error("Error calling startNotifyLoginProcess: Error: network error"))}
+    ${"returns an error when remote service response not success"}      | ${E.right({ status: 404 })}   | ${ResponseType.RESOLVE} | ${E.left(new Error("startNotifyLoginProcess returned 404"))}
+    ${"returns an error when the API client return a validation error"} | ${t.string.decode(1)}         | ${ResponseType.RESOLVE} | ${E.left(new Error("Error decoding startNotifyLoginProcess response: value [1] at [root] is not a valid [string]"))}
   `(
     "should $title",
     async ({ startNotifyLoginProcess, type, expectedResult }) => {
@@ -49,11 +49,8 @@ describe("LoginController#onUserLogin", () => {
       const result = await onUserLogin(aUserLoginParams)({
         fnAppAPIClient: mockedFnAppAPIClient,
       })();
-      if (typeof expectedResult === "string" && E.isLeft(result)) {
-        expect(result.left.message).contains(expectedResult);
-      } else {
-        expect(result).toEqual(expectedResult);
-      }
+
+      expect(result).toEqual(expectedResult);
     },
   );
 });
