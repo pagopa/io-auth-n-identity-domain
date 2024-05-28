@@ -11,9 +11,9 @@ export const mockGenerateLCParams = vi.fn().mockResolvedValue(
   }),
 );
 
-const mockActivatePubKey = vi.fn();
-const mockReservePubKey = vi.fn();
-const mockPing = vi.fn();
+export const mockActivatePubKey = vi.fn();
+export const mockReservePubKey = vi.fn();
+export const mockPing = vi.fn();
 
 export const mockedLollipopApiClient: LollipopApiClient = {
   generateLCParams: mockGenerateLCParams,
