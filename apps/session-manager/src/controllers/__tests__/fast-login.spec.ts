@@ -46,6 +46,7 @@ import { BadRequest } from "../../generated/fast-login-api/BadRequest";
 import * as spidUtils from "../../utils/spid";
 import { UserWithoutTokens } from "../../types/user";
 import { FastLoginConfig } from "../../config";
+import { toExpectedResponse } from "../../__tests__/utils";
 
 const aRandomToken = "RANDOMTOKEN";
 const validFastLoginControllerResponse = {
@@ -170,10 +171,11 @@ describe("fastLoginController#fastLogin", () => {
     expect(mockGetNewToken).toHaveBeenCalledTimes(7);
 
     expect(response).toEqual(
-      E.right({
-        ...ResponseSuccessJson(validFastLoginControllerResponse),
-        apply: expect.any(Function),
-      }),
+      E.right(
+        toExpectedResponse(
+          ResponseSuccessJson(validFastLoginControllerResponse),
+        ),
+      ),
     );
   });
 
@@ -220,10 +222,11 @@ describe("fastLoginController#fastLogin", () => {
 
     expect(mockLCFastLogin).toHaveBeenCalledTimes(1);
     expect(response).toEqual(
-      E.right({
-        ...ResponseErrorUnauthorized("Invalid signature or nonce expired"),
-        apply: expect.any(Function),
-      }),
+      E.right(
+        toExpectedResponse(
+          ResponseErrorUnauthorized("Invalid signature or nonce expired"),
+        ),
+      ),
     );
   });
 
@@ -269,10 +272,7 @@ describe("fastLoginController#fastLogin", () => {
     expect(mockLCFastLogin).toHaveBeenCalledTimes(1);
     expect(mockIsBlockedUser).toHaveBeenCalledTimes(1);
     expect(response).toEqual(
-      E.right({
-        ...ResponseErrorUnauthorized("User is blocked"),
-        apply: expect.any(Function),
-      }),
+      E.right(toExpectedResponse(ResponseErrorUnauthorized("User is blocked"))),
     );
   });
 
@@ -359,12 +359,7 @@ describe("fastLoginController#generateNonce", () => {
     const expectedResult = ResponseSuccessJson(aValidGenerateNonceResponse);
 
     expect(mockGenerateNonce).toHaveBeenCalled();
-    expect(result).toEqual(
-      E.right({
-        ...expectedResult,
-        apply: expect.any(Function),
-      }),
-    );
+    expect(result).toEqual(E.right(toExpectedResponse(expectedResult)));
   });
 
   it.each`

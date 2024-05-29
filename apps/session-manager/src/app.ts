@@ -63,6 +63,7 @@ import {
   ALLOWED_CIE_TEST_FISCAL_CODES,
   getClientErrorRedirectionUrl,
   getClientProfileRedirectionUrl,
+  clientProfileRedirectionUrl,
 } from "./config/spid";
 import {
   FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
@@ -71,7 +72,6 @@ import {
   TEST_LOGIN_FISCAL_CODES,
   isUserElegibleForIoLoginUrlScheme,
   standardTokenDurationSecs,
-  clientProfileRedirectionUrl,
   TEST_LOGIN_PASSWORD,
 } from "./config/login";
 import { initStorageDependencies } from "./utils/storages";

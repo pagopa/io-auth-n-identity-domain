@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   ResponseErrorInternal,
   ResponseErrorNotFound,
+  ResponsePermanentRedirect,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import { Response } from "express";
@@ -17,12 +18,14 @@ import * as O from "fp-ts/Option";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
+import * as E from "fp-ts/Either";
 import {
   AGE_LIMIT,
   AGE_LIMIT_ERROR_CODE,
   AUTHENTICATION_LOCKED_ERROR,
   AcsDependencies,
   acs,
+  acsTest,
 } from "../authentication";
 import { mockedFnAppAPIClient } from "../../__mocks__/repositories/fn-app-api-mocks";
 import { mockedTableClient } from "../../__mocks__/repositories/table-client-mocks";
@@ -31,6 +34,7 @@ import { mockedLollipopApiClient } from "../../__mocks__/repositories/lollipop-a
 import {
   getClientErrorRedirectionUrl,
   getClientProfileRedirectionUrl,
+  clientProfileRedirectionUrl,
 } from "../../config/spid";
 import { standardTokenDurationSecs } from "../../config/login";
 import {
@@ -81,6 +85,8 @@ import { ActivatedPubKey } from "../../generated/lollipop-api/ActivatedPubKey";
 import { LollipopRevokeRepo } from "../../repositories";
 import { LoginTypeEnum } from "../../types/fast-login";
 import { SpidLevelEnum } from "../../types/spid-level";
+import * as AuthController from "../authentication";
+import { toExpectedResponse } from "../../__tests__/utils";
 
 const mockTelemetryClient = {
   trackEvent: vi.fn(),
@@ -544,6 +550,7 @@ const mockDeleteAssertionRefAssociation = vi
 
 // eslint-disable-next-line max-lines-per-function
 describe("AuthenticationController#acs Lollipop", () => {
+  const acsErrorEventName = "lollipop.error.acs";
   test(`redirects to the correct url using the lollipop features`, async () => {
     mockGetProfile.mockReturnValueOnce(
       TE.of(ResponseSuccessJson(mockedInitializedProfile)),
@@ -654,7 +661,7 @@ describe("AuthenticationController#acs Lollipop", () => {
       response.apply(res);
 
       expect(mockTelemetryClient.trackEvent).toHaveBeenCalledWith({
-        name: "lollipop.error.acs",
+        name: acsErrorEventName,
         properties: expect.objectContaining({
           assertion_ref: anotherAssertionRef,
           fiscal_code: sha256(aFiscalCode),
@@ -738,7 +745,7 @@ describe("AuthenticationController#acs Lollipop", () => {
       response.apply(res);
 
       expect(mockTelemetryClient.trackEvent).toHaveBeenCalledWith({
-        name: "lollipop.error.acs",
+        name: acsErrorEventName,
         properties: expect.objectContaining({
           fiscal_code: sha256(aFiscalCode),
           message: `acs: ${errorMessage}`,
@@ -779,7 +786,7 @@ describe("AuthenticationController#acs Lollipop", () => {
     response.apply(res);
 
     expect(mockTelemetryClient.trackEvent).toHaveBeenCalledWith({
-      name: "lollipop.error.acs",
+      name: acsErrorEventName,
       properties: expect.objectContaining({
         fiscal_code: sha256(aFiscalCode),
         message: "Error retrieving previous lollipop configuration",
@@ -1010,7 +1017,7 @@ describe("AuthenticationController#acs LV", () => {
 
       expect(res.redirect).toHaveBeenCalledWith(
         301,
-        expect.stringContaining("/profile.html?token=" + mockSessionToken),
+        expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
       );
     },
   );
@@ -1035,7 +1042,7 @@ describe("AuthenticationController#acs LV", () => {
 
     expect(res.redirect).toHaveBeenCalledWith(
       301,
-      expect.stringContaining("/profile.html?token=" + mockSessionToken),
+      expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
   });
 
@@ -1059,7 +1066,7 @@ describe("AuthenticationController#acs LV", () => {
 
     expect(res.redirect).toHaveBeenCalledWith(
       301,
-      expect.stringContaining("/profile.html?token=" + mockSessionToken),
+      expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
   });
 
@@ -1093,7 +1100,7 @@ describe("AuthenticationController#acs LV Notify user login", () => {
 
     expect(res.redirect).toHaveBeenCalledWith(
       301,
-      expect.stringContaining("/profile.html?token=" + mockSessionToken),
+      expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
     expect(mockSet).toHaveBeenCalledWith(
       mockRedisClientSelector,
@@ -1128,7 +1135,7 @@ describe("AuthenticationController#acs LV Notify user login", () => {
 
     expect(res.redirect).toHaveBeenCalledWith(
       301,
-      expect.stringContaining("/profile.html?token=" + mockSessionToken),
+      expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
 
     expect(mockOnUserLogin).toHaveBeenCalledWith({
@@ -1175,6 +1182,32 @@ describe("AuthenticationController#acs LV Notify user login", () => {
           message: "acs: Unable to notify user login event",
         },
       }),
+    );
+  });
+});
+
+describe("AuthenticationController#acsTest", () => {
+  const acsSpyOn = vi.spyOn(AuthController, "acs");
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetMock(res as unknown as ReturnType<typeof mockRes>);
+  });
+  afterAll(() => {
+    acsSpyOn.mockRestore();
+  });
+  test("should return ResponseSuccessJson with a valid token if acs succeeded", async () => {
+    const expectedToken = "token-111-222";
+    acsSpyOn.mockReturnValueOnce(async (_: unknown) =>
+      ResponsePermanentRedirect(getClientProfileRedirectionUrl(expectedToken)),
+    );
+    const response = await acsTest(validUserPayload)({
+      ...dependencies,
+      clientProfileRedirectionUrl,
+    })();
+    expect(response).toEqual(
+      E.right(
+        toExpectedResponse(ResponseSuccessJson({ token: expectedToken })),
+      ),
     );
   });
 });

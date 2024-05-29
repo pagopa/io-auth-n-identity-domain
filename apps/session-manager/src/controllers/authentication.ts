@@ -79,6 +79,7 @@ import { AssertionRef } from "../generated/backend/AssertionRef";
 import { CreateNewProfileDependencies } from "../services/profile";
 import { AccessToken } from "../generated/public/AccessToken";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
+import { AuthenticationController } from ".";
 
 // Minimum user age allowed to login if the Age limit is enabled
 export const AGE_LIMIT = 14;
@@ -681,7 +682,8 @@ export const acsTest: (
   | IResponseSuccessJson<AccessToken>
 > = (userPayload) => (deps) =>
   TE.tryCatch(async () => {
-    const acsResponse = await acs(deps)(
+    // Use the imported acs to handle the spyOn on unit tests.
+    const acsResponse = await AuthenticationController.acs(deps)(
       userPayload,
       pipe(
         validateSpidUser(userPayload),
