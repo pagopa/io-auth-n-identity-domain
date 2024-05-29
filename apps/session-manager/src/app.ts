@@ -30,6 +30,7 @@ import {
   SSOController,
   ZendeskController,
   BPDController,
+  PagoPAController,
 } from "./controllers";
 import {
   applyErrorMiddleware,
@@ -46,6 +47,7 @@ import {
   BPDConfig,
   FastLoginConfig,
   LollipopConfig,
+  PagoPAConfig,
   SpidConfig,
   ZendeskConfig,
 } from "./config";
@@ -73,6 +75,7 @@ import {
 import { initStorageDependencies } from "./utils/storages";
 import { omit } from "./utils/types";
 import { isUserElegibleForFastLogin } from "./config/fast-login";
+import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -241,6 +244,20 @@ export const newApp: (
     ),
   );
 
+  app.get(
+    `${PagoPAConfig.PAGOPA_BASE_PATH}/user`,
+    checkIP(PagoPAConfig.ALLOW_PAGOPA_IP_SOURCE_RANGE),
+    authMiddlewares.bearerWallet,
+    pipe(
+      toExpressHandler({
+        enableNoticeEmailCache: PagoPAConfig.ENABLE_NOTICE_EMAIL_CACHE,
+        redisClientSelector:  REDIS_CLIENT_SELECTOR,
+        ...pick(["fnAppAPIClient"], APIClients),
+      }),
+      ap(withUserFromRequest(PagoPAController.getUser)),
+    ),
+  );
+
   const TIMER = TimeTracer();
 
   const withSpidApp = await pipe(
@@ -351,6 +368,12 @@ const setupAuthentication = (
 
   // Add the strategy to authenticate BPD clients.
   passport.use("bearer.bpd", bearerBPDTokenStrategy(REDIS_CLIENT_SELECTOR));
+
+  // Add the strategy to authenticate proxy clients.
+  passport.use(
+    "bearer.wallet",
+    bearerWalletTokenStrategy(REDIS_CLIENT_SELECTOR),
+  );
 };
 
 // TODO [#IOPID-1858]: Add IP Filtering
@@ -413,6 +436,9 @@ function setupAuthenticationMiddlewares() {
       session: false,
     }),
     bearerBPD: passport.authenticate("bearer.bpd", {
+      session: false,
+    }),
+    bearerWallet: passport.authenticate("bearer.wallet", {
       session: false,
     }),
   };
