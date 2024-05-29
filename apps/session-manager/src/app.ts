@@ -71,11 +71,16 @@ import {
   TEST_LOGIN_FISCAL_CODES,
   isUserElegibleForIoLoginUrlScheme,
   standardTokenDurationSecs,
+  clientProfileRedirectionUrl,
+  TEST_LOGIN_PASSWORD,
 } from "./config/login";
 import { initStorageDependencies } from "./utils/storages";
 import { omit } from "./utils/types";
 import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
+import { AcsDependencies } from "./controllers/authentication";
+import { localStrategy } from "./auth/local-strategy";
+import { FF_LOLLIPOP_ENABLED } from "./config/lollipop";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -149,6 +154,53 @@ export const newApp: (
   app.get("/healthcheck", (_req: express.Request, res: express.Response) => {
     res.send("ok");
   });
+
+  const acsDependencies: AcsDependencies = {
+    redisClientSelector: REDIS_CLIENT_SELECTOR,
+    isLollipopEnabled: FF_LOLLIPOP_ENABLED,
+    appInsightsTelemetryClient: appInsightsClient,
+    getClientErrorRedirectionUrl,
+    getClientProfileRedirectionUrl,
+    isUserElegibleForIoLoginUrlScheme,
+    FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
+    isSpidEmailPersistenceEnabled: IS_SPID_EMAIL_PERSISTENCE_ENABLED,
+    testLoginFiscalCodes: TEST_LOGIN_FISCAL_CODES,
+    hasUserAgeLimitEnabled: FF_USER_AGE_LIMIT_ENABLED,
+    allowedCieTestFiscalCodes: ALLOWED_CIE_TEST_FISCAL_CODES,
+    standardTokenDurationSecs,
+    lvTokenDurationSecs: FastLoginConfig.lvTokenDurationSecs,
+    lvLongSessionDurationSecs: FastLoginConfig.lvLongSessionDurationSecs,
+    ...pick(["fnAppAPIClient", "fnLollipopAPIClient"], APIClients),
+    ...omit(["spidLogQueueClient"], storageDependencies),
+    isUserElegibleForFastLogin,
+  };
+
+  pipe(
+    TEST_LOGIN_PASSWORD,
+    E.map((testLoginPassword) => {
+      passport.use(
+        "local",
+        localStrategy(
+          TEST_LOGIN_FISCAL_CODES,
+          testLoginPassword,
+          FF_LOLLIPOP_ENABLED,
+          APIClients.fnLollipopAPIClient,
+        ),
+      );
+
+      app.post(`/test-login`, authMiddlewares.local, (req) =>
+        toExpressHandler({
+          ...acsDependencies,
+          clientProfileRedirectionUrl,
+        })(
+          AuthenticationController.acsTest({
+            ...req.user,
+            getAcsOriginalRequest: () => req,
+          }),
+        ),
+      );
+    }),
+  );
 
   app.get(
     `${API_BASE_PATH}/session`,
@@ -264,26 +316,7 @@ export const newApp: (
     TE.tryCatch(
       () =>
         withSpid({
-          acs: AuthenticationController.acs({
-            redisClientSelector: REDIS_CLIENT_SELECTOR,
-            isLollipopEnabled: true,
-            appInsightsTelemetryClient: appInsightsClient,
-            getClientErrorRedirectionUrl,
-            getClientProfileRedirectionUrl,
-            isUserElegibleForIoLoginUrlScheme,
-            FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
-            isSpidEmailPersistenceEnabled: IS_SPID_EMAIL_PERSISTENCE_ENABLED,
-            testLoginFiscalCodes: TEST_LOGIN_FISCAL_CODES,
-            hasUserAgeLimitEnabled: FF_USER_AGE_LIMIT_ENABLED,
-            allowedCieTestFiscalCodes: ALLOWED_CIE_TEST_FISCAL_CODES,
-            standardTokenDurationSecs,
-            lvTokenDurationSecs: FastLoginConfig.lvTokenDurationSecs,
-            lvLongSessionDurationSecs:
-              FastLoginConfig.lvLongSessionDurationSecs,
-            ...pick(["fnAppAPIClient", "fnLollipopAPIClient"], APIClients),
-            ...omit(["spidLogQueueClient"], storageDependencies),
-            isUserElegibleForFastLogin,
-          }),
+          acs: AuthenticationController.acs(acsDependencies),
           app,
           appConfig: {
             ...SpidConfig.appConfig,
@@ -439,6 +472,9 @@ function setupAuthenticationMiddlewares() {
       session: false,
     }),
     bearerWallet: passport.authenticate("bearer.wallet", {
+      session: false,
+    }),
+    local: passport.authenticate("local", {
       session: false,
     }),
   };

@@ -1,10 +1,15 @@
 /* eslint-disable max-lines-per-function */
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 import {
+  IResponseErrorForbiddenNotAuthorized,
+  IResponseErrorInternal,
+  IResponseErrorValidation,
+  IResponseSuccessJson,
   ResponseErrorForbiddenNotAuthorized,
   ResponseErrorInternal,
   ResponseErrorValidation,
   ResponsePermanentRedirect,
+  ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
 import * as E from "fp-ts/Either";
@@ -12,6 +17,7 @@ import {
   EmailString,
   FiscalCode,
   IPString,
+  NonEmptyString,
 } from "@pagopa/ts-commons/lib/strings";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as B from "fp-ts/lib/boolean";
@@ -23,7 +29,10 @@ import * as TE from "fp-ts/TaskEither";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
 import { UserLoginParams } from "@pagopa/io-functions-app-sdk/UserLoginParams";
-import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
+import {
+  errorsToReadableMessages,
+  readableReportSimplified,
+} from "@pagopa/ts-commons/lib/reporters";
 import {
   LoginUserEventRepo,
   FnLollipopRepo,
@@ -45,7 +54,7 @@ import {
   getIsUserElegibleForIoLoginUrlScheme,
   internalErrorOrIoLoginRedirect,
 } from "../utils/login-uri-scheme";
-import { getLoginTypeOnElegible } from "../utils/fast-login";
+import { acsRequestMapper, getLoginTypeOnElegible } from "../utils/fast-login";
 import {
   AuthenticationLockService,
   LoginService,
@@ -68,6 +77,7 @@ import { RevokeAssertionRefDeps } from "../repositories/lollipop-revoke-queue";
 import { getRequestIDFromResponse } from "../utils/spid";
 import { AssertionRef } from "../generated/backend/AssertionRef";
 import { CreateNewProfileDependencies } from "../services/profile";
+import { AccessToken } from "../generated/public/AccessToken";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 
 // Minimum user age allowed to login if the Age limit is enabled
@@ -658,3 +668,63 @@ export const acs: (
       E.toUnion,
     );
   };
+
+export const acsTest: (
+  userPayload: unknown,
+) => (
+  dependencies: AcsDependencies & { clientProfileRedirectionUrl: string },
+) => TE.TaskEither<
+  Error,
+  | IResponseErrorInternal
+  | IResponseErrorValidation
+  | IResponseErrorForbiddenNotAuthorized
+  | IResponseSuccessJson<AccessToken>
+> = (userPayload) => (deps) =>
+  TE.tryCatch(async () => {
+    const acsResponse = await acs(deps)(
+      userPayload,
+      pipe(
+        validateSpidUser(userPayload),
+        E.chainW((spidUser) =>
+          acsRequestMapper(spidUser.getAcsOriginalRequest()),
+        ),
+        E.getOrElseW(() => ({})),
+      ),
+    );
+    // When the login succeeded with a ResponsePermanentRedirect (301)
+    // the token was extract from the response and returned into the body
+    // of a ResponseSuccessJson (200)
+    // Ref: https://www.pivotaltracker.com/story/show/173847889
+    if (acsResponse.kind === "IResponsePermanentRedirect") {
+      const REDIRECT_URL = deps.clientProfileRedirectionUrl.replace(
+        "{token}",
+        "",
+      );
+      return pipe(
+        acsResponse.detail,
+        E.fromNullable(
+          new Error("Missing detail in ResponsePermanentRedirect"),
+        ),
+        E.chain((_) => {
+          if (_.includes(REDIRECT_URL)) {
+            return E.right(_.replace(REDIRECT_URL, ""));
+          }
+          return E.left(new Error("Unexpected redirection url"));
+        }),
+        E.chain((token) =>
+          pipe(
+            token,
+            NonEmptyString.decode,
+            E.mapLeft(
+              (err) =>
+                new Error(`Decode Error: [${errorsToReadableMessages(err)}]`),
+            ),
+          ),
+        ),
+        E.map((token) => ResponseSuccessJson({ token })),
+        E.mapLeft((err) => ResponseErrorInternal(err.message)),
+        E.toUnion,
+      );
+    }
+    return acsResponse;
+  }, E.toError);

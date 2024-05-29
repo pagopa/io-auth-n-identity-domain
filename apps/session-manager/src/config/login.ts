@@ -14,6 +14,7 @@ import * as A from "fp-ts/lib/Array";
 import { Second } from "@pagopa/ts-commons/lib/units";
 import { getRequiredENVVar } from "../utils/environment";
 import { getIsUserElegibleForIoLoginUrlScheme } from "../utils/login-uri-scheme";
+import { BACKEND_HOST } from ".";
 
 // Password login params
 export const TEST_LOGIN_FISCAL_CODES: ReadonlyArray<FiscalCode> = pipe(
@@ -118,3 +119,9 @@ export const isUserElegibleForIoLoginUrlScheme =
     IOLOGIN_CANARY_USERS_SHA_REGEX,
     FF_IOLOGIN,
   );
+
+export const clientProfileRedirectionUrl = `${BACKEND_HOST}/profile.html?token={token}`;
+
+export const TEST_LOGIN_PASSWORD = NonEmptyString.decode(
+  process.env.TEST_LOGIN_PASSWORD,
+);
