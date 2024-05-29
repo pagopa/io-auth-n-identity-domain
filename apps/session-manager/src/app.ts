@@ -251,7 +251,7 @@ export const newApp: (
     pipe(
       toExpressHandler({
         enableNoticeEmailCache: PagoPAConfig.ENABLE_NOTICE_EMAIL_CACHE,
-        redisClientSelector:  REDIS_CLIENT_SELECTOR,
+        redisClientSelector: REDIS_CLIENT_SELECTOR,
         ...pick(["fnAppAPIClient"], APIClients),
       }),
       ap(withUserFromRequest(PagoPAController.getUser)),

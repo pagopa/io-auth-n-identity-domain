@@ -8,7 +8,7 @@ import {
 } from "@pagopa/ts-commons/lib/responses";
 import * as TE from "fp-ts/TaskEither";
 import * as RTE from "fp-ts/ReaderTaskEither";
-import { flow, pipe } from "fp-ts/function";
+import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { EmailString } from "@pagopa/ts-commons/lib/strings";
 import { FnAppAPIRepositoryDeps } from "../repositories/fn-app-api";
