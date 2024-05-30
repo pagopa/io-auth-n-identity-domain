@@ -2,7 +2,10 @@
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
-import { getNodeEnvironmentFromProcessEnv } from "@pagopa/ts-commons/lib/environment";
+import {
+  NodeEnvironmentEnum,
+  getNodeEnvironmentFromProcessEnv,
+} from "@pagopa/ts-commons/lib/environment";
 import { log } from "../utils/logger";
 import { IoLoginHostUrl } from "../types/common";
 
@@ -16,6 +19,10 @@ import * as ZendeskConfig from "./zendesk";
 import * as PagoPAConfig from "./pagopa";
 
 export const ENV = getNodeEnvironmentFromProcessEnv(process.env);
+
+export const isDevEnv =
+  getNodeEnvironmentFromProcessEnv(process.env) ===
+  NodeEnvironmentEnum.DEVELOPMENT;
 
 export const BACKEND_HOST = pipe(
   process.env.BACKEND_HOST,

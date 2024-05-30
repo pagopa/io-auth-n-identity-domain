@@ -50,6 +50,7 @@ import {
   PagoPAConfig,
   SpidConfig,
   ZendeskConfig,
+  isDevEnv,
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import { LollipopService, RedisSessionStorageService } from "./services";
@@ -92,10 +93,6 @@ export const newApp: (
   params: IAppFactoryParameters,
   // eslint-disable-next-line max-lines-per-function
 ) => Promise<Express> = async ({ appInsightsClient }) => {
-  const isDevEnv =
-    getNodeEnvironmentFromProcessEnv(process.env) ===
-    NodeEnvironmentEnum.DEVELOPMENT;
-
   // Create the Session Storage service
   const REDIS_CLIENT_SELECTOR = await RedisRepo.RedisClientSelector(!isDevEnv)(
     getRequiredENVVar("REDIS_URL"),

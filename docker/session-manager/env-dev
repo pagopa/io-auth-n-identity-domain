@@ -19,7 +19,7 @@ LOLLIPOP_API_KEY=aKey
 LOLLIPOP_API_BASE_PATH=/api/v1
 LOLLIPOP_API_URL=http://functions-lollipop:7071
 LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://storage:20003/devstoreaccount1;QueueEndpoint=http://storage:20004/devstoreaccount1;TableEndpoint=http://storage:20005/devstoreaccount1;
-LOLLIPOP_REVOKE_QUEUE_NAME=revokequeue
+LOLLIPOP_REVOKE_QUEUE_NAME=pubkeys-revoke
 
 BACKEND_HOST=https://localhost
 SPID_TESTENV_URL=https://spid-testenv2:8088
@@ -30,7 +30,7 @@ CIE_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/cie/latest
 IDP_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/spid/latest
 
 SPID_LOG_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://storage:20003/devstoreaccount1;QueueEndpoint=http://storage:20004/devstoreaccount1;TableEndpoint=http://storage:20005/devstoreaccount1;
-SPID_LOG_QUEUE_NAME=spidlogsqueue
+SPID_LOG_QUEUE_NAME=spidmsgitems
 
 FF_LOLLIPOP_ENABLED=1
 FF_FAST_LOGIN=ALL
@@ -57,10 +57,10 @@ LOCKED_PROFILES_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountN
 LOCKED_PROFILES_TABLE_NAME=lockedProfiles
 
 USERS_LOGIN_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://storage:20003/devstoreaccount1;QueueEndpoint=http://storage:20004/devstoreaccount1;TableEndpoint=http://storage:20005/devstoreaccount1;
-USERS_LOGIN_QUEUE_NAME=ulqueuename
+USERS_LOGIN_QUEUE_NAME=userslogin
 
 PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://storage:20003/devstoreaccount1;QueueEndpoint=http://storage:20004/devstoreaccount1;TableEndpoint=http://storage:20005/devstoreaccount1;
-PUSH_NOTIFICATIONS_QUEUE_NAME=nqueuename
+PUSH_NOTIFICATIONS_QUEUE_NAME=push-notifications
 
 ## PAGOPA PROXY CONFIG
 PAGOPA_BASE_PATH=/pagopa/api/v1
