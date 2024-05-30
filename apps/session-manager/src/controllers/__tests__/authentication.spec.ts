@@ -2,6 +2,7 @@ import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   ResponseErrorInternal,
   ResponseErrorNotFound,
+  ResponseErrorValidation,
   ResponsePermanentRedirect,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
@@ -19,6 +20,7 @@ import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import * as E from "fp-ts/Either";
+import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import {
   AGE_LIMIT,
   AGE_LIMIT_ERROR_CODE,
@@ -1006,7 +1008,7 @@ describe("AuthenticationController#acs LV", () => {
 
         const now = new Date();
         const exp = getExpirePubKeyFn() as Date;
-        const diff = (exp.getTime() - now.getTime()) / 1000;
+        const diff = Math.floor((exp.getTime() - now.getTime()) / 1000);
 
         expect(diff).toEqual(expectedLongSessionDuration);
       } else {
@@ -1207,6 +1209,38 @@ describe("AuthenticationController#acsTest", () => {
     expect(response).toEqual(
       E.right(
         toExpectedResponse(ResponseSuccessJson({ token: expectedToken })),
+      ),
+    );
+  });
+
+  test("should return the same response of acs if is different from SuccessPermanentRedirect", async () => {
+    const expectedResponse = ResponseErrorValidation(
+      "Validation error",
+      "Validation error message",
+    );
+    acsSpyOn.mockReturnValueOnce(async (_: unknown) => expectedResponse);
+    const response = await acsTest(validUserPayload)({
+      ...dependencies,
+      clientProfileRedirectionUrl,
+    })();
+
+    expect(response).toEqual(E.right(toExpectedResponse(expectedResponse)));
+  });
+
+  test("should return ResponseErrorInternal if the token is missing", async () => {
+    acsSpyOn.mockReturnValueOnce(async (_: unknown) =>
+      ResponsePermanentRedirect({
+        href: "https://invalid-url",
+      } as ValidUrl),
+    );
+    const response = await acsTest(validUserPayload)({
+      ...dependencies,
+      clientProfileRedirectionUrl,
+    })();
+
+    expect(response).toEqual(
+      E.right(
+        toExpectedResponse(ResponseErrorInternal("Unexpected redirection url")),
       ),
     );
   });
