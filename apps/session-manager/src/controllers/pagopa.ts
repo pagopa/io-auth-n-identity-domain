@@ -36,7 +36,7 @@ type PagoPAGetUserHandler = RTE.ReaderTaskEither<
 export const getUser: PagoPAGetUserHandler = (deps) => {
   const getProfileAndSaveNoticeEmailCache = pipe(
     ProfileService.getProfile(deps),
-    // TODO: remove this error remap? it was found in io-backend
+    // NOTE: remap all errors to a standard context aware error message
     TE.mapLeft((_) => Error("Internal server error")),
     TE.chain(
       TE.fromPredicate(
@@ -62,16 +62,17 @@ export const getUser: PagoPAGetUserHandler = (deps) => {
               IResponseSuccessJson<InitializedProfile>
             >,
         ),
-        TE.map((successResponse) => {
+        TE.map((successResponse) =>
           // if no validated email is provided into InitializedProfile
-          // spid_email will be used for notice email
-          const maybeNoticeEmail: EmailAddress | undefined =
-            successResponse.value.email &&
-            successResponse.value.is_email_validated
-              ? successResponse.value.email
-              : deps.user.spid_email;
-          return O.fromNullable(maybeNoticeEmail);
-        }),
+          // we return an Option.none
+          // Since January of 2024, all user are required to validate their
+          // email. Nonetheless, we return an Option.none to preserve all uses
+          // for this API
+          successResponse.value.email &&
+          successResponse.value.is_email_validated
+            ? O.some(successResponse.value.email)
+            : O.none,
+        ),
       ),
     ),
     TE.chain((maybeNoticeEmail) => {

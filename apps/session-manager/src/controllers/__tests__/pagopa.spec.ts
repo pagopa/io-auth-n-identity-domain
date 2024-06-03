@@ -124,7 +124,7 @@ describe("PagoPaController#getUser", () => {
     expect(mockGetPagoPaNoticeEmail).toBeCalledWith(mockedUser);
   });
 
-  it("should return a successful response with notice_email equals to spid_email when user email is unverified", async () => {
+  it("should return a validation error when user email is unverified", async () => {
     mockGetProfile.mockReturnValue(
       TE.right(
         // Return an InitializedProfile with non validated email
@@ -141,10 +141,7 @@ describe("PagoPaController#getUser", () => {
       TE.map((response) => {
         expect(response).toEqual(
           toExpectedResponse(
-            ResponseSuccessJson({
-              ...proxyUserResponse,
-              notice_email: mockedUser.spid_email,
-            }),
+            ResponseErrorValidation("Validation Error", "Invalid User Data"),
           ),
         );
       }),
