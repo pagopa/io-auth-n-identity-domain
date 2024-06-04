@@ -5,10 +5,6 @@ import { Express } from "express";
 import { ap } from "fp-ts/lib/Identity";
 import { pipe } from "fp-ts/lib/function";
 import helmet from "helmet";
-import {
-  NodeEnvironmentEnum,
-  getNodeEnvironmentFromProcessEnv,
-} from "@pagopa/ts-commons/lib/environment";
 import * as bodyParser from "body-parser";
 import { withSpid } from "@pagopa/io-spid-commons";
 import * as TE from "fp-ts/TaskEither";
@@ -185,7 +181,7 @@ export const newApp: (
         ),
       );
 
-      app.post(`/test-login`, authMiddlewares.local, (req) =>
+      app.post(`/test-login`, authMiddlewares.local, (req, res) =>
         toExpressHandler({
           ...acsDependencies,
           clientProfileRedirectionUrl,
@@ -194,7 +190,7 @@ export const newApp: (
             ...req.user,
             getAcsOriginalRequest: () => req,
           }),
-        ),
+        )(req, res),
       );
     }),
   );
