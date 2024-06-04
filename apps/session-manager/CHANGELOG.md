@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.10.0
+
+### Minor Changes
+
+- faab771: Added PagoPA user endpoint
+
 ## 0.9.0
 
 ### Minor Changes
