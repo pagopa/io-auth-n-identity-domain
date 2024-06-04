@@ -96,3 +96,22 @@ export function attachTrackingData(user: User): void {
     );
   }
 }
+
+export enum StartupEventName {
+  SERVER = "api-backend.httpserver.startup",
+  SPID = "api-backend.spid.config",
+}
+
+export const trackStartupTime = (
+  telemetryClient: appInsights.TelemetryClient,
+  type: StartupEventName,
+  timeMs: bigint,
+): void => {
+  telemetryClient.trackEvent({
+    name: type,
+    properties: {
+      time: timeMs.toString(),
+    },
+    tagOverrides: { samplingEnabled: "false" },
+  });
+};
