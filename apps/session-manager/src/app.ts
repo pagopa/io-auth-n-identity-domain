@@ -42,6 +42,7 @@ import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
 import {
   BPDConfig,
   FastLoginConfig,
+  LoginConfig,
   LollipopConfig,
   PagoPAConfig,
   SpidConfig,
@@ -64,12 +65,8 @@ import {
 } from "./config/spid";
 import {
   FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
-  FF_USER_AGE_LIMIT_ENABLED,
-  IS_SPID_EMAIL_PERSISTENCE_ENABLED,
-  TEST_LOGIN_FISCAL_CODES,
   isUserElegibleForIoLoginUrlScheme,
   standardTokenDurationSecs,
-  TEST_LOGIN_PASSWORD,
 } from "./config/login";
 import { initStorageDependencies } from "./utils/storages";
 import { omit } from "./utils/types";
@@ -156,9 +153,10 @@ export const newApp: (
     getClientProfileRedirectionUrl,
     isUserElegibleForIoLoginUrlScheme,
     FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
-    isSpidEmailPersistenceEnabled: IS_SPID_EMAIL_PERSISTENCE_ENABLED,
-    testLoginFiscalCodes: TEST_LOGIN_FISCAL_CODES,
-    hasUserAgeLimitEnabled: FF_USER_AGE_LIMIT_ENABLED,
+    isSpidEmailPersistenceEnabled:
+      LoginConfig.IS_SPID_EMAIL_PERSISTENCE_ENABLED,
+    testLoginFiscalCodes: LoginConfig.TEST_LOGIN_FISCAL_CODES,
+    hasUserAgeLimitEnabled: LoginConfig.FF_USER_AGE_LIMIT_ENABLED,
     allowedCieTestFiscalCodes: ALLOWED_CIE_TEST_FISCAL_CODES,
     standardTokenDurationSecs,
     lvTokenDurationSecs: FastLoginConfig.lvTokenDurationSecs,
@@ -169,12 +167,12 @@ export const newApp: (
   };
 
   pipe(
-    TEST_LOGIN_PASSWORD,
+    LoginConfig.TEST_LOGIN_PASSWORD,
     E.map((testLoginPassword) => {
       passport.use(
         "local",
         localStrategy(
-          TEST_LOGIN_FISCAL_CODES,
+          LoginConfig.TEST_LOGIN_FISCAL_CODES,
           testLoginPassword,
           FF_LOLLIPOP_ENABLED,
           APIClients.fnLollipopAPIClient,
@@ -182,15 +180,18 @@ export const newApp: (
       );
 
       app.post(`/test-login`, authMiddlewares.local, (req, res) =>
-        toExpressHandler({
-          ...acsDependencies,
-          clientProfileRedirectionUrl,
-        })(
-          AuthenticationController.acsTest({
-            ...req.user,
-            getAcsOriginalRequest: () => req,
-          }),
-        )(req, res),
+        pipe(
+          toExpressHandler({
+            ...acsDependencies,
+            clientProfileRedirectionUrl,
+          })(
+            AuthenticationController.acsTest({
+              ...req.user,
+              getAcsOriginalRequest: () => req,
+            }),
+          ),
+          (handler) => handler(req, res),
+        ),
       );
     }),
   );

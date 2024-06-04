@@ -12,6 +12,7 @@ import { IoLoginHostUrl } from "../types/common";
 import * as BPDConfig from "./bpd";
 import * as FastLoginConfig from "./fast-login";
 import * as LockProfileConfig from "./lock-profile";
+import * as LoginConfig from "./login";
 import * as LollipopConfig from "./lollipop";
 import * as SpidConfig from "./spid";
 import * as SpidLogConfig from "./spid-logs";
@@ -39,6 +40,7 @@ export {
   BPDConfig,
   FastLoginConfig,
   LockProfileConfig,
+  LoginConfig,
   LollipopConfig,
   SpidConfig,
   SpidLogConfig,

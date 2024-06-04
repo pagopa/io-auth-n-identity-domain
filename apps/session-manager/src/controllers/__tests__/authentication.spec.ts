@@ -1244,4 +1244,22 @@ describe("AuthenticationController#acsTest", () => {
       ),
     );
   });
+
+  test("should return ResponseErrorInternal if the token decode fails", async () => {
+    acsSpyOn.mockReturnValueOnce(async (_: unknown) =>
+      ResponsePermanentRedirect(getClientProfileRedirectionUrl("")),
+    );
+    const response = await acsTest(validUserPayload)({
+      ...dependencies,
+      clientProfileRedirectionUrl,
+    })();
+    expect(response).toEqual(
+      E.right(
+        toExpectedResponse({
+          detail: expect.stringContaining("Decode Error:"),
+          kind: "IResponseErrorInternal",
+        }),
+      ),
+    );
+  });
 });
