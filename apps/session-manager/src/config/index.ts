@@ -13,6 +13,7 @@ import * as LollipopConfig from "./lollipop";
 import * as SpidConfig from "./spid";
 import * as SpidLogConfig from "./spid-logs";
 import * as ZendeskConfig from "./zendesk";
+import * as PagoPAConfig from "./pagopa";
 
 export const ENV = getNodeEnvironmentFromProcessEnv(process.env);
 
@@ -35,4 +36,5 @@ export {
   SpidConfig,
   SpidLogConfig,
   ZendeskConfig,
+  PagoPAConfig,
 };

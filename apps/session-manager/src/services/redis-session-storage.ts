@@ -8,7 +8,7 @@ import * as S from "fp-ts/lib/string";
 import * as A from "fp-ts/Array";
 import * as T from "fp-ts/Task";
 import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { EmailString, FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { isNumber } from "fp-ts/lib/number";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as ROA from "fp-ts/ReadonlyArray";
@@ -414,6 +414,24 @@ export const getByBPDToken: (
 > = (token) =>
   pipe(
     loadSessionByToken(RedisRepo.bpdTokenPrefix, token),
+    RTE.map(O.some),
+    RTE.orElseW(noneOrErrorWhenNotFound),
+  );
+
+/**
+ * Retrieves a value from the cache using the wallet token.
+ * @param token the Wallet token
+ * @returns an RTE that returns either an Error or an user, if exists
+ */
+export const getByWalletToken: (
+  token: WalletToken,
+) => RTE.ReaderTaskEither<
+  RedisRepo.RedisRepositoryDeps,
+  Error,
+  O.Option<User>
+> = (token) =>
+  pipe(
+    loadSessionByToken(RedisRepo.walletKeyPrefix, token),
     RTE.map(O.some),
     RTE.orElseW(noneOrErrorWhenNotFound),
   );
@@ -875,3 +893,94 @@ export const isBlockedUser: RTE.ReaderTaskEither<
       identity,
     ),
   );
+
+/**
+ * Return the session token remaining time to live in seconds
+ *
+ * @param token
+ */
+const getSessionTtl: (
+  token: SessionToken,
+) => RTE.ReaderTaskEither<RedisRepo.RedisRepositoryDeps, Error, number> =
+  (token) => (deps) =>
+    // Returns the key ttl in seconds
+    // -2 if the key doesn't exist or -1 if the key has no expire
+    // @see https://redis.io/commands/ttl
+    TE.tryCatch(
+      () =>
+        deps.redisClientSelector
+          .selectOne(RedisClientMode.FAST)
+          .ttl(`${RedisRepo.sessionKeyPrefix}${token}`),
+      E.toError,
+    );
+
+/**
+ * Cache on redis the notify email for pagopa
+ */
+export const setPagoPaNoticeEmail: (
+  user: User,
+  NoticeEmail: EmailString,
+) => RTE.ReaderTaskEither<RedisRepo.RedisRepositoryDeps, Error, boolean> =
+  (user, NoticeEmail) => (deps) =>
+    pipe(
+      deps,
+      getSessionTtl(user.session_token),
+      TE.mapLeft((error) =>
+        Error(`Error retrieving user session ttl [${error.message}]`),
+      ),
+      TE.filterOrElse(
+        (sessionTtl) => sessionTtl >= 0,
+        (unexpectedTtl) =>
+          Error(`Unexpected session TTL value [${unexpectedTtl}]`),
+      ),
+      TE.chain((sessionTtl) =>
+        TE.tryCatch(
+          () =>
+            deps.redisClientSelector
+              .selectOne(RedisClientMode.FAST)
+              .setEx(
+                `${RedisRepo.noticeEmailPrefix}${user.session_token}`,
+                sessionTtl,
+                NoticeEmail,
+              ),
+          E.toError,
+        ),
+      ),
+      singleStringReplyAsync,
+      falsyResponseToErrorAsync(new Error("Error setting session token")),
+    );
+
+/**
+ * Get the notify email value from cache
+ */
+export const getPagoPaNoticeEmail: (
+  user: User,
+) => RTE.ReaderTaskEither<RedisRepo.RedisRepositoryDeps, Error, EmailString> =
+  (user) => (deps) =>
+    pipe(
+      TE.tryCatch(
+        () =>
+          deps.redisClientSelector
+            .selectOne(RedisClientMode.FAST)
+            .get(`${RedisRepo.noticeEmailPrefix}${user.session_token}`),
+        E.toError,
+      ),
+      TE.chain((maybeEmail) =>
+        pipe(
+          O.fromNullable(maybeEmail),
+          TE.fromOption(() => new Error("Notify email value not found")),
+          TE.chain(
+            flow(
+              EmailString.decode,
+              TE.fromEither,
+              TE.mapLeft(
+                (validationErrors) =>
+                  new Error(
+                    errorsToReadableMessages(validationErrors).join("/"),
+                  ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );

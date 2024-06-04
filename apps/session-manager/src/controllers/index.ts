@@ -5,6 +5,7 @@ import * as SpidLogsController from "./spid-logs";
 import * as SSOController from "./sso";
 import * as ZendeskController from "./zendesk";
 import * as BPDController from "./bpd";
+import * as PagoPAController from "./pagopa";
 
 export {
   AuthenticationController,
@@ -14,4 +15,5 @@ export {
   SSOController,
   ZendeskController,
   BPDController,
+  PagoPAController,
 };
