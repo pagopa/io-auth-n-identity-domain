@@ -12,7 +12,7 @@ jobs:
     environment: prod-ci
     env:
       API_NAME: ${{ inputs.api_name }}
-      DOCKER_IMAGE_TAG: sha256:5b26e3b170d97deb794639a039ef52ea84602b7543454fc06ac2a00f762a6a2c # opex-dashboard v1.8.1
+      DOCKER_IMAGE_TAG: sha256:04d8ead53c772d23b094c2a395292dc159e6f2905e1b13b5f828f31eac6eb27f # opex-dashboard-action v1.2.1
 
       TEMPLATE_DIR: azure-dashboard
       ARM_USE_OIDC: true
