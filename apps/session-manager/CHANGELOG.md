@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.11.0
+
+### Minor Changes
+
+- 4538c5b: Test Login endpoint
+
 ## 0.10.0
 
 ### Minor Changes
