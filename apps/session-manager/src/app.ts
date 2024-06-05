@@ -178,6 +178,7 @@ export const newApp: (
           testLoginPassword,
           FF_LOLLIPOP_ENABLED,
           APIClients.fnLollipopAPIClient,
+          appInsightsClient,
         ),
       );
 
