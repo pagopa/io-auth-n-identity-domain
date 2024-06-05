@@ -21,7 +21,7 @@ const timer = TimeTracer();
 const port = process.env.WEBSITES_PORT ?? 3000;
 
 const maybeAppInsightsClient = pipe(
-  AppInsightsConfig.APPLICATIONINSIGHTS_CONNECTION_STRING,
+  AppInsightsConfig.APPINSIGHTS_CONNECTION_STRING,
   O.map((key) =>
     initAppInsights(key, {
       cloudRole: AppInsightsConfig.APPINSIGHTS_CLOUD_ROLE_NAME,

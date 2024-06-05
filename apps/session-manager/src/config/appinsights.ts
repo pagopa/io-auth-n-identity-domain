@@ -4,8 +4,8 @@ import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
-export const APPLICATIONINSIGHTS_CONNECTION_STRING = O.fromNullable(
-  process.env.APPLICATIONINSIGHTS_CONNECTION_STRING,
+export const APPINSIGHTS_CONNECTION_STRING = O.fromNullable(
+  process.env.APPINSIGHTS_CONNECTION_STRING,
 );
 
 export const APPINSIGHTS_CLOUD_ROLE_NAME = pipe(
