@@ -1,4 +1,4 @@
-name: PR - Opex Dashboard api_fast_login
+name: PR - Opex Dashboard fast-login
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ on:
     paths:
       - "apps/session-manager/api/fast-login.yaml"
       - ".github/workflows/pr_opex_api_fast_login.yml"
-      - ".github/workflows/opex_fast_login.yml"
+      - ".github/workflows/opex_fast_login.yaml"
       - ".opex/fast-login/**"
 
   workflow_dispatch:
