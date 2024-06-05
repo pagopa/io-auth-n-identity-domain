@@ -1222,6 +1222,7 @@ __metadata:
     "@types/node-fetch": "npm:^2.1.2"
     "@types/passport": "npm:^1.0.3"
     "@types/passport-http-bearer": "npm:^1.0.34"
+    "@types/passport-local": "npm:^1.0.38"
     "@types/supertest": "npm:^6.0.2"
     "@vitest/coverage-v8": "npm:~1.5.0"
     applicationinsights: "npm:^1.8.10"
@@ -1238,6 +1239,7 @@ __metadata:
     helmet: "npm:^7.1.0"
     io-ts: "npm:^2.2.21"
     io-ts-types: "npm:^0.5.16"
+    jose: "npm:^5.3.0"
     jsonwebtoken: "npm:^9.0.2"
     logform: "npm:^2.6.0"
     monocle-ts: "npm:^2.3.13"
@@ -1246,6 +1248,7 @@ __metadata:
     passport: "npm:^0.6.0"
     passport-http-bearer: "npm:^1.0.1"
     passport-http-custom-bearer: "npm:^1.0.15"
+    passport-local: "npm:^1.0.0"
     passport-strategy: "npm:^1.0.0"
     prettier: "npm:^3.2.5"
     range_check: "npm:^2.0.4"
@@ -1858,6 +1861,27 @@ __metadata:
     "@types/koa": "npm:*"
     "@types/passport": "npm:*"
   checksum: 10c0/85e399522b934678ada238be5971d5941fce298ed08831accd22d30597399ead321c8eec1f2249e81c4a03cb0bad1327eaaa6759b11d89868d8c388ca139d041
+  languageName: node
+  linkType: hard
+
+"@types/passport-local@npm:^1.0.38":
+  version: 1.0.38
+  resolution: "@types/passport-local@npm:1.0.38"
+  dependencies:
+    "@types/express": "npm:*"
+    "@types/passport": "npm:*"
+    "@types/passport-strategy": "npm:*"
+  checksum: 10c0/a8464df03f073a4bb9aef7fa7cc9e76a355f149a1148330da88346d0e9c600f845601e99ed40949a13287eacae0a7ad01cd0eb5ca00d8b81da263b1dfc3aee60
+  languageName: node
+  linkType: hard
+
+"@types/passport-strategy@npm:*":
+  version: 0.2.38
+  resolution: "@types/passport-strategy@npm:0.2.38"
+  dependencies:
+    "@types/express": "npm:*"
+    "@types/passport": "npm:*"
+  checksum: 10c0/d7d2b1782a0845bd8914250aa9213a23c8d9c2225db46d854b77f2bf0129a789f46d4a5e9ad336eca277fc7e0a051c0a2942da5c864e7c6710763f102d9d4295
   languageName: node
   linkType: hard
 
@@ -6350,6 +6374,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jose@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "jose@npm:5.3.0"
+  checksum: 10c0/cff511159736fc118c6189a3d44d3e0f3b1ee524941acc44f03826771e2a53aa13db876400b39bf185a11079017b1e783ca64b80ac66959db5a309a426fb7c69
+  languageName: node
+  linkType: hard
+
 "js-tokens@npm:^3.0.0 || ^4.0.0, js-tokens@npm:^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
@@ -7730,6 +7761,15 @@ __metadata:
   dependencies:
     passport-strategy: "npm:1.x.x"
   checksum: 10c0/a839637ba447794ebebdfe536d4accd3f644f4341cae486a5f21019b705a1a32a9277de1c403b2da05ee3cf6186f387fd8ee82a9cd7743d4e4c8ddb34f3e578a
+  languageName: node
+  linkType: hard
+
+"passport-local@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "passport-local@npm:1.0.0"
+  dependencies:
+    passport-strategy: "npm:1.x.x"
+  checksum: 10c0/59becb988014921a5d6056470d9373c41db452fcf113323064f39d53baa6f184e72151bf269ca6770511f7f0260e13632dacc7b6afdbf60ebf63e90327e186d4
   languageName: node
   linkType: hard
 

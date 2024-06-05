@@ -118,3 +118,7 @@ export const isUserElegibleForIoLoginUrlScheme =
     IOLOGIN_CANARY_USERS_SHA_REGEX,
     FF_IOLOGIN,
   );
+
+export const TEST_LOGIN_PASSWORD = NonEmptyString.decode(
+  process.env.TEST_LOGIN_PASSWORD,
+);

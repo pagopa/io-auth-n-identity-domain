@@ -5,10 +5,6 @@ import { Express } from "express";
 import { ap } from "fp-ts/lib/Identity";
 import { pipe } from "fp-ts/lib/function";
 import helmet from "helmet";
-import {
-  NodeEnvironmentEnum,
-  getNodeEnvironmentFromProcessEnv,
-} from "@pagopa/ts-commons/lib/environment";
 import * as bodyParser from "body-parser";
 import { withSpid } from "@pagopa/io-spid-commons";
 import * as TE from "fp-ts/TaskEither";
@@ -46,10 +42,12 @@ import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
 import {
   BPDConfig,
   FastLoginConfig,
+  LoginConfig,
   LollipopConfig,
   PagoPAConfig,
   SpidConfig,
   ZendeskConfig,
+  isDevEnv,
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import { LollipopService, RedisSessionStorageService } from "./services";
@@ -63,12 +61,10 @@ import {
   ALLOWED_CIE_TEST_FISCAL_CODES,
   getClientErrorRedirectionUrl,
   getClientProfileRedirectionUrl,
+  clientProfileRedirectionUrl,
 } from "./config/spid";
 import {
   FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
-  FF_USER_AGE_LIMIT_ENABLED,
-  IS_SPID_EMAIL_PERSISTENCE_ENABLED,
-  TEST_LOGIN_FISCAL_CODES,
   isUserElegibleForIoLoginUrlScheme,
   standardTokenDurationSecs,
 } from "./config/login";
@@ -76,6 +72,9 @@ import { initStorageDependencies } from "./utils/storages";
 import { omit } from "./utils/types";
 import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
+import { AcsDependencies } from "./controllers/authentication";
+import { localStrategy } from "./auth/local-strategy";
+import { FF_LOLLIPOP_ENABLED } from "./config/lollipop";
 
 export interface IAppFactoryParameters {
   // TODO: Add the right AppInsigns type
@@ -87,10 +86,6 @@ export const newApp: (
   params: IAppFactoryParameters,
   // eslint-disable-next-line max-lines-per-function
 ) => Promise<Express> = async ({ appInsightsClient }) => {
-  const isDevEnv =
-    getNodeEnvironmentFromProcessEnv(process.env) ===
-    NodeEnvironmentEnum.DEVELOPMENT;
-
   // Create the Session Storage service
   const REDIS_CLIENT_SELECTOR = await RedisRepo.RedisClientSelector(!isDevEnv)(
     getRequiredENVVar("REDIS_URL"),
@@ -149,6 +144,57 @@ export const newApp: (
   app.get("/healthcheck", (_req: express.Request, res: express.Response) => {
     res.send("ok");
   });
+
+  const acsDependencies: AcsDependencies = {
+    redisClientSelector: REDIS_CLIENT_SELECTOR,
+    isLollipopEnabled: FF_LOLLIPOP_ENABLED,
+    appInsightsTelemetryClient: appInsightsClient,
+    getClientErrorRedirectionUrl,
+    getClientProfileRedirectionUrl,
+    isUserElegibleForIoLoginUrlScheme,
+    FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
+    isSpidEmailPersistenceEnabled:
+      LoginConfig.IS_SPID_EMAIL_PERSISTENCE_ENABLED,
+    testLoginFiscalCodes: LoginConfig.TEST_LOGIN_FISCAL_CODES,
+    hasUserAgeLimitEnabled: LoginConfig.FF_USER_AGE_LIMIT_ENABLED,
+    allowedCieTestFiscalCodes: ALLOWED_CIE_TEST_FISCAL_CODES,
+    standardTokenDurationSecs,
+    lvTokenDurationSecs: FastLoginConfig.lvTokenDurationSecs,
+    lvLongSessionDurationSecs: FastLoginConfig.lvLongSessionDurationSecs,
+    ...pick(["fnAppAPIClient", "fnLollipopAPIClient"], APIClients),
+    ...omit(["spidLogQueueClient"], storageDependencies),
+    isUserElegibleForFastLogin,
+  };
+
+  pipe(
+    LoginConfig.TEST_LOGIN_PASSWORD,
+    E.map((testLoginPassword) => {
+      passport.use(
+        "local",
+        localStrategy(
+          LoginConfig.TEST_LOGIN_FISCAL_CODES,
+          testLoginPassword,
+          FF_LOLLIPOP_ENABLED,
+          APIClients.fnLollipopAPIClient,
+        ),
+      );
+
+      app.post(`/test-login`, authMiddlewares.local, (req, res) =>
+        pipe(
+          toExpressHandler({
+            ...acsDependencies,
+            clientProfileRedirectionUrl,
+          })(
+            AuthenticationController.acsTest({
+              ...req.user,
+              getAcsOriginalRequest: () => req,
+            }),
+          ),
+          (handler) => handler(req, res),
+        ),
+      );
+    }),
+  );
 
   app.get(
     `${API_BASE_PATH}/session`,
@@ -264,26 +310,7 @@ export const newApp: (
     TE.tryCatch(
       () =>
         withSpid({
-          acs: AuthenticationController.acs({
-            redisClientSelector: REDIS_CLIENT_SELECTOR,
-            isLollipopEnabled: true,
-            appInsightsTelemetryClient: appInsightsClient,
-            getClientErrorRedirectionUrl,
-            getClientProfileRedirectionUrl,
-            isUserElegibleForIoLoginUrlScheme,
-            FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
-            isSpidEmailPersistenceEnabled: IS_SPID_EMAIL_PERSISTENCE_ENABLED,
-            testLoginFiscalCodes: TEST_LOGIN_FISCAL_CODES,
-            hasUserAgeLimitEnabled: FF_USER_AGE_LIMIT_ENABLED,
-            allowedCieTestFiscalCodes: ALLOWED_CIE_TEST_FISCAL_CODES,
-            standardTokenDurationSecs,
-            lvTokenDurationSecs: FastLoginConfig.lvTokenDurationSecs,
-            lvLongSessionDurationSecs:
-              FastLoginConfig.lvLongSessionDurationSecs,
-            ...pick(["fnAppAPIClient", "fnLollipopAPIClient"], APIClients),
-            ...omit(["spidLogQueueClient"], storageDependencies),
-            isUserElegibleForFastLogin,
-          }),
+          acs: AuthenticationController.acs(acsDependencies),
           app,
           appConfig: {
             ...SpidConfig.appConfig,
@@ -439,6 +466,9 @@ function setupAuthenticationMiddlewares() {
       session: false,
     }),
     bearerWallet: passport.authenticate("bearer.wallet", {
+      session: false,
+    }),
+    local: passport.authenticate("local", {
       session: false,
     }),
   };

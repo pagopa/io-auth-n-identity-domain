@@ -16,12 +16,13 @@ import {
   PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING,
   PUSH_NOTIFICATIONS_QUEUE_NAME,
 } from "../config/notifications";
-import { SpidLogConfig } from "../config";
+import { SpidLogConfig, isDevEnv } from "../config";
 
 export const initStorageDependencies = () => {
   const lockUserTableClient = TableClient.fromConnectionString(
     LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
     LOCKED_PROFILES_TABLE_NAME,
+    { allowInsecureConnection: isDevEnv },
   );
 
   const loginUserEventQueue = new QueueClient(
