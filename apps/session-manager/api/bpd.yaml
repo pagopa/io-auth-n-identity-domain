@@ -34,6 +34,9 @@ paths:
 definitions:
   BPDUser:
     $ref: "internal.yaml#/definitions/FederatedUser"
+  ## needed to solve opex bug during referencing
+  LimitedFederatedUser:
+    $ref: "internal.yaml#/definitions/LimitedFederatedUser"
   ProblemJson:
     $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ProblemJson"
   FiscalCode:
