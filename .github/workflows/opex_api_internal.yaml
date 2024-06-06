@@ -1,0 +1,23 @@
+name: Opex Dashboard api_internal
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/session-manager/api/internal.yaml"
+      - ".github/workflows/opex_api_internal.yml"
+      - ".opex/internal/**"
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  apply:
+    uses: ./.github/workflows/call_opex_api.yml
+    name: Apply changes to Production
+    secrets: inherit
+    with:
+      api_name: internal
