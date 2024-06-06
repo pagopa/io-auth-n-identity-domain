@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.12.1
+
+### Patch Changes
+
+- 3fc6b9b: Fix dist folder
+
 ## 0.12.0
 
 ### Minor Changes
