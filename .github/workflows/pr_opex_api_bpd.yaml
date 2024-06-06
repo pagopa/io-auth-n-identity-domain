@@ -1,0 +1,30 @@
+name: PR - Opex Dashboard Bpd
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+    branches:
+      - main
+    paths:
+      - "apps/session-manager/api/bpd.yaml"
+      - ".github/workflows/pr_opex_api_bpd.yaml"
+      - ".github/workflows/opex_api_bpd.yaml"
+      - ".opex/bpd/**"
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    uses: ./.github/workflows/call_pr_opex_api.yml
+    name: Plan changes against Production
+    secrets: inherit
+    with:
+      api_name: bpd
