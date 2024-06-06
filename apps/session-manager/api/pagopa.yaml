@@ -58,6 +58,9 @@ definitions:
     $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ProblemJson"
   FiscalCode:
     $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/FiscalCode"
+  ## needed to solve opex bug during referencing
+  LimitedFederatedUser:
+    $ref: "internal.yaml#/definitions/LimitedFederatedUser"
   FederatedUser:
     $ref: "internal.yaml#/definitions/FederatedUser"
   PagoPAUser:
