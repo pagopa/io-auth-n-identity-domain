@@ -22,3 +22,13 @@ data "azurerm_key_vault_secret" "sonacloud_token" {
   key_vault_id = data.azurerm_key_vault.citizen_auth_kv.id
   name         = local.sonacloud_token_key
 }
+
+data "azurerm_user_assigned_identity" "opex_identity_prod_ci" {
+  name                = "${local.project}-auth-n-identity-opex-github-ci-identity"
+  resource_group_name = local.identity_resource_group_name
+}
+
+data "azurerm_user_assigned_identity" "opex_identity_prod_cd" {
+  name                = "${local.project}-auth-n-identity-opex-github-cd-identity"
+  resource_group_name = local.identity_resource_group_name
+}
