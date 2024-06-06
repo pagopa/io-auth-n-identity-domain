@@ -65,11 +65,27 @@ paths:
           description: Unavailable service
           schema:
             $ref: "#/definitions/ProblemJson"
+  "/healthcheck":
+    get:
+        operationId: healthcheck
+        summary: The healthcheck endpoint
+        description: Responde with the app version if running
+        responses:
+        "200":
+          description: Access token
+          schema:
+            $ref: "#/definitions/BackendVersion"
 definitions:
   FiscalCode:
     $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/FiscalCode"
   ProblemJson:
     $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ProblemJson"
+  BackendVersion:
+    type: object
+    title: The App version
+    properties:
+      version:
+        type: string
   ServerInfo:
     type: object
     title: Server information
