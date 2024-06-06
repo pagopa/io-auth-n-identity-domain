@@ -11,7 +11,7 @@ on:
       - main
     paths:
       - "apps/session-manager/api/fast-login.yaml"
-      - ".github/workflows/pr_opex_api_fast_login.yml"
+      - ".github/workflows/pr_opex_api_fast_login.yaml"
       - ".github/workflows/opex_fast_login.yaml"
       - ".opex/fast-login/**"
 

@@ -6,8 +6,8 @@ on:
       - main
     paths:
       - "apps/session-manager/api/fast-login.yaml"
-      - ".github/workflows/opex_fast_login.yml"
-      - ".opex/api_fast_login/**"
+      - ".github/workflows/opex_fast_login.yaml"
+      - ".opex/fast-login/**"
 
   workflow_dispatch:
 
