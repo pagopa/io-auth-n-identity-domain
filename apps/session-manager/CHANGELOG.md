@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.12.0
+
+### Minor Changes
+
+- ef4f6e3: Enable AppInsights
+
 ## 0.11.0
 
 ### Minor Changes
