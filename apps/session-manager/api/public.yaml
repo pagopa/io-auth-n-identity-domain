@@ -67,14 +67,30 @@ paths:
             $ref: "#/definitions/ProblemJson"
   "/healthcheck":
     get:
-        operationId: healthcheck
-        summary: The healthcheck endpoint
-        description: Responde with the app version if running
-        responses:
-        "200":
-          description: Access token
+      operationId: healthcheck
+      summary: The healthcheck endpoint
+      description: Responde with the app version if running
+      responses:
+      "200":
+        description: Access token
+        schema:
+          $ref: "#/definitions/BackendVersion"
+  "/assertionConsumerService":
+    post:
+      operationId: acs
+      summary: ACS step of Login SPID/CIE
+      description: Login with SPID or CIE for IO APP
+      parameters:
+        - in: body
+          name: body
           schema:
-            $ref: "#/definitions/BackendVersion"
+            $ref: "#/definitions/SAMLResponse"
+      responses:
+        "301":
+          description: Redirect to home page
+          headers:
+            Location:
+              type: string
 definitions:
   FiscalCode:
     $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/FiscalCode"
@@ -182,7 +198,7 @@ parameters:
     type: string
     description: represents a Base64url encode of a JWK Public Key
     format: JwkPublicKeyFromToken
-    x-import: '@pagopa/ts-commons/lib/jwk'
+    x-import: "@pagopa/ts-commons/lib/jwk"
     x-example: "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IjRmMzB6dUdNcm9kRXl3cEoxelZKbWFRLVYtZlM4OVZBTW8yZnN6dWxOTmsiLCJ5IjoibG5NdmExengxaFJncVY5enVEU3dkV0dyUlhTREl4UXQ1YVJVeG1EVW44NCJ9"
   JwkPubKeyHashAlgorithm:
     in: header
