@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "apps/session-manager/api/public.yaml"
-      - ".github/workflows/opex_api_public.yml"
+      - ".github/workflows/opex_api_public.yaml"
       - ".opex/public/**"
 
   workflow_dispatch:

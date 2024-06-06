@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "apps/session-manager/api/zendesk.yaml"
-      - ".github/workflows/opex_api_zendesk.yml"
+      - ".github/workflows/opex_api_zendesk.yaml"
       - ".opex/zendesk/**"
 
   workflow_dispatch:
