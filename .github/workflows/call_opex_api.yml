@@ -9,7 +9,7 @@ jobs:
   apply:
     name: Terraform Apply
     runs-on: ubuntu-22.04
-    environment: session-manager-prod-cd
+    environment: opex-prod-cd
     env:
       API_NAME: ${{ inputs.api_name }}
       DOCKER_IMAGE_TAG: sha256:04d8ead53c772d23b094c2a395292dc159e6f2905e1b13b5f828f31eac6eb27f # action v1.2.1 docker image tag
