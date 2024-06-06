@@ -117,7 +117,9 @@ definitions:
       - assertion_ref
       - pub_key
       - lc_authentication_bearer
-
+  ## needed to solve opex bug during referencing
+  LimitedFederatedUser:
+    $ref: "internal.yaml#/definitions/LimitedFederatedUser"
   FederatedUser:
     $ref: "internal.yaml#/definitions/FederatedUser"
   FIMSUser:
