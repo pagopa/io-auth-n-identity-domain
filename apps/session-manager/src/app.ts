@@ -76,6 +76,7 @@ import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { FF_LOLLIPOP_ENABLED } from "./config/lollipop";
+import { getCurrentBackendVersion } from "./utils/package";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -144,7 +145,7 @@ export const newApp: (
   // Setup paths
 
   app.get("/healthcheck", (_req: express.Request, res: express.Response) => {
-    res.send("ok");
+    res.json({ version: getCurrentBackendVersion() });
   });
 
   const acsDependencies: AcsDependencies = {

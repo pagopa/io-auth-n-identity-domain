@@ -78,6 +78,10 @@ jobs:
           slot-name: staging
           package: ${{ inputs.app-name }}.zip
 
+      - name: Wait slot ready with new code
+        run: sleep 20s
+        shell: bash
+
       - name: Check staging health
         run: curl --retry 5 --retry-max-time 120 --retry-all-errors -f 'https://${{ vars.AZURE_WEB_APP_NAME }}-staging.azurewebsites.net${{ vars.HEALTH_CHECK_PATH }}'
 
