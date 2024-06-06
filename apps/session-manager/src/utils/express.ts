@@ -1,3 +1,4 @@
+import * as appInsights from "applicationinsights";
 import {
   IResponse,
   ResponseErrorInternal,
@@ -13,6 +14,7 @@ import * as R from "fp-ts/Record";
 import { getSpidStrategyOption } from "@pagopa/io-spid-commons/dist/utils/middleware";
 import { RedisClientMode, RedisClientSelectorType } from "../types/redis";
 import { IDP_METADATA_REFRESH_INTERVAL_SECONDS } from "../config/spid";
+import { StartupEventName, trackStartupTime } from "./appinsights";
 import { log } from "./logger";
 
 export type ExpressMiddleware = (
@@ -125,13 +127,20 @@ export const checkIdpConfiguration: (
  */
 export const setupMetadataRefresherAndGS: (
   redisClientSelector: RedisClientSelectorType,
+  appInsightsClient?: appInsights.TelemetryClient,
 ) => (data: {
   app: express.Express;
   spidConfigTime: bigint;
   idpMetadataRefresher: () => T.Task<void>;
 }) => TE.TaskEither<Error, express.Express> =
-  (REDIS_CLIENT_SELECTOR) => (data) => {
-    // TODO: Add AppInsights startup track event
+  (REDIS_CLIENT_SELECTOR, appInsightsClient) => (data) => {
+    if (appInsightsClient) {
+      trackStartupTime(
+        appInsightsClient,
+        StartupEventName.SPID,
+        data.spidConfigTime,
+      );
+    }
     log.info(`Spid init time: %sms`, data.spidConfigTime.toString());
     // Schedule automatic idpMetadataRefresher
     const startIdpMetadataRefreshTimer = setInterval(
@@ -147,19 +156,17 @@ export const setupMetadataRefresherAndGS: (
       clearInterval(startIdpMetadataRefreshTimer);
       // Graceful redis connection shutdown.
       for (const client of REDIS_CLIENT_SELECTOR.select(RedisClientMode.ALL)) {
-        log.info(`Graceful closing redis connection`);
-        pipe(
-          O.fromNullable(client.quit),
-          O.map((redisQuitFn) =>
-            redisQuitFn().catch((err) =>
-              log.error(
-                `An Error occurred closing the redis connection: [${
-                  E.toError(err).message
-                }]`,
-              ),
+        log.info(`Gracefully closing redis connection`);
+
+        client
+          .quit()
+          .catch((err) =>
+            log.error(
+              `An Error occurred closing the redis connection: [${
+                E.toError(err).message
+              }]`,
             ),
-          ),
-        );
+          );
       }
     });
     return TE.of(data.app);

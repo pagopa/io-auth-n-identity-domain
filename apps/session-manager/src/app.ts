@@ -1,4 +1,5 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
+import * as appInsights from "applicationinsights";
 import passport from "passport";
 import express from "express";
 import { Express } from "express";
@@ -77,9 +78,7 @@ import { localStrategy } from "./auth/local-strategy";
 import { FF_LOLLIPOP_ENABLED } from "./config/lollipop";
 
 export interface IAppFactoryParameters {
-  // TODO: Add the right AppInsigns type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly appInsightsClient?: any;
+  readonly appInsightsClient?: appInsights.TelemetryClient;
 }
 
 export const newApp: (
@@ -87,7 +86,10 @@ export const newApp: (
   // eslint-disable-next-line max-lines-per-function
 ) => Promise<Express> = async ({ appInsightsClient }) => {
   // Create the Session Storage service
-  const REDIS_CLIENT_SELECTOR = await RedisRepo.RedisClientSelector(!isDevEnv)(
+  const REDIS_CLIENT_SELECTOR = await RedisRepo.RedisClientSelector(
+    !isDevEnv,
+    appInsightsClient,
+  )(
     getRequiredENVVar("REDIS_URL"),
     process.env.REDIS_PASSWORD,
     process.env.REDIS_PORT,
@@ -176,6 +178,7 @@ export const newApp: (
           testLoginPassword,
           FF_LOLLIPOP_ENABLED,
           APIClients.fnLollipopAPIClient,
+          appInsightsClient,
         ),
       );
 
@@ -359,7 +362,9 @@ export const newApp: (
       ...withSpidApp,
       spidConfigTime: TIMER.getElapsedMilliseconds(),
     })),
-    TE.chain(setupMetadataRefresherAndGS(REDIS_CLIENT_SELECTOR)),
+    TE.chain(
+      setupMetadataRefresherAndGS(REDIS_CLIENT_SELECTOR, appInsightsClient),
+    ),
     TE.chainFirst(checkIdpConfiguration),
     TE.chainFirstTaskK(applyErrorMiddleware),
   )();

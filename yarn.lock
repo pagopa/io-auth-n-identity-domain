@@ -1169,9 +1169,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/io-functions-commons@npm:^29.0.4":
-  version: 29.0.4
-  resolution: "@pagopa/io-functions-commons@npm:29.0.4"
+"@pagopa/io-functions-commons@npm:^29.1.0":
+  version: 29.1.0
+  resolution: "@pagopa/io-functions-commons@npm:29.1.0"
   dependencies:
     "@azure/cosmos": "npm:^4.0.0"
     "@azure/data-tables": "npm:^13.2.2"
@@ -1198,7 +1198,7 @@ __metadata:
     express: ^4.15.3
     fp-ts: ^2.16.5
     io-ts: ^2.2.21
-  checksum: 10c0/f7b348ca9d4fc6f007b4364a06edfffb87aaef429244076abe11128ee24ded6b756b223203516960f325c112f1e474ce6e9b386cbc4475f496a29673fb34c380
+  checksum: 10c0/fc02f048e632c1b4fe007a402ccdb7f947608ebad4c24146f2ddaa5fdf98cf32b49c7480e808eb543d8dcf0ee7bdb35aaab4e24e928b3a582afcf4d0704ca855
   languageName: node
   linkType: hard
 
@@ -1210,10 +1210,10 @@ __metadata:
     "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/io-functions-app-sdk": "npm:x"
-    "@pagopa/io-functions-commons": "npm:^29.0.4"
+    "@pagopa/io-functions-commons": "npm:^29.1.0"
     "@pagopa/io-spid-commons": "npm:^13.5.0"
     "@pagopa/openapi-codegen-ts": "npm:^13.2.0"
-    "@pagopa/ts-commons": "npm:^13.1.0"
+    "@pagopa/ts-commons": "npm:^13.1.1"
     "@pagopa/typescript-config-node": "npm:*"
     "@types/body-parser": "npm:^1"
     "@types/express": "npm:^4.17.21"
@@ -1225,7 +1225,7 @@ __metadata:
     "@types/passport-local": "npm:^1.0.38"
     "@types/supertest": "npm:^6.0.2"
     "@vitest/coverage-v8": "npm:~1.5.0"
-    applicationinsights: "npm:^1.8.10"
+    applicationinsights: "npm:^2.9.5"
     body-parser: "npm:^1.20.2"
     date-fns: "npm:^1.30.1"
     dependency-check: "npm:^4.1.0"
@@ -1372,6 +1372,27 @@ __metadata:
     fp-ts: ^2.16.5
     io-ts: ^2.2.21
   checksum: 10c0/a473ddcf7a2692adf284c76af717777cc78fc28e55576a56985142568a2a930302109fdd1ca2cf98dc4334755cd94a7d18dcf7816d5ed67e632db877c6315fd7
+  languageName: node
+  linkType: hard
+
+"@pagopa/ts-commons@npm:^13.1.1":
+  version: 13.1.1
+  resolution: "@pagopa/ts-commons@npm:13.1.1"
+  dependencies:
+    abort-controller: "npm:^3.0.0"
+    agentkeepalive: "npm:^4.1.4"
+    applicationinsights: "npm:^2.9.5"
+    jose: "npm:^4.15.5"
+    json-set-map: "npm:^1.1.2"
+    jsonwebtoken: "npm:^9.0.1"
+    node-fetch: "npm:^2.6.0"
+    semver: "npm:^7.5.2"
+    ulid: "npm:^2.3.0"
+    validator: "npm:^13.7.0"
+  peerDependencies:
+    fp-ts: ^2.16.5
+    io-ts: ^2.2.21
+  checksum: 10c0/9c00dde0b03f18aa743c4010104a5cb63d01b176bfbe8873e0292ca3540f0b7bcef207df952ffe08a0943b19cf3541572032926e81db98092a5096923babba9f
   languageName: node
   linkType: hard
 

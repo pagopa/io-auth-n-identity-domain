@@ -1,3 +1,4 @@
+import * as appInsights from "applicationinsights";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as passport from "passport";
 import { Strategy } from "passport-local";
@@ -29,6 +30,7 @@ export const localStrategy = (
   validPassword: string,
   isLollipopEnabled: boolean,
   lollipopApiClient: LollipopApiClient,
+  appInsightsTelemetryClient?: appInsights.TelemetryClient,
 ): passport.Strategy =>
   new Strategy({ passReqToCallback: true }, (req, username, password, done) => {
     pipe(
@@ -45,7 +47,12 @@ export const localStrategy = (
       ),
       TE.chain(() =>
         TE.tryCatch(
-          () => lollipopLoginHandler(isLollipopEnabled, lollipopApiClient)(req),
+          () =>
+            lollipopLoginHandler(
+              isLollipopEnabled,
+              lollipopApiClient,
+              appInsightsTelemetryClient,
+            )(req),
           E.toError,
         ),
       ),

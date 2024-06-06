@@ -1,9 +1,65 @@
 import * as appInsights from "applicationinsights";
+import {
+  ApplicationInsightsConfig,
+  initAppInsights as startAppInsights,
+} from "@pagopa/ts-commons/lib/appinsights";
 import { hashFiscalCode } from "@pagopa/ts-commons/lib/hash";
 import { User } from "../types/user";
 
 const SESSION_TRACKING_ID_KEY = "session_tracking_id";
 const USER_TRACKING_ID_KEY = "user_tracking_id";
+
+/**
+ * App Insights is initialized to collect the following informations:
+ * - Incoming API calls
+ * - Server performance information (CPU, RAM)
+ * - Unandled Runtime Exceptions
+ * - Outcoming API Calls (dependencies)
+ * - Realtime API metrics
+ */
+export function initAppInsights(
+  connectionString: string,
+  config: ApplicationInsightsConfig = {},
+): ReturnType<typeof startAppInsights> {
+  const defaultClient = startAppInsights(connectionString, config);
+  defaultClient.addTelemetryProcessor(sessionIdPreprocessor);
+
+  return defaultClient;
+}
+
+export function sessionIdPreprocessor(
+  envelope: appInsights.Contracts.Envelope,
+  context?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    readonly [name: string]: any;
+  },
+): boolean {
+  if (context !== undefined) {
+    try {
+      const userTrackingId =
+        context.correlationContext.customProperties.getProperty(
+          USER_TRACKING_ID_KEY,
+        );
+      if (userTrackingId !== undefined) {
+        // eslint-disable-next-line functional/immutable-data
+        envelope.tags[appInsights.defaultClient.context.keys.userId] =
+          userTrackingId;
+      }
+      const sessionTrackingId =
+        context.correlationContext.customProperties.getProperty(
+          SESSION_TRACKING_ID_KEY,
+        );
+      if (sessionTrackingId !== undefined) {
+        // eslint-disable-next-line functional/immutable-data
+        envelope.tags[appInsights.defaultClient.context.keys.sessionId] =
+          sessionTrackingId;
+      }
+    } catch (e) {
+      // ignore errors caused by missing properties
+    }
+  }
+  return true;
+}
 
 /**
  * Attach the userid (CF) hash to the correlation context.
@@ -40,3 +96,22 @@ export function attachTrackingData(user: User): void {
     );
   }
 }
+
+export enum StartupEventName {
+  SERVER = "api-backend.httpserver.startup",
+  SPID = "api-backend.spid.config",
+}
+
+export const trackStartupTime = (
+  telemetryClient: appInsights.TelemetryClient,
+  type: StartupEventName,
+  timeMs: bigint,
+): void => {
+  telemetryClient.trackEvent({
+    name: type,
+    properties: {
+      time: timeMs.toString(),
+    },
+    tagOverrides: { samplingEnabled: "false" },
+  });
+};
