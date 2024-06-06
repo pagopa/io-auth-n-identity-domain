@@ -10,7 +10,7 @@
     "sourceMap": true,
     "inlineSources": true,
     "strict": true,
-    "resolveJsonModule": true,
+    "resolveJsonModule": false,
     "skipLibCheck": true,
     "declaration": true,
     "esModuleInterop": true
