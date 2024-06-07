@@ -4,6 +4,9 @@ on:
       api_name:
         type: string
         required: true
+      app_name:
+        type: string
+        required: true
 
 jobs:
   plan:
@@ -12,6 +15,7 @@ jobs:
     environment: opex-prod-ci
     env:
       API_NAME: ${{ inputs.api_name }}
+      APP_NAME: ${{ inputs.app_name }}
       DOCKER_IMAGE_TAG: sha256:04d8ead53c772d23b094c2a395292dc159e6f2905e1b13b5f828f31eac6eb27f # opex-dashboard-action v1.2.1
 
       TEMPLATE_DIR: azure-dashboard
@@ -46,13 +50,13 @@ jobs:
           docker run \
             --workdir /github/workspace --rm \
             -v $(pwd):"/github/workspace" \
-            ghcr.io/pagopa/opex-dashboard-azure-action@${{ env.DOCKER_IMAGE_TAG }} ${{ env.TEMPLATE_DIR }} .opex/${{ env.API_NAME }}/env/prod/config.yaml
+            ghcr.io/pagopa/opex-dashboard-azure-action@${{ env.DOCKER_IMAGE_TAG }} ${{ env.TEMPLATE_DIR }} apps/${{ env.APP_NAME }}/.opex/${{ env.API_NAME }}/env/prod/config.yaml
 
       - name: Copy Environments
         shell: bash
         id: opex_copy
         run: |
-          cp -R .opex/${{ env.API_NAME }}/env ./${{ env.TEMPLATE_DIR }}
+          cp -R apps/${{ env.APP_NAME }}/.opex/${{ env.API_NAME }}/env ./${{ env.TEMPLATE_DIR }}
 
       - name: Setup Terraform
         id: terraform_setup

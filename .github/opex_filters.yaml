@@ -1,21 +1,21 @@
 bpd:
   - "apps/session-manager/api/bpd.yaml"
-  - ".opex/bpd/**"
+  - "apps/session-manager/.opex/bpd/**"
 fast-login:
   - "apps/session-manager/api/fast-login.yaml"
-  - ".opex/fast-login/**"
+  - "apps/session-manager/.opex/fast-login/**"
 fims:
   - "apps/session-manager/api/fims.yaml"
-  - ".opex/fims/**"
+  - "apps/session-manager/.opex/fims/**"
 internal:
   - "apps/session-manager/api/internal.yaml"
-  - ".opex/internal/**"
+  - "apps/session-manager/.opex/internal/**"
 pagopa:
   - "apps/session-manager/api/pagopa.yaml"
-  - ".opex/pagopa/**"
+  - "apps/session-manager/.opex/pagopa/**"
 public:
   - "apps/session-manager/api/public.yaml"
-  - ".opex/public/**"
+  - "apps/session-manager/.opex/public/**"
 zendesk:
   - "apps/session-manager/api/zendesk.yaml"
-  - ".opex/zendesk/**"
+  - "apps/session-manager/.opex/zendesk/**"

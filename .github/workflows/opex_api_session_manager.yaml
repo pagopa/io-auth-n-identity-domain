@@ -7,7 +7,7 @@ on:
     paths:
       - "apps/session-manager/api/*.yaml"
       - ".github/workflows/opex_api_session_manager.yaml"
-      - ".opex/**"
+      - "apps/session-manager/.opex/**"
 
   workflow_dispatch:
 
@@ -48,6 +48,7 @@ jobs:
     secrets: inherit
     with:
       api_name: bpd
+      app_name: session-manager
   apply-fast-login:
     needs: filter
     if: ${{ needs.filter.outputs.fast-login == 'true' }}
@@ -56,6 +57,7 @@ jobs:
     secrets: inherit
     with:
       api_name: fast-login
+      app_name: session-manager
   apply-fims:
     needs: filter
     if: ${{ needs.filter.outputs.fims == 'true' }}
@@ -64,6 +66,7 @@ jobs:
     secrets: inherit
     with:
       api_name: fims
+      app_name: session-manager
   apply-internal:
     needs: filter
     if: ${{ needs.filter.outputs.internal == 'true' }}
@@ -72,6 +75,7 @@ jobs:
     secrets: inherit
     with:
       api_name: internal
+      app_name: session-manager
   apply-pagopa:
     needs: filter
     if: ${{ needs.filter.outputs.pagopa == 'true' }}
@@ -80,6 +84,7 @@ jobs:
     secrets: inherit
     with:
       api_name: pagopa
+      app_name: session-manager
   apply-public:
     needs: filter
     if: ${{ needs.filter.outputs.public == 'true' }}
@@ -88,6 +93,7 @@ jobs:
     secrets: inherit
     with:
       api_name: public
+      app_name: session-manager
   apply-zendesk:
     needs: filter
     if: ${{ needs.filter.outputs.zendesk == 'true' }}
@@ -96,3 +102,4 @@ jobs:
     secrets: inherit
     with:
       api_name: zendesk
+      app_name: session-manager

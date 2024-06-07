@@ -4,6 +4,9 @@ on:
       api_name:
         type: string
         required: true
+      app_name:
+        type: string
+        required: true
 
 jobs:
   apply:
@@ -12,6 +15,7 @@ jobs:
     environment: opex-prod-cd
     env:
       API_NAME: ${{ inputs.api_name }}
+      APP_NAME: ${{ inputs.app_name }}
       DOCKER_IMAGE_TAG: sha256:04d8ead53c772d23b094c2a395292dc159e6f2905e1b13b5f828f31eac6eb27f # action v1.2.1 docker image tag
       TEMPLATE_DIR: azure-dashboard
       ARM_USE_OIDC: true
@@ -34,7 +38,7 @@ jobs:
         with:
           environment: prod
           api-name: ${{ env.API_NAME }}
-          config: .opex/${{ env.API_NAME }}/env/prod/config.yaml
+          config: apps/${{ env.APP_NAME }}/.opex/${{ env.API_NAME }}/env/prod/config.yaml
           client-id: ${{ secrets.ARM_CLIENT_ID }}
           tenant-id: ${{ secrets.ARM_TENANT_ID }}
           subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
