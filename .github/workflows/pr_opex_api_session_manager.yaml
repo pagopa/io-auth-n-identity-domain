@@ -1,0 +1,120 @@
+name: PR - Opex Dashboard session-manager
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+    branches:
+      - main
+    paths:
+      - "apps/session-manager/api/*.yaml"
+      - ".github/workflows/pr_opex_api_session_manager.yaml"
+      - ".opex/**"
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  filter:
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: read
+    outputs:
+      bpd: ${{ steps.filter.outputs.bpd }}
+      fast-login: ${{ steps.filter.outputs.fast-login }}
+      fims: ${{ steps.filter.outputs.fims }}
+      internal: ${{ steps.filter.outputs.internal }}
+      pagopa: ${{ steps.filter.outputs.pagopa }}
+      public: ${{ steps.filter.outputs.public }}
+      zendesk: ${{ steps.filter.outputs.zendesk }}
+    # Checks to see if openapi specs in the PR match one of the ones listed.
+    # We can use the result to decide which job to run
+    # With this type of filter we can avoid creating a lot of workflow files
+    steps:
+      - uses: dorny/paths-filter@v3.0.2
+        id: filter
+        with:
+          filters: |
+            bpd:
+              - "apps/session-manager/api/bpd.yaml"
+              - ".opex/bpd/**"
+            fast-login:
+              - "apps/session-manager/api/fast-login.yaml"
+              - ".opex/fast-login/**"
+            fims:
+              - "apps/session-manager/api/fims.yaml"
+              - ".opex/fims/**"
+            internal:
+              - "apps/session-manager/api/internal.yaml"
+              - ".opex/internal/**"
+            pagopa:
+              - "apps/session-manager/api/pagopa.yaml"
+              - ".opex/pagopa/**"
+            public:
+              - "apps/session-manager/api/public.yaml"
+              - ".opex/public/**"
+            zendesk:
+              - "apps/session-manager/api/zendesk.yaml"
+              - ".opex/zendesk/**"
+  plan-bpd:
+    needs: filter
+    if: ${{ needs.filter.outputs.bpd === "true" }}
+    uses: ./.github/workflows/call_pr_opex_api.yml
+    name: Plan changes against Production
+    secrets: inherit
+    with:
+      api_name: bpd
+  plan-fast-login:
+    needs: filter
+    if: ${{ needs.filter.outputs.fast-login === "true" }}
+    uses: ./.github/workflows/call_pr_opex_api.yml
+    name: Plan changes against Production
+    secrets: inherit
+    with:
+      api_name: fast-login
+  plan-fims:
+    needs: filter
+    if: ${{ needs.filter.outputs.fims === "true" }}
+    uses: ./.github/workflows/call_pr_opex_api.yml
+    name: Plan changes against Production
+    secrets: inherit
+    with:
+      api_name: fims
+  plan-internal:
+    needs: filter
+    if: ${{ needs.filter.outputs.internal === "true" }}
+    uses: ./.github/workflows/call_pr_opex_api.yml
+    name: Plan changes against Production
+    secrets: inherit
+    with:
+      api_name: internal
+  plan-pagopa:
+    needs: filter
+    if: ${{ needs.filter.outputs.pagopa === "true" }}
+    uses: ./.github/workflows/call_pr_opex_api.yml
+    name: Plan changes against Production
+    secrets: inherit
+    with:
+      api_name: pagopa
+  plan-public:
+    needs: filter
+    if: ${{ needs.filter.outputs.public === "true" }}
+    uses: ./.github/workflows/call_pr_opex_api.yml
+    name: Plan changes against Production
+    secrets: inherit
+    with:
+      api_name: public
+  plan-zendesk:
+    needs: filter
+    if: ${{ needs.filter.outputs.zendesk === "true" }}
+    uses: ./.github/workflows/call_pr_opex_api.yml
+    name: Plan changes against Production
+    secrets: inherit
+    with:
+      api_name: zendesk
