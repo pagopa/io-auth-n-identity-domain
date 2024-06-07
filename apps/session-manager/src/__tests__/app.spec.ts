@@ -13,6 +13,7 @@ vi.stubEnv(
 );
 
 import { newApp } from "../app";
+import { getCurrentBackendVersion } from "../utils/package";
 
 vi.spyOn(RedisRepo, "RedisClientSelector").mockImplementation(
   () => async () => mockRedisClientSelector,
@@ -29,7 +30,9 @@ describe("Test redirect to HTTPS", async () => {
   });
   // test case: ping. Cannot fail.
   test("should 200 and ok if heathcheck API is called", async () => {
-    await request(app).get("/healthcheck").expect(200, "ok");
+    await request(app)
+      .get("/healthcheck")
+      .expect(200, JSON.stringify({ version: getCurrentBackendVersion() }));
   });
 
   // test case: https forced. Already set: it trust the proxy and accept the header: X-Forwarded-Proto.
