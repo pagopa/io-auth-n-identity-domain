@@ -1,5 +1,6 @@
 prefix    = "io"
 env_short = "p"
+foo       = "bar"
 
 tags = {
   CreatedBy   = "Terraform"
