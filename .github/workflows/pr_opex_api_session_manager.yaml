@@ -37,6 +37,7 @@ jobs:
     # We can use the result to decide which job to run
     # With this type of filter we can avoid creating a lot of workflow files
     steps:
+      - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3.0.2
         id: filter
         with:
