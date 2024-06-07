@@ -46,7 +46,7 @@ jobs:
     needs: filter
     if: ${{ needs.filter.outputs.bpd == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
-    name: Plan changes against Production
+    name: (Bpd) Plan changes against Production
     secrets: inherit
     with:
       api_name: bpd
@@ -54,7 +54,7 @@ jobs:
     needs: filter
     if: ${{ needs.filter.outputs.fast-login == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
-    name: Plan changes against Production
+    name: (Fast-login) Plan changes against Production
     secrets: inherit
     with:
       api_name: fast-login
@@ -62,7 +62,7 @@ jobs:
     needs: filter
     if: ${{ needs.filter.outputs.fims == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
-    name: Plan changes against Production
+    name: (Fims) Plan changes against Production
     secrets: inherit
     with:
       api_name: fims
@@ -70,7 +70,7 @@ jobs:
     needs: filter
     if: ${{ needs.filter.outputs.internal == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
-    name: Plan changes against Production
+    name: (Internal) Plan changes against Production
     secrets: inherit
     with:
       api_name: internal
@@ -78,7 +78,7 @@ jobs:
     needs: filter
     if: ${{ needs.filter.outputs.pagopa == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
-    name: Plan changes against Production
+    name: (Pagopa) Plan changes against Production
     secrets: inherit
     with:
       api_name: pagopa
@@ -86,7 +86,7 @@ jobs:
     needs: filter
     if: ${{ needs.filter.outputs.public == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
-    name: Plan changes against Production
+    name: (Public) Plan changes against Production
     secrets: inherit
     with:
       api_name: public
@@ -94,7 +94,7 @@ jobs:
     needs: filter
     if: ${{ needs.filter.outputs.zendesk == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
-    name: Plan changes against Production
+    name: (Zendesk) Plan changes against Production
     secrets: inherit
     with:
       api_name: zendesk
