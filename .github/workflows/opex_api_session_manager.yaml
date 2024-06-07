@@ -38,7 +38,7 @@ jobs:
 
   apply-bpd:
     needs: filter
-    if: ${{ needs.filter.outputs.bpd === "true" }}
+    if: ${{ needs.filter.outputs.bpd == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: Apply changes to Production
     secrets: inherit
@@ -46,7 +46,7 @@ jobs:
       api_name: bpd
   apply-fast-login:
     needs: filter
-    if: ${{ needs.filter.outputs.fast-login === "true" }}
+    if: ${{ needs.filter.outputs.fast-login == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: Apply changes to Production
     secrets: inherit
@@ -54,7 +54,7 @@ jobs:
       api_name: fast-login
   apply-fims:
     needs: filter
-    if: ${{ needs.filter.outputs.fims === "true" }}
+    if: ${{ needs.filter.outputs.fims == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: Apply changes to Production
     secrets: inherit
@@ -62,7 +62,7 @@ jobs:
       api_name: fims
   apply-internal:
     needs: filter
-    if: ${{ needs.filter.outputs.internal === "true" }}
+    if: ${{ needs.filter.outputs.internal == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: Apply changes to Production
     secrets: inherit
@@ -70,7 +70,7 @@ jobs:
       api_name: internal
   apply-pagopa:
     needs: filter
-    if: ${{ needs.filter.outputs.pagopa === "true" }}
+    if: ${{ needs.filter.outputs.pagopa == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: Apply changes to Production
     secrets: inherit
@@ -78,7 +78,7 @@ jobs:
       api_name: pagopa
   apply-public:
     needs: filter
-    if: ${{ needs.filter.outputs.public === "true" }}
+    if: ${{ needs.filter.outputs.public == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: Apply changes to Production
     secrets: inherit
@@ -86,7 +86,7 @@ jobs:
       api_name: public
   apply-zendesk:
     needs: filter
-    if: ${{ needs.filter.outputs.zendesk=== "true" }}
+    if: ${{ needs.filter.outputs.zendesk == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: Apply changes to Production
     secrets: inherit

@@ -43,7 +43,7 @@ jobs:
           filters: ./github/opex_filters.yaml
   plan-bpd:
     needs: filter
-    if: ${{ needs.filter.outputs.bpd === "true" }}
+    if: ${{ needs.filter.outputs.bpd == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: Plan changes against Production
     secrets: inherit
@@ -51,7 +51,7 @@ jobs:
       api_name: bpd
   plan-fast-login:
     needs: filter
-    if: ${{ needs.filter.outputs.fast-login === "true" }}
+    if: ${{ needs.filter.outputs.fast-login == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: Plan changes against Production
     secrets: inherit
@@ -59,7 +59,7 @@ jobs:
       api_name: fast-login
   plan-fims:
     needs: filter
-    if: ${{ needs.filter.outputs.fims === "true" }}
+    if: ${{ needs.filter.outputs.fims == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: Plan changes against Production
     secrets: inherit
@@ -67,7 +67,7 @@ jobs:
       api_name: fims
   plan-internal:
     needs: filter
-    if: ${{ needs.filter.outputs.internal === "true" }}
+    if: ${{ needs.filter.outputs.internal == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: Plan changes against Production
     secrets: inherit
@@ -75,7 +75,7 @@ jobs:
       api_name: internal
   plan-pagopa:
     needs: filter
-    if: ${{ needs.filter.outputs.pagopa === "true" }}
+    if: ${{ needs.filter.outputs.pagopa == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: Plan changes against Production
     secrets: inherit
@@ -83,7 +83,7 @@ jobs:
       api_name: pagopa
   plan-public:
     needs: filter
-    if: ${{ needs.filter.outputs.public === "true" }}
+    if: ${{ needs.filter.outputs.public == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: Plan changes against Production
     secrets: inherit
@@ -91,7 +91,7 @@ jobs:
       api_name: public
   plan-zendesk:
     needs: filter
-    if: ${{ needs.filter.outputs.zendesk === "true" }}
+    if: ${{ needs.filter.outputs.zendesk == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: Plan changes against Production
     secrets: inherit
