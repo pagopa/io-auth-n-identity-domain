@@ -169,6 +169,7 @@ describe("logout", () => {
     // Repositories are not used, since we mocked the service layer
     lollipopApiClient: {} as LollipopApiClient,
     redisClientSelector: {} as RedisClientSelectorType,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lollipopRevokeQueueClient: {} as any,
     // Services
     lollipopService: mockedLollipopService,

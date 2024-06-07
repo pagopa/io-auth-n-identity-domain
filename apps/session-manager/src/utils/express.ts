@@ -12,7 +12,6 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as R from "fp-ts/Record";
 import { getSpidStrategyOption } from "@pagopa/io-spid-commons/dist/utils/middleware";
-import { RedisClientMode, RedisClientSelectorType } from "../types/redis";
 import { IDP_METADATA_REFRESH_INTERVAL_SECONDS } from "../config/spid";
 import { StartupEventName, trackStartupTime } from "./appinsights";
 import { log } from "./logger";
@@ -121,19 +120,23 @@ export const checkIdpConfiguration: (
   return TE.of(void 0);
 };
 
+export type AppWithRefresherTimer = {
+  app: express.Express;
+  startIdpMetadataRefreshTimer: NodeJS.Timer;
+};
+
 /**
  * Setup the time intervar refresh operation for IDP metadata
  * and configure the graceful shutdown function for the express App.
  */
-export const setupMetadataRefresherAndGS: (
-  redisClientSelector: RedisClientSelectorType,
+export const setupMetadataRefresher: (
   appInsightsClient?: appInsights.TelemetryClient,
 ) => (data: {
   app: express.Express;
   spidConfigTime: bigint;
   idpMetadataRefresher: () => T.Task<void>;
-}) => TE.TaskEither<Error, express.Express> =
-  (REDIS_CLIENT_SELECTOR, appInsightsClient) => (data) => {
+}) => TE.TaskEither<Error, AppWithRefresherTimer> =
+  (appInsightsClient) => (data) => {
     if (appInsightsClient) {
       trackStartupTime(
         appInsightsClient,
@@ -152,22 +155,8 @@ export const setupMetadataRefresherAndGS: (
           }),
       IDP_METADATA_REFRESH_INTERVAL_SECONDS * 1000,
     );
-    data.app.on("server:stop", () => {
-      clearInterval(startIdpMetadataRefreshTimer);
-      // Graceful redis connection shutdown.
-      for (const client of REDIS_CLIENT_SELECTOR.select(RedisClientMode.ALL)) {
-        log.info(`Gracefully closing redis connection`);
-
-        client
-          .quit()
-          .catch((err) =>
-            log.error(
-              `An Error occurred closing the redis connection: [${
-                E.toError(err).message
-              }]`,
-            ),
-          );
-      }
+    return TE.of({
+      app: data.app,
+      startIdpMetadataRefreshTimer,
     });
-    return TE.of(data.app);
   };
