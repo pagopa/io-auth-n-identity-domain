@@ -71,10 +71,10 @@ paths:
       summary: The healthcheck endpoint
       description: Responde with the app version if running
       responses:
-      "200":
-        description: Access token
-        schema:
-          $ref: "#/definitions/BackendVersion"
+        "200":
+          description: Access token
+          schema:
+            $ref: "#/definitions/BackendVersion"
   "/assertionConsumerService":
     post:
       operationId: acs
