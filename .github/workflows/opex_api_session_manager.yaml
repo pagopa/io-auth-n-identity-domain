@@ -34,28 +34,7 @@ jobs:
       - uses: dorny/paths-filter@v3.0.2
         id: filter
         with:
-          filters: |
-            bpd:
-              - "apps/session-manager/api/bpd.yaml"
-              - ".opex/bpd/**"
-            fast-login:
-              - "apps/session-manager/api/fast-login.yaml"
-              - ".opex/fast-login/**"
-            fims:
-              - "apps/session-manager/api/fims.yaml"
-              - ".opex/fims/**"
-            internal:
-              - "apps/session-manager/api/internal.yaml"
-              - ".opex/internal/**"
-            pagopa:
-              - "apps/session-manager/api/pagopa.yaml"
-              - ".opex/pagopa/**"
-            public:
-              - "apps/session-manager/api/public.yaml"
-              - ".opex/public/**"
-            zendesk:
-              - "apps/session-manager/api/zendesk.yaml"
-              - ".opex/zendesk/**"
+          filters: ./github/opex_filters.yaml
 
   apply-bpd:
     needs: filter
