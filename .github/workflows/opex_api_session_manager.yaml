@@ -31,10 +31,14 @@ jobs:
     # We can use the result to decide which job to run
     # With this type of filter we can avoid creating a lot of workflow files
     steps:
+      # path-filters action requires checkout with push event
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
       - uses: dorny/paths-filter@v3.0.2
         id: filter
         with:
-          filters: ./github/opex_filters.yaml
+          filters: ./.github/opex_filters.yaml
 
   apply-bpd:
     needs: filter

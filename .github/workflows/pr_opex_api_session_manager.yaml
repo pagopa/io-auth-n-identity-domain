@@ -40,7 +40,7 @@ jobs:
       - uses: dorny/paths-filter@v3.0.2
         id: filter
         with:
-          filters: ./github/opex_filters.yaml
+          filters: ./.github/opex_filters.yaml
   plan-bpd:
     needs: filter
     if: ${{ needs.filter.outputs.bpd == 'true' }}
