@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.12.2
+
+### Patch Changes
+
+- 5b24b65: Improve security of deploy pipeline
+
 ## 0.12.1
 
 ### Patch Changes
