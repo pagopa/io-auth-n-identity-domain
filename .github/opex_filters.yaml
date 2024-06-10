@@ -1,0 +1,27 @@
+plan-action:
+  - ".github/workflows/pr_opex_api_session_manager.yaml"
+  - ".github/workflows/call_pr_opex_api.yml"
+apply-action:
+  - ".github/workflows/opex_api_session_manager.yaml"
+  - ".github/workflows/call_opex_api.yml"
+bpd:
+  - "apps/session-manager/api/bpd.yaml"
+  - "apps/session-manager/.opex/bpd/**"
+fast-login:
+  - "apps/session-manager/api/fast-login.yaml"
+  - "apps/session-manager/.opex/fast-login/**"
+fims:
+  - "apps/session-manager/api/fims.yaml"
+  - "apps/session-manager/.opex/fims/**"
+internal:
+  - "apps/session-manager/api/internal.yaml"
+  - "apps/session-manager/.opex/internal/**"
+pagopa:
+  - "apps/session-manager/api/pagopa.yaml"
+  - "apps/session-manager/.opex/pagopa/**"
+public:
+  - "apps/session-manager/api/public.yaml"
+  - "apps/session-manager/.opex/public/**"
+zendesk:
+  - "apps/session-manager/api/zendesk.yaml"
+  - "apps/session-manager/.opex/zendesk/**"

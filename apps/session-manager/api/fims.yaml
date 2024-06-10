@@ -94,7 +94,8 @@ definitions:
     type: string
     pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
   AssertionRef:
-    oneOf:
+    x-one-of: true
+    allOf:
       - $ref: "#/definitions/AssertionRefSha256"
       - $ref: "#/definitions/AssertionRefSha384"
       - $ref: "#/definitions/AssertionRefSha512"
@@ -116,7 +117,9 @@ definitions:
       - assertion_ref
       - pub_key
       - lc_authentication_bearer
-
+  ## needed to solve opex bug during referencing
+  LimitedFederatedUser:
+    $ref: "internal.yaml#/definitions/LimitedFederatedUser"
   FederatedUser:
     $ref: "internal.yaml#/definitions/FederatedUser"
   FIMSUser:

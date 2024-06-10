@@ -1,0 +1,107 @@
+name: Opex Dashboard session-manager
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/session-manager/api/*.yaml"
+      - ".github/workflows/opex_api_session_manager.yaml"
+      - ".github/workflows/call_opex_api.yml"
+      - "apps/session-manager/.opex/**"
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  filter:
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: read
+    outputs:
+      apply-action: ${{ steps.filter.outputs.apply-action }}
+      bpd: ${{ steps.filter.outputs.bpd }}
+      fast-login: ${{ steps.filter.outputs.fast-login }}
+      fims: ${{ steps.filter.outputs.fims }}
+      internal: ${{ steps.filter.outputs.internal }}
+      pagopa: ${{ steps.filter.outputs.pagopa }}
+      public: ${{ steps.filter.outputs.public }}
+      zendesk: ${{ steps.filter.outputs.zendesk }}
+    # Checks to see if openapi specs in the PR match one of the ones listed.
+    # We can use the result to decide which job to run
+    # With this type of filter we can avoid creating a lot of workflow files
+    steps:
+      # path-filters action requires checkout with push event
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+      - uses: dorny/paths-filter@v3.0.2
+        id: filter
+        with:
+          filters: ./.github/opex_filters.yaml
+
+  apply-bpd:
+    needs: filter
+    if: ${{ needs.filter.outputs.bpd == 'true' || needs.filter.outputs.apply-action == 'true' }}
+    uses: ./.github/workflows/call_opex_api.yml
+    name: (Bpd) Apply changes to Production
+    secrets: inherit
+    with:
+      api_name: bpd
+      app_name: session-manager
+  apply-fast-login:
+    needs: filter
+    if: ${{ needs.filter.outputs.fast-login == 'true' || needs.filter.outputs.apply-action == 'true' }}
+    uses: ./.github/workflows/call_opex_api.yml
+    name: (Fast-login) Apply changes to Production
+    secrets: inherit
+    with:
+      api_name: fast-login
+      app_name: session-manager
+  apply-fims:
+    needs: filter
+    if: ${{ needs.filter.outputs.fims == 'true' || needs.filter.outputs.apply-action == 'true' }}
+    uses: ./.github/workflows/call_opex_api.yml
+    name: (Fims) Apply changes to Production
+    secrets: inherit
+    with:
+      api_name: fims
+      app_name: session-manager
+  apply-internal:
+    needs: filter
+    if: ${{ needs.filter.outputs.internal == 'true' || needs.filter.outputs.apply-action == 'true' }}
+    uses: ./.github/workflows/call_opex_api.yml
+    name: (Internal) Apply changes to Production
+    secrets: inherit
+    with:
+      api_name: internal
+      app_name: session-manager
+  apply-pagopa:
+    needs: filter
+    if: ${{ needs.filter.outputs.pagopa == 'true' || needs.filter.outputs.apply-action == 'true' }}
+    uses: ./.github/workflows/call_opex_api.yml
+    name: (Pagopa) Apply changes to Production
+    secrets: inherit
+    with:
+      api_name: pagopa
+      app_name: session-manager
+  apply-public:
+    needs: filter
+    if: ${{ needs.filter.outputs.public == 'true' || needs.filter.outputs.apply-action == 'true' }}
+    uses: ./.github/workflows/call_opex_api.yml
+    name: (Public) Apply changes to Production
+    secrets: inherit
+    with:
+      api_name: public
+      app_name: session-manager
+  apply-zendesk:
+    needs: filter
+    if: ${{ needs.filter.outputs.zendesk == 'true' || needs.filter.outputs.apply-action == 'true' }}
+    uses: ./.github/workflows/call_opex_api.yml
+    name: (Zendesk) Apply changes to Production
+    secrets: inherit
+    with:
+      api_name: zendesk
+      app_name: session-manager
