@@ -34,11 +34,15 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
+      - run: |
+          cd apps/${{ env.APP_NAME }}
+        shell: bash
+
       - uses: pagopa/opex-dashboard-azure-action@3ad80a5e4a2d5a8f342615637072f21b687320ce # action v1.2.1
         with:
           environment: prod
           api-name: ${{ env.API_NAME }}
-          config: apps/${{ env.APP_NAME }}/.opex/${{ env.API_NAME }}/env/prod/config.yaml
+          config: .opex/${{ env.API_NAME }}/env/prod/config.yaml
           client-id: ${{ secrets.ARM_CLIENT_ID }}
           tenant-id: ${{ secrets.ARM_TENANT_ID }}
           subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
