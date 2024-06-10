@@ -7,6 +7,7 @@ on:
     paths:
       - "apps/session-manager/api/*.yaml"
       - ".github/workflows/opex_api_session_manager.yaml"
+      - ".github/workflows/call_opex_api.yml"
       - "apps/session-manager/.opex/**"
 
   workflow_dispatch:
@@ -20,6 +21,7 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
+      apply-action: ${{ steps.filter.outputs.apply-action }}
       bpd: ${{ steps.filter.outputs.bpd }}
       fast-login: ${{ steps.filter.outputs.fast-login }}
       fims: ${{ steps.filter.outputs.fims }}
@@ -42,7 +44,7 @@ jobs:
 
   apply-bpd:
     needs: filter
-    if: ${{ needs.filter.outputs.bpd == 'true' }}
+    if: ${{ needs.filter.outputs.bpd == 'true' || needs.filter.outputs.apply-action == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: (Bpd) Apply changes to Production
     secrets: inherit
@@ -51,7 +53,7 @@ jobs:
       app_name: session-manager
   apply-fast-login:
     needs: filter
-    if: ${{ needs.filter.outputs.fast-login == 'true' }}
+    if: ${{ needs.filter.outputs.fast-login == 'true' || needs.filter.outputs.apply-action == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: (Fast-login) Apply changes to Production
     secrets: inherit
@@ -60,7 +62,7 @@ jobs:
       app_name: session-manager
   apply-fims:
     needs: filter
-    if: ${{ needs.filter.outputs.fims == 'true' }}
+    if: ${{ needs.filter.outputs.fims == 'true' || needs.filter.outputs.apply-action == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: (Fims) Apply changes to Production
     secrets: inherit
@@ -69,7 +71,7 @@ jobs:
       app_name: session-manager
   apply-internal:
     needs: filter
-    if: ${{ needs.filter.outputs.internal == 'true' }}
+    if: ${{ needs.filter.outputs.internal == 'true' || needs.filter.outputs.apply-action == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: (Internal) Apply changes to Production
     secrets: inherit
@@ -78,7 +80,7 @@ jobs:
       app_name: session-manager
   apply-pagopa:
     needs: filter
-    if: ${{ needs.filter.outputs.pagopa == 'true' }}
+    if: ${{ needs.filter.outputs.pagopa == 'true' || needs.filter.outputs.apply-action == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: (Pagopa) Apply changes to Production
     secrets: inherit
@@ -87,7 +89,7 @@ jobs:
       app_name: session-manager
   apply-public:
     needs: filter
-    if: ${{ needs.filter.outputs.public == 'true' }}
+    if: ${{ needs.filter.outputs.public == 'true' || needs.filter.outputs.apply-action == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: (Public) Apply changes to Production
     secrets: inherit
@@ -96,7 +98,7 @@ jobs:
       app_name: session-manager
   apply-zendesk:
     needs: filter
-    if: ${{ needs.filter.outputs.zendesk == 'true' }}
+    if: ${{ needs.filter.outputs.zendesk == 'true' || needs.filter.outputs.apply-action == 'true' }}
     uses: ./.github/workflows/call_opex_api.yml
     name: (Zendesk) Apply changes to Production
     secrets: inherit

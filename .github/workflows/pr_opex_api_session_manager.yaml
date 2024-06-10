@@ -12,6 +12,7 @@ on:
     paths:
       - "apps/session-manager/api/*.yaml"
       - ".github/workflows/pr_opex_api_session_manager.yaml"
+      - ".github/workflows/call_pr_opex_api.yml"
       - "apps/session-manager/.opex/**"
 
   workflow_dispatch:
@@ -26,6 +27,7 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
+      plan-action: ${{ steps.filter.outputs.plan-action }}
       bpd: ${{ steps.filter.outputs.bpd }}
       fast-login: ${{ steps.filter.outputs.fast-login }}
       fims: ${{ steps.filter.outputs.fims }}
@@ -44,7 +46,7 @@ jobs:
           filters: ./.github/opex_filters.yaml
   plan-bpd:
     needs: filter
-    if: ${{ needs.filter.outputs.bpd == 'true' }}
+    if: ${{ needs.filter.outputs.bpd == 'true' || needs.filter.outputs.plan-action == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: (Bpd) Plan changes against Production
     secrets: inherit
@@ -53,7 +55,7 @@ jobs:
       app_name: session-manager
   plan-fast-login:
     needs: filter
-    if: ${{ needs.filter.outputs.fast-login == 'true' }}
+    if: ${{ needs.filter.outputs.fast-login == 'true' || needs.filter.outputs.plan-action == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: (Fast-login) Plan changes against Production
     secrets: inherit
@@ -62,7 +64,7 @@ jobs:
       app_name: session-manager
   plan-fims:
     needs: filter
-    if: ${{ needs.filter.outputs.fims == 'true' }}
+    if: ${{ needs.filter.outputs.fims == 'true' || needs.filter.outputs.plan-action == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: (Fims) Plan changes against Production
     secrets: inherit
@@ -71,7 +73,7 @@ jobs:
       app_name: session-manager
   plan-internal:
     needs: filter
-    if: ${{ needs.filter.outputs.internal == 'true' }}
+    if: ${{ needs.filter.outputs.internal == 'true' || needs.filter.outputs.plan-action == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: (Internal) Plan changes against Production
     secrets: inherit
@@ -80,7 +82,7 @@ jobs:
       app_name: session-manager
   plan-pagopa:
     needs: filter
-    if: ${{ needs.filter.outputs.pagopa == 'true' }}
+    if: ${{ needs.filter.outputs.pagopa == 'true' || needs.filter.outputs.plan-action == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: (Pagopa) Plan changes against Production
     secrets: inherit
@@ -89,7 +91,7 @@ jobs:
       app_name: session-manager
   plan-public:
     needs: filter
-    if: ${{ needs.filter.outputs.public == 'true' }}
+    if: ${{ needs.filter.outputs.public == 'true' || needs.filter.outputs.plan-action == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: (Public) Plan changes against Production
     secrets: inherit
@@ -98,7 +100,7 @@ jobs:
       app_name: session-manager
   plan-zendesk:
     needs: filter
-    if: ${{ needs.filter.outputs.zendesk == 'true' }}
+    if: ${{ needs.filter.outputs.zendesk == 'true' || needs.filter.outputs.plan-action == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
     name: (Zendesk) Plan changes against Production
     secrets: inherit
