@@ -14,7 +14,6 @@ vi.spyOn(RedisRepo, "RedisClientSelector").mockImplementation(
 
 import { newApp } from "../app";
 import { getCurrentBackendVersion } from "../utils/package";
-// import { serverApp } from "../server";
 
 const X_FORWARDED_PROTO_HEADER = "X-Forwarded-Proto";
 const STOP_EVENT_NAME = "server:stop";
