@@ -19,19 +19,19 @@ vi.mock("../../repositories/fn-app-api", () => ({
 }));
 
 vi.mock("../../repositories/fast-login-api", () => ({
-  getFnFastLoginAPIClient: (_, __, ___, fetchApi) =>
+  getFnFastLoginAPIClient: (_, __, basePath, fetchApi) =>
     FastLoginClient({
       baseUrl: `http://localhost:${PORT}`,
-      basePath: "",
+      basePath,
       fetchApi,
     }),
 }));
 
 vi.mock("../../repositories/lollipop-api", () => ({
-  getLollipopApiClient: (_, __, ___, fetchApi) =>
+  getLollipopApiClient: (_, __, basePath, fetchApi) =>
     LollipopClient({
       baseUrl: `http://localhost:${PORT}`,
-      basePath: "",
+      basePath,
       fetchApi,
     }),
 }));
@@ -96,7 +96,7 @@ describe("initAPIClientsDependencies", () => {
     async () => {
       server.on({
         method: "POST",
-        path: `/pubkeys`,
+        path: `/api/v1/pubkeys`,
         reply: {
           status: 200,
           body: JSON.stringify({ foo: "bar" }),

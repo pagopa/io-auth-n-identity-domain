@@ -16,7 +16,7 @@ export const initAPIClientsDependencies: () => FnAppRepo.FnAppAPIRepositoryDeps 
   const fnFastLoginAPIClient = FnFastLoginRepo.getFnFastLoginAPIClient(
     FastLoginConfig.FAST_LOGIN_API_KEY,
     FastLoginConfig.FAST_LOGIN_API_URL,
-    undefined,
+    "",
     httpOrHttpsApiFetch,
   );
   // Create the API client for `io-functions-lollipop`
