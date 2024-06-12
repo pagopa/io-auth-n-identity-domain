@@ -4,9 +4,8 @@ import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";
 
 import * as E from "fp-ts/Either";
-import { NodeEnvironmentEnum } from "@pagopa/ts-commons/lib/environment";
 import { newApp } from "./app";
-import { AppInsightsConfig, ENV } from "./config";
+import { AppInsightsConfig, isDevEnv } from "./config";
 import {
   StartupEventName,
   initAppInsights,
@@ -89,7 +88,7 @@ export const serverStarter = (
     });
 
     initHttpGracefulShutdown(server, app, {
-      development: ENV === NodeEnvironmentEnum.DEVELOPMENT,
+      development: isDevEnv,
       finally: () => {
         log.info("Server graceful shutdown complete.");
       },
