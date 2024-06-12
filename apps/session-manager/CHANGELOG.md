@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.13.0
+
+### Minor Changes
+
+- 37533e7: Added whitelist for fims endpoints
+
 ## 0.12.2
 
 ### Patch Changes
