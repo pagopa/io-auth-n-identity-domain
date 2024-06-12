@@ -34,6 +34,7 @@ import {
 import { NextFunction, Request, Response } from "express";
 import { ulid } from "ulid";
 import { Errors } from "io-ts";
+import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { withValidatedOrValidationError } from "../utils/responses";
 import { NewPubKey } from "../generated/lollipop-api/NewPubKey";
 import { FnLollipopRepo } from "../repositories";
@@ -141,6 +142,7 @@ export const lollipopLoginHandler =
                           properties: {
                             message: `Error calling reservePubKey endpoint: ${error.message}`,
                           },
+                          tagOverrides: { samplingEnabled: "false" },
                         });
                         return error;
                       },
@@ -161,6 +163,7 @@ export const lollipopLoginHandler =
                               properties: {
                                 message: `Error calling reservePubKey endpoint: ${e.message}`,
                               },
+                              tagOverrides: { samplingEnabled: "false" },
                             });
                             return e;
                           },
@@ -208,6 +211,7 @@ export const lollipopLoginMiddleware =
       appInsightsTelemetryClient,
     )(req).then((_) => (LollipopLoginParams.is(_) ? undefined : _));
 
+const LOLLIPOP_SIGN_ERROR_EVENT_NAME = "lollipop.error.sign";
 const NONCE_REGEX = new RegExp(';?nonce="([^"]+)";?');
 // Take the first occurrence of the field keyid into the signature-params
 const KEY_ID_REGEX = new RegExp(';?keyid="([^"]+)";?');
@@ -255,27 +259,36 @@ const getKeyThumbprintFromSignature = (
 const getAndValidateAssertionRefForUser =
   (
     fiscalCode: FiscalCode,
-    /* TODO: add event logging
-     * operationId: NonEmptyString,
-     */
+    operationId: NonEmptyString,
     keyThumbprint: Thumbprint,
   ): RTE.ReaderTaskEither<
-    { redisClientSelector: RedisClientSelectorType },
+    {
+      redisClientSelector: RedisClientSelectorType;
+      appInsightsTelemetryClient?: appInsights.TelemetryClient;
+    },
     IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized,
     AssertionRef
   > =>
-  ({ redisClientSelector }) =>
+  ({ redisClientSelector, appInsightsTelemetryClient }) =>
     pipe(
       RedisSessionStorageService.getLollipopAssertionRefForUser({
         redisClientSelector,
         fiscalCode,
       }),
-      // TODO: send error event if taskEither results to left
       TE.mapLeft((err) => {
         log.error(
           "lollipopMiddleware|error reading the assertionRef from redis [%s]",
           err.message,
         );
+        appInsightsTelemetryClient?.trackEvent({
+          name: `An error occurs retrieving the assertion ref from Redis | ${err.message}`,
+          properties: {
+            fiscal_code: sha256(fiscalCode),
+            name: LOLLIPOP_SIGN_ERROR_EVENT_NAME,
+            operation_id: operationId,
+          },
+          tagOverrides: { samplingEnabled: "false" },
+        });
         return ResponseErrorInternal("Error retrieving the assertionRef");
       }),
       TE.chainW(TE.fromOption(() => ResponseErrorForbiddenNotAuthorized)),
@@ -287,7 +300,18 @@ const getAndValidateAssertionRefForUser =
               `${getAlgoFromAssertionRef(assertionRef)}-${keyThumbprint}`,
             () => ResponseErrorForbiddenNotAuthorized,
           ),
-          // TODO: send error event if taskEither results to left
+          TE.mapLeft((error) => {
+            appInsightsTelemetryClient?.trackEvent({
+              name: `AssertionRef is different from stored one`,
+              properties: {
+                fiscal_code: sha256(fiscalCode),
+                name: LOLLIPOP_SIGN_ERROR_EVENT_NAME,
+                operation_id: operationId,
+              },
+              tagOverrides: { samplingEnabled: "false" },
+            });
+            return error;
+          }),
         ),
       ),
     );
@@ -333,47 +357,58 @@ export const extractLollipopLocalsFromLollipopHeaders =
     lollipopHeaders: LollipopRequiredHeaders,
     fiscalCode?: FiscalCode,
   ): RTE.ReaderTaskEither<
-    FnLollipopRepo.LollipopApiDeps & RedisRepositoryDeps,
+    FnLollipopRepo.LollipopApiDeps &
+      RedisRepositoryDeps & {
+        appInsightsTelemetryClient?: appInsights.TelemetryClient;
+      },
     IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized,
     LollipopLocalsType
   > =>
-  ({ fnLollipopAPIClient, redisClientSelector }) =>
+  ({ fnLollipopAPIClient, redisClientSelector, appInsightsTelemetryClient }) =>
     pipe(
       TE.of(getNonceOrUlid(lollipopHeaders["signature-input"])),
       TE.bindTo("operationId"),
-      TE.bind("keyThumbprint", ({ operationId: _operationId }) =>
+      TE.bind("keyThumbprint", ({ operationId }) =>
         pipe(
           getKeyThumbprintFromSignature(lollipopHeaders["signature-input"]),
-          // TODO: send error event if either results to left
-          E.mapLeft(() =>
-            ResponseErrorInternal("Invalid assertionRef in signature params"),
-          ),
+          E.mapLeft(() => {
+            appInsightsTelemetryClient?.trackEvent({
+              name: "AssertionRef in signature-input is missing or invalid",
+              properties: {
+                fiscal_code: fiscalCode ? sha256(fiscalCode) : undefined,
+                name: LOLLIPOP_SIGN_ERROR_EVENT_NAME,
+                operation_id: operationId,
+              },
+              tagOverrides: { samplingEnabled: "false" },
+            });
+            return ResponseErrorInternal(
+              "Invalid assertionRef in signature params",
+            );
+          }),
           TE.fromEither,
         ),
       ),
-      TE.bind(
-        "assertionRefSet",
-        ({ keyThumbprint, operationId: _operationId }) =>
-          pipe(
-            O.fromNullable(fiscalCode),
-            O.map((fc) =>
-              pipe(
-                getAndValidateAssertionRefForUser(
-                  fc,
-                  /* operationId, */
-                  keyThumbprint,
-                )({ redisClientSelector }),
-                TE.map((assertionRef) => [assertionRef]),
-              ),
-            ),
-            O.getOrElse(() =>
-              TE.of([
-                `sha256-${keyThumbprint}` as AssertionRef,
-                `sha384-${keyThumbprint}` as AssertionRef,
-                `sha512-${keyThumbprint}` as AssertionRef,
-              ]),
+      TE.bind("assertionRefSet", ({ keyThumbprint, operationId }) =>
+        pipe(
+          O.fromNullable(fiscalCode),
+          O.map((fc) =>
+            pipe(
+              getAndValidateAssertionRefForUser(
+                fc,
+                operationId,
+                keyThumbprint,
+              )({ redisClientSelector, appInsightsTelemetryClient }),
+              TE.map((assertionRef) => [assertionRef]),
             ),
           ),
+          O.getOrElse(() =>
+            TE.of([
+              `sha256-${keyThumbprint}` as AssertionRef,
+              `sha384-${keyThumbprint}` as AssertionRef,
+              `sha512-${keyThumbprint}` as AssertionRef,
+            ]),
+          ),
+        ),
       ),
       TE.bindW("lcParams", ({ assertionRefSet, operationId }) =>
         pipe(
@@ -401,7 +436,7 @@ export const extractLollipopLocalsFromLollipopHeaders =
           ),
         ),
       ),
-      TE.chainFirst(({ operationId: _operationId, lcParams, keyThumbprint }) =>
+      TE.chainFirst(({ operationId, lcParams, keyThumbprint }) =>
         pipe(
           O.fromNullable(fiscalCode),
           O.map(() => TE.of(true)),
@@ -409,9 +444,9 @@ export const extractLollipopLocalsFromLollipopHeaders =
             pipe(
               getAndValidateAssertionRefForUser(
                 lcParams.fiscal_code,
-                /* operationId, */
+                operationId,
                 keyThumbprint,
-              )({ redisClientSelector }),
+              )({ redisClientSelector, appInsightsTelemetryClient }),
               TE.map(() => true),
             ),
           ),
@@ -430,14 +465,26 @@ export const extractLollipopLocalsFromLollipopHeaders =
             ...lollipopHeaders,
           }) as LollipopLocalsType,
       ),
-      // TODO: info event of the sending data to the third party
+      TE.map((lcLocals) => {
+        appInsightsTelemetryClient?.trackEvent({
+          name: "Lollipop locals to be sent to third party api",
+          properties: {
+            ...Object.keys(lcLocals),
+            name: "lollipop.locals.info",
+          },
+          tagOverrides: { samplingEnabled: "false" },
+        });
+        return lcLocals;
+      }),
     );
 
 export const expressLollipopMiddleware: (
   lollipopApiClient: LollipopApiClient,
   redisClientSelector: RedisClientSelectorType,
+  appInsightsTelemetryClient?: appInsights.TelemetryClient,
 ) => (req: Request, res: Response, next: NextFunction) => Promise<void> =
-  (fnLollipopAPIClient, redisClientSelector) => (req, res, next) =>
+  (fnLollipopAPIClient, redisClientSelector, appInsightsTelemetryClient) =>
+  (req, res, next) =>
     pipe(
       TE.tryCatch(
         () =>
@@ -447,7 +494,11 @@ export const expressLollipopMiddleware: (
                 extractLollipopLocalsFromLollipopHeaders(
                   lollipopHeaders,
                   O.toUndefined(user)?.fiscal_code,
-                )({ fnLollipopAPIClient, redisClientSelector }),
+                )({
+                  fnLollipopAPIClient,
+                  redisClientSelector,
+                  appInsightsTelemetryClient,
+                }),
                 TE.map((lollipopLocals) => {
                   // eslint-disable-next-line functional/immutable-data
                   res.locals = { ...res.locals, ...lollipopLocals };

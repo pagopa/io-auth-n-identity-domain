@@ -246,6 +246,7 @@ export const newApp: (
     expressLollipopMiddleware(
       APIClients.fnLollipopAPIClient,
       REDIS_CLIENT_SELECTOR,
+      appInsightsClient,
     ),
     pipe(
       toExpressHandler({
