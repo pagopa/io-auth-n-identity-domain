@@ -10,6 +10,7 @@ import { log } from "../utils/logger";
 import { IoLoginHostUrl } from "../types/common";
 
 import * as BPDConfig from "./bpd";
+import * as FnAppConfig from "./fn-app";
 import * as FastLoginConfig from "./fast-login";
 import * as LockProfileConfig from "./lock-profile";
 import * as LoginConfig from "./login";
@@ -40,6 +41,7 @@ export const BACKEND_HOST = pipe(
 
 export {
   BPDConfig,
+  FnAppConfig,
   FastLoginConfig,
   LockProfileConfig,
   LoginConfig,
