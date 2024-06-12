@@ -1,6 +1,5 @@
-import { FastLoginConfig, LollipopConfig } from "../config/index";
+import { FastLoginConfig, FnAppConfig, LollipopConfig } from "../config/index";
 import { FnAppRepo, FnFastLoginRepo, FnLollipopRepo } from "../repositories";
-import { getRequiredENVVar } from "./environment";
 import { httpOrHttpsApiFetch } from "./fetch";
 
 export const initAPIClientsDependencies: () => FnAppRepo.FnAppAPIRepositoryDeps &
@@ -8,8 +7,8 @@ export const initAPIClientsDependencies: () => FnAppRepo.FnAppAPIRepositoryDeps 
   FnLollipopRepo.LollipopApiDeps = () => {
   // Create the API client for `io-functions-app`
   const fnAppAPIClient = FnAppRepo.FnAppAPIClient(
-    getRequiredENVVar("API_URL"),
-    getRequiredENVVar("API_KEY"),
+    FnAppConfig.FN_APP_API_URL,
+    FnAppConfig.FN_APP_API_KEY,
     httpOrHttpsApiFetch,
   );
   // Create the API client for `io-functions-fast-login`
