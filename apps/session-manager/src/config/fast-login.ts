@@ -13,6 +13,7 @@ import { NonNegativeIntegerFromString } from "@pagopa/ts-commons/lib/numbers";
 import { Second } from "@pagopa/ts-commons/lib/units";
 import { getIsUserElegibleForfastLogin } from "../utils/fast-login";
 import { log } from "../utils/logger";
+import { getRequiredENVVar } from "../utils/environment";
 
 // LV FF variable
 export const FF_FAST_LOGIN = pipe(
@@ -60,3 +61,6 @@ log.info(
   "LV Long Session duration set to %s seconds",
   lvLongSessionDurationSecs,
 );
+
+export const FAST_LOGIN_API_KEY = getRequiredENVVar("FAST_LOGIN_API_KEY");
+export const FAST_LOGIN_API_URL = getRequiredENVVar("FAST_LOGIN_API_URL");
