@@ -19,6 +19,7 @@ import * as SpidLogConfig from "./spid-logs";
 import * as ZendeskConfig from "./zendesk";
 import * as PagoPAConfig from "./pagopa";
 import * as AppInsightsConfig from "./appinsights";
+import * as FimsConfig from "./fims";
 
 export const ENV = getNodeEnvironmentFromProcessEnv(process.env);
 
@@ -48,4 +49,5 @@ export {
   ZendeskConfig,
   PagoPAConfig,
   AppInsightsConfig,
+  FimsConfig,
 };

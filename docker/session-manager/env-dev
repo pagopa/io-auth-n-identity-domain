@@ -12,7 +12,13 @@ API_URL=http://functions-app:7071
 API_KEY=key
 
 API_BASE_PATH=/api/v1
+
+################
+# FIMS CONFIG
+################
 FIMS_BASE_PATH=/fims/api/v1
+ALLOW_FIMS_IP_SOURCE_RANGE="::/0"
+################
 
 REDIS_URL=redis-cluster
 REDIS_PASSWORD=bitnami
