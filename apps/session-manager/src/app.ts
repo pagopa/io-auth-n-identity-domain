@@ -12,7 +12,7 @@ import * as TE from "fp-ts/TaskEither";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { ResponsePermanentRedirect } from "@pagopa/ts-commons/lib/responses";
 import * as E from "fp-ts/Either";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { CIDR, FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { pick } from "@pagopa/ts-commons/lib/types";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
@@ -43,6 +43,7 @@ import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
 import {
   BPDConfig,
   FastLoginConfig,
+  FimsConfig,
   LoginConfig,
   LollipopConfig,
   PagoPAConfig,
@@ -140,7 +141,6 @@ export const newApp: (
   const authMiddlewares = setupAuthenticationMiddlewares();
 
   const API_BASE_PATH = getRequiredENVVar("API_BASE_PATH");
-  const FIMS_BASE_PATH = getRequiredENVVar("FIMS_BASE_PATH");
   const ZENDESK_BASE_PATH = getRequiredENVVar("ZENDESK_BASE_PATH");
 
   // Setup paths
@@ -259,7 +259,8 @@ export const newApp: (
 
   setupFIMSEndpoints(
     app,
-    FIMS_BASE_PATH,
+    FimsConfig.FIMS_BASE_PATH,
+    FimsConfig.ALLOW_FIMS_IP_SOURCE_RANGE,
     authMiddlewares,
     REDIS_CLIENT_SELECTOR,
     APIClients.fnAppAPIClient,
@@ -410,13 +411,13 @@ const setupAuthentication = (
   );
 };
 
-// TODO [#IOPID-1858]: Add IP Filtering
 /**
  * Setup FIMS Endpoint
  */
 function setupFIMSEndpoints(
   app: express.Application,
   FIMS_BASE_PATH: string,
+  ALLOW_FIMS_IP_SOURCE_RANGE: ReadonlyArray<CIDR>,
   authMiddlewares: {
     bearerSession: express.RequestHandler;
     bearerFIMS: express.RequestHandler;
@@ -427,6 +428,7 @@ function setupFIMSEndpoints(
 ) {
   app.get(
     `${FIMS_BASE_PATH}/user`,
+    checkIP(ALLOW_FIMS_IP_SOURCE_RANGE),
     authMiddlewares.bearerFIMS,
     pipe(
       toExpressHandler({
@@ -439,6 +441,7 @@ function setupFIMSEndpoints(
 
   app.post(
     `${FIMS_BASE_PATH}/lollipop-user`,
+    checkIP(ALLOW_FIMS_IP_SOURCE_RANGE),
     authMiddlewares.bearerFIMS,
     pipe(
       toExpressHandler({
