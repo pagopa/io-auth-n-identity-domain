@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.13.1
+
+### Patch Changes
+
+- 0e0f144: Abortable fetch for downstream API
+
 ## 0.13.0
 
 ### Minor Changes
