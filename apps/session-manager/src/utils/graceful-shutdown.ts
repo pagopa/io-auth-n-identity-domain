@@ -18,9 +18,7 @@ export function initHttpGracefulShutdown(
   GracefulShutdown(server, {
     ...options,
     finally: () => {
-      if (options.finally) {
-        options.finally();
-      }
+      options.finally?.();
       // Showdown sincronization via emitted event
       log.info("On close: emit 'server:stop' event");
       const result = app.emit("server:stop");
