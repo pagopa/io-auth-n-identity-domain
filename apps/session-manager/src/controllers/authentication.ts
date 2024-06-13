@@ -78,6 +78,7 @@ import { getRequestIDFromResponse } from "../utils/spid";
 import { AssertionRef } from "../generated/backend/AssertionRef";
 import { CreateNewProfileDependencies } from "../services/profile";
 import { AccessToken } from "../generated/public/AccessToken";
+import { AppInsightsDeps } from "../utils/appinsights";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 import { AuthenticationController } from ".";
 
@@ -94,14 +95,14 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   FnLollipopRepo.LollipopApiDeps &
   RevokeAssertionRefDeps &
   CreateNewProfileDependencies &
-  NotificationsRepo.NotificationsueueDeps & {
+  NotificationsRepo.NotificationsueueDeps &
+  AppInsightsDeps & {
     isLollipopEnabled: boolean;
     getClientErrorRedirectionUrl: (
       params: ClientErrorRedirectionUrlParams,
     ) => UrlFromString;
     getClientProfileRedirectionUrl: (token: string) => UrlFromString;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    appInsightsTelemetryClient?: any;
     allowedCieTestFiscalCodes: ReadonlyArray<FiscalCode>;
     hasUserAgeLimitEnabled: boolean;
     standardTokenDurationSecs: Second;

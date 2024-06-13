@@ -37,7 +37,7 @@ import { Errors } from "io-ts";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { withValidatedOrValidationError } from "../utils/responses";
 import { NewPubKey } from "../generated/lollipop-api/NewPubKey";
-import { FnLollipopRepo } from "../repositories";
+import { FnLollipopRepo, RedisRepo } from "../repositories";
 import { JwkPubKeyHashAlgorithmEnum } from "../generated/lollipop-api/JwkPubKeyHashAlgorithm";
 import {
   LollipopLocalsType,
@@ -60,6 +60,7 @@ import { errorsToError } from "./errors";
 import { ResLocals } from "./express";
 import { withOptionalUserFromRequest } from "./user";
 import { log } from "./logger";
+import { AppInsightsDeps } from "./appinsights";
 
 const getLoginErrorEventName = "lollipop.error.get-login";
 
@@ -262,10 +263,7 @@ const getAndValidateAssertionRefForUser =
     operationId: NonEmptyString,
     keyThumbprint: Thumbprint,
   ): RTE.ReaderTaskEither<
-    {
-      redisClientSelector: RedisClientSelectorType;
-      appInsightsTelemetryClient?: appInsights.TelemetryClient;
-    },
+    RedisRepo.RedisRepositoryDeps & AppInsightsDeps,
     IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized,
     AssertionRef
   > =>
@@ -358,9 +356,8 @@ export const extractLollipopLocalsFromLollipopHeaders =
     fiscalCode?: FiscalCode,
   ): RTE.ReaderTaskEither<
     FnLollipopRepo.LollipopApiDeps &
-      RedisRepositoryDeps & {
-        appInsightsTelemetryClient?: appInsights.TelemetryClient;
-      },
+      RedisRepo.RedisRepositoryDeps &
+      AppInsightsDeps,
     IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized,
     LollipopLocalsType
   > =>
