@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.14.0
+
+### Minor Changes
+
+- 8e7186d: Added appinsights event tracking on lollipop operations
+
 ## 0.13.1
 
 ### Patch Changes
