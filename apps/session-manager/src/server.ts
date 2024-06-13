@@ -1,11 +1,11 @@
-import { Server } from "http";
 import * as appInsights from "applicationinsights";
 
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";
 
+import * as E from "fp-ts/Either";
 import { newApp } from "./app";
-import { AppInsightsConfig } from "./config";
+import { AppInsightsConfig, isDevEnv } from "./config";
 import {
   StartupEventName,
   initAppInsights,
@@ -14,11 +14,17 @@ import {
 import { log } from "./utils/logger";
 import { getCurrentBackendVersion } from "./utils/package";
 import { TimeTracer } from "./utils/timer";
+import { RedisClientMode } from "./types/redis";
+import { initHttpGracefulShutdown } from "./utils/graceful-shutdown";
+import {
+  PORT,
+  SHUTDOWN_SIGNALS,
+  SHUTDOWN_TIMEOUT_MILLIS,
+} from "./config/server";
+import { AppWithRefresherTimer } from "./utils/express";
+import { RedisRepo } from "./repositories";
 
 const timer = TimeTracer();
-
-// eslint-disable-next-line turbo/no-undeclared-env-vars
-const port = process.env.WEBSITES_PORT ?? 3000;
 
 const maybeAppInsightsClient = pipe(
   AppInsightsConfig.APPINSIGHTS_CONNECTION_STRING,
@@ -33,44 +39,70 @@ const maybeAppInsightsClient = pipe(
   O.toUndefined,
 );
 
-newApp({ appInsightsClient: maybeAppInsightsClient })
-  .then((app) => {
-    const server = app
-      .listen(port, () => {
-        const startupTimeMs = timer.getElapsedMilliseconds();
+/**
+ * Utility method used to start the server using a Express Application.
+ * This is usefull to mocktesting the startup process whidout creating a real
+ * http server.
+ *
+ * @param appTask An async express App decorated with additional params
+ */
+export const serverStarter = (
+  appTask: Promise<AppWithRefresherTimer & RedisRepo.RedisRepositoryDeps>,
+) =>
+  appTask.then(({ app, startIdpMetadataRefreshTimer, redisClientSelector }) => {
+    // Initialize the handler for the graceful shutdown
+    app.on("server:stop", () => {
+      // Clear refresher interval
+      clearInterval(startIdpMetadataRefreshTimer);
+      // Graceful redis connection shutdown.
+      for (const client of redisClientSelector.select(RedisClientMode.ALL)) {
+        log.info(`Gracefully closing redis connection`);
 
-        log.info("Listening on port %d", port);
-        log.info(`Startup time: %sms`, startupTimeMs.toString());
-        pipe(
-          maybeAppInsightsClient,
-          O.fromNullable,
-          O.map((_) =>
-            trackStartupTime(_, StartupEventName.SERVER, startupTimeMs),
-          ),
-        );
-      })
-      .on("close", () => {
-        log.info("On close: emit 'server:stop' event");
-        const result = app.emit("server:stop");
-        log.info(
-          `On close: end emit 'server:stop' event. Listeners found: ${result}`,
-        );
+        client
+          .quit()
+          .catch((err) =>
+            log.error(
+              `An Error occurred closing the redis connection: [${
+                E.toError(err).message
+              }]`,
+            ),
+          );
+      }
 
-        maybeAppInsightsClient?.flush();
-        appInsights.dispose();
-      });
+      // Dispose the Application Insights client
+      maybeAppInsightsClient?.flush();
+      appInsights.dispose();
+    });
+    const server = app.listen(PORT, () => {
+      const startupTimeMs = timer.getElapsedMilliseconds();
 
-    process.on("SIGTERM", shutDown(server, "SIGTERM"));
-    process.on("SIGINT", shutDown(server, "SIGINT"));
-  })
-  .catch((err) => {
-    log.error("Error loading app: %s", err);
-    process.exit(1);
+      log.info("Listening on port %d", PORT);
+      log.info(`Startup time: %sms`, startupTimeMs.toString());
+      pipe(
+        maybeAppInsightsClient,
+        O.fromNullable,
+        O.map((_) =>
+          trackStartupTime(_, StartupEventName.SERVER, startupTimeMs),
+        ),
+      );
+    });
+
+    initHttpGracefulShutdown(server, app, {
+      development: isDevEnv,
+      finally: () => {
+        log.info("Server graceful shutdown complete.");
+      },
+      signals: SHUTDOWN_SIGNALS,
+      timeout: SHUTDOWN_TIMEOUT_MILLIS,
+    });
+    return app;
   });
 
-const shutDown = (server: Server, signal: string) => () => {
-  log.info(`${signal} signal received: closing HTTP server`);
-  server.close(() => {
-    log.info("HTTP server closed");
-  });
-};
+serverStarter(
+  newApp({
+    appInsightsClient: maybeAppInsightsClient,
+  }),
+).catch((err) => {
+  log.error("Error loading app: %s", err);
+  process.exit(1);
+});

@@ -2,7 +2,6 @@
 import * as appInsights from "applicationinsights";
 import passport from "passport";
 import express from "express";
-import { Express } from "express";
 import { ap } from "fp-ts/lib/Identity";
 import { pipe } from "fp-ts/lib/function";
 import helmet from "helmet";
@@ -34,7 +33,8 @@ import {
   checkIdpConfiguration,
   toExpressHandler,
   toExpressMiddleware,
-  setupMetadataRefresherAndGS,
+  setupMetadataRefresher,
+  AppWithRefresherTimer,
 } from "./utils/express";
 import { withUserFromRequest } from "./utils/user";
 import { AdditionalLoginProps, LoginTypeEnum } from "./types/fast-login";
@@ -87,7 +87,9 @@ export interface IAppFactoryParameters {
 export const newApp: (
   params: IAppFactoryParameters,
   // eslint-disable-next-line max-lines-per-function
-) => Promise<Express> = async ({ appInsightsClient }) => {
+) => Promise<AppWithRefresherTimer & RedisRepo.RedisRepositoryDeps> = async ({
+  appInsightsClient,
+}) => {
   // Create the Session Storage service
   const REDIS_CLIENT_SELECTOR = await RedisRepo.RedisClientSelector(
     !isDevEnv,
@@ -275,7 +277,6 @@ export const newApp: (
     pipe(
       toExpressHandler({
         fnAppAPIClient: APIClients.fnAppAPIClient,
-        redisClientSelector: REDIS_CLIENT_SELECTOR,
         jwtZendeskSupportTokenSecret:
           ZendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_SECRET,
         jwtZendeskSupportTokenExpiration:
@@ -362,15 +363,14 @@ export const newApp: (
         })(),
       (err) => new Error(`Unexpected error initizing Spid Login: [${err}]`),
     ),
-    TE.map((withSpidApp) => ({
-      ...withSpidApp,
+    TE.map((appAndRefresher) => ({
+      ...appAndRefresher,
       spidConfigTime: TIMER.getElapsedMilliseconds(),
     })),
-    TE.chain(
-      setupMetadataRefresherAndGS(REDIS_CLIENT_SELECTOR, appInsightsClient),
-    ),
-    TE.chainFirst(checkIdpConfiguration),
-    TE.chainFirstTaskK(applyErrorMiddleware),
+    TE.chain(setupMetadataRefresher(appInsightsClient)),
+    TE.chainFirst(({ app }) => checkIdpConfiguration(app)),
+    TE.chainFirstTaskK(({ app }) => applyErrorMiddleware(app)),
+    TE.map((data) => ({ ...data, redisClientSelector: REDIS_CLIENT_SELECTOR })),
   )();
   return E.getOrElseW(() => {
     app.emit("server:stop");
@@ -433,7 +433,6 @@ function setupFIMSEndpoints(
     authMiddlewares.bearerFIMS,
     pipe(
       toExpressHandler({
-        redisClientSelector: REDIS_CLIENT_SELECTOR,
         fnAppAPIClient: API_CLIENT,
       }),
       ap(withUserFromRequest(SSOController.getUserForFIMS)),

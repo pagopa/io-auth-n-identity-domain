@@ -1,29 +1,29 @@
-import { describe, test, vi, expect, afterAll, beforeEach } from "vitest";
+import { describe, test, vi, afterAll } from "vitest";
 import request from "supertest";
 import { RedisRepo } from "../repositories";
-import {
-  mockQuit,
-  mockRedisClientSelector,
-  mockSelect,
-} from "../__mocks__/redis.mocks";
+import { mockRedisClientSelector } from "../__mocks__/redis.mocks";
 
 vi.stubEnv(
   "IDP_METADATA_URL",
   "https://api.is.eng.pagopa.it/idp-keys/spid/latest",
 );
 
-import { newApp } from "../app";
-import { getCurrentBackendVersion } from "../utils/package";
-
 vi.spyOn(RedisRepo, "RedisClientSelector").mockImplementation(
   () => async () => mockRedisClientSelector,
 );
 
+import { newApp } from "../app";
+import { getCurrentBackendVersion } from "../utils/package";
+
 const X_FORWARDED_PROTO_HEADER = "X-Forwarded-Proto";
 const STOP_EVENT_NAME = "server:stop";
 
+afterAll(() => {
+  vi.restoreAllMocks();
+});
+
 describe("Test redirect to HTTPS", async () => {
-  const app = await newApp({});
+  const { app } = await newApp({});
 
   afterAll(() => {
     app.emit(STOP_EVENT_NAME);
@@ -41,20 +41,5 @@ describe("Test redirect to HTTPS", async () => {
       .get("/healthcheck")
       .set(X_FORWARDED_PROTO_HEADER, "https")
       .expect(200);
-  });
-});
-
-describe("Graceful Shutdown", async () => {
-  const app = await newApp({});
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  afterAll(() => {
-    app.emit(STOP_EVENT_NAME);
-  });
-  test("should call quit method for each redis when the server stops", async () => {
-    app.emit(STOP_EVENT_NAME);
-    expect(mockQuit).toBeCalledTimes(mockSelect().length);
   });
 });

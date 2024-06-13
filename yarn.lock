@@ -1237,6 +1237,7 @@ __metadata:
     express: "npm:^4.19.2"
     fp-ts: "npm:^2.16.5"
     helmet: "npm:^7.1.0"
+    http-graceful-shutdown: "npm:^3.1.13"
     io-ts: "npm:^2.2.21"
     io-ts-types: "npm:^0.5.16"
     jose: "npm:^5.3.0"
@@ -5716,6 +5717,15 @@ __metadata:
     statuses: "npm:>= 1.5.0 < 2"
     toidentifier: "npm:1.0.1"
   checksum: 10c0/f01aeecd76260a6fe7f08e192fcbe9b2f39ed20fc717b852669a69930167053b01790998275c6297d44f435cf0e30edd50c05223d1bec9bc484e6cf35b2d6f43
+  languageName: node
+  linkType: hard
+
+"http-graceful-shutdown@npm:^3.1.13":
+  version: 3.1.13
+  resolution: "http-graceful-shutdown@npm:3.1.13"
+  dependencies:
+    debug: "npm:^4.3.4"
+  checksum: 10c0/56e4c80c2bd468f0b94e8316b9012cea1e273ca4973636f7b5514eea757e8e89dc3fac1f439e0c04492a1f021a7241ed15ba1ccd21f022600c5c34425b3033f6
   languageName: node
   linkType: hard
 

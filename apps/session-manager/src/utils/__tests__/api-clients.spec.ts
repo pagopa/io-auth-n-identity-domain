@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeAll, afterAll, describe, expect, test, vi } from "vitest";
 import ServerMock from "mock-http-server";
 import { AbortError } from "node-fetch";
 import { createClient as FnAppClient } from "@pagopa/io-functions-app-sdk/client";
@@ -40,25 +40,43 @@ import { initAPIClientsDependencies } from "../api-clients";
 
 describe("initAPIClientsDependencies", () => {
   const server = new ServerMock({ host: "localhost", port: PORT }, undefined);
+  server.on({
+    method: "GET",
+    path: `/api/v1/profiles/${aFiscalCode}`,
+    reply: {
+      status: 200,
+      body: JSON.stringify({ foo: "bar" }),
+    },
+    delay: DEFAULT_REQUEST_TIMEOUT_MS + 100,
+  });
+  server.on({
+    method: "POST",
+    path: `/api/v1/nonce/generate`,
+    reply: {
+      status: 200,
+      body: JSON.stringify({ foo: "bar" }),
+    },
+    delay: DEFAULT_REQUEST_TIMEOUT_MS + 100,
+  });
+  server.on({
+    method: "POST",
+    path: `/api/v1/pubkeys`,
+    reply: {
+      status: 200,
+      body: JSON.stringify({ foo: "bar" }),
+    },
+    delay: DEFAULT_REQUEST_TIMEOUT_MS + 100,
+  });
   const expectedAbortError = new AbortError("The user aborted a request.");
 
-  beforeEach(async () => new Promise((resolve) => server.start(resolve)));
+  beforeAll(async () => new Promise((resolve) => server.start(resolve)));
 
-  afterEach(async () => new Promise((resolve) => server.stop(resolve)));
+  afterAll(async () => new Promise((resolve) => server.stop(resolve)));
 
   test(
     "The FnAppAPIClient should abort the request if the server responde slowly",
-    { timeout: DEFAULT_REQUEST_TIMEOUT_MS + 500 },
+    { timeout: DEFAULT_REQUEST_TIMEOUT_MS + 500, concurrent: true },
     async () => {
-      server.on({
-        method: "GET",
-        path: `/api/v1/profiles/${aFiscalCode}`,
-        reply: {
-          status: 200,
-          body: JSON.stringify({ foo: "bar" }),
-        },
-        delay: DEFAULT_REQUEST_TIMEOUT_MS + 100,
-      });
       const { fnAppAPIClient } = initAPIClientsDependencies();
 
       await expect(
@@ -71,17 +89,8 @@ describe("initAPIClientsDependencies", () => {
 
   test(
     "The FnFastLoginAPIClient should abort the request if the server responde slowly",
-    { timeout: DEFAULT_REQUEST_TIMEOUT_MS + 500 },
+    { timeout: DEFAULT_REQUEST_TIMEOUT_MS + 500, concurrent: true },
     async () => {
-      server.on({
-        method: "POST",
-        path: `/api/v1/nonce/generate`,
-        reply: {
-          status: 200,
-          body: JSON.stringify({ foo: "bar" }),
-        },
-        delay: DEFAULT_REQUEST_TIMEOUT_MS + 100,
-      });
       const { fnFastLoginAPIClient } = initAPIClientsDependencies();
 
       await expect(fnFastLoginAPIClient.generateNonce({})).rejects.toThrow(
@@ -92,17 +101,8 @@ describe("initAPIClientsDependencies", () => {
 
   test(
     "The FnFastLoginAPIClient should abort the request if the server responde slowly",
-    { timeout: DEFAULT_REQUEST_TIMEOUT_MS + 500 },
+    { timeout: DEFAULT_REQUEST_TIMEOUT_MS + 500, concurrent: true },
     async () => {
-      server.on({
-        method: "POST",
-        path: `/api/v1/pubkeys`,
-        reply: {
-          status: 200,
-          body: JSON.stringify({ foo: "bar" }),
-        },
-        delay: DEFAULT_REQUEST_TIMEOUT_MS + 100,
-      });
       const { fnLollipopAPIClient } = initAPIClientsDependencies();
 
       await expect(
