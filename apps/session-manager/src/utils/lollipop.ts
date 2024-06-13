@@ -55,7 +55,6 @@ import { generateLCParams } from "../services/lollipop";
 import { AssertionRefSha384 } from "../generated/lollipop-api/AssertionRefSha384";
 import { AssertionRefSha512 } from "../generated/lollipop-api/AssertionRefSha512";
 import { DomainErrorTypes } from "../models/domain-errors";
-import { RedisRepositoryDeps } from "../repositories/redis";
 import { errorsToError } from "./errors";
 import { ResLocals } from "./express";
 import { withOptionalUserFromRequest } from "./user";

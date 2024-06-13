@@ -15,7 +15,6 @@ import { FnAppAPIRepositoryDeps } from "../repositories/fn-app-api";
 import { WithExpressRequest } from "../utils/express";
 import { WithUser } from "../utils/user";
 import { ProfileService, RedisSessionStorageService } from "../services";
-import { EmailAddress } from "../generated/backend/EmailAddress";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
 import { RedisRepositoryDeps } from "../repositories/redis";
 import { PagoPAUser } from "../generated/pagopa/PagoPAUser";
