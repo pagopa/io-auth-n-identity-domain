@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.14.1
+
+### Patch Changes
+
+- e326185: Graceful shutdown with http req handling
+
 ## 0.14.0
 
 ### Minor Changes
