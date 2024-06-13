@@ -27,6 +27,7 @@ import { LcParams } from "../generated/lollipop-api/LcParams";
 import { RedisRepositoryDeps } from "../repositories/redis";
 import { ActivatedPubKey } from "../generated/lollipop-api/ActivatedPubKey";
 import { AssertionTypeEnum } from "../generated/lollipop-api/AssertionType";
+import { AppInsightsDeps } from "../utils/appinsights";
 import { RedisSessionStorageService } from ".";
 
 const LOLLIPOP_ERROR_EVENT_NAME = "lollipop.error.acs";
@@ -99,9 +100,8 @@ export const activateLolliPoPKey = (
     fiscalCode: FiscalCode;
     assertion: NonEmptyString;
     getExpirePubKeyFn: IO<Date>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    appInsightsTelemetryClient?: any;
-  } & GenerateLCParamsDeps,
+  } & GenerateLCParamsDeps &
+    AppInsightsDeps,
 ): TE.TaskEither<Error, ActivatedPubKey> =>
   pipe(
     TE.tryCatch(
@@ -165,10 +165,8 @@ export const deleteAssertionRefAssociation: (
   eventMessage: string,
 ) => RTE.ReaderTaskEither<
   LollipopRevokeRepo.RevokeAssertionRefDeps &
-    RedisRepositoryDeps & {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      appInsightsTelemetryClient?: any;
-    },
+    RedisRepositoryDeps &
+    AppInsightsDeps,
   Error,
   boolean
 > = (fiscalCode, assertionRefToRevoke, eventName, eventMessage) => (deps) => {

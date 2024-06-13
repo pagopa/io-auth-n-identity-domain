@@ -6,6 +6,10 @@ import {
 import { hashFiscalCode } from "@pagopa/ts-commons/lib/hash";
 import { User } from "../types/user";
 
+export type AppInsightsDeps = {
+  appInsightsTelemetryClient?: appInsights.TelemetryClient;
+};
+
 const SESSION_TRACKING_ID_KEY = "session_tracking_id";
 const USER_TRACKING_ID_KEY = "user_tracking_id";
 
