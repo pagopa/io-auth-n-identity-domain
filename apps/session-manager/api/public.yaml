@@ -20,6 +20,8 @@ paths:
         - $ref: "#/parameters/JwkPubKeyHashAlgorithm"
         - $ref: "#/parameters/LoginType"
       responses:
+        "200":
+          decription: dummy response for generator
         "302":
           description: Redirect to IDP
           headers:
@@ -75,6 +77,10 @@ paths:
           description: Access token
           schema:
             $ref: "#/definitions/BackendVersion"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/ProblemJson"
   "/assertionConsumerService":
     post:
       operationId: acs
@@ -86,6 +92,8 @@ paths:
           schema:
             $ref: "#/definitions/SAMLResponse"
       responses:
+        "200":
+            decription: dummy response for generator
         "301":
           description: Redirect to home page
           headers:

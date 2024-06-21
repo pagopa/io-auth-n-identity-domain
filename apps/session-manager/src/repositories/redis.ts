@@ -73,6 +73,14 @@ const createClusterRedisClient =
         // (https://github.com/redis/node-redis/issues/1598)
         pingInterval: 1000 * 60 * 9,
         socket: {
+          reconnectStrategy: (attempts) => {
+            log.info("[REDIS reconnecting] a reconnection events occurs");
+            appInsightsClient?.trackEvent({
+              name: "io-backend.redis.reconnecting",
+              tagOverrides: { samplingEnabled: "false" },
+            });
+            return Math.min(attempts * 50, 1000);
+          },
           // TODO: We can add a whitelist with all the IP addresses of the redis clsuter
           checkServerIdentity: (_hostname, _cert) => undefined,
           keepAlive: 2000,
@@ -100,30 +108,16 @@ const createClusterRedisClient =
         tagOverrides: { samplingEnabled: "false" },
       });
     });
-    redisClient.on(
-      "reconnecting",
-      ({
-        delay,
-        attempt,
-      }: {
-        readonly delay: number;
-        readonly attempt: number;
-      }) => {
-        log.warn(
-          "[REDIS reconnecting] a reconnection events occurs [delay %s] [attempt %s]",
-          delay,
-          attempt,
-        );
-        appInsightsClient?.trackEvent({
-          name: "io-backend.redis.reconnecting",
-          properties: {
-            attempt,
-            delay,
-          },
-          tagOverrides: { samplingEnabled: "false" },
-        });
-      },
-    );
+    // reconnecting event is not triggered in cluster mode untill the v5 version
+    // of the redis client sdk.
+    //
+    // redisClient.on("reconnecting", () => {
+    //   log.info("[REDIS reconnecting] a reconnection events occurs");
+    //   appInsightsClient?.trackEvent({
+    //     name: "io-backend.redis.reconnecting",
+    //     tagOverrides: { samplingEnabled: "false" },
+    //   });
+    // });
     await redisClient.connect();
     return redisClient;
   };
