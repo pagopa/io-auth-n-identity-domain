@@ -3925,13 +3925,20 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "e2e@workspace:packages/e2e"
   dependencies:
+    "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/openapi-codegen-ts": "npm:^13.2.0"
     "@pagopa/ts-commons": "npm:^13.1.1"
+    "@pagopa/typescript-config-node": "npm:*"
     "@types/node-fetch": "npm:^2.6.11"
+    eslint: "npm:^8.57.0"
+    eslint-config-monorepo: "npm:*"
+    eslint-plugin-prettier: "npm:^5.1.3"
     fp-ts: "npm:^2.16.6"
     io-ts: "npm:^2.2.21"
     node-fetch: "npm:^2.6.1"
+    prettier: "npm:^3.2.5"
     shx: "npm:^0.3.4"
+    typescript: "npm:^5.4.3"
     vitest: "npm:~1.5.0"
   languageName: unknown
   linkType: soft

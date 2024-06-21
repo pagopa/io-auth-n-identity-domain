@@ -1,30 +1,41 @@
-import { promisifyProcess, runProcess } from "./utils/process";
+import { ProcessResult, promisifyProcess, runProcess } from "./utils/process";
 
 const main = async () => {
-  console.log(process.cwd());
-  const result = await promisifyProcess(
-    runProcess(`docker compose --file ../../docker-compose.yml up -d`),
+  const results: ProcessResult[] = [];
+  // eslint-disable-next-line functional/immutable-data
+  results.push(
+    await promisifyProcess(
+      runProcess(`docker compose --file ../../docker-compose.yml up -d`),
+    ),
   );
 
   // Await that the container starts
   await new Promise((ok) => setTimeout(ok, 10000));
 
-  const result2 = await promisifyProcess(runProcess(`yarn test`));
+  // eslint-disable-next-line functional/immutable-data
+  results.push(await promisifyProcess(runProcess(`yarn test:e2e`)));
 
-  const result3 = await promisifyProcess(
-    runProcess(`docker compose --file ../../docker-compose.yml down`),
+  // eslint-disable-next-line functional/immutable-data
+  results.push(
+    await promisifyProcess(
+      runProcess(`docker compose --file ../../docker-compose.yml down`),
+    ),
   );
 
-  if (result === "ok") return;
-  else throw new Error("at least one test scenario failed");
+  results.forEach((result) => {
+    if (result === "ok") return;
+    else throw new Error("at least one test scenario failed");
+  });
 };
 
 main()
   .then((_) => {
+    // eslint-disable-next-line no-console
     console.log("All test completed");
     process.exit(0);
   })
   .catch((err) => {
+    // eslint-disable-next-line no-console
     console.error(err);
     process.exit(1);
   });
