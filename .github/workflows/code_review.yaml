@@ -53,3 +53,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           projectBaseDir: apps/session-manager/
+
+      - name: "E2E Tests"
+        run: yarn workspace e2e start
