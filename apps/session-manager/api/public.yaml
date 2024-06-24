@@ -21,7 +21,7 @@ paths:
         - $ref: "#/parameters/LoginType"
       responses:
         "200":
-          decription: dummy response for generator
+          description: dummy response for generator
         "302":
           description: Redirect to IDP
           headers:
@@ -93,7 +93,7 @@ paths:
             $ref: "#/definitions/SAMLResponse"
       responses:
         "200":
-            decription: dummy response for generator
+          description: dummy response for generator
         "301":
           description: Redirect to home page
           headers:
