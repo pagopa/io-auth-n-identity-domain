@@ -1,4 +1,11 @@
+import nodeFetch from "node-fetch";
+import { flow, pipe } from "fp-ts/lib/function";
+import * as T from "fp-ts/Task";
+import * as TE from "fp-ts/TaskEither";
+import * as E from "fp-ts/Either";
 import { ProcessResult, promisifyProcess, runProcess } from "./utils/process";
+import { createClient } from "./generated/session-mananger/client";
+import { awaiter } from "./utils/awaiter";
 
 const main = async () => {
   const results: ProcessResult[] = [];
@@ -9,8 +16,36 @@ const main = async () => {
     ),
   );
 
-  // Await that the container starts
-  await new Promise((ok) => setTimeout(ok, 10000));
+  const client = createClient({
+    baseUrl: "http://localhost:8081",
+    basePath: "",
+    fetchApi: nodeFetch as unknown as typeof fetch,
+  });
+
+  const healthcheckTask = pipe(
+    TE.tryCatch(() => client.healthcheck({}), E.toError),
+    TE.chainEitherK(flow(E.mapLeft(E.toError))),
+    TE.map((response) => ({
+      status: response.status,
+    })),
+    TE.getOrElseW((_) =>
+      T.of({
+        status: 0,
+      }),
+    ),
+  );
+
+  // eslint-disable-next-line functional/immutable-data
+  results.push(
+    await awaiter(
+      healthcheckTask,
+      { status: 200 },
+      {
+        interval: 500,
+        timeout: 25000,
+      },
+    ),
+  );
 
   // eslint-disable-next-line functional/immutable-data
   results.push(await promisifyProcess(runProcess(`yarn test:e2e`)));

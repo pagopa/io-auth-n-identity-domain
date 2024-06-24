@@ -1,7 +1,7 @@
-import { afterEach, assert, beforeEach, describe, expect, test } from "vitest";
-import { createClient } from "../generated/session-mananger/client";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import nodeFetch from "node-fetch";
 import * as E from "fp-ts/Either";
+import { createClient } from "../generated/session-mananger/client";
 import { promisifyProcess, runProcess } from "../utils/process";
 
 describe("Redis Cluster Connection", () => {
@@ -42,7 +42,6 @@ describe("Redis Cluster Connection", () => {
     });
     test("Should return success if only one redis instance is not available", async () => {
       const response = await client.healthcheck({});
-      console.log("RESPOSE: ", response);
       expect(response).toEqual(
         E.right(
           expect.objectContaining({

@@ -1,3 +1,4 @@
+/* eslint-disable turbo/no-undeclared-env-vars */
 import { ChildProcess, spawn } from "child_process";
 
 export const envFlag = (e: unknown): boolean => e === "1" || e === "true";
@@ -13,7 +14,7 @@ export const runProcess = (sh: string): ChildProcess => {
 };
 
 export const promisifyProcess = (cp: ChildProcess): Promise<ProcessResult> =>
-  new Promise(async (resolve, reject) =>
+  new Promise((resolve, reject) =>
     cp
       .on("exit", (code) => {
         resolve(code === 0 ? "ok" : "ko");
