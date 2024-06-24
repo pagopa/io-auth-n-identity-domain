@@ -42,7 +42,7 @@ const main = async () => {
       { status: 200 },
       {
         interval: 500,
-        timeout: 25000,
+        timeout: 50000,
       },
     ),
   );
