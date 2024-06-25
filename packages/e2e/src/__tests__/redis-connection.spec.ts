@@ -53,7 +53,7 @@ describe("Redis Cluster Connection", () => {
 
     test(
       "Should return an error if the cluster state is not ok",
-      { timeout: 8000 },
+      { timeout: 20000 },
       async () => {
         await promisifyProcess(
           runProcess(
@@ -67,6 +67,21 @@ describe("Redis Cluster Connection", () => {
           E.right(
             expect.objectContaining({
               status: 500,
+            }),
+          ),
+        );
+        await promisifyProcess(
+          runProcess(
+            `docker compose --file ../../docker-compose.yml up redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-cluster -d`,
+          ),
+        );
+        await new Promise((ok) => setTimeout(ok, 5000));
+
+        const afterReconnect = await client.healthcheck({});
+        expect(afterReconnect).toEqual(
+          E.right(
+            expect.objectContaining({
+              status: 200,
             }),
           ),
         );

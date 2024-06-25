@@ -21,7 +21,7 @@ export const healthcheck: RTE.ReaderTaskEither<
   pipe(
     TE.tryCatch(() => {
       const redisCommand = deps.redisClientSelector
-        .selectOne(RedisClientMode.SAFE)
+        .selectOne(RedisClientMode.FAST)
         .sendCommand("INFO", true, ["CLUSTER", "INFO"]);
       return new Promise((resolve, reject) => {
         redisCommand.then(resolve).catch(reject);
