@@ -1,3 +1,4 @@
+import { resolve as resolvePath } from "path";
 import nodeFetch from "node-fetch";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as T from "fp-ts/Task";
@@ -7,12 +8,27 @@ import { ProcessResult, promisifyProcess, runProcess } from "./utils/process";
 import { createClient } from "./generated/session-mananger/client";
 import { awaiter } from "./utils/awaiter";
 
+const PROJECT_BASE_PATH = resolvePath(`${process.cwd()}/../../`);
+
 const main = async () => {
   const results: ProcessResult[] = [];
   // eslint-disable-next-line functional/immutable-data
   results.push(
     await promisifyProcess(
-      runProcess(`docker compose --file ../../docker-compose.yml up -d`),
+      runProcess(
+        `docker compose --file ${PROJECT_BASE_PATH}/docker-compose.yml --env-file ${PROJECT_BASE_PATH}/docker/session-manager/env-dev up redis-cluster -d`,
+      ),
+    ),
+  );
+
+  await new Promise((ok) => setTimeout(ok, 20000));
+
+  // eslint-disable-next-line functional/immutable-data
+  results.push(
+    await promisifyProcess(
+      runProcess(
+        `docker compose --file ${PROJECT_BASE_PATH}/docker-compose.yml --env-file ${PROJECT_BASE_PATH}/docker/session-manager/env-dev up session-manager -d`,
+      ),
     ),
   );
 
@@ -36,24 +52,29 @@ const main = async () => {
   );
 
   // eslint-disable-next-line functional/immutable-data
-  results.push(
-    await awaiter(
-      healthcheckTask,
-      { status: 200 },
-      {
-        interval: 500,
-        timeout: 300000,
-      },
-    ),
+  const awaiterResult = await awaiter(
+    healthcheckTask,
+    { status: 200 },
+    {
+      interval: 500,
+      timeout: 300000,
+    },
   );
 
+  if (awaiterResult === "ko") {
+    throw new Error(
+      "The session manager doesn't become healty within the timeout.",
+    );
+  }
   // eslint-disable-next-line functional/immutable-data
   results.push(await promisifyProcess(runProcess(`yarn test:e2e`)));
 
   // eslint-disable-next-line functional/immutable-data
   results.push(
     await promisifyProcess(
-      runProcess(`docker compose --file ../../docker-compose.yml down`),
+      runProcess(
+        `docker compose --file ${PROJECT_BASE_PATH}/docker-compose.yml down`,
+      ),
     ),
   );
 
