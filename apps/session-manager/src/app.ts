@@ -22,6 +22,7 @@ import {
   AuthenticationController,
   SessionController,
   FastLoginController,
+  HealthCheckController,
   SpidLogsController,
   SSOController,
   ZendeskController,
@@ -77,8 +78,6 @@ import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { FF_LOLLIPOP_ENABLED } from "./config/lollipop";
-import { getCurrentBackendVersion } from "./utils/package";
-import { BackendVersion } from "./generated/public/BackendVersion";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -147,9 +146,15 @@ export const newApp: (
 
   // Setup paths
 
-  app.get("/healthcheck", (_req: express.Request, res: express.Response) => {
-    res.json(BackendVersion.encode({ version: getCurrentBackendVersion() }));
-  });
+  app.get(
+    "/healthcheck",
+    pipe(
+      toExpressHandler({
+        redisClientSelector: REDIS_CLIENT_SELECTOR,
+      }),
+      ap(HealthCheckController.healthcheck),
+    ),
+  );
 
   const acsDependencies: AcsDependencies = {
     redisClientSelector: REDIS_CLIENT_SELECTOR,

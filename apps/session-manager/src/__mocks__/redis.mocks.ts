@@ -14,6 +14,7 @@ export const mockExists = vi.fn();
 export const mockDel = vi.fn();
 export const mockSadd = vi.fn();
 export const mockQuit = vi.fn().mockResolvedValue(void 0);
+export const mockSendCommand = vi.fn().mockResolvedValue("cluster_state:ok");
 export const mockRedisClusterType = {
   set: mockSet,
   setEx: mockSetEx,
@@ -27,6 +28,7 @@ export const mockRedisClusterType = {
   ttl: mockTtl,
   exists: mockExists,
   quit: mockQuit,
+  sendCommand: mockSendCommand,
 } as unknown as redis.RedisClusterType;
 export const mockSelect = vi
   .fn()

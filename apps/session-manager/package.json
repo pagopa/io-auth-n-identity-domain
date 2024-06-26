@@ -36,7 +36,7 @@
         "@azure/storage-queue": "^12.16.0",
         "@pagopa/io-functions-app-sdk": "x",
         "@pagopa/io-functions-commons": "^29.1.0",
-        "@pagopa/io-spid-commons": "^13.5.0",
+        "@pagopa/io-spid-commons": "^13.5.1",
         "@pagopa/ts-commons": "^13.1.1",
         "applicationinsights": "^2.9.5",
         "body-parser": "^1.20.2",
@@ -59,7 +59,7 @@
         "passport-local": "^1.0.0",
         "passport-strategy": "^1.0.0",
         "range_check": "^2.0.4",
-        "redis": "^4.5.1",
+        "redis": "~4.5.1",
         "ulid": "^2.3.0",
         "winston": "^3.13.0"
     },
