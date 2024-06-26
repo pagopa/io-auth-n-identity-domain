@@ -1,5 +1,10 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
-import { ChildProcess, spawn } from "child_process";
+import {
+  ChildProcess,
+  spawn,
+  spawnSync,
+  SpawnSyncReturns,
+} from "child_process";
 
 export const envFlag = (e: unknown): boolean => e === "1" || e === "true";
 
@@ -13,6 +18,11 @@ export const runProcess = (sh: string): ChildProcess => {
   return spawn(command, argv, { stdio: "inherit" });
 };
 
+export const runProcessSync = (sh: string): SpawnSyncReturns<Buffer> => {
+  const [command, ...argv] = sh.split(" ");
+  return spawnSync(command, argv);
+};
+
 export const promisifyProcess = (cp: ChildProcess): Promise<ProcessResult> =>
   new Promise((resolve, reject) =>
     cp
@@ -21,3 +31,6 @@ export const promisifyProcess = (cp: ChildProcess): Promise<ProcessResult> =>
       })
       .on("error", reject),
   );
+
+export const getProcessOutput = (childSync: SpawnSyncReturns<Buffer>) =>
+  childSync.stdout.toString("utf-8");
