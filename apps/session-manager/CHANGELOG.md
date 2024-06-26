@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.14.2
+
+### Patch Changes
+
+- de511ee: Fix Redis Client bug on reconnect when loosing conn
+
 ## 0.14.1
 
 ### Patch Changes
