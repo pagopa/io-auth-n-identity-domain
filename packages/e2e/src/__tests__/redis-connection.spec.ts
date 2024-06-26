@@ -32,29 +32,31 @@ describe("Redis Cluster Connection", () => {
       await new Promise((ok) => setTimeout(ok, 3000));
     });
 
-    // test(
-    //   "Should return success if only one redis instance is not available",
-    //   { timeout: 30000 },
-    //   async () => {
-    //     await promisifyProcess(
-    //       runProcess(
-    //         `docker compose --file ../../docker-compose.yml down redis-cluster`,
-    //       ),
-    //     );
-    //     await new Promise((ok) => setTimeout(ok, 5000));
-    //     const response = await client.healthcheck({});
-    //     expect(response).toEqual(
-    //       E.right(
-    //         expect.objectContaining({
-    //           status: 200,
-    //         }),
-    //       ),
-    //     );
-    //   },
-    // );
+    // Test disabled becouse not working into the pipeline for a network
+    // issue calling the other cluster node from the session-manager.
+    test.skip(
+      "Should return success if only one redis instance is not available",
+      { timeout: 30000 },
+      async () => {
+        await promisifyProcess(
+          runProcess(
+            `docker compose --file ../../docker-compose.yml down redis-cluster`,
+          ),
+        );
+        await new Promise((ok) => setTimeout(ok, 5000));
+        const response = await client.healthcheck({});
+        expect(response).toEqual(
+          E.right(
+            expect.objectContaining({
+              status: 200,
+            }),
+          ),
+        );
+      },
+    );
 
     test(
-      "Should return an error if the cluster state is not ok",
+      "Should return an error if the cluster state is not ok and reconnect when comes up again",
       { timeout: 30000 },
       async () => {
         await promisifyProcess(
