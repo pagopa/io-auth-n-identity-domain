@@ -1,10 +1,6 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
-import {
-  ChildProcess,
-  spawn,
-  spawnSync,
-  SpawnSyncReturns,
-} from "child_process";
+import { ChildProcess, spawn, exec } from "child_process";
+import util from "util";
 
 export const envFlag = (e: unknown): boolean => e === "1" || e === "true";
 
@@ -18,11 +14,6 @@ export const runProcess = (sh: string): ChildProcess => {
   return spawn(command, argv, { stdio: "inherit" });
 };
 
-export const runProcessSync = (sh: string): SpawnSyncReturns<Buffer> => {
-  const [command, ...argv] = sh.split(" ");
-  return spawnSync(command, argv);
-};
-
 export const promisifyProcess = (cp: ChildProcess): Promise<ProcessResult> =>
   new Promise((resolve, reject) =>
     cp
@@ -32,5 +23,20 @@ export const promisifyProcess = (cp: ChildProcess): Promise<ProcessResult> =>
       .on("error", reject),
   );
 
-export const getProcessOutput = (childSync: SpawnSyncReturns<Buffer>) =>
-  childSync.stdout.toString("utf-8");
+const execPromise = util.promisify(exec);
+
+export const runCommand = async (command: string) => {
+  try {
+    const { stdout, stderr } = await execPromise(command);
+    if (stderr) {
+      // eslint-disable-next-line no-console
+      console.error(`Errore: ${stderr}`);
+    }
+    // eslint-disable-next-line no-console
+    console.log(`Output: ${stdout}`);
+    return stdout;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(`Errore durante l'esecuzione del comando: ${error}`);
+  }
+};
