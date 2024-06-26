@@ -108,6 +108,7 @@ describe("Redis Cluster Connection", () => {
           ),
         );
         await waitContainerChecks(REDIS_CLUSTER_HEALTHY_CMD, 1);
+        await new Promise((resolve) => setTimeout(() => resolve(""), 2000));
 
         const afterReconnect = await client.healthcheck({});
         expect(afterReconnect).toEqual(
