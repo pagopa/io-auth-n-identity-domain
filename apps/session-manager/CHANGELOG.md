@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.15.0
+
+### Minor Changes
+
+- 17d200d: upgraded session-manager to node20
+
 ## 0.14.2
 
 ### Patch Changes
