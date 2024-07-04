@@ -113,28 +113,28 @@ serverStarter(
 });
 
 function startMeasuringEventLoop(client: appInsights.TelemetryClient) {
-  var startTime = process.hrtime();
-  var sampleSum = 0;
-  var sampleCount = 0;
+  let startTime = process.hrtime();
+  let sampleSum = 0;
+  let sampleCount = 0;
 
   // Measure event loop scheduling delay
   setInterval(() => {
-    var elapsed = process.hrtime(startTime);
+    const elapsed = process.hrtime(startTime);
     startTime = process.hrtime();
     sampleSum += elapsed[0] * 1e9 + elapsed[1];
     sampleCount++;
   }, 0);
 
-  // Report custom metric every second
+  // Report custom metric every minute
   setInterval(() => {
-    var samples = sampleSum;
-    var count = sampleCount;
+    const samples = sampleSum;
+    const count = sampleCount;
     sampleSum = 0;
     sampleCount = 0;
 
     if (count > 0) {
-      var avgNs = samples / count;
-      var avgMs = Math.round(avgNs / 1e6);
+      const avgNs = samples / count;
+      const avgMs = Math.round(avgNs / 1e6);
       client.trackMetric({ name: "Event Loop Delay (ms)", value: avgMs });
     }
   }, 60000);
