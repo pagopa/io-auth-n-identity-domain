@@ -122,7 +122,7 @@ export const checkIdpConfiguration: (
 
 export type AppWithRefresherTimer = {
   app: express.Express;
-  startIdpMetadataRefreshTimer: NodeJS.Timer;
+  startIdpMetadataRefreshTimer: NodeJS.Timeout;
 };
 
 /**

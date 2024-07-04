@@ -34,7 +34,7 @@ const anInvalidFiscalCode = "INVALID-FC" as FiscalCode;
 
 const INVALID_JSON = "Invalid JSON";
 const expectedInvalidJSONError = new SyntaxError(
-  "Unexpected token I in JSON at position 0",
+  `Unexpected token 'I', "${INVALID_JSON}" is not valid JSON`,
 );
 
 const redisMethodImplFromError = (
