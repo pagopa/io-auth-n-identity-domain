@@ -144,6 +144,17 @@ export const newApp: (
   const API_BASE_PATH = getRequiredENVVar("API_BASE_PATH");
   const ZENDESK_BASE_PATH = getRequiredENVVar("ZENDESK_BASE_PATH");
 
+  // Server Unavailable Middleware
+  app.use((_req, res, next) => {
+    const isServerUnderPressure = app.get("isServerUnderPressure") as boolean;
+
+    if (isServerUnderPressure) {
+      res.status(503).send();
+    } else {
+      next();
+    }
+  });
+
   // Setup paths
 
   app.get(

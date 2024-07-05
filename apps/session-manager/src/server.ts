@@ -1,12 +1,18 @@
 import { monitorEventLoopDelay } from "perf_hooks";
 import * as appInsights from "applicationinsights";
 
+import { Express } from "express";
+
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";
 
 import * as E from "fp-ts/Either";
 import { newApp } from "./app";
-import { AppInsightsConfig, isDevEnv } from "./config";
+import {
+  AppInsightsConfig,
+  isDevEnv,
+  EVENT_LOOP_DELAY_THREASHOLD,
+} from "./config";
 import {
   StartupEventName,
   initAppInsights,
@@ -100,9 +106,7 @@ export const serverStarter = (
       timeout: SHUTDOWN_TIMEOUT_MILLIS,
     });
 
-    if (maybeAppInsightsClient) {
-      startMeasuringEventLoop(maybeAppInsightsClient);
-    }
+    startMeasuringEventLoop(app, maybeAppInsightsClient);
 
     return app;
   });
@@ -116,7 +120,10 @@ serverStarter(
   process.exit(1);
 });
 
-function startMeasuringEventLoop(client: appInsights.TelemetryClient) {
+function startMeasuringEventLoop(
+  app: Express,
+  client?: appInsights.TelemetryClient,
+) {
   // eslint-disable-next-line functional/no-let
   let startTime = process.hrtime();
   // eslint-disable-next-line functional/no-let
@@ -141,7 +148,7 @@ function startMeasuringEventLoop(client: appInsights.TelemetryClient) {
 
     const delay = eventLoopDelayMonitor.mean / 1e6; // Convert to milliseconds
     setImmediate(() =>
-      client.trackMetric({
+      client?.trackMetric({
         name: "New Event Loop Delay (ms)",
         value: delay,
       }),
@@ -150,8 +157,11 @@ function startMeasuringEventLoop(client: appInsights.TelemetryClient) {
     if (count > 0) {
       const avgNs = samples / count;
       const avgMs = Math.round(avgNs / 1e6);
+
+      app.set("isServerUnderPressure", avgMs >= EVENT_LOOP_DELAY_THREASHOLD);
+
       setImmediate(() =>
-        client.trackMetric({
+        client?.trackMetric({
           name: "Event Loop Delay (ms)",
           value: avgMs,
         }),
