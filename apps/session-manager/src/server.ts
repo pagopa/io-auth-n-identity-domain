@@ -1,3 +1,4 @@
+import { monitorEventLoopDelay } from "perf_hooks";
 import * as appInsights from "applicationinsights";
 
 import * as O from "fp-ts/Option";
@@ -23,6 +24,9 @@ import {
 } from "./config/server";
 import { AppWithRefresherTimer } from "./utils/express";
 import { RedisRepo } from "./repositories";
+
+const eventLoopDelayMonitor = monitorEventLoopDelay({ resolution: 10 });
+eventLoopDelayMonitor.enable();
 
 const timer = TimeTracer();
 
@@ -113,8 +117,11 @@ serverStarter(
 });
 
 function startMeasuringEventLoop(client: appInsights.TelemetryClient) {
+  // eslint-disable-next-line functional/no-let
   let startTime = process.hrtime();
+  // eslint-disable-next-line functional/no-let
   let sampleSum = 0;
+  // eslint-disable-next-line functional/no-let
   let sampleCount = 0;
 
   // Measure event loop scheduling delay
@@ -125,17 +132,30 @@ function startMeasuringEventLoop(client: appInsights.TelemetryClient) {
     sampleCount++;
   }, 0);
 
-  // Report custom metric every minute
+  // Report custom metric every 5 seconds
   setInterval(() => {
     const samples = sampleSum;
     const count = sampleCount;
     sampleSum = 0;
     sampleCount = 0;
 
+    const delay = eventLoopDelayMonitor.mean / 1e6; // Convert to milliseconds
+    setImmediate(() =>
+      client.trackMetric({
+        name: "New Event Loop Delay (ms)",
+        value: delay,
+      }),
+    );
+
     if (count > 0) {
       const avgNs = samples / count;
       const avgMs = Math.round(avgNs / 1e6);
-      client.trackMetric({ name: "Event Loop Delay (ms)", value: avgMs });
+      setImmediate(() =>
+        client.trackMetric({
+          name: "Event Loop Delay (ms)",
+          value: avgMs,
+        }),
+      );
     }
-  }, 60000);
+  }, 5000);
 }
