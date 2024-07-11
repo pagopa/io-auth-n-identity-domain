@@ -51,6 +51,7 @@ import {
   SpidConfig,
   ZendeskConfig,
   isDevEnv,
+  AppInsightsConfig,
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import { LollipopService, RedisSessionStorageService } from "./services";
@@ -92,6 +93,7 @@ export const newApp: (
   // Create the Session Storage service
   const REDIS_CLIENT_SELECTOR = await RedisRepo.RedisClientSelector(
     !isDevEnv,
+    AppInsightsConfig.APPINSIGHTS_REDIS_TRACE_ENABLED,
     appInsightsClient,
   )(
     getRequiredENVVar("REDIS_URL"),

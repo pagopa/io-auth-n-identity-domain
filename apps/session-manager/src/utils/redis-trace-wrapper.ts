@@ -1,38 +1,30 @@
-// redisClusterWrapper.js
 import * as redis from "redis";
 import appInsights from "applicationinsights";
-// import { log } from "./logger";
 
-// Funzione di logging per il wrapping con Application Insights
 function wrapAsyncFunctionWithAppInsights<
   K extends keyof redis.RedisClusterType,
   T extends redis.RedisClusterType[K],
 >(
   redisClient: redis.RedisClusterType,
   originalFunction: T,
-  functionName: K,
+  functionName: string,
   appInsightsClient?: appInsights.TelemetryClient,
 ): T {
-  return async function (...args: any[]) {
+  return async function (...args: unknown[]) {
     const startTime = Date.now();
 
-    // log.info(`Calling wrapped function ${functionName}...`);
-
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (originalFunction as any).apply(redisClient, args);
       const duration = Date.now() - startTime;
 
-      // log.info(
-      //   `End calls wrapped function ${functionName}... Result: ${JSON.stringify(
-      //     result,
-      //   )}`,
-      // );
-
+      // Do not log any argument or result,
+      // as they can contain personal information
       appInsightsClient?.trackDependency({
         target: "Redis Cluster",
         name: functionName,
-        data: JSON.stringify(args),
-        resultCode: JSON.stringify(result),
+        data: "",
+        resultCode: "",
         duration,
         success: true,
         dependencyTypeName: "REDIS",
@@ -44,7 +36,7 @@ function wrapAsyncFunctionWithAppInsights<
       appInsightsClient?.trackDependency({
         target: "Redis Cluster",
         name: functionName,
-        data: JSON.stringify(error),
+        data: "",
         resultCode: "ERROR",
         duration,
         success: false,
@@ -52,51 +44,37 @@ function wrapAsyncFunctionWithAppInsights<
       });
       throw error;
     }
-  } as any as T;
+  } as T;
 }
 
-// Wrappare le funzioni del client Redis Cluster
 function wrapRedisClusterClient(
   client: redis.RedisClusterType,
   appInsightsClient?: appInsights.TelemetryClient,
 ) {
-  // log.info("Wrapping Redis Client");
-
-  const asyncFunctions: (keyof typeof client)[] = [
-    "get",
-    "set",
-    "del",
-    "setEx",
-    "sMembers",
-    "sRem",
-    "ttl",
-    "exists",
-  ]; // Lista dei metodi che vuoi wrappare
-
-  asyncFunctions.forEach((functionName) => {
-    if (typeof client[functionName] === "function") {
-      // log.info(`Wrapping Redis Client --> ${String(functionName)}`);
-
-      const p = client[functionName];
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clientAsObject = client as Record<any, any>;
+  for (const functionName in clientAsObject) {
+    if (typeof clientAsObject[functionName] === "function") {
       // eslint-disable-next-line functional/immutable-data
-      client[functionName] = wrapAsyncFunctionWithAppInsights(
+      clientAsObject[functionName] = wrapAsyncFunctionWithAppInsights(
         client,
-        client[functionName],
+        clientAsObject[functionName],
         functionName,
         appInsightsClient,
-      ) as any;
+      );
     }
-  });
+  }
 
   return client;
 }
 
-// Crea e wrappa il client Redis Cluster
 export function createWrappedRedisClusterClient(
   options: redis.RedisClusterOptions,
+  enableDependencyTrace: boolean,
   appInsightsClient?: appInsights.TelemetryClient,
 ) {
   const cluster = redis.createCluster(options);
-  return wrapRedisClusterClient(cluster, appInsightsClient);
+  return enableDependencyTrace
+    ? wrapRedisClusterClient(cluster, appInsightsClient)
+    : cluster;
 }
