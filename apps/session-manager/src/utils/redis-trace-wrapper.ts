@@ -8,6 +8,7 @@ function wrapAsyncFunctionWithAppInsights<
   redisClient: redis.RedisClusterType,
   originalFunction: T,
   functionName: string,
+  clientName: string,
   appInsightsClient?: appInsights.TelemetryClient,
 ): T {
   return async function (...args: unknown[]) {
@@ -21,7 +22,7 @@ function wrapAsyncFunctionWithAppInsights<
       // Do not log any argument or result,
       // as they can contain personal information
       appInsightsClient?.trackDependency({
-        target: "Redis Cluster",
+        target: `Redis Cluster - ${clientName}`,
         name: functionName,
         data: "",
         resultCode: "",
@@ -34,7 +35,7 @@ function wrapAsyncFunctionWithAppInsights<
     } catch (error) {
       const duration = Date.now() - startTime;
       appInsightsClient?.trackDependency({
-        target: "Redis Cluster",
+        target: `Redis Cluster - ${clientName}`,
         name: functionName,
         data: "",
         resultCode: "ERROR",
@@ -49,6 +50,7 @@ function wrapAsyncFunctionWithAppInsights<
 
 function wrapRedisClusterClient(
   client: redis.RedisClusterType,
+  clientName: string,
   appInsightsClient?: appInsights.TelemetryClient,
 ) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,6 +62,7 @@ function wrapRedisClusterClient(
         client,
         clientAsObject[functionName],
         functionName,
+        clientName,
         appInsightsClient,
       );
     }
@@ -71,10 +74,11 @@ function wrapRedisClusterClient(
 export function createWrappedRedisClusterClient(
   options: redis.RedisClusterOptions,
   enableDependencyTrace: boolean,
+  clientName: string,
   appInsightsClient?: appInsights.TelemetryClient,
 ) {
   const cluster = redis.createCluster(options);
   return enableDependencyTrace
-    ? wrapRedisClusterClient(cluster, appInsightsClient)
+    ? wrapRedisClusterClient(cluster, clientName, appInsightsClient)
     : cluster;
 }

@@ -94,6 +94,7 @@ const createClusterRedisClient =
         useReplicas,
       },
       enableDependencyTrace,
+      useReplicas ? "FAST" : "SAFE",
       appInsightsClient,
     );
 
