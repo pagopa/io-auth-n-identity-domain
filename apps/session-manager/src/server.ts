@@ -1,7 +1,4 @@
-import { monitorEventLoopDelay } from "perf_hooks";
 import * as appInsights from "applicationinsights";
-
-import { Express } from "express";
 
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";
@@ -30,9 +27,7 @@ import {
 } from "./config/server";
 import { AppWithRefresherTimer } from "./utils/express";
 import { RedisRepo } from "./repositories";
-
-const eventLoopDelayMonitor = monitorEventLoopDelay({ resolution: 10 });
-eventLoopDelayMonitor.enable();
+import { startMeasuringEventLoop } from "./utils/middlewares/server-load";
 
 const timer = TimeTracer();
 
@@ -106,7 +101,11 @@ export const serverStarter = (
       timeout: SHUTDOWN_TIMEOUT_MILLIS,
     });
 
-    startMeasuringEventLoop(app, maybeAppInsightsClient);
+    startMeasuringEventLoop(
+      { EVENT_LOOP_DELAY_THREASHOLD },
+      app,
+      maybeAppInsightsClient,
+    );
 
     return app;
   });
@@ -119,53 +118,3 @@ serverStarter(
   log.error("Error loading app: %s", err);
   process.exit(1);
 });
-
-function startMeasuringEventLoop(
-  app: Express,
-  client?: appInsights.TelemetryClient,
-) {
-  // eslint-disable-next-line functional/no-let
-  let startTime = process.hrtime();
-  // eslint-disable-next-line functional/no-let
-  let sampleSum = 0;
-  // eslint-disable-next-line functional/no-let
-  let sampleCount = 0;
-
-  // Measure event loop scheduling delay
-  setInterval(() => {
-    const elapsed = process.hrtime(startTime);
-    startTime = process.hrtime();
-    sampleSum += elapsed[0] * 1e9 + elapsed[1];
-    sampleCount++;
-  }, 0);
-
-  // Report custom metric every 5 seconds
-  setInterval(() => {
-    const samples = sampleSum;
-    const count = sampleCount;
-    sampleSum = 0;
-    sampleCount = 0;
-
-    const delay = eventLoopDelayMonitor.mean / 1e6; // Convert to milliseconds
-    setImmediate(() =>
-      client?.trackMetric({
-        name: "New Event Loop Delay (ms)",
-        value: delay,
-      }),
-    );
-
-    if (count > 0) {
-      const avgNs = samples / count;
-      const avgMs = Math.round(avgNs / 1e6);
-
-      app.set("isServerUnderPressure", avgMs >= EVENT_LOOP_DELAY_THREASHOLD);
-
-      setImmediate(() =>
-        client?.trackMetric({
-          name: "Event Loop Delay (ms)",
-          value: avgMs,
-        }),
-      );
-    }
-  }, 5000);
-}
