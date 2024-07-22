@@ -41,7 +41,7 @@ export const BACKEND_HOST = pipe(
 );
 
 export const EVENT_LOOP_DELAY_THREASHOLD = pipe(
-  process.env.EVENT_LOOP_DELAY_THREASHOLD ?? "5",
+  process.env.EVENT_LOOP_DELAY_THREASHOLD ?? "1000",
   IntegerFromString.decode,
   E.getOrElseW((errors) => {
     log.error(

@@ -16,54 +16,46 @@ export const startMeasuringEventLoop = (
   eventLoopDelayMonitor.enable();
 
   // eslint-disable-next-line functional/no-let
-  let startTime = process.hrtime();
-  // eslint-disable-next-line functional/no-let
-  let sampleSum = 0;
-  // eslint-disable-next-line functional/no-let
-  let sampleCount = 0;
+  let iterations = 0;
+  const intervalDelay = 500;
+  const numberOfIterationsForMetrics = 5000 / intervalDelay;
 
-  // Measure event loop scheduling delay
+  // Check event loop delay and update `isServerUnderPressure`
   setInterval(() => {
-    const elapsed = process.hrtime(startTime);
-    startTime = process.hrtime();
-    sampleSum += elapsed[0] * 1e9 + elapsed[1];
-    sampleCount++;
-  }, 0);
+    // Convert mean and percentile to milliseconds
+    const mean = eventLoopDelayMonitor.mean / 1e6;
+    const percentile95 = eventLoopDelayMonitor.percentile(95) / 1e6;
 
-  // Report custom metric every 5 seconds
-  setInterval(() => {
-    const samples = sampleSum;
-    const count = sampleCount;
-    sampleSum = 0;
-    sampleCount = 0;
-
-    const delay = eventLoopDelayMonitor.percentile(95) / 1e6; // Convert to milliseconds
-    setImmediate(() =>
-      client?.trackMetric({
-        name: "New Event Loop Delay (ms)",
-        value: delay,
-      }),
+    app.set(
+      SERVER_UNDER_PRESSURE_VAR_NAME,
+      mean >= EVENT_LOOP_DELAY_THREASHOLD,
     );
 
-    eventLoopDelayMonitor.reset();
-
-    if (count > 0) {
-      const avgNs = samples / count;
-      const avgMs = Math.round(avgNs / 1e6);
-
-      app.set(
-        SERVER_UNDER_PRESSURE_VAR_NAME,
-        avgMs >= EVENT_LOOP_DELAY_THREASHOLD,
-      );
-
+    // Report custom metric every 10 seconds
+    if (++iterations >= numberOfIterationsForMetrics) {
       setImmediate(() =>
         client?.trackMetric({
-          name: "Event Loop Delay (ms)",
-          value: avgMs,
+          name: "Event Loop Delay - Mean (ms)",
+          value: mean,
+          min: eventLoopDelayMonitor.min,
+          max: eventLoopDelayMonitor.max,
+          stdDev: eventLoopDelayMonitor.stddev,
         }),
       );
+      setImmediate(() =>
+        client?.trackMetric({
+          name: "Event Loop Delay - Percentile 95 (ms)",
+          value: percentile95,
+          min: eventLoopDelayMonitor.min,
+          max: eventLoopDelayMonitor.max,
+          stdDev: eventLoopDelayMonitor.stddev,
+        }),
+      );
+      iterations = 0;
     }
-  }, 5000);
+
+    eventLoopDelayMonitor.reset();
+  }, intervalDelay);
 };
 
 export const getServerUnavailableMiddleware: (app: Express) => RequestHandler =
