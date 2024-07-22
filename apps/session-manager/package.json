@@ -38,6 +38,7 @@
         "@pagopa/io-functions-commons": "^29.1.0",
         "@pagopa/io-spid-commons": "^13.5.1",
         "@pagopa/ts-commons": "^13.1.1",
+        "@redis/client": "1.4.2",
         "applicationinsights": "^2.9.5",
         "body-parser": "^1.20.2",
         "date-fns": "^1.30.1",

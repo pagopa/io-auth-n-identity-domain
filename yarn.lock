@@ -1215,6 +1215,7 @@ __metadata:
     "@pagopa/openapi-codegen-ts": "npm:^13.2.0"
     "@pagopa/ts-commons": "npm:^13.1.1"
     "@pagopa/typescript-config-node": "npm:*"
+    "@redis/client": "npm:1.4.2"
     "@types/body-parser": "npm:^1"
     "@types/express": "npm:^4.17.21"
     "@types/jsonwebtoken": "npm:^9"

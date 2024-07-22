@@ -1,6 +1,8 @@
 import * as redis from "redis";
 import appInsights from "applicationinsights";
 
+import commands from "@redis/client/dist/lib/cluster/commands";
+
 function wrapAsyncFunctionWithAppInsights<
   K extends keyof redis.RedisClusterType,
   T extends redis.RedisClusterType[K],
@@ -9,7 +11,7 @@ function wrapAsyncFunctionWithAppInsights<
   originalFunction: T,
   functionName: string,
   clientName: string,
-  appInsightsClient?: appInsights.TelemetryClient,
+  appInsightsClient: appInsights.TelemetryClient,
 ): T {
   return async function (...args: unknown[]) {
     const startTime = Date.now();
@@ -21,7 +23,7 @@ function wrapAsyncFunctionWithAppInsights<
 
       // Do not log any argument or result,
       // as they can contain personal information
-      appInsightsClient?.trackDependency({
+      appInsightsClient.trackDependency({
         target: `Redis Cluster - ${clientName}`,
         name: functionName,
         data: "",
@@ -34,7 +36,7 @@ function wrapAsyncFunctionWithAppInsights<
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
-      appInsightsClient?.trackDependency({
+      appInsightsClient.trackDependency({
         target: `Redis Cluster - ${clientName}`,
         name: functionName,
         data: "",
@@ -51,11 +53,11 @@ function wrapAsyncFunctionWithAppInsights<
 function wrapRedisClusterClient(
   client: redis.RedisClusterType,
   clientName: string,
-  appInsightsClient?: appInsights.TelemetryClient,
+  appInsightsClient: appInsights.TelemetryClient,
 ) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clientAsObject = client as Record<any, any>;
-  for (const functionName in clientAsObject) {
+  for (const functionName of Object.keys(commands)) {
     if (typeof clientAsObject[functionName] === "function") {
       // eslint-disable-next-line functional/immutable-data
       clientAsObject[functionName] = wrapAsyncFunctionWithAppInsights(
@@ -78,7 +80,7 @@ export function createWrappedRedisClusterClient(
   appInsightsClient?: appInsights.TelemetryClient,
 ) {
   const cluster = redis.createCluster(options);
-  return enableDependencyTrace
+  return enableDependencyTrace && appInsightsClient
     ? wrapRedisClusterClient(cluster, clientName, appInsightsClient)
     : cluster;
 }
