@@ -24,8 +24,8 @@ beforeEach(() => {
 describe("createWrappedRedisClusterClient |> trace enabled", () => {
   const wrappedClient = createWrappedRedisClusterClient(
     {} as any,
-    true,
     "TEST",
+    true,
     mockedAppInsightsClient,
   );
 
@@ -66,8 +66,8 @@ describe("createWrappedRedisClusterClient |> trace enabled", () => {
 describe("createWrappedRedisClusterClient |> trace disabled", () => {
   const wrappedClient = createWrappedRedisClusterClient(
     {} as any,
-    false,
     "TEST",
+    false,
     mockedAppInsightsClient,
   );
 

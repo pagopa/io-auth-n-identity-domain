@@ -47,7 +47,7 @@ export const obfuscateTokensInfo = (message: string) =>
 const createClusterRedisClient =
   (
     enableTls: boolean,
-    enableDependencyTrace: boolean,
+    enableDependencyTrace: boolean = false,
     appInsightsClient?: appInsights.TelemetryClient,
     useReplicas: boolean = true,
   ) =>
@@ -93,8 +93,8 @@ const createClusterRedisClient =
         ],
         useReplicas,
       },
-      enableDependencyTrace,
       useReplicas ? "FAST" : "SAFE",
+      enableDependencyTrace,
       appInsightsClient,
     );
 
@@ -129,7 +129,7 @@ const createClusterRedisClient =
 export const RedisClientSelector =
   (
     enableTls: boolean,
-    enableDependencyTrace: boolean,
+    enableDependencyTrace: boolean = false,
     appInsightsClient?: appInsights.TelemetryClient,
   ) =>
   async (
