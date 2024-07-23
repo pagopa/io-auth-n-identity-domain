@@ -190,3 +190,8 @@ Configurations are intended for the pair (environment, region); each configurati
 ### Workflow automation
 
 The workflow `pr_infra.yaml` is executed on every PR that edits the `infra/resources` folder or the workflow definition itself. It executes a `terraform plan` and comments the PR with the result. If the plan fails, the workflow fails.
+
+### Vitest extension for VSCode
+
+Vitest extension is configured for running and debugging tests with integrated Test View . It requires Node 18.
+NOTE: If you've opened the repository within a workspace folder, you need to replicate the vitest configuration in `.code-workspace` too.
