@@ -7,6 +7,7 @@ APPINSIGHTS_SAMPLING_PERCENTAGE=100
 # cloud_RoleName value; if undefined, WEBSITE_SITE_NAME will be used
 APPINSIGHTS_CLOUD_ROLE_NAME="session-manager-dev"
 
+APPINSIGHTS_REDIS_TRACE_ENABLED="true"
 
 API_URL=http://functions-app:7071
 API_KEY=key

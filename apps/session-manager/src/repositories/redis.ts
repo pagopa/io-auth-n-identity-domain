@@ -5,6 +5,7 @@ import * as RA from "fp-ts/lib/ReadonlyArray";
 import * as O from "fp-ts/lib/Option";
 import { log } from "../utils/logger";
 import { RedisClientMode, RedisClientSelectorType } from "../types/redis";
+import { createWrappedRedisClusterClient } from "../utils/redis-trace-wrapper";
 
 export const sessionKeyPrefix = "SESSION-";
 export const walletKeyPrefix = "WALLET-";
@@ -46,6 +47,7 @@ export const obfuscateTokensInfo = (message: string) =>
 const createClusterRedisClient =
   (
     enableTls: boolean,
+    enableDependencyTrace: boolean = false,
     appInsightsClient?: appInsights.TelemetryClient,
     useReplicas: boolean = true,
   ) =>
@@ -61,39 +63,41 @@ const createClusterRedisClient =
     const redisPort: number = parseInt(port || DEFAULT_REDIS_PORT, 10);
     log.info("Creating CLUSTER redis client %s", { url: completeRedisUrl });
 
-    const redisClient = redis.createCluster<
-      Record<string, never>,
-      Record<string, never>,
-      Record<string, never>
-    >({
-      defaults: {
-        legacyMode: false,
-        password,
-        // 9 minutes PING interval. this solves the `socket closed unexpectedly` event for Azure Cache for Redis
-        // (https://github.com/redis/node-redis/issues/1598)
-        pingInterval: 1000 * 60 * 9,
-        socket: {
-          reconnectStrategy: (attempts) => {
-            log.info("[REDIS reconnecting] a reconnection events occurs");
-            appInsightsClient?.trackEvent({
-              name: "io-backend.redis.reconnecting",
-              tagOverrides: { samplingEnabled: "false" },
-            });
-            return Math.min(attempts * 50, 1000);
+    const redisClient = createWrappedRedisClusterClient(
+      {
+        defaults: {
+          legacyMode: false,
+          password,
+          // 9 minutes PING interval. this solves the `socket closed unexpectedly` event for Azure Cache for Redis
+          // (https://github.com/redis/node-redis/issues/1598)
+          pingInterval: 1000 * 60 * 9,
+          socket: {
+            reconnectStrategy: (attempts) => {
+              log.info("[REDIS reconnecting] a reconnection events occurs");
+              appInsightsClient?.trackEvent({
+                name: "io-backend.redis.reconnecting",
+                tagOverrides: { samplingEnabled: "false" },
+              });
+              return Math.min(attempts * 50, 1000);
+            },
+            // TODO: We can add a whitelist with all the IP addresses of the redis clsuter
+            checkServerIdentity: (_hostname, _cert) => undefined,
+            keepAlive: 2000,
+            tls: enableTls,
           },
-          // TODO: We can add a whitelist with all the IP addresses of the redis clsuter
-          checkServerIdentity: (_hostname, _cert) => undefined,
-          keepAlive: 2000,
-          tls: enableTls,
         },
+        rootNodes: [
+          {
+            url: `${completeRedisUrl}:${redisPort}`,
+          },
+        ],
+        useReplicas,
       },
-      rootNodes: [
-        {
-          url: `${completeRedisUrl}:${redisPort}`,
-        },
-      ],
-      useReplicas,
-    });
+      useReplicas ? "FAST" : "SAFE",
+      enableDependencyTrace,
+      appInsightsClient,
+    );
+
     redisClient.on("error", (err) => {
       log.error("[REDIS Error] an error occurs on redis client: %s", err);
       appInsightsClient?.trackEvent({
@@ -123,7 +127,11 @@ const createClusterRedisClient =
   };
 
 export const RedisClientSelector =
-  (enableTls: boolean, appInsightsClient?: appInsights.TelemetryClient) =>
+  (
+    enableTls: boolean,
+    enableDependencyTrace: boolean = false,
+    appInsightsClient?: appInsights.TelemetryClient,
+  ) =>
   async (
     redisUrl: string,
     password?: string,
@@ -131,10 +139,12 @@ export const RedisClientSelector =
   ): Promise<RedisClientSelectorType> => {
     const FAST_REDIS_CLIENT = await createClusterRedisClient(
       enableTls,
+      enableDependencyTrace,
       appInsightsClient,
     )(redisUrl, password, port);
     const SAFE_REDIS_CLIENT = await createClusterRedisClient(
       enableTls,
+      enableDependencyTrace,
       appInsightsClient,
       false,
     )(redisUrl, password, port);
