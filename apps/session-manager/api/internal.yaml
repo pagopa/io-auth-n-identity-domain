@@ -15,6 +15,16 @@ paths:
       operationId: getSessionState
       summary: Get the user current session
       description: Return the session state for the current authenticated user.
+      parameters:
+        - in: query
+          name: fields
+          type: string
+          description: |
+            The use of this parameters allows the client to obtain only the
+            requested parameters. NOTE: nested fields retrieval is currently not supported.
+            NOTE: field names are case-sensitive
+            Example: ?fields=(spidLevel,walletToken)
+            For more info, see https://opensource.zalando.com/restful-api-guidelines/#157
       responses:
         "200":
           description: Found.
@@ -442,13 +452,6 @@ definitions:
         type: string
       fimsToken:
         type: string
-    required:
-      - spidLevel
-      - walletToken
-      - myPortalToken
-      - bpdToken
-      - zendeskToken
-      - fimsToken
   SessionInfo:
     type: object
     title: Session info of a user
