@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import crypto from "crypto";
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import { Request, Response } from "express";
@@ -29,6 +30,7 @@ import {
   mockedRedisSessionStorageService,
 } from "../../__mocks__/services/redisSessionStorageService.mocks";
 import { toExpectedResponse } from "../../__tests__/utils";
+import { TokenService } from "../../services";
 
 describe("getSessionState", () => {
   beforeEach(() => {
@@ -49,6 +51,10 @@ describe("getSessionState", () => {
     .update(mockedInitializedProfile.email!)
     .digest("hex")
     .substring(0, 8);
+
+  const mockGetNewTokenAsync = vi
+    .spyOn(TokenService, "getNewTokenAsync")
+    .mockResolvedValue("abcd");
 
   test("GIVEN a valid request WHEN lollipop is initialized for the user THEN it should return a correct session state", async () => {
     mockGet.mockResolvedValueOnce(anAssertionRef);
@@ -277,6 +283,48 @@ describe("getSessionState", () => {
       );
     },
   );
+
+  test("GIVEN a valid request WHEN an error happens generating zendesk suffix THEN it should return an internal error", async () => {
+    const aValidFilterReq = mockReq({
+      query: { filter: "(zendeskToken)" },
+    }) as unknown as Request;
+    const expectedError = Error("error");
+
+    mockGetNewTokenAsync.mockRejectedValueOnce(expectedError);
+
+    // zendesk suffix is generated when an user doesn't have a validated email
+    mockGetProfile.mockReturnValue(
+      TE.right(
+        ResponseSuccessJson({
+          ...mockedInitializedProfile,
+          is_email_validated: false,
+        }),
+      ),
+    );
+
+    await pipe(
+      {
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+        redisClientSelector: mockRedisClientSelector,
+        req: aValidFilterReq,
+        user: mockedUser,
+      },
+      getSessionState,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    // computation should be avoided
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: `Could not get opaque token: ${expectedError}`,
+        status: 500,
+        title: "Internal server error",
+      }),
+    );
+  });
 });
 
 describe("logout", () => {

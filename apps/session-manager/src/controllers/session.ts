@@ -69,7 +69,7 @@ const getZendeskToken: RTE.ReaderTaskEither<
           .digest("hex")
           .substring(0, 8),
     ),
-    TE.orElseW((_) =>
+    TE.orElse((_) =>
       // or we generate 4 bytes and convert them to hex string for a length of 8 chars
       TE.tryCatch(
         () => TokenService.getNewTokenAsync(4),
@@ -134,6 +134,7 @@ export const getSessionState: RTE.ReaderTaskEither<
     ),
     TE.chainW(
       flow(
+        // retrieve fields requested by the filter
         parseFilter,
         TE.fromEither,
         TE.mapLeft((_) =>
@@ -164,11 +165,11 @@ export const getSessionState: RTE.ReaderTaskEither<
               pipe(
                 R.isEmpty(filteredObject),
                 B.fold(
+                  // run computation only on requested fields
                   () => sequenceS(TE.ApplySeq)(filteredObject),
                   () => TE.right({}),
                 ),
               ),
-            // run computation only on requested fields
             TE.chain(
               flow(
                 PublicSession.decode,
