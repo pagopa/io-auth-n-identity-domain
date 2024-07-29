@@ -8,18 +8,15 @@ import {
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import * as TE from "fp-ts/TaskEither";
+import * as E from "fp-ts/lib/Either";
 import * as T from "fp-ts/Task";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as B from "fp-ts/boolean";
 import * as R from "fp-ts/Record";
-import { flow, identity, pipe } from "fp-ts/lib/function";
+import { flow, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 
-import * as t from "io-ts";
-import {
-  withDefault,
-  withoutUndefinedValues,
-} from "@pagopa/ts-commons/lib/types";
+import { withDefault } from "@pagopa/ts-commons/lib/types";
 import { NonEmptyString } from "io-ts-types";
 import { sequenceS } from "fp-ts/lib/Apply";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
@@ -28,6 +25,7 @@ import {
   LollipopService,
   RedisSessionStorageService,
   RedisSessionStorageServiceDepencency,
+  TokenService,
 } from "../services";
 import { WithUser } from "../utils/user";
 import { WithExpressRequest } from "../utils/express";
@@ -38,7 +36,6 @@ import { PublicSession } from "../generated/backend/PublicSession";
 import { SuccessResponse } from "../generated/backend/SuccessResponse";
 import { log } from "../utils/logger";
 import { parseFilter } from "../utils/fields-filter";
-import { LollipopAssertionRef } from "../generated/fast-login-api/LollipopAssertionRef";
 import { AssertionRef } from "../generated/lollipop-api/AssertionRef";
 
 // how many random bytes to generate for each session token
@@ -58,15 +55,13 @@ const FilterDecoder = withDefault(
 
 const getZendeskToken: RTE.ReaderTaskEither<
   FnAppRepo.FnAppAPIRepositoryDeps & WithUser,
-  never,
+  IResponseErrorInternal,
   string
 > = (deps) =>
   pipe(
     profileWithEmailValidatedOrError(deps),
-    TE.bimap(
-      // we generate 4 bytes and convert them to hex string for a length of 8 chars
-      (_) => crypto.randomBytes(4).toString("hex"),
-      // or we take 8 chars from the hash hex string
+    TE.map(
+      // we take 8 chars from the hash hex string
       (p) =>
         crypto
           .createHash("sha256")
@@ -74,10 +69,15 @@ const getZendeskToken: RTE.ReaderTaskEither<
           .digest("hex")
           .substring(0, 8),
     ),
-    // shortcut to handle both rails with common logic
-    TE.toUnion,
-    T.map((suffix) => `${deps.user.zendesk_token}${suffix}`),
-    TE.fromTask,
+    TE.orElseW((_) =>
+      // or we generate 4 bytes and convert them to hex string for a length of 8 chars
+      TE.tryCatch(
+        () => TokenService.getNewTokenAsync(4),
+        (error) =>
+          ResponseErrorInternal(`Could not get opaque token: ${error}`),
+      ),
+    ),
+    TE.map((suffix) => `${deps.user.zendesk_token}${suffix}`),
   );
 
 const getLollipopAssertionRefForUser: RTE.ReaderTaskEither<
@@ -145,7 +145,7 @@ export const getSessionState: RTE.ReaderTaskEither<
         TE.chainW((fieldsToTakeSet) => {
           const fullFieldsTE: Record<
             string,
-            TE.TaskEither<IResponseErrorInternal | never, string | undefined>
+            TE.TaskEither<IResponseErrorInternal, string | undefined>
           > = {
             bpdToken: TE.of(deps.user.bpd_token),
             fimsToken: TE.of(deps.user.fims_token),
