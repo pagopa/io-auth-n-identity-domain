@@ -293,7 +293,7 @@ describe("getSessionState", () => {
     mockGetNewTokenAsync.mockRejectedValueOnce(expectedError);
 
     // zendesk suffix is generated when an user doesn't have a validated email
-    mockGetProfile.mockReturnValue(
+    mockGetProfile.mockReturnValueOnce(
       TE.right(
         ResponseSuccessJson({
           ...mockedInitializedProfile,
