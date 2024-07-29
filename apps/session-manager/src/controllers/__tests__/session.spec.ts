@@ -31,6 +31,10 @@ import {
 import { toExpectedResponse } from "../../__tests__/utils";
 
 describe("getSessionState", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   const res = mockRes() as unknown as Response;
   const req = mockReq() as unknown as Request;
 
@@ -156,6 +160,123 @@ describe("getSessionState", () => {
       zendeskToken: expect.stringContaining(mockedUser.zendesk_token),
     });
   });
+
+  test("GIVEN a valid request WHEN a filter is provided THEN it should return only requested fields", async () => {
+    const aValidFilterReq = mockReq({
+      query: { filter: "(zendeskToken,walletToken)" },
+    }) as unknown as Request;
+
+    await pipe(
+      {
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+        redisClientSelector: mockRedisClientSelector,
+        req: aValidFilterReq,
+        user: mockedUser,
+      },
+      getSessionState,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    // computation should be avoided since we are not including
+    // lollipopAssertionRef in the filter
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      walletToken: mockedUser.wallet_token,
+      zendeskToken: `${mockedUser.zendesk_token}${zendeskSuffixForCorrectlyRetrievedProfile}`,
+    });
+  });
+
+  test("GIVEN a valid request WHEN a filter has only wrong fields THEN it should return an empty object", async () => {
+    const aValidFilterReq = mockReq({
+      query: { filter: "(ZENDESK)" },
+    }) as unknown as Request;
+
+    await pipe(
+      {
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+        redisClientSelector: mockRedisClientSelector,
+        req: aValidFilterReq,
+        user: mockedUser,
+      },
+      getSessionState,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    // computation should be avoided since we are not including
+    // lollipopAssertionRef in the filter
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({});
+  });
+
+  test("GIVEN a valid request WHEN a filter is provided with wrong fields THEN it should return only recognized fields", async () => {
+    const aValidFilterReq = mockReq({
+      query: {
+        filter: "(ZENDESK_TOKEN,lollipopAssertionRef,spidLevel,SPID_LEVEL)",
+      },
+    }) as unknown as Request;
+
+    mockGet.mockResolvedValueOnce(anAssertionRef);
+    await pipe(
+      {
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+        redisClientSelector: mockRedisClientSelector,
+        req: aValidFilterReq,
+        user: mockedUser,
+      },
+      getSessionState,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    // computation should be avoided since we are not including
+    // lollipopAssertionRef in the filter
+    expect(mockGet).toHaveBeenCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      spidLevel: mockedUser.spid_level,
+      lollipopAssertionRef: anAssertionRef,
+    });
+  });
+
+  test.each`
+    scenario     | filter  | detail
+    ${"wrong"}   | ${123}  | ${"Could not decode filter query param"}
+    ${"invalid"} | ${"()"} | ${"Invalid filter query param"}
+  `(
+    "GIVEN a request WHEN a $scenario filter is provided THEN it should return a validation error",
+    async ({ filter, detail }) => {
+      const anInvalidFilterReq = mockReq({
+        query: { filter },
+      }) as unknown as Request;
+
+      await pipe(
+        {
+          fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+          redisClientSelector: mockRedisClientSelector,
+          req: anInvalidFilterReq,
+          user: mockedUser,
+        },
+        getSessionState,
+        TE.map((response) => response.apply(res)),
+        TE.mapLeft((err) => expect(err).toBeFalsy()),
+      )();
+
+      // computation should be avoided
+      expect(mockGet).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail,
+          status: 400,
+          title: "Validation error",
+        }),
+      );
+    },
+  );
 });
 
 describe("logout", () => {
