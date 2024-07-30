@@ -51,7 +51,10 @@ import { JwkPubKeyHashAlgorithm } from "../generated/lollipop-api/JwkPubKeyHashA
 import { AssertionRefSha256 } from "../generated/lollipop-api/AssertionRefSha256";
 import { RedisSessionStorageService } from "../services";
 import { RedisClientSelectorType } from "../types/redis";
-import { generateLCParams } from "../services/lollipop";
+import {
+  LOLLIPOP_SIGN_ERROR_EVENT_NAME,
+  generateLCParams,
+} from "../services/lollipop";
 import { AssertionRefSha384 } from "../generated/lollipop-api/AssertionRefSha384";
 import { AssertionRefSha512 } from "../generated/lollipop-api/AssertionRefSha512";
 import { DomainErrorTypes } from "../models/domain-errors";
@@ -211,7 +214,6 @@ export const lollipopLoginMiddleware =
       appInsightsTelemetryClient,
     )(req).then((_) => (LollipopLoginParams.is(_) ? undefined : _));
 
-const LOLLIPOP_SIGN_ERROR_EVENT_NAME = "lollipop.error.sign";
 const NONCE_REGEX = new RegExp(';?nonce="([^"]+)";?');
 // Take the first occurrence of the field keyid into the signature-params
 const KEY_ID_REGEX = new RegExp(';?keyid="([^"]+)";?');
@@ -414,7 +416,8 @@ export const extractLollipopLocalsFromLollipopHeaders =
               generateLCParams(
                 assertionRef,
                 operationId,
-              )({ fnLollipopAPIClient }),
+                fiscalCode,
+              )({ fnLollipopAPIClient, appInsightsTelemetryClient }),
               // this swap has the purpose to interrupt the traversal if assertionRef was found
               TE.swap,
             ),
