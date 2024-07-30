@@ -8,8 +8,6 @@ import {
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import * as TE from "fp-ts/TaskEither";
-import * as E from "fp-ts/lib/Either";
-import * as T from "fp-ts/Task";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as B from "fp-ts/boolean";
 import * as R from "fp-ts/Record";
@@ -132,7 +130,7 @@ export const getSessionState: RTE.ReaderTaskEither<
         "Could not decode filter query param",
       ),
     ),
-    TE.chainW(
+    TE.chain(
       flow(
         // retrieve fields requested by the filter
         parseFilter,
