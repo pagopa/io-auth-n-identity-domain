@@ -125,7 +125,7 @@ export const generateLCParams: (
                 return assertNever(response);
             }
           })(),
-          TE.orElseFirst((errorResponse) => {
+          TE.mapLeft((errorResponse) => {
             appInsightsTelemetryClient?.trackEvent({
               name: `The lollipop function service returns an error | ${errorResponse.kind}`,
               properties: withoutUndefinedValues({
@@ -136,7 +136,7 @@ export const generateLCParams: (
               }),
               tagOverrides: { samplingEnabled: "false" },
             });
-            return TE.left(errorResponse);
+            return errorResponse;
           }),
         ),
       ),
