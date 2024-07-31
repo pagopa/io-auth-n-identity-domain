@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.15.2
+
+### Patch Changes
+
+- 2e90192: Added missing Lollipop error events on generateLCParams call
+
 ## 0.15.1
 
 ### Patch Changes
