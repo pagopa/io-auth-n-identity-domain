@@ -9,6 +9,7 @@ import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 
 import { IResponseType } from "@pagopa/ts-commons/lib/requests";
+import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import { FnLollipopRepo, LollipopRevokeRepo } from "../repositories";
 
 import { log } from "../utils/logger";
@@ -31,8 +32,10 @@ import { AppInsightsDeps } from "../utils/appinsights";
 import { RedisSessionStorageService } from ".";
 
 const LOLLIPOP_ERROR_EVENT_NAME = "lollipop.error.acs";
+export const LOLLIPOP_SIGN_ERROR_EVENT_NAME = "lollipop.error.sign";
 
-export type GenerateLCParamsDeps = FnLollipopRepo.LollipopApiDeps;
+export type GenerateLCParamsDeps = FnLollipopRepo.LollipopApiDeps &
+  AppInsightsDeps;
 export type GenerateLCParamsErrors =
   | UnauthorizedError
   | NotFoundError
@@ -41,13 +44,14 @@ export type GenerateLCParamsErrors =
 export const generateLCParams: (
   assertionRef: AssertionRef,
   operationId: NonEmptyString,
+  fiscalCode?: FiscalCode,
 ) => RTE.ReaderTaskEither<
   GenerateLCParamsDeps,
   GenerateLCParamsErrors,
   LcParams
 > =
-  (assertionRef, operationId) =>
-  ({ fnLollipopAPIClient }) =>
+  (assertionRef, operationId, fiscalCode) =>
+  ({ fnLollipopAPIClient, appInsightsTelemetryClient }) =>
     pipe(
       TE.tryCatch(
         () =>
@@ -60,6 +64,16 @@ export const generateLCParams: (
         E.toError,
       ),
       TE.mapLeft((err) => {
+        appInsightsTelemetryClient?.trackEvent({
+          name: `Error trying to call the Lollipop function service | ${err.message}`,
+          properties: withoutUndefinedValues({
+            assertion_ref: assertionRef,
+            fiscal_code: fiscalCode ? sha256(fiscalCode) : undefined,
+            name: LOLLIPOP_SIGN_ERROR_EVENT_NAME,
+            operation_id: operationId,
+          }),
+          tagOverrides: { samplingEnabled: "false" },
+        });
         log.error(
           "lollipopMiddleware|error trying to call the Lollipop function service [%s]",
           err.message,
@@ -68,30 +82,64 @@ export const generateLCParams: (
       }),
       TE.chainEitherKW(
         E.mapLeft(
-          flow(readableReportSimplified, (message) =>
-            toGenericError(
+          flow(readableReportSimplified, (message) => {
+            appInsightsTelemetryClient?.trackEvent({
+              name: `Unexpected response from the lollipop function service | ${message}`,
+              properties: withoutUndefinedValues({
+                assertion_ref: assertionRef,
+                fiscal_code: fiscalCode ? sha256(fiscalCode) : undefined,
+                name: LOLLIPOP_SIGN_ERROR_EVENT_NAME,
+                operation_id: operationId,
+              }),
+              tagOverrides: { samplingEnabled: "false" },
+            });
+
+            log.error(
+              "lollipopMiddleware|error calling the Lollipop function service [%s]",
+              message,
+            );
+            return toGenericError(
               `Unexpected response from lollipop service: ${message}`,
-            ),
-          ),
+            );
+          }),
         ),
       ),
-      TE.chainW((response) => {
-        switch (response.status) {
-          case 200:
-            return TE.right<GenerateLCParamsErrors, LcParams>(response.value);
-          case 403:
-            return TE.left(unauthorizedError);
-          case 404:
-            return TE.left(toNotFoundError(LcParams.name));
-          case 400:
-          case 500:
-            return TE.left(
-              toGenericError("An error occurred on upstream service"),
-            );
-          default:
-            return assertNever(response);
-        }
-      }),
+      TE.chainW((response) =>
+        pipe(
+          (() => {
+            switch (response.status) {
+              case 200:
+                return TE.right<GenerateLCParamsErrors, LcParams>(
+                  response.value,
+                );
+              case 403:
+                return TE.left(unauthorizedError);
+              case 404:
+                return TE.left(toNotFoundError(LcParams.name));
+              case 400:
+              case 500:
+                return TE.left(
+                  toGenericError("An error occurred on upstream service"),
+                );
+              default:
+                return assertNever(response);
+            }
+          })(),
+          TE.mapLeft((errorResponse) => {
+            appInsightsTelemetryClient?.trackEvent({
+              name: `The lollipop function service returns an error | ${errorResponse.kind}`,
+              properties: withoutUndefinedValues({
+                assertion_ref: assertionRef,
+                fiscal_code: fiscalCode ? sha256(fiscalCode) : undefined,
+                name: LOLLIPOP_SIGN_ERROR_EVENT_NAME,
+                operation_id: operationId,
+              }),
+              tagOverrides: { samplingEnabled: "false" },
+            });
+            return errorResponse;
+          }),
+        ),
+      ),
     );
 
 export const activateLolliPoPKey = (

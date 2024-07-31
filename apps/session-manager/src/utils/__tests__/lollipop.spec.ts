@@ -7,6 +7,7 @@ import * as RA from "fp-ts/ReadonlyArray";
 import * as O from "fp-ts/Option";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { Request, Response } from "express";
+import { TelemetryClient } from "applicationinsights";
 import { aFiscalCode, mockedUser } from "../../__mocks__/user.mocks";
 import {
   anAssertionRef,
@@ -71,7 +72,16 @@ const mockGetlollipopAssertionRefForUser = vi
   .spyOn(RedisSessionStorageService, "getLollipopAssertionRefForUser")
   .mockReturnValue(TE.right(O.some(anAssertionRef)));
 
+const mockTelemetryClient = {
+  trackEvent: vi.fn(),
+} as unknown as TelemetryClient;
+
 describe("extractLollipopLocalsFromLollipopHeaders|>missing fiscal code", () => {
+  const mockDependencies = {
+    redisClientSelector: mockRedisClientSelector,
+    fnLollipopAPIClient: mockLollipopClient,
+    appInsightsTelemetryClient: mockTelemetryClient,
+  };
   const lcParamsTo404 = (calls: number) =>
     pipe(
       RA.replicate(calls, undefined),
@@ -99,12 +109,12 @@ describe("extractLollipopLocalsFromLollipopHeaders|>missing fiscal code", () => 
       const res = await extractLollipopLocalsFromLollipopHeaders(
         lollipopRequiredHeaders as LollipopRequiredHeaders,
         undefined,
-      )({
-        redisClientSelector: mockRedisClientSelector,
-        fnLollipopAPIClient: mockLollipopClient,
-      })();
+      )(mockDependencies)();
 
       expect(mockGenerateLCParams).toHaveBeenCalledTimes(generateLCParamsCalls);
+      expect(mockTelemetryClient.trackEvent).toHaveBeenCalledTimes(
+        generateLCParamsCalls,
+      );
       expect(res).toMatchObject(
         E.right({
           ...lollipopRequiredHeaders,
@@ -124,12 +134,10 @@ describe("extractLollipopLocalsFromLollipopHeaders|>missing fiscal code", () => 
     const res = await extractLollipopLocalsFromLollipopHeaders(
       lollipopRequiredHeaders as LollipopRequiredHeaders,
       undefined,
-    )({
-      redisClientSelector: mockRedisClientSelector,
-      fnLollipopAPIClient: mockLollipopClient,
-    })();
+    )(mockDependencies)();
 
     expect(mockGenerateLCParams).toHaveBeenCalledTimes(3);
+    expect(mockTelemetryClient.trackEvent).toHaveBeenCalledTimes(3);
     expect(res).toMatchObject(
       E.left({
         detail: "Internal server error: Missing assertion ref",
@@ -339,9 +347,11 @@ describe("lollipopMiddleware", () => {
       const middleware = expressLollipopMiddleware(
         mockLollipopClient,
         mockRedisClientSelector,
+        mockTelemetryClient,
       );
       await middleware(req, res, mockNext);
       expect(mockGenerateLCParams).toBeCalledTimes(1);
+      expect(mockTelemetryClient.trackEvent).toHaveBeenCalledTimes(1);
       expect(res.status).toBeCalledWith(expectedResponseStatus);
       expect(mockNext).not.toBeCalled();
     },

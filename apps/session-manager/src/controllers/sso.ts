@@ -42,6 +42,7 @@ import {
 } from "../models/domain-errors";
 import { LCParamsForFims } from "../generated/fims/LCParamsForFims";
 import { GetLollipopUserForFIMSPayload } from "../generated/fims/GetLollipopUserForFIMSPayload";
+import { AppInsightsDeps } from "../utils/appinsights";
 
 /**
  * @type Reader depedencies for GetSession handler of SessionController.
@@ -70,7 +71,8 @@ export const getUserForFIMS: RTE.ReaderTaskEither<
 
 type GetLollipopUserForFIMSDependencies = GetUserForFIMSDependencies &
   RedisSessionStorageServiceDepencency &
-  LollipopServiceDepencency;
+  LollipopServiceDepencency &
+  AppInsightsDeps;
 
 type GetuserForFIMSPlusErrors =
   | IResponseErrorValidation
@@ -188,7 +190,11 @@ const generateLCParamsForFIMSUser: (
     }),
     TE.chainW(TE.fromOption(() => toNotFoundError("AssertionRef"))),
     TE.chainW((assertionRef) =>
-      deps.lollipopService.generateLCParams(assertionRef, operationId)(deps),
+      deps.lollipopService.generateLCParams(
+        assertionRef,
+        operationId,
+        fiscalCode,
+      )(deps),
     ),
     TE.map((response) => ({
       assertion_ref: response.assertion_ref,

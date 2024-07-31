@@ -275,6 +275,7 @@ export const newApp: (
     REDIS_CLIENT_SELECTOR,
     APIClients.fnAppAPIClient,
     APIClients.fnLollipopAPIClient,
+    appInsightsClient,
   );
 
   app.post(
@@ -433,6 +434,7 @@ function setupFIMSEndpoints(
   REDIS_CLIENT_SELECTOR: RedisClientSelectorType,
   API_CLIENT: FnAppRepo.FnAppAPIRepositoryDeps["fnAppAPIClient"],
   LOLLIPOP_CLIENT: FnLollipopRepo.LollipopApiClient,
+  appInsightsClient?: appInsights.TelemetryClient,
 ) {
   app.get(
     `${FIMS_BASE_PATH}/user`,
@@ -459,6 +461,7 @@ function setupFIMSEndpoints(
         // Services
         lollipopService: LollipopService,
         redisSessionStorageService: RedisSessionStorageService,
+        appInsightsTelemetryClient: appInsightsClient,
       }),
       ap(withUserFromRequest(SSOController.getLollipopUserForFIMS)),
     ),
