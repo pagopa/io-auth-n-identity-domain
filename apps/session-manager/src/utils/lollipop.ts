@@ -57,7 +57,8 @@ import {
 } from "../services/lollipop";
 import { AssertionRefSha384 } from "../generated/lollipop-api/AssertionRefSha384";
 import { AssertionRefSha512 } from "../generated/lollipop-api/AssertionRefSha512";
-import { DomainErrorTypes } from "../models/domain-errors";
+import { LcParams } from "../generated/lollipop-api/LcParams";
+import { DomainErrorTypes, isUnauthorizedError } from "../models/domain-errors";
 import { errorsToError } from "./errors";
 import { ResLocals } from "./express";
 import { withOptionalUserFromRequest } from "./user";
@@ -416,22 +417,35 @@ export const extractLollipopLocalsFromLollipopHeaders =
               generateLCParams(
                 assertionRef,
                 operationId,
-                fiscalCode,
               )({ fnLollipopAPIClient, appInsightsTelemetryClient }),
-              // this swap has the purpose to interrupt the traversal if assertionRef was found
+              TE.orElseW((err) =>
+                err.kind === DomainErrorTypes.NOT_FOUND
+                  ? TE.left(err)
+                  : TE.right(err),
+              ),
+              // this swap has the purpose to interrupt the traversal if assertionRef was found or an error occurred
               TE.swap,
             ),
           ),
-          // we have the left part with the found assertionRef, so we go forward
-          // with a TE.right
-          TE.foldW(TE.right, (domainErrors) =>
-            // at the end of the traversal, if we didn't found the assertion ref we
-            // return an error
-            domainErrors.some((e) => e.kind === DomainErrorTypes.UNAUTHORIZED)
-              ? TE.left<
-                  IResponseErrorInternal | IResponseErrorForbiddenNotAuthorized
-                >(ResponseErrorForbiddenNotAuthorized)
-              : TE.left(ResponseErrorInternal("Missing assertion ref")),
+          TE.fold(
+            (lcParamsOrError) =>
+              LcParams.is(lcParamsOrError)
+                ? TE.right(lcParamsOrError)
+                : isUnauthorizedError(lcParamsOrError)
+                  ? TE.left(ResponseErrorForbiddenNotAuthorized)
+                  : TE.left<
+                      | IResponseErrorForbiddenNotAuthorized
+                      | IResponseErrorInternal,
+                      LcParams
+                    >(
+                      ResponseErrorInternal(
+                        "An error occurred generating LcParams",
+                      ),
+                    ),
+            () =>
+              // at the end of the traversal, if we didn't found the assertion ref we
+              // return Forbidden
+              TE.left(ResponseErrorForbiddenNotAuthorized),
           ),
         ),
       ),

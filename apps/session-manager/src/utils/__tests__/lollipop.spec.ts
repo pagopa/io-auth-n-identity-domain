@@ -129,7 +129,7 @@ describe("extractLollipopLocalsFromLollipopHeaders|>missing fiscal code", () => 
     },
   );
 
-  it("should return Internal Server Error when no assertion ref was found for the keyId", async () => {
+  it("should return ResponseErrorForbiddenNotAuthorized when no assertion ref was found for the keyId", async () => {
     lcParamsTo404(3);
     const res = await extractLollipopLocalsFromLollipopHeaders(
       lollipopRequiredHeaders as LollipopRequiredHeaders,
@@ -140,8 +140,9 @@ describe("extractLollipopLocalsFromLollipopHeaders|>missing fiscal code", () => 
     expect(mockTelemetryClient.trackEvent).toHaveBeenCalledTimes(3);
     expect(res).toMatchObject(
       E.left({
-        detail: "Internal server error: Missing assertion ref",
-        kind: "IResponseErrorInternal",
+        detail:
+          "You are not allowed here: You do not have enough permission to complete the operation you requested",
+        kind: "IResponseErrorForbiddenNotAuthorized",
       }),
     );
   });
@@ -329,7 +330,7 @@ describe("lollipopMiddleware", () => {
     ${"the generateLCParams returns an error"}       | ${() => Promise.resolve(NonEmptyString.decode(""))}  | ${500}
     ${"the generateLCParams returns bad request"}    | ${() => Promise.resolve(E.right({ status: 400 }))}   | ${500}
     ${"the generateLCParams returns forbidden"}      | ${() => Promise.resolve(E.right({ status: 403 }))}   | ${403}
-    ${"the generateLCParams returns not found"}      | ${() => Promise.resolve(E.right({ status: 404 }))}   | ${500}
+    ${"the generateLCParams returns not found"}      | ${() => Promise.resolve(E.right({ status: 404 }))}   | ${403}
     ${"the generateLCParams returns error internal"} | ${() => Promise.resolve(E.right({ status: 500 }))}   | ${500}
   `(
     `
@@ -356,4 +357,70 @@ describe("lollipopMiddleware", () => {
       expect(mockNext).not.toBeCalled();
     },
   );
+
+  it.each`
+    title                                            | generateLCParams                                     | expectedResponseStatus
+    ${"the generateLCParams rejects"}                | ${() => Promise.reject(new Error("promise reject"))} | ${500}
+    ${"the generateLCParams returns an error"}       | ${() => Promise.resolve(NonEmptyString.decode(""))}  | ${500}
+    ${"the generateLCParams returns bad request"}    | ${() => Promise.resolve(E.right({ status: 400 }))}   | ${500}
+    ${"the generateLCParams returns forbidden"}      | ${() => Promise.resolve(E.right({ status: 403 }))}   | ${403}
+    ${"the generateLCParams returns error internal"} | ${() => Promise.resolve(E.right({ status: 500 }))}   | ${500}
+  `(
+    `
+  GIVEN a valid Lollipop Headers
+  WHEN $title and user is not defined (fast-login)
+  THEN returns an error with status $expectedResponseStatus
+  `,
+    async ({ generateLCParams, expectedResponseStatus }) => {
+      const req = {
+        ...mockReq({
+          headers: aValidLollipopRequestHeaders,
+        }),
+        user: undefined,
+      } as unknown as Request;
+      const res = mockRes() as unknown as Response;
+      mockGenerateLCParams.mockImplementationOnce(generateLCParams);
+      const middleware = expressLollipopMiddleware(
+        mockLollipopClient,
+        mockRedisClientSelector,
+        mockTelemetryClient,
+      );
+      await middleware(req, res, mockNext);
+      expect(mockGenerateLCParams).toBeCalledTimes(1);
+      expect(mockTelemetryClient.trackEvent).toHaveBeenCalledTimes(1);
+      expect(res.status).toBeCalledWith(expectedResponseStatus);
+      expect(mockNext).not.toBeCalled();
+    },
+  );
+
+  it(`
+  GIVEN a valid Lollipop Headers
+  WHEN no assertion ref is found and user is not defined (fast-login)
+  THEN returns an error with status code 500
+  `, async () => {
+    const req = {
+      ...mockReq({
+        headers: aValidLollipopRequestHeaders,
+      }),
+      user: undefined,
+    } as unknown as Request;
+    const res = mockRes() as unknown as Response;
+
+    const nonFoundResponse = () => Promise.resolve(E.right({ status: 404 }));
+    mockGenerateLCParams
+      .mockImplementationOnce(nonFoundResponse)
+      .mockImplementationOnce(nonFoundResponse)
+      .mockImplementationOnce(nonFoundResponse);
+
+    const middleware = expressLollipopMiddleware(
+      mockLollipopClient,
+      mockRedisClientSelector,
+      mockTelemetryClient,
+    );
+    await middleware(req, res, mockNext);
+    expect(mockGenerateLCParams).toBeCalledTimes(3);
+    expect(mockTelemetryClient.trackEvent).toHaveBeenCalledTimes(3);
+    expect(res.status).toBeCalledWith(403);
+    expect(mockNext).not.toBeCalled();
+  });
 });
