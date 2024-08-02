@@ -52,9 +52,11 @@ describe("getSessionState", () => {
     .digest("hex")
     .substring(0, 8);
 
+  const aZendeskSuffix = "abcd";
+
   const mockGetNewTokenAsync = vi
     .spyOn(TokenService, "getNewTokenAsync")
-    .mockResolvedValue("abcd");
+    .mockResolvedValue(aZendeskSuffix);
 
   test("GIVEN a valid request WHEN lollipop is initialized for the user THEN it should return a correct session state", async () => {
     mockGet.mockResolvedValueOnce(anAssertionRef);
@@ -72,6 +74,9 @@ describe("getSessionState", () => {
     )();
 
     expect(mockGet).toBeCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    // mockedInitializedProfile has the email validated, a new zendesksuffix
+    // would not be created
+    expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       bpdToken: mockedUser.bpd_token,
@@ -100,6 +105,9 @@ describe("getSessionState", () => {
     )();
 
     expect(mockGet).toBeCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    // mockedInitializedProfile has the email validated, a new zendesksuffix
+    // would not be created
+    expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       bpdToken: mockedUser.bpd_token,
@@ -128,6 +136,7 @@ describe("getSessionState", () => {
     )();
 
     expect(mockGet).toBeCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -156,6 +165,8 @@ describe("getSessionState", () => {
     )();
 
     expect(mockGet).toBeCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    // a new zendesk suffix should be generated
+    expect(mockGetNewTokenAsync).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       bpdToken: mockedUser.bpd_token,
@@ -163,7 +174,7 @@ describe("getSessionState", () => {
       myPortalToken: mockedUser.myportal_token,
       spidLevel: mockedUser.spid_level,
       walletToken: mockedUser.wallet_token,
-      zendeskToken: expect.stringContaining(mockedUser.zendesk_token),
+      zendeskToken: `${mockedUser.zendesk_token}${aZendeskSuffix}`,
     });
   });
 
@@ -187,10 +198,50 @@ describe("getSessionState", () => {
     // computation should be avoided since we are not including
     // lollipopAssertionRef in the filter
     expect(mockGet).not.toHaveBeenCalled();
+    // mockedInitializedProfile has the email validated
+    expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       walletToken: mockedUser.wallet_token,
       zendeskToken: `${mockedUser.zendesk_token}${zendeskSuffixForCorrectlyRetrievedProfile}`,
+    });
+  });
+
+  test("GIVEN a valid user with email disabled WHEN a filter is provided THEN it should return only requested fields generating a new suffix", async () => {
+    const aValidFilterReq = mockReq({
+      query: { filter: "(zendeskToken,walletToken)" },
+    }) as unknown as Request;
+
+    // zendesk suffix is generated when an user doesn't have a validated email
+    mockGetProfile.mockReturnValueOnce(
+      TE.right(
+        ResponseSuccessJson({
+          ...mockedInitializedProfile,
+          is_email_validated: false,
+        }),
+      ),
+    );
+
+    await pipe(
+      {
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+        redisClientSelector: mockRedisClientSelector,
+        req: aValidFilterReq,
+        user: mockedUser,
+      },
+      getSessionState,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    // computation should be avoided since we are not including
+    // lollipopAssertionRef in the filter
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(mockGetNewTokenAsync).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      walletToken: mockedUser.wallet_token,
+      zendeskToken: `${mockedUser.zendesk_token}${aZendeskSuffix}`,
     });
   });
 
@@ -214,6 +265,7 @@ describe("getSessionState", () => {
     // computation should be avoided since we are not including
     // lollipopAssertionRef in the filter
     expect(mockGet).not.toHaveBeenCalled();
+    expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({});
   });
@@ -241,6 +293,7 @@ describe("getSessionState", () => {
     // computation should be avoided since we are not including
     // lollipopAssertionRef in the filter
     expect(mockGet).toHaveBeenCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       spidLevel: mockedUser.spid_level,
@@ -273,6 +326,7 @@ describe("getSessionState", () => {
 
       // computation should be avoided
       expect(mockGet).not.toHaveBeenCalled();
+      expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -316,6 +370,7 @@ describe("getSessionState", () => {
 
     // computation should be avoided
     expect(mockGet).not.toHaveBeenCalled();
+    expect(mockGetNewTokenAsync).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
