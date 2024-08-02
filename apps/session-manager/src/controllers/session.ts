@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import * as t from "io-ts";
 import {
   IResponseErrorInternal,
   IResponseErrorValidation,
