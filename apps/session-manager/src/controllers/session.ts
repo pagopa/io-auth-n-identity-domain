@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import * as t from "io-ts";
 import {
   IResponseErrorInternal,
   IResponseErrorValidation,
@@ -33,7 +34,7 @@ import { DependencyOf } from "../types/taskEither-utils";
 import { PublicSession } from "../generated/backend/PublicSession";
 import { SuccessResponse } from "../generated/backend/SuccessResponse";
 import { log } from "../utils/logger";
-import { parseFilter } from "../utils/fields-filter";
+import { Concat, Union2Tuple, parseFilter } from "../utils/fields-filter";
 import { AssertionRef } from "../generated/lollipop-api/AssertionRef";
 
 // how many random bytes to generate for each session token
@@ -44,8 +45,11 @@ export const SESSION_ID_LENGTH_BYTES = 32;
 
 // includes all PublicSession fields. This is here because the codegen doesnt
 // support default parameters for query parameters
-const DEFAULT_FILTER_QUERY_PARAM =
+type DefaultFilterSessionKeysType =
+  `(${Concat<Union2Tuple<keyof PublicSession>>})`;
+const DEFAULT_FILTER_QUERY_PARAM: DefaultFilterSessionKeysType =
   "(spidLevel,lollipopAssertionRef,walletToken,myPortalToken,bpdToken,zendeskToken,fimsToken)";
+
 const FilterDecoder = withDefault(
   NonEmptyString,
   DEFAULT_FILTER_QUERY_PARAM as NonEmptyString,
