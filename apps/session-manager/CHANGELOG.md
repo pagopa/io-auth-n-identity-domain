@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.15.3
+
+### Patch Changes
+
+- c8d4b78: Optimize fast-login call on errors
+
 ## 0.15.2
 
 ### Patch Changes
