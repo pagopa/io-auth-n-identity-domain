@@ -180,7 +180,7 @@ describe("getSessionState", () => {
 
   test("GIVEN a valid request WHEN a filter is provided THEN it should return only requested fields", async () => {
     const aValidFilterReq = mockReq({
-      query: { filter: "(zendeskToken,walletToken)" },
+      query: { fields: "(zendeskToken,walletToken)" },
     }) as unknown as Request;
 
     await pipe(
@@ -209,7 +209,7 @@ describe("getSessionState", () => {
 
   test("GIVEN a valid user with email disabled WHEN a filter is provided THEN it should return only requested fields generating a new suffix", async () => {
     const aValidFilterReq = mockReq({
-      query: { filter: "(zendeskToken,walletToken)" },
+      query: { fields: "(zendeskToken,walletToken)" },
     }) as unknown as Request;
 
     // zendesk suffix is generated when an user doesn't have a validated email
@@ -247,7 +247,7 @@ describe("getSessionState", () => {
 
   test("GIVEN a valid request WHEN a filter has only wrong fields THEN it should return an empty object", async () => {
     const aValidFilterReq = mockReq({
-      query: { filter: "(ZENDESK)" },
+      query: { fields: "(ZENDESK)" },
     }) as unknown as Request;
 
     await pipe(
@@ -273,7 +273,7 @@ describe("getSessionState", () => {
   test("GIVEN a valid request WHEN a filter is provided with wrong fields THEN it should return only recognized fields", async () => {
     const aValidFilterReq = mockReq({
       query: {
-        filter: "(ZENDESK_TOKEN,lollipopAssertionRef,spidLevel,SPID_LEVEL)",
+        fields: "(ZENDESK_TOKEN,lollipopAssertionRef,spidLevel,SPID_LEVEL)",
       },
     }) as unknown as Request;
 
@@ -302,14 +302,14 @@ describe("getSessionState", () => {
   });
 
   test.each`
-    scenario     | filter  | detail
+    scenario     | fields  | detail
     ${"wrong"}   | ${123}  | ${"Could not decode filter query param"}
     ${"invalid"} | ${"()"} | ${"Invalid filter query param"}
   `(
     "GIVEN a request WHEN a $scenario filter is provided THEN it should return a validation error",
-    async ({ filter, detail }) => {
+    async ({ fields, detail }) => {
       const anInvalidFilterReq = mockReq({
-        query: { filter },
+        query: { fields },
       }) as unknown as Request;
 
       await pipe(
@@ -340,7 +340,7 @@ describe("getSessionState", () => {
 
   test("GIVEN a valid request WHEN an error happens generating zendesk suffix THEN it should return an internal error", async () => {
     const aValidFilterReq = mockReq({
-      query: { filter: "(zendeskToken)" },
+      query: { fields: "(zendeskToken)" },
     }) as unknown as Request;
     const expectedError = Error("error");
 

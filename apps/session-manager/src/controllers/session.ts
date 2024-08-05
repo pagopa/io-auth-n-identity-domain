@@ -124,7 +124,7 @@ export const getSessionState: RTE.ReaderTaskEither<
 > = (deps) =>
   pipe(
     // decode and parse filter query param
-    deps.req.query.filter,
+    deps.req.query.fields,
     FilterDecoder.decode,
     TE.fromEither,
     TE.mapLeft((_) =>
