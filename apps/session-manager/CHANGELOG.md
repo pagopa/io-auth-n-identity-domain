@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.16.1
+
+### Patch Changes
+
+- de16acd: Fix query parameter name
+
 ## 0.16.0
 
 ### Minor Changes
