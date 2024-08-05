@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 0.16.0
+
+### Minor Changes
+
+- 8d68265: Optimized getsession endpoint
+
 ## 0.15.3
 
 ### Patch Changes
