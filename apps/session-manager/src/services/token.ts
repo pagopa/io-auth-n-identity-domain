@@ -13,7 +13,7 @@ import { ulid } from "ulid";
 import * as jwt from "jsonwebtoken";
 
 /**
- * Generate a new opaque token of the provided lenght
+ * Generate a new opaque token of the provided length
  * @param length the required number of bytes of the token
  * @returns the opaque token
  */
@@ -22,7 +22,9 @@ export const getNewToken = (length: number): string =>
   crypto.randomBytes(length).toString("hex");
 
 /**
- * @deprecated
+ * Generate a new opaque token of the provided length
+ * @param length the required number of bytes of the token
+ * @returns a promise with the opaque token
  */
 export const getNewTokenAsync = (length: number): Promise<string> =>
   promisify(crypto.randomBytes)(length).then((result) =>

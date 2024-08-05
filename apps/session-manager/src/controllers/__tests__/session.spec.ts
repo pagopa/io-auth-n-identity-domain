@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import crypto from "crypto";
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import { Request, Response } from "express";
@@ -29,8 +30,13 @@ import {
   mockedRedisSessionStorageService,
 } from "../../__mocks__/services/redisSessionStorageService.mocks";
 import { toExpectedResponse } from "../../__tests__/utils";
+import { TokenService } from "../../services";
 
 describe("getSessionState", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   const res = mockRes() as unknown as Response;
   const req = mockReq() as unknown as Request;
 
@@ -45,6 +51,12 @@ describe("getSessionState", () => {
     .update(mockedInitializedProfile.email!)
     .digest("hex")
     .substring(0, 8);
+
+  const aZendeskSuffix = "abcd";
+
+  const mockGetNewTokenAsync = vi
+    .spyOn(TokenService, "getNewTokenAsync")
+    .mockResolvedValue(aZendeskSuffix);
 
   test("GIVEN a valid request WHEN lollipop is initialized for the user THEN it should return a correct session state", async () => {
     mockGet.mockResolvedValueOnce(anAssertionRef);
@@ -62,6 +74,9 @@ describe("getSessionState", () => {
     )();
 
     expect(mockGet).toBeCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    // mockedInitializedProfile has the email validated, a new zendesksuffix
+    // would not be created
+    expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       bpdToken: mockedUser.bpd_token,
@@ -90,6 +105,9 @@ describe("getSessionState", () => {
     )();
 
     expect(mockGet).toBeCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    // mockedInitializedProfile has the email validated, a new zendesksuffix
+    // would not be created
+    expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       bpdToken: mockedUser.bpd_token,
@@ -118,6 +136,7 @@ describe("getSessionState", () => {
     )();
 
     expect(mockGet).toBeCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -146,6 +165,8 @@ describe("getSessionState", () => {
     )();
 
     expect(mockGet).toBeCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    // a new zendesk suffix should be generated
+    expect(mockGetNewTokenAsync).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       bpdToken: mockedUser.bpd_token,
@@ -153,8 +174,211 @@ describe("getSessionState", () => {
       myPortalToken: mockedUser.myportal_token,
       spidLevel: mockedUser.spid_level,
       walletToken: mockedUser.wallet_token,
-      zendeskToken: expect.stringContaining(mockedUser.zendesk_token),
+      zendeskToken: `${mockedUser.zendesk_token}${aZendeskSuffix}`,
     });
+  });
+
+  test("GIVEN a valid request WHEN a filter is provided THEN it should return only requested fields", async () => {
+    const aValidFilterReq = mockReq({
+      query: { filter: "(zendeskToken,walletToken)" },
+    }) as unknown as Request;
+
+    await pipe(
+      {
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+        redisClientSelector: mockRedisClientSelector,
+        req: aValidFilterReq,
+        user: mockedUser,
+      },
+      getSessionState,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    // computation should be avoided since we are not including
+    // lollipopAssertionRef in the filter
+    expect(mockGet).not.toHaveBeenCalled();
+    // mockedInitializedProfile has the email validated
+    expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      walletToken: mockedUser.wallet_token,
+      zendeskToken: `${mockedUser.zendesk_token}${zendeskSuffixForCorrectlyRetrievedProfile}`,
+    });
+  });
+
+  test("GIVEN a valid user with email disabled WHEN a filter is provided THEN it should return only requested fields generating a new suffix", async () => {
+    const aValidFilterReq = mockReq({
+      query: { filter: "(zendeskToken,walletToken)" },
+    }) as unknown as Request;
+
+    // zendesk suffix is generated when an user doesn't have a validated email
+    mockGetProfile.mockReturnValueOnce(
+      TE.right(
+        ResponseSuccessJson({
+          ...mockedInitializedProfile,
+          is_email_validated: false,
+        }),
+      ),
+    );
+
+    await pipe(
+      {
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+        redisClientSelector: mockRedisClientSelector,
+        req: aValidFilterReq,
+        user: mockedUser,
+      },
+      getSessionState,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    // computation should be avoided since we are not including
+    // lollipopAssertionRef in the filter
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(mockGetNewTokenAsync).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      walletToken: mockedUser.wallet_token,
+      zendeskToken: `${mockedUser.zendesk_token}${aZendeskSuffix}`,
+    });
+  });
+
+  test("GIVEN a valid request WHEN a filter has only wrong fields THEN it should return an empty object", async () => {
+    const aValidFilterReq = mockReq({
+      query: { filter: "(ZENDESK)" },
+    }) as unknown as Request;
+
+    await pipe(
+      {
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+        redisClientSelector: mockRedisClientSelector,
+        req: aValidFilterReq,
+        user: mockedUser,
+      },
+      getSessionState,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    // computation should be avoided since we are not including
+    // lollipopAssertionRef in the filter
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({});
+  });
+
+  test("GIVEN a valid request WHEN a filter is provided with wrong fields THEN it should return only recognized fields", async () => {
+    const aValidFilterReq = mockReq({
+      query: {
+        filter: "(ZENDESK_TOKEN,lollipopAssertionRef,spidLevel,SPID_LEVEL)",
+      },
+    }) as unknown as Request;
+
+    mockGet.mockResolvedValueOnce(anAssertionRef);
+    await pipe(
+      {
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+        redisClientSelector: mockRedisClientSelector,
+        req: aValidFilterReq,
+        user: mockedUser,
+      },
+      getSessionState,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    // computation should be avoided since we are not including
+    // lollipopAssertionRef in the filter
+    expect(mockGet).toHaveBeenCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      spidLevel: mockedUser.spid_level,
+      lollipopAssertionRef: anAssertionRef,
+    });
+  });
+
+  test.each`
+    scenario     | filter  | detail
+    ${"wrong"}   | ${123}  | ${"Could not decode filter query param"}
+    ${"invalid"} | ${"()"} | ${"Invalid filter query param"}
+  `(
+    "GIVEN a request WHEN a $scenario filter is provided THEN it should return a validation error",
+    async ({ filter, detail }) => {
+      const anInvalidFilterReq = mockReq({
+        query: { filter },
+      }) as unknown as Request;
+
+      await pipe(
+        {
+          fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+          redisClientSelector: mockRedisClientSelector,
+          req: anInvalidFilterReq,
+          user: mockedUser,
+        },
+        getSessionState,
+        TE.map((response) => response.apply(res)),
+        TE.mapLeft((err) => expect(err).toBeFalsy()),
+      )();
+
+      // computation should be avoided
+      expect(mockGet).not.toHaveBeenCalled();
+      expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail,
+          status: 400,
+          title: "Validation error",
+        }),
+      );
+    },
+  );
+
+  test("GIVEN a valid request WHEN an error happens generating zendesk suffix THEN it should return an internal error", async () => {
+    const aValidFilterReq = mockReq({
+      query: { filter: "(zendeskToken)" },
+    }) as unknown as Request;
+    const expectedError = Error("error");
+
+    mockGetNewTokenAsync.mockRejectedValueOnce(expectedError);
+
+    // zendesk suffix is generated when an user doesn't have a validated email
+    mockGetProfile.mockReturnValueOnce(
+      TE.right(
+        ResponseSuccessJson({
+          ...mockedInitializedProfile,
+          is_email_validated: false,
+        }),
+      ),
+    );
+
+    await pipe(
+      {
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+        redisClientSelector: mockRedisClientSelector,
+        req: aValidFilterReq,
+        user: mockedUser,
+      },
+      getSessionState,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    // computation should be avoided
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(mockGetNewTokenAsync).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: `Could not get opaque token: ${expectedError}`,
+        status: 500,
+        title: "Internal server error",
+      }),
+    );
   });
 });
 
