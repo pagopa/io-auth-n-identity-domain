@@ -79,6 +79,7 @@ import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { FF_LOLLIPOP_ENABLED } from "./config/lollipop";
+import { getServerUnavailableMiddleware } from "./utils/middlewares/server-load";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -145,6 +146,9 @@ export const newApp: (
 
   const API_BASE_PATH = getRequiredENVVar("API_BASE_PATH");
   const ZENDESK_BASE_PATH = getRequiredENVVar("ZENDESK_BASE_PATH");
+
+  // Server Unavailable Middleware
+  app.use(getServerUnavailableMiddleware(app));
 
   // Setup paths
 

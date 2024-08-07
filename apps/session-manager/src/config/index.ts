@@ -6,6 +6,7 @@ import {
   NodeEnvironmentEnum,
   getNodeEnvironmentFromProcessEnv,
 } from "@pagopa/ts-commons/lib/environment";
+import { IntegerFromString } from "@pagopa/ts-commons/lib/numbers";
 import { log } from "../utils/logger";
 import { IoLoginHostUrl } from "../types/common";
 
@@ -34,6 +35,17 @@ export const BACKEND_HOST = pipe(
   E.getOrElseW((errors) => {
     log.error(
       `BACKEND_HOST env variable error | ${readableReportSimplified(errors)}`,
+    );
+    return process.exit(1);
+  }),
+);
+
+export const EVENT_LOOP_DELAY_THREASHOLD = pipe(
+  process.env.EVENT_LOOP_DELAY_THREASHOLD ?? "1000",
+  IntegerFromString.decode,
+  E.getOrElseW((errors) => {
+    log.error(
+      `EVENT_LOOP_DELAY_THREASHOLD env variable error | ${readableReportSimplified(errors)}`,
     );
     return process.exit(1);
   }),

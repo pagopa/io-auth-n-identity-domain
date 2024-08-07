@@ -5,7 +5,11 @@ import { pipe } from "fp-ts/lib/function";
 
 import * as E from "fp-ts/Either";
 import { newApp } from "./app";
-import { AppInsightsConfig, isDevEnv } from "./config";
+import {
+  AppInsightsConfig,
+  isDevEnv,
+  EVENT_LOOP_DELAY_THREASHOLD,
+} from "./config";
 import {
   StartupEventName,
   initAppInsights,
@@ -23,6 +27,7 @@ import {
 } from "./config/server";
 import { AppWithRefresherTimer } from "./utils/express";
 import { RedisRepo } from "./repositories";
+import { startMeasuringEventLoop } from "./utils/middlewares/server-load";
 
 const timer = TimeTracer();
 
@@ -95,6 +100,13 @@ export const serverStarter = (
       signals: SHUTDOWN_SIGNALS,
       timeout: SHUTDOWN_TIMEOUT_MILLIS,
     });
+
+    startMeasuringEventLoop(
+      { EVENT_LOOP_DELAY_THREASHOLD },
+      app,
+      maybeAppInsightsClient,
+    );
+
     return app;
   });
 
