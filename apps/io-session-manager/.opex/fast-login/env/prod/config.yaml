@@ -1,4 +1,4 @@
-oa3_spec: apps/session-manager/api/fast-login.yaml
+oa3_spec: apps/io-session-manager/api/fast-login.yaml
 name: opex_session_manager_api_fast_login
 location: West Europe
 timespan: 5m

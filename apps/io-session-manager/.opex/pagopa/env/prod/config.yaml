@@ -1,4 +1,4 @@
-oa3_spec: apps/session-manager/api/pagopa.yaml
+oa3_spec: apps/io-session-manager/api/pagopa.yaml
 name: opex_session_manager_api_pagopa
 location: West Europe
 timespan: 5m
