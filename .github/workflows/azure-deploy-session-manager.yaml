@@ -5,7 +5,7 @@ on:
     inputs:
       swap_slot_step:
         type: boolean
-        description: Use this for selective deployment. false means the deploy will happen ONLY on staging
+        description: Use slot swapping step
         default: true
 
 jobs:
