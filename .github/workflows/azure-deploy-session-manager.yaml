@@ -1,14 +1,24 @@
-name: Deploy (session-manager)
+name: Deploy (io-session-manager)
 
 on:
   workflow_dispatch:
+    inputs:
+      swap_slot_step:
+        type: boolean
+        description: Use this for selective deployment. false means the deploy will happen ONLY on staging
+        default: true
 
 jobs:
   deploy_to_azure:
-    name: Deploy to Azure
-    uses: pagopa/io-auth-n-identity-domain/.github/workflows/azure-deploy-workspace-template.yaml@main
+    name: Deploy to Azure App Service
+    uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@add-healthcheck-and-optional-swap
     with:
       environment: session-manager-prod-cd
-      workspace-name: '@pagopa/io-session-manager'
-      app-name: 'session-manager'
+      resource_group_name: ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }}
+      workspace_name: "io-session-manager"
+      web_app_name: ${{ vars.AZURE_WEB_APP_NAME }}
+      use_staging_slot: true
+      swap_slot_step: ${{ inputs.swap_slot_step }}
+      use_private_agent: true
+      health_check_path: ${{ vars.HEALTH_CHECK_PATH }}
     secrets: inherit
