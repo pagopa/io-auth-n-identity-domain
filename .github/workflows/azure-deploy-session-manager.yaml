@@ -20,5 +20,4 @@ jobs:
       use_staging_slot: true
       swap_slot_step: ${{ inputs.swap_slot_step }}
       use_private_agent: true
-      health_check_path: ${{ vars.HEALTH_CHECK_PATH }}
     secrets: inherit
