@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - "apps/session-manager/api/*.yaml"
+      - "apps/io-session-manager/api/*.yaml"
       - ".github/workflows/opex_api_session_manager.yaml"
       - ".github/workflows/call_opex_api.yml"
-      - "apps/session-manager/.opex/**"
+      - "apps/io-session-manager/.opex/**"
 
   workflow_dispatch:
 

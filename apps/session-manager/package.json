@@ -1,5 +1,5 @@
 {
-    "name": "@pagopa/io-session-manager",
+    "name": "io-session-manager",
     "version": "0.16.1",
     "description": "API for IO session",
     "engines": {
