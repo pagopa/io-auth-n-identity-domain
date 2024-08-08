@@ -5,6 +5,7 @@
     "engines": {
         "node": ">= 20.0.0"
     },
+    "main": "dist/server.js",
     "scripts": {
         "clean": "shx rm -rf dist",
         "clean:generated": "shx rm -rf ./src/generated",
