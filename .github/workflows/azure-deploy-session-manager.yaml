@@ -13,7 +13,7 @@ jobs:
     name: Deploy to Azure App Service
     uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@add-healthcheck-and-optional-swap
     with:
-      environment: session-manager-prod-cd
+      environment: session-manager-prod
       resource_group_name: ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }}
       workspace_name: "io-session-manager"
       web_app_name: ${{ vars.AZURE_WEB_APP_NAME }}
