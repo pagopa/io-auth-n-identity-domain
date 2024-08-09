@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 1.0.0
+
+### Major Changes
+
+- 0bb548e: First major release of session-manager
+
 ## 0.16.1
 
 ### Patch Changes
