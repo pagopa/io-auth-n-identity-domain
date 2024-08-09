@@ -1,6 +1,6 @@
 {
     "name": "io-session-manager",
-    "version": "0.16.1",
+    "version": "1.0.0",
     "description": "API for IO session",
     "engines": {
         "node": ">= 20.0.0"
