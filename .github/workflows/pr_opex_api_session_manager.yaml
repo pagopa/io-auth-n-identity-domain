@@ -10,10 +10,10 @@ on:
     branches:
       - main
     paths:
-      - "apps/session-manager/api/*.yaml"
+      - "apps/io-session-manager/api/*.yaml"
       - ".github/workflows/pr_opex_api_session_manager.yaml"
       - ".github/workflows/call_pr_opex_api.yml"
-      - "apps/session-manager/.opex/**"
+      - "apps/io-session-manager/.opex/**"
 
   workflow_dispatch:
 
@@ -52,7 +52,7 @@ jobs:
     secrets: inherit
     with:
       api_name: bpd
-      app_name: session-manager
+      app_name: io-session-manager
   plan-fast-login:
     needs: filter
     if: ${{ needs.filter.outputs.fast-login == 'true' || needs.filter.outputs.plan-action == 'true' }}
@@ -61,7 +61,7 @@ jobs:
     secrets: inherit
     with:
       api_name: fast-login
-      app_name: session-manager
+      app_name: io-session-manager
   plan-fims:
     needs: filter
     if: ${{ needs.filter.outputs.fims == 'true' || needs.filter.outputs.plan-action == 'true' }}
@@ -70,7 +70,7 @@ jobs:
     secrets: inherit
     with:
       api_name: fims
-      app_name: session-manager
+      app_name: io-session-manager
   plan-internal:
     needs: filter
     if: ${{ needs.filter.outputs.internal == 'true' || needs.filter.outputs.plan-action == 'true' }}
@@ -79,7 +79,7 @@ jobs:
     secrets: inherit
     with:
       api_name: internal
-      app_name: session-manager
+      app_name: io-session-manager
   plan-pagopa:
     needs: filter
     if: ${{ needs.filter.outputs.pagopa == 'true' || needs.filter.outputs.plan-action == 'true' }}
@@ -88,7 +88,7 @@ jobs:
     secrets: inherit
     with:
       api_name: pagopa
-      app_name: session-manager
+      app_name: io-session-manager
   plan-public:
     needs: filter
     if: ${{ needs.filter.outputs.public == 'true' || needs.filter.outputs.plan-action == 'true' }}
@@ -97,7 +97,7 @@ jobs:
     secrets: inherit
     with:
       api_name: public
-      app_name: session-manager
+      app_name: io-session-manager
   plan-zendesk:
     needs: filter
     if: ${{ needs.filter.outputs.zendesk == 'true' || needs.filter.outputs.plan-action == 'true' }}
@@ -106,4 +106,4 @@ jobs:
     secrets: inherit
     with:
       api_name: zendesk
-      app_name: session-manager
+      app_name: io-session-manager

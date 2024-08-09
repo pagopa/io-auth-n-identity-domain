@@ -7,15 +7,15 @@
 name: io-mock
 
 services:
-  session-manager:
-    image: session-manager
+  io-session-manager:
+    image: io-session-manager
     build:
       context: ./
-      dockerfile: ./docker/session-manager/Dockerfile
+      dockerfile: ./docker/io-session-manager/Dockerfile
     env_file:
-      - ./docker/session-manager/env-dev
+      - ./docker/io-session-manager/env-dev
     volumes:
-      - ./apps/session-manager/certs:/usr/src/app/apps/session-manager/certs:cached
+      - ./apps/io-session-manager/certs:/usr/src/app/apps/io-session-manager/certs:cached
     ports:
       - 8081:3000
     command: ["yarn", "start"]

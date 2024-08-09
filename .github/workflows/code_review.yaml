@@ -1,7 +1,7 @@
 # This workflow will perform the code review on each code change.
 # It uses "actions/cache" and turborepo in order to perform tasks only on changed files.
 
-name: 'Continuous Integration'
+name: "Continuous Integration"
 
 on:
   pull_request:
@@ -26,8 +26,8 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@e33196f7422957bea03ed53f6fbb155025ffc7b8 # v3.7.0
         with:
-          node-version-file: '.node-version'
-          cache: 'yarn'
+          node-version-file: ".node-version"
+          cache: "yarn"
 
       - name: Install dependencies
         run: yarn install --immutable
@@ -43,7 +43,7 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: 'Code review'
+      - name: "Code review"
         run: yarn code-review
 
       - name: SonarCloud session-manager scan
@@ -52,7 +52,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          projectBaseDir: apps/session-manager/
+          projectBaseDir: apps/io-session-manager/
   e2e:
     runs-on: ubuntu-latest
     steps:
@@ -64,8 +64,8 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@e33196f7422957bea03ed53f6fbb155025ffc7b8 # v3.7.0
         with:
-          node-version-file: '.node-version'
-          cache: 'yarn'
+          node-version-file: ".node-version"
+          cache: "yarn"
 
       - name: Install dependencies
         run: yarn install --immutable
@@ -83,3 +83,4 @@ jobs:
 
       - name: "E2E Tests"
         run: yarn workspace e2e start
+

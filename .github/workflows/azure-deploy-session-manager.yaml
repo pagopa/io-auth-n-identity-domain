@@ -1,14 +1,38 @@
-name: Deploy (session-manager)
+name: Deploy (io-session-manager)
 
 on:
   workflow_dispatch:
+    inputs:
+      swap_slot_step:
+        type: boolean
+        description: Use slot swapping step
+        default: true
 
 jobs:
+  # this job is needed because in a reusable workflow like the one below
+  # the environment can't be set. therefore, because the env vars needed are
+  # only available to a specific environment we need a workaround to pass them
+  prepare_envs:
+    runs-on: ubuntu-22.04
+    environment: session-manager-prod-cd
+    outputs:
+      resource_group_name: ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }}
+      web_app_name: ${{ vars.AZURE_WEB_APP_NAME }}
+    steps:
+      - name: echo
+        run: exit 0
+        shell: bash
+
   deploy_to_azure:
-    name: Deploy to Azure
-    uses: pagopa/io-auth-n-identity-domain/.github/workflows/azure-deploy-workspace-template.yaml@main
+    name: Deploy to Azure App Service
+    needs: prepare_envs
+    uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@add-healthcheck-and-optional-swap
     with:
-      environment: session-manager-prod-cd
-      workspace-name: '@pagopa/io-session-manager'
-      app-name: 'session-manager'
+      environment: session-manager-prod
+      resource_group_name: ${{ needs.prepare_envs.outputs.resource_group_name }}
+      workspace_name: "io-session-manager"
+      web_app_name: ${{ needs.prepare_envs.outputs.web_app_name }}
+      use_staging_slot: true
+      swap_slot_step: ${{ inputs.swap_slot_step }}
+      use_private_agent: true
     secrets: inherit
