@@ -1,7 +1,6 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
 import { getRequiredENVVar } from "../utils/environment";
 
-export const FF_LOLLIPOP_ENABLED = process.env.FF_LOLLIPOP_ENABLED === "1";
 export const LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING = getRequiredENVVar(
   "LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING",
 );

@@ -46,7 +46,6 @@ import {
   FastLoginConfig,
   FimsConfig,
   LoginConfig,
-  LollipopConfig,
   PagoPAConfig,
   SpidConfig,
   ZendeskConfig,
@@ -78,7 +77,6 @@ import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
-import { FF_LOLLIPOP_ENABLED } from "./config/lollipop";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -160,7 +158,6 @@ export const newApp: (
 
   const acsDependencies: AcsDependencies = {
     redisClientSelector: REDIS_CLIENT_SELECTOR,
-    isLollipopEnabled: FF_LOLLIPOP_ENABLED,
     appInsightsTelemetryClient: appInsightsClient,
     getClientErrorRedirectionUrl,
     getClientProfileRedirectionUrl,
@@ -187,7 +184,6 @@ export const newApp: (
         localStrategy(
           LoginConfig.TEST_LOGIN_FISCAL_CODES,
           testLoginPassword,
-          FF_LOLLIPOP_ENABLED,
           APIClients.fnLollipopAPIClient,
           appInsightsClient,
         ),
@@ -350,12 +346,10 @@ export const newApp: (
               getLoginTypeOnElegible(
                 loginType,
                 FastLoginConfig.isUserElegibleForFastLogin(fiscalCode),
-                LollipopConfig.FF_LOLLIPOP_ENABLED,
               ),
           }),
           lollipopMiddleware: toExpressMiddleware(
             lollipopLoginMiddleware(
-              LollipopConfig.FF_LOLLIPOP_ENABLED,
               APIClients.fnLollipopAPIClient,
               appInsightsClient,
             ),

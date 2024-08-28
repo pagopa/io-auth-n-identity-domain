@@ -97,7 +97,6 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   CreateNewProfileDependencies &
   NotificationsRepo.NotificationsueueDeps &
   AppInsightsDeps & {
-    isLollipopEnabled: boolean;
     getClientErrorRedirectionUrl: (
       params: ClientErrorRedirectionUrlParams,
     ) => UrlFromString;
@@ -195,7 +194,6 @@ export const acs: (
     const loginType = getLoginTypeOnElegible(
       additionalProps?.loginType,
       isUserElegibleForFastLoginResult,
-      deps.isLollipopEnabled,
     );
     const [sessionTTL, lollipopKeyTTL] =
       loginType === LoginTypeEnum.LV
@@ -304,12 +302,11 @@ export const acs: (
       sessionTrackingId,
     );
 
-    const errorOrMaybeAssertionRef = deps.isLollipopEnabled
-      ? await RedisSessionStorageService.getLollipopAssertionRefForUser({
-          fiscalCode: user.fiscal_code,
-          redisClientSelector: deps.redisClientSelector,
-        })()
-      : E.right(O.none);
+    const errorOrMaybeAssertionRef =
+      await RedisSessionStorageService.getLollipopAssertionRefForUser({
+        fiscalCode: user.fiscal_code,
+        redisClientSelector: deps.redisClientSelector,
+      })();
 
     const lollipopErrorEventName = "lollipop.error.acs";
 
@@ -327,7 +324,7 @@ export const acs: (
     }
 
     // TODO: When we remove the feature flag try to use the method `deleteAssertionRefAssociation`
-    if (deps.isLollipopEnabled && O.isSome(errorOrMaybeAssertionRef.right)) {
+    if (O.isSome(errorOrMaybeAssertionRef.right)) {
       const assertionRefToRevoke = errorOrMaybeAssertionRef.right.value;
       // Sending a revoke message for previous assertionRef related to the same fiscalCode
       // This operation is fire and forget
@@ -390,7 +387,6 @@ export const acs: (
       ),
       TE.chainW(
         flow(
-          O.chain(O.fromPredicate(() => deps.isLollipopEnabled)),
           O.chainEitherK(AssertionRef.decode),
           TE.fromOption(() => O.none),
         ),
@@ -582,11 +578,7 @@ export const acs: (
       }),
     )().catch(() => void 0);
 
-    if (
-      userEmail &&
-      deps.isLollipopEnabled &&
-      isUserElegibleForFastLoginResult
-    ) {
+    if (userEmail && isUserElegibleForFastLoginResult) {
       const errorOrNotifyLoginResult = await pipe(
         {
           email: userEmail,

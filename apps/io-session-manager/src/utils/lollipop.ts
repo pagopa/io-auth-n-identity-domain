@@ -14,7 +14,6 @@ import { flow, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
 import * as E from "fp-ts/lib/Either";
 import * as A from "fp-ts/lib/Apply";
-import * as B from "fp-ts/lib/boolean";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as RTE from "fp-ts/ReaderTaskEither";
@@ -89,7 +88,6 @@ export type LollipopLoginParams = t.TypeOf<typeof LollipopLoginParams>;
 
 export const lollipopLoginHandler =
   (
-    isLollipopEnabled: boolean,
     lollipopApiClient: FnLollipopRepo.LollipopApiClient,
     appInsightsTelemetryClient?: appInsights.TelemetryClient,
   ) =>
@@ -122,74 +120,63 @@ export const lollipopLoginHandler =
       ),
       (lollipopParams) =>
         pipe(
-          isLollipopEnabled,
-          B.fold(
-            () => O.none,
-            () =>
-              pipe(
-                lollipopParams,
-                O.fromNullable,
-                O.map(({ algo, jwk }) =>
+          lollipopParams,
+          O.fromNullable,
+          O.map(({ algo, jwk }) =>
+            pipe(
+              TE.tryCatch(
+                () =>
+                  lollipopApiClient.reservePubKey({
+                    body: {
+                      algo: JwkPubKeyHashAlgorithmEnum[algo],
+                      pub_key: jwk,
+                    },
+                  }),
+                (e) => {
+                  const error = E.toError(e);
+                  appInsightsTelemetryClient?.trackEvent({
+                    name: getLoginErrorEventName,
+                    properties: {
+                      message: `Error calling reservePubKey endpoint: ${error.message}`,
+                    },
+                    tagOverrides: { samplingEnabled: "false" },
+                  });
+                  return error;
+                },
+              ),
+              TE.mapLeft(() =>
+                ResponseErrorInternal("Error while calling reservePubKey API"),
+              ),
+              TE.chainEitherKW(
+                E.mapLeft((err) =>
                   pipe(
-                    TE.tryCatch(
-                      () =>
-                        lollipopApiClient.reservePubKey({
-                          body: {
-                            algo: JwkPubKeyHashAlgorithmEnum[algo],
-                            pub_key: jwk,
-                          },
-                        }),
-                      (e) => {
-                        const error = E.toError(e);
-                        appInsightsTelemetryClient?.trackEvent({
-                          name: getLoginErrorEventName,
-                          properties: {
-                            message: `Error calling reservePubKey endpoint: ${error.message}`,
-                          },
-                          tagOverrides: { samplingEnabled: "false" },
-                        });
-                        return error;
-                      },
-                    ),
-                    TE.mapLeft(() =>
-                      ResponseErrorInternal(
-                        "Error while calling reservePubKey API",
-                      ),
-                    ),
-                    TE.chainEitherKW(
-                      E.mapLeft((err) =>
-                        pipe(
-                          err,
-                          errorsToError,
-                          (e) => {
-                            appInsightsTelemetryClient?.trackEvent({
-                              name: getLoginErrorEventName,
-                              properties: {
-                                message: `Error calling reservePubKey endpoint: ${e.message}`,
-                              },
-                              tagOverrides: { samplingEnabled: "false" },
-                            });
-                            return e;
-                          },
-                          () =>
-                            ResponseErrorInternal(
-                              "Cannot parse reserve response",
-                            ),
-                        ),
-                      ),
-                    ),
-                    TE.filterOrElseW(
-                      isReservePubKeyResponseSuccess,
-                      (errorResponse) =>
-                        errorResponse.status === 409
-                          ? ResponseErrorConflict("PubKey is already reserved")
-                          : ResponseErrorInternal("Cannot reserve pubKey"),
-                    ),
-                    TE.map(() => lollipopParams),
-                    TE.toUnion,
-                  )(),
+                    err,
+                    errorsToError,
+                    (e) => {
+                      appInsightsTelemetryClient?.trackEvent({
+                        name: getLoginErrorEventName,
+                        properties: {
+                          message: `Error calling reservePubKey endpoint: ${e.message}`,
+                        },
+                        tagOverrides: { samplingEnabled: "false" },
+                      });
+                      return e;
+                    },
+                    () =>
+                      ResponseErrorInternal("Cannot parse reserve response"),
+                  ),
                 ),
               ),
+              TE.filterOrElseW(
+                isReservePubKeyResponseSuccess,
+                (errorResponse) =>
+                  errorResponse.status === 409
+                    ? ResponseErrorConflict("PubKey is already reserved")
+                    : ResponseErrorInternal("Cannot reserve pubKey"),
+              ),
+              TE.map(() => lollipopParams),
+              TE.toUnion,
+            )(),
           ),
           O.toUndefined,
         ),
@@ -197,7 +184,6 @@ export const lollipopLoginHandler =
 
 export const lollipopLoginMiddleware =
   (
-    isLollipopEnabled: boolean,
     lollipopApiClient: FnLollipopRepo.LollipopApiClient,
     appInsightsTelemetryClient?: appInsights.TelemetryClient,
   ) =>
@@ -210,7 +196,6 @@ export const lollipopLoginMiddleware =
     | undefined
   > =>
     lollipopLoginHandler(
-      isLollipopEnabled,
       lollipopApiClient,
       appInsightsTelemetryClient,
     )(req).then((_) => (LollipopLoginParams.is(_) ? undefined : _));

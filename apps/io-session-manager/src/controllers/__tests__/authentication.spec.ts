@@ -21,6 +21,7 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import * as E from "fp-ts/Either";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
+import { TelemetryClient } from "applicationinsights";
 import {
   AGE_LIMIT,
   AGE_LIMIT_ERROR_CODE,
@@ -105,7 +106,6 @@ const dependencies: AcsDependencies = {
   FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED: () => true,
   isSpidEmailPersistenceEnabled: true,
   notificationQueueClient: mockQueueClient,
-  isLollipopEnabled: false,
   getClientErrorRedirectionUrl,
   getClientProfileRedirectionUrl,
   allowedCieTestFiscalCodes: [],
@@ -114,7 +114,7 @@ const dependencies: AcsDependencies = {
   lvTokenDurationSecs,
   lvLongSessionDurationSecs,
   isUserElegibleForIoLoginUrlScheme: () => false,
-  appInsightsTelemetryClient: mockTelemetryClient,
+  appInsightsTelemetryClient: mockTelemetryClient as unknown as TelemetryClient,
   isUserElegibleForFastLogin: () => false,
 };
 
@@ -558,9 +558,7 @@ describe("AuthenticationController#acs Lollipop", () => {
       TE.of(ResponseSuccessJson(mockedInitializedProfile)),
     );
 
-    const response = await acs({ ...dependencies, isLollipopEnabled: true })(
-      validUserPayload,
-    );
+    const response = await acs({ ...dependencies })(validUserPayload);
     response.apply(res);
     await new Promise((resolve) => setTimeout(() => resolve(""), 10));
 
@@ -615,9 +613,7 @@ describe("AuthenticationController#acs Lollipop", () => {
       TE.of(ResponseErrorInternal("Error reading the user profile")),
     );
 
-    const response = await acs({ ...dependencies, isLollipopEnabled: true })(
-      validUserPayload,
-    );
+    const response = await acs({ ...dependencies })(validUserPayload);
     response.apply(res);
     await new Promise((resolve) => setTimeout(() => resolve(""), 10));
 
@@ -656,10 +652,7 @@ describe("AuthenticationController#acs Lollipop", () => {
         () => setLollipopAssertionRefForUserResponse,
       );
 
-      const response = await acs({ ...dependencies, isLollipopEnabled: true })(
-        validUserPayload,
-        req,
-      );
+      const response = await acs({ ...dependencies })(validUserPayload, req);
       response.apply(res);
 
       expect(mockTelemetryClient.trackEvent).toHaveBeenCalledWith({
@@ -698,10 +691,7 @@ describe("AuthenticationController#acs Lollipop", () => {
       TE.left(new Error("Error")),
     );
 
-    const response = await acs({ ...dependencies, isLollipopEnabled: true })(
-      validUserPayload,
-      req,
-    );
+    const response = await acs({ ...dependencies })(validUserPayload, req);
     response.apply(res);
     await new Promise((resolve) => setTimeout(() => resolve(""), 100));
 
@@ -740,10 +730,7 @@ describe("AuthenticationController#acs Lollipop", () => {
         delLollipopDataForUserResponse,
       );
 
-      const response = await acs({ ...dependencies, isLollipopEnabled: true })(
-        validUserPayload,
-        req,
-      );
+      const response = await acs({ ...dependencies })(validUserPayload, req);
       response.apply(res);
 
       expect(mockTelemetryClient.trackEvent).toHaveBeenCalledWith({
@@ -777,14 +764,11 @@ describe("AuthenticationController#acs Lollipop", () => {
   );
 
   test(`should fail if an error occours reading the previous CF-assertionRef link on redis`, async () => {
-    mockGetLollipopAssertionRefForUser.mockReturnValue(
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(
       TE.left(new Error("Error")),
     );
 
-    const response = await acs({ ...dependencies, isLollipopEnabled: true })(
-      validUserPayload,
-      req,
-    );
+    const response = await acs({ ...dependencies })(validUserPayload, req);
     response.apply(res);
 
     expect(mockTelemetryClient.trackEvent).toHaveBeenCalledWith({
@@ -930,24 +914,17 @@ describe("AuthenticationController#acs LV", () => {
     getSamlResponseXml: () => aSpidL3LollipopAssertion,
   };
   test.each`
-    loginType               | isLollipopEnabled | isUserElegible | expectedTtlDuration          | expectedLongSessionDuration
-    ${LoginTypeEnum.LV}     | ${true}           | ${true}        | ${lvTokenDurationSecs}       | ${lvLongSessionDurationSecs}
-    ${LoginTypeEnum.LV}     | ${true}           | ${false}       | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
-    ${LoginTypeEnum.LEGACY} | ${true}           | ${true}        | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
-    ${LoginTypeEnum.LEGACY} | ${true}           | ${false}       | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
-    ${undefined}            | ${true}           | ${true}        | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
-    ${undefined}            | ${true}           | ${false}       | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
-    ${LoginTypeEnum.LV}     | ${false}          | ${true}        | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
-    ${LoginTypeEnum.LV}     | ${false}          | ${false}       | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
-    ${LoginTypeEnum.LEGACY} | ${false}          | ${true}        | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
-    ${LoginTypeEnum.LEGACY} | ${false}          | ${false}       | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
-    ${undefined}            | ${false}          | ${true}        | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
-    ${undefined}            | ${false}          | ${false}       | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
+    loginType               | isUserElegible | expectedTtlDuration          | expectedLongSessionDuration
+    ${LoginTypeEnum.LV}     | ${true}        | ${lvTokenDurationSecs}       | ${lvLongSessionDurationSecs}
+    ${LoginTypeEnum.LV}     | ${false}       | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
+    ${LoginTypeEnum.LEGACY} | ${true}        | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
+    ${LoginTypeEnum.LEGACY} | ${false}       | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
+    ${undefined}            | ${true}        | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
+    ${undefined}            | ${false}       | ${standardTokenDurationSecs} | ${standardTokenDurationSecs}
   `(
-    "should succeed and return a new token with duration $expectedTtlDuration, if lollipop is enabled $isLollipopEnabled, ff is $isUserElegible and login is of type $loginType",
+    "should succeed and return a new token with duration $expectedTtlDuration, ff is $isUserElegible and login is of type $loginType",
     async ({
       loginType,
-      isLollipopEnabled,
       expectedTtlDuration,
       expectedLongSessionDuration,
       isUserElegible,
@@ -962,7 +939,6 @@ describe("AuthenticationController#acs LV", () => {
 
       const response = await acs({
         ...dependencies,
-        isLollipopEnabled,
         isUserElegibleForFastLogin: () => isUserElegible,
       })(validUserPayload, withoutUndefinedValues({ loginType }));
       response.apply(res);
@@ -972,50 +948,44 @@ describe("AuthenticationController#acs LV", () => {
         expectedTtlDuration,
       );
 
-      if (isLollipopEnabled) {
-        if (isUserElegible) {
-          expect(mockSetLollipopDataForUser).toHaveBeenCalledWith(
-            { ...mockedUser, created_at: expect.any(Number) }, // TODO: mock date
-            {
-              ...lollipopData,
-              loginType: loginType ? loginType : LoginTypeEnum.LEGACY,
-            },
-            expectedLongSessionDuration,
-          );
-        } else {
-          expect(mockSetLollipopAssertionRefForUser).toHaveBeenCalledWith(
-            { ...mockedUser, created_at: expect.any(Number) }, // TODO: mock date,
-            lollipopData.assertionRef,
-            expectedLongSessionDuration,
-          );
-        }
-        expect(mockActivateLolliPoPKey).toHaveBeenCalledWith(
-          expect.objectContaining({
-            assertionRef: anotherAssertionRef,
-            fiscalCode: mockedUser.fiscal_code,
-            assertion: aLollipopAssertion,
-            getExpirePubKeyFn: expect.any(Function),
-          }),
+      if (isUserElegible) {
+        expect(mockSetLollipopDataForUser).toHaveBeenCalledWith(
+          { ...mockedUser, created_at: expect.any(Number) }, // TODO: mock date
+          {
+            ...lollipopData,
+            loginType: loginType ? loginType : LoginTypeEnum.LEGACY,
+          },
+          expectedLongSessionDuration,
         );
-
-        if (isUserElegible) {
-          expect(mockOnUserLogin).toHaveBeenCalledWith(expectedUserLoginData);
-        } else {
-          expect(mockOnUserLogin).not.toHaveBeenCalled();
-        }
-
-        const { getExpirePubKeyFn } = mockActivateLolliPoPKey.mock.calls[0][0];
-
-        const now = new Date();
-        const exp = getExpirePubKeyFn() as Date;
-        const diff = Math.floor((exp.getTime() - now.getTime()) / 1000);
-
-        expect(diff).toEqual(expectedLongSessionDuration);
       } else {
-        expect(mockSetLollipopAssertionRefForUser).not.toHaveBeenCalled();
-        expect(mockActivateLolliPoPKey).not.toHaveBeenCalled();
+        expect(mockSetLollipopAssertionRefForUser).toHaveBeenCalledWith(
+          { ...mockedUser, created_at: expect.any(Number) }, // TODO: mock date,
+          lollipopData.assertionRef,
+          expectedLongSessionDuration,
+        );
+      }
+      expect(mockActivateLolliPoPKey).toHaveBeenCalledWith(
+        expect.objectContaining({
+          assertionRef: anotherAssertionRef,
+          fiscalCode: mockedUser.fiscal_code,
+          assertion: aLollipopAssertion,
+          getExpirePubKeyFn: expect.any(Function),
+        }),
+      );
+
+      if (isUserElegible) {
+        expect(mockOnUserLogin).toHaveBeenCalledWith(expectedUserLoginData);
+      } else {
         expect(mockOnUserLogin).not.toHaveBeenCalled();
       }
+
+      const { getExpirePubKeyFn } = mockActivateLolliPoPKey.mock.calls[0][0];
+
+      const now = new Date();
+      const exp = getExpirePubKeyFn() as Date;
+      const diff = Math.floor((exp.getTime() - now.getTime()) / 1000);
+
+      expect(diff).toEqual(expectedLongSessionDuration);
 
       expect(res.redirect).toHaveBeenCalledWith(
         301,
@@ -1035,7 +1005,6 @@ describe("AuthenticationController#acs LV", () => {
 
     const response = await acs({
       ...dependencies,
-      isLollipopEnabled: true,
       isUserElegibleForFastLogin: () => true,
     })(validSpidL3UserPayload, { loginType: LoginTypeEnum.LV });
     response.apply(res);
@@ -1061,7 +1030,6 @@ describe("AuthenticationController#acs LV", () => {
 
     const response = await acs({
       ...dependencies,
-      isLollipopEnabled: true,
       isUserElegibleForFastLogin: () => false,
     })(validUserPayload, { loginType: LoginTypeEnum.LV });
     response.apply(res);
@@ -1077,7 +1045,6 @@ describe("AuthenticationController#acs LV", () => {
 
     const response = await acs({
       ...dependencies,
-      isLollipopEnabled: true,
       isUserElegibleForFastLogin: () => true,
     })(validUserPayload, { loginType: LoginTypeEnum.LV });
     response.apply(res);
@@ -1095,7 +1062,6 @@ describe("AuthenticationController#acs LV Notify user login", () => {
   test("should notify new login with profile email if profile does not exists and user is eligible", async () => {
     const response = await acs({
       ...dependencies,
-      isLollipopEnabled: true,
       isUserElegibleForFastLogin: () => true,
     })(validUserPayload);
     response.apply(res);
@@ -1130,7 +1096,6 @@ describe("AuthenticationController#acs LV Notify user login", () => {
 
     const response = await acs({
       ...dependencies,
-      isLollipopEnabled: true,
       isUserElegibleForFastLogin: () => true,
     })(validUserPayload);
     response.apply(res);
@@ -1163,7 +1128,6 @@ describe("AuthenticationController#acs LV Notify user login", () => {
 
     const response = await acs({
       ...dependencies,
-      isLollipopEnabled: true,
       isUserElegibleForFastLogin: () => true,
     })(validUserPayload);
     response.apply(res);

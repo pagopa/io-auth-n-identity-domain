@@ -12,36 +12,14 @@ describe("fastLogin|>getIsUserElegibleForfastLogin", () => {
     ${LoginTypeEnum.LV}     | ${false}                   | ${LoginTypeEnum.LEGACY}
     ${LoginTypeEnum.LV}     | ${true}                    | ${LoginTypeEnum.LV}
   `(
-    "should return $expectedResult when loginType is $loginType, user is eligible for fast-login $isUserEligibleForFastLogin and lollipop is enabled",
+    "should return $expectedResult when loginType is $loginType and user is eligible for fast-login $isUserEligibleForFastLogin",
     async ({ loginType, isUserElegibleForFastLogin, expectedResult }) => {
       const result = getLoginTypeOnElegible(
         loginType,
         isUserElegibleForFastLogin,
-        true,
       );
 
       expect(result).toEqual(expectedResult);
-    },
-  );
-
-  it.each`
-    loginType               | isUserElegibleForFastLogin
-    ${undefined}            | ${false}
-    ${undefined}            | ${true}
-    ${LoginTypeEnum.LEGACY} | ${false}
-    ${LoginTypeEnum.LEGACY} | ${true}
-    ${LoginTypeEnum.LV}     | ${false}
-    ${LoginTypeEnum.LV}     | ${true}
-  `(
-    "should return LoginTypeEnum.LEGACY when loginType is $loginType, user is eligible for fast-login $isUserEligibleForFastLogin and lollipop is NOT enabled",
-    async ({ loginType, isUserElegibleForFastLogin }) => {
-      const result = getLoginTypeOnElegible(
-        loginType,
-        isUserElegibleForFastLogin,
-        false,
-      );
-
-      expect(result).toEqual(LoginTypeEnum.LEGACY);
     },
   );
 });

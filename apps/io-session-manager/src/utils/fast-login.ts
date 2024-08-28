@@ -24,11 +24,8 @@ export const getIsUserElegibleForfastLogin = (
 export const getLoginTypeOnElegible = (
   loginType: LoginTypeEnum | undefined,
   isUserEligibleForFastLogin: boolean,
-  isLollipopEnabled: boolean,
 ): LoginTypeEnum =>
-  isLollipopEnabled &&
-  loginType === LoginTypeEnum.LV &&
-  isUserEligibleForFastLogin
+  loginType === LoginTypeEnum.LV && isUserEligibleForFastLogin
     ? LoginTypeEnum.LV
     : LoginTypeEnum.LEGACY;
 
