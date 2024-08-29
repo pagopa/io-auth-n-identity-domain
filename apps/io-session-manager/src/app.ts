@@ -67,7 +67,6 @@ import {
   clientProfileRedirectionUrl,
 } from "./config/spid";
 import {
-  FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
   isUserElegibleForIoLoginUrlScheme,
   standardTokenDurationSecs,
 } from "./config/login";
@@ -162,7 +161,6 @@ export const newApp: (
     getClientErrorRedirectionUrl,
     getClientProfileRedirectionUrl,
     isUserElegibleForIoLoginUrlScheme,
-    FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
     isSpidEmailPersistenceEnabled:
       LoginConfig.IS_SPID_EMAIL_PERSISTENCE_ENABLED,
     testLoginFiscalCodes: LoginConfig.TEST_LOGIN_FISCAL_CODES,

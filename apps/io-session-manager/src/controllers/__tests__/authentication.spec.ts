@@ -103,7 +103,6 @@ const dependencies: AcsDependencies = {
   fnLollipopAPIClient: mockedLollipopApiClient,
   lollipopRevokeQueueClient: mockQueueClient,
   testLoginFiscalCodes: [],
-  FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED: () => true,
   isSpidEmailPersistenceEnabled: true,
   notificationQueueClient: mockQueueClient,
   getClientErrorRedirectionUrl,
@@ -177,13 +176,11 @@ const mockGetProfile = vi
   );
 const mockCreateProfile = vi
   .spyOn(ProfileService, "createProfile")
-  .mockReturnValue(({ FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED }) =>
+  .mockReturnValue(() =>
     TE.of(
       ResponseSuccessJson({
         ...mockedInitializedProfile,
-        is_email_validated: !FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED(
-          "" as FiscalCode,
-        ),
+        is_email_validated: false,
       }),
     ),
   );
