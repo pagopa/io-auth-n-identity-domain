@@ -14,5 +14,8 @@
       "rule": "*",
       "severity": "warn"
     }
-  ]
+  ],
+
+  // Vitest
+  "vitest.workspaceConfig": "./vitest.workspace.mts",
 }
