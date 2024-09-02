@@ -23,9 +23,6 @@ export const TEST_LOGIN_FISCAL_CODES: ReadonlyArray<FiscalCode> = pipe(
   E.getOrElseW(() => []),
 );
 
-export const FF_USER_AGE_LIMIT_ENABLED =
-  process.env.FF_USER_AGE_LIMIT_ENABLED === "1";
-
 // IOLOGIN FF variable
 export const FF_IOLOGIN = pipe(
   process.env.FF_IOLOGIN,
