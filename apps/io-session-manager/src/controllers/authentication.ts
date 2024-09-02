@@ -103,7 +103,6 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
     getClientProfileRedirectionUrl: (token: string) => UrlFromString;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     allowedCieTestFiscalCodes: ReadonlyArray<FiscalCode>;
-    hasUserAgeLimitEnabled: boolean;
     standardTokenDurationSecs: Second;
     lvTokenDurationSecs: Second;
     lvLongSessionDurationSecs: Second;
@@ -151,10 +150,7 @@ export const acs: (
       return ResponseErrorForbiddenNotAuthorized;
     }
 
-    if (
-      deps.hasUserAgeLimitEnabled &&
-      !isOlderThan(AGE_LIMIT)(parse(spidUser.dateOfBirth), new Date())
-    ) {
+    if (!isOlderThan(AGE_LIMIT)(parse(spidUser.dateOfBirth), new Date())) {
       // The IO App show the proper error screen if only the `errorCode`
       // query param is provided and `errorMessage` is missing.
       // this constraint could be ignored when this PR https://github.com/pagopa/io-app/pull/3642 is merged,

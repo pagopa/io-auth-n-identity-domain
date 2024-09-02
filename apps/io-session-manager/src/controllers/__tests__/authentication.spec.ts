@@ -45,6 +45,7 @@ import {
   lvTokenDurationSecs,
 } from "../../config/fast-login";
 import { mockRedisClientSelector } from "../../__mocks__/redis.mocks";
+import { mockedAppinsightsTelemetryClient } from "../../__mocks__/appinsights.mocks.ts";
 import {
   aFiscalCode,
   aSessionTrackingId,
@@ -91,10 +92,6 @@ import { SpidLevelEnum } from "../../types/spid-level";
 import * as AuthController from "../authentication";
 import { toExpectedResponse } from "../../__tests__/utils";
 
-const mockTelemetryClient = {
-  trackEvent: vi.fn(),
-};
-
 const dependencies: AcsDependencies = {
   redisClientSelector: mockRedisClientSelector,
   fnAppAPIClient: mockedFnAppAPIClient,
@@ -108,12 +105,11 @@ const dependencies: AcsDependencies = {
   getClientErrorRedirectionUrl,
   getClientProfileRedirectionUrl,
   allowedCieTestFiscalCodes: [],
-  hasUserAgeLimitEnabled: true,
   standardTokenDurationSecs,
   lvTokenDurationSecs,
   lvLongSessionDurationSecs,
   isUserElegibleForIoLoginUrlScheme: () => false,
-  appInsightsTelemetryClient: mockTelemetryClient as unknown as TelemetryClient,
+  appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
   isUserElegibleForFastLogin: () => false,
 };
 
@@ -421,7 +417,7 @@ describe("AuthenticationController#acs Age Limit", () => {
     const response = await acs(dependencies)(aYoungUserPayload);
     response.apply(res);
 
-    expect(mockTelemetryClient.trackEvent).toBeCalledWith(
+    expect(mockedAppinsightsTelemetryClient.trackEvent).toBeCalledWith(
       expect.objectContaining({
         name: "spid.error.generic",
         properties: {
@@ -449,7 +445,7 @@ describe("AuthenticationController#acs Age Limit", () => {
     const response = await acs(dependencies)(aYoungUserPayload);
     response.apply(res);
 
-    expect(mockTelemetryClient.trackEvent).toBeCalledWith(
+    expect(mockedAppinsightsTelemetryClient.trackEvent).toBeCalledWith(
       expect.objectContaining({
         name: "spid.error.generic",
         properties: {
@@ -473,7 +469,7 @@ describe("AuthenticationController#acs Age Limit", () => {
     const response = await acs(dependencies)(aYoungUserPayload);
     response.apply(res);
 
-    expect(mockTelemetryClient.trackEvent).not.toBeCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toBeCalled();
     expect(res.redirect).toHaveBeenCalledWith(
       301,
       expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
@@ -580,7 +576,7 @@ describe("AuthenticationController#acs Lollipop", () => {
         fiscalCode: aFiscalCode,
         assertion: expect.any(String),
         getExpirePubKeyFn: expect.any(Function),
-        appInsightsTelemetryClient: mockTelemetryClient,
+        appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
       }),
     );
     expect(mockSetLollipopAssertionRefForUser).toBeCalledWith(
@@ -652,7 +648,7 @@ describe("AuthenticationController#acs Lollipop", () => {
       const response = await acs({ ...dependencies })(validUserPayload, req);
       response.apply(res);
 
-      expect(mockTelemetryClient.trackEvent).toHaveBeenCalledWith({
+      expect(mockedAppinsightsTelemetryClient.trackEvent).toHaveBeenCalledWith({
         name: acsErrorEventName,
         properties: expect.objectContaining({
           assertion_ref: anotherAssertionRef,
@@ -705,7 +701,7 @@ describe("AuthenticationController#acs Lollipop", () => {
         fiscalCode: aFiscalCode,
         assertion: expect.any(String),
         getExpirePubKeyFn: expect.any(Function),
-        appInsightsTelemetryClient: mockTelemetryClient,
+        appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
       }),
     );
 
@@ -730,7 +726,7 @@ describe("AuthenticationController#acs Lollipop", () => {
       const response = await acs({ ...dependencies })(validUserPayload, req);
       response.apply(res);
 
-      expect(mockTelemetryClient.trackEvent).toHaveBeenCalledWith({
+      expect(mockedAppinsightsTelemetryClient.trackEvent).toHaveBeenCalledWith({
         name: acsErrorEventName,
         properties: expect.objectContaining({
           fiscal_code: sha256(aFiscalCode),
@@ -768,7 +764,7 @@ describe("AuthenticationController#acs Lollipop", () => {
     const response = await acs({ ...dependencies })(validUserPayload, req);
     response.apply(res);
 
-    expect(mockTelemetryClient.trackEvent).toHaveBeenCalledWith({
+    expect(mockedAppinsightsTelemetryClient.trackEvent).toHaveBeenCalledWith({
       name: acsErrorEventName,
       properties: expect.objectContaining({
         fiscal_code: sha256(aFiscalCode),
@@ -1135,7 +1131,7 @@ describe("AuthenticationController#acs LV Notify user login", () => {
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDeleteAssertionRefAssociation).toHaveBeenCalledTimes(1);
 
-    expect(mockTelemetryClient.trackEvent).toHaveBeenNthCalledWith(
+    expect(mockedAppinsightsTelemetryClient.trackEvent).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
         name: "lollipop.error.acs.notify",

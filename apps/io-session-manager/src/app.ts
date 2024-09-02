@@ -164,7 +164,6 @@ export const newApp: (
     isSpidEmailPersistenceEnabled:
       LoginConfig.IS_SPID_EMAIL_PERSISTENCE_ENABLED,
     testLoginFiscalCodes: LoginConfig.TEST_LOGIN_FISCAL_CODES,
-    hasUserAgeLimitEnabled: true,
     allowedCieTestFiscalCodes: ALLOWED_CIE_TEST_FISCAL_CODES,
     standardTokenDurationSecs,
     lvTokenDurationSecs: FastLoginConfig.lvTokenDurationSecs,
