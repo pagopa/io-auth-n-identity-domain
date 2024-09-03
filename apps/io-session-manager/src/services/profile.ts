@@ -102,16 +102,11 @@ export const createProfile: (
   // from this Response Success JSON.
   | IResponseSuccessJson<NewProfile>
 > = (user, spidUser) => (deps) => {
-  // --------------------
-  // set isEmailValidated true if there is a SPID email and the emailPersistance
-  // switch is on, otherwhise set false.
-  const isEmailValidated =
-    deps.isSpidEmailPersistenceEnabled && spidUser.email ? true : false;
-  // --------------------
   const isTestProfile = deps.testLoginFiscalCodes.includes(user.fiscal_code);
   const newProfile = {
     email: deps.isSpidEmailPersistenceEnabled ? spidUser.email : undefined,
-    is_email_validated: isEmailValidated,
+    // is_email_validated is always false for new users
+    is_email_validated: false,
     is_test_profile: isTestProfile,
   };
 

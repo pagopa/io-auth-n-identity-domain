@@ -319,7 +319,7 @@ export const acs: (
       );
     }
 
-    // TODO: When we remove the feature flag try to use the method `deleteAssertionRefAssociation`
+    // TODO: simplify the following lines using the method `deleteAssertionRefAssociation`
     if (O.isSome(errorOrMaybeAssertionRef.right)) {
       const assertionRefToRevoke = errorOrMaybeAssertionRef.right.value;
       // Sending a revoke message for previous assertionRef related to the same fiscalCode

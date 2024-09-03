@@ -172,7 +172,7 @@ describe("ProfileService#createProfile", () => {
 
   const createProfileRequest: NewProfile = {
     email: aSpidEmailAddress,
-    is_email_validated: true,
+    is_email_validated: false,
     is_test_profile: false,
   };
   test("create an user profile to the API", async () => {
