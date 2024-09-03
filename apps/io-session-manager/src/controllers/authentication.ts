@@ -574,7 +574,7 @@ export const acs: (
       }),
     )().catch(() => void 0);
 
-    if (userEmail && isUserElegibleForFastLoginResult) {
+    if (userEmail) {
       const errorOrNotifyLoginResult = await pipe(
         {
           email: userEmail,

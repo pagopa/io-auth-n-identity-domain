@@ -254,7 +254,7 @@ describe("AuthenticationController#acs", () => {
       }),
       validUserPayload,
     );
-    expect(mockOnUserLogin).not.toHaveBeenCalled();
+    expect(mockOnUserLogin).toHaveBeenCalled();
   });
 
   test("redirects to the correct url if userPayload is a valid User and a profile exists", async () => {
@@ -282,7 +282,7 @@ describe("AuthenticationController#acs", () => {
     });
     expect(mockCreateProfile).not.toBeCalled();
 
-    expect(mockOnUserLogin).not.toHaveBeenCalled();
+    expect(mockOnUserLogin).toHaveBeenCalled();
   });
 
   test("should fail if a profile cannot be created", async () => {
@@ -966,11 +966,7 @@ describe("AuthenticationController#acs LV", () => {
         }),
       );
 
-      if (isUserElegible) {
-        expect(mockOnUserLogin).toHaveBeenCalledWith(expectedUserLoginData);
-      } else {
-        expect(mockOnUserLogin).not.toHaveBeenCalled();
-      }
+      expect(mockOnUserLogin).toHaveBeenCalledWith(expectedUserLoginData);
 
       const { getExpirePubKeyFn } = mockActivateLolliPoPKey.mock.calls[0][0];
 
