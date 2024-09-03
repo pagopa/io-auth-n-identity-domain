@@ -97,14 +97,12 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   CreateNewProfileDependencies &
   NotificationsRepo.NotificationsueueDeps &
   AppInsightsDeps & {
-    isLollipopEnabled: boolean;
     getClientErrorRedirectionUrl: (
       params: ClientErrorRedirectionUrlParams,
     ) => UrlFromString;
     getClientProfileRedirectionUrl: (token: string) => UrlFromString;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     allowedCieTestFiscalCodes: ReadonlyArray<FiscalCode>;
-    hasUserAgeLimitEnabled: boolean;
     standardTokenDurationSecs: Second;
     lvTokenDurationSecs: Second;
     lvLongSessionDurationSecs: Second;
@@ -152,10 +150,7 @@ export const acs: (
       return ResponseErrorForbiddenNotAuthorized;
     }
 
-    if (
-      deps.hasUserAgeLimitEnabled &&
-      !isOlderThan(AGE_LIMIT)(parse(spidUser.dateOfBirth), new Date())
-    ) {
+    if (!isOlderThan(AGE_LIMIT)(parse(spidUser.dateOfBirth), new Date())) {
       // The IO App show the proper error screen if only the `errorCode`
       // query param is provided and `errorMessage` is missing.
       // this constraint could be ignored when this PR https://github.com/pagopa/io-app/pull/3642 is merged,
@@ -195,7 +190,6 @@ export const acs: (
     const loginType = getLoginTypeOnElegible(
       additionalProps?.loginType,
       isUserElegibleForFastLoginResult,
-      deps.isLollipopEnabled,
     );
     const [sessionTTL, lollipopKeyTTL] =
       loginType === LoginTypeEnum.LV
@@ -304,12 +298,11 @@ export const acs: (
       sessionTrackingId,
     );
 
-    const errorOrMaybeAssertionRef = deps.isLollipopEnabled
-      ? await RedisSessionStorageService.getLollipopAssertionRefForUser({
-          fiscalCode: user.fiscal_code,
-          redisClientSelector: deps.redisClientSelector,
-        })()
-      : E.right(O.none);
+    const errorOrMaybeAssertionRef =
+      await RedisSessionStorageService.getLollipopAssertionRefForUser({
+        fiscalCode: user.fiscal_code,
+        redisClientSelector: deps.redisClientSelector,
+      })();
 
     const lollipopErrorEventName = "lollipop.error.acs";
 
@@ -326,8 +319,8 @@ export const acs: (
       );
     }
 
-    // TODO: When we remove the feature flag try to use the method `deleteAssertionRefAssociation`
-    if (deps.isLollipopEnabled && O.isSome(errorOrMaybeAssertionRef.right)) {
+    // TODO: simplify the following lines using the method `deleteAssertionRefAssociation`
+    if (O.isSome(errorOrMaybeAssertionRef.right)) {
       const assertionRefToRevoke = errorOrMaybeAssertionRef.right.value;
       // Sending a revoke message for previous assertionRef related to the same fiscalCode
       // This operation is fire and forget
@@ -390,7 +383,6 @@ export const acs: (
       ),
       TE.chainW(
         flow(
-          O.chain(O.fromPredicate(() => deps.isLollipopEnabled)),
           O.chainEitherK(AssertionRef.decode),
           TE.fromOption(() => O.none),
         ),
@@ -582,11 +574,7 @@ export const acs: (
       }),
     )().catch(() => void 0);
 
-    if (
-      userEmail &&
-      deps.isLollipopEnabled &&
-      isUserElegibleForFastLoginResult
-    ) {
+    if (userEmail) {
       const errorOrNotifyLoginResult = await pipe(
         {
           email: userEmail,

@@ -49,7 +49,6 @@ IDP_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/spid/latest
 SPID_LOG_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://storage:20003/devstoreaccount1;QueueEndpoint=http://storage:20004/devstoreaccount1;TableEndpoint=http://storage:20005/devstoreaccount1;
 SPID_LOG_QUEUE_NAME=spidmsgitems
 
-FF_LOLLIPOP_ENABLED=1
 FF_FAST_LOGIN=ALL
 
 #####################

@@ -46,7 +46,6 @@ import {
   FastLoginConfig,
   FimsConfig,
   LoginConfig,
-  LollipopConfig,
   PagoPAConfig,
   SpidConfig,
   ZendeskConfig,
@@ -68,7 +67,6 @@ import {
   clientProfileRedirectionUrl,
 } from "./config/spid";
 import {
-  FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
   isUserElegibleForIoLoginUrlScheme,
   standardTokenDurationSecs,
 } from "./config/login";
@@ -78,7 +76,6 @@ import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
-import { FF_LOLLIPOP_ENABLED } from "./config/lollipop";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -160,16 +157,13 @@ export const newApp: (
 
   const acsDependencies: AcsDependencies = {
     redisClientSelector: REDIS_CLIENT_SELECTOR,
-    isLollipopEnabled: FF_LOLLIPOP_ENABLED,
     appInsightsTelemetryClient: appInsightsClient,
     getClientErrorRedirectionUrl,
     getClientProfileRedirectionUrl,
     isUserElegibleForIoLoginUrlScheme,
-    FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED,
     isSpidEmailPersistenceEnabled:
       LoginConfig.IS_SPID_EMAIL_PERSISTENCE_ENABLED,
     testLoginFiscalCodes: LoginConfig.TEST_LOGIN_FISCAL_CODES,
-    hasUserAgeLimitEnabled: LoginConfig.FF_USER_AGE_LIMIT_ENABLED,
     allowedCieTestFiscalCodes: ALLOWED_CIE_TEST_FISCAL_CODES,
     standardTokenDurationSecs,
     lvTokenDurationSecs: FastLoginConfig.lvTokenDurationSecs,
@@ -187,7 +181,6 @@ export const newApp: (
         localStrategy(
           LoginConfig.TEST_LOGIN_FISCAL_CODES,
           testLoginPassword,
-          FF_LOLLIPOP_ENABLED,
           APIClients.fnLollipopAPIClient,
           appInsightsClient,
         ),
@@ -350,12 +343,10 @@ export const newApp: (
               getLoginTypeOnElegible(
                 loginType,
                 FastLoginConfig.isUserElegibleForFastLogin(fiscalCode),
-                LollipopConfig.FF_LOLLIPOP_ENABLED,
               ),
           }),
           lollipopMiddleware: toExpressMiddleware(
             lollipopLoginMiddleware(
-              LollipopConfig.FF_LOLLIPOP_ENABLED,
               APIClients.fnLollipopAPIClient,
               appInsightsClient,
             ),

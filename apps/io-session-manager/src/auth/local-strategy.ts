@@ -28,7 +28,6 @@ import { SpidUser } from "../types/user";
 export const localStrategy = (
   validUsernameList: ReadonlyArray<FiscalCode>,
   validPassword: string,
-  isLollipopEnabled: boolean,
   lollipopApiClient: LollipopApiClient,
   appInsightsTelemetryClient?: appInsights.TelemetryClient,
 ): passport.Strategy =>
@@ -49,7 +48,6 @@ export const localStrategy = (
         TE.tryCatch(
           () =>
             lollipopLoginHandler(
-              isLollipopEnabled,
               lollipopApiClient,
               appInsightsTelemetryClient,
             )(req),

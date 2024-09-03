@@ -86,7 +86,6 @@ export const getProfile: RTE.ReaderTaskEither<
 
 export type CreateNewProfileDependencies = {
   testLoginFiscalCodes: ReadonlyArray<FiscalCode>;
-  FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED: (fiscalCode: FiscalCode) => boolean;
   isSpidEmailPersistenceEnabled: boolean;
 };
 
@@ -103,20 +102,11 @@ export const createProfile: (
   // from this Response Success JSON.
   | IResponseSuccessJson<NewProfile>
 > = (user, spidUser) => (deps) => {
-  // --------------------
-  // If the specified user is NOT eligible for the unique email enforcement
-  // set isEmailValidated true if there is a SPID email, otherwhise set false.
-  const isEmailValidated =
-    !deps.FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED(user.fiscal_code) &&
-    deps.isSpidEmailPersistenceEnabled &&
-    spidUser.email
-      ? true
-      : false;
-  // --------------------
   const isTestProfile = deps.testLoginFiscalCodes.includes(user.fiscal_code);
   const newProfile = {
     email: deps.isSpidEmailPersistenceEnabled ? spidUser.email : undefined,
-    is_email_validated: isEmailValidated,
+    // is_email_validated is always false for new users
+    is_email_validated: false,
     is_test_profile: isTestProfile,
   };
 

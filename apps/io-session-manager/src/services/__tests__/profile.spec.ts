@@ -172,7 +172,7 @@ describe("ProfileService#createProfile", () => {
 
   const createProfileRequest: NewProfile = {
     email: aSpidEmailAddress,
-    is_email_validated: true,
+    is_email_validated: false,
     is_test_profile: false,
   };
   test("create an user profile to the API", async () => {
@@ -185,7 +185,6 @@ describe("ProfileService#createProfile", () => {
       )({
         fnAppAPIClient: mockedFnAppAPIClient,
         testLoginFiscalCodes: [],
-        FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED: () => false,
         isSpidEmailPersistenceEnabled: true,
       }),
     )();
@@ -216,7 +215,6 @@ describe("ProfileService#createProfile", () => {
       )({
         fnAppAPIClient: mockedFnAppAPIClient,
         testLoginFiscalCodes: [],
-        FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED: () => false,
         isSpidEmailPersistenceEnabled: true,
       }),
     )();
@@ -244,7 +242,6 @@ describe("ProfileService#createProfile", () => {
       )({
         fnAppAPIClient: mockedFnAppAPIClient,
         testLoginFiscalCodes: [],
-        FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED: () => false,
         isSpidEmailPersistenceEnabled: true,
       }),
     )();
@@ -268,7 +265,6 @@ describe("ProfileService#createProfile", () => {
       )({
         fnAppAPIClient: mockedFnAppAPIClient,
         testLoginFiscalCodes: [],
-        FF_UNIQUE_EMAIL_ENFORCEMENT_ENABLED: () => false,
         isSpidEmailPersistenceEnabled: true,
       }),
     )();
