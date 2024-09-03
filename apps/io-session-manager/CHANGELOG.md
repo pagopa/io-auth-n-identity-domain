@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 1.1.0
+
+### Minor Changes
+
+- 8215c6b: Removed feature flags for well established features
+
 ## 1.0.0
 
 ### Major Changes
