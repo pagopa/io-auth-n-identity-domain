@@ -6,7 +6,7 @@ import winston from "winston";
 const logger = winston.createLogger({
   level: "info",
   format: winston.format.simple(),
-  transports: [new winston.transports.Console()],
+  transports: [new winston.transports.Console()]
 });
 
 const extractRepoName = (repoUrl: string): string => {
@@ -19,6 +19,7 @@ const repoUrl = process.argv[2];
 const folderName = extractRepoName(repoUrl);
 const targetDir = `apps/${folderName}`;
 
+const currentBranch = execSync("git branch --show-current").toString().trim();
 const rootDir = execSync("git rev-parse --show-toplevel").toString().trim();
 process.chdir(rootDir);
 
@@ -46,15 +47,16 @@ const importRepository = () => {
   runCommand(`git fetch import-${folderName}`);
   runCommand(`git checkout import-${folderName}/main`);
 
-  const filterBranchCmd = `
-    git filter-branch -f --index-filter \
-    'git ls-files -s | sed "s|\\t|&${targetDir}/|" | GIT_INDEX_FILE=$GIT_INDEX_FILE.new git update-index --index-info; mv "$GIT_INDEX_FILE.new" "$GIT_INDEX_FILE"' \
-    -- --all
+  const filterRepoCmd = `
+    git filter-repo --force --to-subdirectory-filter ${targetDir}
   `;
-  runCommand(filterBranchCmd);
+  runCommand(filterRepoCmd);
 
-  runCommand(`git merge --allow-unrelated-histories import-${folderName}/main`);
+  runCommand(
+    `git merge --allow-unrelated-histories import-${folderName}/main --no-edit -X our`
+  );
   runCommand(`git remote remove import-${folderName}`);
+  runCommand(`git checkout ${currentBranch}`);
   logger.info(`Repository importato correttamente in ${targetDir}`);
 };
 
