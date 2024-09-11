@@ -6,7 +6,7 @@ import winston from "winston";
 const logger = winston.createLogger({
   level: "info",
   format: winston.format.simple(),
-  transports: [new winston.transports.Console()]
+  transports: [new winston.transports.Console()],
 });
 
 const extractRepoName = (repoUrl: string): string => {
@@ -19,7 +19,6 @@ const repoUrl = process.argv[2];
 const folderName = extractRepoName(repoUrl);
 const targetDir = `apps/${folderName}`;
 
-const currentBranch = execSync("git branch --show-current").toString().trim();
 const rootDir = execSync("git rev-parse --show-toplevel").toString().trim();
 process.chdir(rootDir);
 
@@ -42,6 +41,9 @@ const checkOrCreateTargetDirectory = () => {
 };
 
 const importRepository = () => {
+  const originUrl = execSync("git remote get-url origin").toString().trim();
+  const currentBranch = execSync("git branch --show-current").toString().trim();
+
   runCommand("git fetch origin");
   runCommand(`git remote add import-${folderName} ${repoUrl}`);
   runCommand(`git fetch import-${folderName}`);
@@ -52,8 +54,10 @@ const importRepository = () => {
   `;
   runCommand(filterRepoCmd);
 
+  runCommand(`git remote add origin ${originUrl}`);
+
   runCommand(
-    `git merge --allow-unrelated-histories import-${folderName}/main --no-edit -X our`
+    `git merge --allow-unrelated-histories origin/${currentBranch} --no-edit -X our`,
   );
   runCommand(`git remote remove import-${folderName}`);
   runCommand(`git checkout ${currentBranch}`);
