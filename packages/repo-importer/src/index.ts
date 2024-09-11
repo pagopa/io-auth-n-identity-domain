@@ -1,5 +1,6 @@
 import { execSync } from "child_process";
 import * as fs from "fs";
+import * as path from "path";
 import winston from "winston";
 
 const logger = winston.createLogger({
@@ -10,7 +11,7 @@ const logger = winston.createLogger({
 
 const extractRepoName = (repoUrl: string): string => {
   const repoUrlParts = repoUrl.split("/");
-  const repoNameWithGit = repoUrlParts[repoUrlParts.length - 1]; // Ottieni l'ultimo elemento senza modificare l'array
+  const repoNameWithGit = repoUrlParts[repoUrlParts.length - 1];
   return repoNameWithGit ? repoNameWithGit.replace(/\.git$/, "") : "repository";
 };
 
@@ -18,12 +19,16 @@ const repoUrl = process.argv[2];
 const folderName = extractRepoName(repoUrl);
 const targetDir = `apps/${folderName}`;
 
+const rootDir = execSync("git rev-parse --show-toplevel").toString().trim();
+process.chdir(rootDir);
+
 const runCommand = (command: string) => {
   try {
     logger.info(`Eseguendo comando: ${command}`);
     execSync(command, { stdio: "inherit" });
   } catch (error) {
     logger.error(`Errore durante l'esecuzione del comando: ${command}`, error);
+    runCommand(`git remote remove import-${folderName}`);
     process.exit(1);
   }
 };
@@ -31,7 +36,7 @@ const runCommand = (command: string) => {
 const checkOrCreateTargetDirectory = () => {
   if (!fs.existsSync(targetDir)) {
     logger.info(`Creazione della directory ${targetDir}...`);
-    fs.mkdirSync(targetDir, { recursive: true });
+    fs.mkdirSync(path.join(rootDir, targetDir), { recursive: true });
   }
 };
 
@@ -42,7 +47,7 @@ const importRepository = () => {
   runCommand(`git checkout import-${folderName}/main`);
 
   const filterBranchCmd = `
-    git filter-branch --index-filter \
+    git filter-branch -f --index-filter \
     'git ls-files -s | sed "s|\\t|&${targetDir}/|" | GIT_INDEX_FILE=$GIT_INDEX_FILE.new git update-index --index-info; mv "$GIT_INDEX_FILE.new" "$GIT_INDEX_FILE"' \
     -- --all
   `;
