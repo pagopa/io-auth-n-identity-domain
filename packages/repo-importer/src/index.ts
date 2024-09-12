@@ -60,7 +60,10 @@ const importRepository = () => {
     `git merge --allow-unrelated-histories origin/${currentBranch} --no-edit -X our`,
   );
   runCommand(`git remote remove import-${folderName}`);
-  runCommand(`git checkout ${currentBranch}`);
+  runCommand(`git branch -D ${currentBranch}`);
+  runCommand(`git checkout -b ${currentBranch}`);
+  runCommand(`git branch -u origin/${currentBranch}`);
+
   logger.info(`Repository importato correttamente in ${targetDir}`);
 };
 
