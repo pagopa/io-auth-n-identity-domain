@@ -6,7 +6,7 @@ import winston from "winston";
 const logger = winston.createLogger({
   level: "info",
   format: winston.format.simple(),
-  transports: [new winston.transports.Console()],
+  transports: [new winston.transports.Console()]
 });
 
 const extractRepoName = (repoUrl: string): string => {
@@ -55,9 +55,10 @@ const importRepository = () => {
   runCommand(filterRepoCmd);
 
   runCommand(`git remote add origin ${originUrl}`);
+  runCommand("git fetch origin");
 
   runCommand(
-    `git merge --allow-unrelated-histories origin/${currentBranch} --no-edit -X our`,
+    `git merge --allow-unrelated-histories origin/${currentBranch} --no-edit -X ours`
   );
   runCommand(`git remote remove import-${folderName}`);
   runCommand(`git branch -D ${currentBranch}`);
