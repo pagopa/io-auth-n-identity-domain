@@ -195,3 +195,15 @@ The workflow `pr_infra.yaml` is executed on every PR that edits the `infra/resou
 
 Vitest extension is configured for running and debugging tests with integrated Test View . It requires Node 18.
 NOTE: If you've opened the repository within a workspace folder, you need to replicate the vitest configuration in `.code-workspace` too.
+
+## Import existing repo into the monorepo
+
+This project include a simple tool to import existing repositories as workspace into the monorepo.
+
+The command that start the interactive procedure is:
+
+```sh
+yarn workspace repo-importer import
+```
+
+The imported repo has is history commit. Maybe a code refactory is needed after the import to make the workspace compatible with the monorepo configuration.

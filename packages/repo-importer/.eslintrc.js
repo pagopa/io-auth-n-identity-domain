@@ -10,11 +10,6 @@ module.exports = {
     tsconfigRootDir: __dirname,
   },
   ignorePatterns: [
-    "*.yaml",
-    "src/generated/**/*",
     "dist/**/*",
   ],
-  rules: {
-    "max-classes-per-file": "off",
-  }
 };
