@@ -86,7 +86,6 @@ export const getProfile: RTE.ReaderTaskEither<
 
 export type CreateNewProfileDependencies = {
   testLoginFiscalCodes: ReadonlyArray<FiscalCode>;
-  isSpidEmailPersistenceEnabled: boolean;
 };
 
 export const createProfile: (
@@ -104,7 +103,7 @@ export const createProfile: (
 > = (user, spidUser) => (deps) => {
   const isTestProfile = deps.testLoginFiscalCodes.includes(user.fiscal_code);
   const newProfile = {
-    email: deps.isSpidEmailPersistenceEnabled ? spidUser.email : undefined,
+    email: spidUser.email,
     // is_email_validated is always false for new users
     is_email_validated: false,
     is_test_profile: isTestProfile,

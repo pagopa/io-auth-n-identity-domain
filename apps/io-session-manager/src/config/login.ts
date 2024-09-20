@@ -61,14 +61,6 @@ export const USERS_LOGIN_QUEUE_NAME = getRequiredENVVar(
   "USERS_LOGIN_QUEUE_NAME",
 );
 
-// SPID Email Persistence FF
-
-export const IS_SPID_EMAIL_PERSISTENCE_ENABLED = pipe(
-  O.fromNullable(process.env.IS_SPID_EMAIL_PERSISTENCE_ENABLED),
-  O.map((val) => val.toLowerCase() === "true"),
-  O.getOrElse(() => true),
-);
-
 // Set default session duration to 30 days
 const DEFAULT_TOKEN_DURATION_IN_SECONDS = (3600 * 24 * 30) as Second;
 export const standardTokenDurationSecs = process.env.TOKEN_DURATION_IN_SECONDS
