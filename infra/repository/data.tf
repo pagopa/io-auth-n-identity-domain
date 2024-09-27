@@ -8,11 +8,6 @@ data "azurerm_user_assigned_identity" "identity_session_manager_prod_cd" {
   resource_group_name = local.identity_resource_group_name
 }
 
-data "azurerm_linux_web_app" "session_manager" {
-  name                = local.session_manager_name
-  resource_group_name = local.session_manager_resource_group_name
-}
-
 data "azurerm_key_vault" "citizen_auth_kv" {
   name                = local.citizen_auth_kv_name
   resource_group_name = local.citizen_auth_kv_rg
