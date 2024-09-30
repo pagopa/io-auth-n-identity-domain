@@ -100,7 +100,6 @@ const dependencies: AcsDependencies = {
   fnLollipopAPIClient: mockedLollipopApiClient,
   lollipopRevokeQueueClient: mockQueueClient,
   testLoginFiscalCodes: [],
-  isSpidEmailPersistenceEnabled: true,
   notificationQueueClient: mockQueueClient,
   getClientErrorRedirectionUrl,
   getClientProfileRedirectionUrl,

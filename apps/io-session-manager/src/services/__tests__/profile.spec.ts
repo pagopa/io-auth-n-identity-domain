@@ -185,7 +185,6 @@ describe("ProfileService#createProfile", () => {
       )({
         fnAppAPIClient: mockedFnAppAPIClient,
         testLoginFiscalCodes: [],
-        isSpidEmailPersistenceEnabled: true,
       }),
     )();
 
@@ -215,7 +214,6 @@ describe("ProfileService#createProfile", () => {
       )({
         fnAppAPIClient: mockedFnAppAPIClient,
         testLoginFiscalCodes: [],
-        isSpidEmailPersistenceEnabled: true,
       }),
     )();
 
@@ -242,7 +240,6 @@ describe("ProfileService#createProfile", () => {
       )({
         fnAppAPIClient: mockedFnAppAPIClient,
         testLoginFiscalCodes: [],
-        isSpidEmailPersistenceEnabled: true,
       }),
     )();
 
@@ -265,7 +262,6 @@ describe("ProfileService#createProfile", () => {
       )({
         fnAppAPIClient: mockedFnAppAPIClient,
         testLoginFiscalCodes: [],
-        isSpidEmailPersistenceEnabled: true,
       }),
     )();
 
