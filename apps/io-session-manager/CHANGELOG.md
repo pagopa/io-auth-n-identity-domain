@@ -1,5 +1,11 @@
 # @pagopa/io-session-manager
 
+## 1.2.0
+
+### Minor Changes
+
+- 933714e: Remove unused Feature Flag
+
 ## 1.1.0
 
 ### Minor Changes
