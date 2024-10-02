@@ -17,13 +17,14 @@ jobs:
     environment: session-manager-prod-cd
     outputs:
       resource_group_name: ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }}
-      web_app_name: ${{ vars.AZURE_WEB_APP_NAME }}
+      web_app_name_03: ${{ vars.AZURE_WEB_APP_NAME_03 }}
+      web_app_name_04: ${{ vars.AZURE_WEB_APP_NAME_04 }}
     steps:
       - name: echo
         run: exit 0
         shell: bash
 
-  deploy_to_azure:
+  deploy_to_azure_1:
     name: Deploy to Azure App Service
     needs: prepare_envs
     uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@add-healthcheck-and-optional-swap
@@ -31,7 +32,21 @@ jobs:
       environment: session-manager-prod
       resource_group_name: ${{ needs.prepare_envs.outputs.resource_group_name }}
       workspace_name: "io-session-manager"
-      web_app_name: ${{ needs.prepare_envs.outputs.web_app_name }}
+      web_app_name: ${{ needs.prepare_envs.outputs.web_app_name_03 }}
+      use_staging_slot: true
+      swap_slot_step: ${{ inputs.swap_slot_step }}
+      use_private_agent: true
+    secrets: inherit
+
+  deploy_to_azure_2:
+    name: Deploy to Azure App Service
+    needs: deploy_to_azure_1
+    uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@add-healthcheck-and-optional-swap
+    with:
+      environment: session-manager-prod
+      resource_group_name: ${{ needs.prepare_envs.outputs.resource_group_name }}
+      workspace_name: "io-session-manager"
+      web_app_name: ${{ needs.prepare_envs.outputs.web_app_name_04 }}
       use_staging_slot: true
       swap_slot_step: ${{ inputs.swap_slot_step }}
       use_private_agent: true

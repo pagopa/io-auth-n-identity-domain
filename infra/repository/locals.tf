@@ -19,7 +19,7 @@ locals {
   # -------------------------
   # Session Manager Data
   # -------------------------
-  session_manager_name                = "${local.project}-${local.location_short}-session-manager-app-03"
+  session_manager_name                = "${local.project}-${local.location_short}-session-manager-app"
   session_manager_resource_group_name = "${local.project}-${local.location_short}-session-manager-rg-01"
   citizen_auth_kv_name                = "io-p-citizen-auth-kv"
   citizen_auth_kv_rg                  = "io-p-citizen-auth-sec-rg"
@@ -31,8 +31,8 @@ locals {
     },
     variables = {
       "AZURE_WEB_APP_RESOURCE_GROUP" = local.session_manager_resource_group_name,
-      "AZURE_WEB_APP_NAME"           = local.session_manager_name,
-      "HEALTH_CHECK_PATH"            = coalesce(data.azurerm_linux_web_app.session_manager.site_config[0].health_check_path, "/")
+      "AZURE_WEB_APP_NAME_03"        = "${local.session_manager_name}-03",
+      "AZURE_WEB_APP_NAME_04"        = "${local.session_manager_name}-04",
     }
   }
 
