@@ -50,4 +50,5 @@ jobs:
       use_staging_slot: true
       swap_slot_step: ${{ inputs.swap_slot_step }}
       use_private_agent: true
+      skip_artifact_creation: true
     secrets: inherit
