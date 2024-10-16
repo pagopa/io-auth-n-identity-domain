@@ -1,6 +1,6 @@
 {
   "name": "repo-importer",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
