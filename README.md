@@ -203,6 +203,8 @@ This project include a simple tool to import existing repositories as workspace 
 The command that start the interactive procedure is:
 
 ```sh
+yarn install
+yarn build
 yarn workspace repo-importer import
 ```
 
