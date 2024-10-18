@@ -2,7 +2,8 @@ locals {
   prefix    = "io"
   env_short = "p"
   env       = "prod"
-  domain    = "auth-n-identity"
+  domain    = "auth"
+  location  = "italynorth"
   repo_name = "io-auth-n-identity-domain"
 
   session_manager_environment = "session-manager-prod"
@@ -12,7 +13,7 @@ locals {
     CreatedBy      = "Terraform"
     Environment    = "Prod"
     Owner          = "IO"
-    ManagementTeam = "Auth&Identity"
-    Source         = "https://github.com/pagopa/io-auth-n-identity-domain/blob/main/infra/identity/prod/westeurope"
+    ManagementTeam = "IO Autenticazione"
+    Source         = "https://github.com/pagopa/io-auth-n-identity-domain/blob/main/infra/identity/prod"
   }
 }
