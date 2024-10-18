@@ -16,7 +16,7 @@ import {
   LollipopMethodEnum
 } from "../generated/lollipop_definitions/LollipopMethod";
 import { LollipopOriginalURL } from "../generated/lollipop_definitions/LollipopOriginalURL";
-import { randomUUID } from "crypto";
+import { JsonWebKey, randomUUID } from "crypto";
 import { Json } from "fp-ts/lib/Json";
 import { parseJwkOrError } from "@pagopa/ts-commons/lib/jwk";
 
@@ -38,7 +38,8 @@ export const createLollipopHeaders: CreateLollipopHeaders = input => {
   const method = input?.method ?? LollipopMethodEnum.GET;
   const url = input.url;
   const alg = AlgorithmTypes["ecdsa-p256-sha256"];
-  const sign = algMap[alg].sign(input.privateKeyJwk);
+  //TODO: resolve type error here when removing casting
+  const sign = algMap[alg].sign((input.privateKeyJwk as unknown) as JsonWebKey);
   const lollipopHttpHeaders = {
     ["x-pagopa-lollipop-original-method"]: method,
     ["x-pagopa-lollipop-original-url"]: url
@@ -56,7 +57,7 @@ export const createLollipopHeaders: CreateLollipopHeaders = input => {
         TE.mapLeft(e => new Error(`Error while creating key thumbprint: ${e}`))
       )
     ),
-    TE.bind("options", ({ keyid }) =>
+    TE.bindW("options", ({ keyid }) =>
       TE.right({
         alg,
         nonce: input.nonce,
@@ -131,7 +132,7 @@ const base64urltoJWK: (input: string) => E.Either<Error, jose.JWK> = flow(
   // in opposite of what the library shows, the following method can also parse a JWK of a private key
   parseJwkOrError,
   //TODO: remove casting with custom type decode
-  E.map(e => e as jose.JWK)
+  E.map(e => (e as unknown) as jose.JWK)
 );
 
 export const importBase64UrlJWKTE = (input: string) =>

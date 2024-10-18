@@ -11,7 +11,7 @@
     "start-cli": "node dist/cli.js",
     "dev-cli": "ts-node src/cli.ts",
     "prebuild": "shx rm -rf src/generated/ && gen-api-models --api-spec definitions/lollipop_definitions.yaml --out-dir src/generated/lollipop_definitions",
-    "build": "tsc",
+    "build": "yarn prebuild && tsc",
     "test": "vitest run"
   },
   "devDependencies": {
