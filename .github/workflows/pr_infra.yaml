@@ -11,6 +11,7 @@ on:
       - ready_for_review
     paths:
       - "infra/resources/**"
+      - "infra/modules/**"
       - ".github/workflows/**_infra.yaml"
 
 jobs:
