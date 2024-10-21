@@ -16,6 +16,13 @@ locals {
     }
   }
 
+  cd = {
+    secrets = {
+      "ARM_CLIENT_ID" = data.azurerm_user_assigned_identity.identity_prod_cd.client_id,
+    }
+    reviewers_teams = ["io-auth-n-identity-backend", "engineering-team-cloud-eng"]
+  }
+
   # -------------------------
   # Session Manager Data
   # -------------------------
@@ -33,9 +40,10 @@ locals {
       "AZURE_WEB_APP_RESOURCE_GROUP" = local.session_manager_resource_group_name,
       "AZURE_WEB_APP_NAME_03"        = "${local.session_manager_name}-03",
       "AZURE_WEB_APP_NAME_04"        = "${local.session_manager_name}-04",
-    }
-  }
+    },
 
+    reviewers_teams = ["io-auth-n-identity-backend", "engineering-team-cloud-eng"]
+  }
 
   # -------------------------
   # Opex CI
@@ -54,5 +62,4 @@ locals {
       "ARM_CLIENT_ID" = data.azurerm_user_assigned_identity.opex_identity_prod_cd.client_id,
     },
   }
-
 }
