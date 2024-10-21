@@ -6,7 +6,8 @@ on:
     branches:
       - main
     paths:
-      - "infra/resources"
+      - "infra/resources/**"
+      - "infra/modules/**"
 
 jobs:
   release_prod:
