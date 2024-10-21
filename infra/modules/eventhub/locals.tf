@@ -6,7 +6,7 @@ locals {
     tier = "m"
 
     eventhubs = [{
-      name                   = "pdnd-io-cosmosdb-service-preferences"
+      name                   = "service-preferences"
       partitions             = 30
       message_retention_days = 7
       consumers              = []
@@ -26,7 +26,7 @@ locals {
       ]
       },
       {
-        name                   = "pdnd-io-cosmosdb-profiles"
+        name                   = "profiles"
         partitions             = 30
         message_retention_days = 7
         consumers              = []
@@ -46,7 +46,7 @@ locals {
         ]
       },
       {
-        name                   = "pdnd-io-cosmosdb-profile-deletion"
+        name                   = "profile-deletion"
         partitions             = 30
         message_retention_days = 7
         consumers              = []
