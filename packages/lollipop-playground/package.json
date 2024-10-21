@@ -4,17 +4,16 @@
   "main": "dist/index.js",
   "type": "commonjs",
   "license": "UNLICENSED",
-  "bin": {
-    "lollipop-cli": "dist/cli.js"
-  },
+  "bin": "dist/cli.js",
   "scripts": {
-    "start-cli": "node dist/cli.js",
+    "start": "node dist/cli.js",
     "dev-cli": "ts-node src/cli.ts",
     "prebuild": "shx rm -rf src/generated/ && gen-api-models --api-spec definitions/lollipop_definitions.yaml --out-dir src/generated/lollipop_definitions",
     "build": "yarn prebuild && tsc",
     "test": "vitest run"
   },
   "devDependencies": {
+    "@types/node": "^20",
     "@types/prompts": "^2.4.7",
     "@types/yargs": "^17.0.33",
     "shx": "^0.3.4",

@@ -39,7 +39,7 @@ export const createLollipopHeaders: CreateLollipopHeaders = input => {
   const url = input.url;
   const alg = AlgorithmTypes["ecdsa-p256-sha256"];
   //TODO: resolve type error here when removing casting
-  const sign = algMap[alg].sign((input.privateKeyJwk as unknown) as JsonWebKey);
+  const sign = algMap[alg].sign(input.privateKeyJwk as JsonWebKey);
   const lollipopHttpHeaders = {
     ["x-pagopa-lollipop-original-method"]: method,
     ["x-pagopa-lollipop-original-url"]: url
