@@ -1,0 +1,39 @@
+name: Deploy (functions-fast-login)
+
+on:
+  workflow_dispatch:
+    # TODO: add swap_slot_step variable to dx function_app_deploy pipeline
+    # inputs:
+    #   swap_slot_step:
+    #     type: boolean
+    #     description: Use slot swapping step
+    #     default: true
+
+jobs:
+  # this job is needed because in a reusable workflow like the one below
+  # the environment can't be set. therefore, because the env vars needed are
+  # only available to a specific environment we need a workaround to pass them
+  prepare_envs:
+    runs-on: ubuntu-22.04
+    environment: functions-fast-login-prod-cd
+    outputs:
+      resource_group_name: ${{ vars.AZURE_FUNCTION_APP_RESOURCE_GROUP }}
+      function_app_name: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+    steps:
+      - name: dummy
+        run: exit 0
+        shell: bash
+
+  deploy_to_azure:
+    name: Deploy to Azure Function App
+    needs: prepare_envs
+    uses: pagopa/dx/.github/workflows/function_app_deploy.yaml@add-healthcheck-and-optional-swap
+    with:
+      environment: functions-fast-login-prod
+      resource_group_name: ${{ needs.prepare_envs.outputs.resource_group_name }}
+      workspace_name: "functions-fast-login"
+      function_app_name: ${{ needs.prepare_envs.outputs.function_app_name }}
+      health_check_path: "/info"
+      use_staging_slot: true
+      use_private_agent: true
+    secrets: inherit

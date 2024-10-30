@@ -18,6 +18,11 @@ data "azurerm_user_assigned_identity" "identity_session_manager_prod_cd" {
   resource_group_name = local.identity_resource_group_name
 }
 
+data "azurerm_user_assigned_identity" "identity_fast_login_prod_cd" {
+  name                = "${local.project}-auth-functions-fast-login-github-cd-identity"
+  resource_group_name = local.identity_resource_group_name
+}
+
 data "azurerm_key_vault" "citizen_auth_kv" {
   name                = local.citizen_auth_kv_name
   resource_group_name = local.citizen_auth_kv_rg

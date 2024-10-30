@@ -6,7 +6,8 @@ locals {
   location  = "italynorth"
   repo_name = "io-auth-n-identity-domain"
 
-  session_manager_environment = "session-manager-prod"
+  session_manager_environment      = "session-manager-prod"
+  functions_fast_login_environment = "functions-fast-login-prod"
 
   tags = {
     CostCenter     = "TS310 - PAGAMENTI & SERVIZI"
