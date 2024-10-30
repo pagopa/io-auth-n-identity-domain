@@ -5,11 +5,9 @@ io-session-manager:
   - "apps/io-session-manager/env.example"
   ######
   - "apps/io-session-manager/**.ts"
-  - "apps/io-session-manager/.eslintrc.js"
   # package.json, tsconfig.json, ...
   - "apps/io-session-manager/**/*.json"
-functions-fast-login:
-  - "apps/functions-fast-login/**/*.ts"
-  - "apps/functions-fast-login/.eslintrc.js"
+io-fast-login:
+  - "apps/io-fast-login/**/*.ts"
   # package.json, function.json, tsconfig.json, ...
-  - "apps/functions-fast-login/**/*.json"
+  - "apps/io-fast-login/**/*.json"
