@@ -51,7 +51,7 @@ jobs:
       - uses: dorny/paths-filter@v3.0.2
         id: sonarcloud_filter
         with:
-          filters: ./.github/apps_filters.yaml
+          filters: ./.github/sonarcloud_filters.yaml
 
       - name: SonarCloud session-manager scan
         if: steps.sonarcloud_filter.outputs.io-session-manager == 'true'
