@@ -48,18 +48,18 @@ locals {
   }
 
   # -------------------------
-  # Functions Fast Login Data
+  # IO Fast Login Data
   # -------------------------
-  functions_fast_login_name                = "${local.project}-${local.itn_location_short}-${local.domain}-lv-fn-01"
-  functions_fast_login_resource_group_name = "${local.project}-${local.itn_location_short}-fast-login-rg-01"
+  io_fast_login_name                = "${local.project}-${local.itn_location_short}-${local.domain}-lv-fn-01"
+  io_fast_login_resource_group_name = "${local.project}-${local.itn_location_short}-fast-login-rg-01"
 
-  functions_fast_login_cd = {
+  io_fast_login_cd = {
     secrets = {
       "ARM_CLIENT_ID" = data.azurerm_user_assigned_identity.identity_fast_login_prod_cd.client_id,
     },
     variables = {
-      "AZURE_FUNCTION_APP_RESOURCE_GROUP" = local.functions_fast_login_resource_group_name,
-      "AZURE_FUNCTION_APP_NAME"           = local.functions_fast_login_name,
+      "AZURE_FUNCTION_APP_RESOURCE_GROUP" = local.io_fast_login_resource_group_name,
+      "AZURE_FUNCTION_APP_NAME"           = local.io_fast_login_name,
     },
 
     reviewers_teams = ["io-auth-n-identity-backend", "engineering-team-cloud-eng"]
