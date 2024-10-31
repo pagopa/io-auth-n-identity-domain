@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-22.04
     environment: apps-prod-cd
     outputs:
-      resource_group_name: ${{ vars.LV_AZURE_FUNCTION_APP_RESOURCE_GROUP }}
-      function_app_name: ${{ vars.LV_AZURE_FUNCTION_APP_NAME }}
+      resource_group_name: ${{ vars.FAST_LOGIN_RESOURCE_GROUP }}
+      function_app_name: ${{ vars.FAST_LOGIN_APP_NAME }}
     steps:
       - name: dummy
         run: exit 0

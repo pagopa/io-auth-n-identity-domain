@@ -16,9 +16,9 @@ jobs:
     runs-on: ubuntu-22.04
     environment: apps-prod-cd
     outputs:
-      resource_group_name: ${{ vars.SM_AZURE_WEB_APP_RESOURCE_GROUP }}
-      web_app_name_03: ${{ vars.SM_AZURE_WEB_APP_NAME_03 }}
-      web_app_name_04: ${{ vars.SM_AZURE_WEB_APP_NAME_04 }}
+      resource_group_name: ${{ vars.SESSION_MANAGER_RESOURCE_GROUP }}
+      web_app_name_03: ${{ vars.SESSION_MANAGER_WEB_APP_NAME_03 }}
+      web_app_name_04: ${{ vars.SESSION_MANAGER_WEB_APP_NAME_04  }}
     steps:
       - name: echo
         run: exit 0

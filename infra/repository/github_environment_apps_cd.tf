@@ -18,7 +18,6 @@ resource "github_repository_environment" "apps_prod_cd" {
 
 ####################################
 # Secrets
-# shared with all apps CD pipelines
 ####################################
 resource "github_actions_environment_secret" "apps_prod_cd" {
   for_each = local.apps_cd.secrets
@@ -30,20 +29,10 @@ resource "github_actions_environment_secret" "apps_prod_cd" {
 }
 
 ###################################
-# Environments
-# (1 set of variables for each app)
+# Environment variables
 ###################################
-resource "github_actions_environment_variable" "session_manager_prod_cd" {
-  for_each = local.apps_cd.variables.session_manager
-
-  repository    = github_repository.this.name
-  environment   = github_repository_environment.apps_prod_cd.environment
-  variable_name = each.key
-  value         = each.value
-}
-
-resource "github_actions_environment_variable" "io_fast_login_prod_cd" {
-  for_each = local.apps_cd.variables.io_fast_login
+resource "github_actions_environment_variable" "apps_prod_cd" {
+  for_each = local.apps_cd.variables
 
   repository    = github_repository.this.name
   environment   = github_repository_environment.apps_prod_cd.environment
