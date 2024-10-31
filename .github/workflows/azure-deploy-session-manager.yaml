@@ -14,11 +14,11 @@ jobs:
   # only available to a specific environment we need a workaround to pass them
   prepare_envs:
     runs-on: ubuntu-22.04
-    environment: session-manager-prod-cd
+    environment: apps-prod-cd
     outputs:
-      resource_group_name: ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }}
-      web_app_name_03: ${{ vars.AZURE_WEB_APP_NAME_03 }}
-      web_app_name_04: ${{ vars.AZURE_WEB_APP_NAME_04 }}
+      resource_group_name: ${{ vars.SM_AZURE_WEB_APP_RESOURCE_GROUP }}
+      web_app_name_03: ${{ vars.SM_AZURE_WEB_APP_NAME_03 }}
+      web_app_name_04: ${{ vars.SM_AZURE_WEB_APP_NAME_04 }}
     steps:
       - name: echo
         run: exit 0
@@ -29,7 +29,8 @@ jobs:
     needs: prepare_envs
     uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@add-healthcheck-and-optional-swap
     with:
-      environment: session-manager-prod
+      # '-cd' suffix added inside the pipeline
+      environment: apps-prod
       resource_group_name: ${{ needs.prepare_envs.outputs.resource_group_name }}
       workspace_name: "io-session-manager"
       web_app_name: ${{ needs.prepare_envs.outputs.web_app_name_03 }}
@@ -43,7 +44,8 @@ jobs:
     needs: [prepare_envs, deploy_to_azure_1]
     uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@add-healthcheck-and-optional-swap
     with:
-      environment: session-manager-prod
+      # '-cd' suffix added inside the pipeline
+      environment: apps-prod
       resource_group_name: ${{ needs.prepare_envs.outputs.resource_group_name }}
       workspace_name: "io-session-manager"
       web_app_name: ${{ needs.prepare_envs.outputs.web_app_name_04 }}
