@@ -29,8 +29,7 @@ No modules.
 | [github_actions_environment_secret.opex_prod_ci](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/actions_environment_secret) | resource |
 | [github_actions_environment_secret.prod_cd](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/actions_environment_secret) | resource |
 | [github_actions_environment_secret.prod_ci](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/actions_environment_secret) | resource |
-| [github_actions_environment_variable.io_fast_login_prod_cd](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/actions_environment_variable) | resource |
-| [github_actions_environment_variable.session_manager_prod_cd](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/actions_environment_variable) | resource |
+| [github_actions_environment_variable.apps_prod_cd](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/actions_environment_variable) | resource |
 | [github_actions_secret.repo_secrets](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/actions_secret) | resource |
 | [github_branch_default.default_main](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/branch_default) | resource |
 | [github_branch_protection.protection_main](https://registry.terraform.io/providers/integrations/github/6.1.0/docs/resources/branch_protection) | resource |
