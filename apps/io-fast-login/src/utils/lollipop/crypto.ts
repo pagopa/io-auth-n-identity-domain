@@ -38,7 +38,8 @@ export const validateHttpSignatureWithEconding = (
       httpHeaders: params.request.headers,
       method: params.request.method,
       url: params.request.url,
-      // TODO: check the cast below
+      // TODO: `as Verifier` is introduced as a temporary fix but it MUST be addressed since the function works only with the algorithms defined by us.
+      // The `Verify` function does not accept the encoding parameter.
       verifier: {
         verify: getCustomVerifyWithEncoding(dsaEncoding)({
           [thumbprint]: {
