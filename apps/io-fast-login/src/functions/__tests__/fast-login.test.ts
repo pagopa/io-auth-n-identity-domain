@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { makeFastLoginHandler } from "../fast-login";
 import * as H from "@pagopa/handler-kit";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
@@ -21,7 +22,7 @@ import { okAsync, errAsync } from "neverthrow";
 import { prefixer } from "../../model/nonce";
 import { mockRedisClientTask, mockDel } from "../__mocks__/redis";
 
-const getAssertionMock = jest.fn(async () =>
+const getAssertionMock = vi.fn(async () =>
   E.right({
     status: 200,
     value: { response_xml: aSAMLResponse }
@@ -31,7 +32,7 @@ const mockedFnLollipopClient = ({
   getAssertion: getAssertionMock
 } as unknown) as FnLollipopClient;
 const mockBlobService = ({} as unknown) as BlobService;
-const mockUpsertBlobFromObject = jest
+const mockUpsertBlobFromObject = vi
   .spyOn(azureStorage, "upsertBlobFromObject")
   .mockResolvedValue(
     E.right(
@@ -41,13 +42,13 @@ const mockUpsertBlobFromObject = jest
     )
   );
 
-const mockValidateSignature = jest
+const mockValidateSignature = vi
   .spyOn(mattrglobalUtils, "verifySignatureHeader")
   .mockResolvedValue(okAsync({ verified: true }));
 
 describe("Fast Login handler", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   it(`GIVEN a valid LolliPoP request
       WHEN all checks passed
@@ -402,7 +403,7 @@ describe("Fast Login handler", () => {
         ...validFastLoginAdditionalHeaders,
         // even if we are not including a new signature header,
         // the validation below is still passing because
-        // the method is mocked above with a jest.spyOn
+        // the method is mocked above with a vi.spyOn
         ["signature-input"]: `sig1=("x-pagopa-lollipop-original-method" "x-pagopa-lollipop-original-url");created=1698315748;alg="ecdsa-p256-sha256";keyid="iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU"`
       }
     };
@@ -442,7 +443,7 @@ describe("Fast Login handler", () => {
         ...validFastLoginAdditionalHeaders,
         // even if we are not including a new signature header,
         // the validation below is still passing because
-        // the method is mocked above with a jest.spyOn
+        // the method is mocked above with a vi.spyOn
         ["signature-input"]: `sig1=("x-pagopa-lollipop-original-method" "x-pagopa-lollipop-original-url");created=1698315748;nonce="WRONG-NONCE";alg="ecdsa-p256-sha256";keyid="iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU"`
       }
     };

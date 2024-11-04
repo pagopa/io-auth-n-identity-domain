@@ -1,10 +1,11 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { makeLogoutHandler } from "../logout";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import * as E from "fp-ts/lib/Either";
 import * as H from "@pagopa/handler-kit";
 import { aFiscalCode } from "../__mocks__/general";
 
-const mockDeleteUserSession = jest
+const mockDeleteUserSession = vi
   .fn()
   .mockResolvedValue(E.right({ status: 200 }));
 const mockBackendInternalClient = {
@@ -17,7 +18,7 @@ const aValidBody = {
 
 describe("Logout handler", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   it("should return 204 with a valid payload", async () => {
     const mockReq: H.HttpRequest = {

@@ -13,8 +13,9 @@
     "start": "dotenv -e .env func start --javascript",
     "predev": "npm-run-all build",
     "dev": "npm-run-all --parallel start watch",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
     "lint": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache",
     "lint-api": "find ./api -name '*.yaml' -exec swagger-cli validate {} \\;",
     "api:bundle": "bundle-api-spec -i api/internal.yaml.template -o api/internal.yaml -V $npm_package_version",
@@ -34,7 +35,6 @@
   "devDependencies": {
     "@pagopa/eslint-config": "^3.0.0",
     "@types/express": "^4.17.12",
-    "@types/jest": "^24.0.15",
     "@types/node": "~18.13.0",
     "auto-changelog": "^2.4.0",
     "dependency-check": "^4.1.0",
@@ -42,7 +42,6 @@
     "eslint": "^8.57.0",
     "eslint-config-monorepo": "*",
     "eslint-plugin-prettier": "^4.0.0",
-    "jest": "^24.8.0",
     "modclean": "^3.0.0-beta.1",
     "npm-run-all": "^4.1.5",
     "prettier": "^1.18.2",
@@ -50,7 +49,8 @@
     "shx": "^0.3.2",
     "swagger-cli": "^4.0.4",
     "ts-jest": "^24.3.0",
-    "typescript": "5.4.5"
+    "typescript": "5.4.5",
+    "vitest": "~1.5.0"
   },
   "dependencies": {
     "@azure/cosmos": "^3.17.3",

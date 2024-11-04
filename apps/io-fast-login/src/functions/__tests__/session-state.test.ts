@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { makeSessionStateHandler } from "../session-state";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import * as E from "fp-ts/lib/Either";
@@ -11,7 +12,7 @@ const aValidResponse = {
   access_enabled: true,
   session_info: { active: true, expiration_date: "1970-01-01", type: "LV" }
 };
-const mockGetUserSessionState = jest.fn().mockResolvedValue(
+const mockGetUserSessionState = vi.fn().mockResolvedValue(
   E.right({
     status: 200,
     value: aValidResponse
@@ -23,7 +24,7 @@ const mockBackendInternalClient = {
 
 describe("Session state handler", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   it("should return 200 with a valid payload", async () => {
     const mockReq: H.HttpRequest = {

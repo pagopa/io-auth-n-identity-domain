@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as H from "@pagopa/handler-kit";
 import { makeGenerateNonce } from "../generate-nonce";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
@@ -8,7 +9,7 @@ import { mockRedisClientTask, mockSetEx } from "../__mocks__/redis";
 
 describe("GenerateNonce handler", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should return 200 if the nonce is generated on Redis", async () => {

@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UnlockCode } from "../../generated/definitions/internal/UnlockCode";
 import { UnlockSessionData } from "../../generated/definitions/internal/UnlockSessionData";
 import { aFiscalCode } from "../__mocks__/general";
@@ -10,7 +11,7 @@ const aValidPayload: UnlockSessionData = {
   fiscal_code: aFiscalCode,
   unlock_code: "123456789" as UnlockCode
 };
-const mockReleaseAuthLock = jest
+const mockReleaseAuthLock = vi
   .fn()
   .mockResolvedValue(E.right({ status: 204 }));
 const mockBackendInternalClient = {
@@ -19,7 +20,7 @@ const mockBackendInternalClient = {
 
 describe("UnlockSession handler", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should return 204 given a valid payload", async () => {

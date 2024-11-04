@@ -1,12 +1,21 @@
-const mockConnect = jest.fn().mockResolvedValue({});
-const mockGet = jest.fn().mockResolvedValue("value");
-const mockCreateClient = jest.fn().mockImplementation(() => ({
-  connect: mockConnect,
-  on: jest.fn(),
-  get: mockGet
-}));
-jest.mock("redis", () => ({
-  createClient: mockCreateClient
+import { describe, expect, it, vi } from "vitest";
+const { mockConnect, mockGet } = vi.hoisted(() => {
+  return {
+    mockConnect: vi.fn().mockResolvedValue({}),
+    mockGet: vi.fn().mockResolvedValue("value"),
+  }
+})
+const { mockCreateClient } = vi.hoisted(() => {
+  return {
+    mockCreateClient: vi.fn().mockImplementation(() => ({
+      connect: mockConnect,
+      on: vi.fn(),
+      get: mockGet,
+    }))
+  }
+})
+vi.mock("redis", () => ({
+  createClient: mockCreateClient,
 }));
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";

@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { makeLockSessionHandler } from "../lock-session";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import * as H from "@pagopa/handler-kit";
@@ -6,7 +7,7 @@ import * as E from "fp-ts/lib/Either";
 
 const aValidBody = { fiscal_code: aFiscalCode, unlock_code: "123456789" };
 
-const mockLockUserSession = jest
+const mockLockUserSession = vi
   .fn()
   .mockResolvedValue(E.right({ status: 204 }));
 const mockBackendInternalClient = {
@@ -15,7 +16,7 @@ const mockBackendInternalClient = {
 
 describe("LockSession handler", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should return 204 with a valid payload", async () => {
