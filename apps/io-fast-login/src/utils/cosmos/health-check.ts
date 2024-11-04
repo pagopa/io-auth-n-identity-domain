@@ -16,7 +16,7 @@ export const makeAzureCosmosDbHealthCheck = ({
   pipe(
     TE.tryCatch(
       () => db.client.getDatabaseAccount(),
-      toHealthProblems("AzureCosmosDB")
+      toHealthProblems("AzureCosmosDB" as const)
     ),
     TE.map(() => true)
   );

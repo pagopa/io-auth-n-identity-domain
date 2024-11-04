@@ -1,7 +1,7 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@pagopa/typescript-config-node/tsconfig.json",
   "compilerOptions": {
-    "module": "CommonJS",
-    "target": "es6",
     "outDir": "dist",
     "rootDir": "src",
     "sourceMap": true,
@@ -13,7 +13,7 @@
   "exclude": [
     "node_modules",
     "dist",
-    "__mocks__",
+    "**/__mocks__/**",
     "docker",
     "**/__tests__",
     "**/__integrations__"

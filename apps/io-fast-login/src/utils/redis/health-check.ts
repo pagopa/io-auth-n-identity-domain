@@ -19,6 +19,6 @@ export const makeRedisDBHealthCheck = ({
         () => new Error("Error executing the ping to redis")
       )
     ),
-    TE.mapLeft(toHealthProblems("Redis")),
+    TE.mapLeft(toHealthProblems("Redis" as const)),
     TE.map(() => true)
   );

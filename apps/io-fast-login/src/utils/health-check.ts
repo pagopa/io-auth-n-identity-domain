@@ -3,6 +3,6 @@ import {
   ProblemSource
 } from "@pagopa/io-functions-commons/dist/src/utils/healthcheck";
 
-export type HealthCheckBuilder = <T, S extends ProblemSource<S>>(
+export type HealthCheckBuilder = <T, S1, S2 extends ProblemSource<S1>>(
   dependency: T
-) => HealthCheck<S>;
+) => HealthCheck<S2>;

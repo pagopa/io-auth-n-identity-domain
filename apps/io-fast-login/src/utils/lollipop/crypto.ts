@@ -1,5 +1,5 @@
 import * as crypto_lib from "crypto";
-import { verifySignatureHeader } from "@mattrglobal/http-signatures";
+import { Verifier, verifySignatureHeader } from "@mattrglobal/http-signatures";
 import * as TE from "fp-ts/TaskEither";
 import * as H from "@pagopa/handler-kit";
 import { JwkPublicKey } from "@pagopa/ts-commons/lib/jwk";
@@ -38,13 +38,14 @@ export const validateHttpSignatureWithEconding = (
       httpHeaders: params.request.headers,
       method: params.request.method,
       url: params.request.url,
+      // TODO: check the cast below
       verifier: {
         verify: getCustomVerifyWithEncoding(dsaEncoding)({
           [thumbprint]: {
             key: params.publicKey
           }
         })
-      }
+      } as Verifier
     })),
     TE.chain(p => TE.tryCatch(async () => verifySignatureHeader(p), E.toError)),
     TE.map(res =>
