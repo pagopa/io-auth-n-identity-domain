@@ -1,0 +1,94 @@
+bin
+obj
+csx
+.vs
+edge
+Publish
+
+.DS_Store
+
+*.user
+*.suo
+*.cscfg
+*.Cache
+project.lock.json
+
+/packages
+/TestResults
+
+/tools/NuGet.exe
+/App_Data
+/secrets
+/data
+.secrets
+appsettings.json
+local.settings.json
+
+node_modules
+dist
+
+azure-functions-core-tools
+
+# Local python packages
+.python_packages/
+
+# Python Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+coverage
+
+yarn-error.log
+src/generated/**/*
+
+# eslint section
+!.eslintrc.js
+.eslintcache
+
+
+# integration tests
+docker-compose.override.yml
+__integrations__/environments/generated/**
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+*.DS_Store
+**/modules/**/.terraform.lock.hcl
+**/_modules/**/.terraform.lock.hcl
+
+# yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# azure
+local.settings.json
+
+dist
+.env
+node_modules
+.turbo
+
+# vitest
+coverage
+vite.config.*.timestamp-*

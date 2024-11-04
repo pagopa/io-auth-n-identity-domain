@@ -1,0 +1,560 @@
+openapi: 3.0.1
+info:
+  version: 4.0.1
+  title: IO Fast Login Function API
+  x-logo:
+    url: https://io.italia.it/assets/img/io-logo-blue.svg
+  description: |
+    Documentation of the IO Fast Login Function API here.
+servers:
+  - url: https://io-p-weu-fast-login-fn.azurewebsites.net
+security:
+  - ApiKeyAuth: []
+paths:
+  /info:
+    get:
+      operationId: info
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationInfo'
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server error
+  /api/v1/fast-login:
+    post:
+      operationId: fastLogin
+      parameters:
+        - name: x-pagopa-lollipop-original-method
+          in: header
+          description: The method of the endpoint called by IO app
+          required: true
+          schema:
+            $ref: '#/components/schemas/LollipopMethod'
+        - name: x-pagopa-lollipop-original-url
+          in: header
+          description: The url of the endpoint called by IO app
+          required: true
+          schema:
+            $ref: '#/components/schemas/LollipopOriginalURL'
+        - name: x-pagopa-lollipop-auth-jwt
+          in: header
+          description: Auth token to retrieve the SPID/CIE User identity from IO
+          required: true
+          schema:
+            $ref: '#/components/schemas/LollipopJWTAuthorization'
+        - name: x-pagopa-lollipop-assertion-ref
+          in: header
+          description: The id of the assertion to retrieve
+          required: true
+          schema:
+            $ref: '#/components/schemas/LollipopAssertionRef'
+        - name: x-pagopa-lollipop-assertion-type
+          in: header
+          description: The assertion type (SAML / OIDC)
+          required: true
+          schema:
+            $ref: '#/components/schemas/AssertionType'
+        - name: x-pagopa-lollipop-user-id
+          in: header
+          description: User's fiscal code.
+          required: true
+          schema:
+            $ref: '#/components/schemas/FiscalCode'
+        - name: x-pagopa-lollipop-public-key
+          in: header
+          description: User's public key
+          required: true
+          schema:
+            $ref: '#/components/schemas/LollipopPublicKey'
+        - name: signature-input
+          in: header
+          description: The signature input, needed to verify the `signature` header
+          required: true
+          schema:
+            $ref: '#/components/schemas/LollipopSignatureInput'
+        - name: signature
+          in: header
+          description: >-
+            The signature of the HTTP request, signed by the client with its
+            private key.
+          required: true
+          schema:
+            $ref: '#/components/schemas/LollipopSignature'
+        - name: x-pagopa-lv-client-ip
+          in: header
+          description: User's original IP address
+          required: true
+          schema:
+            $ref: '#/components/schemas/LVClientIp'
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FastLoginResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+  /api/v1/nonce/generate:
+    post:
+      operationId: generateNonce
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateNonceResponse'
+        '401':
+          description: |
+            Not authorized
+            This is returned when the function key header is wrong or empty
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+        '502':
+          description: Bad Gateway
+        '504':
+          description: Gateway Timeout
+  /api/v1/logout:
+    post:
+      operationId: logoutFromIOApp
+      summary: Logout User from IO App
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutData'
+      responses:
+        '204':
+          description: Success
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+        '502':
+          description: Bad Gateway
+        '504':
+          description: Gateway Timeout
+  /api/v1/lock-session:
+    post:
+      operationId: lockUserSession
+      summary: Lock User Session on IO App
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LockSessionData'
+      responses:
+        '204':
+          description: Session Successfully locked
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '409':
+          description: Conflict
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+        '502':
+          description: Bad Gateway
+        '504':
+          description: Gateway Timeout
+  /api/v1/unlock-session:
+    post:
+      operationId: unlockUserSession
+      summary: Unlock User Session on IO App
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnlockSessionData'
+      responses:
+        '204':
+          description: Session successfully unlocked
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '403':
+          description: Forbidden
+        '429':
+          description: |
+            Too Many Requests.
+            This response is here just for APIM handling.
+            It won't be returned by the function implemented.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+        '502':
+          description: Bad Gateway
+        '504':
+          description: Gateway Timeout
+  /api/v1/session-state:
+    post:
+      operationId: getUserSessionState
+      summary: Get User Session State on IO App
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetSessionStateData'
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionState'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+        '502':
+          description: Bad Gateway
+        '504':
+          description: Gateway Timeout
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Functions-Key
+  schemas:
+    InternalServerError:
+      description: InternalServerError
+      allOf:
+        - $ref: '#/components/schemas/ProblemJson'
+        - type: object
+          properties:
+            status:
+              type: integer
+              enum:
+                - 500
+              example: 500
+              description: >-
+                The HTTP status code generated by the origin server for this
+                occurrence of the problem.
+          required:
+            - status
+    BadRequest:
+      description: Bad Request
+      allOf:
+        - $ref: '#/components/schemas/ProblemJson'
+        - type: object
+          properties:
+            status:
+              type: integer
+              enum:
+                - 400
+              example: 400
+              description: >-
+                The HTTP status code generated by the origin server for this
+                occurrence of the problem.
+          required:
+            - status
+    Unauthorized:
+      description: Unauthorized
+      allOf:
+        - $ref: '#/components/schemas/ProblemJson'
+        - type: object
+          properties:
+            status:
+              type: integer
+              enum:
+                - 401
+              example: 401
+              description: >-
+                The HTTP status code generated by the origin server for this
+                occurrence of the problem.
+          required:
+            - status
+    ApplicationInfo:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    FastLoginResponse:
+      type: object
+      properties:
+        saml_response:
+          type: string
+          minLength: 1
+      required:
+        - saml_response
+    ProblemJson:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |-
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type
+            (e.g., using HTML).
+          default: about:blank
+          example: https://example.com/problem/constraint-violation
+        title:
+          type: string
+          description: >-
+            A short, summary of the problem type. Written in english and
+            readable
+
+            for engineers (usually not suited for non technical stakeholders and
+
+            not localized); example: Service Unavailable
+        status:
+          type: integer
+          format: int32
+          description: >-
+            The HTTP status code generated by the origin server for this
+            occurrence
+
+            of the problem.
+          minimum: 100
+          maximum: 600
+          exclusiveMaximum: true
+          example: 200
+        detail:
+          type: string
+          description: |-
+            A human readable explanation specific to this occurrence of the
+            problem.
+          example: There was an error processing the request
+        instance:
+          type: string
+          format: uri
+          description: >-
+            An absolute URI that identifies the specific occurrence of the
+            problem.
+
+            It may or may not yield further information if dereferenced.
+    LollipopMethod:
+      type: string
+      enum:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+    LollipopOriginalURL:
+      type: string
+      pattern: ^https://
+    AssertionType:
+      type: string
+      enum:
+        - SAML
+        - OIDC
+    LollipopAssertionRef:
+      oneOf:
+        - $ref: '#/components/schemas/AssertionRefSha256'
+        - $ref: '#/components/schemas/AssertionRefSha384'
+        - $ref: '#/components/schemas/AssertionRefSha512'
+    AssertionRefSha256:
+      type: string
+      pattern: ^(sha256-[A-Za-z0-9-_=]{1,44})$
+    AssertionRefSha384:
+      type: string
+      pattern: ^(sha384-[A-Za-z0-9-_=]{1,66})$
+    AssertionRefSha512:
+      type: string
+      pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
+    FiscalCode:
+      type: string
+      description: User's fiscal code.
+      format: FiscalCode
+      x-import: '@pagopa/ts-commons/lib/strings'
+      example: SPNDNL80R13C555X
+    LollipopUserId:
+      $ref: '#/components/schemas/FiscalCode'
+    LollipopPublicKey:
+      type: string
+      minLength: 1
+      description: represents a Base64url encode of a JWK Public Key
+    LollipopJWTAuthorization:
+      type: string
+      minLength: 1
+    LollipopSignatureInput:
+      type: string
+      pattern: ^(?:sig\d+=[^,]*)(?:,\s*(?:sig\d+=[^,]*))*$
+    LollipopSignature:
+      type: string
+      pattern: ^((sig[0-9]+)=:[A-Za-z0-9+/=]*:(, ?)?)+$
+    GenerateNonceResponse:
+      type: object
+      properties:
+        nonce:
+          $ref: '#/components/schemas/Nonce'
+      required:
+        - nonce
+    LVClientIp:
+      type: string
+      description: The user IP address
+      format: IPString
+      x-import: '@pagopa/ts-commons/lib/strings'
+      example: 192.168.1.10
+    UnlockCode:
+      type: string
+      pattern: ^\d{9}$
+    LogoutData:
+      type: object
+      properties:
+        fiscal_code:
+          $ref: '#/components/schemas/FiscalCode'
+      required:
+        - fiscal_code
+    LockSessionData:
+      type: object
+      properties:
+        fiscal_code:
+          $ref: '#/components/schemas/FiscalCode'
+        unlock_code:
+          $ref: '#/components/schemas/UnlockCode'
+      required:
+        - fiscal_code
+        - unlock_code
+    UnlockSessionData:
+      type: object
+      properties:
+        fiscal_code:
+          $ref: '#/components/schemas/FiscalCode'
+        unlock_code:
+          $ref: '#/components/schemas/UnlockCode'
+      required:
+        - fiscal_code
+    GetSessionStateData:
+      type: object
+      properties:
+        fiscal_code:
+          $ref: '#/components/schemas/FiscalCode'
+      required:
+        - fiscal_code
+    SessionInfo:
+      description: Info about an user session
+      oneOf:
+        - type: object
+          description: Inactive session
+          properties:
+            active:
+              type: boolean
+              enum:
+                - false
+          required:
+            - active
+        - type: object
+          description: Active session
+          properties:
+            active:
+              type: boolean
+              enum:
+                - true
+            expiration_date:
+              type: string
+              format: date
+            type:
+              type: string
+              enum:
+                - LV
+                - LEGACY
+          required:
+            - active
+            - expiration_date
+            - type
+    SessionState:
+      description: The state of the user' session
+      type: object
+      properties:
+        access_enabled:
+          type: boolean
+        session_info:
+          $ref: '#/components/schemas/SessionInfo'
+      required:
+        - access_enabled
+        - session_info
+    Nonce:
+      type: string
+      pattern: >-
+        ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+      description: UUID v4 formatted nonce as per RFC 4122
+      example: 870c6d89-a3c4-48b1-a796-cdacddaf94b4
