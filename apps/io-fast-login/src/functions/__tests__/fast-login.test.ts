@@ -18,7 +18,7 @@ import * as azureStorage from "@pagopa/io-functions-commons/dist/src/utils/azure
 import { aFiscalCode, anotherFiscalCode } from "../__mocks__/general";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as mattrglobalUtils from "@mattrglobal/http-signatures/lib/verify/verifySignatureHeader";
-import { okAsync, errAsync } from "neverthrow";
+import { okAsync, errAsync, Result, ResultAsync } from "neverthrow";
 import { prefixer } from "../../model/nonce";
 import { mockRedisClientTask, mockDel } from "../__mocks__/redis";
 
@@ -44,7 +44,7 @@ const mockUpsertBlobFromObject = vi
 
 const mockValidateSignature = vi
   .spyOn(mattrglobalUtils, "verifySignatureHeader")
-  .mockResolvedValue(okAsync({ verified: true }));
+  .mockReturnValue(okAsync({ verified: true }));
 
 describe("Fast Login handler", () => {
   beforeEach(() => {
@@ -224,10 +224,10 @@ describe("Fast Login handler", () => {
   it(`GIVEN a invalid LolliPoP request
       WHEN the signature is invalid
       THEN a Unauthorize Request error response is returned`, async () => {
-    mockValidateSignature.mockResolvedValueOnce(
+    mockValidateSignature.mockReturnValueOnce(
       errAsync({ type: "Error", message: "" })
     );
-    mockValidateSignature.mockResolvedValueOnce(
+    mockValidateSignature.mockReturnValueOnce(
       errAsync({ type: "Error", message: "" })
     );
     const req: H.HttpRequest = {
