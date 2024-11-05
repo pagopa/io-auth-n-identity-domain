@@ -5,7 +5,7 @@ data "azurerm_key_vault_secret" "fast_login_subscription_key" {
 
 data "azurerm_key_vault_secret" "backendli_api_key" {
   name         = "appbackend-PRE-SHARED-KEY"
-  key_vault_id = data.azurerm_key_vault.kv_common.id
+  key_vault_id = data.azurerm_key_vault.kv.id
 }
 
 data "azurerm_app_service" "app_backend_li" {
