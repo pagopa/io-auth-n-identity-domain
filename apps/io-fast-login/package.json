@@ -61,6 +61,7 @@
     "@pagopa/io-functions-commons": "^28.2.0",
     "@pagopa/openapi-codegen-ts": "^13.1.0",
     "@pagopa/ts-commons": "^12.0.0",
+    "@vitest/coverage-v8": "~1.5.0",
     "@xmldom/xmldom": "^0.8.8",
     "azure-storage": "^2.10.7",
     "date-fns": "^2.30.0",

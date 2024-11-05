@@ -6741,6 +6741,7 @@ __metadata:
     "@pagopa/ts-commons": "npm:^12.0.0"
     "@types/express": "npm:^4.17.12"
     "@types/node": "npm:~18.13.0"
+    "@vitest/coverage-v8": "npm:~1.5.0"
     "@xmldom/xmldom": "npm:^0.8.8"
     auto-changelog: "npm:^2.4.0"
     azure-storage: "npm:^2.10.7"
