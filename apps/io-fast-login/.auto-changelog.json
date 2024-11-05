@@ -1,4 +1,0 @@
-{
-  "issuePattern": "\\[#(\\d+)\\]",
-  "breakingPattern": "BREAKING CHANGE:"
-}
