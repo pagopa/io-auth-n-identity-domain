@@ -1,10 +1,12 @@
 locals {
-  prefix               = "io"
-  env_short            = "p"
-  location_short       = "itn"
-  location             = "italynorth"
-  project              = "${local.prefix}-${local.env_short}-${local.location_short}"
-  domain               = "auth"
+  prefix         = "io"
+  env_short      = "p"
+  location_short = "itn"
+  location       = "italynorth"
+  project        = "${local.prefix}-${local.env_short}-${local.location_short}"
+  domain         = "auth"
+
+  common_project = "${local.prefix}-${local.env_short}"
 
   tags = {
     CreatedBy      = "Terraform"
