@@ -4,7 +4,7 @@ io-session-manager:
   - "apps/io-session-manager/**/*.pem"
   - "apps/io-session-manager/env.example"
   ######
-  - "apps/io-session-manager/**.ts"
+  - "apps/io-session-manager/**/*.ts"
   # package.json, tsconfig.json, ...
   - "apps/io-session-manager/**/*.json"
 io-fast-login:
