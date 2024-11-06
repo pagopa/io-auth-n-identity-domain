@@ -8,32 +8,21 @@ on:
         description: Use slot swapping step
         default: true
 
-jobs:
-  # this job is needed because in a reusable workflow like the one below
-  # the environment can't be set. therefore, because the env vars needed are
-  # only available to a specific environment we need a workaround to pass them
-  prepare_envs:
-    runs-on: ubuntu-22.04
-    environment: apps-prod-cd
-    outputs:
-      resource_group_name: ${{ vars.SESSION_MANAGER_RESOURCE_GROUP }}
-      web_app_name_03: ${{ vars.SESSION_MANAGER_WEB_APP_NAME_03 }}
-      web_app_name_04: ${{ vars.SESSION_MANAGER_WEB_APP_NAME_04  }}
-    steps:
-      - name: echo
-        run: exit 0
-        shell: bash
+env:
+  SESSION_MANAGER_RESOURCE_GROUP: io-p-weu-session-manager-rg-01
+  SESSION_MANAGER_APP_NAME_03: io-p-weu-session-manager-app-03
+  SESSION_MANAGER_APP_NAME_04: io-p-weu-session-manager-app-04
 
+jobs:
   deploy_to_azure_1:
     name: Deploy to Azure App Service
-    needs: prepare_envs
     uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@add-healthcheck-and-optional-swap
     with:
       # '-cd' suffix added inside the pipeline
       environment: apps-prod
-      resource_group_name: ${{ needs.prepare_envs.outputs.resource_group_name }}
+      resource_group_name: ${{ env.SESSION_MANAGER_RESOURCE_GROUP }}
       workspace_name: "io-session-manager"
-      web_app_name: ${{ needs.prepare_envs.outputs.web_app_name_03 }}
+      web_app_name: ${{ env.SESSION_MANAGER_APP_NAME_03 }}
       use_staging_slot: true
       swap_slot_step: ${{ inputs.swap_slot_step }}
       use_private_agent: true
@@ -41,14 +30,14 @@ jobs:
 
   deploy_to_azure_2:
     name: Deploy to Azure App Service
-    needs: [prepare_envs, deploy_to_azure_1]
+    needs: deploy_to_azure_1
     uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@add-healthcheck-and-optional-swap
     with:
       # '-cd' suffix added inside the pipeline
       environment: apps-prod
-      resource_group_name: ${{ needs.prepare_envs.outputs.resource_group_name }}
+      resource_group_name: ${{ env.SESSION_MANAGER_RESOURCE_GROUP }}
       workspace_name: "io-session-manager"
-      web_app_name: ${{ needs.prepare_envs.outputs.web_app_name_04 }}
+      web_app_name: ${{ env.SESSION_MANAGER_APP_NAME_04 }}
       use_staging_slot: true
       swap_slot_step: ${{ inputs.swap_slot_step }}
       use_private_agent: true
