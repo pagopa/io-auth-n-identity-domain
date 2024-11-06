@@ -24,7 +24,7 @@ resource "azurerm_resource_group" "auth_common_rg" {
 resource "azurerm_monitor_action_group" "error_action_group" {
   resource_group_name = azurerm_resource_group.auth_common_rg.name
   name                = "${local.project}-${local.domain}-error-ag-01"
-  short_name          = "${local.project}-${local.domain}-error-ag-01"
+  short_name          = "${local.domain}-error"
 
   #TODO: use domain email
   email_receiver {
