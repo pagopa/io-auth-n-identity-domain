@@ -1,6 +1,6 @@
 locals {
-  project         = "io-p"
-  location_short  = "weu"
+  project        = "io-p"
+  location_short = "weu"
 
   identity_resource_group_name = "${local.project}-identity-rg"
 
