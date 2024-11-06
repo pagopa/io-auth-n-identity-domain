@@ -9,9 +9,9 @@ on:
         default: true
 
 env:
-  SESSION_MANAGER_RESOURCE_GROUP: io-p-weu-session-manager-rg-01
-  SESSION_MANAGER_APP_NAME_03: io-p-weu-session-manager-app-03
-  SESSION_MANAGER_APP_NAME_04: io-p-weu-session-manager-app-04
+  RESOURCE_GROUP: io-p-weu-session-manager-rg-01
+  APP_NAME_03: io-p-weu-session-manager-app-03
+  APP_NAME_04: io-p-weu-session-manager-app-04
 
 jobs:
   deploy_to_azure_1:
@@ -20,9 +20,9 @@ jobs:
     with:
       # '-cd' suffix added inside the pipeline
       environment: apps-prod
-      resource_group_name: ${{ env.SESSION_MANAGER_RESOURCE_GROUP }}
+      resource_group_name: ${{ env.RESOURCE_GROUP }}
       workspace_name: "io-session-manager"
-      web_app_name: ${{ env.SESSION_MANAGER_APP_NAME_03 }}
+      web_app_name: ${{ env.APP_NAME_03 }}
       use_staging_slot: true
       swap_slot_step: ${{ inputs.swap_slot_step }}
       use_private_agent: true
@@ -35,9 +35,9 @@ jobs:
     with:
       # '-cd' suffix added inside the pipeline
       environment: apps-prod
-      resource_group_name: ${{ env.SESSION_MANAGER_RESOURCE_GROUP }}
+      resource_group_name: ${{ env.RESOURCE_GROUP }}
       workspace_name: "io-session-manager"
-      web_app_name: ${{ env.SESSION_MANAGER_APP_NAME_04 }}
+      web_app_name: ${{ env.APP_NAME_04 }}
       use_staging_slot: true
       swap_slot_step: ${{ inputs.swap_slot_step }}
       use_private_agent: true
