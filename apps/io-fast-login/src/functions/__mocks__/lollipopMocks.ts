@@ -3,11 +3,11 @@ import {
   IPString,
   NonEmptyString
 } from "@pagopa/ts-commons/lib/strings";
+import { JwkPublicKey } from "@pagopa/ts-commons/lib/jwk";
+import * as jose from "jose";
 import { AssertionRef } from "../../generated/definitions/fn-lollipop/AssertionRef";
 import { LollipopSignature } from "../../generated/definitions/internal/LollipopSignature";
 import { LollipopSignatureInput } from "../../generated/definitions/internal/LollipopSignatureInput";
-import { JwkPublicKey } from "@pagopa/ts-commons/lib/jwk";
-import * as jose from "jose";
 import { AssertionTypeEnum } from "../../generated/definitions/internal/AssertionType";
 import {
   FastLoginAdditionalHeaders,
@@ -15,8 +15,8 @@ import {
 } from "../../types/lollipop";
 import { LollipopMethodEnum } from "../../generated/definitions/internal/LollipopMethod";
 import { LollipopOriginalURL } from "../../generated/definitions/internal/LollipopOriginalURL";
-import { aFiscalCode } from "./general";
 import { Nonce } from "../../generated/definitions/models/Nonce";
+import { aFiscalCode } from "./general";
 
 export const anAssertionRef = "sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU" as AssertionRef;
 

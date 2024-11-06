@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as H from "@pagopa/handler-kit";
+import * as E from "fp-ts/Either";
 import { makeGenerateNonce } from "../generate-nonce";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import { DEFAULT_NONCE_EXPIRE_SEC, NONCE_PREFIX } from "../../model/nonce";
 import { FUNCTION_PREFIX } from "../../utils/redis/client";
-import * as E from "fp-ts/Either";
 import { mockRedisClientTask, mockSetEx } from "../__mocks__/redis";
 
 describe("GenerateNonce handler", () => {

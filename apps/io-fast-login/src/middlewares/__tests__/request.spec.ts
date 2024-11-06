@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { RequiredBodyMiddleware } from "../request";
 import * as t from "io-ts";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as H from "@pagopa/handler-kit";
 import { pipe } from "fp-ts/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import { RequiredBodyMiddleware } from "../request";
 import { aFiscalCode } from "../../functions/__mocks__/general";
 
 const sampleSchema = t.type({

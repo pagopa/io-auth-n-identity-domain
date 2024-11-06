@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { makeInfoHandler } from "../info";
 import { Database } from "@azure/cosmos";
-import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import * as E from "fp-ts/lib/Either";
+import { makeInfoHandler } from "../info";
+import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import { mockRedisClientTask, mockPing } from "../__mocks__/redis";
 
 const mockDatabaseAccount = vi.fn().mockResolvedValue("");

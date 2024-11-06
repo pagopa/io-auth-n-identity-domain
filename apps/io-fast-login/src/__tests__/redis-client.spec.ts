@@ -1,28 +1,24 @@
 import { describe, expect, it, vi } from "vitest";
-const { mockConnect, mockGet } = vi.hoisted(() => {
-  return {
-    mockConnect: vi.fn().mockResolvedValue({}),
-    mockGet: vi.fn().mockResolvedValue("value"),
-  }
-})
-const { mockCreateClient } = vi.hoisted(() => {
-  return {
-    mockCreateClient: vi.fn().mockImplementation(() => ({
-      connect: mockConnect,
-      on: vi.fn(),
-      get: mockGet,
-    }))
-  }
-})
+const { mockConnect, mockGet } = vi.hoisted(() => ({
+  mockConnect: vi.fn().mockResolvedValue({}),
+  mockGet: vi.fn().mockResolvedValue("value")
+}));
+const { mockCreateClient } = vi.hoisted(() => ({
+  mockCreateClient: vi.fn().mockImplementation(() => ({
+    connect: mockConnect,
+    on: vi.fn(),
+    get: mockGet
+  }))
+}));
 vi.mock("redis", () => ({
-  createClient: mockCreateClient,
+  createClient: mockCreateClient
 }));
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { CreateRedisClientSingleton } from "../utils/redis/client";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
+import { CreateRedisClientSingleton } from "../utils/redis/client";
 
 describe("redisClient creation on startup", () => {
   it("only one time the redis client is created", async () => {

@@ -1,9 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { makeFastLoginHandler } from "../fast-login";
 import * as H from "@pagopa/handler-kit";
-import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import * as E from "fp-ts/Either";
-import { FnLollipopClient } from "../../utils/lollipop/dependency";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { BlobService } from "azure-storage";
+import * as O from "fp-ts/Option";
+import * as azureStorage from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
+import * as TE from "fp-ts/lib/TaskEither";
+import * as mattrglobalUtils from "@mattrglobal/http-signatures/lib/verify/verifySignatureHeader";
+import { okAsync, errAsync, Result, ResultAsync } from "neverthrow";
+import { aFiscalCode, anotherFiscalCode } from "../__mocks__/general";
 import {
   aLollipopInvalidSignature,
   aNonce,
@@ -11,14 +16,9 @@ import {
   validFastLoginAdditionalHeaders,
   validLollipopHeaders
 } from "../__mocks__/lollipopMocks";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { BlobService } from "azure-storage";
-import * as O from "fp-ts/Option";
-import * as azureStorage from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
-import { aFiscalCode, anotherFiscalCode } from "../__mocks__/general";
-import * as TE from "fp-ts/lib/TaskEither";
-import * as mattrglobalUtils from "@mattrglobal/http-signatures/lib/verify/verifySignatureHeader";
-import { okAsync, errAsync, Result, ResultAsync } from "neverthrow";
+import { FnLollipopClient } from "../../utils/lollipop/dependency";
+import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
+import { makeFastLoginHandler } from "../fast-login";
 import { prefixer } from "../../model/nonce";
 import { mockRedisClientTask, mockDel } from "../__mocks__/redis";
 

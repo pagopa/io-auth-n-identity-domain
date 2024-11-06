@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { makeSessionStateHandler } from "../session-state";
-import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import * as E from "fp-ts/lib/Either";
 import * as H from "@pagopa/handler-kit";
+import { makeSessionStateHandler } from "../session-state";
+import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import { aFiscalCode } from "../__mocks__/general";
 
 const aValidBody = {

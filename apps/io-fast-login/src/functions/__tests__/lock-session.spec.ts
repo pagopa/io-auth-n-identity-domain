@@ -1,15 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as H from "@pagopa/handler-kit";
+import * as E from "fp-ts/lib/Either";
 import { makeLockSessionHandler } from "../lock-session";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
-import * as H from "@pagopa/handler-kit";
 import { aFiscalCode } from "../__mocks__/general";
-import * as E from "fp-ts/lib/Either";
 
 const aValidBody = { fiscal_code: aFiscalCode, unlock_code: "123456789" };
 
-const mockLockUserSession = vi
-  .fn()
-  .mockResolvedValue(E.right({ status: 204 }));
+const mockLockUserSession = vi.fn().mockResolvedValue(E.right({ status: 204 }));
 const mockBackendInternalClient = {
   authLock: mockLockUserSession
 } as any;

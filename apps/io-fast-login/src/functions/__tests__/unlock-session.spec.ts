@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as E from "fp-ts/lib/Either";
+import * as H from "@pagopa/handler-kit";
 import { UnlockCode } from "../../generated/definitions/internal/UnlockCode";
 import { UnlockSessionData } from "../../generated/definitions/internal/UnlockSessionData";
 import { aFiscalCode } from "../__mocks__/general";
-import * as E from "fp-ts/lib/Either";
-import * as H from "@pagopa/handler-kit";
 import { makeUnlockSessionHandler } from "../unlock-session";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 
@@ -11,9 +11,7 @@ const aValidPayload: UnlockSessionData = {
   fiscal_code: aFiscalCode,
   unlock_code: "123456789" as UnlockCode
 };
-const mockReleaseAuthLock = vi
-  .fn()
-  .mockResolvedValue(E.right({ status: 204 }));
+const mockReleaseAuthLock = vi.fn().mockResolvedValue(E.right({ status: 204 }));
 const mockBackendInternalClient = {
   releaseAuthLock: mockReleaseAuthLock
 } as any;
