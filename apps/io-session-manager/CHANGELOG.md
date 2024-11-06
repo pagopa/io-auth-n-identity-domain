@@ -1,4 +1,4 @@
-# @pagopa/io-session-manager
+# io-session-manager
 
 ## 1.2.0
 
