@@ -4,7 +4,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
-    "typecheck": "tsc build --noemit",
+    "typecheck": "tsc --noemit",
     "import": "node ./dist/app.js",
     "lint": "yarn lint:check --fix",
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache"
