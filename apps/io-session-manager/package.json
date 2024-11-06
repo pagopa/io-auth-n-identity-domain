@@ -12,7 +12,7 @@
         "build": "tsc && yarn postbuild",
         "postbuild": "dependency-check package.json --no-dev --missing ./dist/**/*.js",
         "build:watch": "tsc -w",
-        "typecheck": "tsc build --noemit",
+        "typecheck": "tsc --noemit",
         "start": "node dist/server.js",
         "start:watch": "yarn start watch",
         "lint": "yarn lint:check --fix",
