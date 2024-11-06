@@ -134,11 +134,11 @@ module "function_lv_autoscale" {
       }
     },
     spot_load = {
-      name       = "${local.scaling_gate.name}"
+      name       = "${module.common_values.scaling_gate.name}"
       minimum    = 6
       default    = 20
-      start_date = local.scaling_gate.start
-      end_date   = local.scaling_gate.end
+      start_date = module.common_values.scaling_gate.start
+      end_date   = module.common_values.scaling_gate.end
     },
     normal_load = {
       minimum = 3

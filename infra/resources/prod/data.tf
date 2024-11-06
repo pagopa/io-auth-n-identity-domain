@@ -1,3 +1,6 @@
+module "common_values" {
+  source = "github.com/pagopa/io-infra//src/_modules/common_values?ref=main"
+}
 
 data "azurerm_resource_group" "rg_common" {
   name = "${local.common_project}-rg-common"
