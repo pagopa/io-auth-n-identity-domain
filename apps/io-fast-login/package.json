@@ -21,10 +21,10 @@
     "test:watch": "vitest",
     "api:bundle": "bundle-api-spec -i api/internal.yaml.template -o api/internal.yaml -V $npm_package_version",
     "generate": "yarn api:bundle && yarn generate:definitions-internal && yarn generate:models && yarn generate:client-fn-lollipop && yarn generate:client-backend-internal",
-    "generate:definitions-internal": "rimraf ./src/generated/definitions/internal && shx mkdir -p ./src/generated/definitions/internal && gen-api-models --api-spec ./api/internal.yaml --no-strict --out-dir ./src/generated/definitions/internal ",
-    "generate:models": "rimraf ./src/generated/definitions/models && shx mkdir -p ./src/generated/definitions/models && gen-api-models --api-spec ./api/definitions.yaml --no-strict --out-dir ./src/generated/definitions/models ",
-    "generate:client-fn-lollipop": "rimraf ./src/generated/definitions/fn-lollipop && shx mkdir -p ./src/generated/definitions/fn-lollipop && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-functions-lollipop/master/openapi/external.yaml --no-strict --out-dir ./src/generated/definitions/fn-lollipop --request-types --response-decoders --client",
-    "generate:client-backend-internal": "rimraf ./src/generated/definitions/backend-internal && shx mkdir -p ./src/generated/definitions/backend-internal && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-backend/v13.17.0/openapi/generated/api_session.yaml --no-strict --out-dir ./src/generated/definitions/backend-internal --request-types --response-decoders --client"
+    "generate:definitions-internal": "shx rm -rf ./src/generated/definitions/internal && shx mkdir -p ./src/generated/definitions/internal && gen-api-models --api-spec ./api/internal.yaml --no-strict --out-dir ./src/generated/definitions/internal ",
+    "generate:models": "shx rm -rf ./src/generated/definitions/models && shx mkdir -p ./src/generated/definitions/models && gen-api-models --api-spec ./api/definitions.yaml --no-strict --out-dir ./src/generated/definitions/models ",
+    "generate:client-fn-lollipop": "shx rm -rf ./src/generated/definitions/fn-lollipop && shx mkdir -p ./src/generated/definitions/fn-lollipop && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-functions-lollipop/master/openapi/external.yaml --no-strict --out-dir ./src/generated/definitions/fn-lollipop --request-types --response-decoders --client",
+    "generate:client-backend-internal": "shx rm -rf ./src/generated/definitions/backend-internal && shx mkdir -p ./src/generated/definitions/backend-internal && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-backend/v13.17.0/openapi/generated/api_session.yaml --no-strict --out-dir ./src/generated/definitions/backend-internal --request-types --response-decoders --client"
   },
   "devDependencies": {
     "@pagopa/eslint-config": "^3.0.0",
@@ -36,12 +36,8 @@
     "eslint": "^8.57.0",
     "eslint-config-monorepo": "*",
     "eslint-plugin-prettier": "^4.0.0",
-    "modclean": "^3.0.0-beta.1",
-    "npm-run-all": "^4.1.5",
     "prettier": "^1.18.2",
-    "rimraf": "^6.0.1",
     "shx": "^0.3.2",
-    "swagger-cli": "^4.0.4",
     "typescript": "5.4.5",
     "vitest": "~1.5.0"
   },
