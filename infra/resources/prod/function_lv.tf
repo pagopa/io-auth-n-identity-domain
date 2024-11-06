@@ -108,3 +108,76 @@ module "function_lv" {
 
   tags = local.tags
 }
+
+
+module "function_lv_autoscale" {
+  depends_on = [azurerm_resource_group.function_lv_rg, module.function_lv]
+  source     = "github.com/pagopa/dx//infra/modules/azure_app_service_plan_autoscaler?ref=afcf1f2e91be4f0d0c2bc54bf083f3f7d26d88fc"
+
+  resource_group_name = azurerm_resource_group.function_lv_rg.name
+  target_service = {
+    function_app_name = local.function_lv.name
+  }
+
+  scheduler = {
+    high_load = {
+      name    = "evening"
+      minimum = 4
+      default = 10
+      start = {
+        hour    = 19
+        minutes = 30
+      }
+      end = {
+        hour    = 22
+        minutes = 59
+      }
+    },
+    spot_load = {
+      name       = "${local.scaling_gate.name}"
+      minimum    = 6
+      default    = 20
+      start_date = local.scaling_gate.start
+      end_date   = local.scaling_gate.end
+    },
+    normal_load = {
+      minimum = 3
+      default = 10
+    },
+    maximum = 30
+  }
+
+  scale_metrics = {
+    requests = {
+      statistic_increase        = "Max"
+      time_window_increase      = 1
+      time_aggregation          = "Maximum"
+      upper_threshold           = 2500
+      increase_by               = 2
+      cooldown_increase         = 1
+      statistic_decrease        = "Average"
+      time_window_decrease      = 5
+      time_aggregation_decrease = "Average"
+      lower_threshold           = 200
+      decrease_by               = 1
+      cooldown_decrease         = 1
+    }
+    cpu = {
+      upper_threshold           = 35
+      lower_threshold           = 15
+      increase_by               = 3
+      decrease_by               = 1
+      cooldown_increase         = 1
+      cooldown_decrease         = 20
+      statistic_increase        = "Max"
+      statistic_decrease        = "Average"
+      time_aggregation_increase = "Maximum"
+      time_aggregation_decrease = "Average"
+      time_window_increase      = 1
+      time_window_decrease      = 5
+    }
+    memory = null
+  }
+
+  tags = local.tags
+}
