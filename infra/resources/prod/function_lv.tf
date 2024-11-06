@@ -106,6 +106,8 @@ module "function_lv" {
     local.function_lv.app_settings
   )
 
+  action_group_id = azurerm_monitor_action_group.error_action_group.id
+
   tags = local.tags
 }
 
