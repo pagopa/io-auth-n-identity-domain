@@ -80,7 +80,7 @@ module "function_lv" {
     prefix          = local.prefix
     env_short       = local.env_short
     location        = local.location
-    domain          = "auth"
+    domain          = local.domain
     app_name        = local.function_lv.name
     instance_number = "02"
   }
@@ -90,7 +90,7 @@ module "function_lv" {
   node_version        = 20
   tier                = "xl"
 
-  subnet_cidr                          = local.cidr_subnet_fnfastlogin
+  subnet_cidr                          = local.cidr_subnet_fn_lv
   subnet_pep_id                        = data.azurerm_subnet.private_endpoints_subnet.id
   private_dns_zone_resource_group_name = data.azurerm_resource_group.rg_common.name
 
@@ -116,7 +116,7 @@ module "function_lv_autoscale" {
 
   resource_group_name = azurerm_resource_group.function_lv_rg.name
   target_service = {
-    function_app_name = local.function_lv.name
+    function_app_name = module.function_lv.function_app.function_app.name
   }
 
   scheduler = {

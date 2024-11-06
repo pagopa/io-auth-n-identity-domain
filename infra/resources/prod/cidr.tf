@@ -1,3 +1,3 @@
 locals {
-  cidr_subnet_fnfastlogin = "10.20.20.0/26"
+  cidr_subnet_fn_lv = "10.20.20.0/26"
 }
