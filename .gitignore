@@ -139,3 +139,5 @@ yarn-error.log
 
 # vitest
 vite.config.*.timestamp-*
+
+azure-functions-core-tools
