@@ -7,15 +7,17 @@
     "sourceMap": true,
     "inlineSources": true,
     "strict": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true
+    "resolveJsonModule": false,
+    "skipLibCheck": true,
+    "declaration": true,
+    "esModuleInterop": true
   },
   "exclude": [
     "node_modules",
     "dist",
     "**/__mocks__/**",
-    "docker",
-    "**/__tests__",
-    "**/__integrations__"
+    "**/__tests__/**",
+    "**/__integrations__/**",
+    "vite.config.mts"
   ]
 }

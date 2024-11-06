@@ -2,7 +2,6 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   // We extend it from here, asap!
   "extends": "@pagopa/typescript-config-node/tsconfig.json",
-  "exclude": ["node_modules", "dist", "**/__tests__/**", "**/__mocks__/**", "vite.config.mts"],
   "compilerOptions": {
     "module": "Node16",
     "target": "es2022",
@@ -14,5 +13,12 @@
     "skipLibCheck": true,
     "declaration": true,
     "esModuleInterop": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/__tests__/**",
+    "**/__mocks__/**",
+    "vite.config.mts"
+  ],
 }
