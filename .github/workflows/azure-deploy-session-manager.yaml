@@ -8,11 +8,6 @@ on:
         description: Use slot swapping step
         default: true
 
-env:
-  RESOURCE_GROUP: io-p-weu-session-manager-rg-01
-  APP_NAME_03: io-p-weu-session-manager-app-03
-  APP_NAME_04: io-p-weu-session-manager-app-04
-
 jobs:
   deploy_to_azure_1:
     name: Deploy to Azure App Service
@@ -20,9 +15,9 @@ jobs:
     with:
       # '-cd' suffix added inside the pipeline
       environment: apps-prod
-      resource_group_name: ${{ env.RESOURCE_GROUP }}
+      resource_group_name: "io-p-weu-session-manager-rg-01"
       workspace_name: "io-session-manager"
-      web_app_name: ${{ env.APP_NAME_03 }}
+      web_app_name: "io-p-weu-session-manager-app-03"
       use_staging_slot: true
       swap_slot_step: ${{ inputs.swap_slot_step }}
       use_private_agent: true
@@ -35,9 +30,9 @@ jobs:
     with:
       # '-cd' suffix added inside the pipeline
       environment: apps-prod
-      resource_group_name: ${{ env.RESOURCE_GROUP }}
+      resource_group_name: "io-p-weu-session-manager-rg-01"
       workspace_name: "io-session-manager"
-      web_app_name: ${{ env.APP_NAME_04 }}
+      web_app_name: "io-p-weu-session-manager-app-04"
       use_staging_slot: true
       swap_slot_step: ${{ inputs.swap_slot_step }}
       use_private_agent: true
