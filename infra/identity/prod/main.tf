@@ -29,4 +29,20 @@ module "federated_identities" {
   location     = local.location
   repositories = [local.repo_name]
   tags         = local.tags
+
+  continuos_delivery = {
+    enable = true
+    roles = {
+      subscription = ["Contributor"]
+      resource_groups = {
+        terraform-state-rg = [
+          "Storage Blob Data Contributor"
+        ],
+        io-p-itn-auth-lv-rg-01 = [
+          "Role Based Access Control Administrator"
+        ]
+      }
+    }
+  }
 }
+
