@@ -106,6 +106,8 @@ module "function_lv" {
     local.function_lv.app_settings
   )
 
+  application_insights_connection_string = data.azurerm_application_insights.application_insights.instrumentation_key
+
   action_group_id = azurerm_monitor_action_group.error_action_group.id
 
   tags = local.tags
