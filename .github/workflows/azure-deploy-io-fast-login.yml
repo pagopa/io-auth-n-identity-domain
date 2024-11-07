@@ -10,7 +10,7 @@ env:
 jobs:
   deploy_to_azure:
     name: Deploy to Azure Function App
-    uses: pagopa/dx/.github/workflows/function_app_deploy.yaml@add-healthcheck-and-optional-swap
+    uses: pagopa/dx/.github/workflows/function_app_deploy.yaml@2503864ad284f0c19315f4e87b9e9e2addb45f47
     with:
       # '-cd' suffix added inside the pipeline
       environment: apps-prod
