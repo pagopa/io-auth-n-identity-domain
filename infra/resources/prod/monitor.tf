@@ -21,6 +21,11 @@ resource "azurerm_resource_group" "auth_common_rg" {
   tags = local.tags
 }
 
+data "azurerm_application_insights" "application_insights" {
+  name                = "${local.common_project}-ai-common"
+  resource_group_name = "${local.common_project}-rg-common"
+}
+
 resource "azurerm_monitor_action_group" "error_action_group" {
   resource_group_name = azurerm_resource_group.auth_common_rg.name
   name                = "${local.project}-${local.domain}-error-ag-01"
