@@ -49,8 +49,6 @@ export type RedisClientConfig = t.TypeOf<typeof RedisClientConfig>;
 export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
-    APPINSIGHTS_INSTRUMENTATIONKEY: NonEmptyString,
-
     COSMOS_CONNECTION_STRING: NonEmptyString,
     COSMOS_DB_NAME: NonEmptyString,
 
