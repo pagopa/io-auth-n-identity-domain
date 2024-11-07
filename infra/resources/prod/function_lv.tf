@@ -47,7 +47,7 @@ locals {
       // --------------------------
       //  Config for getAssertion
       // --------------------------
-      LOLLIPOP_GET_ASSERTION_BASE_URL = "https://api.io.pagopa.it"
+      LOLLIPOP_GET_ASSERTION_BASE_URL = "https://api-internal.io.italia.it"
       LOLLIPOP_GET_ASSERTION_API_KEY  = data.azurerm_key_vault_secret.fast_login_subscription_key.value
 
       #   // --------------------------
