@@ -90,8 +90,11 @@ module "function_lv" {
   node_version        = 20
   tier                = "xl"
 
-  subnet_cidr                          = local.cidr_subnet_fn_lv
-  subnet_pep_id                        = data.azurerm_subnet.private_endpoints_subnet.id
+  subnet_cidr   = local.cidr_subnet_fn_lv
+  subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
+  subnet_service_endpoints = {
+    web = true
+  }
   private_dns_zone_resource_group_name = data.azurerm_resource_group.rg_common.name
 
   virtual_network = {
