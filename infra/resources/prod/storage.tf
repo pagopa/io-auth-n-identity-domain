@@ -37,10 +37,6 @@ module "storage_account_io_web_profile_fe" {
   force_public_network_access_enabled = false
   subservices_enabled = {
     blob = true
-    # not used
-    file  = false
-    queue = false
-    table = false
   }
   blob_features = {
     versioning = true
@@ -56,12 +52,6 @@ module "storage_account_io_web_profile_fe" {
     index_document     = "index.html"
     error_404_document = "it/404/index.html"
   }
-
-  # TODO: complete this block after the domain name has been picked
-  #custom_domain = {
-  #  name = ""
-  #  use_subdomain = true
-  #}
 
   tags = local.tags
 }
