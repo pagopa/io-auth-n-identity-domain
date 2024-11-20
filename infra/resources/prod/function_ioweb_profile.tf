@@ -109,7 +109,7 @@ locals {
       // Audit Logs config
       // -------------------------
       AUDIT_LOG_CONNECTION_STRING = data.azurerm_storage_account.immutable_spid_logs_storage.primary_connection_string
-      AUDIT_LOG_CONTAINER         = data.azurerm_storage_container.immutable_audit_logs.name
+      AUDIT_LOG_CONTAINER         = local.immutable_audit_logs_container_name
     }
   }
 }

@@ -10,7 +10,8 @@ locals {
 
   common_project = "${local.prefix}-${local.env_short}"
 
-  appgw_resource_group_name = "${local.common_project}-rg-external"
+  appgw_resource_group_name           = "${local.common_project}-rg-external"
+  immutable_audit_logs_container_name = "auditlogs"
 
   tags = {
     CreatedBy      = "Terraform"
