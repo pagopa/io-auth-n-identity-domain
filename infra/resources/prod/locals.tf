@@ -10,6 +10,8 @@ locals {
 
   common_project = "${local.prefix}-${local.env_short}"
 
+  appgw_resource_group_name = "${local.common_project}-rg-external"
+
   tags = {
     CreatedBy      = "Terraform"
     Environment    = "Prod"

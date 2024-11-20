@@ -52,7 +52,6 @@ locals {
   function_ioweb_profile = {
     name = "webprof"
     app_settings = {
-      FUNCTIONS_WORKER_PROCESS_COUNT = 4
       NODE_ENV                       = "production"
 
       // Keepalive fields are all optionals
@@ -128,7 +127,7 @@ resource "azurerm_resource_group" "function_web_profile_rg" {
 }
 
 module "function_web_profile" {
-  source = "github.com/pagopa/dx//infra/modules/azure_function_app?ref=afcf1f2e91be4f0d0c2bc54bf083f3f7d26d88fc"
+  source = "github.com/pagopa/dx//infra/modules/azure_function_app?ref=ab26f57ed34a614fd3fa496c7b521be9ecc88e1b"
 
   environment = {
     prefix          = local.prefix
@@ -141,8 +140,8 @@ module "function_web_profile" {
 
   resource_group_name = azurerm_resource_group.function_web_profile_rg.name
   health_check_path   = "/api/v1/info"
-  node_version        = 18
-  tier                = "xl"
+  node_version        = 20
+  app_service_plan_id = data.azurerm_app_service_plan.shared_plan_itn.id
 
   subnet_cidr   = local.cidr_subnet_fn_web_profile
   subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
@@ -175,7 +174,7 @@ module "function_web_profile" {
 
 module "function_web_profile_autoscale" {
   depends_on = [azurerm_resource_group.function_web_profile_rg, module.function_web_profile]
-  source     = "github.com/pagopa/dx//infra/modules/azure_app_service_plan_autoscaler?ref=afcf1f2e91be4f0d0c2bc54bf083f3f7d26d88fc"
+  source     = "github.com/pagopa/dx//infra/modules/azure_app_service_plan_autoscaler?ref=ab26f57ed34a614fd3fa496c7b521be9ecc88e1b"
 
   resource_group_name = azurerm_resource_group.function_web_profile_rg.name
   target_service = {
@@ -230,7 +229,7 @@ module "function_web_profile_autoscale" {
 // ----------------------------------------------------
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "alert_too_much_invalid_codes_on_unlock" {
   enabled                 = true
-  name                    = "[${upper(local.domain)} | ${module.function_web_profile.name}] Unexpected number of invalid codes to unlock endpoint"
+  name                    = "[${upper(local.domain)} | ${module.function_web_profile.function_app.function_app.name}] Unexpected number of invalid codes to unlock endpoint"
   resource_group_name     = azurerm_resource_group.function_web_profile_rg.name
   scopes                  = [data.azurerm_application_gateway.app_gateway.id]
   description             = "Too many invalid codes submitted to IO-WEB profile unlock functionality"
@@ -260,7 +259,7 @@ AzureDiagnostics
 
   # Action groups for alerts
   action {
-    action_groups = [data.azurerm_monitor_action_group.error_action_group.id]
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
   }
 
   tags = local.tags
@@ -269,7 +268,7 @@ AzureDiagnostics
 
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "alert_too_much_calls_on_unlock" {
   enabled                 = true
-  name                    = "[${upper(local.domain)} | ${module.function_web_profile.name}] Unexpected number of calls to unlock endpoint"
+  name                    = "[${upper(local.domain)} | ${module.function_web_profile.function_app.function_app.name}] Unexpected number of calls to unlock endpoint"
   resource_group_name     = azurerm_resource_group.function_web_profile_rg.name
   scopes                  = [data.azurerm_application_gateway.app_gateway.id]
   description             = "Too many calls submitted to IO-WEB profile unlock functionality"
@@ -299,7 +298,7 @@ AzureDiagnostics
 
   # Action groups for alerts
   action {
-    action_groups = [data.azurerm_monitor_action_group.error_action_group.id]
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
   }
 
   tags = local.tags
