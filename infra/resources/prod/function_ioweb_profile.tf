@@ -52,7 +52,7 @@ locals {
   function_ioweb_profile = {
     name = "webprof"
     app_settings = {
-      NODE_ENV                       = "production"
+      NODE_ENV = "production"
 
       // Keepalive fields are all optionals
       FETCH_KEEPALIVE_ENABLED             = "true"
