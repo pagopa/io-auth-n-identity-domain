@@ -141,11 +141,6 @@ module "function_web_profile" {
   subnet_cidr   = local.cidr_subnet_fn_web_profile
   subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
 
-  subnet_service_endpoints = {
-    web     = true,
-    storage = true
-  }
-
   private_dns_zone_resource_group_name = data.azurerm_resource_group.rg_common.name
 
   virtual_network = {
@@ -179,7 +174,7 @@ module "function_web_profile_autoscale" {
   scheduler = {
     normal_load = {
       minimum = 3
-      default = 10
+      default = 3
     },
     maximum = 30
   }
