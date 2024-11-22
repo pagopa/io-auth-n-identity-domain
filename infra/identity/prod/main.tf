@@ -41,6 +41,9 @@ module "federated_identities" {
         io-p-itn-auth-lv-rg-01 = [
           "Role Based Access Control Administrator"
         ]
+        io-p-itn-auth-webprof-rg-01 = [
+          "Role Based Access Control Administrator"
+        ]
       }
     }
   }
