@@ -1,12 +1,17 @@
 locals {
-  prefix         = "io"
-  env_short      = "p"
-  location_short = "itn"
-  location       = "italynorth"
-  project        = "${local.prefix}-${local.env_short}-${local.location_short}"
-  domain         = "auth"
+  prefix             = "io"
+  env_short          = "p"
+  location_short     = "itn"
+  weu_location_short = "weu"
+  location           = "italynorth"
+  project            = "${local.prefix}-${local.env_short}-${local.location_short}"
+  weu_project        = "${local.prefix}-${local.env_short}-${local.weu_location_short}"
+  domain             = "auth"
 
   common_project = "${local.prefix}-${local.env_short}"
+
+  appgw_resource_group_name           = "${local.common_project}-rg-external"
+  immutable_audit_logs_container_name = "auditlogs"
 
   tags = {
     CreatedBy      = "Terraform"
