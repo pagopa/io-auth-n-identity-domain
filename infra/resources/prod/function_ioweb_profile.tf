@@ -162,58 +162,6 @@ module "function_web_profile" {
   tags = local.tags
 }
 
-module "function_web_profile_autoscale" {
-  depends_on = [azurerm_resource_group.function_web_profile_rg, module.function_web_profile]
-  source     = "github.com/pagopa/dx//infra/modules/azure_app_service_plan_autoscaler?ref=ab26f57ed34a614fd3fa496c7b521be9ecc88e1b"
-
-  resource_group_name = azurerm_resource_group.function_web_profile_rg.name
-  target_service = {
-    function_app_name = module.function_web_profile.function_app.function_app.name
-  }
-
-  scheduler = {
-    normal_load = {
-      minimum = 3
-      default = 3
-    },
-    maximum = 30
-  }
-
-  scale_metrics = {
-    requests = {
-      statistic_increase        = "Average"
-      time_window_increase      = 1
-      time_aggregation          = "Average"
-      upper_threshold           = 3000
-      increase_by               = 2
-      cooldown_increase         = 1
-      statistic_decrease        = "Average"
-      time_window_decrease      = 5
-      time_aggregation_decrease = "Average"
-      lower_threshold           = 2000
-      decrease_by               = 1
-      cooldown_decrease         = 1
-    }
-    cpu = {
-      upper_threshold           = 45
-      lower_threshold           = 30
-      increase_by               = 2
-      decrease_by               = 1
-      cooldown_increase         = 1
-      cooldown_decrease         = 20
-      statistic_increase        = "Average"
-      statistic_decrease        = "Average"
-      time_aggregation_increase = "Average"
-      time_aggregation_decrease = "Average"
-      time_window_increase      = 1
-      time_window_decrease      = 5
-    }
-    memory = null
-  }
-
-  tags = local.tags
-}
-
 // ----------------------------------------------------
 // Alerts
 // ----------------------------------------------------
