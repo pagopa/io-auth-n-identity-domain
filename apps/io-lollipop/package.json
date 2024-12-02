@@ -1,8 +1,7 @@
 {
-  "name": "@pagopa/io-functions-lollipop",
+  "name": "io-lollipop",
   "description": "",
   "author": "IO team",
-  "repository": "https://github.com/pagopa/io-functions-lollipop",
   "version": "1.13.1",
   "license": "MIT",
   "scripts": {
@@ -58,10 +57,10 @@
     "@pagopa/express-azure-functions": "^2.0.0",
     "@pagopa/io-functions-commons": "^28.1.0",
     "@pagopa/openapi-codegen-ts": "^12.2.0",
-    "@pagopa/ts-commons": "^10.3.0",
+    "@pagopa/ts-commons": "^13.1.0",
     "@pagopa/winston-ts": "^2.2.0",
     "@xmldom/xmldom": "^0.8.10",
-    "applicationinsights": "^1.7.4",
+    "applicationinsights": "^2.9.5",
     "azure-storage": "^2.10.3",
     "date-fns": "^2.29.3",
     "express": "^4.15.3",
