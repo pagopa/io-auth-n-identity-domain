@@ -23,9 +23,9 @@
     "openapi:bundle": "bundle-api-spec -i openapi/internal.yaml.template -o openapi/internal.yaml -V $npm_package_version",
     "openapi:bundle-external": "bundle-api-spec -i openapi/external.yaml.template -o openapi/external.yaml -V $npm_package_version",
     "generate": "yarn openapi:bundle && yarn openapi:bundle-external && yarn generate:definitions-internal && yarn generate:definitions-external && yarn generate:definitions-lollipop-first-sign",
-    "generate:definitions-internal": "rimraf ./generated/definitions/internal && shx mkdir -p ./generated/definitions/internal && gen-api-models --api-spec ./openapi/internal.yaml --no-strict --out-dir ./generated/definitions/internal ",
-    "generate:definitions-external": "rimraf ./generated/definitions/external && shx mkdir -p ./generated/definitions/external && gen-api-models --api-spec ./openapi/external.yaml --no-strict --out-dir ./generated/definitions/external --request-types --response-decoders --client",
-    "generate:definitions-lollipop-first-sign": "rimraf generated/definitions/lollipop-first-consumer && gen-api-models --api-spec openapi/lollipop_first_consumer.yaml --out-dir generated/definitions/lollipop-first-consumer",
+    "generate:definitions-internal": "shx rm -rf ./generated/definitions/internal && shx mkdir -p ./generated/definitions/internal && gen-api-models --api-spec ./openapi/internal.yaml --no-strict --out-dir ./generated/definitions/internal ",
+    "generate:definitions-external": "shx rm -rf ./generated/definitions/external && shx mkdir -p ./generated/definitions/external && gen-api-models --api-spec ./openapi/external.yaml --no-strict --out-dir ./generated/definitions/external --request-types --response-decoders --client",
+    "generate:definitions-lollipop-first-sign": "shx rm -rf generated/definitions/lollipop-first-consumer && gen-api-models --api-spec openapi/lollipop_first_consumer.yaml --out-dir generated/definitions/lollipop-first-consumer",
     "dist:modules": "modclean -r -n default:safe && yarn install --production",
     "predeploy": "yarn build && yarn dist:modules"
   },
