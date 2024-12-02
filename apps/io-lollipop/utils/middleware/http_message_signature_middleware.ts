@@ -3,7 +3,7 @@
 
 import * as crypto_lib from "crypto";
 import * as express from "express";
-import { verifySignatureHeader } from "@mattrglobal/http-signatures";
+import { Verifier, verifySignatureHeader } from "@mattrglobal/http-signatures";
 import * as jwkToPem from "jwk-to-pem";
 
 import { constFalse, constTrue, flow, pipe } from "fp-ts/lib/function";
@@ -82,13 +82,14 @@ export const validateHttpSignatureWithEconding = (
       url: request.url,
       method: request.method,
       body,
+      // TODO: `as Verifier` is introduced as a temporary fix but it MUST be addressed since the function works only with the algorithms defined by us.
       verifier: {
         verify: getCustomVerifyWithEncoding(dsaEncoding)({
           [thumbprint]: {
             key: publicKey
           }
         })
-      }
+      } as Verifier
     })),
     TE.chain(params =>
       TE.tryCatch(async () => verifySignatureHeader(params), E.toError)
