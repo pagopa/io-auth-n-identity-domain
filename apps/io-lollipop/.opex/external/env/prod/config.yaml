@@ -1,0 +1,13 @@
+oa3_spec: openapi/external.yaml
+name: OPEX Lollipop - External
+location: West Europe
+timespan: 10m
+resource_type: api-management
+data_source: /subscriptions/ec285037-c673-4f58-b594-d7c480da4e8b/resourceGroups/io-p-rg-external/providers/Microsoft.Network/applicationGateways/io-p-appgateway
+action_groups:
+  - /subscriptions/ec285037-c673-4f58-b594-d7c480da4e8b/resourceGroups/io-p-rg-common/providers/Microsoft.Insights/actiongroups/iopquarantineerror
+overrides:
+  hosts:
+    - api.io.pagopa.it
+    - api.io.italia.it
+    - api-app.internal.io.pagopa.it
