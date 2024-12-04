@@ -155,6 +155,10 @@ module "function_web_profile" {
     local.function_ioweb_profile.app_settings
   )
 
+  subnet_service_endpoints = {
+    web = true
+  }
+
   application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
 
   action_group_id = azurerm_monitor_action_group.error_action_group.id
