@@ -6,8 +6,8 @@ import * as E from "fp-ts/Either";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { Second } from "@pagopa/ts-commons/lib/units";
 
-import * as jwt_with_key_rotation from "../jwt_with_key_rotation.ts";
-import { getGenerateJWT, getValidateJWT } from "../jwt_with_key_rotation";
+import * as jwt_with_key_rotation from "./../jwt_with_key_rotation";
+import { getGenerateJWT, getValidateJWT } from "./../jwt_with_key_rotation";
 
 import {
   aDifferentPrivateKey,
@@ -19,14 +19,6 @@ const issuer = "test-issuer" as NonEmptyString;
 
 const aPayload = { a: "a", b: 1 };
 const aTtl = 7200 as Second;
-
-vi.mock(import("../jwt_with_key_rotation.ts"), async (importOriginal) => {
-  const actual = await importOriginal()
-  return {
-    ...actual,
-    validateJWTWithKey: vi.fn().mockImplementation(() => { console.log("$$$") }),
-  }
-})
 
 const spy_validateJWTWithKey = vi.spyOn(
   jwt_with_key_rotation,
