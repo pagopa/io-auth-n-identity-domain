@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import * as TE from "fp-ts/TaskEither";
 import { AssertionFileName } from "../generated/definitions/internal/AssertionFileName";
 
@@ -9,7 +10,7 @@ import { aRetrievedPendingLollipopPubKeySha256 } from "./lollipopPubKey.mock";
 
 export const anAssertionContent = "an Assertion";
 
-export const publicKeyDocumentReaderMock = jest.fn(
+export const publicKeyDocumentReaderMock = vi.fn(
   (assertionRef: AssertionRef) =>
     TE.of({
       ...aRetrievedPendingLollipopPubKeySha256,
@@ -19,7 +20,7 @@ export const publicKeyDocumentReaderMock = jest.fn(
     }) as ReturnType<PublicKeyDocumentReader>
 );
 
-export const assertionReaderMock = jest.fn(
+export const assertionReaderMock = vi.fn(
   (_: AssertionFileName) =>
     TE.of(anAssertionContent) as ReturnType<AssertionReader>
 );

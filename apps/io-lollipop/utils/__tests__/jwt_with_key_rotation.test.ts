@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as jwt from "jsonwebtoken";
 
 import * as E from "fp-ts/Either";
@@ -5,7 +6,7 @@ import * as E from "fp-ts/Either";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { Second } from "@pagopa/ts-commons/lib/units";
 
-import { IConfig } from "../config";
+import * as jwt_with_key_rotation from "../jwt_with_key_rotation.ts";
 import { getGenerateJWT, getValidateJWT } from "../jwt_with_key_rotation";
 
 import {
@@ -19,14 +20,21 @@ const issuer = "test-issuer" as NonEmptyString;
 const aPayload = { a: "a", b: 1 };
 const aTtl = 7200 as Second;
 
-const jwt_with_key_rotation = require("../jwt_with_key_rotation");
-const spy_validateJWTWithKey = jest.spyOn(
+vi.mock(import("../jwt_with_key_rotation.ts"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    validateJWTWithKey: vi.fn().mockImplementation(() => { console.log("$$$") }),
+  }
+})
+
+const spy_validateJWTWithKey = vi.spyOn(
   jwt_with_key_rotation,
   "validateJWTWithKey"
 );
 
 describe("getGenerateJWT", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
 
   it("should generate a valid JWT", async () => {
     const generateJWT = getGenerateJWT(issuer, aPrimaryKey.privateKey);
@@ -40,7 +48,7 @@ describe("getGenerateJWT", () => {
 });
 
 describe("getValidateJWT - Success", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
 
   it("should succeed validating a valid JWT generated with primary key, during standard period", async () => {
     // Setup
@@ -56,6 +64,7 @@ describe("getValidateJWT - Success", () => {
       )(token.right)();
 
       checkDecodedToken(result);
+
       expect(spy_validateJWTWithKey).toHaveBeenCalledTimes(1);
     }
   });
@@ -100,7 +109,7 @@ describe("getValidateJWT - Success", () => {
 });
 
 describe("getValidateJWT - Failure", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
 
   const delay = (ms: number): Promise<void> =>
     new Promise(resolve => setTimeout(resolve, ms));

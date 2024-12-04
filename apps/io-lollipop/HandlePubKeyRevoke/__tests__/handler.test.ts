@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as TE from "fp-ts/TaskEither";
 import * as O from "fp-ts/Option";
 import { handleRevoke } from "../handler";
@@ -18,14 +19,14 @@ import { AssertionFileName } from "../../generated/definitions/internal/Assertio
 
 const contextMock = {
   log: {
-    error: jest.fn()
+    error: vi.fn()
   },
   executionContext: { retryContext: { retryCount: 1, maxRetryCount: 5 } }
 } as any;
 
 const mockAppinsights = {
-  trackEvent: jest.fn().mockReturnValue(void 0),
-  trackException: jest.fn().mockReturnValue(void 0)
+  trackEvent: vi.fn().mockReturnValue(void 0),
+  trackException: vi.fn().mockReturnValue(void 0)
 };
 
 const aValidAssertionRef = "sha256-9f86d081884c7d659a2feaa0c55ad015a3bf4f1234" as AssertionRef;
@@ -67,11 +68,11 @@ const aNotPendingLollipopPubKey: NotPendingLolliPopPubKeys = {
   status: PubKeyStatusEnum.VALID
 };
 
-const findLastVersionByModelIdMock = jest
+const findLastVersionByModelIdMock = vi
   .fn()
   .mockImplementation(() => TE.of(O.some({})));
 
-const upsertMock = jest.fn().mockImplementation(() => TE.of({}));
+const upsertMock = vi.fn().mockImplementation(() => TE.of({}));
 const lollipopKeysModelMock = {
   findLastVersionByModelId: findLastVersionByModelIdMock,
   upsert: upsertMock
@@ -81,7 +82,7 @@ const masterAlgo = JwkPubKeyHashAlgorithmEnum.sha512;
 
 describe("handleRevoke", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("GIVEN a malformed revoke message WHEN decoding input THEN it should return a Permanent Failure", async () => {

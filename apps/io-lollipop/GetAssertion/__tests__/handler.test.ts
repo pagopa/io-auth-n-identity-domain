@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import * as TE from "fp-ts/TaskEither";
 
 import { IAzureApiAuthorization } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/azure_api_auth";
@@ -29,7 +30,7 @@ import { TelemetryClient } from "applicationinsights";
 import { ResponseErrorForbiddenNotAuthorized } from "@pagopa/ts-commons/lib/responses";
 
 const loggerMock = {
-  trackEvent: jest.fn(e => {
+  trackEvent: vi.fn(e => {
     return void 0;
   })
 };
@@ -64,7 +65,7 @@ useWinstonFor({
 
 describe("GetAssertionHandler - Success", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test.each`
@@ -135,7 +136,7 @@ describe("GetAssertionHandler - Success", () => {
 
 describe("GetAssertionHandler - Failure", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test(`

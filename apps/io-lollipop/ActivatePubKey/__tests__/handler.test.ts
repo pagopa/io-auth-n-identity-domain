@@ -1,4 +1,4 @@
-import * as jose from "jose";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
 import {
@@ -39,6 +39,10 @@ import { withApplicationInsight } from "@pagopa/io-functions-commons/dist/src/ut
 import { AzureContextTransport } from "@pagopa/io-functions-commons/dist/src/utils/logging";
 import { TelemetryClient } from "applicationinsights";
 
+function fail(reason = "fail was called in a test."): never {
+  throw new Error(reason);
+}
+
 const aFiscalCode = "SPNDNL80A13Y555X" as FiscalCode;
 const expiresAtDate = new Date(); // Now
 
@@ -75,7 +79,7 @@ const aPendingRetrievedPopDocumentWithMasterAlgo = {
   assertionFileName: `${aFiscalCode}-${aValidSha512AssertionRef}`
 };
 
-const publicKeyDocumentReaderMock = jest.fn(
+const publicKeyDocumentReaderMock = vi.fn(
   (assertionRef: AssertionRef) =>
     TE.of({
       ...aRetrievedPendingLollipopPubKeySha256,
@@ -85,7 +89,7 @@ const publicKeyDocumentReaderMock = jest.fn(
     }) as ReturnType<PublicKeyDocumentReader>
 );
 
-const popDocumentWriterMock = jest.fn(
+const popDocumentWriterMock = vi.fn(
   (item: NewLolliPopPubKeys) =>
     TE.of({
       ...aRetrievedPendingLollipopPubKeySha256,
@@ -95,7 +99,7 @@ const popDocumentWriterMock = jest.fn(
       ttl: TTL_VALUE_AFTER_UPDATE
     }) as ReturnType<PopDocumentWriter>
 );
-const assertionWriterMock = jest.fn(
+const assertionWriterMock = vi.fn(
   () => TE.of(true) as ReturnType<AssertionWriter>
 );
 
@@ -109,7 +113,7 @@ const aValidPayload: ActivatePubKeyPayload = {
 const FN_LOG_NAME = "activate-pubkey";
 
 const loggerMock = {
-  trackEvent: jest.fn(e => {
+  trackEvent: vi.fn(e => {
     return void 0;
   })
 };
@@ -135,7 +139,7 @@ useWinstonFor({
 
 describe("activatePubKey handler", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should success given valid informations when used algo DIFFERENT FROM master algo", async () => {
@@ -274,7 +278,7 @@ describe("activatePubKey handler", () => {
 
 describe("ActivatePubKey - Errors", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should return 500 Error when assertionRef doen not exists", async () => {

@@ -1,3 +1,4 @@
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import * as E from "fp-ts/lib/Either";
 import * as tk from "timekeeper";
 
@@ -15,7 +16,7 @@ import {
 } from "../../__mocks__/lollipopkeysMock";
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 const mockedNowTime = new Date(TTL_VALUE_FOR_RESERVATION * 1000);

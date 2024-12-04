@@ -1,3 +1,5 @@
+import { describe, expect, test, vi } from "vitest";
+
 import * as E from "fp-ts/Either";
 
 import { Client } from "../../generated/definitions/external/client";
@@ -22,7 +24,7 @@ import { AssertionRef } from "../../generated/definitions/internal/AssertionRef"
 // mocks
 // -----------------
 
-const getAssertionMock = jest.fn(async () =>
+const getAssertionMock = vi.fn(async () =>
   E.right({
     status: 200,
     value: { response_xml: aSAMLResponse }

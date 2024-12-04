@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorResponse } from "@azure/cosmos";
 import { BlobService } from "azure-storage";
 
@@ -39,13 +40,13 @@ import { AssertionFileName } from "../../generated/definitions/internal/Assertio
 // Mocks
 // --------------------------
 
-const findLastVersionByModelIdMock = jest
+const findLastVersionByModelIdMock = vi
   .fn()
   .mockImplementation(() =>
     TE.of(O.some(aRetrievedPendingLollipopPubKeySha256))
   );
 
-const upsertMock = jest
+const upsertMock = vi
   .fn()
   .mockImplementation(item => TE.of({ ...aCosmosResourceMetadata, ...item }));
 
@@ -54,7 +55,7 @@ const lollipopPubKeysModelMock = ({
   upsert: upsertMock
 } as unknown) as LolliPOPKeysModel;
 
-const upsertBlobFromTextMock = jest.spyOn(fn_commons, "upsertBlobFromText");
+const upsertBlobFromTextMock = vi.spyOn(fn_commons, "upsertBlobFromText");
 upsertBlobFromTextMock.mockImplementation(async () =>
   E.right(O.fromNullable({ name: "blob" } as BlobService.BlobResult))
 );
@@ -77,7 +78,7 @@ const newDocument: NewLolliPopPubKeys = {
 // --------------------------
 
 describe("PopDocumentWriter", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
 
   it("should return the stored popDocument", async () => {
     const popDocumentWriter = getPopDocumentWriter(lollipopPubKeysModelMock);
@@ -112,7 +113,7 @@ describe("PopDocumentWriter", () => {
 });
 
 describe("AssertionWriter", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
 
   const containerName = "container-name" as NonEmptyString;
 

@@ -1,6 +1,7 @@
+import { vi } from "vitest";
 import { BlobService } from "azure-storage";
 
-export const doesBlobExistMock = jest.fn((_, __, callback) =>
+export const doesBlobExistMock = vi.fn((_, __, callback) =>
   callback(undefined, { exists: false })
 );
 

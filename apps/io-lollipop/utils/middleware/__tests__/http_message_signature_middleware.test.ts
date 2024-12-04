@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import * as express from "express";
 
 import * as E from "fp-ts/Either";
@@ -33,7 +34,7 @@ const baseReq = ({
 
 describe("HttpMessageSignatureMiddleware - Success", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test(`GIVEN a request with a signature

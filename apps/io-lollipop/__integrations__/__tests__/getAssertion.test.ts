@@ -1,3 +1,4 @@
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { exit } from "process";
 import * as date_fns from "date-fns";
 import * as jwt from "jsonwebtoken";
@@ -53,8 +54,7 @@ import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
 import { ulid } from "ulid";
 
 const MAX_ATTEMPT = 50;
-
-jest.setTimeout(WAIT_MS * MAX_ATTEMPT);
+const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
 
 const customHeaders = {
   "x-user-groups": "ApiLollipopAssertionRead",
@@ -102,7 +102,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 const cosmosInstance = cosmosClient.database(COSMOSDB_NAME);
@@ -128,7 +128,7 @@ const validActivatePubKeyPayload: ActivatePubKeyPayload = {
 // -------------------------
 
 describe("getAssertion |> Validation Failures", () => {
-  it("should fail when the required permissions are not met", async () => {
+  it("should fail when the required permissions are not met", { timeout: TIMEOUT }, async () => {
     const myFetchWithoutHeaders = (getNodeFetch() as unknown) as typeof fetch;
 
     const response = await fetchGetAssertion(
@@ -149,7 +149,7 @@ describe("getAssertion |> Validation Failures", () => {
     });
   });
 
-  it("should fail when an invalid assertionRef is passed to the endpoint", async () => {
+  it("should fail when an invalid assertionRef is passed to the endpoint", { timeout: TIMEOUT }, async () => {
     const anInvalidAssertionRef = "anInvalidAssertionRef";
 
     const response = await fetchGetAssertion(
@@ -168,7 +168,7 @@ describe("getAssertion |> Validation Failures", () => {
     });
   });
 
-  it("should fail when the jwt is not passed to the endpoint", async () => {
+  it("should fail when the jwt is not passed to the endpoint", { timeout: TIMEOUT }, async () => {
     const randomJwk = await generateJwkForTest();
     const randomAssertionRef = await generateAssertionRefForTest(randomJwk);
 
@@ -189,7 +189,7 @@ describe("getAssertion |> Validation Failures", () => {
     });
   });
 
-  it("should fail when an empty jwt is passed to the endpoint", async () => {
+  it("should fail when an empty jwt is passed to the endpoint", { timeout: TIMEOUT }, async () => {
     const anInvalidJwt = "";
     const randomJwk = await generateJwkForTest();
     const randomAssertionRef = await generateAssertionRefForTest(randomJwk);
@@ -211,7 +211,7 @@ describe("getAssertion |> Validation Failures", () => {
     });
   });
 
-  it("should fail when an invalid jwt is passed to the endpoint", async () => {
+  it("should fail when an invalid jwt is passed to the endpoint", { timeout: TIMEOUT }, async () => {
     const anInvalidJwt = "anInvalidJwt";
     const randomJwk = await generateJwkForTest();
     const randomAssertionRef = await generateAssertionRefForTest(randomJwk);
@@ -233,7 +233,7 @@ describe("getAssertion |> Validation Failures", () => {
     });
   });
 
-  it("should fail when an valid jwt signed with a wrong private key is passed to the endpoint", async () => {
+  it("should fail when an valid jwt signed with a wrong private key is passed to the endpoint", { timeout: TIMEOUT }, async () => {
     const randomJwk = await generateJwkForTest();
     const randomAssertionRef = await generateAssertionRefForTest(randomJwk);
 
@@ -276,7 +276,7 @@ describe("getAssertion |> Validation Failures", () => {
     });
   });
 
-  it("should fail when the assertionRef in the endpoint does not match the one in the jwt", async () => {
+  it("should fail when the assertionRef in the endpoint does not match the one in the jwt", { timeout: TIMEOUT }, async () => {
     const lcParams = await setupTestAndGenerateLcParams();
 
     const anotherAssertionRef = aValidSha512AssertionRef;
@@ -298,7 +298,7 @@ describe("getAssertion |> Validation Failures", () => {
     });
   });
 
-  it("should fail when the document cannot be found in Cosmos", async () => {
+  it("should fail when the document cannot be found in Cosmos", { timeout: TIMEOUT }, async () => {
     const lcParams = await setupTestAndGenerateLcParams();
 
     // Recreate the DB to clean-up data
@@ -324,7 +324,7 @@ describe("getAssertion |> Validation Failures", () => {
     });
   });
 
-  it("should fail when the assertion cannot be found in Blob Storage", async () => {
+  it("should fail when the assertion cannot be found in Blob Storage", { timeout: TIMEOUT }, async () => {
     const lcParams = await setupTestAndGenerateLcParams();
 
     // Delete Blob to let retrieve fail later in the flow
@@ -353,7 +353,7 @@ describe("getAssertion |> Validation Failures", () => {
     });
   });
 
-  it("should fail when the jwt has expired", async () => {
+  it("should fail when the jwt has expired", { timeout: TIMEOUT }, async () => {
     const lcParams = await setupTestAndGenerateLcParams();
 
     await delay(5500);
@@ -377,7 +377,7 @@ describe("getAssertion |> Validation Failures", () => {
 });
 
 describe("getAssertion |> Success", () => {
-  it("should succeed when all requirements are met", async () => {
+  it("should succeed when all requirements are met", { timeout: TIMEOUT }, async () => {
     const lcParams = await setupTestAndGenerateLcParams();
 
     const response = await fetchGetAssertion(

@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorResponse } from "@azure/cosmos";
 import { StorageError } from "azure-storage";
 
@@ -23,20 +24,20 @@ import { anAssertionContent } from "../../__mocks__/readers.mock";
 // Mocks
 // --------------------------
 
-const findLastVersionByModelIdMock = jest
+const findLastVersionByModelIdMock = vi
   .fn()
   .mockImplementation(() =>
     TE.of(O.some(aRetrievedPendingLollipopPubKeySha256))
   );
 
-const upsertMock = jest.fn().mockImplementation(() => TE.of({}));
+const upsertMock = vi.fn().mockImplementation(() => TE.of({}));
 
 const lollipopPubKeysModelMock = ({
   findLastVersionByModelId: findLastVersionByModelIdMock,
   upsert: upsertMock
 } as unknown) as LolliPOPKeysModel;
 
-const getBlobAsTextMock = jest.spyOn(fn_commons, "getBlobAsText");
+const getBlobAsTextMock = vi.spyOn(fn_commons, "getBlobAsText");
 getBlobAsTextMock.mockImplementation(
   async (blobService, containerName, assertionName) =>
     E.right(O.some(anAssertionContent))
@@ -47,7 +48,7 @@ getBlobAsTextMock.mockImplementation(
 // --------------------------
 
 describe("PublicKeyDocumentReader", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
 
   it("should return the existing popDocument", async () => {
     const publicKeyDocumentReader = getPublicKeyDocumentReader(
@@ -95,7 +96,7 @@ describe("PublicKeyDocumentReader", () => {
 });
 
 describe("AssertionReader", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
 
   it("should return the existing assertion", async () => {
     const assertionReader = getAssertionReader(

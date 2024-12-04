@@ -1,4 +1,5 @@
 import * as date_fns from "date-fns";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useWinstonFor } from "@pagopa/winston-ts";
 import { LoggerId } from "@pagopa/winston-ts/dist/types/logging";
@@ -66,7 +67,7 @@ const aValidRetrievedLollipopPubKey: NotPendingLolliPopPubKeys = {
   ...aLolliPopPubKeys
 };
 
-const publicKeyDocumentReaderMock = jest
+const publicKeyDocumentReaderMock = vi
   .fn()
   .mockImplementation(
     () =>
@@ -74,13 +75,13 @@ const publicKeyDocumentReaderMock = jest
         PublicKeyDocumentReader
       >
   );
-const anAuthJwtGeneratorMock = jest
+const anAuthJwtGeneratorMock = vi
   .fn()
   .mockImplementation(_ => TE.of(anAuthJwt));
 
 describe("GenerateLCParamsHandler", () => {
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("GIVEN a valid input WHEN retrieve operation on cosmos fail THEN it should return an Internal server error", async () => {

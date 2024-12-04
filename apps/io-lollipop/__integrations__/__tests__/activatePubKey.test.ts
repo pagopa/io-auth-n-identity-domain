@@ -1,3 +1,4 @@
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { exit } from "process";
 
 import * as TE from "fp-ts/TaskEither";
@@ -47,8 +48,7 @@ import { CosmosClient } from "@azure/cosmos";
 import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
 
 const MAX_ATTEMPT = 50;
-
-jest.setTimeout(WAIT_MS * MAX_ATTEMPT);
+const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
 
 const baseUrl = "http://function:7071";
 const myFetch = getNodeFetch();
@@ -85,7 +85,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 const cosmosInstance = cosmosClient.database(COSMOSDB_NAME);
@@ -106,7 +106,7 @@ const validActivatePubKeyPayload: ActivatePubKeyPayload = {
 // -------------------------
 
 describe("activatePubKey |> Validation Failures", () => {
-  it("should fail when an invalid assertionRef is passed to the endpoint", async () => {
+  it("should fail when an invalid assertionRef is passed to the endpoint", { timeout: TIMEOUT }, async () => {
     const anInvalidAssertionRef = `anInvalidAssertionRef`;
 
     const response = await fetchActivatePubKey(
@@ -124,7 +124,7 @@ describe("activatePubKey |> Validation Failures", () => {
     });
   });
 
-  it("should fail when an invalid payload is passed to the endpoint", async () => {
+  it("should fail when an invalid payload is passed to the endpoint", { timeout: TIMEOUT }, async () => {
     const response = await fetchActivatePubKey(
       aValidSha256AssertionRef,
       { ...validActivatePubKeyPayload, fiscal_code: "anInvalidFiscalCode" },
@@ -142,7 +142,7 @@ describe("activatePubKey |> Validation Failures", () => {
 });
 
 describe("activatePubKey |> Failures", () => {
-  it("should return 500 Error when document cannot be found in cosmos", async () => {
+  it("should return 500 Error when document cannot be found in cosmos", { timeout: TIMEOUT }, async () => {
     const randomJwk = await generateJwkForTest();
     const randomAssertionRef = await generateAssertionRefForTest(randomJwk);
 
@@ -162,7 +162,7 @@ describe("activatePubKey |> Failures", () => {
     });
   });
 
-  it("should return 403 when the retrieved pop document has status DIFFERENT FROM PENDING", async () => {
+  it("should return 403 when the retrieved pop document has status DIFFERENT FROM PENDING", { timeout: TIMEOUT }, async () => {
     const randomJwk = await generateJwkForTest();
     const randomAssertionRef = await generateAssertionRefForTest(randomJwk);
     const randomAssertionFileName = `${aFiscalCode}-${randomAssertionRef}` as AssertionFileName;
@@ -200,7 +200,7 @@ describe("activatePubKey |> Failures", () => {
 });
 
 describe("activatePubKey |> Success Results", () => {
-  it("should succeed when valid payload is passed to the endpoint AND when algo DIFFERS FROM master", async () => {
+  it("should succeed when valid payload is passed to the endpoint AND when algo DIFFERS FROM master", { timeout: TIMEOUT }, async () => {
     const randomJwk = await generateJwkForTest();
     const reserveResult = await fetchReservePubKey(
       { pub_key: randomJwk, algo: JwkPubKeyHashAlgorithmEnum.sha256 },
@@ -287,7 +287,7 @@ describe("activatePubKey |> Success Results", () => {
     );
   });
 
-  it("should succeed when valid payload is passed to the endpoint AND when algo EQUALS TO master", async () => {
+  it("should succeed when valid payload is passed to the endpoint AND when algo EQUALS TO master", { timeout: TIMEOUT }, async () => {
     const randomJwk = await generateJwkForTest();
     const randomAssertionRef = await generateAssertionRefForTest(
       randomJwk,

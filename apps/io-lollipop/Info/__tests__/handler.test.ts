@@ -1,9 +1,10 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { HealthProblem } from "@pagopa/io-functions-commons/dist/src/utils/healthcheck";
 import * as TE from "fp-ts/lib/TaskEither";
 import { InfoHandler } from "../handler";
 
 afterEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 describe("InfoHandler", () => {

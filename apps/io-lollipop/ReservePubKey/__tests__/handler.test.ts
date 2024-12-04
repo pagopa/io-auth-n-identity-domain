@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import * as TE from "fp-ts/TaskEither";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
@@ -28,6 +29,8 @@ import { withApplicationInsight } from "@pagopa/io-functions-commons/dist/src/ut
 import { AzureContextTransport } from "@pagopa/io-functions-commons/dist/src/utils/logging";
 import { TelemetryClient } from "applicationinsights";
 
+import * as lollipopKeysUtils from "../../utils/lollipopKeys";
+
 const mockCreatePendingLollipop = (pendingLollipop: PendingLolliPopPubKeys) =>
   Promise.resolve({
     resource: {
@@ -42,7 +45,7 @@ const mockCreatePendingLollipop = (pendingLollipop: PendingLolliPopPubKeys) =>
 const FN_LOG_NAME = "reserve-pubkey";
 
 const loggerMock = {
-  trackEvent: jest.fn(e => {
+  trackEvent: vi.fn(e => {
     return void 0;
   })
 };
@@ -66,15 +69,14 @@ useWinstonFor({
   transports: [azureContextTransport]
 });
 
-const lollipopKeysUtils = require("../../utils/lollipopKeys");
-const getAllAssertionsRef = jest.spyOn(
+const getAllAssertionsRef = vi.spyOn(
   lollipopKeysUtils,
   "getAllAssertionsRef"
 );
 
 describe("reserveSingleKey", () => {
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test("GIVEN a working model WHEN reserve a pub_key THEN call the cosmos create and return the RetriveLollipop", async () => {
@@ -136,7 +138,7 @@ describe("reserveSingleKey", () => {
 
 describe("reservePubKeys", () => {
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test("GIVEN a working model WHEN getAllAssertionsRef fails THEN an internal error is returned", async () => {

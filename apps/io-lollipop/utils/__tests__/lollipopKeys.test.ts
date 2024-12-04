@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { AssertionRef } from "@pagopa/io-functions-commons/dist/generated/definitions/lollipop/AssertionRef";
 import { JwkPublicKey } from "@pagopa/ts-commons/lib/jwk";
 import { JwkPubKeyHashAlgorithmEnum } from "../../generated/definitions/internal/JwkPubKeyHashAlgorithm";

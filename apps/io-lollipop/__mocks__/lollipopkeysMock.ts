@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { Container } from "@azure/cosmos";
 import { AssertionRef } from "@pagopa/io-functions-commons/dist/generated/definitions/lollipop/AssertionRef";
 import { AssertionTypeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/lollipop/AssertionType";
@@ -51,15 +52,15 @@ export const aRetrievedLolliPopPubKeys: RetrievedLolliPopPubKeys = {
 };
 
 export const mockContainer = () => {
-  const create = jest.fn().mockImplementation(() =>
+  const create = vi.fn().mockImplementation(() =>
     Promise.resolve({
       resource: { ...aRetrievedLolliPopPubKeys, ttl: TTL_VALUE_FOR_RESERVATION }
     })
   );
-  const fetchAll = jest.fn().mockImplementation(async () => ({
+  const fetchAll = vi.fn().mockImplementation(async () => ({
     resources: []
   }));
-  const upsert = jest.fn().mockImplementation(() =>
+  const upsert = vi.fn().mockImplementation(() =>
     Promise.resolve({
       resource: aRetrievedLolliPopPubKeys
     })
@@ -70,7 +71,7 @@ export const mockContainer = () => {
     container: ({
       items: {
         create,
-        query: jest.fn(() => ({
+        query: vi.fn(() => ({
           fetchAll
         })),
         upsert

@@ -1,16 +1,17 @@
+import { vi } from "vitest";
 import { Context } from "@azure/functions";
 import { TelemetryClient } from "applicationinsights";
 
 export const contextMock = ({
   log: {
-    error: jest.fn(),
-    info: jest.fn(),
-    verbose: jest.fn(),
-    warn: jest.fn()
+    error: vi.fn(),
+    info: vi.fn(),
+    verbose: vi.fn(),
+    warn: vi.fn()
   },
   executionContext: {}
 } as unknown) as Context;
 
 export const telemetryClientMock = ({
-  trackEvent: jest.fn()
+  trackEvent: vi.fn()
 } as unknown) as TelemetryClient;
