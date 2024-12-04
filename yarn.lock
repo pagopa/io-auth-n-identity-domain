@@ -1894,7 +1894,39 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/io-functions-commons@npm:^28.1.0, @pagopa/io-functions-commons@npm:^28.2.0":
+"@pagopa/io-functions-commons@npm:28.1.0":
+  version: 28.1.0
+  resolution: "@pagopa/io-functions-commons@npm:28.1.0"
+  dependencies:
+    "@azure/cosmos": "npm:^3.17.1"
+    "@pagopa/ts-commons": "npm:^11.0.0"
+    applicationinsights: "npm:^1.8.10"
+    azure-storage: "npm:^2.10.5"
+    cidr-matcher: "npm:^2.1.1"
+    fp-ts: "npm:^2.10.5"
+    helmet: "npm:^4.6.0"
+    helmet-csp: "npm:^2.5.1"
+    io-ts: "npm:^2.2.16"
+    node-fetch: "npm:^2.6.1"
+    nodemailer: "npm:^6.6.1"
+    nodemailer-sendgrid: "npm:^1.0.3"
+    referrer-policy: "npm:^1.1.0"
+    rehype-stringify: "npm:^3.0.0"
+    remark-frontmatter: "npm:^2.0.0"
+    remark-parse: "npm:^5.0.0"
+    remark-rehype: "npm:^3.0.0"
+    request-ip: "npm:^3.3.0"
+    ulid: "npm:^2.3.0"
+    unified: "npm:^9.2.2"
+    winston: "npm:^3.1.0"
+  peerDependencies:
+    "@azure/functions": ^3.2.0
+    express: ^4.15.3
+  checksum: 10c0/50e6fa6206e7529efb456f88537c19e5893d30246b007784a6e1499365816131ba4111f88bb6bcecfa23d71d3bd6d857a95a4f7904dac9a38b2df8f51745637b
+  languageName: node
+  linkType: hard
+
+"@pagopa/io-functions-commons@npm:^28.2.0":
   version: 28.22.0
   resolution: "@pagopa/io-functions-commons@npm:28.22.0"
   dependencies:
@@ -2042,6 +2074,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@pagopa/ts-commons@npm:10.12.0":
+  version: 10.12.0
+  resolution: "@pagopa/ts-commons@npm:10.12.0"
+  dependencies:
+    abort-controller: "npm:^3.0.0"
+    agentkeepalive: "npm:^4.1.4"
+    applicationinsights: "npm:^1.8.10"
+    fp-ts: "npm:^2.11.0"
+    io-ts: "npm:^2.2.16"
+    jose: "npm:^4.11.2"
+    json-set-map: "npm:^1.1.2"
+    node-fetch: "npm:^2.6.0"
+    semver: "npm:^7.3.7"
+    validator: "npm:^13.7.0"
+  checksum: 10c0/8c4ad99880633034439cc51b6921666a0c4d3ddd463e711a0f863960cc87fa07bac19cedc89a0e3e24078920e09c8db9eb01c97b2de9cb1118504143ead0e520
+  languageName: node
+  linkType: hard
+
 "@pagopa/ts-commons@npm:^10.0.0, @pagopa/ts-commons@npm:^10.15.0":
   version: 10.15.0
   resolution: "@pagopa/ts-commons@npm:10.15.0"
@@ -2057,6 +2107,24 @@ __metadata:
     semver: "npm:^7.3.7"
     validator: "npm:^13.7.0"
   checksum: 10c0/db664175aa6e0e2b74240d78cf3b7472c5c20c72de661eb050fd03970a2a7ae2fa1aa152d7bee2da84c290c77adaad686fa6a4a6ec47bba294db70cc1c971b02
+  languageName: node
+  linkType: hard
+
+"@pagopa/ts-commons@npm:^11.0.0":
+  version: 11.0.0
+  resolution: "@pagopa/ts-commons@npm:11.0.0"
+  dependencies:
+    abort-controller: "npm:^3.0.0"
+    agentkeepalive: "npm:^4.1.4"
+    applicationinsights: "npm:^1.8.10"
+    fp-ts: "npm:^2.11.0"
+    io-ts: "npm:^2.2.16"
+    jose: "npm:^4.11.2"
+    json-set-map: "npm:^1.1.2"
+    node-fetch: "npm:^2.6.0"
+    semver: "npm:^7.3.7"
+    validator: "npm:^13.7.0"
+  checksum: 10c0/5bfe912a3844bf6f9cca48ddce70b2c9b4cb96e93d205cee9bf93f31d2c432b1c98cdd7ae2b9c58f23a520ad6def91536cd230902d1aeed87f1d9f01a9afddb9
   languageName: node
   linkType: hard
 
@@ -3990,7 +4058,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"applicationinsights@npm:^1.8.10":
+"applicationinsights@npm:1.8.10, applicationinsights@npm:^1.8.10":
   version: 1.8.10
   resolution: "applicationinsights@npm:1.8.10"
   dependencies:
@@ -8903,9 +8971,9 @@ __metadata:
     "@mattrglobal/http-signatures": "npm:^4.0.1"
     "@pagopa/eslint-config": "npm:^1.3.1"
     "@pagopa/express-azure-functions": "npm:^2.0.0"
-    "@pagopa/io-functions-commons": "npm:^28.1.0"
+    "@pagopa/io-functions-commons": "npm:28.1.0"
     "@pagopa/openapi-codegen-ts": "npm:^12.2.0"
-    "@pagopa/ts-commons": "npm:^13.1.0"
+    "@pagopa/ts-commons": "npm:10.12.0"
     "@pagopa/winston-ts": "npm:^2.2.0"
     "@types/express": "npm:^4.17.12"
     "@types/jsonwebtoken": "npm:^9.0.1"
@@ -8915,7 +8983,7 @@ __metadata:
     "@types/xml-crypto": "npm:^1.4.2"
     "@vitest/coverage-v8": "npm:2.1.8"
     "@xmldom/xmldom": "npm:^0.8.10"
-    applicationinsights: "npm:^2.9.5"
+    applicationinsights: "npm:1.8.10"
     azure-storage: "npm:^2.10.3"
     date-fns: "npm:^2.29.3"
     dependency-check: "npm:^4.1.0"
@@ -11344,6 +11412,13 @@ __metadata:
   dependencies:
     "@sendgrid/mail": "npm:^6.2.1"
   checksum: 10c0/880c88519732fe785240e0507b94d0bbe5e10ffbdf0113490421879179988bb2fa6cdebecec3d9a436159d4290194501d0b905999d5cb2ee0ce0b0fecd1bb78f
+  languageName: node
+  linkType: hard
+
+"nodemailer@npm:^6.6.1":
+  version: 6.9.16
+  resolution: "nodemailer@npm:6.9.16"
+  checksum: 10c0/9fd73ab4ab5b81544c3c9820afbe386369aba442f997b2f58d171222a898a7aed580fc100bfe6eebc194f18ba6e169d67ee40ca64d32d69022d89e575cef97a4
   languageName: node
   linkType: hard
 
