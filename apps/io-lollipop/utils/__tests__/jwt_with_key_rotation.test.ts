@@ -6,7 +6,7 @@ import * as E from "fp-ts/Either";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { Second } from "@pagopa/ts-commons/lib/units";
 
-import * as jwt_with_key_rotation from "./../jwt_with_key_rotation";
+import * as validate_jwt_with_key from "./../validate_jwt_with_key";
 import { getGenerateJWT, getValidateJWT } from "./../jwt_with_key_rotation";
 
 import {
@@ -21,7 +21,7 @@ const aPayload = { a: "a", b: 1 };
 const aTtl = 7200 as Second;
 
 const spy_validateJWTWithKey = vi.spyOn(
-  jwt_with_key_rotation,
+  validate_jwt_with_key,
   "validateJWTWithKey"
 );
 

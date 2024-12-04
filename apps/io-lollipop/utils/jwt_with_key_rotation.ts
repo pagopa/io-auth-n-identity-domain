@@ -9,10 +9,11 @@ import * as O from "fp-ts/Option";
 
 import { Second } from "@pagopa/ts-commons/lib/units";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { validateJWTWithKey } from "./validate_jwt_with_key";
 
 // --------------------
 
-const alg = "RS256";
+export const alg = "RS256";
 
 // -----------------------
 // Public methods
@@ -78,38 +79,5 @@ export const getValidateJWT: GetValidateJWT = (
         O.map(key => validateJWTWithKey(issuer, key)(token)),
         O.getOrElse(() => TE.left(err))
       )
-    )
-  );
-
-// -----------------------
-// Private methods
-// -----------------------
-export const validateJWTWithKey: (
-  issuer: NonEmptyString,
-  key: NonEmptyString
-) => (token: NonEmptyString) => TE.TaskEither<Error, jwt.JwtPayload> = (
-  issuer,
-  key
-) => (token): TE.TaskEither<Error, jwt.JwtPayload> =>
-  pipe(
-    TE.tryCatch(
-      () =>
-        new Promise<jwt.JwtPayload>((resolve, reject) => {
-          jwt.verify(
-            token,
-            key,
-            { algorithms: [alg], issuer },
-            (err, decoded) => {
-              if (err) {
-                reject(new Error(`${err.name} - ${err.message}`));
-              } else if (!decoded) {
-                reject("Unable to decode token");
-              } else {
-                resolve(decoded as jwt.JwtPayload);
-              }
-            }
-          );
-        }),
-      E.toError
     )
   );
