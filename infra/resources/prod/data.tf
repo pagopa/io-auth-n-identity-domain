@@ -39,5 +39,5 @@ data "azurerm_app_service_plan" "shared_plan_itn" {
 
 data "azurerm_storage_account" "lollipop_assertion_storage" {
   name                = replace(format("%s-lollipop-assertions-st", local.common_project), "-", "")
-  resource_group_name = format("%s-%s-data-rg", local.common_project, local.full_domain)
+  resource_group_name = format("%s-%s-data-rg", local.common_project, local.legacy_domain)
 }

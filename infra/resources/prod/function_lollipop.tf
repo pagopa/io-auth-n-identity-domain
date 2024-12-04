@@ -80,10 +80,6 @@ module "function_lollipop" {
   subnet_cidr   = local.cidr_subnet_fn_lollipop
   subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
 
-  subnet_service_endpoints = {
-    web = true
-  }
-
   private_dns_zone_resource_group_name = data.azurerm_resource_group.rg_common.name
 
   virtual_network = {

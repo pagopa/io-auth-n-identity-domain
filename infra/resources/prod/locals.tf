@@ -7,7 +7,7 @@ locals {
   project            = "${local.prefix}-${local.env_short}-${local.location_short}"
   weu_project        = "${local.prefix}-${local.env_short}-${local.weu_location_short}"
   domain             = "auth"
-  full_domain        = "citizen-auth"
+  legacy_domain      = "citizen-${local.domain}"
 
   common_project = "${local.prefix}-${local.env_short}"
 
