@@ -53,7 +53,7 @@ locals {
 }
 
 resource "azurerm_resource_group" "function_lollipop_rg" {
-  name     = "${local.project}-${local.domain}-${local.function_lollipop.name}-rg-01"
+  name     = "${local.project}-${local.domain}-${local.function_lollipop.name}-rg-02"
   location = local.location
 
   tags = local.tags
