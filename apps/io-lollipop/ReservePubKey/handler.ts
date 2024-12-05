@@ -1,4 +1,4 @@
-import * as express from "express";
+import express from "express";
 import { withRequestMiddlewares } from "@pagopa/ts-commons/lib/request_middleware";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";

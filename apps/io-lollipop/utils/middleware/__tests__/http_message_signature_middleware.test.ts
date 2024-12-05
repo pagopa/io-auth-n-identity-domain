@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import * as express from "express";
+import express from "express";
 
 import * as E from "fp-ts/Either";
 import { AlgorithmTypes } from "@mattrglobal/http-signatures";

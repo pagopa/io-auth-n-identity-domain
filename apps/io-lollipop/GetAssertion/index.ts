@@ -1,5 +1,5 @@
 import { Context } from "@azure/functions";
-import * as express from "express";
+import express from "express";
 
 import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
 import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";

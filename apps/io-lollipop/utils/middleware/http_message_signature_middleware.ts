@@ -2,7 +2,7 @@
 // TODO: Move this file into io-functions-commons
 
 import * as crypto_lib from "crypto";
-import * as express from "express";
+import express from "express";
 import { Verifier, verifySignatureHeader } from "@mattrglobal/http-signatures";
 import * as jwkToPem from "jwk-to-pem";
 
@@ -122,7 +122,7 @@ export const keyToPem = (key: JwkPublicKey): E.Either<Error, string> =>
 export const HttpMessageSignatureMiddleware = (): IRequestMiddleware<
   "IResponseErrorValidation" | "IResponseErrorInternal",
   true
-> => async (
+> => (
   request
 ): ReturnType<
   IRequestMiddleware<

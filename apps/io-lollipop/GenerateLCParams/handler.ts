@@ -1,4 +1,4 @@
-import * as express from "express";
+import express from "express";
 import { Context } from "@azure/functions";
 
 import { defaultLog, eventLog } from "@pagopa/winston-ts";

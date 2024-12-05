@@ -15,7 +15,7 @@ import {
   ResponseErrorInternal,
   ResponseSuccessJson
 } from "@pagopa/ts-commons/lib/responses";
-import * as express from "express";
+import express from "express";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";

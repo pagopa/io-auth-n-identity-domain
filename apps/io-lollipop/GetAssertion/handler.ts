@@ -1,4 +1,4 @@
-import * as express from "express";
+import express from "express";
 
 import * as TE from "fp-ts/lib/TaskEither";
 import { flow, pipe } from "fp-ts/lib/function";

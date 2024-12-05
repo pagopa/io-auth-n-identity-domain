@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import * as express from "express";
+import express from "express";
 import { wrapRequestHandler } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 import * as healthcheck from "@pagopa/io-functions-commons/dist/src/utils/healthcheck";
 import {
@@ -12,10 +12,12 @@ import {
 
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import * as packageJson from "../package.json";
 
 import { envConfig, IConfig } from "../utils/config";
 import { ApplicationInfo } from "../generated/definitions/internal/ApplicationInfo";
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageJson = require("../../package.json");
 
 type InfoHandler = () => Promise<
   IResponseSuccessJson<ApplicationInfo> | IResponseErrorInternal

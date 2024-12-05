@@ -1,5 +1,5 @@
 import { Context } from "@azure/functions";
-import * as express from "express";
+import express from "express";
 
 import { useWinstonFor } from "@pagopa/winston-ts";
 import { LoggerId } from "@pagopa/winston-ts/dist/types/logging";
