@@ -4,7 +4,7 @@
 import * as crypto_lib from "crypto";
 import express from "express";
 import { Verifier, verifySignatureHeader } from "@mattrglobal/http-signatures";
-import * as jwkToPem from "jwk-to-pem";
+import jwkToPem from "jwk-to-pem";
 
 import { constFalse, constTrue, flow, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
