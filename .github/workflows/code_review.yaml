@@ -70,6 +70,15 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           projectBaseDir: apps/io-fast-login/
+
+      - name: SonarCloud io-lollipop scan
+        if: steps.sonarcloud_filter.outputs.io-lollipop == 'true'
+        uses: SonarSource/sonarcloud-github-action@19888635fa64d24e533d388efe8264402dfd721b
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: apps/io-lollipop/
   e2e:
     runs-on: ubuntu-latest
     steps:
