@@ -1,0 +1,19 @@
+name: Deploy (io-lollipop)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_to_azure:
+    name: Deploy to Azure Function App
+    uses: pagopa/dx/.github/workflows/function_app_deploy.yaml@2503864ad284f0c19315f4e87b9e9e2addb45f47
+    with:
+      # '-cd' suffix added inside the pipeline
+      environment: apps-prod
+      resource_group_name: "io-p-itn-auth-lollipop-rg-02"
+      workspace_name: "io-lollipop"
+      function_app_name: "io-p-itn-auth-lollipop-func-02"
+      health_check_path: "/info"
+      use_staging_slot: true
+      use_private_agent: true
+    secrets: inherit
