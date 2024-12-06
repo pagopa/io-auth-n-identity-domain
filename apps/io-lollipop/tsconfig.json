@@ -3,8 +3,8 @@
   "extends": "@pagopa/typescript-config-node/tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": ".",
-    "sourceMap": true,    
+    "rootDir": "src",
+    "sourceMap": true,
     "inlineSources": true,
     "strict": true,
     "resolveJsonModule": false,
@@ -14,7 +14,7 @@
   },
   "exclude": [
     "dist",
-    "node_modules",    
+    "node_modules",
     "**/__mocks__/**",
     "**/__tests__/*",
     "**/__integrations__",
