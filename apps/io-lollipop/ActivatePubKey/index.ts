@@ -8,6 +8,7 @@ import { withApplicationInsight } from "@pagopa/io-functions-commons/dist/src/ut
 import { AzureContextTransport } from "@pagopa/io-functions-commons/dist/src/utils/logging";
 import { useWinstonFor } from "@pagopa/winston-ts";
 import { LoggerId } from "@pagopa/winston-ts/dist/types/logging";
+import Transport from "winston-transport";
 import {
   LolliPOPKeysModel,
   LOLLIPOPKEYS_COLLECTION_NAME
@@ -39,7 +40,10 @@ const telemetryClient = initTelemetryClient(
 
 // eslint-disable-next-line functional/no-let
 let logger: Context["log"];
-const azureContextTransport = new AzureContextTransport(() => logger, {});
+const azureContextTransport = (new AzureContextTransport(
+  () => logger,
+  {}
+) as unknown) as Transport;
 useWinstonFor({
   loggerId: LoggerId.event,
   transports: [

@@ -9,6 +9,7 @@ import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/ex
 import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 
 import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src/createAzureFunctionsHandler";
+import Transport from "winston-transport";
 
 import {
   LolliPOPKeysModel,
@@ -31,7 +32,10 @@ const telemetryClient = initTelemetryClient(
 
 // eslint-disable-next-line functional/no-let
 let logger: Context["log"];
-const azureContextTransport = new AzureContextTransport(() => logger, {});
+const azureContextTransport = (new AzureContextTransport(
+  () => logger,
+  {}
+) as unknown) as Transport;
 useWinstonFor({
   loggerId: LoggerId.event,
   transports: [
