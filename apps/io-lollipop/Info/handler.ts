@@ -13,11 +13,12 @@ import {
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 
+import {
+  getCurrentBackendVersion,
+  getValueFromPackageJson
+} from "../utils/package";
 import { envConfig, IConfig } from "../utils/config";
 import { ApplicationInfo } from "../generated/definitions/internal/ApplicationInfo";
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const packageJson = require("../../package.json");
 
 type InfoHandler = () => Promise<
   IResponseSuccessJson<ApplicationInfo> | IResponseErrorInternal
@@ -37,8 +38,8 @@ export const InfoHandler = (
     checkApplicationHealth,
     TE.map(_ =>
       ResponseSuccessJson({
-        name: packageJson.name,
-        version: packageJson.version
+        name: getValueFromPackageJson("name"),
+        version: getCurrentBackendVersion()
       })
     ),
     TE.mapLeft(problems => ResponseErrorInternal(problems.join("\n\n"))),

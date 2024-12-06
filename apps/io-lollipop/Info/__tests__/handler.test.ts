@@ -3,6 +3,11 @@ import { HealthProblem } from "@pagopa/io-functions-commons/dist/src/utils/healt
 import * as TE from "fp-ts/lib/TaskEither";
 import { InfoHandler } from "../handler";
 
+vi.mock("../../utils/package", () => ({
+  getCurrentBackendVersion: () => "1.0.0",
+  getValueFromPackageJson: () => "io-lollipop"
+}));
+
 afterEach(() => {
   vi.clearAllMocks();
 });
