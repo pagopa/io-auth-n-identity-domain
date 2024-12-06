@@ -36,3 +36,8 @@ data "azurerm_app_service_plan" "shared_plan_itn" {
   name                = format("%s-%s-shared-asp-01", local.project, "citizen-auth")
   resource_group_name = format("%s-%s-shared-rg-01", local.project, "citizen-auth")
 }
+
+data "azurerm_storage_account" "lollipop_assertion_storage" {
+  name                = replace(format("%s-lollipop-assertions-st", local.common_project), "-", "")
+  resource_group_name = format("%s-%s-data-rg", local.common_project, local.legacy_domain)
+}
