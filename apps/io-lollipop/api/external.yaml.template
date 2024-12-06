@@ -1,0 +1,117 @@
+openapi: 3.0.1
+info:
+  version: 0.0.0
+  title: IO Lollipop Function Lollipop Consumer API
+  x-logo:
+    url: https://io.italia.it/assets/img/io-logo-blue.svg
+  description: |
+    Documentation of the IO Lollipop Function API exposed to Lollipop Consumer.
+servers:
+  - url: https://api.io.pagopa.it/lollipop/api/v1
+security:
+  - ApiKeyAuth: []
+paths:
+  /assertions/{assertion_ref}:
+    get:
+      operationId: getAssertion
+      summary: Get Assertion related to a given assertion ref
+      parameters:
+        - name: assertion_ref
+          required: true
+          in: path
+          schema:
+            $ref: "#/components/schemas/AssertionRef"
+        - name: x-pagopa-lollipop-auth
+          required: true
+          in: header
+          schema:
+            $ref: "#/components/schemas/LollipopAuthBearer"
+      responses:
+        200:
+          description: The assertion related to a valid assertion_ref
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LCUserInfo"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        401:
+          description: Unauthorized
+        403:
+          description: Forbidden
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        410:
+          description: Assertion gone
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Ocp-Apim-Subscription-Key
+
+  schemas:
+    ProblemJson:
+      $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ProblemJson"
+    AssertionType:
+      $ref: "../node_modules/@pagopa/io-functions-commons/openapi/lollipop_definitions.yaml#/components/schemas/AssertionType"
+    AssertionRefSha256:
+      $ref: "../node_modules/@pagopa/io-functions-commons/openapi/lollipop_definitions.yaml#/components/schemas/AssertionRefSha256"
+    AssertionRefSha384:
+      $ref: "../node_modules/@pagopa/io-functions-commons/openapi/lollipop_definitions.yaml#/components/schemas/AssertionRefSha384"
+    AssertionRefSha512:
+      $ref: "../node_modules/@pagopa/io-functions-commons/openapi/lollipop_definitions.yaml#/components/schemas/AssertionRefSha512"
+    AssertionRef:
+      $ref: "../node_modules/@pagopa/io-functions-commons/openapi/lollipop_definitions.yaml#/components/schemas/AssertionRef"
+
+    LollipopAuthBearer:
+      type: string
+      pattern: "^Bearer [a-zA-Z0-9-_].+"
+      description: A lollipop's JWT auth custom header as `Bearer <JWT Token>`
+      example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+    SamlUserInfo:
+      type: object
+      properties:
+        response_xml:
+          type: string
+          description: A string representation of a signed SPID/CIE response
+          minLength: 1
+      required:
+        - response_xml
+
+    OidcSignedJwt:
+      type: string
+      description: A JWT representation of a signed SPID/CIE OIDC Idp
+      minLength: 1
+
+    OidcUserInfo:
+      type: object
+      properties:
+        id_token:
+          $ref: "#/components/schemas/OidcSignedJwt"
+        claims_token:
+          $ref: "#/components/schemas/OidcSignedJwt"
+      required:
+        - id_token
+        - claims_token
+
+    LCUserInfo:
+      oneOf:
+        - $ref: "#/components/schemas/SamlUserInfo"
+        - $ref: "#/components/schemas/OidcUserInfo"
