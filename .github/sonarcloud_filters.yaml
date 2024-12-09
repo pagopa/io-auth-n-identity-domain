@@ -11,3 +11,7 @@ io-fast-login:
   - "apps/io-fast-login/**/*.ts"
   # package.json, function.json, tsconfig.json, ...
   - "apps/io-fast-login/**/*.json"
+io-lollipop:
+  - "apps/io-lollipop/**/*.ts"
+  # package.json, function.json, tsconfig.json, ...
+  - "apps/io-lollipop/**/*.json"
