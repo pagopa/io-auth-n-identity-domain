@@ -1,6 +1,12 @@
 # io-lollipop
 
-## 1.13.1 
+## 1.13.2
+
+### Patch Changes
+
+- d0c2c06: Test CI/CD Pipelines
+
+## 1.13.1
 
 ### Patch Changes
 
@@ -25,7 +31,7 @@
 - [#IOPID-1963] update pipeline to deploy to new function [`#50`](https://github.com/pagopa/io-functions-lollipop/pull/50)
 - Bump version to 1.13.0 [skip ci] [`27065f9`](https://github.com/pagopa/io-functions-lollipop/commit/27065f9c1b3a0815b52642a8a0e87c810f1b71a3)
 
-## 1.12.1 
+## 1.12.1
 
 ### Patch Changes
 
@@ -54,7 +60,7 @@
 - small refactor [`72f0e73`](https://github.com/pagopa/io-functions-lollipop/commit/72f0e73dbd1780fecb8679488b094a57f44393fc)
 - Calculate the thumbprint splitting the assertionRef prefix [`490cccf`](https://github.com/pagopa/io-functions-lollipop/commit/490cccf2eb6c5f1d6c1720190e6f529cff17accd)
 
-## 1.11.1 
+## 1.11.1
 
 ### Patch Changes
 
@@ -83,7 +89,7 @@
 - [#IOPID-106] add assertionRef to exception, enable sampling [`aa4c051`](https://github.com/pagopa/io-functions-lollipop/commit/aa4c051685a85c33e9b9ce77ced0a30fbd506029)
 - Bump version to 1.11.0 [skip ci] [`928a21a`](https://github.com/pagopa/io-functions-lollipop/commit/928a21a5f6d7a07e975b580d957663b2b568ae39)
 
-## 1.10.2 
+## 1.10.2
 
 ### Patch Changes
 
@@ -97,7 +103,7 @@
 - [#IOPID-148] refactor common params [`f818ec3`](https://github.com/pagopa/io-functions-lollipop/commit/f818ec39c1a345b8fd8fb42b6920bc16973f8114)
 - Bump version to 1.10.2 [skip ci] [`957d2b4`](https://github.com/pagopa/io-functions-lollipop/commit/957d2b48dd377adccbc74c1553a702b495958568)
 
-## 1.10.1 
+## 1.10.1
 
 ### Patch Changes
 
@@ -152,9 +158,9 @@
 
 > 12 April 2023
 
-- [#IOCIT-317]  Add custom events to `GenerateLCParams` [`#34`](https://github.com/pagopa/io-functions-lollipop/pull/34)
+- [#IOCIT-317] Add custom events to `GenerateLCParams` [`#34`](https://github.com/pagopa/io-functions-lollipop/pull/34)
 - [#IOPID-127] Use Crypto utils from fn-commons [`#35`](https://github.com/pagopa/io-functions-lollipop/pull/35)
-- [#IOCIT-353]  Add opex dashboard for `external.yaml` openapi [`#32`](https://github.com/pagopa/io-functions-lollipop/pull/32)
+- [#IOCIT-353] Add opex dashboard for `external.yaml` openapi [`#32`](https://github.com/pagopa/io-functions-lollipop/pull/32)
 - [#IOCIT-353] add opex terraform project [`c034548`](https://github.com/pagopa/io-functions-lollipop/commit/c034548fd76d45f5146828bb0f8b615e3649a435)
 - [#IOCIT-317] update tests [`8757b6c`](https://github.com/pagopa/io-functions-lollipop/commit/8757b6c012f81d66489dbf1963ccf92655ff500a)
 - [#IOCIT-317] move to new log implementation + add custom events [`8690cb7`](https://github.com/pagopa/io-functions-lollipop/commit/8690cb75e39fcca890fcd585679a525d120d27f5)
@@ -172,7 +178,7 @@
 - [#IOCIT-321] Add events to GetAssertion handler [`#31`](https://github.com/pagopa/io-functions-lollipop/pull/31)
 - [#IOCIT-321] move to new log implementation [`9f643f6`](https://github.com/pagopa/io-functions-lollipop/commit/9f643f6a5205ef070195fdcf1056070e2bd05cbf)
 - [#IOCIT-321] add events to GetAssertion handler [`b951320`](https://github.com/pagopa/io-functions-lollipop/commit/b95132016d25d93f3d7068172bd884180a3241de)
-- add winston-ts logger  in getassertion fn [`d52701d`](https://github.com/pagopa/io-functions-lollipop/commit/d52701d8dc4395c24b816ff845bd2be12bbfc971)
+- add winston-ts logger in getassertion fn [`d52701d`](https://github.com/pagopa/io-functions-lollipop/commit/d52701d8dc4395c24b816ff845bd2be12bbfc971)
 
 ## 1.6.0
 
@@ -184,12 +190,12 @@
 
 > 15 March 2023
 
-- [#IOCIT-373]  Add custom verifiers to signature middleware [`#30`](https://github.com/pagopa/io-functions-lollipop/pull/30)
+- [#IOCIT-373] Add custom verifiers to signature middleware [`#30`](https://github.com/pagopa/io-functions-lollipop/pull/30)
 - [#IOCIT-373] use custom verifiers in middleware [`9868378`](https://github.com/pagopa/io-functions-lollipop/commit/986837824ac9cb8c0735c1dee81da8d42bee75d3)
 - [#IOCIT-373] fix import + tests [`51b9eec`](https://github.com/pagopa/io-functions-lollipop/commit/51b9eecef915ef09a1dcdac770d4fae5c44a1cfb)
 - [#IOCIT-373] refactor based on comments [`b2a775e`](https://github.com/pagopa/io-functions-lollipop/commit/b2a775e13e7b0043b632e9ac979d2e16d58a6145)
 
-## 1.5.1 
+## 1.5.1
 
 ### Patch Changes
 
@@ -233,7 +239,7 @@
 - [#IOCIT-341] Implement GetAssertionHandler [`#26`](https://github.com/pagopa/io-functions-lollipop/pull/26)
 - [#IOCIT-305] Expose generateLCParams endpoint [`#21`](https://github.com/pagopa/io-functions-lollipop/pull/21)
 - [#IOCIT-340] Add jwt verify middleware [`#24`](https://github.com/pagopa/io-functions-lollipop/pull/24)
-- [#IOCIT-301]  Add JWT management + key rotation management [`#14`](https://github.com/pagopa/io-functions-lollipop/pull/14)
+- [#IOCIT-301] Add JWT management + key rotation management [`#14`](https://github.com/pagopa/io-functions-lollipop/pull/14)
 - [#IOCIT-301] add tests [`abd806d`](https://github.com/pagopa/io-functions-lollipop/commit/abd806da37502cc4f01209329a46414f7e6e1443)
 - [#IOCIT-341] add tests [`7613fb0`](https://github.com/pagopa/io-functions-lollipop/commit/7613fb0b3e96f3b92bd6ce55814a51050d845a87)
 - init integration test for getAssertion [`ed8a69d`](https://github.com/pagopa/io-functions-lollipop/commit/ed8a69d5822d0eb897bd3c616d85892cb4e34909)
@@ -250,21 +256,21 @@
 
 - [#IOCIT-348] activatePubKey endpoint [`#13`](https://github.com/pagopa/io-functions-lollipop/pull/13)
 - Align openapi specs [`#25`](https://github.com/pagopa/io-functions-lollipop/pull/25)
-- Bump qs from 6.5.2 to 6.5.3 in /__integrations__ [`#10`](https://github.com/pagopa/io-functions-lollipop/pull/10)
+- Bump qs from 6.5.2 to 6.5.3 in /**integrations** [`#10`](https://github.com/pagopa/io-functions-lollipop/pull/10)
 - Bump http-cache-semantics from 4.1.0 to 4.1.1 [`#1`](https://github.com/pagopa/io-functions-lollipop/pull/1)
-- Bump json5 from 2.2.0 to 2.2.3 in /__integrations__ [`#12`](https://github.com/pagopa/io-functions-lollipop/pull/12)
+- Bump json5 from 2.2.0 to 2.2.3 in /**integrations** [`#12`](https://github.com/pagopa/io-functions-lollipop/pull/12)
 - internal openAPI fix [`#17`](https://github.com/pagopa/io-functions-lollipop/pull/17)
 - [#IOCIT-301] Replace oval with swagger-cli in lint-api [`#15`](https://github.com/pagopa/io-functions-lollipop/pull/15)
 - [#IOCIT-298] Add LolliPOPKeysModel [`#7`](https://github.com/pagopa/io-functions-lollipop/pull/7)
-- [#IOCIT-357]  Add integration tests [`#9`](https://github.com/pagopa/io-functions-lollipop/pull/9)
-- [#IOCIT-324]  add ping method [`#8`](https://github.com/pagopa/io-functions-lollipop/pull/8)
+- [#IOCIT-357] Add integration tests [`#9`](https://github.com/pagopa/io-functions-lollipop/pull/9)
+- [#IOCIT-324] add ping method [`#8`](https://github.com/pagopa/io-functions-lollipop/pull/8)
 - [#IOCIT-324] removed info endpoint from internal spec [`#6`](https://github.com/pagopa/io-functions-lollipop/pull/6)
 - [#IOCIT-309] Add `internal.yaml` spec [`#4`](https://github.com/pagopa/io-functions-lollipop/pull/4)
 - Refactor over utility changes [`b68d5ef`](https://github.com/pagopa/io-functions-lollipop/commit/b68d5ef205e046eac0b8ae5e7125f2a7f5020c20)
 - Add GetAssertion skeleton [`74768c6`](https://github.com/pagopa/io-functions-lollipop/commit/74768c62303fb938bba2631fd436a6abc52be6ae)
 - remove unused util [`230a098`](https://github.com/pagopa/io-functions-lollipop/commit/230a098db0de40a9c0d37b9ebef847c8fab65049)
 
-## 1.2.1 
+## 1.2.1
 
 ### Patch Changes
 
@@ -300,7 +306,7 @@
 
 > 15 February 2023
 
-## 1.0.2 
+## 1.0.2
 
 ### Patch Changes
 
@@ -310,9 +316,9 @@
 
 > 24 February 2023
 
-- Bump qs from 6.5.2 to 6.5.3 in /__integrations__ [`#10`](https://github.com/pagopa/io-functions-lollipop/pull/10)
+- Bump qs from 6.5.2 to 6.5.3 in /**integrations** [`#10`](https://github.com/pagopa/io-functions-lollipop/pull/10)
 - Bump http-cache-semantics from 4.1.0 to 4.1.1 [`#1`](https://github.com/pagopa/io-functions-lollipop/pull/1)
-- Bump json5 from 2.2.0 to 2.2.3 in /__integrations__ [`#12`](https://github.com/pagopa/io-functions-lollipop/pull/12)
+- Bump json5 from 2.2.0 to 2.2.3 in /**integrations** [`#12`](https://github.com/pagopa/io-functions-lollipop/pull/12)
 - internal openAPI fix [`#17`](https://github.com/pagopa/io-functions-lollipop/pull/17)
 - [#IOCIT-301] Replace oval with swagger-cli in lint-api [`#15`](https://github.com/pagopa/io-functions-lollipop/pull/15)
 - [#IOCIT-298] Add LolliPOPKeysModel [`#7`](https://github.com/pagopa/io-functions-lollipop/pull/7)
@@ -320,7 +326,7 @@
 - Merge pull request #20 from pagopa/IOCIT-328--add-pubkey-endpoint-to-reserve-keys [`806ece2`](https://github.com/pagopa/io-functions-lollipop/commit/806ece2cdf5b8db1da4cc91f7097d8c5cc5729e0)
 - remove azurite custom docker builder [`ec7a626`](https://github.com/pagopa/io-functions-lollipop/commit/ec7a62697dd2a03e2ea2f0574033a853be811b30)
 
-## 1.0.1 
+## 1.0.1
 
 ### Patch Changes
 
@@ -330,8 +336,8 @@
 
 > 17 February 2023
 
-- [#IOCIT-357]  Add integration tests [`#9`](https://github.com/pagopa/io-functions-lollipop/pull/9)
-- [#IOCIT-324]  add ping method [`#8`](https://github.com/pagopa/io-functions-lollipop/pull/8)
+- [#IOCIT-357] Add integration tests [`#9`](https://github.com/pagopa/io-functions-lollipop/pull/9)
+- [#IOCIT-324] add ping method [`#8`](https://github.com/pagopa/io-functions-lollipop/pull/8)
 - [#IOCIT-324] removed info endpoint from internal spec [`#6`](https://github.com/pagopa/io-functions-lollipop/pull/6)
 - [#IOCIT-309] Add `internal.yaml` spec [`#4`](https://github.com/pagopa/io-functions-lollipop/pull/4)
 - Initial commit [`966d5e5`](https://github.com/pagopa/io-functions-lollipop/commit/966d5e54edb3db84e4f2a5bf01abaaffb82a5475)
