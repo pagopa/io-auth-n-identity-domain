@@ -3,6 +3,15 @@
 name: "Continuous Integration"
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/**
+      - packages/**
+      - package.json
+      - turbo.json
+      - .github/workflows/code_review.yaml
   pull_request:
     types: [opened, edited, synchronize, reopened, ready_for_review]
     paths:
