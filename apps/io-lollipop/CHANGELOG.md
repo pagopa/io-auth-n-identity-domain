@@ -1,5 +1,11 @@
 # io-lollipop
 
+## 1.13.3
+
+### Patch Changes
+
+- e773caf: Aligned vitest version
+
 ## 1.13.2
 
 ### Patch Changes
