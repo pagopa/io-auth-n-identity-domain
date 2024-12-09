@@ -73,7 +73,6 @@ export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
     APPINSIGHTS_INSTRUMENTATIONKEY: NonEmptyString,
-    AzureWebJobsStorage: NonEmptyString,
 
     COSMOSDB_KEY: NonEmptyString,
     COSMOSDB_NAME: NonEmptyString,
