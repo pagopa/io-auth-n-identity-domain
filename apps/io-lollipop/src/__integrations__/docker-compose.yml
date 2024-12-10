@@ -20,7 +20,7 @@ services:
       - ${COSMOSDB_PORT}:3000
 
   storage-account:
-    image: mcr.microsoft.com/azure-storage/azurite:3.9.0
+    image: mcr.microsoft.com/azure-storage/azurite:3.9.0@sha256:6b6c9c24e97a6c000a81503a41bbf366f04c23aa3b473bfc27267145c92eeceb
     ports:
       - 10000:10000
       - 10001:10001
@@ -42,7 +42,7 @@ services:
       - functions-node-18
 
   testagent:
-    image: node:18-alpine
+    image: node:18-alpine@sha256:a51dcf24295728271111301f628d877a899c6f9b26af7b9cf4f9fe13ef948dc8
     working_dir: /usr/src/app
     command: tail -f /dev/null # to keep it   up&running
     env_file:

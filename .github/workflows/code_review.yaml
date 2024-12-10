@@ -57,7 +57,7 @@ jobs:
 
       # this step uses a set of filters to prevent
       # additional work not needed
-      - uses: dorny/paths-filter@v3.0.2
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: sonarcloud_filter
         with:
           filters: ./.github/sonarcloud_filters.yaml
