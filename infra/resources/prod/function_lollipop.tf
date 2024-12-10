@@ -132,13 +132,6 @@ module "function_lollipop_autoscale" {
         minutes = 59
       }
     },
-    spot_load = {
-      name       = "${module.common_values.scaling_gate.name}"
-      minimum    = 15
-      default    = 20
-      start_date = module.common_values.scaling_gate.start
-      end_date   = module.common_values.scaling_gate.end
-    },
     normal_load = {
       minimum = 3
       default = 10
