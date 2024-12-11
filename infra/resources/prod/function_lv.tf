@@ -120,7 +120,7 @@ module "function_lv" {
 
 
 module "function_lv_autoscale" {
-  depends_on = [azurerm_resource_group.function_lv_rg, module.function_lv]
+  depends_on = [azurerm_resource_group.function_lv_rg]
   source     = "github.com/pagopa/dx//infra/modules/azure_app_service_plan_autoscaler?ref=ab26f57ed34a614fd3fa496c7b521be9ecc88e1b"
 
   resource_group_name = azurerm_resource_group.function_lv_rg.name
