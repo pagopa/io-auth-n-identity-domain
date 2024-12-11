@@ -60,7 +60,7 @@ resource "azurerm_resource_group" "function_lollipop_rg" {
 }
 
 module "function_lollipop" {
-  source = "github.com/pagopa/dx//infra/modules/azure_function_app?ref=test-function-app-key-var"
+  source = "github.com/pagopa/dx//infra/modules/azure_function_app?ref=757fd7b08b87dc0327d1141ef378c1beaa324bf7"
 
   environment = {
     prefix          = local.prefix
