@@ -48,10 +48,6 @@ locals {
       // -------------------------
       FIRST_LC_ASSERTION_CLIENT_BASE_URL         = "https://api.io.pagopa.it"
       FIRST_LC_ASSERTION_CLIENT_SUBSCRIPTION_KEY = data.azurerm_key_vault_secret.first_lollipop_consumer_subscription_key.value
-
-      // TODO:update applicationinsights sdk to support connection string based
-      // connection
-      APPINSIGHTS_INSTRUMENTATIONKEY = data.azurerm_application_insights.application_insights.instrumentation_key
     }
   }
 }
@@ -64,7 +60,7 @@ resource "azurerm_resource_group" "function_lollipop_rg" {
 }
 
 module "function_lollipop" {
-  source = "github.com/pagopa/dx//infra/modules/azure_function_app?ref=ab26f57ed34a614fd3fa496c7b521be9ecc88e1b"
+  source = "github.com/pagopa/dx//infra/modules/azure_function_app?ref=test-function-app-key-var"
 
   environment = {
     prefix          = local.prefix
@@ -103,6 +99,9 @@ module "function_lollipop" {
   )
 
   application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
+  // TODO:update applicationinsights sdk to support connection string based
+  // connection
+  application_insights_key = data.azurerm_application_insights.application_insights.instrumentation_key
 
   action_group_id = azurerm_monitor_action_group.error_action_group.id
 
@@ -110,7 +109,7 @@ module "function_lollipop" {
 }
 
 module "function_lollipop_autoscale" {
-  depends_on = [azurerm_resource_group.function_lollipop_rg, module.function_lollipop]
+  depends_on = [azurerm_resource_group.function_lollipop_rg]
   source     = "github.com/pagopa/dx//infra/modules/azure_app_service_plan_autoscaler?ref=ab26f57ed34a614fd3fa496c7b521be9ecc88e1b"
 
   resource_group_name = azurerm_resource_group.function_lollipop_rg.name
