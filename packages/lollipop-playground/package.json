@@ -30,6 +30,5 @@
     "jose": "^5.1.0",
     "prompts": "^2.4.2",
     "yargs": "^17.7.2"
-  },
-  "packageManager": "yarn@4.5.0"
+  }
 }
