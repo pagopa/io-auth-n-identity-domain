@@ -43,7 +43,7 @@ You can however decide to ouput a curl compatible shell command almost ready to 
 
 Video example:
 
-https://github.com/arcogabbo/lollipop-cli/assets/22002572/0dd3ea95-3c41-4ccb-a565-dc3b1002f0af
+https://github.com/user-attachments/assets/38a1ba9b-6767-4684-b5ad-a141c484bfea
 
 #### Example of Sign Flow through cli arguments
 ```bash
