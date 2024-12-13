@@ -29,6 +29,71 @@ services:
     networks:
       - io-fn
 
+  functions-node-20:
+    image: functions-node-20
+    build:
+      context: ./
+      dockerfile: ./docker/functions-node-20/Dockerfile
+    command: /bin/true
+
+  io-lollipop:
+    image: io-lollipop
+    build:
+      context: ./
+      dockerfile: ./docker/io-lollipop/Dockerfile
+    env_file:
+      - ./docker/generated/.env.io-lollipop
+    ports:
+      - ${FUNCTION_LOLLIPOP_PORT}:7071
+    networks:
+      - io-fn
+    depends_on:
+      - functions-node-20
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.functions.rule=Host(`localhost`)"
+      - "traefik.http.routers.functions.entrypoints=web"
+      - "traefik.http.services.functions.loadbalancer.server.port=7071"
+
+      - "traefik.http.middlewares.testHeader.headers.customrequestheaders.x-user-id=unused"
+      - "traefik.http.middlewares.testHeader.headers.customrequestheaders.x-user-groups=${REQ_USER_GROUPS}"
+      - "traefik.http.middlewares.testHeader.headers.customrequestheaders.x-subscription-id=${REQ_SERVICE_ID}"
+      - "traefik.http.middlewares.testHeader.headers.customrequestheaders.x-user-email=${SERVICE_EMAIL}"
+      - "traefik.http.middlewares.testHeader.headers.customrequestheaders.x-user-note=unused"
+      - "traefik.http.middlewares.testHeader.headers.customrequestheaders.x-functions-key=unused"
+
+      # apply middleware to route
+      - "traefik.http.routers.functions.middlewares=testHeader"
+
+  traefik:
+    image: traefik:v2.0
+    command: |-
+      --entrypoints.web.address=:80
+      --providers.docker=true
+      --providers.docker.network=io-fn
+      --log.level=ERROR
+    env_file:
+      - .env
+    ports:
+      - ${API_GATEWAY_PORT}:${API_GATEWAY_PORT}
+    networks:
+      - io-fn
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  cosmosdb:
+    image: cosmosdb
+    build:
+      context: ./
+      dockerfile: ./docker/cosmosdb/Dockerfile
+    env_file:
+      - ./docker/generated/.env.cosmosdb
+    ports:
+      - ${COSMOSDB_PORT}:3000
+    networks:
+      - io-fn
+
   spid-testenv2:
     container_name: spid-testenv2
     image: italia/spid-testenv2

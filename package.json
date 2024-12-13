@@ -12,11 +12,22 @@
     "generate": "turbo run generate",
     "typecheck": "turbo run typecheck",
     "version": "changeset version",
-    "release": "changeset tag"
+    "release": "changeset tag",
+    "docker:pregenerate:env": "shx rm -rf docker/generated && shx mkdir docker/generated",
+    "docker:generate:env": "yarn run docker:pregenerate:env && yarn run docker:generate:env:cosmosdb && yarn run docker:generate:env:io-lollipop",
+    "docker:generate:env:cosmosdb": "dotenv -e .env envsub docker/cosmosdb/env-dev docker/generated/.env.cosmosdb",
+    "docker:generate:env:io-lollipop": "dotenv -e .env -e apps/io-lollipop/.env envsub docker/io-lollipop/env-dev docker/generated/.env.io-lollipop",
+    "docker:build": "docker compose build",
+    "docker:start": "docker compose up -d",
+    "docker:start:build": "docker compose up --build -d",
+    "test:integrations": "yarn run test:integrations:io-lollipop",
+    "test:integrations:io-lollipop": "docker exec io-mock-io-lollipop-1 /bin/bash -c 'yarn run vitest run src/__integrations__/__tests__ -c src/__integrations__/vite.config.mts'"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
     "@pagopa/typescript-config-node": "*",
+    "dotenv-cli": "^3.2.0",
+    "envsub": "^4.0.7",
     "eslint": "^8.57.0",
     "eslint-config-monorepo": "*",
     "eslint-import-resolver-typescript": "^3.6.1",
@@ -24,6 +35,7 @@
     "eslint-plugin-only-warn": "^1.1.0",
     "eslint-plugin-turbo": "^1.13.3",
     "prettier": "3.1.1",
+    "shx": "^0.3.4",
     "turbo": "^1.12.5",
     "typescript": "^5.4.5",
     "vitest": "~1.5.0"
