@@ -60,8 +60,7 @@ lollipop-cli --flow Sign --x-pagopa-lollipop-method <METHOD> \
 TODO
 
 ### Run the cli locally for development
-With `npm link` or `yarn link` you can make the command available locally via `lollipop-cli`. 
-Another option is to just run the script `dev-cli` included in the `package.json` with the package manager of your choice.
+Run the script `dev-cli` or `start` included in the `package.json` with the package manager of your choice.
 
 ## TODO
 - More unit tests
