@@ -16,4 +16,20 @@ export default defineWorkspace([
       },
     },
   },
+  {
+    extends: "apps/io-fast-login/vite.config.mts",
+    test: {
+      name: "fast-login",
+      include: ["apps/io-fast-login/**/__tests__/*.spec.ts"],
+      environment: "node",
+    },
+  },
+  {
+    extends: "apps/io-lollipop/vite.config.mts",
+    test: {
+      name: "lollipop",
+      include: ["apps/io-lollipop/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
 ]);

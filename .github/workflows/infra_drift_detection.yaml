@@ -1,0 +1,15 @@
+name: Drift Detection
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "00 08 * * *" # Run at 08:00 every day
+
+jobs:
+  drift_detection:
+    uses: pagopa/dx/.github/workflows/infra_drift_detection.yml@main
+    name: Drift Detection
+    secrets: inherit
+    with:
+      environment: "prod"
+      base_path: "infra/resources/"

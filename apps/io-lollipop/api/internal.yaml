@@ -1,0 +1,354 @@
+openapi: 3.0.1
+info:
+  version: 1.13.2
+  title: IO Lollipop Function API
+  x-logo:
+    url: https://io.italia.it/assets/img/io-logo-blue.svg
+  description: |
+    Documentation of the IO Lollipop Function API here.
+servers:
+  - url: https://io-p-lollipop-fn.azurewebsites.net/api/v1
+security:
+  - ApiKeyAuth: []
+paths:
+  /ping:
+    get:
+      operationId: ping
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server error
+  /pubkeys:
+    post:
+      operationId: reservePubKey
+      summary: Create and reserve a new PubKey during login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPubKeyPayload'
+      responses:
+        '201':
+          description: Will send `Authenticated`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewPubKey'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+  /pubKeys/{assertion_ref}/generate:
+    post:
+      operationId: generateLCParams
+      summary: >-
+        Generates JWT for LC integration with additional infos to be forwarded
+        to LC on a Lollipop sign request
+      parameters:
+        - name: assertion_ref
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/AssertionRef'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateLcParamsPayload'
+      responses:
+        '200':
+          description: Returns JWT and params to be forwarded to LC
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LcParams'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+  /pubKeys/{assertion_ref}:
+    put:
+      operationId: activatePubKey
+      summary: Activate a previous reserved PubKey on login success
+      parameters:
+        - name: assertion_ref
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/AssertionRef'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivatePubKeyPayload'
+      responses:
+        '200':
+          description: Returns activated Public Key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivatedPubKey'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Functions-Key
+  schemas:
+    ApplicationInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+      required:
+        - name
+        - version
+    ProblemJson:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |-
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type
+            (e.g., using HTML).
+          default: about:blank
+          example: https://example.com/problem/constraint-violation
+        title:
+          type: string
+          description: >-
+            A short, summary of the problem type. Written in english and
+            readable
+
+            for engineers (usually not suited for non technical stakeholders and
+
+            not localized); example: Service Unavailable
+        status:
+          type: integer
+          format: int32
+          description: >-
+            The HTTP status code generated by the origin server for this
+            occurrence
+
+            of the problem.
+          minimum: 100
+          maximum: 600
+          exclusiveMaximum: true
+          example: 200
+        detail:
+          type: string
+          description: |-
+            A human readable explanation specific to this occurrence of the
+            problem.
+          example: There was an error processing the request
+        instance:
+          type: string
+          format: uri
+          description: >-
+            An absolute URI that identifies the specific occurrence of the
+            problem.
+
+            It may or may not yield further information if dereferenced.
+    FiscalCode:
+      type: string
+      description: User's fiscal code.
+      format: FiscalCode
+      x-import: '@pagopa/ts-commons/lib/strings'
+      example: SPNDNL80R13C555X
+    Timestamp:
+      type: string
+      format: UTCISODateFromString
+      description: A date-time field in ISO-8601 format and UTC timezone.
+      x-import: '@pagopa/ts-commons/lib/dates'
+      example: '2018-10-13T00:00:00.000Z'
+    AssertionType:
+      type: string
+      enum:
+        - SAML
+        - OIDC
+    AssertionRefSha256:
+      type: string
+      pattern: ^(sha256-[A-Za-z0-9-_=]{1,44})$
+    AssertionRefSha384:
+      type: string
+      pattern: ^(sha384-[A-Za-z0-9-_=]{1,66})$
+    AssertionRefSha512:
+      type: string
+      pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
+    AssertionRef:
+      oneOf:
+        - $ref: '#/components/schemas/AssertionRefSha256'
+        - $ref: '#/components/schemas/AssertionRefSha384'
+        - $ref: '#/components/schemas/AssertionRefSha512'
+    AssertionFileName:
+      type: string
+      description: >-
+        fiscal code - AssertionRefSha256 | AssertionRefSha384 |
+        AssertionRefSha512
+      pattern: >-
+        ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]-(sha256-[A-Za-z0-9-_=]{1,44}|sha384-[A-Za-z0-9-_=]{1,66}|sha512-[A-Za-z0-9-_=]{1,88})$
+    OperationId:
+      type: string
+      minLength: 1
+    PubKeyStatus:
+      type: string
+      enum:
+        - PENDING
+        - VALID
+        - REVOKED
+    JwkPubKey:
+      type: string
+      description: represents a JWK Public Key
+      format: JwkPublicKey
+      x-import: '@pagopa/ts-commons/lib/jwk'
+    JwkPubKeyToken:
+      type: string
+      minLength: 1
+      description: represents a base64 url encoded JWK Public Kek
+    JwkPubKeyHashAlgorithm:
+      type: string
+      enum:
+        - sha256
+        - sha384
+        - sha512
+      description: Represents the selected hashing algorithm for jwk thumbprint
+      example: sha256
+    NewPubKeyPayload:
+      type: object
+      properties:
+        algo:
+          $ref: '#/components/schemas/JwkPubKeyHashAlgorithm'
+        pub_key:
+          $ref: '#/components/schemas/JwkPubKey'
+      required:
+        - algo
+        - pub_key
+    NewPubKey:
+      type: object
+      properties:
+        assertion_ref:
+          $ref: '#/components/schemas/AssertionRef'
+        pub_key:
+          $ref: '#/components/schemas/JwkPubKeyToken'
+        version:
+          type: integer
+          minimum: 0
+        status:
+          $ref: '#/components/schemas/PubKeyStatus'
+        ttl:
+          type: integer
+          minimum: 0
+      required:
+        - assertion_ref
+        - pub_key
+        - version
+        - status
+        - ttl
+    ActivatePubKeyPayload:
+      type: object
+      properties:
+        fiscal_code:
+          $ref: '#/components/schemas/FiscalCode'
+        assertion_type:
+          $ref: '#/components/schemas/AssertionType'
+        assertion:
+          type: string
+          description: A string representation of a signed SPID/CIE assertion
+          minLength: 1
+        expired_at:
+          $ref: '#/components/schemas/Timestamp'
+      required:
+        - fiscal_code
+        - assertion_type
+        - assertion
+        - expired_at
+    ActivatedPubKey:
+      allOf:
+        - $ref: '#/components/schemas/NewPubKey'
+        - type: object
+          properties:
+            fiscal_code:
+              $ref: '#/components/schemas/FiscalCode'
+            assertion_file_name:
+              $ref: '#/components/schemas/AssertionFileName'
+            assertion_type:
+              $ref: '#/components/schemas/AssertionType'
+            expired_at:
+              $ref: '#/components/schemas/Timestamp'
+          required:
+            - fiscal_code
+            - assertion_file_name
+            - assertion_type
+            - expired_at
+    GenerateLcParamsPayload:
+      type: object
+      properties:
+        operation_id:
+          $ref: '#/components/schemas/OperationId'
+      required:
+        - operation_id
+    LcParams:
+      allOf:
+        - $ref: '#/components/schemas/ActivatedPubKey'
+        - type: object
+          properties:
+            lc_authentication_bearer:
+              type: string
+              minLength: 1
+          required:
+            - lc_authentication_bearer

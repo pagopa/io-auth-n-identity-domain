@@ -1,0 +1,21 @@
+openapi: 3.0.1
+info:
+  title: FastLogin Model Definitions
+  description: The definitions of the models needed by the FastLogin feature.
+  version: 1.0.0
+
+# Dummy unused endpoint
+paths:
+  /dummy:
+    get:
+      responses:
+        "200":
+          description: "ok"
+
+components:
+  schemas:
+    Nonce:
+      type: string
+      pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+      description: UUID v4 formatted nonce as per RFC 4122
+      example: 870c6d89-a3c4-48b1-a796-cdacddaf94b4

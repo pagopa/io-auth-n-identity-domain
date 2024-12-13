@@ -1,7 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": [
-    "**/.env.*local"
+    "**/env.example"
   ],
   "pipeline": {
     "build": {
@@ -71,7 +71,7 @@
       ]
     },
     "generate": {
-      "inputs": ["api/**/*.yaml"],
+      "inputs": ["api/**/*.yaml", "api/**/*.yaml.template"],
       "outputs": ["src/generated/**/*.ts", "certs"],
       "outputMode": "errors-only"
     },

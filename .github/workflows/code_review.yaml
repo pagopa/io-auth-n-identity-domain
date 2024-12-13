@@ -1,9 +1,17 @@
 # This workflow will perform the code review on each code change.
 # It uses "actions/cache" and turborepo in order to perform tasks only on changed files.
-
 name: "Continuous Integration"
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/**
+      - packages/**
+      - package.json
+      - turbo.json
+      - .github/workflows/code_review.yaml
   pull_request:
     types: [opened, edited, synchronize, reopened, ready_for_review]
     paths:
@@ -11,6 +19,7 @@ on:
       - packages/**
       - package.json
       - turbo.json
+      - .github/workflows/code_review.yaml
   workflow_dispatch:
 
 jobs:
@@ -46,13 +55,39 @@ jobs:
       - name: "Code review"
         run: yarn code-review
 
+      # this step uses a set of filters to prevent
+      # additional work not needed
+      - uses: dorny/paths-filter@v3.0.2
+        id: sonarcloud_filter
+        with:
+          filters: ./.github/sonarcloud_filters.yaml
+
       - name: SonarCloud session-manager scan
+        if: steps.sonarcloud_filter.outputs.io-session-manager == 'true'
         uses: SonarSource/sonarcloud-github-action@19888635fa64d24e533d388efe8264402dfd721b
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           projectBaseDir: apps/io-session-manager/
+
+      - name: SonarCloud io-fast-login scan
+        if: steps.sonarcloud_filter.outputs.io-fast-login == 'true'
+        uses: SonarSource/sonarcloud-github-action@19888635fa64d24e533d388efe8264402dfd721b
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: apps/io-fast-login/
+
+      - name: SonarCloud io-lollipop scan
+        if: steps.sonarcloud_filter.outputs.io-lollipop == 'true'
+        uses: SonarSource/sonarcloud-github-action@19888635fa64d24e533d388efe8264402dfd721b
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: apps/io-lollipop/
   e2e:
     runs-on: ubuntu-latest
     steps:
@@ -83,4 +118,3 @@ jobs:
 
       - name: "E2E Tests"
         run: yarn workspace e2e start
-

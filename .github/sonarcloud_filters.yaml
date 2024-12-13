@@ -1,0 +1,17 @@
+io-session-manager:
+  # changes on this files should trigger a test run
+  # because vitest parses them
+  - "apps/io-session-manager/**/*.pem"
+  - "apps/io-session-manager/env.example"
+  ######
+  - "apps/io-session-manager/**/*.ts"
+  # package.json, tsconfig.json, ...
+  - "apps/io-session-manager/**/*.json"
+io-fast-login:
+  - "apps/io-fast-login/**/*.ts"
+  # package.json, function.json, tsconfig.json, ...
+  - "apps/io-fast-login/**/*.json"
+io-lollipop:
+  - "apps/io-lollipop/**/*.ts"
+  # package.json, function.json, tsconfig.json, ...
+  - "apps/io-lollipop/**/*.json"
