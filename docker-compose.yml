@@ -13,7 +13,7 @@ services:
       context: ./
       dockerfile: ./docker/io-session-manager/Dockerfile
     env_file:
-      - ./docker/io-session-manager/env-dev
+      - ./docker/generated/.env.io-session-manager
     volumes:
       - ./apps/io-session-manager/certs:/usr/src/app/apps/io-session-manager/certs:cached
     ports:

@@ -20,8 +20,8 @@ const containerName = makeRandomContainerName();
 
 const context = createContext(LOLLIPOPKEYS_MODEL_PK_FIELD, containerName, true);
 
-beforeEach(async () => await context.init());
-afterEach(async () => await context.dispose());
+beforeEach(async () => { await context.init() });
+afterEach(async () => { await context.dispose() });
 
 describe("Create", () => {
   test("GIVEN a working model and a pending LolliPopPubKeys WHEN create method is called THEN the document should be in the database with ttl equal to 15m", async () => {

@@ -1,3 +1,4 @@
+import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { exit } from "process";
 
 import * as TE from "fp-ts/TaskEither";
@@ -16,7 +17,8 @@ import {
   SHOW_LOGS,
   COSMOSDB_URI,
   COSMOSDB_NAME,
-  COSMOSDB_KEY
+  COSMOSDB_KEY,
+  BASE_URL
 } from "../env";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { LolliPOPKeysModel } from "../../model/lollipop_keys";
@@ -31,10 +33,9 @@ import { CosmosClient } from "@azure/cosmos";
 import { fetchGenerateLcParams } from "../utils/client";
 
 const MAX_ATTEMPT = 50;
+const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
 
-jest.setTimeout(WAIT_MS * MAX_ATTEMPT);
-
-const baseUrl = "http://function:7071";
+const baseUrl = BASE_URL;
 const nodeFetch = (getNodeFetch() as unknown) as typeof fetch;
 
 // ----------------
@@ -59,7 +60,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 // -------------------------
@@ -84,7 +85,7 @@ const aNotExistingSha256AssertionRef =
   "sha256-LWmgzxnrIhywpNW0mctCFWfh2CptjGJJN_H2_FLN1gg";
 
 describe("GenerateLcParams", () => {
-  test("GIVEN a new correctly initialized public key WHEN calling generateLcParams THEN return a success containing LcParams", async () => {
+  test("GIVEN a new correctly initialized public key WHEN calling generateLcParams THEN return a success containing LcParams", { timeout: TIMEOUT }, async () => {
     await model.upsert({
       ...aLolliPopPubKeys,
       expiredAt: date_fns.addDays(new Date(), 30)
@@ -115,7 +116,7 @@ describe("GenerateLcParams", () => {
     );
   });
 
-  test("GIVEN a pending public key WHEN calling generateLcParams THEN return Forbidden", async () => {
+  test("GIVEN a pending public key WHEN calling generateLcParams THEN return Forbidden", { timeout: TIMEOUT }, async () => {
     await model.create({
       ...aPendingLolliPopPubKeys,
       assertionRef: aPendingSha256AssertionRef as any
@@ -130,7 +131,7 @@ describe("GenerateLcParams", () => {
     expect(result.status).toEqual(403);
   });
 
-  test("GIVEN a not existing public key WHEN calling generateLcParams THEN return Not Found", async () => {
+  test("GIVEN a not existing public key WHEN calling generateLcParams THEN return Not Found", { timeout: TIMEOUT }, async () => {
     const result = await fetchGenerateLcParams(
       aNotExistingSha256AssertionRef,
       aGenerateLcParamsPayload,
@@ -140,7 +141,7 @@ describe("GenerateLcParams", () => {
     expect(result.status).toEqual(404);
   });
 
-  test("GIVEN an expired public key WHEN calling generateLcParams THEN return Forbidden", async () => {
+  test("GIVEN an expired public key WHEN calling generateLcParams THEN return Forbidden", { timeout: TIMEOUT }, async () => {
     await model.upsert({
       ...aLolliPopPubKeys,
       assertionRef: aSha256AssertionRef as any,
@@ -156,7 +157,7 @@ describe("GenerateLcParams", () => {
     expect(result.status).toEqual(403);
   });
 
-  test("GIVEN a malformed payload WHEN calling generateLcParams THEN return a bad request", async () => {
+  test("GIVEN a malformed payload WHEN calling generateLcParams THEN return a bad request", { timeout: TIMEOUT }, async () => {
     const result = await fetchGenerateLcParams(
       anAssertionRef,
       {
