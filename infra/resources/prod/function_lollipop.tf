@@ -89,14 +89,14 @@ module "function_lollipop" {
 
   app_settings = merge(
     local.function_lollipop.app_settings,
-    // Temporary disabled in production waiting change all the
-    // pointing to upstream/downstream API
-    { "AzureWebJobs.HandlePubKeyRevoke.Disabled" = "1" },
+    { "AzureWebJobs.HandlePubKeyRevoke.Disabled" = "0" },
   )
   slot_app_settings = merge(
     local.function_lollipop.app_settings,
     { "AzureWebJobs.HandlePubKeyRevoke.Disabled" = "1" },
   )
+
+  sticky_app_setting_names = ["AzureWebJobs.HandlePubKeyRevoke.Disabled"]
 
   application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
   // TODO:update applicationinsights sdk to support connection string based
