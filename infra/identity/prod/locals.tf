@@ -6,6 +6,8 @@ locals {
   location  = "italynorth"
   repo_name = "io-auth-n-identity-domain"
 
+  project_common = "${local.prefix}-${local.env_short}"
+
   apps_cd_environment = "apps-prod"
 
   tags = {
