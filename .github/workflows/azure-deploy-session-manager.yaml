@@ -23,18 +23,3 @@ jobs:
       use_private_agent: true
     secrets: inherit
 
-  deploy_to_azure_2:
-    name: Deploy to Azure App Service
-    needs: deploy_to_azure_1
-    uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@add-healthcheck-and-optional-swap
-    with:
-      # '-cd' suffix added inside the pipeline
-      environment: apps-prod
-      resource_group_name: "io-p-weu-session-manager-rg-01"
-      workspace_name: "io-session-manager"
-      web_app_name: "io-p-weu-session-manager-app-04"
-      use_staging_slot: true
-      swap_slot_step: ${{ inputs.swap_slot_step }}
-      use_private_agent: true
-      use_create_artifact: false
-    secrets: inherit
