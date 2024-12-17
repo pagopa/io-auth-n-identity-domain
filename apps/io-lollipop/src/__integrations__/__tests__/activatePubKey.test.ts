@@ -50,7 +50,7 @@ import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
 const MAX_ATTEMPT = 50;
 const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
 
-const baseUrl = "http://function:7071";
+const baseUrl = "http://localhost:7071";
 const myFetch = getNodeFetch();
 
 const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "assertions";
@@ -70,19 +70,19 @@ const cosmosClient = new CosmosClient({
 beforeAll(async () => {
   await pipe(
     createCosmosDbAndCollections(COSMOSDB_NAME),
-    TE.getOrElse(() => {
-      throw Error("Cannot create infra resources");
+    TE.getOrElse((e) => {
+      throw Error("Cannot create infra resources: " + JSON.stringify(e));
     })
   )();
   await pipe(
     createBlobs(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME]),
-    TE.getOrElse(() => {
-      throw Error("Cannot create azure storage");
+    TE.getOrElse((e) => {
+      throw Error("Cannot create azure storage: " + JSON.stringify(e));
     })
   )();
 
   await waitFunctionToSetup();
-});
+}, TIMEOUT);
 
 beforeEach(() => {
   vi.clearAllMocks();

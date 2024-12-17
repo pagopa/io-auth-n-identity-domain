@@ -26,8 +26,8 @@ const nodeFetch = (getNodeFetch() as unknown) as typeof fetch;
 beforeAll(async () => {
   await pipe(
     createCosmosDbAndCollections(COSMOSDB_NAME),
-    TE.getOrElse(() => {
-      throw Error("Cannot create db");
+    TE.getOrElse((e) => {
+      throw Error("Cannot create db: " + JSON.stringify(e));
     })
   )();
 

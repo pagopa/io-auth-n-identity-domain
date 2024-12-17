@@ -88,14 +88,14 @@ const cosmosClient = new CosmosClient({
 beforeAll(async () => {
   await pipe(
     createCosmosDbAndCollections(COSMOSDB_NAME),
-    TE.getOrElse(() => {
-      throw Error("Cannot create infra resources");
+    TE.getOrElse((e) => {
+      throw Error("Cannot create infra resources: " + JSON.stringify(e));
     })
   )();
   await pipe(
     createBlobs(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME]),
-    TE.getOrElse(() => {
-      throw Error("Cannot create azure storage");
+    TE.getOrElse((e) => {
+      throw Error("Cannot create azure storage: " + JSON.stringify(e));
     })
   )();
 

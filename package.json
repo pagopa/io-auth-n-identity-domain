@@ -22,7 +22,7 @@
     "docker:start": "docker compose up -d",
     "docker:start:build": "docker compose up --build -d",
     "test:integrations": "yarn run test:integrations:io-lollipop",
-    "test:integrations:io-lollipop": "docker exec io-mock-io-lollipop-1 /bin/bash -c 'yarn run vitest run src/__integrations__/__tests__ -c src/__integrations__/vite.config.mts'"
+    "test:integrations:io-lollipop": "docker exec io-mock-io-lollipop-1 /bin/bash -c 'yarn run vitest run src/__integrations__/__tests__ -c src/__integrations__/vite.config.mts' --no-file-parallelism"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
