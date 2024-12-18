@@ -92,9 +92,6 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate Environment
-        run: yarn docker:generate:env
-
       - name: Check out code
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -119,6 +116,9 @@ jobs:
 
       - name: Build
         run: yarn build
+
+      - name: Generate Environment
+        run: yarn docker:generate:env
 
       - name: "E2E Tests"
         run: yarn workspace e2e start
