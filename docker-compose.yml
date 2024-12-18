@@ -52,31 +52,8 @@ services:
       - io-fn
     depends_on:
       - functions-node-20
-      - traefik
       - cosmosdb
       - storage
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.functions.rule=Host(`localhost`)"
-      - "traefik.http.routers.functions.entrypoints=web"
-      - "traefik.http.services.functions.loadbalancer.server.port=7071"
-
-
-  traefik:
-    image: traefik:v2.0
-    command: |-
-      --entrypoints.web.address=:80
-      --providers.docker=true
-      --providers.docker.network=io-fn
-      --log.level=ERROR
-    env_file:
-      - docker/.env.common
-    ports:
-      - ${API_GATEWAY_PORT}:80
-    networks:
-      - io-fn
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
 
   cosmosdb:
     image: cosmosdb
