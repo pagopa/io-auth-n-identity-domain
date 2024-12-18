@@ -6,7 +6,7 @@ COPY . /usr/src/app
 RUN yarn install --immutable
 RUN yarn build
 
-FROM base AS runner
+FROM functions-node-20 AS runner
 COPY --from=base /usr/src/app/package.json .
 COPY --from=base /usr/src/app/turbo.json .
 COPY --from=base /usr/src/app/node_modules .
