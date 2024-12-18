@@ -6,8 +6,7 @@ export default defineConfig({
       threads: { singleThread: true }
     },
     coverage: {
-      exclude: ["dist", "/node_modules", "**/__integrations__"],
-      reporter: ["lcov", "text"]
+      enabled: false
     },
     exclude: ["**/node_modules/**", "**/dist/**"]
   }
