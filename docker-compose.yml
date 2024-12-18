@@ -59,15 +59,6 @@ services:
       - "traefik.http.routers.functions.entrypoints=web"
       - "traefik.http.services.functions.loadbalancer.server.port=7071"
 
-      - "traefik.http.middlewares.testHeader.headers.customrequestheaders.x-user-id=unused"
-      - "traefik.http.middlewares.testHeader.headers.customrequestheaders.x-user-groups=${REQ_USER_GROUPS}"
-      - "traefik.http.middlewares.testHeader.headers.customrequestheaders.x-subscription-id=${REQ_SERVICE_ID}"
-      - "traefik.http.middlewares.testHeader.headers.customrequestheaders.x-user-email=${SERVICE_EMAIL}"
-      - "traefik.http.middlewares.testHeader.headers.customrequestheaders.x-user-note=unused"
-      - "traefik.http.middlewares.testHeader.headers.customrequestheaders.x-functions-key=unused"
-
-      # apply middleware to route
-      - "traefik.http.routers.functions.middlewares=testHeader"
 
   traefik:
     image: traefik:v2.0
