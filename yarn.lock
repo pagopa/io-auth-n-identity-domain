@@ -8258,9 +8258,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lollipop-cli@workspace:packages/lollipop-playground":
+"lollipop-cli@workspace:packages/lollipop-cli":
   version: 0.0.0-use.local
-  resolution: "lollipop-cli@workspace:packages/lollipop-playground"
+  resolution: "lollipop-cli@workspace:packages/lollipop-cli"
   dependencies:
     "@mattrglobal/http-signatures": "npm:^4.1.0"
     "@pagopa/openapi-codegen-ts": "npm:^14.0.0"
