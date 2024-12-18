@@ -127,7 +127,9 @@ jobs:
       
       - name: "io-lollipop integration Tests"
         if: steps.test_filter.outputs.io-lollipop == 'true'
-        run: yarn test:integrations:io-lollipop
+        run: >-
+          yarn docker:start:build io-lollipop &&
+          yarn test:integrations:io-lollipop
 
       - name: "E2E Tests"
         if: steps.test_filter.outputs.io-session-manager == 'true'

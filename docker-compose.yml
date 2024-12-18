@@ -53,6 +53,8 @@ services:
     depends_on:
       - functions-node-20
       - traefik
+      - cosmosdb
+      - storage
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.functions.rule=Host(`localhost`)"
