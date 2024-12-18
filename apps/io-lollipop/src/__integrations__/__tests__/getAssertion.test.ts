@@ -22,7 +22,8 @@ import {
   COSMOSDB_NAME,
   BEARER_AUTH_HEADER,
   QueueStorageConnection,
-  A_WRONG_PRIVATE_KEY
+  A_WRONG_PRIVATE_KEY,
+  BASE_URL
 } from "../env";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
@@ -67,7 +68,7 @@ const customHeaders = {
   "Ocp-Apim-Subscription-Key": "aSubscriptionKey"
 };
 
-const baseUrl = "http://function:7071";
+const baseUrl = BASE_URL;
 const myFetch = (getNodeFetch(customHeaders) as unknown) as typeof fetch;
 
 const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "assertions";
@@ -87,14 +88,14 @@ const cosmosClient = new CosmosClient({
 beforeAll(async () => {
   await pipe(
     createCosmosDbAndCollections(COSMOSDB_NAME),
-    TE.getOrElse(() => {
-      throw Error("Cannot create infra resources");
+    TE.getOrElse((e) => {
+      throw Error("Cannot create infra resources: " + JSON.stringify(e));
     })
   )();
   await pipe(
     createBlobs(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME]),
-    TE.getOrElse(() => {
-      throw Error("Cannot create azure storage");
+    TE.getOrElse((e) => {
+      throw Error("Cannot create azure storage: " + JSON.stringify(e));
     })
   )();
 

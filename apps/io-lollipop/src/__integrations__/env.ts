@@ -1,4 +1,8 @@
-export const QueueStorageConnection = process.env.QueueStorageConnection || "";
+export const QueueStorageConnection = process.env.QueueStorageConnection
+  || process.env.AzureWebJobsStorage
+  || "";
+
+export const BASE_URL = `http://localhost:${process.env.FUNCTION_LOLLIPOP_PORT}`;
 
 // Milliseconds to wait for test completion
 export const WAIT_MS = Number(process.env.WAIT_MS ?? 5000);

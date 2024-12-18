@@ -25,7 +25,8 @@ import {
   SHOW_LOGS,
   COSMOSDB_URI,
   COSMOSDB_NAME,
-  COSMOSDB_KEY
+  COSMOSDB_KEY,
+  BASE_URL
 } from "../env";
 import { QueueStorageConnection } from "../env";
 import { createBlobs } from "../utils/azure_storage";
@@ -50,7 +51,6 @@ import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
 const MAX_ATTEMPT = 50;
 const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
 
-const baseUrl = "http://function:7071";
 const myFetch = getNodeFetch();
 
 const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "assertions";
@@ -70,19 +70,19 @@ const cosmosClient = new CosmosClient({
 beforeAll(async () => {
   await pipe(
     createCosmosDbAndCollections(COSMOSDB_NAME),
-    TE.getOrElse(() => {
-      throw Error("Cannot create infra resources");
+    TE.getOrElse((e) => {
+      throw Error("Cannot create infra resources: " + JSON.stringify(e));
     })
   )();
   await pipe(
     createBlobs(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME]),
-    TE.getOrElse(() => {
-      throw Error("Cannot create azure storage");
+    TE.getOrElse((e) => {
+      throw Error("Cannot create azure storage: " + JSON.stringify(e));
     })
   )();
 
   await waitFunctionToSetup();
-});
+}, TIMEOUT);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -112,7 +112,7 @@ describe("activatePubKey |> Validation Failures", () => {
     const response = await fetchActivatePubKey(
       anInvalidAssertionRef,
       validActivatePubKeyPayload,
-      baseUrl,
+      BASE_URL,
       (myFetch as unknown) as typeof fetch
     );
 
@@ -128,7 +128,7 @@ describe("activatePubKey |> Validation Failures", () => {
     const response = await fetchActivatePubKey(
       aValidSha256AssertionRef,
       { ...validActivatePubKeyPayload, fiscal_code: "anInvalidFiscalCode" },
-      baseUrl,
+      BASE_URL,
       (myFetch as unknown) as typeof fetch
     );
 
@@ -149,7 +149,7 @@ describe("activatePubKey |> Failures", () => {
     const response = await fetchActivatePubKey(
       randomAssertionRef,
       validActivatePubKeyPayload,
-      baseUrl,
+      BASE_URL,
       (myFetch as unknown) as typeof fetch
     );
 
@@ -191,7 +191,7 @@ describe("activatePubKey |> Failures", () => {
     const response = await fetchActivatePubKey(
       randomAssertionRef,
       randomActivatePubKeyPayload,
-      baseUrl,
+      BASE_URL,
       (myFetch as unknown) as typeof fetch
     );
 
@@ -204,7 +204,7 @@ describe("activatePubKey |> Success Results", () => {
     const randomJwk = await generateJwkForTest();
     const reserveResult = await fetchReservePubKey(
       { pub_key: randomJwk, algo: JwkPubKeyHashAlgorithmEnum.sha256 },
-      baseUrl,
+      BASE_URL,
       (myFetch as unknown) as typeof fetch
     );
 
@@ -216,7 +216,7 @@ describe("activatePubKey |> Success Results", () => {
     const response = await fetchActivatePubKey(
       resultBody.assertion_ref,
       validActivatePubKeyPayload,
-      baseUrl,
+      BASE_URL,
       (myFetch as unknown) as typeof fetch
     );
 
@@ -300,7 +300,7 @@ describe("activatePubKey |> Success Results", () => {
         pub_key: randomJwk,
         algo: MASTER_HASH_ALGO
       },
-      baseUrl,
+      BASE_URL,
       (myFetch as unknown) as typeof fetch
     );
 
@@ -309,7 +309,7 @@ describe("activatePubKey |> Success Results", () => {
     const response = await fetchActivatePubKey(
       resultBody.assertion_ref,
       validActivatePubKeyPayload,
-      baseUrl,
+      BASE_URL,
       (myFetch as unknown) as typeof fetch
     );
 
@@ -374,7 +374,7 @@ const waitFunctionToSetup = async (): Promise<void> => {
   while (i < MAX_ATTEMPT) {
     log("Waiting the function to setup..");
     try {
-      await myFetch(baseUrl + "/info");
+      await myFetch(BASE_URL + "/info");
       break;
     } catch (e) {
       log("Waiting the function to setup..");
