@@ -228,7 +228,7 @@ services:
     container_name: storage
     hostname: azurite
     restart: always
-    command: "azurite --blobHost 0.0.0.0 --blobPort 20003 --queueHost 0.0.0.0 --queuePort 20004 --tableHost 0.0.0.0 --tablePort 20005 --debug debug.log"
+    command: "azurite --blobHost 0.0.0.0 --blobPort 20003 --queueHost 0.0.0.0 --queuePort 20004 --tableHost 0.0.0.0 --tablePort 20005"
     ports:
       - "20003:20003"
       - "20004:20004"
