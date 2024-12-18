@@ -1674,7 +1674,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/ts-commons@npm:^12.0.0, @pagopa/ts-commons@npm:^12.3.0, @pagopa/ts-commons@npm:^12.6.0":
+"@pagopa/ts-commons@npm:^12.0.0, @pagopa/ts-commons@npm:^12.6.0":
   version: 12.6.0
   resolution: "@pagopa/ts-commons@npm:12.6.0"
   dependencies:
@@ -8264,7 +8264,7 @@ __metadata:
   dependencies:
     "@mattrglobal/http-signatures": "npm:^4.1.0"
     "@pagopa/openapi-codegen-ts": "npm:^14.0.0"
-    "@pagopa/ts-commons": "npm:^12.3.0"
+    "@pagopa/ts-commons": "npm:^13.1.1"
     "@types/node": "npm:^20"
     "@types/prompts": "npm:^2.4.7"
     "@types/yargs": "npm:^17.0.33"
