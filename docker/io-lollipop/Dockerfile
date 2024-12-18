@@ -6,13 +6,14 @@ COPY . /usr/src/app
 RUN yarn install --immutable
 RUN yarn build
 
-FROM base AS runner
-COPY --from=base /usr/src/app/package.json .
-COPY --from=base /usr/src/app/turbo.json .
-COPY --from=base /usr/src/app/node_modules .
-COPY --from=base /usr/src/app/apps/io-lollipop/package.json ./apps/io-lollipop/package.json
-COPY --from=base /usr/src/app/apps/io-lollipop/node_modules ./apps/io-lollipop/node_modules
-COPY --from=base /usr/src/app/apps/io-lollipop/dist ./apps/io-lollipop/dist
+FROM functions-node-20 AS runner
+COPY --from=base /usr/src/app/package.json ./package.json
+COPY --from=base /usr/src/app/turbo.json ./turbo.json
+COPY --from=base /usr/src/app/node_modules ./node_modules
+
+COPY --from=base /usr/src/app/packages/typescript-config-node ./packages/typescript-config-node
+
+COPY --from=base /usr/src/app/apps/io-lollipop ./apps/io-lollipop
 
 WORKDIR /usr/src/app/apps/io-lollipop
 
