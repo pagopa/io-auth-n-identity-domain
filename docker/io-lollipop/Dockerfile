@@ -1,4 +1,4 @@
-FROM functions-node-20 AS base
+FROM node:20.12.0 AS base
 
 WORKDIR /usr/src/app
 COPY . /usr/src/app
