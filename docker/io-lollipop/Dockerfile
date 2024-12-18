@@ -13,6 +13,7 @@ COPY --from=base /usr/src/app/node_modules .
 COPY --from=base /usr/src/app/apps/io-lollipop/package.json ./apps/io-lollipop/package.json
 COPY --from=base /usr/src/app/apps/io-lollipop/node_modules ./apps/io-lollipop/node_modules
 COPY --from=base /usr/src/app/apps/io-lollipop/dist ./apps/io-lollipop/dist
+COPY --from=base /usr/src/app/apps/io-lollipop/src ./apps/io-lollipop/src
 
 WORKDIR /usr/src/app/apps/io-lollipop
 
