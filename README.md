@@ -4,7 +4,6 @@
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=pagopa_io-auth-n-identity-domain&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=pagopa_io-auth-n-identity-domain)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=pagopa_io-auth-n-identity-domain&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=pagopa_io-auth-n-identity-domain)
 
-
 ## Requirements
 
 This project requires specific versions of the following tools. To make sure your development setup matches with production follow the recommended installation methods.
@@ -209,3 +208,15 @@ yarn workspace repo-importer import
 ```
 
 The imported repo has is history commit. Maybe a code refactory is needed after the import to make the workspace compatible with the monorepo configuration.
+
+## Using Lollipop cli
+
+We also include a tool to facilitate testing of Lollipop features.
+
+The command to start the tool is:
+
+```sh
+yarn install
+yarn build
+yarn workspace lollipop-cli start
+```
