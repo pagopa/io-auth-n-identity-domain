@@ -73,7 +73,7 @@ const main = async () => {
   results.push(
     await promisifyProcess(
       runProcess(
-        `docker compose --file ${PROJECT_BASE_PATH}/docker-compose.yml down`,
+        `docker compose --file ${PROJECT_BASE_PATH}/docker-compose.yml --env-file ${PROJECT_BASE_PATH}/docker/.env.common down`,
       ),
     ),
   );
