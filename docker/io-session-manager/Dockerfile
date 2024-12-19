@@ -13,7 +13,7 @@ WORKDIR /usr/src/app
 RUN yarn install --immutable
 RUN yarn build
 
-FROM base as runner
+FROM node:20.12.2-alpine as runner
 COPY --from=base /usr/src/app/package.json ./
 COPY --from=base /usr/src/app/turbo.json ./
 COPY --from=base /usr/src/app/node_modules ./
