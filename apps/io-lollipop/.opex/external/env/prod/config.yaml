@@ -9,5 +9,4 @@ action_groups:
 overrides:
   hosts:
     - api.io.pagopa.it
-    - api.io.italia.it
     - api-internal.io.italia.it
