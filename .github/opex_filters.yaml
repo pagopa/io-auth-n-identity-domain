@@ -1,8 +1,10 @@
 plan-action:
   - ".github/workflows/pr_opex_api_session_manager.yaml"
+  - ".github/workflows/pr_opex_api_lollipop.yaml"
   - ".github/workflows/call_pr_opex_api.yml"
 apply-action:
   - ".github/workflows/opex_api_session_manager.yaml"
+  - ".github/workflows/opex_api_lollipop.yaml"
   - ".github/workflows/call_opex_api.yml"
 bpd:
   - "apps/io-session-manager/api/bpd.yaml"
@@ -25,3 +27,6 @@ public:
 zendesk:
   - "apps/io-session-manager/api/zendesk.yaml"
   - "apps/io-session-manager/.opex/zendesk/**"
+lollipop-external:
+  - "apps/io-lollipop/api/external.yaml"
+  - "apps/io-lollipop/.opex/external/**"
