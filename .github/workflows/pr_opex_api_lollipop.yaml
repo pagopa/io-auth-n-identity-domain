@@ -1,4 +1,4 @@
-name: PR - Opex Dashboard session-manager
+name: PR - Opex Dashboard Lollipop
 
 on:
   pull_request:
