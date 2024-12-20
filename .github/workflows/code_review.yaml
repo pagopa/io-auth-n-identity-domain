@@ -12,6 +12,7 @@ on:
       - package.json
       - turbo.json
       - .github/workflows/code_review.yaml
+      - docker/**/*
   pull_request:
     types: [opened, edited, synchronize, reopened, ready_for_review]
     paths:
@@ -20,6 +21,7 @@ on:
       - package.json
       - turbo.json
       - .github/workflows/code_review.yaml
+      - docker/**/*
   workflow_dispatch:
 
 jobs:
@@ -88,7 +90,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           projectBaseDir: apps/io-lollipop/
-  
+
   e2e:
     runs-on: ubuntu-latest
     steps:
@@ -124,7 +126,7 @@ jobs:
         id: test_filter
         with:
           filters: ./.github/ci_filters.yaml
-      
+
       - name: "io-lollipop integration Tests"
         if: steps.test_filter.outputs.io-lollipop == 'true'
         run: >-
@@ -134,4 +136,3 @@ jobs:
       - name: "E2E Tests"
         if: steps.test_filter.outputs.io-session-manager == 'true'
         run: yarn workspace e2e start
-      
