@@ -1,0 +1,73 @@
+openapi: 3.0.1
+
+info:
+  title: hub-spid-login microservice
+  version: 0.0.1
+
+paths:
+  /introspect:
+    post:
+      operationId: introspectToken
+      summary: introspect a token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IntrospectBody"
+      responses:
+        "200":
+          description: "Success response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntrospectSuccessResponse"
+        "403":
+          description: "Invalid token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntrospectForbiddenResponse"
+        "500":
+          description: "Could not retrieve token from storage"
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  "Cannot introspect token"
+components:
+  schemas:
+    Token:
+      type: string
+      minLength: 1
+    IntrospectSuccessResponse:
+      type: object
+      properties:
+        active:
+          type: boolean
+          enum:
+            - true
+      required:
+        - active
+      example:
+        active: true
+    IntrospectForbiddenResponse:
+      type: object
+      properties:
+        active:
+          type: boolean
+          enum:
+            - false
+
+      required:
+        - active
+      example:
+        active: false
+    IntrospectBody:
+      type: object
+      properties:
+        token:
+          $ref: "#/components/schemas/Token"
+      required:
+        - token
