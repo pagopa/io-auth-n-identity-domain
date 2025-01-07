@@ -6,7 +6,7 @@ import {
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as TE from "fp-ts/TaskEither";
 import { unknown } from "io-ts";
-import { beforeEach, describe, expect, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { config as mockedConfig } from "../../__mocks__/config.mock";
 import * as auditLog from "../../utils/audit-log";
 import { magicLinkHandler } from "../handler";
