@@ -1,4 +1,5 @@
 import * as E from "fp-ts/lib/Either";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { aValidExchangeUser, aValidL2User } from "../../__mocks__/users";
 import { Client } from "../../generated/definitions/io-functions-app/client";
 import { profileHandler } from "../handler";
@@ -8,7 +9,7 @@ const aValidEmailResponse = {
   email: "example@test.com"
 };
 
-const getProfileMock = jest.fn(async () =>
+const getProfileMock = vi.fn(async () =>
   E.right({
     status: 200,
     value: aValidEmailResponse
@@ -22,7 +23,7 @@ const functionsAppClientMock = ({
 // #region tests
 describe("Profile", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test.each([aValidL2User, aValidExchangeUser])(

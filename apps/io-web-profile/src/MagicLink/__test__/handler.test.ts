@@ -1,14 +1,15 @@
-import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import {
   BlobServiceClient,
   BlockBlobUploadResponse,
   RestError
 } from "@azure/storage-blob";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as TE from "fp-ts/TaskEither";
 import { unknown } from "io-ts";
-import { magicLinkHandler } from "../handler";
+import { beforeEach, describe, expect, vi } from "vitest";
 import { config as mockedConfig } from "../../__mocks__/config.mock";
 import * as auditLog from "../../utils/audit-log";
+import { magicLinkHandler } from "../handler";
 
 import { config } from "../../__mocks__/config.mock";
 import { MagicLinkData } from "../../generated/definitions/internal/MagicLinkData";
@@ -26,7 +27,7 @@ const aValidPayload = {
 
 describe("MagicLink", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const handler = magicLinkHandler(
@@ -39,7 +40,7 @@ describe("MagicLink", () => {
 
   it(`SHOULD generate a valid magic link token and send it as a response 
       if the audit log operation is successful`, async () => {
-    const mockAuditLog = jest
+    const mockAuditLog = vi
       .spyOn(auditLog, "storeAuditLog")
       .mockReturnValueOnce(TE.right({} as BlockBlobUploadResponse));
 
@@ -58,7 +59,7 @@ describe("MagicLink", () => {
   // eslint-disable-next-line sonarjs/no-identical-functions
   it(`SHOULD generate a valid magic link token 
       and send a status code 500 if the audit log operation fails`, async () => {
-    const mockAuditLog = jest
+    const mockAuditLog = vi
       .spyOn(auditLog, "storeAuditLog")
       .mockReturnValueOnce(TE.left({} as RestError));
 
@@ -80,7 +81,7 @@ describe("MagicLink", () => {
       name: "Carla" as NonEmptyString
     };
 
-    const mockAuditLog = jest
+    const mockAuditLog = vi
       .spyOn(auditLog, "storeAuditLog")
       .mockReturnValueOnce(TE.right({} as BlockBlobUploadResponse));
 

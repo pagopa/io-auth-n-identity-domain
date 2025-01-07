@@ -17,7 +17,7 @@ import {
   ResponseSuccessNoContent,
   getResponseErrorForbiddenNotAuthorized
 } from "@pagopa/ts-commons/lib/responses";
-import * as express from "express";
+import express from "express";
 
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";

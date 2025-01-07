@@ -1,16 +1,17 @@
+import { generateKeyPairSync } from "crypto";
 import * as express from "express";
 import * as E from "fp-ts/Either";
 import { sign } from "jsonwebtoken";
-import { generateKeyPairSync } from "crypto";
 
-import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { describe, expect, it } from "vitest";
 
 import { config, hslConfig } from "../../../__mocks__/config.mock";
+import { FeatureFlagEnum } from "../../featureFlags/featureFlags";
 import {
   userIsEligible,
   verifyUserEligibilityMiddleware
 } from "../user-eligibility-middleware";
-import { FeatureFlagEnum } from "../../featureFlags/featureFlags";
 
 describe(`userIsEligible`, () => {
   it("should succeed in passing the user as eligible", async () => {

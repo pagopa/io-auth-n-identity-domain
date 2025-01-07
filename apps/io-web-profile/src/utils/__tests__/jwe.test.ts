@@ -1,9 +1,10 @@
-import * as E from "fp-ts/Either";
 import * as crypto from "crypto";
+import * as E from "fp-ts/Either";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { Second } from "@pagopa/ts-commons/lib/units";
 
+import { describe, expect, it } from "vitest";
 import { config } from "../../__mocks__/config.mock";
 import { getGenerateJWE } from "../jwe";
 

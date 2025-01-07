@@ -1,5 +1,5 @@
 import * as crypto from "crypto";
-import * as express from "express";
+import express from "express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 

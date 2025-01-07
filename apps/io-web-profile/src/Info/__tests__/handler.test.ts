@@ -3,10 +3,11 @@ import {
   HealthProblem
 } from "@pagopa/io-functions-commons/dist/src/utils/healthcheck";
 import * as TE from "fp-ts/lib/TaskEither";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { InfoHandler } from "../handler";
 
 afterEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 describe("InfoHandler", () => {
@@ -23,10 +24,9 @@ describe("InfoHandler", () => {
   });
 
   it("should return a success if the application is healthy", async () => {
-    const healthCheck: HealthCheck<
-      "AzureStorage" | "Config",
+    const healthCheck: HealthCheck<"AzureStorage" | "Config", true> = TE.of(
       true
-    > = TE.of(true);
+    );
     const handler = InfoHandler(() => healthCheck);
     const response = await handler();
 

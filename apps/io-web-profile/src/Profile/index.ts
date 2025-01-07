@@ -5,7 +5,8 @@ import { AzureContextTransport } from "@pagopa/io-functions-commons/dist/src/uti
 import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { useWinstonFor } from "@pagopa/winston-ts";
 import { LoggerId } from "@pagopa/winston-ts/dist/types/logging";
-import * as express from "express";
+import express from "express";
+import Transport from "winston-transport";
 import { getFunctionsAppClient } from "../clients/functionsAppClient";
 import { getConfigOrThrow } from "../utils/config";
 import { getProfileHandler } from "./handler";
@@ -14,7 +15,10 @@ const config = getConfigOrThrow();
 
 // eslint-disable-next-line functional/no-let
 let logger: Context["log"];
-const azureContextTransport = new AzureContextTransport(() => logger, {});
+const azureContextTransport = (new AzureContextTransport(
+  () => logger,
+  {}
+) as unknown) as Transport;
 useWinstonFor({
   loggerId: LoggerId.default,
   transports: [azureContextTransport]

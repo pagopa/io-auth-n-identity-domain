@@ -1,4 +1,5 @@
 import * as E from "fp-ts/lib/Either";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { aValidExchangeUser, aValidL2User } from "../../__mocks__/users";
 import { Client } from "../../generated/definitions/fast-login/client";
 import { sessionStateHandler } from "../handler";
@@ -12,7 +13,7 @@ const aValidSessionState = {
   }
 };
 
-const sessionStateMock = jest.fn(async () =>
+const sessionStateMock = vi.fn(async () =>
   E.right({
     status: 200,
     value: aValidSessionState
@@ -31,7 +32,7 @@ const emptySessionState = {
 // #region tests
 describe("SessionState", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test.each([aValidL2User, aValidExchangeUser])(

@@ -1,21 +1,21 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
-import {
-  FiscalCode,
-  IPString,
-  NonEmptyString
-} from "@pagopa/ts-commons/lib/strings";
-import { config as mockedConfig } from "../../__mocks__/config.mock";
-import { MagicLinkPayload } from "../../utils/exchange-jwt";
-import { exchangeHandler } from "../handler";
 import { Context } from "@azure/functions";
-import * as auditLog from "../../utils/audit-log";
-import * as O from "fp-ts/Option";
 import {
   BlobServiceClient,
   BlockBlobUploadResponse,
   RestError
 } from "@azure/storage-blob";
+import {
+  FiscalCode,
+  IPString,
+  NonEmptyString
+} from "@pagopa/ts-commons/lib/strings";
+import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { config as mockedConfig } from "../../__mocks__/config.mock";
+import * as auditLog from "../../utils/audit-log";
+import { MagicLinkPayload } from "../../utils/exchange-jwt";
+import { exchangeHandler } from "../handler";
 
 // #region mocks
 const aValidUser: MagicLinkPayload = {

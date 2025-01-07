@@ -1,20 +1,21 @@
-import * as E from "fp-ts/lib/Either";
 import {
   BlobServiceClient,
   BlockBlobUploadResponse,
   RestError
 } from "@azure/storage-blob";
 import { IPString } from "@pagopa/ts-commons/lib/strings";
+import * as E from "fp-ts/lib/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { config as mockedConfig } from "../../__mocks__/config.mock";
 import { aValidExchangeUser, aValidL2User } from "../../__mocks__/users";
 import { Client } from "../../generated/definitions/fast-login/client";
-import { logoutHandler } from "../handler";
-import { config as mockedConfig } from "../../__mocks__/config.mock";
 import * as auditLog from "../../utils/audit-log";
+import { logoutHandler } from "../handler";
 
 // #region mocks
-const logoutMock = jest.fn(async () =>
+const logoutMock = vi.fn(async () =>
   E.right({
     status: 204
   })
@@ -31,7 +32,7 @@ const containerClient = BlobServiceClient.fromConnectionString(
 // #region tests
 describe("Logout", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test.each([aValidL2User, aValidExchangeUser])(
@@ -40,7 +41,7 @@ describe("Logout", () => {
         THEN the response is 500`,
     async user => {
       const anError = "anError";
-      const mockAuditLog = jest
+      const mockAuditLog = vi
         .spyOn(auditLog, "storeAuditLog")
         .mockReturnValueOnce(TE.left(new RestError(anError)));
       const handler = logoutHandler(fastLoginClientMock, containerClient);
@@ -61,7 +62,7 @@ describe("Logout", () => {
         WHEN all checks passed
         THEN the response is 204`,
     async user => {
-      const mockAuditLog = jest
+      const mockAuditLog = vi
         .spyOn(auditLog, "storeAuditLog")
         .mockReturnValueOnce(TE.right({} as BlockBlobUploadResponse));
       const handler = logoutHandler(fastLoginClientMock, containerClient);

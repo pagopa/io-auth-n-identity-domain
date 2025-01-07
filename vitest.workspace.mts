@@ -32,4 +32,12 @@ export default defineWorkspace([
       environment: "node",
     },
   },
+  {
+    extends: "apps/io-web-profile/vite.config.mts",
+    test: {
+      name: "lollipop",
+      include: ["apps/io-web-profile/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
 ]);

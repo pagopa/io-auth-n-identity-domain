@@ -1,20 +1,25 @@
+import {
+  BlobServiceClient,
+  BlockBlobUploadResponse,
+  RestError
+} from "@azure/storage-blob";
+import { IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
+import * as O from "fp-ts/Option";
+import * as TE from "fp-ts/TaskEither";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { config as mockedConfig } from "../../__mocks__/config.mock";
+import { UnlockSessionData } from "../../generated/definitions/external/UnlockSessionData";
+import { Client } from "../../generated/definitions/fast-login/client";
 import { FiscalCode } from "../../generated/definitions/fast-login/FiscalCode";
 import { UnlockCode } from "../../generated/definitions/fast-login/UnlockCode";
+import * as auditLog from "../../utils/audit-log";
+import { SpidLevel } from "../../utils/enums/SpidLevels";
 import { HslJwtPayloadExtended } from "../../utils/middlewares/hsl-jwt-validation-middleware";
 import { unlockSessionHandler } from "../handler";
-import { SpidLevel } from "../../utils/enums/SpidLevels";
-import { Client } from "../../generated/definitions/fast-login/client";
-import { UnlockSessionData } from "../../generated/definitions/external/UnlockSessionData";
-import { IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { config as mockedConfig } from "../../__mocks__/config.mock";
-import { BlobServiceClient, BlockBlobUploadResponse, RestError } from "@azure/storage-blob";
-import * as O from "fp-ts/Option";
-import * as auditLog from "../../utils/audit-log";
-import * as TE from "fp-ts/TaskEither";
 
 // #region mocks
-const unlockSessionMock = jest.fn(async () =>
+const unlockSessionMock = vi.fn(async () =>
   E.right({
     status: 204
   })
@@ -65,7 +70,7 @@ const containerClient = BlobServiceClient.fromConnectionString(
 // #region tests
 describe("UnlockSession", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test(`GIVEN a valid payload and a valid user decoded from JWT
@@ -73,11 +78,15 @@ describe("UnlockSession", () => {
         THEN the response is 500`, async () => {
     const handler = unlockSessionHandler(fastLoginClientMock, containerClient);
 
-    const mockAuditLog = jest
+    const mockAuditLog = vi
       .spyOn(auditLog, "storeAuditLog")
       .mockReturnValueOnce(TE.left({} as RestError));
 
-    const res = await handler(aValidL2User, aValidL2Payload, O.some("127.0.0.1" as IPString));
+    const res = await handler(
+      aValidL2User,
+      aValidL2Payload,
+      O.some("127.0.0.1" as IPString)
+    );
 
     expect(unlockSessionMock).toHaveBeenCalledTimes(1);
     expect(mockAuditLog).toHaveBeenCalledTimes(1);
@@ -97,12 +106,15 @@ describe("UnlockSession", () => {
         THEN the response is 204`, async () => {
     const handler = unlockSessionHandler(fastLoginClientMock, containerClient);
 
-    const mockAuditLog = jest
+    const mockAuditLog = vi
       .spyOn(auditLog, "storeAuditLog")
       .mockReturnValueOnce(TE.right({} as BlockBlobUploadResponse));
 
-
-    const res = await handler(aValidL2User, aValidL2Payload, O.some("127.0.0.1" as IPString));
+    const res = await handler(
+      aValidL2User,
+      aValidL2Payload,
+      O.some("127.0.0.1" as IPString)
+    );
 
     expect(unlockSessionMock).toHaveBeenCalledTimes(1);
     expect(mockAuditLog).toHaveBeenCalledTimes(1);
@@ -122,11 +134,15 @@ describe("UnlockSession", () => {
         THEN the response is 204`, async () => {
     const handler = unlockSessionHandler(fastLoginClientMock, containerClient);
 
-    const mockAuditLog = jest
+    const mockAuditLog = vi
       .spyOn(auditLog, "storeAuditLog")
       .mockReturnValueOnce(TE.right({} as BlockBlobUploadResponse));
 
-    const res = await handler(aValidL3User, aValidL3Payload, O.some("127.0.0.1" as IPString));
+    const res = await handler(
+      aValidL3User,
+      aValidL3Payload,
+      O.some("127.0.0.1" as IPString)
+    );
 
     expect(unlockSessionMock).toHaveBeenCalledTimes(1);
     expect(mockAuditLog).toHaveBeenCalledTimes(1);
@@ -148,7 +164,11 @@ describe("UnlockSession", () => {
     unlockSessionMock.mockResolvedValueOnce(E.right({ status: 403 }));
     const handler = unlockSessionHandler(fastLoginClientMock, containerClient);
 
-    const res = await handler(aValidL2User, aValidL2Payload, O.some("127.0.0.1" as IPString));
+    const res = await handler(
+      aValidL2User,
+      aValidL2Payload,
+      O.some("127.0.0.1" as IPString)
+    );
 
     expect(unlockSessionMock).toHaveBeenCalledTimes(1);
     expect(unlockSessionMock).toHaveBeenCalledWith({
@@ -169,7 +189,11 @@ describe("UnlockSession", () => {
     unlockSessionMock.mockResolvedValueOnce(E.right({ status: 502 }));
     const handler = unlockSessionHandler(fastLoginClientMock, containerClient);
 
-    const res = await handler(aValidL2User, aValidL2Payload, O.some("127.0.0.1" as IPString));
+    const res = await handler(
+      aValidL2User,
+      aValidL2Payload,
+      O.some("127.0.0.1" as IPString)
+    );
 
     expect(unlockSessionMock).toHaveBeenCalledTimes(1);
     expect(unlockSessionMock).toHaveBeenCalledWith({
@@ -190,7 +214,11 @@ describe("UnlockSession", () => {
     unlockSessionMock.mockResolvedValueOnce(E.right({ status: 504 }));
     const handler = unlockSessionHandler(fastLoginClientMock, containerClient);
 
-    const res = await handler(aValidL2User, aValidL2Payload, O.some("127.0.0.1" as IPString));
+    const res = await handler(
+      aValidL2User,
+      aValidL2Payload,
+      O.some("127.0.0.1" as IPString)
+    );
 
     expect(unlockSessionMock).toHaveBeenCalledTimes(1);
     expect(unlockSessionMock).toHaveBeenCalledWith({
@@ -214,7 +242,11 @@ describe("UnlockSession", () => {
     unlockSessionMock.mockResolvedValueOnce(E.right({ status: errorStatus }));
     const handler = unlockSessionHandler(fastLoginClientMock, containerClient);
 
-    const res = await handler(aValidL2User, aValidL2Payload, O.some("127.0.0.1" as IPString));
+    const res = await handler(
+      aValidL2User,
+      aValidL2Payload,
+      O.some("127.0.0.1" as IPString)
+    );
 
     expect(unlockSessionMock).toHaveBeenCalledTimes(1);
     expect(unlockSessionMock).toHaveBeenCalledWith({
@@ -237,7 +269,11 @@ describe("UnlockSession", () => {
     unlockSessionMock.mockRejectedValueOnce("Error");
     const handler = unlockSessionHandler(fastLoginClientMock, containerClient);
 
-    const res = await handler(aValidL2User, aValidL2Payload, O.some("127.0.0.1" as IPString));
+    const res = await handler(
+      aValidL2User,
+      aValidL2Payload,
+      O.some("127.0.0.1" as IPString)
+    );
 
     expect(unlockSessionMock).toHaveBeenCalledTimes(1);
     expect(unlockSessionMock).toHaveBeenCalledWith({
@@ -257,7 +293,11 @@ describe("UnlockSession", () => {
         THEN the response is 403`, async () => {
     const handler = unlockSessionHandler(fastLoginClientMock, containerClient);
 
-    const res = await handler(aValidL1User, aValidL2Payload, O.some("127.0.0.1" as IPString));
+    const res = await handler(
+      aValidL1User,
+      aValidL2Payload,
+      O.some("127.0.0.1" as IPString)
+    );
 
     expect(unlockSessionMock).toHaveBeenCalledTimes(0);
     expect(res).toMatchObject({

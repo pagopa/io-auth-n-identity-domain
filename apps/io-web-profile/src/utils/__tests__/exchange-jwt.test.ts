@@ -1,12 +1,10 @@
 import * as E from "fp-ts/Either";
 import * as jwt from "jsonwebtoken";
 
-import {
-  ExchangeJWT,
-  getGenerateExchangeJWT
-} from "../exchange-jwt";
+import { describe, expect, it } from "vitest";
 import { config as mockedConfig } from "../../__mocks__/config.mock";
 import { TokenTypes } from "../enums/TokenTypes";
+import { ExchangeJWT, getGenerateExchangeJWT } from "../exchange-jwt";
 import { ExchangeJwtPayloadExtended } from "../middlewares/exchange-jwt-validation-middleware";
 
 const aPayload = {

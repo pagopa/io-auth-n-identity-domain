@@ -3,9 +3,11 @@ import { addSeconds, getUnixTime, subSeconds } from "date-fns";
 import * as express from "express";
 import * as jose from "jose";
 
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { config } from "../../../__mocks__/config.mock";
 import { magicLinkJweValidationMiddleware } from "../magic-link-jwe-validation-middleware";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+
+import { describe, expect, it } from "vitest";
 
 const aJwePayload = {
   family_name: "fn",

@@ -21,7 +21,7 @@ import {
 } from "@pagopa/ts-commons/lib/responses";
 import { SequenceMiddleware } from "@pagopa/ts-commons/lib/sequence_middleware";
 import { defaultLog } from "@pagopa/winston-ts";
-import * as express from "express";
+import express from "express";
 
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
