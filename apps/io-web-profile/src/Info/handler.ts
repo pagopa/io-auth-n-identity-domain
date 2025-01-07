@@ -12,7 +12,10 @@ import express from "express";
 
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import * as packageJson from "../../package.json";
+import {
+  getCurrentBackendVersion,
+  getValueFromPackageJson
+} from "../utils/package";
 
 import { ApplicationInfo } from "../generated/definitions/internal/ApplicationInfo";
 import { envConfig, IConfig } from "../utils/config";
@@ -35,8 +38,8 @@ export const InfoHandler = (
     checkApplicationHealth,
     TE.map(_ =>
       ResponseSuccessJson({
-        name: packageJson.name,
-        version: packageJson.version
+        name: getValueFromPackageJson("name"),
+        version: getCurrentBackendVersion()
       })
     ),
     TE.mapLeft(problems => ResponseErrorInternal(problems.join("\n\n"))),

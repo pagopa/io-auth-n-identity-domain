@@ -6,6 +6,11 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { InfoHandler } from "../handler";
 
+vi.mock("../../utils/package", () => ({
+  getCurrentBackendVersion: () => "1.0.0",
+  getValueFromPackageJson: () => "io-lollipop"
+}));
+
 afterEach(() => {
   vi.clearAllMocks();
 });
