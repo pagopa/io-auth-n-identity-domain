@@ -10,7 +10,7 @@ import { config, hslConfig } from "../../../__mocks__/config.mock";
 import { hslJwtValidation } from "../hsl-jwt-validation-middleware";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as hslUtils from "../hsl-jwt-validation-middleware";
+import * as introspectionCall from "../../introspection-call";
 
 describe(`Hub Spid Login JWT Validation Middleware`, () => {
   const token = hslConfig.HUB_SPID_LOGIN_MOCK_TOKEN as NonEmptyString;
@@ -23,11 +23,14 @@ describe(`Hub Spid Login JWT Validation Middleware`, () => {
     - Should return JWT payload
     - Success -`, async () => {
     const mockIntrospectionCall = vi
-      .spyOn(hslUtils, "introspectionCall")
+      .spyOn(introspectionCall, "introspectionCall")
       .mockReturnValueOnce(TE.right(ResponseSuccessJson({ active: true })));
 
     const jwtValidation = hslJwtValidation(config);
     const result = await jwtValidation(token)();
+
+    console.log("SCOPPIA", result);
+    console.log(token);
 
     expect(E.isRight(result)).toBe(true);
     expect(mockIntrospectionCall).toHaveBeenCalledTimes(1);
@@ -49,7 +52,7 @@ describe(`Hub Spid Login JWT Validation Middleware`, () => {
     - Introspection should fail
     - Failed -`, async () => {
     const mockIntrospectionCall = vi
-      .spyOn(hslUtils, "introspectionCall")
+      .spyOn(introspectionCall, "introspectionCall")
       .mockReturnValueOnce(TE.left(getResponseErrorForbiddenNotAuthorized()));
 
     const jwtValidation = hslJwtValidation(config);
