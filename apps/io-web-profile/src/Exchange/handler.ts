@@ -1,4 +1,4 @@
-import * as express from "express";
+import express from "express";
 import * as TE from "fp-ts/TaskEither";
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";

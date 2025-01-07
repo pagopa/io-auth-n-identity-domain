@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
   FiscalCode,
   IPString,
@@ -28,7 +29,7 @@ const aValidUser: MagicLinkPayload = {
 let context: Context;
 
 beforeEach(() => {
-  context = ({ log: jest.fn() } as unknown) as Context;
+  context = ({ log: vi.fn() } as unknown) as Context;
 });
 
 const containerClient = BlobServiceClient.fromConnectionString(
@@ -38,13 +39,13 @@ const containerClient = BlobServiceClient.fromConnectionString(
 // #region tests
 describe("Exchange", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test(`GIVEN a valid magic_link JWT
         WHEN all checks passed
         THEN the response is 200 and contains the exchange JWT`, async () => {
-    const mockAuditLog = jest
+    const mockAuditLog = vi
       .spyOn(auditLog, "storeAuditLog")
       .mockReturnValueOnce(TE.right({} as BlockBlobUploadResponse));
 
@@ -64,7 +65,7 @@ describe("Exchange", () => {
   test(`GIVEN a valid magic_link JWT
         WHEN auditlog saving data failed
         THEN the response is 500`, async () => {
-    const mockAuditLog = jest
+    const mockAuditLog = vi
       .spyOn(auditLog, "storeAuditLog")
       .mockReturnValueOnce(TE.left(("" as unknown) as RestError));
 
