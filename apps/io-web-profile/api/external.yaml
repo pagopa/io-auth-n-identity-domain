@@ -1,0 +1,363 @@
+openapi: 3.0.1
+info:
+  version: $npm_package_version
+  title: IO Web Profile Function API
+  x-logo:
+    url: https://io.italia.it/assets/img/io-logo-blue.svg
+  description: |
+    Documentation of the IO Web Profile Function API here.
+servers:
+  - url: https://api-web.io.pagopa.it/ioweb/backend/api/v1
+paths:
+  /lock-session:
+    post:
+      operationId: lockUserSession
+      summary: LockUserSession
+      description: Lock user session on IO App
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LockSessionData"
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Forbidden
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+        "502":
+          description: Bad Gateway
+        "504":
+          description: Gateway Timeout
+  /unlock-session:
+    post:
+      operationId: unlockUserSession
+      summary: UnlockUserSession
+      description: Unlock user session on IO App
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnlockSessionData"
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Forbidden
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+        "502":
+          description: Bad Gateway
+        "504":
+          description: Gateway Timeout
+  /logout:
+    post:
+      operationId: logoutFromIOApp
+      summary: LogoutFromIOApp
+      description: Logout User from IO App
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+        "502":
+          description: Bad Gateway
+        "504":
+          description: Gateway Timeout
+  /profile:
+    get:
+      operationId: getProfile
+      summary: GetProfile
+      description: Retrieve a user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileData"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /session-state:
+    get:
+      operationId: getUserSessionState
+      summary: GetUserSessionState
+      description: Get User Session State on IO App
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionState"
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+        "502":
+          description: Bad Gateway
+        "504":
+          description: Gateway Timeout
+  /exchange:
+    post:
+      operationId: exchangeToken
+      summary: ExchangeToken
+      description: Exchange Magic Link Token with JWT
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExchangeToken"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+        "502":
+          description: Bad Gateway
+        "504":
+          description: Gateway Timeout
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    InternalServerError:
+      allOf:
+        - $ref: "#/components/schemas/ProblemJson"
+        - type: object
+          properties:
+            status:
+              type: integer
+              enum:
+                - 500
+              example: 500
+              description: >-
+                The HTTP status code generated by the origin server for this
+                occurrence of the problem.
+          required:
+            - status
+    BadRequest:
+      allOf:
+        - $ref: "#/components/schemas/ProblemJson"
+        - type: object
+          properties:
+            status:
+              type: integer
+              enum:
+                - 400
+              example: 400
+              description: >-
+                The HTTP status code generated by the origin server for this
+                occurrence of the problem.
+          required:
+            - status
+    Unauthorized:
+      allOf:
+        - $ref: "#/components/schemas/ProblemJson"
+        - type: object
+          properties:
+            status:
+              type: integer
+              enum:
+                - 401
+              example: 401
+              description: >-
+                The HTTP status code generated by the origin server for this
+                occurrence of the problem.
+          required:
+            - status
+    AuthBearer:
+      type: string
+      pattern: ^Bearer [a-zA-Z0-9-_].+
+      description: A JWT auth custom header as `Bearer <JWT Token>`
+      example: >-
+        Bearer
+        eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+    UnlockCode:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-fast-login/main/api/internal.yaml#/components/schemas/UnlockCode"
+    LockSessionData:
+      type: object
+      properties:
+        unlock_code:
+          $ref: "#/components/schemas/UnlockCode"
+      required:
+        - unlock_code
+    UnlockSessionData:
+      type: object
+      properties:
+        unlock_code:
+          $ref: "#/components/schemas/UnlockCode"
+    ProfileData:
+      description: |-
+        Describes the citizen's profile.
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: foobar@example.com
+    SessionInfo:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-fast-login/main/api/internal.yaml#/components/schemas/SessionInfo"
+    SessionState:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-fast-login/main/api/internal.yaml#/components/schemas/SessionState"
+    ExchangeToken:
+      description: Exchanged token
+      type: object
+      properties:
+        jwt:
+          type: string
+          format: JWT
+    ProblemJson:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |-
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type
+            (e.g., using HTML).
+          default: about:blank
+          example: https://example.com/problem/constraint-violation
+        title:
+          type: string
+          description: >-
+            A short, summary of the problem type. Written in english and
+            readable
+
+            for engineers (usually not suited for non technical stakeholders and
+
+            not localized); example: Service Unavailable
+        status:
+          type: integer
+          format: int32
+          description: >-
+            The HTTP status code generated by the origin server for this
+            occurrence
+
+            of the problem.
+          minimum: 100
+          maximum: 600
+          exclusiveMaximum: true
+          example: 200
+        detail:
+          type: string
+          description: |-
+            A human readable explanation specific to this occurrence of the
+            problem.
+          example: There was an error processing the request
+        instance:
+          type: string
+          format: uri
+          description: >-
+            An absolute URI that identifies the specific occurrence of the
+            problem.
+
+            It may or may not yield further information if dereferenced.
