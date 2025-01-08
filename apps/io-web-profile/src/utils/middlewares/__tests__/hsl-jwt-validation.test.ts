@@ -6,10 +6,10 @@ import {
   getResponseErrorForbiddenNotAuthorized
 } from "@pagopa/ts-commons/lib/responses";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { config, hslConfig } from "../../../__mocks__/config.mock";
 import { hslJwtValidation } from "../hsl-jwt-validation-middleware";
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as introspectionCall from "../../introspection-call";
 
 describe(`Hub Spid Login JWT Validation Middleware`, () => {

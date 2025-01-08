@@ -4,10 +4,9 @@ import * as express from "express";
 import * as jose from "jose";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { describe, expect, it } from "vitest";
 import { config } from "../../../__mocks__/config.mock";
 import { magicLinkJweValidationMiddleware } from "../magic-link-jwe-validation-middleware";
-
-import { describe, expect, it } from "vitest";
 
 const aJwePayload = {
   family_name: "fn",
@@ -152,14 +151,11 @@ describe("MagicLinkJweValidationMiddleware", () => {
   });
 });
 
-const getMagicLinkValidationMiddleware = (
-  blacklist?: ReadonlyArray<string>
-) => {
-  return magicLinkJweValidationMiddleware(
+const getMagicLinkValidationMiddleware = (blacklist?: ReadonlyArray<string>) =>
+  magicLinkJweValidationMiddleware(
     config.BEARER_AUTH_HEADER,
     config.MAGIC_LINK_JWE_ISSUER,
     blacklist || config.BLACKLISTED_JTI_LIST,
     config.MAGIC_LINK_JWE_PRIMARY_PRIVATE_KEY,
     config.MAGIC_LINK_JWE_SECONDARY_PRIVATE_KEY
   );
-};

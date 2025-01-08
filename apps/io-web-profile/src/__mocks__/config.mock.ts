@@ -1,6 +1,6 @@
+import { generateKeyPairSync } from "crypto";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { Second } from "@pagopa/ts-commons/lib/units";
-import { generateKeyPairSync } from "crypto";
 import { sign } from "jsonwebtoken";
 import {
   FastLoginClientConfig,

@@ -1,22 +1,20 @@
+/** @type {import("eslint").Linter.Config} */
 module.exports = {
   env: {
-    es6: true,
+    es2021: true,
     node: true
   },
-  ignorePatterns: [
-    "node_modules",
-    "generated",
-    "**/__tests__/*",
-    "**/__mocks__/*",
-    "**/__integrations__/*",
-    "*.d.ts",
-    "*.js"
-  ],
-  parser: "@typescript-eslint/parser",
+  extends: ["eslint-config-monorepo/index.js"],
   parserOptions: {
-    project: "./tsconfig.json",
-    sourceType: "module"
+    project: "./tsconfig.eslint.json",
+    tsconfigRootDir: __dirname,
   },
-  extends: ["@pagopa/eslint-config/strong"],
-  rules: {}
+  ignorePatterns: [
+    "*.yaml",
+    "src/generated/**/*",
+    "dist/**/*",
+  ],
+  rules: {
+    "max-classes-per-file": "off",
+  }
 };

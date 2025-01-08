@@ -1,23 +1,23 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import * as auditLog from "../../audit-log";
-import * as handler from "../../audit-log";
 import {
   BlobServiceClient,
   BlockBlobUploadResponse,
   ContainerClient,
   RestError
 } from "@azure/storage-blob";
+import * as TE from "fp-ts/TaskEither";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { isLeft, isRight } from "fp-ts/lib/Either";
+import * as auditLog from "../../audit-log";
+import * as handler from "../../audit-log";
 import {
   AuditActionDoc,
   AuditExchangeDoc,
   ExchangeTag,
   storeAuditLog
 } from "../../audit-log";
-import * as TE from "fp-ts/TaskEither";
 import { config as mockedConfig } from "../../../__mocks__/config.mock";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { TokenTypes } from "../../enums/TokenTypes";
-import { isLeft, isRight } from "fp-ts/lib/Either";
 import { OperationTypes } from "../../enums/OperationTypes";
 
 const config = { ...mockedConfig };

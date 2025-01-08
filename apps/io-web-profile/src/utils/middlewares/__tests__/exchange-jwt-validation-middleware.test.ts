@@ -4,17 +4,16 @@ import * as jwt from "jsonwebtoken";
 
 import { IResponseErrorForbiddenNotAuthorized } from "@pagopa/ts-commons/lib/responses";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { Second } from "@pagopa/ts-commons/lib/units";
+import { describe, expect, it } from "vitest";
 import { config as mockedConfig } from "../../../__mocks__/config.mock";
 
-import { Second } from "@pagopa/ts-commons/lib/units";
 import { TokenTypes } from "../../enums/TokenTypes";
 import { ExchangeJWT, getGenerateExchangeJWT } from "../../exchange-jwt";
 import {
   exchangeJwtValidation,
   exchangeJwtValidationMiddleware
 } from "../exchange-jwt-validation-middleware";
-
-import { describe, expect, it } from "vitest";
 
 const standardJWTTTL = mockedConfig.EXCHANGE_JWT_TTL as Second;
 const issuer = mockedConfig.EXCHANGE_JWT_ISSUER;
