@@ -1,5 +1,11 @@
 # io-web-profile
 
+## 1.8.2
+
+### Patch Changes
+
+- 00993a6: Migrate io-web-profile from it's original repo to this domain mororepo
+
 ## 1.8.1
 
 ### Patch Changes
