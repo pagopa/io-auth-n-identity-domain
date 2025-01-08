@@ -23,7 +23,7 @@ The preferred way to set up the local environment is using nodenv to manage Node
 The project is structured as follows:
 
 ```
-io-web-profile-backend
+io-web-profile
 |-- api
 |-- Function_01
 |   |-- function.json
