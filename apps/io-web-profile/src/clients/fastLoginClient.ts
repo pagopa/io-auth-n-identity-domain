@@ -1,6 +1,6 @@
 import {
   Client,
-  createClient,
+  createClient
 } from "../generated/definitions/fast-login/client";
 import { timeoutFetch } from "../utils/fetch";
 
@@ -9,18 +9,18 @@ export const getFastLoginClient = (
   baseUrl: string,
   basePath?: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fetchApi: typeof timeoutFetch = timeoutFetch as any as typeof timeoutFetch,
+  fetchApi: typeof timeoutFetch = (timeoutFetch as any) as typeof timeoutFetch
 ): Client<"ApiKeyAuth"> =>
   createClient<"ApiKeyAuth">({
     basePath,
     baseUrl,
     fetchApi,
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    withDefaults: (op) => (params) =>
+    withDefaults: op => params =>
       op({
         ...params,
-        ApiKeyAuth: apiKeyAuth,
-      }),
+        ApiKeyAuth: apiKeyAuth
+      })
   });
 
 export type GetFastLoginClient = typeof getFastLoginClient;
