@@ -1532,9 +1532,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/io-spid-commons@npm:^13.5.1":
-  version: 13.5.1
-  resolution: "@pagopa/io-spid-commons@npm:13.5.1"
+"@pagopa/io-spid-commons@npm:^14.0.0":
+  version: 14.0.0
+  resolution: "@pagopa/io-spid-commons@npm:14.0.0"
   dependencies:
     "@pagopa/ts-commons": "npm:^13.1.0"
     "@xmldom/xmldom": "npm:^0.8.7"
@@ -1556,7 +1556,7 @@ __metadata:
     redis: ^4.5.1
   bin:
     startup-idps-metadata: dist/bin/startup-idps-metadata.js
-  checksum: 10c0/1ea049e207717aae65d89df3f6874f7970820030dc2150246ab7d21392f5d7b0ed121c067255950391e8f3d6280cd316f01814b5e930136538ab2eedbd23f882
+  checksum: 10c0/0bc8710d844a51fa00b89183e2110d0ef52b6a2f0b9646c8d39338b1a34d223d07cbb51c47272fccd342e9553a0749bf7dc1befb3765215f13462b2ab6135d0a
   languageName: node
   linkType: hard
 
@@ -7175,7 +7175,7 @@ __metadata:
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/io-functions-app-sdk": "npm:x"
     "@pagopa/io-functions-commons": "npm:^29.1.0"
-    "@pagopa/io-spid-commons": "npm:^13.5.1"
+    "@pagopa/io-spid-commons": "npm:^14.0.0"
     "@pagopa/openapi-codegen-ts": "npm:^13.2.0"
     "@pagopa/ts-commons": "npm:^13.1.1"
     "@pagopa/typescript-config-node": "npm:*"
