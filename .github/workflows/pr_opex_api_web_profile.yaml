@@ -10,7 +10,7 @@ on:
     branches:
       - main
     paths:
-      - ".github/workflows/pr_opex_api_lollipop.yaml"
+      - ".github/workflows/pr_opex_api_web-profile.yaml"
       - ".github/workflows/call_pr_opex_api.yml"
       - "apps/io-web-profile/api/*.yaml"
       - "apps/io-web-profile/.opex/**"
@@ -28,7 +28,7 @@ jobs:
       pull-requests: read
     outputs:
       plan-action: ${{ steps.filter.outputs.plan-action }}
-      lollipop-external: ${{ steps.filter.outputs.web-profile-external }}
+      web-profile-external: ${{ steps.filter.outputs.web-profile-external }}
     # Checks to see if openapi specs in the PR match one of the ones listed.
     # We can use the result to decide which job to run
     # With this type of filter we can avoid creating a lot of workflow files
@@ -38,7 +38,7 @@ jobs:
         id: filter
         with:
           filters: ./.github/opex_filters.yaml
-  plan-lollipop-external:
+  plan-web-profile-external:
     needs: filter
     if: ${{ needs.filter.outputs.web-profile-external == 'true' || needs.filter.outputs.plan-action == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
