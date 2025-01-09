@@ -5,7 +5,7 @@
         "build": "tsc",
         "build:watch": "tsc -w",
         "typecheck": "tsc --noemit",
-        "start": "node ./dist/monitoring.js",
+        "start": "dotenv -e .env node ./dist/monitoring.js",
         "lint": "yarn lint:check --fix",
         "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache"
     },
@@ -14,6 +14,7 @@
         "@pagopa/typescript-config-node": "*",
         "@types/prompts": "^2",
         "@types/winston": "^2.4.4",
+        "dotenv-cli": "^3.1.0",
         "eslint": "^8.57.0",
         "eslint-config-monorepo": "*",
         "eslint-plugin-prettier": "^5.1.3",

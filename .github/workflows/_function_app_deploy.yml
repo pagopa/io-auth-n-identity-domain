@@ -36,10 +36,6 @@ on:
           type: boolean
           required: false
           default: true
-        monitoring_script_path:
-          description: Script for the monitoring of the canary deployment availability
-          type: string
-          required: false
 concurrency:
     group: ${{ github.workflow }}-cd
     cancel-in-progress: true
@@ -119,6 +115,8 @@ jobs:
         FUNCTION_APP_NAME: ${{ inputs.function_app_name}}
         HEALTH_CHECK_PATH: ${{ inputs.health_check_path }}
         USE_STAGING_SLOT: ${{ inputs.use_staging_slot }}
+        INCREMENT_STEP: "10"
+        
   
       steps:
   
@@ -159,9 +157,94 @@ jobs:
               --retry-max-time 120 \
               --retry-all-errors \
               -f 'https://${{ env.FUNCTION_APP_NAME }}-staging.azurewebsites.net${{ env.HEALTH_CHECK_PATH }}'
-        
-        
-  
+
+        - name: Canary traffic increase step
+          if: ${{ env.USE_STAGING_SLOT == 'true' }}
+          run: |
+            #!/usr/bin/env bash
+            set -e
+
+            currentPercentage=0
+    
+            echo "=============================="
+            echo "Starting Canary Deployment..."
+            echo "=============================="
+    
+            while true; do
+              echo "------------------------------------------------"
+              echo "Current Percentage of Traffic: $currentPercentage%"
+              echo "------------------------------------------------"
+    
+              # Run the script that calculates the next traffic percentage
+              # and the wait interval before the next increment
+              output=$(yarn workspace monitoring-canary start $currentPercentage)
+              exit_code=$?
+              echo "Script Output: $output"
+    
+              # If the script exits with a non-zero code, perform a rollback
+              # and fail the pipeline.
+              if [ $exit_code -ne 0 ]; then
+                echo "Script exited with error. Rolling back traffic to 0%."
+                az webapp traffic-routing clear \
+                  --name ${{env.FUNCTION_APP_NAME}} \
+                  --resource-group ${{env.RESOURCE_GROUP_NAME}} \
+                exit 1
+              fi
+    
+              # Parse JSON's output using jq.
+              swap=$(echo "$output" | jq -r '.swap // empty')
+              if [ "$swap" == "true" ]; then
+                echo "Swap requested. Reached 100% or threshold."
+                echo "Exiting the loop to proceed with final swap."
+                break
+              fi
+    
+              nextIncrementPercentage=$(echo "$output" | jq -r '.nextIncrementPercentage')
+              afterMs=$(echo "$output" | jq -r '.afterMs')
+    
+              # Validate that the fields are present
+              if [ -z "$nextIncrementPercentage" ] || [ -z "$afterMs" ]; then
+                echo "Invalid output from script (missing nextIncrementPercentage or afterMs)."
+                exit 1
+              fi
+    
+              echo "Next Increment: $nextIncrementPercentage%"
+              echo "Waiting interval: $afterMs ms"
+    
+              # Set the new traffic percentage for the staging slot
+              # The rest goes to production
+              az webapp traffic-routing set \
+                --name ${{env.FUNCTION_APP_NAME}} \
+                --resource-group ${{env.RESOURCE_GROUP_NAME}} \
+                --distribution staging=$nextIncrementPercentage
+    
+              # Update the currentPercentage variable
+              currentPercentage=$nextIncrementPercentage
+    
+              # Attendi il tempo specificato before the next iteration
+              delaySeconds=$((afterMs / 1000))
+              echo "Waiting for $delaySeconds seconds..."
+              sleep $delaySeconds
+    
+              # Se la nextIncrementPercentage raggiunge 100,
+              # potresti anche decidere di break dal loop:
+              if [ "$nextIncrementPercentage" -ge 100 ]; then
+                echo "Reached 100% traffic on staging. Exiting loop."
+                break
+              fi
+            done
+    
+            echo "======================================================"
+            echo "Canary deployment validation completed."
+            echo "======================================================"
+
+        - name: Clear traffic routing before swap
+          if: ${{ env.USE_STAGING_SLOT == 'true' }}
+          run: |
+            az webapp traffic-routing clear \
+              -g ${{ env.RESOURCE_GROUP_NAME }} \
+              -n ${{ env.FUNCTION_APP_NAME }}
+
         - name: Swap Staging and Production Slots
           if: ${{ env.USE_STAGING_SLOT == 'true' }}
           run: |
@@ -170,4 +253,3 @@ jobs:
               -n ${{ env.FUNCTION_APP_NAME }} \
               --slot staging \
               --target-slot production
-  

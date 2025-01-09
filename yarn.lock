@@ -9459,6 +9459,7 @@ __metadata:
     "@pagopa/typescript-config-node": "npm:*"
     "@types/prompts": "npm:^2"
     "@types/winston": "npm:^2.4.4"
+    dotenv-cli: "npm:^3.1.0"
     eslint: "npm:^8.57.0"
     eslint-config-monorepo: "npm:*"
     eslint-plugin-prettier: "npm:^5.1.3"
