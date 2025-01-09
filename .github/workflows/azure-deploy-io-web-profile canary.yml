@@ -6,7 +6,7 @@ on:
 jobs:
   deploy_to_azure:
     name: Deploy to Azure Function App
-    uses: ./.github/workflows/_function_app_deploy.yml
+    uses: ./.github/_function_app_deploy.yml
     with:
       # '-cd' suffix added inside the pipeline
       environment: apps-prod
