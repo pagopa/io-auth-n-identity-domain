@@ -1,5 +1,5 @@
 oa3_spec: apps/io-web-profile/api/external.yaml
-name: opex_io_web-profile_api_external
+name: opex_iowebprofilebackend_external
 location: Italy North
 timespan: 5m
 evaluation_frequency: 10

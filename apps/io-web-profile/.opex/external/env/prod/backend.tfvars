@@ -1,4 +1,4 @@
 resource_group_name  = "terraform-state-rg"
 storage_account_name = "tfappprodio"
 container_name       = "terraform-state"
-key                  = "opex.io-web-profile.api_external.tfstate"
+key                  = "opex.io-web-profile-backend.external.tfstate"
