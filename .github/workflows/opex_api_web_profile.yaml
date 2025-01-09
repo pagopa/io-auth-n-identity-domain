@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "apps/io-web-profile/api/*.yaml"
-      - ".github/workflows/opex_api_session_manager.yaml"
+      - ".github/workflows/opex_api_web_profile.yaml"
       - ".github/workflows/call_opex_api.yml"
       - "apps/io-web-profile/.opex/**"
 
