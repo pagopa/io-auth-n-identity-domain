@@ -52,3 +52,22 @@ module "federated_identities" {
   }
 }
 
+resource "azurerm_key_vault_access_policy" "infra_ci" {
+  key_vault_id = data.azurerm_key_vault.weu_common.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = module.federated_identities.federated_ci_identity.id
+
+  secret_permissions = [
+    "Get",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "infra_cd" {
+  key_vault_id = data.azurerm_key_vault.weu_common.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = module.federated_identities.federated_cd_identity.id
+
+  secret_permissions = [
+    "Get",
+  ]
+}

@@ -21,6 +21,50 @@ data "azurerm_subnet" "private_endpoints_subnet" {
   resource_group_name  = data.azurerm_virtual_network.itn_common.resource_group_name
 }
 
+data "azurerm_key_vault" "common" {
+  name                = "${local.common_project}-kv-common"
+  resource_group_name = "${local.common_project}-rg-common"
+}
+
+##########################
+# Storage Accounts
+##########################
+
+data "azurerm_storage_account" "storage_api" {
+  name                = replace("${local.common_project}stapi", "-", "")
+  resource_group_name = "${local.common_project}-rg-internal"
+}
+
+data "azurerm_storage_account" "logs" {
+  name                = replace("${local.common_project}-stlogs", "-", "")
+  resource_group_name = "${local.common_project}-rg-operations"
+}
+
+data "azurerm_storage_account" "assets_cdn" {
+  name                = replace("${local.common_project}-stcdnassets", "-", "")
+  resource_group_name = "${local.common_project}-rg-common"
+}
+
+data "azurerm_storage_account" "notifications" {
+  name                = replace("${local.common_project}-stnotifications", "-", "")
+  resource_group_name = "${local.common_project}-rg-internal"
+}
+
+data "azurerm_storage_account" "iopstapp" {
+  name                = replace(format("%s-st-app", local.common_project), "-", "")
+  resource_group_name = "${local.common_project}-rg-internal"
+}
+
+data "azurerm_storage_account" "storage_apievents" {
+  name                = replace(format("%s-st-api-events", local.common_project), "-", "")
+  resource_group_name = "${local.common_project}-rg-internal"
+}
+
+data "azurerm_storage_account" "citizen_auth_common" {
+  name                = replace(format("%s-weucitizenauthst", local.common_project), "-", "")
+  resource_group_name = "${local.common_project}-citizen-auth-data-rg"
+}
+
 ##########################
 # APP GATEWAY DATA SOURCE
 ##########################
@@ -32,7 +76,7 @@ data "azurerm_application_gateway" "app_gateway" {
 ##########################
 # SHARED APP SERVICE PLAN
 ##########################
-data "azurerm_app_service_plan" "shared_plan_itn" {
+data "azurerm_service_plan" "shared_plan_itn" {
   name                = format("%s-%s-shared-asp-01", local.project, "citizen-auth")
   resource_group_name = format("%s-%s-shared-rg-01", local.project, "citizen-auth")
 }
