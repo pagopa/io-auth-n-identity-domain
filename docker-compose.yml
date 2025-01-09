@@ -55,6 +55,21 @@ services:
       - cosmosdb
       - storage
 
+  io-web-profile:
+    image: io-web-profile
+    build:
+      context: ./
+      dockerfile: ./docker/io-web-profile/Dockerfile
+    env_file:
+      - ./docker/generated/.env.io-web-profile
+    ports:
+      - ${FUNCTION_WEB_PROFILE_PORT}:7071
+    networks:
+      - io-fn
+    depends_on:
+      - functions-node-20
+      - storage
+
   cosmosdb:
     image: cosmosdb
     build:
