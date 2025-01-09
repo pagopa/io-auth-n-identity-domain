@@ -1,0 +1,19 @@
+name: Canary Deploy (io-web-profile)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_to_azure:
+    name: Deploy to Azure Function App
+    uses: ./.github/workflows/_function_app_deploy.yml
+    with:
+      # '-cd' suffix added inside the pipeline
+      environment: apps-prod
+      resource_group_name: "io-p-itn-auth-webprof-rg-01"
+      workspace_name: "io-web-profile"
+      function_app_name: "io-p-itn-auth-webprof-func-01"
+      health_check_path: "/api/v1/info"
+      use_staging_slot: true
+      use_private_agent: true
+    secrets: inherit
