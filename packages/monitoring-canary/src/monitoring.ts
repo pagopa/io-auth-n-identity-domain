@@ -24,7 +24,8 @@ const logger = winston.createLogger({
 });
 
 async function calculateNextStep(currentPercentage: number) {
-  const azureLogAnalyticsWorkspaceId = process.env.APPLICATION_INSIGHTS_APP_ID;
+  // TODO: Set Azure workspace ID from secret
+  const azureLogAnalyticsWorkspaceId = "d0415be0-f4b2-409e-a16e-365183b18710";
   const logsQueryClient = new LogsQueryClient(new DefaultAzureCredential());
 
   if (!azureLogAnalyticsWorkspaceId) {
@@ -33,9 +34,10 @@ async function calculateNextStep(currentPercentage: number) {
   }
 
   const query = `
-    requests
-    | where timestamp > ago(5m)
-    | summarize totalRequests = count(), failedRequests = countif(success == false)
+    AppRequests
+    | where TimeGenerated > ago(5m)
+    | where AppRoleName == "${process.env.FUNCTION_APP_NAME}-staging"
+    | summarize totalRequests = count(), failedRequests = countif(Success == false)
   `;
 
   try {
@@ -53,16 +55,13 @@ async function calculateNextStep(currentPercentage: number) {
       const totalRequests = table[0]["totalRequests"];
       const failedRequests = table[0]["failedRequests"];
       const failureRate = (failedRequests / totalRequests) * 100;
-      logger.info(`Total Requests: ${totalRequests}`);
-      logger.info(`Failed Requests: ${failedRequests}`);
-      logger.info(`Failure Rate: ${failureRate}%`);
 
       const acceptableFailureRate = process.env.ACCEPTABLE_FAILURE_RATE ? parseFloat(process.env.ACCEPTABLE_FAILURE_RATE) : 1; // Default 1%
       const incrementStep = process.env.INCREMENT_STEP ? parseInt(process.env.INCREMENT_STEP, 10) : 10;
       const defaultAfterMs = process.env.DEFAULT_AFTER_MS ? parseInt(process.env.DEFAULT_AFTER_MS, 10) : 300000; // 5 minuti
 
-      if (failureRate > acceptableFailureRate) {
-        logger.error('Failure rate exceeds acceptable threshold.');
+      if (failureRate > acceptableFailureRate && !isNaN(failureRate)) {
+        logger.error('Failure rate exceeds acceptable threshold or invalid.');
         process.exit(1);
       }
 
@@ -83,7 +82,7 @@ async function calculateNextStep(currentPercentage: number) {
       process.exit(1);
     }
   } catch (err) {
-    logger.error("Error executing the query");
+    logger.error("Error executing the query: ", err);
     process.exit(1);
   }
 }
