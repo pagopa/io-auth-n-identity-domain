@@ -1,12 +1,12 @@
 plan-action:
   - ".github/workflows/pr_opex_api_session_manager.yaml"
   - ".github/workflows/pr_opex_api_lollipop.yaml"
-  - ".github/workflows/pr_opex_api_web-profile.yml"
+  - ".github/workflows/pr_opex_api_web_profile.yml"
   - ".github/workflows/call_pr_opex_api.yml"
 apply-action:
   - ".github/workflows/opex_api_session_manager.yaml"
   - ".github/workflows/opex_api_lollipop.yaml"
-  - ".github/workflows/opex_api_web-profile.yml"
+  - ".github/workflows/opex_api_web_profile.yml"
   - ".github/workflows/call_opex_api.yml"
 bpd:
   - "apps/io-session-manager/api/bpd.yaml"
