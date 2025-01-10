@@ -1,7 +1,12 @@
-name: Canary Deploy (io-web-profile)
+name: MVP Canary Deploy (io-web-profile)
 
 on:
   workflow_dispatch:
+    inputs:
+      use_canary_deploy:
+        type: boolean
+        description: Use automated canary depoyment
+        default: true
 
 jobs:
   deploy_to_azure:
@@ -15,5 +20,6 @@ jobs:
       function_app_name: "io-p-itn-auth-webprof-func-01"
       health_check_path: "/api/v1/info"
       use_staging_slot: true
+      use_canary_deploy: ${{ inputs.use_canary_deploy }}
       use_private_agent: true
     secrets: inherit

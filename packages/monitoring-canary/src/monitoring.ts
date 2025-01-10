@@ -37,7 +37,7 @@ async function calculateNextStep(currentPercentage: number) {
     AppRequests
     | where TimeGenerated > ago(5m)
     | where AppRoleName == "${process.env.FUNCTION_APP_NAME}-staging"
-    | summarize totalRequests = count(), failedRequests = countif(Success == false)
+    | summarize totalRequests = count(), failedRequests = countif(toint(ResultCode) > 499)
   `;
 
   try {
