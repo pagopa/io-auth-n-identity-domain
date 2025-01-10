@@ -2,7 +2,8 @@
 
 import { Durations, LogsQueryClient, LogsQueryResultStatus, LogsTable } from '@azure/monitor-query';
 import { DefaultAzureCredential } from '@azure/identity';
-import * as winston from 'winston';
+import { logger } from "./logger";
+import { getCanaryConfigOrExit } from './env';
 
 type IncrementOutput = {
   nextIncrementPercentage: number;
@@ -15,72 +16,62 @@ type SwapOutput = {
 
 type ScriptOutput = IncrementOutput | SwapOutput;
 
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.Console(),
-  ],
-});
+export type RequestsQueryParams = {
+  query: string;
+  totalRequestKey: string;
+  failureRequestKey: string;
+  failureThreshold: number;
+}
 
-async function calculateNextStep(currentPercentage: number) {
-  // TODO: Set Azure workspace ID from secret
-  const azureLogAnalyticsWorkspaceId = "d0415be0-f4b2-409e-a16e-365183b18710";
+const config = getCanaryConfigOrExit();
+
+export async function calculateNextStep(currentPercentage: number, requetsQueryParams: RequestsQueryParams[]) {
+  const azureLogAnalyticsWorkspaceId = process.env.LOG_ANALITYCS_WORKSPACE_ID;
   const logsQueryClient = new LogsQueryClient(new DefaultAzureCredential());
 
   if (!azureLogAnalyticsWorkspaceId) {
-    logger.error("APPLICATION_INSIGHTS_APP_ID is not set.");
+    logger.error("LOG_ANALITYCS_WORKSPACE_ID is not set.");
     process.exit(1);
   }
 
-  const query = `
-    AppRequests
-    | where TimeGenerated > ago(5m)
-    | where AppRoleName == "${process.env.FUNCTION_APP_NAME}-staging"
-    | summarize totalRequests = count(), failedRequests = countif(toint(ResultCode) > 499)
-  `;
-
   try {
-    const result = await logsQueryClient.queryWorkspace(azureLogAnalyticsWorkspaceId, query, {
-      duration: Durations.fiveMinutes,
-    });
-    if (result.status === LogsQueryResultStatus.Success) {
-      const tablesFromResult: LogsTable[] = result.tables;
-  
-      if (tablesFromResult.length === 0) {
-        logger.error(`No results for query '${query}'`);
-        return;
-      }
-      const table = processTables(tablesFromResult);
-      const totalRequests = table[0]["totalRequests"];
-      const failedRequests = table[0]["failedRequests"];
-      const failureRate = (failedRequests / totalRequests) * 100;
+    requetsQueryParams.map(async (params) => {
+      const result = await logsQueryClient.queryWorkspace(azureLogAnalyticsWorkspaceId, params.query, {
+        duration: Durations.fiveMinutes,
+      });
+      if (result.status === LogsQueryResultStatus.Success) {
+        const tablesFromResult: LogsTable[] = result.tables;
+    
+        if (tablesFromResult.length === 0) {
+          logger.error(`No results for query '${params.query}'`);
+          return;
+        }
+        const table = processTables(tablesFromResult);
+        const totalRequests = table[0][params.totalRequestKey];
+        const failedRequests = table[0][params.failureRequestKey];
+        const failureRate = (failedRequests / totalRequests) * 100;
 
-      const acceptableFailureRate = process.env.ACCEPTABLE_FAILURE_RATE ? parseFloat(process.env.ACCEPTABLE_FAILURE_RATE) : 1; // Default 1%
-      const incrementStep = process.env.INCREMENT_STEP ? parseInt(process.env.INCREMENT_STEP, 10) : 10;
-      const defaultAfterMs = process.env.DEFAULT_AFTER_MS ? parseInt(process.env.DEFAULT_AFTER_MS, 10) : 300000; // 5 minuti
-
-      if (failureRate > acceptableFailureRate && !isNaN(failureRate)) {
-        logger.error('Failure rate exceeds acceptable threshold or invalid.');
+        if (failureRate > params.failureThreshold && !isNaN(failureRate)) {
+          logger.error('Failure rate exceeds acceptable threshold or invalid.');
+          process.exit(1);
+        }
+      } else {
+        logger.error('No data returned from Lognalitycs');
         process.exit(1);
       }
+    });
 
-      const nextPercentage = currentPercentage + incrementStep;
+    const nextPercentage = currentPercentage + config.CANARY_INCREMENT_STEP;
 
-      if (nextPercentage >= 100) {
-        const output: SwapOutput = { swap: true };
-        console.log(JSON.stringify(output));
-      } else {
-        const afterMs = defaultAfterMs;
-        const output: IncrementOutput = { nextIncrementPercentage: nextPercentage, afterMs: afterMs };
-        console.log(JSON.stringify(output));
-      }
-
-      process.exit(0);
+    if (nextPercentage >= 100) {
+      const output: SwapOutput = { swap: true };
+      scriptOutput(output);
     } else {
-      logger.error('No data returned from Application Insights');
-      process.exit(1);
+      const output: IncrementOutput = { nextIncrementPercentage: nextPercentage, afterMs: config.CANARY_NEXT_STEP_AFTER_MS };
+      scriptOutput(output);
     }
+
+    process.exit(0);
   } catch (err) {
     logger.error("Error executing the query: ", err);
     process.exit(1);
@@ -96,12 +87,4 @@ function processTables(tablesFromResult: LogsTable[]): Record<string, any>[] {
   return [];
 }
 
-const currentPercentageArg = process.argv[2];
-const currentPercentage = parseInt(currentPercentageArg, 10);
-
-if (isNaN(currentPercentage) || currentPercentage < 0 || currentPercentage > 100) {
-  logger.error('Invalid currentPercentage argument.');
-  process.exit(1);
-}
-
-calculateNextStep(currentPercentage);
+const scriptOutput = (scriptOutputValue: ScriptOutput): void => console.log(JSON.stringify(scriptOutputValue))
