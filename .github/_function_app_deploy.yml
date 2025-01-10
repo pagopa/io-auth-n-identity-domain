@@ -115,6 +115,7 @@ jobs:
         FUNCTION_APP_NAME: ${{ inputs.function_app_name}}
         HEALTH_CHECK_PATH: ${{ inputs.health_check_path }}
         USE_STAGING_SLOT: ${{ inputs.use_staging_slot }}
+        USE_CANARY_DEPOLY: ${{ input.use_canary_deploy }}
         INCREMENT_STEP: "10"
         
   
@@ -159,7 +160,7 @@ jobs:
               -f 'https://${{ env.FUNCTION_APP_NAME }}-staging.azurewebsites.net${{ env.HEALTH_CHECK_PATH }}'
 
         - name: Canary traffic increase step
-          if: ${{ env.USE_STAGING_SLOT == 'true' }}
+          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPOLY == 'true' }}
           run: |
             #!/usr/bin/env bash
             set -e
@@ -221,13 +222,13 @@ jobs:
               # Update the currentPercentage variable
               currentPercentage=$nextIncrementPercentage
     
-              # Attendi il tempo specificato before the next iteration
+              # Wait the specified time before the next iteration
               delaySeconds=$((afterMs / 1000))
               echo "Waiting for $delaySeconds seconds..."
               sleep $delaySeconds
     
-              # Se la nextIncrementPercentage raggiunge 100,
-              # potresti anche decidere di break dal loop:
+              # If nextIncrementPercentage reach 100
+              # the loop is interrupted
               if [ "$nextIncrementPercentage" -ge 100 ]; then
                 echo "Reached 100% traffic on staging. Exiting loop."
                 break
@@ -239,7 +240,7 @@ jobs:
             echo "======================================================"
 
         - name: Clear traffic routing before swap
-          if: ${{ env.USE_STAGING_SLOT == 'true' }}
+          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPOLY == 'true' }}
           run: |
             az webapp traffic-routing clear \
               -g ${{ env.RESOURCE_GROUP_NAME }} \
