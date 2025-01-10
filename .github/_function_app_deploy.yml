@@ -159,7 +159,15 @@ jobs:
               --retry-all-errors \
               -f 'https://${{ env.FUNCTION_APP_NAME }}-staging.azurewebsites.net${{ env.HEALTH_CHECK_PATH }}'
 
+        - name: Install dependencies
+          run: yarn install --immutable
+
+        - name: Build
+          run: yarn build
+
         - name: Canary traffic increase step
+          id: canary
+          continue-on-error: true
           if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPOLY == 'true' }}
           run: |
             #!/usr/bin/env bash
@@ -178,17 +186,14 @@ jobs:
     
               # Run the script that calculates the next traffic percentage
               # and the wait interval before the next increment
-              output=$(yarn workspace monitoring-canary start $currentPercentage)
+              output=$(yarn workspace ${{ env.WORKSPACE }} canary:monitor $currentPercentage)
               exit_code=$?
               echo "Script Output: $output"
     
               # If the script exits with a non-zero code, perform a rollback
               # and fail the pipeline.
               if [ $exit_code -ne 0 ]; then
-                echo "Script exited with error. Rolling back traffic to 0%."
-                az webapp traffic-routing clear \
-                  --name ${{env.FUNCTION_APP_NAME}} \
-                  --resource-group ${{env.RESOURCE_GROUP_NAME}} \
+                echo "Monitoring script exited with error."
                 exit 1
               fi
     
@@ -239,12 +244,22 @@ jobs:
             echo "Canary deployment validation completed."
             echo "======================================================"
 
-        - name: Clear traffic routing before swap
+            echo "CANARY_SUCCESS=true" >> "$GITHUB_OUTPUT"
+
+        - name: Restore staging slot to 0% traffic
           if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPOLY == 'true' }}
           run: |
             az webapp traffic-routing clear \
               -g ${{ env.RESOURCE_GROUP_NAME }} \
               -n ${{ env.FUNCTION_APP_NAME }}
+
+        - name: Canary step is not failed
+          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPOLY == 'true' && steps.canary.outputs.CANARY_SUCCESS != 'true' }}
+          run: |
+            echo "======================================================"
+            echo "Canary deployment failed. The pipeline will be terminated."
+            echo "======================================================"
+            exit 1
 
         - name: Swap Staging and Production Slots
           if: ${{ env.USE_STAGING_SLOT == 'true' }}

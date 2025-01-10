@@ -1,0 +1,36 @@
+import { logger } from "monitoring-canary/dist/logger";
+import {
+  calculateNextStep,
+  RequestsQueryParams
+} from "monitoring-canary/dist/monitoring";
+import { getCanaryConfigOrExit } from "monitoring-canary/dist/env";
+
+const currentPercentageArg = process.argv[2];
+const currentPercentage = parseInt(currentPercentageArg, 10);
+
+const canaryConfig = getCanaryConfigOrExit();
+
+if (
+  isNaN(currentPercentage) ||
+  currentPercentage < 0 ||
+  currentPercentage > 100
+) {
+  logger.error("Invalid currentPercentage argument.");
+  process.exit(1);
+}
+
+const params: RequestsQueryParams[] = [
+  {
+    query: `
+    AppRequests
+    | where TimeGenerated > ago(5m)
+    | where AppRoleName == "${canaryConfig.FUNCTION_APP_NAME}-staging"
+    | summarize totalRequests = count(), failedRequests = countif(toint(ResultCode) > 499)
+  `,
+    failureRequestKey: "failedRequests",
+    failureThreshold: 0.5, // 0.5 percent failure rate or 99.5% availability
+    totalRequestKey: "totalRequests"
+  }
+];
+
+calculateNextStep(currentPercentage, params);
