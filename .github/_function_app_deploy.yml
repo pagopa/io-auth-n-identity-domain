@@ -129,7 +129,7 @@ jobs:
         FUNCTION_APP_NAME: ${{ inputs.function_app_name}}
         HEALTH_CHECK_PATH: ${{ inputs.health_check_path }}
         USE_STAGING_SLOT: ${{ inputs.use_staging_slot }}
-        USE_CANARY_DEPOLY: ${{ input.use_canary_deploy }}
+        USE_CANARY_DEPLOY: ${{ input.use_canary_deploy }}
         CANARY_INCREMENT_STEP: ${{ input.canary_increment_step }}
         CANARY_NEXT_STEP_AFTER_MS: ${{ input.canary_next_step_after_ms }}
         LOG_ANALITYCS_WORKSPACE_ID: ${{ input.log_analytics_workspace_id }}
@@ -184,7 +184,7 @@ jobs:
         - name: Canary traffic increase step
           id: canary
           continue-on-error: true
-          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPOLY == 'true' }}
+          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPLOY == 'true' }}
           run: |
             #!/usr/bin/env bash
             set -e
@@ -263,14 +263,14 @@ jobs:
             echo "CANARY_SUCCESS=true" >> "$GITHUB_OUTPUT"
 
         - name: Restore staging slot to 0% traffic
-          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPOLY == 'true' }}
+          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPLOY == 'true' }}
           run: |
             az webapp traffic-routing clear \
               -g ${{ env.RESOURCE_GROUP_NAME }} \
               -n ${{ env.FUNCTION_APP_NAME }}
 
         - name: Canary step is not failed
-          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPOLY == 'true' && steps.canary.outputs.CANARY_SUCCESS != 'true' }}
+          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPLOY == 'true' && steps.canary.outputs.CANARY_SUCCESS != 'true' }}
           run: |
             echo "======================================================"
             echo "Canary deployment failed. The pipeline will be terminated."
