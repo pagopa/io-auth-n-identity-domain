@@ -22,4 +22,5 @@ jobs:
       use_staging_slot: true
       use_canary_deploy: ${{ inputs.use_canary_deploy }}
       use_private_agent: true
+      log_analytics_workspace_id: "d0415be0-f4b2-409e-a16e-365183b18710"
     secrets: inherit

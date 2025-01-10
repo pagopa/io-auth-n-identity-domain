@@ -36,6 +36,20 @@ on:
           type: boolean
           required: false
           default: true
+        log_analytics_workspace_id:
+          description: Log Analitycs Workspace ID for canary query checks
+          type: string
+          required: false
+        canary_increment_step:
+          description: Every step increase the canary traffic by this percentage
+          type: number
+          required: false
+          default: 10
+        canary_next_step_after_ms:
+          description: Time between canary traffic increment steps
+          type: number
+          required: false
+          default: 30000
 concurrency:
     group: ${{ github.workflow }}-cd
     cancel-in-progress: true
@@ -116,7 +130,9 @@ jobs:
         HEALTH_CHECK_PATH: ${{ inputs.health_check_path }}
         USE_STAGING_SLOT: ${{ inputs.use_staging_slot }}
         USE_CANARY_DEPOLY: ${{ input.use_canary_deploy }}
-        INCREMENT_STEP: "10"
+        CANARY_INCREMENT_STEP: ${{ input.canary_increment_step }}
+        CANARY_NEXT_STEP_AFTER_MS: ${{ input.canary_next_step_after_ms }}
+        LOG_ANALITYCS_WORKSPACE_ID: ${{ input.log_analytics_workspace_id }}
         
   
       steps:
