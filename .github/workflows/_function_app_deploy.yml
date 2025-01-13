@@ -49,7 +49,7 @@ on:
           description: Time between canary traffic increment steps
           type: number
           required: false
-          default: 100000
+          default: 300000
 concurrency:
     group: ${{ github.workflow }}-cd
     cancel-in-progress: true
