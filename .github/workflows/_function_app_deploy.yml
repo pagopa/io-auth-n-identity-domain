@@ -207,7 +207,7 @@ jobs:
     
               # Run the script that calculates the next traffic percentage
               # and the wait interval before the next increment
-              output=$(npm run canary $currentPercentage)
+              output="$(npm run -s canary $currentPercentage)"
               exit_code=$?
               echo "Script Output: $output"
     
