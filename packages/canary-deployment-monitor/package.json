@@ -1,5 +1,5 @@
 {
-    "name": "monitoring-canary",
+    "name": "canary-deployment-monitor",
     "version": "1.0.0",
     "scripts": {
         "build": "tsc",

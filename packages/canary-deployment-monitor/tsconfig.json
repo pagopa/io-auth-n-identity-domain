@@ -1,6 +1,5 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  // We extend it from here, asap!
   "extends": "@pagopa/typescript-config-node/tsconfig.json",
   "exclude": ["node_modules", "dist", "**/__tests__/**", "**/__mocks__/**", "vite.config.mts"],
   "compilerOptions": {

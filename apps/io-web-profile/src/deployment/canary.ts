@@ -1,9 +1,9 @@
-import { logger } from "monitoring-canary/dist/logger";
+import { logger } from "canary-deployment-monitor/dist/logger";
 import {
   calculateNextStep,
   RequestsQueryParams
-} from "monitoring-canary/dist/monitoring";
-import { getCanaryConfigOrExit } from "monitoring-canary/dist/env";
+} from "canary-deployment-monitor/dist/monitoring";
+import { getCanaryConfigOrExit } from "canary-deployment-monitor/dist/env";
 
 const currentPercentageArg = process.argv[2];
 const currentPercentage = parseInt(currentPercentageArg, 10);
