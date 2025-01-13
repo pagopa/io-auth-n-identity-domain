@@ -178,14 +178,13 @@ jobs:
         - name: Extract actifact bundle code
           if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPLOY == 'true' }}
           run: |
-            unzip ${{ env.BUNDLE_NAME }}.zip -d .
+            unzip -qq ${{ env.BUNDLE_NAME }}.zip -d .
 
         - name: Setup Node.js
           uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
           if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPLOY == 'true' }}
           with:
             node-version-file: ".node-version"
-            cache: "yarn"
 
         - name: Canary traffic increase step
           id: canary
@@ -208,7 +207,7 @@ jobs:
     
               # Run the script that calculates the next traffic percentage
               # and the wait interval before the next increment
-              output=$(npm run canary:monitor $currentPercentage)
+              output=$(npm run canary $currentPercentage)
               exit_code=$?
               echo "Script Output: $output"
     
@@ -232,7 +231,7 @@ jobs:
     
               # Validate that the fields are present
               if [ -z "$nextIncrementPercentage" ] || [ -z "$afterMs" ]; then
-                echo "Invalid output from script (missing nextIncrementPercentage or afterMs)."
+                echo "Invaliga .d output from script (missing nextIncrementPercentage or afterMs)."
                 exit 1
               fi
     
