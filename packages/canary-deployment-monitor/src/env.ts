@@ -10,7 +10,7 @@ const CanaryMonitorConfig = t.type({
   FUNCTION_APP_NAME: t.string,
   LOG_ANALITYCS_WORKSPACE_ID: t.string,
   CANARY_INCREMENT_STEP: withDefault(t.string, "10").pipe(NumberFromString), // 10 percent
-  CANARY_NEXT_STEP_AFTER_MS: withDefault(t.string, "30000").pipe(
+  CANARY_NEXT_STEP_AFTER_MS: withDefault(t.string, "300000").pipe(
     NumberFromString,
   ), // 5 minutes
 });
