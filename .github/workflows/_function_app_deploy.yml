@@ -97,7 +97,7 @@ jobs:
           id: make-function-app-artifact
           run: |
             npm pkg set --json "bundledDependencies"=true
-            npm pkg set --json "files"='["**/function.json", "dist", "host.json","extensions.csproj"]'
+            npm pkg set --json "files"='["**/function.json", "dist", "host.json","extensions.csproj", ".node-version"]'
             npx npm-pack-zip
             mv $(jq -r .name package.json).zip ${{ env.BUNDLE_NAME }}.zip
             echo "artifact-path=$(realpath ${{ env.BUNDLE_NAME }}.zip)" >> "$GITHUB_OUTPUT"
@@ -175,9 +175,10 @@ jobs:
               --retry-all-errors \
               -f 'https://${{ env.FUNCTION_APP_NAME }}-staging.azurewebsites.net${{ env.HEALTH_CHECK_PATH }}'
 
-        - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        - name: Extract actifact bundle code
           if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPLOY == 'true' }}
-          name: Checkout
+          run: |
+            unzip ${{ env.BUNDLE_NAME }}.zip -d .
 
         - name: Setup Node.js
           uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
@@ -185,14 +186,6 @@ jobs:
           with:
             node-version-file: ".node-version"
             cache: "yarn"
-
-        - name: Install dependencies
-          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPLOY == 'true' }}
-          run: yarn install --immutable
-
-        - name: Build
-          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPLOY == 'true' }}
-          run: yarn build
 
         - name: Canary traffic increase step
           id: canary
@@ -215,7 +208,7 @@ jobs:
     
               # Run the script that calculates the next traffic percentage
               # and the wait interval before the next increment
-              output=$(yarn workspace ${{ env.WORKSPACE }} canary:monitor $currentPercentage)
+              output=$(npm run canary:monitor $currentPercentage)
               exit_code=$?
               echo "Script Output: $output"
     
