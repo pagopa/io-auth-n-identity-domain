@@ -23,7 +23,9 @@ const params: RequestsQueryParams[] = [
   {
     query: `
     AppRequests
-    | where TimeGenerated > ago(5m)
+    | where TimeGenerated > ago(${Math.floor(
+      canaryConfig.CANARY_NEXT_STEP_AFTER_MS / 1000
+    )}s)
     | where AppRoleName == "${canaryConfig.FUNCTION_APP_NAME}-staging"
     | summarize totalRequests = count(), failedRequests = countif(toint(ResultCode) > 499)
   `,

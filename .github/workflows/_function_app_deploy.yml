@@ -49,7 +49,7 @@ on:
           description: Time between canary traffic increment steps
           type: number
           required: false
-          default: 300000
+          default: 100000
 concurrency:
     group: ${{ github.workflow }}-cd
     cancel-in-progress: true
@@ -251,7 +251,17 @@ jobs:
               # Wait the specified time before the next iteration
               delaySeconds=$((afterMs / 1000))
               echo "Waiting for $delaySeconds seconds..."
-              sleep $delaySeconds
+              
+              while [ "$delaySeconds" -gt 0 ]; do
+                if [ "$delaySeconds" -gt 10 ]; then
+                  sleep 10
+                  delaySeconds=$((delaySeconds - 10))
+                  echo "Waiting for $delaySeconds seconds..."
+                else
+                  sleep "$delaySeconds"
+                  delaySeconds=0
+                fi
+              done
     
               # If nextIncrementPercentage reach 100
               # the loop is interrupted
