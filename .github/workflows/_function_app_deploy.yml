@@ -129,10 +129,10 @@ jobs:
         FUNCTION_APP_NAME: ${{ inputs.function_app_name}}
         HEALTH_CHECK_PATH: ${{ inputs.health_check_path }}
         USE_STAGING_SLOT: ${{ inputs.use_staging_slot }}
-        USE_CANARY_DEPLOY: ${{ input.use_canary_deploy }}
-        CANARY_INCREMENT_STEP: ${{ input.canary_increment_step }}
-        CANARY_NEXT_STEP_AFTER_MS: ${{ input.canary_next_step_after_ms }}
-        LOG_ANALITYCS_WORKSPACE_ID: ${{ input.log_analytics_workspace_id }}
+        USE_CANARY_DEPLOY: ${{ inputs.use_canary_deploy }}
+        CANARY_INCREMENT_STEP: ${{ inputs.canary_increment_step }}
+        CANARY_NEXT_STEP_AFTER_MS: ${{ inputs.canary_next_step_after_ms }}
+        LOG_ANALITYCS_WORKSPACE_ID: ${{ inputs.log_analytics_workspace_id }}
         
   
       steps:
