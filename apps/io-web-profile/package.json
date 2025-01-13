@@ -13,7 +13,7 @@
     "typecheck": "tsc --noemit",
     "extensions:install": "func extensions install",
     "start": "dotenv -e .env func start --javascript",
-    "canary:monitor": "dotenv -e .env node ./dist/canary-script/monitoring.js",
+    "canary:monitor": "dotenv -e .env node ./dist/deployment/canary.js",
     "start:watch": "yarn start watch",
     "lint": "yarn lint:check --fix",
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache",

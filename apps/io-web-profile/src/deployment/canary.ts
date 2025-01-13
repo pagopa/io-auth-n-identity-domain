@@ -33,4 +33,7 @@ const params: RequestsQueryParams[] = [
   }
 ];
 
-calculateNextStep(currentPercentage, params);
+calculateNextStep(currentPercentage, params).catch(err => {
+  logger.error(`Unexpected Error executing canary monitoring: ${err}`);
+  process.exit(1);
+});
