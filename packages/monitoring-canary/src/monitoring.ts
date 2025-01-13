@@ -1,5 +1,3 @@
-// calculateNextPercentage.ts
-
 import {
   Durations,
   LogsQueryClient,
@@ -7,8 +5,11 @@ import {
   LogsTable,
 } from "@azure/monitor-query";
 import { DefaultAzureCredential } from "@azure/identity";
-import { logger } from "./logger";
+import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
+import { pipe } from "fp-ts/lib/function";
+import * as E from "fp-ts/Either";
 import { getCanaryConfigOrExit } from "./env";
+import { logger } from "./logger";
 
 type IncrementOutput = {
   nextIncrementPercentage: number;
@@ -43,7 +44,7 @@ export async function calculateNextStep(
   }
 
   try {
-    requetsQueryParams.map(async (params) => {
+    requetsQueryParams.forEach(async (params) => {
       const result = await logsQueryClient.queryWorkspace(
         azureLogAnalyticsWorkspaceId,
         params.query,
@@ -59,8 +60,18 @@ export async function calculateNextStep(
           return;
         }
         const table = processTables(tablesFromResult);
-        const totalRequests = table[0][params.totalRequestKey];
-        const failedRequests = table[0][params.failureRequestKey];
+        const totalRequests = pipe(
+          NonNegativeInteger.decode(table[0][params.totalRequestKey]),
+          E.getOrElseW(() => {
+            throw new Error("Invalid value from query");
+          }),
+        );
+        const failedRequests = pipe(
+          NonNegativeInteger.decode(table[0][params.failureRequestKey]),
+          E.getOrElseW(() => {
+            throw new Error("Invalid value from query");
+          }),
+        );
         const failureRate = (failedRequests / totalRequests) * 100;
 
         if (failureRate > params.failureThreshold && !isNaN(failureRate)) {
@@ -95,16 +106,16 @@ export async function calculateNextStep(
 
 function processTables(
   tablesFromResult: LogsTable[],
-): Array<Record<string, any>> {
+): Array<Record<string, unknown>> {
   for (const table of tablesFromResult) {
     const columns = table.columnDescriptors.map((column) => column.name);
     return table.rows.map((row) =>
       row.reduce(
-        (prev: Record<string, any>, columnValue, index) => ({
+        (prev: Record<string, unknown>, columnValue, index) => ({
           ...prev,
           [`${columns[index]}`]: columnValue,
         }),
-        {} as Record<string, any>,
+        {} as Record<string, unknown>,
       ),
     );
   }
@@ -112,4 +123,5 @@ function processTables(
 }
 
 const scriptOutput = (scriptOutputValue: ScriptOutput): void =>
+  // eslint-disable-next-line no-console
   console.log(JSON.stringify(scriptOutputValue));
