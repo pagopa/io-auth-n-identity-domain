@@ -1,6 +1,7 @@
 locals {
   prefix    = "io"
   env_short = "p"
+  location  = "westeurope"
 
   tags = {
     CostCenter     = "TS310 - PAGAMENTI & SERVIZI"
