@@ -215,6 +215,7 @@ export const ValidateProfileEmailHandler = (
           trackEvent({
             name: "io.citizen-auth.validate_email",
             tagOverrides: {
+              // eslint-disable-next-line @typescript-eslint/naming-convention
               "ai.user.id": hashFiscalCode(existingProfile.fiscalCode),
               samplingEnabled: "false"
             }

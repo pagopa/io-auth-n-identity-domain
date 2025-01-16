@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { ResourceNotFoundCode } from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 
 import { ValidateProfileEmailHandler } from "../handler";
@@ -17,12 +19,12 @@ import {
 
 const VALIDATION_TOKEN = "01DPT9QAZ6N0FJX21A86FRCWB3:8c652f8566ba53bd8cf0b1b9" as TokenQueryParam;
 
-const mockFindLastVersionByModelId = jest
+const mockFindLastVersionByModelId = vi
   .fn()
   .mockImplementation(() =>
     TE.right(O.some({ ...aRetrievedProfile, isEmailValidated: false }))
   );
-const mockUpdate = jest
+const mockUpdate = vi
   .fn()
   .mockImplementation(() => TE.right(aRetrievedProfile));
 const mockProfileModel = ({
@@ -32,8 +34,8 @@ const mockProfileModel = ({
 
 const contextMock = {
   log: {
-    error: jest.fn(),
-    verbose: jest.fn()
+    error: vi.fn(),
+    verbose: vi.fn()
   }
 };
 
@@ -47,7 +49,7 @@ const confirmValidationUrl = {
 
 const emailValidationUrls = { confirmValidationUrl, validationCallbackUrl };
 
-const mockRetrieveEntity = jest
+const mockRetrieveEntity = vi
   .fn()
   .mockResolvedValue({
     Email: anEmail,
@@ -97,7 +99,7 @@ describe.each`
   ${false}
 `("ValidateProfileEmailHandler#Errors", ({ isConfirmFlow }) => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it.each`
@@ -168,7 +170,7 @@ describe.each`
 
 describe("ValidateProfileEmailHandler#Happy path", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should validate the email in profile if all the condition are verified during VALIDATE flow", async () => {
