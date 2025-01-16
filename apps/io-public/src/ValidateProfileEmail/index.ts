@@ -2,7 +2,7 @@ import { CosmosClient } from "@azure/cosmos";
 import { Context } from "@azure/functions";
 import { TableClient } from "@azure/data-tables";
 
-import * as express from "express";
+import express from "express";
 import * as winston from "winston";
 
 import { isLeft } from "fp-ts/lib/Either";
@@ -21,6 +21,7 @@ import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middl
 import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src/createAzureFunctionsHandler";
 
 import { DataTableProfileEmailsRepository } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement/storage";
+import Transport from "winston-transport";
 import { getConfigOrThrow } from "../utils/config";
 import { profileEmailTableClient } from "../utils/unique_email_enforcement";
 import { ValidateProfileEmail } from "./handler";
@@ -76,9 +77,9 @@ const azureFunctionHandler = createAzureFunctionHandler(app);
 
 // eslint-disable-next-line functional/no-let
 let logger: Context["log"] | undefined;
-const contextTransport = new AzureContextTransport(() => logger, {
+const contextTransport = (new AzureContextTransport(() => logger, {
   level: "debug"
-});
+}) as unknown) as Transport;
 winston.add(contextTransport);
 
 // Binds the express app to an Azure Function handler
