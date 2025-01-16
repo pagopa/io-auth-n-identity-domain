@@ -1,6 +1,6 @@
 import { TableClient } from "@azure/data-tables";
 
-import { getConfigOrThrow } from "../utils/config";
+import { getConfigOrThrow } from "./config";
 
 const config = getConfigOrThrow();
 
