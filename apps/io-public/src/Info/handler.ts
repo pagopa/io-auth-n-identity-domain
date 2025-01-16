@@ -8,7 +8,10 @@ import {
 } from "@pagopa/ts-commons/lib/responses";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import * as packageJson from "../package.json";
+import {
+  getCurrentBackendVersion,
+  getValueFromPackageJson
+} from "../utils/package";
 import { checkApplicationHealth, HealthCheck } from "../utils/healthcheck";
 
 interface IInfo {
@@ -29,8 +32,8 @@ export const InfoHandler = (
       problems => ResponseErrorInternal(problems.join("\n\n")),
       _ =>
         ResponseSuccessJson({
-          name: packageJson.name,
-          version: packageJson.version
+          name: getValueFromPackageJson("name"),
+          version: getCurrentBackendVersion()
         })
     ),
     TE.toUnion
