@@ -10,7 +10,7 @@ data "azurerm_storage_account" "immutable_spid_logs_storage" {
 
 data "azurerm_storage_account" "citizen_auth_common" {
   name                = replace(format("%s-%s-st", local.weu_project, local.legacy_domain), "-", "")
-  resource_group_name = format("%s-%s-data-rg",local.common_project, local.legacy_domain)
+  resource_group_name = data.azurerm_resource_group.core_domain_data_rg.name
 }
 
 data "azurerm_storage_account" "storage_api" {
