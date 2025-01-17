@@ -1,0 +1,205 @@
+##############################
+# Shared Plan
+##############################
+
+resource "azurerm_resource_group" "shared_rg" {
+  name     = format("%s-%s-shared-rg-01", local.project, local.legacy_domain)
+  location = local.location
+}
+
+resource "azurerm_app_service_plan" "shared_plan" {
+  name                = format("%s-%s-shared-asp-01", local.project, local.legacy_domain)
+  location            = azurerm_resource_group.shared_rg.location
+  resource_group_name = azurerm_resource_group.shared_rg.name
+
+  kind     = "Linux"
+  reserved = true
+
+  sku {
+    tier     = "PremiumV3"
+    size     = "P1v3"
+    capacity = 3
+  }
+
+  tags = local.tags
+}
+
+##############################
+# Autoscale settings
+##############################
+
+data "azurerm_linux_function_app" "function_public_old" {
+  name                = "io-p-itn-auth-public-func-01"
+  resource_group_name = azurerm_resource_group.shared_rg.name
+}
+
+resource "azurerm_monitor_autoscale_setting" "shared_plan_autoscale" {
+  name                = format("%s-%s-public-func-01-autoscale", local.project, local.domain)
+  resource_group_name = azurerm_resource_group.shared_rg.name
+  location            = local.location
+  target_resource_id  = azurerm_app_service_plan.shared_plan.id
+
+  profile {
+    name = "default"
+
+    capacity {
+      default = 10
+      minimum = 3
+      maximum = 30
+    }
+
+    rule {
+      metric_trigger {
+        metric_name              = "Requests"
+        metric_resource_id       = data.azurerm_linux_function_app.function_public_old.id
+        metric_namespace         = "microsoft.web/sites"
+        time_grain               = "PT1M"
+        statistic                = "Average"
+        time_window              = "PT5M"
+        time_aggregation         = "Average"
+        operator                 = "GreaterThan"
+        threshold                = 3000
+        divide_by_instance_count = false
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = "2"
+        cooldown  = "PT5M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name              = "Requests"
+        metric_resource_id       = module.function_web_profile.function_app.function_app.id
+        metric_namespace         = "microsoft.web/sites"
+        time_grain               = "PT1M"
+        statistic                = "Average"
+        time_window              = "PT5M"
+        time_aggregation         = "Average"
+        operator                 = "GreaterThan"
+        threshold                = 3000
+        divide_by_instance_count = false
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = "2"
+        cooldown  = "PT5M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name              = "CpuPercentage"
+        metric_resource_id       = azurerm_app_service_plan.shared_plan.id
+        metric_namespace         = "microsoft.web/serverfarms"
+        time_grain               = "PT1M"
+        statistic                = "Average"
+        time_window              = "PT5M"
+        time_aggregation         = "Average"
+        operator                 = "GreaterThan"
+        threshold                = 45
+        divide_by_instance_count = false
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = "2"
+        cooldown  = "PT5M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name              = "Requests"
+        metric_resource_id       = data.azurerm_linux_function_app.function_public_old.id
+        metric_namespace         = "microsoft.web/sites"
+        time_grain               = "PT1M"
+        statistic                = "Average"
+        time_window              = "PT5M"
+        time_aggregation         = "Average"
+        operator                 = "LessThan"
+        threshold                = 2000
+        divide_by_instance_count = false
+      }
+
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = "1"
+        cooldown  = "PT20M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name              = "Requests"
+        metric_resource_id       = module.function_web_profile.function_app.function_app.id
+        metric_namespace         = "microsoft.web/sites"
+        time_grain               = "PT1M"
+        statistic                = "Average"
+        time_window              = "PT5M"
+        time_aggregation         = "Average"
+        operator                 = "LessThan"
+        threshold                = 2000
+        divide_by_instance_count = false
+      }
+
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = "1"
+        cooldown  = "PT20M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name              = "CpuPercentage"
+        metric_resource_id       = azurerm_app_service_plan.shared_plan.id
+        metric_namespace         = "microsoft.web/serverfarms"
+        time_grain               = "PT1M"
+        statistic                = "Average"
+        time_window              = "PT5M"
+        time_aggregation         = "Average"
+        operator                 = "LessThan"
+        threshold                = 30
+        divide_by_instance_count = false
+      }
+
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = "1"
+        cooldown  = "PT20M"
+      }
+    }
+  }
+}
+
+
+
+###########################
+# imports
+
+import {
+  id = "/subscriptions/ec285037-c673-4f58-b594-d7c480da4e8b/resourceGroups/io-p-itn-citizen-auth-shared-rg-01"
+  to = azurerm_resource_group.shared_rg
+}
+
+import {
+  id = "/subscriptions/ec285037-c673-4f58-b594-d7c480da4e8b/resourceGroups/io-p-itn-citizen-auth-shared-rg-01/providers/Microsoft.Web/serverFarms/io-p-itn-citizen-auth-shared-asp-01"
+  to = azurerm_app_service_plan.shared_plan
+}
+
+import {
+  id = "/subscriptions/ec285037-c673-4f58-b594-d7c480da4e8b/resourceGroups/io-p-itn-citizen-auth-shared-rg-01/providers/Microsoft.Insights/autoScaleSettings/io-p-itn-auth-public-func-01-autoscale"
+  to = azurerm_monitor_autoscale_setting.shared_plan_autoscale
+}
+
+###########################
