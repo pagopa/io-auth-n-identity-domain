@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ResourceNotFoundCode } from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 
-import { ValidateProfileEmailHandler } from "../handler";
 import { EmailString, FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
 import * as TE from "fp-ts/TaskEither";
 import * as O from "fp-ts/Option";
 import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
-import { aFiscalCode, aRetrievedProfile, anEmail } from "../__mocks__/profile";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
+import { aFiscalCode, aRetrievedProfile, anEmail } from "../__mocks__/profile";
+import { ValidateProfileEmailHandler } from "../handler";
 import { FlowTypeEnum, TokenQueryParam } from "../../utils/middleware";
 import {
   confirmChoicePageUrl,
@@ -49,15 +49,13 @@ const confirmValidationUrl = {
 
 const emailValidationUrls = { confirmValidationUrl, validationCallbackUrl };
 
-const mockRetrieveEntity = vi
-  .fn()
-  .mockResolvedValue({
-    Email: anEmail,
-    FiscalCode: aFiscalCode,
-    InvalidAfter: new Date(Date.now() + 1000 * 1000).toISOString(),
-    partitionKey: "01DPT9QAZ6N0FJX21A86FRCWB3",
-    rowKey: "026c47ead971b9af13353f5d5e563982ebca542f8df3246bdaf1f86e16075072"
-  });
+const mockRetrieveEntity = vi.fn().mockResolvedValue({
+  Email: anEmail,
+  FiscalCode: aFiscalCode,
+  InvalidAfter: new Date(Date.now() + 1000 * 1000).toISOString(),
+  partitionKey: "01DPT9QAZ6N0FJX21A86FRCWB3",
+  rowKey: "026c47ead971b9af13353f5d5e563982ebca542f8df3246bdaf1f86e16075072"
+});
 
 const tableClientMock = {
   getEntity: mockRetrieveEntity
@@ -103,16 +101,16 @@ describe.each`
   });
 
   it.each`
-    scenario                                                             | expectedError      | retrieveResult                      | isApiError
-    ${"GENERIC_ERROR in case the query versus the table storage fails"}  | ${"GENERIC_ERROR"} | ${new Error()}                      | ${true}
-    ${"INVALID_TOKEN error in case the token if not found in the table"} | ${"INVALID_TOKEN"} | ${{ code: ResourceNotFoundCode }}   | ${true}
-    ${"TOKEN_EXPIRED error in case the token is expired"}                | ${"TOKEN_EXPIRED"} | ${expiredTokenEntity}               | ${false}
+    scenario                                                             | expectedError      | retrieveResult                    | isApiError
+    ${"GENERIC_ERROR in case the query versus the table storage fails"}  | ${"GENERIC_ERROR"} | ${new Error()}                    | ${true}
+    ${"INVALID_TOKEN error in case the token if not found in the table"} | ${"INVALID_TOKEN"} | ${{ code: ResourceNotFoundCode }} | ${true}
+    ${"TOKEN_EXPIRED error in case the token is expired"}                | ${"TOKEN_EXPIRED"} | ${expiredTokenEntity}             | ${false}
   `(
     "should return a redirect with a $scenario",
     async ({ retrieveResult, expectedError, isApiError }) => {
-      isApiError ?
-        mockRetrieveEntity.mockRejectedValueOnce(retrieveResult) :
-        mockRetrieveEntity.mockResolvedValueOnce(retrieveResult);
+      isApiError
+        ? mockRetrieveEntity.mockRejectedValueOnce(retrieveResult)
+        : mockRetrieveEntity.mockResolvedValueOnce(retrieveResult);
 
       const verifyProfileEmailHandler = ValidateProfileEmailHandler(
         tableClientMock as any,
