@@ -3,11 +3,13 @@
   "version": "1.5.1",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "prestart": "yarn run build && func extensions install",
-    "start:host": "func start",
-    "start": "npm-run-all --parallel start:host watch",
+    "build": "tsc && yarn postbuild",
+    "postbuild": "dependency-check package.json --no-dev --missing ./dist/**/*.js",
+    "build:watch": "tsc -w",
+    "typecheck": "tsc --noemit",
+    "extensions:install": "func extensions install",
+    "start": "func start --javascript",
+    "start:watch": "yarn start watch",
     "lint": "yarn lint:check --fix",
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache",
     "lint-api": "find ./api -name '*.yaml' -exec swagger-cli validate {} \\;",
@@ -15,9 +17,7 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "dist:modules": "modclean -r -n default:safe && yarn install --production",
-    "predeploy": "npm-run-all build dist:modules",
-    "preversion": "auto-changelog  --config .auto-changelog.json --unreleased --commit-limit false --stdout --template preview.hbs",
-    "version": "auto-changelog -p --config .auto-changelog.json --unreleased && git add CHANGELOG.md"
+    "predeploy": "yarn build && yarn dist:modules"
   },
   "description": "",
   "devDependencies": {
