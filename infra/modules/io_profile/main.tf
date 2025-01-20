@@ -21,6 +21,31 @@ module "apim_v2_product_profile_operation" {
   policy_xml = file("./${path.module}/api/_base_policy.xml")
 }
 
+resource "azurerm_api_management_named_value" "io_fn_profile_url_v2" {
+  name                = "io-fn-profile-url"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  display_name        = "io-fn-profile-url"
+  value               = "https://TODO.azurewebsites.net"
+}
+
+resource "azurerm_api_management_named_value" "io_fn_profile_key_v2" {
+  name                = "io-fn-profile-key"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  display_name        = "io-fn-profile-key"
+  value               = data.azurerm_key_vault_secret.io_fn_profile_key_secret_v2.value
+  secret              = "true"
+}
+
+resource "azurerm_api_management_named_value" "api_profile_operation_group_name_v2" {
+  name                = "api-profile-operation-group-name"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  display_name        = "api-profile-operation-group-name"
+  value               = azurerm_api_management_group.api_profile_operation_read_v2.name
+  secret              = "true"
+}
 
 module "api_v2_profile_operation" {
   source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
@@ -58,5 +83,5 @@ resource "azurerm_api_management_api_operation_policy" "get_profile_operation_v2
   resource_group_name = var.apim_resource_group_name
   operation_id        = "getProfile"
 
-  xml_content = file("./api/io_services_cms/v1/get_profile_policy/policy.xml")
+  xml_content = file("./${path.module}/api/v1/get_profile_policy/policy.xml")
 }

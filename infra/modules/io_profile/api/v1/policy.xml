@@ -1,14 +1,12 @@
 <policies>
     <inbound>
         <base />
+        <set-backend-service base-url="{{io-fn-profile-url}}" />
+        <set-header name="x-functions-key" exists-action="override">
+            <value>{{io-fn-profile-key}}</value>
+        </set-header>
     </inbound>
-    <backend>
-        <base />
-    </backend>
     <outbound>
         <base />
     </outbound>
-    <on-error>
-        <base />
-    </on-error>
 </policies>
