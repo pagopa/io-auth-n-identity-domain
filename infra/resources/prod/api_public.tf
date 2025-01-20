@@ -7,5 +7,5 @@ module "io_public_apim_api_weu" {
   key_vault_common_id = data.azurerm_key_vault.common_kv.id
 
   api_host_name       = "api.io.pagopa.it"
-  function_public_url = "https://${data.azurerm_linux_function_app.function_public_old.default_hostname}"
+  function_public_url = "https://${module.function_public.function_app.function_app.default_hostname}"
 }
