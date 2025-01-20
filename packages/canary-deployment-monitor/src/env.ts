@@ -3,13 +3,16 @@ import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
+import { NumberFromString } from "@pagopa/ts-commons/lib/numbers";
 import { logger } from "./logger";
 
 const CanaryMonitorConfig = t.type({
   FUNCTION_APP_NAME: t.string,
   LOG_ANALITYCS_WORKSPACE_ID: t.string,
-  CANARY_INCREMENT_STEP: withDefault(t.number, 10), // 10 percent
-  CANARY_NEXT_STEP_AFTER_MS: withDefault(t.Integer, 30000), // 5 minutes
+  CANARY_INCREMENT_STEP: withDefault(t.string, "10").pipe(NumberFromString), // 10 percent
+  CANARY_NEXT_STEP_AFTER_MS: withDefault(t.string, "300000").pipe(
+    NumberFromString,
+  ), // 5 minutes
 });
 
 export type CanaryMonitorConfig = t.TypeOf<typeof CanaryMonitorConfig>;

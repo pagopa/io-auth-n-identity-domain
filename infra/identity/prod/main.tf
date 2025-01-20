@@ -47,6 +47,9 @@ module "federated_identities" {
         io-p-itn-auth-lollipop-rg-02 = [
           "Role Based Access Control Administrator"
         ]
+        io-p-itn-auth-public-rg-01 = [
+          "Role Based Access Control Administrator"
+        ]
       }
     }
   }
