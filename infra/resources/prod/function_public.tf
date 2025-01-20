@@ -18,9 +18,9 @@ locals {
       PROFILE_EMAIL_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.citizen_auth_common.primary_connection_string
       PROFILE_EMAIL_STORAGE_TABLE_NAME        = "profileEmails"
 
-      COSMOSDB_URI      = data.azurerm_cosmosdb_account.cosmos_api.endpoint
-      COSMOSDB_KEY      = data.azurerm_cosmosdb_account.cosmos_api.primary_key
-      COSMOSDB_NAME     = "db"
+      COSMOSDB_URI  = data.azurerm_cosmosdb_account.cosmos_api.endpoint
+      COSMOSDB_KEY  = data.azurerm_cosmosdb_account.cosmos_api.primary_key
+      COSMOSDB_NAME = "db"
 
       StorageConnection = data.azurerm_storage_account.storage_api.primary_connection_string
 
@@ -46,7 +46,7 @@ module "function_public" {
     location        = local.location
     domain          = local.domain
     app_name        = local.function_public.name
-    instance_number = "01"
+    instance_number = "02"
   }
 
   resource_group_name = azurerm_resource_group.function_public_rg.name
