@@ -41,9 +41,3 @@ data "azurerm_storage_account" "lollipop_assertion_storage" {
   name                = replace(format("%s-lollipop-assertions-st", local.common_project), "-", "")
   resource_group_name = format("%s-%s-data-rg", local.common_project, local.legacy_domain)
 }
-
-data "azurerm_subnet" "shared_plan_snet" {
-  name                 = "${local.project}-${local.legacy_domain}-shared-snet-01"
-  virtual_network_name = data.azurerm_virtual_network.itn_common.name
-  resource_group_name  = data.azurerm_virtual_network.itn_common.resource_group_name
-}

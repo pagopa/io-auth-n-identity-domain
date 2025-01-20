@@ -56,7 +56,7 @@ module "function_public" {
 
   subnet_cidr   = local.cidr_subnet_fn_shared
   subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
-  subnet_id     = data.azurerm_subnet.shared_plan_snet.id
+  subnet_id     = azurerm_subnet.shared_plan_snet.id
 
   private_dns_zone_resource_group_name = data.azurerm_resource_group.rg_common.name
 

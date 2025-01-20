@@ -24,6 +24,21 @@ resource "azurerm_app_service_plan" "shared_plan" {
   tags = local.tags
 }
 
+resource "azurerm_subnet" "shared_plan_snet" {
+  name                 = "${local.project}-${local.legacy_domain}-shared-snet-01"
+  virtual_network_name = data.azurerm_virtual_network.itn_common.name
+  resource_group_name  = data.azurerm_virtual_network.itn_common.resource_group_name
+  address_prefixes     = [local.cidr_subnet_fn_shared]
+
+  delegation {
+    name = "default"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
 ##############################
 # Autoscale settings
 ##############################
