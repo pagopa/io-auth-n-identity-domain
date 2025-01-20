@@ -38,7 +38,7 @@ resource "azurerm_resource_group" "function_public_rg" {
 }
 
 module "function_public" {
-  source = "github.com/pagopa/dx//infra/modules/azure_function_app?ref=ab26f57ed34a614fd3fa496c7b521be9ecc88e1b"
+  source = "github.com/pagopa/dx//infra/modules/azure_function_app?ref=7c0cb16bc0088bca07b1cdc1e6841f1c6aeaca6a"
 
   environment = {
     prefix          = local.prefix
@@ -54,8 +54,9 @@ module "function_public" {
   node_version        = 20
   app_service_plan_id = data.azurerm_app_service_plan.shared_plan_itn.id
 
-  subnet_cidr   = local.cidr_subnet_fn_public
+  subnet_cidr   = local.cidr_subnet_fn_shared
   subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
+  subnet_id     = azurerm_subnet.shared_plan_snet.id
 
   private_dns_zone_resource_group_name = data.azurerm_resource_group.rg_common.name
 
