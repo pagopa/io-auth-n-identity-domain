@@ -21,6 +21,10 @@ io-lollipop:
   # container edit
   - docker/functions-node-20/*
   - docker/io-lollipop/*
+io-public:
+  - "apps/io-public/**/*.ts"
+  # package.json, function.json, tsconfig.json, ...
+  - "apps/io-public/**/*.json"
 io-web-profile:
   - "apps/io-web-profile/**/*.ts"
   # package.json, function.json, tsconfig.json, ...
