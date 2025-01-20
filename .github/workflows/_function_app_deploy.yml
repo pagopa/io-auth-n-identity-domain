@@ -49,7 +49,7 @@ on:
           description: Time between canary traffic increment steps
           type: number
           required: false
-          default: 30000
+          default: 300000
 concurrency:
     group: ${{ github.workflow }}-cd
     cancel-in-progress: true
@@ -97,7 +97,7 @@ jobs:
           id: make-function-app-artifact
           run: |
             npm pkg set --json "bundledDependencies"=true
-            npm pkg set --json "files"='["**/function.json", "dist", "host.json","extensions.csproj"]'
+            npm pkg set --json "files"='["**/function.json", "dist", "host.json","extensions.csproj", ".node-version"]'
             npx npm-pack-zip
             mv $(jq -r .name package.json).zip ${{ env.BUNDLE_NAME }}.zip
             echo "artifact-path=$(realpath ${{ env.BUNDLE_NAME }}.zip)" >> "$GITHUB_OUTPUT"
@@ -129,10 +129,10 @@ jobs:
         FUNCTION_APP_NAME: ${{ inputs.function_app_name}}
         HEALTH_CHECK_PATH: ${{ inputs.health_check_path }}
         USE_STAGING_SLOT: ${{ inputs.use_staging_slot }}
-        USE_CANARY_DEPLOY: ${{ input.use_canary_deploy }}
-        CANARY_INCREMENT_STEP: ${{ input.canary_increment_step }}
-        CANARY_NEXT_STEP_AFTER_MS: ${{ input.canary_next_step_after_ms }}
-        LOG_ANALITYCS_WORKSPACE_ID: ${{ input.log_analytics_workspace_id }}
+        USE_CANARY_DEPLOY: ${{ inputs.use_canary_deploy }}
+        CANARY_INCREMENT_STEP: ${{ inputs.canary_increment_step }}
+        CANARY_NEXT_STEP_AFTER_MS: ${{ inputs.canary_next_step_after_ms }}
+        LOG_ANALITYCS_WORKSPACE_ID: ${{ inputs.log_analytics_workspace_id }}
         
   
       steps:
@@ -175,11 +175,16 @@ jobs:
               --retry-all-errors \
               -f 'https://${{ env.FUNCTION_APP_NAME }}-staging.azurewebsites.net${{ env.HEALTH_CHECK_PATH }}'
 
-        - name: Install dependencies
-          run: yarn install --immutable
+        - name: Extract actifact bundle code
+          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPLOY == 'true' }}
+          run: |
+            unzip -qq ${{ env.BUNDLE_NAME }}.zip -d .
 
-        - name: Build
-          run: yarn build
+        - name: Setup Node.js
+          uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+          if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPLOY == 'true' }}
+          with:
+            node-version-file: ".node-version"
 
         - name: Canary traffic increase step
           id: canary
@@ -202,7 +207,7 @@ jobs:
     
               # Run the script that calculates the next traffic percentage
               # and the wait interval before the next increment
-              output=$(yarn workspace ${{ env.WORKSPACE }} canary:monitor $currentPercentage)
+              output="$(npm run -s canary $currentPercentage)"
               exit_code=$?
               echo "Script Output: $output"
     
@@ -246,7 +251,17 @@ jobs:
               # Wait the specified time before the next iteration
               delaySeconds=$((afterMs / 1000))
               echo "Waiting for $delaySeconds seconds..."
-              sleep $delaySeconds
+              
+              while [ "$delaySeconds" -gt 0 ]; do
+                if [ "$delaySeconds" -gt 10 ]; then
+                  sleep 10
+                  delaySeconds=$((delaySeconds - 10))
+                  echo "Waiting for $delaySeconds seconds..."
+                else
+                  sleep "$delaySeconds"
+                  delaySeconds=0
+                fi
+              done
     
               # If nextIncrementPercentage reach 100
               # the loop is interrupted
@@ -269,12 +284,12 @@ jobs:
               -g ${{ env.RESOURCE_GROUP_NAME }} \
               -n ${{ env.FUNCTION_APP_NAME }}
 
-        - name: Canary step is not failed
+        - name: Canary step is failed
           if: ${{ env.USE_STAGING_SLOT == 'true' && env.USE_CANARY_DEPLOY == 'true' && steps.canary.outputs.CANARY_SUCCESS != 'true' }}
           run: |
-            echo "======================================================"
+            echo "=========================================================="
             echo "Canary deployment failed. The pipeline will be terminated."
-            echo "======================================================"
+            echo "=========================================================="
             exit 1
 
         - name: Swap Staging and Production Slots
