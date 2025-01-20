@@ -1,0 +1,61 @@
+{
+  "name": "io-public",
+  "version": "1.5.1",
+  "license": "MIT",
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsc && yarn postbuild",
+    "postbuild": "dependency-check package.json --no-dev --missing ./dist/**/*.js",
+    "build:watch": "tsc -w",
+    "typecheck": "tsc --noemit",
+    "extensions:install": "func extensions install",
+    "start": "func start --javascript",
+    "start:watch": "yarn start watch",
+    "lint": "yarn lint:check --fix",
+    "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache",
+    "lint-api": "find ./api -name '*.yaml' -exec swagger-cli validate {} \\;",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "dist:modules": "modclean -r -n default:safe && yarn install --production",
+    "predeploy": "yarn build && yarn dist:modules"
+  },
+  "description": "",
+  "devDependencies": {
+    "@azure/functions": "^3.5.0",
+    "@pagopa/eslint-config": "^3.0.0",
+    "@types/express": "^4.16.0",
+    "@types/node-fetch": "^2.6.2",
+    "@vitest/coverage-v8": "~1.5.0",
+    "dependency-check": "^4.1.0",
+    "eslint-config-monorepo": "*",
+    "eslint-plugin-prettier": "^4.0.0",
+    "fast-check": "^1.16.0",
+    "modclean": "^3.0.0-beta.1",
+    "monocle-ts": "^2.3.13",
+    "prettier": "^1.18.2",
+    "shx": "^0.3.2",
+    "typescript": "^5.4.5",
+    "vitest": "~1.5.0"
+  },
+  "dependencies": {
+    "@azure/cosmos": "^4.1.1",
+    "@azure/data-tables": "^13.2.2",
+    "@pagopa/express-azure-functions": "^4.0.1",
+    "@pagopa/io-functions-commons": "^29.3.0",
+    "@pagopa/openapi-codegen-ts": "^10.0.5",
+    "@pagopa/ts-commons": "^13.1.2",
+    "applicationinsights": "^2.9.2",
+    "base64url": "^3.0.1",
+    "express": "^4.15.3",
+    "fp-ts": "^2.16.1",
+    "io-ts": "^2.2.21",
+    "io-ts-types": "^0.5.19",
+    "newtype-ts": "^0.3.5",
+    "node-fetch": "^2.6.9",
+    "winston": "^3.3.3"
+  },
+  "resolutions": {
+    "io-ts": "^2.2.21"
+  }
+}
