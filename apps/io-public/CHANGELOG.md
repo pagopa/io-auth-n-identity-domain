@@ -1,5 +1,11 @@
 # io-public
 
+## 1.5.2
+
+### Patch Changes
+
+- fcb0cdd: chore: bump `io-public` version
+
 ## 1.5.1
 
 ### Patch Changes
@@ -245,7 +251,7 @@
 
 > 18 August 2021
 
-- [#IP-291]  Fix Healthcheck Stage [`#32`](https://github.com/pagopa/io-functions-public/pull/32)
+- [#IP-291] Fix Healthcheck Stage [`#32`](https://github.com/pagopa/io-functions-public/pull/32)
 - [#IP-351] Update Node to 14.16.0 [`#38`](https://github.com/pagopa/io-functions-public/pull/38)
 - Bump handlebars from 4.1.2 to 4.7.7 [`#27`](https://github.com/pagopa/io-functions-public/pull/27)
 - Bump lodash from 4.17.15 to 4.17.21 [`#30`](https://github.com/pagopa/io-functions-public/pull/30)
