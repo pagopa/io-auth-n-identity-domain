@@ -1,7 +1,7 @@
 resource "azurerm_api_management_group" "api_profile_operation_read_v2" {
   name                = "apiprofileoperationread"
-  api_management_name = data.azurerm_api_management.apim_v2_api.name
-  resource_group_name = data.azurerm_api_management.apim_v2_api.resource_group_name
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
   display_name        = "ApiProfileOperationRead"
   description         = "A group that enables PagoPa Operation to operate over Profiles"
 }
