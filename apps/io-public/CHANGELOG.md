@@ -1,5 +1,11 @@
 # io-public
 
+## 1.5.3
+
+### Patch Changes
+
+- 561ebff: Moved monocle-ts into dependencies
+
 ## 1.5.2
 
 ### Patch Changes
