@@ -21,3 +21,8 @@ variable "api_host_name" {
   type        = string
   description = "Host to use in Swagger files"
 }
+
+variable "function_public_url" {
+  type        = string
+  description = "URL of fn-public function where to redirect requests"
+}
