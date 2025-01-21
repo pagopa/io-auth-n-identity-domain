@@ -66,17 +66,25 @@ module "function_public" {
   }
 
   app_settings = merge(
-    local.function_public.app_settings
+    local.function_public.app_settings,
+    {
+      # BUG: the following variable is not set when application_insights_key is
+      # defined
+      APPINSIGHTS_SAMPLING_PERCENTAGE = 5
+    }
   )
   slot_app_settings = merge(
-    local.function_public.app_settings
+    local.function_public.app_settings,
+    {
+      APPINSIGHTS_SAMPLING_PERCENTAGE = 100
+    }
   )
 
   subnet_service_endpoints = {
     web = true
   }
 
-  application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
+  application_insights_key = data.azurerm_application_insights.application_insights.instrumentation_key
 
   action_group_id = azurerm_monitor_action_group.error_action_group.id
 

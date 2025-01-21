@@ -33,6 +33,14 @@ export default defineWorkspace([
     },
   },
   {
+    extends: "apps/io-public/vite.config.mts",
+    test: {
+      name: "io-public",
+      include: ["apps/io-public/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
+  {
     extends: "apps/io-web-profile/vite.config.mts",
     test: {
       name: "io-web-profile",
