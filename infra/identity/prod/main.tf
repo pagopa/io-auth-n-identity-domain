@@ -50,6 +50,12 @@ module "federated_identities" {
         io-p-itn-auth-public-rg-01 = [
           "Role Based Access Control Administrator"
         ]
+        io-p-rg-internal = [
+          "API Management Service Contributor"
+        ]
+        io-p-itn-common-rg-01 = [
+          "API Management Service Contributor"
+        ]
       }
     }
   }
