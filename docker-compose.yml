@@ -70,6 +70,22 @@ services:
       - functions-node-20
       - storage
 
+  io-public:
+    image: io-public
+    build:
+      context: ./
+      dockerfile: ./docker/io-public/Dockerfile
+    env_file:
+      - ./docker/generated/.env.io-public
+    ports:
+      - ${FUNCTION_PUBLIC_PORT}:7071
+    networks:
+      - io-fn
+    depends_on:
+      - functions-node-20
+      - storage
+      - cosmosdb
+
   cosmosdb:
     image: cosmosdb
     build:
