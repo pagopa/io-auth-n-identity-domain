@@ -35,7 +35,7 @@ FAST_LOGIN_API_URL=http://host.docker.internal:3000
 LOLLIPOP_API_KEY=aKey
 LOLLIPOP_API_BASE_PATH=/api/v1
 LOLLIPOP_API_URL=http://functions-lollipop:7071
-LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://storage:20003/devstoreaccount1;QueueEndpoint=http://storage:20004/devstoreaccount1;TableEndpoint=http://storage:20005/devstoreaccount1;
+LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING=${STORAGE_CONN_STRING}
 LOLLIPOP_REVOKE_QUEUE_NAME=pubkeys-revoke
 
 BACKEND_HOST=https://localhost
@@ -46,7 +46,7 @@ SAML_LOGOUT_CALLBACK_URL=http://localhost:8081/slo
 CIE_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/cie/latest
 IDP_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/spid/latest
 
-SPID_LOG_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://storage:20003/devstoreaccount1;QueueEndpoint=http://storage:20004/devstoreaccount1;TableEndpoint=http://storage:20005/devstoreaccount1;
+SPID_LOG_STORAGE_CONNECTION_STRING=${STORAGE_CONN_STRING}
 SPID_LOG_QUEUE_NAME=spidmsgitems
 
 FF_FAST_LOGIN=ALL
@@ -69,13 +69,13 @@ ALLOW_BPD_IP_SOURCE_RANGE="::/0"
 # ------------------------------------
 ALLOWED_CIE_TEST_FISCAL_CODES="GRBGPP87L04L741X"
 
-LOCKED_PROFILES_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://storage:20003/devstoreaccount1;QueueEndpoint=http://storage:20004/devstoreaccount1;TableEndpoint=http://storage:20005/devstoreaccount1;
+LOCKED_PROFILES_STORAGE_CONNECTION_STRING=${STORAGE_CONN_STRING}
 LOCKED_PROFILES_TABLE_NAME=lockedProfiles
 
-USERS_LOGIN_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://storage:20003/devstoreaccount1;QueueEndpoint=http://storage:20004/devstoreaccount1;TableEndpoint=http://storage:20005/devstoreaccount1;
+USERS_LOGIN_STORAGE_CONNECTION_STRING=${STORAGE_CONN_STRING}
 USERS_LOGIN_QUEUE_NAME=userslogin
 
-PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://storage:20003/devstoreaccount1;QueueEndpoint=http://storage:20004/devstoreaccount1;TableEndpoint=http://storage:20005/devstoreaccount1;
+PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING=${STORAGE_CONN_STRING}
 PUSH_NOTIFICATIONS_QUEUE_NAME=push-notifications
 
 ## PAGOPA PROXY CONFIG
