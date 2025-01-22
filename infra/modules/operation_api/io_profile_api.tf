@@ -48,7 +48,7 @@ module "api_v2_profile_operation" {
 
   service_url = null
 
-  subscription_required = false
+  subscription_required = true
 
   content_format = "openapi"
   content_value = templatefile("./${path.module}/api/io_profile_api/v1/_swagger.yaml.tpl",
