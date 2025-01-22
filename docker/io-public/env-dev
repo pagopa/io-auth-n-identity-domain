@@ -1,4 +1,3 @@
-# needed to contact mailhog
 NODE_ENV=dev
 
 FUNCTIONS_WORKER_RUNTIME=node
