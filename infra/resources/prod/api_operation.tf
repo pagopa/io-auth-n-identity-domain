@@ -1,4 +1,4 @@
-module "io_profile_apim_api_weu" {
+module "io_profile_apim_api_itn" {
   source = "../../modules/operation_api"
 
   apim_name                = local.apim_itn_name
