@@ -32,6 +32,9 @@ zendesk:
 lollipop-external:
   - "apps/io-lollipop/api/external.yaml"
   - "apps/io-lollipop/.opex/external/**"
+public-external:
+  - "apps/io-public/api/external.yaml"
+  - "apps/io-public/.opex/external/**"
 web-profile-external:
   - "apps/io-web-profile/api/external.yaml"
   - "apps/io-web-profile/.opex/external/**"
