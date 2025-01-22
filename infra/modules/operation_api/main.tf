@@ -6,7 +6,7 @@ module "apim_v2_product_auth-n-identity_operation" {
   resource_group_name   = var.apim_resource_group_name
   display_name          = "IO AUTH AND IDENTITY OPERATION API"
   description           = "Product for IO Auth And Identity Domani Operation APIs."
-  subscription_required = false
+  subscription_required = true
   approval_required     = false
   published             = true
 
