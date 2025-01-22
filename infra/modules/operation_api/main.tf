@@ -1,4 +1,4 @@
-module "apim_v2_product_profile_operation" {
+module "apim_v2_product_auth-n-identity_operation" {
   source = "github.com/pagopa/terraform-azurerm-v3//api_management_product?ref=v8.27.0"
 
   product_id            = "io-auth-n-identity-operation-api"
