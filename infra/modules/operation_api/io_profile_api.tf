@@ -11,7 +11,7 @@ resource "azurerm_api_management_named_value" "io_fn_profile_url" {
   api_management_name = var.apim_name
   resource_group_name = var.apim_resource_group_name
   display_name        = "io-fn-profile-url"
-  value               = var.application_internal_endpoint
+  value               = var.function_profile_url
 }
 
 resource "azurerm_api_management_named_value" "io_fn_profile_key" {

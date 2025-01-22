@@ -6,7 +6,7 @@ module "io_profile_apim_api_itn" {
 
   key_vault_common_id = data.azurerm_key_vault.common_kv.id
 
-  application_internal_endpoint = "https://io-p-itn-auth-profile-fn-01.azurewebsites.net"
+  function_profile_url = "https://io-p-itn-auth-profile-fn-01.azurewebsites.net"
 
   api_host_name = "api.io.pagopa.it"
 }

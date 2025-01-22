@@ -22,7 +22,7 @@ variable "api_host_name" {
   description = "Host to use in Swagger files"
 }
 
-variable "application_internal_endpoint" {
+variable "function_profile_url" {
   type        = string
-  description = "Application to be exposed through APIM Internal Endpoint"
+  description = "Function Profile URL"
 }
