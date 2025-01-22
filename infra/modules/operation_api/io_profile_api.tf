@@ -6,14 +6,6 @@ resource "azurerm_api_management_group" "api_profile_operation_read" {
   description         = "A group that enables PagoPa Operation to operate over Profiles (Readonly)"
 }
 
-resource "azurerm_api_management_named_value" "io_fn_profile_url" {
-  name                = "io-fn-profile-url"
-  api_management_name = var.apim_name
-  resource_group_name = var.apim_resource_group_name
-  display_name        = "io-fn-profile-url"
-  value               = var.function_profile_url
-}
-
 resource "azurerm_api_management_named_value" "io_fn_profile_key" {
   name                = "io-fn-profile-key"
   api_management_name = var.apim_name
@@ -28,7 +20,7 @@ resource "azurerm_api_management_named_value" "api_profile_operation_group_name"
   api_management_name = var.apim_name
   resource_group_name = var.apim_resource_group_name
   display_name        = "api-profile-operation-group-name"
-  value               = azurerm_api_management_group.api_profile_operation_read.name
+  value               = azurerm_api_management_group.api_profile_operation_read.display_name
   secret              = "true"
 }
 
@@ -46,7 +38,7 @@ module "api_v2_profile_operation" {
   protocols   = ["https"]
   product_ids = [module.apim_v2_product_auth-n-identity_operation.product_id]
 
-  service_url = null
+  service_url = "${var.function_profile_url}/api/v1"
 
   subscription_required = true
 
@@ -61,11 +53,12 @@ module "api_v2_profile_operation" {
   xml_content = file("./${path.module}/api/io_profile_api/v1/policy.xml")
 }
 
-# resource "azurerm_api_management_api_operation_policy" "get_profile_operation" {
-#   api_name            = "io-profile-operation-api"
-#   api_management_name = var.apim_name
-#   resource_group_name = var.apim_resource_group_name
-#   operation_id        = "getProfile"
+resource "azurerm_api_management_api_operation_policy" "get_profile_operation" {
+  api_name            = "io-profile-operation-api"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  operation_id        = "getProfile"
 
-#   xml_content = file("./${path.module}/api/io_profile_api/v1/get_profile_policy/policy.xml")
-# }
+  xml_content = file("./${path.module}/api/io_profile_api/v1/get_profile_policy/policy.xml")
+  depends_on  = [module.api_v2_profile_operation]
+}

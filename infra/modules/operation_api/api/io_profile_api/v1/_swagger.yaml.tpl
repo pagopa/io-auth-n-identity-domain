@@ -61,14 +61,15 @@ components:
     FiscalCode:
       name: fiscal_code
       in: path
-      type: string
-      maxLength: 16
-      minLength: 16
       required: true
       description: The fiscal code of the user, all upper case.
-      pattern: >-
-        [A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]
-      x-example: SPNDNL80R13C555X
+      schema:
+        type: string
+        maxLength: 16
+        minLength: 16
+        pattern: >-
+          [A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]
+        x-example: SPNDNL80R13C555X
   schemas:
     ExtendedProfile:
       description: |-

@@ -13,5 +13,20 @@ module "apim_v2_product_auth-n-identity_operation" {
   policy_xml = file("./${path.module}/api/_base_policy.xml")
 }
 
+resource "azurerm_api_management_group_user" "auth_n_identity_operation_group" {
+  user_id             = data.azurerm_api_management_user.auth_n_identity_operation_user.user_id
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  group_name          = azurerm_api_management_group.api_profile_operation_read.name
+}
 
 
+resource "azurerm_api_management_subscription" "auth_n_identity_operation" {
+  user_id             = data.azurerm_api_management_user.auth_n_identity_operation_user.id
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  product_id          = module.apim_v2_product_auth-n-identity_operation.id
+  display_name        = "Auth & Identity Operation API"
+  state               = "active"
+  allow_tracing       = false
+}

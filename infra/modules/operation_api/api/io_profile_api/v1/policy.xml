@@ -1,20 +1,9 @@
 <policies>
     <inbound>
         <base />
-        <set-backend-service base-url="{{io-fn-profile-url}}" />
         <set-header name="x-functions-key" exists-action="override">
             <value>{{io-fn-profile-key}}</value>
         </set-header>
-        <choose>
-            <when condition="@(!context.User.Groups.Select(g => g.Name).Contains("{{api-profile-operation-group-name}}"))">
-                <return-response>
-                    <set-status code="403" reason="Unauthorized, the subscription used doesn't have the required permission" />
-                </return-response>
-            </when>
-        </choose>
-        <return-response>
-            <set-status code="200" reason="Test" />
-        </return-response>
     </inbound>
     <outbound>
         <base />
