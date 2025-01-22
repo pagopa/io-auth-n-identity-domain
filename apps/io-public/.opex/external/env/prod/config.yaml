@@ -1,6 +1,6 @@
-oa3_spec: openapi/external.yaml
-name: opex_functionspublic_external
-location: West Europe
+oa3_spec: apps/io-public/api/external.yaml
+name: opex_io_public_external
+location: Italy North
 timespan: 5m
 evaluation_frequency: 10
 evaluation_time_window: 30
