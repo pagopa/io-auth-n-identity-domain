@@ -8,6 +8,9 @@
                 </return-response>
             </when>
         </choose>
+        <return-response>
+            <set-status code="200" reason="Test" />
+        </return-response>
     </inbound>
     <backend>
         <base />

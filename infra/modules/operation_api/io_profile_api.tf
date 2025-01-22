@@ -42,7 +42,7 @@ module "api_v2_profile_operation" {
   display_name        = "IO PROFILE OPERATION API"
   description         = "Product for IO Profile Operation."
 
-  path        = "profile/api/v1"
+  path        = "${local.operation_api_basepath}/profile/api/v1"
   protocols   = ["https"]
   product_ids = [module.apim_v2_product_auth-n-identity_operation.product_id]
 
@@ -54,18 +54,18 @@ module "api_v2_profile_operation" {
   content_value = templatefile("./${path.module}/api/io_profile_api/v1/_swagger.yaml.tpl",
     {
       host     = var.api_host_name
-      basePath = "profile/api/v1"
+      basePath = "${local.operation_api_basepath}/profile/api/v1"
     }
   )
 
   xml_content = file("./${path.module}/api/io_profile_api/v1/policy.xml")
 }
 
-resource "azurerm_api_management_api_operation_policy" "get_profile_operation" {
-  api_name            = "io-profile-operation-api"
-  api_management_name = var.apim_name
-  resource_group_name = var.apim_resource_group_name
-  operation_id        = "getProfile"
+# resource "azurerm_api_management_api_operation_policy" "get_profile_operation" {
+#   api_name            = "io-profile-operation-api"
+#   api_management_name = var.apim_name
+#   resource_group_name = var.apim_resource_group_name
+#   operation_id        = "getProfile"
 
-  xml_content = file("./${path.module}/api/io_profile_api/v1/get_profile_policy/policy.xml")
-}
+#   xml_content = file("./${path.module}/api/io_profile_api/v1/get_profile_policy/policy.xml")
+# }
