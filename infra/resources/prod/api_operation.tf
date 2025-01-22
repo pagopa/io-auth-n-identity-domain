@@ -1,5 +1,5 @@
 module "io_profile_apim_api_weu" {
-  source = "../../modules/io_profile_api"
+  source = "../../modules/operation_api"
 
   apim_name                = local.apim_v2_name
   apim_resource_group_name = local.apim_resource_group_name
