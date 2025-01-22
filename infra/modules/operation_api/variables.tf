@@ -21,3 +21,8 @@ variable "api_host_name" {
   type        = string
   description = "Host to use in Swagger files"
 }
+
+variable "application_internal_endpoint" {
+  type        = string
+  description = "Application to be exposed through APIM Internal Endpoint"
+}
