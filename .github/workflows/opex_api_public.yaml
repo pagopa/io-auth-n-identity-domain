@@ -1,0 +1,47 @@
+name: Opex Dashboard Public
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/opex_api_public.yaml"
+      - ".github/workflows/call_opex_api.yml"
+      - "apps/io-public/api/*.yaml"
+      - "apps/io-public/.opex/**"
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  filter:
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: read
+    outputs:
+      apply-action: ${{ steps.filter.outputs.apply-action }}
+      public-external: ${{ steps.filter.outputs.public-external }}
+    # Checks to see if openapi specs in the PR match one of the ones listed.
+    # We can use the result to decide which job to run
+    # With this type of filter we can avoid creating a lot of workflow files
+    steps:
+      # path-filters action requires checkout with push event
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+      - uses: dorny/paths-filter@v3.0.2
+        id: filter
+        with:
+          filters: ./.github/opex_filters.yaml
+
+  apply-public-external:
+    needs: filter
+    if: ${{ needs.filter.outputs.public-external == 'true' || needs.filter.outputs.apply-action == 'true' }}
+    uses: ./.github/workflows/call_opex_api.yml
+    name: (Public - External) Apply changes to Production
+    secrets: inherit
+    with:
+      api_name: external
+      app_name: io-public
