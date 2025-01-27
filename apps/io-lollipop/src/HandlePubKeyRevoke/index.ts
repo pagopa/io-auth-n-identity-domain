@@ -16,9 +16,7 @@ const lollipopKeysModel = new LolliPOPKeysModel(
   cosmosdbInstance.container(LOLLIPOPKEYS_COLLECTION_NAME)
 );
 
-const telemetryClient = initTelemetryClient(
-  config.APPLICATIONINSIGHTS_CONNECTION_STRING
-);
+const telemetryClient = initTelemetryClient(config);
 
 export const index: AzureFunction = (
   context: Context,

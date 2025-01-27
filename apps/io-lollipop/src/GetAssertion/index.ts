@@ -28,9 +28,7 @@ import { GetAssertion } from "./handler";
 
 const config = getConfigOrThrow();
 
-const telemetryClient = initTelemetryClient(
-  config.APPLICATIONINSIGHTS_CONNECTION_STRING
-);
+const telemetryClient = initTelemetryClient(config);
 
 const lollipopKeysModel = new LolliPOPKeysModel(
   cosmosdbInstance.container(LOLLIPOPKEYS_COLLECTION_NAME)

@@ -12,7 +12,9 @@ import { pipe } from "fp-ts/lib/function";
 
 import * as reporters from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { CommaSeparatedListOf } from "@pagopa/ts-commons/lib/comma-separated-list";
 import {
+  IntegerFromString,
   NonNegativeInteger,
   NonNegativeIntegerFromString
 } from "@pagopa/ts-commons/lib/numbers";
@@ -68,12 +70,26 @@ export const JWTConfig = t.intersection([
 // ----------------------------
 // Global app configuration
 // ----------------------------
+export type AppInsightsConfig = t.TypeOf<typeof AppInsightsConfig>;
+export const AppInsightsConfig = t.intersection([
+  t.type({
+    // required for both appinsights sdk and azure function runtime
+    // changing the name of this variable would cause data loss on app insights
+    // source-> https://learn.microsoft.com/en-us/azure/azure-functions/configure-monitoring?tabs=v2#enable-application-insights-integration
+    APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString
+  }),
+  t.partial({
+    APPINSIGHTS_DISABLE: NonEmptyString,
+    APPINSIGHTS_EXCLUDED_DOMAINS: CommaSeparatedListOf(t.string).pipe(
+      t.array(NonEmptyString)
+    ),
+    APPINSIGHTS_SAMPLING_PERCENTAGE: IntegerFromString
+  })
+]);
+
 export type IConfig = t.TypeOf<typeof IConfig>;
-// eslint-disable-next-line @typescript-eslint/ban-types
 export const IConfig = t.intersection([
   t.interface({
-    APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
-
     COSMOSDB_KEY: NonEmptyString,
     COSMOSDB_NAME: NonEmptyString,
     COSMOSDB_URI: NonEmptyString,
@@ -89,6 +105,7 @@ export const IConfig = t.intersection([
 
     isProduction: t.boolean
   }),
+  AppInsightsConfig,
   JWTConfig,
   FirstLcAssertionClientConfig
 ]);

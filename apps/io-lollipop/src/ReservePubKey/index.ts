@@ -27,9 +27,7 @@ const lollipopPubkeysModel = new LolliPOPKeysModel(
   cosmosdbInstance.container(LOLLIPOPKEYS_COLLECTION_NAME)
 );
 
-const telemetryClient = initTelemetryClient(
-  config.APPLICATIONINSIGHTS_CONNECTION_STRING
-);
+const telemetryClient = initTelemetryClient(config);
 
 // eslint-disable-next-line functional/no-let
 let logger: Context["log"];
