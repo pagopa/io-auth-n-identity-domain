@@ -16,7 +16,7 @@ jobs:
     env:
       API_NAME: ${{ inputs.api_name }}
       APP_NAME: ${{ inputs.app_name }}
-      DOCKER_IMAGE_TAG: sha256:04d8ead53c772d23b094c2a395292dc159e6f2905e1b13b5f828f31eac6eb27f # action v1.2.1 docker image tag
+      DOCKER_IMAGE_TAG: sha256:b17f49fc762cc2049f887f0999642c95b5546d1eb44e5ae19bed080f9d1859d4 # action v1.2.2 docker image tag
       TEMPLATE_DIR: azure-dashboard
       ARM_USE_OIDC: true
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
@@ -40,7 +40,7 @@ jobs:
           cp -r apps/${{ env.APP_NAME }}/.opex ./
         shell: bash
 
-      - uses: pagopa/opex-dashboard-azure-action@3ad80a5e4a2d5a8f342615637072f21b687320ce # action v1.2.1
+      - uses: pagopa/opex-dashboard-azure-action@c77cc5b4cb94a91e2757a809f0fcf055aa11af86 # action v1.2.2
         with:
           environment: prod
           api-name: ${{ env.API_NAME }}
