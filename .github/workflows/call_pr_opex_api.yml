@@ -16,7 +16,7 @@ jobs:
     env:
       API_NAME: ${{ inputs.api_name }}
       APP_NAME: ${{ inputs.app_name }}
-      DOCKER_IMAGE_TAG: sha256:04d8ead53c772d23b094c2a395292dc159e6f2905e1b13b5f828f31eac6eb27f # opex-dashboard-action v1.2.1
+      DOCKER_IMAGE_TAG: sha256:b17f49fc762cc2049f887f0999642c95b5546d1eb44e5ae19bed080f9d1859d4 # opex-dashboard-action v1.2.2
 
       TEMPLATE_DIR: azure-dashboard
       ARM_USE_OIDC: true
