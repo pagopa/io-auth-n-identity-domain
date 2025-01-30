@@ -55,7 +55,6 @@ module "function_public" {
   node_version        = 20
   app_service_plan_id = data.azurerm_app_service_plan.shared_plan_itn.id
 
-  subnet_cidr   = local.cidr_subnet_fn_shared
   subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
   subnet_id     = azurerm_subnet.shared_plan_snet.id
 
