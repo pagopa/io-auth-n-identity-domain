@@ -74,7 +74,8 @@ resource "azurerm_resource_group" "function_lv_rg" {
 }
 
 module "function_lv" {
-  source = "github.com/pagopa/dx//infra/modules/azure_function_app?ref=ab26f57ed34a614fd3fa496c7b521be9ecc88e1b"
+  source = "pagopa/dx-azure-function-app/azurerm"
+  version = "~> 0"
 
   environment = {
     prefix          = local.prefix
@@ -121,7 +122,8 @@ module "function_lv" {
 
 module "function_lv_autoscale" {
   depends_on = [azurerm_resource_group.function_lv_rg]
-  source     = "github.com/pagopa/dx//infra/modules/azure_app_service_plan_autoscaler?ref=ab26f57ed34a614fd3fa496c7b521be9ecc88e1b"
+  source  = "pagopa/dx-azure-app-service-plan-autoscaler/azurerm"
+  version = "~> 0"
 
   resource_group_name = azurerm_resource_group.function_lv_rg.name
   target_service = {
