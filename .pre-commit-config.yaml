@@ -3,6 +3,6 @@ repos:
     rev: pre_commit_scripts@0.0.1
     hooks:
       - id: lock_modules
-        exclude: ^.*/(_modules|modules|\.terraform)(/.*)?$
+        exclude: ^.*/(_modules|\.terraform)(/.*)?$
         # Configure the paths to your Terraform configurations
-        files: infra/(github-runner|identity|repository|resources)
+        files: infra/(github-runner|identity|modules|repository|resources)
