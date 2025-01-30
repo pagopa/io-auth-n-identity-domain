@@ -111,7 +111,8 @@ module "function_lollipop" {
 
 module "function_lollipop_autoscale" {
   depends_on = [azurerm_resource_group.function_lollipop_rg]
-  source     = "github.com/pagopa/dx//infra/modules/azure_app_service_plan_autoscaler?ref=ab26f57ed34a614fd3fa496c7b521be9ecc88e1b"
+  source     = "pagopa/dx-azure-app-service-plan-autoscaler/azurerm"
+  version    = "~> 0"
 
   resource_group_name = azurerm_resource_group.function_lollipop_rg.name
   target_service = {
