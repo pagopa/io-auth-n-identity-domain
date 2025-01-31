@@ -69,7 +69,11 @@ paths:
         "202":
           description: Sanitize Request Accepted
         "400":
-          description: Invalid request.
+          description: Invalid request.          
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
         "401":
           description: Unauthorized
         "403":

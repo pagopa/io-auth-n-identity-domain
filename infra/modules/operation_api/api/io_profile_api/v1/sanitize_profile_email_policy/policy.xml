@@ -1,6 +1,7 @@
 <policies>
     <inbound>
         <base />
+        <!-- BaseUrl will be extendend with the openApi spec path, in this case /SanitizeProfileEmail -->
         <set-backend-service base-url="{{io-fn-admin-trigger-url}}" />
         <set-header name="x-functions-key" exists-action="override">
             <value>{{io-fn-admin-master-key}}</value>
@@ -8,31 +9,26 @@
         <choose>
             <when condition="@(!context.User.Groups.Select(g => g.Name).Contains("{{api-profile-operation-write-group-name}}"))">
                 <return-response>
-                    <set-status code="403" reason="Unauthorized, the subscription used doesn't have the required permission" />
+                    <set-status code="403" reason="Unauthorized, the subscription used doesn&apos;t have the required permission" />
                 </return-response>
             </when>
-            <when condition="@(!context.Request.Body.As<string>(preserveContent: true))">
+            <when condition="@(String.IsNullOrEmpty(context.Request.Body.As<string>(preserveContent: true)))">
                 <return-response>
                     <set-status code="400" reason="Bad Request" />
                     <set-header name="Content-Type" exists-action="override">
                         <value>application/json</value>
                     </set-header>
-                    <set-body>
-                        {
-                            "error": "Bad Request",
-                            "message": "Request body is required"
-                        }
-                    </set-body>
+                    <set-body>@{
+                            return $"{{\"error\": \"Bad Request\",\"message\": \"Invalid request\"}}"; 
+                    }</set-body>
                 </return-response>
             </when>
             <otherwise>
-                <set-body>
-                    @{
+                <set-body>@{
                         var originalBody = context.Request.Body.As<string>(preserveContent: true);
                         var escapedBody = originalBody.Replace("\"", "\\\"");
                         return $"{{\"input\": \"{escapedBody}\"}}";
-                    }
-                </set-body>
+                    }</set-body>
             </otherwise>
         </choose>
     </inbound>

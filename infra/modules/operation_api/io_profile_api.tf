@@ -23,7 +23,25 @@ resource "azurerm_api_management_named_value" "io_fn_profile_key" {
   secret              = "true"
 }
 
+resource "azurerm_api_management_named_value" "io_fn_admin_master_key" {
+  name                = "io-fn-admin-master-key"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  display_name        = "io-fn-admin-master-key"
+  value               = data.azurerm_key_vault_secret.io_fn_admin_master_key_secret.value
+  secret              = "true"
+}
+
 resource "azurerm_api_management_named_value" "api_profile_operation_group_name" {
+  name                = "api-profile-operation-group-name"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  display_name        = "api-profile-operation-group-name"
+  value               = azurerm_api_management_group.api_profile_operation_read.display_name
+  secret              = "true"
+}
+
+resource "azurerm_api_management_named_value" "api_profile_operation_read_group_name" {
   name                = "api-profile-operation-read-group-name"
   api_management_name = var.apim_name
   resource_group_name = var.apim_resource_group_name
