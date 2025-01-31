@@ -89,7 +89,15 @@ export async function calculateNextStep(
           process.exit(1);
         }
       }),
-    );
+    ).catch((err) => {
+      logger.error(`Error executing some query: ${err}`);
+      return [
+        {
+          totalRequests: 1 as NonNegativeInteger,
+          failedRequests: 1 as NonNegativeInteger,
+        },
+      ];
+    });
 
     const nextPercentage = currentPercentage + config.CANARY_INCREMENT_STEP;
 
