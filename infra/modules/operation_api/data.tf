@@ -11,6 +11,10 @@ data "azurerm_key_vault_secret" "io_fn_profile_key_secret" {
   key_vault_id = var.key_vault_common_id
 }
 
+data "azurerm_key_vault_secret" "io_fn_admin_master_key_secret" {
+  name         = "fn-admin-KEY-MASTER"
+  key_vault_id = var.key_vault_common_id
+}
 
 data "azurerm_api_management_user" "auth_n_identity_operation_user" {
   user_id             = "fastloginoperationuser"
