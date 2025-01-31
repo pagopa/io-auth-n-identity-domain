@@ -1,5 +1,4 @@
 import {
-  Durations,
   LogsQueryClient,
   LogsQueryResultStatus,
   LogsTable,
@@ -35,6 +34,7 @@ export async function calculateNextStep(
   currentPercentage: number,
   requetsQueryParams: RequestsQueryParams[],
 ) {
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
   const azureLogAnalyticsWorkspaceId = process.env.LOG_ANALITYCS_WORKSPACE_ID;
   const logsQueryClient = new LogsQueryClient(new DefaultAzureCredential());
 
@@ -49,7 +49,7 @@ export async function calculateNextStep(
         azureLogAnalyticsWorkspaceId,
         params.query,
         {
-          duration: Durations.fiveMinutes,
+          duration: `PT${Math.floor(config.CANARY_NEXT_STEP_AFTER_MS / 60000)}M`,
         },
       );
       if (result.status === LogsQueryResultStatus.Success) {
