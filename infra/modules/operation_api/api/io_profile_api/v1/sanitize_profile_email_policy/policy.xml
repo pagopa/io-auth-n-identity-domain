@@ -12,7 +12,7 @@
                     <set-status code="403" reason="Unauthorized, the subscription used doesn&apos;t have the required permission" />
                 </return-response>
             </when>
-            <when condition="@(String.IsNullOrEmpty(context.Request.Body.As<string>(preserveContent: true)))">
+            <when condition="@(context.Request.Body == null || String.IsNullOrEmpty((string)(context.Request.Body.As<string>(preserveContent: true))))">
                 <return-response>
                     <set-status code="400" reason="Bad Request" />
                     <set-header name="Content-Type" exists-action="override">
