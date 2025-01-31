@@ -13,6 +13,8 @@ import { logger } from "./logger";
 type IncrementOutput = {
   nextIncrementPercentage: number;
   afterMs: number;
+  failedRequests: number;
+  totalRequests: number;
 };
 
 type SwapOutput = {
@@ -44,45 +46,50 @@ export async function calculateNextStep(
   }
 
   try {
-    requetsQueryParams.forEach(async (params) => {
-      const result = await logsQueryClient.queryWorkspace(
-        azureLogAnalyticsWorkspaceId,
-        params.query,
-        {
-          duration: `PT${Math.floor(config.CANARY_NEXT_STEP_AFTER_MS / 60000)}M`,
-        },
-      );
-      if (result.status === LogsQueryResultStatus.Success) {
-        const tablesFromResult: LogsTable[] = result.tables;
-
-        if (tablesFromResult.length === 0) {
-          logger.error(`No results for query '${params.query}'`);
-          return;
-        }
-        const table = processTables(tablesFromResult);
-        const totalRequests = pipe(
-          NonNegativeInteger.decode(table[0][params.totalRequestKey]),
-          E.getOrElseW(() => {
-            throw new Error("Invalid value from query");
-          }),
+    const requests = await Promise.all(
+      requetsQueryParams.map(async (params) => {
+        const result = await logsQueryClient.queryWorkspace(
+          azureLogAnalyticsWorkspaceId,
+          params.query,
+          {
+            duration: `PT${Math.floor(config.CANARY_NEXT_STEP_AFTER_MS / 60000)}M`,
+          },
         );
-        const failedRequests = pipe(
-          NonNegativeInteger.decode(table[0][params.failureRequestKey]),
-          E.getOrElseW(() => {
-            throw new Error("Invalid value from query");
-          }),
-        );
-        const failureRate = (failedRequests / totalRequests) * 100;
+        if (result.status === LogsQueryResultStatus.Success) {
+          const tablesFromResult: LogsTable[] = result.tables;
 
-        if (failureRate > params.failureThreshold && !isNaN(failureRate)) {
-          logger.error("Failure rate exceeds acceptable threshold or invalid.");
+          if (tablesFromResult.length === 0) {
+            logger.error(`No results for query '${params.query}'`);
+            return;
+          }
+          const table = processTables(tablesFromResult);
+          const totalRequests = pipe(
+            NonNegativeInteger.decode(table[0][params.totalRequestKey]),
+            E.getOrElseW(() => {
+              throw new Error("Invalid value from query");
+            }),
+          );
+          const failedRequests = pipe(
+            NonNegativeInteger.decode(table[0][params.failureRequestKey]),
+            E.getOrElseW(() => {
+              throw new Error("Invalid value from query");
+            }),
+          );
+          const failureRate = (failedRequests / totalRequests) * 100;
+
+          if (failureRate > params.failureThreshold && !isNaN(failureRate)) {
+            logger.error(
+              "Failure rate exceeds acceptable threshold or invalid.",
+            );
+            process.exit(1);
+          }
+          return { failedRequests, totalRequests };
+        } else {
+          logger.error("No data returned from Lognalitycs");
           process.exit(1);
         }
-      } else {
-        logger.error("No data returned from Lognalitycs");
-        process.exit(1);
-      }
-    });
+      }),
+    );
 
     const nextPercentage = currentPercentage + config.CANARY_INCREMENT_STEP;
 
@@ -93,6 +100,13 @@ export async function calculateNextStep(
       const output: IncrementOutput = {
         nextIncrementPercentage: nextPercentage,
         afterMs: config.CANARY_NEXT_STEP_AFTER_MS,
+        ...requests.reduce(
+          (prev, req) => ({
+            totalRequests: prev.totalRequests + (req?.totalRequests || 0),
+            failedRequests: prev.failedRequests + (req?.failedRequests || 0),
+          }),
+          { totalRequests: 0, failedRequests: 0 },
+        ),
       };
       scriptOutput(output);
     }
