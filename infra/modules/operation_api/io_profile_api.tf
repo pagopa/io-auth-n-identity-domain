@@ -41,6 +41,15 @@ resource "azurerm_api_management_named_value" "api_profile_operation_write_group
   secret              = "true"
 }
 
+resource "azurerm_api_management_named_value" "io_fn_admin_trigger_url" {
+  name                = "io-fn-admin-trigger-url"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  display_name        = "io-fn-admin-trigger-url"
+  value               = "${var.function_admin_url}/admin/functions"
+  secret              = "true"
+}
+
 module "api_v2_profile_operation" {
   source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
 
