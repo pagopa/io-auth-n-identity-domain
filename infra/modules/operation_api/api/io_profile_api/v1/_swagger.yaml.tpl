@@ -51,6 +51,39 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
+  /SanitizeProfileEmail:
+    post:
+      operationId: sanitizeProfileEmail
+      summary: SanitizeProfileEmail
+      description: Sanitize Profile Email
+      tags:
+        - restricted
+      requestBody:
+        description: Profile details to be sanitized
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SanitizeProfileEmailRequest'
+        required: true
+      responses:
+        "202":
+          description: Sanitize Request Accepted
+        "400":
+          description: Invalid request.          
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: No message found.
+        "429":
+          description: Too many requests
+        "500":
+          description: Server Error
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -234,6 +267,24 @@ components:
 
         FULL leads to descriptive push notifications while ANONYMOUS leads to
         silent ones.
+    SanitizeProfileEmailRequest:
+      type: object
+      properties:
+        email:
+          $ref: "#/components/schemas/EmailAddress"
+        fiscalCode:
+          $ref: "#/components/schemas/FiscalCode"
+      required:
+        - email
+        - fiscalCode
+    FiscalCode:
+      description: The fiscal code of the user, all upper case.
+      type: string
+      maxLength: 16
+      minLength: 16
+      pattern: >-
+        [A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]
+      x-example: SPNDNL80R13C555X
     ProblemJson:
       type: object
       properties:

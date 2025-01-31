@@ -6,6 +6,14 @@ resource "azurerm_api_management_group" "api_profile_operation_read" {
   description         = "A group that enables PagoPa Operation to operate over Profiles (Readonly)"
 }
 
+resource "azurerm_api_management_group" "api_profile_operation_write" {
+  name                = "apiprofileoperationwrite"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  display_name        = "ApiProfileOperationWrite"
+  description         = "A group that enables PagoPa Operation to operate over Profiles (Write)"
+}
+
 resource "azurerm_api_management_named_value" "io_fn_profile_key" {
   name                = "io-fn-profile-key"
   api_management_name = var.apim_name
@@ -15,12 +23,48 @@ resource "azurerm_api_management_named_value" "io_fn_profile_key" {
   secret              = "true"
 }
 
+resource "azurerm_api_management_named_value" "io_fn_admin_master_key" {
+  name                = "io-fn-admin-master-key"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  display_name        = "io-fn-admin-master-key"
+  value               = data.azurerm_key_vault_secret.io_fn_admin_master_key_secret.value
+  secret              = "true"
+}
+
 resource "azurerm_api_management_named_value" "api_profile_operation_group_name" {
   name                = "api-profile-operation-group-name"
   api_management_name = var.apim_name
   resource_group_name = var.apim_resource_group_name
   display_name        = "api-profile-operation-group-name"
   value               = azurerm_api_management_group.api_profile_operation_read.display_name
+  secret              = "true"
+}
+
+resource "azurerm_api_management_named_value" "api_profile_operation_read_group_name" {
+  name                = "api-profile-operation-read-group-name"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  display_name        = "api-profile-operation-read-group-name"
+  value               = azurerm_api_management_group.api_profile_operation_read.display_name
+  secret              = "true"
+}
+
+resource "azurerm_api_management_named_value" "api_profile_operation_write_group_name" {
+  name                = "api-profile-operation-write-group-name"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  display_name        = "api-profile-operation-write-group-name"
+  value               = azurerm_api_management_group.api_profile_operation_write.display_name
+  secret              = "true"
+}
+
+resource "azurerm_api_management_named_value" "io_fn_admin_trigger_url" {
+  name                = "io-fn-admin-trigger-url"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  display_name        = "io-fn-admin-trigger-url"
+  value               = "${var.function_admin_url}/admin/functions"
   secret              = "true"
 }
 
@@ -60,5 +104,16 @@ resource "azurerm_api_management_api_operation_policy" "get_profile_operation" {
   operation_id        = "getProfile"
 
   xml_content = file("./${path.module}/api/io_profile_api/v1/get_profile_policy/policy.xml")
+  depends_on  = [module.api_v2_profile_operation]
+}
+
+
+resource "azurerm_api_management_api_operation_policy" "sanitize_profile_email_operation" {
+  api_name            = "io-profile-operation-api"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  operation_id        = "sanitizeProfileEmail"
+
+  xml_content = file("./${path.module}/api/io_profile_api/v1/sanitize_profile_email_policy/policy.xml")
   depends_on  = [module.api_v2_profile_operation]
 }

@@ -26,3 +26,8 @@ variable "function_profile_url" {
   type        = string
   description = "Function Profile URL"
 }
+
+variable "function_admin_url" {
+  type        = string
+  description = "Function Admin URL"
+}
