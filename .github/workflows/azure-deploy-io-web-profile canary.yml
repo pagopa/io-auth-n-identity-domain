@@ -23,6 +23,4 @@ jobs:
       use_canary_deploy: ${{ inputs.use_canary_deploy }}
       use_private_agent: true
       log_analytics_workspace_id: "d0415be0-f4b2-409e-a16e-365183b18710"
-      canary_increment_step: 10
-      canary_next_step_after_ms: 120000
     secrets: inherit
