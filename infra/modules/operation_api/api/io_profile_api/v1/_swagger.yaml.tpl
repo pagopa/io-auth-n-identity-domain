@@ -51,7 +51,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /profiles/sanitize_email:
+  /SanitizeProfileEmail:
     post:
       operationId: sanitizeProfileEmail
       summary: SanitizeProfileEmail
