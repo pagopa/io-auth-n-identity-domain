@@ -19,7 +19,7 @@
                         <value>application/json</value>
                     </set-header>
                     <set-body>@{
-                            return $"{{\"error\": \"Bad Request\",\"message\": \"Invalid request\"}}"; 
+                            return $"{{\"detail\": \"Invalid Request received\",\"status\": 400,\"title\": \"Bad request\"}}"; 
                     }</set-body>
                 </return-response>
             </when>
