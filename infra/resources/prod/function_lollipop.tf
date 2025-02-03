@@ -60,7 +60,7 @@ resource "azurerm_resource_group" "function_lollipop_rg" {
 }
 
 module "function_lollipop" {
-  source = "pagopa/dx-azure-function-app/azurerm"
+  source  = "pagopa/dx-azure-function-app/azurerm"
   version = "~> 0"
 
   environment = {

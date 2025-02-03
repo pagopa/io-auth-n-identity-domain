@@ -1,5 +1,5 @@
 module "eventhub" {
-  source = "pagopa/dx-azure-event-hub/azurerm"
+  source  = "pagopa/dx-azure-event-hub/azurerm"
   version = "~> 0"
 
   environment = {

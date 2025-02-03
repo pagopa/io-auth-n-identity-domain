@@ -18,7 +18,7 @@
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_container_app_job_selfhosted_runner"></a> [container\_app\_job\_selfhosted\_runner](#module\_container\_app\_job\_selfhosted\_runner) | github.com/pagopa/dx//infra/modules/github_selfhosted_runner_on_container_app_jobs | main |
+| <a name="module_container_app_job_selfhosted_runner"></a> [container\_app\_job\_selfhosted\_runner](#module\_container\_app\_job\_selfhosted\_runner) | pagopa/dx-github-selfhosted-runner-on-container-app-jobs/azurerm | ~> 1 |
 
 ## Resources
 

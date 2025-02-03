@@ -74,7 +74,7 @@ resource "azurerm_resource_group" "function_lv_rg" {
 }
 
 module "function_lv" {
-  source = "pagopa/dx-azure-function-app/azurerm"
+  source  = "pagopa/dx-azure-function-app/azurerm"
   version = "~> 0"
 
   environment = {
@@ -122,8 +122,8 @@ module "function_lv" {
 
 module "function_lv_autoscale" {
   depends_on = [azurerm_resource_group.function_lv_rg]
-  source  = "pagopa/dx-azure-app-service-plan-autoscaler/azurerm"
-  version = "~> 0"
+  source     = "pagopa/dx-azure-app-service-plan-autoscaler/azurerm"
+  version    = "~> 0"
 
   resource_group_name = azurerm_resource_group.function_lv_rg.name
   target_service = {
