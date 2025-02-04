@@ -1,0 +1,40 @@
+{
+  "version": "2.0",
+  "logging": {
+    "logLevel": {
+      "default": "Information",
+      "DurableTask.AzureStorage": "Warning",
+      "DurableTask.Core": "Warning",
+      "Function.GetMessage": "Warning",
+      "Function.GetMessages": "Warning",
+      "Function.GetProfile": "Warning",
+      "Function.GetService": "Warning",
+      "Function.GetUserDataProcessing": "Warning"
+    },
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "maxTelemetryItemsPerSecond": 5,
+        "includedTypes": "PageView;Trace;Dependency;Request",
+        "excludedTypes": "Exception;Event;CustomEvent"
+      }
+    }
+  },
+  "extensions": {
+    "durableTask": {
+      "hubName": "%SLOT_TASK_HUBNAME%",
+      "localRpcEndpointEnabled": false,
+      "storageProvider": {
+        "connectionStringName": "DURABLE_FUNCTION_STORAGE_CONNECTION_STRING"
+      },
+      "tracing": {
+        "traceInputsAndOutputs": false,
+        "traceReplayEvents": false
+      }
+    }
+  },
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  }
+}
