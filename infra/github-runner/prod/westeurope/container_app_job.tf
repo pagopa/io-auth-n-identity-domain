@@ -1,5 +1,6 @@
 module "container_app_job_selfhosted_runner" {
-  source = "github.com/pagopa/dx//infra/modules/github_selfhosted_runner_on_container_app_jobs?ref=main"
+  source  = "pagopa/dx-github-selfhosted-runner-on-container-app-jobs/azurerm"
+  version = "~> 1"
 
   repository = { name : "io-auth-n-identity-domain" }
 

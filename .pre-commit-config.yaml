@@ -8,3 +8,10 @@ repos:
         args:
           - --args=-json
           - --args=-no-color
+  - repo: https://github.com/pagopa/dx
+    rev: pre_commit_scripts@0.0.1
+    hooks:
+      - id: lock_modules
+        exclude: ^.*/(_modules|modules|\.terraform)(/.*)?$
+        # Configure the paths to your Terraform configurations
+        files: infra/(github-runner|identity|repository|resources)
