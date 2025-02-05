@@ -7,7 +7,6 @@ import { DefaultAzureCredential } from "@azure/identity";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
-import { setLogLevel } from "@azure/logger";
 import { getCanaryConfigOrExit } from "./env";
 import { logger } from "./logger";
 
@@ -40,7 +39,6 @@ export async function calculateNextStep(
   // eslint-disable-next-line turbo/no-undeclared-env-vars
   const azureLogAnalyticsWorkspaceId = process.env.LOG_ANALITYCS_WORKSPACE_ID;
   const logsQueryClient = new LogsQueryClient(new DefaultAzureCredential());
-  setLogLevel("info");
 
   if (!azureLogAnalyticsWorkspaceId) {
     logger.error("LOG_ANALITYCS_WORKSPACE_ID is not set.");
@@ -61,8 +59,7 @@ export async function calculateNextStep(
           const tablesFromResult: LogsTable[] = result.tables;
 
           if (tablesFromResult.length === 0) {
-            logger.error(`No results for query '${params.query}'`);
-            return;
+            throw new Error(`No results for query '${params.query}'`);
           }
           const table = processTables(tablesFromResult);
           const totalRequests = pipe(
@@ -80,25 +77,18 @@ export async function calculateNextStep(
           const failureRate = (failedRequests / totalRequests) * 100;
 
           if (failureRate > params.failureThreshold && !isNaN(failureRate)) {
-            logger.error(
+            throw new Error(
               "Failure rate exceeds acceptable threshold or invalid.",
             );
-            process.exit(1);
           }
           return { failedRequests, totalRequests };
         } else {
-          logger.error("No data returned from Lognalitycs");
-          process.exit(1);
+          throw new Error("No data returned from Log Alitycs");
         }
       }),
     ).catch((err) => {
       logger.error(`Error executing some query: ${err}`);
-      return [
-        {
-          totalRequests: 1 as NonNegativeInteger,
-          failedRequests: 1 as NonNegativeInteger,
-        },
-      ];
+      process.exit(1);
     });
 
     const nextPercentage = currentPercentage + config.CANARY_INCREMENT_STEP;

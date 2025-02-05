@@ -79,9 +79,6 @@ module "federated_identities" {
         ]
         io-p-itn-common-rg-01 = [
           "API Management Service Contributor"
-        ],
-        io-p-rg-common = [
-          "Log Analytics Reader"
         ]
       }
     }
