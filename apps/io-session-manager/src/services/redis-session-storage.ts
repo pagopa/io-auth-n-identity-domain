@@ -915,6 +915,27 @@ const getSessionTtl: (
     );
 
 /**
+ * Return the session remaining time to live in seconds
+ *
+ * @param fiscalCode
+ */
+export const getSessionRemainingTtl: RTE.ReaderTaskEither<
+  RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
+  Error,
+  number
+> = (deps) =>
+  // Returns the key ttl in seconds
+  // -2 if the key doesn't exist or -1 if the key has no expire
+  // @see https://redis.io/commands/ttl
+  TE.tryCatch(
+    () =>
+      deps.redisClientSelector
+        .selectOne(RedisClientMode.FAST)
+        .ttl(`${RedisRepo.lollipopDataPrefix}${deps.fiscalCode}`),
+    E.toError,
+  );
+
+/**
  * Cache on redis the notify email for pagopa
  */
 export const setPagoPaNoticeEmail: (

@@ -47,7 +47,7 @@ export const SESSION_ID_LENGTH_BYTES = 32;
 type DefaultFilterSessionKeysType =
   `(${Concat<Union2Tuple<keyof PublicSession>>})`;
 const DEFAULT_FILTER_QUERY_PARAM: DefaultFilterSessionKeysType =
-  "(spidLevel,lollipopAssertionRef,walletToken,myPortalToken,bpdToken,zendeskToken,fimsToken)";
+  "(spidLevel,expirationDate,lollipopAssertionRef,walletToken,myPortalToken,bpdToken,zendeskToken,fimsToken)";
 
 const FilterDecoder = withDefault(
   NonEmptyString,
@@ -98,6 +98,28 @@ const getLollipopAssertionRefForUser: RTE.ReaderTaskEither<
       ),
     ),
     TE.map(O.toUndefined),
+  );
+
+const getSessionExpirationDate: RTE.ReaderTaskEither<
+  RedisRepo.RedisRepositoryDeps & WithUser,
+  IResponseErrorInternal,
+  string
+> = (deps) =>
+  pipe(
+    // Read the assertionRef related to the User for Lollipop.
+    RedisSessionStorageService.getSessionRemainingTtl({
+      ...deps,
+      fiscalCode: deps.user.fiscal_code,
+    }),
+    TE.mapLeft((error) =>
+      ResponseErrorInternal(
+        `Error retrieving the session TTL: ${error.message}`,
+      ),
+    ),
+    TE.map((ttl) => {
+      const now = new Date();
+      return new Date(now.getTime() + ttl * 1000).toISOString();
+    }),
   );
 
 /**
@@ -151,6 +173,7 @@ export const getSessionState: RTE.ReaderTaskEither<
           > = {
             bpdToken: TE.of(deps.user.bpd_token),
             fimsToken: TE.of(deps.user.fims_token),
+            expirationDate: getSessionExpirationDate(deps),
             lollipopAssertionRef: getLollipopAssertionRefForUser(deps),
             myPortalToken: TE.of(deps.user.myportal_token),
             spidLevel: TE.of(deps.user.spid_level),
