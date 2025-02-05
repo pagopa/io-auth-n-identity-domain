@@ -18,6 +18,7 @@ import { withDefault } from "@pagopa/ts-commons/lib/types";
 import { NonEmptyString } from "io-ts-types";
 import { sequenceS } from "fp-ts/lib/Apply";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
+import { addSeconds } from "date-fns";
 import { RedisRepo, FnAppRepo } from "../repositories";
 import {
   LollipopService,
@@ -35,7 +36,6 @@ import { SuccessResponse } from "../generated/backend/SuccessResponse";
 import { log } from "../utils/logger";
 import { Concat, Union2Tuple, parseFilter } from "../utils/fields-filter";
 import { AssertionRef } from "../generated/lollipop-api/AssertionRef";
-import { addSeconds } from "date-fns";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
