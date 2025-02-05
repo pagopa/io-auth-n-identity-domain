@@ -7,6 +7,7 @@ import { DefaultAzureCredential } from "@azure/identity";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
+import { setLogLevel } from "@azure/logger";
 import { getCanaryConfigOrExit } from "./env";
 import { logger } from "./logger";
 
@@ -39,6 +40,7 @@ export async function calculateNextStep(
   // eslint-disable-next-line turbo/no-undeclared-env-vars
   const azureLogAnalyticsWorkspaceId = process.env.LOG_ANALITYCS_WORKSPACE_ID;
   const logsQueryClient = new LogsQueryClient(new DefaultAzureCredential());
+  setLogLevel("info");
 
   if (!azureLogAnalyticsWorkspaceId) {
     logger.error("LOG_ANALITYCS_WORKSPACE_ID is not set.");
