@@ -35,6 +35,7 @@ import { SuccessResponse } from "../generated/backend/SuccessResponse";
 import { log } from "../utils/logger";
 import { Concat, Union2Tuple, parseFilter } from "../utils/fields-filter";
 import { AssertionRef } from "../generated/lollipop-api/AssertionRef";
+import { addSeconds } from "date-fns";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
@@ -134,7 +135,7 @@ const getSessionExpirationDate: RTE.ReaderTaskEither<
           )
         : TE.right(ttl),
     ),
-    TE.map((ttl) => new Date(new Date().getTime() + ttl * 1000).toISOString()),
+    TE.map((ttl) => addSeconds(new Date(), ttl).toISOString()),
   );
 
 /**
