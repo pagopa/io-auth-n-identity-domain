@@ -36,4 +36,6 @@ resource "azurerm_api_management_subscription" "auth_n_identity_operation" {
   display_name        = "Auth & Identity Operation API"
   state               = "active"
   allow_tracing       = false
+  primary_key         = var.operation_subscription_primary_key
+  secondary_key       = var.operation_subscription_secondary_key
 }

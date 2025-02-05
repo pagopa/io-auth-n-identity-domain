@@ -10,4 +10,7 @@ module "io_profile_apim_api_itn" {
   function_admin_url   = "https://io-p-admin-fn.azurewebsites.net"
 
   api_host_name = "api.io.pagopa.it"
+  # Use the same subscription keys as WEU APIM instance
+  operation_subscription_primary_key   = module.io_profile_apim_api_weu.subscription_primary_key
+  operation_subscription_secondary_key = module.io_profile_apim_api_weu.subscription_secondary_key
 }

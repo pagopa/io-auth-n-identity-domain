@@ -31,3 +31,17 @@ variable "function_admin_url" {
   type        = string
   description = "Function Admin URL"
 }
+
+variable "operation_subscription_primary_key" {
+  type        = string
+  sensitive   = true
+  description = "(Optional) A primary subscription key for the APIM user. If not provided, it will be randomly generated"
+  default     = null
+}
+
+variable "operation_subscription_secondary_key" {
+  type        = string
+  sensitive   = true
+  description = "(Optional) A secondary subscription key for the APIM user. If not provided, it will be randomly generated"
+  default     = null
+}
