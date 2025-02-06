@@ -599,10 +599,7 @@ describe("RedisSessionStorage#getSessionRemainingTtl", () => {
     mockTtl.mockResolvedValueOnce(expectedTTL);
 
     await pipe(
-      getSessionRemainingTtl({
-        redisClientSelector: mockRedisClientSelector,
-        fiscalCode: aValidUser.fiscal_code,
-      }),
+      getSessionRemainingTtl(mockedDependencies),
       TE.map((result) => expect(result).toEqual(expectedTTL)),
       TE.mapLeft((err) => expect(err).toBeFalsy()),
     )();
@@ -615,10 +612,7 @@ describe("RedisSessionStorage#getSessionRemainingTtl", () => {
     mockTtl.mockRejectedValueOnce(new Error("redis error"));
 
     await pipe(
-      getSessionRemainingTtl({
-        redisClientSelector: mockRedisClientSelector,
-        fiscalCode: aValidUser.fiscal_code,
-      }),
+      getSessionRemainingTtl(mockedDependencies),
       TE.map((result) => expect(result).toBeFalsy()),
       TE.mapLeft((err) => expect(err).toBeTruthy()),
     )();
@@ -631,10 +625,7 @@ describe("RedisSessionStorage#getSessionRemainingTtl", () => {
     mockTtl.mockResolvedValueOnce(-1);
 
     await pipe(
-      getSessionRemainingTtl({
-        redisClientSelector: mockRedisClientSelector,
-        fiscalCode: aValidUser.fiscal_code,
-      }),
+      getSessionRemainingTtl(mockedDependencies),
       TE.map((result) => expect(result).toBeFalsy()),
       TE.mapLeft((err) =>
         expect(err).toEqual(
@@ -653,10 +644,7 @@ describe("RedisSessionStorage#getSessionRemainingTtl", () => {
     mockTtl.mockResolvedValueOnce(-2);
 
     await pipe(
-      getSessionRemainingTtl({
-        redisClientSelector: mockRedisClientSelector,
-        fiscalCode: aValidUser.fiscal_code,
-      }),
+      getSessionRemainingTtl(mockedDependencies),
       TE.map((result) => expect(result).toBeFalsy()),
       TE.mapLeft((err) =>
         expect(err).toEqual(
