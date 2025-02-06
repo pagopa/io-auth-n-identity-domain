@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { it, afterEach, beforeEach, describe, expect, vi, Mock } from "vitest";
 import { EmailString } from "@pagopa/ts-commons/lib/strings";
+import { describe, expect, it, vi } from "vitest";
 
 import { apply } from "@pagopa/io-app-email-templates/MailValidation/index";
 import { EmailDefaults } from "../";
 import { context as contextMock } from "../../__mocks__/durable-functions";
+import { aName } from "../../__mocks__/mocks";
 import {
   ActivityInput as SendValidationEmailActivityInput,
   getSendValidationEmailActivityHandler,
 } from "../handler";
-import { aName } from "../../__mocks__/mocks";
 
 const htmlAndTextContent = "CONTENT";
 

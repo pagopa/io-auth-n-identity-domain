@@ -56,7 +56,6 @@ type IUpsertUserDataProcessingHandler = (
   | IResponseErrorConflict
 >;
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function UpsertUserDataProcessingHandler(
   userDataProcessingModel: UserDataProcessingModel,
 ): IUpsertUserDataProcessingHandler {
@@ -148,7 +147,6 @@ export function UpsertUserDataProcessingHandler(
 /**
  * Wraps an UpsertUserDataProcessing handler inside an Express request handler.
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function UpsertUserDataProcessing(
   userDataProcessingModel: UserDataProcessingModel,
 ): express.RequestHandler {

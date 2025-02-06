@@ -102,7 +102,7 @@ const migratePreferences = (
 
 // This function can't be easily refactored, so we have to disable some lint rules.
 // TODO(IOPID-1263): refactor to make it more modular and easier to extend
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions, max-lines-per-function
+// eslint-disable-next-line max-lines-per-function
 export function UpdateProfileHandler(
   profileModel: ProfileModel,
   queueClient: QueueClient,
@@ -340,7 +340,6 @@ export function UpdateProfileHandler(
 /**
  * Wraps an UpdateProfile handler inside an Express request handler.
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function UpdateProfile(
   profileModel: ProfileModel,
   queueClient: QueueClient,

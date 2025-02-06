@@ -133,7 +133,6 @@ export const diffBlockedServices = (
   newBlocked: Profile["blockedInboxOrChannels"] | undefined | null,
 ): ITuple2<ReadonlyArray<string>, ReadonlyArray<string>> => {
   // we extract the services that have the inbox blocked from the old and the
-  // eslint-disable-next-line extra-rules/no-commented-out-code
   // new profile
   const oldInboxBlocked = isObject(oldBlocked)
     ? getInboxBlockedServices(oldBlocked)

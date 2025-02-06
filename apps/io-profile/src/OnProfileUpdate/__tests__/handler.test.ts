@@ -1,21 +1,21 @@
-import { it, afterEach, beforeEach, describe, expect, vi, Mock } from "vitest";
-import { pipe } from "fp-ts/lib/function";
-import * as O from "fp-ts/lib/Option";
-import * as E from "fp-ts/lib/Either";
-import * as TE from "fp-ts/lib/TaskEither";
-import * as A from "fp-ts/lib/Array";
-import { TableClient } from "@azure/data-tables";
 import { Container } from "@azure/cosmos";
+import { TableClient } from "@azure/data-tables";
 import {
   Profile,
   ProfileModel,
   RetrievedProfile,
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
-import { DataTableProfileEmailsRepository } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement/storage";
-import { TelemetryClient } from "applicationinsights";
 import { generateVersionedModelId } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model_versioned";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { DataTableProfileEmailsRepository } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement/storage";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { TelemetryClient } from "applicationinsights";
+import * as A from "fp-ts/lib/Array";
+import * as E from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/lib/Option";
+import * as TE from "fp-ts/lib/TaskEither";
+import { describe, expect, it, vi } from "vitest";
 import { ProfileDocument, handler } from "../handler";
 
 const take = (id: string, arr: typeof mockProfiles) =>

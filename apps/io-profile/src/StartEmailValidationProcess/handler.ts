@@ -66,7 +66,6 @@ type IStartEmailValidationProcessHandler = (
   payload: EmailValidationProcessParams,
 ) => Promise<ReturnTypes>;
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function StartEmailValidationProcessHandler(
   profileModel: ProfileModel,
 ): IStartEmailValidationProcessHandler {
@@ -162,7 +161,6 @@ export function StartEmailValidationProcessHandler(
 /**
  * Wraps an StartEmailValidationProcess handler inside an Express request handler.
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function StartEmailValidationProcess(
   profileModel: ProfileModel,
 ): express.RequestHandler {

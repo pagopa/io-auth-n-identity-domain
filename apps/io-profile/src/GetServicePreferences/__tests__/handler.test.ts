@@ -1,16 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { it, afterEach, beforeEach, describe, expect, vi } from "vitest";
+import * as O from "fp-ts/lib/Option";
 import { none, some } from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
-import * as O from "fp-ts/lib/Option";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { left } from "fp-ts/lib/Either";
-import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
+import { ActivationStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ActivationStatus";
 import { ServiceScopeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceScope";
 import { SpecialServiceCategoryEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/SpecialServiceCategory";
-import { ActivationStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ActivationStatus";
 import { RetrievedService } from "@pagopa/io-functions-commons/dist/src/models/service";
-import { GetServicePreferencesHandler } from "../handler";
+import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
+import { left } from "fp-ts/lib/Either";
+import {
+  aFiscalCode,
+  aRetrievedProfile,
+  aRetrievedProfileWithEmail,
+  autoProfileServicePreferencesSettings,
+  legacyProfileServicePreferencesSettings,
+  manualProfileServicePreferencesSettings,
+} from "../../__mocks__/mocks";
 import {
   anActiveActivation,
   aRetrievedService,
@@ -18,14 +25,7 @@ import {
   aServiceId,
   aServicePreferenceVersion,
 } from "../../__mocks__/mocks.service_preference";
-import {
-  aFiscalCode,
-  legacyProfileServicePreferencesSettings,
-  aRetrievedProfile,
-  aRetrievedProfileWithEmail,
-  autoProfileServicePreferencesSettings,
-  manualProfileServicePreferencesSettings,
-} from "../../__mocks__/mocks";
+import { GetServicePreferencesHandler } from "../handler";
 
 const aRetrievedProfileInValidState = {
   ...aRetrievedProfileWithEmail,

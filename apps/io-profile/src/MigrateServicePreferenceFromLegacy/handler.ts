@@ -38,7 +38,6 @@ export type MigrateServicesPreferencesQueueMessage = t.TypeOf<
   typeof MigrateServicesPreferencesQueueMessage
 >;
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 function isCosmosError(
   ce: CosmosErrors,
 ): ce is ReturnType<typeof CosmosErrorResponse> {

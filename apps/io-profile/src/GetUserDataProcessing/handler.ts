@@ -47,7 +47,6 @@ type IGetUserDataProcessingHandler = (
   | IResponseErrorNotFound
 >;
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function GetUserDataProcessingHandler(
   userDataProcessingModel: UserDataProcessingModel,
 ): IGetUserDataProcessingHandler {
@@ -96,7 +95,6 @@ export function GetUserDataProcessingHandler(
 /**
  * Wraps a GetUserDataProcessing handler inside an Express request handler.
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function GetUserDataProcessing(
   userDataProcessingModel: UserDataProcessingModel,
 ): express.RequestHandler {

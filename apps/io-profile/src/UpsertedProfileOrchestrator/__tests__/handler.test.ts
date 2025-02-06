@@ -16,15 +16,11 @@ import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/g
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
-import { consumeGenerator } from "../../utils/durable";
-import {
-  getUpsertedProfileOrchestratorHandler,
-  OrchestratorInput as UpsertedProfileOrchestratorInput,
-} from "../handler";
 import {
   OrchestratorInput as EmailValidationProcessOrchestratorInput,
   OrchestratorResult as EmailValidationProcessOrchestratorResult,
 } from "../../EmailValidationWithTemplateProcessOrchestrator/handler";
+import { context as contextMock } from "../../__mocks__/durable-functions";
 import {
   aEmailChanged,
   aFiscalCode,
@@ -33,12 +29,16 @@ import {
   autoProfileServicePreferencesSettings,
   manualProfileServicePreferencesSettings,
 } from "../../__mocks__/mocks";
-import { context as contextMock } from "../../__mocks__/durable-functions";
+import { consumeGenerator } from "../../utils/durable";
 import {
   makeProfileCompletedEvent,
   makeServicePreferencesChangedEvent,
 } from "../../utils/emitted_events";
 import { fail } from "../../utils/test-utils";
+import {
+  getUpsertedProfileOrchestratorHandler,
+  OrchestratorInput as UpsertedProfileOrchestratorInput,
+} from "../handler";
 const someRetryOptions = new df.RetryOptions(5000, 10);
 // eslint-disable-next-line functional/immutable-data
 someRetryOptions.backoffCoefficient = 1.5;

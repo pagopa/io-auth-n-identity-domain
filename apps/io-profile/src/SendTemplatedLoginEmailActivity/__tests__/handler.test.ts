@@ -1,16 +1,16 @@
-import { it, afterEach, beforeEach, describe, expect, vi, Mock } from "vitest";
+import * as fallbackMailTemplate from "@pagopa/io-app-email-templates/LoginNotification/index";
+import * as mailTemplate from "@pagopa/io-app-email-templates/LoginNotificationIOWeb/index";
 import {
   EmailString,
   IPString,
   NonEmptyString,
 } from "@pagopa/ts-commons/lib/strings";
-import * as ai from "applicationinsights";
-import * as mailTemplate from "@pagopa/io-app-email-templates/LoginNotificationIOWeb/index";
-import * as fallbackMailTemplate from "@pagopa/io-app-email-templates/LoginNotification/index";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
-import { EmailDefaults } from "../index";
+import * as ai from "applicationinsights";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { context } from "../../__mocks__/durable-functions";
 import { ActivityInput, getSendLoginEmailActivityHandler } from "../handler";
+import { EmailDefaults } from "../index";
 
 const aDate = new Date("1970-01-01");
 const aValidPayload: ActivityInput = {

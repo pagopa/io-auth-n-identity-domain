@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { it, afterEach, beforeEach, describe, expect, vi, Mock } from "vitest";
 import * as durableFunction from "durable-functions";
 import { some } from "fp-ts/lib/Option";
 import { taskEither } from "fp-ts/lib/TaskEither";
-import { EmailValidationProcessParams } from "../../generated/definitions/internal/EmailValidationProcessParams";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   context as contextMock,
   mockStartNew,
 } from "../../__mocks__/durable-functions";
 import { aRetrievedProfile } from "../../__mocks__/mocks";
+import { EmailValidationProcessParams } from "../../generated/definitions/internal/EmailValidationProcessParams";
 import { StartEmailValidationProcessHandler } from "../handler";
 import * as orchUtil from "../orchestrators";
 
@@ -16,7 +16,7 @@ const getClientMock = {
   startNew: mockStartNew,
 } as any;
 
-const isOrchestratorRunningMock = vi.fn(() =>
+const isOrchestratorRunnißngMock = vi.fn(() =>
   taskEither.of({
     isRunning: false,
   }),

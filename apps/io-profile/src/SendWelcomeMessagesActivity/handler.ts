@@ -15,7 +15,6 @@ import {
   welcomeMessageContent,
 } from "./welcome_messages";
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 function throwInvalidMessageError(errs: t.Errors): never {
   throw new Error(
     "Invalid MessageContent for welcome message: " + readableReport(errs),
@@ -65,7 +64,6 @@ const welcomeMessages: WelcomeMessages = {
  * Send a single welcome message using the
  * Digital Citizenship Notification API (REST).
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 async function sendMessage(
   profile: RetrievedProfile,
   apiUrl: string,

@@ -377,7 +377,7 @@ export const GetUpsertServicePreferencesHandler = (
 /**
  * Wraps a UpsertServicePreferences handler inside an Express request handler.
  */
-// eslint-disable-next-line max-params, prefer-arrow/prefer-arrow-functions
+// eslint-disable-next-line max-params
 export function UpsertServicePreferences(
   telemetryClient: ReturnType<typeof initAppInsights> | undefined,
   profileModels: ProfileModel,

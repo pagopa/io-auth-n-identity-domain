@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { it, afterEach, beforeEach, describe, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { context as contextMock } from "../../__mocks__/durable-functions";
 import {
   aEmail,
@@ -19,8 +19,8 @@ import {
   ActivityResult as SendValidationEmailActivityResult,
 } from "../../SendTemplatedValidationEmailActivity/handler";
 import {
-  handler,
   OrchestratorInput as EmailValidationProcessOrchestratorInput,
+  handler,
 } from "../handler";
 
 describe("EmailValidationWithTemaplteProcessOrchestrator", () => {

@@ -4,7 +4,6 @@
  * @param title
  * @param validationUrl
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function getEmailHtmlFromTemplate(
   title: string,
   validationUrl: string,

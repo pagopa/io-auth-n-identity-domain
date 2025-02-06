@@ -52,7 +52,6 @@ type ICreateProfileHandler = (
   | IResponseErrorConflict
 >;
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function CreateProfileHandler(
   profileModel: ProfileModel,
   optOutEmailSwitchDate: Date,
@@ -122,7 +121,6 @@ export function CreateProfileHandler(
 /**
  * Wraps an CreateProfile handler inside an Express request handler.
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function CreateProfile(
   profileModel: ProfileModel,
   optOutEmailSwitchDate: Date,

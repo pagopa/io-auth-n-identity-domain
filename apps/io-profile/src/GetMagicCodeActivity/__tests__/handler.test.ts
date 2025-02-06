@@ -1,9 +1,9 @@
-import { it, afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
-import { ActivityResultSuccess, getActivityHandler } from "../handler";
+import { describe, expect, it, vi } from "vitest";
 import { context } from "../../__mocks__/durable-functions";
 import { aFiscalCode } from "../../__mocks__/mocks";
+import { ActivityResultSuccess, getActivityHandler } from "../handler";
 import { MagicLinkServiceClient } from "../utils";
 
 const aValidPayload = {

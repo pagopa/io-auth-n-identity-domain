@@ -16,9 +16,9 @@ import {
 import { CosmosErrorResponse } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { MigrateServicePreferenceFromLegacy } from "../handler";
 import { context } from "../../__mocks__/durable-functions";
 import { createTracker } from "../../__mocks__/tracking";
+import { MigrateServicePreferenceFromLegacy } from "../handler";
 
 const baseProfile = {
   email: "info@agid.gov.it",

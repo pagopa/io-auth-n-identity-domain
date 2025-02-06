@@ -49,7 +49,6 @@ type IGetServiceHandler = (
   serviceId: ServiceId,
 ) => Promise<IGetServiceHandlerRet>;
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function serviceAvailableNotificationChannels(
   retrievedService: RetrievedService,
 ): ReadonlyArray<NotificationChannel> {
@@ -62,7 +61,6 @@ export function serviceAvailableNotificationChannels(
 /**
  * Converts a retrieved service to a service that can be shared via API
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 function retrievedServiceToPublic(
   retrievedService: RetrievedService,
 ): ServicePublic {
@@ -89,7 +87,6 @@ const requiredServiceIdMiddleware = RequiredParamMiddleware(
   NonEmptyString,
 );
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function GetServiceHandler(
   serviceModel: ServiceModel,
 ): IGetServiceHandler {
@@ -120,7 +117,6 @@ export function GetServiceHandler(
 /**
  * Wraps a GetService handler inside an Express request handler.
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function GetService(serviceModel: ServiceModel): express.RequestHandler {
   const handler = GetServiceHandler(serviceModel);
   const middlewaresWrap = withRequestMiddlewares(requiredServiceIdMiddleware);

@@ -15,6 +15,13 @@ import { RetrievedService } from "@pagopa/io-functions-commons/dist/src/models/s
 import { AccessReadMessageStatusEnum } from "@pagopa/io-functions-commons/dist/src/models/service_preference";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { context } from "../../__mocks__/durable-functions";
+import {
+  aFiscalCode,
+  aRetrievedProfileWithEmail,
+  autoProfileServicePreferencesSettings,
+  legacyProfileServicePreferencesSettings,
+} from "../../__mocks__/mocks";
 import {
   aNewServicePreference,
   aRetrievedService,
@@ -22,13 +29,6 @@ import {
   aServiceId,
   aServicePreference,
 } from "../../__mocks__/mocks.service_preference";
-import {
-  aFiscalCode,
-  aRetrievedProfileWithEmail,
-  autoProfileServicePreferencesSettings,
-  legacyProfileServicePreferencesSettings,
-} from "../../__mocks__/mocks";
-import { context } from "../../__mocks__/durable-functions";
 import * as subscriptionFeedHandler from "../../UpdateSubscriptionsFeedActivity/handler";
 import { GetUpsertServicePreferencesHandler } from "../handler";
 

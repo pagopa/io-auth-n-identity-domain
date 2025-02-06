@@ -1,5 +1,5 @@
-import { it, afterEach, beforeEach, describe, expect, vi, Mock } from "vitest";
 import * as lolex from "lolex";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { none, some } from "fp-ts/lib/Option";
 
@@ -8,12 +8,12 @@ import * as df from "durable-functions";
 import { QueueClient } from "@azure/storage-queue";
 import { BlockedInboxOrChannelEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/BlockedInboxOrChannel";
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicesPreferencesMode";
-import * as TE from "fp-ts/lib/TaskEither";
-import * as E from "fp-ts/lib/Either";
-import { Semver } from "@pagopa/ts-commons/lib/strings";
-import { constFalse, constTrue, pipe } from "fp-ts/lib/function";
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
+import { Semver } from "@pagopa/ts-commons/lib/strings";
+import * as E from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
+import * as TE from "fp-ts/lib/TaskEither";
 import {
   context as contextMock,
   mockGetClient,
@@ -38,7 +38,6 @@ import { UpdateProfileHandler } from "../handler";
 import { createTracker } from "../../__mocks__/tracking";
 
 import { generateProfileEmails } from "../../__mocks__/unique-email-enforcement";
-import { EmailValidationProcessParams } from "../../generated/definitions/internal/EmailValidationProcessParams";
 
 const mockSendMessage = vi.fn().mockImplementation(() => Promise.resolve());
 const mockQueueClient = {

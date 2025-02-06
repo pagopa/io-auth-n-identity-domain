@@ -86,7 +86,6 @@ export const withIsEmailAlreadyTaken =
 /**
  * Return a type safe GetProfile handler.
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function GetProfileHandler(
   profileModel: ProfileModel,
   optOutEmailSwitchDate: Date,
@@ -131,7 +130,6 @@ export function GetProfileHandler(
 /**
  * Wraps a GetProfile handler inside an Express request handler.
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function GetProfile(
   profileModel: ProfileModel,
   optOutEmailSwitchDate: Date,

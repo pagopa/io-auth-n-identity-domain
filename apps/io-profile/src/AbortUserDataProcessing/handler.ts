@@ -75,7 +75,6 @@ type IAbortUserDataProcessingHandler = (
   choice: UserDataProcessingChoice,
 ) => Promise<IAbortUserDataProcessingHandlerResult>;
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function AbortUserDataProcessingHandler(
   userDataProcessingModel: UserDataProcessingModel,
 ): IAbortUserDataProcessingHandler {
@@ -138,7 +137,6 @@ export function AbortUserDataProcessingHandler(
 /**
  * Wraps an AbortUserDataProcessingDelete handler inside an Express request handler.
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function AbortUserDataProcessing(
   userDataProcessingModel: UserDataProcessingModel,
 ): express.RequestHandler {

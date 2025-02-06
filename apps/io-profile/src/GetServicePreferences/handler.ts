@@ -220,7 +220,6 @@ export const GetServicePreferencesHandler = (
 /**
  * Wraps a GetServicePreferences handler inside an Express request handler.
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function GetServicePreferences(
   profileModel: ProfileModel,
   serviceModel: ServiceModel,

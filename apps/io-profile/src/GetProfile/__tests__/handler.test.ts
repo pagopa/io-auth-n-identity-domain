@@ -1,10 +1,8 @@
-import { it, afterEach, beforeEach, describe, expect, vi } from "vitest";
+import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
+import * as E from "fp-ts/Either";
 import { none, some } from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
-import * as E from "fp-ts/Either";
-import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
-import { constTrue } from "fp-ts/lib/function";
-import { ResponseErrorInternal } from "@pagopa/ts-commons/lib/responses";
+import { describe, expect, it, vi } from "vitest";
 import {
   aExtendedProfileWithEmail,
   aFiscalCode,

@@ -1,9 +1,8 @@
-import { it, afterEach, beforeEach, describe, expect, vi, Mock } from "vitest";
 import { Context } from "@azure/functions";
 import { ServiceId } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceId";
-import { ServicePreference } from "@pagopa/io-functions-commons/dist/src/models/service_preference";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { TableService } from "azure-storage";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { context as contextMock } from "../../__mocks__/durable-functions";
 import { aFiscalCode } from "../../__mocks__/mocks";

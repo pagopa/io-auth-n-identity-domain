@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { it, afterEach, beforeEach, describe, expect, vi, Mock } from "vitest";
 import * as lolex from "lolex";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as df from "durable-functions";
 
