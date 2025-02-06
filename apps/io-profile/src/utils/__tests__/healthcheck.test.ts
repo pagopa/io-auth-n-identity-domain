@@ -97,7 +97,6 @@ describe("healthcheck - storage account", () => {
     const blobServiceKO = getBlobServiceKO(name);
     toMock.mockReturnValueOnce(blobServiceKO);
 
-    console.log(`EXECUTING ${name}`);
     const res = await checkAzureStorageHealth("")();
     expect(res).toEqual(E.left([`AzureStorage|error - ${name}`]));
   });

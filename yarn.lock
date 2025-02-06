@@ -7995,6 +7995,7 @@ __metadata:
     "@types/html-to-text": "npm:^1.4.31"
     "@types/lolex": "npm:^3.1.1"
     "@types/node": "npm:~20.12.2"
+    "@types/node-fetch": "npm:^2.5.7"
     "@types/nodemailer": "npm:^4.6.8"
     "@vitest/coverage-v8": "npm:~1.5.0"
     abort-controller: "npm:^3.0.0"
