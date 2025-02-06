@@ -10,21 +10,21 @@ import { ServicePreference } from "@pagopa/io-functions-commons/dist/generated/d
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
 import {
   withRequestMiddlewares,
-  wrapRequestHandler
+  wrapRequestHandler,
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import {
   IResponseErrorQuery,
-  ResponseErrorQuery
+  ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
 import {
   Profile,
-  ProfileModel
+  ProfileModel,
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import {
   makeServicesPreferencesDocumentId,
-  ServicesPreferencesModel
+  ServicesPreferencesModel,
 } from "@pagopa/io-functions-commons/dist/src/models/service_preference";
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
 import {
@@ -32,7 +32,7 @@ import {
   IResponseErrorNotFound,
   IResponseSuccessJson,
   ResponseErrorConflict,
-  ResponseSuccessJson
+  ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicesPreferencesMode";
@@ -41,7 +41,7 @@ import { pipe } from "fp-ts/lib/function";
 import { sequenceS } from "fp-ts/lib/Apply";
 import {
   Service,
-  ServiceModel
+  ServiceModel,
 } from "@pagopa/io-functions-commons/dist/src/models/service";
 import { ServiceCategory } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceCategory";
 import { SpecialServiceCategoryEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/SpecialServiceCategory";
@@ -53,7 +53,7 @@ import {
   nonLegacyServicePreferences,
   toDefaultDisabledUserServicePreference,
   toDefaultEnabledUserServicePreference,
-  toUserServicePreferenceFromModel
+  toUserServicePreferenceFromModel,
 } from "../utils/service_preferences";
 import { getProfileOrErrorResponse } from "../utils/profiles";
 import { getServiceOrErrorResponse } from "../utils/services";
@@ -70,11 +70,11 @@ const NonLegacyProfile = t.intersection([
     servicePreferencesSettings: t.type({
       mode: t.union([
         t.literal(ServicesPreferencesModeEnum.AUTO),
-        t.literal(ServicesPreferencesModeEnum.MANUAL)
+        t.literal(ServicesPreferencesModeEnum.MANUAL),
       ]),
-      version: NonNegativeInteger
-    })
-  })
+      version: NonNegativeInteger,
+    }),
+  }),
 ]);
 type NonLegacyProfile = t.TypeOf<typeof NonLegacyProfile>;
 
@@ -86,7 +86,7 @@ type NonLegacyProfile = t.TypeOf<typeof NonLegacyProfile>;
  */
 type IGetServicePreferencesHandler = (
   fiscalCode: FiscalCode,
-  serviceId: ServiceId
+  serviceId: ServiceId,
 ) => Promise<IGetServicePreferencesHandlerResult>;
 
 /**
@@ -114,51 +114,47 @@ export declare type getUserServicePreferencesT = (params: {
     readonly servicePreferences: ServicePreference;
   }
 >;
-const getUserServicePreferencesOrDefault = (
-  servicePreferencesModel: ServicesPreferencesModel
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-): getUserServicePreferencesT => ({
-  fiscalCode,
-  serviceId,
-  mode,
-  version,
-  serviceCategory
-}) =>
-  pipe(
-    servicePreferencesModel.find([
-      makeServicesPreferencesDocumentId(fiscalCode, serviceId, version),
-      fiscalCode
-    ]),
-    TE.mapLeft(failure =>
-      ResponseErrorQuery(
-        "Error while retrieving the user's service preferences",
-        failure
-      )
-    ),
-    TE.map(maybeServicePref =>
-      pipe(
-        maybeServicePref,
-        O.fold(
-          () => {
-            // eslint-disable-next-line default-case
-            switch (mode) {
-              case ServicesPreferencesModeEnum.AUTO:
-                return toDefaultEnabledUserServicePreference(version);
-              case ServicesPreferencesModeEnum.MANUAL:
-                return toDefaultDisabledUserServicePreference(version);
-              default:
-                return void 0 as never;
-            }
-          },
-          pref => toUserServicePreferenceFromModel(pref)
-        )
-      )
-    ),
-    TE.map(_ => ({
-      serviceCategory,
-      servicePreferences: _
-    }))
-  );
+const getUserServicePreferencesOrDefault =
+  (
+    servicePreferencesModel: ServicesPreferencesModel,
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  ): getUserServicePreferencesT =>
+  ({ fiscalCode, serviceId, mode, version, serviceCategory }) =>
+    pipe(
+      servicePreferencesModel.find([
+        makeServicesPreferencesDocumentId(fiscalCode, serviceId, version),
+        fiscalCode,
+      ]),
+      TE.mapLeft((failure) =>
+        ResponseErrorQuery(
+          "Error while retrieving the user's service preferences",
+          failure,
+        ),
+      ),
+      TE.map((maybeServicePref) =>
+        pipe(
+          maybeServicePref,
+          O.fold(
+            () => {
+              // eslint-disable-next-line default-case
+              switch (mode) {
+                case ServicesPreferencesModeEnum.AUTO:
+                  return toDefaultEnabledUserServicePreference(version);
+                case ServicesPreferencesModeEnum.MANUAL:
+                  return toDefaultDisabledUserServicePreference(version);
+                default:
+                  return void 0 as never;
+              }
+            },
+            (pref) => toUserServicePreferenceFromModel(pref),
+          ),
+        ),
+      ),
+      TE.map((_) => ({
+        serviceCategory,
+        servicePreferences: _,
+      })),
+    );
 
 /**
  * Return a type safe GetServicePreferences handler.
@@ -167,7 +163,7 @@ export const GetServicePreferencesHandler = (
   profileModel: ProfileModel,
   serviceModel: ServiceModel,
   servicePreferencesModel: ServicesPreferencesModel,
-  activationModel: ActivationModel
+  activationModel: ActivationModel,
   // eslint-disable-next-line arrow-body-style
 ): IGetServicePreferencesHandler => {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -175,33 +171,35 @@ export const GetServicePreferencesHandler = (
     pipe(
       sequenceS(TE.ApplicativeSeq)({
         profile: getProfileOrErrorResponse(profileModel)(fiscalCode),
-        service: getServiceOrErrorResponse(serviceModel)(serviceId)
+        service: getServiceOrErrorResponse(serviceModel)(serviceId),
       }),
       TE.chainW(
         TE.fromPredicate(
           (
-            entities
+            entities,
           ): entities is {
             readonly profile: NonLegacyProfile;
             readonly service: Service;
           } => nonLegacyServicePreferences(entities.profile),
-          () => ResponseErrorConflict("Legacy service preferences not allowed")
-        )
+          () => ResponseErrorConflict("Legacy service preferences not allowed"),
+        ),
       ),
       TE.chainW(({ profile, service }) =>
         pipe(
           getServicePreferenceSettingsVersion(profile),
-          TE.mapLeft(_ =>
-            ResponseErrorConflict("Service Preferences Version < 0 not allowed")
+          TE.mapLeft((_) =>
+            ResponseErrorConflict(
+              "Service Preferences Version < 0 not allowed",
+            ),
           ),
-          TE.map(version => ({
+          TE.map((version) => ({
             fiscalCode,
             mode: profile.servicePreferencesSettings.mode,
             serviceCategory: getServiceCategoryOrStandard(service),
             serviceId,
-            version
-          }))
-        )
+            version,
+          })),
+        ),
       ),
       TE.chainW(getUserServicePreferencesOrDefault(servicePreferencesModel)),
       TE.chainW(({ serviceCategory, servicePreferences }) => {
@@ -209,13 +207,13 @@ export const GetServicePreferencesHandler = (
           return getServicePreferencesForSpecialServices(activationModel)({
             fiscalCode,
             serviceId,
-            servicePreferences
+            servicePreferences,
           });
         }
         return TE.of(servicePreferences);
       }),
       TE.map(ResponseSuccessJson),
-      TE.toUnion
+      TE.toUnion,
     )();
 };
 
@@ -227,19 +225,19 @@ export function GetServicePreferences(
   profileModel: ProfileModel,
   serviceModel: ServiceModel,
   servicePreferencesModel: ServicesPreferencesModel,
-  activationModel: ActivationModel
+  activationModel: ActivationModel,
 ): express.RequestHandler {
   const handler = GetServicePreferencesHandler(
     profileModel,
     serviceModel,
     servicePreferencesModel,
-    activationModel
+    activationModel,
   );
 
   const middlewaresWrap = withRequestMiddlewares(
     // ContextMiddleware(),
     FiscalCodeMiddleware,
-    RequiredParamMiddleware("serviceId", ServiceId)
+    RequiredParamMiddleware("serviceId", ServiceId),
   );
   return wrapRequestHandler(middlewaresWrap(handler));
 }

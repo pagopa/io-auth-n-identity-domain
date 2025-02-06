@@ -3,25 +3,25 @@
 import { it, afterEach, beforeEach, describe, expect, vi, Mock } from "vitest";
 import { EmailString } from "@pagopa/ts-commons/lib/strings";
 
+import { apply } from "@pagopa/io-app-email-templates/MailValidation/index";
 import { EmailDefaults } from "../";
 import { context as contextMock } from "../../__mocks__/durable-functions";
 import {
   ActivityInput as SendValidationEmailActivityInput,
-  getSendValidationEmailActivityHandler
+  getSendValidationEmailActivityHandler,
 } from "../handler";
-import { apply } from "@pagopa/io-app-email-templates/MailValidation/index";
 import { aName } from "../../__mocks__/mocks";
 
 const htmlAndTextContent = "CONTENT";
 
 vi.mock("applicationinsights", () => ({
   defaultClient: {
-    trackEvent: vi.fn()
-  }
+    trackEvent: vi.fn(),
+  },
 }));
 
 vi.mock("@pagopa/io-app-email-templates/MailValidation/index", () => ({
-  apply: vi.fn(() => htmlAndTextContent)
+  apply: vi.fn(() => htmlAndTextContent),
 }));
 
 describe("SendTemplatedValidationEmailActivityHandler", () => {
@@ -30,24 +30,24 @@ describe("SendTemplatedValidationEmailActivityHandler", () => {
     const emailDefaults: EmailDefaults = {
       from: "from@example.com" as any,
       htmlToTextOptions: {},
-      title: "Email title"
+      title: "Email title",
     };
     const mailerTransporterMock = {
       sendMail: vi.fn((_, f) => {
         f(undefined, {});
-      })
+      }),
     };
 
     const handler = getSendValidationEmailActivityHandler(
       mailerTransporterMock as any,
       emailDefaults,
-      functionsPublicUrl
+      functionsPublicUrl,
     );
 
     const input = SendValidationEmailActivityInput.encode({
       email: "email@example.com" as EmailString,
       token: "FAKE_TOKEN",
-      name: aName
+      name: aName,
     });
 
     await handler(contextMock as any, input);
@@ -55,7 +55,7 @@ describe("SendTemplatedValidationEmailActivityHandler", () => {
     expect(apply).toBeCalledWith(
       emailDefaults.title,
       `${functionsPublicUrl}/validate-profile-email?token=${input.token}`,
-      aName
+      aName,
     );
     expect(mailerTransporterMock.sendMail).toHaveBeenCalledWith(
       {
@@ -63,9 +63,9 @@ describe("SendTemplatedValidationEmailActivityHandler", () => {
         html: htmlAndTextContent,
         subject: emailDefaults.title,
         text: htmlAndTextContent,
-        to: input.email
+        to: input.email,
       },
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 });

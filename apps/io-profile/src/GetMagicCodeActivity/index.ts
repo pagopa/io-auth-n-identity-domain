@@ -19,8 +19,8 @@ const activityFunctionHandler = getActivityHandler(
   getMagicLinkServiceClient(
     config.MAGIC_LINK_SERVICE_PUBLIC_URL,
     config.MAGIC_LINK_SERVICE_API_KEY,
-    timeoutFetch
-  )
+    timeoutFetch,
+  ),
 );
 
 export default activityFunctionHandler;

@@ -6,7 +6,7 @@ import { UTCISODateFromString } from "@pagopa/ts-commons/lib/dates";
 import {
   IPString,
   NonEmptyString,
-  PatternString
+  PatternString,
 } from "@pagopa/ts-commons/lib/strings";
 
 import { initTelemetryClient } from "../utils/appinsights";
@@ -40,12 +40,12 @@ export const SpidMsgItem = t.intersection([
     responsePayload: t.string,
 
     // SPID request ID
-    spidRequestId: t.string
+    spidRequestId: t.string,
   }),
   t.partial({
     // SPID user fiscal code
-    fiscalCode: t.string
-  })
+    fiscalCode: t.string,
+  }),
 ]);
 
 export type SpidMsgItem = t.TypeOf<typeof SpidMsgItem>;

@@ -3,18 +3,18 @@
 import { it, beforeEach, describe, expect, vi } from "vitest";
 import {
   UserDataProcessingStatus,
-  UserDataProcessingStatusEnum
+  UserDataProcessingStatusEnum,
 } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessingStatus";
 import {
   RetrievedUserDataProcessing,
-  UserDataProcessingModel
+  UserDataProcessingModel,
 } from "@pagopa/io-functions-commons/dist/src/models/user_data_processing";
 import { none, some } from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import { context as contextMock } from "../../__mocks__/durable-functions";
 import {
   aFiscalCode,
-  aRetrievedUserDataProcessing
+  aRetrievedUserDataProcessing,
 } from "../../__mocks__/mocks";
 import { UserDataProcessingChoiceEnum } from "../../generated/backend/UserDataProcessingChoice";
 import { AbortUserDataProcessingHandler } from "../handler";
@@ -25,11 +25,11 @@ beforeEach(() => {
 
 const withStatus = (
   s: UserDataProcessingStatus,
-  r: RetrievedUserDataProcessing
+  r: RetrievedUserDataProcessing,
 ): RetrievedUserDataProcessing => ({ ...r, status: s });
 const withChoice = (
   c: UserDataProcessingChoiceEnum,
-  r: RetrievedUserDataProcessing
+  r: RetrievedUserDataProcessing,
 ): RetrievedUserDataProcessing => ({ ...r, choice: c });
 
 const mockFindLastVersionByModelId = vi.fn(() =>
@@ -39,27 +39,27 @@ const mockFindLastVersionByModelId = vi.fn(() =>
         UserDataProcessingChoiceEnum.DELETE,
         withStatus(
           UserDataProcessingStatusEnum.PENDING,
-          aRetrievedUserDataProcessing
-        )
-      )
-    )
-  )
+          aRetrievedUserDataProcessing,
+        ),
+      ),
+    ),
+  ),
 );
 const mockUpdate = vi.fn(() =>
   TE.of<string, RetrievedUserDataProcessing>(
     withStatus(
       UserDataProcessingStatusEnum.ABORTED,
-      aRetrievedUserDataProcessing
-    )
-  )
+      aRetrievedUserDataProcessing,
+    ),
+  ),
 );
 
-const userDataProcessingModelMock = ({
+const userDataProcessingModelMock = {
   // ritorna un oggetto con uno stato valido
   findLastVersionByModelId: mockFindLastVersionByModelId,
   // il salvataggio è andato ok
-  update: mockUpdate
-} as unknown) as UserDataProcessingModel;
+  update: mockUpdate,
+} as unknown as UserDataProcessingModel;
 
 // use this if you mean "no matter what value you pass"
 const anyChoice = UserDataProcessingChoiceEnum.DOWNLOAD;
@@ -76,24 +76,24 @@ describe("AbortUserDataProcessingHandler", () => {
           some(
             withChoice(
               choice,
-              withStatus(previousStatus, aRetrievedUserDataProcessing)
-            )
-          )
-        )
+              withStatus(previousStatus, aRetrievedUserDataProcessing),
+            ),
+          ),
+        ),
       );
       const upsertUserDataProcessingHandler = AbortUserDataProcessingHandler(
-        userDataProcessingModelMock
+        userDataProcessingModelMock,
       );
 
       const result = await upsertUserDataProcessingHandler(
         contextMock as any,
         aFiscalCode,
-        choice
+        choice,
       );
 
       expect(result.kind).toBe("IResponseSuccessAccepted");
       expect(mockUpdate).toBeCalled();
-    }
+    },
   );
 
   it.each`
@@ -109,35 +109,35 @@ describe("AbortUserDataProcessingHandler", () => {
     "should return conflict error on $choice requests when the entity is in status $previousStatus",
     async ({ choice, previousStatus }) => {
       mockFindLastVersionByModelId.mockImplementationOnce(() =>
-        TE.of(some(withStatus(previousStatus, aRetrievedUserDataProcessing)))
+        TE.of(some(withStatus(previousStatus, aRetrievedUserDataProcessing))),
       );
 
       const upsertUserDataProcessingHandler = AbortUserDataProcessingHandler(
-        userDataProcessingModelMock
+        userDataProcessingModelMock,
       );
 
       const result = await upsertUserDataProcessingHandler(
         contextMock as any,
         aFiscalCode,
-        choice
+        choice,
       );
 
       expect(result.kind).toBe("IResponseErrorConflict");
       expect(mockUpdate).not.toBeCalled();
-    }
+    },
   );
 
   it("should return error if the update fails", async () => {
     mockUpdate.mockImplementationOnce(() => TE.left("any cosmos error"));
 
     const upsertUserDataProcessingHandler = AbortUserDataProcessingHandler(
-      userDataProcessingModelMock
+      userDataProcessingModelMock,
     );
 
     const result = await upsertUserDataProcessingHandler(
       contextMock as any,
       aFiscalCode,
-      anyChoice
+      anyChoice,
     );
 
     expect(result.kind).toBe("IResponseErrorQuery");
@@ -148,13 +148,13 @@ describe("AbortUserDataProcessingHandler", () => {
     mockFindLastVersionByModelId.mockImplementationOnce(() => TE.of(none));
 
     const upsertUserDataProcessingHandler = AbortUserDataProcessingHandler(
-      userDataProcessingModelMock
+      userDataProcessingModelMock,
     );
 
     const result = await upsertUserDataProcessingHandler(
       contextMock as any,
       aFiscalCode,
-      anyChoice
+      anyChoice,
     );
 
     expect(result.kind).toBe("IResponseErrorNotFound");

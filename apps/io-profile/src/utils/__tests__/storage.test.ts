@@ -6,26 +6,26 @@ import { deleteTableEntity, insertTableEntity } from "../storage";
 
 const mockInsertEntity = vi.fn();
 const mockDeleteEntity = vi.fn();
-const mockTableService = ({
+const mockTableService = {
   deleteEntity: mockDeleteEntity,
-  insertEntity: mockInsertEntity
-} as unknown) as TableService;
+  insertEntity: mockInsertEntity,
+} as unknown as TableService;
 
 const genericError = new Error("Generic Error");
 const aTableName = "table";
 const anEntityDescriptor = {
-  prop: "value"
+  prop: "value",
 };
 const anErrorResponse: ServiceResponse = {
   isSuccessful: false,
   md5: "md5",
-  statusCode: 404
+  statusCode: 404,
 };
 const aSuccessResponse: ServiceResponse = {
   body: JSON.stringify(anEntityDescriptor),
   isSuccessful: true,
   md5: "md5",
-  statusCode: 200
+  statusCode: 200,
 };
 
 describe("insertTableEntity", () => {
@@ -37,16 +37,16 @@ describe("insertTableEntity", () => {
     ${"returns the response value if insertEntity succeded"}   | ${null}         | ${anEntityDescriptor} | ${aSuccessResponse} | ${right(anEntityDescriptor)} | ${aSuccessResponse}
   `("should $title", async ({ error, result, response, e1, e2 }) => {
     mockInsertEntity.mockImplementationOnce((_, __, callback) =>
-      callback(error, result, response)
+      callback(error, result, response),
     );
     const insertResponse = await insertTableEntity(
       mockTableService,
-      aTableName
+      aTableName,
     )(anEntityDescriptor);
     expect(mockInsertEntity).toBeCalledWith(
       aTableName,
       anEntityDescriptor,
-      expect.any(Function)
+      expect.any(Function),
     );
     expect(insertResponse.e1).toEqual(e1);
     expect(insertResponse.e2).toEqual(e2);
@@ -62,16 +62,16 @@ describe("deleteTableEntity", () => {
     ${"returns the response value if deleteEntity succeded"}   | ${null}         | ${aSuccessResponse} | ${none}                    | ${aSuccessResponse}
   `("should $title", async ({ error, response, e1, e2 }) => {
     mockDeleteEntity.mockImplementationOnce((_, __, callback) =>
-      callback(error, response)
+      callback(error, response),
     );
     const deleteResponse = await deleteTableEntity(
       mockTableService,
-      aTableName
+      aTableName,
     )(anEntityDescriptor);
     expect(mockDeleteEntity).toBeCalledWith(
       aTableName,
       anEntityDescriptor,
-      expect.any(Function)
+      expect.any(Function),
     );
     expect(deleteResponse.e1).toEqual(e1);
     expect(deleteResponse.e2).toEqual(e2);

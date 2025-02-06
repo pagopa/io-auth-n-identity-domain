@@ -2,7 +2,7 @@ import { getFetch } from "@pagopa/ts-commons/lib/agent";
 import {
   AbortableFetch,
   setFetchTimeout,
-  toFetch
+  toFetch,
 } from "@pagopa/ts-commons/lib/fetch";
 import { Millisecond } from "@pagopa/ts-commons/lib/units";
 import { getConfigOrThrow } from "../utils/config";
@@ -20,14 +20,14 @@ const httpOrHttpsApiFetch = getFetch(process.env);
 // a fetch that can be aborted and that gets cancelled after fetchTimeoutMs
 const abortableFetch = AbortableFetch(httpOrHttpsApiFetch);
 const timeoutFetch = toFetch(
-  setFetchTimeout(DEFAULT_REQUEST_TIMEOUT_MS as Millisecond, abortableFetch)
+  setFetchTimeout(DEFAULT_REQUEST_TIMEOUT_MS as Millisecond, abortableFetch),
 );
 
 // Needed to call notifications API
 const index = getActivityFunction(
   config.PUBLIC_API_URL,
   config.PUBLIC_API_KEY,
-  timeoutFetch
+  timeoutFetch,
 );
 
 export default index;

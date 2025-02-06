@@ -8,7 +8,7 @@ import {
   IResponseErrorNotFound,
   IResponseSuccessJson,
   ResponseErrorNotFound,
-  ResponseSuccessJson
+  ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
@@ -16,21 +16,21 @@ import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
 import {
   withRequestMiddlewares,
-  wrapRequestHandler
+  wrapRequestHandler,
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 import {
   IResponseErrorQuery,
-  ResponseErrorQuery
+  ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
 import {
   RetrievedService,
-  ServiceModel
+  ServiceModel,
 } from "@pagopa/io-functions-commons/dist/src/models/service";
 
 import {
   NotificationChannel,
-  NotificationChannelEnum
+  NotificationChannelEnum,
 } from "@pagopa/io-functions-commons/dist/generated/definitions/NotificationChannel";
 import { ServiceId } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceId";
 import { ServicePublic } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicePublic";
@@ -46,12 +46,12 @@ type IGetServiceHandlerRet =
   | IResponseErrorQuery;
 
 type IGetServiceHandler = (
-  serviceId: ServiceId
+  serviceId: ServiceId,
 ) => Promise<IGetServiceHandlerRet>;
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function serviceAvailableNotificationChannels(
-  retrievedService: RetrievedService
+  retrievedService: RetrievedService,
 ): ReadonlyArray<NotificationChannel> {
   if (retrievedService.requireSecureChannels) {
     return [NotificationChannelEnum.WEBHOOK];
@@ -64,12 +64,11 @@ export function serviceAvailableNotificationChannels(
  */
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 function retrievedServiceToPublic(
-  retrievedService: RetrievedService
+  retrievedService: RetrievedService,
 ): ServicePublic {
   return {
-    available_notification_channels: serviceAvailableNotificationChannels(
-      retrievedService
-    ),
+    available_notification_channels:
+      serviceAvailableNotificationChannels(retrievedService),
     department_name: retrievedService.departmentName,
     organization_fiscal_code: retrievedService.organizationFiscalCode,
     organization_name: retrievedService.organizationName,
@@ -78,7 +77,7 @@ function retrievedServiceToPublic(
       ? toApiServiceMetadata(retrievedService.serviceMetadata)
       : undefined,
     service_name: retrievedService.serviceName,
-    version: retrievedService.version
+    version: retrievedService.version,
   };
 }
 
@@ -87,33 +86,34 @@ function retrievedServiceToPublic(
  */
 const requiredServiceIdMiddleware = RequiredParamMiddleware(
   "serviceid",
-  NonEmptyString
+  NonEmptyString,
 );
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function GetServiceHandler(
-  serviceModel: ServiceModel
+  serviceModel: ServiceModel,
 ): IGetServiceHandler {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  return async serviceId =>
+  return async (serviceId) =>
     pipe(
       await serviceModel.findOneByServiceId(serviceId)(),
       E.foldW(
-        error =>
+        (error) =>
           ResponseErrorQuery("Error while retrieving the service", error),
-        maybeService =>
+        (maybeService) =>
           pipe(
             maybeService,
             O.foldW(
               () =>
                 ResponseErrorNotFound(
                   "Service not found",
-                  "The service you requested was not found in the system."
+                  "The service you requested was not found in the system.",
                 ),
-              service => ResponseSuccessJson(retrievedServiceToPublic(service))
-            )
-          )
-      )
+              (service) =>
+                ResponseSuccessJson(retrievedServiceToPublic(service)),
+            ),
+          ),
+      ),
     );
 }
 

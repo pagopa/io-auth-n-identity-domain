@@ -3,7 +3,7 @@ import {
   EmailString,
   FiscalCode,
   NonEmptyString,
-  Semver
+  Semver,
 } from "@pagopa/ts-commons/lib/strings";
 
 import { NewProfile } from "@pagopa/io-functions-commons/dist/generated/definitions/NewProfile";
@@ -12,18 +12,18 @@ import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/g
 import { UserDataProcessing as UserDataProcessingApi } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessing";
 import {
   UserDataProcessingChoice,
-  UserDataProcessingChoiceEnum
+  UserDataProcessingChoiceEnum,
 } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessingChoice";
 import { UserDataProcessingChoiceRequest } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessingChoiceRequest";
 import {
   UserDataProcessingStatus,
-  UserDataProcessingStatusEnum
+  UserDataProcessingStatusEnum,
 } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessingStatus";
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import {
   makeUserDataProcessingId,
   RetrievedUserDataProcessing,
-  UserDataProcessingId
+  UserDataProcessingId,
 } from "@pagopa/io-functions-commons/dist/src/models/user_data_processing";
 import { CosmosResource } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { retrievedProfileToExtendedProfile } from "../utils/profiles";
@@ -41,25 +41,28 @@ export const aCosmosResourceMetadata: Omit<CosmosResource, "id"> = {
   _etag: "_etag",
   _rid: "_rid",
   _self: "_self",
-  _ts: 1
+  _ts: 1,
 };
 
 export const aNewProfile: NewProfile = {
   email: aEmail,
-  is_email_validated: true
+  is_email_validated: true,
 };
 
-export const legacyApiProfileServicePreferencesSettings: Profile["service_preferences_settings"] = {
-  mode: ServicesPreferencesModeEnum.LEGACY
-};
+export const legacyApiProfileServicePreferencesSettings: Profile["service_preferences_settings"] =
+  {
+    mode: ServicesPreferencesModeEnum.LEGACY,
+  };
 
-export const autoApiProfileServicePreferencesSettings: Profile["service_preferences_settings"] = {
-  mode: ServicesPreferencesModeEnum.AUTO
-};
+export const autoApiProfileServicePreferencesSettings: Profile["service_preferences_settings"] =
+  {
+    mode: ServicesPreferencesModeEnum.AUTO,
+  };
 
-export const manualApiProfileServicePreferencesSettings: Profile["service_preferences_settings"] = {
-  mode: ServicesPreferencesModeEnum.MANUAL
-};
+export const manualApiProfileServicePreferencesSettings: Profile["service_preferences_settings"] =
+  {
+    mode: ServicesPreferencesModeEnum.MANUAL,
+  };
 
 export const aProfile: Profile = {
   email: aEmail,
@@ -68,23 +71,26 @@ export const aProfile: Profile = {
   is_webhook_enabled: false,
   service_preferences_settings: legacyApiProfileServicePreferencesSettings,
   version: 0 as NonNegativeInteger,
-  last_app_version: "0.0.1" as Semver
+  last_app_version: "0.0.1" as Semver,
 };
 
-export const legacyProfileServicePreferencesSettings: RetrievedProfile["servicePreferencesSettings"] = {
-  mode: ServicesPreferencesModeEnum.LEGACY,
-  version: -1
-};
+export const legacyProfileServicePreferencesSettings: RetrievedProfile["servicePreferencesSettings"] =
+  {
+    mode: ServicesPreferencesModeEnum.LEGACY,
+    version: -1,
+  };
 
-export const autoProfileServicePreferencesSettings: RetrievedProfile["servicePreferencesSettings"] = {
-  mode: ServicesPreferencesModeEnum.AUTO,
-  version: 0 as NonNegativeInteger
-};
+export const autoProfileServicePreferencesSettings: RetrievedProfile["servicePreferencesSettings"] =
+  {
+    mode: ServicesPreferencesModeEnum.AUTO,
+    version: 0 as NonNegativeInteger,
+  };
 
-export const manualProfileServicePreferencesSettings: RetrievedProfile["servicePreferencesSettings"] = {
-  mode: ServicesPreferencesModeEnum.MANUAL,
-  version: 1 as NonNegativeInteger
-};
+export const manualProfileServicePreferencesSettings: RetrievedProfile["servicePreferencesSettings"] =
+  {
+    mode: ServicesPreferencesModeEnum.MANUAL,
+    version: 1 as NonNegativeInteger,
+  };
 
 export const aRetrievedProfile: RetrievedProfile = {
   ...aCosmosResourceMetadata,
@@ -99,7 +105,7 @@ export const aRetrievedProfile: RetrievedProfile = {
   kind: "IRetrievedProfile",
   servicePreferencesSettings: legacyProfileServicePreferencesSettings,
   version: 0 as NonNegativeInteger,
-  lastAppVersion: "0.0.1" as Semver
+  lastAppVersion: "0.0.1" as Semver,
 };
 
 export const aRetrievedProfileWithEmail: RetrievedProfile = {
@@ -113,16 +119,15 @@ export const aRetrievedProfileWithEmail: RetrievedProfile = {
   kind: "IRetrievedProfile",
   servicePreferencesSettings: legacyProfileServicePreferencesSettings,
   version: 0 as NonNegativeInteger,
-  lastAppVersion: "0.0.1" as Semver
+  lastAppVersion: "0.0.1" as Semver,
 };
 
 export const aNewDate = new Date();
 
-export const aExtendedProfile = retrievedProfileToExtendedProfile(
-  aRetrievedProfile
-);
+export const aExtendedProfile =
+  retrievedProfileToExtendedProfile(aRetrievedProfile);
 export const aExtendedProfileWithEmail = retrievedProfileToExtendedProfile(
-  aRetrievedProfileWithEmail
+  aRetrievedProfileWithEmail,
 );
 
 export const aTokenId = "01DQ79RZ0EQ0S7RTA3SMCKRCCA";
@@ -133,14 +138,13 @@ export const aValidatorHash =
 export const aUserDataProcessingChoice: UserDataProcessingChoice =
   UserDataProcessingChoiceEnum.DOWNLOAD;
 
-export const aUserDataProcessingChoiceRequest: UserDataProcessingChoiceRequest = {
-  choice: aUserDataProcessingChoice
-};
+export const aUserDataProcessingChoiceRequest: UserDataProcessingChoiceRequest =
+  {
+    choice: aUserDataProcessingChoice,
+  };
 
-export const aUserDataProcessingId: UserDataProcessingId = makeUserDataProcessingId(
-  aUserDataProcessingChoice,
-  aFiscalCode
-);
+export const aUserDataProcessingId: UserDataProcessingId =
+  makeUserDataProcessingId(aUserDataProcessingChoice, aFiscalCode);
 
 export const aUserDataProcessingStatus: UserDataProcessingStatus =
   UserDataProcessingStatusEnum.PENDING;
@@ -164,28 +168,27 @@ export const aRetrievedUserDataProcessing: RetrievedUserDataProcessing = {
   status: aUserDataProcessingStatus,
   updatedAt: aNewDate,
   userDataProcessingId: aUserDataProcessingId,
-  version: 0 as NonNegativeInteger
+  version: 0 as NonNegativeInteger,
 };
 
 export const aClosedRetrievedUserDataProcessing: RetrievedUserDataProcessing = {
   ...aRetrievedUserDataProcessing,
-  status: aClosedUserDataProcessingStatus
+  status: aClosedUserDataProcessingStatus,
 };
 
 export const aWipRetrievedUserDataProcessing: RetrievedUserDataProcessing = {
   ...aRetrievedUserDataProcessing,
-  status: aWipUserDataProcessingStatus
+  status: aWipUserDataProcessingStatus,
 };
 
-export const aAbortedRetrievedUserDataProcessing: RetrievedUserDataProcessing = {
-  ...aRetrievedUserDataProcessing,
-  status: aAbortedUserDataProcessingStatus
-};
+export const aAbortedRetrievedUserDataProcessing: RetrievedUserDataProcessing =
+  {
+    ...aRetrievedUserDataProcessing,
+    status: aAbortedUserDataProcessingStatus,
+  };
 
-export const aUserDataProcessingApi: UserDataProcessingApi = toUserDataProcessingApi(
-  aRetrievedUserDataProcessing
-);
+export const aUserDataProcessingApi: UserDataProcessingApi =
+  toUserDataProcessingApi(aRetrievedUserDataProcessing);
 
-export const aWipUserDataProcessingApi: UserDataProcessingApi = toUserDataProcessingApi(
-  aWipRetrievedUserDataProcessing
-);
+export const aWipUserDataProcessingApi: UserDataProcessingApi =
+  toUserDataProcessingApi(aWipRetrievedUserDataProcessing);

@@ -8025,7 +8025,7 @@ __metadata:
     node-fetch: "npm:^2.6.1"
     nodemailer: "npm:^6.4.16"
     nodemailer-sendgrid: "npm:^1.0.3"
-    prettier: "npm:^1.18.2"
+    prettier: "npm:^3.2.5"
     shx: "npm:^0.3.2"
     ts-node: "npm:^10.9.1"
     typescript: "npm:^5.4.5"

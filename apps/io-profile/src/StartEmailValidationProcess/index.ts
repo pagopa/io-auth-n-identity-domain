@@ -4,7 +4,7 @@ import express from "express";
 
 import {
   PROFILE_COLLECTION_NAME,
-  ProfileModel
+  ProfileModel,
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
 
 import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
@@ -20,12 +20,12 @@ const app = express();
 secureExpressApp(app);
 
 const profileModel = new ProfileModel(
-  cosmosdbInstance.container(PROFILE_COLLECTION_NAME)
+  cosmosdbInstance.container(PROFILE_COLLECTION_NAME),
 );
 
 app.post(
   "/api/v1/email-validation-process/:fiscalcode",
-  StartEmailValidationProcess(profileModel)
+  StartEmailValidationProcess(profileModel),
 );
 
 const azureFunctionHandler = createAzureFunctionHandler(app);

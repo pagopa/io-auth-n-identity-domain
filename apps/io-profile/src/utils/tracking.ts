@@ -10,7 +10,7 @@ import { toHash } from "./crypto";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const createTracker = (
-  telemetryClient: ReturnType<typeof initTelemetryClient>
+  telemetryClient: ReturnType<typeof initTelemetryClient>,
 ) => {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const eventName = (name: string) => `api.profile.${name}`;
@@ -23,7 +23,7 @@ export const createTracker = (
     fiscalCode: FiscalCode,
     previousMode: ServicesPreferencesModeEnum,
     nextMode: ServicesPreferencesModeEnum,
-    profileVersion: NonNegativeInteger
+    profileVersion: NonNegativeInteger,
   ) =>
     telemetryClient?.trackEvent({
       name: eventName("change-service-preferences-mode"),
@@ -31,9 +31,9 @@ export const createTracker = (
         nextMode,
         previousMode,
         profileVersion,
-        userId: toHash(fiscalCode)
+        userId: toHash(fiscalCode),
       },
-      tagOverrides: { samplingEnabled: "false" }
+      tagOverrides: { samplingEnabled: "false" },
     });
 
   /**
@@ -43,7 +43,7 @@ export const createTracker = (
   const traceMigratingServicePreferences = (
     oldProfile: RetrievedProfile,
     newProfile: RetrievedProfile,
-    action: "REQUESTING" | "DOING" | "DONE"
+    action: "REQUESTING" | "DOING" | "DONE",
   ) =>
     telemetryClient?.trackEvent({
       name: eventName("migrate-legacy-preferences"),
@@ -51,21 +51,21 @@ export const createTracker = (
         action,
         oldPreferences: oldProfile.blockedInboxOrChannels,
         oldPreferencesCount: Object.keys(
-          oldProfile.blockedInboxOrChannels || {}
+          oldProfile.blockedInboxOrChannels || {},
         ).length,
         profileVersion: newProfile.version,
         servicePreferencesMode: newProfile.servicePreferencesSettings.mode,
         servicePreferencesVersion:
           newProfile.servicePreferencesSettings.version,
-        userId: toHash(newProfile.fiscalCode)
+        userId: toHash(newProfile.fiscalCode),
       },
-      tagOverrides: { samplingEnabled: "false" }
+      tagOverrides: { samplingEnabled: "false" },
     });
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const trackSubscriptionFeedFailure = (
     { fiscalCode, version, updatedAt, ...input }: UpdateSubscriptionFeedInput,
-    kind: "EXCEPTION" | "FAILURE"
+    kind: "EXCEPTION" | "FAILURE",
   ) => {
     telemetryClient?.trackEvent({
       name: "subscriptionFeed.upsertServicesPreferences.failure",
@@ -74,9 +74,9 @@ export const createTracker = (
         fiscalCode: toHash(fiscalCode),
         kind,
         updatedAt: updatedAt.toString(),
-        version: version.toString()
+        version: version.toString(),
       },
-      tagOverrides: { samplingEnabled: "false" }
+      tagOverrides: { samplingEnabled: "false" },
     } as EventTelemetry);
   };
 
@@ -84,7 +84,7 @@ export const createTracker = (
   const traceEmailValidationSend = (messageInfo: object) => {
     telemetryClient?.trackEvent({
       name: `SendValidationEmailActivity.success`,
-      properties: messageInfo
+      properties: messageInfo,
     } as EventTelemetry);
   };
 
@@ -93,7 +93,7 @@ export const createTracker = (
     kind: "SERVICE" | "CONTENT" | "STATUS",
     fiscalCode: FiscalCode,
     messageId: string,
-    serviceId?: ServiceId
+    serviceId?: ServiceId,
   ) => {
     telemetryClient?.trackEvent({
       name: "messages.enrichMessages.failure",
@@ -101,23 +101,23 @@ export const createTracker = (
         fiscalCode: toHash(fiscalCode),
         kind,
         messageId,
-        serviceId
+        serviceId,
       },
-      tagOverrides: { samplingEnabled: "false" }
+      tagOverrides: { samplingEnabled: "false" },
     } as EventTelemetry);
   };
 
   return {
     messages: {
-      trackEnrichmentFailure
+      trackEnrichmentFailure,
     },
     profile: {
       traceEmailValidationSend,
       traceMigratingServicePreferences,
-      traceServicePreferenceModeChange
+      traceServicePreferenceModeChange,
     },
     subscriptionFeed: {
-      trackSubscriptionFeedFailure
-    }
+      trackSubscriptionFeedFailure,
+    },
   };
 };

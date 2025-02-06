@@ -15,7 +15,7 @@ const app = express();
 secureExpressApp(app);
 app.post(
   "/api/v1/notify-login",
-  NoticeLoginEmail(createTracker(telemetryClient))
+  NoticeLoginEmail(createTracker(telemetryClient)),
 );
 
 const azureFunctionHandler = createAzureFunctionHandler(app);

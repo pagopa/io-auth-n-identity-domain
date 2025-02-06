@@ -8,33 +8,32 @@ import {
   aName,
   aTokenId,
   aValidator,
-  aValidatorHash
+  aValidatorHash,
 } from "../../__mocks__/mocks";
 import {
   ActivityInput as CreateValidationTokenActivityInput,
-  ActivityResult as CreateValidationTokenActivityResult
+  ActivityResult as CreateValidationTokenActivityResult,
 } from "../../CreateValidationTokenActivity/handler";
 import {
   ActivityInput as SendValidationEmailActivityInput,
-  ActivityResult as SendValidationEmailActivityResult
+  ActivityResult as SendValidationEmailActivityResult,
 } from "../../SendTemplatedValidationEmailActivity/handler";
 import {
   handler,
-  OrchestratorInput as EmailValidationProcessOrchestratorInput
+  OrchestratorInput as EmailValidationProcessOrchestratorInput,
 } from "../handler";
 
 describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
   it("should start the activities with the right inputs", async () => {
-    const emailValidationProcessOrchestratorInput = EmailValidationProcessOrchestratorInput.encode(
-      {
+    const emailValidationProcessOrchestratorInput =
+      EmailValidationProcessOrchestratorInput.encode({
         email: aEmail,
         fiscalCode: aFiscalCode,
-        name: aName
-      }
-    );
+        name: aName,
+      });
 
-    const createValidationTokenActivityResult = CreateValidationTokenActivityResult.encode(
-      {
+    const createValidationTokenActivityResult =
+      CreateValidationTokenActivityResult.encode({
         kind: "SUCCESS",
         value: {
           validationTokenEntity: {
@@ -42,18 +41,16 @@ describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
             FiscalCode: aFiscalCode,
             InvalidAfter: new Date(),
             PartitionKey: aTokenId,
-            RowKey: aValidatorHash
+            RowKey: aValidatorHash,
           },
-          validator: aValidator
-        }
-      }
-    );
+          validator: aValidator,
+        },
+      });
 
-    const sendValidationEmailActivityResult = SendValidationEmailActivityResult.encode(
-      {
-        kind: "SUCCESS"
-      }
-    );
+    const sendValidationEmailActivityResult =
+      SendValidationEmailActivityResult.encode({
+        kind: "SUCCESS",
+      });
 
     const contextMockWithDf = {
       ...contextMock,
@@ -62,8 +59,8 @@ describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
           .fn()
           .mockReturnValueOnce(createValidationTokenActivityResult)
           .mockReturnValueOnce(sendValidationEmailActivityResult),
-        getInput: vi.fn(() => emailValidationProcessOrchestratorInput)
-      }
+        getInput: vi.fn(() => emailValidationProcessOrchestratorInput),
+      },
     };
 
     const orchestratorHandler = handler(contextMockWithDf as any);
@@ -75,8 +72,8 @@ describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
       expect.anything(), // retryOptions
       CreateValidationTokenActivityInput.encode({
         email: aEmail,
-        fiscalCode: aFiscalCode
-      })
+        fiscalCode: aFiscalCode,
+      }),
     );
 
     orchestratorHandler.next(result.value);
@@ -87,8 +84,8 @@ describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
       SendValidationEmailActivityInput.encode({
         email: aEmail,
         token: `${aTokenId}:${aValidator}`,
-        name: aName
-      })
+        name: aName,
+      }),
     );
   });
 });

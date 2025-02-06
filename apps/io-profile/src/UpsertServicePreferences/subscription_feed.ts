@@ -20,7 +20,7 @@ export const UpdateSubscriptionFeedInput = t.interface({
   serviceId: ServiceId,
   subscriptionKind: t.literal("SERVICE"),
   updatedAt: t.number,
-  version: NonNegativeInteger
+  version: NonNegativeInteger,
 });
 
 export type UpdateSubscriptionFeedInput = t.TypeOf<
@@ -33,7 +33,7 @@ export const updateSubscriptionFeedTask = (
   context: Context,
   input: UpdateSubscriptionFeedInput,
   logPrefix: string,
-  tracker: ReturnType<typeof createTracker>
+  tracker: ReturnType<typeof createTracker>,
   // eslint-disable-next-line max-params
 ): TE.TaskEither<IResponseErrorQuery, boolean> =>
   pipe(
@@ -43,33 +43,33 @@ export const updateSubscriptionFeedTask = (
           context,
           input,
           tableService,
-          subscriptionFeedTable
+          subscriptionFeedTable,
         ),
-      E.toError
+      E.toError,
     ),
     TE.fold(
-      err => {
+      (err) => {
         context.log.verbose(
-          `${logPrefix}| Error while trying to update subscriptionFeed|ERROR=${err.message}`
+          `${logPrefix}| Error while trying to update subscriptionFeed|ERROR=${err.message}`,
         );
         tracker.subscriptionFeed.trackSubscriptionFeedFailure(
           input,
-          "EXCEPTION"
+          "EXCEPTION",
         );
         return TE.of(false);
       },
-      result => {
+      (result) => {
         const isSuccess = result === "SUCCESS";
         if (!isSuccess) {
           context.log.verbose(
-            `${logPrefix}| Error while trying to update subscriptionFeed|ERROR=${"FAILURE"}`
+            `${logPrefix}| Error while trying to update subscriptionFeed|ERROR=${"FAILURE"}`,
           );
           tracker.subscriptionFeed.trackSubscriptionFeedFailure(
             input,
-            "FAILURE"
+            "FAILURE",
           );
         }
         return TE.of(isSuccess);
-      }
-    )
+      },
+    ),
   );

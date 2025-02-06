@@ -10,7 +10,7 @@ import {
   IResponseErrorConflict,
   IResponseSuccessJson,
   ResponseErrorConflict,
-  ResponseSuccessJson
+  ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 
@@ -18,18 +18,18 @@ import { ExtendedProfile } from "@pagopa/io-functions-commons/dist/generated/def
 import { NewProfile } from "@pagopa/io-functions-commons/dist/generated/definitions/NewProfile";
 import {
   NewProfile as INewProfile,
-  ProfileModel
+  ProfileModel,
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { CosmosDecodingError } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
 import {
   withRequestMiddlewares,
-  wrapRequestHandler
+  wrapRequestHandler,
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 import {
   IResponseErrorQuery,
-  ResponseErrorQuery
+  ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
 import { isBefore } from "date-fns";
@@ -45,7 +45,7 @@ import { retrievedProfileToExtendedProfile } from "../utils/profiles";
 type ICreateProfileHandler = (
   context: Context,
   fiscalCode: FiscalCode,
-  NewProfile: NewProfile
+  NewProfile: NewProfile,
 ) => Promise<
   | IResponseSuccessJson<ExtendedProfile>
   | IResponseErrorQuery
@@ -55,7 +55,7 @@ type ICreateProfileHandler = (
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function CreateProfileHandler(
   profileModel: ProfileModel,
-  optOutEmailSwitchDate: Date
+  optOutEmailSwitchDate: Date,
 ): ICreateProfileHandler {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   return async (context, fiscalCode, createProfilePayload) => {
@@ -72,11 +72,11 @@ export function CreateProfileHandler(
           isInboxEnabled: false,
           isTestProfile: createProfilePayload.is_test_profile,
           isWebhookEnabled: false,
-          kind: "INewProfile"
-        })
+          kind: "INewProfile",
+        }),
       ),
       TE.mapLeft(CosmosDecodingError),
-      TE.chain(newProfile => profileModel.create(newProfile))
+      TE.chain((newProfile) => profileModel.create(newProfile)),
     )();
 
     if (isLeft(errorOrCreatedProfile)) {
@@ -90,7 +90,7 @@ export function CreateProfileHandler(
         failure.error.code === 409
       ) {
         return ResponseErrorConflict(
-          "A profile with the requested fiscal_code already exists"
+          "A profile with the requested fiscal_code already exists",
         );
       }
 
@@ -100,22 +100,21 @@ export function CreateProfileHandler(
     const createdProfile = errorOrCreatedProfile.right;
 
     // Start the Orchestrator
-    const upsertedProfileOrchestratorInput = UpsertedProfileOrchestratorInput.encode(
-      {
+    const upsertedProfileOrchestratorInput =
+      UpsertedProfileOrchestratorInput.encode({
         newProfile: createdProfile,
-        updatedAt: new Date()
-      }
-    );
+        updatedAt: new Date(),
+      });
 
     const dfClient = df.getClient(context);
     await dfClient.startNew(
       "UpsertedProfileOrchestrator",
       undefined,
-      upsertedProfileOrchestratorInput
+      upsertedProfileOrchestratorInput,
     );
 
     return ResponseSuccessJson(
-      retrievedProfileToExtendedProfile(createdProfile)
+      retrievedProfileToExtendedProfile(createdProfile),
     );
   };
 }
@@ -126,14 +125,14 @@ export function CreateProfileHandler(
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function CreateProfile(
   profileModel: ProfileModel,
-  optOutEmailSwitchDate: Date
+  optOutEmailSwitchDate: Date,
 ): express.RequestHandler {
   const handler = CreateProfileHandler(profileModel, optOutEmailSwitchDate);
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
     FiscalCodeMiddleware,
-    NewProfileMiddleware
+    NewProfileMiddleware,
   );
   return wrapRequestHandler(middlewaresWrap(handler));
 }

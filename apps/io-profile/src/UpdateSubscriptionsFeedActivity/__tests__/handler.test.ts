@@ -21,10 +21,10 @@ const deleteEntityMock = vi.fn((_, __, f) => {
   f(undefined, { isSuccessful: true });
 });
 
-const tableServiceMock = ({
+const tableServiceMock = {
   deleteEntity: deleteEntityMock,
-  insertEntity: insertEntityMock
-} as unknown) as TableService;
+  insertEntity: insertEntityMock,
+} as unknown as TableService;
 
 const today = new Date();
 
@@ -40,24 +40,24 @@ describe("UpdateSubscriptionsFeedActivity - Service", () => {
       serviceId: aServiceId,
       updatedAt: today.getTime(),
       version: 1,
-      subscriptionKind: "SERVICE"
+      subscriptionKind: "SERVICE",
     };
 
     const result = await updateSubscriptionFeed(
-      (contextMock as unknown) as Context,
+      contextMock as unknown as Context,
       input,
       tableServiceMock,
-      "aTable" as NonEmptyString
+      "aTable" as NonEmptyString,
     );
 
     expect(tableServiceMock.deleteEntity).toHaveBeenCalledWith(
       "aTable",
       expect.objectContaining({
         PartitionKey: expect.objectContaining({
-          _: "S-" + today.toISOString().substring(0, 10) + "-aServiceId-U"
-        })
+          _: "S-" + today.toISOString().substring(0, 10) + "-aServiceId-U",
+        }),
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
 
     expect(tableServiceMock.insertEntity).not.toHaveBeenCalled();
@@ -72,7 +72,7 @@ describe("UpdateSubscriptionsFeedActivity - Service", () => {
       serviceId: aServiceId,
       updatedAt: today.getTime(),
       version: 1,
-      subscriptionKind: "SERVICE"
+      subscriptionKind: "SERVICE",
     };
 
     deleteEntityMock.mockImplementationOnce((_, __, f) => {
@@ -80,30 +80,30 @@ describe("UpdateSubscriptionsFeedActivity - Service", () => {
     });
 
     const result = await updateSubscriptionFeed(
-      (contextMock as unknown) as Context,
+      contextMock as unknown as Context,
       input,
       tableServiceMock,
-      "aTable" as NonEmptyString
+      "aTable" as NonEmptyString,
     );
 
     expect(tableServiceMock.deleteEntity).toHaveBeenCalledWith(
       "aTable",
       expect.objectContaining({
         PartitionKey: expect.objectContaining({
-          _: "S-" + today.toISOString().substring(0, 10) + "-aServiceId-U"
-        })
+          _: "S-" + today.toISOString().substring(0, 10) + "-aServiceId-U",
+        }),
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
 
     expect(tableServiceMock.insertEntity).toHaveBeenCalledWith(
       "aTable",
       expect.objectContaining({
         PartitionKey: expect.objectContaining({
-          _: "S-" + today.toISOString().substring(0, 10) + "-aServiceId-S"
-        })
+          _: "S-" + today.toISOString().substring(0, 10) + "-aServiceId-S",
+        }),
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
     expect(result).toEqual("SUCCESS");
   });
@@ -121,34 +121,34 @@ describe("UpdateSubscriptionsFeedActivity - Profile", () => {
       updatedAt: today.getTime(),
       version: 1,
       subscriptionKind: "PROFILE",
-      previousPreferences: []
+      previousPreferences: [],
     };
 
     const result = await updateSubscriptionFeed(
-      (contextMock as unknown) as Context,
+      contextMock as unknown as Context,
       input,
       tableServiceMock,
-      "aTable" as NonEmptyString
+      "aTable" as NonEmptyString,
     );
 
     expect(tableServiceMock.deleteEntity).toHaveBeenCalledWith(
       "aTable",
       expect.objectContaining({
         PartitionKey: expect.objectContaining({
-          _: "P-" + today.toISOString().substring(0, 10) + "-U"
-        })
+          _: "P-" + today.toISOString().substring(0, 10) + "-U",
+        }),
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
 
     expect(tableServiceMock.insertEntity).toHaveBeenCalledWith(
       "aTable",
       expect.objectContaining({
         PartitionKey: expect.objectContaining({
-          _: "P-" + today.toISOString().substring(0, 10) + "-S"
-        })
+          _: "P-" + today.toISOString().substring(0, 10) + "-S",
+        }),
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
 
     expect(result).toEqual("SUCCESS");
@@ -161,37 +161,37 @@ describe("UpdateSubscriptionsFeedActivity - Profile", () => {
       updatedAt: today.getTime(),
       version: 1,
       subscriptionKind: "PROFILE",
-      previousPreferences: []
+      previousPreferences: [],
     };
     deleteEntityMock.mockImplementationOnce((_, __, f) => {
       f(Error("an Error"), { isSuccessful: false, statusCode: 404 });
     });
 
     const result = await updateSubscriptionFeed(
-      (contextMock as unknown) as Context,
+      contextMock as unknown as Context,
       input,
       tableServiceMock,
-      "aTable" as NonEmptyString
+      "aTable" as NonEmptyString,
     );
 
     expect(tableServiceMock.deleteEntity).toHaveBeenCalledWith(
       "aTable",
       expect.objectContaining({
         PartitionKey: expect.objectContaining({
-          _: "P-" + today.toISOString().substring(0, 10) + "-U"
-        })
+          _: "P-" + today.toISOString().substring(0, 10) + "-U",
+        }),
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
 
     expect(tableServiceMock.insertEntity).toHaveBeenCalledWith(
       "aTable",
       expect.objectContaining({
         PartitionKey: expect.objectContaining({
-          _: "P-" + today.toISOString().substring(0, 10) + "-S"
-        })
+          _: "P-" + today.toISOString().substring(0, 10) + "-S",
+        }),
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
 
     expect(result).toEqual("SUCCESS");
@@ -209,14 +209,14 @@ describe("UpdateSubscriptionsFeedActivity - Profile with preferences", () => {
       previousPreferences: [aRetrievedServicePreference],
       subscriptionKind: "PROFILE",
       updatedAt: today.getTime(),
-      version: 1
+      version: 1,
     };
 
     const result = await updateSubscriptionFeed(
-      (contextMock as unknown) as Context,
+      contextMock as unknown as Context,
       input,
       tableServiceMock,
-      "aTable" as NonEmptyString
+      "aTable" as NonEmptyString,
     );
 
     expect(tableServiceMock.deleteEntity).toHaveBeenCalledTimes(3);
@@ -224,10 +224,10 @@ describe("UpdateSubscriptionsFeedActivity - Profile with preferences", () => {
       "aTable",
       expect.objectContaining({
         PartitionKey: expect.objectContaining({
-          _: "P-" + today.toISOString().substring(0, 10) + "-U"
-        })
+          _: "P-" + today.toISOString().substring(0, 10) + "-U",
+        }),
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
 
     expect(tableServiceMock.deleteEntity).toHaveBeenCalledWith(
@@ -236,10 +236,10 @@ describe("UpdateSubscriptionsFeedActivity - Profile with preferences", () => {
         PartitionKey: expect.objectContaining({
           _: `S-${today.toISOString().substring(0, 10)}-${
             aRetrievedServicePreference.serviceId
-          }-U`
-        })
+          }-U`,
+        }),
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
 
     expect(tableServiceMock.deleteEntity).toHaveBeenCalledWith(
@@ -248,10 +248,10 @@ describe("UpdateSubscriptionsFeedActivity - Profile with preferences", () => {
         PartitionKey: expect.objectContaining({
           _: `S-${today.toISOString().substring(0, 10)}-${
             aRetrievedServicePreference.serviceId
-          }-S`
-        })
+          }-S`,
+        }),
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
 
     expect(tableServiceMock.insertEntity).toHaveBeenCalledTimes(1);
@@ -259,10 +259,10 @@ describe("UpdateSubscriptionsFeedActivity - Profile with preferences", () => {
       "aTable",
       expect.objectContaining({
         PartitionKey: expect.objectContaining({
-          _: "P-" + today.toISOString().substring(0, 10) + "-S"
-        })
+          _: "P-" + today.toISOString().substring(0, 10) + "-S",
+        }),
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
 
     expect(result).toEqual("SUCCESS");

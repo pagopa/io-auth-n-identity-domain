@@ -15,12 +15,12 @@ import { UpsertServicePreference } from "@pagopa/io-functions-commons/dist/gener
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
 import {
   withRequestMiddlewares,
-  wrapRequestHandler
+  wrapRequestHandler,
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import {
   IResponseErrorQuery,
-  ResponseErrorQuery
+  ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
 import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
@@ -29,7 +29,7 @@ import {
   AccessReadMessageStatusEnum,
   makeServicesPreferencesDocumentId,
   ServicesPreferencesModel,
-  NewServicePreference
+  NewServicePreference,
 } from "@pagopa/io-functions-commons/dist/src/models/service_preference";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
@@ -40,7 +40,7 @@ import {
   IResponseSuccessJson,
   ResponseErrorConflict,
   ResponseErrorValidation,
-  ResponseSuccessJson
+  ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 
 import { Context } from "@azure/functions";
@@ -59,7 +59,7 @@ import {
   getServicePreferenceSettingsVersion,
   getServicePreferencesForSpecialServices,
   nonLegacyServicePreferences,
-  toUserServicePreferenceFromModel
+  toUserServicePreferenceFromModel,
 } from "../utils/service_preferences";
 import { createTracker } from "../utils/tracking";
 import { makeServiceSubscribedEvent } from "../utils/emitted_events";
@@ -70,13 +70,13 @@ import { updateSubscriptionFeedTask } from "./subscription_feed";
 enum FeedOperationEnum {
   "SUBSCRIBED" = "SUBSCRIBED",
   "UNSUBSCRIBED" = "UNSUBSCRIBED",
-  "NO_UPDATE" = "NO_UPDATE"
+  "NO_UPDATE" = "NO_UPDATE",
 }
 
 export type FeedOperation = t.TypeOf<typeof FeedOperation>;
 export const FeedOperation = enumType<FeedOperationEnum>(
   FeedOperationEnum,
-  "FeedOperation"
+  "FeedOperation",
 );
 
 type IUpsertServicePreferencesHandlerResult =
@@ -96,7 +96,7 @@ type IUpsertServicePreferencesHandler = (
   context: Context,
   fiscalCode: FiscalCode,
   serviceId: ServiceId,
-  servicePreference: UpsertServicePreference
+  servicePreference: UpsertServicePreference,
 ) => Promise<IUpsertServicePreferencesHandlerResult>;
 
 /**
@@ -118,52 +118,52 @@ export declare type upsertUserServicePreferencesT = (params: {
   IResponseErrorQuery | IResponseErrorValidation,
   ServicePreference
 >;
-const upsertUserServicePreferences = (
-  servicePreferencesModel: ServicesPreferencesModel
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-): upsertUserServicePreferencesT => ({
-  fiscalCode,
-  serviceId,
-  version,
-  servicePreferencesToUpsert
-}) =>
-  pipe(
-    O.fromNullable(servicePreferencesToUpsert.can_access_message_read_status),
-    O.map(choice =>
-      choice
-        ? AccessReadMessageStatusEnum.ALLOW
-        : AccessReadMessageStatusEnum.DENY
-    ),
-    O.getOrElse(() => AccessReadMessageStatusEnum.UNKNOWN),
-    accessReadMessageStatus =>
-      NewServicePreference.decode({
-        accessReadMessageStatus,
-        fiscalCode,
-        id: makeServicesPreferencesDocumentId(fiscalCode, serviceId, version),
-        isEmailEnabled: servicePreferencesToUpsert.is_email_enabled,
-        isInboxEnabled: servicePreferencesToUpsert.is_inbox_enabled,
-        isWebhookEnabled: servicePreferencesToUpsert.is_webhook_enabled,
-        kind: "INewServicePreference",
-        serviceId,
-        settingsVersion: version
-      }),
-    E.mapLeft(e =>
-      ResponseErrorValidation(
-        "Cannot decode NewServicePreference",
-        errorsToReadableMessages(e).join(" | ")
-      )
-    ),
-    TE.fromEither,
-    TE.chainW(newServicePreference =>
-      pipe(
-        servicePreferencesModel.upsert(newServicePreference),
-        TE.mapLeft(l =>
-          ResponseErrorQuery("Error while saving user' service preferences", l)
-        )
-      )
-    ),
-    TE.map(toUserServicePreferenceFromModel)
-  );
+const upsertUserServicePreferences =
+  (
+    servicePreferencesModel: ServicesPreferencesModel,
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  ): upsertUserServicePreferencesT =>
+  ({ fiscalCode, serviceId, version, servicePreferencesToUpsert }) =>
+    pipe(
+      O.fromNullable(servicePreferencesToUpsert.can_access_message_read_status),
+      O.map((choice) =>
+        choice
+          ? AccessReadMessageStatusEnum.ALLOW
+          : AccessReadMessageStatusEnum.DENY,
+      ),
+      O.getOrElse(() => AccessReadMessageStatusEnum.UNKNOWN),
+      (accessReadMessageStatus) =>
+        NewServicePreference.decode({
+          accessReadMessageStatus,
+          fiscalCode,
+          id: makeServicesPreferencesDocumentId(fiscalCode, serviceId, version),
+          isEmailEnabled: servicePreferencesToUpsert.is_email_enabled,
+          isInboxEnabled: servicePreferencesToUpsert.is_inbox_enabled,
+          isWebhookEnabled: servicePreferencesToUpsert.is_webhook_enabled,
+          kind: "INewServicePreference",
+          serviceId,
+          settingsVersion: version,
+        }),
+      E.mapLeft((e) =>
+        ResponseErrorValidation(
+          "Cannot decode NewServicePreference",
+          errorsToReadableMessages(e).join(" | "),
+        ),
+      ),
+      TE.fromEither,
+      TE.chainW((newServicePreference) =>
+        pipe(
+          servicePreferencesModel.upsert(newServicePreference),
+          TE.mapLeft((l) =>
+            ResponseErrorQuery(
+              "Error while saving user' service preferences",
+              l,
+            ),
+          ),
+        ),
+      ),
+      TE.map(toUserServicePreferenceFromModel),
+    );
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const decodeOperation = (isInboxEnabled: boolean) =>
@@ -183,17 +183,17 @@ const decodeOperation = (isInboxEnabled: boolean) =>
  */
 const getFeedOperation = (
   maybePreviousInboxEnabled: O.Option<boolean>,
-  currentInboxEnabled: boolean
+  currentInboxEnabled: boolean,
 ): FeedOperation =>
   pipe(
     maybePreviousInboxEnabled,
     O.fold(
       () => decodeOperation(currentInboxEnabled),
-      prev =>
+      (prev) =>
         prev !== currentInboxEnabled
           ? decodeOperation(currentInboxEnabled)
-          : FeedOperationEnum.NO_UPDATE
-    )
+          : FeedOperationEnum.NO_UPDATE,
+    ),
   );
 /**
  * Return a type safe GetServicePreferences handler.
@@ -206,7 +206,7 @@ export const GetUpsertServicePreferencesHandler = (
   activationModel: ActivationModel,
   tableService: TableService,
   subscriptionFeedTableName: NonEmptyString,
-  logPrefix: string = "GetUpsertServicePreferencesHandler"
+  logPrefix: string = "GetUpsertServicePreferencesHandler",
   // eslint-disable-next-line max-params, arrow-body-style
 ): IUpsertServicePreferencesHandler => {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -214,11 +214,11 @@ export const GetUpsertServicePreferencesHandler = (
     pipe(
       sequenceS(TE.ApplicativeSeq)({
         profile: getProfileOrErrorResponse(profileModels)(fiscalCode),
-        service: getServiceOrErrorResponse(serviceModels)(serviceId)
+        service: getServiceOrErrorResponse(serviceModels)(serviceId),
       }),
       TE.filterOrElseW(
         ({ profile }) => nonLegacyServicePreferences(profile),
-        () => ResponseErrorConflict("Legacy service preferences not allowed")
+        () => ResponseErrorConflict("Legacy service preferences not allowed"),
       ),
       TE.filterOrElseW(
         ({ profile }) =>
@@ -226,65 +226,67 @@ export const GetUpsertServicePreferencesHandler = (
           profile.servicePreferencesSettings.version,
         () =>
           ResponseErrorConflict(
-            "Setting Preferences version not compatible with Profile's one"
-          )
+            "Setting Preferences version not compatible with Profile's one",
+          ),
       ),
       TE.chainW(({ profile, service }) =>
         pipe(
           profile,
           getServicePreferenceSettingsVersion,
-          TE.mapLeft(_ =>
-            ResponseErrorConflict("Service Preferences Version < 0 not allowed")
+          TE.mapLeft((_) =>
+            ResponseErrorConflict(
+              "Service Preferences Version < 0 not allowed",
+            ),
           ),
-          TE.map(version => ({
+          TE.map((version) => ({
             fiscalCode,
             serviceCategory: getServiceCategoryOrStandard(service),
             serviceId,
             servicePreferencesToUpsert: servicePreference,
-            version
-          }))
-        )
+            version,
+          })),
+        ),
       ),
-      TE.chainW(results =>
+      TE.chainW((results) =>
         pipe(
           servicePreferencesModel.find([
             makeServicesPreferencesDocumentId(
               fiscalCode,
               serviceId,
-              results.version
+              results.version,
             ),
-            fiscalCode
+            fiscalCode,
           ]),
           TE.bimap(
-            failure =>
+            (failure) =>
               ResponseErrorQuery(
                 "Error while retrieving the user's service preferences",
-                failure
+                failure,
               ),
-            maybeExistingServicesPreference => ({
+            (maybeExistingServicesPreference) => ({
               ...results,
               feedOperation: getFeedOperation(
                 pipe(
                   maybeExistingServicesPreference,
-                  O.map(pref => pref.isInboxEnabled)
+                  O.map((pref) => pref.isInboxEnabled),
                 ),
-                results.servicePreferencesToUpsert.is_inbox_enabled
+                results.servicePreferencesToUpsert.is_inbox_enabled,
               ),
               // if the operation will determine a new subscription for the service
               isSubscribing: pipe(
                 maybeExistingServicesPreference,
                 O.fold(
                   () => results.servicePreferencesToUpsert.is_inbox_enabled,
-                  existing =>
+                  (existing) =>
                     results.servicePreferencesToUpsert.is_inbox_enabled &&
-                    existing.isInboxEnabled === false
-                )
-              )
-            })
-          )
-        )
+                    existing.isInboxEnabled === false,
+                ),
+              ),
+            }),
+          ),
+        ),
       ),
-      TE.chain(resultsWithSubFeedInfo => {
+      TE.chain((resultsWithSubFeedInfo) => {
         if (
           resultsWithSubFeedInfo.serviceCategory ===
           SpecialServiceCategoryEnum.SPECIAL
@@ -293,47 +295,48 @@ export const GetUpsertServicePreferencesHandler = (
             getServicePreferencesForSpecialServices(activationModel)({
               fiscalCode,
               serviceId,
-              servicePreferences: servicePreference
+              servicePreferences: servicePreference,
             }),
             TE.chainW(
               TE.fromPredicate(
-                specialServicePreference =>
+                (specialServicePreference) =>
                   specialServicePreference.is_inbox_enabled ===
                   servicePreference.is_inbox_enabled,
-                () => ResponseErrorConflict("Unexpected is_inbox_enabled value")
-              )
+                () =>
+                  ResponseErrorConflict("Unexpected is_inbox_enabled value"),
+              ),
             ),
-            TE.map(specialServicePreference => ({
+            TE.map((specialServicePreference) => ({
               ...resultsWithSubFeedInfo,
               feedOperation: FeedOperationEnum.NO_UPDATE,
               isSubscribing: false,
-              servicePreferencesToUpsert: specialServicePreference
-            }))
+              servicePreferencesToUpsert: specialServicePreference,
+            })),
           );
         }
         return TE.of(resultsWithSubFeedInfo);
       }),
-      TE.chainW(resultsWithSubFeedInfo =>
+      TE.chainW((resultsWithSubFeedInfo) =>
         pipe(
           resultsWithSubFeedInfo,
           upsertUserServicePreferences(servicePreferencesModel),
-          TE.map(upsertedUserServicePreference => ({
+          TE.map((upsertedUserServicePreference) => ({
             ...resultsWithSubFeedInfo,
             updatedAt: new Date().getTime(),
-            upsertedUserServicePreference
-          }))
-        )
+            upsertedUserServicePreference,
+          })),
+        ),
       ),
-      TE.map(resultsWithSubFeedInfo => {
+      TE.map((resultsWithSubFeedInfo) => {
         // if it's a new subscription, emit relative event
         if (resultsWithSubFeedInfo.isSubscribing) {
           // eslint-disable-next-line functional/immutable-data
           context.bindings.apievents = pipe(
             makeServiceSubscribedEvent(
               resultsWithSubFeedInfo.serviceId,
-              resultsWithSubFeedInfo.fiscalCode
+              resultsWithSubFeedInfo.fiscalCode,
             ),
-            JSON.stringify
+            JSON.stringify,
           );
         }
         return resultsWithSubFeedInfo;
@@ -343,7 +346,7 @@ export const GetUpsertServicePreferencesHandler = (
           feedOperation,
           updatedAt,
           version,
-          upsertedUserServicePreference
+          upsertedUserServicePreference,
         }) =>
           feedOperation !== FeedOperationEnum.NO_UPDATE
             ? pipe(
@@ -357,17 +360,17 @@ export const GetUpsertServicePreferencesHandler = (
                     serviceId,
                     subscriptionKind: "SERVICE",
                     updatedAt,
-                    version
+                    version,
                   },
                   logPrefix,
-                  createTracker(telemetryClient)
+                  createTracker(telemetryClient),
                 ),
-                TE.map(() => upsertedUserServicePreference)
+                TE.map(() => upsertedUserServicePreference),
               )
-            : TE.of(upsertedUserServicePreference)
+            : TE.of(upsertedUserServicePreference),
       ),
       TE.map(ResponseSuccessJson),
-      TE.toUnion
+      TE.toUnion,
     )();
 };
 
@@ -382,7 +385,7 @@ export function UpsertServicePreferences(
   servicePreferencesModel: ServicesPreferencesModel,
   activationModel: ActivationModel,
   tableService: TableService,
-  subscriptionFeedTableName: NonEmptyString
+  subscriptionFeedTableName: NonEmptyString,
 ): express.RequestHandler {
   const handler = GetUpsertServicePreferencesHandler(
     telemetryClient,
@@ -391,14 +394,14 @@ export function UpsertServicePreferences(
     servicePreferencesModel,
     activationModel,
     tableService,
-    subscriptionFeedTableName
+    subscriptionFeedTableName,
   );
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
     FiscalCodeMiddleware,
     RequiredParamMiddleware("serviceId", ServiceId),
-    RequiredBodyPayloadMiddleware(UpsertServicePreference)
+    RequiredBodyPayloadMiddleware(UpsertServicePreference),
   );
   return wrapRequestHandler(middlewaresWrap(handler));
 }

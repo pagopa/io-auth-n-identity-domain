@@ -1,16 +1,16 @@
 import { it, afterEach, beforeEach, describe, expect, vi, Mock } from "vitest";
-import { ActivityInput, getSendLoginEmailActivityHandler } from "../handler";
-import { context } from "../../__mocks__/durable-functions";
 import {
   EmailString,
   IPString,
-  NonEmptyString
+  NonEmptyString,
 } from "@pagopa/ts-commons/lib/strings";
-import { EmailDefaults } from "../index";
 import * as ai from "applicationinsights";
 import * as mailTemplate from "@pagopa/io-app-email-templates/LoginNotificationIOWeb/index";
 import * as fallbackMailTemplate from "@pagopa/io-app-email-templates/LoginNotification/index";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
+import { EmailDefaults } from "../index";
+import { context } from "../../__mocks__/durable-functions";
+import { ActivityInput, getSendLoginEmailActivityHandler } from "../handler";
 
 const aDate = new Date("1970-01-01");
 const aValidPayload: ActivityInput = {
@@ -18,30 +18,30 @@ const aValidPayload: ActivityInput = {
   name: "foo" as NonEmptyString,
   email: "example@example.com" as EmailString,
   identity_provider: "idp" as NonEmptyString,
-  ip_address: "127.0.0.1" as IPString
+  ip_address: "127.0.0.1" as IPString,
 };
 const aValidPayloadWithMagicLink: ActivityInput = {
   ...aValidPayload,
-  magic_link: "http://example.com/#token=abcde" as NonEmptyString
+  magic_link: "http://example.com/#token=abcde" as NonEmptyString,
 };
 const emailDefaults: EmailDefaults = {
   from: "from@example.com" as any,
   htmlToTextOptions: {},
-  title: "Email title"
+  title: "Email title",
 };
 
 const mockMailerTransporter = {
   sendMail: vi.fn((_, f) => {
     f(undefined, {});
-  })
+  }),
 };
 
 const anAccessRef = { href: "https://website.it" } as ValidUrl;
 
 const mockTrackEvent = vi.fn();
-const mockTracker = ({
-  trackEvent: mockTrackEvent
-} as unknown) as ai.TelemetryClient;
+const mockTracker = {
+  trackEvent: mockTrackEvent,
+} as unknown as ai.TelemetryClient;
 
 const templateFunction = vi.spyOn(mailTemplate, "apply");
 const fallbackTemplateFunction = vi.spyOn(fallbackMailTemplate, "apply");
@@ -60,7 +60,7 @@ describe("SendTemplatedLoginEmailActivity", () => {
       mockMailerTransporter as any,
       emailDefaults,
       anAccessRef,
-      mockTracker
+      mockTracker,
     );
 
     const result = await handler(context as any, payload);
@@ -68,7 +68,7 @@ describe("SendTemplatedLoginEmailActivity", () => {
     expect(result.kind).toEqual("SUCCESS");
     expect(templateFunction).toHaveBeenCalledTimes(payload.magic_link ? 1 : 0);
     expect(fallbackTemplateFunction).toHaveBeenCalledTimes(
-      payload.magic_link ? 0 : 1
+      payload.magic_link ? 0 : 1,
     );
     expect(mockMailerTransporter.sendMail).toHaveBeenCalledTimes(1);
     expect(mockMailerTransporter.sendMail).toHaveBeenCalledWith(
@@ -77,9 +77,9 @@ describe("SendTemplatedLoginEmailActivity", () => {
         html: expect.any(String),
         subject: emailDefaults.title,
         text: expect.any(String),
-        to: aValidPayload.email
+        to: aValidPayload.email,
       },
-      expect.any(Function)
+      expect.any(Function),
     );
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
@@ -89,12 +89,12 @@ describe("SendTemplatedLoginEmailActivity", () => {
       mockMailerTransporter as any,
       emailDefaults,
       anAccessRef,
-      mockTracker
+      mockTracker,
     );
 
     const result = await handler(context as any, {
       ...aValidPayload,
-      email: "wrong!"
+      email: "wrong!",
     });
 
     expect(result.kind).toEqual("FAILURE");

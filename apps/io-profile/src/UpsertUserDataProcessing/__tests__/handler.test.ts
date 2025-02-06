@@ -8,7 +8,7 @@ import { none, some } from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import {
   context as contextMock,
-  mockGetClient
+  mockGetClient,
 } from "../../__mocks__/durable-functions";
 import {
   aClosedRetrievedUserDataProcessing,
@@ -16,7 +16,7 @@ import {
   aRetrievedUserDataProcessing,
   aUserDataProcessingApi,
   aUserDataProcessingChoiceRequest,
-  aWipRetrievedUserDataProcessing
+  aWipRetrievedUserDataProcessing,
 } from "../../__mocks__/mocks";
 import { UpsertUserDataProcessingHandler } from "../handler";
 
@@ -36,17 +36,17 @@ describe("UpsertUserDataProcessingHandler", () => {
   it("should return a query error when an error occurs creating the new User data processing", async () => {
     const userDataProcessingModelMock = {
       findLastVersionByModelId: vi.fn(() => TE.of(none)),
-      upsert: vi.fn(() => TE.left({}))
+      upsert: vi.fn(() => TE.left({})),
     };
 
     const upsertUserDataProcessingHandler = UpsertUserDataProcessingHandler(
-      userDataProcessingModelMock as any
+      userDataProcessingModelMock as any,
     );
 
     const result = await upsertUserDataProcessingHandler(
       contextMock as any,
       aFiscalCode,
-      aUserDataProcessingChoiceRequest
+      aUserDataProcessingChoiceRequest,
     );
 
     expect(result.kind).toBe("IResponseErrorQuery");
@@ -55,18 +55,18 @@ describe("UpsertUserDataProcessingHandler", () => {
   it("should return a conflict error when a new request is upserted and it was already PENDING", async () => {
     const userDataProcessingModelMock = {
       findLastVersionByModelId: vi.fn(() =>
-        TE.of(some(aRetrievedUserDataProcessing))
-      )
+        TE.of(some(aRetrievedUserDataProcessing)),
+      ),
     };
 
     const upsertUserDataProcessingHandler = UpsertUserDataProcessingHandler(
-      userDataProcessingModelMock as any
+      userDataProcessingModelMock as any,
     );
 
     const result = await upsertUserDataProcessingHandler(
       contextMock as any,
       aFiscalCode,
-      aUserDataProcessingChoiceRequest
+      aUserDataProcessingChoiceRequest,
     );
 
     expect(result.kind).toBe("IResponseErrorConflict");
@@ -75,18 +75,18 @@ describe("UpsertUserDataProcessingHandler", () => {
   it("should return a conflict error when a new request is upserted and it was already WIP", async () => {
     const userDataProcessingModelMock = {
       findLastVersionByModelId: vi.fn(() =>
-        TE.of(some(aWipRetrievedUserDataProcessing))
-      )
+        TE.of(some(aWipRetrievedUserDataProcessing)),
+      ),
     };
 
     const upsertUserDataProcessingHandler = UpsertUserDataProcessingHandler(
-      userDataProcessingModelMock as any
+      userDataProcessingModelMock as any,
     );
 
     const result = await upsertUserDataProcessingHandler(
       contextMock as any,
       aFiscalCode,
-      aUserDataProcessingChoiceRequest
+      aUserDataProcessingChoiceRequest,
     );
 
     expect(result.kind).toBe("IResponseErrorConflict");
@@ -95,18 +95,18 @@ describe("UpsertUserDataProcessingHandler", () => {
   it("should return the upserted user data processing in case the request was CLOSED", async () => {
     const userDataProcessingModelMock = {
       findLastVersionByModelId: vi.fn(() =>
-        TE.of(some(aClosedRetrievedUserDataProcessing))
+        TE.of(some(aClosedRetrievedUserDataProcessing)),
       ),
-      upsert: vi.fn(() => TE.of(aRetrievedUserDataProcessing))
+      upsert: vi.fn(() => TE.of(aRetrievedUserDataProcessing)),
     };
     const upsertUserDataProcessingHandler = UpsertUserDataProcessingHandler(
-      userDataProcessingModelMock as any
+      userDataProcessingModelMock as any,
     );
 
     const result = await upsertUserDataProcessingHandler(
       contextMock as any,
       aFiscalCode,
-      aUserDataProcessingChoiceRequest
+      aUserDataProcessingChoiceRequest,
     );
 
     expect(result.kind).toBe("IResponseSuccessJson");
@@ -118,16 +118,16 @@ describe("UpsertUserDataProcessingHandler", () => {
   it("should return the upserted user data processing in case there was no preceeding request", async () => {
     const userDataProcessingModelMock = {
       findLastVersionByModelId: vi.fn(() => TE.of(none)),
-      upsert: vi.fn(() => TE.of(aRetrievedUserDataProcessing))
+      upsert: vi.fn(() => TE.of(aRetrievedUserDataProcessing)),
     };
     const upsertUserDataProcessingHandler = UpsertUserDataProcessingHandler(
-      userDataProcessingModelMock as any
+      userDataProcessingModelMock as any,
     );
 
     const result = await upsertUserDataProcessingHandler(
       contextMock as any,
       aFiscalCode,
-      aUserDataProcessingChoiceRequest
+      aUserDataProcessingChoiceRequest,
     );
 
     expect(result.kind).toBe("IResponseSuccessJson");

@@ -28,7 +28,7 @@ IO è un progetto open source. Se ti occupi di design o sviluppo, puoi contribui
 
 Grazie di far parte del progetto IO!
 `,
-  subject: `Ti diamo il benvenuto in IO`
+  subject: `Ti diamo il benvenuto in IO`,
 };
 
 /**
@@ -48,7 +48,7 @@ Infine, è importante sapere che per ora i messaggi inviati dagli enti tramite I
 
 Per maggiori informazioni sull’avanzamento del progetto, visita il sito [io.italia.it](https://io.italia.it).
 `,
-  subject: `Quali servizi trovi su IO?`
+  subject: `Quali servizi trovi su IO?`,
 };
 
 /**
@@ -89,5 +89,5 @@ Per poter attivare il Cashback, devi avere aggiornato IO all'ultima versione dis
 
 [Play Store](https://play.google.com/store/apps/details?id=it.pagopa.io.app)
 `,
-  subject: `Attiva il Cashback!`
+  subject: `Attiva il Cashback!`,
 };

@@ -2,7 +2,7 @@ import { getFetch } from "@pagopa/ts-commons/lib/agent";
 import {
   AbortableFetch,
   setFetchTimeout,
-  toFetch
+  toFetch,
 } from "@pagopa/ts-commons/lib/fetch";
 import { Millisecond } from "@pagopa/ts-commons/lib/units";
 
@@ -13,6 +13,6 @@ const httpOrHttpsApiFetch = getFetch(process.env);
 // a fetch that can be aborted and that gets cancelled after fetchTimeoutMs
 const abortableFetch = AbortableFetch(httpOrHttpsApiFetch);
 export const getTimeoutFetch = (
-  requestTimeoutMillisecond: Millisecond
+  requestTimeoutMillisecond: Millisecond,
 ): typeof fetch =>
   toFetch(setFetchTimeout(requestTimeoutMillisecond, abortableFetch));

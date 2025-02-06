@@ -1,7 +1,7 @@
 ﻿import { Context } from "@azure/functions";
 import {
   PROFILE_COLLECTION_NAME,
-  ProfileModel
+  ProfileModel,
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import express from "express";
 
@@ -24,18 +24,18 @@ import { UpdateProfile } from "./handler";
 const config = getConfigOrThrow();
 
 const profileModel = new ProfileModel(
-  cosmosdbInstance.container(PROFILE_COLLECTION_NAME)
+  cosmosdbInstance.container(PROFILE_COLLECTION_NAME),
 );
 
 const queueClient = QueueServiceClient.fromConnectionString(
-  config.FN_APP_STORAGE_CONNECTION_STRING
+  config.FN_APP_STORAGE_CONNECTION_STRING,
 ).getQueueClient(config.MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME);
 
 // Initialize application insights
 const telemetryClient = initTelemetryClient();
 
 const profileEmailReader = new DataTableProfileEmailsRepository(
-  profileEmailTableClient
+  profileEmailTableClient,
 );
 
 // Setup Express
@@ -47,8 +47,8 @@ app.put(
     profileModel,
     queueClient,
     createTracker(telemetryClient),
-    profileEmailReader
-  )
+    profileEmailReader,
+  ),
 );
 
 const azureFunctionHandler = createAzureFunctionHandler(app);

@@ -4,7 +4,7 @@ import express from "express";
 
 import {
   SERVICE_COLLECTION_NAME,
-  ServiceModel
+  ServiceModel,
 } from "@pagopa/io-functions-commons/dist/src/models/service";
 
 import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
@@ -20,7 +20,7 @@ const app = express();
 secureExpressApp(app);
 
 const serviceModel = new ServiceModel(
-  cosmosdbInstance.container(SERVICE_COLLECTION_NAME)
+  cosmosdbInstance.container(SERVICE_COLLECTION_NAME),
 );
 
 app.get("/api/v1/services/:serviceid", GetService(serviceModel));

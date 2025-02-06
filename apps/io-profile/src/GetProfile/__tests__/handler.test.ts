@@ -2,33 +2,33 @@ import { it, afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { none, some } from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/Either";
+import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
+import { constTrue } from "fp-ts/lib/function";
+import { ResponseErrorInternal } from "@pagopa/ts-commons/lib/responses";
 import {
   aExtendedProfileWithEmail,
   aFiscalCode,
-  aRetrievedProfileWithEmail
+  aRetrievedProfileWithEmail,
 } from "../../__mocks__/mocks";
 import { GetProfileHandler, withIsEmailAlreadyTaken } from "../handler";
-import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
-import { constTrue } from "fp-ts/lib/function";
 
 import { generateProfileEmails } from "../../__mocks__/unique-email-enforcement";
-import { ResponseErrorInternal } from "@pagopa/ts-commons/lib/responses";
 
 // Date returns a timestamp expressed in milliseconds
 const aTimestamp = Math.floor(new Date().valueOf() / 1000);
 const anEmailOptOutEmailSwitchDate = new Date(aTimestamp);
 const aRetrievedProfileWithTimestampBeforeLimit = {
   ...aRetrievedProfileWithEmail,
-  _ts: aTimestamp - 1
+  _ts: aTimestamp - 1,
 };
 const aRetrievedProfileWithTimestampAfterLimit = {
   ...aRetrievedProfileWithEmail,
-  _ts: aTimestamp + 10
+  _ts: aTimestamp + 10,
 };
 
 const mockList = vi.fn().mockImplementation(generateProfileEmails(7));
 const profileEmailReader: IProfileEmailReader = {
-  list: mockList
+  list: mockList,
 };
 
 describe("withIsEmailAlreadyTaken", () => {
@@ -36,34 +36,34 @@ describe("withIsEmailAlreadyTaken", () => {
     const profile = await withIsEmailAlreadyTaken(profileEmailReader)({
       ...aExtendedProfileWithEmail,
       email: undefined,
-      is_email_validated: false
+      is_email_validated: false,
     })();
     expect(profile).toMatchObject(E.of({ is_email_already_taken: false }));
   });
 
   it("returns false if the e-mail associated with the given profile is validated", async () => {
     const profile = await withIsEmailAlreadyTaken(profileEmailReader)(
-      aExtendedProfileWithEmail
+      aExtendedProfileWithEmail,
     )();
     expect(profile).toMatchObject(E.of({ is_email_already_taken: false }));
   });
   it("returns true if there are profile email entries", async () => {
     const profile = await withIsEmailAlreadyTaken(profileEmailReader)({
       ...aExtendedProfileWithEmail,
-      is_email_validated: false
+      is_email_validated: false,
     })();
     expect(profile).toMatchObject(E.of({ is_email_already_taken: true }));
   });
   it("returns TE.left(ResponseErrorInternal) on errors retrieving the profile emails", async () => {
     const profile = await withIsEmailAlreadyTaken({
-      list: generateProfileEmails(2, true)
+      list: generateProfileEmails(2, true),
     })({ ...aExtendedProfileWithEmail, is_email_validated: false })();
     expect(profile).toMatchObject(
       E.left({
         kind: "IResponseErrorInternal",
         detail:
-          "Internal server error: Can't check if the new e-mail is already taken"
-      })
+          "Internal server error: Can't check if the new e-mail is already taken",
+      }),
     );
   });
 });
@@ -71,21 +71,21 @@ describe("withIsEmailAlreadyTaken", () => {
 describe("GetProfileHandler", () => {
   it("should find an existing profile", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.of(some(aRetrievedProfileWithTimestampAfterLimit));
-      })
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(some(aRetrievedProfileWithTimestampAfterLimit)),
+      ),
     };
 
     const getProfileHandler = GetProfileHandler(
       profileModelMock as any,
       anEmailOptOutEmailSwitchDate,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const response = await getProfileHandler(aFiscalCode);
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalledWith([
-      aFiscalCode
+      aFiscalCode,
     ]);
     expect(response.kind).toBe("IResponseSuccessJson");
     if (response.kind === "IResponseSuccessJson") {
@@ -95,62 +95,58 @@ describe("GetProfileHandler", () => {
 
   it("should find an existing profile if cosmos timestamp is before email opt out switch limit date", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.of(some(aRetrievedProfileWithTimestampBeforeLimit));
-      })
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(some(aRetrievedProfileWithTimestampBeforeLimit)),
+      ),
     };
 
     const getProfileHandler = GetProfileHandler(
       profileModelMock as any,
       anEmailOptOutEmailSwitchDate,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const response = await getProfileHandler(aFiscalCode);
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalledWith([
-      aFiscalCode
+      aFiscalCode,
     ]);
     expect(response.kind).toBe("IResponseSuccessJson");
     if (response.kind === "IResponseSuccessJson") {
       expect(response.value).toEqual({
         ...aExtendedProfileWithEmail,
-        is_email_enabled: false
+        is_email_enabled: false,
       });
     }
   });
 
   it("should respond with NotFound if profile does not exist", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.of(none);
-      })
+      findLastVersionByModelId: vi.fn(() => TE.of(none)),
     };
 
     const getProfileHandler = GetProfileHandler(
       profileModelMock as any,
       anEmailOptOutEmailSwitchDate,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const response = await getProfileHandler(aFiscalCode);
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalledWith([
-      aFiscalCode
+      aFiscalCode,
     ]);
     expect(response.kind).toBe("IResponseErrorNotFound");
   });
 
   it("should reject the promise in case of errors", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.left("error");
-      })
+      findLastVersionByModelId: vi.fn(() => TE.left("error")),
     };
 
     const getProfileHandler = GetProfileHandler(
       profileModelMock as any,
       anEmailOptOutEmailSwitchDate,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await getProfileHandler(aFiscalCode);
@@ -160,14 +156,14 @@ describe("GetProfileHandler", () => {
 
   it("should return a IResponseErrorInternal if an error occurred checking uniqueness", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.of(
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(
           some({
             ...aRetrievedProfileWithTimestampAfterLimit,
-            isEmailValidated: false
-          })
-        );
-      })
+            isEmailValidated: false,
+          }),
+        ),
+      ),
     };
 
     mockList.mockImplementationOnce(generateProfileEmails(2, true));
@@ -175,7 +171,7 @@ describe("GetProfileHandler", () => {
     const getProfileHandler = GetProfileHandler(
       profileModelMock as any,
       anEmailOptOutEmailSwitchDate,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await getProfileHandler(aFiscalCode);

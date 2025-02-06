@@ -14,7 +14,7 @@ import * as t from "io-ts";
  * @returns the last value yielded by the generator
  */
 export const consumeGenerator = <TReturn = unknown>(
-  gen: Generator<unknown, TReturn, unknown>
+  gen: Generator<unknown, TReturn, unknown>,
 ): TReturn => {
   // eslint-disable-next-line functional/no-let
   let prevValue: unknown;
@@ -30,21 +30,21 @@ export const consumeGenerator = <TReturn = unknown>(
 
 export const isOrchestratorRunning = (
   client: DurableOrchestrationClient,
-  orchestratorId: string
+  orchestratorId: string,
 ): TE.TaskEither<
   Error,
-  PromiseType<ReturnType<typeof client["getStatus"]>> & {
+  PromiseType<ReturnType<(typeof client)["getStatus"]>> & {
     readonly isRunning: boolean;
   }
 > =>
   pipe(
     TE.tryCatch(() => client.getStatus(orchestratorId), E.toError),
-    TE.map(status => ({
+    TE.map((status) => ({
       ...status,
       isRunning:
         status.runtimeStatus === df.OrchestrationRuntimeStatus.Running ||
-        status.runtimeStatus === df.OrchestrationRuntimeStatus.Pending
-    }))
+        status.runtimeStatus === df.OrchestrationRuntimeStatus.Pending,
+    })),
   );
 
 /**
@@ -61,32 +61,32 @@ export const startOrchestrator = <OInput>(
   orchestratorName: string,
   orchestratorId: string,
   orchestratorInput: OInput,
-  orchestratorInputCodec: t.Type<OInput, unknown, unknown>
+  orchestratorInputCodec: t.Type<OInput, unknown, unknown>,
 ): TE.TaskEither<Error, string> =>
   pipe(
     isOrchestratorRunning(dfClient, orchestratorId),
-    TE.chain(errorOrOrchestratorStatus =>
+    TE.chain((errorOrOrchestratorStatus) =>
       !errorOrOrchestratorStatus.isRunning
         ? pipe(
             TE.tryCatch(
               async () => orchestratorInputCodec.encode(orchestratorInput),
-              () => new Error("Encode operation failed")
+              () => new Error("Encode operation failed"),
             ),
-            TE.chain(encodedInput =>
+            TE.chain((encodedInput) =>
               TE.tryCatch(
                 () =>
                   dfClient.startNew(
                     orchestratorName,
                     orchestratorId,
-                    encodedInput
+                    encodedInput,
                   ),
-                E.toError
-              )
-            )
+                E.toError,
+              ),
+            ),
           )
         : // if the orchestrator is already running, just return the id
-          TE.of(orchestratorId)
-    )
+          TE.of(orchestratorId),
+    ),
   );
 
 /** Transient error that describes a NOT_YET_IMPLEMENTED , currently used
@@ -95,7 +95,7 @@ export const startOrchestrator = <OInput>(
  * */
 export const TransientNotImplementedFailure = t.interface({
   kind: t.literal("NOT_YET_IMPLEMENTED"),
-  reason: t.string
+  reason: t.string,
 });
 export type TransientNotImplementedFailure = t.TypeOf<
   typeof TransientNotImplementedFailure

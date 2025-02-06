@@ -22,10 +22,10 @@ import { toHash } from "../utils/crypto";
 export const makeStartEmailValidationProcessOrchestratorId = (
   fiscalCode: FiscalCode,
   email: EmailAddress,
-  creationDate: Date = new Date()
+  creationDate: Date = new Date(),
 ) =>
   toHash(
-    `${dateFns.format(creationDate, "dd/MM/yyyy")}-${fiscalCode}-${email}`
+    `${dateFns.format(creationDate, "dd/MM/yyyy")}-${fiscalCode}-${email}`,
   );
 
 /**
@@ -33,20 +33,20 @@ export const makeStartEmailValidationProcessOrchestratorId = (
  */
 export const isOrchestratorRunning = (
   client: DurableOrchestrationClient,
-  orchestratorId: string
+  orchestratorId: string,
 ): TE.TaskEither<
   Error,
-  PromiseType<ReturnType<typeof client["getStatus"]>> & {
+  PromiseType<ReturnType<(typeof client)["getStatus"]>> & {
     // eslint-disable-next-line functional/prefer-readonly-type
     isRunning: boolean;
   }
 > =>
   pipe(
     TE.tryCatch(() => client.getStatus(orchestratorId), toError),
-    TE.map(status => ({
+    TE.map((status) => ({
       ...status,
       isRunning:
         status.runtimeStatus === df.OrchestrationRuntimeStatus.Running ||
-        status.runtimeStatus === df.OrchestrationRuntimeStatus.Pending
-    }))
+        status.runtimeStatus === df.OrchestrationRuntimeStatus.Pending,
+    })),
   );

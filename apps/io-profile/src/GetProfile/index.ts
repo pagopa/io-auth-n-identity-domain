@@ -4,7 +4,7 @@ import express from "express";
 
 import {
   PROFILE_COLLECTION_NAME,
-  ProfileModel
+  ProfileModel,
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
 
 import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
@@ -26,16 +26,20 @@ const app = express();
 secureExpressApp(app);
 
 const profileModel = new ProfileModel(
-  cosmosdbInstance.container(PROFILE_COLLECTION_NAME)
+  cosmosdbInstance.container(PROFILE_COLLECTION_NAME),
 );
 
 const profileEmailReader = new DataTableProfileEmailsRepository(
-  profileEmailTableClient
+  profileEmailTableClient,
 );
 
 app.get(
   "/api/v1/profiles/:fiscalcode",
-  GetProfile(profileModel, config.OPT_OUT_EMAIL_SWITCH_DATE, profileEmailReader)
+  GetProfile(
+    profileModel,
+    config.OPT_OUT_EMAIL_SWITCH_DATE,
+    profileEmailReader,
+  ),
 );
 
 const azureFunctionHandler = createAzureFunctionHandler(app);

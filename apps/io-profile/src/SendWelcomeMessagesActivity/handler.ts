@@ -12,20 +12,20 @@ import { toString } from "../utils/conversions";
 import {
   cashbackContent,
   howToContent,
-  welcomeMessageContent
+  welcomeMessageContent,
 } from "./welcome_messages";
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 function throwInvalidMessageError(errs: t.Errors): never {
   throw new Error(
-    "Invalid MessageContent for welcome message: " + readableReport(errs)
+    "Invalid MessageContent for welcome message: " + readableReport(errs),
   );
 }
 
 export const WelcomeMessageKind = t.keyof({
   CASHBACK: null,
   HOWTO: null,
-  WELCOME: null
+  WELCOME: null,
 });
 export type WelcomeMessageKind = t.TypeOf<typeof WelcomeMessageKind>;
 
@@ -39,26 +39,26 @@ const welcomeMessages: WelcomeMessages = {
   WELCOME: (_: RetrievedProfile) =>
     pipe(
       NewMessage.decode({
-        content: welcomeMessageContent
+        content: welcomeMessageContent,
       }),
-      E.getOrElseW(throwInvalidMessageError)
+      E.getOrElseW(throwInvalidMessageError),
     ),
   // eslint-disable-next-line sort-keys
   HOWTO: (_: RetrievedProfile) =>
     pipe(
       NewMessage.decode({
-        content: howToContent
+        content: howToContent,
       }),
-      E.getOrElseW(throwInvalidMessageError)
+      E.getOrElseW(throwInvalidMessageError),
     ),
   // eslint-disable-next-line sort-keys
   CASHBACK: (_: RetrievedProfile) =>
     pipe(
       NewMessage.decode({
-        content: cashbackContent
+        content: cashbackContent,
       }),
-      E.getOrElseW(throwInvalidMessageError)
-    )
+      E.getOrElseW(throwInvalidMessageError),
+    ),
 };
 
 /**
@@ -71,7 +71,7 @@ async function sendMessage(
   apiUrl: string,
   apiKey: string,
   newMessage: NewMessage,
-  timeoutFetch: typeof fetch
+  timeoutFetch: typeof fetch,
 ): Promise<number> {
   const response = await timeoutFetch(
     `${apiUrl}/api/v1/messages/${profile.fiscalCode}`,
@@ -79,107 +79,106 @@ async function sendMessage(
       body: JSON.stringify(newMessage),
       headers: {
         "Content-Type": "application/json",
-        "Ocp-Apim-Subscription-Key": apiKey
+        "Ocp-Apim-Subscription-Key": apiKey,
       },
-      method: "POST"
-    }
+      method: "POST",
+    },
   );
   return response.status;
 }
 
 // Activity result
 const ActivityResultSuccess = t.interface({
-  kind: t.literal("SUCCESS")
+  kind: t.literal("SUCCESS"),
 });
 
 type ActivityResultSuccess = t.TypeOf<typeof ActivityResultSuccess>;
 
 const ActivityResultFailure = t.interface({
   kind: t.literal("FAILURE"),
-  reason: t.string
+  reason: t.string,
 });
 
 type ActivityResultFailure = t.TypeOf<typeof ActivityResultFailure>;
 
 export const ActivityResult = t.taggedUnion("kind", [
   ActivityResultSuccess,
-  ActivityResultFailure
+  ActivityResultFailure,
 ]);
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
 export const ActivityInput = t.interface({
   messageKind: WelcomeMessageKind,
-  profile: RetrievedProfile
+  profile: RetrievedProfile,
 });
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
 
-export const getActivityFunction = (
-  publicApiUrl: NonEmptyString,
-  publicApiKey: NonEmptyString,
-  timeoutFetch: typeof fetch
-): AzureFunction => async (
-  context: Context,
-  input: ActivityInput
-): Promise<ActivityResult> => {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const failure = (reason: string) => {
-    context.log.error(reason);
-    return ActivityResultFailure.encode({
-      kind: "FAILURE",
-      reason
-    });
-  };
+export const getActivityFunction =
+  (
+    publicApiUrl: NonEmptyString,
+    publicApiKey: NonEmptyString,
+    timeoutFetch: typeof fetch,
+  ): AzureFunction =>
+  async (context: Context, input: ActivityInput): Promise<ActivityResult> => {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const failure = (reason: string) => {
+      context.log.error(reason);
+      return ActivityResultFailure.encode({
+        kind: "FAILURE",
+        reason,
+      });
+    };
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const success = () =>
-    ActivityResultSuccess.encode({
-      kind: "SUCCESS"
-    });
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const success = () =>
+      ActivityResultSuccess.encode({
+        kind: "SUCCESS",
+      });
 
-  return pipe(
-    ActivityInput.decode(input),
-    E.fold(
-      async errs =>
-        failure(
-          `SendWelcomeMessagesActivity|Cannot decode input profile|ERROR=${readableReport(
-            errs
-          )}|INPUT=${JSON.stringify(input.profile)}`
-        ),
-      async ({ profile, messageKind }) => {
-        const logPrefix = `SendWelcomeMessagesActivity|PROFILE=${profile.fiscalCode}|VERSION=${profile.version}`;
-        context.log.verbose(`${logPrefix}|Sending welcome message`);
+    return pipe(
+      ActivityInput.decode(input),
+      E.fold(
+        async (errs) =>
+          failure(
+            `SendWelcomeMessagesActivity|Cannot decode input profile|ERROR=${readableReport(
+              errs,
+            )}|INPUT=${JSON.stringify(input.profile)}`,
+          ),
+        async ({ profile, messageKind }) => {
+          const logPrefix = `SendWelcomeMessagesActivity|PROFILE=${profile.fiscalCode}|VERSION=${profile.version}`;
+          context.log.verbose(`${logPrefix}|Sending welcome message`);
 
-        try {
-          const status = await sendMessage(
-            profile,
-            publicApiUrl,
-            publicApiKey,
-            welcomeMessages[messageKind](profile),
-            timeoutFetch
-          );
-          if (status !== 201) {
-            if (status >= 500) {
-              throw new Error(`${status}`);
-            } else {
-              return failure(`${logPrefix}|HTTP_ERROR=${status}`);
+          try {
+            const status = await sendMessage(
+              profile,
+              publicApiUrl,
+              publicApiKey,
+              welcomeMessages[messageKind](profile),
+              timeoutFetch,
+            );
+            if (status !== 201) {
+              if (status >= 500) {
+                throw new Error(`${status}`);
+              } else {
+                return failure(`${logPrefix}|HTTP_ERROR=${status}`);
+              }
             }
+          } catch (e) {
+            context.log.error(
+              `${logPrefix}|ERROR=${toString(e)}|ID=${profile.fiscalCode.substr(
+                0,
+                5,
+              )}`,
+            );
+            // throws in case of error or timeout so
+            // the orchestrator can schedule a retry
+            throw e;
           }
-        } catch (e) {
-          context.log.error(
-            `${logPrefix}|ERROR=${toString(e)}|ID=${profile.fiscalCode.substr(
-              0,
-              5
-            )}`
-          );
-          // throws in case of error or timeout so
-          // the orchestrator can schedule a retry
-          throw e;
-        }
 
-        return success();
-      }
-    )
-  );
-};
+          return success();
+        },
+      ),
+    );
+  };
 
 export default getActivityFunction;

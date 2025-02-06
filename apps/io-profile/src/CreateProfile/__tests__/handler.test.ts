@@ -12,14 +12,14 @@ import * as TE from "fp-ts/lib/TaskEither";
 import {
   context as contextMock,
   mockGetClient,
-  mockStartNew
+  mockStartNew,
 } from "../../__mocks__/durable-functions";
 import {
   aExtendedProfile,
   aFiscalCode,
   aNewDate,
   aNewProfile,
-  aRetrievedProfile
+  aRetrievedProfile,
 } from "../../__mocks__/mocks";
 import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "../../UpsertedProfileOrchestrator/handler";
 import { fail } from "../../utils/test-utils";
@@ -38,19 +38,19 @@ afterEach(() => {
 
 const anOptOutEmailSwitchDate = pipe(
   UTCISODateFromString.decode("2021-07-08T23:59:59Z"),
-  E.getOrElseW(() => fail("wrong date value"))
+  E.getOrElseW(() => fail("wrong date value")),
 );
 
 const aPastOptOutEmailSwitchDate = pipe(
   UTCISODateFromString.decode("2000-07-08T23:59:59Z"),
-  E.getOrElseW(() => fail("wrong date value"))
+  E.getOrElseW(() => fail("wrong date value")),
 );
 
 const aFutureOptOutEmailSwitchDate = date_fns.addDays(aNewDate, 1);
 
 const aTestProfileWithEmailDisabled = {
   ...aRetrievedProfile,
-  isEmailEnabled: false
+  isEmailEnabled: false,
 };
 
 const expectedNewProfile = pipe(
@@ -62,26 +62,26 @@ const expectedNewProfile = pipe(
     isInboxEnabled: false,
     isTestProfile: aNewProfile.is_test_profile,
     isWebhookEnabled: false,
-    kind: "INewProfile"
+    kind: "INewProfile",
   }),
-  E.fold(() => fail("wrong new Profile"), identity)
+  E.fold(() => fail("wrong new Profile"), identity),
 );
 
 describe("CreateProfileHandler", () => {
   it("should return a query error when an error occurs creating the new profile", async () => {
     const profileModelMock = {
-      create: vi.fn(() => TE.left({}))
+      create: vi.fn(() => TE.left({})),
     };
 
     const createProfileHandler = CreateProfileHandler(
       profileModelMock as any,
-      anOptOutEmailSwitchDate
+      anOptOutEmailSwitchDate,
     );
 
     const result = await createProfileHandler(
       contextMock as any,
       undefined as any,
-      {} as any
+      {} as any,
     );
 
     expect(result.kind).toBe("IResponseErrorQuery");
@@ -89,18 +89,18 @@ describe("CreateProfileHandler", () => {
 
   it("should return the created profile", async () => {
     const profileModelMock = {
-      create: vi.fn(() => TE.of(aRetrievedProfile))
+      create: vi.fn(() => TE.of(aRetrievedProfile)),
     };
 
     const createProfileHandler = CreateProfileHandler(
       profileModelMock as any,
-      anOptOutEmailSwitchDate
+      anOptOutEmailSwitchDate,
     );
 
     const result = await createProfileHandler(
       contextMock as any,
       aFiscalCode,
-      aNewProfile
+      aNewProfile,
     );
 
     expect(result.kind).toBe("IResponseSuccessJson");
@@ -111,18 +111,18 @@ describe("CreateProfileHandler", () => {
 
   it("should return the created profile with is_email_enabled set to false", async () => {
     const profileModelMock = {
-      create: vi.fn(_ => TE.of(aTestProfileWithEmailDisabled))
+      create: vi.fn((_) => TE.of(aTestProfileWithEmailDisabled)),
     };
 
     const createProfileHandler = CreateProfileHandler(
       profileModelMock as any,
-      aPastOptOutEmailSwitchDate
+      aPastOptOutEmailSwitchDate,
     );
 
     const result = await createProfileHandler(
       contextMock as any,
       aFiscalCode,
-      aNewProfile
+      aNewProfile,
     );
 
     expect(profileModelMock.create).toBeCalledWith(expectedNewProfile);
@@ -130,30 +130,30 @@ describe("CreateProfileHandler", () => {
     if (result.kind === "IResponseSuccessJson") {
       expect(result.value).toEqual({
         ...aExtendedProfile,
-        is_email_enabled: false
+        is_email_enabled: false,
       });
     }
   });
 
   it("should return the created profile with is_email_enabled set to true if limit date is after profile creation date", async () => {
     const profileModelMock = {
-      create: vi.fn(_ => TE.of(aRetrievedProfile))
+      create: vi.fn((_) => TE.of(aRetrievedProfile)),
     };
 
     const createProfileHandler = CreateProfileHandler(
       profileModelMock as any,
-      aFutureOptOutEmailSwitchDate
+      aFutureOptOutEmailSwitchDate,
     );
 
     const result = await createProfileHandler(
       contextMock as any,
       aFiscalCode,
-      aNewProfile
+      aNewProfile,
     );
 
     expect(profileModelMock.create).toBeCalledWith({
       ...expectedNewProfile,
-      isEmailEnabled: true
+      isEmailEnabled: true,
     });
     expect(result.kind).toBe("IResponseSuccessJson");
     if (result.kind === "IResponseSuccessJson") {
@@ -163,27 +163,26 @@ describe("CreateProfileHandler", () => {
 
   it("should start the orchestrator with the appropriate input after the profile has been created", async () => {
     const profileModelMock = {
-      create: vi.fn(() => TE.of(aRetrievedProfile))
+      create: vi.fn(() => TE.of(aRetrievedProfile)),
     };
     const createProfileHandler = CreateProfileHandler(
       profileModelMock as any,
-      anOptOutEmailSwitchDate
+      anOptOutEmailSwitchDate,
     );
 
     await createProfileHandler(contextMock as any, aFiscalCode, {} as any);
 
-    const upsertedProfileOrchestratorInput = UpsertedProfileOrchestratorInput.encode(
-      {
+    const upsertedProfileOrchestratorInput =
+      UpsertedProfileOrchestratorInput.encode({
         newProfile: aRetrievedProfile,
-        updatedAt: new Date()
-      }
-    );
+        updatedAt: new Date(),
+      });
 
     expect(spyGetClient).toHaveBeenCalledTimes(1);
     expect(mockStartNew).toHaveBeenCalledWith(
       "UpsertedProfileOrchestrator",
       undefined,
-      upsertedProfileOrchestratorInput
+      upsertedProfileOrchestratorInput,
     );
   });
 });

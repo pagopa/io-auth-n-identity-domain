@@ -3,48 +3,48 @@ import { it, afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { none, some } from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as O from "fp-ts/lib/Option";
-import {
-  aFiscalCode,
-  legacyProfileServicePreferencesSettings,
-  aRetrievedProfile,
-  aRetrievedProfileWithEmail,
-  autoProfileServicePreferencesSettings,
-  manualProfileServicePreferencesSettings
-} from "../../__mocks__/mocks";
-import {
-  anActiveActivation,
-  aRetrievedService,
-  aRetrievedServicePreference,
-  aServiceId,
-  aServicePreferenceVersion
-} from "../../__mocks__/mocks.service_preference";
 
-import { GetServicePreferencesHandler } from "../handler";
 import { left } from "fp-ts/lib/Either";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { ServiceScopeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceScope";
 import { SpecialServiceCategoryEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/SpecialServiceCategory";
 import { ActivationStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ActivationStatus";
 import { RetrievedService } from "@pagopa/io-functions-commons/dist/src/models/service";
+import { GetServicePreferencesHandler } from "../handler";
+import {
+  anActiveActivation,
+  aRetrievedService,
+  aRetrievedServicePreference,
+  aServiceId,
+  aServicePreferenceVersion,
+} from "../../__mocks__/mocks.service_preference";
+import {
+  aFiscalCode,
+  legacyProfileServicePreferencesSettings,
+  aRetrievedProfile,
+  aRetrievedProfileWithEmail,
+  autoProfileServicePreferencesSettings,
+  manualProfileServicePreferencesSettings,
+} from "../../__mocks__/mocks";
 
 const aRetrievedProfileInValidState = {
   ...aRetrievedProfileWithEmail,
-  servicePreferencesSettings: autoProfileServicePreferencesSettings
+  servicePreferencesSettings: autoProfileServicePreferencesSettings,
 };
 
 const aRetrievedSpecialService: RetrievedService = {
   ...aRetrievedService,
   serviceMetadata: {
     scope: ServiceScopeEnum.LOCAL,
-    category: SpecialServiceCategoryEnum.SPECIAL
-  }
+    category: SpecialServiceCategoryEnum.SPECIAL,
+  },
 };
 
-const mockServiceFindLastVersionByModelId = vi.fn(_ =>
-  TE.of(O.some(aRetrievedService))
+const mockServiceFindLastVersionByModelId = vi.fn((_) =>
+  TE.of(O.some(aRetrievedService)),
 );
 const serviceModelMock = {
-  findLastVersionByModelId: mockServiceFindLastVersionByModelId
+  findLastVersionByModelId: mockServiceFindLastVersionByModelId,
 };
 
 describe("GetServicePreferences", () => {
@@ -53,27 +53,25 @@ describe("GetServicePreferences", () => {
   });
   it("should return existing service preference for user", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.of(some(aRetrievedProfileInValidState));
-      })
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(some(aRetrievedProfileInValidState)),
+      ),
     };
 
     const servicePreferenceModelMock = {
-      find: vi.fn(_ => {
-        return TE.of(some(aRetrievedServicePreference));
-      })
+      find: vi.fn((_) => TE.of(some(aRetrievedServicePreference))),
     };
 
     const getServicePreferencesHandler = GetServicePreferencesHandler(
       profileModelMock as any,
       serviceModelMock as any,
       servicePreferenceModelMock as any,
-      {} as any
+      {} as any,
     );
 
     const response = await getServicePreferencesHandler(
       aFiscalCode,
-      aServiceId
+      aServiceId,
     );
 
     expect(response).toMatchObject({
@@ -82,35 +80,33 @@ describe("GetServicePreferences", () => {
         is_email_enabled: true,
         is_inbox_enabled: true,
         is_webhook_enabled: true,
-        settings_version: aServicePreferenceVersion
-      }
+        settings_version: aServicePreferenceVersion,
+      },
     });
   });
 
   it("should return default ENABLED preferences if no service preference is found for user and mode is AUTO", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.of(some(aRetrievedProfileInValidState));
-      })
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(some(aRetrievedProfileInValidState)),
+      ),
     };
 
     const servicePreferenceModelMock = {
-      find: vi.fn(_ => {
-        return TE.of(none);
-      })
+      find: vi.fn((_) => TE.of(none)),
     };
 
     const getServicePreferencesHandler = GetServicePreferencesHandler(
       profileModelMock as any,
       serviceModelMock as any,
       servicePreferenceModelMock as any,
-      {} as any
+      {} as any,
     );
 
     const response = await getServicePreferencesHandler(
       // (context as any) as Context,
       aFiscalCode,
-      aServiceId
+      aServiceId,
     );
 
     expect(response).toMatchObject({
@@ -119,40 +115,38 @@ describe("GetServicePreferences", () => {
         is_email_enabled: true,
         is_inbox_enabled: true,
         is_webhook_enabled: true,
-        settings_version: 0
-      }
+        settings_version: 0,
+      },
     });
   });
 
   it("should return default DISABLED preferences if no service preference is found for user and mode is MANUAL", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.of(
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(
           some({
             ...aRetrievedProfileInValidState,
-            servicePreferencesSettings: manualProfileServicePreferencesSettings
-          })
-        );
-      })
+            servicePreferencesSettings: manualProfileServicePreferencesSettings,
+          }),
+        ),
+      ),
     };
 
     const servicePreferenceModelMock = {
-      find: vi.fn(_ => {
-        return TE.of(none);
-      })
+      find: vi.fn((_) => TE.of(none)),
     };
 
     const getServicePreferencesHandler = GetServicePreferencesHandler(
       profileModelMock as any,
       serviceModelMock as any,
       servicePreferenceModelMock as any,
-      {} as any
+      {} as any,
     );
 
     const response = await getServicePreferencesHandler(
       // (context as any) as Context,
       aFiscalCode,
-      aServiceId
+      aServiceId,
     );
 
     expect(response).toMatchObject({
@@ -161,8 +155,8 @@ describe("GetServicePreferences", () => {
         is_email_enabled: false,
         is_inbox_enabled: false,
         is_webhook_enabled: false,
-        settings_version: 1
-      }
+        settings_version: 1,
+      },
     });
   });
 
@@ -172,32 +166,28 @@ describe("GetServicePreferences", () => {
 
   it("should return IResponseErrorNotFound if no profile is found in db", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.of(none);
-      })
+      findLastVersionByModelId: vi.fn(() => TE.of(none)),
     };
 
     const servicePreferenceModelMock = {
-      find: vi.fn(_ => {
-        return TE.of(some(aRetrievedServicePreference));
-      })
+      find: vi.fn((_) => TE.of(some(aRetrievedServicePreference))),
     };
 
     const getServicePreferencesHandler = GetServicePreferencesHandler(
       profileModelMock as any,
       serviceModelMock as any,
       servicePreferenceModelMock as any,
-      {} as any
+      {} as any,
     );
 
     const response = await getServicePreferencesHandler(
       // (context as any) as Context,
       aFiscalCode,
-      aServiceId
+      aServiceId,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorNotFound"
+      kind: "IResponseErrorNotFound",
     });
 
     expect(servicePreferenceModelMock.find).not.toHaveBeenCalled();
@@ -205,32 +195,30 @@ describe("GetServicePreferences", () => {
 
   it("should return IResponseErrorQuery if profile model raise an error", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.fromEither(left({} as CosmosErrors));
-      })
+      findLastVersionByModelId: vi.fn(() =>
+        TE.fromEither(left({} as CosmosErrors)),
+      ),
     };
 
     const servicePreferenceModelMock = {
-      find: vi.fn(_ => {
-        return TE.fromEither(left({} as CosmosErrors));
-      })
+      find: vi.fn((_) => TE.fromEither(left({} as CosmosErrors))),
     };
 
     const getServicePreferencesHandler = GetServicePreferencesHandler(
       profileModelMock as any,
       serviceModelMock as any,
       servicePreferenceModelMock as any,
-      {} as any
+      {} as any,
     );
 
     const response = await getServicePreferencesHandler(
       // (context as any) as Context,
       aFiscalCode,
-      aServiceId
+      aServiceId,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorQuery"
+      kind: "IResponseErrorQuery",
     });
 
     expect(servicePreferenceModelMock.find).not.toHaveBeenCalled();
@@ -238,37 +226,35 @@ describe("GetServicePreferences", () => {
 
   it("should return IResponseErrorConflict if profile is in LEGACY mode", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.of(
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(
           some({
             ...aRetrievedProfile,
-            servicePreferencesSettings: legacyProfileServicePreferencesSettings
-          })
-        );
-      })
+            servicePreferencesSettings: legacyProfileServicePreferencesSettings,
+          }),
+        ),
+      ),
     };
 
     const servicePreferenceModelMock = {
-      find: vi.fn(_ => {
-        return TE.fromEither(left({} as CosmosErrors));
-      })
+      find: vi.fn((_) => TE.fromEither(left({} as CosmosErrors))),
     };
 
     const getServicePreferencesHandler = GetServicePreferencesHandler(
       profileModelMock as any,
       serviceModelMock as any,
       servicePreferenceModelMock as any,
-      {} as any
+      {} as any,
     );
 
     const response = await getServicePreferencesHandler(
       // (context as any) as Context,
       aFiscalCode,
-      aServiceId
+      aServiceId,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorConflict"
+      kind: "IResponseErrorConflict",
     });
 
     expect(servicePreferenceModelMock.find).not.toHaveBeenCalled();
@@ -276,31 +262,29 @@ describe("GetServicePreferences", () => {
 
   it("should return IResponseErrorQuery if service preference model raise an error", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.of(some(aRetrievedProfileInValidState));
-      })
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(some(aRetrievedProfileInValidState)),
+      ),
     };
 
     const servicePreferenceModelMock = {
-      find: vi.fn(_ => {
-        return TE.fromEither(left({} as CosmosErrors));
-      })
+      find: vi.fn((_) => TE.fromEither(left({} as CosmosErrors))),
     };
 
     const getServicePreferencesHandler = GetServicePreferencesHandler(
       profileModelMock as any,
       serviceModelMock as any,
       servicePreferenceModelMock as any,
-      {} as any
+      {} as any,
     );
 
     const response = await getServicePreferencesHandler(
       aFiscalCode,
-      aServiceId
+      aServiceId,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorQuery"
+      kind: "IResponseErrorQuery",
     });
   });
   it.each`
@@ -316,38 +300,34 @@ describe("GetServicePreferences", () => {
       serviceResult,
       servicePreferencesResult,
       activationResult,
-      is_inbox_enabled
+      is_inbox_enabled,
     }) => {
       const profileModelMock = {
-        findLastVersionByModelId: vi.fn(() => {
-          return profileResult;
-        })
+        findLastVersionByModelId: vi.fn(() => profileResult),
       };
 
       const servicePreferenceModelMock = {
-        find: vi.fn(_ => {
-          return servicePreferencesResult;
-        })
+        find: vi.fn((_) => servicePreferencesResult),
       };
 
       mockServiceFindLastVersionByModelId.mockImplementationOnce(
-        () => serviceResult
+        () => serviceResult,
       );
 
       const mockActivation = {
-        findLastVersionByModelId: vi.fn(_ => activationResult)
+        findLastVersionByModelId: vi.fn((_) => activationResult),
       };
 
       const getServicePreferencesHandler = GetServicePreferencesHandler(
         profileModelMock as any,
         serviceModelMock as any,
         servicePreferenceModelMock as any,
-        mockActivation as any
+        mockActivation as any,
       );
 
       const response = await getServicePreferencesHandler(
         aFiscalCode,
-        aServiceId
+        aServiceId,
       );
 
       expect(response).toMatchObject({
@@ -356,45 +336,43 @@ describe("GetServicePreferences", () => {
           is_email_enabled: true,
           is_inbox_enabled,
           is_webhook_enabled: true,
-          settings_version: aServicePreferenceVersion
-        }
+          settings_version: aServicePreferenceVersion,
+        },
       });
       expect(mockActivation.findLastVersionByModelId).toBeCalledTimes(1);
-    }
+    },
   );
 
   it("should return IResponseErrorQuery if activation model raise an error for special service", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => {
-        return TE.of(some(aRetrievedProfileInValidState));
-      })
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(some(aRetrievedProfileInValidState)),
+      ),
     };
     mockServiceFindLastVersionByModelId.mockImplementationOnce(() =>
-      TE.of(O.some(aRetrievedSpecialService))
+      TE.of(O.some(aRetrievedSpecialService)),
     );
     const servicePreferenceModelMock = {
-      find: vi.fn(_ => {
-        return TE.of(none);
-      })
+      find: vi.fn((_) => TE.of(none)),
     };
 
     const mockActivation = {
-      findLastVersionByModelId: vi.fn(_ => TE.left({}))
+      findLastVersionByModelId: vi.fn((_) => TE.left({})),
     };
     const getServicePreferencesHandler = GetServicePreferencesHandler(
       profileModelMock as any,
       serviceModelMock as any,
       servicePreferenceModelMock as any,
-      mockActivation as any
+      mockActivation as any,
     );
 
     const response = await getServicePreferencesHandler(
       aFiscalCode,
-      aServiceId
+      aServiceId,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorQuery"
+      kind: "IResponseErrorQuery",
     });
     expect(mockServiceFindLastVersionByModelId).toBeCalledTimes(1);
     expect(servicePreferenceModelMock.find).toBeCalledTimes(1);

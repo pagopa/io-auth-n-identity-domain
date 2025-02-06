@@ -9,29 +9,29 @@ interface IEvent {
 
 export const makeServiceSubscribedEvent = (
   serviceId: ServiceId,
-  fiscalCode: FiscalCode
+  fiscalCode: FiscalCode,
 ): IEvent => ({
   name: `service:subscribed`,
-  payload: { fiscalCode, serviceId }
+  payload: { fiscalCode, serviceId },
 });
 
 export const makeProfileCompletedEvent = (
   fiscalCode: FiscalCode,
-  servicePreferencesMode: ServicesPreferencesModeEnum
+  servicePreferencesMode: ServicesPreferencesModeEnum,
 ): IEvent => ({
   name: `profile:completed`,
-  payload: { fiscalCode, servicePreferencesMode }
+  payload: { fiscalCode, servicePreferencesMode },
 });
 
 export const makeServicePreferencesChangedEvent = (
   fiscalCode: FiscalCode,
   servicePreferencesMode: ServicesPreferencesModeEnum,
-  oldServicePreferencesMode: ServicesPreferencesModeEnum
+  oldServicePreferencesMode: ServicesPreferencesModeEnum,
 ): IEvent => ({
   name: `profile:service-preferences-changed`,
   payload: {
     fiscalCode,
     oldServicePreferencesMode,
-    servicePreferencesMode
-  }
+    servicePreferencesMode,
+  },
 });

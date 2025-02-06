@@ -6,27 +6,27 @@ import { taskEither } from "fp-ts/lib/TaskEither";
 import { EmailValidationProcessParams } from "../../generated/definitions/internal/EmailValidationProcessParams";
 import {
   context as contextMock,
-  mockStartNew
+  mockStartNew,
 } from "../../__mocks__/durable-functions";
 import { aRetrievedProfile } from "../../__mocks__/mocks";
 import { StartEmailValidationProcessHandler } from "../handler";
 import * as orchUtil from "../orchestrators";
 
 const getClientMock = {
-  startNew: mockStartNew
+  startNew: mockStartNew,
 } as any;
 
 const isOrchestratorRunningMock = vi.fn(() =>
   taskEither.of({
-    isRunning: false
-  })
+    isRunning: false,
+  }),
 );
 
 const aValidPayload: EmailValidationProcessParams = { name: "EXAMPLE_NAME" };
 
-vi.spyOn(durableFunction, "getClient").mockImplementation(_ => getClientMock);
+vi.spyOn(durableFunction, "getClient").mockImplementation((_) => getClientMock);
 vi.spyOn(orchUtil, "isOrchestratorRunning").mockImplementation(
-  isOrchestratorRunningMock as any
+  isOrchestratorRunningMock as any,
 );
 describe("StartEmailValidationProcessHandler", () => {
   beforeEach(() => mockStartNew.mockClear());
@@ -36,10 +36,10 @@ describe("StartEmailValidationProcessHandler", () => {
         taskEither.of(
           some({
             ...aRetrievedProfile,
-            isEmailValidated: false
-          })
-        )
-      )
+            isEmailValidated: false,
+          }),
+        ),
+      ),
     };
     mockStartNew.mockImplementationOnce(() => Promise.resolve("start"));
 
@@ -48,7 +48,7 @@ describe("StartEmailValidationProcessHandler", () => {
     const result = await handler(
       contextMock as any,
       aRetrievedProfile.fiscalCode,
-      aValidPayload
+      aValidPayload,
     );
 
     expect(result.kind).toBe("IResponseSuccessAccepted");
@@ -60,23 +60,23 @@ describe("StartEmailValidationProcessHandler", () => {
         taskEither.of(
           some({
             ...aRetrievedProfile,
-            isEmailValidated: false
-          })
-        )
-      )
+            isEmailValidated: false,
+          }),
+        ),
+      ),
     };
 
     isOrchestratorRunningMock.mockImplementationOnce(() =>
       taskEither.of({
-        isRunning: true
-      })
+        isRunning: true,
+      }),
     );
     const handler = StartEmailValidationProcessHandler(profileModelMock as any);
 
     const result = await handler(
       contextMock as any,
       aRetrievedProfile.fiscalCode,
-      aValidPayload
+      aValidPayload,
     );
     expect(mockStartNew).not.toHaveBeenCalled();
 
@@ -86,8 +86,8 @@ describe("StartEmailValidationProcessHandler", () => {
   it("should not start the orchestrator if the email is already validated", async () => {
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() =>
-        taskEither.of(some({ ...aRetrievedProfile, isEmailValidated: true }))
-      )
+        taskEither.of(some({ ...aRetrievedProfile, isEmailValidated: true })),
+      ),
     };
 
     const handler = StartEmailValidationProcessHandler(profileModelMock as any);
@@ -95,12 +95,12 @@ describe("StartEmailValidationProcessHandler", () => {
     await handler(
       contextMock as any,
       aRetrievedProfile.fiscalCode,
-      aValidPayload
+      aValidPayload,
     );
     const result = await handler(
       contextMock as any,
       aRetrievedProfile.fiscalCode,
-      aValidPayload
+      aValidPayload,
     );
     expect(result.kind).toBe("IResponseErrorValidation");
   });

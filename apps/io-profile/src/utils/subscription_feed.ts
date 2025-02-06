@@ -15,7 +15,7 @@ const eg = TableUtilities.entityGenerator;
 
 export const SubscriptionFeedEntitySelector = t.interface({
   partitionKey: t.string,
-  rowKey: t.string
+  rowKey: t.string,
 });
 export type SubscriptionFeedEntitySelector = t.TypeOf<
   typeof SubscriptionFeedEntitySelector
@@ -42,92 +42,93 @@ export type SubscriptionFeedEntitySelector = t.TypeOf<
  * event, meaning the user activated (subscribed) or deactivated (unsubscribed)
  * a specific service.
  */
-export const updateSubscriptionStatus = (
-  tableService: TableService,
-  tableName: NonEmptyString
-) => async (
-  context: Context,
-  logPrefix: string,
-  version: number,
-  deleteEntity: SubscriptionFeedEntitySelector,
-  deleteOtherEntities: ReadonlyArray<SubscriptionFeedEntitySelector>,
-  insertEntity: SubscriptionFeedEntitySelector,
-  allowInsertIfDeleted: boolean
-  // eslint-disable-next-line max-params
-): Promise<true> => {
-  const insertEntityHandler = insertTableEntity(tableService, tableName);
-  const deleteEntityHandler = deleteTableEntity(tableService, tableName);
-  // First we try to delete a previous (un)subscriptions operation
-  // from the subscription feed entries for the current day
-  const deleteResults = await pipe(
-    A.sequence(TE.ApplicativeSeq)(
-      [deleteEntity, ...deleteOtherEntities].map(_ =>
-        TE.tryCatch(
-          async () => {
-            // First we try to delete a previous (un)subscriptions operation
-            // from the subscription feed entries for the current day
-            context.log.verbose(`${logPrefix}|KEY=${_.rowKey}|Deleting entity`);
-            const {
-              e1: maybeError2,
-              e2: uResponse2
-            } = await deleteEntityHandler({
-              PartitionKey: eg.String(_.partitionKey),
-              RowKey: eg.String(_.rowKey)
-            });
-            return { maybeError: maybeError2, uResponse: uResponse2 };
-          },
-          () => new Error("Error calling the delete entity handler")
-        )
+export const updateSubscriptionStatus =
+  (tableService: TableService, tableName: NonEmptyString) =>
+  async (
+    context: Context,
+    logPrefix: string,
+    version: number,
+    deleteEntity: SubscriptionFeedEntitySelector,
+    deleteOtherEntities: ReadonlyArray<SubscriptionFeedEntitySelector>,
+    insertEntity: SubscriptionFeedEntitySelector,
+    allowInsertIfDeleted: boolean,
+    // eslint-disable-next-line max-params
+  ): Promise<true> => {
+    const insertEntityHandler = insertTableEntity(tableService, tableName);
+    const deleteEntityHandler = deleteTableEntity(tableService, tableName);
+    // First we try to delete a previous (un)subscriptions operation
+    // from the subscription feed entries for the current day
+    const deleteResults = await pipe(
+      A.sequence(TE.ApplicativeSeq)(
+        [deleteEntity, ...deleteOtherEntities].map((_) =>
+          TE.tryCatch(
+            async () => {
+              // First we try to delete a previous (un)subscriptions operation
+              // from the subscription feed entries for the current day
+              context.log.verbose(
+                `${logPrefix}|KEY=${_.rowKey}|Deleting entity`,
+              );
+              const { e1: maybeError2, e2: uResponse2 } =
+                await deleteEntityHandler({
+                  PartitionKey: eg.String(_.partitionKey),
+                  RowKey: eg.String(_.rowKey),
+                });
+              return { maybeError: maybeError2, uResponse: uResponse2 };
+            },
+            () => new Error("Error calling the delete entity handler"),
+          ),
+        ),
+      ),
+      TE.getOrElse((error) => {
+        throw error;
+      }),
+    )();
+
+    // If deleteEntity is successful it means the user
+    // previously made an opposite choice (in the same day).
+    // Since we're going to expose only the delta for this day,
+    // and we've just deleted the opposite operation, we go on here.
+    if (!allowInsertIfDeleted && O.isNone(deleteResults[0].maybeError)) {
+      return true;
+    }
+
+    if (
+      deleteResults.some(
+        (_) =>
+          // _.uResponse could be null
+          O.isSome(_.maybeError) &&
+          _.uResponse &&
+          _.uResponse.statusCode !== 404,
       )
-    ),
-    TE.getOrElse(error => {
-      throw error;
-    })
-  )();
+    ) {
+      // retry
+      const errors = new Error(
+        deleteResults
+          .map((_) => _.maybeError)
+          .filter(O.isSome)
+          .map((_) => _.value.message)
+          .join("|"),
+      );
+      context.log.error(`${logPrefix}|ERROR=${errors.message}}`);
+      throw errors;
+    }
 
-  // If deleteEntity is successful it means the user
-  // previously made an opposite choice (in the same day).
-  // Since we're going to expose only the delta for this day,
-  // and we've just deleted the opposite operation, we go on here.
-  if (!allowInsertIfDeleted && O.isNone(deleteResults[0].maybeError)) {
-    return true;
-  }
-
-  if (
-    deleteResults.some(
-      _ =>
-        // _.uResponse could be null
-        O.isSome(_.maybeError) && _.uResponse && _.uResponse.statusCode !== 404
-    )
-  ) {
-    // retry
-    const errors = new Error(
-      deleteResults
-        .map(_ => _.maybeError)
-        .filter(O.isSome)
-        .map(_ => _.value.message)
-        .join("|")
+    // If deleteEntity has not found any entry or insert is required,
+    // we insert the new (un)subscription entry into the feed
+    context.log.verbose(
+      `${logPrefix}|KEY=${insertEntity.rowKey}|Inserting entity`,
     );
-    context.log.error(`${logPrefix}|ERROR=${errors.message}}`);
-    throw errors;
-  }
+    const { e1: resultOrError, e2: sResponse } = await insertEntityHandler({
+      PartitionKey: eg.String(insertEntity.partitionKey),
+      RowKey: eg.String(insertEntity.rowKey),
+      version: eg.Int32(version),
+    });
+    // sResponse could be null
+    if (E.isLeft(resultOrError) && sResponse && sResponse.statusCode !== 409) {
+      // retry
+      context.log.error(`${logPrefix}|ERROR=${resultOrError.left.message}`);
+      throw resultOrError.left;
+    }
 
-  // If deleteEntity has not found any entry or insert is required,
-  // we insert the new (un)subscription entry into the feed
-  context.log.verbose(
-    `${logPrefix}|KEY=${insertEntity.rowKey}|Inserting entity`
-  );
-  const { e1: resultOrError, e2: sResponse } = await insertEntityHandler({
-    PartitionKey: eg.String(insertEntity.partitionKey),
-    RowKey: eg.String(insertEntity.rowKey),
-    version: eg.Int32(version)
-  });
-  // sResponse could be null
-  if (E.isLeft(resultOrError) && sResponse && sResponse.statusCode !== 409) {
-    // retry
-    context.log.error(`${logPrefix}|ERROR=${resultOrError.left.message}`);
-    throw resultOrError.left;
-  }
-
-  return true;
-};
+    return true;
+  };

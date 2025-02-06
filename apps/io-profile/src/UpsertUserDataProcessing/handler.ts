@@ -12,20 +12,20 @@ import {
   IResponseErrorValidation,
   IResponseSuccessJson,
   ResponseErrorConflict,
-  ResponseSuccessJson
+  ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 
 import {
   IResponseErrorQuery,
-  ResponseErrorQuery
+  ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
 import {
   withRequestMiddlewares,
-  wrapRequestHandler
+  wrapRequestHandler,
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import { UserDataProcessing as UserDataProcessingApi } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessing";
@@ -35,7 +35,7 @@ import {
   makeUserDataProcessingId,
   NewUserDataProcessing,
   UserDataProcessing,
-  UserDataProcessingModel
+  UserDataProcessingModel,
 } from "@pagopa/io-functions-commons/dist/src/models/user_data_processing";
 import { CosmosDecodingError } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
@@ -48,7 +48,7 @@ type IUpsertUserDataProcessingHandler = (
   context: Context,
   fiscalCode: FiscalCode,
 
-  userDataProcessingChoiceRequest: UserDataProcessingChoiceRequest
+  userDataProcessingChoiceRequest: UserDataProcessingChoiceRequest,
 ) => Promise<
   | IResponseSuccessJson<UserDataProcessingApi>
   | IResponseErrorValidation
@@ -58,7 +58,7 @@ type IUpsertUserDataProcessingHandler = (
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function UpsertUserDataProcessingHandler(
-  userDataProcessingModel: UserDataProcessingModel
+  userDataProcessingModel: UserDataProcessingModel,
 ): IUpsertUserDataProcessingHandler {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   return async (context, fiscalCode, upsertUserDataProcessingPayload) => {
@@ -67,17 +67,19 @@ export function UpsertUserDataProcessingHandler(
     }`;
     const id = makeUserDataProcessingId(
       upsertUserDataProcessingPayload.choice,
-      fiscalCode
+      fiscalCode,
     );
 
-    const errorOrMaybeRetrievedUserDataProcessing = await userDataProcessingModel.findLastVersionByModelId(
-      [id, fiscalCode]
-    )();
+    const errorOrMaybeRetrievedUserDataProcessing =
+      await userDataProcessingModel.findLastVersionByModelId([
+        id,
+        fiscalCode,
+      ])();
 
     if (E.isLeft(errorOrMaybeRetrievedUserDataProcessing)) {
       return ResponseErrorQuery(
         "Error while retrieving a previous version of user data processing",
-        errorOrMaybeRetrievedUserDataProcessing.left
+        errorOrMaybeRetrievedUserDataProcessing.left,
       );
     }
     const maybeRetrievedUserDataProcessing =
@@ -93,31 +95,31 @@ export function UpsertUserDataProcessingHandler(
           UserDataProcessingStatusEnum.PENDING === status ||
           UserDataProcessingStatusEnum.WIP === status
             ? O.none
-            : O.some(UserDataProcessingStatusEnum.PENDING)
+            : O.some(UserDataProcessingStatusEnum.PENDING),
       ),
       O.foldW(
         async () =>
           ResponseErrorConflict(
-            "Another request is already PENDING or WIP for this User"
+            "Another request is already PENDING or WIP for this User",
           ),
-        async newStatus => {
+        async (newStatus) => {
           const userDataProcessing: UserDataProcessing = {
             choice: upsertUserDataProcessingPayload.choice,
             createdAt: new Date(),
             fiscalCode,
             status: newStatus,
-            userDataProcessingId: id
+            userDataProcessingId: id,
           };
           const errorOrUpsertedUserDataProcessing = await pipe(
             NewUserDataProcessing.decode({
               ...userDataProcessing,
-              kind: "INewUserDataProcessing"
+              kind: "INewUserDataProcessing",
             }),
             TE.fromEither,
             TE.mapLeft(CosmosDecodingError),
-            TE.chain(valueToUpsert =>
-              userDataProcessingModel.upsert(valueToUpsert)
-            )
+            TE.chain((valueToUpsert) =>
+              userDataProcessingModel.upsert(valueToUpsert),
+            ),
           )();
 
           if (E.isLeft(errorOrUpsertedUserDataProcessing)) {
@@ -127,7 +129,7 @@ export function UpsertUserDataProcessingHandler(
 
             return ResponseErrorQuery(
               "Error while creating a new user data processing",
-              errorOrUpsertedUserDataProcessing.left
+              errorOrUpsertedUserDataProcessing.left,
             );
           }
 
@@ -135,10 +137,10 @@ export function UpsertUserDataProcessingHandler(
             errorOrUpsertedUserDataProcessing.right;
 
           return ResponseSuccessJson(
-            toUserDataProcessingApi(createdOrUpdatedUserDataProcessing)
+            toUserDataProcessingApi(createdOrUpdatedUserDataProcessing),
           );
-        }
-      )
+        },
+      ),
     );
   };
 }
@@ -148,14 +150,14 @@ export function UpsertUserDataProcessingHandler(
  */
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function UpsertUserDataProcessing(
-  userDataProcessingModel: UserDataProcessingModel
+  userDataProcessingModel: UserDataProcessingModel,
 ): express.RequestHandler {
   const handler = UpsertUserDataProcessingHandler(userDataProcessingModel);
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
     FiscalCodeMiddleware,
-    RequiredBodyPayloadMiddleware(UserDataProcessingChoiceRequest)
+    RequiredBodyPayloadMiddleware(UserDataProcessingChoiceRequest),
   );
   return wrapRequestHandler(middlewaresWrap(handler));
 }

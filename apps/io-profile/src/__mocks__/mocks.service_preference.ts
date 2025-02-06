@@ -7,7 +7,7 @@ import {
   AccessReadMessageStatusEnum,
   makeServicesPreferencesDocumentId,
   NewServicePreference,
-  RetrievedServicePreference
+  RetrievedServicePreference,
 } from "@pagopa/io-functions-commons/dist/src/models/service_preference";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { aCosmosResourceMetadata, aFiscalCode } from "./mocks";
@@ -27,13 +27,13 @@ export const aNewServicePreference: NewServicePreference = {
   id: makeServicesPreferencesDocumentId(
     aFiscalCode,
     aServiceId,
-    aServicePreferenceVersion
-  )
+    aServicePreferenceVersion,
+  ),
 };
 export const aRetrievedServicePreference: RetrievedServicePreference = {
   ...aCosmosResourceMetadata,
   ...aNewServicePreference,
-  kind: "IRetrievedServicePreference"
+  kind: "IRetrievedServicePreference",
 };
 
 export const aServicePreference: ServicePreference = {
@@ -41,20 +41,20 @@ export const aServicePreference: ServicePreference = {
   is_email_enabled: true,
   is_inbox_enabled: true,
   is_webhook_enabled: true,
-  settings_version: aServicePreferenceVersion
+  settings_version: aServicePreferenceVersion,
 };
 
-export const aRetrievedService: RetrievedService = ({
+export const aRetrievedService: RetrievedService = {
   ...aCosmosResourceMetadata,
   serviceId: aServiceId,
   isVisible: true,
   serviceName: "a Service",
-  organizationName: "a Organization"
-} as any) as RetrievedService;
+  organizationName: "a Organization",
+} as any as RetrievedService;
 
 export const anActiveActivation: Activation = {
   ...aCosmosResourceMetadata,
   fiscalCode: aFiscalCode,
   serviceId: aServiceId,
-  status: ActivationStatusEnum.ACTIVE
+  status: ActivationStatusEnum.ACTIVE,
 };

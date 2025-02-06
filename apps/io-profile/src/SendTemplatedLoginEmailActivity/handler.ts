@@ -2,7 +2,7 @@ import { Context } from "@azure/functions";
 import {
   EmailString,
   IPString,
-  NonEmptyString
+  NonEmptyString,
 } from "@pagopa/ts-commons/lib/strings";
 import * as NodeMailer from "nodemailer";
 import * as t from "io-ts";
@@ -27,124 +27,126 @@ export const ActivityInput = t.intersection([
     email: EmailString,
     identity_provider: NonEmptyString,
     ip_address: IPString,
-    name: NonEmptyString
+    name: NonEmptyString,
   }),
   t.partial({
     device_name: NonEmptyString,
     geo_location: NonEmptyString,
-    magic_link: NonEmptyString
-  })
+    magic_link: NonEmptyString,
+  }),
 ]);
 
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
 
 // Activity result
 export const ActivityResultSuccess = t.interface({
-  kind: t.literal("SUCCESS")
+  kind: t.literal("SUCCESS"),
 });
 
 const ActivityResultFailure = t.interface({
   kind: t.literal("FAILURE"),
-  reason: t.string
+  reason: t.string,
 });
 
 export const ActivityResult = t.taggedUnion("kind", [
   ActivityResultSuccess,
-  ActivityResultFailure
+  ActivityResultFailure,
 ]);
 
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
 const logPrefix = "SendTemplatedLoginEmailActivity";
 
-export const getSendLoginEmailActivityHandler = (
-  mailerTransporter: NodeMailer.Transporter,
-  emailDefaults: EmailDefaults,
-  accessRefUrl: ValidUrl,
-  telemetryClient?: ai.TelemetryClient
-) => async (context: Context, input: unknown): Promise<ActivityResult> =>
-  pipe(
-    input,
-    ActivityInput.decode,
-    E.mapLeft(errors => {
-      context.log.error(
-        `${logPrefix}|Error while decoding input|ERROR=${readableReportSimplified(
-          errors
-        )}`
-      );
+export const getSendLoginEmailActivityHandler =
+  (
+    mailerTransporter: NodeMailer.Transporter,
+    emailDefaults: EmailDefaults,
+    accessRefUrl: ValidUrl,
+    telemetryClient?: ai.TelemetryClient,
+  ) =>
+  async (context: Context, input: unknown): Promise<ActivityResult> =>
+    pipe(
+      input,
+      ActivityInput.decode,
+      E.mapLeft((errors) => {
+        context.log.error(
+          `${logPrefix}|Error while decoding input|ERROR=${readableReportSimplified(
+            errors,
+          )}`,
+        );
 
-      return ActivityResultFailure.encode({
-        kind: "FAILURE",
-        reason: "Error while decoding input"
-      });
-    }),
-    E.bindTo("activityInput"),
-    E.bindW("maybeMagicLink", ({ activityInput }) =>
-      pipe(activityInput.magic_link, O.fromNullable, E.of)
-    ),
-    E.bindW("emailHtml", ({ activityInput, maybeMagicLink }) =>
-      pipe(
-        maybeMagicLink,
-        O.fold(
-          // if we could not obtain the magic link, send a
-          // fallback email with assistance reference
-          () =>
-            E.of(
-              fallbackMailTemplate.apply(
-                activityInput.name,
-                activityInput.identity_provider,
-                activityInput.date_time,
-                (activityInput.ip_address as unknown) as NonEmptyString,
-                accessRefUrl
-              )
-            ),
-          magic_link =>
-            E.of(
-              mailTemplate.apply(
-                activityInput.name,
-                activityInput.identity_provider,
-                activityInput.date_time,
-                (activityInput.ip_address as unknown) as NonEmptyString,
-                magic_link
-              )
-            )
-        )
-      )
-    ),
-    E.bind("emailText", ({ emailHtml }) =>
-      E.of(HtmlToText.fromString(emailHtml, emailDefaults.htmlToTextOptions))
-    ),
-    TE.fromEither,
-    TE.chainW(({ activityInput, emailHtml, emailText }) =>
-      pipe(
-        sendMail(mailerTransporter, {
-          from: emailDefaults.from,
-          html: emailHtml,
-          subject: emailDefaults.title,
-          text: emailText,
-          to: activityInput.email
-        }),
-        TE.mapLeft(error => {
-          const formattedError = Error(
-            `${logPrefix}|Error sending validation email|ERROR=${error.message}`
-          );
-          context.log.error(formattedError.message);
-          // we want to start a retry
-          throw formattedError;
-        }),
-        TE.map(result => {
-          const info = result.value;
+        return ActivityResultFailure.encode({
+          kind: "FAILURE",
+          reason: "Error while decoding input",
+        });
+      }),
+      E.bindTo("activityInput"),
+      E.bindW("maybeMagicLink", ({ activityInput }) =>
+        pipe(activityInput.magic_link, O.fromNullable, E.of),
+      ),
+      E.bindW("emailHtml", ({ activityInput, maybeMagicLink }) =>
+        pipe(
+          maybeMagicLink,
+          O.fold(
+            // if we could not obtain the magic link, send a
+            // fallback email with assistance reference
+            () =>
+              E.of(
+                fallbackMailTemplate.apply(
+                  activityInput.name,
+                  activityInput.identity_provider,
+                  activityInput.date_time,
+                  activityInput.ip_address as unknown as NonEmptyString,
+                  accessRefUrl,
+                ),
+              ),
+            (magic_link) =>
+              E.of(
+                mailTemplate.apply(
+                  activityInput.name,
+                  activityInput.identity_provider,
+                  activityInput.date_time,
+                  activityInput.ip_address as unknown as NonEmptyString,
+                  magic_link,
+                ),
+              ),
+          ),
+        ),
+      ),
+      E.bind("emailText", ({ emailHtml }) =>
+        E.of(HtmlToText.fromString(emailHtml, emailDefaults.htmlToTextOptions)),
+      ),
+      TE.fromEither,
+      TE.chainW(({ activityInput, emailHtml, emailText }) =>
+        pipe(
+          sendMail(mailerTransporter, {
+            from: emailDefaults.from,
+            html: emailHtml,
+            subject: emailDefaults.title,
+            text: emailText,
+            to: activityInput.email,
+          }),
+          TE.mapLeft((error) => {
+            const formattedError = Error(
+              `${logPrefix}|Error sending validation email|ERROR=${error.message}`,
+            );
+            context.log.error(formattedError.message);
+            // we want to start a retry
+            throw formattedError;
+          }),
+          TE.map((result) => {
+            const info = result.value;
 
-          // track custom event after the email was sent
-          if (telemetryClient) {
-            telemetryClient.trackEvent({
-              name: `SendTemplatedLoginEmailActivity.success`,
-              properties: info
-            });
-          }
-        })
-      )
-    ),
-    TE.map(_ => ActivityResultSuccess.encode({ kind: "SUCCESS" })),
-    TE.toUnion
-  )();
+            // track custom event after the email was sent
+            if (telemetryClient) {
+              telemetryClient.trackEvent({
+                name: `SendTemplatedLoginEmailActivity.success`,
+                properties: info,
+              });
+            }
+          }),
+        ),
+      ),
+      TE.map((_) => ActivityResultSuccess.encode({ kind: "SUCCESS" })),
+      TE.toUnion,
+    )();

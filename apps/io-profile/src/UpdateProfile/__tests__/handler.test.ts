@@ -10,9 +10,13 @@ import { BlockedInboxOrChannelEnum } from "@pagopa/io-functions-commons/dist/gen
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicesPreferencesMode";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
+import { Semver } from "@pagopa/ts-commons/lib/strings";
+import { constFalse, constTrue, pipe } from "fp-ts/lib/function";
+import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
+import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
 import {
   context as contextMock,
-  mockGetClient
+  mockGetClient,
 } from "../../__mocks__/durable-functions";
 import {
   aEmailChanged,
@@ -26,24 +30,20 @@ import {
   legacyApiProfileServicePreferencesSettings,
   legacyProfileServicePreferencesSettings,
   manualApiProfileServicePreferencesSettings,
-  manualProfileServicePreferencesSettings
+  manualProfileServicePreferencesSettings,
 } from "../../__mocks__/mocks";
 import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "../../UpsertedProfileOrchestrator/handler";
 import { UpdateProfileHandler } from "../handler";
 
 import { createTracker } from "../../__mocks__/tracking";
 
-import { Semver } from "@pagopa/ts-commons/lib/strings";
-import { constFalse, constTrue, pipe } from "fp-ts/lib/function";
-import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
-import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
 import { generateProfileEmails } from "../../__mocks__/unique-email-enforcement";
 import { EmailValidationProcessParams } from "../../generated/definitions/internal/EmailValidationProcessParams";
 
 const mockSendMessage = vi.fn().mockImplementation(() => Promise.resolve());
-const mockQueueClient = ({
-  sendMessage: mockSendMessage
-} as unknown) as QueueClient;
+const mockQueueClient = {
+  sendMessage: mockSendMessage,
+} as unknown as QueueClient;
 
 let clock: any;
 const spyGetClient = vi.spyOn(df, "getClient");
@@ -61,7 +61,7 @@ afterEach(() => {
 const mockTracker = createTracker("" as any);
 
 const profileEmailReader: IProfileEmailReader = {
-  list: generateProfileEmails(0)
+  list: generateProfileEmails(0),
 };
 
 const validUpdateProfileEmailValidationPayload = { name: aName };
@@ -69,21 +69,21 @@ const validUpdateProfileEmailValidationPayload = { name: aName };
 describe("UpdateProfileHandler", () => {
   it("should return a query error when an error occurs retrieving the existing profile", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => TE.left({}))
+      findLastVersionByModelId: vi.fn(() => TE.left({})),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
       contextMock as any,
       aFiscalCode,
       {} as any,
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseErrorQuery");
@@ -91,21 +91,21 @@ describe("UpdateProfileHandler", () => {
 
   it("should return a not found error if can't find an existing profile", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => TE.of(none))
+      findLastVersionByModelId: vi.fn(() => TE.of(none)),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
       contextMock as any,
       aFiscalCode,
       {} as any,
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseErrorNotFound");
@@ -113,23 +113,23 @@ describe("UpdateProfileHandler", () => {
 
   it("should return a conflict error if the verion in the payload is not the latest", async () => {
     const profileModelMock = {
-      findLastVersionByModelId: vi.fn(() => TE.of(some(aRetrievedProfile)))
+      findLastVersionByModelId: vi.fn(() => TE.of(some(aRetrievedProfile))),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
       contextMock as any,
       aFiscalCode,
       {
-        version: 1
+        version: 1,
       } as any,
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseErrorConflict");
@@ -139,16 +139,16 @@ describe("UpdateProfileHandler", () => {
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() =>
         // Return a profile with a validated email
-        TE.of(some({ ...aRetrievedProfile, isEmailValidated: true }))
+        TE.of(some({ ...aRetrievedProfile, isEmailValidated: true })),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -156,9 +156,9 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        email: aEmailChanged
+        email: aEmailChanged,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseSuccessJson");
@@ -166,8 +166,8 @@ describe("UpdateProfileHandler", () => {
       expect(result.value).toEqual(
         expect.objectContaining({
           email: aEmailChanged,
-          is_email_validated: false
-        })
+          is_email_validated: false,
+        }),
       );
     }
   });
@@ -179,18 +179,18 @@ describe("UpdateProfileHandler", () => {
         TE.of(
           some({
             ...aRetrievedProfile,
-            servicePreferencesSettings: autoProfileServicePreferencesSettings
-          })
-        )
+            servicePreferencesSettings: autoProfileServicePreferencesSettings,
+          }),
+        ),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -198,9 +198,10 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: legacyApiProfileServicePreferencesSettings
+        service_preferences_settings:
+          legacyApiProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseErrorConflict");
@@ -215,18 +216,18 @@ describe("UpdateProfileHandler", () => {
         TE.of(
           some({
             ...aRetrievedProfile,
-            servicePreferencesSettings: manualProfileServicePreferencesSettings
-          })
-        )
+            servicePreferencesSettings: manualProfileServicePreferencesSettings,
+          }),
+        ),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -234,9 +235,10 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: legacyApiProfileServicePreferencesSettings
+        service_preferences_settings:
+          legacyApiProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseErrorConflict");
@@ -251,18 +253,18 @@ describe("UpdateProfileHandler", () => {
         TE.of(
           some({
             ...aRetrievedProfile,
-            servicePreferencesSettings: autoProfileServicePreferencesSettings
-          })
-        )
+            servicePreferencesSettings: autoProfileServicePreferencesSettings,
+          }),
+        ),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -270,9 +272,9 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: undefined
+        service_preferences_settings: undefined,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseErrorConflict");
@@ -287,18 +289,18 @@ describe("UpdateProfileHandler", () => {
         TE.of(
           some({
             ...aRetrievedProfile,
-            servicePreferencesSettings: manualProfileServicePreferencesSettings
-          })
-        )
+            servicePreferencesSettings: manualProfileServicePreferencesSettings,
+          }),
+        ),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -306,9 +308,9 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: undefined
+        service_preferences_settings: undefined,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseErrorConflict");
@@ -320,16 +322,16 @@ describe("UpdateProfileHandler", () => {
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() =>
         // Return a profile with a validated email
-        TE.of(some({ ...aRetrievedProfile }))
+        TE.of(some({ ...aRetrievedProfile })),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -337,9 +339,9 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: undefined
+        service_preferences_settings: undefined,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseSuccessJson");
@@ -348,9 +350,9 @@ describe("UpdateProfileHandler", () => {
         expect.objectContaining({
           service_preferences_settings: {
             mode: legacyProfileServicePreferencesSettings.mode,
-            version: legacyProfileServicePreferencesSettings.version
-          }
-        })
+            version: legacyProfileServicePreferencesSettings.version,
+          },
+        }),
       );
     }
   });
@@ -359,25 +361,25 @@ describe("UpdateProfileHandler", () => {
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() =>
         // Return a profile with a validated email
-        TE.of(some({ ...aRetrievedProfile }))
+        TE.of(some({ ...aRetrievedProfile })),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
       contextMock as any,
       aFiscalCode,
       {
-        ...aProfile
+        ...aProfile,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseSuccessJson");
@@ -386,9 +388,9 @@ describe("UpdateProfileHandler", () => {
         expect.objectContaining({
           service_preferences_settings: {
             mode: legacyProfileServicePreferencesSettings.mode,
-            version: legacyProfileServicePreferencesSettings.version
-          }
-        })
+            version: legacyProfileServicePreferencesSettings.version,
+          },
+        }),
       );
     }
   });
@@ -400,18 +402,18 @@ describe("UpdateProfileHandler", () => {
         TE.of(
           some({
             ...aRetrievedProfile,
-            servicePreferencesSettings: autoProfileServicePreferencesSettings
-          })
-        )
+            servicePreferencesSettings: autoProfileServicePreferencesSettings,
+          }),
+        ),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -419,9 +421,9 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: autoApiProfileServicePreferencesSettings
+        service_preferences_settings: autoApiProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseSuccessJson");
@@ -430,9 +432,9 @@ describe("UpdateProfileHandler", () => {
         expect.objectContaining({
           service_preferences_settings: {
             mode: autoProfileServicePreferencesSettings.mode,
-            version: autoProfileServicePreferencesSettings.version
-          }
-        })
+            version: autoProfileServicePreferencesSettings.version,
+          },
+        }),
       );
     }
   });
@@ -444,18 +446,18 @@ describe("UpdateProfileHandler", () => {
         TE.of(
           some({
             ...aRetrievedProfile,
-            servicePreferencesSettings: manualProfileServicePreferencesSettings
-          })
-        )
+            servicePreferencesSettings: manualProfileServicePreferencesSettings,
+          }),
+        ),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -463,9 +465,10 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: manualApiProfileServicePreferencesSettings
+        service_preferences_settings:
+          manualApiProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseSuccessJson");
@@ -474,9 +477,9 @@ describe("UpdateProfileHandler", () => {
         expect.objectContaining({
           service_preferences_settings: {
             mode: manualProfileServicePreferencesSettings.mode,
-            version: manualProfileServicePreferencesSettings.version
-          }
-        })
+            version: manualProfileServicePreferencesSettings.version,
+          },
+        }),
       );
     }
   });
@@ -485,16 +488,16 @@ describe("UpdateProfileHandler", () => {
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() =>
         // Return a profile with a validated email
-        TE.of(some({ ...aRetrievedProfile }))
+        TE.of(some({ ...aRetrievedProfile })),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -502,12 +505,13 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: manualApiProfileServicePreferencesSettings
+        service_preferences_settings:
+          manualApiProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
-    let expectedServicePreferencesSettingsVersion =
+    const expectedServicePreferencesSettingsVersion =
       legacyProfileServicePreferencesSettings.version + 1;
 
     expect(result.kind).toBe("IResponseSuccessJson");
@@ -516,9 +520,9 @@ describe("UpdateProfileHandler", () => {
         expect.objectContaining({
           service_preferences_settings: {
             mode: manualProfileServicePreferencesSettings.mode,
-            version: expectedServicePreferencesSettingsVersion
-          }
-        })
+            version: expectedServicePreferencesSettingsVersion,
+          },
+        }),
       );
     }
   });
@@ -527,16 +531,16 @@ describe("UpdateProfileHandler", () => {
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() =>
         // Return a profile with a validated email
-        TE.of(some({ ...aRetrievedProfile }))
+        TE.of(some({ ...aRetrievedProfile })),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -544,12 +548,12 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: autoApiProfileServicePreferencesSettings
+        service_preferences_settings: autoApiProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
-    let expectedServicePreferencesSettingsVersion =
+    const expectedServicePreferencesSettingsVersion =
       legacyProfileServicePreferencesSettings.version + 1;
 
     expect(result.kind).toBe("IResponseSuccessJson");
@@ -558,9 +562,9 @@ describe("UpdateProfileHandler", () => {
         expect.objectContaining({
           service_preferences_settings: {
             mode: ServicesPreferencesModeEnum.AUTO,
-            version: expectedServicePreferencesSettingsVersion
-          }
-        })
+            version: expectedServicePreferencesSettingsVersion,
+          },
+        }),
       );
     }
   });
@@ -572,18 +576,18 @@ describe("UpdateProfileHandler", () => {
         TE.of(
           some({
             ...aRetrievedProfile,
-            servicePreferencesSettings: autoProfileServicePreferencesSettings
-          })
-        )
+            servicePreferencesSettings: autoProfileServicePreferencesSettings,
+          }),
+        ),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -591,12 +595,13 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: manualApiProfileServicePreferencesSettings
+        service_preferences_settings:
+          manualApiProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
-    let expectedServicePreferencesSettingsVersion =
+    const expectedServicePreferencesSettingsVersion =
       autoProfileServicePreferencesSettings.version + 1;
 
     expect(result.kind).toBe("IResponseSuccessJson");
@@ -605,9 +610,9 @@ describe("UpdateProfileHandler", () => {
         expect.objectContaining({
           service_preferences_settings: {
             mode: manualProfileServicePreferencesSettings.mode,
-            version: expectedServicePreferencesSettingsVersion
-          }
-        })
+            version: expectedServicePreferencesSettingsVersion,
+          },
+        }),
       );
     }
   });
@@ -619,18 +624,18 @@ describe("UpdateProfileHandler", () => {
         TE.of(
           some({
             ...aRetrievedProfile,
-            servicePreferencesSettings: manualProfileServicePreferencesSettings
-          })
-        )
+            servicePreferencesSettings: manualProfileServicePreferencesSettings,
+          }),
+        ),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -638,12 +643,12 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: autoApiProfileServicePreferencesSettings
+        service_preferences_settings: autoApiProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
-    let expectedServicePreferencesSettingsVersion =
+    const expectedServicePreferencesSettingsVersion =
       manualProfileServicePreferencesSettings.version + 1;
 
     expect(result.kind).toBe("IResponseSuccessJson");
@@ -652,9 +657,9 @@ describe("UpdateProfileHandler", () => {
         expect.objectContaining({
           service_preferences_settings: {
             mode: autoProfileServicePreferencesSettings.mode,
-            version: expectedServicePreferencesSettingsVersion
-          }
-        })
+            version: expectedServicePreferencesSettingsVersion,
+          },
+        }),
       );
     }
   });
@@ -666,7 +671,7 @@ describe("UpdateProfileHandler", () => {
       true,
       true,
       undefined,
-      "should set isInboxEnabled and isWebhookEnabled to true if user accept ToS for the first time"
+      "should set isInboxEnabled and isWebhookEnabled to true if user accept ToS for the first time",
     ],
     [
       true,
@@ -674,7 +679,7 @@ describe("UpdateProfileHandler", () => {
       true,
       false,
       1,
-      "should set isInboxEnabled to true if user has already accepted ToS"
+      "should set isInboxEnabled to true if user has already accepted ToS",
     ],
     [
       false,
@@ -682,7 +687,7 @@ describe("UpdateProfileHandler", () => {
       false,
       true,
       1,
-      "should set isWebhookEnabled to true if user has already accepted ToS"
+      "should set isWebhookEnabled to true if user has already accepted ToS",
     ],
     [
       undefined,
@@ -690,7 +695,7 @@ describe("UpdateProfileHandler", () => {
       false,
       true,
       1,
-      "should keep isInboxEnabled value if not provided and user has already accepted ToS"
+      "should keep isInboxEnabled value if not provided and user has already accepted ToS",
     ],
     [
       true,
@@ -698,8 +703,8 @@ describe("UpdateProfileHandler", () => {
       true,
       false,
       1,
-      "should keep isWebhookEnabled value if not provided and user has already accepted ToS"
-    ]
+      "should keep isWebhookEnabled value if not provided and user has already accepted ToS",
+    ],
   ])(
     "%s, %s, %s, %s, %s",
     async (
@@ -708,31 +713,31 @@ describe("UpdateProfileHandler", () => {
       expectedIsInboxEnabled,
       expectedIsWebHookEnabled,
       acceptedTosVersion,
-      _
+      _,
     ) => {
       const profileModelMock = {
         findLastVersionByModelId: vi.fn(() =>
-          TE.of(some({ ...aRetrievedProfile, acceptedTosVersion }))
+          TE.of(some({ ...aRetrievedProfile, acceptedTosVersion })),
         ),
-        update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+        update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
       };
       const updateProfileHandler = UpdateProfileHandler(
         profileModelMock as any,
         mockQueueClient,
         mockTracker,
-        profileEmailReader
+        profileEmailReader,
       );
       const newProfile = {
         ...aProfile,
         accepted_tos_version: 1,
         is_inbox_enabled: isInboxEnabled as boolean,
-        is_webhook_enabled: isWebhookEnabled as boolean
+        is_webhook_enabled: isWebhookEnabled as boolean,
       };
       const result = await updateProfileHandler(
         contextMock as any,
         aFiscalCode,
         newProfile,
-        validUpdateProfileEmailValidationPayload
+        validUpdateProfileEmailValidationPayload,
       );
 
       expect(result.kind).toBe("IResponseSuccessJson");
@@ -740,38 +745,37 @@ describe("UpdateProfileHandler", () => {
         expect(result.value).toEqual(
           expect.objectContaining({
             is_inbox_enabled: expectedIsInboxEnabled,
-            is_webhook_enabled: expectedIsWebHookEnabled
-          })
+            is_webhook_enabled: expectedIsWebHookEnabled,
+          }),
         );
       }
-    }
+    },
   );
 
   it("should start the orchestrator with the appropriate input after the profile has been created", async () => {
     const updatedProfile = {
       ...aRetrievedProfile,
       email: aEmailChanged,
-      isEmailValidated: false
+      isEmailValidated: false,
     };
-    const upsertedProfileOrchestratorInput = UpsertedProfileOrchestratorInput.encode(
-      {
+    const upsertedProfileOrchestratorInput =
+      UpsertedProfileOrchestratorInput.encode({
         newProfile: updatedProfile,
         oldProfile: aRetrievedProfile,
         updatedAt: new Date(),
-        name: validUpdateProfileEmailValidationPayload.name
-      }
-    );
+        name: validUpdateProfileEmailValidationPayload.name,
+      });
 
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() => TE.of(some(aRetrievedProfile))),
-      update: vi.fn(() => TE.of(updatedProfile))
+      update: vi.fn(() => TE.of(updatedProfile)),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     await updateProfileHandler(
@@ -779,9 +783,9 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        email: aEmailChanged
+        email: aEmailChanged,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(df.getClient).toHaveBeenCalledTimes(1);
@@ -790,7 +794,7 @@ describe("UpdateProfileHandler", () => {
     expect(dfClient.startNew).toHaveBeenCalledWith(
       "UpsertedProfileOrchestrator",
       undefined,
-      upsertedProfileOrchestratorInput
+      upsertedProfileOrchestratorInput,
     );
   });
 
@@ -802,19 +806,19 @@ describe("UpdateProfileHandler", () => {
           some({
             ...aRetrievedProfile,
             blockedInboxOrChannels: {
-              serviceId: [BlockedInboxOrChannelEnum.INBOX]
-            }
-          })
-        )
+              serviceId: [BlockedInboxOrChannelEnum.INBOX],
+            },
+          }),
+        ),
       ),
-      update: vi.fn(p => TE.of(p))
+      update: vi.fn((p) => TE.of(p)),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     await updateProfileHandler(
@@ -824,24 +828,25 @@ describe("UpdateProfileHandler", () => {
         ...aProfile,
         blocked_inbox_or_channels: {
           newService: [BlockedInboxOrChannelEnum.EMAIL],
-          serviceId: [BlockedInboxOrChannelEnum.INBOX]
+          serviceId: [BlockedInboxOrChannelEnum.INBOX],
         },
-        service_preferences_settings: legacyApiProfileServicePreferencesSettings
+        service_preferences_settings:
+          legacyApiProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(profileModelMock.update).toBeCalledWith(
       expect.objectContaining({
         blockedInboxOrChannels: {
           newService: [BlockedInboxOrChannelEnum.EMAIL],
-          serviceId: [BlockedInboxOrChannelEnum.INBOX]
+          serviceId: [BlockedInboxOrChannelEnum.INBOX],
         },
         servicePreferencesSettings: {
           mode: ServicesPreferencesModeEnum.LEGACY,
-          version: -1
-        }
-      })
+          version: -1,
+        },
+      }),
     );
     expect(mockSendMessage).not.toBeCalled();
   });
@@ -850,16 +855,16 @@ describe("UpdateProfileHandler", () => {
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() =>
         // Return a profile with a validated email
-        TE.of(some(aRetrievedProfile))
+        TE.of(some(aRetrievedProfile)),
       ),
-      update: vi.fn(p => TE.of(p))
+      update: vi.fn((p) => TE.of(p)),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     await updateProfileHandler(
@@ -867,18 +872,18 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: autoApiProfileServicePreferencesSettings
+        service_preferences_settings: autoApiProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(profileModelMock.update).toBeCalledWith(
       expect.objectContaining({
         servicePreferencesSettings: {
           mode: ServicesPreferencesModeEnum.AUTO,
-          version: 0
-        }
-      })
+          version: 0,
+        },
+      }),
     );
     expect(mockSendMessage).not.toBeCalled();
   });
@@ -891,19 +896,19 @@ describe("UpdateProfileHandler", () => {
           some({
             ...aRetrievedProfile,
             blockedInboxOrChannels: {
-              serviceId: [BlockedInboxOrChannelEnum.INBOX]
-            }
-          })
-        )
+              serviceId: [BlockedInboxOrChannelEnum.INBOX],
+            },
+          }),
+        ),
       ),
-      update: vi.fn(p => TE.of(p))
+      update: vi.fn((p) => TE.of(p)),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     await updateProfileHandler(
@@ -911,9 +916,9 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: autoApiProfileServicePreferencesSettings
+        service_preferences_settings: autoApiProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(profileModelMock.update).toBeCalledWith(
@@ -921,9 +926,9 @@ describe("UpdateProfileHandler", () => {
         blockedInboxOrChannels: undefined,
         servicePreferencesSettings: {
           mode: ServicesPreferencesModeEnum.AUTO,
-          version: 0
-        }
-      })
+          version: 0,
+        },
+      }),
     );
     expect(mockSendMessage).toBeCalled();
   });
@@ -935,11 +940,11 @@ describe("UpdateProfileHandler", () => {
         TE.of(
           some({
             ...aRetrievedProfile,
-            servicePreferencesSettings: manualProfileServicePreferencesSettings
-          })
-        )
+            servicePreferencesSettings: manualProfileServicePreferencesSettings,
+          }),
+        ),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     mockSendMessage.mockImplementation(() => Promise.resolve());
@@ -947,7 +952,7 @@ describe("UpdateProfileHandler", () => {
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     await updateProfileHandler(
@@ -955,9 +960,9 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: autoApiProfileServicePreferencesSettings
+        service_preferences_settings: autoApiProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(mockSendMessage).toBeCalledTimes(0);
@@ -967,9 +972,9 @@ describe("UpdateProfileHandler", () => {
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() =>
         // Return a profile with a validated email
-        TE.of(some(aRetrievedProfile))
+        TE.of(some(aRetrievedProfile)),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     mockSendMessage.mockImplementation(() => Promise.resolve());
@@ -977,7 +982,7 @@ describe("UpdateProfileHandler", () => {
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     await updateProfileHandler(
@@ -985,9 +990,9 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        service_preferences_settings: manualProfileServicePreferencesSettings
+        service_preferences_settings: manualProfileServicePreferencesSettings,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(mockSendMessage).toBeCalledTimes(0);
@@ -996,16 +1001,16 @@ describe("UpdateProfileHandler", () => {
   it("GIVEN a profile with a valid last_app_version, the handler should write the field and return successfully", async () => {
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() =>
-        TE.of(some({ ...aRetrievedProfile, lastAppVersion: "UNKNOWN" }))
+        TE.of(some({ ...aRetrievedProfile, lastAppVersion: "UNKNOWN" })),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -1013,9 +1018,9 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        last_app_version: "0.0.1" as Semver
+        last_app_version: "0.0.1" as Semver,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(result.kind).toBe("IResponseSuccessJson");
@@ -1027,17 +1032,17 @@ describe("UpdateProfileHandler", () => {
   it("GIVEN a profile without last_app_version field, the update function will take that field as undefined", async () => {
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() => TE.of(some(aRetrievedProfile))),
-      update: vi.fn(_ =>
+      update: vi.fn((_) =>
         // lastAppVersion is set to “UNKNOWN“ by the decode inside the update method
-        TE.of({ ...aRetrievedProfile, ..._, lastAppVersion: "UNKNOWN" })
-      )
+        TE.of({ ...aRetrievedProfile, ..._, lastAppVersion: "UNKNOWN" }),
+      ),
     };
 
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
-      profileEmailReader
+      profileEmailReader,
     );
 
     const result = await updateProfileHandler(
@@ -1045,15 +1050,15 @@ describe("UpdateProfileHandler", () => {
       aFiscalCode,
       {
         ...aProfile,
-        last_app_version: undefined
+        last_app_version: undefined,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
 
     expect(profileModelMock.update).toBeCalledWith(
       expect.objectContaining({
-        lastAppVersion: undefined
-      })
+        lastAppVersion: undefined,
+      }),
     );
     expect(result.kind).toBe("IResponseSuccessJson");
     if (result.kind === "IResponseSuccessJson") {
@@ -1082,27 +1087,27 @@ describe("UpdateProfileHandler", () => {
       __,
       givenProfile,
       reminder_status,
-      expectedReminderStatus
+      expectedReminderStatus,
     }) => {
       const profileModelMock = {
         findLastVersionByModelId: vi.fn(() => TE.of(some(givenProfile))),
-        update: vi.fn(_ =>
+        update: vi.fn((_) =>
           TE.of(
             pipe(
               RetrievedProfile.decode({ ...aRetrievedProfile, ..._ }),
-              E.getOrElseW(_ => {
+              E.getOrElseW((_) => {
                 throw "error";
-              })
-            )
-          )
-        )
+              }),
+            ),
+          ),
+        ),
       };
 
       const updateProfileHandler = UpdateProfileHandler(
         profileModelMock as any,
         mockQueueClient,
         mockTracker,
-        profileEmailReader
+        profileEmailReader,
       );
 
       const result = await updateProfileHandler(
@@ -1110,22 +1115,22 @@ describe("UpdateProfileHandler", () => {
         aFiscalCode,
         {
           ...aProfile,
-          reminder_status
+          reminder_status,
         },
-        validUpdateProfileEmailValidationPayload
+        validUpdateProfileEmailValidationPayload,
       );
 
       expect(profileModelMock.update).toBeCalledWith(
         expect.objectContaining({
-          reminderStatus: reminder_status
-        })
+          reminderStatus: reminder_status,
+        }),
       );
 
       expect(result.kind).toBe("IResponseSuccessJson");
       if (result.kind === "IResponseSuccessJson") {
         expect(result.value.reminder_status).toBe(expectedReminderStatus);
       }
-    }
+    },
   );
 
   // pushNotificationsContentType optional field tests
@@ -1148,23 +1153,23 @@ describe("UpdateProfileHandler", () => {
     async ({ givenProfile, input, expected }) => {
       const profileModelMock = {
         findLastVersionByModelId: vi.fn(() => TE.of(some(givenProfile))),
-        update: vi.fn(_ =>
+        update: vi.fn((_) =>
           TE.of(
             pipe(
               RetrievedProfile.decode({ ...aRetrievedProfile, ..._ }),
-              E.getOrElseW(_ => {
+              E.getOrElseW((_) => {
                 throw "error";
-              })
-            )
-          )
-        )
+              }),
+            ),
+          ),
+        ),
       };
 
       const updateProfileHandler = UpdateProfileHandler(
         profileModelMock as any,
         mockQueueClient,
         mockTracker,
-        profileEmailReader
+        profileEmailReader,
       );
 
       const result = await updateProfileHandler(
@@ -1172,48 +1177,48 @@ describe("UpdateProfileHandler", () => {
         aFiscalCode,
         {
           ...aProfile,
-          push_notifications_content_type: input
+          push_notifications_content_type: input,
         },
-        validUpdateProfileEmailValidationPayload
+        validUpdateProfileEmailValidationPayload,
       );
 
       expect(profileModelMock.update).toBeCalledWith(
         expect.objectContaining({
-          pushNotificationsContentType: input
-        })
+          pushNotificationsContentType: input,
+        }),
       );
 
       expect(result.kind).toBe("IResponseSuccessJson");
       if (result.kind === "IResponseSuccessJson") {
         expect(result.value.push_notifications_content_type).toBe(expected);
       }
-    }
+    },
   );
 
   it("when a citizen changes e-mail it should return IResponseErrorPreconditionFailed if the e-mail is already taken", async () => {
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() =>
         // Return a profile with a validated email
-        TE.of(some(aRetrievedProfile))
+        TE.of(some(aRetrievedProfile)),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
       {
-        list: generateProfileEmails(10)
-      }
+        list: generateProfileEmails(10),
+      },
     );
     const result = await updateProfileHandler(
       contextMock as any,
       aFiscalCode,
       {
         ...aProfile,
-        email: aEmailChanged
+        email: aEmailChanged,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
     expect(result.kind).toBe("IResponseErrorPreconditionFailed");
   });
@@ -1230,63 +1235,63 @@ describe("UpdateProfileHandler", () => {
       const profileModelMock = {
         findLastVersionByModelId: vi.fn(() =>
           // Return a profile with a validated email
-          TE.of(some({ ...aRetrievedProfileWithEmail, isEmailValidated }))
+          TE.of(some({ ...aRetrievedProfileWithEmail, isEmailValidated })),
         ),
-        update: vi.fn(_ => TE.of({ ...aRetrievedProfileWithEmail, ..._ }))
+        update: vi.fn((_) => TE.of({ ...aRetrievedProfileWithEmail, ..._ })),
       };
       const updateProfileHandler = UpdateProfileHandler(
         profileModelMock as any,
         mockQueueClient,
         mockTracker,
         {
-          list: mockList
-        }
+          list: mockList,
+        },
       );
       const result = await updateProfileHandler(
         contextMock as any,
         aFiscalCode,
         {
           ...aProfile,
-          email: aRetrievedProfileWithEmail.email
+          email: aRetrievedProfileWithEmail.email,
         },
-        validUpdateProfileEmailValidationPayload
+        validUpdateProfileEmailValidationPayload,
       );
       expect(result.kind).toBe("IResponseSuccessJson");
 
       if (result.kind === "IResponseSuccessJson") {
         expect(result.value).toMatchObject({
-          is_email_already_taken: !isEmailValidated
+          is_email_already_taken: !isEmailValidated,
         });
       }
 
       if (isEmailValidated) expect(mockList).not.toBeCalled();
-    }
+    },
   );
 
   it("returns 500 when the unique e-mail enforcement check fails", async () => {
     const profileModelMock = {
       findLastVersionByModelId: vi.fn(() =>
         // Return a profile with a validated email
-        TE.of(some(aRetrievedProfile))
+        TE.of(some(aRetrievedProfile)),
       ),
-      update: vi.fn(_ => TE.of({ ...aRetrievedProfile, ..._ }))
+      update: vi.fn((_) => TE.of({ ...aRetrievedProfile, ..._ })),
     };
     const updateProfileHandler = UpdateProfileHandler(
       profileModelMock as any,
       mockQueueClient,
       mockTracker,
       {
-        list: generateProfileEmails(1, true)
-      }
+        list: generateProfileEmails(1, true),
+      },
     );
     const result = await updateProfileHandler(
       contextMock as any,
       aFiscalCode,
       {
         ...aProfile,
-        email: aEmailChanged
+        email: aEmailChanged,
       },
-      validUpdateProfileEmailValidationPayload
+      validUpdateProfileEmailValidationPayload,
     );
     expect(result.kind).toBe("IResponseErrorInternal");
   });

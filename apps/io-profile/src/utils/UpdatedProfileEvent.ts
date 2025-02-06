@@ -11,11 +11,11 @@ import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/p
 export const UpdatedProfileEvent = t.intersection([
   t.interface({
     newProfile: RetrievedProfile,
-    updatedAt: t.number
+    updatedAt: t.number,
   }),
   t.partial({
-    oldProfile: RetrievedProfile
-  })
+    oldProfile: RetrievedProfile,
+  }),
 ]);
 
 export type UpdatedProfileEvent = t.TypeOf<typeof UpdatedProfileEvent>;

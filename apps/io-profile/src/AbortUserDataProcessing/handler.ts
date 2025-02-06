@@ -5,13 +5,13 @@ import { Context } from "@azure/functions";
 
 import {
   UserDataProcessingChoice,
-  UserDataProcessingChoiceEnum
+  UserDataProcessingChoiceEnum,
 } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessingChoice";
 import { UserDataProcessingStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessingStatus";
 import {
   makeUserDataProcessingId,
   RetrievedUserDataProcessing,
-  UserDataProcessingModel
+  UserDataProcessingModel,
 } from "@pagopa/io-functions-commons/dist/src/models/user_data_processing";
 
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
@@ -19,11 +19,11 @@ import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/util
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
 import {
   withRequestMiddlewares,
-  wrapRequestHandler
+  wrapRequestHandler,
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 import {
   IResponseErrorQuery,
-  ResponseErrorQuery
+  ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
 import {
@@ -33,7 +33,7 @@ import {
   IResponseSuccessAccepted,
   ResponseErrorConflict,
   ResponseErrorNotFound,
-  ResponseSuccessAccepted
+  ResponseSuccessAccepted,
 } from "@pagopa/ts-commons/lib/responses";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 
@@ -52,8 +52,8 @@ const AbortableUserDataProcessing = t.intersection([
   t.interface({
     // abort makes sense only for DELETE as DOWNLOAD is processed straight away
     choice: t.literal(UserDataProcessingChoiceEnum.DELETE),
-    status: t.literal(UserDataProcessingStatusEnum.PENDING)
-  })
+    status: t.literal(UserDataProcessingStatusEnum.PENDING),
+  }),
 ]);
 
 /**
@@ -72,12 +72,12 @@ type IAbortUserDataProcessingHandlerResult =
 type IAbortUserDataProcessingHandler = (
   context: Context,
   fiscalCode: FiscalCode,
-  choice: UserDataProcessingChoice
+  choice: UserDataProcessingChoice,
 ) => Promise<IAbortUserDataProcessingHandlerResult>;
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function AbortUserDataProcessingHandler(
-  userDataProcessingModel: UserDataProcessingModel
+  userDataProcessingModel: UserDataProcessingModel,
 ): IAbortUserDataProcessingHandler {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   return async (_, fiscalCode, choice) => {
@@ -86,11 +86,11 @@ export function AbortUserDataProcessingHandler(
     // retrieve the eventual previous delete request
     return pipe(
       userDataProcessingModel.findLastVersionByModelId([id, fiscalCode]),
-      TE.mapLeft(errorUserDataProcessing =>
+      TE.mapLeft((errorUserDataProcessing) =>
         ResponseErrorQuery(
           "Error while retrieving a previous version of user data processing",
-          errorUserDataProcessing
-        )
+          errorUserDataProcessing,
+        ),
       ),
       // check we have a previous request to abort
       TE.chainW(
@@ -99,38 +99,38 @@ export function AbortUserDataProcessingHandler(
             TE.left(
               ResponseErrorNotFound(
                 "Not Found",
-                `Cannot find any DELETE request for user ${fiscalCode}`
-              )
+                `Cannot find any DELETE request for user ${fiscalCode}`,
+              ),
             ),
-          value => TE.of(value)
-        )
+          (value) => TE.of(value),
+        ),
       ),
       // check the request can be aborted
       TE.chainW(
         flow(
           AbortableUserDataProcessing.decode,
           TE.fromEither,
-          TE.mapLeft(errors =>
+          TE.mapLeft((errors) =>
             ResponseErrorConflict(
-              `Cannot abort the request because: ${readableReport(errors)}`
-            )
-          )
-        )
+              `Cannot abort the request because: ${readableReport(errors)}`,
+            ),
+          ),
+        ),
       ),
       // finally save the abortion
-      TE.chainW(retrievedUserDataProcessing =>
+      TE.chainW((retrievedUserDataProcessing) =>
         pipe(
           userDataProcessingModel.update({
             ...retrievedUserDataProcessing,
-            status: UserDataProcessingStatusEnum.ABORTED
+            status: UserDataProcessingStatusEnum.ABORTED,
           }),
-          TE.mapLeft(error =>
-            ResponseErrorQuery("Failed to save the entity", error)
-          )
-        )
+          TE.mapLeft((error) =>
+            ResponseErrorQuery("Failed to save the entity", error),
+          ),
+        ),
       ),
-      TE.map(__ => ResponseSuccessAccepted("", undefined)),
-      TE.toUnion
+      TE.map((__) => ResponseSuccessAccepted("", undefined)),
+      TE.toUnion,
     )();
   };
 }
@@ -140,14 +140,14 @@ export function AbortUserDataProcessingHandler(
  */
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function AbortUserDataProcessing(
-  userDataProcessingModel: UserDataProcessingModel
+  userDataProcessingModel: UserDataProcessingModel,
 ): express.RequestHandler {
   const handler = AbortUserDataProcessingHandler(userDataProcessingModel);
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
     FiscalCodeMiddleware,
-    RequiredParamMiddleware("choice", UserDataProcessingChoice)
+    RequiredParamMiddleware("choice", UserDataProcessingChoice),
   );
   return wrapRequestHandler(middlewaresWrap(handler));
 }

@@ -11,11 +11,11 @@ import {
   aEmail,
   aFiscalCode,
   aValidator,
-  aValidatorHash
+  aValidatorHash,
 } from "../../__mocks__/mocks";
 import {
   ActivityInput as CreateValidationTokenActivityInput,
-  getCreateValidationTokenActivityHandler
+  getCreateValidationTokenActivityHandler,
 } from "../handler";
 
 // eslint-disable-next-line functional/no-let
@@ -35,7 +35,7 @@ describe("CreateValidationTokenActivityHandler", () => {
     const tableServiceMock = {
       insertEntity: vi.fn((_, __, f) => {
         f(undefined, {});
-      })
+      }),
     };
 
     const handler = getCreateValidationTokenActivityHandler(
@@ -46,12 +46,12 @@ describe("CreateValidationTokenActivityHandler", () => {
       // validator
       () => aValidator,
       // validatorHash
-      () => aValidatorHash
+      () => aValidatorHash,
     );
 
     const input = CreateValidationTokenActivityInput.encode({
       email: aEmail,
-      fiscalCode: aFiscalCode
+      fiscalCode: aFiscalCode,
     });
 
     await handler(contextMock as any, input);
@@ -63,9 +63,9 @@ describe("CreateValidationTokenActivityHandler", () => {
         FiscalCode: aFiscalCode,
         InvalidAfter: new Date(Date.now() + 5000),
         PartitionKey: id,
-        RowKey: aValidatorHash
+        RowKey: aValidatorHash,
       },
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 });

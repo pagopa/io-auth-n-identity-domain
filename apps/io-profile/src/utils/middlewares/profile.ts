@@ -13,13 +13,13 @@ import { IRequestMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/
 export const NewProfileMiddleware: IRequestMiddleware<
   "IResponseErrorValidation",
   NewProfile
-> = request =>
+> = (request) =>
   Promise.resolve(
     pipe(
       request.body,
       NewProfile.decode,
-      E.mapLeft(ResponseErrorFromValidationErrors(NewProfile))
-    )
+      E.mapLeft(ResponseErrorFromValidationErrors(NewProfile)),
+    ),
   );
 
 /**
@@ -28,11 +28,11 @@ export const NewProfileMiddleware: IRequestMiddleware<
 export const ProfileMiddleware: IRequestMiddleware<
   "IResponseErrorValidation",
   Profile
-> = request =>
+> = (request) =>
   Promise.resolve(
     pipe(
       request.body,
       Profile.decode,
-      E.mapLeft(ResponseErrorFromValidationErrors(Profile))
-    )
+      E.mapLeft(ResponseErrorFromValidationErrors(Profile)),
+    ),
   );

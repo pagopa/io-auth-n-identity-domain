@@ -17,18 +17,18 @@ import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/p
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicesPreferencesMode";
 import {
   OrchestratorInput as EmailValidationWithTemplateProcessOrchestratorInput,
-  OrchestratorResult as EmailValidationWithTemplateProcessOrchestratorResult
+  OrchestratorResult as EmailValidationWithTemplateProcessOrchestratorResult,
 } from "../EmailValidationWithTemplateProcessOrchestrator/handler";
 import { Input as UpdateServiceSubscriptionFeedActivityInput } from "../UpdateSubscriptionsFeedActivity/handler";
 import { diffBlockedServices } from "../utils/profiles";
 import {
   ActivityResult,
-  ActivityResultSuccess
+  ActivityResultSuccess,
 } from "../GetServicesPreferencesActivity/handler";
 import { ActivityInput as SendWelcomeMessageActivityInput } from "../SendWelcomeMessagesActivity/handler";
 import {
   makeProfileCompletedEvent,
-  makeServicePreferencesChangedEvent
+  makeServicePreferencesChangedEvent,
 } from "../utils/emitted_events";
 
 /**
@@ -40,12 +40,12 @@ import {
 export const OrchestratorInput = t.intersection([
   t.interface({
     newProfile: RetrievedProfile,
-    updatedAt: UTCISODateFromString
+    updatedAt: UTCISODateFromString,
   }),
   t.partial({
     name: t.string,
-    oldProfile: RetrievedProfile
-  })
+    oldProfile: RetrievedProfile,
+  }),
 ]);
 
 export type OrchestratorInput = t.TypeOf<typeof OrchestratorInput>;
@@ -55,7 +55,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
   readonly sendCashbackMessage: boolean;
 }) =>
   // eslint-disable-next-line max-lines-per-function, complexity, sonarjs/cognitive-complexity
-  function*(context: IOrchestrationFunctionContext): Generator<unknown> {
+  function* (context: IOrchestrationFunctionContext): Generator<unknown> {
     const logPrefix = `UpsertedProfileOrchestrator`;
 
     const retryOptions = new df.RetryOptions(5000, 10);
@@ -64,15 +64,14 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
 
     // Get and decode orchestrator input
     const input = context.df.getInput();
-    const errorOrUpsertedProfileOrchestratorInput = OrchestratorInput.decode(
-      input
-    );
+    const errorOrUpsertedProfileOrchestratorInput =
+      OrchestratorInput.decode(input);
 
     if (E.isLeft(errorOrUpsertedProfileOrchestratorInput)) {
       context.log.error(
         `${logPrefix}|Error decoding input|ERROR=${readableReport(
-          errorOrUpsertedProfileOrchestratorInput.left
-        )}`
+          errorOrUpsertedProfileOrchestratorInput.left,
+        )}`,
       );
       return false;
     }
@@ -82,15 +81,11 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
 
     // Log the input
     context.log.verbose(
-      `${logPrefix}|INPUT=${JSON.stringify(upsertedProfileOrchestratorInput)}`
+      `${logPrefix}|INPUT=${JSON.stringify(upsertedProfileOrchestratorInput)}`,
     );
 
-    const {
-      newProfile,
-      oldProfile,
-      updatedAt,
-      name
-    } = upsertedProfileOrchestratorInput;
+    const { newProfile, oldProfile, updatedAt, name } =
+      upsertedProfileOrchestratorInput;
 
     type ProfileOperation =
       | {
@@ -119,31 +114,32 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
         // Start a sub-orchestrator that handles the email validation process.
         // From the caller point it is like a normal activity.
         context.log.verbose(
-          `${logPrefix}|Email changed, starting the email validation process`
+          `${logPrefix}|Email changed, starting the email validation process`,
         );
-        const emailValidationProcessOrchestartorInput = EmailValidationWithTemplateProcessOrchestratorInput.encode(
-          {
+        const emailValidationProcessOrchestartorInput =
+          EmailValidationWithTemplateProcessOrchestratorInput.encode({
             email,
             fiscalCode,
-            name
-          }
-        );
+            name,
+          });
 
-        const emailValidationProcessOrchestartorResultJson = yield context.df.callSubOrchestratorWithRetry(
-          "EmailValidationWithTemplateProcessOrchestrator",
-          retryOptions,
-          emailValidationProcessOrchestartorInput
-        );
+        const emailValidationProcessOrchestartorResultJson =
+          yield context.df.callSubOrchestratorWithRetry(
+            "EmailValidationWithTemplateProcessOrchestrator",
+            retryOptions,
+            emailValidationProcessOrchestartorInput,
+          );
 
-        const errorOrEmailValidationProcessOrchestartorResult = EmailValidationWithTemplateProcessOrchestratorResult.decode(
-          emailValidationProcessOrchestartorResultJson
-        );
+        const errorOrEmailValidationProcessOrchestartorResult =
+          EmailValidationWithTemplateProcessOrchestratorResult.decode(
+            emailValidationProcessOrchestartorResultJson,
+          );
 
         if (E.isLeft(errorOrEmailValidationProcessOrchestartorResult)) {
           context.log.error(
             `${logPrefix}|Error decoding sub-orchestrator result|ERROR=${readableReport(
-              errorOrEmailValidationProcessOrchestartorResult.left
-            )}`
+              errorOrEmailValidationProcessOrchestartorResult.left,
+            )}`,
           );
         } else {
           const emailValidationProcessOrchestartorResult =
@@ -151,18 +147,18 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
 
           if (emailValidationProcessOrchestartorResult.kind === "FAILURE") {
             context.log.error(
-              `${logPrefix}|Sub-orchestrator error|ERROR=${emailValidationProcessOrchestartorResult.reason}`
+              `${logPrefix}|Sub-orchestrator error|ERROR=${emailValidationProcessOrchestartorResult.reason}`,
             );
             return false;
           }
 
           context.log.verbose(
-            `${logPrefix}|Email verification process completed sucessfully`
+            `${logPrefix}|Email verification process completed sucessfully`,
           );
         }
       } catch (e) {
         context.log.error(
-          `${logPrefix}|Email verification process max retry exceeded|ERROR=${e}`
+          `${logPrefix}|Email verification process max retry exceeded|ERROR=${e}`,
         );
       }
     }
@@ -178,7 +174,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
       (profileOperation.type === "CREATED" || hasOldProfileWithInboxDisabled);
 
     context.log.verbose(
-      `${logPrefix}|OPERATION=${profileOperation}|INBOX_ENABLED=${isInboxEnabled}|INBOX_JUST_ENABLED=${hasJustEnabledInbox}`
+      `${logPrefix}|OPERATION=${profileOperation}|INBOX_ENABLED=${isInboxEnabled}|INBOX_JUST_ENABLED=${hasJustEnabledInbox}`,
     );
 
     if (hasJustEnabledInbox) {
@@ -187,16 +183,16 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
         retryOptions,
         {
           messageKind: "WELCOME",
-          profile: newProfile
-        } as SendWelcomeMessageActivityInput
+          profile: newProfile,
+        } as SendWelcomeMessageActivityInput,
       );
       yield context.df.callActivityWithRetry(
         "SendWelcomeMessagesActivity",
         retryOptions,
         {
           messageKind: "HOWTO",
-          profile: newProfile
-        } as SendWelcomeMessageActivityInput
+          profile: newProfile,
+        } as SendWelcomeMessageActivityInput,
       );
       if (params.sendCashbackMessage) {
         yield context.df.callActivityWithRetry(
@@ -204,8 +200,8 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
           retryOptions,
           {
             messageKind: "CASHBACK",
-            profile: newProfile
-          } as SendWelcomeMessageActivityInput
+            profile: newProfile,
+          } as SendWelcomeMessageActivityInput,
         );
       }
     }
@@ -214,7 +210,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
     if (profileOperation.type === "CREATED") {
       // When a profile get created we add an entry to the profile subscriptions
       context.log.verbose(
-        `${logPrefix}|Calling UpdateSubscriptionsFeedActivity|OPERATION=SUBSCRIBED`
+        `${logPrefix}|Calling UpdateSubscriptionsFeedActivity|OPERATION=SUBSCRIBED`,
       );
       yield context.df.callActivityWithRetry(
         "UpdateSubscriptionsFeedActivity",
@@ -224,14 +220,14 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
           operation: "SUBSCRIBED",
           subscriptionKind: "PROFILE",
           updatedAt: updatedAt.getTime(),
-          version: newProfile.version
-        } as UpdateServiceSubscriptionFeedActivityInput
+          version: newProfile.version,
+        } as UpdateServiceSubscriptionFeedActivityInput,
       );
     } else {
       const { newServicePreferencesMode, oldServicePreferenceMode } = {
         newServicePreferencesMode: newProfile.servicePreferencesSettings.mode,
         oldServicePreferenceMode:
-          profileOperation.oldProfile.servicePreferencesSettings.mode
+          profileOperation.oldProfile.servicePreferencesSettings.mode,
       };
 
       if (newServicePreferencesMode === ServicesPreferencesModeEnum.LEGACY) {
@@ -239,17 +235,15 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
         // blocked and unblocked during this profile update.
         // Blocked services get mapped to unsubscribe events, while unblocked ones
         // get mapped to subscribe events.
-        const {
-          e1: unsubscribedServices,
-          e2: subscribedServices
-        } = diffBlockedServices(
-          profileOperation.oldProfile.blockedInboxOrChannels,
-          newProfile.blockedInboxOrChannels
-        );
+        const { e1: unsubscribedServices, e2: subscribedServices } =
+          diffBlockedServices(
+            profileOperation.oldProfile.blockedInboxOrChannels,
+            newProfile.blockedInboxOrChannels,
+          );
 
         for (const s of subscribedServices) {
           context.log.verbose(
-            `${logPrefix}|Calling UpdateSubscriptionsFeedActivity|OPERATION=SUBSCRIBED|SERVICE_ID=${s}`
+            `${logPrefix}|Calling UpdateSubscriptionsFeedActivity|OPERATION=SUBSCRIBED|SERVICE_ID=${s}`,
           );
           yield context.df.callActivityWithRetry(
             "UpdateSubscriptionsFeedActivity",
@@ -260,14 +254,14 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
               serviceId: s as ServiceId,
               subscriptionKind: "SERVICE",
               updatedAt: updatedAt.getTime(),
-              version: newProfile.version
-            } as UpdateServiceSubscriptionFeedActivityInput
+              version: newProfile.version,
+            } as UpdateServiceSubscriptionFeedActivityInput,
           );
         }
 
         for (const s of unsubscribedServices) {
           context.log.verbose(
-            `${logPrefix}|Calling UpdateSubscriptionsFeedActivity|OPERATION=UNSUBSCRIBED|SERVICE_ID=${s}`
+            `${logPrefix}|Calling UpdateSubscriptionsFeedActivity|OPERATION=UNSUBSCRIBED|SERVICE_ID=${s}`,
           );
           yield context.df.callActivityWithRetry(
             "UpdateSubscriptionsFeedActivity",
@@ -278,8 +272,8 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
               serviceId: s as ServiceId,
               subscriptionKind: "SERVICE",
               updatedAt: updatedAt.getTime(),
-              version: newProfile.version
-            } as UpdateServiceSubscriptionFeedActivityInput
+              version: newProfile.version,
+            } as UpdateServiceSubscriptionFeedActivityInput,
           );
         }
         // we need to update Subscription Feed on Profile Upsert when:
@@ -303,7 +297,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
             ? "UNSUBSCRIBED"
             : "SUBSCRIBED";
         context.log.verbose(
-          `${logPrefix}|Calling UpdateSubscriptionsFeedActivity|OPERATION=${feedOperation}`
+          `${logPrefix}|Calling UpdateSubscriptionsFeedActivity|OPERATION=${feedOperation}`,
         );
 
         // Only if previous mode is MANUAL or AUTO could exists services preferences.
@@ -318,29 +312,29 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
             {
               fiscalCode: profileOperation.oldProfile.fiscalCode,
               settingsVersion:
-                profileOperation.oldProfile.servicePreferencesSettings.version
-            }
+                profileOperation.oldProfile.servicePreferencesSettings.version,
+            },
           );
 
           const maybeServicesPreferences = pipe(
             ActivityResult.decode(activityResult),
-            E.mapLeft(_ => new Error(readableReport(_))),
+            E.mapLeft((_) => new Error(readableReport(_))),
             E.chain(
               E.fromPredicate(
                 (_): _ is ActivityResultSuccess => _.kind === "SUCCESS",
-                _ => new Error(_.kind)
-              )
+                (_) => new Error(_.kind),
+              ),
             ),
             E.fold(
-              err => {
+              (err) => {
                 // Invalid Activity input. The orchestration fail
                 context.log.error(
-                  `${logPrefix}|GetServicesPreferencesActivity|ERROR=${err.message}`
+                  `${logPrefix}|GetServicesPreferencesActivity|ERROR=${err.message}`,
                 );
                 throw err;
               },
-              _ => _.preferences
-            )
+              (_) => _.preferences,
+            ),
           );
           yield context.df.callActivityWithRetry(
             "UpdateSubscriptionsFeedActivity",
@@ -351,8 +345,8 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
               previousPreferences: maybeServicesPreferences,
               subscriptionKind: "PROFILE",
               updatedAt: updatedAt.getTime(),
-              version: newProfile.version
-            } as UpdateServiceSubscriptionFeedActivityInput
+              version: newProfile.version,
+            } as UpdateServiceSubscriptionFeedActivityInput,
           );
         } else {
           yield context.df.callActivityWithRetry(
@@ -363,8 +357,8 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
               operation: feedOperation,
               subscriptionKind: "PROFILE",
               updatedAt: updatedAt.getTime(),
-              version: newProfile.version
-            } as UpdateServiceSubscriptionFeedActivityInput
+              version: newProfile.version,
+            } as UpdateServiceSubscriptionFeedActivityInput,
           );
         }
       }
@@ -383,8 +377,8 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
           ? O.some(
               makeProfileCompletedEvent(
                 newProfile.fiscalCode,
-                newProfile.servicePreferencesSettings.mode
-              )
+                newProfile.servicePreferencesSettings.mode,
+              ),
             )
           : O.none,
         hasChangedPreferencesMode
@@ -392,19 +386,23 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
               makeServicePreferencesChangedEvent(
                 newProfile.fiscalCode,
                 newProfile.servicePreferencesSettings.mode,
-                oldProfile.servicePreferencesSettings.mode
-              )
+                oldProfile.servicePreferencesSettings.mode,
+              ),
             )
-          : O.none
+          : O.none,
       ],
-      RA.compact
+      RA.compact,
     );
 
     if (emittedEvents.length) {
       yield context.df.Task.all(
-        emittedEvents.map(e =>
-          context.df.callActivityWithRetry("EmitEventActivity", retryOptions, e)
-        )
+        emittedEvents.map((e) =>
+          context.df.callActivityWithRetry(
+            "EmitEventActivity",
+            retryOptions,
+            e,
+          ),
+        ),
       );
     }
 

@@ -4,7 +4,7 @@ import express from "express";
 
 import {
   USER_DATA_PROCESSING_COLLECTION_NAME,
-  UserDataProcessingModel
+  UserDataProcessingModel,
 } from "@pagopa/io-functions-commons/dist/src/models/user_data_processing";
 
 import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
@@ -16,7 +16,7 @@ import { cosmosdbInstance } from "../utils/cosmosdb";
 import { UpsertUserDataProcessing } from "./handler";
 
 const userDataProcessingModel = new UserDataProcessingModel(
-  cosmosdbInstance.container(USER_DATA_PROCESSING_COLLECTION_NAME)
+  cosmosdbInstance.container(USER_DATA_PROCESSING_COLLECTION_NAME),
 );
 
 // Setup Express
@@ -25,7 +25,7 @@ secureExpressApp(app);
 
 app.post(
   "/api/v1/user-data-processing/:fiscalcode",
-  UpsertUserDataProcessing(userDataProcessingModel)
+  UpsertUserDataProcessing(userDataProcessingModel),
 );
 
 const azureFunctionHandler = createAzureFunctionHandler(app);

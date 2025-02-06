@@ -6,17 +6,17 @@ import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/util
 
 import {
   withRequestMiddlewares,
-  wrapRequestHandler
+  wrapRequestHandler,
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import {
   IResponseErrorQuery,
-  ResponseErrorQuery
+  ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
 import {
   isEmailAlreadyTaken,
-  IProfileEmailReader
+  IProfileEmailReader,
 } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
 
 import {
@@ -25,7 +25,7 @@ import {
   IResponseSuccessJson,
   ResponseErrorInternal,
   ResponseErrorNotFound,
-  ResponseSuccessJson
+  ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
@@ -49,39 +49,39 @@ type IGetProfileHandlerResult =
  * a Not Found error.
  */
 type IGetProfileHandler = (
-  fiscalCode: FiscalCode
+  fiscalCode: FiscalCode,
 ) => Promise<IGetProfileHandlerResult>;
 
-export const withIsEmailAlreadyTaken = (
-  profileEmailReader: IProfileEmailReader
-) => (
-  profile: ExtendedProfile
-): TE.TaskEither<IResponseErrorInternal, ExtendedProfile> =>
-  pipe(
-    TE.of(profile),
-    // Check if the e-mail address associated with the retrived
-    // profile was validated. If was not validated, continue with
-    // uniqueness checks.
-    TE.chainW(({ is_email_validated, email }) =>
-      !is_email_validated && email
-        ? TE.tryCatch(
-            () =>
-              isEmailAlreadyTaken(email)({
-                profileEmails: profileEmailReader
-              }),
-            () =>
-              ResponseErrorInternal(
-                "Can't check if the new e-mail is already taken"
-              )
-          )
-        : TE.of(false)
-    ),
-    // Set the value of "is_email_already_taken" property
-    TE.map(is_email_already_taken => ({
-      ...profile,
-      is_email_already_taken
-    }))
-  );
+export const withIsEmailAlreadyTaken =
+  (profileEmailReader: IProfileEmailReader) =>
+  (
+    profile: ExtendedProfile,
+  ): TE.TaskEither<IResponseErrorInternal, ExtendedProfile> =>
+    pipe(
+      TE.of(profile),
+      // Check if the e-mail address associated with the retrived
+      // profile was validated. If was not validated, continue with
+      // uniqueness checks.
+      TE.chainW(({ is_email_validated, email }) =>
+        !is_email_validated && email
+          ? TE.tryCatch(
+              () =>
+                isEmailAlreadyTaken(email)({
+                  profileEmails: profileEmailReader,
+                }),
+              () =>
+                ResponseErrorInternal(
+                  "Can't check if the new e-mail is already taken",
+                ),
+            )
+          : TE.of(false),
+      ),
+      // Set the value of "is_email_already_taken" property
+      TE.map((is_email_already_taken) => ({
+        ...profile,
+        is_email_already_taken,
+      })),
+    );
 
 /**
  * Return a type safe GetProfile handler.
@@ -90,19 +90,19 @@ export const withIsEmailAlreadyTaken = (
 export function GetProfileHandler(
   profileModel: ProfileModel,
   optOutEmailSwitchDate: Date,
-  profileEmailReader: IProfileEmailReader
+  profileEmailReader: IProfileEmailReader,
 ): IGetProfileHandler {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, arrow-body-style
-  return async fiscalCode => {
+  return async (fiscalCode) => {
     return pipe(
       profileModel.findLastVersionByModelId([fiscalCode]),
-      TE.mapLeft(failure =>
-        ResponseErrorQuery("Error while retrieving the profile", failure)
+      TE.mapLeft((failure) =>
+        ResponseErrorQuery("Error while retrieving the profile", failure),
       ),
-      TE.chainW(maybeProfile =>
+      TE.chainW((maybeProfile) =>
         pipe(
           maybeProfile,
-          O.map(_ =>
+          O.map((_) =>
             // if profile's timestamp is before email opt out switch limit date we must force isEmailEnabled to false
             // this map is valid for ever so this check cannot be removed.
             // Please note that cosmos timestamps are expressed in unix notation (in seconds), so we must transform
@@ -110,20 +110,20 @@ export function GetProfileHandler(
             // eslint-disable-next-line no-underscore-dangle
             isBefore(_._ts, optOutEmailSwitchDate)
               ? { ..._, isEmailEnabled: false }
-              : _
+              : _,
           ),
           TE.fromOption(() =>
             ResponseErrorNotFound(
               "Profile not found",
-              "The profile you requested was not found in the system."
-            )
+              "The profile you requested was not found in the system.",
+            ),
           ),
           TE.map(retrievedProfileToExtendedProfile),
           TE.chainW(withIsEmailAlreadyTaken(profileEmailReader)),
-          TE.map(ResponseSuccessJson)
-        )
+          TE.map(ResponseSuccessJson),
+        ),
       ),
-      TE.toUnion
+      TE.toUnion,
     )();
   };
 }
@@ -135,12 +135,12 @@ export function GetProfileHandler(
 export function GetProfile(
   profileModel: ProfileModel,
   optOutEmailSwitchDate: Date,
-  profileEmailReader: IProfileEmailReader
+  profileEmailReader: IProfileEmailReader,
 ): express.RequestHandler {
   const handler = GetProfileHandler(
     profileModel,
     optOutEmailSwitchDate,
-    profileEmailReader
+    profileEmailReader,
   );
   const middlewaresWrap = withRequestMiddlewares(FiscalCodeMiddleware);
   return wrapRequestHandler(middlewaresWrap(handler));

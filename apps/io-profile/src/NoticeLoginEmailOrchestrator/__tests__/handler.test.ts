@@ -2,19 +2,19 @@ import { it, afterEach, beforeEach, describe, expect, vi, Mock } from "vitest";
 import {
   EmailString,
   IPString,
-  NonEmptyString
+  NonEmptyString,
 } from "@pagopa/ts-commons/lib/strings";
 import * as df from "durable-functions";
+import { Task } from "durable-functions/lib/src/classes";
 import { consumeGenerator } from "../../utils/durable";
 import {
   getNoticeLoginEmailOrchestratorHandler,
   OrchestratorFailureResult,
   OrchestratorInput,
-  OrchestratorSuccessResult
+  OrchestratorSuccessResult,
 } from "../handler";
 import { aFiscalCode } from "../../__mocks__/mocks";
 import { context as contextMock } from "../../__mocks__/durable-functions";
-import { Task } from "durable-functions/lib/src/classes";
 import { fail } from "../../utils/test-utils";
 
 const someRetryOptions = new df.RetryOptions(5000, 10);
@@ -32,7 +32,7 @@ const aValidOrchestratorInput: OrchestratorInput = {
   ip_address: anIPAddress,
   name: "foo" as NonEmptyString,
   device_name: "aDevice" as NonEmptyString,
-  is_email_validated: true
+  is_email_validated: true,
 };
 const mockCallActivityFunction = vi.fn();
 const mockGetInput = vi.fn().mockReturnValue(aValidOrchestratorInput);
@@ -40,11 +40,11 @@ const contextMockWithDf = {
   ...contextMock,
   df: {
     Task: {
-      all: (tasks: readonly Task[]) => tasks
+      all: (tasks: ReadonlyArray<Task>) => tasks,
     },
     callActivityWithRetry: mockCallActivityFunction,
-    getInput: mockGetInput
-  }
+    getInput: mockGetInput,
+  },
 };
 
 describe("NoticeLoginEmailOrchestratorHandler", () => {
@@ -55,19 +55,19 @@ describe("NoticeLoginEmailOrchestratorHandler", () => {
   it("should return an orchestrator success when a valid payload is given", () => {
     mockCallActivityFunction.mockReturnValueOnce({
       kind: "SUCCESS",
-      value: { geo_location: "Rome" as NonEmptyString }
+      value: { geo_location: "Rome" as NonEmptyString },
     });
 
     mockCallActivityFunction.mockReturnValueOnce({
       kind: "SUCCESS",
-      value: { magic_link: "dummy" as NonEmptyString }
+      value: { magic_link: "dummy" as NonEmptyString },
     });
 
     mockCallActivityFunction.mockReturnValueOnce({
-      kind: "SUCCESS"
+      kind: "SUCCESS",
     });
     const orchestratorHandler = getNoticeLoginEmailOrchestratorHandler(
-      contextMockWithDf as any
+      contextMockWithDf as any,
     );
 
     const result = consumeGenerator(orchestratorHandler);
@@ -79,8 +79,8 @@ describe("NoticeLoginEmailOrchestratorHandler", () => {
       "GetGeoLocationDataActivity",
       someRetryOptions,
       {
-        ip_address: anIPAddress
-      }
+        ip_address: anIPAddress,
+      },
     );
     expect(mockCallActivityFunction).toHaveBeenNthCalledWith(
       2,
@@ -89,8 +89,8 @@ describe("NoticeLoginEmailOrchestratorHandler", () => {
       {
         family_name: "foo",
         name: "foo",
-        fiscal_code: aFiscalCode
-      }
+        fiscal_code: aFiscalCode,
+      },
     );
     expect(mockCallActivityFunction).toHaveBeenNthCalledWith(
       3,
@@ -104,8 +104,8 @@ describe("NoticeLoginEmailOrchestratorHandler", () => {
         identity_provider: "idp",
         geo_location: "Rome",
         email: "example@example.com",
-        device_name: "aDevice"
-      }
+        device_name: "aDevice",
+      },
     );
     expect(OrchestratorSuccessResult.is(result)).toEqual(true);
   });
@@ -113,7 +113,7 @@ describe("NoticeLoginEmailOrchestratorHandler", () => {
   it("should return a decode error when input is not valid", () => {
     mockGetInput.mockReturnValueOnce({});
     const orchestratorHandler = getNoticeLoginEmailOrchestratorHandler(
-      contextMockWithDf as any
+      contextMockWithDf as any,
     );
 
     const result = consumeGenerator(orchestratorHandler);
@@ -122,7 +122,7 @@ describe("NoticeLoginEmailOrchestratorHandler", () => {
     if (OrchestratorFailureResult.is(result)) {
       expect(result).toMatchObject({
         kind: "FAILURE",
-        reason: expect.stringContaining("Error decoding input")
+        reason: expect.stringContaining("Error decoding input"),
       });
     } else {
       fail();
@@ -136,19 +136,19 @@ describe("NoticeLoginEmailOrchestratorHandler", () => {
   `("should ignore magic_link retrieval if $scenario", ({ value }) => {
     mockGetInput.mockReturnValueOnce({
       ...aValidOrchestratorInput,
-      is_email_validated: value
+      is_email_validated: value,
     });
 
     mockCallActivityFunction.mockReturnValueOnce({
       kind: "SUCCESS",
-      value: { geo_location: "Rome" as NonEmptyString }
+      value: { geo_location: "Rome" as NonEmptyString },
     });
 
     mockCallActivityFunction.mockReturnValueOnce({
-      kind: "SUCCESS"
+      kind: "SUCCESS",
     });
     const orchestratorHandler = getNoticeLoginEmailOrchestratorHandler(
-      contextMockWithDf as any
+      contextMockWithDf as any,
     );
 
     const result = consumeGenerator(orchestratorHandler);
@@ -161,8 +161,8 @@ describe("NoticeLoginEmailOrchestratorHandler", () => {
       "GetGeoLocationDataActivity",
       someRetryOptions,
       {
-        ip_address: anIPAddress
-      }
+        ip_address: anIPAddress,
+      },
     );
     expect(mockCallActivityFunction).toHaveBeenNthCalledWith(
       2,
@@ -172,13 +172,13 @@ describe("NoticeLoginEmailOrchestratorHandler", () => {
         date_time: aDate.getTime(),
         name: "foo",
         ip_address: anIPAddress,
-        //since we ignored the magic_link retrieval, this MUST be undefined
+        // since we ignored the magic_link retrieval, this MUST be undefined
         magic_link: undefined,
         identity_provider: "idp",
         geo_location: "Rome",
         email: "example@example.com",
-        device_name: "aDevice"
-      }
+        device_name: "aDevice",
+      },
     );
     expect(OrchestratorSuccessResult.is(result)).toEqual(true);
   });

@@ -18,7 +18,7 @@ import {
   ResponseSuccessJson,
   ResponseErrorInternal,
   ResponseErrorPreconditionFailed,
-  IResponseErrorPreconditionFailed
+  IResponseErrorPreconditionFailed,
 } from "@pagopa/ts-commons/lib/responses";
 
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
@@ -27,25 +27,25 @@ import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import { Profile as ApiProfile } from "@pagopa/io-functions-commons/dist/generated/definitions/Profile";
 import {
   ProfileModel,
-  RetrievedProfile
+  RetrievedProfile,
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import {
   IResponseErrorQuery,
-  ResponseErrorQuery
+  ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
 import {
   withRequestMiddlewares,
-  wrapRequestHandler
+  wrapRequestHandler,
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import { QueueClient, QueueSendMessageResponse } from "@azure/storage-queue";
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicesPreferencesMode";
 import {
   IProfileEmailReader,
-  isEmailAlreadyTaken
+  isEmailAlreadyTaken,
 } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
 import { MigrateServicesPreferencesQueueMessage } from "../MigrateServicePreferenceFromLegacy/handler";
@@ -53,7 +53,7 @@ import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "../Upsert
 import { ProfileMiddleware } from "../utils/middlewares/profile";
 import {
   apiProfileToProfile,
-  retrievedProfileToExtendedProfile
+  retrievedProfileToExtendedProfile,
 } from "../utils/profiles";
 
 import { toHash } from "../utils/crypto";
@@ -68,7 +68,7 @@ type IUpdateProfileHandler = (
   context: Context,
   fiscalCode: FiscalCode,
   profilePayload: ApiProfile,
-  profileNamePayload: EmailValidationProcessParams
+  profileNamePayload: EmailValidationProcessParams,
 ) => Promise<
   | IResponseSuccessJson<ApiProfile>
   | IResponseErrorQuery
@@ -81,7 +81,7 @@ type IUpdateProfileHandler = (
 const migratePreferences = (
   queueClient: QueueClient,
   oldProfile: RetrievedProfile,
-  newProfile: RetrievedProfile
+  newProfile: RetrievedProfile,
 ): TE.TaskEither<Error, QueueSendMessageResponse> =>
   TE.tryCatch(
     () =>
@@ -92,12 +92,12 @@ const migratePreferences = (
             JSON.stringify(
               MigrateServicesPreferencesQueueMessage.encode({
                 newProfile,
-                oldProfile
-              })
-            )
-          ).toString("base64")
+                oldProfile,
+              }),
+            ),
+          ).toString("base64"),
         ),
-    E.toError
+    E.toError,
   );
 
 // This function can't be easily refactored, so we have to disable some lint rules.
@@ -107,20 +107,19 @@ export function UpdateProfileHandler(
   profileModel: ProfileModel,
   queueClient: QueueClient,
   tracker: ReturnType<typeof createTracker>,
-  profileEmails: IProfileEmailReader
+  profileEmails: IProfileEmailReader,
 ): IUpdateProfileHandler {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-lines-per-function, complexity, sonarjs/cognitive-complexity
   return async (context, fiscalCode, profilePayload, profileNamePayload) => {
     const logPrefix = `UpdateProfileHandler|FISCAL_CODE=${toHash(fiscalCode)}`;
 
-    const errorOrMaybeExistingProfile = await profileModel.findLastVersionByModelId(
-      [fiscalCode]
-    )();
+    const errorOrMaybeExistingProfile =
+      await profileModel.findLastVersionByModelId([fiscalCode])();
 
     if (E.isLeft(errorOrMaybeExistingProfile)) {
       return ResponseErrorQuery(
         "Error trying to retrieve existing profile",
-        errorOrMaybeExistingProfile.left
+        errorOrMaybeExistingProfile.left,
       );
     }
 
@@ -128,7 +127,7 @@ export function UpdateProfileHandler(
     if (O.isNone(maybeExistingProfile)) {
       return ResponseErrorNotFound(
         "Error",
-        "Could not find a profile with the provided fiscalcode"
+        "Could not find a profile with the provided fiscalcode",
       );
     }
     const existingProfile = maybeExistingProfile.value;
@@ -136,10 +135,10 @@ export function UpdateProfileHandler(
     // Verify that the client asked to update the latest version
     if (profilePayload.version !== existingProfile.version) {
       context.log.warn(
-        `${logPrefix}|CURRENT_VERSION=${existingProfile.version}|PREV_VERSION=${profilePayload.version}|RESULT=CONFLICT`
+        `${logPrefix}|CURRENT_VERSION=${existingProfile.version}|PREV_VERSION=${profilePayload.version}|RESULT=CONFLICT`,
       );
       return ResponseErrorConflict(
-        `Version ${profilePayload.version} is not the latest version.`
+        `Version ${profilePayload.version} is not the latest version.`,
       );
     }
 
@@ -157,7 +156,7 @@ export function UpdateProfileHandler(
     ) {
       try {
         emailTaken = await isEmailAlreadyTaken(profilePayload.email)({
-          profileEmails
+          profileEmails,
         });
         // If the email is not changed, we allow the profile update to enable
         // other user flow such TOS version update or lastAppVersion update
@@ -168,14 +167,14 @@ export function UpdateProfileHandler(
             "The new e-mail provided is already taken",
             UpdateProfile412ErrorTypesEnum[
               "https://ioapp.it/problems/email-already-taken"
-            ]
+            ],
           );
         }
       } catch {
         // Logs an opaque message without errors details to avoid PII leaks
         context.log.error(`${logPrefix}| Check for e-mail uniqueness failed`);
         return ResponseErrorInternal(
-          "Can't check if the new e-mail is already taken"
+          "Can't check if the new e-mail is already taken",
         );
       }
     }
@@ -183,8 +182,8 @@ export function UpdateProfileHandler(
     // Get servicePreferencesSettings mode from payload or default to LEGACY
     const requestedServicePreferencesSettingsMode = pipe(
       O.fromNullable(profilePayload.service_preferences_settings),
-      O.map(_ => _.mode),
-      O.getOrElse(() => ServicesPreferencesModeEnum.LEGACY)
+      O.map((_) => _.mode),
+      O.getOrElse(() => ServicesPreferencesModeEnum.LEGACY),
     );
 
     // Check if a mode change is requested
@@ -199,22 +198,23 @@ export function UpdateProfileHandler(
         ServicesPreferencesModeEnum.LEGACY
     ) {
       context.log.warn(
-        `${logPrefix}|REQUESTED_MODE=${requestedServicePreferencesSettingsMode}|CURRENT_MODE=${existingProfile.servicePreferencesSettings.mode}|RESULT=CONFLICT`
+        `${logPrefix}|REQUESTED_MODE=${requestedServicePreferencesSettingsMode}|CURRENT_MODE=${existingProfile.servicePreferencesSettings.mode}|RESULT=CONFLICT`,
       );
       return ResponseErrorConflict(
-        `Mode ${requestedServicePreferencesSettingsMode} is not valid.`
+        `Mode ${requestedServicePreferencesSettingsMode} is not valid.`,
       );
     }
 
-    const servicePreferencesSettingsVersion = isServicePreferencesSettingsModeChanged
-      ? Number(existingProfile.servicePreferencesSettings.version) + 1
-      : existingProfile.servicePreferencesSettings.version;
+    const servicePreferencesSettingsVersion =
+      isServicePreferencesSettingsModeChanged
+        ? Number(existingProfile.servicePreferencesSettings.version) + 1
+        : existingProfile.servicePreferencesSettings.version;
 
     const profile = apiProfileToProfile(
       profilePayload,
       fiscalCode,
       emailChanged ? false : existingProfile.isEmailValidated ?? false,
-      servicePreferencesSettingsVersion
+      servicePreferencesSettingsVersion,
     );
 
     // User inbox and webhook must be enabled after accepting the ToS for the first time
@@ -225,7 +225,7 @@ export function UpdateProfileHandler(
     const overriddenInboxAndWebhook = autoEnableInboxAndWebHook
       ? {
           isInboxEnabled: true,
-          isWebhookEnabled: true
+          isWebhookEnabled: true,
         }
       : {};
     // If the user profile was on LEGACY mode we update blockedInboxOrChannels
@@ -251,16 +251,16 @@ export function UpdateProfileHandler(
       // Override pushNotificationsContentType for users switched to a downgraded app version that doesn't provide the value in the request payload
       pushNotificationsContentType: profile.pushNotificationsContentType,
       // Override reminderStatus for users switched to a downgraded app version that doesn't provide the value in the request payload
-      reminderStatus: profile.reminderStatus
+      reminderStatus: profile.reminderStatus,
     })();
 
     if (E.isLeft(errorOrMaybeUpdatedProfile)) {
       context.log.error(
-        `${logPrefix}|ERROR=${errorOrMaybeUpdatedProfile.left.kind}`
+        `${logPrefix}|ERROR=${errorOrMaybeUpdatedProfile.left.kind}`,
       );
       return ResponseErrorQuery(
         "Error while updating the existing profile",
-        errorOrMaybeUpdatedProfile.left
+        errorOrMaybeUpdatedProfile.left,
       );
     }
 
@@ -272,7 +272,7 @@ export function UpdateProfileHandler(
         fiscalCode,
         existingProfile.servicePreferencesSettings.mode,
         requestedServicePreferencesSettingsMode,
-        updateProfile.version
+        updateProfile.version,
       );
     }
     // mode hasn't changed, but the user is still updating a LEGACY profile
@@ -285,27 +285,26 @@ export function UpdateProfileHandler(
         fiscalCode,
         ServicesPreferencesModeEnum.LEGACY,
         ServicesPreferencesModeEnum.LEGACY,
-        updateProfile.version
+        updateProfile.version,
       );
     }
 
     const dfClient = df.getClient(context);
 
     // Start the Orchestrator
-    const upsertedProfileOrchestratorInput = UpsertedProfileOrchestratorInput.encode(
-      {
+    const upsertedProfileOrchestratorInput =
+      UpsertedProfileOrchestratorInput.encode({
         name: profileNamePayload.name,
         newProfile: updateProfile,
         oldProfile: existingProfile,
-        updatedAt: new Date()
-      }
-    );
+        updatedAt: new Date(),
+      });
     // TODO: To enable the new orchestration change to UpsertedProfileOrchestrator
     // Change the orchestrator after that in production the code is available to enable rollback
     await dfClient.startNew(
       "UpsertedProfileOrchestrator",
       undefined,
-      upsertedProfileOrchestratorInput
+      upsertedProfileOrchestratorInput,
     );
 
     // Queue services preferences migration
@@ -319,21 +318,21 @@ export function UpdateProfileHandler(
       tracker.profile.traceMigratingServicePreferences(
         existingProfile,
         updateProfile,
-        "REQUESTING"
+        "REQUESTING",
       );
       await pipe(
         migratePreferences(queueClient, existingProfile, updateProfile),
-        TE.mapLeft(err =>
+        TE.mapLeft((err) =>
           context.log.error(
             `${logPrefix}|Cannot send a message to the queue ${
               queueClient.name
-            } |ERROR=${JSON.stringify(err)}`
-          )
-        )
+            } |ERROR=${JSON.stringify(err)}`,
+          ),
+        ),
       )();
     }
     return ResponseSuccessJson(
-      retrievedProfileToExtendedProfile(updateProfile, emailTaken)
+      retrievedProfileToExtendedProfile(updateProfile, emailTaken),
     );
   };
 }
@@ -346,20 +345,20 @@ export function UpdateProfile(
   profileModel: ProfileModel,
   queueClient: QueueClient,
   tracker: ReturnType<typeof createTracker>,
-  profileEmailReader: IProfileEmailReader
+  profileEmailReader: IProfileEmailReader,
 ): express.RequestHandler {
   const handler = UpdateProfileHandler(
     profileModel,
     queueClient,
     tracker,
-    profileEmailReader
+    profileEmailReader,
   );
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
     FiscalCodeMiddleware,
     ProfileMiddleware,
-    RequiredBodyPayloadMiddleware(EmailValidationProcessParams)
+    RequiredBodyPayloadMiddleware(EmailValidationProcessParams),
   );
   return wrapRequestHandler(middlewaresWrap(handler));
 }

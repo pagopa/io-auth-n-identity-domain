@@ -2,19 +2,6 @@
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  aFiscalCode,
-  aRetrievedProfileWithEmail,
-  autoProfileServicePreferencesSettings,
-  legacyProfileServicePreferencesSettings
-} from "../../__mocks__/mocks";
-import {
-  aNewServicePreference,
-  aRetrievedService,
-  aRetrievedServicePreference,
-  aServiceId,
-  aServicePreference
-} from "../../__mocks__/mocks.service_preference";
 
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 
@@ -28,78 +15,88 @@ import { RetrievedService } from "@pagopa/io-functions-commons/dist/src/models/s
 import { AccessReadMessageStatusEnum } from "@pagopa/io-functions-commons/dist/src/models/service_preference";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import {
+  aNewServicePreference,
+  aRetrievedService,
+  aRetrievedServicePreference,
+  aServiceId,
+  aServicePreference,
+} from "../../__mocks__/mocks.service_preference";
+import {
+  aFiscalCode,
+  aRetrievedProfileWithEmail,
+  autoProfileServicePreferencesSettings,
+  legacyProfileServicePreferencesSettings,
+} from "../../__mocks__/mocks";
 import { context } from "../../__mocks__/durable-functions";
 import * as subscriptionFeedHandler from "../../UpdateSubscriptionsFeedActivity/handler";
 import { GetUpsertServicePreferencesHandler } from "../handler";
 
-const makeContext = () =>
-  (({ ...context, bindings: {} } as unknown) as Context);
+const makeContext = () => ({ ...context, bindings: {} }) as unknown as Context;
 
 const updateSubscriptionFeedMock = vi
   .fn()
   .mockImplementation(() => Promise.resolve("SUCCESS"));
 vi.spyOn(subscriptionFeedHandler, "updateSubscriptionFeed").mockImplementation(
-  updateSubscriptionFeedMock
+  updateSubscriptionFeedMock,
 );
 
 const telemetryClientMock = {
-  trackEvent: vi.fn()
+  trackEvent: vi.fn(),
 };
 
 const aRetrievedProfileInValidState = {
   ...aRetrievedProfileWithEmail,
-  servicePreferencesSettings: autoProfileServicePreferencesSettings
+  servicePreferencesSettings: autoProfileServicePreferencesSettings,
 };
 
-const profileFindLastVersionByModelIdMock = vi.fn(() => {
-  return TE.of<CosmosErrors, O.Option<RetrievedProfile>>(
-    O.some(aRetrievedProfileInValidState)
-  );
-});
-const serviceFindLastVersionByModelIdMock = vi.fn(_ => {
-  return TE.of<CosmosErrors, O.Option<RetrievedService>>(
-    O.some(aRetrievedService)
-  );
-});
+const profileFindLastVersionByModelIdMock = vi.fn(() =>
+  TE.of<CosmosErrors, O.Option<RetrievedProfile>>(
+    O.some(aRetrievedProfileInValidState),
+  ),
+);
+const serviceFindLastVersionByModelIdMock = vi.fn((_) =>
+  TE.of<CosmosErrors, O.Option<RetrievedService>>(O.some(aRetrievedService)),
+);
 const servicePreferenceFindModelMock = vi
   .fn()
-  .mockImplementation(_ => TE.of(O.some(aRetrievedServicePreference)));
+  .mockImplementation((_) => TE.of(O.some(aRetrievedServicePreference)));
 const servicePreferenceUpsertModelMock = vi
   .fn()
-  .mockImplementation(_ => TE.of(_));
+  .mockImplementation((_) => TE.of(_));
 
 const profileModelMock = {
-  findLastVersionByModelId: profileFindLastVersionByModelIdMock
+  findLastVersionByModelId: profileFindLastVersionByModelIdMock,
 };
 const serviceModelMock = {
-  findLastVersionByModelId: serviceFindLastVersionByModelIdMock
+  findLastVersionByModelId: serviceFindLastVersionByModelIdMock,
 };
 const servicePreferenceModelMock = {
   find: servicePreferenceFindModelMock,
-  upsert: servicePreferenceUpsertModelMock
+  upsert: servicePreferenceUpsertModelMock,
 };
 
 const aDisabledInboxServicePreference = {
   ...aServicePreference,
   is_inbox_enabled: false,
-  can_access_message_read_status: false
+  can_access_message_read_status: false,
 };
 
 const mockActivationModel = {
-  findLastVersionByModelId: vi.fn()
+  findLastVersionByModelId: vi.fn(),
 };
 const anActiveActivation: Activation = {
   fiscalCode: aFiscalCode,
   serviceId: aServiceId,
-  status: ActivationStatusEnum.ACTIVE
+  status: ActivationStatusEnum.ACTIVE,
 };
 
 const aSpecialRetrievedService: RetrievedService = {
   ...aRetrievedService,
   serviceMetadata: {
     scope: ServiceScopeEnum.LOCAL,
-    category: SpecialServiceCategoryEnum.SPECIAL
-  }
+    category: SpecialServiceCategoryEnum.SPECIAL,
+  },
 };
 
 const upsertServicePreferencesHandler = GetUpsertServicePreferencesHandler(
@@ -109,7 +106,7 @@ const upsertServicePreferencesHandler = GetUpsertServicePreferencesHandler(
   servicePreferenceModelMock as any,
   mockActivationModel as any,
   {} as any,
-  "SubFeedTableName" as NonEmptyString
+  "SubFeedTableName" as NonEmptyString,
 );
 
 // eslint-disable-next-line sonar/sonar-max-lines-per-function
@@ -123,12 +120,12 @@ describe("UpsertServicePreferences", () => {
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
       kind: "IResponseSuccessJson",
-      value: aServicePreference
+      value: aServicePreference,
     });
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
@@ -142,12 +139,12 @@ describe("UpsertServicePreferences", () => {
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
       kind: "IResponseSuccessJson",
-      value: aServicePreference
+      value: aServicePreference,
     });
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
@@ -162,12 +159,12 @@ describe("UpsertServicePreferences", () => {
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aDisabledInboxServicePreference
+      aDisabledInboxServicePreference,
     );
 
     expect(response).toMatchObject({
       kind: "IResponseSuccessJson",
-      value: aDisabledInboxServicePreference
+      value: aDisabledInboxServicePreference,
     });
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
@@ -178,27 +175,27 @@ describe("UpsertServicePreferences", () => {
       expect.anything(),
       expect.objectContaining({
         operation: "UNSUBSCRIBED",
-        subscriptionKind: "SERVICE"
+        subscriptionKind: "SERVICE",
       }),
       expect.anything(),
-      expect.anything()
+      expect.anything(),
     );
   });
 
   it("should return Success if user service preferences has been upserted with subscriptionFeed SUBSCRIBED in case isInboxEnabled has been changed to true", async () => {
     servicePreferenceFindModelMock.mockImplementationOnce(() =>
-      TE.of(O.some({ ...aRetrievedServicePreference, isInboxEnabled: false }))
+      TE.of(O.some({ ...aRetrievedServicePreference, isInboxEnabled: false })),
     );
     const response = await upsertServicePreferencesHandler(
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
       kind: "IResponseSuccessJson",
-      value: aServicePreference
+      value: aServicePreference,
     });
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
@@ -209,30 +206,30 @@ describe("UpsertServicePreferences", () => {
       expect.anything(),
       expect.objectContaining({
         operation: "SUBSCRIBED",
-        subscriptionKind: "SERVICE"
+        subscriptionKind: "SERVICE",
       }),
       expect.anything(),
-      expect.anything()
+      expect.anything(),
     );
   });
 
   it("should return Success with upserted user service preferences even if subscription feed update throw an error", async () => {
     servicePreferenceFindModelMock.mockImplementationOnce(() =>
-      TE.of(O.some({ ...aRetrievedServicePreference, isInboxEnabled: false }))
+      TE.of(O.some({ ...aRetrievedServicePreference, isInboxEnabled: false })),
     );
     updateSubscriptionFeedMock.mockImplementationOnce(() =>
-      Promise.reject(new Error("Subscription Feed Error"))
+      Promise.reject(new Error("Subscription Feed Error")),
     );
     const response = await upsertServicePreferencesHandler(
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
       kind: "IResponseSuccessJson",
-      value: aServicePreference
+      value: aServicePreference,
     });
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
@@ -243,31 +240,31 @@ describe("UpsertServicePreferences", () => {
       expect.anything(),
       expect.objectContaining({
         operation: "SUBSCRIBED",
-        subscriptionKind: "SERVICE"
+        subscriptionKind: "SERVICE",
       }),
       expect.anything(),
-      expect.anything()
+      expect.anything(),
     );
     expect(telemetryClientMock.trackEvent).toHaveBeenCalled();
   });
 
   it("should return Success with upserted user service preferences even if subscription feed update returns FAILURE", async () => {
     servicePreferenceFindModelMock.mockImplementationOnce(() =>
-      TE.of(O.some({ ...aRetrievedServicePreference, isInboxEnabled: false }))
+      TE.of(O.some({ ...aRetrievedServicePreference, isInboxEnabled: false })),
     );
     updateSubscriptionFeedMock.mockImplementationOnce(() =>
-      Promise.resolve("FAILURE")
+      Promise.resolve("FAILURE"),
     );
     const response = await upsertServicePreferencesHandler(
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
       kind: "IResponseSuccessJson",
-      value: aServicePreference
+      value: aServicePreference,
     });
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
@@ -278,10 +275,10 @@ describe("UpsertServicePreferences", () => {
       expect.anything(),
       expect.objectContaining({
         operation: "SUBSCRIBED",
-        subscriptionKind: "SERVICE"
+        subscriptionKind: "SERVICE",
       }),
       expect.anything(),
-      expect.anything()
+      expect.anything(),
     );
     expect(telemetryClientMock.trackEvent).toHaveBeenCalled();
   });
@@ -302,22 +299,22 @@ describe("UpsertServicePreferences", () => {
       servicePreferencesResult,
       activationResult,
       is_inbox_enabled,
-      can_access_message_read_status
+      can_access_message_read_status,
     }) => {
       servicePreferenceFindModelMock.mockImplementationOnce(
-        () => servicePreferencesResult
+        () => servicePreferencesResult,
       );
       serviceModelMock.findLastVersionByModelId.mockImplementationOnce(
-        () => serviceResult
+        () => serviceResult,
       );
       mockActivationModel.findLastVersionByModelId.mockImplementationOnce(
-        () => activationResult
+        () => activationResult,
       );
       const response = await upsertServicePreferencesHandler(
         makeContext(),
         aFiscalCode,
         aServiceId,
-        servicePreference
+        servicePreference,
       );
 
       expect(response).toMatchObject({
@@ -325,8 +322,8 @@ describe("UpsertServicePreferences", () => {
         value: {
           ...aServicePreference,
           is_inbox_enabled,
-          can_access_message_read_status
-        }
+          can_access_message_read_status,
+        },
       });
 
       expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
@@ -339,13 +336,13 @@ describe("UpsertServicePreferences", () => {
           servicePreference.can_access_message_read_status === undefined
             ? AccessReadMessageStatusEnum.UNKNOWN
             : can_access_message_read_status
-            ? AccessReadMessageStatusEnum.ALLOW
-            : AccessReadMessageStatusEnum.DENY
+              ? AccessReadMessageStatusEnum.ALLOW
+              : AccessReadMessageStatusEnum.DENY,
       });
       // Subscription feed never be update for SPECIAL servies preferences changes.
       expect(updateSubscriptionFeedMock).not.toBeCalled();
       expect(telemetryClientMock.trackEvent).not.toHaveBeenCalled();
-    }
+    },
   );
 
   // ---------------------------------------------
@@ -356,11 +353,11 @@ describe("UpsertServicePreferences", () => {
       makeContext(),
       aFiscalCode,
       aServiceId,
-      { ...aServicePreference, is_inbox_enabled: false }
+      { ...aServicePreference, is_inbox_enabled: false },
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorValidation"
+      kind: "IResponseErrorValidation",
     });
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
@@ -369,19 +366,19 @@ describe("UpsertServicePreferences", () => {
   });
 
   it("should return IResponseErrorNotFound if no profile is found in db", async () => {
-    profileFindLastVersionByModelIdMock.mockImplementationOnce(() => {
-      return TE.of(O.none);
-    });
+    profileFindLastVersionByModelIdMock.mockImplementationOnce(() =>
+      TE.of(O.none),
+    );
 
     const response = await upsertServicePreferencesHandler(
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorNotFound"
+      kind: "IResponseErrorNotFound",
     });
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
@@ -390,19 +387,19 @@ describe("UpsertServicePreferences", () => {
   });
 
   it("should return IResponseErrorNotFound if no service is found in db", async () => {
-    serviceFindLastVersionByModelIdMock.mockImplementationOnce(() => {
-      return TE.of(O.none);
-    });
+    serviceFindLastVersionByModelIdMock.mockImplementationOnce(() =>
+      TE.of(O.none),
+    );
 
     const response = await upsertServicePreferencesHandler(
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorNotFound"
+      kind: "IResponseErrorNotFound",
     });
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
@@ -411,76 +408,76 @@ describe("UpsertServicePreferences", () => {
   });
 
   it("should return IResponseErrorQuery if profile model raise an error", async () => {
-    profileFindLastVersionByModelIdMock.mockImplementationOnce(() => {
-      return TE.left({} as CosmosErrors);
-    });
+    profileFindLastVersionByModelIdMock.mockImplementationOnce(() =>
+      TE.left({} as CosmosErrors),
+    );
 
     const response = await upsertServicePreferencesHandler(
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorQuery"
+      kind: "IResponseErrorQuery",
     });
 
     expect(servicePreferenceModelMock.upsert).not.toHaveBeenCalled();
   });
 
   it("should return IResponseErrorQuery if service model raise an error", async () => {
-    serviceFindLastVersionByModelIdMock.mockImplementationOnce(() => {
-      return TE.left({} as CosmosErrors);
-    });
+    serviceFindLastVersionByModelIdMock.mockImplementationOnce(() =>
+      TE.left({} as CosmosErrors),
+    );
 
     const response = await upsertServicePreferencesHandler(
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorQuery"
+      kind: "IResponseErrorQuery",
     });
 
     expect(servicePreferenceModelMock.upsert).not.toHaveBeenCalled();
   });
 
   it("should return IResponseErrorQuery if serviceSettings model find raise an error", async () => {
-    servicePreferenceFindModelMock.mockImplementationOnce(() => {
-      return TE.left({} as CosmosErrors);
-    });
+    servicePreferenceFindModelMock.mockImplementationOnce(() =>
+      TE.left({} as CosmosErrors),
+    );
 
     const response = await upsertServicePreferencesHandler(
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorQuery"
+      kind: "IResponseErrorQuery",
     });
 
     expect(servicePreferenceModelMock.upsert).not.toHaveBeenCalled();
   });
 
   it("should return IResponseErrorQuery if serviceSettings model upsert raise an error", async () => {
-    servicePreferenceUpsertModelMock.mockImplementationOnce(() => {
-      return TE.left({} as CosmosErrors);
-    });
+    servicePreferenceUpsertModelMock.mockImplementationOnce(() =>
+      TE.left({} as CosmosErrors),
+    );
 
     const response = await upsertServicePreferencesHandler(
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorQuery"
+      kind: "IResponseErrorQuery",
     });
 
     expect(servicePreferenceModelMock.upsert).toHaveBeenCalled();
@@ -488,21 +485,21 @@ describe("UpsertServicePreferences", () => {
 
   it("should return IResponseErrorQuery if activation model find raise an error for special services", async () => {
     serviceModelMock.findLastVersionByModelId.mockImplementationOnce(() =>
-      TE.of(O.some(aSpecialRetrievedService))
+      TE.of(O.some(aSpecialRetrievedService)),
     );
     mockActivationModel.findLastVersionByModelId.mockImplementationOnce(() =>
-      TE.left({} as CosmosErrors)
+      TE.left({} as CosmosErrors),
     );
 
     const response = await upsertServicePreferencesHandler(
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorQuery"
+      kind: "IResponseErrorQuery",
     });
 
     expect(servicePreferenceModelMock.find).toBeCalledTimes(1);
@@ -511,24 +508,24 @@ describe("UpsertServicePreferences", () => {
   });
 
   it("should return IResponseErrorConflict if profile is in LEGACY mode", async () => {
-    profileFindLastVersionByModelIdMock.mockImplementationOnce(() => {
-      return TE.of(
+    profileFindLastVersionByModelIdMock.mockImplementationOnce(() =>
+      TE.of(
         O.some({
           ...aRetrievedProfileInValidState,
-          servicePreferencesSettings: legacyProfileServicePreferencesSettings
-        })
-      );
-    });
+          servicePreferencesSettings: legacyProfileServicePreferencesSettings,
+        }),
+      ),
+    );
 
     const response = await upsertServicePreferencesHandler(
       makeContext(),
       aFiscalCode,
       aServiceId,
-      aServicePreference
+      aServicePreference,
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorConflict"
+      kind: "IResponseErrorConflict",
     });
 
     expect(servicePreferenceModelMock.upsert).not.toHaveBeenCalled();
@@ -541,12 +538,13 @@ describe("UpsertServicePreferences", () => {
       aServiceId,
       {
         ...aServicePreference,
-        settings_version: (Number(aServicePreference) + 1) as NonNegativeInteger
-      }
+        settings_version: (Number(aServicePreference) +
+          1) as NonNegativeInteger,
+      },
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorConflict"
+      kind: "IResponseErrorConflict",
     });
 
     expect(servicePreferenceModelMock.upsert).not.toHaveBeenCalled();
@@ -554,10 +552,10 @@ describe("UpsertServicePreferences", () => {
 
   it("should return IResponseErrorConflict if is_inbox_enabled value missmatch the activation for a special service", async () => {
     serviceModelMock.findLastVersionByModelId.mockImplementationOnce(() =>
-      TE.of(O.some(aSpecialRetrievedService))
+      TE.of(O.some(aSpecialRetrievedService)),
     );
     mockActivationModel.findLastVersionByModelId.mockImplementationOnce(() =>
-      TE.of(O.some(anActiveActivation))
+      TE.of(O.some(anActiveActivation)),
     );
     const response = await upsertServicePreferencesHandler(
       makeContext(),
@@ -565,12 +563,12 @@ describe("UpsertServicePreferences", () => {
       aServiceId,
       {
         ...aServicePreference,
-        is_inbox_enabled: false
-      }
+        is_inbox_enabled: false,
+      },
     );
 
     expect(response).toMatchObject({
-      kind: "IResponseErrorConflict"
+      kind: "IResponseErrorConflict",
     });
 
     expect(serviceModelMock.findLastVersionByModelId).toBeCalledTimes(1);
@@ -586,7 +584,7 @@ describe("UpsertServicePreferences", () => {
     "should emit event subscription event on $scenario",
     async ({ servicePreference, maybeExistingServicePreference }) => {
       servicePreferenceFindModelMock.mockImplementationOnce(() =>
-        TE.of(maybeExistingServicePreference)
+        TE.of(maybeExistingServicePreference),
       );
 
       const ctx = makeContext();
@@ -595,17 +593,17 @@ describe("UpsertServicePreferences", () => {
         ctx,
         aFiscalCode,
         aServiceId,
-        servicePreference
+        servicePreference,
       );
 
       // we don't car of the event format, we just care relevant informations are there
       expect(ctx.bindings.apievents).toEqual(
-        expect.stringContaining(aFiscalCode)
+        expect.stringContaining(aFiscalCode),
       );
       expect(ctx.bindings.apievents).toEqual(
-        expect.stringContaining(aServiceId)
+        expect.stringContaining(aServiceId),
       );
-    }
+    },
   );
 
   it.each`
@@ -617,7 +615,7 @@ describe("UpsertServicePreferences", () => {
     "should NOT emit event subscription event on $scenario",
     async ({ servicePreference, maybeExistingServicePreference }) => {
       servicePreferenceFindModelMock.mockImplementationOnce(() =>
-        TE.of(maybeExistingServicePreference)
+        TE.of(maybeExistingServicePreference),
       );
 
       const ctx = makeContext();
@@ -626,11 +624,11 @@ describe("UpsertServicePreferences", () => {
         ctx,
         aFiscalCode,
         aServiceId,
-        servicePreference
+        servicePreference,
       );
 
       // we don't car of the event format, we just care relevant informations are there
       expect(ctx.bindings.apievents).toBe(undefined);
-    }
+    },
   );
 });

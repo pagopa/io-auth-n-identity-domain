@@ -28,7 +28,7 @@ const activityFunctionHandler = getCreateValidationTokenActivityHandler(
   VALIDATION_TOKEN_TABLE_NAME,
   TOKEN_INVALID_AFTER_MS,
   randomBytes,
-  toHash
+  toHash,
 );
 
 export default activityFunctionHandler;

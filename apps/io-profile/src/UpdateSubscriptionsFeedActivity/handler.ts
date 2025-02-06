@@ -14,7 +14,7 @@ import * as O from "fp-ts/lib/Option";
 import { toHash } from "../utils/crypto";
 import {
   SubscriptionFeedEntitySelector,
-  updateSubscriptionStatus
+  updateSubscriptionStatus,
 } from "../utils/subscription_feed";
 
 const CommonInput = t.interface({
@@ -25,7 +25,7 @@ const CommonInput = t.interface({
   // the time (millis epoch) of the update
   updatedAt: t.number,
   // updated version of the profile
-  version: t.number
+  version: t.number,
 });
 type CommonInput = t.TypeOf<typeof CommonInput>;
 
@@ -33,11 +33,11 @@ const ProfileInput = t.intersection([
   CommonInput,
   t.interface({
     // a profile subscription event
-    subscriptionKind: t.literal("PROFILE")
+    subscriptionKind: t.literal("PROFILE"),
   }),
   t.partial({
-    previousPreferences: t.readonlyArray(ServicePreference)
-  })
+    previousPreferences: t.readonlyArray(ServicePreference),
+  }),
 ]);
 type ProfileInput = t.TypeOf<typeof ProfileInput>;
 
@@ -47,8 +47,8 @@ const ServiceInput = t.intersection([
     // the updated service
     serviceId: ServiceId,
     // a service subscription event
-    subscriptionKind: t.literal("SERVICE")
-  })
+    subscriptionKind: t.literal("SERVICE"),
+  }),
 ]);
 type ServiceInput = t.TypeOf<typeof ServiceInput>;
 
@@ -66,14 +66,14 @@ export const updateSubscriptionFeed = async (
   rawInput: unknown,
   tableService: TableService,
   subscriptionFeedTableName: NonEmptyString,
-  logPrefix: string = "UpdateServiceSubscriptionFeedActivity"
+  logPrefix: string = "UpdateServiceSubscriptionFeedActivity",
 ) => {
   const decodedInputOrError = Input.decode(rawInput);
   if (E.isLeft(decodedInputOrError)) {
     context.log.error(
       `${logPrefix}|Cannot parse input|ERROR=${readableReport(
-        decodedInputOrError.left
-      )}`
+        decodedInputOrError.left,
+      )}`,
     );
     return "FAILURE";
   }
@@ -115,36 +115,37 @@ export const updateSubscriptionFeed = async (
   const sKey = `${sPartitionKey}-${fiscalCodeHash}`;
   const uKey = `${uPartitionKey}-${fiscalCodeHash}`;
 
-  const otherEntitiesToDelete: ReadonlyArray<SubscriptionFeedEntitySelector> = pipe(
-    O.fromPredicate(ProfileInput.is)(decodedInput),
-    O.chainNullableK(_ => _.previousPreferences),
-    O.map(_ =>
-      _.reduce((prev, preference) => {
-        // TODO: This code could be optimized deleting only the entry based on the current
-        // profile status and the effective previous preference inbox value
-        const sPreferencePartitionKey = `S-${utcTodayPrefix}-${preference.serviceId}-S`;
-        const uPreferencePartitionKey = `S-${utcTodayPrefix}-${preference.serviceId}-U`;
-        return [
-          ...prev,
-          {
-            partitionKey: sPreferencePartitionKey,
-            rowKey: `${sPreferencePartitionKey}-${fiscalCodeHash}`
-          },
-          {
-            partitionKey: uPreferencePartitionKey,
-            rowKey: `${uPreferencePartitionKey}-${fiscalCodeHash}`
-          }
-        ];
-      }, [] as ReadonlyArray<SubscriptionFeedEntitySelector>)
-    ),
-    O.getOrElseW(() => [])
-  );
+  const otherEntitiesToDelete: ReadonlyArray<SubscriptionFeedEntitySelector> =
+    pipe(
+      O.fromPredicate(ProfileInput.is)(decodedInput),
+      O.chainNullableK((_) => _.previousPreferences),
+      O.map((_) =>
+        _.reduce((prev, preference) => {
+          // TODO: This code could be optimized deleting only the entry based on the current
+          // profile status and the effective previous preference inbox value
+          const sPreferencePartitionKey = `S-${utcTodayPrefix}-${preference.serviceId}-S`;
+          const uPreferencePartitionKey = `S-${utcTodayPrefix}-${preference.serviceId}-U`;
+          return [
+            ...prev,
+            {
+              partitionKey: sPreferencePartitionKey,
+              rowKey: `${sPreferencePartitionKey}-${fiscalCodeHash}`,
+            },
+            {
+              partitionKey: uPreferencePartitionKey,
+              rowKey: `${uPreferencePartitionKey}-${fiscalCodeHash}`,
+            },
+          ];
+        }, [] as ReadonlyArray<SubscriptionFeedEntitySelector>),
+      ),
+      O.getOrElseW(() => []),
+    );
 
   const allowInsertIfDeleted = decodedInput.subscriptionKind !== "SERVICE";
 
   const updateSubscriptionStatusHandler = updateSubscriptionStatus(
     tableService,
-    subscriptionFeedTableName
+    subscriptionFeedTableName,
   );
 
   if (operation === "SUBSCRIBED") {
@@ -156,14 +157,14 @@ export const updateSubscriptionFeed = async (
       version,
       {
         partitionKey: uPartitionKey,
-        rowKey: uKey
+        rowKey: uKey,
       },
       otherEntitiesToDelete,
       {
         partitionKey: sPartitionKey,
-        rowKey: sKey
+        rowKey: sKey,
       },
-      allowInsertIfDeleted
+      allowInsertIfDeleted,
     );
   } else {
     // we delete the entry from the subscriptions and we add it to the
@@ -174,14 +175,14 @@ export const updateSubscriptionFeed = async (
       version,
       {
         partitionKey: sPartitionKey,
-        rowKey: sKey
+        rowKey: sKey,
       },
       otherEntitiesToDelete,
       {
         partitionKey: uPartitionKey,
-        rowKey: uKey
+        rowKey: uKey,
       },
-      allowInsertIfDeleted
+      allowInsertIfDeleted,
     );
   }
 

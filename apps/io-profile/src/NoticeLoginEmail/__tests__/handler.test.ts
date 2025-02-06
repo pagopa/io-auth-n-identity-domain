@@ -1,16 +1,16 @@
 import { it, afterEach, beforeEach, describe, expect, vi, Mock } from "vitest";
-import { NoticeLoginEmailHandler } from "../handler";
 import df from "durable-functions";
 import * as TE from "fp-ts/lib/TaskEither";
-import * as durableUtils from "../../utils/durable";
-import { context, mockGetClient } from "../../__mocks__/durable-functions";
-import { aFiscalCode } from "../../__mocks__/mocks";
 import {
   EmailString,
   IPString,
-  NonEmptyString
+  NonEmptyString,
 } from "@pagopa/ts-commons/lib/strings";
 import { response as MockResponse } from "jest-mock-express";
+import { NoticeLoginEmailHandler } from "../handler";
+import * as durableUtils from "../../utils/durable";
+import { context, mockGetClient } from "../../__mocks__/durable-functions";
+import { aFiscalCode } from "../../__mocks__/mocks";
 
 const aValidTriggerPayload = {
   email: "example@example.com" as EmailString,
@@ -19,7 +19,7 @@ const aValidTriggerPayload = {
   identity_provider: "idp" as NonEmptyString,
   ip_address: "127.0.0.1" as IPString,
   name: "foo" as NonEmptyString,
-  device_name: "adevice" as NonEmptyString
+  device_name: "adevice" as NonEmptyString,
 };
 const spyGetClient = vi.spyOn(df, "getClient");
 spyGetClient.mockImplementation(mockGetClient);
@@ -30,27 +30,27 @@ describe("NoticeLoginEmailTrigger", () => {
 
   it("should return internal error when the orchestrator fails to start", async () => {
     vi.spyOn(durableUtils, "startOrchestrator").mockReturnValueOnce(
-      TE.left(new Error("error"))
+      TE.left(new Error("error")),
     );
     const result = await NoticeLoginEmailHandler()(
       context as any,
-      aValidTriggerPayload
+      aValidTriggerPayload,
     );
 
     expect(result).toMatchObject({
       kind: "IResponseErrorInternal",
       detail:
-        "Internal server error: Error while starting the orchestrator|ERROR=Error: error"
+        "Internal server error: Error while starting the orchestrator|ERROR=Error: error",
     });
   });
 
   it("should succeed when the orchestrator starts", async () => {
     vi.spyOn(durableUtils, "startOrchestrator").mockReturnValueOnce(
-      TE.right("")
+      TE.right(""),
     );
     const result = await NoticeLoginEmailHandler()(
       context as any,
-      aValidTriggerPayload
+      aValidTriggerPayload,
     );
     expect(result.kind).toBe("IResponseSuccessAccepted");
   });

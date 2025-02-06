@@ -1,48 +1,47 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
+import * as E from "fp-ts/lib/Either";
+import { CosmosClient } from "@azure/cosmos";
+import { right } from "fp-ts/lib/Either";
 import { envConfig } from "../../__mocks__/env-config.mock";
 
-import * as E from "fp-ts/lib/Either";
 import * as config from "../config";
 
 import {
   checkApplicationHealth,
   checkAzureCosmosDbHealth,
   checkAzureStorageHealth,
-  checkUrlHealth
+  checkUrlHealth,
 } from "../healthcheck";
 
 import * as healthcheckUtils from "../healthcheck-utils";
 
-import { CosmosClient } from "@azure/cosmos";
-import { right } from "fp-ts/lib/Either";
-
 const getBlobServiceKO = (name: string) => ({
   getServiceProperties: vi
     .fn()
-    .mockImplementation(callback =>
-      callback(Error(`error - ${name}`), null, null as unknown)
-    )
+    .mockImplementation((callback) =>
+      callback(Error(`error - ${name}`), null, null as unknown),
+    ),
 });
 
 const {
   createBlobService,
   createFileService,
   createQueueService,
-  createTableService
+  createTableService,
 } = vi.hoisted(() => {
   const blobServiceOk = {
     getServiceProperties: vi
       .fn()
-      .mockImplementation(callback =>
-        callback((null as unknown) as Error, "ok", null as unknown)
-      )
+      .mockImplementation((callback) =>
+        callback(null as unknown as Error, "ok", null as unknown),
+      ),
   };
   return {
-    createBlobService: vi.fn(_ => blobServiceOk),
-    createFileService: vi.fn(_ => blobServiceOk),
-    createQueueService: vi.fn(_ => blobServiceOk),
-    createTableService: vi.fn(_ => blobServiceOk)
+    createBlobService: vi.fn((_) => blobServiceOk),
+    createFileService: vi.fn((_) => blobServiceOk),
+    createQueueService: vi.fn((_) => blobServiceOk),
+    createTableService: vi.fn((_) => blobServiceOk),
   };
 });
 
@@ -53,7 +52,7 @@ vi.mock("azure-storage", async () => {
     createBlobService,
     createFileService,
     createQueueService,
-    createTableService
+    createTableService,
   };
 });
 
@@ -69,9 +68,9 @@ const mockGetDatabaseAccount = vi
   .mockImplementation(mockGetDatabaseAccountOk);
 
 function mockCosmosClient() {
-  vi.spyOn(healthcheckUtils, "buildCosmosClient").mockReturnValue(({
-    getDatabaseAccount: mockGetDatabaseAccount
-  } as unknown) as CosmosClient);
+  vi.spyOn(healthcheckUtils, "buildCosmosClient").mockReturnValue({
+    getDatabaseAccount: mockGetDatabaseAccount,
+  } as unknown as CosmosClient);
 }
 
 // -------------
@@ -159,8 +158,8 @@ describe("checkApplicationHealth - multiple errors - ", () => {
         `AzureStorage|error - createBlobService`,
         `AzureStorage|error - createQueueService`,
         `Url|Only absolute URLs are supported`,
-        `Url|Only absolute URLs are supported`
-      ])
+        `Url|Only absolute URLs are supported`,
+      ]),
     );
   });
 });

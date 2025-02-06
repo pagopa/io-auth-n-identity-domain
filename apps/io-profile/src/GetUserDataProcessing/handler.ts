@@ -2,21 +2,21 @@ import { Context } from "@azure/functions";
 
 import {
   IResponseErrorQuery,
-  ResponseErrorQuery
+  ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
 import {
   withRequestMiddlewares,
-  wrapRequestHandler
+  wrapRequestHandler,
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import { UserDataProcessing as UserDataProcessingApi } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessing";
 import { UserDataProcessingChoice } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessingChoice";
 import {
   makeUserDataProcessingId,
-  UserDataProcessingModel
+  UserDataProcessingModel,
 } from "@pagopa/io-functions-commons/dist/src/models/user_data_processing";
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
 
@@ -29,7 +29,7 @@ import {
   IResponseErrorNotFound,
   IResponseSuccessJson,
   ResponseErrorNotFound,
-  ResponseSuccessJson
+  ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { toUserDataProcessingApi } from "../utils/user_data_processings";
@@ -40,7 +40,7 @@ import { toUserDataProcessingApi } from "../utils/user_data_processings";
 type IGetUserDataProcessingHandler = (
   context: Context,
   fiscalCode: FiscalCode,
-  userDataProcessingChoice: UserDataProcessingChoice
+  userDataProcessingChoice: UserDataProcessingChoice,
 ) => Promise<
   | IResponseSuccessJson<UserDataProcessingApi>
   | IResponseErrorQuery
@@ -49,15 +49,17 @@ type IGetUserDataProcessingHandler = (
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function GetUserDataProcessingHandler(
-  userDataProcessingModel: UserDataProcessingModel
+  userDataProcessingModel: UserDataProcessingModel,
 ): IGetUserDataProcessingHandler {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   return async (context, fiscalCode, choice) => {
     const logPrefix = `GetUserDataProcessingHandler|FISCAL_CODE=${fiscalCode}`;
     const id = makeUserDataProcessingId(choice, fiscalCode);
-    const maybeResultOrError = await userDataProcessingModel.findLastVersionByModelId(
-      [id, fiscalCode]
-    )();
+    const maybeResultOrError =
+      await userDataProcessingModel.findLastVersionByModelId([
+        id,
+        fiscalCode,
+      ])();
     if (isLeft(maybeResultOrError)) {
       const failure = maybeResultOrError.left;
 
@@ -68,12 +70,12 @@ export function GetUserDataProcessingHandler(
       ) {
         return ResponseErrorNotFound(
           "Not Found while retrieving User Data Processing",
-          `${failure.error.message}`
+          `${failure.error.message}`,
         );
       } else {
         return ResponseErrorQuery(
           "Error while retrieving a user data processing",
-          failure
+          failure,
         );
       }
     }
@@ -85,7 +87,7 @@ export function GetUserDataProcessingHandler(
     } else {
       return ResponseErrorNotFound(
         "Error while retrieving user data processing",
-        "Not Found"
+        "Not Found",
       );
     }
   };
@@ -96,14 +98,14 @@ export function GetUserDataProcessingHandler(
  */
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function GetUserDataProcessing(
-  userDataProcessingModel: UserDataProcessingModel
+  userDataProcessingModel: UserDataProcessingModel,
 ): express.RequestHandler {
   const handler = GetUserDataProcessingHandler(userDataProcessingModel);
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
     FiscalCodeMiddleware,
-    RequiredParamMiddleware("choice", UserDataProcessingChoice)
+    RequiredParamMiddleware("choice", UserDataProcessingChoice),
   );
   return wrapRequestHandler(middlewaresWrap(handler));
 }

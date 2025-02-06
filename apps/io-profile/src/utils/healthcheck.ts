@@ -4,7 +4,7 @@ import {
   createBlobService,
   createFileService,
   createQueueService,
-  createTableService
+  createTableService,
 } from "azure-storage";
 
 import * as A from "fp-ts/lib/Array";
@@ -22,7 +22,7 @@ import {
   HealthCheck,
   HealthProblem,
   ProblemSource,
-  toHealthProblems
+  toHealthProblems,
 } from "./healthcheck-utils";
 
 /**
@@ -33,12 +33,12 @@ import {
 export const checkConfigHealth = (): HealthCheck<"Config", IConfig> =>
   pipe(
     TE.fromEither(getConfig()),
-    TE.mapLeft(errors =>
-      errors.map(e =>
+    TE.mapLeft((errors) =>
+      errors.map((e) =>
         // give each problem its own line
-        formatProblem("Config", readableReport([e]))
-      )
-    )
+        formatProblem("Config", readableReport([e])),
+      ),
+    ),
   );
 
 /**
@@ -51,14 +51,14 @@ export const checkConfigHealth = (): HealthCheck<"Config", IConfig> =>
  */
 export const checkAzureCosmosDbHealth = (
   dbUri: string,
-  dbKey?: string
+  dbKey?: string,
 ): HealthCheck<"AzureCosmosDB", true> =>
   pipe(
     TE.tryCatch(async () => {
       const client = buildCosmosClient(dbUri, dbKey);
       return client.getDatabaseAccount();
     }, toHealthProblems("AzureCosmosDB")),
-    TE.map(_ => true)
+    TE.map((_) => true),
   );
 
 /**
@@ -69,11 +69,11 @@ export const checkAzureCosmosDbHealth = (
  * @returns either true or an array of error messages
  */
 export const checkAzureStorageHealth = (
-  connStr: string
+  connStr: string,
 ): HealthCheck<"AzureStorage"> => {
   const applicativeValidation = TE.getApplicativeTaskValidation(
     T.ApplicativePar,
-    RA.getSemigroup<HealthProblem<"AzureStorage">>()
+    RA.getSemigroup<HealthProblem<"AzureStorage">>(),
   );
 
   // try to instantiate a client for each product of azure storage
@@ -82,28 +82,27 @@ export const checkAzureStorageHealth = (
       createBlobService,
       createFileService,
       createQueueService,
-      createTableService
+      createTableService,
     ]
       // for each, create a task that wraps getServiceProperties
-      .map(createService =>
+      .map((createService) =>
         TE.tryCatch(
           () =>
-            new Promise<
-              azurestorageCommon.models.ServicePropertiesResult.ServiceProperties
-            >((resolve, reject) =>
-              createService(connStr).getServiceProperties((err, result) => {
-                // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-                err
-                  ? reject(err.message.replace(/\n/gim, " ")) // avoid newlines
-                  : resolve(result);
-              })
+            new Promise<azurestorageCommon.models.ServicePropertiesResult.ServiceProperties>(
+              (resolve, reject) =>
+                createService(connStr).getServiceProperties((err, result) => {
+                  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                  err
+                    ? reject(err.message.replace(/\n/gim, " ")) // avoid newlines
+                    : resolve(result);
+                }),
             ),
-          toHealthProblems("AzureStorage")
-        )
+          toHealthProblems("AzureStorage"),
+        ),
       ),
     // run each taskEither and gather validation errors from each one of them, if any
     A.sequence(applicativeValidation),
-    TE.map(_ => true)
+    TE.map((_) => true),
   );
 };
 
@@ -117,7 +116,7 @@ export const checkAzureStorageHealth = (
 export const checkUrlHealth = (url: string): HealthCheck<"Url", true> =>
   pipe(
     TE.tryCatch(() => fetch(url, { method: "HEAD" }), toHealthProblems("Url")),
-    TE.map(_ => true)
+    TE.map((_) => true),
   );
 
 /**
@@ -128,22 +127,22 @@ export const checkUrlHealth = (url: string): HealthCheck<"Url", true> =>
 export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> => {
   const applicativeValidation = TE.getApplicativeTaskValidation(
     T.ApplicativePar,
-    RA.getSemigroup<HealthProblem<ProblemSource>>()
+    RA.getSemigroup<HealthProblem<ProblemSource>>(),
   );
 
   return pipe(
     void 0,
     TE.of,
-    TE.chain(_ => checkConfigHealth()),
-    TE.chain(config =>
+    TE.chain((_) => checkConfigHealth()),
+    TE.chain((config) =>
       // run each taskEither and collect validation errors from each one of them, if any
       sequenceT(applicativeValidation)(
         checkAzureCosmosDbHealth(config.COSMOSDB_URI, config.COSMOSDB_KEY),
         checkAzureStorageHealth(config.QueueStorageConnection),
         checkUrlHealth(config.PUBLIC_API_URL),
-        checkUrlHealth(config.FUNCTIONS_PUBLIC_URL)
-      )
+        checkUrlHealth(config.FUNCTIONS_PUBLIC_URL),
+      ),
     ),
-    TE.map(_ => true)
+    TE.map((_) => true),
   );
 };

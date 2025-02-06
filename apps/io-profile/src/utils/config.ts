@@ -26,17 +26,17 @@ import { FeatureFlag, FeatureFlagEnum } from "./featureFlag";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const AnyBut = <A extends string | number | boolean | symbol, Out = A>(
   but: A,
-  base: t.Type<A, Out> = t.any
+  base: t.Type<A, Out> = t.any,
 ) =>
   t.brand(
     base,
     (
-      s
+      s,
     ): s is t.Branded<
       t.TypeOf<typeof base>,
       { readonly AnyBut: unique symbol }
     > => s !== but,
-    "AnyBut"
+    "AnyBut",
   );
 
 // configuration for REQ_SERVICE_ID in dev
@@ -44,17 +44,17 @@ export type ReqServiceIdConfig = t.TypeOf<typeof ReqServiceIdConfig>;
 export const ReqServiceIdConfig = t.union([
   t.interface({
     NODE_ENV: t.literal("production"),
-    REQ_SERVICE_ID: t.undefined
+    REQ_SERVICE_ID: t.undefined,
   }),
   t.interface({
     NODE_ENV: AnyBut("production", t.string),
-    REQ_SERVICE_ID: NonEmptyString
-  })
+    REQ_SERVICE_ID: NonEmptyString,
+  }),
 ]);
 
 export const FeatureFlagFromString = withFallback(
   FeatureFlag,
-  FeatureFlagEnum.NONE
+  FeatureFlagEnum.NONE,
 );
 
 // global app configuration
@@ -102,10 +102,10 @@ export const IConfig = t.intersection([
     PROFILE_EMAIL_STORAGE_CONNECTION_STRING: NonEmptyString,
     PROFILE_EMAIL_STORAGE_TABLE_NAME: NonEmptyString,
 
-    isProduction: t.boolean
+    isProduction: t.boolean,
   }),
   MailerConfig,
-  ReqServiceIdConfig
+  ReqServiceIdConfig,
 ]);
 
 // Default value is expressed as a Unix timestamp so it can be safely compared with Cosmos timestamp
@@ -118,8 +118,8 @@ const getBooleanOrFalse = (value?: string) =>
   pipe(
     value,
     O.fromNullable,
-    O.map(_ => _.toLocaleLowerCase() === "true"),
-    O.getOrElse(() => false)
+    O.map((_) => _.toLocaleLowerCase() === "true"),
+    O.getOrElse(() => false),
   );
 
 // No need to re-evaluate this object for each call
@@ -128,17 +128,17 @@ const errorOrConfig: t.Validation<IConfig> = IConfig.decode({
   IS_CASHBACK_ENABLED: getBooleanOrFalse(process.env.IS_CASHBACK_ENABLED),
   OPT_OUT_EMAIL_SWITCH_DATE: pipe(
     E.fromNullable(DEFAULT_OPT_OUT_EMAIL_SWITCH_DATE)(
-      process.env.OPT_OUT_EMAIL_SWITCH_DATE
+      process.env.OPT_OUT_EMAIL_SWITCH_DATE,
     ),
     E.chain(
       flow(
         NumberFromString.decode,
-        E.mapLeft(() => DEFAULT_OPT_OUT_EMAIL_SWITCH_DATE)
-      )
+        E.mapLeft(() => DEFAULT_OPT_OUT_EMAIL_SWITCH_DATE),
+      ),
     ),
-    E.toUnion
+    E.toUnion,
   ),
-  isProduction: process.env.NODE_ENV === "production"
+  isProduction: process.env.NODE_ENV === "production",
 });
 
 /**
@@ -163,8 +163,8 @@ export function getConfig(): t.Validation<IConfig> {
 export function getConfigOrThrow(): IConfig {
   return pipe(
     errorOrConfig,
-    E.getOrElseW(errors => {
+    E.getOrElseW((errors) => {
       throw new Error(`Invalid configuration: ${readableReport(errors)}`);
-    })
+    }),
   );
 }

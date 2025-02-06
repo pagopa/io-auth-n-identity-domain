@@ -3,13 +3,13 @@ import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/m
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
 import {
   withRequestMiddlewares,
-  wrapRequestHandler
+  wrapRequestHandler,
 } from "@pagopa/ts-commons/lib/request_middleware";
 import {
   IResponseErrorInternal,
   IResponseSuccessAccepted,
   ResponseErrorInternal,
-  ResponseSuccessAccepted
+  ResponseSuccessAccepted,
 } from "@pagopa/ts-commons/lib/responses";
 import * as df from "durable-functions";
 import express from "express";
@@ -25,42 +25,44 @@ import { OrchestratorInput } from "../NoticeLoginEmailOrchestrator/handler";
  */
 type INoticeLoginEmailHandler = (
   context: Context,
-  triggerPayload: UserLoginParams
+  triggerPayload: UserLoginParams,
 ) => Promise<IResponseSuccessAccepted<undefined> | IResponseErrorInternal>;
 
-export const NoticeLoginEmailHandler = (
-  _telemetryClient?: ReturnType<typeof createTracker>
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-): INoticeLoginEmailHandler => async (context, triggerPayload) => {
-  const dfClient = df.getClient(context);
+export const NoticeLoginEmailHandler =
+  (
+    _telemetryClient?: ReturnType<typeof createTracker>,
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  ): INoticeLoginEmailHandler =>
+  async (context, triggerPayload) => {
+    const dfClient = df.getClient(context);
 
-  const orchestratorId = `${triggerPayload.fiscal_code}-NOTICE-LOGIN-EMAIL`;
+    const orchestratorId = `${triggerPayload.fiscal_code}-NOTICE-LOGIN-EMAIL`;
 
-  return pipe(
-    startOrchestrator(
-      dfClient,
-      "NoticeLoginEmailOrchestrator",
-      orchestratorId,
-      { ...triggerPayload, date_time: new Date() },
-      OrchestratorInput
-    ),
-    TE.bimap(
-      error =>
-        ResponseErrorInternal(
-          `Error while starting the orchestrator|ERROR=${error}`
-        ),
-      _ =>
-        ResponseSuccessAccepted<undefined>(
-          "Email send request has been accepted",
-          undefined
-        )
-    ),
-    TE.toUnion
-  )();
-};
+    return pipe(
+      startOrchestrator(
+        dfClient,
+        "NoticeLoginEmailOrchestrator",
+        orchestratorId,
+        { ...triggerPayload, date_time: new Date() },
+        OrchestratorInput,
+      ),
+      TE.bimap(
+        (error) =>
+          ResponseErrorInternal(
+            `Error while starting the orchestrator|ERROR=${error}`,
+          ),
+        (_) =>
+          ResponseSuccessAccepted<undefined>(
+            "Email send request has been accepted",
+            undefined,
+          ),
+      ),
+      TE.toUnion,
+    )();
+  };
 
 export const NoticeLoginEmail = (
-  telemetryClient?: ReturnType<typeof createTracker>
+  telemetryClient?: ReturnType<typeof createTracker>,
 ): express.RequestHandler => {
   const handler = NoticeLoginEmailHandler(telemetryClient);
 
@@ -68,7 +70,7 @@ export const NoticeLoginEmail = (
     // Extract Azure Functions bindings
     ContextMiddleware(),
     // Extract the body payload from the request
-    RequiredBodyPayloadMiddleware(UserLoginParams)
+    RequiredBodyPayloadMiddleware(UserLoginParams),
   );
 
   return wrapRequestHandler(middlewaresWrap(handler));

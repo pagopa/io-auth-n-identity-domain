@@ -4,39 +4,39 @@ import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as df from "durable-functions";
 import {
   IOrchestrationFunctionContext,
-  Task
+  Task,
 } from "durable-functions/lib/src/classes";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { context as contextMock } from "../../__mocks__/durable-functions";
-import {
-  aEmailChanged,
-  aFiscalCode,
-  aName,
-  aRetrievedProfile,
-  autoProfileServicePreferencesSettings,
-  manualProfileServicePreferencesSettings
-} from "../../__mocks__/mocks";
-import {
-  OrchestratorInput as EmailValidationProcessOrchestratorInput,
-  OrchestratorResult as EmailValidationProcessOrchestratorResult
-} from "../../EmailValidationWithTemplateProcessOrchestrator/handler";
-import {
-  getUpsertedProfileOrchestratorHandler,
-  OrchestratorInput as UpsertedProfileOrchestratorInput
-} from "../handler";
 
 import { BlockedInboxOrChannelEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/BlockedInboxOrChannel";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
-import { consumeGenerator } from "../../utils/durable";
 
 import { Profile } from "@pagopa/io-functions-commons/dist/generated/definitions/Profile";
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicesPreferencesMode";
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
+import { consumeGenerator } from "../../utils/durable";
+import {
+  getUpsertedProfileOrchestratorHandler,
+  OrchestratorInput as UpsertedProfileOrchestratorInput,
+} from "../handler";
+import {
+  OrchestratorInput as EmailValidationProcessOrchestratorInput,
+  OrchestratorResult as EmailValidationProcessOrchestratorResult,
+} from "../../EmailValidationWithTemplateProcessOrchestrator/handler";
+import {
+  aEmailChanged,
+  aFiscalCode,
+  aName,
+  aRetrievedProfile,
+  autoProfileServicePreferencesSettings,
+  manualProfileServicePreferencesSettings,
+} from "../../__mocks__/mocks";
+import { context as contextMock } from "../../__mocks__/durable-functions";
 import {
   makeProfileCompletedEvent,
-  makeServicePreferencesChangedEvent
+  makeServicePreferencesChangedEvent,
 } from "../../utils/emitted_events";
 import { fail } from "../../utils/test-utils";
 const someRetryOptions = new df.RetryOptions(5000, 10);
@@ -55,30 +55,30 @@ describe("UpsertedProfileOrchestratorV2", () => {
         newProfile: { ...aRetrievedProfile, isWebhookEnabled: true },
         oldProfile: aRetrievedProfile,
         updatedAt: new Date(),
-        name: aName
+        name: aName,
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const contextMockWithDf = {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: readonly Task[]) => tasks
+          all: (tasks: ReadonlyArray<Task>) => tasks,
         },
         callSubOrchestratorWithRetry: vi.fn(() => undefined),
-        getInput: vi.fn(() => upsertedProfileOrchestratorInput)
-      }
+        getInput: vi.fn(() => upsertedProfileOrchestratorInput),
+      },
     };
 
     const orchestratorHandler = getUpsertedProfileOrchestratorHandler({
-      sendCashbackMessage: false
+      sendCashbackMessage: false,
     })(contextMockWithDf as any);
 
     consumeGenerator(orchestratorHandler);
@@ -93,32 +93,32 @@ describe("UpsertedProfileOrchestratorV2", () => {
         newProfile: {
           ...aRetrievedProfile,
           email: aEmailChanged, // Email changed to start the EmailValidationProcessOrchestrator
-          isInboxEnabled: true // Enable inbox to start the SendWelcomeMessagesActivity
+          isInboxEnabled: true, // Enable inbox to start the SendWelcomeMessagesActivity
         },
         oldProfile: aRetrievedProfile,
         updatedAt: new Date(),
-        name: aName
+        name: aName,
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const emailValidationProcessOrchestratorResult = pipe(
       EmailValidationProcessOrchestratorResult.decode({
-        kind: "SUCCESS"
+        kind: "SUCCESS",
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const sendWelcomeMessagesActivityResult = "SUCCESS";
@@ -127,20 +127,20 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: readonly Task[]) => tasks
+          all: (tasks: ReadonlyArray<Task>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
           .mockReturnValueOnce(sendWelcomeMessagesActivityResult),
         callSubOrchestratorWithRetry: vi.fn(
-          () => emailValidationProcessOrchestratorResult
+          () => emailValidationProcessOrchestratorResult,
         ),
-        getInput: vi.fn(() => upsertedProfileOrchestratorInput)
-      }
+        getInput: vi.fn(() => upsertedProfileOrchestratorInput),
+      },
     };
 
     const orchestratorHandler = getUpsertedProfileOrchestratorHandler({
-      sendCashbackMessage: true
+      sendCashbackMessage: true,
     })(contextMockWithDf as any);
 
     consumeGenerator(orchestratorHandler);
@@ -151,8 +151,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       EmailValidationProcessOrchestratorInput.encode({
         email: aEmailChanged,
         fiscalCode: aFiscalCode,
-        name: aName
-      })
+        name: aName,
+      }),
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -160,8 +160,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "WELCOME",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -169,8 +169,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "HOWTO",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -178,8 +178,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "CASHBACK",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -188,8 +188,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       makeProfileCompletedEvent(
         upsertedProfileOrchestratorInput.newProfile.fiscalCode,
         upsertedProfileOrchestratorInput.newProfile.servicePreferencesSettings
-          .mode
-      )
+          .mode,
+      ),
     );
   });
 
@@ -201,35 +201,35 @@ describe("UpsertedProfileOrchestratorV2", () => {
           ...aRetrievedProfile,
           email: aEmailChanged, // Email changed to start the EmailValidationProcessOrchestrator
           isInboxEnabled: true, // Enable inbox to start the SendWelcomeMessagesActivity
-          servicePreferencesSettings: autoProfileServicePreferencesSettings
+          servicePreferencesSettings: autoProfileServicePreferencesSettings,
         },
         oldProfile: {
           ...aRetrievedProfile,
-          servicePreferencesSettings: autoProfileServicePreferencesSettings
+          servicePreferencesSettings: autoProfileServicePreferencesSettings,
         },
         updatedAt: new Date(),
-        name: aName
+        name: aName,
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const emailValidationProcessOrchestratorResult = pipe(
       EmailValidationProcessOrchestratorResult.decode({
-        kind: "SUCCESS"
+        kind: "SUCCESS",
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const sendWelcomeMessagesActivityResult = "SUCCESS";
@@ -238,20 +238,20 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: readonly Task[]) => tasks
+          all: (tasks: ReadonlyArray<Task>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
           .mockReturnValueOnce(sendWelcomeMessagesActivityResult),
         callSubOrchestratorWithRetry: vi.fn(
-          () => emailValidationProcessOrchestratorResult
+          () => emailValidationProcessOrchestratorResult,
         ),
-        getInput: vi.fn(() => upsertedProfileOrchestratorInput)
-      }
+        getInput: vi.fn(() => upsertedProfileOrchestratorInput),
+      },
     };
 
     const orchestratorHandler = getUpsertedProfileOrchestratorHandler({
-      sendCashbackMessage: true
+      sendCashbackMessage: true,
     })(contextMockWithDf as any);
 
     consumeGenerator(orchestratorHandler);
@@ -262,8 +262,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       EmailValidationProcessOrchestratorInput.encode({
         email: aEmailChanged,
         fiscalCode: aFiscalCode,
-        name: aName
-      })
+        name: aName,
+      }),
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -271,8 +271,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "WELCOME",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -280,8 +280,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "HOWTO",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -289,14 +289,14 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "CASHBACK",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).not.toHaveBeenCalledWith(
       "UpdateSubscriptionsFeedActivity",
       someRetryOptions,
-      {}
+      {},
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -305,8 +305,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       makeProfileCompletedEvent(
         upsertedProfileOrchestratorInput.newProfile.fiscalCode,
         upsertedProfileOrchestratorInput.newProfile.servicePreferencesSettings
-          .mode
-      )
+          .mode,
+      ),
     );
   });
 
@@ -318,34 +318,34 @@ describe("UpsertedProfileOrchestratorV2", () => {
           ...aRetrievedProfile,
           email: aEmailChanged, // Email changed to start the EmailValidationProcessOrchestrator
           isInboxEnabled: true, // Enable inbox to start the SendWelcomeMessagesActivity
-          servicePreferencesSettings: autoProfileServicePreferencesSettings
+          servicePreferencesSettings: autoProfileServicePreferencesSettings,
         },
         oldProfile: {
-          ...aRetrievedProfile
+          ...aRetrievedProfile,
         },
         updatedAt: new Date(),
-        name: aName
+        name: aName,
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const emailValidationProcessOrchestratorResult = pipe(
       EmailValidationProcessOrchestratorResult.decode({
-        kind: "SUCCESS"
+        kind: "SUCCESS",
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const sendWelcomeMessagesActivityResult = "SUCCESS";
@@ -354,20 +354,20 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: readonly Task[]) => tasks
+          all: (tasks: ReadonlyArray<Task>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
           .mockReturnValueOnce(sendWelcomeMessagesActivityResult),
         callSubOrchestratorWithRetry: vi.fn(
-          () => emailValidationProcessOrchestratorResult
+          () => emailValidationProcessOrchestratorResult,
         ),
-        getInput: vi.fn(() => upsertedProfileOrchestratorInput)
-      }
+        getInput: vi.fn(() => upsertedProfileOrchestratorInput),
+      },
     };
 
     const orchestratorHandler = getUpsertedProfileOrchestratorHandler({
-      sendCashbackMessage: true
+      sendCashbackMessage: true,
     })(contextMockWithDf as any);
 
     consumeGenerator(orchestratorHandler);
@@ -378,8 +378,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       EmailValidationProcessOrchestratorInput.encode({
         email: aEmailChanged,
         fiscalCode: aFiscalCode,
-        name: aName
-      })
+        name: aName,
+      }),
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -387,8 +387,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "WELCOME",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -396,8 +396,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "HOWTO",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -405,14 +405,14 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "CASHBACK",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).not.toHaveBeenCalledWith(
       "UpdateSubscriptionsFeedActivity",
       someRetryOptions,
-      {}
+      {},
     );
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
       "EmitEventActivity",
@@ -420,8 +420,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       makeProfileCompletedEvent(
         upsertedProfileOrchestratorInput.newProfile.fiscalCode,
         upsertedProfileOrchestratorInput.newProfile.servicePreferencesSettings
-          .mode
-      )
+          .mode,
+      ),
     );
   });
 
@@ -433,34 +433,34 @@ describe("UpsertedProfileOrchestratorV2", () => {
           ...aRetrievedProfile,
           email: aEmailChanged, // Email changed to start the EmailValidationProcessOrchestrator
           isInboxEnabled: true, // Enable inbox to start the SendWelcomeMessagesActivity
-          servicePreferencesSettings: manualProfileServicePreferencesSettings
+          servicePreferencesSettings: manualProfileServicePreferencesSettings,
         },
         oldProfile: {
-          ...aRetrievedProfile
+          ...aRetrievedProfile,
         },
         updatedAt: new Date(),
-        name: aName
+        name: aName,
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const emailValidationProcessOrchestratorResult = pipe(
       EmailValidationProcessOrchestratorResult.decode({
-        kind: "SUCCESS"
+        kind: "SUCCESS",
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const sendWelcomeMessagesActivityResult = "SUCCESS";
@@ -469,20 +469,20 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: readonly Task[]) => tasks
+          all: (tasks: ReadonlyArray<Task>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
           .mockReturnValueOnce(sendWelcomeMessagesActivityResult),
         callSubOrchestratorWithRetry: vi.fn(
-          () => emailValidationProcessOrchestratorResult
+          () => emailValidationProcessOrchestratorResult,
         ),
-        getInput: vi.fn(() => upsertedProfileOrchestratorInput)
-      }
+        getInput: vi.fn(() => upsertedProfileOrchestratorInput),
+      },
     };
 
     const orchestratorHandler = getUpsertedProfileOrchestratorHandler({
-      sendCashbackMessage: true
+      sendCashbackMessage: true,
     })(contextMockWithDf as any);
 
     consumeGenerator(orchestratorHandler);
@@ -493,8 +493,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       EmailValidationProcessOrchestratorInput.encode({
         email: aEmailChanged,
         fiscalCode: aFiscalCode,
-        name: aName
-      })
+        name: aName,
+      }),
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -502,8 +502,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "WELCOME",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -511,8 +511,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "HOWTO",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -520,8 +520,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "CASHBACK",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -532,8 +532,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
         operation: "UNSUBSCRIBED",
         subscriptionKind: "PROFILE",
         updatedAt: upsertedProfileOrchestratorInput.updatedAt.getTime(),
-        version: upsertedProfileOrchestratorInput.newProfile.version
-      }
+        version: upsertedProfileOrchestratorInput.newProfile.version,
+      },
     );
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
       "EmitEventActivity",
@@ -541,8 +541,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       makeProfileCompletedEvent(
         upsertedProfileOrchestratorInput.newProfile.fiscalCode,
         upsertedProfileOrchestratorInput.newProfile.servicePreferencesSettings
-          .mode
-      )
+          .mode,
+      ),
     );
   });
 
@@ -554,35 +554,35 @@ describe("UpsertedProfileOrchestratorV2", () => {
           ...aRetrievedProfile,
           email: aEmailChanged, // Email changed to start the EmailValidationProcessOrchestrator
           isInboxEnabled: true, // Enable inbox to start the SendWelcomeMessagesActivity
-          servicePreferencesSettings: manualProfileServicePreferencesSettings
+          servicePreferencesSettings: manualProfileServicePreferencesSettings,
         },
         oldProfile: {
           ...aRetrievedProfile,
-          servicePreferencesSettings: autoProfileServicePreferencesSettings
+          servicePreferencesSettings: autoProfileServicePreferencesSettings,
         },
         updatedAt: new Date(),
-        name: aName
+        name: aName,
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const emailValidationProcessOrchestratorResult = pipe(
       EmailValidationProcessOrchestratorResult.decode({
-        kind: "SUCCESS"
+        kind: "SUCCESS",
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const sendWelcomeMessagesActivityResult = "SUCCESS";
@@ -591,7 +591,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: readonly Task[]) => tasks
+          all: (tasks: ReadonlyArray<Task>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
@@ -600,31 +600,31 @@ describe("UpsertedProfileOrchestratorV2", () => {
           .mockReturnValueOnce(sendWelcomeMessagesActivityResult) // CASHBACK
           .mockImplementationOnce(() => ({
             kind: "SUCCESS",
-            preferences: []
+            preferences: [],
           })),
         callSubOrchestratorWithRetry: vi.fn(
-          () => emailValidationProcessOrchestratorResult
+          () => emailValidationProcessOrchestratorResult,
         ),
-        getInput: vi.fn(() => upsertedProfileOrchestratorInput)
-      }
+        getInput: vi.fn(() => upsertedProfileOrchestratorInput),
+      },
     };
 
     const orchestratorHandler = getUpsertedProfileOrchestratorHandler({
-      sendCashbackMessage: true
+      sendCashbackMessage: true,
     })(contextMockWithDf as any);
 
     consumeGenerator(orchestratorHandler);
 
     expect(
-      contextMockWithDf.df.callSubOrchestratorWithRetry
+      contextMockWithDf.df.callSubOrchestratorWithRetry,
     ).toHaveBeenCalledWith(
       "EmailValidationWithTemplateProcessOrchestrator",
       expect.anything(), // retryOptions
       EmailValidationProcessOrchestratorInput.encode({
         email: aEmailChanged,
         fiscalCode: aFiscalCode,
-        name: aName
-      })
+        name: aName,
+      }),
     );
 
     let nth = 1;
@@ -634,8 +634,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "WELCOME",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toHaveBeenNthCalledWith(
@@ -644,8 +644,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "HOWTO",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toHaveBeenNthCalledWith(
@@ -654,8 +654,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "CASHBACK",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toHaveBeenNthCalledWith(
@@ -666,8 +666,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
         fiscalCode: aFiscalCode,
         settingsVersion:
           upsertedProfileOrchestratorInput.oldProfile
-            ?.servicePreferencesSettings.version
-      }
+            ?.servicePreferencesSettings.version,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toHaveBeenNthCalledWith(
@@ -680,8 +680,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
         subscriptionKind: "PROFILE",
         previousPreferences: [],
         updatedAt: upsertedProfileOrchestratorInput.updatedAt.getTime(),
-        version: upsertedProfileOrchestratorInput.newProfile.version
-      }
+        version: upsertedProfileOrchestratorInput.newProfile.version,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toHaveBeenNthCalledWith(
@@ -691,8 +691,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       makeProfileCompletedEvent(
         upsertedProfileOrchestratorInput.newProfile.fiscalCode,
         upsertedProfileOrchestratorInput.newProfile.servicePreferencesSettings
-          .mode
-      )
+          .mode,
+      ),
     );
   });
 
@@ -704,35 +704,35 @@ describe("UpsertedProfileOrchestratorV2", () => {
           ...aRetrievedProfile,
           email: aEmailChanged, // Email changed to start the EmailValidationProcessOrchestrator
           isInboxEnabled: true, // Enable inbox to start the SendWelcomeMessagesActivity
-          servicePreferencesSettings: autoProfileServicePreferencesSettings
+          servicePreferencesSettings: autoProfileServicePreferencesSettings,
         },
         oldProfile: {
           ...aRetrievedProfile,
-          servicePreferencesSettings: manualProfileServicePreferencesSettings
+          servicePreferencesSettings: manualProfileServicePreferencesSettings,
         },
         updatedAt: new Date(),
-        name: aName
+        name: aName,
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const emailValidationProcessOrchestratorResult = pipe(
       EmailValidationProcessOrchestratorResult.decode({
-        kind: "SUCCESS"
+        kind: "SUCCESS",
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const sendWelcomeMessagesActivityResult = "SUCCESS";
@@ -741,7 +741,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: readonly Task[]) => tasks
+          all: (tasks: ReadonlyArray<Task>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
@@ -750,17 +750,17 @@ describe("UpsertedProfileOrchestratorV2", () => {
           .mockReturnValueOnce(sendWelcomeMessagesActivityResult) // CASHBACK
           .mockReturnValueOnce({
             kind: "SUCCESS",
-            preferences: []
+            preferences: [],
           }),
         callSubOrchestratorWithRetry: vi.fn(
-          () => emailValidationProcessOrchestratorResult
+          () => emailValidationProcessOrchestratorResult,
         ),
-        getInput: vi.fn(() => upsertedProfileOrchestratorInput)
-      }
+        getInput: vi.fn(() => upsertedProfileOrchestratorInput),
+      },
     };
 
     const orchestratorHandler = getUpsertedProfileOrchestratorHandler({
-      sendCashbackMessage: true
+      sendCashbackMessage: true,
     })(contextMockWithDf as any);
 
     consumeGenerator(orchestratorHandler);
@@ -771,8 +771,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       EmailValidationProcessOrchestratorInput.encode({
         email: aEmailChanged,
         fiscalCode: aFiscalCode,
-        name: aName
-      })
+        name: aName,
+      }),
     );
 
     let nth = 1;
@@ -782,8 +782,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "WELCOME",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toHaveBeenNthCalledWith(
@@ -792,8 +792,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "HOWTO",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toHaveBeenNthCalledWith(
@@ -802,8 +802,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "CASHBACK",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toHaveBeenNthCalledWith(
@@ -814,8 +814,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
         fiscalCode: aFiscalCode,
         settingsVersion:
           upsertedProfileOrchestratorInput.oldProfile
-            ?.servicePreferencesSettings.version
-      }
+            ?.servicePreferencesSettings.version,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toHaveBeenNthCalledWith(
@@ -828,8 +828,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
         subscriptionKind: "PROFILE",
         previousPreferences: [],
         updatedAt: upsertedProfileOrchestratorInput.updatedAt.getTime(),
-        version: upsertedProfileOrchestratorInput.newProfile.version
-      }
+        version: upsertedProfileOrchestratorInput.newProfile.version,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toHaveBeenNthCalledWith(
@@ -839,8 +839,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       makeProfileCompletedEvent(
         upsertedProfileOrchestratorInput.newProfile.fiscalCode,
         upsertedProfileOrchestratorInput.newProfile.servicePreferencesSettings
-          .mode
-      )
+          .mode,
+      ),
     );
   });
 
@@ -852,40 +852,40 @@ describe("UpsertedProfileOrchestratorV2", () => {
           ...aRetrievedProfile,
           blockedInboxOrChannels: {
             service1: [BlockedInboxOrChannelEnum.INBOX],
-            service2: [BlockedInboxOrChannelEnum.INBOX]
+            service2: [BlockedInboxOrChannelEnum.INBOX],
           },
           email: aEmailChanged, // Email changed to start the EmailValidationProcessOrchestrator
-          isInboxEnabled: true // Enable inbox to start the SendWelcomeMessagesActivity
+          isInboxEnabled: true, // Enable inbox to start the SendWelcomeMessagesActivity
         },
         oldProfile: {
           ...aRetrievedProfile,
           blockedInboxOrChannels: {
-            service3: [BlockedInboxOrChannelEnum.INBOX]
-          }
+            service3: [BlockedInboxOrChannelEnum.INBOX],
+          },
         },
         updatedAt: new Date(),
-        name: aName
+        name: aName,
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const emailValidationProcessOrchestratorResult = pipe(
       EmailValidationProcessOrchestratorResult.decode({
-        kind: "SUCCESS"
+        kind: "SUCCESS",
       }),
-      E.getOrElseW(errs =>
+      E.getOrElseW((errs) =>
         fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
-            errs
-          )}`
-        )
-      )
+            errs,
+          )}`,
+        ),
+      ),
     );
 
     const sendWelcomeMessagesActivityResult = "SUCCESS";
@@ -894,20 +894,20 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: readonly Task[]) => tasks
+          all: (tasks: ReadonlyArray<Task>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
           .mockReturnValueOnce(sendWelcomeMessagesActivityResult),
         callSubOrchestratorWithRetry: vi.fn(
-          () => emailValidationProcessOrchestratorResult
+          () => emailValidationProcessOrchestratorResult,
         ),
-        getInput: vi.fn(() => upsertedProfileOrchestratorInput)
-      }
+        getInput: vi.fn(() => upsertedProfileOrchestratorInput),
+      },
     };
 
     const orchestratorHandler = getUpsertedProfileOrchestratorHandler({
-      sendCashbackMessage: true
+      sendCashbackMessage: true,
     })(contextMockWithDf as any);
 
     consumeGenerator(orchestratorHandler);
@@ -918,8 +918,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       EmailValidationProcessOrchestratorInput.encode({
         email: aEmailChanged,
         fiscalCode: aFiscalCode,
-        name: aName
-      })
+        name: aName,
+      }),
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -927,8 +927,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "WELCOME",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -936,8 +936,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "HOWTO",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -945,8 +945,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       someRetryOptions,
       {
         messageKind: "CASHBACK",
-        profile: upsertedProfileOrchestratorInput.newProfile
-      }
+        profile: upsertedProfileOrchestratorInput.newProfile,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -958,8 +958,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
         serviceId: "service3",
         subscriptionKind: "SERVICE",
         updatedAt: upsertedProfileOrchestratorInput.updatedAt.getTime(),
-        version: upsertedProfileOrchestratorInput.newProfile.version
-      }
+        version: upsertedProfileOrchestratorInput.newProfile.version,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -971,8 +971,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
         serviceId: "service1",
         subscriptionKind: "SERVICE",
         updatedAt: upsertedProfileOrchestratorInput.updatedAt.getTime(),
-        version: upsertedProfileOrchestratorInput.newProfile.version
-      }
+        version: upsertedProfileOrchestratorInput.newProfile.version,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -984,8 +984,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
         serviceId: "service2",
         subscriptionKind: "SERVICE",
         updatedAt: upsertedProfileOrchestratorInput.updatedAt.getTime(),
-        version: upsertedProfileOrchestratorInput.newProfile.version
-      }
+        version: upsertedProfileOrchestratorInput.newProfile.version,
+      },
     );
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
@@ -994,8 +994,8 @@ describe("UpsertedProfileOrchestratorV2", () => {
       makeProfileCompletedEvent(
         upsertedProfileOrchestratorInput.newProfile.fiscalCode,
         upsertedProfileOrchestratorInput.newProfile.servicePreferencesSettings
-          .mode
-      )
+          .mode,
+      ),
     );
   });
 });
@@ -1004,44 +1004,43 @@ describe("UpsertedProfileOrchestrator |> emitted events", () => {
   const anyProfileCompletedEvent = {
     ...makeProfileCompletedEvent(
       aFiscalCode,
-      ServicesPreferencesModeEnum.AUTO /* any value */
+      ServicesPreferencesModeEnum.AUTO /* any value */,
     ),
-    payload: expect.objectContaining({ fiscalCode: aFiscalCode })
+    payload: expect.objectContaining({ fiscalCode: aFiscalCode }),
   };
 
   const anyPreferenceModeChangedEvent = {
     ...makeServicePreferencesChangedEvent(
       aFiscalCode,
       ServicesPreferencesModeEnum.AUTO /* any value */,
-      ServicesPreferencesModeEnum.AUTO /* any value */
+      ServicesPreferencesModeEnum.AUTO /* any value */,
     ),
-    payload: expect.objectContaining({ fiscalCode: aFiscalCode })
+    payload: expect.objectContaining({ fiscalCode: aFiscalCode }),
   };
 
   const { AUTO, MANUAL, LEGACY } = ServicesPreferencesModeEnum;
 
   const withInboxEnabled = (p: RetrievedProfile) => ({
     ...p,
-    isInboxEnabled: true
+    isInboxEnabled: true,
   });
   const withInboxDisabled = (p: RetrievedProfile) => ({
     ...p,
-    isInboxEnabled: false
+    isInboxEnabled: false,
   });
   const withEmailChanged = (p: RetrievedProfile) => ({
     ...p,
-    email: aEmailChanged
+    email: aEmailChanged,
   });
-  const withPreferences = (mode: ServicesPreferencesModeEnum) => (
-    p: RetrievedProfile
-  ) =>
-    ({
-      ...p,
-      servicePreferencesSettings: {
-        mode,
-        version: mode === LEGACY ? -1 : 0
-      }
-    } as RetrievedProfile);
+  const withPreferences =
+    (mode: ServicesPreferencesModeEnum) => (p: RetrievedProfile) =>
+      ({
+        ...p,
+        servicePreferencesSettings: {
+          mode,
+          version: mode === LEGACY ? -1 : 0,
+        },
+      }) as RetrievedProfile;
 
   // just a helper to compose profile attributes
   const profile = (
@@ -1053,7 +1052,7 @@ describe("UpsertedProfileOrchestrator |> emitted events", () => {
   const mockUpdateSubscriptionsFeedActivity = vi.fn();
   const mockGetServicesPreferencesActivity = vi.fn().mockReturnValue({
     kind: "SUCCESS",
-    preferences: []
+    preferences: [],
   });
   const mockSendWelcomeMessagesActivity = vi.fn();
   const mockEmitEventActivity = vi.fn();
@@ -1086,7 +1085,7 @@ describe("UpsertedProfileOrchestrator |> emitted events", () => {
     ({
       expectedEvents,
       newProfile,
-      oldProfile
+      oldProfile,
     }: {
       expectedEvents: ReadonlyArray<typeof anyProfileCompletedEvent>;
       newProfile: Profile;
@@ -1097,46 +1096,46 @@ describe("UpsertedProfileOrchestrator |> emitted events", () => {
           newProfile,
           updatedAt: new Date(),
           oldProfile,
-          name: aName
+          name: aName,
         },
         UpsertedProfileOrchestratorInput.decode,
-        E.getOrElseW(errs =>
+        E.getOrElseW((errs) =>
           fail(
             `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
-              errs
-            )}`
-          )
-        )
+              errs,
+            )}`,
+          ),
+        ),
       );
 
-      const mockContextWithDf = ({
+      const mockContextWithDf = {
         ...contextMock,
         df: {
           Task: {
-            all: (tasks: readonly Task[]) => tasks
+            all: (tasks: ReadonlyArray<Task>) => tasks,
           },
           callActivityWithRetry: vi
             .fn()
             .mockImplementation((name, _, input) =>
-              callActivityBase(name, input)
+              callActivityBase(name, input),
             ),
           callSubOrchestratorWithRetry: vi.fn(),
-          getInput: vi.fn(() => orchestratorInput)
-        }
-      } as unknown) as IOrchestrationFunctionContext;
+          getInput: vi.fn(() => orchestratorInput),
+        },
+      } as unknown as IOrchestrationFunctionContext;
 
       const orchestratorHandler = getUpsertedProfileOrchestratorHandler({
-        sendCashbackMessage: true
+        sendCashbackMessage: true,
       })(mockContextWithDf);
 
       consumeGenerator(orchestratorHandler);
 
       // expect every event to be emitted
-      expectedEvents.forEach(evt => {
+      expectedEvents.forEach((evt) => {
         expect(mockEmitEventActivity).toBeCalledWith(evt);
       });
 
       expect(mockEmitEventActivity).toBeCalledTimes(expectedEvents.length);
-    }
+    },
   );
 });

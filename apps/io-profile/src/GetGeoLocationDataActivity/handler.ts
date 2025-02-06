@@ -10,14 +10,14 @@ import { GeoLocationServiceClient } from "./utils";
 
 // geo location service response
 const GeoLocationServiceResponse = t.interface({
-  geo_location: NonEmptyString
+  geo_location: NonEmptyString,
 });
 
 type GeoLocationServiceResponse = t.TypeOf<typeof GeoLocationServiceResponse>;
 
 // Activity input
 export const ActivityInput = t.interface({
-  ip_address: IPString
+  ip_address: IPString,
 });
 
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
@@ -25,63 +25,63 @@ export type ActivityInput = t.TypeOf<typeof ActivityInput>;
 // Activity result
 export const ActivityResultSuccess = t.interface({
   kind: t.literal("SUCCESS"),
-  value: GeoLocationServiceResponse
+  value: GeoLocationServiceResponse,
 });
 
 const GeneralFailure = t.interface({
   kind: t.literal("FAILURE"),
-  reason: t.string
+  reason: t.string,
 });
 
 type GeneralFailure = t.TypeOf<typeof GeneralFailure>;
 
 const ActivityResultFailure = t.union([
   GeneralFailure,
-  TransientNotImplementedFailure
+  TransientNotImplementedFailure,
 ]);
 
 export const ActivityResult = t.taggedUnion("kind", [
   ActivityResultSuccess,
-  ActivityResultFailure
+  ActivityResultFailure,
 ]);
 
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
 const logPrefix = "GetGeoLocationDataActivity";
 
-export const getGeoLocationHandler = (
-  _geoLocationService: GeoLocationServiceClient
-) => async (context: Context, input: unknown): Promise<ActivityResult> =>
-  pipe(
-    input,
-    ActivityInput.decode,
-    E.mapLeft(errors => {
-      context.log.error(
-        `${logPrefix}|Error while decoding input|ERROR=${readableReportSimplified(
-          errors
-        )}`
-      );
+export const getGeoLocationHandler =
+  (_geoLocationService: GeoLocationServiceClient) =>
+  async (context: Context, input: unknown): Promise<ActivityResult> =>
+    pipe(
+      input,
+      ActivityInput.decode,
+      E.mapLeft((errors) => {
+        context.log.error(
+          `${logPrefix}|Error while decoding input|ERROR=${readableReportSimplified(
+            errors,
+          )}`,
+        );
 
-      return ActivityResultFailure.encode({
-        kind: "FAILURE",
-        reason: "Error while decoding input"
-      });
-    }),
-    TE.fromEither,
-    // TODO: implement the actual call to geo location service
-    TE.chain(_activityInput =>
-      TE.left(
-        ActivityResultFailure.encode({
-          kind: "NOT_YET_IMPLEMENTED",
-          reason: "call not yet implemented"
-        })
-      )
-    ),
-    TE.map(serviceResponse =>
-      ActivityResultSuccess.encode({
-        kind: "SUCCESS",
-        value: serviceResponse
-      })
-    ),
-    TE.toUnion
-  )();
+        return ActivityResultFailure.encode({
+          kind: "FAILURE",
+          reason: "Error while decoding input",
+        });
+      }),
+      TE.fromEither,
+      // TODO: implement the actual call to geo location service
+      TE.chain((_activityInput) =>
+        TE.left(
+          ActivityResultFailure.encode({
+            kind: "NOT_YET_IMPLEMENTED",
+            reason: "call not yet implemented",
+          }),
+        ),
+      ),
+      TE.map((serviceResponse) =>
+        ActivityResultSuccess.encode({
+          kind: "SUCCESS",
+          value: serviceResponse,
+        }),
+      ),
+      TE.toUnion,
+    )();

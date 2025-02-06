@@ -13,12 +13,12 @@ tableService.createTableIfNotExists(config.SUBSCRIPTIONS_FEED_TABLE, () => 0);
 
 const activityFunction: AzureFunction = async (
   context: Context,
-  rawInput: unknown
+  rawInput: unknown,
 ): Promise<string> =>
   updateSubscriptionFeed(
     context,
     rawInput,
     tableService,
-    config.SUBSCRIPTIONS_FEED_TABLE
+    config.SUBSCRIPTIONS_FEED_TABLE,
   );
 export default activityFunction;

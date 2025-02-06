@@ -9,7 +9,7 @@ import {
   Profile,
   ProfileModel,
   PROFILE_SERVICE_PREFERENCES_SETTINGS_LEGACY_VERSION,
-  RetrievedProfile
+  RetrievedProfile,
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
 
 import { FiscalCode } from "@pagopa/io-functions-commons/dist/generated/definitions/FiscalCode";
@@ -17,11 +17,11 @@ import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/g
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import {
   IResponseErrorQuery,
-  ResponseErrorQuery
+  ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 import {
   IResponseErrorNotFound,
-  ResponseErrorNotFound
+  ResponseErrorNotFound,
 } from "@pagopa/ts-commons/lib/responses";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
@@ -34,7 +34,7 @@ export const apiProfileToProfile = (
   apiProfile: ApiProfile,
   fiscalCode: FiscalCode,
   isEmailValidated: IsEmailValidated,
-  servicePreferencesSettingsVersion: number
+  servicePreferencesSettingsVersion: number,
 ): Profile => ({
   acceptedTosVersion: apiProfile.accepted_tos_version,
   blockedInboxOrChannels: apiProfile.blocked_inbox_or_channels,
@@ -54,12 +54,12 @@ export const apiProfileToProfile = (
       ServicesPreferencesModeEnum.LEGACY
       ? {
           mode: ServicesPreferencesModeEnum.LEGACY,
-          version: PROFILE_SERVICE_PREFERENCES_SETTINGS_LEGACY_VERSION
+          version: PROFILE_SERVICE_PREFERENCES_SETTINGS_LEGACY_VERSION,
         }
       : {
           mode: apiProfile.service_preferences_settings.mode,
-          version: servicePreferencesSettingsVersion as NonNegativeInteger
-        }
+          version: servicePreferencesSettingsVersion as NonNegativeInteger,
+        },
 });
 
 /**
@@ -67,7 +67,7 @@ export const apiProfileToProfile = (
  */
 export const retrievedProfileToExtendedProfile = (
   profile: RetrievedProfile,
-  isEmailAlreadyTaken: boolean = false
+  isEmailAlreadyTaken: boolean = false,
 ): ExtendedProfile =>
   withoutUndefinedValues({
     accepted_tos_version: profile.acceptedTosVersion,
@@ -89,38 +89,40 @@ export const retrievedProfileToExtendedProfile = (
     reminder_status:
       profile.reminderStatus !== "UNSET" ? profile.reminderStatus : undefined,
     service_preferences_settings: profile.servicePreferencesSettings,
-    version: profile.version
+    version: profile.version,
   });
 
 /**
  * Extracts the services that have inbox blocked
  */
 const getInboxBlockedServices = (
-  blocked: Profile["blockedInboxOrChannels"] | undefined | null
+  blocked: Profile["blockedInboxOrChannels"] | undefined | null,
 ): ReadonlyArray<string> =>
   !blocked
     ? []
     : (Object.keys(blocked)
-        .map(k =>
-          blocked[k].includes(BlockedInboxOrChannelEnum.INBOX) ? k : undefined
+        .map((k) =>
+          blocked[k].includes(BlockedInboxOrChannelEnum.INBOX) ? k : undefined,
         )
-        .filter(k => k !== undefined) as ReadonlyArray<string>);
+        .filter((k) => k !== undefined) as ReadonlyArray<string>);
 
 /**
  * Returns the services that exist in newServices but not in oldServices
  */
 const addedServices = (
   oldServices: ReadonlyArray<string>,
-  newServices: ReadonlyArray<string>
-): ReadonlyArray<string> => newServices.filter(k => oldServices.indexOf(k) < 0);
+  newServices: ReadonlyArray<string>,
+): ReadonlyArray<string> =>
+  newServices.filter((k) => oldServices.indexOf(k) < 0);
 
 /**
  * Returns the services that exist in oldServices but not in newServices
  */
 const removedServices = (
   oldServices: ReadonlyArray<string>,
-  newServices: ReadonlyArray<string>
-): ReadonlyArray<string> => oldServices.filter(k => newServices.indexOf(k) < 0);
+  newServices: ReadonlyArray<string>,
+): ReadonlyArray<string> =>
+  oldServices.filter((k) => newServices.indexOf(k) < 0);
 
 /**
  * Returns a tuple with the services that have been blocked (1st element) and
@@ -128,7 +130,7 @@ const removedServices = (
  */
 export const diffBlockedServices = (
   oldBlocked: Profile["blockedInboxOrChannels"] | undefined | null,
-  newBlocked: Profile["blockedInboxOrChannels"] | undefined | null
+  newBlocked: Profile["blockedInboxOrChannels"] | undefined | null,
 ): ITuple2<ReadonlyArray<string>, ReadonlyArray<string>> => {
   // we extract the services that have the inbox blocked from the old and the
   // eslint-disable-next-line extra-rules/no-commented-out-code
@@ -148,7 +150,7 @@ export const diffBlockedServices = (
   // not in the new profile
   const removedBlockedServices = removedServices(
     oldInboxBlocked,
-    newInboxBlocked
+    newInboxBlocked,
   );
 
   return Tuple2(addedBlockedServices, removedBlockedServices);
@@ -157,20 +159,22 @@ export const diffBlockedServices = (
 /**
  * Return a task containing either an error or the required Profile
  */
-export const getProfileOrErrorResponse = (profileModels: ProfileModel) => (
-  fiscalCode: FiscalCode
-): TE.TaskEither<IResponseErrorQuery | IResponseErrorNotFound, Profile> =>
-  pipe(
-    profileModels.findLastVersionByModelId([fiscalCode]),
-    TE.mapLeft(failure =>
-      ResponseErrorQuery("Error while retrieving the profile", failure)
-    ),
-    TE.chainW(
-      TE.fromOption(() =>
-        ResponseErrorNotFound(
-          "Profile not found",
-          "The profile you requested was not found in the system."
-        )
-      )
-    )
-  );
+export const getProfileOrErrorResponse =
+  (profileModels: ProfileModel) =>
+  (
+    fiscalCode: FiscalCode,
+  ): TE.TaskEither<IResponseErrorQuery | IResponseErrorNotFound, Profile> =>
+    pipe(
+      profileModels.findLastVersionByModelId([fiscalCode]),
+      TE.mapLeft((failure) =>
+        ResponseErrorQuery("Error while retrieving the profile", failure),
+      ),
+      TE.chainW(
+        TE.fromOption(() =>
+          ResponseErrorNotFound(
+            "Profile not found",
+            "The profile you requested was not found in the system.",
+          ),
+        ),
+      ),
+    );

@@ -4,7 +4,7 @@ import express from "express";
 
 import {
   PROFILE_COLLECTION_NAME,
-  ProfileModel
+  ProfileModel,
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
 
 import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
@@ -18,7 +18,7 @@ import { CreateProfile } from "./handler";
 
 const config = getConfigOrThrow();
 const profileModel = new ProfileModel(
-  cosmosdbInstance.container(PROFILE_COLLECTION_NAME)
+  cosmosdbInstance.container(PROFILE_COLLECTION_NAME),
 );
 
 // Setup Express
@@ -27,7 +27,7 @@ secureExpressApp(app);
 
 app.post(
   "/api/v1/profiles/:fiscalcode",
-  CreateProfile(profileModel, config.OPT_OUT_EMAIL_SWITCH_DATE)
+  CreateProfile(profileModel, config.OPT_OUT_EMAIL_SWITCH_DATE),
 );
 
 const azureFunctionHandler = createAzureFunctionHandler(app);

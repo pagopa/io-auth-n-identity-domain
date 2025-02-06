@@ -30,7 +30,7 @@ import { ObjectIdGenerator } from "@pagopa/io-functions-commons/dist/src/utils/s
 // Activity input
 export const ActivityInput = t.interface({
   email: EmailString,
-  fiscalCode: FiscalCode
+  fiscalCode: FiscalCode,
 });
 
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
@@ -40,99 +40,102 @@ const ActivityResultSuccess = t.interface({
   kind: t.literal("SUCCESS"),
   value: t.interface({
     validationTokenEntity: ValidationTokenEntity,
-    validator: t.string
-  })
+    validator: t.string,
+  }),
 });
 
 const ActivityResultFailure = t.interface({
   kind: t.literal("FAILURE"),
-  reason: t.string
+  reason: t.string,
 });
 
 export const ActivityResult = t.taggedUnion("kind", [
   ActivityResultSuccess,
-  ActivityResultFailure
+  ActivityResultFailure,
 ]);
 
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
-export const getCreateValidationTokenActivityHandler = (
-  ulidGenerator: ObjectIdGenerator,
-  tableService: TableService,
-  validationTokensTableName: string,
-  tokenInvalidAfterMS: Millisecond,
-  randomBytesGenerator: (size: number) => string,
-  hashCreator: (value: string) => string
-  // eslint-disable-next-line max-params
-) => async (context: Context, input: unknown): Promise<unknown> => {
-  const logPrefix = `CreateValidationTokenActivity`;
+export const getCreateValidationTokenActivityHandler =
+  (
+    ulidGenerator: ObjectIdGenerator,
+    tableService: TableService,
+    validationTokensTableName: string,
+    tokenInvalidAfterMS: Millisecond,
+    randomBytesGenerator: (size: number) => string,
+    hashCreator: (value: string) => string,
+    // eslint-disable-next-line max-params
+  ) =>
+  async (context: Context, input: unknown): Promise<unknown> => {
+    const logPrefix = `CreateValidationTokenActivity`;
 
-  const errorOrCreateValidationTokenActivityInput = ActivityInput.decode(input);
+    const errorOrCreateValidationTokenActivityInput =
+      ActivityInput.decode(input);
 
-  if (E.isLeft(errorOrCreateValidationTokenActivityInput)) {
-    context.log.error(
-      `${logPrefix}|Error decoding input|ERROR=${readableReport(
-        errorOrCreateValidationTokenActivityInput.left
-      )}`
-    );
-    return ActivityResultFailure.encode({
-      kind: "FAILURE",
-      reason: "Error decoding input"
-    });
-  }
-
-  const createValidationTokenActivityInput =
-    errorOrCreateValidationTokenActivityInput.right;
-
-  // Log the input
-  context.log.verbose(
-    `${logPrefix}|INPUT=${JSON.stringify(createValidationTokenActivityInput)}`
-  );
-
-  const { fiscalCode, email } = createValidationTokenActivityInput;
-
-  // Generate id, tokenId and validator
-  const id = ulidGenerator();
-  const tokenId = id;
-  const validator = randomBytesGenerator(12);
-  const validatorHash = hashCreator(validator);
-
-  const validationTokenEntity: ValidationTokenEntity = {
-    Email: email,
-    FiscalCode: fiscalCode,
-    InvalidAfter: new Date(Date.now() + (tokenInvalidAfterMS as number)),
-    PartitionKey: tokenId,
-    RowKey: validatorHash
-  };
-
-  const errorOrCreatedValidationTokenEntity = await insertTableEntity(
-    tableService,
-    validationTokensTableName,
-    validationTokenEntity
-  );
-
-  if (E.isLeft(errorOrCreatedValidationTokenEntity)) {
-    const error = Error(
-      `${logPrefix}|Error creating new validation token|ERROR=${errorOrCreatedValidationTokenEntity.left}`
-    );
-    context.log.error(error.message);
-    throw error;
-  }
-
-  const createdValidationTokenEntity =
-    errorOrCreatedValidationTokenEntity.right;
-
-  context.log.verbose(
-    `${logPrefix}|Validation token created|ENTITY=${JSON.stringify(
-      createdValidationTokenEntity
-    )}`
-  );
-
-  return ActivityResult.encode({
-    kind: "SUCCESS",
-    value: {
-      validationTokenEntity,
-      validator
+    if (E.isLeft(errorOrCreateValidationTokenActivityInput)) {
+      context.log.error(
+        `${logPrefix}|Error decoding input|ERROR=${readableReport(
+          errorOrCreateValidationTokenActivityInput.left,
+        )}`,
+      );
+      return ActivityResultFailure.encode({
+        kind: "FAILURE",
+        reason: "Error decoding input",
+      });
     }
-  });
-};
+
+    const createValidationTokenActivityInput =
+      errorOrCreateValidationTokenActivityInput.right;
+
+    // Log the input
+    context.log.verbose(
+      `${logPrefix}|INPUT=${JSON.stringify(createValidationTokenActivityInput)}`,
+    );
+
+    const { fiscalCode, email } = createValidationTokenActivityInput;
+
+    // Generate id, tokenId and validator
+    const id = ulidGenerator();
+    const tokenId = id;
+    const validator = randomBytesGenerator(12);
+    const validatorHash = hashCreator(validator);
+
+    const validationTokenEntity: ValidationTokenEntity = {
+      Email: email,
+      FiscalCode: fiscalCode,
+      InvalidAfter: new Date(Date.now() + (tokenInvalidAfterMS as number)),
+      PartitionKey: tokenId,
+      RowKey: validatorHash,
+    };
+
+    const errorOrCreatedValidationTokenEntity = await insertTableEntity(
+      tableService,
+      validationTokensTableName,
+      validationTokenEntity,
+    );
+
+    if (E.isLeft(errorOrCreatedValidationTokenEntity)) {
+      const error = Error(
+        `${logPrefix}|Error creating new validation token|ERROR=${errorOrCreatedValidationTokenEntity.left}`,
+      );
+      context.log.error(error.message);
+      throw error;
+    }
+
+    const createdValidationTokenEntity =
+      errorOrCreatedValidationTokenEntity.right;
+
+    context.log.verbose(
+      `${logPrefix}|Validation token created|ENTITY=${JSON.stringify(
+        createdValidationTokenEntity,
+      )}`,
+    );
+
+    return ActivityResult.encode({
+      kind: "SUCCESS",
+      value: {
+        validationTokenEntity,
+        validator,
+      },
+    });
+  };

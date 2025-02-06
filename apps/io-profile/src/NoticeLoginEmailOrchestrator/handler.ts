@@ -2,7 +2,7 @@ import {
   EmailString,
   FiscalCode,
   IPString,
-  NonEmptyString
+  NonEmptyString,
 } from "@pagopa/ts-commons/lib/strings";
 import { IOrchestrationFunctionContext } from "durable-functions/lib/src/iorchestrationfunctioncontext";
 import * as t from "io-ts";
@@ -13,15 +13,15 @@ import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
 import {
   ActivityInput as SendTemplatedLoginEmailActivityInput,
-  ActivityResultSuccess as SendTemplatedLoginEmailActivityResultSuccess
+  ActivityResultSuccess as SendTemplatedLoginEmailActivityResultSuccess,
 } from "../SendTemplatedLoginEmailActivity/handler";
 import {
   ActivityInput as GetMagicCodeActivityInput,
-  ActivityResult as GetMagicCodeActivityResult
+  ActivityResult as GetMagicCodeActivityResult,
 } from "../GetMagicCodeActivity/handler";
 import {
   ActivityInput as GetGeoLocationActivityInput,
-  ActivityResult as GetGeoLocationActivityResult
+  ActivityResult as GetGeoLocationActivityResult,
 } from "../GetGeoLocationDataActivity/handler";
 import { toHash } from "../utils/crypto";
 
@@ -34,35 +34,35 @@ export const OrchestratorInput = t.intersection([
     fiscal_code: FiscalCode,
     identity_provider: NonEmptyString,
     ip_address: IPString,
-    name: NonEmptyString
+    name: NonEmptyString,
   }),
   t.partial({
     device_name: NonEmptyString,
-    is_email_validated: withDefault(t.boolean, false)
-  })
+    is_email_validated: withDefault(t.boolean, false),
+  }),
 ]);
 
 export type OrchestratorInput = t.TypeOf<typeof OrchestratorInput>;
 
 // Result
 export const OrchestratorSuccessResult = t.interface({
-  kind: t.literal("SUCCESS")
+  kind: t.literal("SUCCESS"),
 });
 
 export const OrchestratorFailureResult = t.interface({
   kind: t.literal("FAILURE"),
-  reason: t.string
+  reason: t.string,
 });
 
 export const OrchestratorResult = t.taggedUnion("kind", [
   OrchestratorSuccessResult,
-  OrchestratorFailureResult
+  OrchestratorFailureResult,
 ]);
 
 export type OrchestratorResult = t.TypeOf<typeof OrchestratorResult>;
 
-export const getNoticeLoginEmailOrchestratorHandler = function*(
-  context: IOrchestrationFunctionContext
+export const getNoticeLoginEmailOrchestratorHandler = function* (
+  context: IOrchestrationFunctionContext,
 ): Generator<unknown> {
   const logPrefix = "NoticeLoginEmailOrchestrator";
 
@@ -78,13 +78,13 @@ export const getNoticeLoginEmailOrchestratorHandler = function*(
   if (E.isLeft(errorOrOrchestratorInput)) {
     const error = Error(
       `${logPrefix}|Error decoding input|ERROR=${readableReportSimplified(
-        errorOrOrchestratorInput.left
-      )}`
+        errorOrOrchestratorInput.left,
+      )}`,
     );
     context.log.error(error.message);
     return OrchestratorFailureResult.encode({
       kind: "FAILURE",
-      reason: error.message
+      reason: error.message,
     });
     // We don't throw an error because we can't do a retry in this scenario
   }
@@ -100,7 +100,7 @@ export const getNoticeLoginEmailOrchestratorHandler = function*(
     device_name,
     ip_address,
     identity_provider,
-    is_email_validated
+    is_email_validated,
   } = orchestratorInput;
   /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -111,14 +111,14 @@ export const getNoticeLoginEmailOrchestratorHandler = function*(
       email: toHash(orchestratorInput.email),
       family_name: toHash(orchestratorInput.family_name),
       fiscal_code: toHash(orchestratorInput.fiscal_code),
-      name: toHash(orchestratorInput.name)
-    })}`
+      name: toHash(orchestratorInput.name),
+    })}`,
   );
 
   try {
     context.log.verbose(`${logPrefix}|Starting GetGeoLocationDataActivity`);
     const geoLocationActivityInput = GetGeoLocationActivityInput.encode({
-      ip_address
+      ip_address,
     });
 
     // eslint-disable-next-line functional/no-let, @typescript-eslint/naming-convention
@@ -127,11 +127,10 @@ export const getNoticeLoginEmailOrchestratorHandler = function*(
       const geoLocationActivityResult = yield context.df.callActivityWithRetry(
         "GetGeoLocationDataActivity",
         retryOptions,
-        geoLocationActivityInput
+        geoLocationActivityInput,
       );
-      const errorOrGeoLocationServiceResponse = GetGeoLocationActivityResult.decode(
-        geoLocationActivityResult
-      );
+      const errorOrGeoLocationServiceResponse =
+        GetGeoLocationActivityResult.decode(geoLocationActivityResult);
 
       if (E.isRight(errorOrGeoLocationServiceResponse)) {
         if (errorOrGeoLocationServiceResponse.right.kind === "SUCCESS") {
@@ -139,7 +138,7 @@ export const getNoticeLoginEmailOrchestratorHandler = function*(
             errorOrGeoLocationServiceResponse.right.value.geo_location;
         } else {
           context.log.error(
-            `${logPrefix}|GetGeoLocationDataActivity failed with ${errorOrGeoLocationServiceResponse.right.reason}`
+            `${logPrefix}|GetGeoLocationDataActivity failed with ${errorOrGeoLocationServiceResponse.right.reason}`,
           );
         }
       }
@@ -147,7 +146,7 @@ export const getNoticeLoginEmailOrchestratorHandler = function*(
       // log activity max retry reached
       // we let geo_location be undefined
       context.log.error(
-        `${logPrefix}|GetGeoLocationDataActivity max retry reached`
+        `${logPrefix}|GetGeoLocationDataActivity max retry reached`,
       );
     }
 
@@ -162,25 +161,24 @@ export const getNoticeLoginEmailOrchestratorHandler = function*(
       const magicCodeActivityInput = GetMagicCodeActivityInput.encode({
         family_name,
         fiscal_code,
-        name
+        name,
       });
 
       try {
         const magicCodeActivityResult = yield context.df.callActivityWithRetry(
           "GetMagicCodeActivity",
           retryOptions,
-          magicCodeActivityInput
+          magicCodeActivityInput,
         );
 
-        const errorOrMagicLinkServiceResponse = GetMagicCodeActivityResult.decode(
-          magicCodeActivityResult
-        );
+        const errorOrMagicLinkServiceResponse =
+          GetMagicCodeActivityResult.decode(magicCodeActivityResult);
         if (E.isRight(errorOrMagicLinkServiceResponse)) {
           if (errorOrMagicLinkServiceResponse.right.kind === "SUCCESS") {
             magic_link = errorOrMagicLinkServiceResponse.right.value.magic_link;
           } else {
             context.log.error(
-              `${logPrefix}|GetMagicCodeActivity failed with ${errorOrMagicLinkServiceResponse.right.reason}`
+              `${logPrefix}|GetMagicCodeActivity failed with ${errorOrMagicLinkServiceResponse.right.reason}`,
             );
           }
         }
@@ -188,12 +186,12 @@ export const getNoticeLoginEmailOrchestratorHandler = function*(
         // log activity max retry reached
         // we let magic_code be undefined and continue to send the base login email template
         context.log.error(
-          `${logPrefix}|GetMagicCodeActivity max retry reached`
+          `${logPrefix}|GetMagicCodeActivity max retry reached`,
         );
       }
     } else {
       context.log.verbose(
-        `${logPrefix}|Ignoring GetMagicCodeActivity. The user doesn't have a validated email`
+        `${logPrefix}|Ignoring GetMagicCodeActivity. The user doesn't have a validated email`,
       );
     }
 
@@ -207,23 +205,24 @@ export const getNoticeLoginEmailOrchestratorHandler = function*(
         identity_provider,
         ip_address,
         magic_link,
-        name
-      }
+        name,
+      },
     );
     const sendMailActivityResult = yield context.df.callActivityWithRetry(
       "SendTemplatedLoginEmailActivity",
       retryOptions,
-      loginEmailActivityInput
+      loginEmailActivityInput,
     );
 
-    const errorOrSendMailActivityResult = SendTemplatedLoginEmailActivityResultSuccess.decode(
-      sendMailActivityResult
-    );
+    const errorOrSendMailActivityResult =
+      SendTemplatedLoginEmailActivityResultSuccess.decode(
+        sendMailActivityResult,
+      );
 
     if (E.isLeft(errorOrSendMailActivityResult)) {
       throw OrchestratorFailureResult.encode({
         kind: "FAILURE",
-        reason: readableReportSimplified(errorOrSendMailActivityResult.left)
+        reason: readableReportSimplified(errorOrSendMailActivityResult.left),
       });
     }
 

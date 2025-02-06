@@ -12,11 +12,11 @@ const packageJson = require("../../package.json");
 export const getValueFromPackageJson = (
   // packageJson is now typed as any because of `require` import,
   // needed to set resolveJsonModule to false
-  key: keyof typeof packageJson
+  key: keyof typeof packageJson,
 ): string =>
   pipe(
     t.string.decode(packageJson[key]),
-    E.getOrElse(() => "UNKNOWN")
+    E.getOrElse(() => "UNKNOWN"),
   );
 
 /**

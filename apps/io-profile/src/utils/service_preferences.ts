@@ -8,14 +8,14 @@ import { Profile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import {
   AccessReadMessageStatus,
   AccessReadMessageStatusEnum,
-  RetrievedServicePreference
+  RetrievedServicePreference,
 } from "@pagopa/io-functions-commons/dist/src/models/service_preference";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { ServiceId } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceId";
 import { FiscalCode } from "@pagopa/io-functions-commons/dist/generated/definitions/FiscalCode";
 import {
   IResponseErrorQuery,
-  ResponseErrorQuery
+  ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 import { ActivationModel } from "@pagopa/io-functions-commons/dist/src/models/activation";
 import { ActivationStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ActivationStatus";
@@ -26,14 +26,14 @@ const toUserServicePreference = (
   emailEnabled: boolean,
   inboxEnabled: boolean,
   webhookEnabled: boolean,
-  version: NonNegativeInteger
+  version: NonNegativeInteger,
 ): ServicePreference => ({
   can_access_message_read_status:
     accessReadMessageStatus !== AccessReadMessageStatusEnum.DENY,
   is_email_enabled: emailEnabled,
   is_inbox_enabled: inboxEnabled,
   is_webhook_enabled: webhookEnabled,
-  settings_version: version
+  settings_version: version,
 });
 
 /**
@@ -43,14 +43,14 @@ const toUserServicePreference = (
  * @returns
  */
 export const toUserServicePreferenceFromModel = (
-  servicePref: RetrievedServicePreference
+  servicePref: RetrievedServicePreference,
 ): ServicePreference =>
   toUserServicePreference(
     servicePref.accessReadMessageStatus,
     servicePref.isEmailEnabled,
     servicePref.isInboxEnabled,
     servicePref.isWebhookEnabled,
-    servicePref.settingsVersion
+    servicePref.settingsVersion,
   );
 
 /**
@@ -60,14 +60,14 @@ export const toUserServicePreferenceFromModel = (
  * @returns
  */
 export const toDefaultEnabledUserServicePreference = (
-  version: NonNegativeInteger
+  version: NonNegativeInteger,
 ): ServicePreference =>
   toUserServicePreference(
     AccessReadMessageStatusEnum.UNKNOWN,
     true,
     true,
     true,
-    version
+    version,
   );
 
 /**
@@ -77,14 +77,14 @@ export const toDefaultEnabledUserServicePreference = (
  * @returns
  */
 export const toDefaultDisabledUserServicePreference = (
-  version: NonNegativeInteger
+  version: NonNegativeInteger,
 ): ServicePreference =>
   toUserServicePreference(
     AccessReadMessageStatusEnum.DENY,
     false,
     false,
     false,
-    version
+    version,
   );
 
 /**
@@ -111,52 +111,50 @@ export const nonLegacyServicePreferences = (profile: Profile): boolean => {
  */
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function getServicePreferenceSettingsVersion(
-  profile: Profile
+  profile: Profile,
 ): TE.TaskEither<Error, NonNegativeInteger> {
   return pipe(
     profile.servicePreferencesSettings.version,
     NonNegativeInteger.decode,
     TE.fromEither,
-    TE.mapLeft(_ => Error("Service Preferences Version < 0 not allowed"))
+    TE.mapLeft((_) => Error("Service Preferences Version < 0 not allowed")),
   );
 }
 
 export type ServicePreferencesForSpecialServices = <
-  T extends UpsertServicePreference | ServicePreference
+  T extends UpsertServicePreference | ServicePreference,
 >(params: {
   readonly serviceId: ServiceId;
   readonly fiscalCode: FiscalCode;
   readonly servicePreferences: T;
 }) => TE.TaskEither<IResponseErrorQuery, T>;
 
-export const getServicePreferencesForSpecialServices = (
-  activationModel: ActivationModel
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-): ServicePreferencesForSpecialServices => ({
-  serviceId,
-  fiscalCode,
-  servicePreferences
-}) =>
-  pipe(
-    activationModel.findLastVersionByModelId([serviceId, fiscalCode]),
-    TE.mapLeft(err =>
-      ResponseErrorQuery("Error reading service Activation", err)
-    ),
-    TE.map(
-      flow(
-        O.filter(
-          activation => activation.status === ActivationStatusEnum.ACTIVE
+export const getServicePreferencesForSpecialServices =
+  (
+    activationModel: ActivationModel,
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  ): ServicePreferencesForSpecialServices =>
+  ({ serviceId, fiscalCode, servicePreferences }) =>
+    pipe(
+      activationModel.findLastVersionByModelId([serviceId, fiscalCode]),
+      TE.mapLeft((err) =>
+        ResponseErrorQuery("Error reading service Activation", err),
+      ),
+      TE.map(
+        flow(
+          O.filter(
+            (activation) => activation.status === ActivationStatusEnum.ACTIVE,
+          ),
+          O.foldW(
+            () => ({
+              ...servicePreferences,
+              is_inbox_enabled: false,
+            }),
+            (_) => ({
+              ...servicePreferences,
+              is_inbox_enabled: true,
+            }),
+          ),
         ),
-        O.foldW(
-          () => ({
-            ...servicePreferences,
-            is_inbox_enabled: false
-          }),
-          _ => ({
-            ...servicePreferences,
-            is_inbox_enabled: true
-          })
-        )
-      )
-    )
-  );
+      ),
+    );

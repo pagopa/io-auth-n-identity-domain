@@ -4,11 +4,11 @@ import { GetEnqueueProfileCreationEventActivityHandler } from "./handler";
 
 const config = getConfigOrThrow();
 const eventsQueueServiceClient = QueueServiceClient.fromConnectionString(
-  config.EventsQueueStorageConnection
+  config.EventsQueueStorageConnection,
 );
 
 const activityFunction = GetEnqueueProfileCreationEventActivityHandler(
-  eventsQueueServiceClient
+  eventsQueueServiceClient,
 );
 
 export default activityFunction;

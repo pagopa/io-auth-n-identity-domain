@@ -10,37 +10,37 @@ import { EmailString, FiscalCode } from "@pagopa/ts-commons/lib/strings";
 
 import {
   ActivityInput as CreateValidationTokenActivityInput,
-  ActivityResult as CreateValidationTokenActivityResult
+  ActivityResult as CreateValidationTokenActivityResult,
 } from "../CreateValidationTokenActivity/handler";
 import {
   ActivityInput as SendValidationEmailActivityInput,
-  ActivityResult as SendValidationEmailActivityResult
+  ActivityResult as SendValidationEmailActivityResult,
 } from "../SendTemplatedValidationEmailActivity/handler";
 
 // Input
 export const OrchestratorInput = t.intersection([
   t.interface({
     email: EmailString,
-    fiscalCode: FiscalCode
+    fiscalCode: FiscalCode,
   }),
-  t.partial({ name: t.string })
+  t.partial({ name: t.string }),
 ]);
 
 export type OrchestratorInput = t.TypeOf<typeof OrchestratorInput>;
 
 // Result
 export const OrchestratorSuccessResult = t.interface({
-  kind: t.literal("SUCCESS")
+  kind: t.literal("SUCCESS"),
 });
 
 export const OrchestratorFailureResult = t.interface({
   kind: t.literal("FAILURE"),
-  reason: t.string
+  reason: t.string,
 });
 
 export const OrchestratorResult = t.taggedUnion("kind", [
   OrchestratorSuccessResult,
-  OrchestratorFailureResult
+  OrchestratorFailureResult,
 ]);
 
 export type OrchestratorResult = t.TypeOf<typeof OrchestratorResult>;
@@ -48,8 +48,8 @@ export type OrchestratorResult = t.TypeOf<typeof OrchestratorResult>;
 /**
  * An orchestrator to handle the email validation process.
  */
-export const handler = function*(
-  context: IOrchestrationFunctionContext
+export const handler = function* (
+  context: IOrchestrationFunctionContext,
 ): Generator<unknown> {
   const logPrefix = `EmailValidationWithTemplateProcessOrchestrator`;
 
@@ -65,13 +65,13 @@ export const handler = function*(
   if (isLeft(errorOrOrchestratorInput)) {
     const error = Error(
       `${logPrefix}|Error decoding input|ERROR=${readableReport(
-        errorOrOrchestratorInput.left
-      )}`
+        errorOrOrchestratorInput.left,
+      )}`,
     );
     context.log.error(error.message);
     return OrchestratorFailureResult.encode({
       kind: "FAILURE",
-      reason: error.message
+      reason: error.message,
     });
     // We don't throw an error because we can't do a retry in this scenario
   }
@@ -81,7 +81,7 @@ export const handler = function*(
 
   // Log the input
   context.log.verbose(
-    `${logPrefix}|INPUT=${JSON.stringify(orchestratorInput)}`
+    `${logPrefix}|INPUT=${JSON.stringify(orchestratorInput)}`,
   );
 
   try {
@@ -89,30 +89,31 @@ export const handler = function*(
     context.log.verbose(`${logPrefix}|Starting CreateValidationTokenActivity`);
 
     // Prepare the input
-    const createValidationTokenActivityInput = CreateValidationTokenActivityInput.encode(
-      {
+    const createValidationTokenActivityInput =
+      CreateValidationTokenActivityInput.encode({
         email,
-        fiscalCode
-      }
-    );
+        fiscalCode,
+      });
 
     // Start the activity
-    const createValidationTokenActivityResultJson = yield context.df.callActivityWithRetry(
-      "CreateValidationTokenActivity",
-      retryOptions,
-      createValidationTokenActivityInput
-    );
+    const createValidationTokenActivityResultJson =
+      yield context.df.callActivityWithRetry(
+        "CreateValidationTokenActivity",
+        retryOptions,
+        createValidationTokenActivityInput,
+      );
 
     // Decode the activity result
-    const errorOrCreateValidationTokenActivityResult = CreateValidationTokenActivityResult.decode(
-      createValidationTokenActivityResultJson
-    );
+    const errorOrCreateValidationTokenActivityResult =
+      CreateValidationTokenActivityResult.decode(
+        createValidationTokenActivityResultJson,
+      );
 
     if (isLeft(errorOrCreateValidationTokenActivityResult)) {
       const error = Error(
         `${logPrefix}|Error decoding activity result|ERROR=${readableReport(
-          errorOrCreateValidationTokenActivityResult.left
-        )}`
+          errorOrCreateValidationTokenActivityResult.left,
+        )}`,
       );
       context.log.error(error.message);
       // Throw an error so the whole process is retried
@@ -124,52 +125,51 @@ export const handler = function*(
 
     if (createValidationTokenActivityResult.kind === "FAILURE") {
       const error = Error(
-        `${logPrefix}|Activity error|ERROR=${createValidationTokenActivityResult.reason}`
+        `${logPrefix}|Activity error|ERROR=${createValidationTokenActivityResult.reason}`,
       );
       context.log.error(error.message);
       // Throw an error so the whole process is retried
       throw error;
     }
 
-    const {
-      validator,
-      validationTokenEntity
-    } = createValidationTokenActivityResult.value;
+    const { validator, validationTokenEntity } =
+      createValidationTokenActivityResult.value;
     context.log.verbose(
-      `${logPrefix}|ValidationToken created successfully|TOKEN_ID=${validationTokenEntity.PartitionKey}|TOKEN_VALIDATOR=${validator}`
+      `${logPrefix}|ValidationToken created successfully|TOKEN_ID=${validationTokenEntity.PartitionKey}|TOKEN_VALIDATOR=${validator}`,
     );
 
     // STEP 2: Send an email with the validation link
     context.log.verbose(
-      `${logPrefix}|Starting SendTemplatedValidationEmailActivity`
+      `${logPrefix}|Starting SendTemplatedValidationEmailActivity`,
     );
 
     // Prepare the input
-    const sendValidationEmailActivityInput = SendValidationEmailActivityInput.encode(
-      {
+    const sendValidationEmailActivityInput =
+      SendValidationEmailActivityInput.encode({
         email,
         name,
-        token: `${validationTokenEntity.PartitionKey}:${validator}`
-      }
-    );
+        token: `${validationTokenEntity.PartitionKey}:${validator}`,
+      });
 
     // Start the activity
-    const sendValidationEmailActivityResultJson = yield context.df.callActivityWithRetry(
-      "SendTemplatedValidationEmailActivity",
-      retryOptions,
-      sendValidationEmailActivityInput
-    );
+    const sendValidationEmailActivityResultJson =
+      yield context.df.callActivityWithRetry(
+        "SendTemplatedValidationEmailActivity",
+        retryOptions,
+        sendValidationEmailActivityInput,
+      );
 
     // Decode the activity result
-    const errorOrSendValidationEmailActivityResult = SendValidationEmailActivityResult.decode(
-      sendValidationEmailActivityResultJson
-    );
+    const errorOrSendValidationEmailActivityResult =
+      SendValidationEmailActivityResult.decode(
+        sendValidationEmailActivityResultJson,
+      );
 
     if (isLeft(errorOrSendValidationEmailActivityResult)) {
       const error = Error(
         `${logPrefix}|Error decoding activity result|ERROR=${readableReport(
-          errorOrSendValidationEmailActivityResult.left
-        )}`
+          errorOrSendValidationEmailActivityResult.left,
+        )}`,
       );
       context.log.error(error.message);
       // Throw an error so the whole process is retried
@@ -181,7 +181,7 @@ export const handler = function*(
 
     if (sendValidationEmailActivityResult.kind === "FAILURE") {
       const error = Error(
-        `${logPrefix}|Activity error|ERROR=${sendValidationEmailActivityResult.reason}`
+        `${logPrefix}|Activity error|ERROR=${sendValidationEmailActivityResult.reason}`,
       );
       context.log.error(error.message);
       // Throw an error so the whole process is retried
@@ -191,7 +191,7 @@ export const handler = function*(
     context.log.verbose(`${logPrefix}|Validation email sent successfully`);
 
     return OrchestratorSuccessResult.encode({
-      kind: "SUCCESS"
+      kind: "SUCCESS",
     });
   } catch (e) {
     const error = Error(`${logPrefix}|Max retry exceeded|ERROR=${e}`);
