@@ -131,7 +131,7 @@ components:
         The original request URL.
         MUST be inside the x-pagopa-lollipop-original-url header.
       type: string
-      pattern: ^https?://
+      pattern: ^https://
 
     LollipopUserId:
       type: string
