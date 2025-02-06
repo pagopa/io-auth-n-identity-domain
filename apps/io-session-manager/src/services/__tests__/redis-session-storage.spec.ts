@@ -588,7 +588,7 @@ describe("RedisSessionStorage#deleteUser", () => {
   });
 });
 
-describe("RedisSessionStorage#getSessionRemainingTtl", () => {
+describe("RedisSessionStorage#getSessionRemainingTtlFast", () => {
   const mockedDependencies = {
     redisClientSelector: mockRedisClientSelector,
     fiscalCode: aValidUser.fiscal_code,
