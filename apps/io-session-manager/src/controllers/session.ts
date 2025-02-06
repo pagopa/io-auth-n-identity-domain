@@ -165,7 +165,7 @@ export const getSessionState: RTE.ReaderTaskEither<
         ),
         TE.chainW((fieldsToTakeSet) => {
           const fullFieldsTE: Record<
-            string,
+            keyof PublicSession,
             TE.TaskEither<IResponseErrorInternal, string | undefined>
           > = {
             bpdToken: TE.of(deps.user.bpd_token),
