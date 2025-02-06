@@ -24,7 +24,7 @@ import {
   getByFIMSToken,
   getBySessionToken,
   getLollipopAssertionRefForUser,
-  getSessionRemainingTtl,
+  getSessionRemainingTtlFast,
   set,
 } from "../redis-session-storage";
 import { SessionToken } from "../../types/token";
@@ -600,11 +600,8 @@ describe("RedisSessionStorage#getSessionRemainingTtl", () => {
     const expectedTTL = 42;
     mockTtl.mockResolvedValueOnce(expectedTTL);
 
-    await pipe(
-      getSessionRemainingTtl(mockedDependencies),
-      TE.map((result) => expect(result).toEqual(expectedTTL)),
-      TE.mapLeft((err) => expect(err).toBeFalsy()),
-    )();
+    const result = await getSessionRemainingTtlFast(mockedDependencies)();
+    expect(result).toEqual(E.right(expectedTTL));
 
     expect(mockTtl).toHaveBeenCalledTimes(1);
     expect(mockTtl).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
@@ -614,13 +611,8 @@ describe("RedisSessionStorage#getSessionRemainingTtl", () => {
     const errorMessage = "redis error";
     mockTtl.mockRejectedValueOnce(new Error(errorMessage));
 
-    await pipe(
-      getSessionRemainingTtl(mockedDependencies),
-      TE.map((result) => expect(result).toBeFalsy()),
-      TE.mapLeft((err) =>
-        expect(err).toEqual(Error(`${errorPrefix} ${errorMessage}`)),
-      ),
-    )();
+    const result = await getSessionRemainingTtlFast(mockedDependencies)();
+    expect(result).toEqual(E.left(Error(`${errorPrefix} ${errorMessage}`)));
 
     expect(mockTtl).toHaveBeenCalledTimes(1);
     expect(mockTtl).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
@@ -629,17 +621,12 @@ describe("RedisSessionStorage#getSessionRemainingTtl", () => {
   test("should fail on Redis special value '-1'", async () => {
     mockTtl.mockResolvedValueOnce(-1);
 
-    await pipe(
-      getSessionRemainingTtl(mockedDependencies),
-      TE.map((result) => expect(result).toBeFalsy()),
-      TE.mapLeft((err) =>
-        expect(err).toEqual(
-          new Error(
-            `${errorPrefix} -1 (key exists but has no associated expire)`,
-          ),
-        ),
+    const result = await getSessionRemainingTtlFast(mockedDependencies)();
+    expect(result).toEqual(
+      E.left(
+        Error(`${errorPrefix} -1 (key exists but has no associated expire)`),
       ),
-    )();
+    );
 
     expect(mockTtl).toHaveBeenCalledTimes(1);
     expect(mockTtl).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
@@ -648,15 +635,10 @@ describe("RedisSessionStorage#getSessionRemainingTtl", () => {
   test("should fail on Redis special value '-2'", async () => {
     mockTtl.mockResolvedValueOnce(-2);
 
-    await pipe(
-      getSessionRemainingTtl(mockedDependencies),
-      TE.map((result) => expect(result).toBeFalsy()),
-      TE.mapLeft((err) =>
-        expect(err).toEqual(
-          new Error(`${errorPrefix} -2 (key does not exist)`),
-        ),
-      ),
-    )();
+    const result = await getSessionRemainingTtlFast(mockedDependencies)();
+    expect(result).toEqual(
+      E.left(Error(`${errorPrefix} -2 (key does not exist)`)),
+    );
 
     expect(mockTtl).toHaveBeenCalledTimes(1);
     expect(mockTtl).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);

@@ -60,7 +60,7 @@ describe("getSessionState", () => {
 
   vi.spyOn(
     RedisSessionStorageService,
-    "getSessionRemainingTtl",
+    "getSessionRemainingTtlFast",
   ).mockReturnValue(TE.right(0));
 
   test("GIVEN a valid request WHEN lollipop is initialized for the user THEN it should return a correct session state", async () => {
