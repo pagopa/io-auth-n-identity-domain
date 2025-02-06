@@ -594,6 +594,8 @@ describe("RedisSessionStorage#getSessionRemainingTtl", () => {
     fiscalCode: aValidUser.fiscal_code,
   };
 
+  const errorPrefix = "Error retrieving the session TTL:";
+
   test("should succeed returning the TTL", async () => {
     const expectedTTL = 42;
     mockTtl.mockResolvedValueOnce(expectedTTL);
@@ -609,12 +611,15 @@ describe("RedisSessionStorage#getSessionRemainingTtl", () => {
   });
 
   test("should fail on Redis error", async () => {
-    mockTtl.mockRejectedValueOnce(new Error("redis error"));
+    const errorMessage = "redis error";
+    mockTtl.mockRejectedValueOnce(new Error(errorMessage));
 
     await pipe(
       getSessionRemainingTtl(mockedDependencies),
       TE.map((result) => expect(result).toBeFalsy()),
-      TE.mapLeft((err) => expect(err).toBeTruthy()),
+      TE.mapLeft((err) =>
+        expect(err).toEqual(Error(`${errorPrefix} ${errorMessage}`)),
+      ),
     )();
 
     expect(mockTtl).toHaveBeenCalledTimes(1);
@@ -630,7 +635,7 @@ describe("RedisSessionStorage#getSessionRemainingTtl", () => {
       TE.mapLeft((err) =>
         expect(err).toEqual(
           new Error(
-            "Error retrieving the session TTL: -1 (key exists but has no associated expire)",
+            `${errorPrefix} -1 (key exists but has no associated expire)`,
           ),
         ),
       ),
@@ -648,9 +653,7 @@ describe("RedisSessionStorage#getSessionRemainingTtl", () => {
       TE.map((result) => expect(result).toBeFalsy()),
       TE.mapLeft((err) =>
         expect(err).toEqual(
-          new Error(
-            "Error retrieving the session TTL: -2 (key does not exist)",
-          ),
+          new Error(`${errorPrefix} -2 (key does not exist)`),
         ),
       ),
     )();
