@@ -107,7 +107,7 @@ const getSessionExpirationDate: RTE.ReaderTaskEither<
   string
 > = (deps) =>
   pipe(
-    RedisSessionStorageService.getSessionRemainingTtl({
+    RedisSessionStorageService.getSessionRemainingTtlFast({
       ...deps,
       fiscalCode: deps.user.fiscal_code,
     }),

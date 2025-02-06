@@ -921,7 +921,7 @@ const getSessionTtl: (
  * @returns The key ttl in seconds
  * @throws An `Error` if the key doesn't exist or has no expire
  */
-export const getSessionRemainingTtl: RTE.ReaderTaskEither<
+export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
   RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
   Error,
   number
