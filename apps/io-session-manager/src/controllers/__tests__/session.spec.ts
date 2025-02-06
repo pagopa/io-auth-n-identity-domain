@@ -12,7 +12,11 @@ import {
   mockedInitializedProfile,
   mockedUser,
 } from "../../__mocks__/user.mocks";
-import { mockGet, mockRedisClientSelector } from "../../__mocks__/redis.mocks";
+import {
+  mockGet,
+  mockRedisClientSelector,
+  mockTtl,
+} from "../../__mocks__/redis.mocks";
 import { anAssertionRef } from "../../__mocks__/lollipop.mocks";
 import mockReq from "../../__mocks__/request.mocks";
 import * as profileService from "../../services/profile";
@@ -30,7 +34,7 @@ import {
   mockedRedisSessionStorageService,
 } from "../../__mocks__/services/redisSessionStorageService.mocks";
 import { toExpectedResponse } from "../../__tests__/utils";
-import { TokenService } from "../../services";
+import { RedisSessionStorageService, TokenService } from "../../services";
 
 describe("getSessionState", () => {
   beforeEach(() => {
@@ -58,7 +62,14 @@ describe("getSessionState", () => {
     .spyOn(TokenService, "getNewTokenAsync")
     .mockResolvedValue(aZendeskSuffix);
 
+  const mockGetSessionRemainingTtl = vi
+    .spyOn(RedisSessionStorageService, "getSessionRemainingTtl")
+    .mockReturnValue(TE.right(0));
+
   test("GIVEN a valid request WHEN lollipop is initialized for the user THEN it should return a correct session state", async () => {
+    // The TTL function is called first to get the TTL of the session based on the key association with the fiscal code
+    // mockTtl.mockResolvedValueOnce(0);
+
     mockGet.mockResolvedValueOnce(anAssertionRef);
 
     await pipe(
@@ -86,6 +97,7 @@ describe("getSessionState", () => {
       walletToken: mockedUser.wallet_token,
       zendeskToken: `${mockedUser.zendesk_token}${zendeskSuffixForCorrectlyRetrievedProfile}`,
       lollipopAssertionRef: anAssertionRef,
+      expirationDate: expect.any(Date),
     });
   });
 
@@ -116,6 +128,7 @@ describe("getSessionState", () => {
       spidLevel: mockedUser.spid_level,
       walletToken: mockedUser.wallet_token,
       zendeskToken: `${mockedUser.zendesk_token}${zendeskSuffixForCorrectlyRetrievedProfile}`,
+      expirationDate: expect.any(Date),
     });
   });
 
@@ -175,6 +188,7 @@ describe("getSessionState", () => {
       spidLevel: mockedUser.spid_level,
       walletToken: mockedUser.wallet_token,
       zendeskToken: `${mockedUser.zendesk_token}${aZendeskSuffix}`,
+      expirationDate: expect.any(Date),
     });
   });
 

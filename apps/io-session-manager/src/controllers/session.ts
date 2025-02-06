@@ -170,8 +170,8 @@ export const getSessionState: RTE.ReaderTaskEither<
           > = {
             bpdToken: TE.of(deps.user.bpd_token),
             fimsToken: TE.of(deps.user.fims_token),
-            lollipopAssertionRef: getLollipopAssertionRefForUser(deps),
             expirationDate: getSessionExpirationDate(deps),
+            lollipopAssertionRef: getLollipopAssertionRefForUser(deps),
             myPortalToken: TE.of(deps.user.myportal_token),
             spidLevel: TE.of(deps.user.spid_level),
             walletToken: TE.of(deps.user.wallet_token),
