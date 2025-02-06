@@ -58,12 +58,12 @@ describe("getSessionState", () => {
     .spyOn(TokenService, "getNewTokenAsync")
     .mockResolvedValue(aZendeskSuffix);
 
-  const mockGetSessionRemainingTtl = vi
-    .spyOn(RedisSessionStorageService, "getSessionRemainingTtl")
-    .mockReturnValue(TE.right(0));
+  vi.spyOn(
+    RedisSessionStorageService,
+    "getSessionRemainingTtl",
+  ).mockReturnValue(TE.right(0));
 
   test("GIVEN a valid request WHEN lollipop is initialized for the user THEN it should return a correct session state", async () => {
-
     mockGet.mockResolvedValueOnce(anAssertionRef);
 
     await pipe(
