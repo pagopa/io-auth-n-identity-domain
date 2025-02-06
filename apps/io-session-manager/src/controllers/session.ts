@@ -116,24 +116,6 @@ const getSessionExpirationDate: RTE.ReaderTaskEither<
         `Error retrieving the session TTL: ${error.message}`,
       ),
     ),
-    TE.chain((ttl) =>
-      ttl === -2
-        ? TE.left(
-            ResponseErrorInternal(
-              "Error retrieving the session TTL: -2 (key does not exist)",
-            ),
-          )
-        : TE.right(ttl),
-    ),
-    TE.chain((ttl) =>
-      ttl === -1
-        ? TE.left(
-            ResponseErrorInternal(
-              "Error retrieving the session TTL: -1 (key exists but has no associated expire)",
-            ),
-          )
-        : TE.right(ttl),
-    ),
     TE.map((ttl) => addSeconds(new Date(), ttl).toISOString()),
   );
 

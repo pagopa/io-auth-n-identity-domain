@@ -927,12 +927,30 @@ export const getSessionRemainingTtl: RTE.ReaderTaskEither<
   // Returns the key ttl in seconds
   // -2 if the key doesn't exist or -1 if the key has no expire
   // @see https://redis.io/commands/ttl
-  TE.tryCatch(
-    () =>
-      deps.redisClientSelector
-        .selectOne(RedisClientMode.FAST)
-        .ttl(`${RedisRepo.lollipopDataPrefix}${deps.fiscalCode}`),
-    E.toError,
+  pipe(
+    TE.tryCatch(
+      () =>
+        deps.redisClientSelector
+          .selectOne(RedisClientMode.FAST)
+          .ttl(`${RedisRepo.lollipopDataPrefix}${deps.fiscalCode}`),
+      E.toError,
+    ),
+    TE.mapLeft((error) =>
+      Error(`Error retrieving the session TTL: ${error.message}`),
+    ),
+    TE.chain((ttl) =>
+      ttl === -2
+        ? TE.left(
+            Error("Error retrieving the session TTL: -2 (key does not exist)"),
+          )
+        : ttl === -1
+          ? TE.left(
+              Error(
+                "Error retrieving the session TTL: -1 (key exists but has no associated expire)",
+              ),
+            )
+          : TE.right(ttl),
+    ),
   );
 
 /**
