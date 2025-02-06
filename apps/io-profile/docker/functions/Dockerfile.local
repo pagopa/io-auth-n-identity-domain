@@ -1,3 +1,0 @@
-FROM functions-node-18
-
-CMD ["func", "start", "--javascript"]
