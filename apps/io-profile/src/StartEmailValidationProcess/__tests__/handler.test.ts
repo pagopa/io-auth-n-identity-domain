@@ -16,7 +16,7 @@ const getClientMock = {
   startNew: mockStartNew,
 } as any;
 
-const isOrchestratorRunnißngMock = vi.fn(() =>
+const isOrchestratorRunningMock = vi.fn(() =>
   taskEither.of({
     isRunning: false,
   }),
