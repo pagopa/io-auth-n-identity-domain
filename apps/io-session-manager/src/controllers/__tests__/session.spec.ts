@@ -12,11 +12,7 @@ import {
   mockedInitializedProfile,
   mockedUser,
 } from "../../__mocks__/user.mocks";
-import {
-  mockGet,
-  mockRedisClientSelector,
-  mockTtl,
-} from "../../__mocks__/redis.mocks";
+import { mockGet, mockRedisClientSelector } from "../../__mocks__/redis.mocks";
 import { anAssertionRef } from "../../__mocks__/lollipop.mocks";
 import mockReq from "../../__mocks__/request.mocks";
 import * as profileService from "../../services/profile";
