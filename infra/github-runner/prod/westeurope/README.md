@@ -1,7 +1,7 @@
 # IO AuthNIdentityDomain - GitHub SelfHosted Runner on Azure Container App Job
 
 <!-- markdownlint-disable -->
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -35,4 +35,4 @@ No inputs.
 | Name | Description |
 |------|-------------|
 | <a name="output_container_app_job"></a> [container\_app\_job](#output\_container\_app\_job) | n/a |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->
