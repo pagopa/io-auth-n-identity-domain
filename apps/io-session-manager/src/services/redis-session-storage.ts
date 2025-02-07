@@ -918,8 +918,7 @@ const getSessionTtl: (
  * Return the session remaining time to live in seconds
  *
  * @param fiscalCode
- * @returns The key ttl in seconds
- * @throws An `Error` if the key doesn't exist or has no expire
+ * @returns The key ttl in seconds or an error if the key doesn't exist or has no expire
  */
 export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
   RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
