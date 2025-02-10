@@ -71,7 +71,7 @@ describe("getSessionState", () => {
     "getSessionRemainingTtlFast",
   ).mockReturnValue(TE.right(ttl));
 
-  const expectedExpirationDate = addSeconds(new Date(), ttl);
+  const expectedExpirationDate = addSeconds(new Date(), ttl).toISOString();
 
   test("GIVEN a valid request WHEN lollipop is initialized for the user THEN it should return a correct session state", async () => {
     mockGet.mockResolvedValueOnce(anAssertionRef);

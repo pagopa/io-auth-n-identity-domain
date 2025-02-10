@@ -19,6 +19,7 @@ import { NonEmptyString } from "io-ts-types";
 import { sequenceS } from "fp-ts/lib/Apply";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { addSeconds } from "date-fns";
+import { OutputOf } from "io-ts";
 import { RedisRepo, FnAppRepo } from "../repositories";
 import {
   LollipopService,
@@ -139,7 +140,7 @@ export const getSessionState: RTE.ReaderTaskEither<
   Error,
   | IResponseErrorInternal
   | IResponseErrorValidation
-  | IResponseSuccessJson<PublicSession>
+  | IResponseSuccessJson<OutputOf<typeof PublicSession>>
 > = (deps) =>
   pipe(
     // decode and parse filter query param
@@ -200,6 +201,7 @@ export const getSessionState: RTE.ReaderTaskEither<
                     `Could not decode PublicSession: ${readableReportSimplified(errors)}`,
                   ),
                 ),
+                TE.map(PublicSession.encode),
                 TE.map(ResponseSuccessJson),
               ),
             ),
