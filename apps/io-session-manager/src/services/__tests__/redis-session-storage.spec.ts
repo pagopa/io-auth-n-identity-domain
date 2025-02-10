@@ -15,6 +15,7 @@ import {
   mockGet,
   mockDel,
   mockSrem,
+  mockTtl,
 } from "../../__mocks__/redis.mocks";
 import { aFiscalCode, mockedUser } from "../../__mocks__/user.mocks";
 import {
@@ -23,6 +24,7 @@ import {
   getByFIMSToken,
   getBySessionToken,
   getLollipopAssertionRefForUser,
+  getSessionRemainingTtlFast,
   set,
 } from "../redis-session-storage";
 import { SessionToken } from "../../types/token";
@@ -583,5 +585,62 @@ describe("RedisSessionStorage#deleteUser", () => {
 
     for (let i = 0; i < TOKENS.length; i++)
       expect(mockDel).toHaveBeenNthCalledWith(i + 1, TOKENS[i]);
+  });
+});
+
+describe("RedisSessionStorage#getSessionRemainingTtlFast", () => {
+  const mockedDependencies = {
+    redisClientSelector: mockRedisClientSelector,
+    fiscalCode: aValidUser.fiscal_code,
+  };
+
+  const errorPrefix = "Error retrieving the session TTL:";
+
+  test("should succeed returning the TTL", async () => {
+    const expectedTTL = 42;
+    mockTtl.mockResolvedValueOnce(expectedTTL);
+
+    const result = await getSessionRemainingTtlFast(mockedDependencies)();
+    expect(result).toEqual(E.right(expectedTTL));
+
+    expect(mockTtl).toHaveBeenCalledTimes(1);
+    expect(mockTtl).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
+  });
+
+  test("should fail on Redis error", async () => {
+    const errorMessage = "redis error";
+    mockTtl.mockRejectedValueOnce(new Error(errorMessage));
+
+    const result = await getSessionRemainingTtlFast(mockedDependencies)();
+    expect(result).toEqual(E.left(Error(`${errorPrefix} ${errorMessage}`)));
+
+    expect(mockTtl).toHaveBeenCalledTimes(1);
+    expect(mockTtl).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
+  });
+
+  test("should fail on Redis special value '-1'", async () => {
+    mockTtl.mockResolvedValueOnce(-1);
+
+    const result = await getSessionRemainingTtlFast(mockedDependencies)();
+    expect(result).toEqual(
+      E.left(
+        Error(`${errorPrefix} -1 (key exists but has no associated expire)`),
+      ),
+    );
+
+    expect(mockTtl).toHaveBeenCalledTimes(1);
+    expect(mockTtl).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
+  });
+
+  test("should fail on Redis special value '-2'", async () => {
+    mockTtl.mockResolvedValueOnce(-2);
+
+    const result = await getSessionRemainingTtlFast(mockedDependencies)();
+    expect(result).toEqual(
+      E.left(Error(`${errorPrefix} -2 (key does not exist)`)),
+    );
+
+    expect(mockTtl).toHaveBeenCalledTimes(1);
+    expect(mockTtl).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
   });
 });
