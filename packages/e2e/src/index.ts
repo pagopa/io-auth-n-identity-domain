@@ -16,7 +16,7 @@ const main = async () => {
   results.push(
     await promisifyProcess(
       runProcess(
-        `docker compose --file ${PROJECT_BASE_PATH}/docker-compose.yml --env-file ${PROJECT_BASE_PATH}/docker/io-session-manager/env-dev up redis-cluster -d`,
+        `docker compose --file ${PROJECT_BASE_PATH}/docker-compose.yml --env-file ${PROJECT_BASE_PATH}/docker/.env.common up redis-cluster -d`,
       ),
     ),
   );
@@ -27,7 +27,7 @@ const main = async () => {
   results.push(
     await promisifyProcess(
       runProcess(
-        `docker compose --file ${PROJECT_BASE_PATH}/docker-compose.yml --env-file ${PROJECT_BASE_PATH}/docker/io-session-manager/env-dev up io-session-manager -d`,
+        `docker compose --file ${PROJECT_BASE_PATH}/docker-compose.yml --env-file ${PROJECT_BASE_PATH}/docker/.env.common up io-session-manager -d`,
       ),
     ),
   );
@@ -73,7 +73,7 @@ const main = async () => {
   results.push(
     await promisifyProcess(
       runProcess(
-        `docker compose --file ${PROJECT_BASE_PATH}/docker-compose.yml down`,
+        `docker compose --file ${PROJECT_BASE_PATH}/docker-compose.yml --env-file ${PROJECT_BASE_PATH}/docker/.env.common down`,
       ),
     ),
   );

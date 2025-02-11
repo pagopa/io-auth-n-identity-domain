@@ -1,6 +1,7 @@
 {
     "name": "io-session-manager",
-    "version": "1.2.0",
+    "version": "1.4.0",
+    "author": "IO Auth & Identity Team",
     "description": "API for IO session",
     "engines": {
         "node": ">= 20.0.0"
@@ -37,7 +38,7 @@
         "@azure/storage-queue": "^12.16.0",
         "@pagopa/io-functions-app-sdk": "x",
         "@pagopa/io-functions-commons": "^29.1.0",
-        "@pagopa/io-spid-commons": "^13.5.1",
+        "@pagopa/io-spid-commons": "^14.0.0",
         "@pagopa/ts-commons": "^13.1.1",
         "@redis/client": "1.4.2",
         "applicationinsights": "^2.9.5",

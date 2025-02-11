@@ -20,7 +20,8 @@ provider "azurerm" {
 }
 
 module "federated_identities" {
-  source = "github.com/pagopa/dx//infra/modules/azure_federated_identity_with_github?ref=main"
+  source  = "pagopa/dx-azure-federated-identity-with-github/azurerm"
+  version = "~> 0"
 
   prefix       = local.prefix
   env_short    = local.env_short
@@ -29,6 +30,29 @@ module "federated_identities" {
   location     = local.location
   repositories = [local.repo_name]
   tags         = local.tags
+
+  continuos_integration = {
+    enable = true
+    roles = {
+      subscription = [
+        "Reader",
+        "Reader and Data Access",
+        "PagoPA IaC Reader",
+        "DocumentDB Account Contributor"
+      ]
+      resource_groups = {
+        terraform-state-rg = [
+          "Storage Blob Data Contributor"
+        ]
+        io-p-rg-internal = [
+          "API Management Service Contributor"
+        ]
+        io-p-itn-common-rg-01 = [
+          "API Management Service Contributor"
+        ]
+      }
+    }
+  }
 
   continuos_delivery = {
     enable = true
@@ -40,6 +64,21 @@ module "federated_identities" {
         ],
         io-p-itn-auth-lv-rg-01 = [
           "Role Based Access Control Administrator"
+        ]
+        io-p-itn-auth-webprof-rg-01 = [
+          "Role Based Access Control Administrator"
+        ]
+        io-p-itn-auth-lollipop-rg-02 = [
+          "Role Based Access Control Administrator"
+        ]
+        io-p-itn-auth-public-rg-01 = [
+          "Role Based Access Control Administrator"
+        ]
+        io-p-rg-internal = [
+          "API Management Service Contributor"
+        ]
+        io-p-itn-common-rg-01 = [
+          "API Management Service Contributor"
         ]
       }
     }

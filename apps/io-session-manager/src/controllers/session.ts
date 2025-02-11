@@ -18,6 +18,8 @@ import { withDefault } from "@pagopa/ts-commons/lib/types";
 import { NonEmptyString } from "io-ts-types";
 import { sequenceS } from "fp-ts/lib/Apply";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
+import { addSeconds } from "date-fns";
+import { OutputOf } from "io-ts";
 import { RedisRepo, FnAppRepo } from "../repositories";
 import {
   LollipopService,
@@ -47,7 +49,7 @@ export const SESSION_ID_LENGTH_BYTES = 32;
 type DefaultFilterSessionKeysType =
   `(${Concat<Union2Tuple<keyof PublicSession>>})`;
 const DEFAULT_FILTER_QUERY_PARAM: DefaultFilterSessionKeysType =
-  "(spidLevel,lollipopAssertionRef,walletToken,myPortalToken,bpdToken,zendeskToken,fimsToken)";
+  "(spidLevel,expirationDate,lollipopAssertionRef,walletToken,myPortalToken,bpdToken,zendeskToken,fimsToken)";
 
 const FilterDecoder = withDefault(
   NonEmptyString,
@@ -100,6 +102,24 @@ const getLollipopAssertionRefForUser: RTE.ReaderTaskEither<
     TE.map(O.toUndefined),
   );
 
+const getSessionExpirationDate: RTE.ReaderTaskEither<
+  RedisRepo.RedisRepositoryDeps & WithUser,
+  IResponseErrorInternal,
+  string
+> = (deps) =>
+  pipe(
+    RedisSessionStorageService.getSessionRemainingTtlFast({
+      ...deps,
+      fiscalCode: deps.user.fiscal_code,
+    }),
+    TE.mapLeft((error) =>
+      ResponseErrorInternal(
+        `Error retrieving the session TTL: ${error.message}`,
+      ),
+    ),
+    TE.map((ttl) => addSeconds(new Date(), ttl).toISOString()),
+  );
+
 /**
  * @type Reader depedencies for GetSession handler of SessionController.
  */
@@ -120,7 +140,7 @@ export const getSessionState: RTE.ReaderTaskEither<
   Error,
   | IResponseErrorInternal
   | IResponseErrorValidation
-  | IResponseSuccessJson<PublicSession>
+  | IResponseSuccessJson<OutputOf<typeof PublicSession>>
 > = (deps) =>
   pipe(
     // decode and parse filter query param
@@ -146,11 +166,12 @@ export const getSessionState: RTE.ReaderTaskEither<
         ),
         TE.chainW((fieldsToTakeSet) => {
           const fullFieldsTE: Record<
-            string,
+            keyof PublicSession,
             TE.TaskEither<IResponseErrorInternal, string | undefined>
           > = {
             bpdToken: TE.of(deps.user.bpd_token),
             fimsToken: TE.of(deps.user.fims_token),
+            expirationDate: getSessionExpirationDate(deps),
             lollipopAssertionRef: getLollipopAssertionRefForUser(deps),
             myPortalToken: TE.of(deps.user.myportal_token),
             spidLevel: TE.of(deps.user.spid_level),
@@ -180,6 +201,7 @@ export const getSessionState: RTE.ReaderTaskEither<
                     `Could not decode PublicSession: ${readableReportSimplified(errors)}`,
                   ),
                 ),
+                TE.map(PublicSession.encode),
                 TE.map(ResponseSuccessJson),
               ),
             ),

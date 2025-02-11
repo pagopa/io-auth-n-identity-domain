@@ -3,6 +3,16 @@
 name: "Continuous Integration"
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/**
+      - packages/**
+      - package.json
+      - turbo.json
+      - .github/workflows/code_review.yaml
+      - docker/**/*
   pull_request:
     types: [opened, edited, synchronize, reopened, ready_for_review]
     paths:
@@ -11,6 +21,7 @@ on:
       - package.json
       - turbo.json
       - .github/workflows/code_review.yaml
+      - docker/**/*
   workflow_dispatch:
 
 jobs:
@@ -51,7 +62,7 @@ jobs:
       - uses: dorny/paths-filter@v3.0.2
         id: sonarcloud_filter
         with:
-          filters: ./.github/sonarcloud_filters.yaml
+          filters: ./.github/ci_filters.yaml
 
       - name: SonarCloud session-manager scan
         if: steps.sonarcloud_filter.outputs.io-session-manager == 'true'
@@ -70,6 +81,34 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           projectBaseDir: apps/io-fast-login/
+
+      - name: SonarCloud io-lollipop scan
+        if: steps.sonarcloud_filter.outputs.io-lollipop == 'true'
+        uses: SonarSource/sonarcloud-github-action@19888635fa64d24e533d388efe8264402dfd721b
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: apps/io-lollipop/
+
+      - name: SonarCloud io-public scan
+        if: steps.sonarcloud_filter.outputs.io-public == 'true'
+        uses: SonarSource/sonarcloud-github-action@19888635fa64d24e533d388efe8264402dfd721b
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: apps/io-public/
+
+      - name: SonarCloud io-web-profile scan
+        if: steps.sonarcloud_filter.outputs.io-web-profile == 'true'
+        uses: SonarSource/sonarcloud-github-action@19888635fa64d24e533d388efe8264402dfd721b
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: apps/io-web-profile/
+
   e2e:
     runs-on: ubuntu-latest
     steps:
@@ -98,5 +137,20 @@ jobs:
       - name: Build
         run: yarn build
 
+      - name: Generate Environment
+        run: yarn docker:generate:env
+
+      - uses: dorny/paths-filter@v3.0.2
+        id: test_filter
+        with:
+          filters: ./.github/ci_filters.yaml
+
+      - name: "io-lollipop integration Tests"
+        if: steps.test_filter.outputs.io-lollipop == 'true'
+        run: >-
+          yarn docker:start:build io-lollipop &&
+          yarn test:integrations:io-lollipop
+
       - name: "E2E Tests"
+        if: steps.test_filter.outputs.io-session-manager == 'true'
         run: yarn workspace e2e start

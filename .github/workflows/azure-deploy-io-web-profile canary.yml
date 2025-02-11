@@ -1,0 +1,26 @@
+name: MVP Canary Deploy (io-web-profile)
+
+on:
+  workflow_dispatch:
+    inputs:
+      use_canary_deploy:
+        type: boolean
+        description: Use automated canary depoyment
+        default: true
+
+jobs:
+  deploy_to_azure:
+    name: Deploy to Azure Function App
+    uses: ./.github/workflows/_function_app_deploy.yml
+    with:
+      # '-cd' suffix added inside the pipeline
+      environment: apps-prod
+      resource_group_name: "io-p-itn-auth-webprof-rg-01"
+      workspace_name: "io-web-profile"
+      function_app_name: "io-p-itn-auth-webprof-func-01"
+      health_check_path: "/api/v1/info"
+      use_staging_slot: true
+      use_canary_deploy: ${{ inputs.use_canary_deploy }}
+      use_private_agent: true
+      log_analytics_workspace_id: "d0415be0-f4b2-409e-a16e-365183b18710"
+    secrets: inherit

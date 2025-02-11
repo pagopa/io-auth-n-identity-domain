@@ -74,7 +74,8 @@ resource "azurerm_resource_group" "function_lv_rg" {
 }
 
 module "function_lv" {
-  source = "github.com/pagopa/dx//infra/modules/azure_function_app?ref=afcf1f2e91be4f0d0c2bc54bf083f3f7d26d88fc"
+  source  = "pagopa/dx-azure-function-app/azurerm"
+  version = "~> 0"
 
   environment = {
     prefix          = local.prefix
@@ -120,8 +121,9 @@ module "function_lv" {
 
 
 module "function_lv_autoscale" {
-  depends_on = [azurerm_resource_group.function_lv_rg, module.function_lv]
-  source     = "github.com/pagopa/dx//infra/modules/azure_app_service_plan_autoscaler?ref=afcf1f2e91be4f0d0c2bc54bf083f3f7d26d88fc"
+  depends_on = [azurerm_resource_group.function_lv_rg]
+  source     = "pagopa/dx-azure-app-service-plan-autoscaler/azurerm"
+  version    = "~> 0"
 
   resource_group_name = azurerm_resource_group.function_lv_rg.name
   target_service = {
@@ -141,13 +143,6 @@ module "function_lv_autoscale" {
         hour    = 22
         minutes = 59
       }
-    },
-    spot_load = {
-      name       = "${module.common_values.scaling_gate.name}"
-      minimum    = 6
-      default    = 20
-      start_date = module.common_values.scaling_gate.start
-      end_date   = module.common_values.scaling_gate.end
     },
     normal_load = {
       minimum = 3

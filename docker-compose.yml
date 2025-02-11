@@ -13,7 +13,7 @@ services:
       context: ./
       dockerfile: ./docker/io-session-manager/Dockerfile
     env_file:
-      - ./docker/io-session-manager/env-dev
+      - ./docker/generated/.env.io-session-manager
     volumes:
       - ./apps/io-session-manager/certs:/usr/src/app/apps/io-session-manager/certs:cached
     ports:
@@ -26,6 +26,75 @@ services:
         condition: service_started
       storage:
         condition: service_started
+    networks:
+      - io-fn
+
+  functions-node-20:
+    image: functions-node-20
+    build:
+      context: ./
+      dockerfile: ./docker/functions-node-20/Dockerfile
+    command: /bin/true
+
+  io-lollipop:
+    image: io-lollipop
+    build:
+      context: ./
+      dockerfile: ./docker/io-lollipop/Dockerfile
+    env_file:
+      - ./docker/generated/.env.io-lollipop
+    volumes:
+      - ./apps/io-lollipop/host.json:/usr/src/app/apps/io-lollipop/host.json
+      - ./apps/io-lollipop/src/__integrations__:/usr/src/app/apps/io-lollipop/src/__integrations__
+    ports:
+      - ${FUNCTION_LOLLIPOP_PORT}:7071
+    networks:
+      - io-fn
+    depends_on:
+      - functions-node-20
+      - cosmosdb
+      - storage
+
+  io-web-profile:
+    image: io-web-profile
+    build:
+      context: ./
+      dockerfile: ./docker/io-web-profile/Dockerfile
+    env_file:
+      - ./docker/generated/.env.io-web-profile
+    ports:
+      - ${FUNCTION_WEB_PROFILE_PORT}:7071
+    networks:
+      - io-fn
+    depends_on:
+      - functions-node-20
+      - storage
+
+  io-public:
+    image: io-public
+    build:
+      context: ./
+      dockerfile: ./docker/io-public/Dockerfile
+    env_file:
+      - ./docker/generated/.env.io-public
+    ports:
+      - ${FUNCTION_PUBLIC_PORT}:7071
+    networks:
+      - io-fn
+    depends_on:
+      - functions-node-20
+      - storage
+      - cosmosdb
+
+  cosmosdb:
+    image: cosmosdb
+    build:
+      context: ./
+      dockerfile: ./docker/cosmosdb/Dockerfile
+    env_file:
+      - ./docker/generated/.env.cosmosdb
+    ports:
+      - ${COSMOSDB_PORT}:3000
     networks:
       - io-fn
 

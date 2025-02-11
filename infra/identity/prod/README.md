@@ -1,7 +1,7 @@
 # IO AuthNIdentityDomain - GitHub federated Managed Identities
 
 <!-- markdownlint-disable -->
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -16,9 +16,9 @@ No providers.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_federated_identities"></a> [federated\_identities](#module\_federated\_identities) | github.com/pagopa/dx//infra/modules/azure_federated_identity_with_github | main |
-| <a name="module_federated_identities_apps"></a> [federated\_identities\_apps](#module\_federated\_identities\_apps) | github.com/pagopa/dx//infra/modules/azure_federated_identity_with_github | main |
-| <a name="module_opex_federated_identities"></a> [opex\_federated\_identities](#module\_opex\_federated\_identities) | github.com/pagopa/dx//infra/modules/azure_federated_identity_with_github | main |
+| <a name="module_federated_identities"></a> [federated\_identities](#module\_federated\_identities) | pagopa/dx-azure-federated-identity-with-github/azurerm | ~> 0 |
+| <a name="module_federated_identities_apps"></a> [federated\_identities\_apps](#module\_federated\_identities\_apps) | pagopa/dx-azure-federated-identity-with-github/azurerm | ~> 0 |
+| <a name="module_opex_federated_identities"></a> [opex\_federated\_identities](#module\_opex\_federated\_identities) | pagopa/dx-azure-federated-identity-with-github/azurerm | ~> 0 |
 
 ## Resources
 
@@ -31,4 +31,4 @@ No inputs.
 ## Outputs
 
 No outputs.
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->
