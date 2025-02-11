@@ -27,6 +27,7 @@
 | <a name="module_function_web_profile"></a> [function\_web\_profile](#module\_function\_web\_profile) | pagopa/dx-azure-function-app/azurerm | ~> 0 |
 | <a name="module_io_profile_apim_api_itn"></a> [io\_profile\_apim\_api\_itn](#module\_io\_profile\_apim\_api\_itn) | ../../modules/operation_api | n/a |
 | <a name="module_io_profile_apim_api_weu"></a> [io\_profile\_apim\_api\_weu](#module\_io\_profile\_apim\_api\_weu) | ../../modules/operation_api | n/a |
+| <a name="module_io_public_apim_api_itn"></a> [io\_public\_apim\_api\_itn](#module\_io\_public\_apim\_api\_itn) | ../../modules/io_public_api | n/a |
 | <a name="module_io_public_apim_api_weu"></a> [io\_public\_apim\_api\_weu](#module\_io\_public\_apim\_api\_weu) | ../../modules/io_public_api | n/a |
 | <a name="module_webprofile_apim_api_itn"></a> [webprofile\_apim\_api\_itn](#module\_webprofile\_apim\_api\_itn) | ../../modules/ioweb_profile_api | n/a |
 | <a name="module_webprofile_apim_api_weu"></a> [webprofile\_apim\_api\_weu](#module\_webprofile\_apim\_api\_weu) | ../../modules/ioweb_profile_api | n/a |
