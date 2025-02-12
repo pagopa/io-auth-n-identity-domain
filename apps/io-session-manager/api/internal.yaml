@@ -440,6 +440,9 @@ definitions:
     properties:
       spidLevel:
         $ref: "#/definitions/SpidLevel"
+      expirationDate:
+        type: string
+        format: date-time
       lollipopAssertionRef:
         $ref: "#/definitions/AssertionRef"
       walletToken:

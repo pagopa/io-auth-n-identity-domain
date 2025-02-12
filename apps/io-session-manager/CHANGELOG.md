@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.4.0
+
+### Minor Changes
+
+- 21458e1: New field `expirationDate` in `GET /session` API
+
 ## 1.3.0
 
 ### Minor Changes
