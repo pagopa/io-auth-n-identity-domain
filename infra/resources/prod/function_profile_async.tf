@@ -1,0 +1,133 @@
+
+
+data "azurerm_key_vault_secret" "low_priority_mailup_username" {
+  name         = "low-priority-mailup-username"
+  key_vault_id = data.azurerm_key_vault.kv.id
+}
+
+data "azurerm_key_vault_secret" "low_priority_mailup_secret" {
+  name         = "low-priority-mailup-secret"
+  key_vault_id = data.azurerm_key_vault.kv.id
+}
+
+locals {
+  function_profile_async = {
+    name = "profas"
+    app_settings = {
+      NODE_ENV = "production"
+
+      // Keepalive fields are all optionals
+      FETCH_KEEPALIVE_ENABLED             = "true"
+      FETCH_KEEPALIVE_SOCKET_ACTIVE_TTL   = "110000"
+      FETCH_KEEPALIVE_MAX_SOCKETS         = "40"
+      FETCH_KEEPALIVE_MAX_FREE_SOCKETS    = "10"
+      FETCH_KEEPALIVE_FREE_SOCKET_TIMEOUT = "30000"
+      FETCH_KEEPALIVE_TIMEOUT             = "60000"
+
+      // Mailup setup
+      MAILUP_USERNAME = data.azurerm_key_vault_secret.low_priority_mailup_username.value
+      MAILUP_SECRET   = data.azurerm_key_vault_secret.low_priority_mailup_secret.value
+    }
+  }
+}
+
+
+module "function_profile_async" {
+  source  = "pagopa/dx-azure-function-app/azurerm"
+  version = "~> 0"
+
+  environment = {
+    prefix          = local.prefix
+    env_short       = local.env_short
+    location        = local.location
+    domain          = local.domain
+    app_name        = local.function_profile_async.name
+    instance_number = "02"
+  }
+
+  node_version      = 20
+  health_check_path = "/api/v1/info"
+
+
+  resource_group_name = azurerm_resource_group.main_resource_group.name
+
+  subnet_cidr   = local.cidr_subnet_fn_profile_async
+  subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
+
+  private_dns_zone_resource_group_name = data.azurerm_resource_group.rg_common.name
+
+  virtual_network = {
+    name                = data.azurerm_virtual_network.itn_common.name
+    resource_group_name = data.azurerm_virtual_network.itn_common.resource_group_name
+  }
+
+  app_settings = merge(
+    local.function_profile_async.app_settings
+  )
+  slot_app_settings = merge(
+    local.function_profile_async.app_settings
+  )
+
+  subnet_service_endpoints = {
+    web = true
+  }
+
+  application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
+
+  action_group_id = azurerm_monitor_action_group.error_action_group.id
+
+  tags = local.tags
+}
+
+module "function_profile_async_autoscale" {
+  depends_on = [azurerm_resource_group.main_resource_group]
+  source     = "pagopa/dx-azure-app-service-plan-autoscaler/azurerm"
+  version    = "~> 0"
+
+  resource_group_name = azurerm_resource_group.main_resource_group.name
+  target_service = {
+    function_app_name = module.function_profile_async.function_app.function_app.name
+  }
+
+  scheduler = {
+    normal_load = {
+      minimum = 3
+      default = 10
+    },
+    maximum = 30
+  }
+
+  scale_metrics = {
+    requests = {
+      statistic_increase        = "Max"
+      time_window_increase      = 1
+      time_aggregation          = "Maximum"
+      upper_threshold           = 2500
+      increase_by               = 2
+      cooldown_increase         = 1
+      statistic_decrease        = "Average"
+      time_window_decrease      = 5
+      time_aggregation_decrease = "Average"
+      lower_threshold           = 200
+      decrease_by               = 1
+      cooldown_decrease         = 1
+    }
+    cpu = {
+      upper_threshold           = 35
+      lower_threshold           = 15
+      increase_by               = 3
+      decrease_by               = 1
+      cooldown_increase         = 1
+      cooldown_decrease         = 20
+      statistic_increase        = "Max"
+      statistic_decrease        = "Average"
+      time_aggregation_increase = "Maximum"
+      time_aggregation_decrease = "Average"
+      time_window_increase      = 1
+      time_window_decrease      = 5
+    }
+    memory = null
+  }
+
+  tags = local.tags
+}
