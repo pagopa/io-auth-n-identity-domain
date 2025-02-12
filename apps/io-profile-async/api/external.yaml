@@ -1,0 +1,33 @@
+openapi: 3.0.1
+info:
+  version: $npm_package_version
+  title: IO Profile Async Function API
+  x-logo:
+    url: https://io.italia.it/assets/img/io-logo-blue.svg
+  description: |
+servers:
+  - url: # TODO: fill in the URL
+paths:
+  /info:
+    get:
+      operationId: info
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationInfo'
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server error
+components:
+  schemas:
+    ApplicationInfo:
+    type: object
+    properties:
+      message:
+        type: string
+    required:
+      - message

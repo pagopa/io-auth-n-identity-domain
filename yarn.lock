@@ -7650,6 +7650,43 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"io-profile-async@workspace:apps/io-profile-async":
+  version: 0.0.0-use.local
+  resolution: "io-profile-async@workspace:apps/io-profile-async"
+  dependencies:
+    "@azure/cosmos": "npm:^4.1.1"
+    "@azure/data-tables": "npm:^13.2.2"
+    "@azure/functions": "npm:^3.5.0"
+    "@pagopa/eslint-config": "npm:^3.0.0"
+    "@pagopa/express-azure-functions": "npm:^4.0.1"
+    "@pagopa/io-functions-commons": "npm:^29.3.0"
+    "@pagopa/openapi-codegen-ts": "npm:^10.0.5"
+    "@pagopa/ts-commons": "npm:^13.1.2"
+    "@types/express": "npm:^4.16.0"
+    "@types/node-fetch": "npm:^2.6.2"
+    "@vitest/coverage-v8": "npm:~1.5.0"
+    applicationinsights: "npm:^2.9.2"
+    base64url: "npm:^3.0.1"
+    dependency-check: "npm:^4.1.0"
+    eslint-config-monorepo: "npm:*"
+    eslint-plugin-prettier: "npm:^4.0.0"
+    express: "npm:^4.15.3"
+    fast-check: "npm:^1.16.0"
+    fp-ts: "npm:^2.16.1"
+    io-ts: "npm:^2.2.21"
+    io-ts-types: "npm:^0.5.19"
+    modclean: "npm:^3.0.0-beta.1"
+    monocle-ts: "npm:^2.3.13"
+    newtype-ts: "npm:^0.3.5"
+    node-fetch: "npm:^2.6.9"
+    prettier: "npm:^1.18.2"
+    shx: "npm:^0.3.2"
+    typescript: "npm:^5.4.5"
+    vitest: "npm:~1.5.0"
+    winston: "npm:^3.3.3"
+  languageName: unknown
+  linkType: soft
+
 "io-public@workspace:apps/io-public":
   version: 0.0.0-use.local
   resolution: "io-public@workspace:apps/io-public"
