@@ -6,7 +6,6 @@ import {
   toHealthProblems
 } from "@pagopa/io-functions-commons/dist/src/utils/healthcheck";
 
-import * as RTE from "fp-ts/ReaderTaskEither";
 import * as Task from "fp-ts/lib/Task";
 import * as RA from "fp-ts/lib/ReadonlyArray";
 import * as A from "fp-ts/lib/Array";

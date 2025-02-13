@@ -8,7 +8,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { apply } from "fp-ts";
 import * as RA from "fp-ts/lib/ReadonlyArray";
-import { getConfig, IConfig } from "./config";
+import { getConfig, IConfig } from "../config";
 
 type ProblemSource = "AzureCosmosDB" | "AzureStorage" | "Config" | "Url";
 
@@ -134,7 +134,7 @@ export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> =>
         Array<TaskEither<ReadonlyArray<HealthProblem<ProblemSource>>, true>>
       >(
         checkAzureCosmosDbHealth(config.COSMOSDB_URI, config.COSMOSDB_KEY),
-        checkAzureStorageHealth(config.StorageConnection)
+        checkAzureStorageHealth(config.AZURE_STORAGE_CONNECTION_STRING)
       )
     ),
     TE.map(_ => true)

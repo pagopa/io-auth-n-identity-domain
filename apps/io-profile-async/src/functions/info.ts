@@ -12,14 +12,17 @@ import {
 } from "../utils/cosmos/healthcheck";
 import { HealthCheckBuilder } from "../utils/healthcheck";
 import { AzureStorageDependency } from "../utils/azurestorage/dependency";
-import { makeAzureStorageHealthCheck } from "../utils/azurestorage/healthcheck";
+import {
+  AzureStorageProblemSource,
+  makeAzureStorageHealthCheck
+} from "../utils/azurestorage/healthcheck";
 import { CosmosDBDependency } from "../utils/cosmos/dependency";
 import {
   getCurrentBackendVersion,
   getValueFromPackageJson
 } from "../utils/package";
 
-type ProblemSource = AzureCosmosProblemSource | "AzureStorage";
+type ProblemSource = AzureCosmosProblemSource | AzureStorageProblemSource;
 
 const applicativeValidation = RTE.getApplicativeReaderTaskValidation(
   Task.ApplicativePar,
