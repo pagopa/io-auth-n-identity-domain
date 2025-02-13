@@ -1715,7 +1715,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/handler-kit-azure-func@npm:^1.2.0":
+"@pagopa/handler-kit-azure-func@npm:^1.2.0, @pagopa/handler-kit-azure-func@npm:^1.2.1":
   version: 1.2.1
   resolution: "@pagopa/handler-kit-azure-func@npm:1.2.1"
   dependencies:
@@ -7657,8 +7657,11 @@ __metadata:
     "@azure/cosmos": "npm:^4.1.1"
     "@azure/data-tables": "npm:^13.2.2"
     "@azure/functions": "npm:^3.5.0"
+    "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/express-azure-functions": "npm:^4.0.1"
+    "@pagopa/handler-kit": "npm:^1.1.0"
+    "@pagopa/handler-kit-azure-func": "npm:^1.2.1"
     "@pagopa/io-functions-commons": "npm:^29.3.0"
     "@pagopa/openapi-codegen-ts": "npm:^10.0.5"
     "@pagopa/ts-commons": "npm:^13.1.2"
@@ -7668,6 +7671,8 @@ __metadata:
     applicationinsights: "npm:^2.9.2"
     base64url: "npm:^3.0.1"
     dependency-check: "npm:^4.1.0"
+    dotenv: "npm:^8.2.0"
+    dotenv-cli: "npm:^3.1.0"
     eslint-config-monorepo: "npm:*"
     eslint-plugin-prettier: "npm:^4.0.0"
     express: "npm:^4.15.3"

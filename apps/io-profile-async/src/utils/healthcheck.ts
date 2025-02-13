@@ -132,8 +132,7 @@ export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> =>
         Array<TaskEither<ReadonlyArray<HealthProblem<ProblemSource>>, true>>
       >(
         checkAzureCosmosDbHealth(config.COSMOSDB_URI, config.COSMOSDB_KEY),
-        checkAzureStorageHealth(config.StorageConnection),
-        checkUrlHealth(config.VALIDATION_CALLBACK_URL)
+        checkAzureStorageHealth(config.StorageConnection)
       )
     ),
     TE.map(_ => true)

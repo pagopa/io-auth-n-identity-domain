@@ -8,9 +8,6 @@
   "extensions": {
     "http": {
       "routePrefix": ""
-    },
-    "durableTask": {
-      "hubName": "%SLOT_TASK_HUBNAME%"
     }
   },
   "extensionBundle": {

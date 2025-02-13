@@ -1,0 +1,46 @@
+import { pipe } from "fp-ts/lib/function";
+import * as Task from "fp-ts/lib/Task";
+import * as RA from "fp-ts/lib/ReadonlyArray";
+import * as H from "@pagopa/handler-kit";
+import * as RTE from "fp-ts/ReaderTaskEither";
+
+import { HealthProblem } from "@pagopa/io-functions-commons/dist/src/utils/healthcheck";
+import { httpAzureFunction } from "@pagopa/handler-kit-azure-func";
+import {
+  AzureCosmosProblemSource,
+  makeAzureCosmosDbHealthCheck
+} from "../utils/cosmos/health-check";
+import { HealthCheckBuilder } from "../utils/health-check";
+import { AzureStorageDependency } from "../utils/azurestorage/dependency";
+import { makeAzureStorageHealthCheck } from "../utils/azurestorage/health-check";
+import { CosmosDBDependency } from "../utils/cosmos/dependency";
+
+type ProblemSource = AzureCosmosProblemSource | "AzureStorage";
+
+const applicativeValidation = RTE.getApplicativeReaderTaskValidation(
+  Task.ApplicativePar,
+  RA.getSemigroup<HealthProblem<ProblemSource>>()
+);
+
+export const makeInfoHandler: H.Handler<
+  H.HttpRequest,
+  | H.HttpResponse<{ message: string }, 201>
+  | H.HttpResponse<H.ProblemJson, H.HttpErrorStatusCode>,
+  AzureStorageDependency & CosmosDBDependency
+> = H.of((_: H.HttpRequest) =>
+  pipe(
+    [
+      makeAzureStorageHealthCheck,
+      makeAzureCosmosDbHealthCheck
+    ] as ReadonlyArray<HealthCheckBuilder>,
+    RA.sequence(applicativeValidation),
+    RTE.map(() => H.createdJson({ message: "it works!" })),
+    RTE.orElseW(error =>
+      RTE.right(
+        H.problemJson({ status: 500 as const, title: error.join("\n\n") })
+      )
+    )
+  )
+);
+
+export const InfoFunction = httpAzureFunction(makeInfoHandler);
