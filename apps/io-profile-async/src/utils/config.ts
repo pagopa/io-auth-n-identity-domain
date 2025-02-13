@@ -33,9 +33,8 @@ export const FeatureFlagFromString = withFallback(
 );
 
 export const IConfig = t.type({
-  APPINSIGHTS_INSTRUMENTATIONKEY: NonEmptyString,
+  APPINSIGHTS_CONNECTION_STRING: NonEmptyString,
 
-  CONFIRM_CHOICE_PAGE_URL: UrlFromString,
   COSMOSDB_KEY: NonEmptyString,
   COSMOSDB_NAME: NonEmptyString,
   COSMOSDB_URI: NonEmptyString,
@@ -44,8 +43,6 @@ export const IConfig = t.type({
   PROFILE_EMAIL_STORAGE_TABLE_NAME: NonEmptyString,
 
   StorageConnection: NonEmptyString,
-
-  VALIDATION_CALLBACK_URL: NonEmptyString,
 
   isProduction: t.boolean
 });

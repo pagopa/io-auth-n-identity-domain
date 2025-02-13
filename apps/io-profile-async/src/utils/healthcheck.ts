@@ -11,8 +11,10 @@ import * as RA from "fp-ts/lib/ReadonlyArray";
 import { getConfig, IConfig } from "./config";
 
 type ProblemSource = "AzureCosmosDB" | "AzureStorage" | "Config" | "Url";
+
 // eslint-disable-next-line functional/prefer-readonly-type, @typescript-eslint/naming-convention
 export type HealthProblem<S extends ProblemSource> = string & { __source: S };
+
 export type HealthCheck<
   S extends ProblemSource = ProblemSource,
   T = true
@@ -137,3 +139,7 @@ export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> =>
     ),
     TE.map(_ => true)
   );
+
+export type HealthCheckBuilder = <T, S extends ProblemSource>(
+  dependency: T
+) => HealthCheck<S>;

@@ -9,10 +9,10 @@ import { httpAzureFunction } from "@pagopa/handler-kit-azure-func";
 import {
   AzureCosmosProblemSource,
   makeAzureCosmosDbHealthCheck
-} from "../utils/cosmos/health-check";
-import { HealthCheckBuilder } from "../utils/health-check";
+} from "../utils/cosmos/healthcheck";
+import { HealthCheckBuilder } from "../utils/healthcheck";
 import { AzureStorageDependency } from "../utils/azurestorage/dependency";
-import { makeAzureStorageHealthCheck } from "../utils/azurestorage/health-check";
+import { makeAzureStorageHealthCheck } from "../utils/azurestorage/healthcheck";
 import { CosmosDBDependency } from "../utils/cosmos/dependency";
 import {
   getCurrentBackendVersion,
