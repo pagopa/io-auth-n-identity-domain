@@ -64,7 +64,7 @@ const onError = (appInsightsTelemetryClient?: NodeClient) => (error: Error) => {
   console.error(`ERROR | insertItemIntoQueue: ${error.message}`);
   appInsightsTelemetryClient?.trackEvent({
     name: "queue.insert.failure",
-    tagOverrides: { samplingOverride: "true" },
+    tagOverrides: { samplingEnabled: "false" },
   });
   return error;
 };
