@@ -1784,7 +1784,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/io-functions-commons@npm:^28.0.0, @pagopa/io-functions-commons@npm:^28.2.0":
+"@pagopa/io-functions-commons@npm:^28.0.0, @pagopa/io-functions-commons@npm:^28.2.0, @pagopa/io-functions-commons@npm:^28.22.0":
   version: 28.22.0
   resolution: "@pagopa/io-functions-commons@npm:28.22.0"
   dependencies:
@@ -7659,13 +7659,11 @@ __metadata:
     "@azure/functions": "npm:^3.5.0"
     "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
-    "@pagopa/express-azure-functions": "npm:^4.0.1"
     "@pagopa/handler-kit": "npm:^1.1.0"
     "@pagopa/handler-kit-azure-func": "npm:^1.2.1"
-    "@pagopa/io-functions-commons": "npm:^29.3.0"
+    "@pagopa/io-functions-commons": "npm:^28.22.0"
     "@pagopa/openapi-codegen-ts": "npm:^10.0.5"
     "@pagopa/ts-commons": "npm:^13.1.2"
-    "@types/express": "npm:^4.16.0"
     "@types/node-fetch": "npm:^2.6.2"
     "@vitest/coverage-v8": "npm:~1.5.0"
     applicationinsights: "npm:^2.9.2"
@@ -7675,7 +7673,6 @@ __metadata:
     dotenv-cli: "npm:^3.1.0"
     eslint-config-monorepo: "npm:*"
     eslint-plugin-prettier: "npm:^4.0.0"
-    express: "npm:^4.15.3"
     fast-check: "npm:^1.16.0"
     fp-ts: "npm:^2.16.1"
     io-ts: "npm:^2.2.21"

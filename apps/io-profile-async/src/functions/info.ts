@@ -14,6 +14,10 @@ import { HealthCheckBuilder } from "../utils/health-check";
 import { AzureStorageDependency } from "../utils/azurestorage/dependency";
 import { makeAzureStorageHealthCheck } from "../utils/azurestorage/health-check";
 import { CosmosDBDependency } from "../utils/cosmos/dependency";
+import {
+  getCurrentBackendVersion,
+  getValueFromPackageJson
+} from "../utils/package";
 
 type ProblemSource = AzureCosmosProblemSource | "AzureStorage";
 
@@ -24,7 +28,7 @@ const applicativeValidation = RTE.getApplicativeReaderTaskValidation(
 
 export const makeInfoHandler: H.Handler<
   H.HttpRequest,
-  | H.HttpResponse<{ message: string }, 201>
+  | H.HttpResponse<{ name: string; version: string }, 200>
   | H.HttpResponse<H.ProblemJson, H.HttpErrorStatusCode>,
   AzureStorageDependency & CosmosDBDependency
 > = H.of((_: H.HttpRequest) =>
@@ -34,7 +38,12 @@ export const makeInfoHandler: H.Handler<
       makeAzureCosmosDbHealthCheck
     ] as ReadonlyArray<HealthCheckBuilder>,
     RA.sequence(applicativeValidation),
-    RTE.map(() => H.createdJson({ message: "it works!" })),
+    RTE.map(() =>
+      H.successJson({
+        name: getValueFromPackageJson("name"),
+        version: getCurrentBackendVersion()
+      })
+    ),
     RTE.orElseW(error =>
       RTE.right(
         H.problemJson({ status: 500 as const, title: error.join("\n\n") })
