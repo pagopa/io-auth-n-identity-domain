@@ -66,7 +66,6 @@ const run = async () => {
           queueName: config.queueName,
           appInsightsTelemetryClient,
           batch,
-          errorFilePath: config.errorFilePath,
         }),
         TE.chainFirstW(() => {
           console.info(`COMPLETED BATCH ${index + 1}`);

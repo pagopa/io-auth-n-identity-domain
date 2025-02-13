@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-import fs from "fs";
 import { QueueClient } from "@azure/storage-queue";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { pipe } from "fp-ts/function";
@@ -9,15 +8,14 @@ import * as E from "fp-ts/Either";
 import * as ROA from "fp-ts/ReadonlyArray";
 import NodeClient from "applicationinsights/out/Library/NodeClient";
 
-type Item<T> = {
+export type Item<T> = {
   payload: T;
   itemTimeoutInSeconds?: number;
 };
 
-type CommonDependencies = {
+export type CommonDependencies = {
   connectionString: NonEmptyString;
   queueName: NonEmptyString;
-  errorFilePath: NonEmptyString;
   appInsightsTelemetryClient?: NodeClient;
 };
 
@@ -78,10 +76,6 @@ export const insertItemIntoQueue: <T>(
       TE.right(initClient(deps.connectionString, deps.queueName)),
     ),
     TE.chain(sendMessage),
-    TE.mapLeft((error) => {
-      fs.appendFileSync(deps.errorFilePath, error.message + "\n");
-      return error;
-    }),
     TE.mapLeft(onError(deps.appInsightsTelemetryClient)),
   );
 
