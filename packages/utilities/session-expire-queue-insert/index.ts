@@ -1,17 +1,16 @@
-#!/usr/bin/env/node
 /* eslint-disable no-console */
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import * as TE from "fp-ts/TaskEither";
+import * as T from "fp-ts/Task";
 import { initAppInsights } from "@pagopa/ts-commons/lib/appinsights";
 import { pipe } from "fp-ts/function";
 import * as E from "fp-ts/Either";
 import * as ROA from "fp-ts/ReadonlyArray";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { insertBatchIntoQueue } from "../src/queue-insert";
 import { Config } from "./types";
-import { importFileIntoBatches } from "./file";
+import { exportErrorsIntoFile, importFileIntoBatches } from "./file";
 
 console.time("Process time");
 const run = async () => {
@@ -73,9 +72,14 @@ const run = async () => {
           console.info(`COMPLETED BATCH ${index + 1}`);
           return TE.right(void 0);
         }),
+        TE.mapLeft((errors) => {
+          exportErrorsIntoFile(config.errorFilePath, errors);
+          return errors;
+        }),
       ),
     ),
-    ROA.sequence(TE.ApplicativeSeq),
+    // NOTE: continue regardless of errors
+    ROA.sequence(T.ApplicativeSeq),
   )();
 };
 

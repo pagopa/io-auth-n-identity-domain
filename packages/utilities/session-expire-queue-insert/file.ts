@@ -5,7 +5,7 @@ import * as ROA from "fp-ts/ReadonlyArray";
 import * as E from "fp-ts/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
-import { ItemToEnqueue } from "./types";
+import { ItemPayload, ItemToEnqueue } from "./types";
 
 export const importFileIntoBatches = (
   filename: string,
@@ -38,4 +38,20 @@ export const importFileIntoBatches = (
       console.info(`SUCCESSFULLY CREATED ${batches.length} BATCH`);
       return batches;
     },
+  );
+
+export const exportErrorsIntoFile = (
+  filename: string,
+  errors: ReadonlyArray<Error>,
+) =>
+  pipe(
+    errors,
+    ROA.map((error) =>
+      pipe(
+        E.tryCatch(() => JSON.parse(error.message), E.toError),
+        E.chainW(ItemPayload.decode),
+        E.map((item) => fs.appendFileSync(filename, item.fiscalCode + "\n")),
+        E.mapLeft(() => Error("Could not export errors to file")),
+      ),
+    ),
   );

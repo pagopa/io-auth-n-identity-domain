@@ -87,7 +87,7 @@ export const insertItemIntoQueue: <T>(
 
 export const insertBatchIntoQueue: <T>(
   deps: BatchDependencies<T>,
-) => TE.TaskEither<Error, true> = (deps) =>
+) => TE.TaskEither<ReadonlyArray<Error>, true> = (deps) =>
   pipe(
     TE.right(deps),
     TE.bind("client", () =>
@@ -102,18 +102,19 @@ export const insertBatchIntoQueue: <T>(
               client,
               item,
             }),
-            TE.mapLeft((error) => {
-              fs.appendFileSync(deps.errorFilePath, error.message + "\n");
-              return error;
-            }),
+            TE.mapLeft((error) => [error]),
           ),
         ),
         // NOTE: T.ApplicativeSeq to continue regardless of the result of the
         // processed item
-        ROA.sequence(T.ApplicativeSeq),
-        TE.fromTask,
+        ROA.sequence(
+          TE.getApplicativeTaskValidation(
+            T.ApplicativeSeq,
+            ROA.getSemigroup<Error>(),
+          ),
+        ),
       ),
     ),
     TE.map(() => true as const),
-    TE.mapLeft(onError(deps.appInsightsTelemetryClient)),
+    TE.mapLeft(ROA.map(onError(deps.appInsightsTelemetryClient))),
   );

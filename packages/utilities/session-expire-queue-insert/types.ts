@@ -14,10 +14,14 @@ export const Config = t.type({
 
 export type Config = t.TypeOf<typeof Config>;
 
+export const ItemPayload = t.type({
+  fiscalCode: FiscalCode,
+});
+
+export type ItemPayload = t.TypeOf<typeof ItemPayload>;
+
 export const ItemToEnqueue = t.type({
-  payload: t.type({
-    fiscalCode: FiscalCode,
-  }),
+  payload: ItemPayload,
   itemTimeoutInSeconds: t.number,
 });
 
