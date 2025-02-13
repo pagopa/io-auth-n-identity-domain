@@ -2,47 +2,23 @@ import { beforeEach } from "node:test";
 import { readFileSync } from "fs";
 import { vi, expect, describe, it, assert } from "vitest";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { pipe } from "fp-ts/lib/function";
-import * as ROA from "fp-ts/ReadonlyArray";
-import { importFileIntoBatches } from "../file";
-import { ItemToEnqueue } from "../types";
+import { createBatch, importFileIntoBatches } from "../file";
 
 vi.mock("fs");
 
 const fiscalCodesList = [
-  "ISPXNB32R82Y766A",
-  "ISPXNB32R82Y766B",
-  "ISPXNB32R82Y766C",
-  "ISPXNB32R82Y766D",
-  "ISPXNB32R82Y766E",
-];
+  "ISPXNB32R82Y766A" as FiscalCode,
+  "ISPXNB32R82Y766B" as FiscalCode,
+  "ISPXNB32R82Y766C" as FiscalCode,
+  "ISPXNB32R82Y766D" as FiscalCode,
+  "ISPXNB32R82Y766E" as FiscalCode,
+] as const;
 const readFileSpy = vi
   .mocked(readFileSync)
   .mockReturnValue(fiscalCodesList.join("\n"));
 
 const aTimeoutMultiplier = 20;
 const aChunkLimit = 2;
-const createItem = (
-  fiscalCode: string,
-  itemTimeoutInSeconds: number,
-): ItemToEnqueue => ({
-  payload: { fiscalCode: fiscalCode as FiscalCode },
-  itemTimeoutInSeconds,
-});
-
-const createBatch = (list: ReadonlyArray<string>) =>
-  pipe(
-    list,
-    ROA.chunksOf(aChunkLimit),
-    ROA.mapWithIndex((chunkNumber, chunk) =>
-      pipe(
-        chunk,
-        ROA.map((fiscalCode) =>
-          createItem(fiscalCode, aTimeoutMultiplier * chunkNumber),
-        ),
-      ),
-    ),
-  );
 
 describe("Import batches test", () => {
   beforeEach(() => {
@@ -55,7 +31,10 @@ describe("Import batches test", () => {
       aChunkLimit,
       aTimeoutMultiplier,
     );
-    const expectedResult = createBatch(fiscalCodesList);
+    const expectedResult = createBatch(
+      aChunkLimit,
+      aTimeoutMultiplier,
+    )(fiscalCodesList);
 
     expect(readFileSpy).toHaveBeenCalled();
     expect(result).toEqual(expectedResult);
@@ -66,7 +45,7 @@ describe("Import batches test", () => {
     readFileSpy.mockReturnValueOnce(aWrongFiscalCode);
     try {
       importFileIntoBatches("foo", aChunkLimit, aTimeoutMultiplier);
-      expect(true).toEqual(false);
+      assert.fail();
     } catch (err) {
       expect(readFileSpy).toHaveBeenCalled();
       assert(err instanceof Error);

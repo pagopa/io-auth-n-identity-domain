@@ -7,6 +7,31 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { ItemPayload, ItemToEnqueue } from "./types";
 
+const createItem = (
+  fiscalCode: FiscalCode,
+  itemTimeoutInSeconds: number,
+): ItemToEnqueue => ({
+  payload: { fiscalCode: fiscalCode as FiscalCode },
+  itemTimeoutInSeconds,
+});
+
+export const createBatch =
+  (batchCount: number, timeoutMultiplier: number) =>
+  (list: ReadonlyArray<FiscalCode>) =>
+    pipe(
+      list,
+      ROA.chunksOf(batchCount),
+      ROA.mapWithIndex((chunkNumber, chunk) =>
+        pipe(
+          chunk,
+          ROA.map((fiscalCode) =>
+            // NOTE: first batch intentionally left with visibilityTimeout: 0
+            createItem(fiscalCode, timeoutMultiplier * chunkNumber),
+          ),
+        ),
+      ),
+    );
+
 export const importFileIntoBatches = (
   filename: string,
   batchCount: number,
@@ -23,17 +48,7 @@ export const importFileIntoBatches = (
         }),
       ),
     ),
-    ROA.chunksOf(batchCount),
-    ROA.mapWithIndex((chunkNumber, chunk) =>
-      pipe(
-        chunk,
-        ROA.map((fiscalCode) => ({
-          payload: { fiscalCode },
-          // NOTE: first batch intentionally left with visibilityTimeout: 0
-          itemTimeoutInSeconds: timeoutMultiplier * chunkNumber,
-        })),
-      ),
-    ),
+    createBatch(batchCount, timeoutMultiplier),
     (batches) => {
       console.info(`SUCCESSFULLY CREATED ${batches.length} BATCH`);
       return batches;
