@@ -56,8 +56,5 @@
     "newtype-ts": "^0.3.5",
     "node-fetch": "^2.6.9",
     "winston": "^3.3.3"
-  },
-  "resolutions": {
-    "io-ts": "^2.2.21"
   }
 }
