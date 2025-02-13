@@ -553,6 +553,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@azure/storage-queue@npm:^12.22.0":
+  version: 12.25.0
+  resolution: "@azure/storage-queue@npm:12.25.0"
+  dependencies:
+    "@azure/abort-controller": "npm:^2.1.2"
+    "@azure/core-auth": "npm:^1.4.0"
+    "@azure/core-client": "npm:^1.6.2"
+    "@azure/core-http-compat": "npm:^2.0.0"
+    "@azure/core-paging": "npm:^1.1.1"
+    "@azure/core-rest-pipeline": "npm:^1.10.1"
+    "@azure/core-tracing": "npm:^1.1.2"
+    "@azure/core-util": "npm:^1.6.1"
+    "@azure/core-xml": "npm:^1.4.3"
+    "@azure/logger": "npm:^1.0.0"
+    tslib: "npm:^2.2.0"
+  checksum: 10c0/750e02e5826a0f3ac944e539d3808b53c66252ee2a81f00495dbefe66899fab7e2f0a5d0abb6e60efe99844c50cf785bad408c04cc5cec5e5b937060bb912216
+  languageName: node
+  linkType: hard
+
 "@babel/code-frame@npm:^7.0.0":
   version: 7.24.2
   resolution: "@babel/code-frame@npm:7.24.2"
@@ -2772,6 +2791,15 @@ __metadata:
   dependencies:
     undici-types: "npm:~6.19.2"
   checksum: 10c0/f6a3c90c6745881d47f8dae7eb39d0dd6df9a4060c8f1ab7004690f60b9b183d862c9c6b380b9e8d5a17dd670ac7b19d6318f24c170897c85a9729f9804f47cf
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^20.14.10":
+  version: 20.17.17
+  resolution: "@types/node@npm:20.17.17"
+  dependencies:
+    undici-types: "npm:~6.19.2"
+  checksum: 10c0/6aebc8053b96f1b6d82c3a3fe5fc20d9f7eeb507d79d967221bbecaa2b26665fa1c9efe460be2a2f4aaae4e98f37797df7d5a4189f2b6edf8abf9f82f7fd8b1f
   languageName: node
   linkType: hard
 
@@ -6781,7 +6809,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fp-ts@npm:^2.13.1, fp-ts@npm:^2.16.1":
+"fp-ts@npm:^2.13.1, fp-ts@npm:^2.16.1, fp-ts@npm:^2.16.9":
   version: 2.16.9
   resolution: "fp-ts@npm:2.16.9"
   checksum: 10c0/704fcc2e792bd17cb653e7b62b5d9d905c04327776df8bf2a1f67e1c6823b06c7c36036345279ac04f0b6b7214ad01f91f109f548e144c9f866a491392fbfbcc
@@ -7769,6 +7797,15 @@ __metadata:
   peerDependencies:
     fp-ts: ^2.5.0
   checksum: 10c0/4e59e2135c26ced17f9c357c554486e716ac4c75d9bf69164702f66d41400e165786b0d653263bcd2afb4dee947bff4eb7869899ec810050ef067307764f6c32
+  languageName: node
+  linkType: hard
+
+"io-ts@npm:^2.2.22":
+  version: 2.2.22
+  resolution: "io-ts@npm:2.2.22"
+  peerDependencies:
+    fp-ts: ^2.5.0
+  checksum: 10c0/5382c2f09807d8ef7e468cb0061f44ccc691d0173b376d1f8a50ef5cf3c1e38b1402030817fa7a3402969c842de2386ef0d19f6437b0fdfca203a9c5fc3d493a
   languageName: node
   linkType: hard
 
@@ -13194,6 +13231,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"utilities@workspace:packages/utilities":
+  version: 0.0.0-use.local
+  resolution: "utilities@workspace:packages/utilities"
+  dependencies:
+    "@azure/storage-queue": "npm:^12.22.0"
+    "@pagopa/eslint-config": "npm:^3.0.0"
+    "@pagopa/ts-commons": "npm:^13.1.2"
+    "@pagopa/typescript-config-node": "npm:*"
+    "@types/node": "npm:^20.14.10"
+    "@types/yargs": "npm:^17.0.33"
+    applicationinsights: "npm:^2.9.5"
+    eslint: "npm:^8.57.0"
+    eslint-config-monorepo: "npm:*"
+    eslint-plugin-prettier: "npm:^5.1.3"
+    fp-ts: "npm:^2.16.9"
+    io-ts: "npm:^2.2.22"
+    prettier: "npm:^3.2.5"
+    typescript: "npm:^5.4.3"
+    vitest: "npm:~1.5.3"
+    yargs: "npm:^17.7.2"
+  languageName: unknown
+  linkType: soft
+
 "utils-merge@npm:1.0.1, utils-merge@npm:^1.0.1":
   version: 1.0.1
   resolution: "utils-merge@npm:1.0.1"
@@ -13369,7 +13429,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:~1.5.0":
+"vitest@npm:~1.5.0, vitest@npm:~1.5.3":
   version: 1.5.3
   resolution: "vitest@npm:1.5.3"
   dependencies:
