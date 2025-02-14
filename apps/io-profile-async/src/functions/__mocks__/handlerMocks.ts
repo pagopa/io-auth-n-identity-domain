@@ -7,6 +7,7 @@ export const httpHandlerInputMocks: H.HandlerEnvironment<t.TypeOf<
   input: H.request("mockurl"),
   inputDecoder: H.HttpRequest,
   logger: {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     log: () => () => {},
     format: L.format.simple
   }

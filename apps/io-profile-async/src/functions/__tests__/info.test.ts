@@ -25,7 +25,10 @@ const azureStorageHealthCheckMock = vi.spyOn(
   "makeAzureStorageHealthCheck"
 );
 
-const getCurrentBackendVersionMock = vi.spyOn(packageUtils, "getCurrentBackendVersion");
+const getCurrentBackendVersionMock = vi.spyOn(
+  packageUtils,
+  "getCurrentBackendVersion"
+);
 
 describe("Info handler", () => {
   it("should return an error if the Cosmos health check fail", async () => {
