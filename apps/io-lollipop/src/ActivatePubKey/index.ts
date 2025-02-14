@@ -34,9 +34,7 @@ const assertionBlobService = createBlobService(
   config.LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING
 );
 
-const telemetryClient = initTelemetryClient(
-  config.APPINSIGHTS_INSTRUMENTATIONKEY
-);
+const telemetryClient = initTelemetryClient(config);
 
 // eslint-disable-next-line functional/no-let
 let logger: Context["log"];

@@ -26,9 +26,7 @@ import { GenerateLCParams } from "./handler";
 
 const config = getConfigOrThrow();
 
-const telemetryClient = initTelemetryClient(
-  config.APPINSIGHTS_INSTRUMENTATIONKEY
-);
+const telemetryClient = initTelemetryClient(config);
 
 // eslint-disable-next-line functional/no-let
 let logger: Context["log"];
