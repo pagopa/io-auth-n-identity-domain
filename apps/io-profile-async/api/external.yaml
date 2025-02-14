@@ -18,16 +18,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApplicationInfo'
-        '404':
-          description: Not Found
         '500':
-          description: Internal Server error
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     ApplicationInfo:
-    type: object
-    properties:
-      message:
-        type: string
-    required:
-      - message
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+      required:
+        - name
+        - version
+    Error:
+      type: object
+      properties:
+        status:
+          type: number
+        title:
+          type: string
+      required:
+        - status
+        - message
