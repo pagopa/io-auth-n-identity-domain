@@ -8,6 +8,7 @@ import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import { getConfigOrThrow } from "../../config";
 
 import * as azureStorageHealthCheck from "../../utils/azurestorage/healthcheck";
+import * as packageUtils from "../../utils/package";
 
 const config = getConfigOrThrow();
 const connectionString = config.AZURE_STORAGE_CONNECTION_STRING;
@@ -23,6 +24,8 @@ const azureStorageHealthCheckMock = vi.spyOn(
   azureStorageHealthCheck,
   "makeAzureStorageHealthCheck"
 );
+
+const getCurrentBackendVersionMock = vi.spyOn(packageUtils, "getCurrentBackendVersion");
 
 describe("Info handler", () => {
   it("should return an error if the Cosmos health check fail", async () => {
@@ -48,6 +51,7 @@ describe("Info handler", () => {
 
   it("should succeed if the application is healthy", async () => {
     azureStorageHealthCheckMock.mockImplementationOnce(() => TE.right(true));
+    getCurrentBackendVersionMock.mockReturnValueOnce("1.0.0");
 
     const result = await makeInfoHandler({
       ...httpHandlerInputMocks,
@@ -59,7 +63,7 @@ describe("Info handler", () => {
       E.right(
         H.successJson({
           name: "io-profile-async",
-          version: expect.any(String)
+          version: "1.0.0"
         })
       )
     );
