@@ -7662,7 +7662,7 @@ __metadata:
     "@pagopa/handler-kit": "npm:^1.1.0"
     "@pagopa/handler-kit-azure-func": "npm:^1.2.1"
     "@pagopa/io-functions-commons": "npm:^28.22.0"
-    "@pagopa/openapi-codegen-ts": "npm:^10.0.5"
+    "@pagopa/openapi-codegen-ts": "npm:^14.0.0"
     "@pagopa/ts-commons": "npm:^13.1.2"
     "@types/node-fetch": "npm:^2.6.2"
     "@vitest/coverage-v8": "npm:~1.5.0"
