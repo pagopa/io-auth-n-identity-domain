@@ -46,7 +46,7 @@ module "function_profile_async" {
   }
 
   node_version      = 20
-  health_check_path = "/api/v1/info"
+  health_check_path = "/info"
 
 
   resource_group_name = azurerm_resource_group.main_resource_group.name
