@@ -1,8 +1,13 @@
 import { beforeEach } from "node:test";
-import { readFileSync } from "fs";
-import { vi, expect, describe, it, assert } from "vitest";
+import { appendFileSync, readFileSync } from "fs";
+import { vi, expect, describe, it, assert, afterEach } from "vitest";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { createBatch, importFileIntoBatches } from "../file";
+import * as E from "fp-ts/Either";
+import {
+  createBatch,
+  exportErrorsIntoFile,
+  importFileIntoBatches,
+} from "../file";
 
 vi.mock("fs");
 
@@ -16,6 +21,7 @@ const fiscalCodesList = [
 const readFileSpy = vi
   .mocked(readFileSync)
   .mockReturnValue(fiscalCodesList.join("\n"));
+const appendFileSpy = vi.mocked(appendFileSync);
 
 const aTimeoutMultiplier = 20;
 const aChunkLimit = 2;
@@ -55,5 +61,40 @@ describe("Import batches test", () => {
         ),
       );
     }
+  });
+});
+
+describe("Export errors to file", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should parse errors with payload as message", () => {
+    const result = exportErrorsIntoFile("foo", [
+      Error(JSON.stringify({ fiscalCode: fiscalCodesList[0] })),
+      Error(JSON.stringify({ fiscalCode: fiscalCodesList[1] })),
+      Error(JSON.stringify({ fiscalCode: fiscalCodesList[2] })),
+    ] as const);
+
+    expect(appendFileSpy).toHaveBeenCalledTimes(3);
+    expect(result.length).toEqual(3);
+  });
+
+  it.each`
+    title                 | value
+    ${"undefined value"}  | ${undefined}
+    ${"null value"}       | ${null}
+    ${"empty object"}     | ${{}}
+    ${"wrong payload"}    | ${{ foo: "bar" }}
+    ${"wrong fiscalCode"} | ${{ fiscalCode: "ABCD" }}
+  `("should return error when parse fails on $title", ({ value }) => {
+    const result = exportErrorsIntoFile("foo", [
+      Error(JSON.stringify(value)),
+      Error(JSON.stringify(value)),
+      Error(JSON.stringify(value)),
+    ] as const);
+
+    expect(appendFileSpy).toHaveBeenCalledTimes(0);
+    expect(result.length).toEqual(3);
   });
 });
