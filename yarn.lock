@@ -7667,7 +7667,6 @@ __metadata:
     "@types/node-fetch": "npm:^2.6.2"
     "@vitest/coverage-v8": "npm:~1.5.0"
     applicationinsights: "npm:^2.9.2"
-    base64url: "npm:^3.0.1"
     dependency-check: "npm:^4.1.0"
     dotenv: "npm:^8.2.0"
     dotenv-cli: "npm:^3.1.0"
