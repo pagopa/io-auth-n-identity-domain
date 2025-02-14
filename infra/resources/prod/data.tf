@@ -53,7 +53,7 @@ data "azuread_group" "auth_admins" {
 }
 
 data "azuread_group" "auth_devs" {
-  display_name = "${local.common_project}-adgroup-auth-admins"
+  display_name = "${local.common_project}-adgroup-auth-developers"
 }
 
 ##########################
