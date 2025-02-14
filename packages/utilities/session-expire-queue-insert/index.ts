@@ -68,7 +68,9 @@ const run = async () => {
           batch,
         }),
         TE.chainFirstW(() => {
+          console.info("##################################");
           console.info(`COMPLETED BATCH ${index + 1}`);
+          console.info("##################################");
           return TE.right(void 0);
         }),
         TE.mapLeft((errors) => {

@@ -103,7 +103,7 @@ export const insertBatchIntoQueue: <T>(
         // processed item
         ROA.sequence(
           TE.getApplicativeTaskValidation(
-            T.ApplicativeSeq,
+            T.ApplicativePar,
             ROA.getSemigroup<Error>(),
           ),
         ),
