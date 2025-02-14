@@ -48,7 +48,6 @@
     "@pagopa/io-functions-commons": "^28.22.0",
     "@pagopa/ts-commons": "^13.1.2",
     "applicationinsights": "^2.9.2",
-    "base64url": "^3.0.1",
     "fp-ts": "^2.16.1",
     "io-ts": "^2.2.21",
     "io-ts-types": "^0.5.19",
