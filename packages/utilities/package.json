@@ -8,7 +8,8 @@
     "typecheck": "tsc --noemit",
     "lint": "yarn lint:check --fix",
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@azure/storage-queue": "^12.22.0",
@@ -23,6 +24,7 @@
     "@pagopa/typescript-config-node": "*",
     "@types/node": "^20.14.10",
     "@types/yargs": "^17.0.33",
+    "@vitest/coverage-v8": "~1.5.0",
     "eslint": "^8.57.0",
     "eslint-config-monorepo": "*",
     "eslint-plugin-prettier": "^5.1.3",

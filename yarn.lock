@@ -13241,6 +13241,7 @@ __metadata:
     "@pagopa/typescript-config-node": "npm:*"
     "@types/node": "npm:^20.14.10"
     "@types/yargs": "npm:^17.0.33"
+    "@vitest/coverage-v8": "npm:~1.5.0"
     applicationinsights: "npm:^2.9.5"
     eslint: "npm:^8.57.0"
     eslint-config-monorepo: "npm:*"
