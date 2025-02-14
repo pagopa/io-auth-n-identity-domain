@@ -1,5 +1,7 @@
-import { GetPropertiesResponse, TableServiceClient } from "@azure/data-tables";
-import { QueueServiceClient } from "@azure/storage-queue";
+import {
+  QueueGetPropertiesResponse,
+  QueueServiceClient
+} from "@azure/storage-queue";
 import {
   HealthCheck,
   HealthProblem,
@@ -14,11 +16,10 @@ import { pipe } from "fp-ts/lib/function";
 import { AzureStorageDependency } from "./dependency";
 
 export type AzureStorageProblemSource = "AzureStorage";
-type ProblemSource = AzureStorageProblemSource;
 
 const applicativeValidation = TE.getApplicativeTaskValidation(
   Task.ApplicativePar,
-  RA.getSemigroup<HealthProblem<ProblemSource>>()
+  RA.getSemigroup<HealthProblem<AzureStorageProblemSource>>()
 );
 
 /**
@@ -35,14 +36,13 @@ export const makeAzureStorageHealthCheck = ({
   pipe(
     [
       // TODO: Blob service client
-      QueueServiceClient.fromConnectionString(connectionString),
-      TableServiceClient.fromConnectionString(connectionString)
+      QueueServiceClient.fromConnectionString(connectionString)
     ]
       // for each, create a task that wraps getServiceProperties
       .map(serviceClient =>
         TE.tryCatch(
           () =>
-            new Promise<GetPropertiesResponse>((resolve, reject) =>
+            new Promise<QueueGetPropertiesResponse>((resolve, reject) =>
               serviceClient.getProperties().then(
                 result => {
                   resolve(result);

@@ -5,13 +5,9 @@ import * as H from "@pagopa/handler-kit";
 import * as TE from "fp-ts/lib/TaskEither";
 import { makeInfoHandler } from "../info";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
-import { getConfigOrThrow } from "../../config";
-
 import * as azureStorageHealthCheck from "../../utils/azurestorage/healthcheck";
 import * as packageUtils from "../../utils/package";
-
-const config = getConfigOrThrow();
-const connectionString = config.AZURE_STORAGE_CONNECTION_STRING;
+import { connectionString } from "../__mocks__/azurestorage";
 
 const mockDatabaseAccount = vi.fn().mockResolvedValue("");
 const cosmosDatabaseMock = ({

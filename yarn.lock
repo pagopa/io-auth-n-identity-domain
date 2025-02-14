@@ -7655,7 +7655,6 @@ __metadata:
   resolution: "io-profile-async@workspace:apps/io-profile-async"
   dependencies:
     "@azure/cosmos": "npm:^4.1.1"
-    "@azure/data-tables": "npm:^13.2.2"
     "@azure/functions": "npm:^3.5.0"
     "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
