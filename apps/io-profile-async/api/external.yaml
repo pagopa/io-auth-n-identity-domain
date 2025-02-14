@@ -45,4 +45,4 @@ components:
           type: string
       required:
         - status
-        - message
+        - title
