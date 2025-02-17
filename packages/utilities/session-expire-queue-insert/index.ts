@@ -78,6 +78,9 @@ const run = async () => {
           return TE.right(void 0);
         }),
         TE.mapLeft((errors) => {
+          console.error("##################################");
+          console.error(`BATCH ${index + 1} COMPLETED WITH ERRORS`);
+          console.error("##################################");
           exportErrorsIntoFile(config.errorFilePath, errors);
           return errors;
         }),

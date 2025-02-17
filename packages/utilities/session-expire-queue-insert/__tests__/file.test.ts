@@ -7,6 +7,7 @@ import {
   exportErrorsIntoFile,
   importFileIntoBatches,
 } from "../file";
+import { ItemToEnqueue } from "../types";
 
 vi.mock("fs");
 
@@ -28,6 +29,44 @@ const aChunkLimit = 2;
 describe("Import batches test", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("should create a coerent batch", () => {
+    const expectedBatch: ReadonlyArray<ReadonlyArray<ItemToEnqueue>> = [
+      [
+        {
+          payload: { fiscalCode: fiscalCodesList[0] },
+          itemTimeoutInSeconds: aTimeoutMultiplier * 0,
+        },
+        {
+          payload: { fiscalCode: fiscalCodesList[1] },
+          itemTimeoutInSeconds: aTimeoutMultiplier * 0,
+        },
+      ],
+      [
+        {
+          payload: { fiscalCode: fiscalCodesList[2] },
+          itemTimeoutInSeconds: aTimeoutMultiplier * 1,
+        },
+        {
+          payload: { fiscalCode: fiscalCodesList[3] },
+          itemTimeoutInSeconds: aTimeoutMultiplier * 1,
+        },
+      ],
+      [
+        {
+          payload: { fiscalCode: fiscalCodesList[4] },
+          itemTimeoutInSeconds: aTimeoutMultiplier * 2,
+        },
+      ],
+    ];
+
+    const result = createBatch(
+      aChunkLimit,
+      aTimeoutMultiplier,
+    )(fiscalCodesList);
+
+    expect(result).toStrictEqual(expectedBatch);
   });
 
   it("should parse a file correctly into batches", () => {

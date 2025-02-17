@@ -33,8 +33,7 @@ const sendMessage: <T>(deps: {
   item: Item<T>;
 }) => TE.TaskEither<Error, true> = ({ client, item }) =>
   pipe(
-    E.tryCatch(() => base64EncodeObject(item.payload), E.toError),
-    TE.fromEither,
+    TE.tryCatch(async () => base64EncodeObject(item.payload), E.toError),
     TE.chain((toEnqueue) =>
       TE.tryCatch(
         () =>

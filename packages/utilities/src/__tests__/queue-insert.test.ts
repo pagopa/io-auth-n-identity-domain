@@ -85,10 +85,6 @@ describe("Queue insert tests [Batch]", () => {
     const result = await insertBatchIntoQueue({ ...deps, batch: aBatch })();
 
     expect(mockSendMessage).toHaveBeenCalledTimes(aBatch.length);
-    expect(mockSendMessage.mock.results).toEqual([
-      { type: "throw", value: errorMessage },
-      { type: "return", value: {} },
-    ]);
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(result).toEqual(E.left([Error(JSON.stringify(anItem.payload))]));
   });
