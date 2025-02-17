@@ -32,7 +32,7 @@ export const FeatureFlagFromString = withFallback(
 );
 
 export const IConfig = t.type({
-  APPINSIGHTS_CONNECTION_STRING: NonEmptyString,
+  APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
 
   AZURE_STORAGE_CONNECTION_STRING: NonEmptyString,
 

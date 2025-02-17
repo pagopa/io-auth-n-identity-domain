@@ -27,6 +27,14 @@ locals {
       // Mailup setup
       MAILUP_USERNAME = data.azurerm_key_vault_secret.low_priority_mailup_username.value
       MAILUP_SECRET   = data.azurerm_key_vault_secret.low_priority_mailup_secret.value
+
+      // Cosmos
+      COSMOSDB_KEY  = data.azurerm_cosmosdb_account.cosmos_api.primary_key
+      COSMOSDB_URI  = data.azurerm_cosmosdb_account.cosmos_api.endpoint
+      COSMOSDB_NAME = "db"
+
+      // Storage
+      AZURE_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.citizen_auth_common.primary_connection_string
     }
   }
 }
