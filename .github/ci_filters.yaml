@@ -21,6 +21,13 @@ io-lollipop:
   # container edit
   - docker/functions-node-20/*
   - docker/io-lollipop/*
+io-profile-async:
+  - "apps/io-profile-async/**/*.ts"
+  # package.json, function.json, tsconfig.json, ...
+  - "apps/io-profile-async/**/*.json"
+  # container edit
+  - docker/functions-node-20/*
+  - docker/io-profile-async/*
 io-public:
   - "apps/io-public/**/*.ts"
   # package.json, function.json, tsconfig.json, ...

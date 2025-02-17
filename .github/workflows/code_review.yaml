@@ -91,6 +91,15 @@ jobs:
         with:
           projectBaseDir: apps/io-lollipop/
 
+      - name: SonarCloud io-profile-async scan
+        if: steps.sonarcloud_filter.outputs.io-profile-async == 'true'
+        uses: SonarSource/sonarcloud-github-action@19888635fa64d24e533d388efe8264402dfd721b
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: apps/io-profile-async/
+
       - name: SonarCloud io-public scan
         if: steps.sonarcloud_filter.outputs.io-public == 'true'
         uses: SonarSource/sonarcloud-github-action@19888635fa64d24e533d388efe8264402dfd721b
