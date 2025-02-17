@@ -8,6 +8,7 @@ import { pipe } from "fp-ts/function";
 import * as E from "fp-ts/Either";
 import * as ROA from "fp-ts/ReadonlyArray";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
+import { QueueClient } from "@azure/storage-queue";
 import { insertBatchIntoQueue } from "../src/queue-insert";
 import { Config } from "./types";
 import { exportErrorsIntoFile, importFileIntoBatches } from "./file";
@@ -52,6 +53,10 @@ const run = async () => {
   const appInsightsTelemetryClient = initAppInsights(
     config.applicationInsightsConnString,
   );
+  const queueClient = new QueueClient(
+    config.storageConnString,
+    config.queueName,
+  );
 
   return await pipe(
     importFileIntoBatches(
@@ -62,8 +67,7 @@ const run = async () => {
     ROA.mapWithIndex((index, batch) =>
       pipe(
         insertBatchIntoQueue({
-          connectionString: config.storageConnString,
-          queueName: config.queueName,
+          client: queueClient,
           appInsightsTelemetryClient,
           batch,
         }),

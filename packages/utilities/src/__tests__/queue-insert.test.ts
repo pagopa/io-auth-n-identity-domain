@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
-import * as queueUtils from "@azure/storage-queue";
 import NodeClient from "applicationinsights/out/Library/NodeClient";
+import { QueueClient, QueueSendMessageResponse } from "@azure/storage-queue";
 import {
   CommonDependencies,
   Item,
@@ -10,27 +9,21 @@ import {
   insertItemIntoQueue,
 } from "../queue-insert";
 
-vi.mock("@azure/storage-queue", () => {
-  const QueueClient = vi.fn();
-  // eslint-disable-next-line functional/immutable-data
-  QueueClient.prototype.sendMessage = vi.fn().mockResolvedValue({});
-  return {
-    QueueClient,
-  };
-});
+const mockSendMessage = vi
+  .fn()
+  .mockResolvedValue({} as QueueSendMessageResponse);
+const mockQueueClient = {
+  sendMessage: mockSendMessage,
+} as unknown as QueueClient;
 
-const mockSendMessage = vi.spyOn(
-  queueUtils.QueueClient.prototype,
-  "sendMessage",
-);
 const mockTrackEvent = vi.fn();
+const mockAppInsights = {
+  trackEvent: mockTrackEvent,
+} as unknown as NodeClient;
 
 const deps: CommonDependencies = {
-  connectionString: "foo" as NonEmptyString,
-  queueName: "bar" as NonEmptyString,
-  appInsightsTelemetryClient: {
-    trackEvent: mockTrackEvent,
-  } as unknown as NodeClient,
+  client: mockQueueClient,
+  appInsightsTelemetryClient: mockAppInsights,
 };
 
 describe("Queue insert tests [Single]", () => {
@@ -69,6 +62,7 @@ describe("Queue insert tests [Batch]", () => {
   });
 
   it("should send a batch to queue storage", async () => {
+    mockSendMessage.mockResolvedValueOnce({} as QueueSendMessageResponse);
     const anItem: Item<{ message: string }> = {
       payload: { message: "aMessage" },
     };
@@ -83,6 +77,7 @@ describe("Queue insert tests [Batch]", () => {
   it("should try to send all of the items, without stopping on error", async () => {
     const errorMessage = "errorMessage";
     mockSendMessage.mockRejectedValueOnce(errorMessage);
+    mockSendMessage.mockResolvedValueOnce({} as QueueSendMessageResponse);
     const anItem: Item<{ message: string }> = {
       payload: { message: "aMessage" },
     };

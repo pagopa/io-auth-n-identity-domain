@@ -2,7 +2,6 @@ import { beforeEach } from "node:test";
 import { appendFileSync, readFileSync } from "fs";
 import { vi, expect, describe, it, assert, afterEach } from "vitest";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import * as E from "fp-ts/Either";
 import {
   createBatch,
   exportErrorsIntoFile,

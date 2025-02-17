@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import { QueueClient } from "@azure/storage-queue";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
 import * as T from "fp-ts/Task";
@@ -14,8 +13,7 @@ export type Item<T> = {
 };
 
 export type CommonDependencies = {
-  connectionString: NonEmptyString;
-  queueName: NonEmptyString;
+  client: QueueClient;
   appInsightsTelemetryClient?: NodeClient;
 };
 
@@ -26,9 +24,6 @@ type Dependencies<T> = CommonDependencies & {
 type BatchDependencies<T> = CommonDependencies & {
   batch: ReadonlyArray<Item<T>>;
 };
-
-const initClient = (connectionString: string, queueName: string): QueueClient =>
-  new QueueClient(connectionString, queueName);
 
 const base64EncodeObject = <T>(item: T): string =>
   Buffer.from(JSON.stringify(item)).toString("base64");
@@ -70,43 +65,28 @@ const onError = (appInsightsTelemetryClient?: NodeClient) => (error: Error) => {
 export const insertItemIntoQueue: <T>(
   deps: Dependencies<T>,
 ) => TE.TaskEither<Error, true> = (deps) =>
-  pipe(
-    TE.right(deps),
-    TE.bind("client", () =>
-      TE.right(initClient(deps.connectionString, deps.queueName)),
-    ),
-    TE.chain(sendMessage),
-    TE.mapLeft(onError(deps.appInsightsTelemetryClient)),
-  );
+  pipe(sendMessage(deps), TE.mapLeft(onError(deps.appInsightsTelemetryClient)));
 
 export const insertBatchIntoQueue: <T>(
   deps: BatchDependencies<T>,
 ) => TE.TaskEither<ReadonlyArray<Error>, true> = (deps) =>
   pipe(
-    TE.right(deps),
-    TE.bind("client", () =>
-      TE.right(initClient(deps.connectionString, deps.queueName)),
-    ),
-    TE.chain(({ client }) =>
+    deps.batch,
+    ROA.map((item) =>
       pipe(
-        deps.batch,
-        ROA.map((item) =>
-          pipe(
-            sendMessage({
-              client,
-              item,
-            }),
-            TE.mapLeft((error) => [error]),
-          ),
-        ),
-        // NOTE: T.ApplicativeSeq to continue regardless of the result of the
-        // processed item
-        ROA.sequence(
-          TE.getApplicativeTaskValidation(
-            T.ApplicativePar,
-            ROA.getSemigroup<Error>(),
-          ),
-        ),
+        sendMessage({
+          client: deps.client,
+          item,
+        }),
+        TE.mapLeft((error) => [error]),
+      ),
+    ),
+    // NOTE: T.ApplicativeSeq to continue regardless of the result of the
+    // processed item
+    ROA.sequence(
+      TE.getApplicativeTaskValidation(
+        T.ApplicativePar,
+        ROA.getSemigroup<Error>(),
       ),
     ),
     TE.map(() => true as const),
