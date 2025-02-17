@@ -62,10 +62,20 @@ module "function_profile_async" {
   }
 
   app_settings = merge(
-    local.function_profile_async.app_settings
+    local.function_profile_async.app_settings,
+    {
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5
+    }
   )
   slot_app_settings = merge(
-    local.function_profile_async.app_settings
+    local.function_profile_async.app_settings,
+    {
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100,
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100
+    }
   )
 
   subnet_service_endpoints = {
