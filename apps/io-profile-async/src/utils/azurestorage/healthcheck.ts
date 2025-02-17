@@ -13,6 +13,10 @@ import * as RA from "fp-ts/lib/ReadonlyArray";
 import * as A from "fp-ts/lib/Array";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
+import {
+  BlobGetPropertiesResponse,
+  BlobServiceClient
+} from "@azure/storage-blob";
 import { AzureStorageDependency } from "./dependency";
 
 export type AzureStorageProblemSource = "AzureStorage";
@@ -35,22 +39,23 @@ export const makeAzureStorageHealthCheck = ({
   // try to instantiate a client for each product of azure storage
   pipe(
     [
-      // TODO: Blob service client
+      BlobServiceClient.fromConnectionString(connectionString),
       QueueServiceClient.fromConnectionString(connectionString)
     ]
       // for each, create a task that wraps getServiceProperties
       .map(serviceClient =>
         TE.tryCatch(
           () =>
-            new Promise<QueueGetPropertiesResponse>((resolve, reject) =>
-              serviceClient.getProperties().then(
-                result => {
-                  resolve(result);
-                },
-                err => {
-                  reject(err.message.replace(/\n/gim, " "));
-                }
-              )
+            new Promise<BlobGetPropertiesResponse | QueueGetPropertiesResponse>(
+              (resolve, reject) =>
+                serviceClient.getProperties().then(
+                  result => {
+                    resolve(result);
+                  },
+                  err => {
+                    reject(err.message.replace(/\n/gim, " "));
+                  }
+                )
             ),
           toHealthProblems("AzureStorage" as const)
         )
