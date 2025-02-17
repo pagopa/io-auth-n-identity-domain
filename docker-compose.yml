@@ -70,6 +70,22 @@ services:
       - functions-node-20
       - storage
 
+  io-profile-async:
+    image: io-profile-async
+    build: 
+      context: ./
+      dockerfile: ./docker/io-profile-async/Dockerfile
+    env_file:
+      - ./docker/generated/.env.io-profile-async
+    ports:
+      - ${FUNCTION_PROFILE_ASYNC_PORT}:7071
+    networks:
+      - io-fn
+    depends_on:
+      - functions-node-20
+      - storage
+      - cosmosdb
+
   io-public:
     image: io-public
     build:
