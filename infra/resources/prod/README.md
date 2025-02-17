@@ -23,10 +23,13 @@
 | <a name="module_function_lollipop_autoscale"></a> [function\_lollipop\_autoscale](#module\_function\_lollipop\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | ~> 0 |
 | <a name="module_function_lv"></a> [function\_lv](#module\_function\_lv) | pagopa/dx-azure-function-app/azurerm | ~> 0 |
 | <a name="module_function_lv_autoscale"></a> [function\_lv\_autoscale](#module\_function\_lv\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | ~> 0 |
+| <a name="module_function_profile_async"></a> [function\_profile\_async](#module\_function\_profile\_async) | pagopa/dx-azure-function-app/azurerm | ~> 0 |
+| <a name="module_function_profile_async_autoscale"></a> [function\_profile\_async\_autoscale](#module\_function\_profile\_async\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | ~> 0 |
 | <a name="module_function_public"></a> [function\_public](#module\_function\_public) | pagopa/dx-azure-function-app/azurerm | ~> 0 |
 | <a name="module_function_web_profile"></a> [function\_web\_profile](#module\_function\_web\_profile) | pagopa/dx-azure-function-app/azurerm | ~> 0 |
 | <a name="module_io_profile_apim_api_itn"></a> [io\_profile\_apim\_api\_itn](#module\_io\_profile\_apim\_api\_itn) | ../../modules/operation_api | n/a |
 | <a name="module_io_profile_apim_api_weu"></a> [io\_profile\_apim\_api\_weu](#module\_io\_profile\_apim\_api\_weu) | ../../modules/operation_api | n/a |
+| <a name="module_io_public_apim_api_itn"></a> [io\_public\_apim\_api\_itn](#module\_io\_public\_apim\_api\_itn) | ../../modules/io_public_api | n/a |
 | <a name="module_io_public_apim_api_weu"></a> [io\_public\_apim\_api\_weu](#module\_io\_public\_apim\_api\_weu) | ../../modules/io_public_api | n/a |
 | <a name="module_webprofile_apim_api_itn"></a> [webprofile\_apim\_api\_itn](#module\_webprofile\_apim\_api\_itn) | ../../modules/ioweb_profile_api | n/a |
 | <a name="module_webprofile_apim_api_weu"></a> [webprofile\_apim\_api\_weu](#module\_webprofile\_apim\_api\_weu) | ../../modules/ioweb_profile_api | n/a |
@@ -45,6 +48,7 @@
 | [azurerm_resource_group.function_lv_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
 | [azurerm_resource_group.function_public_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
 | [azurerm_resource_group.function_web_profile_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
+| [azurerm_resource_group.main_resource_group](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
 | [azurerm_resource_group.rg_elt](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
 | [azurerm_resource_group.shared_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
 | [azurerm_subnet.shared_plan_snet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) | resource |
@@ -69,6 +73,8 @@
 | [azurerm_key_vault_secret.first_lollipop_consumer_subscription_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.functions_app_api_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.functions_fast_login_api_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.low_priority_mailup_secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.low_priority_mailup_username](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.magic_link_jwe_private_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.magic_link_jwe_pub_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.spid_login_api_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
