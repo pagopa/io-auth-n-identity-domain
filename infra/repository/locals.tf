@@ -1,62 +1,70 @@
 locals {
-  project            = "io-p"
-  location_short     = "weu"
-  itn_location_short = "itn"
-  domain             = "auth"
+  prefix          = "io"
+  env_short       = "p"
+  location        = "italynorth"
+  domain          = "auth"
+  instance_number = "01"
 
-  identity_resource_group_name = "${local.project}-identity-rg"
-
-  repo_secrets = {
-    "ARM_TENANT_ID"       = data.azurerm_client_config.current.tenant_id,
-    "ARM_SUBSCRIPTION_ID" = data.azurerm_subscription.current.subscription_id,
-    "SONAR_TOKEN"         = data.azurerm_key_vault_secret.sonacloud_token.value
+  adgroups = {
+    admins_name    = "io-p-adgroup-auth-admins"
+    devs_name      = "io-p-adgroup-auth-developers"
+    externals_name = "io-p-adgroup-auth-externals"
   }
 
-  ci = {
-    secrets = {
-      "ARM_CLIENT_ID" = data.azurerm_user_assigned_identity.identity_prod_ci.client_id
+  runner = {
+    cae_name                = "${local.prefix}-${local.env_short}-itn-github-runner-cae-01"
+    cae_resource_group_name = "${local.prefix}-${local.env_short}-itn-github-runner-rg-01"
+    secret = {
+      kv_name                = "${local.prefix}-${local.env_short}-kv-common"
+      kv_resource_group_name = "${local.prefix}-${local.env_short}-rg-common"
     }
   }
 
-  cd = {
-    secrets = {
-      "ARM_CLIENT_ID" = data.azurerm_user_assigned_identity.identity_prod_cd.client_id,
-    }
-    reviewers_teams = ["io-auth-n-identity-backend", "engineering-team-cloud-eng"]
+  apim = {
+    name                = "${local.prefix}-${local.env_short}-apim-v2-api"
+    resource_group_name = "${local.prefix}-${local.env_short}-rg-internal"
   }
 
-  # -------------------------
-  # Session Manager Data
-  # -------------------------
-  citizen_auth_kv_name = "io-p-citizen-auth-kv"
-  citizen_auth_kv_rg   = "io-p-citizen-auth-sec-rg"
-  sonacloud_token_key  = "session-manager-repo-sonarcloud-token"
-
-  apps_cd = {
-    secrets = {
-      "ARM_CLIENT_ID" = data.azurerm_user_assigned_identity.identity_apps_prod_cd.client_id,
-    },
-    variables = {
-    },
-
-    reviewers_teams = ["io-auth-n-identity-backend", "engineering-team-cloud-eng"]
+  vnet = {
+    name                = "${local.prefix}-${local.env_short}-itn-common-vnet-01"
+    resource_group_name = "${local.prefix}-${local.env_short}-itn-common-rg-01"
   }
 
-  # -------------------------
-  # Opex CI
-  # -------------------------
-
-  opex_ci = {
-    secrets = {
-      "ARM_CLIENT_ID" = data.azurerm_user_assigned_identity.opex_identity_prod_ci.client_id,
-    },
+  dns = {
+    resource_group_name = "${local.prefix}-${local.env_short}-rg-external"
   }
-  # -------------------------
-  # Opex CD
-  # -------------------------
-  opex_cd = {
-    secrets = {
-      "ARM_CLIENT_ID" = data.azurerm_user_assigned_identity.opex_identity_prod_cd.client_id,
-    },
+
+  nat_gateway = {
+    resource_group_name = "${local.prefix}-${local.env_short}-itn-common-rg-01"
+  }
+
+  tf_storage_account = {
+    name                = "iopitntfst001"
+    resource_group_name = "terraform-state-rg"
+  }
+
+  repository = {
+    name                     = "io-auth-n-identity-domain"
+    description              = "Auth&Identity Monorepo"
+    topics                   = ["auth", "io"]
+    reviewers_teams          = ["io-auth-n-identity-backend", "engineering-team-cloud-eng"]
+    default_branch_name      = "main"
+    infra_cd_policy_branches = ["main"]
+    opex_cd_policy_branches  = ["main"]
+    app_cd_policy_branches   = ["main"]
+  }
+
+  key_vault = {
+    name                = "io-p-kv-common"
+    resource_group_name = "io-p-rg-common"
+  }
+
+  tags = {
+    CreatedBy      = "Terraform"
+    Environment    = "Prod"
+    BusinessUnit   = "App IO"
+    ManagementTeam = "IO Autenticazione"
+    Source         = "https://github.com/pagopa/io-auth-n-identity-domain/blob/main/infra/repository"
+    CostCenter     = "TS000 - Tecnologia e Servizi"
   }
 }
