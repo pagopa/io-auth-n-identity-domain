@@ -80,7 +80,7 @@ export const insertBatchIntoQueue: <T>(
         TE.mapLeft((error) => [error]),
       ),
     ),
-    // NOTE: T.ApplicativeSeq to continue regardless of the result of the
+    // NOTE: T.ApplicativePar to continue regardless of the result of the
     // processed item
     ROA.sequence(
       TE.getApplicativeTaskValidation(
