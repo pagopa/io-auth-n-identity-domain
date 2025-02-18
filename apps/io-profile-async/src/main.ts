@@ -1,6 +1,12 @@
 import { CosmosClient } from "@azure/cosmos";
+import { getMailerTransporter } from "@pagopa/io-functions-commons/dist/src/mailer";
 import { getConfigOrThrow } from "./config";
+import { ExpiredSessionAdvisorFunction } from "./functions/expired-session-advisor";
 import { InfoFunction } from "./functions/info";
+import { ExpiredSessionAdvisorQueueMessage } from "./types/expired-session-advisor-queue-message";
+import { buildIoBackendInternalClient } from "./utils/backend-internal-client/dependency";
+import { getExpiredSessionEmailParameters } from "./utils/email-utils";
+import { buildFunctionProfileClient } from "./utils/function-profile-client/dependency";
 
 const config = getConfigOrThrow();
 
@@ -9,8 +15,19 @@ const cosmosClient = new CosmosClient({
   key: config.COSMOSDB_KEY
 });
 const database = cosmosClient.database(config.COSMOSDB_NAME);
+const backendInternalClient = buildIoBackendInternalClient(config);
+const functionProfileClient = buildFunctionProfileClient(config);
 
 export const Info = InfoFunction({
   connectionString: config.AZURE_STORAGE_CONNECTION_STRING,
   db: database
+});
+
+export const ExpiredSessionAdvisor = ExpiredSessionAdvisorFunction(
+  getExpiredSessionEmailParameters(config)
+)({
+  backendInternalClient,
+  functionProfileClient,
+  inputDecoder: ExpiredSessionAdvisorQueueMessage,
+  mailerTransporter: getMailerTransporter(config)
 });
