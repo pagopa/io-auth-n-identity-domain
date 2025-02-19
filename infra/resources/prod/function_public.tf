@@ -73,9 +73,6 @@ module "function_public" {
   app_settings = merge(
     local.function_public.app_settings,
     {
-      # BUG: the following variable is not set when application_insights_key is
-      # defined
-      APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = local.function_public.prod_slot_sampling_percentage
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_public.prod_slot_sampling_percentage
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_public.prod_slot_sampling_percentage
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_public.prod_slot_sampling_percentage
@@ -84,7 +81,6 @@ module "function_public" {
   slot_app_settings = merge(
     local.function_public.app_settings,
     {
-      APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = local.function_public.staging_slot_sampling_percentage
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_public.staging_slot_sampling_percentage
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_public.staging_slot_sampling_percentage
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_public.staging_slot_sampling_percentage
@@ -101,7 +97,8 @@ module "function_public" {
     web = true
   }
 
-  application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
+  application_insights_connection_string   = data.azurerm_application_insights.application_insights.connection_string
+  application_insights_sampling_percentage = local.function_public.prod_slot_sampling_percentage
 
   action_group_id = azurerm_monitor_action_group.error_action_group.id
 
