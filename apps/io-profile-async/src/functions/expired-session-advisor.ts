@@ -1,5 +1,4 @@
 import { sendMail } from "@pagopa/io-functions-commons/dist/src/mailer";
-import * as B from "fp-ts/lib/Boolean";
 import * as E from "fp-ts/lib/Either";
 import * as O from "fp-ts/lib/Option";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
@@ -173,17 +172,11 @@ export const ExpiredSessionAdvisorHandler: (
   H.of(({ fiscalCode }: ExpiredSessionAdvisorQueueMessage) =>
     pipe(
       retrieveSession(fiscalCode),
-      RTE.chainW(userSessionInfo =>
-        pipe(
-          userSessionInfo.active,
-          B.fold(
-            () => RTE.right(fiscalCode), // User has no active session
-            () =>
-              RTE.left(new QueuePermanentError("User has an active session"))
-          )
-        )
+      RTE.filterOrElseW(
+        userSessionInfo => !userSessionInfo.active,
+        () => new Error("User has an active session")
       ),
-      RTE.chainW(retrieveProfile),
+      RTE.chainW(() => retrieveProfile(fiscalCode)),
       RTE.chainW(profileResponse =>
         pipe(
           profileResponse.email,
@@ -196,13 +189,9 @@ export const ExpiredSessionAdvisorHandler: (
         )
       ),
       RTE.orElseW(error =>
-        pipe(
-          error instanceof QueuePermanentError,
-          B.fold(
-            () => RTE.left(error), // Transient Error, forward error in order to attempt retry
-            () => RTE.right(void 0) // Permanent error no retry
-          )
-        )
+        error instanceof QueuePermanentError
+          ? RTE.right(void 0)
+          : RTE.left(error)
       )
     )
   );
