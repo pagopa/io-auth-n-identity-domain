@@ -70,18 +70,18 @@ module "function_public" {
     {
       # BUG: the following variable is not set when application_insights_key is
       # defined
-      APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = 5
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5
+      APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = 100
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100
     }
   )
   slot_app_settings = merge(
     local.function_public.app_settings,
     {
       APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = 100
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100
     }
   )
