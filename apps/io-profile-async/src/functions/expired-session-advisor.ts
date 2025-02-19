@@ -24,7 +24,7 @@ import {
   MailerTransporterDependency
 } from "../utils/email-utils";
 import { FunctionProfileClientDependency } from "../utils/function-profile-client/dependency";
-import { QueueTransientError } from "../utils/queue-utils";
+import { QueuePermanentError, QueueTransientError } from "../utils/queue-utils";
 
 export const retrieveSession: (
   fiscalCode: FiscalCode
@@ -173,7 +173,8 @@ export const ExpiredSessionAdvisorHandler: (
           userSessionInfo.active,
           B.fold(
             () => RTE.right(fiscalCode), // User has no active session
-            () => RTE.left(new Error("User has an active session"))
+            () =>
+              RTE.left(new QueuePermanentError("User has an active session"))
           )
         )
       ),
@@ -183,7 +184,7 @@ export const ExpiredSessionAdvisorHandler: (
           profileResponse.email,
           O.fromNullable,
           O.fold(
-            () => RTE.left(new Error("User has no email")),
+            () => RTE.left(new QueuePermanentError("User has no email")),
             email =>
               notifySessionExpiration(email, expiredSessionEmailParameters)
           )
@@ -191,10 +192,10 @@ export const ExpiredSessionAdvisorHandler: (
       ),
       RTE.orElseW(error =>
         pipe(
-          error instanceof QueueTransientError,
+          error instanceof QueuePermanentError,
           B.fold(
-            () => RTE.right(void 0), // Permanent error no retry
-            () => RTE.left(error) // Transient Error, forward error in order to attempt retry
+            () => RTE.left(error), // Transient Error, forward error in order to attempt retry
+            () => RTE.right(void 0) // Permanent error no retry
           )
         )
       )
