@@ -26,6 +26,8 @@ locals {
 
       VALIDATION_CALLBACK_URL = "https://api-app.io.pagopa.it/email_verification.html"
       CONFIRM_CHOICE_PAGE_URL = "https://api-app.io.pagopa.it/email_confirm.html"
+
+      APPINSIGHTS_INSTRUMENTATIONKEY = data.azurerm_application_insights.application_insights.instrumentation_key
     }
   }
 }
@@ -70,13 +72,19 @@ module "function_public" {
     {
       # BUG: the following variable is not set when application_insights_key is
       # defined
-      APPINSIGHTS_SAMPLING_PERCENTAGE = 5
+      APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = 5
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5
     }
   )
   slot_app_settings = merge(
     local.function_public.app_settings,
     {
-      APPINSIGHTS_SAMPLING_PERCENTAGE = 100
+      APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = 100
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100,
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100
     }
   )
 
@@ -84,7 +92,7 @@ module "function_public" {
     web = true
   }
 
-  application_insights_key = data.azurerm_application_insights.application_insights.instrumentation_key
+  application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
 
   action_group_id = azurerm_monitor_action_group.error_action_group.id
 
