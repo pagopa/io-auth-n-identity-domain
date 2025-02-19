@@ -96,7 +96,7 @@ export const retrieveProfile: (
 
 export const buildMailBody = (
   expiredSessionEmailParameters: EmailParameters
-): MailBody =>
+): E.Either<Error, MailBody> =>
   pipe(
     mailTemplate.apply(
       "TODO: replace with the real template" as NonEmptyString,
@@ -105,13 +105,18 @@ export const buildMailBody = (
       "TODO: replace with the real template" as NonEmptyString,
       "TODO: replace with the real template" as NonEmptyString
     ),
-    emailHtml => ({
-      emailHtml,
-      emailText: htmlToText(
-        emailHtml,
-        expiredSessionEmailParameters.htmlToTextOptions
+    E.of,
+    E.bindTo("emailHtml"),
+    E.bind("emailText", ({ emailHtml }) =>
+      E.tryCatch(
+        () =>
+          htmlToText(
+            emailHtml,
+            expiredSessionEmailParameters.htmlToTextOptions
+          ),
+        () => new Error("Error while converting html to text")
       )
-    })
+    )
   );
 
 export const notifySessionExpiration: (
@@ -127,7 +132,7 @@ export const notifySessionExpiration: (
 }) =>
   pipe(
     buildMailBody(expiredSessionEmailParameters),
-    TE.of,
+    TE.fromEither,
     TE.chainW(({ emailHtml, emailText }) =>
       pipe(
         sendMail(mailerTransporter, {
@@ -147,7 +152,7 @@ export const notifySessionExpiration: (
         TE.chainW(_ =>
           TE.left(
             new QueueTransientError(
-              "Error while sending email to the user [notifySessionExpiration]"
+              `Error while sending email to the user [notifySessionExpiration] => ${error.message}`
             )
           )
         )
