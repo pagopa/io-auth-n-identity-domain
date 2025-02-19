@@ -10,6 +10,11 @@ const HTML_TO_TEXT_OPTIONS: HtmlToTextOptions = {
   tables: true
 };
 
+export interface MailBody {
+  readonly emailHtml: string;
+  readonly emailText: string;
+}
+
 export interface EmailParameters {
   readonly from: NonEmptyString;
   readonly htmlToTextOptions: HtmlToTextOptions;

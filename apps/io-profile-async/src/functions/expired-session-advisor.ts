@@ -20,6 +20,7 @@ import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advi
 import { BackendInternalClientDependency } from "../utils/backend-internal-client/dependency";
 import {
   EmailParameters,
+  MailBody,
   MailerTransporterDependency
 } from "../utils/email-utils";
 import { FunctionProfileClientDependency } from "../utils/function-profile-client/dependency";
@@ -93,30 +94,24 @@ export const retrieveProfile: (
     )
   );
 
-interface MailBody {
-  readonly emailHtml: string;
-  readonly emailText: string;
-}
-
 export const buildMailBody = (
   expiredSessionEmailParameters: EmailParameters
-): E.Either<Error, MailBody> =>
+): MailBody =>
   pipe(
-    E.of(
-      mailTemplate.apply(
-        "TODO: replace with the real template" as NonEmptyString,
-        "TODO: replace with the real template" as NonEmptyString,
-        new Date(),
-        "TODO: replace with the real template" as NonEmptyString,
-        "TODO: replace with the real template" as NonEmptyString
-      )
+    mailTemplate.apply(
+      "TODO: replace with the real template" as NonEmptyString,
+      "TODO: replace with the real template" as NonEmptyString,
+      new Date(),
+      "TODO: replace with the real template" as NonEmptyString,
+      "TODO: replace with the real template" as NonEmptyString
     ),
-    E.bindTo("emailHtml"),
-    E.bind("emailText", ({ emailHtml }) =>
-      E.of(
-        htmlToText(emailHtml, expiredSessionEmailParameters.htmlToTextOptions)
+    emailHtml => ({
+      emailHtml,
+      emailText: htmlToText(
+        emailHtml,
+        expiredSessionEmailParameters.htmlToTextOptions
       )
-    )
+    })
   );
 
 export const notifySessionExpiration: (
@@ -132,7 +127,7 @@ export const notifySessionExpiration: (
 }) =>
   pipe(
     buildMailBody(expiredSessionEmailParameters),
-    TE.fromEither,
+    TE.of,
     TE.chainW(({ emailHtml, emailText }) =>
       pipe(
         sendMail(mailerTransporter, {
