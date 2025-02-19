@@ -63,7 +63,6 @@
     "newtype-ts": "^0.3.5",
     "node-fetch": "^2.6.9",
     "nodemailer": "^6.4.16",
-    "nodemailer-sendgrid": "^1.0.3",
     "winston": "^3.3.3"
   }
 }
