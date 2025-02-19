@@ -38,12 +38,12 @@ export const BackendInternalConfig = t.type({
 
 export type BackendInternalConfig = t.TypeOf<typeof BackendInternalConfig>;
 
-export const FunctionAppConfig = t.type({
-  FUNCTION_APP_BASE_URL: UrlFromString,
-  FUNCTION_APP_API_KEY: NonEmptyString
+export const FunctionProfileConfig = t.type({
+  FUNCTION_PROFILE_BASE_URL: UrlFromString,
+  FUNCTION_PROFILE_API_KEY: NonEmptyString
 });
 
-export type FunctionAppConfig = t.TypeOf<typeof FunctionAppConfig>;
+export type FunctionProfileConfig = t.TypeOf<typeof FunctionProfileConfig>;
 
 // global app configuration
 export type IConfig = t.TypeOf<typeof IConfig>;
@@ -63,7 +63,7 @@ export const IConfig = t.intersection([
     isProduction: t.boolean
   }),
   BackendInternalConfig,
-  FunctionAppConfig,
+  FunctionProfileConfig,
   MailerConfig
 ]);
 

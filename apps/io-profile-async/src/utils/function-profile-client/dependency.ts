@@ -18,12 +18,12 @@ const httpApiFetch = agent.getFetch(process.env);
 const abortableFetch = AbortableFetch(httpApiFetch);
 
 export const buildFunctionProfileClient = ({
-  FUNCTION_APP_API_KEY,
-  FUNCTION_APP_BASE_URL,
+  FUNCTION_PROFILE_API_KEY,
+  FUNCTION_PROFILE_BASE_URL,
   FETCH_TIMEOUT_MS
 }: IConfig): Client =>
   createClient<"SubscriptionKey">({
-    baseUrl: FUNCTION_APP_BASE_URL.href,
+    baseUrl: FUNCTION_PROFILE_BASE_URL.href,
     fetchApi: (toFetch(
       setFetchTimeout(FETCH_TIMEOUT_MS as Millisecond, abortableFetch)
     ) as unknown) as typeof fetch,
@@ -31,6 +31,6 @@ export const buildFunctionProfileClient = ({
     withDefaults: op => params =>
       op({
         ...params,
-        SubscriptionKey: FUNCTION_APP_API_KEY
+        SubscriptionKey: FUNCTION_PROFILE_API_KEY
       })
   });
