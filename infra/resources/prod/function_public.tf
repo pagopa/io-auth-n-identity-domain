@@ -27,6 +27,11 @@ locals {
       VALIDATION_CALLBACK_URL = "https://api-app.io.pagopa.it/email_verification.html"
       CONFIRM_CHOICE_PAGE_URL = "https://api-app.io.pagopa.it/email_confirm.html"
     }
+
+    # Using 100% sampling for production slot since the amount of traffic is
+    # low and we want to have a good coverage of the logs
+    prod_slot_sampling_percentage    = 100
+    prod_staging_sampling_percentage = 100
   }
 }
 
@@ -70,21 +75,27 @@ module "function_public" {
     {
       # BUG: the following variable is not set when application_insights_key is
       # defined
-      APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = 100
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100
+      APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = local.function_public.prod_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_public.prod_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_public.prod_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_public.prod_slot_sampling_percentage
     }
   )
   slot_app_settings = merge(
     local.function_public.app_settings,
     {
-      APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = 100
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100
+      APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = local.function_public.prod_staging_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_public.prod_staging_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_public.prod_staging_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_public.prod_staging_sampling_percentage
     }
   )
+
+  sticky_app_setting_names = [
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage",
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
+  ]
 
   subnet_service_endpoints = {
     web = true
