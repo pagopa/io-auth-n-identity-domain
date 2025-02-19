@@ -31,7 +31,7 @@ locals {
     # Using 100% sampling for production slot since the amount of traffic is
     # low and we want to have a good coverage of the logs
     prod_slot_sampling_percentage    = 100
-    prod_staging_sampling_percentage = 100
+    staging_slot_sampling_percentage = 100
   }
 }
 
@@ -84,10 +84,10 @@ module "function_public" {
   slot_app_settings = merge(
     local.function_public.app_settings,
     {
-      APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = local.function_public.prod_staging_sampling_percentage
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_public.prod_staging_sampling_percentage
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_public.prod_staging_sampling_percentage
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_public.prod_staging_sampling_percentage
+      APPINSIGHTS_SAMPLING_PERCENTAGE                                                                  = local.function_public.staging_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_public.staging_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_public.staging_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_public.staging_slot_sampling_percentage
     }
   )
 
