@@ -26,8 +26,6 @@ locals {
 
       VALIDATION_CALLBACK_URL = "https://api-app.io.pagopa.it/email_verification.html"
       CONFIRM_CHOICE_PAGE_URL = "https://api-app.io.pagopa.it/email_confirm.html"
-
-      APPINSIGHTS_INSTRUMENTATIONKEY = data.azurerm_application_insights.application_insights.instrumentation_key
     }
   }
 }
