@@ -22,7 +22,7 @@ export const initTelemetryClient = (
   ai.defaultClient
     ? ai.defaultClient
     : pipe(
-        env.APPLICATIONINSIGHTS_CONNECTION_STRING,
+        env.APPLICATION_INSIGHTS_CONNECTION_STRING,
         NonEmptyString.decode,
         E.fold(
           _ => undefined,
