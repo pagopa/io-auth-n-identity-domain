@@ -75,7 +75,7 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5,
-      AzureWebJobs.ExpiredSessionAdvisor.Disabled                                                      = "0"
+      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0"
     }
   )
   slot_app_settings = merge(
@@ -84,7 +84,7 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100,
-      AzureWebJobs.ExpiredSessionAdvisor.Disabled                                                      = "1"
+      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1"
     }
   )
 
