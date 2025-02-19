@@ -3,12 +3,7 @@
   "logging": {
     "logLevel": {
       "default": "Information",
-      "function": "Information",
-      "Host.Results": "Warning",
-      "Host.Aggregator": "Warning",
-      "Azure.Storage.Queues.QueueClient": "None",
-      "Azure.Storage.Queues.QueueServiceClient": "None",
-      "Azure.Core": "None"
+      "function": "Warning"
     }
   },
   "extensions": {
