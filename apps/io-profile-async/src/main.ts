@@ -5,7 +5,10 @@ import { ExpiredSessionAdvisorFunction } from "./functions/expired-session-advis
 import { InfoFunction } from "./functions/info";
 import { ExpiredSessionAdvisorQueueMessage } from "./types/expired-session-advisor-queue-message";
 import { buildIoBackendInternalClient } from "./utils/backend-internal-client/dependency";
-import { getExpiredSessionEmailParameters } from "./utils/email-utils";
+import {
+  EXPIRED_SESSION_EMAIL_TITLE,
+  HTML_TO_TEXT_OPTIONS
+} from "./utils/email-utils";
 import { buildFunctionProfileClient } from "./utils/function-profile-client/dependency";
 
 const config = getConfigOrThrow();
@@ -23,9 +26,11 @@ export const Info = InfoFunction({
   db: database
 });
 
-export const ExpiredSessionAdvisor = ExpiredSessionAdvisorFunction(
-  getExpiredSessionEmailParameters(config)
-)({
+export const ExpiredSessionAdvisor = ExpiredSessionAdvisorFunction({
+  from: config.MAIL_FROM,
+  htmlToTextOptions: HTML_TO_TEXT_OPTIONS,
+  title: EXPIRED_SESSION_EMAIL_TITLE
+})({
   backendInternalClient,
   functionProfileClient,
   inputDecoder: ExpiredSessionAdvisorQueueMessage,
