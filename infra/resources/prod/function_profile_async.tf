@@ -28,6 +28,17 @@ locals {
       MAILUP_USERNAME = data.azurerm_key_vault_secret.low_priority_mailup_username.value
       MAILUP_SECRET   = data.azurerm_key_vault_secret.low_priority_mailup_secret.value
 
+      // Mail
+      MAIL_FROM = "IO - l'app dei servizi pubblici <no-reply@io.italia.it>"
+
+      // Backend Internal
+      BACKEND_INTERNAL_BASE_URL = "https://io-p-app-appbackendli.azurewebsites.net"
+      BACKEND_INTERNAL_API_KEY  = "TODO: fetch from KV"
+
+      // Function Profile
+      FUNCTION_PROFILE_BASE_URL = "https://io-p-itn-auth-profile-fn-01.azurewebsites.net"
+      FUNCTION_PROFILE_API_KEY  = "TODO: fetch from KV"
+
       // Cosmos
       COSMOSDB_KEY  = data.azurerm_cosmosdb_account.cosmos_api.primary_key
       COSMOSDB_URI  = data.azurerm_cosmosdb_account.cosmos_api.endpoint
