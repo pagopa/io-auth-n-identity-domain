@@ -7842,7 +7842,6 @@ __metadata:
     shx: "npm:^0.3.2"
     typescript: "npm:^5.4.5"
     vitest: "npm:~1.5.0"
-    winston: "npm:^3.3.3"
   languageName: unknown
   linkType: soft
 
