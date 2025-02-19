@@ -174,7 +174,7 @@ export const ExpiredSessionAdvisorHandler: (
       retrieveSession(fiscalCode),
       RTE.filterOrElseW(
         userSessionInfo => !userSessionInfo.active,
-        () => new Error("User has an active session")
+        () => new QueuePermanentError("User has an active session")
       ),
       RTE.chainW(() => retrieveProfile(fiscalCode)),
       RTE.chainW(profileResponse =>
