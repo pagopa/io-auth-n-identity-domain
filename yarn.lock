@@ -2857,12 +2857,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/nodemailer@npm:^4.6.8":
-  version: 4.6.8
-  resolution: "@types/nodemailer@npm:4.6.8"
+"@types/nodemailer@npm:^6.4.17":
+  version: 6.4.17
+  resolution: "@types/nodemailer@npm:6.4.17"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 10c0/30dba94c3e28e175817666da3303bd955647e97bcde26c58b2750443932c39b053624132a187a3644180a2ee7e6d321b795326c35779ba2452c507247d63787d
+  checksum: 10c0/689abb3005cf36cf89c2abe56f0aa4469a37e0814633a73fbeb35732e856f4b0d7ab32b6d91585038b6941f5b70db58ec2bd147ebe9f73e528eb6c99604f4e82
   languageName: node
   linkType: hard
 
@@ -7820,7 +7820,7 @@ __metadata:
     "@pagopa/ts-commons": "npm:^13.1.1"
     "@types/html-to-text": "npm:^9.0.4"
     "@types/node-fetch": "npm:^2.6.2"
-    "@types/nodemailer": "npm:^4.6.8"
+    "@types/nodemailer": "npm:^6.4.17"
     "@vitest/coverage-v8": "npm:~1.5.0"
     applicationinsights: "npm:^2.9.2"
     dependency-check: "npm:^4.1.0"
@@ -7837,7 +7837,7 @@ __metadata:
     monocle-ts: "npm:^2.3.13"
     newtype-ts: "npm:^0.3.5"
     node-fetch: "npm:^2.6.9"
-    nodemailer: "npm:^6.4.16"
+    nodemailer: "npm:^6.10.0"
     prettier: "npm:^1.18.2"
     shx: "npm:^0.3.2"
     typescript: "npm:^5.4.5"
@@ -10001,7 +10001,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:^6.4.16":
+"nodemailer@npm:^6.10.0":
   version: 6.10.0
   resolution: "nodemailer@npm:6.10.0"
   checksum: 10c0/39fd35d65b021b94c968eeac82a66dd843021b6ba53c659d01b1dd4cda73b6a2f96e20facfe500efa4b8d3f1cb23df10245c6c86b2bde5f806691ed17ce87826
