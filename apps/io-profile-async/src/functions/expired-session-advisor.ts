@@ -5,7 +5,7 @@ import * as O from "fp-ts/lib/Option";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import * as HtmlToText from "html-to-text";
+import { htmlToText } from "html-to-text";
 
 import * as H from "@pagopa/handler-kit";
 import { azureFunction } from "@pagopa/handler-kit-azure-func";
@@ -114,10 +114,7 @@ export const buildMailBody = (
     E.bindTo("emailHtml"),
     E.bind("emailText", ({ emailHtml }) =>
       E.of(
-        HtmlToText.fromString(
-          emailHtml,
-          expiredSessionEmailParameters.htmlToTextOptions
-        )
+        htmlToText(emailHtml, expiredSessionEmailParameters.htmlToTextOptions)
       )
     )
   );
