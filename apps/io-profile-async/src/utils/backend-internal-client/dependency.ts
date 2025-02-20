@@ -11,9 +11,11 @@ export type BackendInternalClientDependency = {
 export const buildIoBackendInternalClient = (
   fetchApi: typeof fetch,
   { BACKEND_INTERNAL_API_KEY, BACKEND_INTERNAL_BASE_URL }: IConfig
-): Client =>
-  createClient<"token">({
-    baseUrl: BACKEND_INTERNAL_BASE_URL.href,
+): Client => {
+  const baseUrlHref = BACKEND_INTERNAL_BASE_URL.href;
+
+  return createClient<"token">({
+    baseUrl: baseUrlHref.endsWith("/") ? baseUrlHref.slice(0, -1) : baseUrlHref,
     fetchApi,
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     withDefaults: op => params =>
@@ -22,3 +24,4 @@ export const buildIoBackendInternalClient = (
         token: BACKEND_INTERNAL_API_KEY
       })
   });
+};

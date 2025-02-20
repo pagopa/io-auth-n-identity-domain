@@ -11,9 +11,10 @@ export type FunctionProfileClientDependency = {
 export const buildFunctionProfileClient = (
   fetchApi: typeof fetch,
   { FUNCTION_PROFILE_API_KEY, FUNCTION_PROFILE_BASE_URL }: IConfig
-): Client =>
-  createClient<"SubscriptionKey">({
-    baseUrl: FUNCTION_PROFILE_BASE_URL.href,
+): Client => {
+  const baseUrlHref = FUNCTION_PROFILE_BASE_URL.href;
+  return createClient<"SubscriptionKey">({
+    baseUrl: baseUrlHref.endsWith("/") ? baseUrlHref.slice(0, -1) : baseUrlHref,
     fetchApi,
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     withDefaults: op => params =>
@@ -22,3 +23,4 @@ export const buildFunctionProfileClient = (
         SubscriptionKey: FUNCTION_PROFILE_API_KEY
       })
   });
+};

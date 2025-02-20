@@ -172,23 +172,19 @@ export const ExpiredSessionAdvisorHandler: (
       retrieveSession(fiscalCode),
       RTE.filterOrElseW(
         userSessionInfo => !userSessionInfo.active,
-        () => new QueuePermanentError("User has an active session") //TODO: We may want to track those occurence?
+        () => new QueuePermanentError("User has an active session")
       ),
       RTE.chainW(() => retrieveProfile(fiscalCode)),
-      RTE.chainW(profileResponse =>
-        pipe(
-          profileResponse.email,
-          O.fromNullable,
-          O.fold(
-            () => RTE.left(new QueuePermanentError("User has no email")), //TODO: We may want to track those occurence?
-            email =>
-              notifySessionExpiration(email, expiredSessionEmailParameters)
-          )
-        )
+      RTE.map(profile => profile.email),
+      RTE.chainW(
+        RTE.fromNullable(new QueuePermanentError("User has no email"))
+      ),
+      RTE.chainW(email =>
+        notifySessionExpiration(email, expiredSessionEmailParameters)
       ),
       RTE.orElseW(error =>
         error instanceof QueuePermanentError
-          ? RTE.right(void 0)
+          ? pipe(RTE.right(void 0)) //TODO: Add trackEvent
           : RTE.left(error)
       )
     )
