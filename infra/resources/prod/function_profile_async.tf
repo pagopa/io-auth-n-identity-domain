@@ -10,6 +10,16 @@ data "azurerm_key_vault_secret" "low_priority_mailup_secret" {
   key_vault_id = data.azurerm_key_vault.kv.id
 }
 
+data "azurerm_key_vault_secret" "backend_internal_pre_shared_key" {
+  name         = "appbackend-PRE-SHARED-KEY"
+  key_vault_id = data.azurerm_key_vault.kv.id
+}
+
+data "azurerm_key_vault_secret" "function_profile_key" {
+  name         = "profile-async-function-profile-key"
+  key_vault_id = data.azurerm_key_vault.kv.id
+}
+
 locals {
   function_profile_async = {
     name = "profas"
@@ -33,11 +43,11 @@ locals {
 
       // Backend Internal
       BACKEND_INTERNAL_BASE_URL = "https://io-p-app-appbackendli.azurewebsites.net"
-      BACKEND_INTERNAL_API_KEY  = "TODO: fetch from KV"
+      BACKEND_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.backend_internal_pre_shared_key.value
 
       // Function Profile
       FUNCTION_PROFILE_BASE_URL = "https://io-p-itn-auth-profile-fn-01.azurewebsites.net"
-      FUNCTION_PROFILE_API_KEY  = "TODO: fetch from KV"
+      FUNCTION_PROFILE_API_KEY  = data.azurerm_key_vault_secret.function_profile_key.value
 
       // Cosmos
       COSMOSDB_KEY  = data.azurerm_cosmosdb_account.cosmos_api.primary_key
