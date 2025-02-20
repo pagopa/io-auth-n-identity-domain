@@ -1,9 +1,3 @@
-import { Millisecond } from "@pagopa/ts-commons/lib/units";
-
-import { setFetchTimeout, toFetch } from "@pagopa/ts-commons/lib/fetch";
-
-import { agent } from "@pagopa/ts-commons";
-import { AbortableFetch } from "@pagopa/ts-commons/lib/fetch";
 import { IConfig } from "../../config";
 import {
   Client,
@@ -14,19 +8,13 @@ export type BackendInternalClientDependency = {
   readonly backendInternalClient: Client<"token">;
 };
 
-const httpApiFetch = agent.getFetch(process.env);
-const abortableFetch = AbortableFetch(httpApiFetch);
-
-export const buildIoBackendInternalClient = ({
-  BACKEND_INTERNAL_API_KEY,
-  BACKEND_INTERNAL_BASE_URL,
-  FETCH_TIMEOUT_MS
-}: IConfig): Client =>
+export const buildIoBackendInternalClient = (
+  fetchApi: typeof fetch,
+  { BACKEND_INTERNAL_API_KEY, BACKEND_INTERNAL_BASE_URL }: IConfig
+): Client =>
   createClient<"token">({
     baseUrl: BACKEND_INTERNAL_BASE_URL.href,
-    fetchApi: (toFetch(
-      setFetchTimeout(FETCH_TIMEOUT_MS as Millisecond, abortableFetch)
-    ) as unknown) as typeof fetch,
+    fetchApi,
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     withDefaults: op => params =>
       op({

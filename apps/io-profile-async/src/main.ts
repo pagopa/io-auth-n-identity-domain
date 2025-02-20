@@ -9,6 +9,7 @@ import {
   EXPIRED_SESSION_EMAIL_TITLE,
   HTML_TO_TEXT_OPTIONS
 } from "./utils/email-utils";
+import { getFetchApi } from "./utils/fetch-utils";
 import { buildFunctionProfileClient } from "./utils/function-profile-client/dependency";
 
 const config = getConfigOrThrow();
@@ -18,8 +19,10 @@ const cosmosClient = new CosmosClient({
   key: config.COSMOSDB_KEY
 });
 const database = cosmosClient.database(config.COSMOSDB_NAME);
-const backendInternalClient = buildIoBackendInternalClient(config);
-const functionProfileClient = buildFunctionProfileClient(config);
+
+const fetchApi = getFetchApi(config);
+const backendInternalClient = buildIoBackendInternalClient(fetchApi, config);
+const functionProfileClient = buildFunctionProfileClient(fetchApi, config);
 
 export const Info = InfoFunction({
   connectionString: config.AZURE_STORAGE_CONNECTION_STRING,
