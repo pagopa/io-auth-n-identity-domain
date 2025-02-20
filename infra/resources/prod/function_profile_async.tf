@@ -10,11 +10,6 @@ data "azurerm_key_vault_secret" "low_priority_mailup_secret" {
   key_vault_id = data.azurerm_key_vault.kv.id
 }
 
-data "azurerm_key_vault_secret" "backend_internal_pre_shared_key" {
-  name         = "appbackend-PRE-SHARED-KEY"
-  key_vault_id = data.azurerm_key_vault.kv.id
-}
-
 data "azurerm_key_vault_secret" "function_profile_key" {
   name         = "profile-async-function-profile-key"
   key_vault_id = data.azurerm_key_vault.kv.id
@@ -43,7 +38,7 @@ locals {
 
       // Backend Internal
       BACKEND_INTERNAL_BASE_URL = data.azurerm_app_service.app_backend_li.default_site_hostname
-      BACKEND_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.backend_internal_pre_shared_key.value
+      BACKEND_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.backendli_api_key.value
 
       // Function Profile
       FUNCTION_PROFILE_BASE_URL = "https://io-p-itn-auth-profile-fn-01.azurewebsites.net"
