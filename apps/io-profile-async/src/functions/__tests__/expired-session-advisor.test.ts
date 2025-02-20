@@ -158,7 +158,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
     });
 
-    it("should fail on user with a active session with no error forwarded", async () => {
+    it("should fail on user without an email set in profile with no error forwarded", async () => {
       getProfileMock.mockImplementationOnce(async () =>
         E.of({
           status: 200,
@@ -181,21 +181,17 @@ describe("ExpiredSessionAdvisor handler", () => {
 
   describe("QueueTransientError", () => {
     it.each`
-      scenario                        | throwError | mockedImpl                                               | expectedError
-      ${"throw"}                      | ${true}    | ${new Error("Error")}                                    | ${"Error while calling the downstream component [retrieveSession]"}
-      ${"return a Left"}              | ${false}   | ${E.left(new ValidationError(["aaaa"]))}                 | ${"Unexpected response from backend internal [retrieveSession]"}
-      ${"return status code not 200"} | ${false}   | ${E.right({ ...aValidGetSessionResponse, status: 500 })} | ${"Error while retrieving user session: downstream component returned 500 [retrieveSession]"}
+      scenario                        | mockedImpl                                               | expectedError
+      ${"throw"}                      | ${new Error("Error")}                                    | ${"Error while calling the downstream component [retrieveSession]"}
+      ${"return a Left"}              | ${E.left(new ValidationError(["aaaa"]))}                 | ${"Unexpected response from backend internal [retrieveSession]"}
+      ${"return status code not 200"} | ${E.right({ ...aValidGetSessionResponse, status: 500 })} | ${"Error while retrieving user session: downstream component returned 500 [retrieveSession]"}
     `(
       "should return a QueueTransientError when GetSession $scenario",
-      async ({ throwError, mockedImpl, expectedError }) => {
-        if (throwError) {
-          getSessionMock.mockImplementationOnce(async () => {
-            throw mockedImpl;
-          });
-        } else {
-          getSessionMock.mockImplementationOnce(async () => mockedImpl);
-        }
-
+      async ({ mockedImpl, expectedError }) => {
+        getSessionMock.mockImplementationOnce(async () => {
+          if (mockedImpl instanceof Error) throw mockedImpl;
+          return mockedImpl;
+        });
         const response = await ExpiredSessionAdvisorHandler(emailParameters)({
           ...makeHandlerInputs(aValidQueueMessage)
         })();
@@ -211,20 +207,17 @@ describe("ExpiredSessionAdvisor handler", () => {
     );
 
     it.each`
-      scenario                        | throwError | mockedImpl                                               | expectedError
-      ${"throw"}                      | ${true}    | ${new Error("Error")}                                    | ${"Error while calling the downstream component [retrieveProfile]"}
-      ${"return a Left"}              | ${false}   | ${E.left(new ValidationError(["aaaa"]))}                 | ${"Unexpected response from function profile [retrieveProfile]"}
-      ${"return status code not 200"} | ${false}   | ${E.right({ ...aValidGetProfileResponse, status: 500 })} | ${"Error while retrieving user profile: downstream component returned 500 [retrieveProfile]"}
+      scenario                        | mockedImpl                                               | expectedError
+      ${"throw"}                      | ${new Error("Error")}                                    | ${"Error while calling the downstream component [retrieveProfile]"}
+      ${"return a Left"}              | ${E.left(new ValidationError(["aaaa"]))}                 | ${"Unexpected response from function profile [retrieveProfile]"}
+      ${"return status code not 200"} | ${E.right({ ...aValidGetProfileResponse, status: 500 })} | ${"Error while retrieving user profile: downstream component returned 500 [retrieveProfile]"}
     `(
       "should return a QueueTransientError when GetProfile $scenario",
-      async ({ throwError, mockedImpl, expectedError }) => {
-        if (throwError) {
-          getProfileMock.mockImplementationOnce(async () => {
-            throw mockedImpl;
-          });
-        } else {
-          getProfileMock.mockImplementationOnce(async () => mockedImpl);
-        }
+      async ({ mockedImpl, expectedError }) => {
+        getProfileMock.mockImplementationOnce(async () => {
+          if (mockedImpl instanceof Error) throw mockedImpl;
+          return mockedImpl;
+        });
 
         const response = await ExpiredSessionAdvisorHandler(emailParameters)({
           ...makeHandlerInputs(aValidQueueMessage)
