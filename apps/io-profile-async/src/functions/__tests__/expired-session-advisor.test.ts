@@ -86,6 +86,16 @@ const emailParameters: ExpiredSessionEmailParameters = {
   ctaUrl: { href: "http://example.com" } as ValidUrl
 };
 
+const makeHandlerInputs = (input: unknown) => ({
+  ...mockQueueHandlerInputMocks(
+    ExpiredSessionAdvisorQueueMessage,
+    input as ExpiredSessionAdvisorQueueMessage
+  ),
+  backendInternalClient: mockBackendInternalClient,
+  functionProfileClient: mockBackendFunctionProfileClient,
+  mailerTransporter: mockMailerTransporter
+});
+
 describe("ExpiredSessionAdvisor handler", () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -93,11 +103,7 @@ describe("ExpiredSessionAdvisor handler", () => {
 
   it("should success on user with no session", async () => {
     const response = await ExpiredSessionAdvisorHandler(emailParameters)({
-      ...mockQueueHandlerInputMocks(ExpiredSessionAdvisorQueueMessage),
-      backendInternalClient: mockBackendInternalClient,
-      functionProfileClient: mockBackendFunctionProfileClient,
-      mailerTransporter: mockMailerTransporter,
-      input: aValidQueueMessage
+      ...makeHandlerInputs(aValidQueueMessage)
     })();
 
     expect(E.isRight(response)).toBeTruthy();
@@ -110,11 +116,7 @@ describe("ExpiredSessionAdvisor handler", () => {
 
   it("should fail when a bad Message is received", async () => {
     const response = await ExpiredSessionAdvisorHandler(emailParameters)({
-      ...mockQueueHandlerInputMocks(ExpiredSessionAdvisorQueueMessage),
-      backendInternalClient: mockBackendInternalClient,
-      functionProfileClient: mockBackendFunctionProfileClient,
-      mailerTransporter: mockMailerTransporter,
-      input: { badProp: "bad" }
+      ...makeHandlerInputs({ badProp: "bad" })
     })();
 
     expect(response).toStrictEqual(E.left(new ValidationError([])));
@@ -125,11 +127,7 @@ describe("ExpiredSessionAdvisor handler", () => {
 
   it("should fail when a bad FiscalCode is received", async () => {
     const response = await ExpiredSessionAdvisorHandler(emailParameters)({
-      ...mockQueueHandlerInputMocks(ExpiredSessionAdvisorQueueMessage),
-      backendInternalClient: mockBackendInternalClient,
-      functionProfileClient: mockBackendFunctionProfileClient,
-      mailerTransporter: mockMailerTransporter,
-      input: { fiscalCode: "bad" }
+      ...makeHandlerInputs({ fiscalCode: "bad" })
     })();
 
     expect(response).toStrictEqual(E.left(new ValidationError([])));
@@ -150,11 +148,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       );
 
       const response = await ExpiredSessionAdvisorHandler(emailParameters)({
-        ...mockQueueHandlerInputMocks(ExpiredSessionAdvisorQueueMessage),
-        backendInternalClient: mockBackendInternalClient,
-        functionProfileClient: mockBackendFunctionProfileClient,
-        mailerTransporter: mockMailerTransporter,
-        input: aValidQueueMessage
+        ...makeHandlerInputs(aValidQueueMessage)
       })();
 
       expect(E.isRight(response)).toBeTruthy();
@@ -173,11 +167,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       );
 
       const response = await ExpiredSessionAdvisorHandler(emailParameters)({
-        ...mockQueueHandlerInputMocks(ExpiredSessionAdvisorQueueMessage),
-        backendInternalClient: mockBackendInternalClient,
-        functionProfileClient: mockBackendFunctionProfileClient,
-        mailerTransporter: mockMailerTransporter,
-        input: aValidQueueMessage
+        ...makeHandlerInputs(aValidQueueMessage)
       })();
 
       expect(E.isRight(response)).toBeTruthy();
@@ -207,11 +197,7 @@ describe("ExpiredSessionAdvisor handler", () => {
         }
 
         const response = await ExpiredSessionAdvisorHandler(emailParameters)({
-          ...mockQueueHandlerInputMocks(ExpiredSessionAdvisorQueueMessage),
-          backendInternalClient: mockBackendInternalClient,
-          functionProfileClient: mockBackendFunctionProfileClient,
-          mailerTransporter: mockMailerTransporter,
-          input: aValidQueueMessage
+          ...makeHandlerInputs(aValidQueueMessage)
         })();
 
         expect(response).toStrictEqual(
@@ -241,11 +227,7 @@ describe("ExpiredSessionAdvisor handler", () => {
         }
 
         const response = await ExpiredSessionAdvisorHandler(emailParameters)({
-          ...mockQueueHandlerInputMocks(ExpiredSessionAdvisorQueueMessage),
-          backendInternalClient: mockBackendInternalClient,
-          functionProfileClient: mockBackendFunctionProfileClient,
-          mailerTransporter: mockMailerTransporter,
-          input: aValidQueueMessage
+          ...makeHandlerInputs(aValidQueueMessage)
         })();
 
         expect(response).toStrictEqual(
@@ -267,11 +249,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       });
 
       const response = await ExpiredSessionAdvisorHandler(emailParameters)({
-        ...mockQueueHandlerInputMocks(ExpiredSessionAdvisorQueueMessage),
-        backendInternalClient: mockBackendInternalClient,
-        functionProfileClient: mockBackendFunctionProfileClient,
-        mailerTransporter: mockMailerTransporter,
-        input: aValidQueueMessage
+        ...makeHandlerInputs(aValidQueueMessage)
       })();
 
       expect(response).toStrictEqual(
