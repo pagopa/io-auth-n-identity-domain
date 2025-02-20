@@ -1776,15 +1776,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/io-app-email-templates@npm:^0.1.6":
-  version: 0.1.6
-  resolution: "@pagopa/io-app-email-templates@npm:0.1.6"
+"@pagopa/io-app-email-templates@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@pagopa/io-app-email-templates@npm:0.3.0"
   dependencies:
     "@pagopa/ts-commons": "npm:^13.0.0"
     fp-ts: "npm:^2.16.5"
     io-ts: "npm:^2.2.21"
     moment-timezone: "npm:^0.5.45"
-  checksum: 10c0/a8696625463859193c34cd0e358103bdc8068b6d0c0b8ecfa3c3eff398deecfec5a839e5ca6e97c24ffaf7662aeb65a1e1314c9d495f334aede64aca361bf4eb
+  checksum: 10c0/2e5c4219e66f3658f17888faed35fe4f395e9c6fd1b47ef5677250417b2197cf49872de33e41ab0b0b1852d527bdeb71cf069b690c70e009afb566d96df96b64
   languageName: node
   linkType: hard
 
@@ -7813,7 +7813,7 @@ __metadata:
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/handler-kit": "npm:^1.1.0"
     "@pagopa/handler-kit-azure-func": "npm:^1.2.1"
-    "@pagopa/io-app-email-templates": "npm:^0.1.6"
+    "@pagopa/io-app-email-templates": "npm:^0.3.0"
     "@pagopa/io-functions-commons": "npm:^29.3.0"
     "@pagopa/logger": "npm:^1.0.1"
     "@pagopa/openapi-codegen-ts": "npm:^14.0.0"

@@ -4,26 +4,30 @@ import * as O from "fp-ts/lib/Option";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { htmlToText } from "html-to-text";
+import { htmlToText, HtmlToTextOptions } from "html-to-text";
 
 import * as H from "@pagopa/handler-kit";
 import { azureFunction } from "@pagopa/handler-kit-azure-func";
 import * as L from "@pagopa/logger";
 
-import * as mailTemplate from "@pagopa/io-app-email-templates/LoginNotificationIOWeb/index";
+import * as mailTemplate from "@pagopa/io-app-email-templates/ExpiredSessionUserReEngagement/index";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { UserSessionInfo } from "../generated/definitions/backend-session/UserSessionInfo";
 import { EmailAddress } from "../generated/definitions/function-profile/EmailAddress";
 import { ExtendedProfile } from "../generated/definitions/function-profile/ExtendedProfile";
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
 import { BackendInternalClientDependency } from "../utils/backend-internal-client/dependency";
-import {
-  EmailParameters,
-  MailBody,
-  MailerTransporterDependency
-} from "../utils/email-utils";
+import { MailerTransporterDependency } from "../utils/mailer-transporter/dependency";
 import { FunctionProfileClientDependency } from "../utils/function-profile-client/dependency";
 import { QueuePermanentError, QueueTransientError } from "../utils/queue-utils";
+
+export interface ExpiredSessionEmailParameters {
+  readonly from: NonEmptyString;
+  readonly htmlToTextOptions: HtmlToTextOptions;
+  readonly title: NonEmptyString;
+  readonly ctaUrl: ValidUrl;
+}
 
 export const retrieveSession: (
   fiscalCode: FiscalCode
@@ -94,16 +98,10 @@ export const retrieveProfile: (
   );
 
 export const buildMailBody = (
-  expiredSessionEmailParameters: EmailParameters
-): E.Either<Error, MailBody> =>
+  expiredSessionEmailParameters: ExpiredSessionEmailParameters
+): E.Either<Error, { emailHtml: string; emailText: string }> =>
   pipe(
-    mailTemplate.apply(
-      "TODO: replace with the real template" as NonEmptyString,
-      "TODO: replace with the real template" as NonEmptyString,
-      new Date(),
-      "TODO: replace with the real template" as NonEmptyString,
-      "TODO: replace with the real template" as NonEmptyString
-    ),
+    mailTemplate.apply(expiredSessionEmailParameters.ctaUrl),
     E.of,
     E.bindTo("emailHtml"),
     E.bind("emailText", ({ emailHtml }) =>
@@ -120,15 +118,15 @@ export const buildMailBody = (
 
 export const notifySessionExpiration: (
   email: EmailAddress,
-  expiredSessionEmailParameters: EmailParameters
+  expiredSessionEmailParameters: ExpiredSessionEmailParameters
 ) => RTE.ReaderTaskEither<
   MailerTransporterDependency & { logger: L.Logger },
   QueueTransientError,
   undefined
-> = (email: EmailAddress, expiredSessionEmailParameters: EmailParameters) => ({
-  mailerTransporter,
-  logger
-}) =>
+> = (
+  email: EmailAddress,
+  expiredSessionEmailParameters: ExpiredSessionEmailParameters
+) => ({ mailerTransporter, logger }) =>
   pipe(
     buildMailBody(expiredSessionEmailParameters),
     TE.fromEither,
@@ -161,14 +159,14 @@ export const notifySessionExpiration: (
   );
 
 export const ExpiredSessionAdvisorHandler: (
-  expiredSessionEmailParameters: EmailParameters
+  expiredSessionEmailParameters: ExpiredSessionEmailParameters
 ) => H.Handler<
   ExpiredSessionAdvisorQueueMessage,
   undefined,
   BackendInternalClientDependency &
     FunctionProfileClientDependency &
     MailerTransporterDependency
-> = (expiredSessionEmailParameters: EmailParameters) =>
+> = (expiredSessionEmailParameters: ExpiredSessionEmailParameters) =>
   H.of(({ fiscalCode }: ExpiredSessionAdvisorQueueMessage) =>
     pipe(
       retrieveSession(fiscalCode),
@@ -197,5 +195,5 @@ export const ExpiredSessionAdvisorHandler: (
   );
 
 export const ExpiredSessionAdvisorFunction = (
-  expiredSessionEmailParameters: EmailParameters
+  expiredSessionEmailParameters: ExpiredSessionEmailParameters
 ) => azureFunction(ExpiredSessionAdvisorHandler(expiredSessionEmailParameters));

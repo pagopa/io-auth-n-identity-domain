@@ -60,6 +60,9 @@ export const IConfig = t.intersection([
     // Default is 10 sec timeout
     FETCH_TIMEOUT_MS: withDefault(t.string, "10000").pipe(NumberFromString),
 
+    // Expired Session Email Config
+    EXPIRED_SESSION_CTA_URL: UrlFromString,
+
     isProduction: t.boolean
   }),
   BackendInternalConfig,

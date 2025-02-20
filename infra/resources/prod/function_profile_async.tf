@@ -49,6 +49,9 @@ locals {
       FUNCTION_PROFILE_BASE_URL = "https://io-p-itn-auth-profile-fn-01.azurewebsites.net"
       FUNCTION_PROFILE_API_KEY  = data.azurerm_key_vault_secret.function_profile_key.value
 
+      // Expired Session Mail prop
+      EXPIRED_SESSION_CTA_URL = "https://continua.io.pagopa.it?foo=bar" // TODO: replace with the actual one
+
       // Cosmos
       COSMOSDB_KEY  = data.azurerm_cosmosdb_account.cosmos_api.primary_key
       COSMOSDB_URI  = data.azurerm_cosmosdb_account.cosmos_api.endpoint

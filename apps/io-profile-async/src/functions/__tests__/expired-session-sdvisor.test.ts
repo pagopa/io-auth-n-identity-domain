@@ -6,6 +6,7 @@ import {
   FiscalCode,
   NonEmptyString
 } from "@pagopa/ts-commons/lib/strings";
+import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import * as E from "fp-ts/lib/Either";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Client as BackendInternalClient } from "../../generated/definitions/backend-session/client";
@@ -14,10 +15,12 @@ import { Client as FunctionProfileClient } from "../../generated/definitions/fun
 import { ExtendedProfile } from "../../generated/definitions/function-profile/ExtendedProfile";
 import { ServicesPreferencesModeEnum } from "../../generated/definitions/function-profile/ServicesPreferencesMode";
 import { ExpiredSessionAdvisorQueueMessage } from "../../types/expired-session-advisor-queue-message";
-import { EmailParameters, HTML_TO_TEXT_OPTIONS } from "../../utils/email-utils";
-import { mockQueueHandlerInputMocks } from "../__mocks__/handlerMocks";
-import { ExpiredSessionAdvisorHandler } from "../expired-session-advisor";
 import { QueueTransientError } from "../../utils/queue-utils";
+import { mockQueueHandlerInputMocks } from "../__mocks__/handlerMocks";
+import {
+  ExpiredSessionAdvisorHandler,
+  ExpiredSessionEmailParameters
+} from "../expired-session-advisor";
 
 const aFiscalCode = "BBBBBB00B00B000B" as FiscalCode;
 const anEmailAddres = "anemail@example.com" as EmailString;
@@ -73,10 +76,14 @@ const mockMailerTransporter = ({
   sendMail: sendMailMock
 } as unknown) as MailerTransporter;
 
-const emailParameters: EmailParameters = {
+const emailParameters: ExpiredSessionEmailParameters = {
   from: "amailfrom@example.com" as NonEmptyString,
-  htmlToTextOptions: HTML_TO_TEXT_OPTIONS,
-  title: "An email title" as NonEmptyString
+  htmlToTextOptions: {
+    selectors: [{ selector: "img", format: "skip" }], // Ignore all document images
+    tables: true
+  },
+  title: "An email title" as NonEmptyString,
+  ctaUrl: { href: "http://example.com" } as ValidUrl
 };
 
 describe("ExpiredSessionAdvisor handler", () => {
