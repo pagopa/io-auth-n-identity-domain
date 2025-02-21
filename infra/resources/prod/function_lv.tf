@@ -3,17 +3,6 @@ data "azurerm_key_vault_secret" "fast_login_subscription_key" {
   key_vault_id = data.azurerm_key_vault.kv.id
 }
 
-data "azurerm_key_vault_secret" "backendli_api_key" {
-  name         = "appbackend-PRE-SHARED-KEY"
-  key_vault_id = data.azurerm_key_vault.kv.id
-}
-
-data "azurerm_app_service" "app_backend_li" {
-  name                = "${local.common_project}-app-appbackendli"
-  resource_group_name = "${local.common_project}-rg-linux"
-}
-
-
 locals {
 
   function_lv = {

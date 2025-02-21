@@ -12,3 +12,16 @@ export const httpHandlerInputMocks: H.HandlerEnvironment<t.TypeOf<
     format: L.format.simple
   }
 };
+
+export const mockQueueHandlerInputMocks = <A>(
+  decoder: t.Decoder<unknown, A>,
+  input: A
+): H.HandlerEnvironment<A> => ({
+  input,
+  inputDecoder: decoder,
+  logger: {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    log: () => () => {},
+    format: L.format.simple
+  }
+});

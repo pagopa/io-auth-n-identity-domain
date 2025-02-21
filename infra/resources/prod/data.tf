@@ -21,6 +21,12 @@ data "azurerm_subnet" "private_endpoints_subnet" {
   resource_group_name  = data.azurerm_virtual_network.itn_common.resource_group_name
 }
 
+data "azurerm_app_service" "app_backend_li" {
+  name                = "${local.common_project}-app-appbackendli"
+  resource_group_name = "${local.common_project}-rg-linux"
+}
+
+
 ##########################
 # APP GATEWAY DATA SOURCE
 ##########################

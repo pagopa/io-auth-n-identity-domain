@@ -12,3 +12,8 @@ data "azurerm_key_vault" "common_kv" {
   name                = "${local.common_project}-kv-common"
   resource_group_name = "${local.common_project}-rg-common"
 }
+
+data "azurerm_key_vault_secret" "backendli_api_key" {
+  name         = "appbackend-PRE-SHARED-KEY"
+  key_vault_id = data.azurerm_key_vault.kv.id
+}

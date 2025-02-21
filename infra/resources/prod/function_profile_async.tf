@@ -10,6 +10,11 @@ data "azurerm_key_vault_secret" "low_priority_mailup_secret" {
   key_vault_id = data.azurerm_key_vault.kv.id
 }
 
+data "azurerm_key_vault_secret" "function_profile_key" {
+  name         = "profile-async-function-profile-key"
+  key_vault_id = data.azurerm_key_vault.kv.id
+}
+
 locals {
   function_profile_async = {
     name = "profas"
@@ -27,6 +32,20 @@ locals {
       // Mailup setup
       MAILUP_USERNAME = data.azurerm_key_vault_secret.low_priority_mailup_username.value
       MAILUP_SECRET   = data.azurerm_key_vault_secret.low_priority_mailup_secret.value
+
+      // Mail
+      MAIL_FROM = "IO - l'app dei servizi pubblici <no-reply@io.italia.it>"
+
+      // Backend Internal
+      BACKEND_INTERNAL_BASE_URL = data.azurerm_app_service.app_backend_li.default_site_hostname
+      BACKEND_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.backendli_api_key.value
+
+      // Function Profile
+      FUNCTION_PROFILE_BASE_URL = "https://io-p-itn-auth-profile-fn-01.azurewebsites.net"
+      FUNCTION_PROFILE_API_KEY  = data.azurerm_key_vault_secret.function_profile_key.value
+
+      // Expired Session Mail prop
+      EXPIRED_SESSION_CTA_URL = "https://continua.io.pagopa.it?foo=bar" // TODO: replace with the actual one
 
       // Cosmos
       COSMOSDB_KEY  = data.azurerm_cosmosdb_account.cosmos_api.primary_key
@@ -74,7 +93,8 @@ module "function_profile_async" {
     {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5,
+      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0"
     }
   )
   slot_app_settings = merge(
@@ -82,9 +102,17 @@ module "function_profile_async" {
     {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100,
+      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1"
     }
   )
+
+  sticky_app_setting_names = [
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage",
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
+    "AzureWebJobs.ExpiredSessionAdvisor.Disabled"
+  ]
 
   subnet_service_endpoints = {
     web = true
