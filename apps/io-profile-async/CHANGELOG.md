@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.0.1
+
+### Patch Changes
+
+- 09aed9f: Fix AppInsights config
+
 ## 1.0.0
 
 ### Major Changes
