@@ -9,8 +9,11 @@ import { ExpiredSessionAdvisorQueueMessage } from "./types/expired-session-advis
 import { buildIoBackendInternalClient } from "./utils/backend-internal-client/dependency";
 import { getFetchApi } from "./utils/fetch-utils";
 import { buildFunctionProfileClient } from "./utils/function-profile-client/dependency";
+import { initTelemetryClient } from "./utils/appinsights";
 
 const config = getConfigOrThrow();
+
+initTelemetryClient();
 
 const cosmosClient = new CosmosClient({
   endpoint: config.COSMOSDB_URI,
