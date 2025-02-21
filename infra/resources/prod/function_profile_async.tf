@@ -37,7 +37,7 @@ locals {
       MAIL_FROM = "IO - l'app dei servizi pubblici <no-reply@io.italia.it>"
 
       // Backend Internal
-      BACKEND_INTERNAL_BASE_URL = data.azurerm_app_service.app_backend_li.default_site_hostname
+      BACKEND_INTERNAL_BASE_URL = "https://${data.azurerm_app_service.app_backend_li.default_site_hostname}"
       BACKEND_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.backendli_api_key.value
 
       // Function Profile
