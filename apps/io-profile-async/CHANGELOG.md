@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.0.0
+
+### Major Changes
+
+- 0690bd2: Added ExpiredSessionAdvisor QueueTrigger AZF
+
 ## 0.1.0
 
 ### Minor Changes
