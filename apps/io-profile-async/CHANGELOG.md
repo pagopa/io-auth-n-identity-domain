@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.0.2
+
+### Patch Changes
+
+- ce42c39: Init telemetryClient on main
+
 ## 1.0.1
 
 ### Patch Changes
