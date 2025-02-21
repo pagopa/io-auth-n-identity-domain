@@ -20,6 +20,7 @@ import { BackendInternalClientDependency } from "../utils/backend-internal-clien
 import { FunctionProfileClientDependency } from "../utils/function-profile-client/dependency";
 import { MailerTransporterDependency } from "../utils/mailer-transporter/dependency";
 import { QueuePermanentError, QueueTransientError } from "../utils/queue-utils";
+import { trackEvent } from "../utils/appinsights";
 
 export interface ExpiredSessionEmailParameters {
   readonly from: NonEmptyString;
@@ -181,11 +182,22 @@ export const ExpiredSessionAdvisorHandler: (
       RTE.chainW(email =>
         notifySessionExpiration(email, expiredSessionEmailParameters)
       ),
-      RTE.orElseW(error =>
-        error instanceof QueuePermanentError
-          ? pipe(RTE.right(void 0)) //TODO: Add trackEvent
-          : RTE.left(error)
-      )
+      RTE.orElseW(error => {
+        if (error instanceof QueuePermanentError) {
+          trackEvent({
+            name: "io.citizen-auth.prof-async.error.permanent",
+            properties: {
+              message: error.message
+            },
+            tagOverrides: {
+              samplingEnabled: "false"
+            }
+          });
+          return RTE.right(void 0);
+        } else {
+          return RTE.left(error);
+        }
+      })
     )
   );
 
