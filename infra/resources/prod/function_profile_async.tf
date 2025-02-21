@@ -52,6 +52,9 @@ locals {
       COSMOSDB_URI  = data.azurerm_cosmosdb_account.cosmos_api.endpoint
       COSMOSDB_NAME = "db"
 
+      //Queue
+      EXPIRED_SESSION_ADVISOR_QUEUE = "expired-user-sessions" // TODO: replace when this queue is migrate in the monorepo
+
       // Storage
       AZURE_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.citizen_auth_common.primary_connection_string
     }
