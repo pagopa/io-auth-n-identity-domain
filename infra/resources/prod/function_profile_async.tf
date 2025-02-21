@@ -37,7 +37,7 @@ locals {
       MAIL_FROM = "IO - l'app dei servizi pubblici <no-reply@io.italia.it>"
 
       // Backend Internal
-      BACKEND_INTERNAL_BASE_URL = data.azurerm_app_service.app_backend_li.default_site_hostname
+      BACKEND_INTERNAL_BASE_URL = "https://${data.azurerm_app_service.app_backend_li.default_site_hostname}"
       BACKEND_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.backendli_api_key.value
 
       // Function Profile
@@ -51,6 +51,9 @@ locals {
       COSMOSDB_KEY  = data.azurerm_cosmosdb_account.cosmos_api.primary_key
       COSMOSDB_URI  = data.azurerm_cosmosdb_account.cosmos_api.endpoint
       COSMOSDB_NAME = "db"
+
+      //Queue
+      EXPIRED_SESSION_ADVISOR_QUEUE = "expired-user-sessions" // TODO: replace when this queue is migrate in the monorepo
 
       // Storage
       AZURE_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.citizen_auth_common.primary_connection_string
