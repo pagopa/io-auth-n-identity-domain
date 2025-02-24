@@ -45,7 +45,7 @@ locals {
       FUNCTION_PROFILE_API_KEY  = data.azurerm_key_vault_secret.function_profile_key.value
 
       // Expired Session Mail prop
-      EXPIRED_SESSION_CTA_URL = "https://continua.io.pagopa.it?foo=bar" // TODO: replace with the actual one
+      EXPIRED_SESSION_CTA_URL = "https://continua.io.pagopa.it?utm_source=email&utm_medium=email&utm_campaign=lv_expired"
 
       // Cosmos
       COSMOSDB_KEY  = data.azurerm_cosmosdb_account.cosmos_api.primary_key
