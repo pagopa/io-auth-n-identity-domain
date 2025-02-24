@@ -9,9 +9,11 @@ import express from "express";
 import Transport from "winston-transport";
 import { getFastLoginClient } from "../clients/fastLoginClient";
 import { getConfigOrThrow } from "../utils/config";
+import { initTelemetryClient } from "../utils/appinsights";
 import { getSessionStateHandler } from "./handler";
 
 const config = getConfigOrThrow();
+initTelemetryClient();
 
 // eslint-disable-next-line functional/no-let
 let logger: Context["log"];
