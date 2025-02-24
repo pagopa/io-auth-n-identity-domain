@@ -1,5 +1,11 @@
 # io-web-profile
 
+## 1.9.0
+
+### Minor Changes
+
+- a7add05: Introduced Application Insights
+
 ## 1.8.2
 
 ### Patch Changes

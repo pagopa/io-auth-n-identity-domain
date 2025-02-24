@@ -9,9 +9,11 @@ import { LoggerId } from "@pagopa/winston-ts/dist/types/logging";
 import express from "express";
 import Transport from "winston-transport";
 import { getConfigOrThrow } from "../utils/config";
+import { initTelemetryClient } from "../utils/appinsights";
 import { getMagicLinkHandler } from "./handler";
 
 const config = getConfigOrThrow();
+initTelemetryClient();
 
 // eslint-disable-next-line functional/no-let
 let logger: Context["log"];
