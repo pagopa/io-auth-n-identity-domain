@@ -179,7 +179,7 @@ module "function_web_profile" {
   }
 
   application_insights_connection_string   = data.azurerm_application_insights.application_insights.connection_string
-  application_insights_sampling_percentage = local.function_public.prod_slot_sampling_percentage
+  application_insights_sampling_percentage = local.function_ioweb_profile.prod_slot_sampling_percentage
 
   action_group_id = azurerm_monitor_action_group.error_action_group.id
 
