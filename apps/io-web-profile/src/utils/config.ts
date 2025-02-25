@@ -26,6 +26,7 @@ export type IConfig = t.TypeOf<typeof IConfig>;
 export type JWTConfig = t.TypeOf<typeof JWTConfig>;
 export const JWTConfig = t.intersection([
   t.type({
+    APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
     BEARER_AUTH_HEADER: NonEmptyString,
     BLACKLISTED_JTI_LIST: withDefault(CommaSeparatedListOf(NonEmptyString), []),
     EXCHANGE_JWT_ISSUER: NonEmptyString,

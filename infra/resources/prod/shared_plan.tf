@@ -191,25 +191,3 @@ resource "azurerm_monitor_autoscale_setting" "shared_plan_autoscale" {
     }
   }
 }
-
-
-
-###########################
-# imports
-
-import {
-  id = "/subscriptions/ec285037-c673-4f58-b594-d7c480da4e8b/resourceGroups/io-p-itn-citizen-auth-shared-rg-01"
-  to = azurerm_resource_group.shared_rg
-}
-
-import {
-  id = "/subscriptions/ec285037-c673-4f58-b594-d7c480da4e8b/resourceGroups/io-p-itn-citizen-auth-shared-rg-01/providers/Microsoft.Web/serverFarms/io-p-itn-citizen-auth-shared-asp-01"
-  to = azurerm_app_service_plan.shared_plan
-}
-
-import {
-  id = "/subscriptions/ec285037-c673-4f58-b594-d7c480da4e8b/resourceGroups/io-p-itn-citizen-auth-shared-rg-01/providers/Microsoft.Insights/autoScaleSettings/io-p-itn-auth-public-func-01-autoscale"
-  to = azurerm_monitor_autoscale_setting.shared_plan_autoscale
-}
-
-###########################

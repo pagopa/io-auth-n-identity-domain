@@ -145,3 +145,7 @@ azure-functions-core-tools
 
 #Include Opex env files
 !**/.opex/**/env
+
+# scripts default artifacts
+**/users.txt
+**/errors.txt
