@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.1.0
+
+### Minor Changes
+
+- 8f5f171: Enable dry-run mode for load testing
+
 ## 1.0.2
 
 ### Patch Changes
