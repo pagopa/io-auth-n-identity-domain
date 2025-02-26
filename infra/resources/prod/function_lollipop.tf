@@ -48,6 +48,8 @@ locals {
       // -------------------------
       FIRST_LC_ASSERTION_CLIENT_BASE_URL         = "https://api.io.pagopa.it"
       FIRST_LC_ASSERTION_CLIENT_SUBSCRIPTION_KEY = data.azurerm_key_vault_secret.first_lollipop_consumer_subscription_key.value
+
+      APPINSIGHTS_INSTRUMENTATIONKEY = data.azurerm_application_insights.application_insights.instrumentation_key
     }
   }
 }
@@ -100,9 +102,6 @@ module "function_lollipop" {
   sticky_app_setting_names = ["AzureWebJobs.HandlePubKeyRevoke.Disabled"]
 
   application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
-  // TODO:update applicationinsights sdk to support connection string based
-  // connection
-  application_insights_key = data.azurerm_application_insights.application_insights.instrumentation_key
 
   action_group_id = azurerm_monitor_action_group.error_action_group.id
 
