@@ -2,12 +2,13 @@ import { beforeEach } from "node:test";
 import { appendFileSync, readFileSync } from "fs";
 import { vi, expect, describe, it, assert, afterEach } from "vitest";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import * as A from "fp-ts/Array";
 import {
   createBatch,
   exportErrorsIntoFile,
   importFileIntoBatches,
 } from "../file";
-import { ItemToEnqueue } from "../types";
+import { ItemPayload, ItemToEnqueue } from "../types";
 
 vi.mock("fs");
 
@@ -17,10 +18,19 @@ const fiscalCodesList = [
   "ISPXNB32R82Y766C" as FiscalCode,
   "ISPXNB32R82Y766D" as FiscalCode,
   "ISPXNB32R82Y766E" as FiscalCode,
-] as const;
+];
+
+const timestampList = [0, 1, 2, 3, 4, 5];
+
 const readFileSpy = vi
   .mocked(readFileSync)
-  .mockReturnValue(fiscalCodesList.join("\n"));
+  .mockReturnValue(
+    A.zipWith(
+      fiscalCodesList,
+      timestampList,
+      (fiscalCode, timestamp) => `${fiscalCode},${timestamp}`,
+    ).join("\n"),
+  );
 const appendFileSpy = vi.mocked(appendFileSync);
 
 const aTimeoutMultiplier = 20;
@@ -31,40 +41,58 @@ describe("Import batches test", () => {
     vi.clearAllMocks();
   });
 
+  const aGoodInput: ReadonlyArray<ItemPayload> = A.zipWith(
+    fiscalCodesList,
+    timestampList,
+    (fiscalCode, expiredAt) => ({ fiscalCode, expiredAt }),
+  );
+
   it("should create a coerent batch", () => {
     const expectedBatch: ReadonlyArray<ReadonlyArray<ItemToEnqueue>> = [
       [
         {
-          payload: { fiscalCode: fiscalCodesList[0] },
+          payload: {
+            fiscalCode: fiscalCodesList[0],
+            expiredAt: timestampList[0],
+          },
           itemTimeoutInSeconds: aTimeoutMultiplier * 0,
         },
         {
-          payload: { fiscalCode: fiscalCodesList[1] },
+          payload: {
+            fiscalCode: fiscalCodesList[1],
+            expiredAt: timestampList[1],
+          },
           itemTimeoutInSeconds: aTimeoutMultiplier * 0,
         },
       ],
       [
         {
-          payload: { fiscalCode: fiscalCodesList[2] },
+          payload: {
+            fiscalCode: fiscalCodesList[2],
+            expiredAt: timestampList[2],
+          },
           itemTimeoutInSeconds: aTimeoutMultiplier * 1,
         },
         {
-          payload: { fiscalCode: fiscalCodesList[3] },
+          payload: {
+            fiscalCode: fiscalCodesList[3],
+            expiredAt: timestampList[3],
+          },
           itemTimeoutInSeconds: aTimeoutMultiplier * 1,
         },
       ],
       [
         {
-          payload: { fiscalCode: fiscalCodesList[4] },
+          payload: {
+            fiscalCode: fiscalCodesList[4],
+            expiredAt: timestampList[4],
+          },
           itemTimeoutInSeconds: aTimeoutMultiplier * 2,
         },
       ],
     ];
 
-    const result = createBatch(
-      aChunkLimit,
-      aTimeoutMultiplier,
-    )(fiscalCodesList);
+    const result = createBatch(aChunkLimit, aTimeoutMultiplier)(aGoodInput);
 
     expect(result).toStrictEqual(expectedBatch);
   });
@@ -78,7 +106,7 @@ describe("Import batches test", () => {
     const expectedResult = createBatch(
       aChunkLimit,
       aTimeoutMultiplier,
-    )(fiscalCodesList);
+    )(aGoodInput);
 
     expect(readFileSpy).toHaveBeenCalled();
     expect(result).toEqual(expectedResult);
@@ -109,9 +137,24 @@ describe("Export errors to file", () => {
 
   it("should parse errors with payload as message", () => {
     const result = exportErrorsIntoFile("foo", [
-      Error(JSON.stringify({ fiscalCode: fiscalCodesList[0] })),
-      Error(JSON.stringify({ fiscalCode: fiscalCodesList[1] })),
-      Error(JSON.stringify({ fiscalCode: fiscalCodesList[2] })),
+      Error(
+        JSON.stringify({
+          fiscalCode: fiscalCodesList[0],
+          expiredAt: timestampList[0],
+        }),
+      ),
+      Error(
+        JSON.stringify({
+          fiscalCode: fiscalCodesList[1],
+          expiredAt: timestampList[1],
+        }),
+      ),
+      Error(
+        JSON.stringify({
+          fiscalCode: fiscalCodesList[2],
+          expiredAt: timestampList[2],
+        }),
+      ),
     ] as const);
 
     expect(appendFileSpy).toHaveBeenCalledTimes(3);
