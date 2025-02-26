@@ -13,9 +13,9 @@ From the root of the monorepo simply run
 This script inserts batch of items into a queue.
 To run it launch from the monorepo root
 
-`yarn workspace utilities build && yarn workspace utilities session-expire-queue-insert <PARAMETERS>`
+`yarn workspace utilities build && yarn workspace utilities session:expire:insert <PARAMETERS>`
 
-When no parameters are passed, an help message will greet the user with description for parameters.
+When `--help` is passed, an help message will greet the user with description for all parameters.
 
 #### Limit the numbers of items visible to the queue hourly
 
