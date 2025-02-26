@@ -140,7 +140,7 @@ describe("ExpiredSessionAdvisor handler", () => {
     expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
     expect(trackEventMock).toHaveBeenCalledOnce();
     expect(trackEventMock).toHaveBeenCalledWith({
-      name: "io.citizen-auth.prof-async.notify-session-expiration.dryRun",
+      name: "io.citizen-auth.prof-async.notify-session-expiration.dry-run",
       tagOverrides: {
         samplingEnabled: "false"
       }

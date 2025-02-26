@@ -187,7 +187,8 @@ export const ExpiredSessionAdvisorHandler: (
       RTE.chainW(email => {
         if (dryRunFeatureFlag) {
           trackEvent({
-            name: "io.citizen-auth.prof-async.notify-session-expiration.dryRun",
+            name:
+              "io.citizen-auth.prof-async.notify-session-expiration.dry-run",
             tagOverrides: {
               samplingEnabled: "false"
             }
