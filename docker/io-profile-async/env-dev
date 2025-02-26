@@ -25,3 +25,5 @@ MAIL_FROM=sender@example.com
 MAILHOG_HOSTNAME=mailhog
 
 EXPIRED_SESSION_ADVISOR_QUEUE=test-expired-session-trigger-queue
+
+FF_DRY_RUN=false
