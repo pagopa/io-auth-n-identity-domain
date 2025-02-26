@@ -6,7 +6,6 @@ import * as E from "fp-ts/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import * as A from "fp-ts/Apply";
-import * as t from "io-ts";
 import { NumberFromString } from "@pagopa/ts-commons/lib/numbers";
 import { ItemPayload, ItemToEnqueue } from "./types";
 
