@@ -16,7 +16,12 @@ import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import { JsonFromString, NumberFromString, withFallback } from "io-ts-types";
+import {
+  BooleanFromString,
+  JsonFromString,
+  NumberFromString,
+  withFallback
+} from "io-ts-types";
 
 export const BetaUsers = t.readonlyArray(FiscalCode);
 export type BetaUsers = t.TypeOf<typeof BetaUsers>;
@@ -45,6 +50,12 @@ export const FunctionProfileConfig = t.type({
 
 export type FunctionProfileConfig = t.TypeOf<typeof FunctionProfileConfig>;
 
+export const DryRunFeatureFlag = t.type({
+  FF_DRY_RUN: withFallback(BooleanFromString, false)
+});
+
+export type DryRunFeatureFlag = t.TypeOf<typeof DryRunFeatureFlag>;
+
 // global app configuration
 export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
@@ -67,7 +78,8 @@ export const IConfig = t.intersection([
   }),
   BackendInternalConfig,
   FunctionProfileConfig,
-  MailerConfig
+  MailerConfig,
+  DryRunFeatureFlag
 ]);
 
 // No need to re-evaluate this object for each call

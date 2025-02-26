@@ -158,16 +158,21 @@ export const notifySessionExpiration: (
     TE.map(_ => void 0)
   );
 
+export type ExpiredSessionAdvisorFunctionInput = {
+  expiredSessionEmailParameters: ExpiredSessionEmailParameters;
+  dryRunFeatureFlag: boolean;
+};
+
 export const ExpiredSessionAdvisorHandler: (
-  expiredSessionEmailParameters: ExpiredSessionEmailParameters
+  expiredSessionAdvisorFunctionInput: ExpiredSessionAdvisorFunctionInput
 ) => H.Handler<
   ExpiredSessionAdvisorQueueMessage,
   undefined,
   BackendInternalClientDependency &
     FunctionProfileClientDependency &
     MailerTransporterDependency
-> = (expiredSessionEmailParameters: ExpiredSessionEmailParameters) =>
-  H.of(({ fiscalCode }: ExpiredSessionAdvisorQueueMessage) =>
+> = ({ expiredSessionEmailParameters, dryRunFeatureFlag }) =>
+  H.of(({ fiscalCode }) =>
     pipe(
       retrieveSession(fiscalCode),
       RTE.filterOrElseW(
@@ -179,9 +184,19 @@ export const ExpiredSessionAdvisorHandler: (
       RTE.chainW(
         RTE.fromNullable(new QueuePermanentError("User has no email"))
       ),
-      RTE.chainW(email =>
-        notifySessionExpiration(email, expiredSessionEmailParameters)
-      ),
+      RTE.chainW(email => {
+        if (dryRunFeatureFlag) {
+          trackEvent({
+            name: "io.citizen-auth.prof-async.notify-session-expiration.dryRun",
+            tagOverrides: {
+              samplingEnabled: "false"
+            }
+          });
+          return RTE.right(void 0);
+        } else {
+          return notifySessionExpiration(email, expiredSessionEmailParameters);
+        }
+      }),
       RTE.orElseW(error => {
         if (error instanceof QueuePermanentError) {
           trackEvent({
@@ -202,5 +217,8 @@ export const ExpiredSessionAdvisorHandler: (
   );
 
 export const ExpiredSessionAdvisorFunction = (
-  expiredSessionEmailParameters: ExpiredSessionEmailParameters
-) => azureFunction(ExpiredSessionAdvisorHandler(expiredSessionEmailParameters));
+  expiredSessionAdvisorFunctionInput: ExpiredSessionAdvisorFunctionInput
+) =>
+  azureFunction(
+    ExpiredSessionAdvisorHandler(expiredSessionAdvisorFunctionInput)
+  );
