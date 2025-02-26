@@ -5,36 +5,14 @@
  * The configuration is evaluate eagerly at the first access to the module. The module exposes convenient methods to access such value.
  */
 import { MailerConfig } from "@pagopa/io-functions-commons/dist/src/mailer";
-import {
-  FeatureFlag,
-  FeatureFlagEnum
-} from "@pagopa/ts-commons/lib/featureFlag";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
-import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import {
-  BooleanFromString,
-  JsonFromString,
-  NumberFromString,
-  withFallback
-} from "io-ts-types";
-
-export const BetaUsers = t.readonlyArray(FiscalCode);
-export type BetaUsers = t.TypeOf<typeof BetaUsers>;
-
-export const BetaUsersFromString = withFallback(
-  t.string.pipe(JsonFromString),
-  []
-).pipe(BetaUsers);
-
-export const FeatureFlagFromString = withFallback(
-  FeatureFlag,
-  FeatureFlagEnum.NONE
-);
+import { BooleanFromString, NumberFromString, withFallback } from "io-ts-types";
 
 export const BackendInternalConfig = t.type({
   BACKEND_INTERNAL_BASE_URL: UrlFromString,
