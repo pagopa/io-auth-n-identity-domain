@@ -112,9 +112,12 @@ describe("Import batches test", () => {
     expect(result).toEqual(expectedResult);
   });
 
-  it("should throw on failed parsing", () => {
-    const aWrongFiscalCode = "ABCDE";
-    readFileSpy.mockReturnValueOnce(aWrongFiscalCode);
+  it.each`
+    scenario                         | value
+    ${"a wrong fiscal code"}         | ${"ABCD, 123"}
+    ${"a wrong timestamp is passed"} | ${fiscalCodesList[0] + ", abc"}
+  `("should throw on failed parsing when $scenario is passed", ({ value }) => {
+    readFileSpy.mockReturnValueOnce(value);
     try {
       importFileIntoBatches("foo", aChunkLimit, aTimeoutMultiplier);
       assert.fail();
@@ -122,9 +125,7 @@ describe("Import batches test", () => {
       expect(readFileSpy).toHaveBeenCalled();
       assert(err instanceof Error);
       expect(err.message).toEqual(
-        expect.stringContaining(
-          `value "${aWrongFiscalCode}" at root is not a valid`,
-        ),
+        expect.stringContaining("at root is not a valid"),
       );
     }
   });
@@ -162,12 +163,13 @@ describe("Export errors to file", () => {
   });
 
   it.each`
-    title                 | value
-    ${"undefined value"}  | ${undefined}
-    ${"null value"}       | ${null}
-    ${"empty object"}     | ${{}}
-    ${"wrong payload"}    | ${{ foo: "bar" }}
-    ${"wrong fiscalCode"} | ${{ fiscalCode: "ABCD" }}
+    title                          | value
+    ${"undefined value"}           | ${undefined}
+    ${"null value"}                | ${null}
+    ${"empty object"}              | ${{}}
+    ${"wrong payload"}             | ${{ foo: "bar" }}
+    ${"wrong fiscalCode"}          | ${{ fiscalCode: "ABCD" }}
+    ${"partially correct payload"} | ${{ fiscalCode: fiscalCodesList[0], expiredAt: Error("foo") }}
   `("should return error when parse fails on $title", ({ value }) => {
     const result = exportErrorsIntoFile("foo", [
       Error(JSON.stringify(value)),
