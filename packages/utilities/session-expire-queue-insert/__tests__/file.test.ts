@@ -44,16 +44,16 @@ const appendFileSpy = vi.mocked(appendFileSync);
 const aTimeoutMultiplier = 20;
 const aChunkLimit = 2;
 
+const aGoodInput: ReadonlyArray<ItemPayload> = A.zipWith(
+  fiscalCodesList,
+  timestampList,
+  (fiscalCode, expiredAt) => ({ fiscalCode, expiredAt }),
+);
+
 describe("Import batches test", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-
-  const aGoodInput: ReadonlyArray<ItemPayload> = A.zipWith(
-    fiscalCodesList,
-    timestampList,
-    (fiscalCode, expiredAt) => ({ fiscalCode, expiredAt }),
-  );
 
   it("should create a coerent batch", () => {
     const expectedBatch: ReadonlyArray<ReadonlyArray<ItemToEnqueue>> = [
@@ -131,24 +131,9 @@ describe("Export errors to file", () => {
 
   it("should parse errors with payload as message", () => {
     const result = exportErrorsIntoFile("foo", [
-      Error(
-        JSON.stringify({
-          fiscalCode: fiscalCodesList[0],
-          expiredAt: timestampList[0],
-        }),
-      ),
-      Error(
-        JSON.stringify({
-          fiscalCode: fiscalCodesList[1],
-          expiredAt: timestampList[1],
-        }),
-      ),
-      Error(
-        JSON.stringify({
-          fiscalCode: fiscalCodesList[2],
-          expiredAt: timestampList[2],
-        }),
-      ),
+      Error(JSON.stringify(aGoodInput[0])),
+      Error(JSON.stringify(aGoodInput[1])),
+      Error(JSON.stringify(aGoodInput[2])),
     ] as const);
 
     expect(appendFileSpy).toHaveBeenCalledTimes(3);
