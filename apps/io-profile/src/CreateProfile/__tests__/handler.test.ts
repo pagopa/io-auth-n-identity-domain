@@ -36,15 +36,9 @@ afterEach(() => {
   clock = clock.uninstall();
 });
 
-const anOptOutEmailSwitchDate = pipe(
-  UTCISODateFromString.decode("2021-07-08T23:59:59Z"),
-  E.getOrElseW(() => fail("wrong date value")),
-);
+const anOptOutEmailSwitchDate = new Date("2021-07-08T23:59:59Z");
 
-const aPastOptOutEmailSwitchDate = pipe(
-  UTCISODateFromString.decode("2000-07-08T23:59:59Z"),
-  E.getOrElseW(() => fail("wrong date value")),
-);
+const aPastOptOutEmailSwitchDate = new Date("2000-07-08T23:59:59Z");
 
 const aFutureOptOutEmailSwitchDate = date_fns.addDays(aNewDate, 1);
 
@@ -64,7 +58,9 @@ const expectedNewProfile = pipe(
     isWebhookEnabled: false,
     kind: "INewProfile",
   }),
-  E.fold(() => fail("wrong new Profile"), identity),
+  E.getOrElseW(() => {
+    throw new Error("error decoding new profile");
+  }),
 );
 
 describe("CreateProfileHandler", () => {

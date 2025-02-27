@@ -9,10 +9,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { context as contextMock } from "../../__mocks__/durable-functions";
 import { aFiscalCode } from "../../__mocks__/mocks";
 import { consumeGenerator } from "../../utils/durable";
-import { fail } from "../../utils/test-utils";
 import {
   getNoticeLoginEmailOrchestratorHandler,
-  OrchestratorFailureResult,
   OrchestratorInput,
   OrchestratorSuccessResult,
 } from "../handler";
@@ -119,14 +117,10 @@ describe("NoticeLoginEmailOrchestratorHandler", () => {
     const result = consumeGenerator(orchestratorHandler);
 
     expect(mockCallActivityFunction).toHaveBeenCalledTimes(0);
-    if (OrchestratorFailureResult.is(result)) {
-      expect(result).toMatchObject({
-        kind: "FAILURE",
-        reason: expect.stringContaining("Error decoding input"),
-      });
-    } else {
-      fail();
-    }
+    expect(result).toEqual({
+      kind: "FAILURE",
+      reason: expect.stringContaining("Error decoding input"),
+    });
   });
 
   it.each`

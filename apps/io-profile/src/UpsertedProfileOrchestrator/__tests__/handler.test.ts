@@ -34,7 +34,6 @@ import {
   makeProfileCompletedEvent,
   makeServicePreferencesChangedEvent,
 } from "../../utils/emitted_events";
-import { fail } from "../../utils/test-utils";
 import {
   getUpsertedProfileOrchestratorHandler,
   OrchestratorInput as UpsertedProfileOrchestratorInput,
@@ -43,11 +42,15 @@ const someRetryOptions = new df.RetryOptions(5000, 10);
 // eslint-disable-next-line functional/immutable-data
 someRetryOptions.backoffCoefficient = 1.5;
 
+// in jest 27 fail is no longer defined, we can define this function as workaround
+const fail = (reason = "fail was called in a test."): never => {
+  throw new Error(reason);
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
-// eslint-disable-next-line sonar/sonar-max-lines-per-function
 describe("UpsertedProfileOrchestratorV2", () => {
   it("should not start the EmailValidationProcessOrchestrator if the email is not changed", () => {
     const upsertedProfileOrchestratorInput = pipe(
