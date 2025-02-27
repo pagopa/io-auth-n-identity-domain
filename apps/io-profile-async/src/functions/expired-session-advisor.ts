@@ -2,7 +2,7 @@ import { sendMail } from "@pagopa/io-functions-commons/dist/src/mailer";
 import * as E from "fp-ts/lib/Either";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
-import { flow, identity, pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
 import { htmlToText, HtmlToTextOptions } from "html-to-text";
 
 import * as H from "@pagopa/handler-kit";
@@ -16,11 +16,11 @@ import { UserSessionInfo } from "../generated/definitions/backend-session/UserSe
 import { EmailAddress } from "../generated/definitions/function-profile/EmailAddress";
 import { ExtendedProfile } from "../generated/definitions/function-profile/ExtendedProfile";
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
+import { trackEvent } from "../utils/appinsights";
 import { BackendInternalClientDependency } from "../utils/backend-internal-client/dependency";
 import { FunctionProfileClientDependency } from "../utils/function-profile-client/dependency";
 import { MailerTransporterDependency } from "../utils/mailer-transporter/dependency";
 import { QueuePermanentError, QueueTransientError } from "../utils/queue-utils";
-import { trackEvent } from "../utils/appinsights";
 
 export interface ExpiredSessionEmailParameters {
   readonly from: NonEmptyString;

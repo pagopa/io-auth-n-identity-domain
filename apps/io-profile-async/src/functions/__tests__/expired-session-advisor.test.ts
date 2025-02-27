@@ -205,6 +205,13 @@ describe("ExpiredSessionAdvisor handler", () => {
   // This test is to check QueuePermanentError handling
   // on QueuePermanentError the response should be a right in order to not Retry the message
   describe("QueuePermanentError", () => {
+    const baseCustomEvent = {
+      name: permanentErrorCustomEventName,
+      properties: {},
+      tagOverrides: {
+        samplingEnabled: "false"
+      }
+    };
     it("should fail on user with a active session with no error forwarded", async () => {
       getSessionMock.mockImplementationOnce(async () =>
         E.of({
@@ -226,12 +233,9 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
       expect(trackEventMock).toHaveBeenCalledOnce();
       expect(trackEventMock).toHaveBeenCalledWith({
-        name: permanentErrorCustomEventName,
+        ...baseCustomEvent,
         properties: {
           message: "User has an active session"
-        },
-        tagOverrides: {
-          samplingEnabled: "false"
         }
       });
     });
@@ -257,12 +261,9 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
       expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
       expect(trackEventMock).toHaveBeenCalledWith({
-        name: permanentErrorCustomEventName,
+        ...baseCustomEvent,
         properties: {
           message: "User has no email"
-        },
-        tagOverrides: {
-          samplingEnabled: "false"
         }
       });
     });
@@ -288,12 +289,9 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
       expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
       expect(trackEventMock).toHaveBeenCalledWith({
-        name: permanentErrorCustomEventName,
+        ...baseCustomEvent,
         properties: {
           message: "User email is not validated"
-        },
-        tagOverrides: {
-          samplingEnabled: "false"
         }
       });
     });
