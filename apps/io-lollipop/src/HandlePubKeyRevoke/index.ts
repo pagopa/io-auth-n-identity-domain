@@ -17,7 +17,7 @@ const lollipopKeysModel = new LolliPOPKeysModel(
 );
 
 const telemetryClient = initTelemetryClient(
-  config.APPINSIGHTS_INSTRUMENTATIONKEY
+  config.APPLICATIONINSIGHTS_CONNECTION_STRING
 );
 
 export const index: AzureFunction = (

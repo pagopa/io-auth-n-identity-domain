@@ -48,7 +48,12 @@ locals {
       // -------------------------
       FIRST_LC_ASSERTION_CLIENT_BASE_URL         = "https://api.io.pagopa.it"
       FIRST_LC_ASSERTION_CLIENT_SUBSCRIPTION_KEY = data.azurerm_key_vault_secret.first_lollipop_consumer_subscription_key.value
+
+      APPINSIGHTS_INSTRUMENTATIONKEY = data.azurerm_application_insights.application_insights.instrumentation_key
     }
+
+    prod_slot_sampling_percentage    = 5
+    staging_slot_sampling_percentage = 100
   }
 }
 
@@ -90,19 +95,31 @@ module "function_lollipop" {
 
   app_settings = merge(
     local.function_lollipop.app_settings,
-    { "AzureWebJobs.HandlePubKeyRevoke.Disabled" = "0" },
+    {
+      "AzureWebJobs.HandlePubKeyRevoke.Disabled"                                                       = "0"
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_lollipop.prod_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_lollipop.prod_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_lollipop.prod_slot_sampling_percentage
+    },
   )
   slot_app_settings = merge(
     local.function_lollipop.app_settings,
-    { "AzureWebJobs.HandlePubKeyRevoke.Disabled" = "1" },
+    {
+      "AzureWebJobs.HandlePubKeyRevoke.Disabled"                                                       = "1"
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_lollipop.staging_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_lollipop.staging_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_lollipop.staging_slot_sampling_percentage
+    },
   )
 
-  sticky_app_setting_names = ["AzureWebJobs.HandlePubKeyRevoke.Disabled"]
+  sticky_app_setting_names = [
+    "AzureWebJobs.HandlePubKeyRevoke.Disabled",
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage",
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
+  ]
 
   application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
-  // TODO:update applicationinsights sdk to support connection string based
-  // connection
-  application_insights_key = data.azurerm_application_insights.application_insights.instrumentation_key
 
   action_group_id = azurerm_monitor_action_group.error_action_group.id
 
@@ -112,7 +129,8 @@ module "function_lollipop" {
 module "function_lollipop_autoscale" {
   depends_on = [azurerm_resource_group.function_lollipop_rg]
   source     = "pagopa/dx-azure-app-service-plan-autoscaler/azurerm"
-  version    = "~> 0"
+  // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
+  version = "0.0.2"
 
   resource_group_name = azurerm_resource_group.function_lollipop_rg.name
   target_service = {

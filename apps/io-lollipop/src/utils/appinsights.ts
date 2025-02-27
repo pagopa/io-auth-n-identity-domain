@@ -17,12 +17,12 @@ const DEFAULT_SAMPLING_PERCENTAGE = 5;
 // Avoid to initialize Application Insights more than once
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const initTelemetryClient = (
-  intrumentationKey: NonEmptyString,
+  connectionString: NonEmptyString,
   env = process.env
 ) =>
   ai.defaultClient
     ? ai.defaultClient
-    : initAppInsights(intrumentationKey, {
+    : initAppInsights(connectionString, {
         disableAppInsights: env.APPINSIGHTS_DISABLE === "true",
         samplingPercentage: pipe(
           IntegerFromString.decode(env.APPINSIGHTS_SAMPLING_PERCENTAGE),
