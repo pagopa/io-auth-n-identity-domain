@@ -6,6 +6,7 @@ import * as A from "fp-ts/Array";
 import {
   createBatch,
   exportErrorsIntoFile,
+  FIELD_SEPARATOR,
   importFileIntoBatches,
 } from "../file";
 import { ItemPayload, ItemToEnqueue } from "../types";
@@ -35,7 +36,7 @@ const readFileSpy = vi
     A.zipWith(
       fiscalCodesList,
       timestampList,
-      (fiscalCode, timestamp) => `${fiscalCode},${timestamp}`,
+      (fiscalCode, timestamp) => `${fiscalCode}${FIELD_SEPARATOR}${timestamp}`,
     ).join("\n"),
   );
 const appendFileSpy = vi.mocked(appendFileSync);

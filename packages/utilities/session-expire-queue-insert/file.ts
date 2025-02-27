@@ -9,7 +9,7 @@ import * as A from "fp-ts/Apply";
 import { NumberFromString } from "@pagopa/ts-commons/lib/numbers";
 import { ItemPayload, ItemToEnqueue } from "./types";
 
-const FIELD_SEPARATOR = ",";
+export const FIELD_SEPARATOR = ";";
 
 const createItem = (
   payload: ItemPayload,
