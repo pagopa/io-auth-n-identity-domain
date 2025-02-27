@@ -2,7 +2,7 @@ import { sendMail } from "@pagopa/io-functions-commons/dist/src/mailer";
 import * as E from "fp-ts/lib/Either";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
-import { pipe } from "fp-ts/lib/function";
+import { flow, identity, pipe } from "fp-ts/lib/function";
 import { htmlToText, HtmlToTextOptions } from "html-to-text";
 
 import * as H from "@pagopa/handler-kit";
@@ -180,6 +180,10 @@ export const ExpiredSessionAdvisorHandler: (
         () => new QueuePermanentError("User has an active session")
       ),
       RTE.chainW(() => retrieveProfile(fiscalCode)),
+      RTE.filterOrElseW(
+        profile => profile.is_email_validated,
+        () => new QueuePermanentError("User email is not validated")
+      ),
       RTE.map(profile => profile.email),
       RTE.chainW(
         RTE.fromNullable(new QueuePermanentError("User has no email"))

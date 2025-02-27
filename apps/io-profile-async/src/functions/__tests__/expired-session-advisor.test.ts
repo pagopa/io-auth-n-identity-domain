@@ -263,6 +263,37 @@ describe("ExpiredSessionAdvisor handler", () => {
         }
       });
     });
+
+    it("should fail on user without a validated email with no error forwarded", async () => {
+      getProfileMock.mockImplementationOnce(async () =>
+        E.of({
+          status: 200,
+          value: { ...aValidGetProfileResponse, is_email_validated: false }
+        })
+      );
+
+      const response = await ExpiredSessionAdvisorHandler(
+        expiredSessionAdvisorHandlerInput
+      )({
+        ...makeHandlerInputs(aValidQueueMessage)
+      })();
+
+      expect(E.isRight(response)).toBeTruthy();
+      expect(getSessionMock).toHaveBeenCalledOnce();
+      expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
+      expect(getProfileMock).toHaveBeenCalledOnce();
+      expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
+      expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
+      expect(trackEventMock).toHaveBeenCalledWith({
+        name: "io.citizen-auth.prof-async.error.permanent",
+        properties: {
+          message: "User email is not validated"
+        },
+        tagOverrides: {
+          samplingEnabled: "false"
+        }
+      });
+    });
   });
 
   describe("QueueTransientError", () => {
