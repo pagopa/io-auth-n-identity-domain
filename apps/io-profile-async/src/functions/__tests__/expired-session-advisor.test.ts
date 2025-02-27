@@ -24,8 +24,12 @@ import {
 import * as appinsights from "../../utils/appinsights";
 
 const aFiscalCode = "BBBBBB00B00B000B" as FiscalCode;
+const anExpiredAtData = new Date();
 const anEmailAddres = "anemail@example.com" as EmailString;
-const aValidQueueMessage = { fiscalCode: aFiscalCode };
+const aValidQueueMessage = {
+  fiscalCode: aFiscalCode,
+  expiredAt: anExpiredAtData.getTime()
+};
 
 // Response Mocks
 const aValidGetSessionResponse: UserSessionInfo = {
@@ -141,6 +145,9 @@ describe("ExpiredSessionAdvisor handler", () => {
     expect(trackEventMock).toHaveBeenCalledOnce();
     expect(trackEventMock).toHaveBeenCalledWith({
       name: "io.citizen-auth.prof-async.notify-session-expiration.dry-run",
+      properties: {
+        expiredAt: anExpiredAtData
+      },
       tagOverrides: {
         samplingEnabled: "false"
       }
@@ -164,7 +171,26 @@ describe("ExpiredSessionAdvisor handler", () => {
     const response = await ExpiredSessionAdvisorHandler(
       expiredSessionAdvisorHandlerInput
     )({
-      ...makeHandlerInputs({ fiscalCode: "bad" })
+      ...makeHandlerInputs({
+        ...aValidQueueMessage,
+        fiscalCode: "bad"
+      })
+    })();
+
+    expect(response).toStrictEqual(E.left(new ValidationError([])));
+    expect(getSessionMock).not.toBeCalled();
+    expect(getProfileMock).not.toBeCalled();
+    expect(mockMailerTransporter.sendMail).not.toBeCalled();
+  });
+
+  it("should fail when a bad expiredAt is received", async () => {
+    const response = await ExpiredSessionAdvisorHandler(
+      expiredSessionAdvisorHandlerInput
+    )({
+      ...makeHandlerInputs({
+        ...aValidQueueMessage,
+        expiredAt: "bad"
+      })
     })();
 
     expect(response).toStrictEqual(E.left(new ValidationError([])));

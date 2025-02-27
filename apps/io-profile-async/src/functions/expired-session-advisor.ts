@@ -172,7 +172,7 @@ export const ExpiredSessionAdvisorHandler: (
     FunctionProfileClientDependency &
     MailerTransporterDependency
 > = ({ expiredSessionEmailParameters, dryRunFeatureFlag }) =>
-  H.of(({ fiscalCode }) =>
+  H.of(({ fiscalCode, expiredAt }) =>
     pipe(
       retrieveSession(fiscalCode),
       RTE.filterOrElseW(
@@ -189,6 +189,9 @@ export const ExpiredSessionAdvisorHandler: (
           trackEvent({
             name:
               "io.citizen-auth.prof-async.notify-session-expiration.dry-run",
+            properties: {
+              expiredAt
+            },
             tagOverrides: {
               samplingEnabled: "false"
             }
