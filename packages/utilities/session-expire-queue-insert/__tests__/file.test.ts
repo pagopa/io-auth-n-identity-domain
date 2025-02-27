@@ -59,42 +59,27 @@ describe("Import batches test", () => {
     const expectedBatch: ReadonlyArray<ReadonlyArray<ItemToEnqueue>> = [
       [
         {
-          payload: {
-            fiscalCode: fiscalCodesList[0],
-            expiredAt: timestampList[0],
-          },
+          payload: aGoodInput[0],
           itemTimeoutInSeconds: aTimeoutMultiplier * 0,
         },
         {
-          payload: {
-            fiscalCode: fiscalCodesList[1],
-            expiredAt: timestampList[1],
-          },
+          payload: aGoodInput[1],
           itemTimeoutInSeconds: aTimeoutMultiplier * 0,
         },
       ],
       [
         {
-          payload: {
-            fiscalCode: fiscalCodesList[2],
-            expiredAt: timestampList[2],
-          },
+          payload: aGoodInput[2],
           itemTimeoutInSeconds: aTimeoutMultiplier * 1,
         },
         {
-          payload: {
-            fiscalCode: fiscalCodesList[3],
-            expiredAt: timestampList[3],
-          },
+          payload: aGoodInput[3],
           itemTimeoutInSeconds: aTimeoutMultiplier * 1,
         },
       ],
       [
         {
-          payload: {
-            fiscalCode: fiscalCodesList[4],
-            expiredAt: timestampList[4],
-          },
+          payload: aGoodInput[4],
           itemTimeoutInSeconds: aTimeoutMultiplier * 2,
         },
       ],

@@ -77,7 +77,12 @@ export const exportErrorsIntoFile = (
         E.chain(
           flow(E.fromPredicate(ItemPayload.is, () => Error("Invalid payload"))),
         ),
-        E.map((item) => fs.appendFileSync(filename, item.fiscalCode + "\n")),
+        E.map((item) =>
+          fs.appendFileSync(
+            filename,
+            `${item.fiscalCode}${FIELD_SEPARATOR}${item.expiredAt}\n`,
+          ),
+        ),
         E.mapLeft(() => Error("Could not export errors to file")),
       ),
     ),
