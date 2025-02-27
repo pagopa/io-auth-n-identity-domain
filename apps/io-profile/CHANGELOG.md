@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.19.1
+
+### Patch Changes
+
+- f65c25d: Migrate FunctionApp io-profile from io-functions-app repo
+
 ## 5.19.0
 
 ### Minor Changes
@@ -425,7 +431,7 @@
 > 12 July 2023
 
 - [#IOPID-383] Add `notify-email` endpoint to openapi [`#282`](https://github.com/pagopa/io-functions-app/pull/282)
-- [#IOPID-392]  Add login email template [`#281`](https://github.com/pagopa/io-functions-app/pull/281)
+- [#IOPID-392] Add login email template [`#281`](https://github.com/pagopa/io-functions-app/pull/281)
 - [IOPLT-25] Fixing io-functions-app configuration in order to be launched on local env [`#280`](https://github.com/pagopa/io-functions-app/pull/280)
 - Bump version to 5.1.0 [skip ci] [`e241088`](https://github.com/pagopa/io-functions-app/commit/e241088e8743969f8760ee57c03a7373e4e5b4f8)
 
@@ -452,8 +458,8 @@
 
 > 30 March 2023
 
-- [#ICC-301]  Update mail validation template [`#275`](https://github.com/pagopa/io-functions-app/pull/275)
-- [#ICC-322]  Replace danger with a github action [`#276`](https://github.com/pagopa/io-functions-app/pull/276)
+- [#ICC-301] Update mail validation template [`#275`](https://github.com/pagopa/io-functions-app/pull/275)
+- [#ICC-322] Replace danger with a github action [`#276`](https://github.com/pagopa/io-functions-app/pull/276)
 - Bump version to 4.7.0 [skip ci] [`472d323`](https://github.com/pagopa/io-functions-app/commit/472d323555a9f8871df0096afc5f65e3ba769e81)
 
 ## 4.6.0
@@ -533,7 +539,7 @@
 
 > 27 June 2022
 
-- [#IOCIT-9] Updated profile handlers to accept the new optional field from the profile model  [`#255`](https://github.com/pagopa/io-functions-app/pull/255)
+- [#IOCIT-9] Updated profile handlers to accept the new optional field from the profile model [`#255`](https://github.com/pagopa/io-functions-app/pull/255)
 - Bump version to 4.3.0 [skip ci] [`101dcd2`](https://github.com/pagopa/io-functions-app/commit/101dcd2a7f066a9501b6bd11d95e84021dccacee)
 
 ## 4.2.0
@@ -572,7 +578,7 @@
 
 > 17 June 2022
 
-- [ICC-116]  Remove unused app messages endpoints [`#253`](https://github.com/pagopa/io-functions-app/pull/253)
+- [ICC-116] Remove unused app messages endpoints [`#253`](https://github.com/pagopa/io-functions-app/pull/253)
 - Bump version to 4.0.2 [skip ci] [`0787171`](https://github.com/pagopa/io-functions-app/commit/0787171eff80f09ac9cf9e1ba03fcb3b9d2d71ea)
 
 ## 4.0.1
@@ -599,8 +605,8 @@
 > 9 March 2022
 
 - [#IC-328] New endpoint definition to upsert message status attributes [`#244`](https://github.com/pagopa/io-functions-app/pull/244)
-- [#IC-295]  Update GetMessages endpoint [`#243`](https://github.com/pagopa/io-functions-app/pull/243)
-- [#IC-333]  Add integrations tests [`#245`](https://github.com/pagopa/io-functions-app/pull/245)
+- [#IC-295] Update GetMessages endpoint [`#243`](https://github.com/pagopa/io-functions-app/pull/243)
+- [#IC-333] Add integrations tests [`#245`](https://github.com/pagopa/io-functions-app/pull/245)
 - Bump version to 4.0.0 [skip ci] [`a8b00e3`](https://github.com/pagopa/io-functions-app/commit/a8b00e3f8fcc0e70e9e9c0cc3ddc36aad55f3fe3)
 
 ## 3.11.0
@@ -626,7 +632,7 @@
 
 > 23 December 2021
 
-- [#IC-68]  Align backend references to last version [`#233`](https://github.com/pagopa/io-functions-app/pull/233)
+- [#IC-68] Align backend references to last version [`#233`](https://github.com/pagopa/io-functions-app/pull/233)
 - Bump version to 3.10.0 [skip ci] [`6c5a0be`](https://github.com/pagopa/io-functions-app/commit/6c5a0becef685bc6c71a1b3d5583cb37a31f931e)
 
 ## 3.9.0
@@ -639,7 +645,7 @@
 
 > 23 December 2021
 
-- [#IC-68]  Update Message model with legal data [`#231`](https://github.com/pagopa/io-functions-app/pull/231)
+- [#IC-68] Update Message model with legal data [`#231`](https://github.com/pagopa/io-functions-app/pull/231)
 - Bump version to 3.9.0 [skip ci] [`941f69d`](https://github.com/pagopa/io-functions-app/commit/941f69d591f178e7a8933b92f9cd076f6e5844f4)
 
 ## 3.8.0
@@ -692,7 +698,7 @@
 > 9 November 2021
 
 - chore(deps): bump vm2 from 3.9.3 to 3.9.5 [`#224`](https://github.com/pagopa/io-functions-app/pull/224)
-- [#IC-31]  Dismantle EUCovidcert notifications [`#228`](https://github.com/pagopa/io-functions-app/pull/228)
+- [#IC-31] Dismantle EUCovidcert notifications [`#228`](https://github.com/pagopa/io-functions-app/pull/228)
 - Bump version to 3.5.0 [skip ci] [`f6eaa86`](https://github.com/pagopa/io-functions-app/commit/f6eaa86eceaca614e5d52669efda3402cce30573)
 
 ## 3.4.0
@@ -988,7 +994,7 @@
 > 5 July 2021
 
 - Add FF_OPT_OUT_EMAIL_ENABLED Feature flag [`#179`](https://github.com/pagopa/io-functions-app/pull/179)
-- [#IP-269]  Add UpsertServicePreferences endpoint [`#177`](https://github.com/pagopa/io-functions-app/pull/177)
+- [#IP-269] Add UpsertServicePreferences endpoint [`#177`](https://github.com/pagopa/io-functions-app/pull/177)
 - Rename env variable to OPT_OUT_EMAIL_SWITCH_DATE [`#178`](https://github.com/pagopa/io-functions-app/pull/178)
 - [#IP-283] Set isEmailEnabled default to false [`#172`](https://github.com/pagopa/io-functions-app/pull/172)
 - [#IP-284] add timestamp check on profile for is_email_enabled [`#174`](https://github.com/pagopa/io-functions-app/pull/174)
