@@ -36,10 +36,13 @@ export const Info = InfoFunction({
 });
 
 export const ExpiredSessionAdvisor = ExpiredSessionAdvisorFunction({
-  from: config.MAIL_FROM,
-  htmlToTextOptions: HTML_TO_TEXT_OPTIONS,
-  title: "Importante: la tua sessione è scaduta." as NonEmptyString,
-  ctaUrl: config.EXPIRED_SESSION_CTA_URL
+  dryRunFeatureFlag: config.FF_DRY_RUN,
+  expiredSessionEmailParameters: {
+    from: config.MAIL_FROM,
+    htmlToTextOptions: HTML_TO_TEXT_OPTIONS,
+    title: "Importante: la tua sessione è scaduta." as NonEmptyString,
+    ctaUrl: config.EXPIRED_SESSION_CTA_URL
+  }
 })({
   backendInternalClient,
   functionProfileClient,

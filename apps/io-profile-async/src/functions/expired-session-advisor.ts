@@ -16,11 +16,11 @@ import { UserSessionInfo } from "../generated/definitions/backend-session/UserSe
 import { EmailAddress } from "../generated/definitions/function-profile/EmailAddress";
 import { ExtendedProfile } from "../generated/definitions/function-profile/ExtendedProfile";
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
+import { trackEvent } from "../utils/appinsights";
 import { BackendInternalClientDependency } from "../utils/backend-internal-client/dependency";
 import { FunctionProfileClientDependency } from "../utils/function-profile-client/dependency";
 import { MailerTransporterDependency } from "../utils/mailer-transporter/dependency";
 import { QueuePermanentError, QueueTransientError } from "../utils/queue-utils";
-import { trackEvent } from "../utils/appinsights";
 
 export interface ExpiredSessionEmailParameters {
   readonly from: NonEmptyString;
@@ -158,16 +158,21 @@ export const notifySessionExpiration: (
     TE.map(_ => void 0)
   );
 
+export type ExpiredSessionAdvisorFunctionInput = {
+  expiredSessionEmailParameters: ExpiredSessionEmailParameters;
+  dryRunFeatureFlag: boolean;
+};
+
 export const ExpiredSessionAdvisorHandler: (
-  expiredSessionEmailParameters: ExpiredSessionEmailParameters
+  expiredSessionAdvisorFunctionInput: ExpiredSessionAdvisorFunctionInput
 ) => H.Handler<
   ExpiredSessionAdvisorQueueMessage,
   undefined,
   BackendInternalClientDependency &
     FunctionProfileClientDependency &
     MailerTransporterDependency
-> = (expiredSessionEmailParameters: ExpiredSessionEmailParameters) =>
-  H.of(({ fiscalCode }: ExpiredSessionAdvisorQueueMessage) =>
+> = ({ expiredSessionEmailParameters, dryRunFeatureFlag }) =>
+  H.of(({ fiscalCode, expiredAt }) =>
     pipe(
       retrieveSession(fiscalCode),
       RTE.filterOrElseW(
@@ -175,13 +180,31 @@ export const ExpiredSessionAdvisorHandler: (
         () => new QueuePermanentError("User has an active session")
       ),
       RTE.chainW(() => retrieveProfile(fiscalCode)),
+      RTE.filterOrElseW(
+        profile => profile.is_email_validated,
+        () => new QueuePermanentError("User email is not validated")
+      ),
       RTE.map(profile => profile.email),
       RTE.chainW(
         RTE.fromNullable(new QueuePermanentError("User has no email"))
       ),
-      RTE.chainW(email =>
-        notifySessionExpiration(email, expiredSessionEmailParameters)
-      ),
+      RTE.chainW(email => {
+        if (dryRunFeatureFlag) {
+          trackEvent({
+            name:
+              "io.citizen-auth.prof-async.notify-session-expiration.dry-run",
+            properties: {
+              expiredAt
+            },
+            tagOverrides: {
+              samplingEnabled: "false"
+            }
+          });
+          return RTE.right(void 0);
+        } else {
+          return notifySessionExpiration(email, expiredSessionEmailParameters);
+        }
+      }),
       RTE.orElseW(error => {
         if (error instanceof QueuePermanentError) {
           trackEvent({
@@ -202,5 +225,8 @@ export const ExpiredSessionAdvisorHandler: (
   );
 
 export const ExpiredSessionAdvisorFunction = (
-  expiredSessionEmailParameters: ExpiredSessionEmailParameters
-) => azureFunction(ExpiredSessionAdvisorHandler(expiredSessionEmailParameters));
+  expiredSessionAdvisorFunctionInput: ExpiredSessionAdvisorFunctionInput
+) =>
+  azureFunction(
+    ExpiredSessionAdvisorHandler(expiredSessionAdvisorFunctionInput)
+  );

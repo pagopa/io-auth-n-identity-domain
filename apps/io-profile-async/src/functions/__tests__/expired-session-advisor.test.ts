@@ -15,6 +15,7 @@ import { Client as FunctionProfileClient } from "../../generated/definitions/fun
 import { ExtendedProfile } from "../../generated/definitions/function-profile/ExtendedProfile";
 import { ServicesPreferencesModeEnum } from "../../generated/definitions/function-profile/ServicesPreferencesMode";
 import { ExpiredSessionAdvisorQueueMessage } from "../../types/expired-session-advisor-queue-message";
+import * as appinsights from "../../utils/appinsights";
 import { QueueTransientError } from "../../utils/queue-utils";
 import { mockQueueHandlerInputMocks } from "../__mocks__/handlerMocks";
 import {
@@ -23,8 +24,12 @@ import {
 } from "../expired-session-advisor";
 
 const aFiscalCode = "BBBBBB00B00B000B" as FiscalCode;
+const anExpiredAtDate = new Date();
 const anEmailAddres = "anemail@example.com" as EmailString;
-const aValidQueueMessage = { fiscalCode: aFiscalCode };
+const aValidQueueMessage = {
+  fiscalCode: aFiscalCode,
+  expiredAt: anExpiredAtDate.getTime()
+};
 
 // Response Mocks
 const aValidGetSessionResponse: UserSessionInfo = {
@@ -76,6 +81,8 @@ const mockMailerTransporter = ({
   sendMail: sendMailMock
 } as unknown) as MailerTransporter;
 
+const trackEventMock = vi.spyOn(appinsights, "trackEvent");
+
 const emailParameters: ExpiredSessionEmailParameters = {
   from: "amailfrom@example.com" as NonEmptyString,
   htmlToTextOptions: {
@@ -101,8 +108,15 @@ describe("ExpiredSessionAdvisor handler", () => {
     vi.clearAllMocks();
   });
 
-  it("should success on user with no session", async () => {
-    const response = await ExpiredSessionAdvisorHandler(emailParameters)({
+  const expiredSessionAdvisorHandlerInput = {
+    dryRunFeatureFlag: false,
+    expiredSessionEmailParameters: emailParameters
+  };
+
+  it("should succeed on user with no session", async () => {
+    const response = await ExpiredSessionAdvisorHandler(
+      expiredSessionAdvisorHandlerInput
+    )({
       ...makeHandlerInputs(aValidQueueMessage)
     })();
 
@@ -114,8 +128,36 @@ describe("ExpiredSessionAdvisor handler", () => {
     expect(mockMailerTransporter.sendMail).toHaveBeenCalledOnce();
   });
 
+  it("should succeed on user with no session during a dry-run", async () => {
+    const response = await ExpiredSessionAdvisorHandler({
+      ...expiredSessionAdvisorHandlerInput,
+      dryRunFeatureFlag: true
+    })({
+      ...makeHandlerInputs(aValidQueueMessage)
+    })();
+
+    expect(E.isRight(response)).toBeTruthy();
+    expect(getSessionMock).toHaveBeenCalledOnce();
+    expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
+    expect(getProfileMock).toHaveBeenCalledOnce();
+    expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
+    expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
+    expect(trackEventMock).toHaveBeenCalledOnce();
+    expect(trackEventMock).toHaveBeenCalledWith({
+      name: "io.citizen-auth.prof-async.notify-session-expiration.dry-run",
+      properties: {
+        expiredAt: anExpiredAtDate
+      },
+      tagOverrides: {
+        samplingEnabled: "false"
+      }
+    });
+  });
+
   it("should fail when a bad Message is received", async () => {
-    const response = await ExpiredSessionAdvisorHandler(emailParameters)({
+    const response = await ExpiredSessionAdvisorHandler(
+      expiredSessionAdvisorHandlerInput
+    )({
       ...makeHandlerInputs({ badProp: "bad" })
     })();
 
@@ -126,8 +168,29 @@ describe("ExpiredSessionAdvisor handler", () => {
   });
 
   it("should fail when a bad FiscalCode is received", async () => {
-    const response = await ExpiredSessionAdvisorHandler(emailParameters)({
-      ...makeHandlerInputs({ fiscalCode: "bad" })
+    const response = await ExpiredSessionAdvisorHandler(
+      expiredSessionAdvisorHandlerInput
+    )({
+      ...makeHandlerInputs({
+        ...aValidQueueMessage,
+        fiscalCode: "bad"
+      })
+    })();
+
+    expect(response).toStrictEqual(E.left(new ValidationError([])));
+    expect(getSessionMock).not.toBeCalled();
+    expect(getProfileMock).not.toBeCalled();
+    expect(mockMailerTransporter.sendMail).not.toBeCalled();
+  });
+
+  it("should fail when a bad expiredAt is received", async () => {
+    const response = await ExpiredSessionAdvisorHandler(
+      expiredSessionAdvisorHandlerInput
+    )({
+      ...makeHandlerInputs({
+        ...aValidQueueMessage,
+        expiredAt: "bad"
+      })
     })();
 
     expect(response).toStrictEqual(E.left(new ValidationError([])));
@@ -139,6 +202,13 @@ describe("ExpiredSessionAdvisor handler", () => {
   // This test is to check QueuePermanentError handling
   // on QueuePermanentError the response should be a right in order to not Retry the message
   describe("QueuePermanentError", () => {
+    const baseCustomEvent = {
+      name: "io.citizen-auth.prof-async.error.permanent",
+      properties: {},
+      tagOverrides: {
+        samplingEnabled: "false"
+      }
+    };
     it("should fail on user with a active session with no error forwarded", async () => {
       getSessionMock.mockImplementationOnce(async () =>
         E.of({
@@ -147,7 +217,9 @@ describe("ExpiredSessionAdvisor handler", () => {
         })
       );
 
-      const response = await ExpiredSessionAdvisorHandler(emailParameters)({
+      const response = await ExpiredSessionAdvisorHandler(
+        expiredSessionAdvisorHandlerInput
+      )({
         ...makeHandlerInputs(aValidQueueMessage)
       })();
 
@@ -156,6 +228,13 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
       expect(getProfileMock).not.toHaveBeenCalled();
       expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
+      expect(trackEventMock).toHaveBeenCalledOnce();
+      expect(trackEventMock).toHaveBeenCalledWith({
+        ...baseCustomEvent,
+        properties: {
+          message: "User has an active session"
+        }
+      });
     });
 
     it("should fail on user without an email set in profile with no error forwarded", async () => {
@@ -166,7 +245,9 @@ describe("ExpiredSessionAdvisor handler", () => {
         })
       );
 
-      const response = await ExpiredSessionAdvisorHandler(emailParameters)({
+      const response = await ExpiredSessionAdvisorHandler(
+        expiredSessionAdvisorHandlerInput
+      )({
         ...makeHandlerInputs(aValidQueueMessage)
       })();
 
@@ -176,6 +257,40 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(getProfileMock).toHaveBeenCalledOnce();
       expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
       expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
+      expect(trackEventMock).toHaveBeenCalledWith({
+        ...baseCustomEvent,
+        properties: {
+          message: "User has no email"
+        }
+      });
+    });
+
+    it("should fail on user without a validated email with no error forwarded", async () => {
+      getProfileMock.mockImplementationOnce(async () =>
+        E.of({
+          status: 200,
+          value: { ...aValidGetProfileResponse, is_email_validated: false }
+        })
+      );
+
+      const response = await ExpiredSessionAdvisorHandler(
+        expiredSessionAdvisorHandlerInput
+      )({
+        ...makeHandlerInputs(aValidQueueMessage)
+      })();
+
+      expect(E.isRight(response)).toBeTruthy();
+      expect(getSessionMock).toHaveBeenCalledOnce();
+      expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
+      expect(getProfileMock).toHaveBeenCalledOnce();
+      expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
+      expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
+      expect(trackEventMock).toHaveBeenCalledWith({
+        ...baseCustomEvent,
+        properties: {
+          message: "User email is not validated"
+        }
+      });
     });
   });
 
@@ -192,7 +307,9 @@ describe("ExpiredSessionAdvisor handler", () => {
           if (mockedImpl instanceof Error) throw mockedImpl;
           return mockedImpl;
         });
-        const response = await ExpiredSessionAdvisorHandler(emailParameters)({
+        const response = await ExpiredSessionAdvisorHandler(
+          expiredSessionAdvisorHandlerInput
+        )({
           ...makeHandlerInputs(aValidQueueMessage)
         })();
 
@@ -219,7 +336,9 @@ describe("ExpiredSessionAdvisor handler", () => {
           return mockedImpl;
         });
 
-        const response = await ExpiredSessionAdvisorHandler(emailParameters)({
+        const response = await ExpiredSessionAdvisorHandler(
+          expiredSessionAdvisorHandlerInput
+        )({
           ...makeHandlerInputs(aValidQueueMessage)
         })();
 
@@ -241,7 +360,9 @@ describe("ExpiredSessionAdvisor handler", () => {
         throw new Error(anErrorMessage);
       });
 
-      const response = await ExpiredSessionAdvisorHandler(emailParameters)({
+      const response = await ExpiredSessionAdvisorHandler(
+        expiredSessionAdvisorHandlerInput
+      )({
         ...makeHandlerInputs(aValidQueueMessage)
       })();
 
