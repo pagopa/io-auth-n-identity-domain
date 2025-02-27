@@ -20,7 +20,14 @@ const fiscalCodesList = [
   "ISPXNB32R82Y766E" as FiscalCode,
 ];
 
-const timestampList = [0, 1, 2, 3, 4, 5];
+const timestampList = [
+  new Date("1970-01-01").getTime(),
+  new Date("1971-01-01").getTime(),
+  new Date("1972-01-01").getTime(),
+  new Date("1973-01-01").getTime(),
+  new Date("1974-01-01").getTime(),
+  new Date("1975-01-01").getTime(),
+];
 
 const readFileSpy = vi
   .mocked(readFileSync)
