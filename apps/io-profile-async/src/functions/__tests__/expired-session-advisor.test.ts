@@ -15,16 +15,13 @@ import { Client as FunctionProfileClient } from "../../generated/definitions/fun
 import { ExtendedProfile } from "../../generated/definitions/function-profile/ExtendedProfile";
 import { ServicesPreferencesModeEnum } from "../../generated/definitions/function-profile/ServicesPreferencesMode";
 import { ExpiredSessionAdvisorQueueMessage } from "../../types/expired-session-advisor-queue-message";
+import * as appinsights from "../../utils/appinsights";
 import { QueueTransientError } from "../../utils/queue-utils";
 import { mockQueueHandlerInputMocks } from "../__mocks__/handlerMocks";
 import {
   ExpiredSessionAdvisorHandler,
   ExpiredSessionEmailParameters
 } from "../expired-session-advisor";
-import * as appinsights from "../../utils/appinsights";
-
-const permanentErrorCustomEventName =
-  "io.citizen-auth.prof-async.error.permanent";
 
 const aFiscalCode = "BBBBBB00B00B000B" as FiscalCode;
 const anExpiredAtDate = new Date();
@@ -206,7 +203,7 @@ describe("ExpiredSessionAdvisor handler", () => {
   // on QueuePermanentError the response should be a right in order to not Retry the message
   describe("QueuePermanentError", () => {
     const baseCustomEvent = {
-      name: permanentErrorCustomEventName,
+      name: "io.citizen-auth.prof-async.error.permanent",
       properties: {},
       tagOverrides: {
         samplingEnabled: "false"
