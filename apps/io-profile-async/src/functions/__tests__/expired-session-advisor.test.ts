@@ -23,12 +23,15 @@ import {
 } from "../expired-session-advisor";
 import * as appinsights from "../../utils/appinsights";
 
+const permanentErrorCustomEventName =
+  "io.citizen-auth.prof-async.error.permanent";
+
 const aFiscalCode = "BBBBBB00B00B000B" as FiscalCode;
-const anExpiredAtData = new Date();
+const anExpiredAtDate = new Date();
 const anEmailAddres = "anemail@example.com" as EmailString;
 const aValidQueueMessage = {
   fiscalCode: aFiscalCode,
-  expiredAt: anExpiredAtData.getTime()
+  expiredAt: anExpiredAtDate.getTime()
 };
 
 // Response Mocks
@@ -146,7 +149,7 @@ describe("ExpiredSessionAdvisor handler", () => {
     expect(trackEventMock).toHaveBeenCalledWith({
       name: "io.citizen-auth.prof-async.notify-session-expiration.dry-run",
       properties: {
-        expiredAt: anExpiredAtData
+        expiredAt: anExpiredAtDate
       },
       tagOverrides: {
         samplingEnabled: "false"
@@ -223,7 +226,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
       expect(trackEventMock).toHaveBeenCalledOnce();
       expect(trackEventMock).toHaveBeenCalledWith({
-        name: "io.citizen-auth.prof-async.error.permanent",
+        name: permanentErrorCustomEventName,
         properties: {
           message: "User has an active session"
         },
@@ -254,7 +257,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
       expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
       expect(trackEventMock).toHaveBeenCalledWith({
-        name: "io.citizen-auth.prof-async.error.permanent",
+        name: permanentErrorCustomEventName,
         properties: {
           message: "User has no email"
         },
@@ -285,7 +288,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
       expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
       expect(trackEventMock).toHaveBeenCalledWith({
-        name: "io.citizen-auth.prof-async.error.permanent",
+        name: permanentErrorCustomEventName,
         properties: {
           message: "User email is not validated"
         },
