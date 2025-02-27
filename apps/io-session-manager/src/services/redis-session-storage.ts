@@ -915,6 +915,43 @@ const getSessionTtl: (
     );
 
 /**
+ * Return the session remaining time to live in seconds
+ *
+ * @param fiscalCode
+ * @returns The key ttl in seconds or an error if the key doesn't exist or has no expire
+ */
+export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
+  RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
+  Error,
+  number
+> = (deps) =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        deps.redisClientSelector
+          .selectOne(RedisClientMode.FAST)
+          .ttl(`${RedisRepo.lollipopDataPrefix}${deps.fiscalCode}`),
+      E.toError,
+    ),
+    TE.mapLeft((error) =>
+      Error(`Error retrieving the session TTL: ${error.message}`),
+    ),
+    TE.chain((ttl) =>
+      ttl === -2
+        ? TE.left(
+            Error("Error retrieving the session TTL: -2 (key does not exist)"),
+          )
+        : ttl === -1
+          ? TE.left(
+              Error(
+                "Error retrieving the session TTL: -1 (key exists but has no associated expire)",
+              ),
+            )
+          : TE.right(ttl),
+    ),
+  );
+
+/**
  * Cache on redis the notify email for pagopa
  */
 export const setPagoPaNoticeEmail: (

@@ -1,5 +1,11 @@
 # io-public
 
+## 1.5.4
+
+### Patch Changes
+
+- 335dd5d: Application Insights connection string used instead of instrumentation key
+
 ## 1.5.3
 
 ### Patch Changes
