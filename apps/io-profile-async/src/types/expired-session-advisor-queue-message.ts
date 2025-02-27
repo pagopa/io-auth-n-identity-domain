@@ -1,3 +1,4 @@
+import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as t from "io-ts";
 /**
@@ -6,7 +7,8 @@ import * as t from "io-ts";
 
 // required attributes
 export const ExpiredSessionAdvisorQueueMessage = t.type({
-  fiscalCode: FiscalCode
+  fiscalCode: FiscalCode,
+  expiredAt: DateFromTimestamp
 });
 
 export type ExpiredSessionAdvisorQueueMessage = t.TypeOf<
