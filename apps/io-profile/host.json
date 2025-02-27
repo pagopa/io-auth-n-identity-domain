@@ -24,9 +24,7 @@
     "durableTask": {
       "hubName": "%SLOT_TASK_HUBNAME%",
       "localRpcEndpointEnabled": false,
-      "storageProvider": {
-        "connectionStringName": "DURABLE_FUNCTION_STORAGE_CONNECTION_STRING"
-      },
+      "storageProvider": {},
       "tracing": {
         "traceInputsAndOutputs": false,
         "traceReplayEvents": false
