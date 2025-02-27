@@ -1,0 +1,27 @@
+{
+  "bindings": [
+    {
+      "authLevel": "function",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req",
+      "route": "v1/profiles/{fiscal_code}/services/{service_id}/preferences",
+      "methods": [
+        "post"
+      ]
+    },
+    {
+      "queueName": "%EventsQueueName%",
+      "connection": "EventsQueueStorageConnection",
+      "name": "apievents",
+      "type": "queue",
+      "direction": "out"
+    },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "res"
+    }
+  ],
+  "scriptFile": "../dist/UpsertServicePreferences/index.js"
+}
