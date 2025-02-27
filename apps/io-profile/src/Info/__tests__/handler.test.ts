@@ -5,7 +5,7 @@ import { InfoHandler } from "../handler";
 
 vi.mock("../../utils/package", () => ({
   getCurrentBackendVersion: () => "1.0.0",
-  getValueFromPackageJson: () => "io-web-profile",
+  getValueFromPackageJson: () => "io-profile",
 }));
 
 afterEach(() => {
