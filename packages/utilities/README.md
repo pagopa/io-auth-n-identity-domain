@@ -30,4 +30,4 @@ HOURLY_BATCHES = DESIRED_HOURLY_LIMIT / SINGLE_BATCH_SIZE
 TIMEOUT_MULTIPLIER = 3600 / HOURLY_BACHES
 ```
 
-With this in mind, we would call the script with `--singleBatchSize=... --timeoutMultiplier=...` according to the calculations made above.
+With this in mind, we would call the script with `--singleBatchCount=... --timeoutMultiplier=...` according to the calculations made above.
