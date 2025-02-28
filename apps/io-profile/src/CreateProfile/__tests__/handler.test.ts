@@ -4,10 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import df from "durable-functions";
 
 import { NewProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
-import { UTCISODateFromString } from "@pagopa/ts-commons/lib/dates";
 import * as date_fns from "date-fns";
 import * as E from "fp-ts/lib/Either";
-import { identity, pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import {
   context as contextMock,
@@ -22,7 +21,6 @@ import {
   aRetrievedProfile,
 } from "../../__mocks__/mocks";
 import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "../../UpsertedProfileOrchestrator/handler";
-import { fail } from "../../utils/test-utils";
 import { CreateProfileHandler } from "../handler";
 
 let clock: any;
