@@ -15,7 +15,8 @@ import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
-import { describe, expect, it, vi } from "vitest";
+import { assert, beforeEach, describe, expect, it, vi } from "vitest";
+import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { handler } from "../on-profile-update.ts";
 import { ProfileDocument } from "../../types/on-profile-update-input-document.ts";
 
@@ -190,13 +191,15 @@ const mockDependencies = {
 };
 
 describe("handler function", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("should call find, insert and delete methods with no errors and handler function should not return any E.left", async () => {
     const documents = mockProfiles;
 
     const result = await handler(documents)(mockDependencies)();
-    result.forEach(item => {
-      expect(E.isLeft(item)).toBe(false);
-    });
+    expect(E.isRight(result)).toBeTruthy();
 
     const findIndices = [4, 5, 6, 8, 9, 11, 13];
     const expectedFindParams = findIndices
@@ -254,7 +257,7 @@ describe("handler function", () => {
 
     const result = await handler(mockDocuments)(mockDependencies)();
 
-    expect(result.some(E.isLeft)).toBe(true);
+    expect(E.isRight(result)).toBeFalsy();
 
     expect(mockTelemetryClient.trackEvent).toHaveBeenCalled();
   });
@@ -266,12 +269,12 @@ describe("handler function", () => {
     );
 
     vi.spyOn(mockProfileModel, "find").mockImplementationOnce(() =>
-      TE.left({ kind: "COSMOS_CONFLICT_RESPONSE" })
+      TE.left(({ kind: "COSMOS_CONFLICT_RESPONSE" } as unknown) as CosmosErrors)
     );
 
     const result = await handler(mockDocuments)(mockDependencies)();
 
-    expect(result.some(E.isLeft)).toBe(true);
+    expect(E.isRight(result)).toBeFalsy();
 
     expect(mockTelemetryClient.trackEvent).toHaveBeenCalled();
   });
@@ -289,9 +292,41 @@ describe("handler function", () => {
 
     const result = await handler(mockDocuments)(mockDependencies)();
 
-    expect(result.some(E.isLeft)).toBe(true);
+    expect(E.isRight(result)).toBeFalsy();
 
     expect(mockTelemetryClient.trackEvent).toHaveBeenCalled();
+  });
+
+  it("should concatenate all errors collected into a single one", async () => {
+    const mockDocuments = take(
+      generateId("PVQEBX22A89Y092X" as FiscalCode, 1 as NonNegativeInteger),
+      mockProfiles
+    );
+
+    // eslint-disable-next-line functional/immutable-data
+    mockDocuments.push(
+      ...take(
+        generateId("VSFNVG14A39Y596X" as FiscalCode, 1 as NonNegativeInteger),
+        mockProfiles
+      )
+    );
+
+    const expectedError = Error(
+      `Error:Conflict error;\nError:Empty response;\n`
+    );
+    vi.spyOn(mockProfileModel, "find").mockImplementationOnce(() =>
+      TE.left(({ kind: "COSMOS_EMPTY_RESPONSE" } as unknown) as CosmosErrors)
+    );
+    vi.spyOn(mockProfileModel, "find").mockImplementationOnce(() =>
+      TE.left(({ kind: "COSMOS_CONFLICT_RESPONSE" } as unknown) as CosmosErrors)
+    );
+
+    const result = await handler(mockDocuments)(mockDependencies)();
+
+    assert(E.isLeft(result));
+    expect(result.left).toEqual(expectedError);
+
+    expect(mockTelemetryClient.trackEvent).toHaveBeenCalledTimes(2);
   });
 });
 
