@@ -1,6 +1,4 @@
 /* eslint-disable no-underscore-dangle */
-import { AzureFunction, Context } from "@azure/functions";
-import * as t from "io-ts";
 import { pipe, flow } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
 import * as A from "fp-ts/ReadonlyArray";
@@ -8,6 +6,7 @@ import * as E from "fp-ts/lib/Either";
 import * as T from "fp-ts/lib/Task";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
+import * as H from "@pagopa/handler-kit";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import {
   IProfileEmailReader,
@@ -20,14 +19,17 @@ import {
   Profile
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { generateVersionedModelId } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model_versioned";
-import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { hashFiscalCode } from "@pagopa/ts-commons/lib/hash";
 import { TelemetryClient } from "applicationinsights";
+import { azureFunction } from "@pagopa/handler-kit-azure-func";
+import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
+import { Semigroup } from "fp-ts/lib/Semigroup";
 import {
   OnProfileUpdateFunctionInput,
   ProfileDocument
 } from "../types/on-profile-update-input-document";
+import { cosmosErrorsToString } from "../utils/cosmos/errors";
 
 type FunctionDependencies = {
   readonly dataTableProfileEmailsRepository: IProfileEmailReader &
@@ -38,15 +40,17 @@ type FunctionDependencies = {
 
 const eventNamePrefix = "OnProfileUpdate";
 
+const errorSemigroup: Semigroup<Error> = {
+  concat: (a: Error, b: Error) =>
+    Error(`Error:${a.message};\nError:${b.message};\n`)
+};
+
 const getPreviousProfile = (
   fiscalCode: FiscalCode,
   version: NonNegativeInteger
 ) => ({
   profileModel
-}: FunctionDependencies): TE.TaskEither<
-  CosmosErrors | t.Errors,
-  O.Option<ProfileDocument>
-> =>
+}: FunctionDependencies): TE.TaskEither<Error, O.Option<ProfileDocument>> =>
   pipe(
     version - 1,
     NonNegativeInteger.decode,
@@ -61,14 +65,18 @@ const getPreviousProfile = (
           id =>
             pipe(
               profileModel.find([id, fiscalCode]),
-              TE.chainW(
+              TE.mapLeft(cosmosErrors =>
+                Error(cosmosErrorsToString(cosmosErrors))
+              ),
+              TE.chain(
                 O.fold(
                   () => TE.right(O.none),
                   profile =>
                     pipe(
                       ProfileDocument.decode(profile),
-                      E.fold(
-                        error => TE.left(error),
+                      E.foldW(
+                        errors =>
+                          TE.left(Error(readableReportSimplified(errors))),
                         profileDocument => TE.right(O.some(profileDocument))
                       )
                     )
@@ -212,16 +220,12 @@ const handlePositiveVersion = ({
   isEmailValidated,
   version,
   _self
-}: ProfileDocument): RTE.ReaderTaskEither<
-  FunctionDependencies,
-  Error | CosmosErrors | t.Errors,
-  void
-> =>
+}: ProfileDocument): RTE.ReaderTaskEither<FunctionDependencies, Error, void> =>
   pipe(
     getPreviousProfile(fiscalCode, version),
-    RTE.chainW(
+    RTE.chain(
       flow(
-        O.foldW(
+        O.fold(
           () =>
             pipe(
               RTE.asks(({ telemetryClient }: FunctionDependencies) =>
@@ -258,11 +262,7 @@ const handlePositiveVersion = ({
 
 const handleProfile = (
   profile: ProfileDocument
-): RTE.ReaderTaskEither<
-  FunctionDependencies,
-  Error | CosmosErrors | t.Errors,
-  void
-> =>
+): RTE.ReaderTaskEither<FunctionDependencies, Error, void> =>
   profile.version === 0
     ? profile.email && profile.isEmailValidated
       ? insertProfileEmail({
@@ -272,16 +272,20 @@ const handleProfile = (
       : RTE.right<FunctionDependencies, Error, void>(void 0)
     : handlePositiveVersion(profile);
 
-export const handler = (documents: OnProfileUpdateFunctionInput) => (
-  dependencies: FunctionDependencies
-): T.Task<ReadonlyArray<E.Either<Error | CosmosErrors | t.Errors, void>>> =>
+export const handler: (
+  documents: OnProfileUpdateFunctionInput
+) => RTE.ReaderTaskEither<
+  FunctionDependencies,
+  Error,
+  undefined
+> = documents => dependencies =>
   pipe(
     documents,
     A.map(document =>
       pipe(
         document,
         ProfileDocument.decode,
-        E.foldW(
+        E.fold(
           () => {
             dependencies.telemetryClient?.trackEvent({
               name: `${eventNamePrefix}.decodingProfile`,
@@ -295,7 +299,7 @@ export const handler = (documents: OnProfileUpdateFunctionInput) => (
               },
               tagOverrides: { samplingEnabled: "false" }
             });
-            return TE.right<never, void>(void 0);
+            return TE.right(void 0);
           },
           profileDocument =>
             pipe(
@@ -317,21 +321,18 @@ export const handler = (documents: OnProfileUpdateFunctionInput) => (
         )
       )
     ),
-    A.sequence(T.ApplicativeSeq)
+    A.sequence(
+      TE.getApplicativeTaskValidation(T.ApplicativeSeq, errorSemigroup)
+    ),
+    TE.map(_ => void 0)
   );
 
-export const OnProfileUpdateFunction: (
-  deps: FunctionDependencies
-) => AzureFunction = deps => (
-  _context: Context,
-  documents: ReadonlyArray<unknown>
-): Promise<void> =>
-  // BUG: top level await not permitted here
-  /* await */
-  pipe(deps, handler(documents))().then(result => {
-    for (const item of result) {
-      if (E.isLeft(item)) {
-        throw item.left;
-      }
-    }
-  });
+export const OnProfileUpdateFunctionHandler: H.Handler<
+  OnProfileUpdateFunctionInput,
+  undefined,
+  FunctionDependencies
+> = H.of(handler);
+
+export const OnProfileUpdateFunction = azureFunction(
+  OnProfileUpdateFunctionHandler
+);

@@ -17,6 +17,7 @@ import { getFetchApi } from "./utils/fetch-utils";
 import { buildFunctionProfileClient } from "./utils/function-profile-client/dependency";
 import { initTelemetryClient } from "./utils/appinsights";
 import { OnProfileUpdateFunction } from "./functions/on-profile-update";
+import { OnProfileUpdateFunctionInput } from "./types/on-profile-update-input-document";
 
 const config = getConfigOrThrow();
 
@@ -73,5 +74,6 @@ export const ExpiredSessionAdvisor = ExpiredSessionAdvisorFunction({
 export const OnProfileUpdate = OnProfileUpdateFunction({
   profileModel,
   dataTableProfileEmailsRepository,
-  telemetryClient
+  telemetryClient,
+  inputDecoder: OnProfileUpdateFunctionInput
 });
