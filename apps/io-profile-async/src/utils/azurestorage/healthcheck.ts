@@ -7,7 +7,6 @@ import {
   HealthProblem,
   toHealthProblems
 } from "@pagopa/io-functions-commons/dist/src/utils/healthcheck";
-
 import * as Task from "fp-ts/lib/Task";
 import * as RA from "fp-ts/lib/ReadonlyArray";
 import * as A from "fp-ts/lib/Array";
@@ -17,6 +16,10 @@ import {
   BlobGetPropertiesResponse,
   BlobServiceClient
 } from "@azure/storage-blob";
+import {
+  TableServiceClient,
+  GetPropertiesResponse as TableGetPropertiesResponse
+} from "@azure/data-tables";
 import { AzureStorageDependency } from "./dependency";
 
 export type AzureStorageProblemSource = "AzureStorage";
@@ -40,22 +43,26 @@ export const makeAzureStorageHealthCheck = ({
   pipe(
     [
       BlobServiceClient.fromConnectionString(connectionString),
-      QueueServiceClient.fromConnectionString(connectionString)
+      QueueServiceClient.fromConnectionString(connectionString),
+      TableServiceClient.fromConnectionString(connectionString)
     ]
       // for each, create a task that wraps getServiceProperties
       .map(serviceClient =>
         TE.tryCatch(
           () =>
-            new Promise<BlobGetPropertiesResponse | QueueGetPropertiesResponse>(
-              (resolve, reject) =>
-                serviceClient.getProperties().then(
-                  result => {
-                    resolve(result);
-                  },
-                  err => {
-                    reject(err.message.replace(/\n/gim, " "));
-                  }
-                )
+            new Promise<
+              | BlobGetPropertiesResponse
+              | QueueGetPropertiesResponse
+              | TableGetPropertiesResponse
+            >((resolve, reject) =>
+              serviceClient.getProperties().then(
+                result => {
+                  resolve(result);
+                },
+                err => {
+                  reject(err.message.replace(/\n/gim, " "));
+                }
+              )
             ),
           toHealthProblems("AzureStorage" as const)
         )
