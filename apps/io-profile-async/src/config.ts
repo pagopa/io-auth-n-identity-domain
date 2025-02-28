@@ -58,6 +58,7 @@ export const IConfig = t.intersection([
     MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME: NonEmptyString,
 
     ON_PROFILE_UPDATE_LEASES_PREFIX: NonEmptyString,
+    PROFILE_EMAIL_STORAGE_TABLE_NAME: NonEmptyString,
 
     isProduction: t.boolean
   }),

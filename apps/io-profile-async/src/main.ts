@@ -6,6 +6,12 @@ import {
 } from "@pagopa/io-functions-commons/dist/src/models/service_preference";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { HtmlToTextOptions } from "html-to-text";
+import {
+  PROFILE_COLLECTION_NAME,
+  ProfileModel
+} from "@pagopa/io-functions-commons/dist/src/models/profile";
+import { DataTableProfileEmailsRepository } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement/storage";
+import { TableClient } from "@azure/data-tables";
 import { getConfigOrThrow } from "./config";
 import { ExpiredSessionAdvisorFunction } from "./functions/expired-session-advisor";
 import { InfoFunction } from "./functions/info";
@@ -20,6 +26,7 @@ import {
 } from "./functions/migrate-service-preference-from-legacy";
 import { repository as servicePreferencesRepository } from "./repositories/service-preferences";
 import { tracker } from "./repositories/tracker";
+import { OnProfileUpdateFunction } from "./functions/on-profile-update";
 
 const config = getConfigOrThrow();
 
@@ -44,6 +51,19 @@ const HTML_TO_TEXT_OPTIONS: HtmlToTextOptions = {
   selectors: [{ selector: "img", format: "skip" }], // Ignore all document images
   tables: true
 };
+
+const profileEmailTableClient = TableClient.fromConnectionString(
+  config.AZURE_STORAGE_CONNECTION_STRING,
+  config.PROFILE_EMAIL_STORAGE_TABLE_NAME
+);
+
+const profileModel = new ProfileModel(
+  database.container(PROFILE_COLLECTION_NAME)
+);
+
+const dataTableProfileEmailsRepository = new DataTableProfileEmailsRepository(
+  profileEmailTableClient
+);
 
 export const Info = InfoFunction({
   connectionString: config.AZURE_STORAGE_CONNECTION_STRING,
@@ -74,3 +94,9 @@ export const MigrateServicePreferenceFromLegacy = MigrateServicePreferenceFromLe
     telemetryClient
   }
 );
+
+export const OnProfileUpdate = OnProfileUpdateFunction({
+  profileModel,
+  dataTableProfileEmailsRepository,
+  telemetryClient
+});
