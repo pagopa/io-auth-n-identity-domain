@@ -45,6 +45,7 @@ export const IConfig = t.intersection([
     COSMOSDB_KEY: NonEmptyString,
     COSMOSDB_NAME: NonEmptyString,
     COSMOSDB_URI: NonEmptyString,
+    COSMOSDB_CONNECTION_STRING: NonEmptyString,
 
     // Default is 10 sec timeout
     FETCH_TIMEOUT_MS: withDefault(t.string, "10000").pipe(NumberFromString),
@@ -55,6 +56,8 @@ export const IConfig = t.intersection([
     // MigrateServicePreferenceFromLegacy Config
     IOPSTAPP_STORAGE_CONNECTION_STRING: NonEmptyString,
     MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME: NonEmptyString,
+
+    ON_PROFILE_UPDATE_LEASES_PREFIX: NonEmptyString,
 
     isProduction: t.boolean
   }),
