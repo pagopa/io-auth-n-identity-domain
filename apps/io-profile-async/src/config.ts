@@ -54,6 +54,7 @@ export const IConfig = t.intersection([
     EXPIRED_SESSION_CTA_URL: UrlFromString,
 
     ON_PROFILE_UPDATE_LEASES_PREFIX: NonEmptyString,
+    PROFILE_EMAIL_STORAGE_TABLE_NAME: NonEmptyString,
 
     isProduction: t.boolean
   }),
