@@ -2,6 +2,12 @@ import { CosmosClient } from "@azure/cosmos";
 import { getMailerTransporter } from "@pagopa/io-functions-commons/dist/src/mailer";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { HtmlToTextOptions } from "html-to-text";
+import {
+  PROFILE_COLLECTION_NAME,
+  ProfileModel
+} from "@pagopa/io-functions-commons/dist/src/models/profile";
+import { DataTableProfileEmailsRepository } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement/storage";
+import { TableClient } from "@azure/data-tables";
 import { getConfigOrThrow } from "./config";
 import { ExpiredSessionAdvisorFunction } from "./functions/expired-session-advisor";
 import { InfoFunction } from "./functions/info";
@@ -10,10 +16,12 @@ import { buildIoBackendInternalClient } from "./utils/backend-internal-client/de
 import { getFetchApi } from "./utils/fetch-utils";
 import { buildFunctionProfileClient } from "./utils/function-profile-client/dependency";
 import { initTelemetryClient } from "./utils/appinsights";
+import { OnProfileUpdateFunction } from "./functions/on-profile-update";
+import { OnProfileUpdateFunctionInput } from "./types/on-profile-update-input-document";
 
 const config = getConfigOrThrow();
 
-initTelemetryClient();
+const telemetryClient = initTelemetryClient();
 
 const cosmosClient = new CosmosClient({
   endpoint: config.COSMOSDB_URI,
@@ -29,6 +37,19 @@ const HTML_TO_TEXT_OPTIONS: HtmlToTextOptions = {
   selectors: [{ selector: "img", format: "skip" }], // Ignore all document images
   tables: true
 };
+
+const profileEmailTableClient = TableClient.fromConnectionString(
+  config.AZURE_STORAGE_CONNECTION_STRING,
+  config.PROFILE_EMAIL_STORAGE_TABLE_NAME
+);
+
+const profileModel = new ProfileModel(
+  database.container(PROFILE_COLLECTION_NAME)
+);
+
+const dataTableProfileEmailsRepository = new DataTableProfileEmailsRepository(
+  profileEmailTableClient
+);
 
 export const Info = InfoFunction({
   connectionString: config.AZURE_STORAGE_CONNECTION_STRING,
@@ -48,4 +69,11 @@ export const ExpiredSessionAdvisor = ExpiredSessionAdvisorFunction({
   functionProfileClient,
   inputDecoder: ExpiredSessionAdvisorQueueMessage,
   mailerTransporter: getMailerTransporter(config)
+});
+
+export const OnProfileUpdate = OnProfileUpdateFunction({
+  profileModel,
+  dataTableProfileEmailsRepository,
+  telemetryClient,
+  inputDecoder: OnProfileUpdateFunctionInput
 });

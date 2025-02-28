@@ -28,7 +28,9 @@ const getCurrentBackendVersionMock = vi.spyOn(
 
 describe("Info handler", () => {
   it("should return an error if the Cosmos health check fail", async () => {
-    azureStorageHealthCheckMock.mockImplementationOnce(() => TE.right(true));
+    azureStorageHealthCheckMock.mockImplementationOnce(() =>
+      TE.right(true as const)
+    );
 
     mockDatabaseAccount.mockRejectedValueOnce("db error");
 
@@ -49,7 +51,9 @@ describe("Info handler", () => {
   });
 
   it("should succeed if the application is healthy", async () => {
-    azureStorageHealthCheckMock.mockImplementationOnce(() => TE.right(true));
+    azureStorageHealthCheckMock.mockImplementationOnce(() =>
+      TE.right(true as const)
+    );
     getCurrentBackendVersionMock.mockReturnValueOnce("1.0.0");
 
     const result = await makeInfoHandler({

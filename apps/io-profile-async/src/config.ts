@@ -45,12 +45,16 @@ export const IConfig = t.intersection([
     COSMOSDB_KEY: NonEmptyString,
     COSMOSDB_NAME: NonEmptyString,
     COSMOSDB_URI: NonEmptyString,
+    COSMOSDB_CONNECTION_STRING: NonEmptyString,
 
     // Default is 10 sec timeout
     FETCH_TIMEOUT_MS: withDefault(t.string, "10000").pipe(NumberFromString),
 
     // Expired Session Email Config
     EXPIRED_SESSION_CTA_URL: UrlFromString,
+
+    ON_PROFILE_UPDATE_LEASES_PREFIX: NonEmptyString,
+    PROFILE_EMAIL_STORAGE_TABLE_NAME: NonEmptyString,
 
     isProduction: t.boolean
   }),
