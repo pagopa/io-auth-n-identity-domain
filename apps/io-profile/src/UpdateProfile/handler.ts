@@ -8,6 +8,8 @@ import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 
+import * as t from "io-ts";
+
 import {
   IResponseErrorConflict,
   IResponseErrorInternal,
@@ -48,7 +50,6 @@ import {
   isEmailAlreadyTaken,
 } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
-import { MigrateServicesPreferencesQueueMessage } from "../MigrateServicePreferenceFromLegacy/handler";
 import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "../UpsertedProfileOrchestrator/handler";
 import { ProfileMiddleware } from "../utils/middlewares/profile";
 import {
@@ -60,6 +61,15 @@ import { toHash } from "../utils/crypto";
 import { createTracker } from "../utils/tracking";
 import { UpdateProfile412ErrorTypesEnum } from "../generated/definitions/internal/UpdateProfile412ErrorTypes";
 import { EmailValidationProcessParams } from "../generated/definitions/internal/EmailValidationProcessParams";
+
+// Note: this type is shared with io-profile-async' MigrateServicesPreferencesFromLegacy
+export const MigrateServicesPreferencesQueueMessage = t.interface({
+  newProfile: RetrievedProfile,
+  oldProfile: RetrievedProfile,
+});
+export type MigrateServicesPreferencesQueueMessage = t.TypeOf<
+  typeof MigrateServicesPreferencesQueueMessage
+>;
 
 /**
  * Type of an UpdateProfile handler.
