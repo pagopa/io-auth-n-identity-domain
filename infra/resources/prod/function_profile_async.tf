@@ -48,9 +48,10 @@ locals {
       EXPIRED_SESSION_CTA_URL = "https://continua.io.pagopa.it?utm_source=email&utm_medium=email&utm_campaign=lv_expired"
 
       // Cosmos
-      COSMOSDB_KEY  = data.azurerm_cosmosdb_account.cosmos_api.primary_key
-      COSMOSDB_URI  = data.azurerm_cosmosdb_account.cosmos_api.endpoint
-      COSMOSDB_NAME = "db"
+      COSMOSDB_KEY               = data.azurerm_cosmosdb_account.cosmos_api.primary_key
+      COSMOSDB_URI               = data.azurerm_cosmosdb_account.cosmos_api.endpoint
+      COSMOSDB_NAME              = "db"
+      COSMOSDB_CONNECTION_STRING = format("AccountEndpoint=%s;AccountKey=%s;", data.azurerm_cosmosdb_account.cosmos_api.endpoint, data.azurerm_cosmosdb_account.cosmos_api.primary_key)
 
       //Queue
       EXPIRED_SESSION_ADVISOR_QUEUE = "expired-user-sessions" // TODO: replace when this queue is migrate in the monorepo
@@ -61,6 +62,10 @@ locals {
       //MigrateServicePreferenceFromLegacy Config
       IOPSTAPP_STORAGE_CONNECTION_STRING              = data.azurerm_storage_account.storage_app.primary_connection_string
       MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME = "profile-migrate-services-preferences-from-legacy" // TODO: replace when this queue is migrate in the monorepo
+      //
+      // OnProfileUpdate cosmosDB trigger variables
+      ON_PROFILE_UPDATE_LEASES_PREFIX  = "OnProfileUpdateLeasesPrefix-001"
+      PROFILE_EMAIL_STORAGE_TABLE_NAME = "profileEmails"
     }
   }
 }
@@ -103,6 +108,7 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5,
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "0"
+      "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "0"
     }
   )
   slot_app_settings = merge(
@@ -113,6 +119,7 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100,
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "1"
+      "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "1"
     }
   )
 
@@ -121,7 +128,8 @@ module "function_profile_async" {
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
     "AzureWebJobs.ExpiredSessionAdvisor.Disabled",
-    "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"
+    "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",
+    "AzureWebJobs.OnProfileUpdate.Disabled"
   ]
 
   subnet_service_endpoints = {
