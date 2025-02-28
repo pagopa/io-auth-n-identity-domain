@@ -102,6 +102,20 @@ services:
       - storage
       - cosmosdb
 
+  io-fast-login:
+    image: io-fast-login
+    build:
+      context: ./
+      dockerfile: ./docker/io-fast-login/Dockerfile
+    env_file:
+      - ./docker/generated/.env.io-fast-login
+    ports:
+      - ${FUNCTION_FAST_LOGIN_PORT}:7071
+    networks:
+      - io-fn
+    depends_on:
+      - functions-node-20
+
   cosmosdb:
     image: cosmosdb
     build:
