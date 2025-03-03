@@ -2,7 +2,7 @@
   "name": "io-lollipop",
   "description": "",
   "author": "IO Auth & Identity Team",
-  "version": "1.13.3",
+  "version": "1.13.4",
   "license": "MIT",
   "scripts": {
     "clean": "shx rm -rf dist",

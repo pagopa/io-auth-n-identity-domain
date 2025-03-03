@@ -72,7 +72,7 @@ export type IConfig = t.TypeOf<typeof IConfig>;
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const IConfig = t.intersection([
   t.interface({
-    APPINSIGHTS_INSTRUMENTATIONKEY: NonEmptyString,
+    APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
 
     COSMOSDB_KEY: NonEmptyString,
     COSMOSDB_NAME: NonEmptyString,

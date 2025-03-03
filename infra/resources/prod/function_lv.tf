@@ -112,7 +112,8 @@ module "function_lv" {
 module "function_lv_autoscale" {
   depends_on = [azurerm_resource_group.function_lv_rg]
   source     = "pagopa/dx-azure-app-service-plan-autoscaler/azurerm"
-  version    = "~> 0"
+  // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
+  version = "0.0.2"
 
   resource_group_name = azurerm_resource_group.function_lv_rg.name
   target_service = {

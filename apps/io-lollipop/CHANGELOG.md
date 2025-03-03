@@ -1,5 +1,11 @@
 # io-lollipop
 
+## 1.13.4
+
+### Patch Changes
+
+- 0be2a73: Application Insights connection string used instead of instrumentation key
+
 ## 1.13.3
 
 ### Patch Changes
