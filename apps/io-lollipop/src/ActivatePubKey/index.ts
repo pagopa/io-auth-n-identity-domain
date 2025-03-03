@@ -35,7 +35,7 @@ const assertionBlobService = createBlobService(
 );
 
 const telemetryClient = initTelemetryClient(
-  config.APPINSIGHTS_INSTRUMENTATIONKEY
+  config.APPLICATIONINSIGHTS_CONNECTION_STRING
 );
 
 // eslint-disable-next-line functional/no-let
