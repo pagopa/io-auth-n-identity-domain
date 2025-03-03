@@ -189,7 +189,7 @@ describe("MigrateServicePreferenceFromLegacy", () => {
     expect(trackEventMock).not.toHaveBeenCalled();
   });
 
-  it("GIVEN a valid message, WHEN the queue handler is called with cosmosdb not working, THEN must throw an error", async () => {
+  it("GIVEN a valid message, WHEN the queue handler is called with cosmosdb not working, THEN must return an error", async () => {
     const legacyToAutoRawInput = {
       newProfile: autoProfile,
       oldProfile: legacyProfileWithBlockedServices
@@ -218,5 +218,36 @@ describe("MigrateServicePreferenceFromLegacy", () => {
       "DOING"
     );
     expect(trackEventMock).not.toHaveBeenCalled();
+  });
+
+  it("GIVEN a new profile with LEGACY service preference settings, THEN must trace a permanent error and continue", async () => {
+    const legacyToAutoRawInput = {
+      newProfile: legacyProfileWithBlockedServices,
+      oldProfile: legacyProfileWithBlockedServices
+    };
+    const handler = makeHandler({
+      ...mockedDependencies,
+      input: legacyToAutoRawInput
+    });
+
+    const result = await handler();
+
+    expect(result).toEqual(E.of(void 0));
+
+    // It does not stop if an error occurred
+    expect(createServicePreferenceMock).not.toHaveBeenCalled();
+
+    // It does not track "DONE" event
+    expect(traceMigratingServicePreferencesMock).toHaveBeenCalledTimes(1);
+    expect(traceMigratingServicePreferencesMock).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Object),
+      "DOING"
+    );
+    expect(trackEventMock).toHaveBeenCalledTimes(1);
+    expect(trackEventMock).toHaveBeenCalledWith(
+      "io.citizen-auth.prof-async.migrate-service-preference-from-legacy.error.permanent",
+      "Can not migrate to negative services preferences version."
+    );
   });
 });

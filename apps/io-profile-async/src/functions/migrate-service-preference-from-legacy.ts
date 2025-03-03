@@ -143,7 +143,7 @@ export const makeHandler: H.Handler<
       if (error instanceof QueuePermanentError) {
         return TE.fromTask(
           deps.tracker.trackEvent(
-            "io.citizen-auth.prof-async.error.permanent" as NonEmptyString,
+            "io.citizen-auth.prof-async.migrate-service-preference-from-legacy.error.permanent" as NonEmptyString,
             error.message as NonEmptyString
           )(deps)
         );
