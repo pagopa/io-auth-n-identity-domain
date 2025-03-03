@@ -64,8 +64,11 @@ const legacyProfile: RetrievedProfile = {
 const legacyProfileWithBlockedServices: RetrievedProfile = {
   ...legacyProfile,
   blockedInboxOrChannels: {
-    MyServiceId: [BlockedInboxOrChannelEnum.INBOX],
-    MyServiceId2: [BlockedInboxOrChannelEnum.INBOX]
+    MyServiceId: [
+      BlockedInboxOrChannelEnum.INBOX,
+      BlockedInboxOrChannelEnum.EMAIL
+    ],
+    MyServiceId2: [BlockedInboxOrChannelEnum.WEBHOOK]
   }
 };
 
@@ -103,7 +106,7 @@ describe("MigrateServicePreferenceFromLegacy", () => {
     vi.clearAllMocks();
   });
 
-  it("GIVEN a message with legacy oldProfile containing blocked channel, WHEN the queue handler is called, THEN must return a true filled array", async () => {
+  it("GIVEN a message with legacy oldProfile containing blocked channel, WHEN the queue handler is called, THEN must complete creating the new service preferences", async () => {
     const legacyToAutoRawInput = {
       newProfile: autoProfile,
       oldProfile: legacyProfileWithBlockedServices
@@ -117,7 +120,7 @@ describe("MigrateServicePreferenceFromLegacy", () => {
     expect(result).toEqual(E.of(void 0));
 
     expect(createServicePreferenceMock).toHaveBeenCalledTimes(2);
-    expect(createServicePreferenceMock).toHaveBeenCalledWith({
+    expect(createServicePreferenceMock).toHaveBeenNthCalledWith(1, {
       accessReadMessageStatus: AccessReadMessageStatusEnum.UNKNOWN,
       fiscalCode: autoProfile.fiscalCode,
       id: makeServicesPreferencesDocumentId(
@@ -128,9 +131,24 @@ describe("MigrateServicePreferenceFromLegacy", () => {
       serviceId: "MyServiceId",
       settingsVersion: 0,
       kind: "INewServicePreference",
-      isEmailEnabled: true,
+      isEmailEnabled: false,
       isInboxEnabled: false,
       isWebhookEnabled: true
+    } as NewServicePreference);
+    expect(createServicePreferenceMock).toHaveBeenNthCalledWith(2, {
+      accessReadMessageStatus: AccessReadMessageStatusEnum.UNKNOWN,
+      fiscalCode: autoProfile.fiscalCode,
+      id: makeServicesPreferencesDocumentId(
+        autoProfile.fiscalCode as FiscalCode,
+        "MyServiceId2" as ServiceId,
+        0 as NonNegativeInteger
+      ),
+      serviceId: "MyServiceId2",
+      settingsVersion: 0,
+      kind: "INewServicePreference",
+      isEmailEnabled: true,
+      isInboxEnabled: true,
+      isWebhookEnabled: false
     } as NewServicePreference);
 
     expect(traceMigratingServicePreferencesMock).toHaveBeenCalledTimes(2);
