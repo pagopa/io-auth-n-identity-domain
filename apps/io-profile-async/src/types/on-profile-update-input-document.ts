@@ -7,7 +7,7 @@ import {
 import { withDefault } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
 
-export const ProfileDocument = t.intersection([
+export const OnProfileUpdateDocument = t.intersection([
   t.type({
     _self: NonEmptyString,
     fiscalCode: FiscalCode,
@@ -19,7 +19,7 @@ export const ProfileDocument = t.intersection([
   })
 ]);
 
-export type ProfileDocument = t.TypeOf<typeof ProfileDocument>;
+export type OnProfileUpdateDocument = t.TypeOf<typeof OnProfileUpdateDocument>;
 
 export const OnProfileUpdateFunctionInput = t.readonlyArray(t.unknown);
 export type OnProfileUpdateFunctionInput = t.TypeOf<

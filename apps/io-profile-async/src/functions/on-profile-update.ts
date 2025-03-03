@@ -8,35 +8,27 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as H from "@pagopa/handler-kit";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
-import {
-  IProfileEmailReader,
-  IProfileEmailWriter,
-  ProfileEmail,
-  ProfileEmailWriterError
-} from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
-import {
-  ProfileModel,
-  Profile
-} from "@pagopa/io-functions-commons/dist/src/models/profile";
+import { Profile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { generateVersionedModelId } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model_versioned";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { hashFiscalCode } from "@pagopa/ts-commons/lib/hash";
-import { TelemetryClient } from "applicationinsights";
 import { azureFunction } from "@pagopa/handler-kit-azure-func";
-import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { Semigroup } from "fp-ts/lib/Semigroup";
 import {
   OnProfileUpdateFunctionInput,
-  ProfileDocument
+  OnProfileUpdateDocument
 } from "../types/on-profile-update-input-document";
-import { cosmosErrorsToString } from "../utils/cosmos/errors";
+import {
+  ProfileEmailRepository,
+  ProfileEmailRepositoryDependencies,
+  ProfileRepository,
+  ProfileRepositoryDependencies,
+  TrackerRepositoryDependencies
+} from "../repositories";
 
-type FunctionDependencies = {
-  readonly dataTableProfileEmailsRepository: IProfileEmailReader &
-    IProfileEmailWriter;
-  readonly profileModel: ProfileModel;
-  readonly telemetryClient?: TelemetryClient;
-};
+type FunctionDependencies = ProfileEmailRepositoryDependencies &
+  TrackerRepositoryDependencies &
+  ProfileRepositoryDependencies;
 
 const eventNamePrefix = "OnProfileUpdate";
 
@@ -48,9 +40,9 @@ const errorSemigroup: Semigroup<Error> = {
 const getPreviousProfile = (
   fiscalCode: FiscalCode,
   version: NonNegativeInteger
-) => ({
-  profileModel
-}: FunctionDependencies): TE.TaskEither<Error, O.Option<ProfileDocument>> =>
+) => (
+  deps: FunctionDependencies
+): TE.TaskEither<Error, O.Option<OnProfileUpdateDocument>> =>
   pipe(
     version - 1,
     NonNegativeInteger.decode,
@@ -63,72 +55,19 @@ const getPreviousProfile = (
             previousVersion
           ),
           id =>
-            pipe(
-              profileModel.find([id, fiscalCode]),
-              TE.mapLeft(cosmosErrors =>
-                Error(cosmosErrorsToString(cosmosErrors))
-              ),
-              TE.chain(
-                O.fold(
-                  () => TE.right(O.none),
-                  profile =>
-                    pipe(
-                      ProfileDocument.decode(profile),
-                      E.foldW(
-                        errors =>
-                          TE.left(Error(readableReportSimplified(errors))),
-                        profileDocument => TE.right(O.some(profileDocument))
-                      )
-                    )
-                )
-              )
+            ProfileRepository.onProfileUpdateFindDocument([id, fiscalCode])(
+              deps
             )
         )
     )
   );
 
-const deleteProfileEmail = (profileEmail: ProfileEmail) => ({
-  dataTableProfileEmailsRepository
-}: FunctionDependencies): TE.TaskEither<Error, void> =>
-  pipe(
-    TE.tryCatch(
-      () => dataTableProfileEmailsRepository.delete(profileEmail),
-      error =>
-        error instanceof Error
-          ? error
-          : new Error("error deleting ProfileEmail from table storage")
-    ),
-    TE.orElse(error =>
-      ProfileEmailWriterError.is(error) && error.cause === "ENTITY_NOT_FOUND"
-        ? TE.right(void 0)
-        : TE.left(error)
-    )
-  );
-
-const insertProfileEmail = (profileEmail: ProfileEmail) => ({
-  dataTableProfileEmailsRepository
-}: FunctionDependencies): TE.TaskEither<Error, void> =>
-  pipe(
-    TE.tryCatch(
-      () => dataTableProfileEmailsRepository.insert(profileEmail),
-      error =>
-        error instanceof Error
-          ? error
-          : new Error("error inserting ProfileEmail into table storage")
-    ),
-    TE.orElse(error =>
-      ProfileEmailWriterError.is(error) && error.cause === "DUPLICATE_ENTITY"
-        ? TE.right(void 0)
-        : TE.left(error)
-    )
-  );
-
 const updateEmail: (
   profile: Required<
-    Pick<ProfileDocument, "isEmailValidated" | "email" | "fiscalCode">
+    Pick<OnProfileUpdateDocument, "isEmailValidated" | "email" | "fiscalCode">
   >,
   previousProfile: Required<
-    Pick<ProfileDocument, "isEmailValidated" | "email" | "fiscalCode">
+    Pick<OnProfileUpdateDocument, "isEmailValidated" | "email" | "fiscalCode">
   >
 ) => RTE.ReaderTaskEither<FunctionDependencies, Error, void> = (
   profile,
@@ -137,27 +76,27 @@ const updateEmail: (
   profile.isEmailValidated
     ? previousProfile.isEmailValidated
       ? RTE.right(void 0)
-      : insertProfileEmail({
+      : ProfileEmailRepository.emailInsert({
           email: profile.email,
           fiscalCode: profile.fiscalCode
         })
     : previousProfile.isEmailValidated
-    ? deleteProfileEmail({
+    ? ProfileEmailRepository.emailDelete({
         email: previousProfile.email,
         fiscalCode: profile.fiscalCode
       })
     : RTE.right(void 0);
 
 const handlePresentEmail = (
-  previousProfile: ProfileDocument,
-  profile: Required<ProfileDocument>
+  previousProfile: OnProfileUpdateDocument,
+  profile: Required<OnProfileUpdateDocument>
 ): RTE.ReaderTaskEither<FunctionDependencies, Error, void> =>
   pipe(
     O.fromNullable(previousProfile.email),
     O.fold(
       () =>
         profile.isEmailValidated
-          ? insertProfileEmail({
+          ? ProfileEmailRepository.emailInsert({
               email: profile.email,
               fiscalCode: profile.fiscalCode
             })
@@ -179,8 +118,8 @@ const handlePresentEmail = (
   );
 
 const handleMissingEmail = (
-  previousProfile: ProfileDocument,
-  profile: Omit<ProfileDocument, "email">
+  previousProfile: OnProfileUpdateDocument,
+  profile: Omit<OnProfileUpdateDocument, "email">
 ) => (dependencies: FunctionDependencies): TE.TaskEither<Error, void> =>
   pipe(
     O.fromNullable(previousProfile.email),
@@ -200,7 +139,7 @@ const handleMissingEmail = (
         return previousProfile.isEmailValidated
           ? pipe(
               dependencies,
-              deleteProfileEmail({
+              ProfileEmailRepository.emailDelete({
                 email: previousEmail,
                 fiscalCode: profile.fiscalCode
               })
@@ -220,7 +159,11 @@ const handlePositiveVersion = ({
   isEmailValidated,
   version,
   _self
-}: ProfileDocument): RTE.ReaderTaskEither<FunctionDependencies, Error, void> =>
+}: OnProfileUpdateDocument): RTE.ReaderTaskEither<
+  FunctionDependencies,
+  Error,
+  void
+> =>
   pipe(
     getPreviousProfile(fiscalCode, version),
     RTE.chain(
@@ -261,11 +204,11 @@ const handlePositiveVersion = ({
   );
 
 const handleProfile = (
-  profile: ProfileDocument
+  profile: OnProfileUpdateDocument
 ): RTE.ReaderTaskEither<FunctionDependencies, Error, void> =>
   profile.version === 0
     ? profile.email && profile.isEmailValidated
-      ? insertProfileEmail({
+      ? ProfileEmailRepository.emailInsert({
           email: profile.email,
           fiscalCode: profile.fiscalCode
         })
@@ -284,7 +227,7 @@ export const handler: (
     A.map(document =>
       pipe(
         document,
-        ProfileDocument.decode,
+        OnProfileUpdateDocument.decode,
         E.fold(
           () => {
             dependencies.telemetryClient?.trackEvent({

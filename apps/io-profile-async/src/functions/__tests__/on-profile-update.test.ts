@@ -18,7 +18,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { assert, beforeEach, describe, expect, it, vi } from "vitest";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { handler } from "../on-profile-update.ts";
-import { ProfileDocument } from "../../types/on-profile-update-input-document.ts";
+import { OnProfileUpdateDocument } from "../../types/on-profile-update-input-document.ts";
 
 const take = (id: string, arr: typeof mockProfiles) =>
   pipe(
@@ -338,7 +338,7 @@ describe("ProfileDocument", () => {
   };
 
   it("should return E.right when decoding baseProps with isEmailValidated equal to true", () => {
-    const res = ProfileDocument.decode({
+    const res = OnProfileUpdateDocument.decode({
       ...baseProps,
       isEmailValidated: true
     });
@@ -351,12 +351,12 @@ describe("ProfileDocument", () => {
   });
 
   it("should return E.right with isEmailValidated set to true when decoding baseProps", () => {
-    const res = ProfileDocument.decode(baseProps);
+    const res = OnProfileUpdateDocument.decode(baseProps);
     expect(res).toEqual(E.right({ ...baseProps, isEmailValidated: true }));
   });
 
   it("should return E.right when decoding baseProps with isEmailValidated equal to false", () => {
-    const res = ProfileDocument.decode({
+    const res = OnProfileUpdateDocument.decode({
       ...baseProps,
       isEmailValidated: false
     });
