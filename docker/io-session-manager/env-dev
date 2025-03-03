@@ -30,7 +30,7 @@ NODE_ENV=dev
 
 FAST_LOGIN_API_KEY=key
 # mocked with mockoon for now
-FAST_LOGIN_API_URL=http://host.docker.internal:3000
+FAST_LOGIN_API_URL=http://io-fast-login:7071
 
 LOLLIPOP_API_KEY=aKey
 LOLLIPOP_API_BASE_PATH=/api/v1
