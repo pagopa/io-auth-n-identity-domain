@@ -10,7 +10,6 @@ NODE_TLS_REJECT_UNAUTHORIZED=0
 
 # -------------------
 
-API_GATEWAY_PORT=${API_GATEWAY_PORT}
 
 ###
 # Azure Storages Envs
