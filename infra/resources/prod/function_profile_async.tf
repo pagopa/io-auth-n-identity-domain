@@ -57,6 +57,10 @@ locals {
 
       // Storage
       AZURE_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.citizen_auth_common.primary_connection_string
+
+      //MigrateServicePreferenceFromLegacy Config
+      IOPSTAPP_STORAGE_CONNECTION_STRING              = data.azurerm_storage_account.storage_app.primary_connection_string
+      MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME = "profile-migrate-services-preferences-from-legacy" // TODO: replace when this queue is migrate in the monorepo
     }
   }
 }
