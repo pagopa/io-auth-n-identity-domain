@@ -3,6 +3,7 @@ import * as T from "fp-ts/Task";
 import { NonEmptyString } from "io-ts-types";
 
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
+import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 
 import { initTelemetryClient } from "../utils/appinsights";
 
@@ -33,7 +34,7 @@ const traceMigratingServicePreferences: (
         servicePreferencesMode: newProfile.servicePreferencesSettings.mode,
         servicePreferencesVersion:
           newProfile.servicePreferencesSettings.version,
-        userId: "TODO" //toHash(newProfile.fiscalCode)
+        userId: sha256(newProfile.fiscalCode)
       },
       tagOverrides: { samplingEnabled: "false" }
     })
