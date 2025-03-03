@@ -115,6 +115,10 @@ services:
       - io-fn
     depends_on:
       - functions-node-20
+      - io-lollipop
+      - io-session-manager
+      - storage
+      - cosmosdb
 
   cosmosdb:
     image: cosmosdb
