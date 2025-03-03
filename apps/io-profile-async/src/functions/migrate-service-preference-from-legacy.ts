@@ -116,22 +116,22 @@ export const makeHandler: H.Handler<
           "Can not migrate to negative services preferences version."
         )
     ),
-    TE.map(migrateInput =>
-      blockedsToServicesPreferences(
-        migrateInput.oldProfile.blockedInboxOrChannels,
-        migrateInput.newProfile.fiscalCode,
-        migrateInput.newProfile.servicePreferencesSettings
-          .version as NonNegativeInteger // cast required: ts do not identify filterOrElse as a guard))
+    TE.chain(input =>
+      pipe(
+        blockedsToServicesPreferences(
+          input.oldProfile.blockedInboxOrChannels,
+          input.newProfile.fiscalCode,
+          input.newProfile.servicePreferencesSettings
+            .version as NonNegativeInteger // cast required: ts do not identify filterOrElse as a guard))
+        ),
+        ROA.map(newPreference =>
+          deps.servicePreferencesRepository.createServicePreference(
+            newPreference
+          )(deps)
+        ),
+        ROA.sequence(TE.ApplicativeSeq)
       )
     ),
-    TE.map(
-      ROA.map(newPreference =>
-        deps.servicePreferencesRepository.createServicePreference(
-          newPreference
-        )(deps)
-      )
-    ),
-    TE.chain(ROA.sequence(TE.ApplicativeSeq)),
     TE.chainTaskK(_ =>
       deps.tracker.traceMigratingServicePreferences(
         migrateInput.oldProfile,
