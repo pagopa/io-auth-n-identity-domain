@@ -62,7 +62,7 @@ import { createTracker } from "../utils/tracking";
 import { UpdateProfile412ErrorTypesEnum } from "../generated/definitions/internal/UpdateProfile412ErrorTypes";
 import { EmailValidationProcessParams } from "../generated/definitions/internal/EmailValidationProcessParams";
 
-// Note: this type is shared with io-profile-async' MigrateServicesPreferencesFromLegacy
+// Note: this type is shared with io-profile-async (MigrateServicesPreferencesFromLegacy)
 export const MigrateServicesPreferencesQueueMessage = t.interface({
   newProfile: RetrievedProfile,
   oldProfile: RetrievedProfile,

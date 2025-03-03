@@ -28,7 +28,7 @@ import {
   TrackerRepositoryDependency
 } from "../repositories";
 
-// Note: this
+// Note: this type is shared with io-profile (UpdateProfile)
 export const MigrateServicesPreferencesQueueMessage = t.type({
   newProfile: RetrievedProfile,
   oldProfile: RetrievedProfile
