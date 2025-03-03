@@ -101,7 +101,8 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5,
-      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0"
+      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0",
+      "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "1"
     }
   )
   slot_app_settings = merge(
@@ -110,7 +111,8 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100,
-      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1"
+      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1",
+      "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "1"
     }
   )
 
@@ -118,7 +120,8 @@ module "function_profile_async" {
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage",
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
-    "AzureWebJobs.ExpiredSessionAdvisor.Disabled"
+    "AzureWebJobs.ExpiredSessionAdvisor.Disabled",
+    "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"
   ]
 
   subnet_service_endpoints = {
