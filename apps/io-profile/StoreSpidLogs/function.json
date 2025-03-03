@@ -1,0 +1,20 @@
+{
+  "bindings": [
+    {
+      "queueName": "spidmsgitems",
+      "connection": "LogsStorageConnection",
+      "name": "spidMsgItem",
+      "type": "queueTrigger",
+      "direction": "in"
+    },
+    {
+      "type": "blob",
+      "name": "spidRequestResponse",
+      "path": "spidassertions/{fiscalCode}-{createdAtDay}-{spidRequestId}-{loginType}.json",
+      "connection": "LogsStorageConnection",
+      "direction": "out"
+    }
+  ],
+  "disabled": false,
+  "scriptFile": "../dist/StoreSpidLogs/index.js"
+}

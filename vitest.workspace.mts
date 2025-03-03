@@ -56,4 +56,12 @@ export default defineWorkspace([
       environment: "node",
     },
   },
+  {
+    extends: "apps/io-profile/vite.config.mts",
+    test: {
+      name: "io-profile",
+      include: ["apps/io-profile/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
 ]);

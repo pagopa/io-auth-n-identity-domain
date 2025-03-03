@@ -1,0 +1,577 @@
+swagger: "2.0"
+info:
+  version: 1.1.0
+  title: IO API for App
+  contact:
+    name: Digital Transformation Team
+    url: https://forum.italia.it/c/progetto-io
+  x-logo:
+    url: https://io.italia.it/assets/img/io-logo-blue.svg
+  description: >
+    # Warning
+
+    **This is an experimental API that is (most probably) going to change as we evolve the IO platform.**
+
+    # Introduction
+
+    This is the documentation of the IO API for App.
+
+host: api.cd.italia.it
+basePath: "/api/v1"
+schemes:
+  - https
+security:
+  - SubscriptionKey: []
+paths:
+  "/services/{service_id}":
+    get:
+      operationId: getService
+      summary: GetService
+      description: A previously created service with the provided service ID is returned.
+      tags:
+        - restricted
+      parameters:
+        - name: service_id
+          in: path
+          type: string
+          required: true
+          description: The ID of an existing Service.
+      responses:
+        "200":
+          description: Service found.
+          schema:
+            "$ref": "#/definitions/ServicePublic"
+          examples:
+            application/json:
+              department_name: dept
+              organization_name: org
+              service_id: 2b3e728c1a5d1efa035c
+              service_name: service
+              version: 1
+        "401":
+          description: Unauthorized
+        "404":
+          description: No service found for the provided ID.
+        "429":
+          description: Too many requests
+  "/profiles/{fiscal_code}":
+    get:
+      operationId: getProfile
+      summary: GetProfile
+      description: Retrieve a user profile
+      tags:
+        - restricted
+      parameters:
+        - $ref: "#/parameters/FiscalCode"
+      responses:
+        "200":
+          description: Profile created
+          schema:
+            $ref: "#/definitions/ExtendedProfile"
+        "400":
+          description: Invalid request.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "401":
+          description: Unauthorized
+        "404":
+          description: No message found.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "429":
+          description: Too many requests
+        "500":
+          description: Server Error
+          schema:
+            $ref: "#/definitions/ProblemJson"
+    post:
+      operationId: createProfile
+      summary: CreateProfile
+      description: |-
+        Create a new user profile
+      tags:
+        - restricted
+      parameters:
+        - $ref: "#/parameters/FiscalCode"
+        - in: body
+          name: body
+          schema:
+            $ref: "#/definitions/NewProfile"
+      responses:
+        "200":
+          description: Profile created
+          schema:
+            $ref: "#/definitions/ExtendedProfile"
+        "400":
+          description: Invalid request.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "401":
+          description: Unauthorized
+        "409":
+          description: Conflict
+        "429":
+          description: Too many requests
+    put:
+      operationId: updateProfile
+      summary: UpdateProfile
+      description: |-
+        Update a user profile
+      tags:
+        - restricted
+      parameters:
+        - $ref: "#/parameters/FiscalCode"
+        - in: body
+          name: body
+          schema:
+            $ref: '#/definitions/UpdateProfileParams'
+      responses:
+        "200":
+          description: Profile updated
+          schema:
+            $ref: "#/definitions/ExtendedProfile"
+        "400":
+          description: Invalid request.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+        "409":
+          description: Conflict
+        "412":
+          description: Precondition Failed
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "429":
+          description: Too many requests
+  "/profiles/{fiscal_code}/services/{service_id}/preferences":
+    get:
+      operationId: getServicePreferences
+      summary: getServicePreferences
+      description: Retrieve the User's preferences for a given Service Id
+      tags:
+        - restricted
+      parameters:
+        - $ref: "#/parameters/FiscalCode"
+        - $ref: "#/parameters/ServiceId"
+      responses:
+        "200":
+          description: The User's Service Preference
+          schema:
+            $ref: "#/definitions/ServicePreference"
+        "400":
+          description: Invalid request.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Profile or Service not found
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "409":
+          description: |-
+            Conflict. Either the provided preference setting version is not consistent with the current version stored in the Profile
+            or the Profile is not in the correct preference mode.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "429":
+          description: Too many requests
+    post:
+      operationId: upsertServicePreferences
+      summary: getServicePreferences
+      description: Either insert or update User's preferences for a given Service Id
+      tags:
+        - restricted
+      parameters:
+        - $ref: "#/parameters/FiscalCode"
+        - $ref: "#/parameters/ServiceId"
+        - in: body
+          name: body
+          schema:
+            $ref: "#/definitions/UpsertServicePreference"
+      responses:
+        "200":
+          description: User's Service Preference Upserted
+          schema:
+            $ref: "#/definitions/ServicePreference"
+        "400":
+          description: Invalid request.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Profile or Service not found
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "409":
+          description: |-
+            Conflict. Either the provided preference setting version is not consistent with the current version stored in the Profile
+            or the Profile is not in the correct preference mode.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "429":
+          description: Too many requests
+  "/email-validation-process/{fiscal_code}":
+    post:
+      operationId: startEmailValidationProcess
+      summary: StartEmailValidationProcess
+      description: |-
+        Start the email validation process that create the validation token
+        and send the validation email
+      tags:
+        - restricted
+      parameters:
+        - $ref: "#/parameters/FiscalCode"
+        - in: body
+          name: body 
+          schema: 
+            $ref: "#/definitions/EmailValidationProcessParams"
+      responses:
+        "202":
+          description: Request accepted
+        "400":
+          description: Invalid request.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Server Error
+          schema:
+            $ref: "#/definitions/ProblemJson"
+  "/user-data-processing/{fiscal_code}":
+    post:
+      operationId: upsertUserDataProcessing
+      summary: UpsertUserDataProcessing
+      description: |-
+        Upsert a user data processing
+      tags:
+        - restricted
+      parameters:
+        - $ref: "#/parameters/FiscalCode"
+        - in: body
+          name: body
+          schema:
+            $ref: "#/definitions/UserDataProcessingChoiceRequest"
+          description: The request wrapper of a user data processing choice.
+      responses:
+        "200":
+          description: UserDataProcessing created
+          schema:
+            $ref: "#/definitions/UserDataProcessing"
+        "400":
+          description: Invalid request.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "401":
+          description: Unauthorized
+        "429":
+          description: Too many requests
+        "409":
+          description: Conflict
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "500":
+          description: Server Error
+          schema:
+            $ref: "#/definitions/ProblemJson"
+  "/user-data-processing/{fiscal_code}/{choice}":
+    get:
+      operationId: getUserDataProcessing
+      summary: GetUserDataProcessing
+      description: Retrieve user data processing
+      tags:
+        - restricted
+      parameters:
+        - $ref: "#/parameters/FiscalCode"
+        - $ref: "#/parameters/UserDataProcessingChoiceParam"
+      responses:
+        "200":
+          description: User data processing retrieved
+          schema:
+            $ref: "#/definitions/UserDataProcessing"
+        "400":
+          description: Invalid request.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "401":
+          description: Unauthorized
+        "404":
+          description: No message found.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "429":
+          description: Too many requests
+    delete:
+      operationId: abortUserDataProcessing
+      summary: AbortUserDataProcessing
+      description: |-
+        Ask for a request to abort, if present
+      tags:
+        - restricted
+      parameters:
+        - $ref: "#/parameters/FiscalCode"
+        - $ref: "#/parameters/UserDataProcessingChoiceParam"
+      responses:
+        "202":
+          description: The abort request has been recorded
+        "400":
+          description: Invalid request.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+        "409":
+          description: Conflict
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "429":
+          description: Too many requests
+        "500":
+          description: Server Error
+          schema:
+            $ref: "#/definitions/ProblemJson"
+  "/notify-login":
+    post:
+      operationId: startNotifyLoginProcess
+      description: |-
+        Initiate the Orchestrator to send an email to the user regarding a recently performed login.
+      tags:
+        - restricted
+      parameters:
+        - in: body
+          name: body
+          schema:
+            $ref: "#/definitions/UserLoginParams"
+      responses:
+        "202":
+          description: Request accepted
+        "400":
+          description: Invalid request.
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Server Error
+          schema:
+            $ref: "#/definitions/ProblemJson"
+
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  SubscriptionKey:
+    type: apiKey
+    name: X-Functions-Key
+    in: header
+    description: The API key obtained through the developer portal.
+parameters:
+  FiscalCode:
+    name: fiscal_code
+    in: path
+    type: string
+    maxLength: 16
+    minLength: 16
+    required: true
+    description: The fiscal code of the user, all upper case.
+    pattern: "[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]"
+    x-example: SPNDNL80R13C555X
+  ServiceId:
+    name: service_id
+    in: path
+    type: string
+    required: true
+    description: The ID of an existing Service.
+  PaginationRequest:
+    name: cursor
+    in: query
+    type: string
+    minimum: 1
+    description: An opaque identifier that points to the next item in the collection.
+    x-example: 01BX9NSMKVXXS5PSP2FATZM123
+  PageSize:
+    type: integer
+    name: page_size
+    in: query
+    minimum: 1
+    maximum: 100
+    description: How many items a page should include.
+  UserDataProcessingChoiceParam:
+    name: choice
+    in: path
+    type: string
+    enum: [DOWNLOAD, DELETE]
+    description: A representation of a user data processing choice
+    required: true
+    x-example: DOWNLOAD
+definitions:
+  UpdateProfileParams:
+    allOf:
+      - $ref: '#/definitions/Profile'
+      - $ref: '#/definitions/EmailValidationProcessParams'
+  UserLoginParams:
+    type: object
+    description: All the data related to a newly performed login
+    properties:
+      fiscal_code:
+        $ref: "#/definitions/FiscalCode"
+      name:
+        type: string
+        minLength: 1
+      family_name:
+        type: string
+        minLength: 1
+      email:
+        $ref: "#/definitions/EmailAddress"
+      identity_provider:
+        type: string
+        minLength: 1
+      ip_address:
+        $ref: "#/definitions/IPAddress"
+      device_name:
+        type: string
+        minLength: 1
+      is_email_validated:
+        $ref: '#/definitions/IsEmailValidated'
+    required:
+      - fiscal_code
+      - name
+      - family_name
+      - email
+      - identity_provider
+      - ip_address
+  IPAddress:
+    type: string
+    description: An IP address.
+    format: IPString
+    x-import: "@pagopa/ts-commons/lib/strings"
+    example: "127.0.0.1"
+  EmailValidationProcessParams:
+    type: object
+    properties:
+      name:
+        type: string
+    required:
+      - name
+  LimitedProfile:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/LimitedProfile"
+  CIDR:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/CIDR"
+  ServicePayload:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ServicePayload"
+  ExtendedServicePayload:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ExtendedServicePayload"
+  CommonServicePayload:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/CommonServicePayload"
+  HiddenServicePayload:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/HiddenServicePayload"
+  VisibleServicePayload:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/VisibleServicePayload"
+  OrganizationName:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/OrganizationName"
+  DepartmentName:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/DepartmentName"
+  ExtendedProfile:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ExtendedProfile"
+  NewProfile:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/NewProfile"
+  ProblemJson:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ProblemJson"
+  Profile:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/Profile"
+  ServiceId:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ServiceId"
+  ServiceMetadata:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ServiceMetadata"
+  ServiceScope:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ServiceScope"
+  ServiceName:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ServiceName"
+  ServicePublic:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ServicePublic"
+  EmailAddress:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/EmailAddress"
+  BlockedInboxOrChannel:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/BlockedInboxOrChannel"
+  BlockedInboxOrChannels:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/BlockedInboxOrChannels"
+  PreferredLanguage:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/PreferredLanguage"
+  PreferredLanguages:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/PreferredLanguages"
+  IsInboxEnabled:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/IsInboxEnabled"
+  IsEmailEnabled:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/IsEmailEnabled"
+  ReminderStatus:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ReminderStatus"
+  AcceptedTosVersion:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/AcceptedTosVersion"
+  IsWebhookEnabled:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/IsWebhookEnabled"
+  IsEmailValidated:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/IsEmailValidated"
+  FiscalCode:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/FiscalCode"
+  TimeToLiveSeconds:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/TimeToLiveSeconds"
+  Timestamp:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/Timestamp"
+  OrganizationFiscalCode:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/OrganizationFiscalCode"
+  NotificationChannel:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/NotificationChannel"
+  NotificationChannelStatusValue:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/NotificationChannelStatusValue"
+  UserDataProcessing:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/UserDataProcessing"
+  UserDataProcessingStatus:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/UserDataProcessingStatus"
+  UserDataProcessingChoice:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/UserDataProcessingChoice"
+  UserDataProcessingChoiceRequest:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/UserDataProcessingChoiceRequest"
+  IsTestProfile:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/IsTestProfile"
+  ServicePreferencesSettings:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ServicePreferencesSettings"
+  ServicesPreferencesMode:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ServicesPreferencesMode"
+  BasicServicePreference:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/BasicServicePreference"
+  ServicePreference:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ServicePreference"
+  UpsertServicePreference:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/UpsertServicePreference"
+  StandardServiceMetadata:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/StandardServiceMetadata"
+  SpecialServiceMetadata:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/SpecialServiceMetadata"
+  CommonServiceMetadata:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/CommonServiceMetadata"
+  SpecialServiceCategory:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/SpecialServiceCategory"
+  StandardServiceCategory:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/StandardServiceCategory"
+  AppVersion:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/AppVersion"
+  PushNotificationsContentType:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/PushNotificationsContentType"
+  UpdateProfile412ErrorTypes:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/problemJson_definitions.yaml#/UpdateProfile412ErrorTypes"
