@@ -6,7 +6,7 @@ on:
 jobs:
   deploy_to_azure:
     name: Deploy to Azure Function App
-    uses: pagopa/dx/.github/workflows/function_app_deploy.yaml@802c7c19c579c6d562496a0d6e7710978603d413
+    uses: pagopa/dx/.github/workflows/function_app_deploy.yaml@edaa2a22738b738092e71dd9bdf6494aca593980
     with:
       # '-cd' suffix added inside the pipeline
       environment: apps-prod
