@@ -1,7 +1,7 @@
 import { Context } from "@azure/functions";
 import {
   EncryptedPayload,
-  toEncryptedPayload,
+  toEncryptedPayload
 } from "@pagopa/ts-commons/lib/encrypt";
 import { IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
@@ -13,7 +13,7 @@ import * as t from "io-ts";
 import { UTCISODateFromString } from "@pagopa/ts-commons/lib/dates";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { sequenceS } from "fp-ts/lib/Apply";
-import { SpidMsgItem } from "./index";
+import { SpidMsgItem } from "../../../io-profile/src/StoreSpidLogs/index";
 
 /**
  * Payload of the stored blob item
@@ -34,7 +34,7 @@ const SpidBlobItem = t.interface({
   encryptedResponsePayload: EncryptedPayload,
 
   // SPID request ID
-  spidRequestId: t.string,
+  spidRequestId: t.string
 });
 
 export type SpidBlobItem = t.TypeOf<typeof SpidBlobItem>;
@@ -46,7 +46,7 @@ export interface IOutputBinding {
 export const encryptAndStore = async (
   context: Context,
   spidMsgItem: SpidMsgItem,
-  spidLogsPublicKey: NonEmptyString,
+  spidLogsPublicKey: NonEmptyString
 ): Promise<void | IOutputBinding> => {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const encrypt = (plainText: string) =>
@@ -55,32 +55,32 @@ export const encryptAndStore = async (
   return pipe(
     sequenceS(E.Applicative)({
       encryptedRequestPayload: encrypt(spidMsgItem.requestPayload),
-      encryptedResponsePayload: encrypt(spidMsgItem.responsePayload),
+      encryptedResponsePayload: encrypt(spidMsgItem.responsePayload)
     }),
-    E.map((item) => ({
+    E.map(item => ({
       ...spidMsgItem,
-      ...item,
+      ...item
     })),
     E.fold(
-      (err) =>
+      err =>
         context.log.error(`StoreSpidLogs|ERROR=Cannot encrypt payload|${err}`),
       (encryptedBlobItem: SpidBlobItem) =>
         pipe(
           t.exact(SpidBlobItem).decode(encryptedBlobItem),
           E.fold(
-            (errs) => {
+            errs => {
               // unrecoverable error
               context.log.error(
                 `StoreSpidLogs|ERROR=Cannot decode payload|ERROR_DETAILS=${readableReport(
-                  errs,
-                )}`,
+                  errs
+                )}`
               );
             },
-            (spidBlobItem) => ({
-              spidRequestResponse: spidBlobItem,
-            }),
-          ),
-        ),
-    ),
+            spidBlobItem => ({
+              spidRequestResponse: spidBlobItem
+            })
+          )
+        )
+    )
   );
 };
