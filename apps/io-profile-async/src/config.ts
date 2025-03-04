@@ -57,6 +57,7 @@ export const IConfig = t.intersection([
     MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME: NonEmptyString,
 
     // StoreSpidLogs Config
+    IOPSTLOGS_STORAGE_CONNECTION_STRING: NonEmptyString,
     SPID_LOGS_PUBLIC_KEY: NonEmptyString,
 
     isProduction: t.boolean
