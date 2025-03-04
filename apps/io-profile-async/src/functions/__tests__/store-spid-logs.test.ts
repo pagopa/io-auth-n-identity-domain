@@ -1,14 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { toPlainText } from "@pagopa/ts-commons/lib/encrypt";
 import { IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, assert } from "vitest";
+
+import * as E from "fp-ts/lib/Either";
 
 import { format } from "date-fns";
-import { isRight } from "fp-ts/lib/Either";
+import { TelemetryClient } from "applicationinsights";
+import { toPlainText } from "@pagopa/ts-commons/lib/encrypt";
 import { aFiscalCode } from "../../../../io-profile/src/__mocks__/mocks";
-import { encryptAndStore, IOutputBinding } from "../store-spid-logs";
-import { SpidMsgItem } from "../../../../io-profile/src/StoreSpidLogs/index";
+import { HandlerOutput, makeHandler } from "../store-spid-logs";
+import { StoreSpidLogsQueueMessage } from "../../types/store-spid-logs-queue-message";
+
+import { mockQueueHandlerInputMocks } from "../__mocks__/handlerMocks";
+import { trackerMock } from "../__mocks__/tracker.mock";
 
 const today = format(new Date(), "yyyy-MM-dd");
 const aDate = new Date();
@@ -36,7 +41,7 @@ PTIMImLy8ebFCadleIibAkBnlE+V7qUL+a/XBMazEffUVsMoPN9iv7G6UPUyOipN
 hG0enuvF/PmgeLYsbFtozTm2/mQNqBV6USME39kPoKY1
 -----END RSA PRIVATE KEY-----`;
 
-const aSpidMsgItem: SpidMsgItem = {
+const aSpidMsgItem: StoreSpidLogsQueueMessage = {
   createdAt: aDate,
   createdAtDay: today,
   fiscalCode: aFiscalCode,
@@ -49,7 +54,7 @@ const aSpidMsgItem: SpidMsgItem = {
   spidRequestId: "AAAA_BBBB"
 };
 
-const anotherSpidMsgItem: SpidMsgItem = {
+const anotherSpidMsgItem: StoreSpidLogsQueueMessage = {
   createdAt: aDate,
   createdAtDay: today,
   fiscalCode: aFiscalCode,
@@ -62,148 +67,139 @@ const anotherSpidMsgItem: SpidMsgItem = {
   spidRequestId: "CCCC_DDDD"
 };
 
+// --------------
+// Mocks
+// --------------
+
+const mockedDependencies = {
+  ...mockQueueHandlerInputMocks(StoreSpidLogsQueueMessage, aSpidMsgItem),
+  spidLogsPublicKey: aPublicKey,
+  tracker: trackerMock,
+  // Subdependencies, unused in this tests
+  telemetryClient: (null as any) as TelemetryClient
+};
+
+// --------------
+// Tests
+// --------------
+
 describe("StoreSpidLogs", () => {
-  it("should fail on invalid payload published into the queue", async () => {
-    const mockedContext = {
-      bindings: {
-        spidMsgItem: aSpidMsgItem
-      },
-      done: vi.fn(),
-      log: {
-        error: vi.fn()
-      }
-    };
-    const blobItem = await encryptAndStore(
-      mockedContext as any,
-      {
-        ...aSpidMsgItem,
-        ip: "XX" as IPString
-      },
-      aPublicKey
-    );
-    expect(blobItem).toBeUndefined();
-  });
-
   it("should store both SPID request/response published into the queue", async () => {
-    const mockedContext = {
-      bindings: {
-        spidMsgItem: aSpidMsgItem
-      },
-      done: vi.fn(),
-      log: {
-        error: vi.fn()
-      }
-    };
-    const blobItem = await encryptAndStore(
-      mockedContext as any,
-      aSpidMsgItem,
-      aPublicKey
-    );
-    const blob = blobItem as IOutputBinding;
-    const encryptedSpidBlobItem = blob.spidRequestResponse;
-
-    expect(encryptedSpidBlobItem).not.toHaveProperty("loginType");
-    expect(encryptedSpidBlobItem).toMatchObject({
-      createdAt: aSpidMsgItem.createdAt,
-      ip: aSpidMsgItem.ip,
-      spidRequestId: aSpidMsgItem.spidRequestId
+    const handler = makeHandler({
+      ...mockedDependencies,
+      input: { ...aSpidMsgItem }
     });
+    const result = await handler();
 
-    const decryptedRequestPayload = toPlainText(
-      aRSAPrivateKey,
-      encryptedSpidBlobItem.encryptedRequestPayload
-    );
-    const decryptedResponsePayload = toPlainText(
-      aRSAPrivateKey,
-      encryptedSpidBlobItem.encryptedResponsePayload
-    );
+    assert(E.isRight(result));
 
-    if (isRight(decryptedRequestPayload) && isRight(decryptedResponsePayload)) {
-      expect(decryptedRequestPayload.right).toEqual(
-        aSpidMsgItem.requestPayload
+    if (E.isRight(result)) {
+      const blob = result.right as Exclude<HandlerOutput, void>;
+      const encryptedSpidBlobItem = blob.spidRequestResponse;
+
+      expect(blob).not.toHaveProperty("loginType");
+      expect(encryptedSpidBlobItem).not.toHaveProperty("loginType");
+
+      expect(encryptedSpidBlobItem).toMatchObject({
+        createdAt: aSpidMsgItem.createdAt,
+        ip: aSpidMsgItem.ip,
+        spidRequestId: aSpidMsgItem.spidRequestId
+      });
+
+      const decryptedRequestPayload = toPlainText(
+        aRSAPrivateKey,
+        encryptedSpidBlobItem.encryptedRequestPayload
       );
-      expect(decryptedResponsePayload.right).toEqual(
-        aSpidMsgItem.responsePayload
+      const decryptedResponsePayload = toPlainText(
+        aRSAPrivateKey,
+        encryptedSpidBlobItem.encryptedResponsePayload
       );
-    } else {
-      expect(true).toBeFalsy();
+
+      if (
+        E.isRight(decryptedRequestPayload) &&
+        E.isRight(decryptedResponsePayload)
+      ) {
+        expect(decryptedRequestPayload.right).toEqual(
+          aSpidMsgItem.requestPayload
+        );
+        expect(decryptedResponsePayload.right).toEqual(
+          aSpidMsgItem.responsePayload
+        );
+      } else {
+        expect(true).toBeFalsy();
+      }
     }
   });
 
   it("should encrypt two different messages with the same Cipher instance and decrypt with another one", async () => {
-    const mockedContext = {
-      bindings: {
-        spidMsgItem: aSpidMsgItem
-      },
-      done: vi.fn(),
-      log: {
-        error: vi.fn()
+    const handler = makeHandler({
+      ...mockedDependencies,
+      input: { ...aSpidMsgItem }
+    });
+    const result = await handler();
+
+    assert(E.isRight(result));
+
+    if (E.isRight(result)) {
+      const blob = result.right as Exclude<HandlerOutput, void>;
+      const encryptedSpidBlobItem = blob.spidRequestResponse;
+      const decryptedRequestPayload = toPlainText(
+        aRSAPrivateKey,
+        encryptedSpidBlobItem.encryptedRequestPayload
+      );
+      const decryptedResponsePayload = toPlainText(
+        aRSAPrivateKey,
+        encryptedSpidBlobItem.encryptedResponsePayload
+      );
+
+      if (
+        E.isRight(decryptedRequestPayload) &&
+        E.isRight(decryptedResponsePayload)
+      ) {
+        expect(decryptedRequestPayload.right).toEqual(
+          aSpidMsgItem.requestPayload
+        );
+        expect(decryptedResponsePayload.right).toEqual(
+          aSpidMsgItem.responsePayload
+        );
+      } else {
+        expect(true).toBeFalsy();
       }
-    };
-    const blobItem = await encryptAndStore(
-      mockedContext as any,
-      aSpidMsgItem,
-      aPublicKey
-    );
-    const blob = blobItem as IOutputBinding;
-    const encryptedSpidBlobItem = blob.spidRequestResponse;
-    const decryptedRequestPayload = toPlainText(
-      aRSAPrivateKey,
-      encryptedSpidBlobItem.encryptedRequestPayload
-    );
-    const decryptedResponsePayload = toPlainText(
-      aRSAPrivateKey,
-      encryptedSpidBlobItem.encryptedResponsePayload
-    );
-    if (isRight(decryptedRequestPayload) && isRight(decryptedResponsePayload)) {
-      expect(decryptedRequestPayload.right).toEqual(
-        aSpidMsgItem.requestPayload
-      );
-      expect(decryptedResponsePayload.right).toEqual(
-        aSpidMsgItem.responsePayload
-      );
-    } else {
-      expect(true).toBeFalsy();
     }
 
-    const anotherMockedContext = {
-      bindings: {
-        spidMsgItem: anotherSpidMsgItem
-      },
-      done: vi.fn(),
-      log: {
-        error: vi.fn()
+    const handler2 = makeHandler({
+      ...mockedDependencies,
+      input: { ...anotherSpidMsgItem }
+    });
+    const secondBlobItem = await handler2();
+
+    assert(E.isRight(secondBlobItem));
+    if (E.isRight(secondBlobItem)) {
+      const secondBlob = secondBlobItem.right as Exclude<HandlerOutput, void>;
+      const secondEncryptedSpidBlobItem = secondBlob.spidRequestResponse;
+
+      const secondDecryptedRequestPayload = toPlainText(
+        aRSAPrivateKey,
+        secondEncryptedSpidBlobItem.encryptedRequestPayload
+      );
+      const secondDecryptedResponsePayload = toPlainText(
+        aRSAPrivateKey,
+        secondEncryptedSpidBlobItem.encryptedResponsePayload
+      );
+
+      if (
+        E.isRight(secondDecryptedRequestPayload) &&
+        E.isRight(secondDecryptedResponsePayload)
+      ) {
+        expect(secondDecryptedRequestPayload.right).toEqual(
+          anotherSpidMsgItem.requestPayload
+        );
+        expect(secondDecryptedResponsePayload.right).toEqual(
+          anotherSpidMsgItem.responsePayload
+        );
+      } else {
+        expect(true).toBeFalsy();
       }
-    };
-    const secondBlobItem = await encryptAndStore(
-      anotherMockedContext as any,
-      anotherSpidMsgItem,
-      aPublicKey
-    );
-    const secondBlob = secondBlobItem as IOutputBinding;
-    const secondEncryptedSpidBlobItem = secondBlob.spidRequestResponse;
-
-    const secondDecryptedRequestPayload = toPlainText(
-      aRSAPrivateKey,
-      secondEncryptedSpidBlobItem.encryptedRequestPayload
-    );
-    const secondDecryptedResponsePayload = toPlainText(
-      aRSAPrivateKey,
-      secondEncryptedSpidBlobItem.encryptedResponsePayload
-    );
-
-    if (
-      isRight(secondDecryptedRequestPayload) &&
-      isRight(secondDecryptedResponsePayload)
-    ) {
-      expect(secondDecryptedRequestPayload.right).toEqual(
-        anotherSpidMsgItem.requestPayload
-      );
-      expect(secondDecryptedResponsePayload.right).toEqual(
-        anotherSpidMsgItem.responsePayload
-      );
-    } else {
-      expect(true).toBeFalsy();
     }
   });
 });
