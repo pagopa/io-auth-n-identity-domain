@@ -1,86 +1,92 @@
-import { Context } from "@azure/functions";
+import * as TE from "fp-ts/lib/TaskEither";
+import * as RTE from "fp-ts/lib/ReaderTaskEither";
+
+import * as H from "@pagopa/handler-kit";
+import { azureFunction } from "@pagopa/handler-kit-azure-func";
+
 import {
   EncryptedPayload,
   toEncryptedPayload
 } from "@pagopa/ts-commons/lib/encrypt";
-import { IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
-import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 
 import * as t from "io-ts";
 
-import { UTCISODateFromString } from "@pagopa/ts-commons/lib/dates";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { sequenceS } from "fp-ts/lib/Apply";
-import { SpidMsgItem } from "../../../io-profile/src/StoreSpidLogs/index";
+import {
+  SpidBlobItem,
+  StoreSpidLogsQueueMessage
+} from "../types/store-spid-logs-queue-message";
+import { QueuePermanentError } from "../utils/queue-utils";
+import { Tracker, TrackerRepositoryDependency } from "../repositories";
 
-/**
- * Payload of the stored blob item
- * (one for each SPID request or response).
- */
-const SpidBlobItem = t.interface({
-  // Timestamp of Request/Response creation
-  createdAt: UTCISODateFromString,
+export type HandlerDependencies = {
+  tracker: Tracker;
+  spidLogsPublicKey: NonEmptyString;
+} & TrackerRepositoryDependency;
 
-  // IP of the client that made a SPID login action
-  ip: IPString,
+export type HandlerOutput = void | {
+  spidRequestResponse: SpidBlobItem;
+};
 
-  // XML payload of the SPID Request
-  // eslint-disable-next-line sort-keys
-  encryptedRequestPayload: EncryptedPayload,
+const encrypt: (
+  plainText: string
+) => RTE.ReaderTaskEither<
+  HandlerDependencies,
+  QueuePermanentError,
+  EncryptedPayload
+> = plainText => ({ spidLogsPublicKey }) =>
+  pipe(
+    toEncryptedPayload(spidLogsPublicKey, plainText),
+    TE.fromEither,
+    TE.mapLeft(e => new QueuePermanentError(`Cannot encrypt payload ${e}`))
+  );
 
-  // XML payload of the SPID Response
-  encryptedResponsePayload: EncryptedPayload,
-
-  // SPID request ID
-  spidRequestId: t.string
-});
-
-export type SpidBlobItem = t.TypeOf<typeof SpidBlobItem>;
-
-export interface IOutputBinding {
-  readonly spidRequestResponse: SpidBlobItem;
-}
-
-export const encryptAndStore = async (
-  context: Context,
-  spidMsgItem: SpidMsgItem,
-  spidLogsPublicKey: NonEmptyString
-): Promise<void | IOutputBinding> => {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const encrypt = (plainText: string) =>
-    toEncryptedPayload(spidLogsPublicKey, plainText);
-
-  return pipe(
-    sequenceS(E.Applicative)({
-      encryptedRequestPayload: encrypt(spidMsgItem.requestPayload),
-      encryptedResponsePayload: encrypt(spidMsgItem.responsePayload)
+export const makeHandler: H.Handler<
+  StoreSpidLogsQueueMessage,
+  HandlerOutput,
+  HandlerDependencies
+> = H.of(queueInput => deps =>
+  pipe(
+    sequenceS(TE.ApplicativePar)({
+      encryptedRequestPayload: encrypt(queueInput.requestPayload)(deps),
+      encryptedResponsePayload: encrypt(queueInput.responsePayload)(deps)
     }),
-    E.map(item => ({
-      ...spidMsgItem,
+    TE.map(item => ({
+      ...queueInput,
       ...item
     })),
-    E.fold(
-      err =>
-        context.log.error(`StoreSpidLogs|ERROR=Cannot encrypt payload|${err}`),
-      (encryptedBlobItem: SpidBlobItem) =>
-        pipe(
-          t.exact(SpidBlobItem).decode(encryptedBlobItem),
-          E.fold(
-            errs => {
-              // unrecoverable error
-              context.log.error(
-                `StoreSpidLogs|ERROR=Cannot decode payload|ERROR_DETAILS=${readableReport(
-                  errs
-                )}`
-              );
-            },
-            spidBlobItem => ({
-              spidRequestResponse: spidBlobItem
-            })
-          )
+    TE.chain((encryptedBlobItem: SpidBlobItem) =>
+      pipe(
+        t.exact(SpidBlobItem).decode(encryptedBlobItem),
+        TE.fromEither,
+        TE.map(spidBlobItem => ({
+          spidRequestResponse: spidBlobItem
+        })),
+        TE.mapLeft(
+          errs =>
+            new QueuePermanentError(
+              `Cannot decode payload${readableReport(errs)}`
+            )
         )
-    )
-  );
-};
+      )
+    ),
+    TE.orElseW(error => {
+      if (error instanceof QueuePermanentError) {
+        return TE.fromIO(() =>
+          deps.tracker.trackEvent(
+            "io.citizen-auth.prof-async.store-spid-logs.error.permanent" as NonEmptyString,
+            error.message as NonEmptyString
+          )(deps)
+        );
+      } else {
+        return TE.left(error);
+      }
+    })
+  )
+);
+
+export const StoreSpidLogsFunction = azureFunction(makeHandler);

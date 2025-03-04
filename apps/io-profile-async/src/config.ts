@@ -58,6 +58,7 @@ export const IConfig = t.intersection([
     ON_PROFILE_UPDATE_LEASES_PREFIX: NonEmptyString,
     PROFILE_EMAIL_STORAGE_TABLE_NAME: NonEmptyString,
     // StoreSpidLogs Config
+    IOPSTLOGS_STORAGE_CONNECTION_STRING: NonEmptyString,
     SPID_LOGS_PUBLIC_KEY: NonEmptyString,
 
     isProduction: t.boolean
