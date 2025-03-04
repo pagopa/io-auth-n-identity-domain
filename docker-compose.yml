@@ -58,7 +58,7 @@ services:
       - "traefik.enable=true"
       # BUG HERE WITH DOUBLE FORWARD SLASH
       - "traefik.http.routers.io-lollipop.rule=PathPrefix(`//lollipop`)"
-      - "traefik.http.routers.functions-lollipop.entrypoints=web"
+      - "traefik.http.routers.io-lollipop.entrypoints=web"
       # apply middleware to route
       - "traefik.http.routers.io-lollipop.middlewares=io-lollipop-stripprefix,setHeader"
 
