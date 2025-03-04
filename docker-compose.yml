@@ -119,6 +119,7 @@ services:
       - io-session-manager
       - storage
       - cosmosdb
+      - redis-standalone
 
   cosmosdb:
     image: cosmosdb
@@ -260,10 +261,16 @@ services:
       - "REDIS_CLUSTER_REPLICAS=1"
       - "REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
       - "REDIS_CLUSTER_CREATOR=yes"
-  #
-  #
-  #
-  #
+
+  # Redis standalone (used by `io-fast-login`)
+  redis-standalone:
+    image: redis:6.0-alpine
+    ports:
+      - "6378:6379"
+    environment:
+      REDIS_ARGS: "--requirepass ${REDIS_STANDALONE_PASSWORD}"
+    networks:
+      - io-fn
 
   storage:
     image: mcr.microsoft.com/azure-storage/azurite
