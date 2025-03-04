@@ -8,8 +8,6 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as H from "@pagopa/handler-kit";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
-import { Profile } from "@pagopa/io-functions-commons/dist/src/models/profile";
-import { generateVersionedModelId } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model_versioned";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { hashFiscalCode } from "@pagopa/ts-commons/lib/hash";
 import { azureFunction } from "@pagopa/handler-kit-azure-func";
@@ -49,16 +47,10 @@ const getPreviousProfile = (
     E.fold(
       () => TE.right(O.none),
       previousVersion =>
-        pipe(
-          generateVersionedModelId<Profile, "fiscalCode">(
-            fiscalCode,
-            previousVersion
-          ),
-          id =>
-            ProfileRepository.onProfileUpdateFindDocument([id, fiscalCode])(
-              deps
-            )
-        )
+        ProfileRepository.onProfileUpdateFindDocument(
+          fiscalCode,
+          previousVersion
+        )(deps)
     )
   );
 
