@@ -266,7 +266,7 @@ services:
   redis-standalone:
     image: redis:6.0-alpine
     ports:
-      - "6378:6379"
+      - "${REDIS_STANDALONE_PORT}:6379"
     environment:
       REDIS_ARGS: "--requirepass ${REDIS_STANDALONE_PASSWORD}"
     networks:
