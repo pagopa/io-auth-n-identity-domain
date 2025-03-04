@@ -301,8 +301,8 @@ services:
     image: redis:6.0-alpine
     ports:
       - "${REDIS_STANDALONE_PORT}:6379"
-    environment:
-      REDIS_ARGS: "--requirepass ${REDIS_STANDALONE_PASSWORD}"
+    command: >
+      --requirepass ${REDIS_STANDALONE_PASSWORD}
     networks:
       - io-fn
 
