@@ -45,6 +45,7 @@ const onProfileUpdateFindDocument: (
     )
   );
 
+export type ProfileRepository = typeof ProfileRepository;
 export const ProfileRepository = {
   onProfileUpdateFindDocument
 };

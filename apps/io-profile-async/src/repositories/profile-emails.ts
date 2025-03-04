@@ -53,4 +53,5 @@ const emailDelete: (
     )
   );
 
+export type ProfileEmailRepository = typeof ProfileEmailRepository;
 export const ProfileEmailRepository = { emailInsert, emailDelete };

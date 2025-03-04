@@ -24,7 +24,10 @@ import {
   TrackerRepositoryDependencies
 } from "../repositories";
 
-type FunctionDependencies = ProfileEmailRepositoryDependencies &
+type FunctionDependencies = {
+  ProfileRepository: ProfileRepository;
+  ProfileEmailRepository: ProfileEmailRepository;
+} & ProfileEmailRepositoryDependencies &
   TrackerRepositoryDependencies &
   ProfileRepositoryDependencies;
 
@@ -47,7 +50,7 @@ const getPreviousProfile = (
     E.fold(
       () => TE.right(O.none),
       previousVersion =>
-        ProfileRepository.onProfileUpdateFindDocument(
+        deps.ProfileRepository.onProfileUpdateFindDocument(
           fiscalCode,
           previousVersion
         )(deps)
@@ -64,35 +67,35 @@ const updateEmail: (
 ) => RTE.ReaderTaskEither<FunctionDependencies, Error, void> = (
   profile,
   previousProfile
-) =>
+) => deps =>
   profile.isEmailValidated
     ? previousProfile.isEmailValidated
-      ? RTE.right(void 0)
-      : ProfileEmailRepository.emailInsert({
+      ? TE.right(void 0)
+      : deps.ProfileEmailRepository.emailInsert({
           email: profile.email,
           fiscalCode: profile.fiscalCode
-        })
+        })(deps)
     : previousProfile.isEmailValidated
-    ? ProfileEmailRepository.emailDelete({
+    ? deps.ProfileEmailRepository.emailDelete({
         email: previousProfile.email,
         fiscalCode: profile.fiscalCode
-      })
-    : RTE.right(void 0);
+      })(deps)
+    : TE.right(void 0);
 
 const handlePresentEmail = (
   previousProfile: OnProfileUpdateDocument,
   profile: Required<OnProfileUpdateDocument>
-): RTE.ReaderTaskEither<FunctionDependencies, Error, void> =>
+): RTE.ReaderTaskEither<FunctionDependencies, Error, void> => deps =>
   pipe(
     O.fromNullable(previousProfile.email),
     O.fold(
       () =>
         profile.isEmailValidated
-          ? ProfileEmailRepository.emailInsert({
+          ? deps.ProfileEmailRepository.emailInsert({
               email: profile.email,
               fiscalCode: profile.fiscalCode
-            })
-          : RTE.right(void 0),
+            })(deps)
+          : TE.right(void 0),
       previousEmail =>
         updateEmail(
           {
@@ -105,7 +108,7 @@ const handlePresentEmail = (
             fiscalCode: previousProfile.fiscalCode,
             isEmailValidated: previousProfile.isEmailValidated
           }
-        )
+        )(deps)
     )
   );
 
@@ -131,7 +134,7 @@ const handleMissingEmail = (
         return previousProfile.isEmailValidated
           ? pipe(
               dependencies,
-              ProfileEmailRepository.emailDelete({
+              dependencies.ProfileEmailRepository.emailDelete({
                 email: previousEmail,
                 fiscalCode: profile.fiscalCode
               })
@@ -197,15 +200,15 @@ const handlePositiveVersion = ({
 
 const handleProfile = (
   profile: OnProfileUpdateDocument
-): RTE.ReaderTaskEither<FunctionDependencies, Error, void> =>
+): RTE.ReaderTaskEither<FunctionDependencies, Error, void> => deps =>
   profile.version === 0
     ? profile.email && profile.isEmailValidated
-      ? ProfileEmailRepository.emailInsert({
+      ? deps.ProfileEmailRepository.emailInsert({
           email: profile.email,
           fiscalCode: profile.fiscalCode
-        })
-      : RTE.right<FunctionDependencies, Error, void>(void 0)
-    : handlePositiveVersion(profile);
+        })(deps)
+      : TE.right<Error, void>(void 0)
+    : handlePositiveVersion(profile)(deps);
 
 export const handler: (
   documents: OnProfileUpdateFunctionInput

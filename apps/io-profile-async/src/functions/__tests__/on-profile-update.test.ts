@@ -19,6 +19,7 @@ import { assert, beforeEach, describe, expect, it, vi } from "vitest";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { handler } from "../on-profile-update.ts";
 import { OnProfileUpdateDocument } from "../../types/on-profile-update-input-document.ts";
+import { ProfileEmailRepository, ProfileRepository } from "../../repositories";
 
 const take = (id: string, arr: typeof mockProfiles) =>
   pipe(
@@ -185,6 +186,8 @@ const mockTelemetryClient = ({
 } as unknown) as TelemetryClient;
 
 const mockDependencies = {
+  ProfileRepository,
+  ProfileEmailRepository,
   dataTableProfileEmailsRepository: mockDataTableProfileEmailsRepository,
   profileModel: mockProfileModel,
   telemetryClient: mockTelemetryClient

@@ -28,6 +28,7 @@ import { repository as servicePreferencesRepository } from "./repositories/servi
 import { tracker } from "./repositories/tracker";
 import { OnProfileUpdateFunction } from "./functions/on-profile-update";
 import { OnProfileUpdateFunctionInput } from "./types/on-profile-update-input-document";
+import { ProfileEmailRepository, ProfileRepository } from "./repositories";
 
 const config = getConfigOrThrow();
 
@@ -97,6 +98,8 @@ export const MigrateServicePreferenceFromLegacy = MigrateServicePreferenceFromLe
 );
 
 export const OnProfileUpdate = OnProfileUpdateFunction({
+  ProfileRepository,
+  ProfileEmailRepository,
   profileModel,
   dataTableProfileEmailsRepository,
   telemetryClient,
