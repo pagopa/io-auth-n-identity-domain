@@ -17,8 +17,8 @@ import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import { assert, beforeEach, describe, expect, it, vi } from "vitest";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
-import { handler } from "../on-profile-update.ts";
-import { OnProfileUpdateDocument } from "../../types/on-profile-update-input-document.ts";
+import { handler } from "../on-profile-update";
+import { OnProfileUpdateDocument } from "../../types/on-profile-update-input-document";
 import { ProfileEmailRepository, ProfileRepository } from "../../repositories";
 
 const take = (id: string, arr: typeof mockProfiles) =>
