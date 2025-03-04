@@ -54,6 +54,13 @@ services:
       - functions-node-20
       - cosmosdb
       - storage
+    labels:
+      - "traefik.enable=true"
+      # BUG HERE WITH DOUBLE FORWARD SLASH
+      - "traefik.http.routers.io-lollipop.rule=PathPrefix(`//lollipop`)"
+      - "traefik.http.routers.io-lollipop.entrypoints=web"
+      # apply middleware to route
+      - "traefik.http.routers.io-lollipop.middlewares=io-lollipop-stripprefix,setHeader"
 
   io-web-profile:
     image: io-web-profile
@@ -102,6 +109,25 @@ services:
       - storage
       - cosmosdb
 
+  io-fast-login:
+    image: io-fast-login
+    build:
+      context: ./
+      dockerfile: ./docker/io-fast-login/Dockerfile
+    env_file:
+      - ./docker/generated/.env.io-fast-login
+    ports:
+      - ${FUNCTION_FAST_LOGIN_PORT}:7071
+    networks:
+      - io-fn
+    depends_on:
+      - functions-node-20
+      - io-lollipop
+      - io-session-manager
+      - storage
+      - cosmosdb
+      - redis-standalone
+
   cosmosdb:
     image: cosmosdb
     build:
@@ -123,6 +149,33 @@ services:
       - "./docker/testenv2/conf:/app/conf:cached"
     networks:
       - io-fn
+
+  traefik:
+    image: traefik:v2.8
+    command: |-
+      --entrypoints.web.address=:80
+      --entrypoints.web.forwardedHeaders.insecure=true
+      --entrypoints.websecure.address=:8080
+      --entrypoints.websecure.forwardedHeaders.insecure=true
+      --providers.docker=true
+      --providers.docker.network=io-fn
+      --log.level=ERROR
+    ports:
+      - ${API_GATEWAY_PORT:-80}:${API_GATEWAY_PORT:-80}
+      - 8080:8080
+    networks:
+      - io-fn
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      # define middleware to be used in some functions services
+      - "traefik.http.middlewares.io-lollipop-stripprefix.stripprefix.prefixes=//lollipop"
+      - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-id=unused"
+      - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-subscription-id=unused"
+      - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-groups=${REQ_USER_GROUPS}"
+      - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-email=unused@example.com"
+      - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-note=unused"
+      - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-functions-key=unused"
 
   #
   #                   __ __            __             __
@@ -242,10 +295,16 @@ services:
       - "REDIS_CLUSTER_REPLICAS=1"
       - "REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
       - "REDIS_CLUSTER_CREATOR=yes"
-  #
-  #
-  #
-  #
+
+  # Redis standalone (used by `io-fast-login`)
+  redis-standalone:
+    image: redis:6.0-alpine
+    ports:
+      - "${REDIS_STANDALONE_PORT}:6379"
+    command: >
+      --requirepass ${REDIS_STANDALONE_PASSWORD}
+    networks:
+      - io-fn
 
   storage:
     image: mcr.microsoft.com/azure-storage/azurite
