@@ -21,14 +21,14 @@ import {
   ProfileEmailRepositoryDependencies,
   ProfileRepository,
   ProfileRepositoryDependencies,
-  TrackerRepositoryDependencies
+  TrackerRepositoryDependency
 } from "../repositories";
 
 type FunctionDependencies = {
   ProfileRepository: ProfileRepository;
   ProfileEmailRepository: ProfileEmailRepository;
 } & ProfileEmailRepositoryDependencies &
-  TrackerRepositoryDependencies &
+  TrackerRepositoryDependency &
   ProfileRepositoryDependencies;
 
 const eventNamePrefix = "OnProfileUpdate";
