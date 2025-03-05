@@ -98,10 +98,11 @@ export const retrieveProfile: (
   );
 
 export const buildMailBody = (
-  expiredSessionEmailParameters: ExpiredSessionEmailParameters
+  expiredSessionEmailParameters: ExpiredSessionEmailParameters,
+  expiredAt: Date
 ): E.Either<Error, { emailHtml: string; emailText: string }> =>
   pipe(
-    mailTemplate.apply(expiredSessionEmailParameters.ctaUrl),
+    mailTemplate.apply(expiredSessionEmailParameters.ctaUrl, expiredAt),
     E.of,
     E.bindTo("emailHtml"),
     E.bind("emailText", ({ emailHtml }) =>
@@ -118,17 +119,19 @@ export const buildMailBody = (
 
 export const notifySessionExpiration: (
   email: EmailAddress,
-  expiredSessionEmailParameters: ExpiredSessionEmailParameters
+  expiredSessionEmailParameters: ExpiredSessionEmailParameters,
+  expiredAt: Date
 ) => RTE.ReaderTaskEither<
   MailerTransporterDependency & { logger: L.Logger },
   QueueTransientError,
   undefined
 > = (
   email: EmailAddress,
-  expiredSessionEmailParameters: ExpiredSessionEmailParameters
+  expiredSessionEmailParameters: ExpiredSessionEmailParameters,
+  expiredAt: Date
 ) => ({ mailerTransporter, logger }) =>
   pipe(
-    buildMailBody(expiredSessionEmailParameters),
+    buildMailBody(expiredSessionEmailParameters, expiredAt),
     TE.fromEither,
     TE.chainW(({ emailHtml, emailText }) =>
       pipe(
@@ -202,7 +205,11 @@ export const ExpiredSessionAdvisorHandler: (
           });
           return RTE.right(void 0);
         } else {
-          return notifySessionExpiration(email, expiredSessionEmailParameters);
+          return notifySessionExpiration(
+            email,
+            expiredSessionEmailParameters,
+            expiredAt
+          );
         }
       }),
       RTE.orElseW(error => {
