@@ -27,7 +27,7 @@ MAILHOG_HOSTNAME=mailhog
 EXPIRED_SESSION_ADVISOR_QUEUE=test-expired-session-trigger-queue
 
 # MigrateServicePreferenceFromLegacy Config
-IOPSTAPP_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=${STORAGE_CONN_STRING}
+IOPSTAPP_STORAGE_CONNECTION_STRING=${STORAGE_CONN_STRING}
 MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME=test-profile-migrate-services-preferences-from-legacy
 
 FF_DRY_RUN=false

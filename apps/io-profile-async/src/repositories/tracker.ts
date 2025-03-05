@@ -1,7 +1,7 @@
 import * as RT from "fp-ts/ReaderTask";
 import * as T from "fp-ts/Task";
-import { NonEmptyString } from "io-ts-types";
 
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 

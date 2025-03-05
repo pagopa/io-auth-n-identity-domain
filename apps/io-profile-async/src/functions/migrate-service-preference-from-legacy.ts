@@ -4,7 +4,6 @@ import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 
 import * as t from "io-ts";
-import { NonEmptyString } from "io-ts-types";
 
 import * as H from "@pagopa/handler-kit";
 import { azureFunction } from "@pagopa/handler-kit-azure-func";
@@ -19,7 +18,7 @@ import { BlockedInboxOrChannelEnum } from "@pagopa/io-functions-commons/dist/gen
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 
 import { ServiceId } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceId";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { QueuePermanentError } from "../utils/queue-utils";
 import {
   ServicePreferencesRepository,
