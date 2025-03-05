@@ -100,6 +100,7 @@ export const MigrateServicePreferenceFromLegacy = MigrateServicePreferenceFromLe
 export const OnProfileUpdate = OnProfileUpdateFunction({
   ProfileRepository,
   ProfileEmailRepository,
+  TrackerRepository: tracker,
   profileModel,
   dataTableProfileEmailsRepository,
   telemetryClient,

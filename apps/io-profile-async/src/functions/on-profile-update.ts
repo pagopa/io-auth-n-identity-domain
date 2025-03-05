@@ -8,7 +8,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as H from "@pagopa/handler-kit";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { hashFiscalCode } from "@pagopa/ts-commons/lib/hash";
 import { azureFunction } from "@pagopa/handler-kit-azure-func";
 import { Semigroup } from "fp-ts/lib/Semigroup";
@@ -21,12 +21,14 @@ import {
   ProfileEmailRepositoryDependencies,
   ProfileRepository,
   ProfileRepositoryDependencies,
+  Tracker,
   TrackerRepositoryDependency
 } from "../repositories";
 
 type FunctionDependencies = {
   ProfileRepository: ProfileRepository;
   ProfileEmailRepository: ProfileEmailRepository;
+  TrackerRepository: Tracker;
 } & ProfileEmailRepositoryDependencies &
   TrackerRepositoryDependency &
   ProfileRepositoryDependencies;
@@ -121,16 +123,17 @@ const handleMissingEmail = (
     O.fold(
       () => TE.right(void 0),
       previousEmail => {
-        dependencies.telemetryClient?.trackEvent({
-          name: `${eventNamePrefix}.missingNewEmail`,
-          properties: {
+        dependencies.TrackerRepository.trackEvent(
+          `${eventNamePrefix}.missingNewEmail` as NonEmptyString,
+          undefined,
+          false,
+          {
             _self: profile._self,
             fiscalCode: hashFiscalCode(profile.fiscalCode),
             isEmailValidated: profile.isEmailValidated,
             isPreviousEmailValidated: previousProfile.isEmailValidated
-          },
-          tagOverrides: { samplingEnabled: "false" }
-        });
+          }
+        );
         return previousProfile.isEmailValidated
           ? pipe(
               dependencies,
@@ -166,15 +169,16 @@ const handlePositiveVersion = ({
         O.fold(
           () =>
             pipe(
-              RTE.asks(({ telemetryClient }: FunctionDependencies) =>
-                telemetryClient?.trackEvent({
-                  name: `${eventNamePrefix}.previousProfileNotFound`,
-                  properties: {
+              RTE.asks(({ TrackerRepository }: FunctionDependencies) =>
+                TrackerRepository.trackEvent(
+                  `${eventNamePrefix}.previousProfileNotFound` as NonEmptyString,
+                  undefined,
+                  false,
+                  {
                     _self,
                     fiscalCode: hashFiscalCode(fiscalCode)
-                  },
-                  tagOverrides: { samplingEnabled: "false" }
-                })
+                  }
+                )
               ),
               RTE.map(() => void 0)
             ),
@@ -225,18 +229,19 @@ export const handler: (
         OnProfileUpdateDocument.decode,
         E.fold(
           () => {
-            dependencies.telemetryClient?.trackEvent({
-              name: `${eventNamePrefix}.decodingProfile`,
-              properties: {
+            dependencies.TrackerRepository.trackEvent(
+              `${eventNamePrefix}.decodingProfile` as NonEmptyString,
+              undefined,
+              false,
+              {
                 _self:
                   typeof document === "object" &&
                   document !== null &&
                   "_self" in document
                     ? document._self
                     : "unknown-id"
-              },
-              tagOverrides: { samplingEnabled: "false" }
-            });
+              }
+            );
             return TE.right(void 0);
           },
           profileDocument =>
@@ -244,15 +249,16 @@ export const handler: (
               dependencies,
               handleProfile(profileDocument),
               TE.mapLeft(error => {
-                dependencies.telemetryClient?.trackEvent({
-                  name: `${eventNamePrefix}.handlingProfile`,
-                  properties: {
+                dependencies.TrackerRepository.trackEvent(
+                  `${eventNamePrefix}.handlingProfile` as NonEmptyString,
+                  undefined,
+                  false,
+                  {
                     _self: profileDocument._self,
                     error,
                     fiscalCode: hashFiscalCode(profileDocument.fiscalCode)
-                  },
-                  tagOverrides: { samplingEnabled: "false" }
-                });
+                  }
+                );
                 return error;
               })
             )
