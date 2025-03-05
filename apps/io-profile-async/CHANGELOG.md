@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.2.0
+
+### Minor Changes
+
+- 7e20167: Move `MigrateServicePreferenceFromLegacy` function from `io-profile` to `io-profile-async`
+
 ## 1.1.1
 
 ### Patch Changes
