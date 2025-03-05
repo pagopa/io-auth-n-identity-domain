@@ -17,3 +17,8 @@ data "azurerm_storage_account" "storage_api" {
   name                = replace(format("%s-st-api", local.common_project), "-", "")
   resource_group_name = format("%s-rg-internal", local.common_project)
 }
+
+data "azurerm_storage_account" "storage_app" {
+  name                = replace(format("%s-st-app", local.common_project), "-", "")
+  resource_group_name = format("%s-rg-internal", local.common_project)
+}

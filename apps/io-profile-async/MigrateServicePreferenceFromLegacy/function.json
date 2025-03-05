@@ -1,0 +1,19 @@
+{
+  "bindings": [
+    {
+      "queueName": "%MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME%",
+      "connection": "IOPSTAPP_STORAGE_CONNECTION_STRING",
+      "name": "oldAndNewProfiles",
+      "type": "queueTrigger",
+      "direction": "in"
+    }
+  ],
+  "retry": {
+    "strategy": "exponentialBackoff",
+    "maxRetryCount": 10,
+    "minimumInterval": "00:00:05",
+    "maximumInterval": "00:30:00"
+  },
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "MigrateServicePreferenceFromLegacy"
+}

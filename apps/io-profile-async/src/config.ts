@@ -52,6 +52,10 @@ export const IConfig = t.intersection([
     // Expired Session Email Config
     EXPIRED_SESSION_CTA_URL: UrlFromString,
 
+    // MigrateServicePreferenceFromLegacy Config
+    IOPSTAPP_STORAGE_CONNECTION_STRING: NonEmptyString,
+    MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME: NonEmptyString,
+
     isProduction: t.boolean
   }),
   BackendInternalConfig,

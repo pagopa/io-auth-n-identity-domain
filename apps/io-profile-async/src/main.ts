@@ -1,5 +1,9 @@
 import { CosmosClient } from "@azure/cosmos";
 import { getMailerTransporter } from "@pagopa/io-functions-commons/dist/src/mailer";
+import {
+  SERVICE_PREFERENCES_COLLECTION_NAME,
+  ServicesPreferencesModel
+} from "@pagopa/io-functions-commons/dist/src/models/service_preference";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { HtmlToTextOptions } from "html-to-text";
 import { getConfigOrThrow } from "./config";
@@ -10,16 +14,27 @@ import { buildIoBackendInternalClient } from "./utils/backend-internal-client/de
 import { getFetchApi } from "./utils/fetch-utils";
 import { buildFunctionProfileClient } from "./utils/function-profile-client/dependency";
 import { initTelemetryClient } from "./utils/appinsights";
+import {
+  MigrateServicePreferenceFromLegacyFunction,
+  MigrateServicesPreferencesQueueMessage
+} from "./functions/migrate-service-preference-from-legacy";
+import { repository as servicePreferencesRepository } from "./repositories/service-preferences";
+import { tracker } from "./repositories/tracker";
 
 const config = getConfigOrThrow();
 
-initTelemetryClient();
+const telemetryClient = initTelemetryClient();
 
 const cosmosClient = new CosmosClient({
   endpoint: config.COSMOSDB_URI,
   key: config.COSMOSDB_KEY
 });
 const database = cosmosClient.database(config.COSMOSDB_NAME);
+
+const servicePreferenceModel = new ServicesPreferencesModel(
+  database.container(SERVICE_PREFERENCES_COLLECTION_NAME),
+  SERVICE_PREFERENCES_COLLECTION_NAME
+);
 
 const fetchApi = getFetchApi(config);
 const backendInternalClient = buildIoBackendInternalClient(fetchApi, config);
@@ -49,3 +64,13 @@ export const ExpiredSessionAdvisor = ExpiredSessionAdvisorFunction({
   inputDecoder: ExpiredSessionAdvisorQueueMessage,
   mailerTransporter: getMailerTransporter(config)
 });
+
+export const MigrateServicePreferenceFromLegacy = MigrateServicePreferenceFromLegacyFunction(
+  {
+    inputDecoder: MigrateServicesPreferencesQueueMessage,
+    servicePreferencesRepository,
+    tracker,
+    servicePreferenceModel,
+    telemetryClient
+  }
+);
