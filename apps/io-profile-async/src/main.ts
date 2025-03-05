@@ -20,6 +20,8 @@ import {
 } from "./functions/migrate-service-preference-from-legacy";
 import { repository as servicePreferencesRepository } from "./repositories/service-preferences";
 import { tracker } from "./repositories/tracker";
+import { StoreSpidLogsFunction } from "./functions/store-spid-logs";
+import { StoreSpidLogsQueueMessage } from "./types/store-spid-logs-queue-message";
 
 const config = getConfigOrThrow();
 
@@ -74,3 +76,10 @@ export const MigrateServicePreferenceFromLegacy = MigrateServicePreferenceFromLe
     telemetryClient
   }
 );
+
+export const StoreSpidLogs = StoreSpidLogsFunction({
+  inputDecoder: StoreSpidLogsQueueMessage,
+  spidLogsPublicKey: config.SPID_LOGS_PUBLIC_KEY,
+  tracker,
+  telemetryClient
+});

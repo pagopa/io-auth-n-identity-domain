@@ -15,6 +15,12 @@ data "azurerm_key_vault_secret" "function_profile_key" {
   key_vault_id = data.azurerm_key_vault.kv.id
 }
 
+data "azurerm_key_vault_secret" "fn_app_SPID_LOGS_PUBLIC_KEY" {
+  name         = "funcapp-KEY-SPIDLOGS-PUB"
+  key_vault_id = data.azurerm_key_vault.common_kv.id
+}
+
+
 locals {
   function_profile_async = {
     name = "profas"
@@ -61,6 +67,10 @@ locals {
       //MigrateServicePreferenceFromLegacy Config
       IOPSTAPP_STORAGE_CONNECTION_STRING              = data.azurerm_storage_account.storage_app.primary_connection_string
       MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME = "profile-migrate-services-preferences-from-legacy" // TODO: replace when this queue is migrate in the monorepo
+
+      //StoreSpidLogs Config
+      IOPSTLOGS_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.storage_logs.primary_connection_string
+      SPID_LOGS_PUBLIC_KEY                = trimspace(data.azurerm_key_vault_secret.fn_app_SPID_LOGS_PUBLIC_KEY.value)
     }
   }
 }
@@ -103,6 +113,7 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5,
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "0"
+      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "1"
     }
   )
   slot_app_settings = merge(
@@ -112,7 +123,8 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100,
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1",
-      "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "1"
+      "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "1",
+      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "1"
     }
   )
 
@@ -121,7 +133,8 @@ module "function_profile_async" {
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
     "AzureWebJobs.ExpiredSessionAdvisor.Disabled",
-    "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"
+    "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",
+    "AzureWebJobs.StoreSpidLogs.Disabled"
   ]
 
   subnet_service_endpoints = {
