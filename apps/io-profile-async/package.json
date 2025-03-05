@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@azure/cosmos": "^4.1.1",
+    "@azure/data-tables": "^13.3.0",
     "@azure/storage-blob": "12.17.0",
     "@azure/storage-queue": "^12.16.0",
     "@pagopa/handler-kit": "^1.1.0",

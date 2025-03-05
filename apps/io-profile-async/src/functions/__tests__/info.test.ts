@@ -4,10 +4,10 @@ import * as E from "fp-ts/lib/Either";
 import * as H from "@pagopa/handler-kit";
 import * as TE from "fp-ts/lib/TaskEither";
 import { makeInfoHandler } from "../info";
-import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
+import { httpHandlerInputMocks } from "../__mocks__/handler.mock";
 import * as azureStorageHealthCheck from "../../utils/azurestorage/healthcheck";
 import * as packageUtils from "../../utils/package";
-import { connectionString } from "../__mocks__/azurestorage";
+import { connectionString } from "../__mocks__/azurestorage.mock";
 
 const mockDatabaseAccount = vi.fn().mockResolvedValue("");
 const cosmosDatabaseMock = ({
@@ -28,7 +28,9 @@ const getCurrentBackendVersionMock = vi.spyOn(
 
 describe("Info handler", () => {
   it("should return an error if the Cosmos health check fail", async () => {
-    azureStorageHealthCheckMock.mockImplementationOnce(() => TE.right(true));
+    azureStorageHealthCheckMock.mockImplementationOnce(() =>
+      TE.right(true as const)
+    );
 
     mockDatabaseAccount.mockRejectedValueOnce("db error");
 
@@ -49,7 +51,9 @@ describe("Info handler", () => {
   });
 
   it("should succeed if the application is healthy", async () => {
-    azureStorageHealthCheckMock.mockImplementationOnce(() => TE.right(true));
+    azureStorageHealthCheckMock.mockImplementationOnce(() =>
+      TE.right(true as const)
+    );
     getCurrentBackendVersionMock.mockReturnValueOnce("1.0.0");
 
     const result = await makeInfoHandler({

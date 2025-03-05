@@ -45,18 +45,21 @@ const traceMigratingServicePreferences: (
  */
 const trackEvent: (
   name: NonEmptyString,
-  message: NonEmptyString,
-  isSamplingEnabled?: boolean
+  message?: NonEmptyString,
+  isSamplingEnabled?: boolean,
+  extraProperties?: Record<string, unknown>
 ) => RT.ReaderTask<Dependencies, void> = (
   name,
   message,
-  isSamplingEnabled = false
+  isSamplingEnabled = false,
+  extraProperties = {}
 ) => ({ telemetryClient }) =>
   T.of(
     telemetryClient?.trackEvent({
       name,
       properties: {
-        message
+        message,
+        ...extraProperties
       },
       tagOverrides: { samplingEnabled: String(isSamplingEnabled) }
     })
