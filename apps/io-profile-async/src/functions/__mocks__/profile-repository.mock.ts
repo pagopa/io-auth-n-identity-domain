@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import { vi } from "vitest";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as O from "fp-ts/lib/Option";
@@ -131,7 +132,62 @@ export const mockProfiles = [
     isInboxEnabled: false,
     version: 1 as NonNegativeInteger,
     _self: "96dfb60b-c09b-4044-8cb6-1405ca6732e8" as NonEmptyString
+  },
+  /*
+  //  POSITIVE versions with missing email scenario
+  */
+  {
+    fiscalCode: "CCCNVG14A39Y596X" as FiscalCode,
+    isEmailValidated: false,
+    isInboxEnabled: false,
+    version: 1 as NonNegativeInteger,
+    _self: "025dccc8-02f8-45a0-8040-fbdb6331f5e4" as NonEmptyString
+  },
+  {
+    fiscalCode: "CCCNVG14A39Y596X" as FiscalCode,
+    isInboxEnabled: false,
+    version: 2 as NonNegativeInteger,
+    _self: "832d2ace-5834-4542-88ee-c3839ce0a30e" as NonEmptyString
+  },
+  // ///////////////////////////////////////////////////////////////
+  /*
+  //  POSITIVE versions with the previous one validated and the second one without
+  //  email
+  */
+  {
+    email: "newEmail@example.net" as EmailString,
+    fiscalCode: "DDDNVG14A39Y596X" as FiscalCode,
+    isEmailValidated: true,
+    isInboxEnabled: false,
+    version: 20 as NonNegativeInteger,
+    _self: "dd26f5f5-fad7-4b86-8537-5746321773af" as NonEmptyString
+  },
+  {
+    fiscalCode: "DDDNVG14A39Y596X" as FiscalCode,
+    isInboxEnabled: false,
+    version: 21 as NonNegativeInteger,
+    _self: "27aeba9a-cd6f-4f20-8ab3-bdb20651e248" as NonEmptyString
+  },
+  // ///////////////////////////////////////////////////////////////
+  /*
+  //  TWO versions with the previous one without email and the second one
+  //  with email validated
+  */
+  {
+    fiscalCode: "EEENVG14A39Y596X" as FiscalCode,
+    isInboxEnabled: false,
+    version: 30 as NonNegativeInteger,
+    _self: "1de9b84d-bcf4-40ff-9260-ddc3ff2099e3" as NonEmptyString
+  },
+  {
+    email: "newEmail@example.net" as EmailString,
+    fiscalCode: "EEENVG14A39Y596X" as FiscalCode,
+    isEmailValidated: true,
+    isInboxEnabled: false,
+    version: 31 as NonNegativeInteger,
+    _self: "1257a0fa-2978-43e1-81ba-845978149844" as NonEmptyString
   }
+  // ///////////////////////////////////////////////////////////////
 ].map(item => ({
   ...item,
   id: generateId(

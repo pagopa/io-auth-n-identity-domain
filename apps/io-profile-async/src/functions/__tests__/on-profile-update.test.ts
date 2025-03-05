@@ -69,7 +69,7 @@ describe("handler function", () => {
       );
     });
 
-    const insertIndices = [1, 2, 3, 5, 9];
+    const insertIndices = [1, 2, 3, 5, 9, 19];
     const expectedInsertParams = insertIndices.map(index => ({
       email: mockProfiles[index].email,
       fiscalCode: mockProfiles[index].fiscalCode
@@ -79,11 +79,15 @@ describe("handler function", () => {
     });
     expect(emailInsertMock).toHaveBeenCalledTimes(insertIndices.length);
 
-    expect(emailDeleteMock).toHaveBeenNthCalledWith(1, {
-      email: mockProfiles[3].email,
-      fiscalCode: mockProfiles[3].fiscalCode
+    const deleteIndices = [3, 16];
+    const expectedDeleteParams = deleteIndices.map(index => ({
+      email: mockProfiles[index].email,
+      fiscalCode: mockProfiles[index].fiscalCode
+    }));
+    expectedDeleteParams.forEach((param, index) => {
+      expect(emailDeleteMock).toHaveBeenNthCalledWith(index + 1, param);
     });
-    expect(emailDeleteMock).toHaveBeenCalledTimes(1);
+    expect(emailDeleteMock).toHaveBeenCalledTimes(deleteIndices.length);
   });
 
   it("should call mockTelemetryClient.trackEvent when error in insertProfileEmail occurs and handler function should return E.left", async () => {
