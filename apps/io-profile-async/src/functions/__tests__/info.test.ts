@@ -4,10 +4,10 @@ import * as E from "fp-ts/lib/Either";
 import * as H from "@pagopa/handler-kit";
 import * as TE from "fp-ts/lib/TaskEither";
 import { makeInfoHandler } from "../info";
-import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
+import { httpHandlerInputMocks } from "../__mocks__/handler.mock";
 import * as azureStorageHealthCheck from "../../utils/azurestorage/healthcheck";
 import * as packageUtils from "../../utils/package";
-import { connectionString } from "../__mocks__/azurestorage";
+import { connectionString } from "../__mocks__/azurestorage.mock";
 
 const mockDatabaseAccount = vi.fn().mockResolvedValue("");
 const cosmosDatabaseMock = ({
