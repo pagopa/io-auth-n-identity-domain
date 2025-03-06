@@ -161,27 +161,24 @@ const handlePositiveVersion = ({
   FunctionDependencies,
   Error,
   void
-> =>
+> => dependencies =>
   pipe(
-    getPreviousProfile(fiscalCode, version),
-    RTE.chain(
+    getPreviousProfile(fiscalCode, version)(dependencies),
+    TE.chain(
       flow(
         O.fold(
-          () =>
-            pipe(
-              RTE.asks(({ TrackerRepository }: FunctionDependencies) =>
-                TrackerRepository.trackEvent(
-                  `${eventNamePrefix}.previousProfileNotFound` as NonEmptyString,
-                  undefined,
-                  false,
-                  {
-                    _self,
-                    fiscalCode: hashFiscalCode(fiscalCode)
-                  }
-                )
-              ),
-              RTE.map(() => void 0)
-            ),
+          () => {
+            dependencies.TrackerRepository.trackEvent(
+              `${eventNamePrefix}.previousProfileNotFound` as NonEmptyString,
+              undefined,
+              false,
+              {
+                _self,
+                fiscalCode: hashFiscalCode(fiscalCode)
+              }
+            )(dependencies);
+            return TE.right(void 0);
+          },
           previousProfile =>
             email
               ? handlePresentEmail(previousProfile, {
@@ -190,13 +187,13 @@ const handlePositiveVersion = ({
                   fiscalCode,
                   isEmailValidated,
                   version
-                })
+                })(dependencies)
               : handleMissingEmail(previousProfile, {
                   _self,
                   fiscalCode,
                   isEmailValidated,
                   version
-                })
+                })(dependencies)
         )
       )
     )
