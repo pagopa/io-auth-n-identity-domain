@@ -53,7 +53,7 @@ describe("handler function", () => {
     const documents = mockProfiles;
 
     const result = await handler(documents)(mockDependencies)();
-    expect(E.isRight(result)).toBeTruthy();
+    expect(result).toEqual(E.right(void 0));
 
     const findIndices = [4, 5, 6, 8, 9, 11, 13];
     const expectedFindParams = findIndices.map(index => ({
@@ -94,11 +94,11 @@ describe("handler function", () => {
       generateId("DRUQIL23A18Y188X" as FiscalCode, 0 as NonNegativeInteger),
       mockProfiles
     );
-
-    emailInsertMock.mockReturnValueOnce(RTE.left(Error("Insert error")));
+    const anError = Error("Insert error");
+    emailInsertMock.mockReturnValueOnce(RTE.left(anError));
     const result = await handler(mockDocuments)(mockDependencies)();
 
-    expect(E.isRight(result)).toBeFalsy();
+    expect(result).toEqual(E.left(anError));
 
     expect(trackEventMock).toHaveBeenCalled();
   });
@@ -114,7 +114,7 @@ describe("handler function", () => {
 
     const result = await handler(mockDocuments)(mockDependencies)();
 
-    expect(E.isRight(result)).toBeTruthy();
+    expect(result).toEqual(E.right(void 0));
 
     expect(trackEventMock).toHaveBeenCalledWith(
       "OnProfileUpdate.decodingProfile",
@@ -132,6 +132,8 @@ describe("handler function", () => {
       mockProfiles
     );
 
+    const expectedError = Error("Conflict error");
+
     onProfileUpdateFindDocumentMock.mockReturnValueOnce(
       RTE.left(
         Error(
@@ -144,7 +146,7 @@ describe("handler function", () => {
 
     const result = await handler(mockDocuments)(mockDependencies)();
 
-    expect(E.isRight(result)).toBeFalsy();
+    expect(result).toEqual(E.left(expectedError));
 
     expect(trackEventMock).toHaveBeenCalled();
   });
@@ -155,11 +157,13 @@ describe("handler function", () => {
       mockProfiles
     );
 
-    emailDeleteMock.mockReturnValueOnce(RTE.left(Error("Delete error")));
+    const anError = Error("Delete error");
+
+    emailDeleteMock.mockReturnValueOnce(RTE.left(anError));
 
     const result = await handler(mockDocuments)(mockDependencies)();
 
-    expect(E.isRight(result)).toBeFalsy();
+    expect(result).toEqual(E.left(anError));
 
     expect(trackEventMock).toHaveBeenCalled();
   });

@@ -35,7 +35,7 @@ describe("Profile email repository (emailInsert)", () => {
       dataTableProfileEmailsRepository: dataTableMock
     })();
 
-    expect(E.isRight(result)).toBeTruthy();
+    expect(result).toEqual(E.right(void 0));
   });
 
   it("should return error on a reject with Error", async () => {
@@ -47,7 +47,6 @@ describe("Profile email repository (emailInsert)", () => {
       dataTableProfileEmailsRepository: dataTableMock
     })();
 
-    expect(E.isRight(result)).toBeFalsy();
     expect(result).toEqual(E.left(anError));
   });
 
@@ -63,7 +62,6 @@ describe("Profile email repository (emailInsert)", () => {
       dataTableProfileEmailsRepository: dataTableMock
     })();
 
-    expect(E.isRight(result)).toBeFalsy();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -79,7 +77,7 @@ describe("Profile email repository (emailInsert)", () => {
       dataTableProfileEmailsRepository: dataTableMock
     })();
 
-    expect(E.isRight(result)).toBeTruthy();
+    expect(result).toEqual(E.right(void 0));
   });
 });
 
@@ -93,7 +91,7 @@ describe("Profile email repository (emailDelete)", () => {
       dataTableProfileEmailsRepository: dataTableMock
     })();
 
-    expect(E.isRight(result)).toBeTruthy();
+    expect(result).toEqual(E.right(void 0));
   });
 
   it("should return error on a reject with Error", async () => {
@@ -105,7 +103,6 @@ describe("Profile email repository (emailDelete)", () => {
       dataTableProfileEmailsRepository: dataTableMock
     })();
 
-    expect(E.isRight(result)).toBeFalsy();
     expect(result).toEqual(E.left(anError));
   });
 
@@ -121,7 +118,6 @@ describe("Profile email repository (emailDelete)", () => {
       dataTableProfileEmailsRepository: dataTableMock
     })();
 
-    expect(E.isRight(result)).toBeFalsy();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -137,6 +133,6 @@ describe("Profile email repository (emailDelete)", () => {
       dataTableProfileEmailsRepository: dataTableMock
     })();
 
-    expect(E.isRight(result)).toBeTruthy();
+    expect(result).toEqual(E.right(void 0));
   });
 });

@@ -45,7 +45,7 @@ describe("Profile repository", () => {
       profileModel: profileModelMock
     })();
 
-    expect(E.isRight(result)).toBeTruthy();
+    expect(result).toEqual(E.right(O.some(aRetrievedProfile)));
   });
 
   it("should succeed when no profile was found", async () => {
