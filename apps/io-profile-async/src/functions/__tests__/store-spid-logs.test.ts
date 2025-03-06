@@ -99,6 +99,9 @@ describe("StoreSpidLogs", () => {
 
       expect(blob).not.toHaveProperty("loginType");
       expect(encryptedSpidBlobItem).not.toHaveProperty("loginType");
+      expect(encryptedSpidBlobItem).not.toHaveProperty("fiscalCode");
+      expect(encryptedSpidBlobItem).not.toHaveProperty("requestPayload");
+      expect(encryptedSpidBlobItem).not.toHaveProperty("responsePayload");
 
       expect(encryptedSpidBlobItem).toMatchObject({
         createdAt: aSpidMsgItem.createdAt,
