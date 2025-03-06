@@ -25,19 +25,13 @@ const dataTableMock = ({
   delete: dataTableDeleteMock
 } as unknown) as IProfileEmailWriter & IProfileEmailReader;
 
-describe.each`
-  kind             | isInsert
-  ${"emailInsert"} | ${true}
-  ${"emailDelete"} | ${false}
-`("Profile email repository ($kind)", ({ isInsert }) => {
+describe("Profile email repository (emailInsert)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("should succeed and return void on email emailInsert", async () => {
-    const result = await ProfileEmailRepository[
-      isInsert ? "emailInsert" : "emailDelete"
-    ](aProfileEmail)({
+  it("should succeed and return void on emailInsert", async () => {
+    const result = await ProfileEmailRepository.emailInsert(aProfileEmail)({
       dataTableProfileEmailsRepository: dataTableMock
     })();
 
@@ -47,12 +41,9 @@ describe.each`
   it("should return error on a reject with Error", async () => {
     const anError = Error("unknown");
 
-    if (isInsert) dataTableInsertMock.mockRejectedValueOnce(anError);
-    else dataTableDeleteMock.mockRejectedValueOnce(anError);
+    dataTableInsertMock.mockRejectedValueOnce(anError);
 
-    const result = await ProfileEmailRepository[
-      isInsert ? "emailInsert" : "emailDelete"
-    ](aProfileEmail)({
+    const result = await ProfileEmailRepository.emailInsert(aProfileEmail)({
       dataTableProfileEmailsRepository: dataTableMock
     })();
 
@@ -63,17 +54,12 @@ describe.each`
   it("should return formatted error on a general reject", async () => {
     const anError = "unknown";
     const expectedError = Error(
-      `error ${isInsert ? "inserting" : "deleting"} ProfileEmail ${
-        isInsert ? "into" : "from"
-      } table storage`
+      `error inserting ProfileEmail into table storage`
     );
 
-    if (isInsert) dataTableInsertMock.mockRejectedValueOnce(anError);
-    else dataTableDeleteMock.mockRejectedValueOnce(anError);
+    dataTableInsertMock.mockRejectedValueOnce(anError);
 
-    const result = await ProfileEmailRepository[
-      isInsert ? "emailInsert" : "emailDelete"
-    ](aProfileEmail)({
+    const result = await ProfileEmailRepository.emailInsert(aProfileEmail)({
       dataTableProfileEmailsRepository: dataTableMock
     })();
 
@@ -84,16 +70,70 @@ describe.each`
   it("should succeed on DUPLICATE_ENTITY error", async () => {
     const aProfileWriterError: ProfileEmailWriterError = new ProfileEmailWriterError(
       "",
-      isInsert ? "DUPLICATE_ENTITY" : "ENTITY_NOT_FOUND"
+      "DUPLICATE_ENTITY"
     );
 
-    if (isInsert)
-      dataTableInsertMock.mockRejectedValueOnce(aProfileWriterError);
-    else dataTableDeleteMock.mockRejectedValueOnce(aProfileWriterError);
+    dataTableInsertMock.mockRejectedValueOnce(aProfileWriterError);
 
-    const result = await ProfileEmailRepository[
-      isInsert ? "emailInsert" : "emailDelete"
-    ](aProfileEmail)({
+    const result = await ProfileEmailRepository.emailInsert(aProfileEmail)({
+      dataTableProfileEmailsRepository: dataTableMock
+    })();
+
+    expect(E.isRight(result)).toBeTruthy();
+  });
+});
+
+describe("Profile email repository (emailDelete)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should succeed and return void on emailDelete", async () => {
+    const result = await ProfileEmailRepository.emailDelete(aProfileEmail)({
+      dataTableProfileEmailsRepository: dataTableMock
+    })();
+
+    expect(E.isRight(result)).toBeTruthy();
+  });
+
+  it("should return error on a reject with Error", async () => {
+    const anError = Error("unknown");
+
+    dataTableDeleteMock.mockRejectedValueOnce(anError);
+
+    const result = await ProfileEmailRepository.emailDelete(aProfileEmail)({
+      dataTableProfileEmailsRepository: dataTableMock
+    })();
+
+    expect(E.isRight(result)).toBeFalsy();
+    expect(result).toEqual(E.left(anError));
+  });
+
+  it("should return formatted error on a general reject", async () => {
+    const anError = "unknown";
+    const expectedError = Error(
+      `error deleting ProfileEmail from table storage`
+    );
+
+    dataTableDeleteMock.mockRejectedValueOnce(anError);
+
+    const result = await ProfileEmailRepository.emailDelete(aProfileEmail)({
+      dataTableProfileEmailsRepository: dataTableMock
+    })();
+
+    expect(E.isRight(result)).toBeFalsy();
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should succeed on DUPLICATE_ENTITY error", async () => {
+    const aProfileWriterError: ProfileEmailWriterError = new ProfileEmailWriterError(
+      "",
+      "ENTITY_NOT_FOUND"
+    );
+
+    dataTableDeleteMock.mockRejectedValueOnce(aProfileWriterError);
+
+    const result = await ProfileEmailRepository.emailDelete(aProfileEmail)({
       dataTableProfileEmailsRepository: dataTableMock
     })();
 

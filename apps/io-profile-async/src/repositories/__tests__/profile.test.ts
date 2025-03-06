@@ -58,7 +58,7 @@ describe("Profile repository", () => {
       profileModel: profileModelMock
     })();
 
-    expect(E.isRight(result)).toBeTruthy();
+    expect(result).toEqual(E.right(O.none));
   });
 
   it("should return a cosmos error in case something went wrong", async () => {
@@ -72,8 +72,6 @@ describe("Profile repository", () => {
       profileModel: profileModelMock
     })();
 
-    expect(E.isRight(result)).toBeFalsy();
-
     expect(result).toEqual(E.left(Error(cosmosErrorsToString(expectedError))));
   });
 
@@ -86,8 +84,6 @@ describe("Profile repository", () => {
     )({
       profileModel: profileModelMock
     })();
-
-    expect(E.isRight(result)).toBeFalsy();
 
     expect(result).toMatchObject(
       E.left({

@@ -103,6 +103,29 @@ describe("handler function", () => {
     expect(trackEventMock).toHaveBeenCalled();
   });
 
+  it("should call trackEvent when a decoding Error occurs and continue the process of other documents", async () => {
+    const mockDocuments = [
+      { wrong: "structure" },
+      ...take(
+        generateId("PVQEBX22A89Y092X" as FiscalCode, 0 as NonNegativeInteger),
+        mockProfiles
+      )
+    ];
+
+    const result = await handler(mockDocuments)(mockDependencies)();
+
+    expect(E.isRight(result)).toBeTruthy();
+
+    expect(trackEventMock).toHaveBeenCalledWith(
+      "OnProfileUpdate.decodingProfile",
+      undefined,
+      false,
+      {
+        _self: "unknown-id"
+      }
+    );
+  });
+
   it("should call mockTelemetryClient.trackEvent when error in find occurs and handler function should return E.left", async () => {
     const mockDocuments = take(
       generateId("PVQEBX22A89Y092X" as FiscalCode, 1 as NonNegativeInteger),
