@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.21.0
+
+### Minor Changes
+
+- 9a6f85b: Removed OnProfileUpdate trigger
+
 ## 5.20.0
 
 ### Minor Changes
