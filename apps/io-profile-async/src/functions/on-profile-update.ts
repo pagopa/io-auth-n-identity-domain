@@ -133,7 +133,7 @@ const handleMissingEmail = (
             isEmailValidated: profile.isEmailValidated,
             isPreviousEmailValidated: previousProfile.isEmailValidated
           }
-        );
+        )(dependencies);
         return previousProfile.isEmailValidated
           ? pipe(
               dependencies,
@@ -241,7 +241,7 @@ export const handler: (
                     ? document._self
                     : "unknown-id"
               }
-            );
+            )(dependencies);
             return TE.right(void 0);
           },
           profileDocument =>
@@ -258,7 +258,7 @@ export const handler: (
                     error,
                     fiscalCode: hashFiscalCode(profileDocument.fiscalCode)
                   }
-                );
+                )(dependencies);
                 return error;
               })
             )

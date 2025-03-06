@@ -1,5 +1,4 @@
-import * as RT from "fp-ts/ReaderTask";
-import * as T from "fp-ts/Task";
+import * as R from "fp-ts/Reader";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
@@ -18,27 +17,23 @@ const traceMigratingServicePreferences: (
   oldProfile: RetrievedProfile,
   newProfile: RetrievedProfile,
   action: "REQUESTING" | "DOING" | "DONE"
-) => RT.ReaderTask<Dependencies, void> = (oldProfile, newProfile, action) => ({
+) => R.Reader<Dependencies, void> = (oldProfile, newProfile, action) => ({
   telemetryClient
 }) =>
-  T.of(
-    telemetryClient?.trackEvent({
-      name: "api.profile.migrate-legacy-preferences",
-      properties: {
-        action,
-        oldPreferences: oldProfile.blockedInboxOrChannels,
-        oldPreferencesCount: Object.keys(
-          oldProfile.blockedInboxOrChannels || {}
-        ).length,
-        profileVersion: newProfile.version,
-        servicePreferencesMode: newProfile.servicePreferencesSettings.mode,
-        servicePreferencesVersion:
-          newProfile.servicePreferencesSettings.version,
-        userId: sha256(newProfile.fiscalCode)
-      },
-      tagOverrides: { samplingEnabled: "false" }
-    })
-  );
+  telemetryClient?.trackEvent({
+    name: "api.profile.migrate-legacy-preferences",
+    properties: {
+      action,
+      oldPreferences: oldProfile.blockedInboxOrChannels,
+      oldPreferencesCount: Object.keys(oldProfile.blockedInboxOrChannels || {})
+        .length,
+      profileVersion: newProfile.version,
+      servicePreferencesMode: newProfile.servicePreferencesSettings.mode,
+      servicePreferencesVersion: newProfile.servicePreferencesSettings.version,
+      userId: sha256(newProfile.fiscalCode)
+    },
+    tagOverrides: { samplingEnabled: "false" }
+  });
 
 /**
  * Trace an event when a user has previous preferences to migrate
@@ -48,22 +43,20 @@ const trackEvent: (
   message?: NonEmptyString,
   isSamplingEnabled?: boolean,
   extraProperties?: Record<string, unknown>
-) => RT.ReaderTask<Dependencies, void> = (
+) => R.Reader<Dependencies, void> = (
   name,
   message,
   isSamplingEnabled = false,
   extraProperties = {}
 ) => ({ telemetryClient }) =>
-  T.of(
-    telemetryClient?.trackEvent({
-      name,
-      properties: {
-        message,
-        ...extraProperties
-      },
-      tagOverrides: { samplingEnabled: String(isSamplingEnabled) }
-    })
-  );
+  telemetryClient?.trackEvent({
+    name,
+    properties: {
+      message,
+      ...extraProperties
+    },
+    tagOverrides: { samplingEnabled: String(isSamplingEnabled) }
+  });
 
 export type Tracker = typeof tracker;
 export const tracker = { trackEvent, traceMigratingServicePreferences };

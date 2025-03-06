@@ -13,7 +13,6 @@ import {
   IProfileEmailWriter
 } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
 import { handler } from "../on-profile-update";
-import { OnProfileUpdateDocument } from "../../types/on-profile-update-input-document";
 import { trackEventMock, trackerMock } from "../__mocks__/tracker.mock";
 import {
   generateId,

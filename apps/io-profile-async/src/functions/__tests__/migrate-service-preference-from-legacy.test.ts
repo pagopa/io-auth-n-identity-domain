@@ -91,8 +91,8 @@ const mockedDependencies = {
   tracker: trackerMock,
   servicePreferencesRepository: servicePreferencesRepositoryMock,
   // Subdependencies, unused in this tests
-  servicePreferenceModel: (null as any) as ServicesPreferencesModel,
-  telemetryClient: (null as any) as TelemetryClient
+  servicePreferenceModel: (null as unknown) as ServicesPreferencesModel,
+  telemetryClient: (null as unknown) as TelemetryClient
 };
 
 // --------------
