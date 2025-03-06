@@ -98,13 +98,14 @@ export const makeHandler: H.Handler<
   pipe(
     migrateInput,
     TE.of,
-    TE.chainFirstTaskK(input =>
+    TE.chainFirst(input => {
       deps.tracker.traceMigratingServicePreferences(
         input.oldProfile,
         input.newProfile,
         "DOING"
-      )(deps)
-    ),
+      )(deps);
+      return TE.right(void 0);
+    }),
     TE.filterOrElse(
       input =>
         NonNegativeInteger.is(
@@ -131,21 +132,21 @@ export const makeHandler: H.Handler<
         ROA.sequence(TE.ApplicativeSeq)
       )
     ),
-    TE.chainTaskK(_ =>
+    TE.chainW(_ => {
       deps.tracker.traceMigratingServicePreferences(
         migrateInput.oldProfile,
         migrateInput.newProfile,
         "DONE"
-      )(deps)
-    ),
-    TE.orElseW(error => {
+      )(deps);
+      return TE.right(void 0);
+    }),
+    TE.orElse(error => {
       if (error instanceof QueuePermanentError) {
-        return TE.fromTask(
-          deps.tracker.trackEvent(
-            "io.citizen-auth.prof-async.migrate-service-preference-from-legacy.error.permanent" as NonEmptyString,
-            error.message as NonEmptyString
-          )(deps)
-        );
+        deps.tracker.trackEvent(
+          "io.citizen-auth.prof-async.migrate-service-preference-from-legacy.error.permanent" as NonEmptyString,
+          error.message as NonEmptyString
+        )(deps);
+        return TE.right(void 0);
       } else {
         return TE.left(error);
       }

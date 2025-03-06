@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as E from "fp-ts/lib/Either";
-import * as T from "fp-ts/lib/Task";
 import * as TE from "fp-ts/lib/TaskEither";
 
 import { BlockedInboxOrChannelEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/BlockedInboxOrChannel";
@@ -25,7 +24,7 @@ import {
   makeHandler,
   MigrateServicesPreferencesQueueMessage
 } from "../migrate-service-preference-from-legacy";
-import { mockQueueHandlerInputMocks } from "../__mocks__/handlerMocks";
+import { mockQueueHandlerInputMocks } from "../__mocks__/handler.mock";
 import {
   traceMigratingServicePreferencesMock,
   trackerMock,
@@ -34,7 +33,7 @@ import {
 import {
   createServicePreferenceMock,
   servicePreferencesRepositoryMock
-} from "../__mocks__/servicePreferencesRepository.mock";
+} from "../__mocks__/service-preferences-repository.mock";
 
 const baseProfile = {
   email: "info@agid.gov.it" as EmailString,
@@ -92,8 +91,8 @@ const mockedDependencies = {
   tracker: trackerMock,
   servicePreferencesRepository: servicePreferencesRepositoryMock,
   // Subdependencies, unused in this tests
-  servicePreferenceModel: (null as any) as ServicesPreferencesModel,
-  telemetryClient: (null as any) as TelemetryClient
+  servicePreferenceModel: (null as unknown) as ServicesPreferencesModel,
+  telemetryClient: (null as unknown) as TelemetryClient
 };
 
 // --------------

@@ -18,7 +18,7 @@ import { ServicesPreferencesModeEnum } from "../../generated/definitions/functio
 import { ExpiredSessionAdvisorQueueMessage } from "../../types/expired-session-advisor-queue-message";
 import * as appinsights from "../../utils/appinsights";
 import { QueueTransientError } from "../../utils/queue-utils";
-import { mockQueueHandlerInputMocks } from "../__mocks__/handlerMocks";
+import { mockQueueHandlerInputMocks } from "../__mocks__/handler.mock";
 import {
   ExpiredSessionAdvisorHandler,
   ExpiredSessionEmailParameters
