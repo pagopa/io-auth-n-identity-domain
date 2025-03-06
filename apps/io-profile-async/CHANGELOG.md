@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.3.0
+
+### Minor Changes
+
+- 2a126ca: Add expiration date in user re-engagement email
+
 ## 1.2.0
 
 ### Minor Changes
