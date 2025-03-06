@@ -42,9 +42,7 @@ export const IConfig = t.intersection([
 
     AZURE_STORAGE_CONNECTION_STRING: NonEmptyString,
 
-    COSMOSDB_KEY: NonEmptyString,
     COSMOSDB_NAME: NonEmptyString,
-    COSMOSDB_URI: NonEmptyString,
     COSMOSDB_CONNECTION_STRING: NonEmptyString,
 
     // Default is 10 sec timeout

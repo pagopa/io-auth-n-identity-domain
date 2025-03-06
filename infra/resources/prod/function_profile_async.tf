@@ -48,8 +48,6 @@ locals {
       EXPIRED_SESSION_CTA_URL = "https://continua.io.pagopa.it?utm_source=email&utm_medium=email&utm_campaign=lv_expired"
 
       // Cosmos
-      COSMOSDB_KEY               = data.azurerm_cosmosdb_account.cosmos_api.primary_key
-      COSMOSDB_URI               = data.azurerm_cosmosdb_account.cosmos_api.endpoint
       COSMOSDB_NAME              = "db"
       COSMOSDB_CONNECTION_STRING = format("AccountEndpoint=%s;AccountKey=%s;", data.azurerm_cosmosdb_account.cosmos_api.endpoint, data.azurerm_cosmosdb_account.cosmos_api.primary_key)
 

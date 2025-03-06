@@ -34,10 +34,7 @@ const config = getConfigOrThrow();
 
 const telemetryClient = initTelemetryClient();
 
-const cosmosClient = new CosmosClient({
-  endpoint: config.COSMOSDB_URI,
-  key: config.COSMOSDB_KEY
-});
+const cosmosClient = new CosmosClient(config.COSMOSDB_CONNECTION_STRING);
 const database = cosmosClient.database(config.COSMOSDB_NAME);
 
 const servicePreferenceModel = new ServicesPreferencesModel(
