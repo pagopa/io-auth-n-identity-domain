@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.4.0
+
+### Minor Changes
+
+- 9a6f85b: Added OnProfileUpdate cosmosDB trigger
+
 ## 1.3.0
 
 ### Minor Changes
