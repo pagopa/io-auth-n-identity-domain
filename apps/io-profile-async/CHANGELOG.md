@@ -1,5 +1,23 @@
 # io-profile-async
 
+## 1.5.0
+
+### Minor Changes
+
+- d19afc3: Move `StoreSpidLogs` function from `io-profile` to `io-profile-async`
+
+## 1.4.0
+
+### Minor Changes
+
+- 9a6f85b: Added OnProfileUpdate cosmosDB trigger
+
+## 1.3.0
+
+### Minor Changes
+
+- 2a126ca: Add expiration date in user re-engagement email
+
 ## 1.2.0
 
 ### Minor Changes

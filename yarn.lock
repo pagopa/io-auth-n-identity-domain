@@ -402,20 +402,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/data-tables@npm:^13.2.2":
-  version: 13.2.2
-  resolution: "@azure/data-tables@npm:13.2.2"
+"@azure/data-tables@npm:^13.2.2, @azure/data-tables@npm:^13.3.0":
+  version: 13.3.0
+  resolution: "@azure/data-tables@npm:13.3.0"
   dependencies:
     "@azure/core-auth": "npm:^1.3.0"
     "@azure/core-client": "npm:^1.0.0"
     "@azure/core-paging": "npm:^1.1.1"
     "@azure/core-rest-pipeline": "npm:^1.1.0"
     "@azure/core-tracing": "npm:^1.0.0"
+    "@azure/core-util": "npm:^1.6.1"
     "@azure/core-xml": "npm:^1.0.0"
     "@azure/logger": "npm:^1.0.0"
     tslib: "npm:^2.2.0"
-    uuid: "npm:^8.3.0"
-  checksum: 10c0/bcff7f6ea48be622d389008ca3cf51599afc6efb9bde4122f48bcf2992b06043144350a4a34425997d0430683723d0eea9d20cd50425587e20fc0134453cffb0
+  checksum: 10c0/560d101e78a876b9173fa26874fdf996267427b96e274f293b3a35139b7cadb6b9a8520120af1e15427f93648a4668176e7022765868d3bdca1590a96a59f833
   languageName: node
   linkType: hard
 
@@ -1795,15 +1795,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/io-app-email-templates@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@pagopa/io-app-email-templates@npm:0.3.0"
+"@pagopa/io-app-email-templates@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@pagopa/io-app-email-templates@npm:0.4.0"
   dependencies:
     "@pagopa/ts-commons": "npm:^13.0.0"
     fp-ts: "npm:^2.16.5"
     io-ts: "npm:^2.2.21"
     moment-timezone: "npm:^0.5.45"
-  checksum: 10c0/2e5c4219e66f3658f17888faed35fe4f395e9c6fd1b47ef5677250417b2197cf49872de33e41ab0b0b1852d527bdeb71cf069b690c70e009afb566d96df96b64
+  checksum: 10c0/66b45e87dbc458bec80d988c818f77945d67fcc0b69b20f2eb29c0ed9bbcdb88c97471f8b8487fbfee4fb410896b8ea084101fdb7dac9a3da5ddd5bae14a0902
   languageName: node
   linkType: hard
 
@@ -8107,13 +8107,14 @@ __metadata:
   resolution: "io-profile-async@workspace:apps/io-profile-async"
   dependencies:
     "@azure/cosmos": "npm:^4.1.1"
+    "@azure/data-tables": "npm:^13.3.0"
     "@azure/functions": "npm:^3.5.0"
     "@azure/storage-blob": "npm:12.17.0"
     "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/handler-kit": "npm:^1.1.0"
     "@pagopa/handler-kit-azure-func": "npm:^1.2.1"
-    "@pagopa/io-app-email-templates": "npm:^0.3.0"
+    "@pagopa/io-app-email-templates": "npm:^0.4.0"
     "@pagopa/io-functions-commons": "npm:^29.3.0"
     "@pagopa/logger": "npm:^1.0.1"
     "@pagopa/openapi-codegen-ts": "npm:^14.0.0"
@@ -8123,6 +8124,7 @@ __metadata:
     "@types/nodemailer": "npm:^6.4.17"
     "@vitest/coverage-v8": "npm:~1.5.0"
     applicationinsights: "npm:^2.9.2"
+    date-fns: "npm:^2.30.0"
     dependency-check: "npm:^4.1.0"
     dotenv: "npm:^8.2.0"
     dotenv-cli: "npm:^3.1.0"

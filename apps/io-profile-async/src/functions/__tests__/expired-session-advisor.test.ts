@@ -9,6 +9,7 @@ import {
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import * as E from "fp-ts/lib/Either";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import * as mailTemplate from "@pagopa/io-app-email-templates/ExpiredSessionUserReEngagement/index";
 import { Client as BackendInternalClient } from "../../generated/definitions/backend-session/client";
 import { UserSessionInfo } from "../../generated/definitions/backend-session/UserSessionInfo";
 import { Client as FunctionProfileClient } from "../../generated/definitions/function-profile/client";
@@ -17,7 +18,7 @@ import { ServicesPreferencesModeEnum } from "../../generated/definitions/functio
 import { ExpiredSessionAdvisorQueueMessage } from "../../types/expired-session-advisor-queue-message";
 import * as appinsights from "../../utils/appinsights";
 import { QueueTransientError } from "../../utils/queue-utils";
-import { mockQueueHandlerInputMocks } from "../__mocks__/handlerMocks";
+import { mockQueueHandlerInputMocks } from "../__mocks__/handler.mock";
 import {
   ExpiredSessionAdvisorHandler,
   ExpiredSessionEmailParameters
@@ -82,6 +83,7 @@ const mockMailerTransporter = ({
 } as unknown) as MailerTransporter;
 
 const trackEventMock = vi.spyOn(appinsights, "trackEvent");
+const mailTemplateApplySpyOn = vi.spyOn(mailTemplate, "apply");
 
 const emailParameters: ExpiredSessionEmailParameters = {
   from: "amailfrom@example.com" as NonEmptyString,
@@ -125,6 +127,11 @@ describe("ExpiredSessionAdvisor handler", () => {
     expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
     expect(getProfileMock).toHaveBeenCalledOnce();
     expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
+    expect(mailTemplateApplySpyOn).toHaveBeenCalledOnce();
+    expect(mailTemplateApplySpyOn).toHaveBeenCalledWith(
+      emailParameters.ctaUrl,
+      anExpiredAtDate
+    );
     expect(mockMailerTransporter.sendMail).toHaveBeenCalledOnce();
   });
 
@@ -141,7 +148,8 @@ describe("ExpiredSessionAdvisor handler", () => {
     expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
     expect(getProfileMock).toHaveBeenCalledOnce();
     expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
-    expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
+    expect(mailTemplateApplySpyOn).not.toBeCalled();
+    expect(mockMailerTransporter.sendMail).not.toBeCalled();
     expect(trackEventMock).toHaveBeenCalledOnce();
     expect(trackEventMock).toHaveBeenCalledWith({
       name: "io.citizen-auth.prof-async.notify-session-expiration.dry-run",
@@ -164,6 +172,7 @@ describe("ExpiredSessionAdvisor handler", () => {
     expect(response).toStrictEqual(E.left(new ValidationError([])));
     expect(getSessionMock).not.toBeCalled();
     expect(getProfileMock).not.toBeCalled();
+    expect(mailTemplateApplySpyOn).not.toBeCalled();
     expect(mockMailerTransporter.sendMail).not.toBeCalled();
   });
 
@@ -180,6 +189,7 @@ describe("ExpiredSessionAdvisor handler", () => {
     expect(response).toStrictEqual(E.left(new ValidationError([])));
     expect(getSessionMock).not.toBeCalled();
     expect(getProfileMock).not.toBeCalled();
+    expect(mailTemplateApplySpyOn).not.toBeCalled();
     expect(mockMailerTransporter.sendMail).not.toBeCalled();
   });
 
@@ -196,6 +206,7 @@ describe("ExpiredSessionAdvisor handler", () => {
     expect(response).toStrictEqual(E.left(new ValidationError([])));
     expect(getSessionMock).not.toBeCalled();
     expect(getProfileMock).not.toBeCalled();
+    expect(mailTemplateApplySpyOn).not.toBeCalled();
     expect(mockMailerTransporter.sendMail).not.toBeCalled();
   });
 
@@ -227,6 +238,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(getSessionMock).toHaveBeenCalledOnce();
       expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
       expect(getProfileMock).not.toHaveBeenCalled();
+      expect(mailTemplateApplySpyOn).not.toBeCalled();
       expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
       expect(trackEventMock).toHaveBeenCalledOnce();
       expect(trackEventMock).toHaveBeenCalledWith({
@@ -256,6 +268,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
       expect(getProfileMock).toHaveBeenCalledOnce();
       expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
+      expect(mailTemplateApplySpyOn).not.toBeCalled();
       expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
       expect(trackEventMock).toHaveBeenCalledWith({
         ...baseCustomEvent,
@@ -284,6 +297,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
       expect(getProfileMock).toHaveBeenCalledOnce();
       expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
+      expect(mailTemplateApplySpyOn).not.toBeCalled();
       expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();
       expect(trackEventMock).toHaveBeenCalledWith({
         ...baseCustomEvent,
@@ -319,6 +333,7 @@ describe("ExpiredSessionAdvisor handler", () => {
         expect(getSessionMock).toHaveBeenCalledOnce();
         expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
         expect(getProfileMock).not.toBeCalled();
+        expect(mailTemplateApplySpyOn).not.toBeCalled();
         expect(mockMailerTransporter.sendMail).not.toBeCalled();
       }
     );
@@ -349,6 +364,7 @@ describe("ExpiredSessionAdvisor handler", () => {
         expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
         expect(getProfileMock).toHaveBeenCalledOnce();
         expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
+        expect(mailTemplateApplySpyOn).not.toBeCalled();
         expect(mockMailerTransporter.sendMail).not.toBeCalled();
       }
     );
@@ -377,6 +393,11 @@ describe("ExpiredSessionAdvisor handler", () => {
       expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
       expect(getProfileMock).toHaveBeenCalledOnce();
       expect(getProfileMock).toBeCalledWith({ fiscal_code: aFiscalCode });
+      expect(mailTemplateApplySpyOn).toHaveBeenCalledOnce();
+      expect(mailTemplateApplySpyOn).toHaveBeenCalledWith(
+        emailParameters.ctaUrl,
+        anExpiredAtDate
+      );
       expect(mockMailerTransporter.sendMail).toHaveBeenCalledOnce();
     });
   });
