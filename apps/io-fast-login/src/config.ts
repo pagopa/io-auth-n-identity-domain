@@ -49,9 +49,6 @@ export type RedisClientConfig = t.TypeOf<typeof RedisClientConfig>;
 export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
-    COSMOS_CONNECTION_STRING: NonEmptyString,
-    COSMOS_DB_NAME: NonEmptyString,
-
     FAST_LOGIN_AUDIT_CONNECTION_STRING: NonEmptyString,
 
     // Default is 10 sec timeout

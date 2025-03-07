@@ -363,7 +363,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/cosmos@npm:^3.11.5, @azure/cosmos@npm:^3.17.1, @azure/cosmos@npm:^3.17.2, @azure/cosmos@npm:^3.17.3":
+"@azure/cosmos@npm:^3.11.5, @azure/cosmos@npm:^3.17.1, @azure/cosmos@npm:^3.17.2":
   version: 3.17.3
   resolution: "@azure/cosmos@npm:3.17.3"
   dependencies:
@@ -8023,7 +8023,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "io-fast-login@workspace:apps/io-fast-login"
   dependencies:
-    "@azure/cosmos": "npm:^3.17.3"
     "@azure/functions": "npm:^3.5.1"
     "@mattrglobal/http-signatures": "npm:^4.0.1"
     "@pagopa/eslint-config": "npm:^3.0.0"

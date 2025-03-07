@@ -27,12 +27,6 @@ LOLLIPOP_GET_ASSERTION_BASE_URL=http://host.docker.internal
 ###
 FAST_LOGIN_AUDIT_CONNECTION_STRING=${STORAGE_CONN_STRING}
 
-###
-# Cosmos DB envs
-###
-COSMOS_CONNECTION_STRING=AccountEndpoint=${COSMOSDB_URI};AccountKey=${COSMOSDB_KEY};Database=${COSMOSDB_NAME}
-COSMOS_DB_NAME=${COSMOSDB_NAME}
-
 
 ###
 # BackendInternal

@@ -1,33 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { Database } from "@azure/cosmos";
 import * as E from "fp-ts/lib/Either";
 import { makeInfoHandler } from "../info";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import { mockRedisClientTask, mockPing } from "../__mocks__/redis";
 
-const mockDatabaseAccount = vi.fn().mockResolvedValue("");
-const cosmosDatabaseMock = ({
-  client: {
-    getDatabaseAccount: mockDatabaseAccount
-  }
-} as unknown) as Database;
-
 describe("Info handler", () => {
-  it("should return an error if the Cosmos health check fail", async () => {
-    mockDatabaseAccount.mockRejectedValueOnce("db error");
-    const result = await makeInfoHandler({
-      ...httpHandlerInputMocks,
-      db: cosmosDatabaseMock,
-      redisClientTask: mockRedisClientTask
-    })();
-    expect(result).toMatchObject(E.left(new Error("AzureCosmosDB|db error")));
-  });
-
   it("should return an error if Redis PING command fail", async () => {
     mockPing.mockRejectedValueOnce("db error");
     const result = await makeInfoHandler({
       ...httpHandlerInputMocks,
-      db: cosmosDatabaseMock,
       redisClientTask: mockRedisClientTask
     })();
     expect(result).toMatchObject(
@@ -38,7 +19,6 @@ describe("Info handler", () => {
   it("should succeed if the application is healthy", async () => {
     const result = await makeInfoHandler({
       ...httpHandlerInputMocks,
-      db: cosmosDatabaseMock,
       redisClientTask: mockRedisClientTask
     })();
 
