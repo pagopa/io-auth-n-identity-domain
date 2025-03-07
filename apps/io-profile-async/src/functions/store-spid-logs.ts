@@ -68,7 +68,7 @@ export const makeHandler: H.Handler<
         TE.mapLeft(
           errs =>
             new QueuePermanentError(
-              `Cannot decode payload${readableReport(errs)}`
+              `Cannot decode payload${readableReportSimplified(errs)}`
             )
         )
       )
