@@ -13,7 +13,7 @@ import { HandlerOutput, makeHandler } from "../store-spid-logs";
 import { StoreSpidLogsQueueMessage } from "../../types/store-spid-logs-queue-message";
 
 import { mockQueueHandlerInputMocks } from "../__mocks__/handler.mock";
-import { trackerMock } from "../__mocks__/tracker.mock";
+import { trackerMock, trackEventMock } from "../__mocks__/tracker.mock";
 
 const today = format(new Date(), "yyyy-MM-dd");
 const aDate = new Date();
@@ -92,6 +92,7 @@ describe("StoreSpidLogs", () => {
     const result = await handler();
 
     assert(E.isRight(result));
+    expect(trackEventMock).not.toHaveBeenCalled();
 
     if (E.isRight(result)) {
       const blob = result.right as Exclude<HandlerOutput, void>;
@@ -204,5 +205,22 @@ describe("StoreSpidLogs", () => {
         expect(true).toBeFalsy();
       }
     }
+  });
+
+  it("should track permanent error if encryption failes", async () => {
+    const handler = makeHandler({
+      ...mockedDependencies,
+      input: aSpidMsgItem,
+      spidLogsPublicKey: "ERROR" as NonEmptyString
+    });
+    const result = await handler();
+
+    assert(E.isRight(result));
+
+    expect(trackEventMock).toHaveBeenCalledTimes(1);
+    expect(trackEventMock).toHaveBeenCalledWith(
+      "io.citizen-auth.prof-async.store-spid-logs.error.permanent",
+      expect.stringContaining("Cannot encrypt payload Error: ")
+    );
   });
 });
