@@ -39,9 +39,9 @@ locals {
       LOLLIPOP_GET_ASSERTION_BASE_URL = "https://api-internal.io.italia.it"
       LOLLIPOP_GET_ASSERTION_API_KEY  = data.azurerm_key_vault_secret.fast_login_subscription_key.value
 
-      #   // --------------------------
-      #   //  Fast login audit log storage
-      #   // --------------------------
+      // --------------------------
+      //  Fast login audit log storage
+      // --------------------------
       FAST_LOGIN_AUDIT_CONNECTION_STRING = data.azurerm_storage_account.immutable_lv_audit_logs_storage.primary_connection_string
 
 
