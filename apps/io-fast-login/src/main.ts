@@ -19,8 +19,10 @@ import { SessionStateFunction } from "./functions/session-state";
 import { UnlockSessionFunction } from "./functions/unlock-session";
 import { GenerateNonceFunction } from "./functions/generate-nonce";
 import { CreateRedisClientSingleton } from "./utils/redis/client";
+import { initTelemetryClient } from "./utils/appinsights";
 
 const config = getConfigOrThrow();
+initTelemetryClient();
 
 const cosmosClient = new CosmosClient(config.COSMOS_CONNECTION_STRING);
 const database = cosmosClient.database(config.COSMOS_DB_NAME);

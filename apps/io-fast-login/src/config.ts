@@ -57,6 +57,8 @@ export const IConfig = t.intersection([
     // Default is 10 sec timeout
     FETCH_TIMEOUT_MS: withDefault(t.string, "10000").pipe(NumberFromString),
 
+    APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
+
     isProduction: t.boolean
   }),
   BackendInternalConfig,
