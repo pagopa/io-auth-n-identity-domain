@@ -117,7 +117,7 @@ module "function_profile_async" {
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "0",
       "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "0"
-      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "1"
+      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "0"
     }
   )
   slot_app_settings = merge(
