@@ -2,7 +2,7 @@
   "bindings": [
     {
       "queueName": "spidmsgitems",
-      "connection": "LogsStorageConnection",
+      "connection": "IOPSTLOGS_STORAGE_CONNECTION_STRING",
       "name": "spidMsgItem",
       "type": "queueTrigger",
       "direction": "in"
@@ -11,10 +11,16 @@
       "type": "blob",
       "name": "spidRequestResponse",
       "path": "spidassertions/{fiscalCode}-{createdAtDay}-{spidRequestId}-{loginType}.json",
-      "connection": "LogsStorageConnection",
+      "connection": "IOPSTLOGS_STORAGE_CONNECTION_STRING",
       "direction": "out"
     }
   ],
-  "disabled": false,
-  "scriptFile": "../dist/StoreSpidLogs/index.js"
+  "retry": {
+    "strategy": "exponentialBackoff",
+    "maxRetryCount": 10,
+    "minimumInterval": "00:00:05",
+    "maximumInterval": "00:30:00"
+  },
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "StoreSpidLogs"
 }

@@ -15,6 +15,12 @@ data "azurerm_key_vault_secret" "function_profile_key" {
   key_vault_id = data.azurerm_key_vault.kv.id
 }
 
+data "azurerm_key_vault_secret" "fn_app_SPID_LOGS_PUBLIC_KEY" {
+  name         = "funcapp-KEY-SPIDLOGS-PUB"
+  key_vault_id = data.azurerm_key_vault.common_kv.id
+}
+
+
 locals {
   function_profile_async = {
     name = "profas"
@@ -64,6 +70,10 @@ locals {
       // OnProfileUpdate cosmosDB trigger variables
       ON_PROFILE_UPDATE_LEASES_PREFIX  = "OnProfileUpdateLeasesPrefix-001"
       PROFILE_EMAIL_STORAGE_TABLE_NAME = "profileEmails"
+
+      //StoreSpidLogs Config
+      IOPSTLOGS_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.storage_logs.primary_connection_string
+      SPID_LOGS_PUBLIC_KEY                = trimspace(data.azurerm_key_vault_secret.fn_app_SPID_LOGS_PUBLIC_KEY.value)
     }
   }
 }
@@ -107,6 +117,7 @@ module "function_profile_async" {
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "0",
       "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "0"
+      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "1"
     }
   )
   slot_app_settings = merge(
@@ -118,6 +129,7 @@ module "function_profile_async" {
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "1",
       "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "1"
+      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "1"
     }
   )
 
@@ -127,7 +139,8 @@ module "function_profile_async" {
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
     "AzureWebJobs.ExpiredSessionAdvisor.Disabled",
     "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",
-    "AzureWebJobs.OnProfileUpdate.Disabled"
+    "AzureWebJobs.OnProfileUpdate.Disabled",
+    "AzureWebJobs.StoreSpidLogs.Disabled"
   ]
 
   subnet_service_endpoints = {

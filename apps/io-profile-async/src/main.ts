@@ -29,6 +29,8 @@ import { tracker } from "./repositories/tracker";
 import { OnProfileUpdateFunction } from "./functions/on-profile-update";
 import { OnProfileUpdateFunctionInput } from "./types/on-profile-update-input-document";
 import { ProfileEmailRepository, ProfileRepository } from "./repositories";
+import { StoreSpidLogsFunction } from "./functions/store-spid-logs";
+import { StoreSpidLogsQueueMessage } from "./types/store-spid-logs-queue-message";
 
 const config = getConfigOrThrow();
 
@@ -102,4 +104,11 @@ export const OnProfileUpdate = OnProfileUpdateFunction({
   dataTableProfileEmailsRepository,
   telemetryClient,
   inputDecoder: OnProfileUpdateFunctionInput
+});
+
+export const StoreSpidLogs = StoreSpidLogsFunction({
+  inputDecoder: StoreSpidLogsQueueMessage,
+  spidLogsPublicKey: config.SPID_LOGS_PUBLIC_KEY,
+  tracker,
+  telemetryClient
 });
