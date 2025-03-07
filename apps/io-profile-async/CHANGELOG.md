@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.5.0
+
+### Minor Changes
+
+- d19afc3: Move `StoreSpidLogs` function from `io-profile` to `io-profile-async`
+
 ## 1.4.0
 
 ### Minor Changes
