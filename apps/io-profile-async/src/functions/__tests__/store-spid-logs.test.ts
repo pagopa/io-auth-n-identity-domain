@@ -12,7 +12,7 @@ import { aFiscalCode } from "../../../../io-profile/src/__mocks__/mocks";
 import { HandlerOutput, makeHandler } from "../store-spid-logs";
 import { StoreSpidLogsQueueMessage } from "../../types/store-spid-logs-queue-message";
 
-import { mockQueueHandlerInputMocks } from "../__mocks__/handlerMocks";
+import { mockQueueHandlerInputMocks } from "../__mocks__/handler.mock";
 import { trackerMock } from "../__mocks__/tracker.mock";
 
 const today = format(new Date(), "yyyy-MM-dd");

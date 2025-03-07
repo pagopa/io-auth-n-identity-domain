@@ -53,12 +53,11 @@ export const makeHandler: H.Handler<
   pipe(
     sequenceS(TE.ApplicativePar)({
       encryptedRequestPayload: encrypt(queueInput.requestPayload)(deps),
-      encryptedResponsePayload: encrypt(queueInput.responsePayload)(deps)
+      encryptedResponsePayload: encrypt(queueInput.responsePayload)(deps),
+      createdAt: TE.of(queueInput.createdAt),
+      ip: TE.of(queueInput.ip),
+      spidRequestId: TE.of(queueInput.spidRequestId)
     }),
-    TE.map(item => ({
-      ...queueInput,
-      ...item
-    })),
     TE.chain((encryptedBlobItem: SpidBlobItem) =>
       pipe(
         t.exact(SpidBlobItem).decode(encryptedBlobItem),
