@@ -215,7 +215,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "alert_service_prefere
   enabled                 = true
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] A service preferences migration failed"
   resource_group_name     = azurerm_resource_group.main_resource_group.name
-  scopes                  = [data.azurerm_application_gateway.app_gateway.id]
+  scopes                  = [data.azurerm_application_insights.application_insights.id]
   description             = "Some service preferences migration did not complete successfully"
   severity                = 1
   auto_mitigation_enabled = false
