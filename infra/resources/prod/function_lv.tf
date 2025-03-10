@@ -28,12 +28,6 @@ locals {
       REDIS_PASSWORD = data.azurerm_redis_cache.core_domain_redis_common.primary_access_key
 
       // --------------------------
-      //  Cosmos Config
-      // --------------------------
-      COSMOS_DB_NAME           = "citizen-auth"
-      COSMOS_CONNECTION_STRING = format("AccountEndpoint=%s;AccountKey=%s;", data.azurerm_cosmosdb_account.cosmos_citizen_auth.endpoint, data.azurerm_cosmosdb_account.cosmos_citizen_auth.primary_key)
-
-      // --------------------------
       //  Config for getAssertion
       // --------------------------
       LOLLIPOP_GET_ASSERTION_BASE_URL = "https://api-internal.io.italia.it"
