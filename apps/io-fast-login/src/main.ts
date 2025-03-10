@@ -1,4 +1,3 @@
-import { CosmosClient } from "@azure/cosmos";
 import {
   AbortableFetch,
   setFetchTimeout,
@@ -19,11 +18,10 @@ import { SessionStateFunction } from "./functions/session-state";
 import { UnlockSessionFunction } from "./functions/unlock-session";
 import { GenerateNonceFunction } from "./functions/generate-nonce";
 import { CreateRedisClientSingleton } from "./utils/redis/client";
+import { initTelemetryClient } from "./utils/appinsights";
 
 const config = getConfigOrThrow();
-
-const cosmosClient = new CosmosClient(config.COSMOS_CONNECTION_STRING);
-const database = cosmosClient.database(config.COSMOS_DB_NAME);
+initTelemetryClient();
 
 const httpApiFetch = agent.getFetch(process.env);
 const abortableFetch = AbortableFetch(httpApiFetch);
@@ -60,7 +58,7 @@ const backendInternalClient = backendInternalCreateClient<"token">({
 
 const redisClientTask = CreateRedisClientSingleton(config);
 
-export const Info = InfoFunction({ db: database, redisClientTask });
+export const Info = InfoFunction({ redisClientTask });
 export const FastLogin = FastLoginFunction({
   blobService,
   fnLollipopClient,

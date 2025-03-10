@@ -39,9 +39,9 @@ locals {
       LOLLIPOP_GET_ASSERTION_BASE_URL = "https://api-internal.io.italia.it"
       LOLLIPOP_GET_ASSERTION_API_KEY  = data.azurerm_key_vault_secret.fast_login_subscription_key.value
 
-      #   // --------------------------
-      #   //  Fast login audit log storage
-      #   // --------------------------
+      // --------------------------
+      //  Fast login audit log storage
+      // --------------------------
       FAST_LOGIN_AUDIT_CONNECTION_STRING = data.azurerm_storage_account.immutable_lv_audit_logs_storage.primary_connection_string
 
 
@@ -51,6 +51,9 @@ locals {
       BACKEND_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.backendli_api_key.value
       BACKEND_INTERNAL_BASE_URL = "https://${data.azurerm_app_service.app_backend_li.default_site_hostname}"
     }
+
+    prod_slot_sampling_percentage    = 5
+    staging_slot_sampling_percentage = 100
   }
 }
 
@@ -95,11 +98,27 @@ module "function_lv" {
   }
 
   app_settings = merge(
-    local.function_lv.app_settings
+    local.function_lv.app_settings,
+    {
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_lv.prod_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_lv.prod_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_lv.prod_slot_sampling_percentage
+    },
   )
   slot_app_settings = merge(
-    local.function_lv.app_settings
+    local.function_lv.app_settings,
+    {
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_lv.staging_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_lv.staging_slot_sampling_percentage
+      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_lv.staging_slot_sampling_percentage
+    },
   )
+
+  sticky_app_setting_names = [
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage",
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
+  ]
 
   application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
 
