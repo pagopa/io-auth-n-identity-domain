@@ -207,3 +207,47 @@ module "function_profile_async_autoscale" {
 
   tags = local.tags
 }
+
+// ----------------------------------------------------
+// Alerts
+// ----------------------------------------------------
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "alert_service_preferences_migration_failed" {
+  enabled                 = true
+  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] A service preferences migration failed"
+  resource_group_name     = azurerm_resource_group.main_resource_group.name
+  scopes                  = [data.azurerm_application_gateway.app_gateway.id]
+  description             = "Some service preferences migration did not complete successfully"
+  severity                = 1
+  auto_mitigation_enabled = false
+  location                = local.location
+
+  // check once every day(evaluation_frequency)
+  // on the last 24 hours of data(window_duration)
+  evaluation_frequency = "P1D"
+  window_duration      = "P1D"
+
+  criteria {
+    query                   = <<-QUERY
+customEvents
+| where name == "api.profile.migrate-legacy-preferences"
+| extend userId_ = tostring(customDimensions.userId)
+| extend action_ = tostring(customDimensions.action)
+| summarize make_set(action_, 500) by userId_
+| where set_action_ contains "REQUESTING" and not(set_action_ contains "DONE")
+    QUERY
+    operator                = "GreaterThanOrEqual"
+    time_aggregation_method = "Count"
+    threshold               = 1
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+
+  # Action groups for alerts
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}

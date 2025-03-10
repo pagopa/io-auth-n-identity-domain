@@ -363,7 +363,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/cosmos@npm:^3.11.5, @azure/cosmos@npm:^3.17.1, @azure/cosmos@npm:^3.17.2, @azure/cosmos@npm:^3.17.3":
+"@azure/cosmos@npm:^3.11.5, @azure/cosmos@npm:^3.17.1, @azure/cosmos@npm:^3.17.2":
   version: 3.17.3
   resolution: "@azure/cosmos@npm:3.17.3"
   dependencies:
@@ -1850,7 +1850,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/io-functions-commons@npm:^28.0.0, @pagopa/io-functions-commons@npm:^28.15.0, @pagopa/io-functions-commons@npm:^28.2.0":
+"@pagopa/io-functions-commons@npm:^28.0.0, @pagopa/io-functions-commons@npm:^28.15.0":
   version: 28.22.0
   resolution: "@pagopa/io-functions-commons@npm:28.22.0"
   dependencies:
@@ -2111,7 +2111,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/ts-commons@npm:^12.0.0, @pagopa/ts-commons@npm:^12.5.0, @pagopa/ts-commons@npm:^12.6.0":
+"@pagopa/ts-commons@npm:^12.5.0, @pagopa/ts-commons@npm:^12.6.0":
   version: 12.6.0
   resolution: "@pagopa/ts-commons@npm:12.6.0"
   dependencies:
@@ -8023,19 +8023,19 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "io-fast-login@workspace:apps/io-fast-login"
   dependencies:
-    "@azure/cosmos": "npm:^3.17.3"
     "@azure/functions": "npm:^3.5.1"
     "@mattrglobal/http-signatures": "npm:^4.0.1"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/handler-kit": "npm:^1.1.0"
     "@pagopa/handler-kit-azure-func": "npm:^1.2.0"
-    "@pagopa/io-functions-commons": "npm:^28.2.0"
+    "@pagopa/io-functions-commons": "npm:^29.3.0"
     "@pagopa/openapi-codegen-ts": "npm:^13.1.0"
-    "@pagopa/ts-commons": "npm:^12.0.0"
+    "@pagopa/ts-commons": "npm:^13.1.2"
     "@types/express": "npm:^4.17.12"
     "@types/node": "npm:~20.12.2"
     "@vitest/coverage-v8": "npm:~1.5.0"
     "@xmldom/xmldom": "npm:^0.8.8"
+    applicationinsights: "npm:^2.9.5"
     azure-storage: "npm:^2.10.7"
     date-fns: "npm:^2.30.0"
     dependency-check: "npm:^4.1.0"

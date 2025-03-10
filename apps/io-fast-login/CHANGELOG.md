@@ -1,5 +1,11 @@
 # io-fast-login
 
+## 4.1.0
+
+### Minor Changes
+
+- 5fce960: Update Application Insights configuration
+
 ## 4.0.1
 
 ### Patch Changes
