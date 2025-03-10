@@ -8124,6 +8124,7 @@ __metadata:
     "@types/nodemailer": "npm:^6.4.17"
     "@vitest/coverage-v8": "npm:~1.5.0"
     applicationinsights: "npm:^2.9.2"
+    date-fns: "npm:^2.30.0"
     dependency-check: "npm:^4.1.0"
     dotenv: "npm:^8.2.0"
     dotenv-cli: "npm:^3.1.0"
