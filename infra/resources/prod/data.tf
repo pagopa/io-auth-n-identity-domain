@@ -21,7 +21,7 @@ data "azurerm_subnet" "private_endpoints_subnet" {
   resource_group_name  = data.azurerm_virtual_network.itn_common.resource_group_name
 }
 
-data "azurerm_app_service" "app_backend_li" {
+data "azurerm_linux_web_app" "app_backend_li" {
   name                = "${local.common_project}-app-appbackendli"
   resource_group_name = "${local.common_project}-rg-linux"
 }
@@ -38,7 +38,7 @@ data "azurerm_application_gateway" "app_gateway" {
 ##########################
 # SHARED APP SERVICE PLAN
 ##########################
-data "azurerm_app_service_plan" "shared_plan_itn" {
+data "azurerm_service_plan" "shared_plan_itn" {
   name                = format("%s-%s-shared-asp-01", local.project, "citizen-auth")
   resource_group_name = format("%s-%s-shared-rg-01", local.project, "citizen-auth")
 }

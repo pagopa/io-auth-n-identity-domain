@@ -58,7 +58,7 @@ module "function_public" {
   resource_group_name = azurerm_resource_group.function_public_rg.name
   health_check_path   = "/info"
   node_version        = 20
-  app_service_plan_id = data.azurerm_app_service_plan.shared_plan_itn.id
+  app_service_plan_id = data.azurerm_service_plan.shared_plan_itn.id
 
   subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
   subnet_id     = azurerm_subnet.shared_plan_snet.id
