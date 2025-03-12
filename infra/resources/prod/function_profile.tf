@@ -162,7 +162,7 @@ module "function_profile" {
   }
 
   app_settings = merge(
-    local.function_profile_async.app_settings,
+    local.function_profile.app_settings,
     {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
@@ -174,7 +174,7 @@ module "function_profile" {
     }
   )
   slot_app_settings = merge(
-    local.function_profile_async.app_settings,
+    local.function_profile.app_settings,
     {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
