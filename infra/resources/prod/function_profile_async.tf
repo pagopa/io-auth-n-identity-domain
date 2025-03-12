@@ -81,7 +81,7 @@ locals {
 
 module "function_profile_async" {
   source  = "pagopa/dx-azure-function-app/azurerm"
-  version = "~> 0"
+  version = "~> 0.0"
 
   environment = {
     prefix          = local.prefix
