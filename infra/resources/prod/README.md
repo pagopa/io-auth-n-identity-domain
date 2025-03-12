@@ -23,16 +23,13 @@
 | <a name="module_function_lollipop_autoscale"></a> [function\_lollipop\_autoscale](#module\_function\_lollipop\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | 0.0.2 |
 | <a name="module_function_lv"></a> [function\_lv](#module\_function\_lv) | pagopa/dx-azure-function-app/azurerm | ~> 0 |
 | <a name="module_function_lv_autoscale"></a> [function\_lv\_autoscale](#module\_function\_lv\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | 0.0.2 |
-| <a name="module_function_profile_async"></a> [function\_profile\_async](#module\_function\_profile\_async) | pagopa/dx-azure-function-app/azurerm | ~> 0 |
+| <a name="module_function_profile_async"></a> [function\_profile\_async](#module\_function\_profile\_async) | pagopa/dx-azure-function-app/azurerm | ~> 0.0 |
 | <a name="module_function_profile_async_autoscale"></a> [function\_profile\_async\_autoscale](#module\_function\_profile\_async\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | 0.0.2 |
 | <a name="module_function_public"></a> [function\_public](#module\_function\_public) | pagopa/dx-azure-function-app/azurerm | ~> 0 |
 | <a name="module_function_web_profile"></a> [function\_web\_profile](#module\_function\_web\_profile) | pagopa/dx-azure-function-app/azurerm | ~> 0 |
 | <a name="module_io_profile_apim_api_itn"></a> [io\_profile\_apim\_api\_itn](#module\_io\_profile\_apim\_api\_itn) | ../../modules/operation_api | n/a |
-| <a name="module_io_profile_apim_api_weu"></a> [io\_profile\_apim\_api\_weu](#module\_io\_profile\_apim\_api\_weu) | ../../modules/operation_api | n/a |
 | <a name="module_io_public_apim_api_itn"></a> [io\_public\_apim\_api\_itn](#module\_io\_public\_apim\_api\_itn) | ../../modules/io_public_api | n/a |
-| <a name="module_io_public_apim_api_weu"></a> [io\_public\_apim\_api\_weu](#module\_io\_public\_apim\_api\_weu) | ../../modules/io_public_api | n/a |
 | <a name="module_webprofile_apim_api_itn"></a> [webprofile\_apim\_api\_itn](#module\_webprofile\_apim\_api\_itn) | ../../modules/ioweb_profile_api | n/a |
-| <a name="module_webprofile_apim_api_weu"></a> [webprofile\_apim\_api\_weu](#module\_webprofile\_apim\_api\_weu) | ../../modules/ioweb_profile_api | n/a |
 
 ## Resources
 
