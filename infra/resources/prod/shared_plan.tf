@@ -7,19 +7,13 @@ resource "azurerm_resource_group" "shared_rg" {
   location = local.location
 }
 
-resource "azurerm_app_service_plan" "shared_plan" {
+resource "azurerm_service_plan" "shared_plan" {
   name                = format("%s-%s-shared-asp-01", local.project, local.legacy_domain)
   location            = azurerm_resource_group.shared_rg.location
   resource_group_name = azurerm_resource_group.shared_rg.name
 
-  kind     = "Linux"
-  reserved = true
-
-  sku {
-    tier     = "PremiumV3"
-    size     = "P1v3"
-    capacity = 3
-  }
+  os_type  = "Linux"
+  sku_name = "P1v3"
 
   tags = local.tags
 }
@@ -46,7 +40,7 @@ resource "azurerm_monitor_autoscale_setting" "shared_plan_autoscale" {
   name                = format("%s-%s-public-func-01-autoscale", local.project, local.domain)
   resource_group_name = azurerm_resource_group.shared_rg.name
   location            = local.location
-  target_resource_id  = azurerm_app_service_plan.shared_plan.id
+  target_resource_id  = azurerm_service_plan.shared_plan.id
 
   profile {
     name = "default"
@@ -105,7 +99,7 @@ resource "azurerm_monitor_autoscale_setting" "shared_plan_autoscale" {
     rule {
       metric_trigger {
         metric_name              = "CpuPercentage"
-        metric_resource_id       = azurerm_app_service_plan.shared_plan.id
+        metric_resource_id       = azurerm_service_plan.shared_plan.id
         metric_namespace         = "microsoft.web/serverfarms"
         time_grain               = "PT1M"
         statistic                = "Average"
@@ -171,7 +165,7 @@ resource "azurerm_monitor_autoscale_setting" "shared_plan_autoscale" {
     rule {
       metric_trigger {
         metric_name              = "CpuPercentage"
-        metric_resource_id       = azurerm_app_service_plan.shared_plan.id
+        metric_resource_id       = azurerm_service_plan.shared_plan.id
         metric_namespace         = "microsoft.web/serverfarms"
         time_grain               = "PT1M"
         statistic                = "Average"
