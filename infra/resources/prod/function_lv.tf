@@ -43,7 +43,7 @@ locals {
       //  Config for backendli connection
       // --------------------------
       BACKEND_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.backendli_api_key.value
-      BACKEND_INTERNAL_BASE_URL = "https://${data.azurerm_app_service.app_backend_li.default_site_hostname}"
+      BACKEND_INTERNAL_BASE_URL = "https://${data.azurerm_linux_web_app.app_backend_li.default_hostname}"
     }
 
     prod_slot_sampling_percentage    = 5
