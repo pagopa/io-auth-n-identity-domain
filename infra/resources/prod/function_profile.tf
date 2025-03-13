@@ -130,7 +130,7 @@ locals {
 
 module "function_profile" {
   source  = "pagopa/dx-azure-function-app/azurerm"
-  version = "~> 0.0"
+  version = "~> 0.2"
 
   environment = {
     prefix          = local.prefix
@@ -161,28 +161,8 @@ module "function_profile" {
     resource_group_name = data.azurerm_virtual_network.itn_common.resource_group_name
   }
 
-  app_settings = merge(
-    local.function_profile.app_settings,
-    {
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5
-    }
-  )
-  slot_app_settings = merge(
-    local.function_profile.app_settings,
-    {
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100
-    }
-  )
-
-  sticky_app_setting_names = [
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage",
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage"
-  ]
+  app_settings      = local.function_profile.app_settings
+  slot_app_settings = local.function_profile.app_settings
 
   subnet_service_endpoints = {
     web = true
