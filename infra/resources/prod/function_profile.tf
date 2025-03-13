@@ -179,7 +179,7 @@ module "function_profile_autoscale" {
   depends_on = [module.function_profile]
   source     = "pagopa/dx-azure-app-service-plan-autoscaler/azurerm"
   // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
-  version = "0.0.2"
+  version = "~> 0.0"
 
   resource_group_name = azurerm_resource_group.main_resource_group.name
   target_service = {
