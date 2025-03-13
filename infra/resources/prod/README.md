@@ -23,7 +23,7 @@
 | <a name="module_function_lollipop_autoscale"></a> [function\_lollipop\_autoscale](#module\_function\_lollipop\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | 0.0.2 |
 | <a name="module_function_lv"></a> [function\_lv](#module\_function\_lv) | pagopa/dx-azure-function-app/azurerm | ~> 0 |
 | <a name="module_function_lv_autoscale"></a> [function\_lv\_autoscale](#module\_function\_lv\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | 0.0.2 |
-| <a name="module_function_profile"></a> [function\_profile](#module\_function\_profile) | pagopa/dx-azure-function-app/azurerm | ~> 0.2 |
+| <a name="module_function_profile"></a> [function\_profile](#module\_function\_profile) | pagopa/dx-azure-function-app/azurerm | ~> 0.0 |
 | <a name="module_function_profile_async"></a> [function\_profile\_async](#module\_function\_profile\_async) | pagopa/dx-azure-function-app/azurerm | ~> 0.0 |
 | <a name="module_function_profile_async_autoscale"></a> [function\_profile\_async\_autoscale](#module\_function\_profile\_async\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | 0.0.2 |
 | <a name="module_function_profile_autoscale"></a> [function\_profile\_autoscale](#module\_function\_profile\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | 0.0.2 |
