@@ -18,8 +18,8 @@ import { anAssertionRef } from "../../__mocks__/lollipop.mocks";
 import mockReq from "../../__mocks__/request.mocks";
 import * as profileService from "../../services/profile";
 import { FnAppAPIClient } from "../../repositories/fn-app-api";
-import { getSessionState, logout } from "../session";
-import { RedisClientSelectorType } from "../../types/redis";
+import { getSessionState, logout, getUserIdentity } from "../session";
+import { RedisClientMode, RedisClientSelectorType } from "../../types/redis";
 import { LollipopApiClient } from "../../repositories/lollipop-api";
 import {
   mockRevokeAssertionRefAssociation,
@@ -32,6 +32,8 @@ import {
 } from "../../__mocks__/services/redisSessionStorageService.mocks";
 import { toExpectedResponse } from "../../__tests__/utils";
 import { RedisSessionStorageService, TokenService } from "../../services";
+import { RedisRepo } from "../../repositories";
+import { UserIdentityWithTokens } from "../../generated/external/UserIdentityWithTokens";
 
 vi.setSystemTime(new Date(2025, 0, 1));
 
@@ -516,7 +518,9 @@ describe("logout", () => {
   GIVEN an enabled lollipop flow
   WHEN the session can not be destroyed
   THEN it should fail after sending the pub key revokal message and deleting the assertionRef`, async () => {
-    mockDeleteUser.mockImplementationOnce(() => (_deps) => TE.right(false));
+    mockDeleteUser.mockImplementationOnce(
+      () => (_deps) => TE.right(false as any),
+    );
 
     const result = await logout(mockedDependencies)();
 
@@ -538,5 +542,107 @@ describe("logout", () => {
     expect(result).toEqual(E.left(Error("deleteUser error")));
 
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
+  });
+});
+
+describe("getUserIdentity", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const res = mockRes() as unknown as Response;
+  const req = mockReq() as unknown as Request;
+
+  // Mock Redis ttl function
+  const mockTtl = vi.fn();
+  const mockRedisClient = {
+    ttl: mockTtl,
+  };
+  const mockSelectOne = vi.fn().mockReturnValue(mockRedisClient);
+  const mockedRedisClientSelector = {
+    selectOne: mockSelectOne,
+    select: (): any => {},
+  };
+
+  const mockedDependencies = {
+    redisClientSelector: mockedRedisClientSelector,
+    user: mockedUser,
+    req,
+  };
+
+  test("GIVEN a valid session token with positive TTL THEN it should return user identity with remaining TTL", async () => {
+    // Arrange
+    const expectedTtl = 3600; // 1 hour
+    mockTtl.mockResolvedValueOnce(expectedTtl);
+
+    // Act
+    await pipe(
+      mockedDependencies,
+      getUserIdentity,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    // Assert
+    expect(mockSelectOne).toHaveBeenCalledWith(RedisClientMode.FAST);
+    expect(mockTtl).toHaveBeenCalledWith(
+      `${RedisRepo.sessionKeyPrefix}${mockedUser.session_token}`,
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining(
+        UserIdentityWithTokens.encode({
+          ...mockedUser,
+          token_remaining_ttl: expectedTtl,
+        }),
+      ),
+    );
+  });
+
+  test("GIVEN Redis throws an error THEN it should return error", async () => {
+    // Arrange
+    const expectedError = new Error("Redis connection error");
+    mockTtl.mockRejectedValueOnce(expectedError);
+
+    // Act
+    const result = await getUserIdentity(mockedDependencies)();
+
+    // Assert
+    expect(result).toEqual(
+      E.left(
+        expect.objectContaining({
+          message: expect.stringContaining(expectedError.message),
+        }),
+      ),
+    );
+    expect(mockTtl).toHaveBeenCalledWith(
+      `${RedisRepo.sessionKeyPrefix}${mockedUser.session_token}`,
+    );
+  });
+
+  test("GIVEN a session token with zero or negative TTL THEN it should return error", async () => {
+    // Arrange
+    // The session token is missin
+    mockTtl.mockResolvedValueOnce(-2);
+
+    // Act
+    const result = await getUserIdentity(mockedDependencies)();
+
+    // Assert
+    expect(result).toEqual(
+      E.left(new Error("Unexpected session token TTL value")),
+    );
+    expect(mockTtl).toHaveBeenCalledWith(
+      `${RedisRepo.sessionKeyPrefix}${mockedUser.session_token}`,
+    );
+
+    // The session token has not expiration
+    mockTtl.mockResolvedValueOnce(-1);
+
+    const resultNegative = await getUserIdentity(mockedDependencies)();
+
+    expect(resultNegative).toEqual(
+      E.left(new Error("Unexpected session token TTL value")),
+    );
   });
 });

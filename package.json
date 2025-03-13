@@ -11,7 +11,7 @@
     "build": "turbo run build",
     "generate": "turbo run generate",
     "typecheck": "turbo run typecheck",
-    "version": "changeset version",
+    "version": "changeset version && yarn generate",
     "release": "changeset tag",
     "docker:pregenerate:env": "shx rm -rf docker/generated && shx mkdir docker/generated",
     "docker:generate:env": "yarn run docker:pregenerate:env && yarn run docker:generate:env:cosmosdb && yarn run docker:generate:env:io-session-manager && yarn run docker:generate:env:io-lollipop && yarn run docker:generate:env:io-web-profile && yarn run docker:generate:env:io-public && yarn run docker:generate:env:io-profile-async && yarn run docker:generate:env:io-fast-login",
