@@ -138,8 +138,7 @@ components:
       type: object
       properties:
         created_at:
-          type: string
-          format: date-time
+          type: number
         token_remaining_ttl:
           type: number
           format: integer
@@ -159,7 +158,6 @@ components:
           type: string
         date_of_birth:
           type: string
-          format: date
         spid_email:
           $ref: "#/components/schemas/EmailAddress"
         spid_level:
