@@ -26,7 +26,7 @@
 | <a name="module_function_profile"></a> [function\_profile](#module\_function\_profile) | pagopa-dx/azure-function-app/azurerm | ~> 0.0 |
 | <a name="module_function_profile_async"></a> [function\_profile\_async](#module\_function\_profile\_async) | pagopa/dx-azure-function-app/azurerm | ~> 0.0 |
 | <a name="module_function_profile_async_autoscale"></a> [function\_profile\_async\_autoscale](#module\_function\_profile\_async\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | 0.0.2 |
-| <a name="module_function_profile_autoscale"></a> [function\_profile\_autoscale](#module\_function\_profile\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | 0.0.2 |
+| <a name="module_function_profile_autoscale"></a> [function\_profile\_autoscale](#module\_function\_profile\_autoscale) | pagopa/dx-azure-app-service-plan-autoscaler/azurerm | ~> 0.0 |
 | <a name="module_function_public"></a> [function\_public](#module\_function\_public) | pagopa/dx-azure-function-app/azurerm | ~> 0 |
 | <a name="module_function_web_profile"></a> [function\_web\_profile](#module\_function\_web\_profile) | pagopa/dx-azure-function-app/azurerm | ~> 0 |
 | <a name="module_io_profile_apim_api_itn"></a> [io\_profile\_apim\_api\_itn](#module\_io\_profile\_apim\_api\_itn) | ../../modules/operation_api | n/a |
