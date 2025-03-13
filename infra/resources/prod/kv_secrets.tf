@@ -12,7 +12,7 @@ resource "azurerm_key_vault_access_policy" "func_profas" {
 resource "azurerm_key_vault_access_policy" "func_profas_staging" {
   key_vault_id = data.azurerm_key_vault.kv.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = module.function_profile_async.function_app.function_app.principal_id
+  object_id    = module.function_profile_async.function_app.function_app.slot.principal_id
 
   secret_permissions = [
     "Get",
@@ -34,7 +34,7 @@ resource "azurerm_key_vault_access_policy" "kv_common_func_profas" {
 resource "azurerm_key_vault_access_policy" "kv_common_func_profas_staging" {
   key_vault_id = data.azurerm_key_vault.common_kv.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = module.function_profile_async.function_app.function_app.principal_id
+  object_id    = module.function_profile_async.function_app.function_app.slot.principal_id
 
   secret_permissions = [
     "Get",
