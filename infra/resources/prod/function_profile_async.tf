@@ -1,5 +1,3 @@
-
-
 data "azurerm_key_vault_secret" "low_priority_mailup_username" {
   name         = "low-priority-mailup-username"
   key_vault_id = data.azurerm_key_vault.kv.id
@@ -20,64 +18,105 @@ data "azurerm_key_vault_secret" "fn_app_SPID_LOGS_PUBLIC_KEY" {
   key_vault_id = data.azurerm_key_vault.common_kv.id
 }
 
-
 locals {
   function_profile_async = {
     name = "profas"
-    app_settings = {
-      NODE_ENV = "production"
-
-      // Keepalive fields are all optionals
-      FETCH_KEEPALIVE_ENABLED             = "true"
-      FETCH_KEEPALIVE_SOCKET_ACTIVE_TTL   = "110000"
-      FETCH_KEEPALIVE_MAX_SOCKETS         = "40"
-      FETCH_KEEPALIVE_MAX_FREE_SOCKETS    = "10"
-      FETCH_KEEPALIVE_FREE_SOCKET_TIMEOUT = "30000"
-      FETCH_KEEPALIVE_TIMEOUT             = "60000"
-
-      // Mailup setup
-      MAILUP_USERNAME = data.azurerm_key_vault_secret.low_priority_mailup_username.value
-      MAILUP_SECRET   = data.azurerm_key_vault_secret.low_priority_mailup_secret.value
-
-      // Mail
-      MAIL_FROM = "IO - l'app dei servizi pubblici <no-reply@io.italia.it>"
-
-      // Backend Internal
-      BACKEND_INTERNAL_BASE_URL = "https://${data.azurerm_linux_web_app.app_backend_li.default_hostname}"
-      BACKEND_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.backendli_api_key.value
-
-      // Function Profile
-      FUNCTION_PROFILE_BASE_URL = "https://io-p-itn-auth-profile-fn-01.azurewebsites.net"
-      FUNCTION_PROFILE_API_KEY  = data.azurerm_key_vault_secret.function_profile_key.value
-
-      // Expired Session Mail prop
-      EXPIRED_SESSION_CTA_URL = "https://continua.io.pagopa.it?utm_source=email&utm_medium=email&utm_campaign=lv_expired"
-
-      // Cosmos
-      COSMOSDB_NAME              = "db"
-      COSMOSDB_CONNECTION_STRING = format("AccountEndpoint=%s;AccountKey=%s;", data.azurerm_cosmosdb_account.cosmos_api.endpoint, data.azurerm_cosmosdb_account.cosmos_api.primary_key)
-
-      //Queue
-      EXPIRED_SESSION_ADVISOR_QUEUE = "expired-user-sessions" // TODO: replace when this queue is migrate in the monorepo
-
-      // Storage
-      AZURE_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.citizen_auth_common.primary_connection_string
-
-      //MigrateServicePreferenceFromLegacy Config
-      IOPSTAPP_STORAGE_CONNECTION_STRING              = data.azurerm_storage_account.storage_app.primary_connection_string
-      MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME = "profile-migrate-services-preferences-from-legacy" // TODO: replace when this queue is migrate in the monorepo
-      //
-      // OnProfileUpdate cosmosDB trigger variables
-      ON_PROFILE_UPDATE_LEASES_PREFIX  = "OnProfileUpdateLeasesPrefix-001"
-      PROFILE_EMAIL_STORAGE_TABLE_NAME = "profileEmails"
-
-      //StoreSpidLogs Config
-      IOPSTLOGS_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.storage_logs.primary_connection_string
-      SPID_LOGS_PUBLIC_KEY                = trimspace(data.azurerm_key_vault_secret.fn_app_SPID_LOGS_PUBLIC_KEY.value)
-    }
+    app_settings = [
+      {
+        name  = "NODE_ENV"
+        value = "production"
+      },
+      {
+        name  = "FETCH_KEEPALIVE_ENABLED",
+        value = "true"
+      },
+      {
+        name  = "FETCH_KEEPALIVE_SOCKET_ACTIVE_TTL",
+        value = "110000"
+      },
+      {
+        name  = "FETCH_KEEPALIVE_MAX_SOCKETS",
+        value = "40"
+      },
+      {
+        name  = "FETCH_KEEPALIVE_MAX_FREE_SOCKETS",
+        value = "10"
+      },
+      {
+        name  = "FETCH_KEEPALIVE_FREE_SOCKET_TIMEOUT",
+        value = "30000"
+      },
+      {
+        name  = "FETCH_KEEPALIVE_TIMEOUT",
+        value = "60000"
+      },
+      {
+        name  = "MAIL_FROM",
+        value = "IO - l'app dei servizi pubblici <no-reply@io.italia.it>"
+      },
+      {
+        name  = "BACKEND_INTERNAL_BASE_URL",
+        value = "https://${data.azurerm_linux_web_app.app_backend_li.default_hostname}"
+      },
+      {
+        name                 = "BACKEND_INTERNAL_API_KEY",
+        key_vault_secret_uri = data.azurerm_key_vault_secret.backendli_api_key.versionless_id
+      },
+      {
+        name  = "FUNCTION_PROFILE_BASE_URL",
+        value = "https://io-p-itn-auth-profile-fn-01.azurewebsites.net"
+      },
+      {
+        name                 = "FUNCTION_PROFILE_API_KEY",
+        key_vault_secret_uri = data.azurerm_key_vault_secret.function_profile_key.versionless_id
+      },
+      {
+        name  = "EXPIRED_SESSION_CTA_URL",
+        value = "https://continua.io.pagopa.it?utm_source=email&utm_medium=email&utm_campaign=lv_expired"
+      },
+      {
+        name  = "COSMOSDB_NAME",
+        value = "db"
+      },
+      {
+        name                 = "COSMOSDB_CONNECTION_STRING",
+        key_vault_secret_uri = azurerm_key_vault_secret.cosmos_api_connection_string.versionless_id
+      },
+      {
+        name  = "EXPIRED_SESSION_ADVISOR_QUEUE",
+        value = "expired-user-sessions"
+      },
+      {
+        name                 = "AZURE_STORAGE_CONNECTION_STRING",
+        key_vault_secret_uri = azurerm_key_vault_secret.citizen_auth_common_connection_string.versionless_id
+      },
+      {
+        name                 = "IOPSTAPP_STORAGE_CONNECTION_STRING",
+        key_vault_secret_uri = azurerm_key_vault_secret.iopstapp_connection_string.versionless_id
+      },
+      {
+        name  = "MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME",
+        value = "profile-migrate-services-preferences-from-legacy"
+      },
+      {
+        name  = "ON_PROFILE_UPDATE_LEASES_PREFIX",
+        value = "OnProfileUpdateLeasesPrefix-001"
+      },
+      {
+        name  = "PROFILE_EMAIL_STORAGE_TABLE_NAME",
+        value = "profileEmails"
+      },
+      {
+        name                 = "IOPSTLOGS_STORAGE_CONNECTION_STRING",
+        key_vault_secret_uri = azurerm_key_vault_secret.iopstlogs_connection_string.versionless_id
+      },
+      {
+        name                 = "SPID_LOGS_PUBLIC_KEY",
+        key_vault_secret_uri = data.azurerm_key_vault_secret.fn_app_SPID_LOGS_PUBLIC_KEY.versionless_id
+      }
+    ]
   }
 }
-
 
 module "function_profile_async" {
   source  = "pagopa/dx-azure-function-app/azurerm"
@@ -95,7 +134,6 @@ module "function_profile_async" {
   node_version      = 20
   health_check_path = "/info"
 
-
   resource_group_name = azurerm_resource_group.main_resource_group.name
 
   subnet_cidr   = local.cidr_subnet_fn_profile_async
@@ -108,39 +146,49 @@ module "function_profile_async" {
     resource_group_name = data.azurerm_virtual_network.itn_common.resource_group_name
   }
 
-  app_settings = merge(
-    local.function_profile_async.app_settings,
+  app_settings = merge({
+    "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0",
+    "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "0",
+    "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "0",
+    "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "0",
+    MAILUP_USERNAME                                                                                  = "@Microsoft.KeyVault(SecretUri=https://io-p-citizen-auth-kv.vault.azure.net/secrets/low-priority-mailup-username)",
+    MAILUP_SECRET                                                                                    = "@Microsoft.KeyVault(SecretUri=https://io-p-citizen-auth-kv.vault.azure.net/secrets/low-priority-mailup-secret)",
+    AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
+    AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
+    AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5,
+    },
     {
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5,
-      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0",
-      "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "0",
-      "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "0"
-      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "0"
+      for s in local.function_profile_async.app_settings :
+      s.name => try("@Microsoft.KeyVault(SecretUri=${s.key_vault_secret_uri})", s.value)
     }
   )
-  slot_app_settings = merge(
-    local.function_profile_async.app_settings,
+  slot_app_settings = merge({
+    "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1",
+    "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "1",
+    "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "1"
+    "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "1"
+    MAILUP_USERNAME                                                                                  = "dummy",
+    MAILUP_SECRET                                                                                    = "dummy",
+    AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100,
+    AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
+    AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100,
+    },
     {
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100,
-      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1",
-      "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "1",
-      "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "1"
-      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "1"
+      for s in local.function_profile_async.app_settings :
+      s.name => try("@Microsoft.KeyVault(SecretUri=${s.key_vault_secret_uri})", s.value)
     }
   )
 
   sticky_app_setting_names = [
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage",
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
     "AzureWebJobs.ExpiredSessionAdvisor.Disabled",
     "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",
     "AzureWebJobs.OnProfileUpdate.Disabled",
-    "AzureWebJobs.StoreSpidLogs.Disabled"
+    "AzureWebJobs.StoreSpidLogs.Disabled",
+    "MAILUP_USERNAME",
+    "MAILUP_SECRET",
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage",
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
+    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
   ]
 
   subnet_service_endpoints = {
