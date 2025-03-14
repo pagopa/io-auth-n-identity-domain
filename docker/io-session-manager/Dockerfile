@@ -1,35 +1,27 @@
-FROM node:20.12.2-alpine as base
+ARG APP="io-session-manager"
 
-USER root
-
-RUN apk update
-
-COPY ./ /usr/src/app/
-
+FROM monorepo AS builder
+ARG APP
 WORKDIR /usr/src/app
+RUN turbo prune ${APP} --docker
 
-# RUN corepack enable && corepack prepare
 
+FROM node:20.12.0 AS installer
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app/out/json/ .
 RUN yarn install --immutable
-RUN yarn build
+COPY --from=builder /usr/src/app/out/full/ .
+RUN yarn turbo run build
 
-FROM node:20.12.2-alpine as runner
+
+FROM node:20.12.2-alpine AS runner
+ARG APP
 WORKDIR /usr/src/app
+COPY --from=installer /usr/src/app/apps/${APP} .
 
 # bug: yarn logs requires write permission for tmp folder
 RUN chown -R node:node /tmp
 
-COPY --from=base /usr/src/app/package.json ./
-COPY --from=base /usr/src/app/turbo.json ./
-COPY --from=base /usr/src/app/node_modules ./
-COPY --from=base /usr/src/app/apps/io-session-manager/package.json ./apps/io-session-manager/
-COPY --from=base /usr/src/app/apps/io-session-manager/node_modules ./apps/io-session-manager/node_modules
-COPY --from=base /usr/src/app/apps/io-session-manager/dist ./apps/io-session-manager/dist
-
-WORKDIR /usr/src/app/apps/io-session-manager
-
 EXPOSE 80
-
 USER node
-
 CMD ["node", "dist/server.js"]

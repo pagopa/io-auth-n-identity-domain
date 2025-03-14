@@ -1,22 +1,22 @@
-FROM functions-node-20 AS base
+ARG APP="io-lollipop"
 
+FROM monorepo AS builder
+ARG APP
 WORKDIR /usr/src/app
-COPY . /usr/src/app
+RUN turbo prune ${APP} --docker
 
+
+FROM node:20.12.0 AS installer
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app/out/json/ .
 RUN yarn install --immutable
-RUN yarn build
+COPY --from=builder /usr/src/app/out/full/ .
+RUN yarn turbo run build
+
 
 FROM functions-node-20 AS runner
-COPY --from=base /usr/src/app/package.json ./package.json
-COPY --from=base /usr/src/app/turbo.json ./turbo.json
-COPY --from=base /usr/src/app/node_modules ./node_modules
-
-COPY --from=base /usr/src/app/packages/typescript-config-node ./packages/typescript-config-node
-
-COPY --from=base /usr/src/app/apps/io-lollipop ./apps/io-lollipop
-
-WORKDIR /usr/src/app/apps/io-lollipop
-
+ARG APP
+WORKDIR /usr/src/app
+COPY --from=installer /usr/src/app/apps/${APP} .
 RUN yarn extensions:install
-
 CMD ["func", "start", "--javascript"]
