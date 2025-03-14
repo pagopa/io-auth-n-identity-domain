@@ -1,1 +1,8 @@
-node_modules
+**/dist
+**/node_modules
+.changeset
+.github
+.turbo
+# .yarn
+.infra
+out
