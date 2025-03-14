@@ -32,8 +32,7 @@ following contents:
     "AzureWebJobsStorage": "<JOBS_STORAGE_CONNECTION_STRING>",
     "APPLICATIONINSIGHTS_CONNECTION_STRING": "<APPINSIGHTS_KEY>",
     "COSMOSDB_NAME": "<COSMOSDB_DB_NAME>",
-    "COSMOSDB_KEY": "<COSMOSDB_KEY>",
-    "COSMOSDB_URI": "<COSMOSDB_URI>",
+    "COSMOSDB_CONNECTION_STRING": "<COSMOSDB_CONNECTION_STRING>",
     "WEBHOOK_CHANNEL_URL": "<WEBHOOK_URL>",
     "QueueStorageConnection": "<QUEUES_STORAGE_CONNECTION_STRING>",
     "SUBSCRIPTIONS_FEED_TABLE": "SubscriptionsFeedByDay"
@@ -65,11 +64,8 @@ If Azurite is executed on different address or ports, the **connection string** 
 
 These must be the other variables values for the `local.settings.json` file:
 
-- COSMOSDB_URI=https://cosmosdb:3000/
-- COSMOSDB_KEY=dummykey
+- COSMOSDB_CONNECTION_STRING=cosmosdb_conn_string
 - COSMOSDB_NAME=testdb
-
-The COSMOSDB_URI must be the address of the cosmos db instance specified in the docker-compose.yml file while the COSMOSDB_KEY and COSMOSDB_NAME could be totally randomic.
 
 Then, copy `.env.example` to `.env` and fill the variables with the following mandatory variables:
 

@@ -62,9 +62,7 @@ export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.type({
     COSMOSDB_CONNECTION_STRING: NonEmptyString,
-    COSMOSDB_KEY: NonEmptyString,
     COSMOSDB_NAME: NonEmptyString,
-    COSMOSDB_URI: NonEmptyString,
 
     FUNCTIONS_PUBLIC_URL: NonEmptyString,
 

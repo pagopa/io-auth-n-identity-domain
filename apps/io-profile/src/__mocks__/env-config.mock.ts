@@ -5,9 +5,8 @@ import { IConfig } from "../utils/config";
 export const envConfig = {
   isProduction: false,
 
-  COSMOSDB_KEY: "aKey" as NonEmptyString,
+  COSMOSDB_CONNECTION_STRING: "aConnectionString" as NonEmptyString,
   COSMOSDB_NAME: "aName" as NonEmptyString,
-  COSMOSDB_URI: "aUri" as NonEmptyString,
 
   FUNCTIONS_PUBLIC_URL: "aaa" as NonEmptyString,
 
