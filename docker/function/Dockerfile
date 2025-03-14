@@ -1,9 +1,9 @@
-ARG APP="io-fast-login"
+ARG FUNCTION_NAME
 
 FROM monorepo AS builder
-ARG APP
+ARG FUNCTION_NAME
 WORKDIR /usr/src/app
-RUN turbo prune ${APP} --docker
+RUN turbo prune ${FUNCTION_NAME} --docker
 
 
 FROM node:20.12.0 AS installer
@@ -15,8 +15,8 @@ RUN yarn turbo run build
 
 
 FROM functions-node-20 AS runner
-ARG APP
+ARG FUNCTION_NAME
 WORKDIR /usr/src/app
-COPY --from=installer /usr/src/app/apps/${APP} .
+COPY --from=installer /usr/src/app/apps/${FUNCTION_NAME} .
 RUN yarn extensions:install
 CMD ["func", "start", "--javascript"]

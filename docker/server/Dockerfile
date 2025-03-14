@@ -1,9 +1,9 @@
-ARG APP="io-session-manager"
+ARG SERVER_NAME
 
 FROM monorepo AS builder
-ARG APP
+ARG SERVER_NAME
 WORKDIR /usr/src/app
-RUN turbo prune ${APP} --docker
+RUN turbo prune ${SERVER_NAME} --docker
 
 
 FROM node:20.12.0 AS installer
@@ -15,13 +15,12 @@ RUN yarn turbo run build
 
 
 FROM node:20.12.2-alpine AS runner
-ARG APP
+ARG SERVER_NAME
 WORKDIR /usr/src/app
-COPY --from=installer /usr/src/app/apps/${APP} .
+COPY --from=installer /usr/src/app/apps/${SERVER_NAME} .
 
 # bug: yarn logs requires write permission for tmp folder
 RUN chown -R node:node /tmp
 
-EXPOSE 80
 USER node
 CMD ["node", "dist/server.js"]
