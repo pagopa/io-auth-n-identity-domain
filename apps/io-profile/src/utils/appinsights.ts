@@ -17,7 +17,7 @@ export const initTelemetryClient = (env = process.env) =>
   ai.defaultClient
     ? ai.defaultClient
     : pipe(
-        env.APPINSIGHTS_INSTRUMENTATIONKEY,
+        env.APPLICATIONINSIGHTS_CONNECTION_STRING,
         NonEmptyString.decode,
         E.map((k) =>
           initAppInsights(k, {

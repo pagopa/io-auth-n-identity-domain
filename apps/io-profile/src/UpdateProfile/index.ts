@@ -28,7 +28,7 @@ const profileModel = new ProfileModel(
 );
 
 const queueClient = QueueServiceClient.fromConnectionString(
-  config.FN_APP_STORAGE_CONNECTION_STRING,
+  config.IOPSTAPP_STORAGE_CONNECTION_STRING,
 ).getQueueClient(config.MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME);
 
 // Initialize application insights
