@@ -74,21 +74,16 @@ export const IConfig = t.intersection([
     MAGIC_LINK_SERVICE_API_KEY: NonEmptyString,
     MAGIC_LINK_SERVICE_PUBLIC_URL: NonEmptyString,
 
-    MESSAGE_CONTAINER_NAME: NonEmptyString,
-
-    ON_PROFILE_UPDATE_LEASES_PREFIX: NonEmptyString,
-
     PUBLIC_API_KEY: NonEmptyString,
     PUBLIC_API_URL: NonEmptyString,
 
     // eslint-disable-next-line sort-keys
     EventsQueueName: NonEmptyString,
     EventsQueueStorageConnection: NonEmptyString,
-    FN_APP_STORAGE_CONNECTION_STRING: NonEmptyString,
+    IOPSTAPP_STORAGE_CONNECTION_STRING: NonEmptyString,
     MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME: NonEmptyString,
     QueueStorageConnection: NonEmptyString,
 
-    SPID_LOGS_PUBLIC_KEY: NonEmptyString,
     SUBSCRIPTIONS_FEED_TABLE: NonEmptyString,
 
     // eslint-disable-next-line sort-keys

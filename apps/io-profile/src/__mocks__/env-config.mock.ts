@@ -10,7 +10,6 @@ export const envConfig = {
   COSMOSDB_URI: "aUri" as NonEmptyString,
 
   FUNCTIONS_PUBLIC_URL: "aaa" as NonEmptyString,
-  MESSAGE_CONTAINER_NAME: "aaa" as NonEmptyString,
 
   PUBLIC_API_KEY: "aaa" as NonEmptyString,
   PUBLIC_API_URL: "aaa" as NonEmptyString,
@@ -20,7 +19,6 @@ export const envConfig = {
   MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME: "aaa" as NonEmptyString,
   QueueStorageConnection: "aaa" as NonEmptyString,
 
-  SPID_LOGS_PUBLIC_KEY: "aaa" as NonEmptyString,
   SUBSCRIPTIONS_FEED_TABLE: "aaa" as NonEmptyString,
 
   OPT_OUT_EMAIL_SWITCH_DATE: "1577836800000" as unknown as DateFromTimestamp,
