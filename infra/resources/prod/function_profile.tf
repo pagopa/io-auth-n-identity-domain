@@ -134,6 +134,19 @@ module "function_profile_autoscale" {
   }
 
   scheduler = {
+    high_load = {
+      name    = "evening"
+      minimum = 4
+      default = 10
+      start = {
+        hour    = 19
+        minutes = 30
+      }
+      end = {
+        hour    = 22
+        minutes = 59
+      }
+    },
     normal_load = {
       minimum = 3
       default = 10
@@ -146,7 +159,7 @@ module "function_profile_autoscale" {
       statistic_increase        = "Max"
       time_window_increase      = 1
       time_aggregation          = "Maximum"
-      upper_threshold           = 2500
+      upper_threshold           = 2000
       increase_by               = 2
       cooldown_increase         = 1
       statistic_decrease        = "Average"
@@ -157,12 +170,12 @@ module "function_profile_autoscale" {
       cooldown_decrease         = 1
     }
     cpu = {
-      upper_threshold           = 35
+      upper_threshold           = 40
       lower_threshold           = 15
-      increase_by               = 3
+      increase_by               = 4
       decrease_by               = 1
       cooldown_increase         = 1
-      cooldown_decrease         = 20
+      cooldown_decrease         = 2
       statistic_increase        = "Max"
       statistic_decrease        = "Average"
       time_aggregation_increase = "Maximum"
