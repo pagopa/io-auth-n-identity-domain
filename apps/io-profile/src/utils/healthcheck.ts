@@ -50,12 +50,11 @@ export const checkConfigHealth = (): HealthCheck<"Config", IConfig> =>
  * @returns either true or an array of error messages
  */
 export const checkAzureCosmosDbHealth = (
-  dbUri: string,
-  dbKey?: string,
+  connectionString: string,
 ): HealthCheck<"AzureCosmosDB", true> =>
   pipe(
     TE.tryCatch(async () => {
-      const client = buildCosmosClient(dbUri, dbKey);
+      const client = buildCosmosClient(connectionString);
       return client.getDatabaseAccount();
     }, toHealthProblems("AzureCosmosDB")),
     TE.map((_) => true),
@@ -137,7 +136,7 @@ export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> => {
     TE.chain((config) =>
       // run each taskEither and collect validation errors from each one of them, if any
       sequenceT(applicativeValidation)(
-        checkAzureCosmosDbHealth(config.COSMOSDB_URI, config.COSMOSDB_KEY),
+        checkAzureCosmosDbHealth(config.COSMOSDB_CONNECTION_STRING),
         checkAzureStorageHealth(config.QueueStorageConnection),
         checkUrlHealth(config.PUBLIC_API_URL),
         checkUrlHealth(config.FUNCTIONS_PUBLIC_URL),
