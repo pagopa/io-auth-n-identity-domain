@@ -114,7 +114,7 @@ import {
 
 module "repo" {
   source  = "pagopa/dx-azure-github-environment-bootstrap/azurerm"
-  version = "~>0"
+  version = "~>1.0"
 
   environment = {
     prefix          = local.prefix
@@ -156,15 +156,15 @@ module "repo" {
       name                = local.runner.secret.kv_name
       resource_group_name = local.runner.secret.kv_resource_group_name
     }
-    cpu    = 1
-    memory = "2Gi"
+    cpu    = 0.5
+    memory = "1Gi"
   }
 
-  apim_id                       = data.azurerm_api_management.apim.id
-  pep_vnet_id                   = data.azurerm_virtual_network.common.id
-  dns_zone_resource_group_id    = data.azurerm_resource_group.external.id
-  opex_resource_group_id        = data.azurerm_resource_group.dashboards.id
-  nat_gateway_resource_group_id = data.azurerm_resource_group.itn_common_rg_01.id
+  apim_id                            = data.azurerm_api_management.apim.id
+  pep_vnet_id                        = data.azurerm_virtual_network.common.id
+  private_dns_zone_resource_group_id = data.azurerm_resource_group.external.id
+  opex_resource_group_id             = data.azurerm_resource_group.dashboards.id
+  nat_gateway_resource_group_id      = data.azurerm_resource_group.itn_common_rg_01.id
   keyvault_common_ids = [
     data.azurerm_key_vault.common.id
   ]
