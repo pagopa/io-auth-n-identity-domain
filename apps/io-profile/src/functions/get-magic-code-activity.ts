@@ -6,7 +6,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { flow, pipe } from "fp-ts/function";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { TransientNotImplementedFailure } from "../utils/durable";
-import { MagicLinkServiceClient } from "./utils";
+import { MagicLinkServiceClient } from "../utils/magic-code";
 
 // magic link service response
 const MagicLinkServiceResponse = t.interface({
@@ -51,7 +51,7 @@ export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
 const logPrefix = "GetMagicCodeActivity";
 
-export const getActivityHandler =
+export const getMagicCodeActivityHandler =
   (magicLinkService: MagicLinkServiceClient) =>
   async (context: Context, input: unknown): Promise<ActivityResult> =>
     pipe(

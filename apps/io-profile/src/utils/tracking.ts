@@ -4,7 +4,7 @@ import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/g
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { EventTelemetry } from "applicationinsights/out/Declarations/Contracts";
-import { UpdateSubscriptionFeedInput } from "../UpsertServicePreferences/subscription_feed";
+import { UpdateSubscriptionFeedInput } from "./subscription-feed";
 import { initTelemetryClient } from "./appinsights";
 import { toHash } from "./crypto";
 

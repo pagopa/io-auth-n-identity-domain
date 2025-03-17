@@ -50,7 +50,6 @@ import {
   isEmailAlreadyTaken,
 } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
-import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "../UpsertedProfileOrchestrator/handler";
 import { ProfileMiddleware } from "../utils/middlewares/profile";
 import {
   apiProfileToProfile,
@@ -61,6 +60,7 @@ import { toHash } from "../utils/crypto";
 import { createTracker } from "../utils/tracking";
 import { UpdateProfile412ErrorTypesEnum } from "../generated/definitions/internal/UpdateProfile412ErrorTypes";
 import { EmailValidationProcessParams } from "../generated/definitions/internal/EmailValidationProcessParams";
+import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "./upserted-profile-orchestrator";
 
 // Note: this type is shared with io-profile-async (MigrateServicesPreferencesFromLegacy)
 export const MigrateServicesPreferencesQueueMessage = t.interface({

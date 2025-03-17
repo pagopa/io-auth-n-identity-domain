@@ -18,7 +18,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { createTracker } from "../utils/tracking";
 import { startOrchestrator } from "../utils/durable";
 import { UserLoginParams } from "../generated/definitions/internal/UserLoginParams";
-import { OrchestratorInput } from "../NoticeLoginEmailOrchestrator/handler";
+import { OrchestratorInput } from "./notice-login-email-orchestrator";
 
 /**
  * Type of the handler.

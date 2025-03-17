@@ -13,7 +13,7 @@ import {
   cashbackContent,
   howToContent,
   welcomeMessageContent,
-} from "./welcome_messages";
+} from "../utils/welcome-messages";
 
 function throwInvalidMessageError(errs: t.Errors): never {
   throw new Error(
@@ -111,7 +111,7 @@ export const ActivityInput = t.interface({
 });
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
 
-export const getActivityFunction =
+export const getSendWelcomeMessagesActivityFunction =
   (
     publicApiUrl: NonEmptyString,
     publicApiKey: NonEmptyString,
@@ -179,4 +179,4 @@ export const getActivityFunction =
     );
   };
 
-export default getActivityFunction;
+export default getSendWelcomeMessagesActivityFunction;

@@ -11,19 +11,19 @@ import * as E from "fp-ts/lib/Either";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
-import {
-  ActivityInput as SendTemplatedLoginEmailActivityInput,
-  ActivityResultSuccess as SendTemplatedLoginEmailActivityResultSuccess,
-} from "../SendTemplatedLoginEmailActivity/handler";
+import { toHash } from "../utils/crypto";
 import {
   ActivityInput as GetMagicCodeActivityInput,
   ActivityResult as GetMagicCodeActivityResult,
-} from "../GetMagicCodeActivity/handler";
+} from "./get-magic-code-activity";
 import {
   ActivityInput as GetGeoLocationActivityInput,
   ActivityResult as GetGeoLocationActivityResult,
-} from "../GetGeoLocationDataActivity/handler";
-import { toHash } from "../utils/crypto";
+} from "./get-geo-location-data-activity";
+import {
+  ActivityInput as SendTemplatedLoginEmailActivityInput,
+  ActivityResultSuccess as SendTemplatedLoginEmailActivityResultSuccess,
+} from "./send-templated-login-email-activity";
 
 // Input
 export const OrchestratorInput = t.intersection([

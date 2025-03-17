@@ -6,7 +6,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/function";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { TransientNotImplementedFailure } from "../utils/durable";
-import { GeoLocationServiceClient } from "./utils";
+import { GeoLocationServiceClient } from "../utils/geo-location";
 
 // geo location service response
 const GeoLocationServiceResponse = t.interface({

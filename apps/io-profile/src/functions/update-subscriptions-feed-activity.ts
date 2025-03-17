@@ -15,7 +15,7 @@ import { toHash } from "../utils/crypto";
 import {
   SubscriptionFeedEntitySelector,
   updateSubscriptionStatus,
-} from "../utils/subscription_feed";
+} from "../utils/subscription-feed";
 
 const CommonInput = t.interface({
   // fiscal code of the user affected by this update

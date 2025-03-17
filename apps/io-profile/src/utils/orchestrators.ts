@@ -9,10 +9,10 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { PromiseType } from "@pagopa/ts-commons/lib/types";
 import { EmailAddress } from "../generated/backend/EmailAddress";
-import { toHash } from "../utils/crypto";
+import { toHash } from "./crypto";
 
 /**
- 
+
  * The identifier for EmailValidationProcessOrchestrator
  *
  * @param fiscalCode the id of the requesting user

@@ -41,12 +41,12 @@ import {
 
 import { pipe } from "fp-ts/lib/function";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
-import { OrchestratorInput as EmailValidationWithTemplateProcessOrchestratorInput } from "../EmailValidationWithTemplateProcessOrchestrator/handler";
 import { EmailValidationProcessParams } from "../generated/definitions/internal/EmailValidationProcessParams";
 import {
   isOrchestratorRunning,
   makeStartEmailValidationProcessOrchestratorId,
-} from "./orchestrators";
+} from "../utils/orchestrators";
+import { OrchestratorInput as EmailValidationWithTemplateProcessOrchestratorInput } from "./email-validation-orchestrator";
 
 type ReturnTypes =
   // eslint-disable-next-line @typescript-eslint/ban-types

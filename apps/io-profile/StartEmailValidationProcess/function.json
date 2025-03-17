@@ -6,9 +6,7 @@
       "direction": "in",
       "name": "req",
       "route": "v1/email-validation-process/{fiscalcode}",
-      "methods": [
-        "post"
-      ]
+      "methods": ["post"]
     },
     {
       "type": "http",
@@ -21,5 +19,6 @@
       "direction": "in"
     }
   ],
-  "scriptFile": "../dist/StartEmailValidationProcess/index.js"
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "httpTriggerEntrypoint"
 }

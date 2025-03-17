@@ -35,9 +35,9 @@ import {
 import { isBefore } from "date-fns";
 import { pipe } from "fp-ts/lib/function";
 import { fromEither } from "fp-ts/lib/TaskEither";
-import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "../UpsertedProfileOrchestrator/handler";
 import { NewProfileMiddleware } from "../utils/middlewares/profile";
 import { retrievedProfileToExtendedProfile } from "../utils/profiles";
+import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "./upserted-profile-orchestrator";
 
 /**
  * Type of an CreateProfile handler.

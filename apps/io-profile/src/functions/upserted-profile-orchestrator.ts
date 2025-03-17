@@ -15,21 +15,21 @@ import { ServiceId } from "@pagopa/io-functions-commons/dist/generated/definitio
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicesPreferencesMode";
-import {
-  OrchestratorInput as EmailValidationWithTemplateProcessOrchestratorInput,
-  OrchestratorResult as EmailValidationWithTemplateProcessOrchestratorResult,
-} from "../EmailValidationWithTemplateProcessOrchestrator/handler";
-import { Input as UpdateServiceSubscriptionFeedActivityInput } from "../UpdateSubscriptionsFeedActivity/handler";
 import { diffBlockedServices } from "../utils/profiles";
-import {
-  ActivityResult,
-  ActivityResultSuccess,
-} from "../GetServicesPreferencesActivity/handler";
-import { ActivityInput as SendWelcomeMessageActivityInput } from "../SendWelcomeMessagesActivity/handler";
 import {
   makeProfileCompletedEvent,
   makeServicePreferencesChangedEvent,
 } from "../utils/emitted_events";
+import { ActivityInput as SendWelcomeMessageActivityInput } from "./send-welcome-messages-activity";
+import { Input as UpdateServiceSubscriptionFeedActivityInput } from "./update-subscriptions-feed-activity";
+import {
+  OrchestratorInput as EmailValidationWithTemplateProcessOrchestratorInput,
+  OrchestratorResult as EmailValidationWithTemplateProcessOrchestratorResult,
+} from "./email-validation-orchestrator";
+import {
+  ActivityResult,
+  ActivityResultSuccess,
+} from "./get-services-preferences-activity";
 
 /**
  * Carries information about created or updated profile.

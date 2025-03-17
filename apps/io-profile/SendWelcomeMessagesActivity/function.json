@@ -6,5 +6,6 @@
       "direction": "in"
     }
   ],
-  "scriptFile": "../dist/SendWelcomeMessagesActivity/index.js"
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "SendWelcomeMessagesActivity"
 }

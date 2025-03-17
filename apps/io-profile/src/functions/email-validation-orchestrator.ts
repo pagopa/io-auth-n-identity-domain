@@ -11,11 +11,11 @@ import { EmailString, FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import {
   ActivityInput as CreateValidationTokenActivityInput,
   ActivityResult as CreateValidationTokenActivityResult,
-} from "../CreateValidationTokenActivity/handler";
+} from "./create-validation-token-activity";
 import {
   ActivityInput as SendValidationEmailActivityInput,
   ActivityResult as SendValidationEmailActivityResult,
-} from "../SendTemplatedValidationEmailActivity/handler";
+} from "./send-templated-validation-email-activity";
 
 // Input
 export const OrchestratorInput = t.intersection([
@@ -48,7 +48,7 @@ export type OrchestratorResult = t.TypeOf<typeof OrchestratorResult>;
 /**
  * An orchestrator to handle the email validation process.
  */
-export const handler = function* (
+export const EmailValidationOrchestratorHandler = function* (
   context: IOrchestrationFunctionContext,
 ): Generator<unknown> {
   const logPrefix = `EmailValidationWithTemplateProcessOrchestrator`;

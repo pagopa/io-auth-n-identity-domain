@@ -65,7 +65,7 @@ import { createTracker } from "../utils/tracking";
 import { makeServiceSubscribedEvent } from "../utils/emitted_events";
 import { getProfileOrErrorResponse } from "../utils/profiles";
 import { getServiceOrErrorResponse } from "../utils/services";
-import { updateSubscriptionFeedTask } from "./subscription_feed";
+import { updateSubscriptionFeedTask } from "../utils/subscription-feed";
 
 enum FeedOperationEnum {
   "SUBSCRIBED" = "SUBSCRIBED",
@@ -174,7 +174,7 @@ const decodeOperation = (isInboxEnabled: boolean) =>
 /**
  * Calculate Feed operation to perform by considering:
  * - the previous service preference's inboxEnabled (if exists)
- 
+
  * - the current one that should be upserted.
  *
  * @param maybePreviousInboxEnabled The previous service preference's inboxEnabled property
