@@ -3,7 +3,7 @@
  */
 import { CosmosClient } from "@azure/cosmos";
 
-import { getConfigOrThrow } from "./config";
+import { getConfigOrThrow } from "../config";
 
 const config = getConfigOrThrow();
 
