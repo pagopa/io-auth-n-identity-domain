@@ -13,7 +13,7 @@ import { DataTableProfileEmailsRepository } from "@pagopa/io-functions-commons/d
 
 import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src/createAzureFunctionsHandler";
 
-import { getConfigOrThrow } from "../utils/config";
+import { getConfigOrThrow } from "../config";
 
 import { cosmosdbInstance } from "../utils/cosmosdb";
 import { profileEmailTableClient } from "../utils/unique_email_enforcement";
