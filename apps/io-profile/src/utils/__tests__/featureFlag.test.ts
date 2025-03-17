@@ -1,6 +1,9 @@
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { describe, expect, it } from "vitest";
-import { aFiscalCode, anotherFiscalCode } from "../../__mocks__/mocks";
+import {
+  aFiscalCode,
+  anotherFiscalCode,
+} from "../../functions/__mocks__/mocks";
 import {
   FeatureFlagEnum,
   getIsUserEligibleForNewFeature,

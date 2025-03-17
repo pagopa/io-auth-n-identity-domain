@@ -1,10 +1,13 @@
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
 import { describe, expect, it, vi } from "vitest";
-import { context } from "../../__mocks__/durable-functions";
-import { aFiscalCode } from "../../__mocks__/mocks";
-import { ActivityResultSuccess, getActivityHandler } from "../handler";
-import { MagicLinkServiceClient } from "../utils";
+import { context } from "../__mocks__/durable-functions";
+import { aFiscalCode } from "../__mocks__/mocks";
+import {
+  ActivityResultSuccess,
+  getMagicCodeActivityHandler,
+} from "../get-magic-code-activity";
+import { MagicLinkServiceClient } from "../../utils/magic-code";
 
 const aValidPayload = {
   family_name: "foo" as NonEmptyString,
@@ -26,10 +29,9 @@ const mockMagicLinkServiceClient = {
 
 describe("GetMagicCodeActivity", () => {
   it("should return a success with a valid input", async () => {
-    const result = await getActivityHandler(mockMagicLinkServiceClient)(
-      context as any,
-      aValidPayload,
-    );
+    const result = await getMagicCodeActivityHandler(
+      mockMagicLinkServiceClient,
+    )(context as any, aValidPayload);
 
     expect(getMagicLinkTokenMock).toHaveBeenCalledTimes(1);
     expect(getMagicLinkTokenMock).toHaveBeenCalledWith({
@@ -46,10 +48,9 @@ describe("GetMagicCodeActivity", () => {
     const error = "an error";
     getMagicLinkTokenMock.mockRejectedValueOnce(error);
 
-    const result = await getActivityHandler(mockMagicLinkServiceClient)(
-      context as any,
-      aValidPayload,
-    );
+    const result = await getMagicCodeActivityHandler(
+      mockMagicLinkServiceClient,
+    )(context as any, aValidPayload);
 
     expect(ActivityResultSuccess.is(result)).toEqual(false);
     expect(result).toMatchObject({
@@ -61,10 +62,9 @@ describe("GetMagicCodeActivity", () => {
   it("should return a FAILURE when the service gives an unexpected response", async () => {
     getMagicLinkTokenMock.mockResolvedValueOnce(E.left([]));
 
-    const result = await getActivityHandler(mockMagicLinkServiceClient)(
-      context as any,
-      aValidPayload,
-    );
+    const result = await getMagicCodeActivityHandler(
+      mockMagicLinkServiceClient,
+    )(context as any, aValidPayload);
 
     expect(ActivityResultSuccess.is(result)).toEqual(false);
     expect(result).toMatchObject({
@@ -78,10 +78,9 @@ describe("GetMagicCodeActivity", () => {
   it("should return a FAILURE when the service gives a status code different from 200", async () => {
     getMagicLinkTokenMock.mockResolvedValueOnce(E.right({ status: 500 }));
 
-    const result = await getActivityHandler(mockMagicLinkServiceClient)(
-      context as any,
-      aValidPayload,
-    );
+    const result = await getMagicCodeActivityHandler(
+      mockMagicLinkServiceClient,
+    )(context as any, aValidPayload);
 
     expect(ActivityResultSuccess.is(result)).toEqual(false);
     expect(result).toMatchObject({
@@ -91,10 +90,9 @@ describe("GetMagicCodeActivity", () => {
   });
 
   it("should return a FAILURE when the input is not valid", async () => {
-    const result = await getActivityHandler(mockMagicLinkServiceClient)(
-      context as any,
-      {},
-    );
+    const result = await getMagicCodeActivityHandler(
+      mockMagicLinkServiceClient,
+    )(context as any, {});
 
     expect(ActivityResultSuccess.is(result)).toEqual(false);
     expect(result).toMatchObject({

@@ -9,7 +9,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import {
   context as contextMock,
   mockGetClient,
-} from "../../__mocks__/durable-functions";
+} from "../__mocks__/durable-functions";
 import {
   aClosedRetrievedUserDataProcessing,
   aFiscalCode,
@@ -17,8 +17,8 @@ import {
   aUserDataProcessingApi,
   aUserDataProcessingChoiceRequest,
   aWipRetrievedUserDataProcessing,
-} from "../../__mocks__/mocks";
-import { UpsertUserDataProcessingHandler } from "../handler";
+} from "../__mocks__/mocks";
+import { UpsertUserDataProcessingHandler } from "../upsert-user-data-processing";
 
 // eslint-disable-next-line functional/no-let
 let clock: any;

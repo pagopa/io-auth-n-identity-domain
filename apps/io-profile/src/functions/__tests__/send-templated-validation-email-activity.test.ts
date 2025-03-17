@@ -4,13 +4,13 @@ import { EmailString } from "@pagopa/ts-commons/lib/strings";
 import { describe, expect, it, vi } from "vitest";
 
 import { apply } from "@pagopa/io-app-email-templates/MailValidation/index";
-import { EmailDefaults } from "../";
-import { context as contextMock } from "../../__mocks__/durable-functions";
-import { aName } from "../../__mocks__/mocks";
+import { context as contextMock } from "../__mocks__/durable-functions";
+import { aName } from "../__mocks__/mocks";
 import {
   ActivityInput as SendValidationEmailActivityInput,
   getSendValidationEmailActivityHandler,
-} from "../handler";
+} from "../send-templated-validation-email-activity";
+import { EmailDefaults } from "../../types/email";
 
 const htmlAndTextContent = "CONTENT";
 

@@ -3,15 +3,15 @@
 import { none, some } from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import { describe, expect, it, vi } from "vitest";
-import { context as contextMock } from "../../__mocks__/durable-functions";
+import { context as contextMock } from "../__mocks__/durable-functions";
 import {
   aFiscalCode,
   aRetrievedUserDataProcessing,
   aUserDataProcessingApi,
   aUserDataProcessingChoice,
   aUserDataProcessingId,
-} from "../../__mocks__/mocks";
-import { GetUserDataProcessingHandler } from "../handler";
+} from "../__mocks__/mocks";
+import { GetUserDataProcessingHandler } from "../get-user-data-processing";
 
 describe("GetUserDataProcessingHandler", () => {
   it("should find an existing User data processing", async () => {

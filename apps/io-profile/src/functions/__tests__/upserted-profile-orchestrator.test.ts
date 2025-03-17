@@ -19,8 +19,8 @@ import { pipe } from "fp-ts/lib/function";
 import {
   OrchestratorInput as EmailValidationProcessOrchestratorInput,
   OrchestratorResult as EmailValidationProcessOrchestratorResult,
-} from "../../EmailValidationWithTemplateProcessOrchestrator/handler";
-import { context as contextMock } from "../../__mocks__/durable-functions";
+} from "../email-validation-orchestrator.ts";
+import { context as contextMock } from "../__mocks__/durable-functions";
 import {
   aEmailChanged,
   aFiscalCode,
@@ -28,7 +28,7 @@ import {
   aRetrievedProfile,
   autoProfileServicePreferencesSettings,
   manualProfileServicePreferencesSettings,
-} from "../../__mocks__/mocks";
+} from "../__mocks__/mocks";
 import { consumeGenerator } from "../../utils/durable";
 import {
   makeProfileCompletedEvent,
@@ -37,7 +37,7 @@ import {
 import {
   getUpsertedProfileOrchestratorHandler,
   OrchestratorInput as UpsertedProfileOrchestratorInput,
-} from "../handler";
+} from "../upserted-profile-orchestrator";
 const someRetryOptions = new df.RetryOptions(5000, 10);
 // eslint-disable-next-line functional/immutable-data
 someRetryOptions.backoffCoefficient = 1.5;

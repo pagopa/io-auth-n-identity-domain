@@ -1,12 +1,12 @@
 import { Context } from "@azure/functions";
 import { QueueServiceClient } from "@azure/storage-queue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { context } from "../../__mocks__/durable-functions";
-import { aFiscalCode } from "../../__mocks__/mocks";
+import { context } from "../__mocks__/durable-functions";
+import { aFiscalCode } from "../__mocks__/mocks";
 import {
   GetEnqueueProfileCreationEventActivityHandler,
   NewProfileInput,
-} from "../handler";
+} from "../enqueue-profile-creation-event-activity";
 
 const mockSendMessage = vi.fn();
 const mockQueueService = {

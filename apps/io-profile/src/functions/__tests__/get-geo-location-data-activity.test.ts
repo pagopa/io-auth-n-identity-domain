@@ -1,8 +1,8 @@
 import { IPString } from "@pagopa/ts-commons/lib/strings";
 import { describe, expect, it, vi } from "vitest";
-import { context } from "../../__mocks__/durable-functions";
+import { context } from "../__mocks__/durable-functions";
 import { TransientNotImplementedFailure } from "../../utils/durable";
-import { getGeoLocationHandler } from "../handler";
+import { getGeoLocationHandler } from "../get-geo-location-data-activity";
 
 const aValidPayload = { ip_address: "127.0.0.1" as IPString };
 const mockGeoLocationService = {

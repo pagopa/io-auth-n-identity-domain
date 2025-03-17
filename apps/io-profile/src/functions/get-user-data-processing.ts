@@ -32,7 +32,7 @@ import {
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { toUserDataProcessingApi } from "../utils/user_data_processings";
+import { toUserDataProcessingApi } from "../utils/user-data-processings";
 
 /**
  * Type of a GetUserDataProcessing handler.

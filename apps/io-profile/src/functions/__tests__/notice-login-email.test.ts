@@ -6,10 +6,10 @@ import {
 import df from "durable-functions";
 import * as TE from "fp-ts/lib/TaskEither";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { context, mockGetClient } from "../../__mocks__/durable-functions";
-import { aFiscalCode } from "../../__mocks__/mocks";
+import { context, mockGetClient } from "../__mocks__/durable-functions";
+import { aFiscalCode } from "../__mocks__/mocks";
 import * as durableUtils from "../../utils/durable";
-import { NoticeLoginEmailHandler } from "../handler";
+import { NoticeLoginEmailHandler } from "../notice-login-email";
 
 const aValidTriggerPayload = {
   email: "example@example.com" as EmailString,

@@ -18,12 +18,7 @@ import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import * as mailTemplate from "@pagopa/io-app-email-templates/LoginNotificationIOWeb/index";
 import * as fallbackMailTemplate from "@pagopa/io-app-email-templates/LoginNotification/index";
-
-type EmailDefaults = {
-  from: NonEmptyString;
-  htmlToTextOptions: HtmlToTextOptions;
-  title: string;
-};
+import { EmailDefaults } from "../types/email";
 
 // Activity input
 export const ActivityInput = t.intersection([

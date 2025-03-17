@@ -20,11 +20,11 @@ import {
   OrganizationFiscalCode,
 } from "@pagopa/ts-commons/lib/strings";
 
-import { aCosmosResourceMetadata } from "../../__mocks__/mocks";
+import { aCosmosResourceMetadata } from "../__mocks__/mocks";
 import {
   GetServiceHandler,
   serviceAvailableNotificationChannels,
-} from "../handler";
+} from "../get-service";
 
 afterEach(() => {
   vi.resetAllMocks();

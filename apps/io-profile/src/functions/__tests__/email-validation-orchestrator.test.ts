@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { describe, expect, it, vi } from "vitest";
-import { context as contextMock } from "../../__mocks__/durable-functions";
+import { context as contextMock } from "../__mocks__/durable-functions";
 import {
   aEmail,
   aFiscalCode,
@@ -9,19 +9,19 @@ import {
   aTokenId,
   aValidator,
   aValidatorHash,
-} from "../../__mocks__/mocks";
+} from "../__mocks__/mocks";
 import {
   ActivityInput as CreateValidationTokenActivityInput,
   ActivityResult as CreateValidationTokenActivityResult,
-} from "../../CreateValidationTokenActivity/handler";
+} from "../create-validation-token-activity";
 import {
   ActivityInput as SendValidationEmailActivityInput,
   ActivityResult as SendValidationEmailActivityResult,
-} from "../../SendTemplatedValidationEmailActivity/handler";
+} from "../send-templated-validation-email-activity";
 import {
   OrchestratorInput as EmailValidationProcessOrchestratorInput,
-  handler,
-} from "../handler";
+  EmailValidationOrchestratorHandler,
+} from "../email-validation-orchestrator";
 
 describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
   it("should start the activities with the right inputs", async () => {
@@ -63,7 +63,9 @@ describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
       },
     };
 
-    const orchestratorHandler = handler(contextMockWithDf as any);
+    const orchestratorHandler = EmailValidationOrchestratorHandler(
+      contextMockWithDf as any,
+    );
 
     const result = orchestratorHandler.next();
 

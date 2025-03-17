@@ -4,11 +4,14 @@ import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { TableService } from "azure-storage";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { context as contextMock } from "../../__mocks__/durable-functions";
-import { aFiscalCode } from "../../__mocks__/mocks";
-import { aRetrievedServicePreference } from "../../__mocks__/mocks.service_preference";
+import { context as contextMock } from "../__mocks__/durable-functions";
+import { aFiscalCode } from "../__mocks__/mocks";
+import { aRetrievedServicePreference } from "../__mocks__/mocks.service_preference";
 
-import { Input, updateSubscriptionFeed } from "../handler";
+import {
+  Input,
+  updateSubscriptionFeed,
+} from "../update-subscriptions-feed-activity";
 
 const aServiceId = "aServiceId" as ServiceId;
 

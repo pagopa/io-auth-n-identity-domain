@@ -6,11 +6,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   context as contextMock,
   mockStartNew,
-} from "../../__mocks__/durable-functions";
-import { aRetrievedProfile } from "../../__mocks__/mocks";
+} from "../__mocks__/durable-functions";
+import { aRetrievedProfile } from "../__mocks__/mocks";
 import { EmailValidationProcessParams } from "../../generated/definitions/internal/EmailValidationProcessParams";
-import { StartEmailValidationProcessHandler } from "../handler";
-import * as orchUtil from "../orchestrators";
+import { StartEmailValidationProcessHandler } from "../start-email-validation-process";
+import * as orchUtil from "../../utils/orchestrators";
 
 const getClientMock = {
   startNew: mockStartNew,

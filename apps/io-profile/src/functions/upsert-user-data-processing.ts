@@ -39,7 +39,7 @@ import {
 } from "@pagopa/io-functions-commons/dist/src/models/user_data_processing";
 import { CosmosDecodingError } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
-import { toUserDataProcessingApi } from "../utils/user_data_processings";
+import { toUserDataProcessingApi } from "../utils/user-data-processings";
 
 /**
  * Type of an UpsertUserDataProcessing handler.

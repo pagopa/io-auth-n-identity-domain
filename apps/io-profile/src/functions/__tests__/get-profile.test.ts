@@ -7,10 +7,10 @@ import {
   aExtendedProfileWithEmail,
   aFiscalCode,
   aRetrievedProfileWithEmail,
-} from "../../__mocks__/mocks";
-import { GetProfileHandler, withIsEmailAlreadyTaken } from "../handler";
+} from "../__mocks__/mocks";
+import { GetProfileHandler, withIsEmailAlreadyTaken } from "../get-profile";
 
-import { generateProfileEmails } from "../../__mocks__/unique-email-enforcement";
+import { generateProfileEmails } from "../__mocks__/unique-email-enforcement";
 
 // Date returns a timestamp expressed in milliseconds
 const aTimestamp = Math.floor(new Date().valueOf() / 1000);

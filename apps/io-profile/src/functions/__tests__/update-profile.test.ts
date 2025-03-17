@@ -17,7 +17,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import {
   context as contextMock,
   mockGetClient,
-} from "../../__mocks__/durable-functions";
+} from "../__mocks__/durable-functions";
 import {
   aEmailChanged,
   aFiscalCode,
@@ -31,13 +31,13 @@ import {
   legacyProfileServicePreferencesSettings,
   manualApiProfileServicePreferencesSettings,
   manualProfileServicePreferencesSettings,
-} from "../../__mocks__/mocks";
-import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "../../UpsertedProfileOrchestrator/handler";
-import { UpdateProfileHandler } from "../handler";
+} from "../__mocks__/mocks";
+import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "../upserted-profile-orchestrator";
+import { UpdateProfileHandler } from "../update-profile";
 
-import { createTracker } from "../../__mocks__/tracking";
+import { createTracker } from "../__mocks__/tracking";
 
-import { generateProfileEmails } from "../../__mocks__/unique-email-enforcement";
+import { generateProfileEmails } from "../__mocks__/unique-email-enforcement";
 
 const mockSendMessage = vi.fn().mockImplementation(() => Promise.resolve());
 const mockQueueClient = {

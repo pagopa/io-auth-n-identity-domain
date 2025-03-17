@@ -1,4 +1,4 @@
-import { createTracker as createTrackerReal } from "../utils/tracking";
+import { createTracker as createTrackerReal } from "../../utils/tracking";
 const mockTracker = (name: string | symbol | number) =>
   new Proxy(
     {},

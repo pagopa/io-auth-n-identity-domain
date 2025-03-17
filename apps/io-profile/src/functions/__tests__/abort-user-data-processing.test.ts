@@ -11,13 +11,10 @@ import {
 } from "@pagopa/io-functions-commons/dist/src/models/user_data_processing";
 import { none, some } from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
-import { context as contextMock } from "../../__mocks__/durable-functions";
-import {
-  aFiscalCode,
-  aRetrievedUserDataProcessing,
-} from "../../__mocks__/mocks";
+import { context as contextMock } from "../__mocks__/durable-functions";
+import { aFiscalCode, aRetrievedUserDataProcessing } from "../__mocks__/mocks";
 import { UserDataProcessingChoiceEnum } from "../../generated/backend/UserDataProcessingChoice";
-import { AbortUserDataProcessingHandler } from "../handler";
+import { AbortUserDataProcessingHandler } from "../abort-user-data-processing";
 
 beforeEach(() => {
   vi.clearAllMocks();

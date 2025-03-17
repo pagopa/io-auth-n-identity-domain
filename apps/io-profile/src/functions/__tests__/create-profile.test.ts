@@ -12,16 +12,16 @@ import {
   context as contextMock,
   mockGetClient,
   mockStartNew,
-} from "../../__mocks__/durable-functions";
+} from "../__mocks__/durable-functions";
 import {
   aExtendedProfile,
   aFiscalCode,
   aNewDate,
   aNewProfile,
   aRetrievedProfile,
-} from "../../__mocks__/mocks";
-import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "../../UpsertedProfileOrchestrator/handler";
-import { CreateProfileHandler } from "../handler";
+} from "../__mocks__/mocks";
+import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "../upserted-profile-orchestrator";
+import { CreateProfileHandler } from "../create-profile";
 
 let clock: any;
 const spyGetClient = vi.spyOn(df, "getClient");

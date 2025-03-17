@@ -17,15 +17,15 @@ import {
   autoProfileServicePreferencesSettings,
   legacyProfileServicePreferencesSettings,
   manualProfileServicePreferencesSettings,
-} from "../../__mocks__/mocks";
+} from "../__mocks__/mocks";
 import {
   anActiveActivation,
   aRetrievedService,
   aRetrievedServicePreference,
   aServiceId,
   aServicePreferenceVersion,
-} from "../../__mocks__/mocks.service_preference";
-import { GetServicePreferencesHandler } from "../handler";
+} from "../__mocks__/mocks.service_preference";
+import { GetServicePreferencesHandler } from "../get-service-preferences";
 
 const aRetrievedProfileInValidState = {
   ...aRetrievedProfileWithEmail,

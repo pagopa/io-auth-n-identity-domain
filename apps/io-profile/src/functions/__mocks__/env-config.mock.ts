@@ -1,6 +1,6 @@
 import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { IConfig } from "../utils/config";
+import { IConfig } from "../../config";
 
 export const envConfig = {
   isProduction: false,

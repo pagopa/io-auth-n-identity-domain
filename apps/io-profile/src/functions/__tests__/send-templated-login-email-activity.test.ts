@@ -8,9 +8,12 @@ import {
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import * as ai from "applicationinsights";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { context } from "../../__mocks__/durable-functions";
-import { ActivityInput, getSendLoginEmailActivityHandler } from "../handler";
-import { EmailDefaults } from "../index";
+import { context } from "../__mocks__/durable-functions";
+import {
+  ActivityInput,
+  getSendLoginEmailActivityHandler,
+} from "../send-templated-login-email-activity";
+import { EmailDefaults } from "../../types/email";
 
 const aDate = new Date("1970-01-01");
 const aValidPayload: ActivityInput = {

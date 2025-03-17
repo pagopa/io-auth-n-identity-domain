@@ -26,8 +26,8 @@ import {
   UserDataProcessingId,
 } from "@pagopa/io-functions-commons/dist/src/models/user_data_processing";
 import { CosmosResource } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
-import { retrievedProfileToExtendedProfile } from "../utils/profiles";
-import { toUserDataProcessingApi } from "../utils/user_data_processings";
+import { retrievedProfileToExtendedProfile } from "../../utils/profiles";
+import { toUserDataProcessingApi } from "../../utils/user-data-processings";
 
 export const aName = "EXAMPLE_NAME";
 export const aEmail = "email@example.com" as EmailString;

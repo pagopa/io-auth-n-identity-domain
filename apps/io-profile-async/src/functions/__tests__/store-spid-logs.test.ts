@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import {
+  FiscalCode,
+  IPString,
+  NonEmptyString
+} from "@pagopa/ts-commons/lib/strings";
 import { describe, expect, it, assert } from "vitest";
 
 import * as E from "fp-ts/lib/Either";
@@ -8,7 +12,6 @@ import * as E from "fp-ts/lib/Either";
 import { format } from "date-fns";
 import { TelemetryClient } from "applicationinsights";
 import { toPlainText } from "@pagopa/ts-commons/lib/encrypt";
-import { aFiscalCode } from "../../../../io-profile/src/__mocks__/mocks";
 import { HandlerOutput, makeHandler } from "../store-spid-logs";
 import { StoreSpidLogsQueueMessage } from "../../types/store-spid-logs-queue-message";
 
@@ -18,6 +21,7 @@ import { trackerMock, trackEventMock } from "../__mocks__/tracker.mock";
 const today = format(new Date(), "yyyy-MM-dd");
 const aDate = new Date();
 
+const aFiscalCode = "SPNDNL80A13Y555X" as FiscalCode;
 const aPublicKey = `-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC76C3tOj7lPiJ5sg2lU6j2dZEa
 E9GW+v1YrOajfCHijBo6VLSMH6nrO3fZM3C8oNsYrH8jyeZlcu8ZdKMaRECegVUv

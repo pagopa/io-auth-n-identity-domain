@@ -1,7 +1,7 @@
 import * as TE from "fp-ts/lib/TaskEither";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { HealthCheck, HealthProblem } from "../../utils/healthcheck-utils";
-import { InfoHandler } from "../handler";
+import { InfoHandler } from "../info";
 
 vi.mock("../../utils/package", () => ({
   getCurrentBackendVersion: () => "1.0.0",
