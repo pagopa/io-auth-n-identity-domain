@@ -8,6 +8,8 @@ on:
     paths:
       - "infra/resources/**"
       - "infra/modules/**"
+      # Terraform version edit
+      - ".terraform-version"
 
 jobs:
   release_prod:

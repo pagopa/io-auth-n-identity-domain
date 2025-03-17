@@ -13,6 +13,8 @@ on:
       - "infra/resources/**"
       - "infra/modules/**"
       - ".github/workflows/**_infra.yaml"
+      # Terraform version edit
+      - ".terraform-version"
 
 jobs:
   code_review_prod:
