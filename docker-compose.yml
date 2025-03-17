@@ -28,8 +28,6 @@ services:
         condition: service_started
       storage:
         condition: service_started
-      monorepo:
-        condition: service_started
     networks:
       - io-fn
 
@@ -38,13 +36,6 @@ services:
     build:
       context: ./
       dockerfile: ./docker/functions-node-20/Dockerfile
-    command: /bin/true
-
-  monorepo:
-    image: monorepo
-    build:
-      context: ./
-      dockerfile: ./docker/monorepo/Dockerfile
     command: /bin/true
 
   io-lollipop:
@@ -65,7 +56,6 @@ services:
       - io-fn
     depends_on:
       - functions-node-20
-      - monorepo
       - cosmosdb
       - storage
     labels:
@@ -91,7 +81,6 @@ services:
       - io-fn
     depends_on:
       - functions-node-20
-      - monorepo
       - storage
 
   io-profile-async:
@@ -109,7 +98,6 @@ services:
       - io-fn
     depends_on:
       - functions-node-20
-      - monorepo
       - storage
       - cosmosdb
 
@@ -128,7 +116,6 @@ services:
       - io-fn
     depends_on:
       - functions-node-20
-      - monorepo
       - storage
       - cosmosdb
 
@@ -147,7 +134,6 @@ services:
       - io-fn
     depends_on:
       - functions-node-20
-      - monorepo
       - io-lollipop
       - io-session-manager
       - storage
