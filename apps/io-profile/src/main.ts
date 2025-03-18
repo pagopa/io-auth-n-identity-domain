@@ -36,7 +36,7 @@ import { HtmlToTextOptions } from "html-to-text";
 import { cosmosdbInstance } from "./utils/cosmosdb";
 import { getConfigOrThrow } from "./config";
 import { getTimeoutFetch } from "./utils/fetch";
-import { profileEmailTableClient } from "./utils/unique_email_enforcement";
+import { profileEmailTableClient } from "./utils/unique-email-enforcement";
 import { initTelemetryClient } from "./utils/appinsights";
 import {
   WebServerDependencies,

@@ -54,7 +54,7 @@ import {
   toDefaultDisabledUserServicePreference,
   toDefaultEnabledUserServicePreference,
   toUserServicePreferenceFromModel,
-} from "../utils/service_preferences";
+} from "../utils/service-preferences";
 import { getProfileOrErrorResponse } from "../utils/profiles";
 import { getServiceOrErrorResponse } from "../utils/services";
 

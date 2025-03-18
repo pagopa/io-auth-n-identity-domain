@@ -7,7 +7,7 @@ import {
 import {
   FeatureFlagEnum,
   getIsUserEligibleForNewFeature,
-} from "../featureFlag";
+} from "../feature-flag";
 
 const betaUsers: FiscalCode[] = [aFiscalCode];
 const isUserBeta = (fc: FiscalCode) => betaUsers.includes(fc);

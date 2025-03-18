@@ -33,7 +33,7 @@ import { consumeGenerator } from "../../utils/durable";
 import {
   makeProfileCompletedEvent,
   makeServicePreferencesChangedEvent,
-} from "../../utils/emitted_events";
+} from "../../utils/emitted-events";
 import {
   getUpsertedProfileOrchestratorHandler,
   OrchestratorInput as UpsertedProfileOrchestratorInput,

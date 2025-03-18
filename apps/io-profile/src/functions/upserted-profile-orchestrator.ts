@@ -19,7 +19,7 @@ import { diffBlockedServices } from "../utils/profiles";
 import {
   makeProfileCompletedEvent,
   makeServicePreferencesChangedEvent,
-} from "../utils/emitted_events";
+} from "../utils/emitted-events";
 import { ActivityInput as SendWelcomeMessageActivityInput } from "./send-welcome-messages-activity";
 import { Input as UpdateServiceSubscriptionFeedActivityInput } from "./update-subscriptions-feed-activity";
 import {

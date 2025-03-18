@@ -60,9 +60,9 @@ import {
   getServicePreferencesForSpecialServices,
   nonLegacyServicePreferences,
   toUserServicePreferenceFromModel,
-} from "../utils/service_preferences";
+} from "../utils/service-preferences";
 import { createTracker } from "../utils/tracking";
-import { makeServiceSubscribedEvent } from "../utils/emitted_events";
+import { makeServiceSubscribedEvent } from "../utils/emitted-events";
 import { getProfileOrErrorResponse } from "../utils/profiles";
 import { getServiceOrErrorResponse } from "../utils/services";
 import { updateSubscriptionFeedTask } from "../utils/subscription-feed";
