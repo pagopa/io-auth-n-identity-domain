@@ -98,7 +98,7 @@ const ActivityResultFailure = t.type({
 
 type ActivityResultFailure = t.TypeOf<typeof ActivityResultFailure>;
 
-export const ActivityResult = t.taggedUnion("kind", [
+export const ActivityResult = t.union([
   ActivityResultSuccess,
   ActivityResultFailure,
 ]);

@@ -40,7 +40,7 @@ const ActivityResultFailure = t.union([
   TransientNotImplementedFailure,
 ]);
 
-export const ActivityResult = t.taggedUnion("kind", [
+export const ActivityResult = t.union([
   ActivityResultSuccess,
   ActivityResultFailure,
 ]);

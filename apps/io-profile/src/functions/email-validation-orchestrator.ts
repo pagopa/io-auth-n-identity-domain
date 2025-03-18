@@ -38,7 +38,7 @@ export const OrchestratorFailureResult = t.type({
   reason: t.string,
 });
 
-export const OrchestratorResult = t.taggedUnion("kind", [
+export const OrchestratorResult = t.union([
   OrchestratorSuccessResult,
   OrchestratorFailureResult,
 ]);

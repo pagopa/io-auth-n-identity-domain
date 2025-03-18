@@ -49,7 +49,7 @@ const ActivityResultFailure = t.type({
   reason: t.string,
 });
 
-export const ActivityResult = t.taggedUnion("kind", [
+export const ActivityResult = t.union([
   ActivityResultSuccess,
   ActivityResultFailure,
 ]);

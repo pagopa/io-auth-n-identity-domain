@@ -40,7 +40,7 @@ export const InvalidInputFailure = t.type({
 });
 export type InvalidInputFailure = t.TypeOf<typeof InvalidInputFailure>;
 
-export const ActivityResult = t.taggedUnion("kind", [
+export const ActivityResult = t.union([
   ActivityResultSuccess,
   InvalidInputFailure,
 ]);
