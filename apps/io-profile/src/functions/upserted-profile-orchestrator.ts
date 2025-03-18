@@ -174,7 +174,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
       (profileOperation.type === "CREATED" || hasOldProfileWithInboxDisabled);
 
     context.log.verbose(
-      `${logPrefix}|OPERATION=${profileOperation}|INBOX_ENABLED=${isInboxEnabled}|INBOX_JUST_ENABLED=${hasJustEnabledInbox}`,
+      `${logPrefix}|OPERATION=${profileOperation.type}|INBOX_ENABLED=${isInboxEnabled}|INBOX_JUST_ENABLED=${hasJustEnabledInbox}`,
     );
 
     if (hasJustEnabledInbox) {

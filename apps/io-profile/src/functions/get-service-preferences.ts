@@ -46,7 +46,10 @@ import {
 import { ServiceCategory } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceCategory";
 import { SpecialServiceCategoryEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/SpecialServiceCategory";
 import { ActivationModel } from "@pagopa/io-functions-commons/dist/src/models/activation";
-import { getServiceCategoryOrStandard } from "../utils/services";
+import {
+  getServiceCategoryOrStandard,
+  getServiceOrErrorResponse,
+} from "../utils/services";
 import {
   getServicePreferenceSettingsVersion,
   getServicePreferencesForSpecialServices,
@@ -56,7 +59,6 @@ import {
   toUserServicePreferenceFromModel,
 } from "../utils/service-preferences";
 import { getProfileOrErrorResponse } from "../utils/profiles";
-import { getServiceOrErrorResponse } from "../utils/services";
 
 type IGetServicePreferencesHandlerResult =
   | IResponseSuccessJson<ServicePreference>

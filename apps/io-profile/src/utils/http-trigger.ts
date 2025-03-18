@@ -72,16 +72,28 @@ export const createWebServer = ({
     AbortUserDataProcessing(userDataProcessingModel),
   );
 
+  const profilePath = "/api/v1/profiles/:fiscalcode";
+
   app.post(
-    "/api/v1/profiles/:fiscalcode",
+    profilePath,
     CreateProfile(profileModel, config.OPT_OUT_EMAIL_SWITCH_DATE),
   );
 
   app.get(
-    "/api/v1/profiles/:fiscalcode",
+    profilePath,
     GetProfile(
       profileModel,
       config.OPT_OUT_EMAIL_SWITCH_DATE,
+      profileEmailReader,
+    ),
+  );
+
+  app.put(
+    profilePath,
+    UpdateProfile(
+      profileModel,
+      migrateServicePreferencesQueueClient,
+      createTracker(telemetryClient),
       profileEmailReader,
     ),
   );
@@ -111,16 +123,6 @@ export const createWebServer = ({
   app.post(
     "/api/v1/email-validation-process/:fiscalcode",
     StartEmailValidationProcess(profileModel),
-  );
-
-  app.put(
-    "/api/v1/profiles/:fiscalcode",
-    UpdateProfile(
-      profileModel,
-      migrateServicePreferencesQueueClient,
-      createTracker(telemetryClient),
-      profileEmailReader,
-    ),
   );
 
   app.post(
