@@ -70,7 +70,6 @@ Then, copy `.env.example` to `.env` and fill the variables with the following ma
 
 - EventsQueueStorageConnection=**connection string**
 - IOPSTAPP_STORAGE_CONNECTION_STRING=**connection string**
-- DURABLE_FUNCTION_STORAGE_CONNECTION_STRING=**connection string**
 
 The **connection string** is the same used for the AzureWebJobsStorage in the `local.settings.json` file.
 
