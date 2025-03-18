@@ -1,13 +1,9 @@
 import { Context } from "@azure/functions";
-import express from "express";
 import * as df from "durable-functions";
 import {
   USER_DATA_PROCESSING_COLLECTION_NAME,
   UserDataProcessingModel,
 } from "@pagopa/io-functions-commons/dist/src/models/user_data_processing";
-import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
-import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
-import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src/createAzureFunctionsHandler";
 import {
   PROFILE_COLLECTION_NAME,
   ProfileModel,
@@ -32,8 +28,8 @@ import { VALIDATION_TOKEN_TABLE_NAME } from "@pagopa/io-functions-commons/dist/s
 import { getMailerTransporter } from "@pagopa/io-functions-commons/dist/src/mailer";
 import { pipe } from "fp-ts/lib/function";
 import { ulidGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
-import { HtmlToTextOptions } from "html-to-text";
 import { CosmosClient } from "@azure/cosmos";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { getConfigOrThrow } from "./config";
 import { getTimeoutFetch } from "./utils/fetch";
 import { getProfileEmailTableClient } from "./utils/unique-email-enforcement";
@@ -58,6 +54,7 @@ import { updateSubscriptionFeed } from "./functions/update-subscriptions-feed-ac
 import { getUpsertedProfileOrchestratorHandler } from "./functions/upserted-profile-orchestrator";
 import { getCreateValidationTokenActivityHandler } from "./functions/create-validation-token-activity";
 import { randomBytes, toHash } from "./utils/crypto";
+import { HTML_TO_TEXT_OPTIONS } from "./utils/email";
 
 // HTTP external requests timeout in milliseconds
 const REQUEST_TIMEOUT_MS = 5000;
@@ -120,13 +117,10 @@ const migrateServicePreferencesQueueClient =
   ).getQueueClient(config.MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME);
 
 // Email data
-const LOGIN_EMAIL_TITLE = "È stato eseguito l'accesso sull'app IO";
-const VALIDATION_EMAIL_TITLE = "Conferma il tuo indirizzo email";
-
-const HTML_TO_TEXT_OPTIONS: HtmlToTextOptions = {
-  selectors: [{ selector: "img", format: "skip" }], // Ignore all document images
-  tables: true,
-};
+const LOGIN_EMAIL_TITLE =
+  "È stato eseguito l'accesso sull'app IO" as NonEmptyString;
+const VALIDATION_EMAIL_TITLE =
+  "Conferma il tuo indirizzo email" as NonEmptyString;
 
 const loginEmailDefaults = {
   from: config.MAIL_FROM,

@@ -14,6 +14,7 @@ import {
   getSendLoginEmailActivityHandler,
 } from "../send-templated-login-email-activity";
 import { EmailDefaults } from "../../types/email";
+import { HTML_TO_TEXT_OPTIONS } from "../../utils/email";
 
 const aDate = new Date("1970-01-01");
 const aValidPayload: ActivityInput = {
@@ -28,9 +29,9 @@ const aValidPayloadWithMagicLink: ActivityInput = {
   magic_link: "http://example.com/#token=abcde" as NonEmptyString,
 };
 const emailDefaults: EmailDefaults = {
-  from: "from@example.com" as any,
-  htmlToTextOptions: {},
-  title: "Email title",
+  from: "from@example.com" as NonEmptyString,
+  htmlToTextOptions: HTML_TO_TEXT_OPTIONS,
+  title: "Email title" as NonEmptyString,
 };
 
 const mockMailerTransporter = {

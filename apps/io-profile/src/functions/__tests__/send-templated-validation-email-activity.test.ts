@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { EmailString } from "@pagopa/ts-commons/lib/strings";
+import { EmailString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { describe, expect, it, vi } from "vitest";
-
 import { apply } from "@pagopa/io-app-email-templates/MailValidation/index";
 import { context as contextMock } from "../__mocks__/durable-functions";
 import { aName } from "../__mocks__/mocks";
@@ -11,6 +10,7 @@ import {
   getSendValidationEmailActivityHandler,
 } from "../send-templated-validation-email-activity";
 import { EmailDefaults } from "../../types/email";
+import { HTML_TO_TEXT_OPTIONS } from "../../utils/email";
 
 const htmlAndTextContent = "CONTENT";
 
@@ -28,9 +28,9 @@ describe("SendTemplatedValidationEmailActivityHandler", () => {
   it("should send the email using the input data", async () => {
     const functionsPublicUrl = "https://publicUrl";
     const emailDefaults: EmailDefaults = {
-      from: "from@example.com" as any,
-      htmlToTextOptions: {},
-      title: "Email title",
+      from: "from@example.com" as NonEmptyString,
+      htmlToTextOptions: HTML_TO_TEXT_OPTIONS,
+      title: "Email title" as NonEmptyString,
     };
     const mailerTransporterMock = {
       sendMail: vi.fn((_, f) => {

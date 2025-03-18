@@ -19,7 +19,10 @@ import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { withFallback } from "io-ts-types";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
-import { FeatureFlag, FeatureFlagEnum } from "./utils/feature-flag";
+import {
+  FeatureFlag,
+  FeatureFlagEnum,
+} from "@pagopa/ts-commons/lib/featureFlag";
 
 // exclude a specific value from a type
 // as strict equality is performed, allowed input types are constrained to be values not references (object, arrays, etc)

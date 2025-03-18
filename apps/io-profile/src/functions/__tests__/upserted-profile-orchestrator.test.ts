@@ -2,24 +2,20 @@
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as df from "durable-functions";
-import {
-  IOrchestrationFunctionContext,
-  Task,
-} from "durable-functions/lib/src/classes";
+import { IOrchestrationFunctionContext } from "durable-functions/lib/src/classes";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { BlockedInboxOrChannelEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/BlockedInboxOrChannel";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
-
 import { Profile } from "@pagopa/io-functions-commons/dist/generated/definitions/Profile";
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicesPreferencesMode";
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
+import { Task } from "durable-functions/lib/src/task";
 import {
   OrchestratorInput as EmailValidationProcessOrchestratorInput,
   OrchestratorResult as EmailValidationProcessOrchestratorResult,
-} from "../email-validation-orchestrator.ts";
+} from "../email-validation-orchestrator";
 import { context as contextMock } from "../__mocks__/durable-functions";
 import {
   aEmailChanged,
@@ -42,7 +38,7 @@ const someRetryOptions = new df.RetryOptions(5000, 10);
 // eslint-disable-next-line functional/immutable-data
 someRetryOptions.backoffCoefficient = 1.5;
 
-// in jest 27 fail is no longer defined, we can define this function as workaround
+// TODO: change calls with assert.fail method
 const fail = (reason = "fail was called in a test."): never => {
   throw new Error(reason);
 };
