@@ -6,23 +6,15 @@
  */
 
 import * as t from "io-ts";
-
 import * as E from "fp-ts/lib/Either";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
-
 import { MailerConfig } from "@pagopa/io-functions-commons/dist/src/mailer";
-
 import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import { NumberFromString } from "@pagopa/ts-commons/lib/numbers";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { withFallback } from "io-ts-types";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
-import {
-  FeatureFlag,
-  FeatureFlagEnum,
-} from "@pagopa/ts-commons/lib/featureFlag";
 
 // exclude a specific value from a type
 // as strict equality is performed, allowed input types are constrained to be values not references (object, arrays, etc)
@@ -54,11 +46,6 @@ export const ReqServiceIdConfig = t.union([
     REQ_SERVICE_ID: NonEmptyString,
   }),
 ]);
-
-export const FeatureFlagFromString = withFallback(
-  FeatureFlag,
-  FeatureFlagEnum.NONE,
-);
 
 // global app configuration
 export type IConfig = t.TypeOf<typeof IConfig>;
