@@ -30,8 +30,8 @@ locals {
     resource_group_name = "${local.prefix}-${local.env_short}-itn-common-rg-01"
   }
 
-  dns = {
-    resource_group_name = "${local.prefix}-${local.env_short}-rg-external"
+  private_dns = {
+    resource_group_name = "${local.prefix}-${local.env_short}-rg-common"
   }
 
   nat_gateway = {
@@ -47,6 +47,7 @@ locals {
     name                     = "io-auth-n-identity-domain"
     description              = "Auth&Identity Monorepo"
     topics                   = ["auth", "io"]
+    jira_boards_ids          = ["CES", "IO-PID"]
     reviewers_teams          = ["io-auth-n-identity-backend", "engineering-team-cloud-eng"]
     default_branch_name      = "main"
     infra_cd_policy_branches = ["main"]
@@ -64,7 +65,7 @@ locals {
     Environment    = "Prod"
     BusinessUnit   = "App IO"
     ManagementTeam = "IO Autenticazione"
-    Source         = "https://github.com/pagopa/io-auth-n-identity-domain/blob/main/infra/repository"
+    Source         = "https://github.com/pagopa/io-auth-n-identity-domain/blob/main/infra/bootstrapper"
     CostCenter     = "TS000 - Tecnologia e Servizi"
   }
 }
