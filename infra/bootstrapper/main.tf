@@ -20,7 +20,7 @@ terraform {
     resource_group_name  = "terraform-state-rg"
     storage_account_name = "iopitntfst001"
     container_name       = "terraform-state"
-    key                  = "io-auth-n-identity-domain.repository.tfstate"
+    key                  = "io-auth-n-identity-domain.bootstrapper.tfstate"
     use_azuread_auth     = true
   }
 }
@@ -58,8 +58,8 @@ data "azurerm_virtual_network" "common" {
   resource_group_name = local.vnet.resource_group_name
 }
 
-data "azurerm_resource_group" "external" {
-  name = local.dns.resource_group_name
+data "azurerm_resource_group" "common_weu" {
+  name = local.private_dns.resource_group_name
 }
 
 data "azurerm_resource_group" "itn_common_rg_01" {
@@ -113,7 +113,7 @@ import {
 }
 
 module "repo" {
-  source  = "pagopa/dx-azure-github-environment-bootstrap/azurerm"
+  source  = "pagopa-dx/azure-github-environment-bootstrap/azurerm"
   version = "~>1.0"
 
   environment = {
@@ -126,6 +126,21 @@ module "repo" {
 
   subscription_id = data.azurerm_subscription.current.id
   tenant_id       = data.azurerm_client_config.current.tenant_id
+
+  additional_resource_group_ids = [
+    azurerm_resource_group.data_weu.id,
+    azurerm_resource_group.sec_weu.id,
+    azurerm_resource_group.common_itn_01.id,
+    azurerm_resource_group.elt_itn_01.id,
+    azurerm_resource_group.lollipop_itn_02.id,
+    azurerm_resource_group.lv_itn_01.id,
+    azurerm_resource_group.main_itn_01.id,
+    azurerm_resource_group.public_itn_01.id,
+    azurerm_resource_group.auth_itn_01.id,
+    azurerm_resource_group.webprof_itn_01.id,
+    azurerm_resource_group.data_itn_01.id,
+    azurerm_resource_group.profile_itn_01.id,
+  ]
 
   entraid_groups = {
     admins_object_id    = data.azuread_group.admins.object_id
@@ -142,6 +157,7 @@ module "repo" {
     name                     = local.repository.name
     description              = local.repository.description
     topics                   = local.repository.topics
+    jira_boards_ids          = local.repository.jira_boards_ids
     reviewers_teams          = local.repository.reviewers_teams
     default_branch_name      = local.repository.default_branch_name
     infra_cd_policy_branches = local.repository.infra_cd_policy_branches
@@ -162,7 +178,7 @@ module "repo" {
 
   apim_id                            = data.azurerm_api_management.apim.id
   pep_vnet_id                        = data.azurerm_virtual_network.common.id
-  private_dns_zone_resource_group_id = data.azurerm_resource_group.external.id
+  private_dns_zone_resource_group_id = data.azurerm_resource_group.common_weu.id
   opex_resource_group_id             = data.azurerm_resource_group.dashboards.id
   nat_gateway_resource_group_id      = data.azurerm_resource_group.itn_common_rg_01.id
   keyvault_common_ids = [
