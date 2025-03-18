@@ -1,10 +1,7 @@
 import { TableClient } from "@azure/data-tables";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
-import { getConfigOrThrow } from "../config";
-
-const config = getConfigOrThrow();
-
-export const profileEmailTableClient = TableClient.fromConnectionString(
-  config.PROFILE_EMAIL_STORAGE_CONNECTION_STRING,
-  config.PROFILE_EMAIL_STORAGE_TABLE_NAME,
-);
+export const getProfileEmailTableClient = (
+  connectionString: NonEmptyString,
+  tableName: NonEmptyString,
+) => TableClient.fromConnectionString(connectionString, tableName);

@@ -33,10 +33,10 @@ import { getMailerTransporter } from "@pagopa/io-functions-commons/dist/src/mail
 import { pipe } from "fp-ts/lib/function";
 import { ulidGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
 import { HtmlToTextOptions } from "html-to-text";
-import { cosmosdbInstance } from "./utils/cosmosdb";
+import { CosmosClient } from "@azure/cosmos";
 import { getConfigOrThrow } from "./config";
 import { getTimeoutFetch } from "./utils/fetch";
-import { profileEmailTableClient } from "./utils/unique-email-enforcement";
+import { getProfileEmailTableClient } from "./utils/unique-email-enforcement";
 import { initTelemetryClient } from "./utils/appinsights";
 import {
   WebServerDependencies,
@@ -67,6 +67,13 @@ const telemetryClient = initTelemetryClient();
 
 const timeoutFetch = getTimeoutFetch(REQUEST_TIMEOUT_MS as Millisecond);
 
+const cosmosDbName = config.COSMOSDB_NAME;
+const cosmosDbConnectionString = config.COSMOSDB_CONNECTION_STRING;
+
+const cosmosdbClient = new CosmosClient(cosmosDbConnectionString);
+
+const cosmosdbInstance = cosmosdbClient.database(cosmosDbName);
+
 const userDataProcessingModel = new UserDataProcessingModel(
   cosmosdbInstance.container(USER_DATA_PROCESSING_COLLECTION_NAME),
 );
@@ -87,7 +94,10 @@ const activationModel = new ActivationModel(
 );
 
 const profileEmailReader = new DataTableProfileEmailsRepository(
-  profileEmailTableClient,
+  getProfileEmailTableClient(
+    config.PROFILE_EMAIL_STORAGE_CONNECTION_STRING,
+    config.PROFILE_EMAIL_STORAGE_TABLE_NAME,
+  ),
 );
 
 const TOKEN_INVALID_AFTER_MS = (1000 * 60 * 60 * 24 * 30) as Millisecond; // 30 days

@@ -8,7 +8,6 @@ import { NewMessage } from "@pagopa/io-functions-commons/dist/generated/definiti
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { toString } from "../utils/conversions";
 import {
   cashbackContent,
   howToContent,
@@ -163,7 +162,7 @@ export const getSendWelcomeMessagesActivityFunction =
             }
           } catch (e) {
             context.log.error(
-              `${logPrefix}|ERROR=${toString(e)}|ID=${profile.fiscalCode.substr(
+              `${logPrefix}|ERROR=${JSON.stringify(e)}|ID=${profile.fiscalCode.substr(
                 0,
                 5,
               )}`,
