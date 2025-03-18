@@ -9,26 +9,26 @@ import { TransientNotImplementedFailure } from "../utils/durable";
 import { GeoLocationServiceClient } from "../utils/geo-location";
 
 // geo location service response
-const GeoLocationServiceResponse = t.interface({
+const GeoLocationServiceResponse = t.type({
   geo_location: NonEmptyString,
 });
 
 type GeoLocationServiceResponse = t.TypeOf<typeof GeoLocationServiceResponse>;
 
 // Activity input
-export const ActivityInput = t.interface({
+export const ActivityInput = t.type({
   ip_address: IPString,
 });
 
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
 
 // Activity result
-export const ActivityResultSuccess = t.interface({
+export const ActivityResultSuccess = t.type({
   kind: t.literal("SUCCESS"),
   value: GeoLocationServiceResponse,
 });
 
-const GeneralFailure = t.interface({
+const GeneralFailure = t.type({
   kind: t.literal("FAILURE"),
   reason: t.string,
 });

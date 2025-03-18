@@ -85,13 +85,13 @@ async function sendMessage(
 }
 
 // Activity result
-const ActivityResultSuccess = t.interface({
+const ActivityResultSuccess = t.type({
   kind: t.literal("SUCCESS"),
 });
 
 type ActivityResultSuccess = t.TypeOf<typeof ActivityResultSuccess>;
 
-const ActivityResultFailure = t.interface({
+const ActivityResultFailure = t.type({
   kind: t.literal("FAILURE"),
   reason: t.string,
 });
@@ -104,7 +104,7 @@ export const ActivityResult = t.taggedUnion("kind", [
 ]);
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
-export const ActivityInput = t.interface({
+export const ActivityInput = t.type({
   messageKind: WelcomeMessageKind,
   profile: RetrievedProfile,
 });

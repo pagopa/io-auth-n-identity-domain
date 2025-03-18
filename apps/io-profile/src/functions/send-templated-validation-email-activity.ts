@@ -21,7 +21,7 @@ import { EmailDefaults } from "../types/email";
 
 // Activity input
 export const ActivityInput = t.intersection([
-  t.interface({
+  t.type({
     email: EmailString,
     token: t.string,
   }),
@@ -33,11 +33,11 @@ export const ActivityInput = t.intersection([
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
 
 // Activity result
-const ActivityResultSuccess = t.interface({
+const ActivityResultSuccess = t.type({
   kind: t.literal("SUCCESS"),
 });
 
-const ActivityResultFailure = t.interface({
+const ActivityResultFailure = t.type({
   kind: t.literal("FAILURE"),
   reason: t.string,
 });

@@ -21,21 +21,21 @@ import * as TE from "fp-ts/lib/TaskEither";
 
 import * as t from "io-ts";
 
-const ActivityInput = t.interface({
+const ActivityInput = t.type({
   fiscalCode: FiscalCode,
   settingsVersion: NonNegativeInteger,
 });
 type ActivityInput = t.TypeOf<typeof ActivityInput>;
 
 // Activity result
-export const ActivityResultSuccess = t.interface({
+export const ActivityResultSuccess = t.type({
   kind: t.literal("SUCCESS"),
   preferences: t.readonlyArray(ServicePreference),
 });
 
 export type ActivityResultSuccess = t.TypeOf<typeof ActivityResultSuccess>;
 
-export const InvalidInputFailure = t.interface({
+export const InvalidInputFailure = t.type({
   kind: t.literal("INVALID_INPUT"),
 });
 export type InvalidInputFailure = t.TypeOf<typeof InvalidInputFailure>;

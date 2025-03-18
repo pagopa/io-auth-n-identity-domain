@@ -9,14 +9,14 @@ import { TransientNotImplementedFailure } from "../utils/durable";
 import { MagicLinkServiceClient } from "../utils/magic-code";
 
 // magic link service response
-const MagicLinkServiceResponse = t.interface({
+const MagicLinkServiceResponse = t.type({
   magic_link: NonEmptyString,
 });
 
 type MagicLinkServiceResponse = t.TypeOf<typeof MagicLinkServiceResponse>;
 
 // Activity input
-export const ActivityInput = t.interface({
+export const ActivityInput = t.type({
   family_name: NonEmptyString,
   fiscal_code: FiscalCode,
   name: NonEmptyString,
@@ -25,12 +25,12 @@ export const ActivityInput = t.interface({
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
 
 // Activity result
-export const ActivityResultSuccess = t.interface({
+export const ActivityResultSuccess = t.type({
   kind: t.literal("SUCCESS"),
   value: MagicLinkServiceResponse,
 });
 
-const GeneralFailure = t.interface({
+const GeneralFailure = t.type({
   kind: t.literal("FAILURE"),
   reason: t.string,
 });

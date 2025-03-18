@@ -17,7 +17,7 @@ import {
   updateSubscriptionStatus,
 } from "../utils/subscription-feed";
 
-const CommonInput = t.interface({
+const CommonInput = t.type({
   // fiscal code of the user affected by this update
   fiscalCode: FiscalCode,
   // whether the service has been subscribed or unsubscribed
@@ -31,7 +31,7 @@ type CommonInput = t.TypeOf<typeof CommonInput>;
 
 const ProfileInput = t.intersection([
   CommonInput,
-  t.interface({
+  t.type({
     // a profile subscription event
     subscriptionKind: t.literal("PROFILE"),
   }),
@@ -43,7 +43,7 @@ type ProfileInput = t.TypeOf<typeof ProfileInput>;
 
 const ServiceInput = t.intersection([
   CommonInput,
-  t.interface({
+  t.type({
     // the updated service
     serviceId: ServiceId,
     // a service subscription event

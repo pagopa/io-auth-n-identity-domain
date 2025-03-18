@@ -9,7 +9,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as t from "io-ts";
 
-export const EnqueueProfileCreationEventActivityInput = t.interface({
+export const EnqueueProfileCreationEventActivityInput = t.type({
   fiscalCode: FiscalCode,
   queueName: NonEmptyString,
 });
@@ -21,7 +21,7 @@ type IEnqueueProfileCreationEventActivityHandler = (
   queueService: QueueServiceClient,
 ) => (context: Context, rawInput: unknown) => Promise<string>;
 
-export const NewProfileInput = t.interface({
+export const NewProfileInput = t.type({
   fiscal_code: FiscalCode,
 });
 export type NewProfileInput = t.TypeOf<typeof NewProfileInput>;

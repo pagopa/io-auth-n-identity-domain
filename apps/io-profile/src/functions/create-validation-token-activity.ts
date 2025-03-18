@@ -28,7 +28,7 @@ import { insertTableEntity } from "@pagopa/io-functions-commons/dist/src/utils/a
 import { ObjectIdGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
 
 // Activity input
-export const ActivityInput = t.interface({
+export const ActivityInput = t.type({
   email: EmailString,
   fiscalCode: FiscalCode,
 });
@@ -36,15 +36,15 @@ export const ActivityInput = t.interface({
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
 
 // Activity result
-const ActivityResultSuccess = t.interface({
+const ActivityResultSuccess = t.type({
   kind: t.literal("SUCCESS"),
-  value: t.interface({
+  value: t.type({
     validationTokenEntity: ValidationTokenEntity,
     validator: t.string,
   }),
 });
 
-const ActivityResultFailure = t.interface({
+const ActivityResultFailure = t.type({
   kind: t.literal("FAILURE"),
   reason: t.string,
 });

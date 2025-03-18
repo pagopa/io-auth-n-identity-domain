@@ -49,7 +49,7 @@ import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 type AbortableUserDataProcessing = t.TypeOf<typeof AbortableUserDataProcessing>;
 const AbortableUserDataProcessing = t.intersection([
   RetrievedUserDataProcessing,
-  t.interface({
+  t.type({
     // abort makes sense only for DELETE as DOWNLOAD is processed straight away
     choice: t.literal(UserDataProcessingChoiceEnum.DELETE),
     status: t.literal(UserDataProcessingStatusEnum.PENDING),

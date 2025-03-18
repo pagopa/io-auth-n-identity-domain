@@ -22,7 +22,7 @@ import { EmailDefaults } from "../types/email";
 
 // Activity input
 export const ActivityInput = t.intersection([
-  t.interface({
+  t.type({
     date_time: DateFromTimestamp,
     email: EmailString,
     identity_provider: NonEmptyString,
@@ -39,11 +39,11 @@ export const ActivityInput = t.intersection([
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
 
 // Activity result
-export const ActivityResultSuccess = t.interface({
+export const ActivityResultSuccess = t.type({
   kind: t.literal("SUCCESS"),
 });
 
-const ActivityResultFailure = t.interface({
+const ActivityResultFailure = t.type({
   kind: t.literal("FAILURE"),
   reason: t.string,
 });

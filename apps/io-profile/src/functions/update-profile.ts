@@ -63,7 +63,7 @@ import { EmailValidationProcessParams } from "../generated/definitions/internal/
 import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "./upserted-profile-orchestrator";
 
 // Note: this type is shared with io-profile-async (MigrateServicesPreferencesFromLegacy)
-export const MigrateServicesPreferencesQueueMessage = t.interface({
+export const MigrateServicesPreferencesQueueMessage = t.type({
   newProfile: RetrievedProfile,
   oldProfile: RetrievedProfile,
 });

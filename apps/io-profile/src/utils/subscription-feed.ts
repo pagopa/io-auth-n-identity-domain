@@ -18,7 +18,7 @@ import { createTracker } from "./tracking";
 
 const eg = TableUtilities.entityGenerator;
 
-export const SubscriptionFeedEntitySelector = t.interface({
+export const SubscriptionFeedEntitySelector = t.type({
   partitionKey: t.string,
   rowKey: t.string,
 });
@@ -138,7 +138,7 @@ export const updateSubscriptionStatus =
     return true;
   };
 
-export const UpdateSubscriptionFeedInput = t.interface({
+export const UpdateSubscriptionFeedInput = t.type({
   fiscalCode: FiscalCode,
   operation: t.union([t.literal("SUBSCRIBED"), t.literal("UNSUBSCRIBED")]),
   serviceId: ServiceId,

@@ -45,11 +45,11 @@ const AnyBut = <A extends string | number | boolean | symbol, Out = A>(
 // configuration for REQ_SERVICE_ID in dev
 export type ReqServiceIdConfig = t.TypeOf<typeof ReqServiceIdConfig>;
 export const ReqServiceIdConfig = t.union([
-  t.interface({
+  t.type({
     NODE_ENV: t.literal("production"),
     REQ_SERVICE_ID: t.undefined,
   }),
-  t.interface({
+  t.type({
     NODE_ENV: AnyBut("production", t.string),
     REQ_SERVICE_ID: NonEmptyString,
   }),

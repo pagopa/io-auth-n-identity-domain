@@ -38,7 +38,7 @@ import {
  * created otherwise.
  */
 export const OrchestratorInput = t.intersection([
-  t.interface({
+  t.type({
     newProfile: RetrievedProfile,
     updatedAt: UTCISODateFromString,
   }),

@@ -9,7 +9,7 @@ import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/p
  * created otherwise.
  */
 export const UpdatedProfileEvent = t.intersection([
-  t.interface({
+  t.type({
     newProfile: RetrievedProfile,
     updatedAt: t.number,
   }),

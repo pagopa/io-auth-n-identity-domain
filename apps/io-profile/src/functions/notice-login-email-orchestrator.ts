@@ -27,7 +27,7 @@ import {
 
 // Input
 export const OrchestratorInput = t.intersection([
-  t.interface({
+  t.type({
     date_time: DateFromTimestamp,
     email: EmailString,
     family_name: NonEmptyString,
@@ -45,11 +45,11 @@ export const OrchestratorInput = t.intersection([
 export type OrchestratorInput = t.TypeOf<typeof OrchestratorInput>;
 
 // Result
-export const OrchestratorSuccessResult = t.interface({
+export const OrchestratorSuccessResult = t.type({
   kind: t.literal("SUCCESS"),
 });
 
-export const OrchestratorFailureResult = t.interface({
+export const OrchestratorFailureResult = t.type({
   kind: t.literal("FAILURE"),
   reason: t.string,
 });
