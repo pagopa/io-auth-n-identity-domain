@@ -32,6 +32,7 @@ import { VALIDATION_TOKEN_TABLE_NAME } from "@pagopa/io-functions-commons/dist/s
 import { getMailerTransporter } from "@pagopa/io-functions-commons/dist/src/mailer";
 import { pipe } from "fp-ts/lib/function";
 import { ulidGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
+import { HtmlToTextOptions } from "html-to-text";
 import { cosmosdbInstance } from "./utils/cosmosdb";
 import { getConfigOrThrow } from "./config";
 import { getTimeoutFetch } from "./utils/fetch";
@@ -113,7 +114,7 @@ const LOGIN_EMAIL_TITLE = "È stato eseguito l'accesso sull'app IO";
 const VALIDATION_EMAIL_TITLE = "Conferma il tuo indirizzo email";
 
 const HTML_TO_TEXT_OPTIONS: HtmlToTextOptions = {
-  ignoreImage: true, // Ignore all document images
+  selectors: [{ selector: "img", format: "skip" }], // Ignore all document images
   tables: true,
 };
 

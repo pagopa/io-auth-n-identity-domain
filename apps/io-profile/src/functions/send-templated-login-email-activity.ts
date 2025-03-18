@@ -114,7 +114,7 @@ export const getSendLoginEmailActivityHandler =
         ),
       ),
       E.bind("emailText", ({ emailHtml }) =>
-        E.of(HtmlToText.fromString(emailHtml, emailDefaults.htmlToTextOptions)),
+        E.of(HtmlToText.htmlToText(emailHtml, emailDefaults.htmlToTextOptions)),
       ),
       TE.fromEither,
       TE.chainW(({ activityInput, emailHtml, emailText }) =>

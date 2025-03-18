@@ -85,7 +85,7 @@ export const getSendValidationEmailActivityHandler =
     );
 
     // converts the HTML to pure text to generate the text version of the message
-    const emailText = HtmlToText.fromString(emailHtml, htmlToTextOptions);
+    const emailText = HtmlToText.htmlToText(emailHtml, htmlToTextOptions);
 
     // Send email with the validation link
     await pipe(
