@@ -1,4 +1,4 @@
-FROM node:20.12.2-alpine as base
+FROM node:20.12.2-alpine@sha256:7a91aa397f2e2dfbfcdad2e2d72599f374e0b0172be1d86eeb73f1d33f36a4b2 as base
 
 USER root
 
@@ -13,7 +13,7 @@ WORKDIR /usr/src/app
 RUN yarn install --immutable
 RUN yarn build
 
-FROM node:20.12.2-alpine as runner
+FROM node:20.12.2-alpine@sha256:7a91aa397f2e2dfbfcdad2e2d72599f374e0b0172be1d86eeb73f1d33f36a4b2 as runner
 WORKDIR /usr/src/app
 
 # bug: yarn logs requires write permission for tmp folder
