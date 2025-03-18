@@ -20,15 +20,11 @@ import { createTracker } from "../utils/tracking";
 import { EmailDefaults } from "../types/email";
 
 // Activity input
-export const ActivityInput = t.intersection([
-  t.type({
-    email: EmailString,
-    token: t.string,
-  }),
-  // TODO: name field from partial to required after complete rollout of
-  // IOPID-1444 task
-  t.partial({ name: t.string }),
-]);
+export const ActivityInput = t.type({
+  email: EmailString,
+  token: t.string,
+  name: t.string,
+});
 
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
 
