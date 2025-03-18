@@ -3,7 +3,7 @@
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as df from "durable-functions";
 import { IOrchestrationFunctionContext } from "durable-functions/lib/src/classes";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { assert, beforeEach, describe, expect, it, vi } from "vitest";
 import { BlockedInboxOrChannelEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/BlockedInboxOrChannel";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { Profile } from "@pagopa/io-functions-commons/dist/generated/definitions/Profile";
@@ -38,11 +38,6 @@ const someRetryOptions = new df.RetryOptions(5000, 10);
 // eslint-disable-next-line functional/immutable-data
 someRetryOptions.backoffCoefficient = 1.5;
 
-// TODO: change calls with assert.fail method
-const fail = (reason = "fail was called in a test."): never => {
-  throw new Error(reason);
-};
-
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -57,7 +52,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         name: aName,
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
             errs,
           )}`,
@@ -99,7 +94,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         name: aName,
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
             errs,
           )}`,
@@ -112,7 +107,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         kind: "SUCCESS",
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
             errs,
           )}`,
@@ -210,7 +205,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         name: aName,
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
             errs,
           )}`,
@@ -223,7 +218,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         kind: "SUCCESS",
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
             errs,
           )}`,
@@ -326,7 +321,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         name: aName,
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
             errs,
           )}`,
@@ -339,7 +334,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         kind: "SUCCESS",
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
             errs,
           )}`,
@@ -441,7 +436,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         name: aName,
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
             errs,
           )}`,
@@ -454,7 +449,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         kind: "SUCCESS",
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
             errs,
           )}`,
@@ -563,7 +558,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         name: aName,
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
             errs,
           )}`,
@@ -576,7 +571,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         kind: "SUCCESS",
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
             errs,
           )}`,
@@ -713,7 +708,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         name: aName,
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
             errs,
           )}`,
@@ -726,7 +721,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         kind: "SUCCESS",
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
             errs,
           )}`,
@@ -866,7 +861,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         name: aName,
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
             errs,
           )}`,
@@ -879,7 +874,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
         kind: "SUCCESS",
       }),
       E.getOrElseW((errs) =>
-        fail(
+        assert.fail(
           `Cannot decode EmailValidationProcessOrchestratorResult: ${readableReport(
             errs,
           )}`,
@@ -1099,7 +1094,7 @@ describe("UpsertedProfileOrchestrator |> emitted events", () => {
         },
         UpsertedProfileOrchestratorInput.decode,
         E.getOrElseW((errs) =>
-          fail(
+          assert.fail(
             `Cannot decode UpsertedProfileOrchestratorInput: ${readableReport(
               errs,
             )}`,
