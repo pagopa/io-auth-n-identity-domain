@@ -28,8 +28,5 @@ export const toHealthProblems =
  * Return a CosmosClient
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const buildCosmosClient = (dbUri: string, dbKey?: string) =>
-  new CosmosClient({
-    endpoint: dbUri,
-    key: dbKey,
-  });
+export const buildCosmosClient = (connectionString: string) =>
+  new CosmosClient(connectionString);
