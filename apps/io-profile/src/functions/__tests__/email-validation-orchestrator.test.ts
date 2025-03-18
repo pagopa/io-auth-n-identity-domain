@@ -1,8 +1,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { beforeEach } from "node:test";
-import { assert, describe, expect, it, vi } from "vitest";
+import { beforeEach, assert, describe, expect, it, vi } from "vitest";
 import { context as contextMock } from "../__mocks__/durable-functions";
 import {
   aEmail,
@@ -83,7 +82,7 @@ describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
       }),
     );
 
-    orchestratorHandler.next(result.value);
+    const finalResult = orchestratorHandler.next(result.value);
 
     expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
       "SendTemplatedValidationEmailActivity",
@@ -94,6 +93,8 @@ describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
         name: aName,
       }),
     );
+
+    expect(finalResult).toMatchObject({ value: { kind: "SUCCESS" } });
   });
 
   it("should return a failure when a decoding error for input occurs", async () => {
@@ -123,7 +124,7 @@ describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
 
   it.each`
     value
-    ${{ malformed: true }}
+    ${{ kind: "SUCCESS", value: {} }}
     ${CreateValidationTokenActivityResult.encode({ kind: "FAILURE", reason: "error" })}
   `(
     "should fail when an error for CreateValidationTokenActivity occurs",
@@ -149,7 +150,7 @@ describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
         contextMockWithDf as any,
       );
 
-      orchestratorHandler.next();
+      const result = orchestratorHandler.next();
       expect(contextMockWithDf.df.callActivityWithRetry).toBeCalledWith(
         "CreateValidationTokenActivity",
         expect.anything(), // retryOptions
@@ -159,7 +160,7 @@ describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
         }),
       );
       try {
-        orchestratorHandler.next();
+        orchestratorHandler.next(result.value);
         assert.fail();
       } catch (e) {
         expect(e).toMatchObject({
@@ -173,7 +174,7 @@ describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
 
   it.each`
     value
-    ${{ malformed: true }}
+    ${{ kind: "INVALID", value: {} }}
     ${SendValidationEmailActivityResult.encode({ kind: "FAILURE", reason: "error" })}
   `(
     "should fail when an error for SendValidationEmailActivity occurs",
@@ -218,8 +219,8 @@ describe("EmailValidationWithTemaplteProcessOrchestrator", () => {
       const result = orchestratorHandler.next();
 
       try {
-        orchestratorHandler.next(result.value);
-        orchestratorHandler.next();
+        const result2 = orchestratorHandler.next(result.value);
+        orchestratorHandler.next(result2.value);
         assert.fail();
       } catch (e) {
         expect(e).toMatchObject({
