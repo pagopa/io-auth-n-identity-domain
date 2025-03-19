@@ -101,12 +101,6 @@ const TOKEN_INVALID_AFTER_MS = (1000 * 60 * 60 * 24 * 30) as Millisecond; // 30 
 
 const tableService = createTableService(config.QueueStorageConnection);
 
-// When the function starts, attempt to create the table if it does not exist
-// Note that we cannot log anything just yet since we don't have a Context
-tableService.createTableIfNotExists(VALIDATION_TOKEN_TABLE_NAME, () => 0);
-
-tableService.createTableIfNotExists(config.SUBSCRIPTIONS_FEED_TABLE, () => 0);
-
 const eventsQueueServiceClient = QueueServiceClient.fromConnectionString(
   config.EventsQueueStorageConnection,
 );
