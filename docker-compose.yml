@@ -31,12 +31,6 @@ services:
     networks:
       - io-fn
 
-  functions-node-20:
-    image: functions-node-20
-    build:
-      context: ./
-      dockerfile: ./docker/functions-node-20/Dockerfile
-    command: /bin/true
 
   io-lollipop:
     image: io-lollipop
@@ -55,7 +49,6 @@ services:
     networks:
       - io-fn
     depends_on:
-      - functions-node-20
       - cosmosdb
       - storage
     labels:
@@ -80,7 +73,6 @@ services:
     networks:
       - io-fn
     depends_on:
-      - functions-node-20
       - storage
 
   io-profile-async:
@@ -97,7 +89,6 @@ services:
     networks:
       - io-fn
     depends_on:
-      - functions-node-20
       - storage
       - cosmosdb
 
@@ -115,7 +106,6 @@ services:
     networks:
       - io-fn
     depends_on:
-      - functions-node-20
       - storage
       - cosmosdb
 
@@ -133,7 +123,6 @@ services:
     networks:
       - io-fn
     depends_on:
-      - functions-node-20
       - io-lollipop
       - io-session-manager
       - storage
