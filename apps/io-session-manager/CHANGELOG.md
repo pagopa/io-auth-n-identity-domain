@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.4.1
+
+### Patch Changes
+
+- c3297fb: Bumped io-spid-commons
+
 ## 1.4.0
 
 ### Minor Changes
