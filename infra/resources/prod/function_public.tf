@@ -43,8 +43,8 @@ resource "azurerm_resource_group" "function_public_rg" {
 }
 
 module "function_public" {
-  source  = "pagopa/dx-azure-function-app/azurerm"
-  version = "~> 0"
+  source  = "pagopa-dx/azure-function-app/azurerm"
+  version = "~> 0.0"
 
   environment = {
     prefix          = local.prefix
