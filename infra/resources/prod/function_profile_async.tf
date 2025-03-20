@@ -80,7 +80,7 @@ locals {
 
 
 module "function_profile_async" {
-  source  = "pagopa/dx-azure-function-app/azurerm"
+  source  = "pagopa-dx/azure-function-app/azurerm"
   version = "~> 0.0"
 
   environment = {
@@ -156,7 +156,7 @@ module "function_profile_async" {
 
 module "function_profile_async_autoscale" {
   depends_on = [azurerm_resource_group.main_resource_group]
-  source     = "pagopa/dx-azure-app-service-plan-autoscaler/azurerm"
+  source     = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
   // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
   version = "0.0.2"
 

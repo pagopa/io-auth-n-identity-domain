@@ -63,8 +63,8 @@ resource "azurerm_resource_group" "function_lollipop_rg" {
 }
 
 module "function_lollipop" {
-  source  = "pagopa/dx-azure-function-app/azurerm"
-  version = "~> 0"
+  source  = "pagopa-dx/azure-function-app/azurerm"
+  version = "~> 0.0"
 
   environment = {
     prefix          = local.prefix
@@ -126,7 +126,7 @@ module "function_lollipop" {
 
 module "function_lollipop_autoscale" {
   depends_on = [azurerm_resource_group.function_lollipop_rg]
-  source     = "pagopa/dx-azure-app-service-plan-autoscaler/azurerm"
+  source     = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
   // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
   version = "0.0.2"
 

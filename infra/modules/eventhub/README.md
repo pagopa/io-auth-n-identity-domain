@@ -9,13 +9,13 @@ No requirements.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 3.116.0 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | n/a |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_eventhub"></a> [eventhub](#module\_eventhub) | pagopa/dx-azure-event-hub/azurerm | ~> 0 |
+| <a name="module_eventhub"></a> [eventhub](#module\_eventhub) | pagopa-dx/azure-event-hub/azurerm | ~> 0.0 |
 
 ## Resources
 
