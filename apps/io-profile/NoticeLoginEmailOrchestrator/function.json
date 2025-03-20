@@ -6,5 +6,6 @@
       "direction": "in"
     }
   ],
-  "scriptFile": "../dist/NoticeLoginEmailOrchestrator/index.js"
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "NoticeLoginEmailOrchestrator"
 }

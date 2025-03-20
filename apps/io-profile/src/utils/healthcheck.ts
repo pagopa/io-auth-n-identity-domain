@@ -15,7 +15,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 
 import { sequenceT } from "fp-ts/lib/Apply";
 import fetch from "node-fetch";
-import { getConfig, IConfig } from "./config";
+import { getConfig, IConfig } from "../config";
 import {
   buildCosmosClient,
   formatProblem,

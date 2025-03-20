@@ -6,5 +6,6 @@
       "direction": "in"
     }
   ],
-  "scriptFile": "../dist/EmailValidationWithTemplateProcessOrchestrator/index.js"
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "EmailValidationWithTemplateProcessOrchestrator"
 }

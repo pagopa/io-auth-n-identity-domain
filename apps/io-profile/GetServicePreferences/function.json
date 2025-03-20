@@ -6,9 +6,7 @@
       "direction": "in",
       "name": "req",
       "route": "v1/profiles/{fiscal_code}/services/{service_id}/preferences",
-      "methods": [
-        "get"
-      ]
+      "methods": ["get"]
     },
     {
       "type": "http",
@@ -16,5 +14,6 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/GetServicePreferences/index.js"
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "httpTriggerEntrypoint"
 }

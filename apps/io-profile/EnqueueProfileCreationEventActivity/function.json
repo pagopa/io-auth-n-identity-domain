@@ -6,5 +6,7 @@
       "direction": "in"
     }
   ],
-  "scriptFile": "../dist/EnqueueProfileCreationEventActivity/index.js"
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "EnqueueProfileCreationEventActivity"
 }
+

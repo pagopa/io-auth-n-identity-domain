@@ -93,7 +93,7 @@ export const startOrchestrator = <OInput>(
  * in the activities that retrieve the magic code and geolocation data during
  * a login email sending flow
  * */
-export const TransientNotImplementedFailure = t.interface({
+export const TransientNotImplementedFailure = t.type({
   kind: t.literal("NOT_YET_IMPLEMENTED"),
   reason: t.string,
 });

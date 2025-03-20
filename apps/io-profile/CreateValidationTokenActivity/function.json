@@ -6,5 +6,6 @@
       "direction": "in"
     }
   ],
-  "scriptFile": "../dist/CreateValidationTokenActivity/index.js"
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "CreateValidationTokenActivity"
 }

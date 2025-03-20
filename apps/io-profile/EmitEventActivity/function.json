@@ -13,5 +13,6 @@
       "direction": "out"
     }
   ],
-  "scriptFile": "../dist/EmitEventActivity/index.js"
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "EmitEventActivity"
 }

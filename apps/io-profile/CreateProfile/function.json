@@ -6,9 +6,7 @@
       "type": "httpTrigger",
       "direction": "in",
       "route": "v1/profiles/{fiscalcode}",
-      "methods": [
-        "post"
-      ]
+      "methods": ["post"]
     },
     {
       "name": "res",
@@ -21,5 +19,6 @@
       "direction": "in"
     }
   ],
-  "scriptFile": "../dist/CreateProfile/index.js"
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "httpTriggerEntrypoint"
 }
