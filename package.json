@@ -52,5 +52,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "resolutions": {
+    "xml-crypto": "2.1.6"
+  }
 }

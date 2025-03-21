@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.23.0
+
+### Minor Changes
+
+- 49419a4: Clean Config, use cosmosDB connectionString instead of Key-Uri
+
 ## 5.22.0
 
 ### Minor Changes

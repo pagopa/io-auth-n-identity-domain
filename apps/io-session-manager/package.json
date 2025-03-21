@@ -1,6 +1,6 @@
 {
     "name": "io-session-manager",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "author": "IO Auth & Identity Team",
     "description": "API for IO session",
     "engines": {
@@ -38,7 +38,7 @@
         "@azure/storage-queue": "^12.16.0",
         "@pagopa/io-functions-app-sdk": "x",
         "@pagopa/io-functions-commons": "^29.1.0",
-        "@pagopa/io-spid-commons": "^14.0.0",
+        "@pagopa/io-spid-commons": "^14.0.1",
         "@pagopa/ts-commons": "^13.1.1",
         "@redis/client": "1.4.2",
         "applicationinsights": "^2.9.5",
@@ -93,5 +93,8 @@
         "swagger-cli": "^4.0.4",
         "typescript": "^5.4.3",
         "vitest": "~1.5.0"
+    },
+    "resolutions": {
+        "xml-crypto": "2.1.6"
     }
 }
