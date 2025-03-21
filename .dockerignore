@@ -3,6 +3,5 @@
 .changeset
 .github
 .turbo
-# .yarn
 .infra
 out

@@ -29,6 +29,12 @@ ENV AzureWebJobsScriptRoot=/usr/src/app \
 
 WORKDIR /usr/src/app
 COPY --from=installer /usr/src/app/apps/${FUNCTION_NAME} .
+
+# The following are needed to run the integrations tests
+# for those functions that provide them
+COPY --from=base /usr/src/app/packages/typescript-config-node ./node_modules/@pagopa/typescript-config-node
+COPY --from=base /usr/src/app/apps/${FUNCTION_NAME}/src ./apps/${FUNCTION_NAME}/src
+
 RUN npm run extensions:install
 
 CMD ["func", "start", "--javascript"]
