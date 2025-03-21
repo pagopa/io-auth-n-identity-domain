@@ -11,7 +11,9 @@ services:
     image: io-session-manager
     build:
       context: ./
-      dockerfile: ./docker/io-session-manager/Dockerfile
+      dockerfile: ./docker/server/Dockerfile
+      args:
+        SERVER_NAME: "io-session-manager"
     env_file:
       - ./docker/generated/.env.io-session-manager
     volumes:
@@ -29,18 +31,14 @@ services:
     networks:
       - io-fn
 
-  functions-node-20:
-    image: functions-node-20
-    build:
-      context: ./
-      dockerfile: ./docker/functions-node-20/Dockerfile
-    command: /bin/true
 
   io-lollipop:
     image: io-lollipop
     build:
       context: ./
-      dockerfile: ./docker/io-lollipop/Dockerfile
+      dockerfile: ./docker/function/Dockerfile
+      args: 
+        FUNCTION_NAME: "io-lollipop"
     env_file:
       - ./docker/generated/.env.io-lollipop
     volumes:
@@ -51,7 +49,6 @@ services:
     networks:
       - io-fn
     depends_on:
-      - functions-node-20
       - cosmosdb
       - storage
     labels:
@@ -66,7 +63,9 @@ services:
     image: io-web-profile
     build:
       context: ./
-      dockerfile: ./docker/io-web-profile/Dockerfile
+      dockerfile: ./docker/function/Dockerfile
+      args:
+        FUNCTION_NAME: "io-web-profile"
     env_file:
       - ./docker/generated/.env.io-web-profile
     ports:
@@ -74,14 +73,15 @@ services:
     networks:
       - io-fn
     depends_on:
-      - functions-node-20
       - storage
 
   io-profile-async:
     image: io-profile-async
     build: 
       context: ./
-      dockerfile: ./docker/io-profile-async/Dockerfile
+      dockerfile: ./docker/function/Dockerfile
+      args: 
+        FUNCTION_NAME: "io-profile-async"
     env_file:
       - ./docker/generated/.env.io-profile-async
     ports:
@@ -89,7 +89,6 @@ services:
     networks:
       - io-fn
     depends_on:
-      - functions-node-20
       - storage
       - cosmosdb
 
@@ -97,7 +96,9 @@ services:
     image: io-public
     build:
       context: ./
-      dockerfile: ./docker/io-public/Dockerfile
+      dockerfile: ./docker/function/Dockerfile
+      args:
+        FUNCTION_NAME: "io-public"
     env_file:
       - ./docker/generated/.env.io-public
     ports:
@@ -105,7 +106,6 @@ services:
     networks:
       - io-fn
     depends_on:
-      - functions-node-20
       - storage
       - cosmosdb
 
@@ -113,7 +113,9 @@ services:
     image: io-fast-login
     build:
       context: ./
-      dockerfile: ./docker/io-fast-login/Dockerfile
+      dockerfile: ./docker/function/Dockerfile
+      args:
+        FUNCTION_NAME: "io-fast-login"
     env_file:
       - ./docker/generated/.env.io-fast-login
     ports:
@@ -121,7 +123,6 @@ services:
     networks:
       - io-fn
     depends_on:
-      - functions-node-20
       - io-lollipop
       - io-session-manager
       - storage
