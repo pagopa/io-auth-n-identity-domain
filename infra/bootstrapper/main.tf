@@ -140,6 +140,12 @@ module "repo" {
     azurerm_resource_group.webprof_itn_01.id,
     azurerm_resource_group.data_itn_01.id,
     azurerm_resource_group.profile_itn_01.id,
+    azurerm_resource_group.session_manager_weu_01.id,
+    azurerm_resource_group.func_profile_itn.id,
+    azurerm_resource_group.auth_data.id,
+    azurerm_resource_group.shared_itn_01.id,
+    azurerm_resource_group.ioweb_common_weu.id,
+    azurerm_resource_group.storage_weu.id,
   ]
 
   entraid_groups = {
