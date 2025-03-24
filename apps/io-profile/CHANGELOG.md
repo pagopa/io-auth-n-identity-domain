@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.24.1
+
+### Patch Changes
+
+- 6fe208f: Fixed df imports
+
 ## 5.24.0
 
 ### Minor Changes

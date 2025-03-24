@@ -3,7 +3,7 @@ import {
   IPString,
   NonEmptyString,
 } from "@pagopa/ts-commons/lib/strings";
-import df from "durable-functions";
+import * as df from "durable-functions";
 import * as TE from "fp-ts/lib/TaskEither";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { context, mockGetClient } from "../__mocks__/durable-functions";
