@@ -1,7 +1,7 @@
 import lolex from "lolex";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import df from "durable-functions";
+import * as df from "durable-functions";
 
 import { NewProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import * as date_fns from "date-fns";

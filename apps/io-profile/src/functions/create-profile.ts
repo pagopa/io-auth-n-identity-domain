@@ -1,7 +1,7 @@
 import express from "express";
 
 import { Context } from "@azure/functions";
-import df from "durable-functions";
+import * as df from "durable-functions";
 
 import { isLeft } from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
