@@ -3,9 +3,9 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import { CosmosClient } from "@azure/cosmos";
 import * as E from "fp-ts/lib/Either";
 import { right } from "fp-ts/lib/Either";
-import { envConfig } from "../../__mocks__/env-config.mock";
+import { envConfig } from "../../functions/__mocks__/env-config.mock";
 
-import * as config from "../config";
+import * as config from "../../config";
 
 import {
   checkApplicationHealth,
