@@ -97,7 +97,7 @@ locals {
       // Functions App config
       // -------------------------
       FUNCTIONS_APP_API_KEY         = data.azurerm_key_vault_secret.functions_app_api_key.value
-      FUNCTIONS_APP_CLIENT_BASE_URL = "https://${module.function_profile.function_app.function_app.default_hostname}"
+      FUNCTIONS_APP_CLIENT_BASE_URL = "https://io-p-itn-auth-profile-func-02.azurewebsites.net"
 
       // -------------------------
       // Hub Spid Login for ioweb config
