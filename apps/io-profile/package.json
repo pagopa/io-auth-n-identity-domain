@@ -2,7 +2,7 @@
   "name": "io-profile",
   "description": "",
   "author": "IO Auth & Identity Team",
-  "version": "5.24.0",
+  "version": "5.24.1",
   "license": "MIT",
   "scripts": {
     "clean": "shx rm -rf dist",
