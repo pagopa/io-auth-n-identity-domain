@@ -190,3 +190,26 @@ resource "azurerm_resource_group" "shared_itn_01" {
   tags = local.tags
 }
 
+import {
+  id = "/subscriptions/ec285037-c673-4f58-b594-d7c480da4e8b/resourceGroups/io-p-weu-ioweb-common-rg"
+  to = azurerm_resource_group.ioweb_common_weu
+}
+
+resource "azurerm_resource_group" "ioweb_common_weu" {
+  name     = "${local.prefix}-${local.env_short}-weu-ioweb-common-rg"
+  location = "westeurope"
+
+  tags = local.tags
+}
+
+import {
+  id = "/subscriptions/ec285037-c673-4f58-b594-d7c480da4e8b/resourceGroups/io-p-weu-ioweb-storage-rg"
+  to = azurerm_resource_group.storage_weu
+}
+
+resource "azurerm_resource_group" "storage_weu" {
+  name     = "${local.prefix}-${local.env_short}-weu-ioweb-storage-rg"
+  location = "westeurope"
+
+  tags = local.tags
+}
