@@ -47,7 +47,7 @@ locals {
       BACKEND_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.backendli_api_key.value
 
       // Function Profile
-      FUNCTION_PROFILE_BASE_URL = "https://io-p-itn-auth-profile-fn-01.azurewebsites.net"
+      FUNCTION_PROFILE_BASE_URL = "https://${module.function_profile.function_app.function_app.default_hostname}"
       FUNCTION_PROFILE_API_KEY  = data.azurerm_key_vault_secret.function_profile_key.value
 
       // Expired Session Mail prop
