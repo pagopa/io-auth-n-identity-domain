@@ -124,8 +124,8 @@ resource "azurerm_resource_group" "function_web_profile_rg" {
 }
 
 module "function_web_profile" {
-  source  = "pagopa/dx-azure-function-app/azurerm"
-  version = "~> 0"
+  source  = "pagopa-dx/azure-function-app/azurerm"
+  version = "~> 0.0"
 
   environment = {
     prefix          = local.prefix
