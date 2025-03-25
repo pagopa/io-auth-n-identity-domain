@@ -3,5 +3,5 @@
 .changeset
 .github
 .turbo
-.infra
+infra
 out
