@@ -20,8 +20,8 @@ RUN yarn turbo run build
 
 FROM node:20.12.2-alpine AS runner
 ARG SERVER_NAME
-WORKDIR /usr/src/app
-COPY --from=installer --chown=node:node /usr/src/app/apps/${SERVER_NAME} .
+WORKDIR /usr/src/app/apps/${SERVER_NAME}
+COPY --from=installer --chown=node:node /usr/src/app /usr/src/app
 
 # bug: yarn logs requires write permission for tmp folder
 RUN chown -R node:node /tmp
