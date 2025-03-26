@@ -27,13 +27,8 @@ ARG FUNCTION_NAME
 ENV AzureWebJobsScriptRoot=/usr/src/app \
   AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
-WORKDIR /usr/src/app
-COPY --from=installer /usr/src/app/apps/${FUNCTION_NAME} .
-
-# The following are needed to run the integrations tests
-# for those functions that provide them
-COPY --from=base /usr/src/app/packages/typescript-config-node ./node_modules/@pagopa/typescript-config-node
-COPY --from=base /usr/src/app/apps/${FUNCTION_NAME}/src ./apps/${FUNCTION_NAME}/src
+WORKDIR /usr/src/app/apps/${FUNCTION_NAME}
+COPY --from=installer /usr/src/app /usr/src/app
 
 RUN npm run extensions:install
 
