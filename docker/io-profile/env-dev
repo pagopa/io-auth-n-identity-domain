@@ -1,3 +1,6 @@
+DOTNET_EnableWriteXorExecute=0
+AzureWebJobsStorage=${STORAGE_CONN_STRING}
+
 NODE_ENV=dev
 NODE_TLS_REJECT_UNAUTHORIZED=0
 
