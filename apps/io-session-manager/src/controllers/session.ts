@@ -9,7 +9,6 @@ import {
 } from "@pagopa/ts-commons/lib/responses";
 import * as TE from "fp-ts/TaskEither";
 import * as RTE from "fp-ts/ReaderTaskEither";
-import * as E from "fp-ts/Either";
 import * as B from "fp-ts/boolean";
 import * as R from "fp-ts/Record";
 import { flow, pipe } from "fp-ts/lib/function";
@@ -39,7 +38,6 @@ import { log } from "../utils/logger";
 import { Concat, Union2Tuple, parseFilter } from "../utils/fields-filter";
 import { AssertionRef } from "../generated/lollipop-api/AssertionRef";
 import { UserIdentityWithTokens } from "../generated/external/UserIdentityWithTokens";
-import { RedisClientMode } from "../types/redis";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
@@ -293,13 +291,8 @@ export const getUserIdentity: RTE.ReaderTaskEither<
   IResponseErrorInternal | IResponseSuccessJson<UserIdentityWithTokens>
 > = (deps) =>
   pipe(
-    TE.tryCatch(
-      () =>
-        deps.redisClientSelector
-          .selectOne(RedisClientMode.FAST)
-          .ttl(`${RedisRepo.sessionKeyPrefix}${deps.user.session_token}`),
-      E.toError,
-    ),
+    deps,
+    RedisSessionStorageService.getSessionTtl(deps.user.session_token),
     TE.chain(
       TE.fromPredicate(
         (ttlResponse) => ttlResponse > 0,

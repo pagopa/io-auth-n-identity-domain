@@ -68,10 +68,11 @@ describe("getSessionState", () => {
     .mockResolvedValue(aZendeskSuffix);
 
   const ttl = 1800;
-  vi.spyOn(
+  const mockGetSessionRemainingTtlFast = vi.spyOn(
     RedisSessionStorageService,
     "getSessionRemainingTtlFast",
-  ).mockReturnValue(TE.right(ttl));
+  );
+  mockGetSessionRemainingTtlFast.mockReturnValue(TE.right(ttl));
 
   const expectedExpirationDate = addSeconds(new Date(), ttl).toISOString();
 
@@ -553,27 +554,22 @@ describe("getUserIdentity", () => {
   const res = mockRes() as unknown as Response;
   const req = mockReq() as unknown as Request;
 
-  // Mock Redis ttl function
-  const mockTtl = vi.fn();
-  const mockRedisClient = {
-    ttl: mockTtl,
-  };
-  const mockSelectOne = vi.fn().mockReturnValue(mockRedisClient);
-  const mockedRedisClientSelector = {
-    selectOne: mockSelectOne,
-    select: (): any => {},
-  };
+  const ttl = 1800;
 
   const mockedDependencies = {
-    redisClientSelector: mockedRedisClientSelector,
+    redisClientSelector: mockRedisClientSelector,
     user: mockedUser,
     req,
   };
+  const mockGetSessionTtl = vi.spyOn(
+    RedisSessionStorageService,
+    "getSessionTtl",
+  );
 
   test("GIVEN a valid session token with positive TTL THEN it should return user identity with remaining TTL", async () => {
     // Arrange
     const expectedTtl = 3600; // 1 hour
-    mockTtl.mockResolvedValueOnce(expectedTtl);
+    mockGetSessionTtl.mockReturnValueOnce(() => TE.right(expectedTtl));
 
     // Act
     await pipe(
@@ -584,9 +580,8 @@ describe("getUserIdentity", () => {
     )();
 
     // Assert
-    expect(mockSelectOne).toHaveBeenCalledWith(RedisClientMode.FAST);
-    expect(mockTtl).toHaveBeenCalledWith(
-      `${RedisRepo.sessionKeyPrefix}${mockedUser.session_token}`,
+    expect(mockGetSessionTtl).toHaveBeenCalledWith(
+      mockedDependencies.user.session_token,
     );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(
@@ -602,7 +597,7 @@ describe("getUserIdentity", () => {
   test("GIVEN Redis throws an error THEN it should return error", async () => {
     // Arrange
     const expectedError = new Error("Redis connection error");
-    mockTtl.mockRejectedValueOnce(expectedError);
+    mockGetSessionTtl.mockReturnValueOnce(() => TE.left(expectedError));
 
     // Act
     const result = await getUserIdentity(mockedDependencies)();
@@ -615,16 +610,14 @@ describe("getUserIdentity", () => {
         }),
       ),
     );
-    expect(mockTtl).toHaveBeenCalledWith(
-      `${RedisRepo.sessionKeyPrefix}${mockedUser.session_token}`,
+    expect(mockGetSessionTtl).toHaveBeenCalledWith(
+      mockedDependencies.user.session_token,
     );
   });
 
   test("GIVEN a session token with zero or negative TTL THEN it should return error", async () => {
     // Arrange
-    // The session token is missin
-    mockTtl.mockResolvedValueOnce(-2);
-
+    mockGetSessionTtl.mockReturnValueOnce(() => TE.right(-2));
     // Act
     const result = await getUserIdentity(mockedDependencies)();
 
@@ -632,12 +625,12 @@ describe("getUserIdentity", () => {
     expect(result).toEqual(
       E.left(new Error("Unexpected session token TTL value")),
     );
-    expect(mockTtl).toHaveBeenCalledWith(
-      `${RedisRepo.sessionKeyPrefix}${mockedUser.session_token}`,
+    expect(mockGetSessionTtl).toHaveBeenCalledWith(
+      mockedDependencies.user.session_token,
     );
 
     // The session token has not expiration
-    mockTtl.mockResolvedValueOnce(-1);
+    mockGetSessionTtl.mockReturnValueOnce(() => TE.right(-1));
 
     const resultNegative = await getUserIdentity(mockedDependencies)();
 
