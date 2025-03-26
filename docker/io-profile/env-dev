@@ -14,7 +14,7 @@ DURABLE_FUNCTION_STORAGE_CONNECTION_STRING=${STORAGE_CONN_STRING}
 QueueStorageConnection=${STORAGE_CONN_STRING}
 
 MAIL_FROM=sender@example.com
-FUNCTIONS_PUBLIC_URL=http://functions-public.localhost
+FUNCTIONS_PUBLIC_URL=http://io-public:7071
 PUBLIC_API_URL=http://host.docker.internal:80/functions-services
 PUBLIC_API_KEY=api_key
 DPO_EMAIL_ADDRESS=dpo@example.com
