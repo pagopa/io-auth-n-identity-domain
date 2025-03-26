@@ -7858,6 +7858,7 @@ __metadata:
     "@pagopa/io-functions-commons": "npm:28.1.0"
     "@pagopa/openapi-codegen-ts": "npm:^12.2.0"
     "@pagopa/ts-commons": "npm:^11.0.0"
+    "@pagopa/typescript-config-node": "npm:*"
     "@pagopa/winston-ts": "npm:^2.2.0"
     "@types/express": "npm:^4.17.12"
     "@types/jsonwebtoken": "npm:^9.0.1"
