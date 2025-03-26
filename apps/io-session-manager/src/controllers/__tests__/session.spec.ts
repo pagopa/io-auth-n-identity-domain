@@ -554,8 +554,6 @@ describe("getUserIdentity", () => {
   const res = mockRes() as unknown as Response;
   const req = mockReq() as unknown as Request;
 
-  const ttl = 1800;
-
   const mockedDependencies = {
     redisClientSelector: mockRedisClientSelector,
     user: mockedUser,
@@ -617,6 +615,7 @@ describe("getUserIdentity", () => {
 
   test("GIVEN a session token with zero or negative TTL THEN it should return error", async () => {
     // Arrange
+    // The session token is missing
     mockGetSessionTtl.mockReturnValueOnce(() => TE.right(-2));
     // Act
     const result = await getUserIdentity(mockedDependencies)();
