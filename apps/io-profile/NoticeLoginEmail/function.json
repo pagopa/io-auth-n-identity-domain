@@ -5,9 +5,7 @@
       "name": "req",
       "type": "httpTrigger",
       "direction": "in",
-      "methods": [
-        "post"
-      ],
+      "methods": ["post"],
       "route": "v1/notify-login"
     },
     {
@@ -21,5 +19,6 @@
       "direction": "in"
     }
   ],
-  "scriptFile": "../dist/NoticeLoginEmail/index.js"
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "httpTriggerEntrypoint"
 }

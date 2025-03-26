@@ -1,5 +1,17 @@
 # io-profile
 
+## 5.24.1
+
+### Patch Changes
+
+- 6fe208f: Fixed df imports
+
+## 5.24.0
+
+### Minor Changes
+
+- 1e1e13c: Refactoring project structure and updating dependencies
+
 ## 5.23.0
 
 ### Minor Changes

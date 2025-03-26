@@ -6,9 +6,7 @@
       "type": "httpTrigger",
       "direction": "in",
       "route": "v1/user-data-processing/{fiscalcode}/{choice}",
-      "methods": [
-        "delete"
-      ]
+      "methods": ["delete"]
     },
     {
       "name": "res",
@@ -16,5 +14,6 @@
       "direction": "out"
     }
   ],
-  "scriptFile": "../dist/AbortUserDataProcessing/index.js"
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "httpTriggerEntrypoint"
 }

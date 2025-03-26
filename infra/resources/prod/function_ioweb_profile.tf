@@ -97,7 +97,7 @@ locals {
       // Functions App config
       // -------------------------
       FUNCTIONS_APP_API_KEY         = data.azurerm_key_vault_secret.functions_app_api_key.value
-      FUNCTIONS_APP_CLIENT_BASE_URL = "https://io-p-itn-auth-profile-fn-01.azurewebsites.net"
+      FUNCTIONS_APP_CLIENT_BASE_URL = "https://io-p-itn-auth-profile-func-02.azurewebsites.net"
 
       // -------------------------
       // Hub Spid Login for ioweb config
@@ -124,8 +124,8 @@ resource "azurerm_resource_group" "function_web_profile_rg" {
 }
 
 module "function_web_profile" {
-  source  = "pagopa/dx-azure-function-app/azurerm"
-  version = "~> 0"
+  source  = "pagopa-dx/azure-function-app/azurerm"
+  version = "~> 0.0"
 
   environment = {
     prefix          = local.prefix
