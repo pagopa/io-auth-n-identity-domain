@@ -92,6 +92,24 @@ services:
       - storage
       - cosmosdb
 
+  io-profile:
+    image: io-profile
+    build: 
+      context: ./
+      dockerfile: ./docker/function/Dockerfile
+      args: 
+        FUNCTION_NAME: "io-profile"
+    env_file:
+      - ./docker/generated/.env.io-profile
+    ports:
+      - ${FUNCTION_PROFILE_PORT}:7071
+    networks:
+      - io-fn
+    depends_on:
+      - storage
+      - cosmosdb
+      - mailhog
+
   io-public:
     image: io-public
     build:
@@ -317,6 +335,14 @@ services:
       - "20003:20003"
       - "20004:20004"
       - "20005:20005"
+    networks:
+      - io-fn
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - 1025:1025 # smtp server
+      - 8025:8025 # web ui
     networks:
       - io-fn
 
