@@ -112,17 +112,13 @@ const getSessionExpirationDate: RTE.ReaderTaskEither<
       ...deps,
       fiscalCode: deps.user.fiscal_code,
     }),
-    TE.chainW((ttl) => TE.right(addSeconds(new Date(), ttl).toISOString())),
-    TE.orElseW((error) =>
-      error.message ===
-      "Error retrieving the session TTL: -2 (key does not exist)"
-        ? TE.right(undefined)
-        : TE.left(
-            ResponseErrorInternal(
-              `Error retrieving the session TTL: ${error.message}`,
-            ),
-          ),
+    TE.mapLeft((error) =>
+      ResponseErrorInternal(
+        `Error retrieving the session TTL: ${error.message}`,
+      ),
     ),
+    TE.map(O.map((ttl) => addSeconds(new Date(), ttl).toISOString())),
+    TE.map(O.toUndefined),
   );
 
 /**

@@ -923,7 +923,7 @@ const getSessionTtl: (
 export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
   RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
   Error,
-  number
+  O.Option<number>
 > = (deps) =>
   pipe(
     TE.tryCatch(
@@ -938,8 +938,13 @@ export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
     ),
     TE.chain((ttl) =>
       ttl === -2
-        ? TE.left(
-            Error("Error retrieving the session TTL: -2 (key does not exist)"),
+        ? pipe(
+            TE.fromIO(() =>
+              log.warn(
+                "Error retrieving the session TTL: -2 (key does not exist)",
+              ),
+            ),
+            TE.chain(() => TE.right<Error, O.Option<number>>(O.none)),
           )
         : ttl === -1
           ? TE.left(
@@ -947,7 +952,7 @@ export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
                 "Error retrieving the session TTL: -1 (key exists but has no associated expire)",
               ),
             )
-          : TE.right(ttl),
+          : TE.right(O.some(ttl)),
     ),
   );
 
