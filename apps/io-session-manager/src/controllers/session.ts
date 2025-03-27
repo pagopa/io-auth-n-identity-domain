@@ -37,7 +37,7 @@ import { SuccessResponse } from "../generated/backend/SuccessResponse";
 import { log } from "../utils/logger";
 import { Concat, Union2Tuple, parseFilter } from "../utils/fields-filter";
 import { AssertionRef } from "../generated/lollipop-api/AssertionRef";
-import { UserIdentityWithTokens } from "../generated/external/UserIdentityWithTokens";
+import { UserIdentityWithTtl } from "../generated/external/UserIdentityWithTtl";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
@@ -288,7 +288,7 @@ export const logout: RTE.ReaderTaskEither<
 export const getUserIdentity: RTE.ReaderTaskEither<
   WithUser & RedisRepo.RedisRepositoryDeps & WithExpressRequest,
   Error,
-  IResponseErrorInternal | IResponseSuccessJson<UserIdentityWithTokens>
+  IResponseErrorInternal | IResponseSuccessJson<UserIdentityWithTtl>
 > = (deps) =>
   pipe(
     deps,
@@ -301,7 +301,7 @@ export const getUserIdentity: RTE.ReaderTaskEither<
     ),
     TE.map((ttl) =>
       ResponseSuccessJson(
-        UserIdentityWithTokens.encode({
+        UserIdentityWithTtl.encode({
           ...deps.user,
           token_remaining_ttl: ttl,
         }),

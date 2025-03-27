@@ -19,7 +19,7 @@ import mockReq from "../../__mocks__/request.mocks";
 import * as profileService from "../../services/profile";
 import { FnAppAPIClient } from "../../repositories/fn-app-api";
 import { getSessionState, logout, getUserIdentity } from "../session";
-import { RedisClientMode, RedisClientSelectorType } from "../../types/redis";
+import { RedisClientSelectorType } from "../../types/redis";
 import { LollipopApiClient } from "../../repositories/lollipop-api";
 import {
   mockRevokeAssertionRefAssociation,
@@ -32,8 +32,7 @@ import {
 } from "../../__mocks__/services/redisSessionStorageService.mocks";
 import { toExpectedResponse } from "../../__tests__/utils";
 import { RedisSessionStorageService, TokenService } from "../../services";
-import { RedisRepo } from "../../repositories";
-import { UserIdentityWithTokens } from "../../generated/external/UserIdentityWithTokens";
+import { UserIdentityWithTtl } from "../../generated/external/UserIdentityWithTtl";
 
 vi.setSystemTime(new Date(2025, 0, 1));
 
@@ -584,8 +583,14 @@ describe("getUserIdentity", () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining(
-        UserIdentityWithTokens.encode({
-          ...mockedUser,
+        UserIdentityWithTtl.encode({
+          created_at: mockedUser.created_at,
+          name: mockedUser.name,
+          family_name: mockedUser.family_name,
+          spid_email: mockedUser.spid_email,
+          date_of_birth: mockedUser.date_of_birth,
+          fiscal_code: mockedUser.fiscal_code,
+          spid_level: mockedUser.spid_level,
           token_remaining_ttl: expectedTtl,
         }),
       ),
