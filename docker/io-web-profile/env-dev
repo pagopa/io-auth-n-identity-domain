@@ -57,8 +57,7 @@ FAST_LOGIN_API_KEY=qwertyuiopasdfghjklzxcvbnm123456
 FAST_LOGIN_CLIENT_BASE_URL=http://localhost:3001
 
 FUNCTIONS_APP_API_KEY=qwertyuiopasdfghjklzxcvbnm123456
-# io-mock functions-app container hostname
-FUNCTIONS_APP_CLIENT_BASE_URL=http://functions-app:7071
+FUNCTIONS_APP_CLIENT_BASE_URL=http://io-profile:7071
 
 HUB_SPID_LOGIN_API_KEY=qwertyuiopasdfghjklzxcvbnm123456
 HUB_SPID_LOGIN_CLIENT_BASE_URL=http://localhost:3003
