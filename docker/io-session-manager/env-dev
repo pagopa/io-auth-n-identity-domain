@@ -9,7 +9,7 @@ APPINSIGHTS_CLOUD_ROLE_NAME="session-manager-dev"
 
 APPINSIGHTS_REDIS_TRACE_ENABLED="true"
 
-API_URL=http://functions-app:7071
+API_URL=http://io-profile:7071
 API_KEY=key
 
 API_BASE_PATH=/api/v1

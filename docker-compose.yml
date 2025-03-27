@@ -1,5 +1,5 @@
 # this will ensure compatibility with io-mock docker-compose
-# you can, for example, run io-backend and functions-app on io-mock and
+# you can, for example, run io-backend on io-mock and
 # redis-cluster and session-manager here
 #
 # NOTE: make sure to disable redis-cluster dependency for io-backend service in
@@ -31,13 +31,12 @@ services:
     networks:
       - io-fn
 
-
   io-lollipop:
     image: io-lollipop
     build:
       context: ./
       dockerfile: ./docker/function/Dockerfile
-      args: 
+      args:
         FUNCTION_NAME: "io-lollipop"
     env_file:
       - ./docker/generated/.env.io-lollipop
@@ -77,10 +76,10 @@ services:
 
   io-profile-async:
     image: io-profile-async
-    build: 
+    build:
       context: ./
       dockerfile: ./docker/function/Dockerfile
-      args: 
+      args:
         FUNCTION_NAME: "io-profile-async"
     env_file:
       - ./docker/generated/.env.io-profile-async
@@ -94,10 +93,10 @@ services:
 
   io-profile:
     image: io-profile
-    build: 
+    build:
       context: ./
       dockerfile: ./docker/function/Dockerfile
-      args: 
+      args:
         FUNCTION_NAME: "io-profile"
     env_file:
       - ./docker/generated/.env.io-profile
