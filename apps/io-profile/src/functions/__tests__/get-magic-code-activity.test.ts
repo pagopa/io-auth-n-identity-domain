@@ -1,8 +1,8 @@
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { context } from "../__mocks__/durable-functions";
-import { aFiscalCode } from "../__mocks__/mocks";
+import { aFiscalCode, anIPAddress } from "../__mocks__/mocks";
 import {
   ActivityResultSuccess,
   getMagicCodeActivityHandler,
@@ -13,6 +13,13 @@ const aValidPayload = {
   family_name: "foo" as NonEmptyString,
   name: "foo" as NonEmptyString,
   fiscal_code: aFiscalCode,
+};
+
+const unknownIP = "UNKNOWN";
+
+const aValidPayloadWithIPAddress = {
+  ...aValidPayload,
+  ip: anIPAddress as IPString,
 };
 
 const aValidMagicLink = "https://example.com/#token=abcde" as NonEmptyString;
@@ -27,8 +34,29 @@ const mockMagicLinkServiceClient = {
   getMagicLinkToken: getMagicLinkTokenMock,
 } as unknown as MagicLinkServiceClient;
 
+afterEach(() => {
+  getMagicLinkTokenMock.mockClear();
+});
+
 describe("GetMagicCodeActivity", () => {
   it("should return a success with a valid input", async () => {
+    const result = await getMagicCodeActivityHandler(
+      mockMagicLinkServiceClient,
+    )(context as any, aValidPayloadWithIPAddress);
+
+    expect(getMagicLinkTokenMock).toHaveBeenCalledTimes(1);
+    expect(getMagicLinkTokenMock).toHaveBeenCalledWith({
+      body: {
+        family_name: aValidPayload.family_name,
+        fiscal_number: aValidPayload.fiscal_code,
+        name: aValidPayload.name,
+        ip: aValidPayloadWithIPAddress.ip,
+      },
+    });
+    expect(ActivityResultSuccess.is(result)).toEqual(true);
+  });
+
+  it("should return a success with a valid input even without IP", async () => {
     const result = await getMagicCodeActivityHandler(
       mockMagicLinkServiceClient,
     )(context as any, aValidPayload);
@@ -39,6 +67,7 @@ describe("GetMagicCodeActivity", () => {
         family_name: aValidPayload.family_name,
         fiscal_number: aValidPayload.fiscal_code,
         name: aValidPayload.name,
+        ip: unknownIP,
       },
     });
     expect(ActivityResultSuccess.is(result)).toEqual(true);

@@ -88,6 +88,7 @@ describe("NoticeLoginEmailOrchestratorHandler", () => {
         family_name: "foo",
         name: "foo",
         fiscal_code: aFiscalCode,
+        ip: anIPAddress,
       },
     );
     expect(mockCallActivityFunction).toHaveBeenNthCalledWith(
