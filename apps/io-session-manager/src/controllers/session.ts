@@ -105,7 +105,7 @@ const getLollipopAssertionRefForUser: RTE.ReaderTaskEither<
 const getSessionExpirationDate: RTE.ReaderTaskEither<
   RedisRepo.RedisRepositoryDeps & WithUser,
   IResponseErrorInternal,
-  string
+  string | undefined
 > = (deps) =>
   pipe(
     RedisSessionStorageService.getSessionRemainingTtlFast({
@@ -117,7 +117,8 @@ const getSessionExpirationDate: RTE.ReaderTaskEither<
         `Error retrieving the session TTL: ${error.message}`,
       ),
     ),
-    TE.map((ttl) => addSeconds(new Date(), ttl).toISOString()),
+    TE.map(O.map((ttl) => addSeconds(new Date(), ttl).toISOString())),
+    TE.map(O.toUndefined),
   );
 
 /**
