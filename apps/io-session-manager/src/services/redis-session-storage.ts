@@ -947,10 +947,13 @@ export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
             TE.chain(() => TE.right<Error, O.Option<number>>(O.none)),
           )
         : ttl === -1
-          ? TE.left(
-              Error(
-                "Error retrieving the session TTL: -1 (key exists but has no associated expire)",
+          ? pipe(
+              TE.fromIO(() =>
+                log.warn(
+                  "Error retrieving the session TTL: -1 (key exists but has no associated expire)",
+                ),
               ),
+              TE.chain(() => TE.right<Error, O.Option<number>>(O.none)),
             )
           : TE.right(O.some(ttl)),
     ),
