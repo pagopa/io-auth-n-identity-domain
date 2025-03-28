@@ -519,7 +519,7 @@ describe("logout", () => {
   WHEN the session can not be destroyed
   THEN it should fail after sending the pub key revokal message and deleting the assertionRef`, async () => {
     mockDeleteUser.mockImplementationOnce(
-      () => (_deps) => TE.right(false as any),
+      () => (_deps) => TE.right(false as true), // force casting true
     );
 
     const result = await logout(mockedDependencies)();
