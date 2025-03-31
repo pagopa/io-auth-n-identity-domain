@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.5.0
+
+### Minor Changes
+
+- 45134bc: Add new API for sessionToken introspection
+
 ## 1.4.1
 
 ### Patch Changes
