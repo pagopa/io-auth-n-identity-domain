@@ -899,7 +899,7 @@ export const isBlockedUser: RTE.ReaderTaskEither<
  *
  * @param token
  */
-const getSessionTtl: (
+export const getSessionTtl: (
   token: SessionToken,
 ) => RTE.ReaderTaskEither<RedisRepo.RedisRepositoryDeps, Error, number> =
   (token) => (deps) =>
