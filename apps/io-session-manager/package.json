@@ -21,7 +21,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "generate": "yarn generate:proxy:api-models && yarn generate:proxy:fast-login && yarn generate:proxy:lollipop && yarn generate:test-certs && yarn generate:lollipop-definitions && yarn generate:proxy:fims-models && yarn generate:proxy:zendesk-models && yarn generate:proxy:bpd-models && yarn generate:proxy:pagopa-models && yarn generate:proxy:public-models && yarn generate:proxy:external",
+    "generate": "yarn generate:proxy:api-models && yarn generate:proxy:fast-login && yarn generate:proxy:lollipop && yarn generate:test-certs && yarn generate:lollipop-definitions && yarn generate:proxy:fims-models && yarn generate:proxy:zendesk-models && yarn generate:proxy:bpd-models && yarn generate:proxy:pagopa-models && yarn generate:proxy:public-models && yarn generate:proxy:introspection",
     "generate:test-certs": "./scripts/generate-test-certs.sh certs",
     "generate:proxy:api-models": "shx rm -rf src/generated/backend && gen-api-models --api-spec api/internal.yaml --out-dir src/generated/backend",
     "generate:proxy:fast-login": "shx rm -rf src/generated/fast-login-api && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-functions-fast-login/2ee351b69fdea2ffab3c3f3ed4dc55c94a024dc7/api/internal.yaml --out-dir src/generated/fast-login-api --no-strict --request-types --response-decoders --client",
@@ -32,7 +32,7 @@
     "generate:proxy:bpd-models": "shx rm -rf src/generated/bpd && gen-api-models --api-spec api/bpd.yaml --out-dir src/generated/bpd",
     "generate:proxy:pagopa-models": "shx rm -rf src/generated/pagopa && gen-api-models --api-spec api/pagopa.yaml --out-dir src/generated/pagopa",
     "generate:proxy:public-models": "shx rm -rf src/generated/public  && gen-api-models --api-spec api/public.yaml --out-dir src/generated/public",
-    "generate:proxy:external": "shx rm -rf src/generated/external  && gen-api-models --api-spec api/external.yaml --out-dir src/generated/external"
+    "generate:proxy:introspection": "shx rm -rf src/generated/introspection  && gen-api-models --api-spec api/token_introspection.yaml --out-dir src/generated/introspection"
   },
   "dependencies": {
     "@azure/data-tables": "^13.2.2",

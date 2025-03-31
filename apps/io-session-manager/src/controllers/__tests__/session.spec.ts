@@ -32,7 +32,7 @@ import {
 } from "../../__mocks__/services/redisSessionStorageService.mocks";
 import { toExpectedResponse } from "../../__tests__/utils";
 import { RedisSessionStorageService, TokenService } from "../../services";
-import { UserIdentityWithTtl } from "../../generated/external/UserIdentityWithTtl";
+import { UserIdentityWithTtl } from "../../generated/introspection/UserIdentityWithTtl";
 
 vi.setSystemTime(new Date(2025, 0, 1));
 
