@@ -37,6 +37,7 @@ import { SuccessResponse } from "../generated/backend/SuccessResponse";
 import { log } from "../utils/logger";
 import { Concat, Union2Tuple, parseFilter } from "../utils/fields-filter";
 import { AssertionRef } from "../generated/lollipop-api/AssertionRef";
+import { UserIdentityWithTtl } from "../generated/introspection/UserIdentityWithTtl";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
@@ -271,4 +272,39 @@ export const logout: RTE.ReaderTaskEither<
       return err;
     }),
     TE.map((_) => ResponseSuccessJson({ message: "ok" })),
+  );
+
+/**
+ * Introspects the user's session token and returns the related user identity along with token TTL.
+ *
+ * This function retrieves the Time To Live (TTL) of the user's session token from Redis
+ * and returns a success response containing the user's identity information merged
+ * with the remaining TTL value.
+ *
+ * @param deps - Dependencies containing user information and Redis session storage service
+ * @returns A TaskEither with an error or a success response containing the
+ * user's identity and token TTL
+ */
+export const getUserIdentity: RTE.ReaderTaskEither<
+  WithUser & RedisRepo.RedisRepositoryDeps & WithExpressRequest,
+  Error,
+  IResponseErrorInternal | IResponseSuccessJson<UserIdentityWithTtl>
+> = (deps) =>
+  pipe(
+    deps,
+    RedisSessionStorageService.getSessionTtl(deps.user.session_token),
+    TE.chain(
+      TE.fromPredicate(
+        (ttlResponse) => ttlResponse > 0,
+        () => new Error("Unexpected session token TTL value"),
+      ),
+    ),
+    TE.map((ttl) =>
+      ResponseSuccessJson(
+        UserIdentityWithTtl.encode({
+          ...deps.user,
+          token_remaining_ttl: ttl,
+        }),
+      ),
+    ),
   );

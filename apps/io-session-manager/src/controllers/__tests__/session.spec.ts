@@ -18,7 +18,7 @@ import { anAssertionRef } from "../../__mocks__/lollipop.mocks";
 import mockReq from "../../__mocks__/request.mocks";
 import * as profileService from "../../services/profile";
 import { FnAppAPIClient } from "../../repositories/fn-app-api";
-import { getSessionState, logout } from "../session";
+import { getSessionState, logout, getUserIdentity } from "../session";
 import { RedisClientSelectorType } from "../../types/redis";
 import { LollipopApiClient } from "../../repositories/lollipop-api";
 import {
@@ -32,6 +32,7 @@ import {
 } from "../../__mocks__/services/redisSessionStorageService.mocks";
 import { toExpectedResponse } from "../../__tests__/utils";
 import { RedisSessionStorageService, TokenService } from "../../services";
+import { UserIdentityWithTtl } from "../../generated/introspection/UserIdentityWithTtl";
 
 vi.setSystemTime(new Date(2025, 0, 1));
 
@@ -66,10 +67,11 @@ describe("getSessionState", () => {
     .mockResolvedValue(aZendeskSuffix);
 
   const ttl = 1800;
-  vi.spyOn(
+  const mockGetSessionRemainingTtlFast = vi.spyOn(
     RedisSessionStorageService,
     "getSessionRemainingTtlFast",
-  ).mockReturnValue(TE.right(ttl));
+  );
+  mockGetSessionRemainingTtlFast.mockReturnValue(TE.right(ttl));
 
   const expectedExpirationDate = addSeconds(new Date(), ttl).toISOString();
 
@@ -516,7 +518,9 @@ describe("logout", () => {
   GIVEN an enabled lollipop flow
   WHEN the session can not be destroyed
   THEN it should fail after sending the pub key revokal message and deleting the assertionRef`, async () => {
-    mockDeleteUser.mockImplementationOnce(() => (_deps) => TE.right(false));
+    mockDeleteUser.mockImplementationOnce(
+      () => (_deps) => TE.right(false as true), // force casting true
+    );
 
     const result = await logout(mockedDependencies)();
 
@@ -538,5 +542,104 @@ describe("logout", () => {
     expect(result).toEqual(E.left(Error("deleteUser error")));
 
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
+  });
+});
+
+describe("getUserIdentity", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const res = mockRes() as unknown as Response;
+  const req = mockReq() as unknown as Request;
+
+  const mockedDependencies = {
+    redisClientSelector: mockRedisClientSelector,
+    user: mockedUser,
+    req,
+  };
+  const mockGetSessionTtl = vi.spyOn(
+    RedisSessionStorageService,
+    "getSessionTtl",
+  );
+
+  test("GIVEN a valid session token with positive TTL THEN it should return user identity with remaining TTL", async () => {
+    // Arrange
+    const expectedTtl = 3600; // 1 hour
+    mockGetSessionTtl.mockReturnValueOnce(() => TE.right(expectedTtl));
+
+    // Act
+    await pipe(
+      mockedDependencies,
+      getUserIdentity,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    // Assert
+    expect(mockGetSessionTtl).toHaveBeenCalledWith(
+      mockedDependencies.user.session_token,
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining(
+        UserIdentityWithTtl.encode({
+          created_at: mockedUser.created_at,
+          name: mockedUser.name,
+          family_name: mockedUser.family_name,
+          spid_email: mockedUser.spid_email,
+          date_of_birth: mockedUser.date_of_birth,
+          fiscal_code: mockedUser.fiscal_code,
+          spid_level: mockedUser.spid_level,
+          token_remaining_ttl: expectedTtl,
+        }),
+      ),
+    );
+  });
+
+  test("GIVEN Redis throws an error THEN it should return error", async () => {
+    // Arrange
+    const expectedError = new Error("Redis connection error");
+    mockGetSessionTtl.mockReturnValueOnce(() => TE.left(expectedError));
+
+    // Act
+    const result = await getUserIdentity(mockedDependencies)();
+
+    // Assert
+    expect(result).toEqual(
+      E.left(
+        expect.objectContaining({
+          message: expect.stringContaining(expectedError.message),
+        }),
+      ),
+    );
+    expect(mockGetSessionTtl).toHaveBeenCalledWith(
+      mockedDependencies.user.session_token,
+    );
+  });
+
+  test("GIVEN a session token with zero or negative TTL THEN it should return error", async () => {
+    // Arrange
+    // The session token is missing
+    mockGetSessionTtl.mockReturnValueOnce(() => TE.right(-2));
+    // Act
+    const result = await getUserIdentity(mockedDependencies)();
+
+    // Assert
+    expect(result).toEqual(
+      E.left(new Error("Unexpected session token TTL value")),
+    );
+    expect(mockGetSessionTtl).toHaveBeenCalledWith(
+      mockedDependencies.user.session_token,
+    );
+
+    // The session token has not expiration
+    mockGetSessionTtl.mockReturnValueOnce(() => TE.right(-1));
+
+    const resultNegative = await getUserIdentity(mockedDependencies)();
+
+    expect(resultNegative).toEqual(
+      E.left(new Error("Unexpected session token TTL value")),
+    );
   });
 });
