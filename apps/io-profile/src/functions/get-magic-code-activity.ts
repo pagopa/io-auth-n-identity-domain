@@ -1,5 +1,9 @@
 import { Context } from "@azure/functions";
-import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import {
+  FiscalCode,
+  IPString,
+  NonEmptyString,
+} from "@pagopa/ts-commons/lib/strings";
 import * as t from "io-ts";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -16,11 +20,20 @@ const MagicLinkServiceResponse = t.type({
 type MagicLinkServiceResponse = t.TypeOf<typeof MagicLinkServiceResponse>;
 
 // Activity input
-export const ActivityInput = t.type({
-  family_name: NonEmptyString,
-  fiscal_code: FiscalCode,
-  name: NonEmptyString,
-});
+export const ActivityInput = t.intersection([
+  t.type({
+    family_name: NonEmptyString,
+    fiscal_code: FiscalCode,
+    name: NonEmptyString,
+  }),
+  // TODO: remove the following partial type.
+  // The partial type here is used to allow the IP field to be missing
+  // during the rollout of the new feature.
+  // Task: https://pagopa.atlassian.net/browse/IOPID-2883
+  t.partial({
+    ip: IPString,
+  }),
+]);
 
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
 
@@ -70,12 +83,20 @@ export const getMagicCodeActivityHandler =
         });
       }),
       TE.fromEither,
-      TE.chain(({ name, family_name, fiscal_code }) =>
+      TE.chain(({ name, family_name, fiscal_code, ip }) =>
         pipe(
           TE.tryCatch(
             () =>
               magicLinkService.getMagicLinkToken({
-                body: { family_name, fiscal_number: fiscal_code, name },
+                body: {
+                  family_name,
+                  fiscal_number: fiscal_code,
+                  name,
+                  ip: pipe(
+                    NonEmptyString.decode(ip),
+                    E.getOrElseW(() => "UNKNOWN" as NonEmptyString),
+                  ),
+                },
               }),
             (error) => {
               context.log.error(

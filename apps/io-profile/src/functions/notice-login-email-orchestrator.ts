@@ -162,6 +162,7 @@ export const getNoticeLoginEmailOrchestratorHandler = function* (
         family_name,
         fiscal_code,
         name,
+        ip: ip_address,
       });
 
       try {

@@ -213,6 +213,17 @@ export const newApp: (
     ),
   );
 
+  app.get(
+    `${API_BASE_PATH}/user-identity`,
+    authMiddlewares.bearerSession,
+    pipe(
+      toExpressHandler({
+        redisClientSelector: REDIS_CLIENT_SELECTOR,
+      }),
+      ap(withUserFromRequest(SessionController.getUserIdentity)),
+    ),
+  );
+
   app.post(
     `/logout`,
     authMiddlewares.bearerSession,
