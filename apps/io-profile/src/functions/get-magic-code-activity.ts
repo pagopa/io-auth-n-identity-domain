@@ -26,6 +26,10 @@ export const ActivityInput = t.intersection([
     fiscal_code: FiscalCode,
     name: NonEmptyString,
   }),
+  // TODO: remove the following partial type.
+  // The partial type here is used to allow the IP field to be missing
+  // during the rollout of the new feature.
+  // Task: https://pagopa.atlassian.net/browse/IOPID-2883
   t.partial({
     ip: IPString,
   }),
