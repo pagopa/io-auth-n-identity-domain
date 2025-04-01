@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.25.0
+
+### Minor Changes
+
+- 8424122: Add IP logging in MagicLink generation
+
 ## 5.24.1
 
 ### Patch Changes

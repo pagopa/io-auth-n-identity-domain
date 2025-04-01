@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.5.1
+
+### Patch Changes
+
+- 4d9ee9a: Add optional property to user introspection API
+
 ## 1.5.0
 
 ### Minor Changes

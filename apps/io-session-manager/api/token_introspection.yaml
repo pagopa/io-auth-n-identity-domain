@@ -134,6 +134,10 @@ components:
           $ref: "#/components/schemas/EmailAddress"
         spid_level:
           $ref: "#/components/schemas/SpidLevel"
+        spid_idp:
+          type: string
+        session_tracking_id:
+          type: string
       required:
         - date_of_birth
         - family_name
