@@ -33,6 +33,7 @@ import {
 import { toExpectedResponse } from "../../__tests__/utils";
 import { RedisSessionStorageService, TokenService } from "../../services";
 import { UserIdentityWithTtl } from "../../generated/introspection/UserIdentityWithTtl";
+import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 
 vi.setSystemTime(new Date(2025, 0, 1));
 
@@ -583,16 +584,20 @@ describe("getUserIdentity", () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining(
-        UserIdentityWithTtl.encode({
-          created_at: mockedUser.created_at,
-          name: mockedUser.name,
-          family_name: mockedUser.family_name,
-          spid_email: mockedUser.spid_email,
-          date_of_birth: mockedUser.date_of_birth,
-          fiscal_code: mockedUser.fiscal_code,
-          spid_level: mockedUser.spid_level,
-          token_remaining_ttl: expectedTtl,
-        }),
+        UserIdentityWithTtl.encode(
+          withoutUndefinedValues({
+            created_at: mockedUser.created_at,
+            name: mockedUser.name,
+            family_name: mockedUser.family_name,
+            spid_email: mockedUser.spid_email,
+            date_of_birth: mockedUser.date_of_birth,
+            fiscal_code: mockedUser.fiscal_code,
+            spid_level: mockedUser.spid_level,
+            spid_idp: mockedUser.spid_idp,
+            session_tracking_id: mockedUser.session_tracking_id,
+            token_remaining_ttl: expectedTtl,
+          }),
+        ),
       ),
     );
   });
