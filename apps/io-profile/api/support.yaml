@@ -7,7 +7,7 @@ info:
   description: |
     Documentation of the IO Profile Function API here.
 servers:
-  - url: https://${host}/${basePath}
+  - url: https://api.io.pagopa.it/operation/auth/profile/api/v1
 security:
   - ApiKeyAuth: []
 paths:
