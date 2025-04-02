@@ -8,6 +8,7 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { ResponseSuccessJson } from "@pagopa/ts-commons/lib/responses";
 import { addSeconds } from "date-fns";
+import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import mockRes from "../../__mocks__/response.mocks";
 import {
   mockedInitializedProfile,
@@ -33,7 +34,6 @@ import {
 import { toExpectedResponse } from "../../__tests__/utils";
 import { RedisSessionStorageService, TokenService } from "../../services";
 import { UserIdentityWithTtl } from "../../generated/introspection/UserIdentityWithTtl";
-import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 
 vi.setSystemTime(new Date(2025, 0, 1));
 
@@ -67,14 +67,27 @@ describe("getSessionState", () => {
     .spyOn(TokenService, "getNewTokenAsync")
     .mockResolvedValue(aZendeskSuffix);
 
-  const ttl = 1800;
+  const ttlStandard = 3600;
+  const mockGetSessionTtl = vi.spyOn(
+    RedisSessionStorageService,
+    "getSessionTtl",
+  );
+  mockGetSessionTtl.mockReturnValue(() => TE.right(ttlStandard));
+  const expectedExpirationDateStandard = addSeconds(
+    new Date(),
+    ttlStandard,
+  ).toISOString();
+
+  const ttlFast = 1800;
   const mockGetSessionRemainingTtlFast = vi.spyOn(
     RedisSessionStorageService,
     "getSessionRemainingTtlFast",
   );
-  mockGetSessionRemainingTtlFast.mockReturnValue(TE.right(O.some(ttl)));
-
-  const expectedExpirationDate = addSeconds(new Date(), ttl).toISOString();
+  mockGetSessionRemainingTtlFast.mockReturnValue(TE.right(O.some(ttlFast)));
+  const expectedExpirationDateFast = addSeconds(
+    new Date(),
+    ttlFast,
+  ).toISOString();
 
   test("GIVEN a valid request WHEN lollipop is initialized for the user THEN it should return a correct session state", async () => {
     mockGet.mockResolvedValueOnce(anAssertionRef);
@@ -92,6 +105,7 @@ describe("getSessionState", () => {
     )();
 
     expect(mockGet).toBeCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    expect(mockGetSessionTtl).not.toHaveBeenCalled();
     // mockedInitializedProfile has the email validated, a new zendesksuffix
     // would not be created
     expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
@@ -104,12 +118,13 @@ describe("getSessionState", () => {
       walletToken: mockedUser.wallet_token,
       zendeskToken: `${mockedUser.zendesk_token}${zendeskSuffixForCorrectlyRetrievedProfile}`,
       lollipopAssertionRef: anAssertionRef,
-      expirationDate: expectedExpirationDate,
+      expirationDate: expectedExpirationDateFast,
     });
   });
 
   test("GIVEN a valid request WHEN lollipop is NOT initialized for the user THEN it should return a correct session state", async () => {
     mockGet.mockResolvedValueOnce(null);
+    mockGetSessionRemainingTtlFast.mockReturnValueOnce(TE.right(O.none));
 
     await pipe(
       {
@@ -124,6 +139,7 @@ describe("getSessionState", () => {
     )();
 
     expect(mockGet).toBeCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    expect(mockGetSessionTtl).toHaveBeenCalledOnce();
     // mockedInitializedProfile has the email validated, a new zendesksuffix
     // would not be created
     expect(mockGetNewTokenAsync).not.toHaveBeenCalled();
@@ -135,7 +151,7 @@ describe("getSessionState", () => {
       spidLevel: mockedUser.spid_level,
       walletToken: mockedUser.wallet_token,
       zendeskToken: `${mockedUser.zendesk_token}${zendeskSuffixForCorrectlyRetrievedProfile}`,
-      expirationDate: expectedExpirationDate,
+      expirationDate: expectedExpirationDateStandard,
     });
   });
 
@@ -167,10 +183,41 @@ describe("getSessionState", () => {
     );
   });
 
+  test("GIVEN a valid request WHEN the user logged without lollipop key THEN it should return a correct session state with the standard login TTL", async () => {
+    mockGet.mockResolvedValueOnce(null);
+    mockGetSessionRemainingTtlFast.mockReturnValueOnce(TE.right(O.none));
+
+    await pipe(
+      {
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+        redisClientSelector: mockRedisClientSelector,
+        req,
+        user: mockedUser,
+      },
+      getSessionState,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    expect(mockGet).toBeCalledWith(`KEYS-${mockedUser.fiscal_code}`);
+    expect(mockGetSessionTtl).toHaveBeenCalledOnce();
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      bpdToken: mockedUser.bpd_token,
+      fimsToken: mockedUser.fims_token,
+      myPortalToken: mockedUser.myportal_token,
+      spidLevel: mockedUser.spid_level,
+      walletToken: mockedUser.wallet_token,
+      zendeskToken: `${mockedUser.zendesk_token}${zendeskSuffixForCorrectlyRetrievedProfile}`,
+      expirationDate: expectedExpirationDateStandard,
+    });
+  });
+
   test("GIVEN a valid request WHEN an error occurs retrieving the user profile THEN it should return a correct session state", async () => {
     const expectedError = new Error("Network Error");
     mockGetProfile.mockReturnValueOnce(TE.left(expectedError));
-    mockGet.mockResolvedValueOnce(null);
+    mockGet.mockResolvedValueOnce(anAssertionRef);
 
     await pipe(
       {
@@ -195,7 +242,8 @@ describe("getSessionState", () => {
       spidLevel: mockedUser.spid_level,
       walletToken: mockedUser.wallet_token,
       zendeskToken: `${mockedUser.zendesk_token}${aZendeskSuffix}`,
-      expirationDate: expectedExpirationDate,
+      lollipopAssertionRef: anAssertionRef,
+      expirationDate: expectedExpirationDateFast,
     });
   });
 
