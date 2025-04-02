@@ -107,7 +107,7 @@ const getLollipopAssertionRefForUser: RTE.ReaderTaskEither<
 const getSessionExpirationDate: RTE.ReaderTaskEither<
   RedisRepo.RedisRepositoryDeps & WithUser,
   IResponseErrorInternal,
-  string | undefined
+  string
 > = (deps) =>
   pipe(
     RedisSessionStorageService.getSessionRemainingTtlFast({
