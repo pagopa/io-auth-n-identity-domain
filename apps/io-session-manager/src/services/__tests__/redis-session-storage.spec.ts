@@ -601,7 +601,7 @@ describe("RedisSessionStorage#getSessionRemainingTtlFast", () => {
     mockTtl.mockResolvedValueOnce(expectedTTL);
 
     const result = await getSessionRemainingTtlFast(mockedDependencies)();
-    expect(result).toEqual(E.right(expectedTTL));
+    expect(result).toEqual(E.right(O.some(expectedTTL)));
 
     expect(mockTtl).toHaveBeenCalledTimes(1);
     expect(mockTtl).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
@@ -632,13 +632,11 @@ describe("RedisSessionStorage#getSessionRemainingTtlFast", () => {
     expect(mockTtl).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
   });
 
-  test("should fail on Redis special value '-2'", async () => {
+  test("should received Option none on Redis special value '-2'", async () => {
     mockTtl.mockResolvedValueOnce(-2);
 
     const result = await getSessionRemainingTtlFast(mockedDependencies)();
-    expect(result).toEqual(
-      E.left(Error(`${errorPrefix} -2 (key does not exist)`)),
-    );
+    expect(result).toEqual(E.right(O.none));
 
     expect(mockTtl).toHaveBeenCalledTimes(1);
     expect(mockTtl).toBeCalledWith(`KEYS-${aValidUser.fiscal_code}`);
