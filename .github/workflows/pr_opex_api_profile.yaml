@@ -1,0 +1,49 @@
+name: PR - Opex Dashboard Profile
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+    branches:
+      - main
+    paths:
+      - ".github/workflows/pr_opex_api_profile.yaml"
+      - ".github/workflows/call_pr_opex_api.yml"
+      - "apps/io-profile/api/*.yaml"
+      - "apps/io-profile/.opex/**"
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  filter:
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: read
+    outputs:
+      plan-action: ${{ steps.filter.outputs.plan-action }}
+      profile-support: ${{ steps.filter.outputs.profile-support }}
+    # Checks to see if openapi specs in the PR match one of the ones listed.
+    # We can use the result to decide which job to run
+    # With this type of filter we can avoid creating a lot of workflow files
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3.0.2
+        id: filter
+        with:
+          filters: ./.github/opex_filters.yaml
+  plan-profile-support:
+    needs: filter
+    if: ${{ needs.filter.outputs.profile-support == 'true' || needs.filter.outputs.plan-action == 'true' }}
+    uses: ./.github/workflows/call_pr_opex_api.yml
+    name: (Profile - Support) Plan changes against Production
+    secrets: inherit
+    with:
+      api_name: support
+      app_name: io-profile
