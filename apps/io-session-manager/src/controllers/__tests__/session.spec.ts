@@ -72,7 +72,7 @@ describe("getSessionState", () => {
     RedisSessionStorageService,
     "getSessionRemainingTtlFast",
   );
-  mockGetSessionRemainingTtlFast.mockReturnValue(TE.right(ttl));
+  mockGetSessionRemainingTtlFast.mockReturnValue(TE.right(O.some(ttl)));
 
   const expectedExpirationDate = addSeconds(new Date(), ttl).toISOString();
 
