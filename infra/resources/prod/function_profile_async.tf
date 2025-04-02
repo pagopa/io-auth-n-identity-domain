@@ -74,6 +74,9 @@ locals {
       //StoreSpidLogs Config
       IOPSTLOGS_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.storage_logs.primary_connection_string
       SPID_LOGS_PUBLIC_KEY                = trimspace(data.azurerm_key_vault_secret.fn_app_SPID_LOGS_PUBLIC_KEY.value)
+
+      // IOPID-2714: engage test-plan
+      FF_DRY_RUN = "true"
     }
   }
 }
