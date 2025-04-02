@@ -914,16 +914,20 @@ export const getSessionTtl: (
       E.toError,
     );
 
+const REDIS_KEY_NOT_FOUND = -2;
+const REDIS_KEY_NO_EXPIRE = -1;
 /**
- * Return the session remaining time to live in seconds
+ * Return the session remaining time to live in seconds if the Lollipop data exists,
+ * otherwise return an O.none
  *
  * @param fiscalCode
- * @returns The key ttl in seconds or an error if the key doesn't exist or has no expire
+ * @returns The key ttl in seconds or an O.none if the key doesn't exist
+ * or an error if the key has no expire
  */
 export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
   RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
   Error,
-  number
+  O.Option<number>
 > = (deps) =>
   pipe(
     TE.tryCatch(
@@ -937,17 +941,22 @@ export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
       Error(`Error retrieving the session TTL: ${error.message}`),
     ),
     TE.chain((ttl) =>
-      ttl === -2
-        ? TE.left(
-            Error("Error retrieving the session TTL: -2 (key does not exist)"),
+      ttl === REDIS_KEY_NOT_FOUND
+        ? pipe(
+            TE.fromIO(() =>
+              log.warn(
+                "Error retrieving the session TTL: -2 (key does not exist)",
+              ),
+            ),
+            TE.chain(() => TE.right<Error, O.Option<number>>(O.none)),
           )
-        : ttl === -1
+        : ttl === REDIS_KEY_NO_EXPIRE
           ? TE.left(
-              Error(
+              new Error(
                 "Error retrieving the session TTL: -1 (key exists but has no associated expire)",
               ),
             )
-          : TE.right(ttl),
+          : TE.right(O.some(ttl)),
     ),
   );
 
