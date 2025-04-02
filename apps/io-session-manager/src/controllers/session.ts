@@ -38,6 +38,7 @@ import { log } from "../utils/logger";
 import { Concat, Union2Tuple, parseFilter } from "../utils/fields-filter";
 import { AssertionRef } from "../generated/lollipop-api/AssertionRef";
 import { UserIdentityWithTtl } from "../generated/introspection/UserIdentityWithTtl";
+import { getSessionTtl } from "../services/redis-session-storage";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
@@ -113,13 +114,20 @@ const getSessionExpirationDate: RTE.ReaderTaskEither<
       ...deps,
       fiscalCode: deps.user.fiscal_code,
     }),
+    TE.chainW(
+      O.fold(
+        // If getSessionRemainingTtlFast returns None, we fallback to getSessionTtl
+        // i.e. when the Lollipop assertionRef is not found
+        () => getSessionTtl(deps.user.session_token)(deps),
+        (ttl) => TE.right(ttl),
+      ),
+    ),
     TE.mapLeft((error) =>
       ResponseErrorInternal(
         `Error retrieving the session TTL: ${error.message}`,
       ),
     ),
-    TE.map(O.map((ttl) => addSeconds(new Date(), ttl).toISOString())),
-    TE.map(O.toUndefined),
+    TE.map((ttl) => addSeconds(new Date(), ttl).toISOString()),
   );
 
 /**
