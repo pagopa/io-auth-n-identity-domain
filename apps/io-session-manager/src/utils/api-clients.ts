@@ -5,7 +5,7 @@ import { httpOrHttpsApiFetch } from "./fetch";
 export const initAPIClientsDependencies: () => FnAppRepo.FnAppAPIRepositoryDeps &
   FnFastLoginRepo.FnFastLoginRepositoryDeps &
   FnLollipopRepo.LollipopApiDeps = () => {
-  // Create the API client for `io-functions-app`
+  // Create the API client for `io-profile`
   const fnAppAPIClient = FnAppRepo.FnAppAPIClient(
     FnAppConfig.FN_APP_API_URL,
     FnAppConfig.FN_APP_API_KEY,
