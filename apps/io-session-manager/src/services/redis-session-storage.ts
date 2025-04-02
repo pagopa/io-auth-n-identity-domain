@@ -914,6 +914,8 @@ export const getSessionTtl: (
       E.toError,
     );
 
+const REDIS_KEY_NOT_FOUND = -2;
+const REDIS_KEY_NO_EXPIRE = -1;
 /**
  * Return the session remaining time to live in seconds
  *
@@ -937,7 +939,7 @@ export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
       Error(`Error retrieving the session TTL: ${error.message}`),
     ),
     TE.chain((ttl) =>
-      ttl === -2
+      ttl === REDIS_KEY_NOT_FOUND
         ? pipe(
             TE.fromIO(() =>
               log.warn(
@@ -946,7 +948,7 @@ export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
             ),
             TE.chain(() => TE.right<Error, O.Option<number>>(O.none)),
           )
-        : ttl === -1
+        : ttl === REDIS_KEY_NO_EXPIRE
           ? pipe(
               TE.fromIO(() =>
                 log.warn(
