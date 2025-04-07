@@ -450,39 +450,45 @@ describe("getSessionState", () => {
     );
   });
 
-  test("should give error when requesting an expirationDate for a key that doesn't have TTL", async () => {
-    const aValidFilterReq = mockReq({
-      query: { fields: "(expirationDate)" },
-    }) as unknown as Request;
+  test.each`
+    scenario             | invalidStandardSessionTtl
+    ${"does not exists"} | ${-2}
+    ${"has no TTL"}      | ${-1}
+  `(
+    "GIVEN a valid request WHEN a Redis key $scenario THEN it should return an error",
+    async ({ invalidStandardSessionTtl }) => {
+      const aValidFilterReq = mockReq({
+        query: { fields: "(expirationDate)" },
+      }) as unknown as Request;
 
-    const invalidStandardSessionTtl = -1;
+      mockGetSessionRemainingTtlFast.mockReturnValueOnce(TE.right(O.none));
+      mockGetSessionTtl.mockReturnValueOnce(() =>
+        TE.right(invalidStandardSessionTtl),
+      );
 
-    // returning -2 on fallback
-    mockGetSessionRemainingTtlFast.mockReturnValueOnce(TE.right(O.none));
-    mockGetSessionTtl.mockReturnValueOnce(() => TE.right(invalidStandardSessionTtl));
+      await pipe(
+        {
+          fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+          redisClientSelector: mockRedisClientSelector,
+          req: aValidFilterReq,
+          user: mockedUser,
+        },
+        getSessionState,
+        TE.map((response) => response.apply(res)),
+        TE.mapLeft((err) => expect(err).toBeFalsy()),
+      )();
 
-    await pipe(
-      {
-        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
-        redisClientSelector: mockRedisClientSelector,
-        req: aValidFilterReq,
-        user: mockedUser,
-      },
-      getSessionState,
-      TE.map((response) => response.apply(res)),
-      TE.mapLeft((err) => expect(err).toBeFalsy()),
-    )();
-
-    expect(mockGetSessionRemainingTtlFast).toHaveBeenCalledTimes(1);
-    expect(mockGetSessionTtl).toHaveBeenCalledTimes(1);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        detail: `Error retrieving the session TTL: Standard session TTL is negative: ${invalidStandardSessionTtl}`,
-        status: 500,
-        title: "Internal server error",
-      }),
-    );
-  });
+      expect(mockGetSessionRemainingTtlFast).toHaveBeenCalledTimes(1);
+      expect(mockGetSessionTtl).toHaveBeenCalledTimes(1);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: `Error retrieving the session TTL: Standard session TTL is negative: ${invalidStandardSessionTtl}`,
+          status: 500,
+          title: "Internal server error",
+        }),
+      );
+    },
+  );
 });
 
 describe("logout", () => {
