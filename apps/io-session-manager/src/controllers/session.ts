@@ -113,6 +113,30 @@ const getSessionExpirationDate: RTE.ReaderTaskEither<
       ...deps,
       fiscalCode: deps.user.fiscal_code,
     }),
+    TE.chainW(
+      O.fold(
+        // If getSessionRemainingTtlFast returns None, we fallback to getSessionTtl
+        // i.e. when the Lollipop assertionRef is not found
+        () =>
+          pipe(
+            RedisSessionStorageService.getSessionTtl(deps.user.session_token)(
+              deps,
+            ),
+            // The following is unnecessary since the user session should be valid
+            // and the TTL should be positive; however, we keep it for safety since
+            // the underlying `RedisSessionStorageService.getSessionTtl` does not
+            // handle such case.
+            TE.chain(
+              TE.fromPredicate(
+                (response) => response >= 0,
+                (response) =>
+                  Error(`Standard session TTL is negative: ${response}`),
+              ),
+            ),
+          ),
+        (ttl) => TE.right(ttl),
+      ),
+    ),
     TE.mapLeft((error) =>
       ResponseErrorInternal(
         `Error retrieving the session TTL: ${error.message}`,

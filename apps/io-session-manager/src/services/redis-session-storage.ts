@@ -43,6 +43,9 @@ export const DEFAULT_LOLLIPOP_ASSERTION_REF_DURATION = (3600 *
   365 *
   2) as Second; // 2y default assertionRef duration on redis cache
 
+const REDIS_KEY_NOT_FOUND = -2;
+const REDIS_KEY_NO_EXPIRE = -1;
+
 const parseUser = (value: string): E.Either<Error, User> =>
   pipe(
     E.parseJSON(value, E.toError),
@@ -915,15 +918,17 @@ export const getSessionTtl: (
     );
 
 /**
- * Return the session remaining time to live in seconds
+ * Return the session remaining time to live in seconds if the Lollipop data exists,
+ * otherwise return an O.none
  *
  * @param fiscalCode
- * @returns The key ttl in seconds or an error if the key doesn't exist or has no expire
+ * @returns The key ttl in seconds or an O.none if the key doesn't exist
+ * or an error if the key has no expire
  */
 export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
   RedisRepo.RedisRepositoryDeps & { fiscalCode: FiscalCode },
   Error,
-  number
+  O.Option<number>
 > = (deps) =>
   pipe(
     TE.tryCatch(
@@ -936,19 +941,29 @@ export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
     TE.mapLeft((error) =>
       Error(`Error retrieving the session TTL: ${error.message}`),
     ),
-    TE.chain((ttl) =>
-      ttl === -2
-        ? TE.left(
-            Error("Error retrieving the session TTL: -2 (key does not exist)"),
-          )
-        : ttl === -1
-          ? TE.left(
-              Error(
-                "Error retrieving the session TTL: -1 (key exists but has no associated expire)",
+    TE.chain((ttl) => {
+      switch (ttl) {
+        case REDIS_KEY_NOT_FOUND:
+          return pipe(
+            TE.fromIO(() =>
+              log.warn(
+                "Error retrieving the session TTL: -2 (key does not exist)",
               ),
-            )
-          : TE.right(ttl),
-    ),
+            ),
+            TE.chain(() => TE.right(O.none)),
+          );
+
+        case REDIS_KEY_NO_EXPIRE:
+          return TE.left(
+            new Error(
+              "Error retrieving the session TTL: -1 (key exists but has no associated expire)",
+            ),
+          );
+
+        default:
+          return TE.right(O.some(ttl));
+      }
+    }),
   );
 
 /**
