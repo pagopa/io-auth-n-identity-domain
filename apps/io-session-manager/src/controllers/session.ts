@@ -118,7 +118,10 @@ const getSessionExpirationDate: RTE.ReaderTaskEither<
       O.fold(
         // If getSessionRemainingTtlFast returns None, we fallback to getSessionTtl
         // i.e. when the Lollipop assertionRef is not found
-        () => getSessionTtl(deps.user.session_token)(deps),
+        () =>
+          RedisSessionStorageService.getSessionTtl(deps.user.session_token)(
+            deps,
+          ),
         (ttl) => TE.right(ttl),
       ),
     ),
