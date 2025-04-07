@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.5.2
+
+### Patch Changes
+
+- 59f6ab7: Get session state fallback on standard login expiration date
+
 ## 1.5.1
 
 ### Patch Changes
