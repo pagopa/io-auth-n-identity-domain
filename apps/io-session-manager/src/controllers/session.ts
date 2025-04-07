@@ -124,6 +124,14 @@ const getSessionExpirationDate: RTE.ReaderTaskEither<
         (ttl) => TE.right(ttl),
       ),
     ),
+    // The following is unnecessary since the user session should be valid
+    // and the TTL should be positive (for both standard and fast login sessions)
+    // in order to reach this point; however, we keep it for safety.
+    TE.chain((ttl) =>
+      ttl < 0
+        ? TE.left(new Error(`Standard session TTL is negative: ${ttl}`))
+        : TE.right(ttl),
+    ),
     TE.mapLeft((error) =>
       ResponseErrorInternal(
         `Error retrieving the session TTL: ${error.message}`,

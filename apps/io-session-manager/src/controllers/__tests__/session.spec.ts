@@ -449,6 +449,40 @@ describe("getSessionState", () => {
       }),
     );
   });
+
+  test("should give error when requesting an expirationDate for a key that doesn't have TTL", async () => {
+    const aValidFilterReq = mockReq({
+      query: { fields: "(expirationDate)" },
+    }) as unknown as Request;
+
+    const invalidStandardSessionTtl = -1;
+
+    // returning -2 on fallback
+    mockGetSessionRemainingTtlFast.mockReturnValueOnce(TE.right(O.none));
+    mockGetSessionTtl.mockReturnValueOnce(() => TE.right(invalidStandardSessionTtl));
+
+    await pipe(
+      {
+        fnAppAPIClient: {} as ReturnType<typeof FnAppAPIClient>,
+        redisClientSelector: mockRedisClientSelector,
+        req: aValidFilterReq,
+        user: mockedUser,
+      },
+      getSessionState,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    expect(mockGetSessionRemainingTtlFast).toHaveBeenCalledTimes(1);
+    expect(mockGetSessionTtl).toHaveBeenCalledTimes(1);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: `Error retrieving the session TTL: Standard session TTL is negative: ${invalidStandardSessionTtl}`,
+        status: 500,
+        title: "Internal server error",
+      }),
+    );
+  });
 });
 
 describe("logout", () => {
