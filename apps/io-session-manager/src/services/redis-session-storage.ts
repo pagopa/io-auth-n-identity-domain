@@ -43,6 +43,9 @@ export const DEFAULT_LOLLIPOP_ASSERTION_REF_DURATION = (3600 *
   365 *
   2) as Second; // 2y default assertionRef duration on redis cache
 
+const REDIS_KEY_NOT_FOUND = -2;
+const REDIS_KEY_NO_EXPIRE = -1;
+
 const parseUser = (value: string): E.Either<Error, User> =>
   pipe(
     E.parseJSON(value, E.toError),
@@ -914,8 +917,6 @@ export const getSessionTtl: (
       E.toError,
     );
 
-const REDIS_KEY_NOT_FOUND = -2;
-const REDIS_KEY_NO_EXPIRE = -1;
 /**
  * Return the session remaining time to live in seconds if the Lollipop data exists,
  * otherwise return an O.none
