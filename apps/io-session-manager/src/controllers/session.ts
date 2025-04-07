@@ -118,19 +118,24 @@ const getSessionExpirationDate: RTE.ReaderTaskEither<
         // If getSessionRemainingTtlFast returns None, we fallback to getSessionTtl
         // i.e. when the Lollipop assertionRef is not found
         () =>
-          RedisSessionStorageService.getSessionTtl(deps.user.session_token)(
-            deps,
+          pipe(
+            RedisSessionStorageService.getSessionTtl(deps.user.session_token)(
+              deps,
+            ),
+            // The following is unnecessary since the user session should be valid
+            // and the TTL should be positive; however, we keep it for safety since
+            // the underlying `RedisSessionStorageService.getSessionTtl` does not
+            // handle such case.
+            TE.chain(
+              TE.fromPredicate(
+                (response) => response >= 0,
+                (response) =>
+                  Error(`Standard session TTL is negative: ${response}`),
+              ),
+            ),
           ),
         (ttl) => TE.right(ttl),
       ),
-    ),
-    // The following is unnecessary since the user session should be valid
-    // and the TTL should be positive (for both standard and fast login sessions)
-    // in order to reach this point; however, we keep it for safety.
-    TE.chain((ttl) =>
-      ttl < 0
-        ? TE.left(new Error(`Standard session TTL is negative: ${ttl}`))
-        : TE.right(ttl),
     ),
     TE.mapLeft((error) =>
       ResponseErrorInternal(
