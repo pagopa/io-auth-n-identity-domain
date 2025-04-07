@@ -941,24 +941,29 @@ export const getSessionRemainingTtlFast: RTE.ReaderTaskEither<
     TE.mapLeft((error) =>
       Error(`Error retrieving the session TTL: ${error.message}`),
     ),
-    TE.chain((ttl) =>
-      ttl === REDIS_KEY_NOT_FOUND
-        ? pipe(
+    TE.chain((ttl) => {
+      switch (ttl) {
+        case REDIS_KEY_NOT_FOUND:
+          return pipe(
             TE.fromIO(() =>
               log.warn(
                 "Error retrieving the session TTL: -2 (key does not exist)",
               ),
             ),
-            TE.chain(() => TE.right<Error, O.Option<number>>(O.none)),
-          )
-        : ttl === REDIS_KEY_NO_EXPIRE
-          ? TE.left(
-              new Error(
-                "Error retrieving the session TTL: -1 (key exists but has no associated expire)",
-              ),
-            )
-          : TE.right(O.some(ttl)),
-    ),
+            TE.chain(() => TE.right(O.none)),
+          );
+
+        case REDIS_KEY_NO_EXPIRE:
+          return TE.left(
+            new Error(
+              "Error retrieving the session TTL: -1 (key exists but has no associated expire)",
+            ),
+          );
+
+        default:
+          return TE.right(O.some(ttl));
+      }
+    }),
   );
 
 /**
