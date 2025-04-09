@@ -1,13 +1,13 @@
 
 
-data "azurerm_key_vault_secret" "low_priority_mailup_username" {
-  name         = "low-priority-mailup-username"
-  key_vault_id = data.azurerm_key_vault.kv.id
+data "azurerm_key_vault_secret" "io_com_mailup_username" {
+  name         = "iocom-MAILUP-USERNAME"
+  key_vault_id = data.azurerm_key_vault.common_kv.id
 }
 
-data "azurerm_key_vault_secret" "low_priority_mailup_secret" {
-  name         = "low-priority-mailup-secret"
-  key_vault_id = data.azurerm_key_vault.kv.id
+data "azurerm_key_vault_secret" "io_com_mailup_secret" {
+  name         = "iocom-MAILUP-SECRET"
+  key_vault_id = data.azurerm_key_vault.common_kv.id
 }
 
 data "azurerm_key_vault_secret" "function_profile_key" {
@@ -36,8 +36,8 @@ locals {
       FETCH_KEEPALIVE_TIMEOUT             = "60000"
 
       // Mailup setup
-      MAILUP_USERNAME = data.azurerm_key_vault_secret.low_priority_mailup_username.value
-      MAILUP_SECRET   = data.azurerm_key_vault_secret.low_priority_mailup_secret.value
+      MAILUP_USERNAME = data.azurerm_key_vault_secret.io_com_mailup_username.value
+      MAILUP_SECRET   = data.azurerm_key_vault_secret.io_com_mailup_secret.value
 
       // Mail
       MAIL_FROM = "IO - l'app dei servizi pubblici <no-reply@io.italia.it>"
@@ -51,7 +51,7 @@ locals {
       FUNCTION_PROFILE_API_KEY  = data.azurerm_key_vault_secret.function_profile_key.value
 
       // Expired Session Mail prop
-      EXPIRED_SESSION_CTA_URL = "https://continua.io.pagopa.it?utm_source=email&utm_medium=email&utm_campaign=lv_expired"
+      EXPIRED_SESSION_CTA_URL = "https://continua.io.pagopa.it?utm_source=email&utm_medium=email&utm_campaign=session_expired&pt=121080668&ct=email_session_expired&mt=8"
 
       // Cosmos
       COSMOSDB_NAME              = "db"
