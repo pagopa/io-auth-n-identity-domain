@@ -1,0 +1,15 @@
+<!--
+    TODO:
+    - evaluate to limit the API response to the fields that are needed
+-->
+<policies>
+    <inbound>
+        <base />
+        <set-header name="x-functions-key" exists-action="override">
+            <value>{{io-fn-profile-key}}</value>
+        </set-header>
+    </inbound>
+    <outbound>
+        <base />
+    </outbound>
+</policies>
