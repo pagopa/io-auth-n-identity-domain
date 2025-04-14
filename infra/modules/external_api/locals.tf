@@ -1,3 +1,3 @@
 locals {
-  external_api_basepath = "external/auth"
+  external_api_basepath = "auth/external"
 }
