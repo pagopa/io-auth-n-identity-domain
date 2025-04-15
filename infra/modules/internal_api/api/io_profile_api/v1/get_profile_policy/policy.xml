@@ -5,7 +5,7 @@
             retry-after-header-name="x-rate-limit-retry-after"
             remaining-calls-header-name="x-rate-limit-remaining" />
         <choose>
-            <when condition="@(!context.User.Groups.Select(g => g.Name).Contains("{{api-profile-external-read-group-name}}"))">
+            <when condition="@(!context.User.Groups.Select(g => g.Name).Contains("{{api-profile-internal-read-group-name}}"))">
                 <return-response>
                     <set-status code="403" reason="Unauthorized, the subscription used doesn't have the required permission" />
                 </return-response>

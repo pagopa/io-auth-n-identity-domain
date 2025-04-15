@@ -1,7 +1,3 @@
-<!--
-    TODO:
-    - evaluate to limit the API response to the fields that are needed
--->
 <policies>
     <inbound>
         <base />
