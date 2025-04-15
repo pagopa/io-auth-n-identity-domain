@@ -15,8 +15,8 @@ module "apim_v2_product_auth-n-identity_internal" {
 
 resource "azurerm_api_management_user" "auth_n_identity_wallet_internal_user" {
   user_id             = "authnidentitywalletinternaluser"
-  api_management_name = data.azurerm_api_management.apim.name
-  resource_group_name = data.azurerm_api_management.apim.resource_group_name
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
   first_name          = "PagoPA Wallet"
   last_name           = "PagoPA Wallet"
   email               = "io-wallet@pagopa.it" // TODO: check email correctness
