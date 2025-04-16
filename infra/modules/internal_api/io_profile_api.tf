@@ -23,7 +23,7 @@ module "api_v2_profile_internal" {
   resource_group_name = var.apim_resource_group_name
   revision            = "1"
   display_name        = "IO PROFILE INTERNAL API"
-  description         = "Product for IO Profile Internal."
+  description         = "Internal Auth&Identity Profile API."
 
   path        = "${local.internal_api_basepath}/profile/api/v1"
   protocols   = ["https"]
