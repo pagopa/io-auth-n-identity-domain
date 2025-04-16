@@ -67,7 +67,7 @@ module "api_v2_profile_operation" {
   resource_group_name = var.apim_resource_group_name
   revision            = "1"
   display_name        = "IO PROFILE OPERATION API"
-  description         = "Product for IO Profile Operation."
+  description         = "Operation Auth&Identity Profile API."
 
   path        = "${local.operation_api_basepath}/profile/api/v1"
   protocols   = ["https"]
