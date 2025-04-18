@@ -70,7 +70,10 @@ export const checkAzureCosmosDbHealth = (
     TE.chainFirst(({ client }) =>
       TE.tryCatch(
         () => client.getDatabaseAccount(),
-        toHealthProblems("AzureCosmosDB")
+        errors => {
+          client.dispose();
+          return toHealthProblems("AzureCosmosDB")(errors);
+        }
       )
     ),
     TE.map(({ client }) => {
