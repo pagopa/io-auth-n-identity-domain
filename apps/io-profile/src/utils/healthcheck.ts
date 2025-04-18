@@ -44,7 +44,6 @@ export const checkConfigHealth = (): HealthCheck<"Config", IConfig> =>
 /**
  * Check the application can connect to an Azure CosmosDb instances
  *
- * @param dbUri uri of the database
  * @param dbUri connection string for the storage
  *
  * @returns either true or an array of error messages
@@ -53,11 +52,18 @@ export const checkAzureCosmosDbHealth = (
   connectionString: string,
 ): HealthCheck<"AzureCosmosDB", true> =>
   pipe(
-    TE.tryCatch(async () => {
-      const client = buildCosmosClient(connectionString);
-      return client.getDatabaseAccount();
-    }, toHealthProblems("AzureCosmosDB")),
-    TE.map((_) => true),
+    TE.Do,
+    TE.bind("client", () => TE.right(buildCosmosClient(connectionString))),
+    TE.chain(({ client }) =>
+      pipe(
+        TE.tryCatch(
+          () => client.getDatabaseAccount(),
+          toHealthProblems("AzureCosmosDB"),
+        ),
+        T.chainFirst(() => T.of(client.dispose())),
+      ),
+    ),
+    TE.map((_) => true as const),
   );
 
 /**
