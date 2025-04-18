@@ -73,9 +73,9 @@ export const checkAzureCosmosDbHealth = (
         toHealthProblems("AzureCosmosDB")
       )
     ),
-    TE.chainW(({ client }) => {
+    TE.map(({ client }) => {
       client.dispose();
-      return TE.right(true);
+      return true;
     })
   );
 
