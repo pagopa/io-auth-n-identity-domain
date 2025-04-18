@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.25.1
+
+### Patch Changes
+
+- 03310ba: Dispose CosmosDB Client after healthcheck
+
 ## 5.25.0
 
 ### Minor Changes
