@@ -21,6 +21,19 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },
+  "dependencies": {
+    "@azure/functions": "^4.7.0",
+    "@pagopa/handler-kit": "^1.1.0",
+    "@pagopa/handler-kit-azure-func": "^2.0.7",
+    "@pagopa/io-functions-commons": "^29.1.0",
+    "@pagopa/ts-commons": "^13.1.1",
+    "applicationinsights": "^2.9.5",
+    "fp-ts": "^2.16.9",
+    "io-ts": "^2.2.22",
+    "io-ts-types": "^0.5.16",
+    "monocle-ts": "^2.3.13",
+    "newtype-ts": "^0.3.5"
+  },
   "devDependencies": {
     "@pagopa/eslint-config": "^3.0.0",
     "@pagopa/openapi-codegen-ts": "^13.2.0",
@@ -37,18 +50,5 @@
     "shx": "^0.3.2",
     "typescript": "^5.4.3",
     "vitest": "~1.5.0"
-  },
-  "dependencies": {
-    "@azure/functions": "^4.7.0",
-    "@pagopa/handler-kit": "^1.1.0",
-    "@pagopa/handler-kit-azure-func": "^2.0.7",
-    "@pagopa/io-functions-commons": "^29.1.0",
-    "@pagopa/ts-commons": "^13.1.1",
-    "applicationinsights": "^2.9.5",
-    "fp-ts": "^2.16.9",
-    "io-ts": "^2.2.22",
-    "io-ts-types": "^0.5.16",
-    "monocle-ts": "^2.3.13",
-    "newtype-ts": "^0.3.5"
   }
 }
