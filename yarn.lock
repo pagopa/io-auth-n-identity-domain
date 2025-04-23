@@ -437,6 +437,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@azure/functions@npm:^4.0.1, @azure/functions@npm:^4.7.0":
+  version: 4.7.0
+  resolution: "@azure/functions@npm:4.7.0"
+  dependencies:
+    cookie: "npm:^0.7.0"
+    long: "npm:^4.0.0"
+    undici: "npm:^5.13.0"
+  checksum: 10c0/5283e94545abf121baad2ca19d860ed68593c052bf0e25101c25c5a9f4a713e08121db30f1de8864b3e68a660f95f7a3b8a4aa5350f178f94698643cc0a7bf93
+  languageName: node
+  linkType: hard
+
 "@azure/identity@npm:^4.5.0":
   version: 4.5.0
   resolution: "@azure/identity@npm:4.5.0"
@@ -1313,6 +1324,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fastify/busboy@npm:^2.0.0":
+  version: 2.1.1
+  resolution: "@fastify/busboy@npm:2.1.1"
+  checksum: 10c0/6f8027a8cba7f8f7b736718b013f5a38c0476eea67034c94a0d3c375e2b114366ad4419e6a6fa7ffc2ef9c6d3e0435d76dd584a7a1cbac23962fda7650b579e3
+  languageName: node
+  linkType: hard
+
 "@humanwhocodes/config-array@npm:^0.11.14":
   version: 0.11.14
   resolution: "@humanwhocodes/config-array@npm:0.11.14"
@@ -1766,6 +1784,19 @@ __metadata:
     fp-ts: "npm:^2.13.1"
     io-ts: "npm:^2.2.20"
   checksum: 10c0/a3d47d55f725072bd53d31ac61ff91290e75d39f8019ed039a1928e21657cf24c8d0c49aeb4f0c7eb862249ed3b61bee2cf4ab40aaf153afcff1b3ac6137f796
+  languageName: node
+  linkType: hard
+
+"@pagopa/handler-kit-azure-func@npm:^2.0.7":
+  version: 2.0.7
+  resolution: "@pagopa/handler-kit-azure-func@npm:2.0.7"
+  dependencies:
+    "@azure/functions": "npm:^4.0.1"
+    "@pagopa/handler-kit": "npm:^1.0.1"
+    "@pagopa/logger": "npm:^1.0.1"
+    fp-ts: "npm:^2.13.1"
+    io-ts: "npm:^2.2.20"
+  checksum: 10c0/0f1a2f193b2d108d02a46707561ddf8106b901062baef68f36851279848d0c4a82d2d2e17eb2b15683c8312c7bdbbf240420eb36f2014de89b25522f8932fa8e
   languageName: node
   linkType: hard
 
@@ -4826,6 +4857,13 @@ __metadata:
   version: 0.7.1
   resolution: "cookie@npm:0.7.1"
   checksum: 10c0/5de60c67a410e7c8dc8a46a4b72eb0fe925871d057c9a5d2c0e8145c4270a4f81076de83410c4d397179744b478e33cd80ccbcc457abf40a9409ad27dcd21dde
+  languageName: node
+  linkType: hard
+
+"cookie@npm:^0.7.0":
+  version: 0.7.2
+  resolution: "cookie@npm:0.7.2"
+  checksum: 10c0/9596e8ccdbf1a3a88ae02cf5ee80c1c50959423e1022e4e60b91dd87c622af1da309253d8abdb258fb5e3eacb4f08e579dc58b4897b8087574eee0fd35dfa5d2
   languageName: node
   linkType: hard
 
@@ -8029,24 +8067,31 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "io-session-manager-internal@workspace:apps/io-session-manager-internal"
   dependencies:
+    "@azure/functions": "npm:^4.7.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
-    "@pagopa/ts-commons": "npm:^12.5.0"
+    "@pagopa/handler-kit": "npm:^1.1.0"
+    "@pagopa/handler-kit-azure-func": "npm:^2.0.7"
+    "@pagopa/io-functions-commons": "npm:^29.1.0"
+    "@pagopa/openapi-codegen-ts": "npm:^13.2.0"
+    "@pagopa/ts-commons": "npm:^13.1.1"
+    "@pagopa/typescript-config-node": "npm:*"
+    "@types/node": "npm:~20.12.0"
     "@vitest/coverage-v8": "npm:~1.5.0"
+    applicationinsights: "npm:^2.9.5"
     dependency-check: "npm:^4.1.0"
-    dotenv: "npm:^8.2.0"
-    dotenv-cli: "npm:^3.1.0"
+    dotenv: "npm:^16.4.5"
+    dotenv-cli: "npm:^7.4.1"
     eslint: "npm:^8.57.0"
     eslint-config-monorepo: "npm:*"
     eslint-plugin-prettier: "npm:^5.1.3"
-    fp-ts: "npm:^2.10.5"
-    io-ts: "npm:^2.2.16"
-    io-ts-types: "npm:^0.5.19"
+    fp-ts: "npm:^2.16.9"
+    io-ts: "npm:^2.2.22"
+    io-ts-types: "npm:^0.5.16"
     monocle-ts: "npm:^2.3.13"
     newtype-ts: "npm:^0.3.5"
     prettier: "npm:^3.2.5"
     shx: "npm:^0.3.2"
-    swagger-cli: "npm:^4.0.4"
-    typescript: "npm:^5.4.5"
+    typescript: "npm:^5.4.3"
     vitest: "npm:~1.5.0"
   languageName: unknown
   linkType: soft
@@ -13466,6 +13511,15 @@ __metadata:
   version: 6.19.8
   resolution: "undici-types@npm:6.19.8"
   checksum: 10c0/078afa5990fba110f6824823ace86073b4638f1d5112ee26e790155f481f2a868cc3e0615505b6f4282bdf74a3d8caad715fd809e870c2bb0704e3ea6082f344
+  languageName: node
+  linkType: hard
+
+"undici@npm:^5.13.0":
+  version: 5.29.0
+  resolution: "undici@npm:5.29.0"
+  dependencies:
+    "@fastify/busboy": "npm:^2.0.0"
+  checksum: 10c0/e4e4d631ca54ee0ad82d2e90e7798fa00a106e27e6c880687e445cc2f13b4bc87c5eba2a88c266c3eecffb18f26e227b778412da74a23acc374fca7caccec49b
   languageName: node
   linkType: hard
 
