@@ -34,8 +34,7 @@ module "function_session_manager_internal" {
   node_version      = 20
   health_check_path = "/api/v1/info"
 
-  # P2mv3 SKU and 8 Worker process count(sku set as of io-infra function-profile definition)
-  tier = "xl"
+  tier = "l"
 
 
   resource_group_name = azurerm_resource_group.main_resource_group.name
