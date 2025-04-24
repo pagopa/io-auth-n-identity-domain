@@ -10,9 +10,9 @@ jobs:
     with:
       # '-cd' suffix added inside the pipeline
       environment: apps-prod
-      resource_group_name: "io-p-itn-auth-session-manager-internal-rg-01"
+      resource_group_name: "io-p-itn-auth-sm-int-rg-01"
       workspace_name: "io-session-manager-internal"
-      function_app_name: "io-p-itn-auth-session-manager-internal-func-01"
+      function_app_name: "io-p-itn-auth-sm-int-func-01"
       health_check_path: 
       use_staging_slot: true
       use_private_agent: true
