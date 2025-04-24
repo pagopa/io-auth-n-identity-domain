@@ -5,5 +5,5 @@ app.http("Info", {
   authLevel: "anonymous",
   handler: InfoFunction({}),
   methods: ["GET"],
-  route: "info",
+  route: "api/v1/info",
 });
