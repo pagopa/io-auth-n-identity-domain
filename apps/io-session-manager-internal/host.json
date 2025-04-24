@@ -8,7 +8,7 @@
   },
   "extensions": {
     "http": {
-      "routePrefix": ""
+      "routePrefix": "api/v1"
     }
   },
   "extensionBundle": {
