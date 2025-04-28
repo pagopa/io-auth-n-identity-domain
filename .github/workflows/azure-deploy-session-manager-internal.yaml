@@ -1,0 +1,19 @@
+name: Deploy (io-session-manager-internal)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_to_azure:
+    name: Deploy to Azure Function App
+    uses: pagopa/dx/.github/workflows/function_app_deploy.yaml@edaa2a22738b738092e71dd9bdf6494aca593980
+    with:
+      # '-cd' suffix added inside the pipeline
+      environment: apps-prod
+      resource_group_name: "io-p-itn-auth-main-rg-01"
+      workspace_name: "io-session-manager-internal"
+      function_app_name: "io-p-weu-auth-sm-int-func-01"
+      health_check_path: 
+      use_staging_slot: true
+      use_private_agent: true
+    secrets: inherit

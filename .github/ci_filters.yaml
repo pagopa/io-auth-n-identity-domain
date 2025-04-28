@@ -33,6 +33,10 @@ io-public:
   - "apps/io-public/**/*.ts"
   # package.json, function.json, tsconfig.json, ...
   - "apps/io-public/**/*.json"
+io-session-manager-internal:
+  - "apps/io-session-manager-internal/**/*.ts"
+  # package.json, function.json, tsconfig.json, ...
+  - "apps/io-session-manager-internal/**/*.json"
 io-web-profile:
   - "apps/io-web-profile/**/*.ts"
   # package.json, function.json, tsconfig.json, ...
