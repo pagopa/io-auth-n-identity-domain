@@ -1,13 +1,15 @@
 {
-  "eventhub.eventhub": "9ba622aa606225513d2151f02e9ab8abe83605444dcb6dcfc572030088ad307a",
-  "function_lollipop": "4391598ad038d9e5294d92366d3d180ee9a5c6ba67b54a56750c1e9c4a2e370e",
-  "function_lv": "4391598ad038d9e5294d92366d3d180ee9a5c6ba67b54a56750c1e9c4a2e370e",
+  "eventhub.eventhub": "ed4cc7d76a428cf9427d2c21eff715e5303809324c43c581101d5a9cf6bd8b62",
+  "function_lollipop": "9e8ff9c8a5e80e7ba79922eccfd983b3321e25dd4b22a1e7602fa581a389a6f1",
+  "function_lv": "9e8ff9c8a5e80e7ba79922eccfd983b3321e25dd4b22a1e7602fa581a389a6f1",
   "function_lv_autoscale": "b1b16764fc57ccf0d91a2375a11719e3dac5fd2a7bf77e12cbc290866deac044",
-  "function_public": "4391598ad038d9e5294d92366d3d180ee9a5c6ba67b54a56750c1e9c4a2e370e",
-  "function_web_profile": "4391598ad038d9e5294d92366d3d180ee9a5c6ba67b54a56750c1e9c4a2e370e",
+  "function_public": "9e8ff9c8a5e80e7ba79922eccfd983b3321e25dd4b22a1e7602fa581a389a6f1",
+  "function_web_profile": "9e8ff9c8a5e80e7ba79922eccfd983b3321e25dd4b22a1e7602fa581a389a6f1",
   "function_lollipop_autoscale": "b1b16764fc57ccf0d91a2375a11719e3dac5fd2a7bf77e12cbc290866deac044",
-  "function_profile_async": "4391598ad038d9e5294d92366d3d180ee9a5c6ba67b54a56750c1e9c4a2e370e",
+  "function_profile_async": "9e8ff9c8a5e80e7ba79922eccfd983b3321e25dd4b22a1e7602fa581a389a6f1",
   "function_profile_async_autoscale": "b1b16764fc57ccf0d91a2375a11719e3dac5fd2a7bf77e12cbc290866deac044",
-  "function_profile": "4391598ad038d9e5294d92366d3d180ee9a5c6ba67b54a56750c1e9c4a2e370e",
-  "function_profile_autoscale": "b1b16764fc57ccf0d91a2375a11719e3dac5fd2a7bf77e12cbc290866deac044"
+  "function_profile": "9e8ff9c8a5e80e7ba79922eccfd983b3321e25dd4b22a1e7602fa581a389a6f1",
+  "function_profile_autoscale": "b1b16764fc57ccf0d91a2375a11719e3dac5fd2a7bf77e12cbc290866deac044",
+  "function_session_manager_internal": "9e8ff9c8a5e80e7ba79922eccfd983b3321e25dd4b22a1e7602fa581a389a6f1",
+  "function_session_manager_internal_autoscale": "b1b16764fc57ccf0d91a2375a11719e3dac5fd2a7bf77e12cbc290866deac044"
 }

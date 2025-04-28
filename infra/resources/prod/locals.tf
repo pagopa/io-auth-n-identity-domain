@@ -4,6 +4,7 @@ locals {
   location_short     = "itn"
   weu_location_short = "weu"
   location           = "italynorth"
+  weu_location       = "westeurope"
   project            = "${local.prefix}-${local.env_short}-${local.location_short}"
   weu_project        = "${local.prefix}-${local.env_short}-${local.weu_location_short}"
   domain             = "auth"
