@@ -17,10 +17,21 @@ data "azurerm_virtual_network" "itn_common" {
   resource_group_name = "${local.project}-common-rg-01"
 }
 
+data "azurerm_virtual_network" "weu_common" {
+  name                = "io-p-vnet-common"
+  resource_group_name = data.azurerm_resource_group.rg_common.name
+}
+
 data "azurerm_subnet" "private_endpoints_subnet" {
   name                 = "${local.project}-pep-snet-01"
   virtual_network_name = data.azurerm_virtual_network.itn_common.name
   resource_group_name  = data.azurerm_virtual_network.itn_common.resource_group_name
+}
+
+data "azurerm_subnet" "weu_private_endpoints_subnet" {
+  name                 = "pendpoints"
+  virtual_network_name = data.azurerm_virtual_network.weu_common.name
+  resource_group_name  = data.azurerm_virtual_network.weu_common.resource_group_name
 }
 
 data "azurerm_linux_web_app" "app_backend_li" {
