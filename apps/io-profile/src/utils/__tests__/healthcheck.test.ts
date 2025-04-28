@@ -70,6 +70,7 @@ const mockGetDatabaseAccount = vi
 function mockCosmosClient() {
   vi.spyOn(healthcheckUtils, "buildCosmosClient").mockReturnValue({
     getDatabaseAccount: mockGetDatabaseAccount,
+    dispose: () => void 0,
   } as unknown as CosmosClient);
 }
 
@@ -108,7 +109,7 @@ describe("healthcheck - cosmos db", () => {
   });
 
   it("should return no error", async () => {
-    const res = await checkAzureCosmosDbHealth("", "")();
+    const res = await checkAzureCosmosDbHealth("")();
     expect(res).toEqual(E.right(true));
   });
 
@@ -117,7 +118,7 @@ describe("healthcheck - cosmos db", () => {
 
     mockGetDatabaseAccount.mockImplementationOnce(mockGetDatabaseAccountKO);
 
-    const res = await checkAzureCosmosDbHealth("", "")();
+    const res = await checkAzureCosmosDbHealth("")();
     expect(res).toEqual(E.left([`AzureCosmosDB|Error calling Cosmos Db`]));
   });
 });

@@ -1,5 +1,11 @@
 # io-public
 
+## 1.5.5
+
+### Patch Changes
+
+- 7ebb261: Bug: CosmosDBClient dispose missing on healthcheck
+
 ## 1.5.4
 
 ### Patch Changes

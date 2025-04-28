@@ -5,6 +5,7 @@ import { TaskEither } from "fp-ts/lib/TaskEither";
 import fetch from "node-fetch";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import * as T from "fp-ts/lib/Task";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { apply } from "fp-ts";
 import * as RA from "fp-ts/lib/ReadonlyArray";
@@ -59,13 +60,23 @@ export const checkAzureCosmosDbHealth = (
   dbKey?: string
 ): HealthCheck<"AzureCosmosDB", true> =>
   pipe(
-    TE.tryCatch(() => {
+    TE.Do,
+    TE.bind("client", () => {
       const client = new CosmosClient({
         endpoint: dbUri,
         key: dbKey
       });
-      return client.getDatabaseAccount();
-    }, toHealthProblems("AzureCosmosDB")),
+      return TE.right(client);
+    }),
+    TE.chain(({ client }) =>
+      pipe(
+        TE.tryCatch(
+          () => client.getDatabaseAccount(),
+          toHealthProblems("AzureCosmosDB")
+        ),
+        T.chainFirst(() => T.of(client.dispose()))
+      )
+    ),
     TE.map(_ => true)
   );
 
