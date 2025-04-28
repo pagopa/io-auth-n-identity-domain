@@ -64,4 +64,12 @@ export default defineWorkspace([
       environment: "node",
     },
   },
+  {
+    extends: "apps/io-session-manager-internal/vite.config.mts",
+    test: {
+      name: "io-session-manager-internal",
+      include: ["apps/io-session-manager-internal/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
 ]);
