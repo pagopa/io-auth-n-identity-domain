@@ -40,13 +40,13 @@ module "function_session_manager_internal" {
   resource_group_name = azurerm_resource_group.main_resource_group.name
 
   subnet_cidr   = local.cidr_subnet_fn_session_manager_internal
-  subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
+  subnet_pep_id = data.azurerm_subnet.weu_private_endpoints_subnet.id
 
   private_dns_zone_resource_group_name = data.azurerm_resource_group.rg_common.name
 
   virtual_network = {
-    name                = data.azurerm_virtual_network.itn_common.name
-    resource_group_name = data.azurerm_virtual_network.itn_common.resource_group_name
+    name                = data.azurerm_virtual_network.weu_common.name
+    resource_group_name = data.azurerm_virtual_network.weu_common.resource_group_name
   }
 
   app_settings      = local.function_session_manager_internal.app_settings
