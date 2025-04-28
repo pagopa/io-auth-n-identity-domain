@@ -1,30 +1,19 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import * as E from "fp-ts/lib/Either";
 import * as H from "@pagopa/handler-kit";
 import { makeInfoHandler } from "../info";
-import * as packageUtils from "../../utils/package";
 import { httpHandlerInputMocks } from "../__mocks__/handler.mock";
-
-const getCurrentBackendVersionMock = vi.spyOn(
-  packageUtils,
-  "getCurrentBackendVersion",
-);
+import { mockInfoService } from "../__mocks__/info-service.mock";
+import { aPackageInfo, mockPackageUtils } from "../../__mocks__/package.mock";
 
 describe("Info handler", () => {
   it("should succeed if the application is healthy", async () => {
-    getCurrentBackendVersionMock.mockReturnValueOnce("1.0.0");
-
     const result = await makeInfoHandler({
       ...httpHandlerInputMocks,
+      InfoService: mockInfoService,
+      PackageUtils: mockPackageUtils,
     })();
 
-    expect(result).toMatchObject(
-      E.right(
-        H.successJson({
-          name: "io-session-manager-internal",
-          version: "1.0.0",
-        }),
-      ),
-    );
+    expect(result).toMatchObject(E.right(H.successJson(aPackageInfo)));
   });
 });
