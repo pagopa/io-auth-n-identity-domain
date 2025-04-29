@@ -1,0 +1,44 @@
+openapi: 3.0.1
+info:
+  version: 0.1.0
+  title: IO Session Manager Internal API
+  x-logo:
+    url: https://io.italia.it/assets/img/io-logo-blue.svg
+  description: |
+    Documentation of the IO Session Manager Internal API here.
+servers:
+  - url: https://io-p-weu-auth-sm-int-func-01.azurewebsites.net/api/v1
+paths:
+  /info:
+    get:
+      operationId: info
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationInfo"
+        "500":
+          description: Internal Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+
+components:
+  schemas:
+    ApplicationInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: io-session-manager-internal
+        version:
+          type: string
+          example: 1.0.0
+      required:
+        - name
+        - version
+    ProblemJson:
+        $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.22.0/openapi/definitions.yaml#/ProblemJson"
