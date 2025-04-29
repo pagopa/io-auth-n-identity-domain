@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import * as E from "fp-ts/Either";
-import { InfoService } from "../../services/info";
+import { InfoService } from "../info";
 import { aPackageInfo } from "../../__mocks__/package.mock";
 
 export const mockInfoService: InfoService = {

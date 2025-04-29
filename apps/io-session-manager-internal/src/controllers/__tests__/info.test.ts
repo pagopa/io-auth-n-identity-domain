@@ -3,7 +3,7 @@ import * as E from "fp-ts/lib/Either";
 import * as H from "@pagopa/handler-kit";
 import { makeInfoHandler } from "../info";
 import { httpHandlerInputMocks } from "../__mocks__/handler.mock";
-import { mockInfoService } from "../__mocks__/info-service.mock";
+import { mockInfoService } from "../../services/__mocks__/info.mock";
 import { aPackageInfo } from "../../__mocks__/package.mock";
 import { PackageUtils } from "../../utils/package";
 
