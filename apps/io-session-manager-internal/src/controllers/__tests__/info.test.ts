@@ -1,4 +1,4 @@
-import { describe, expect, it, Mock, vi } from "vitest";
+import { describe, expect, it, Mock } from "vitest";
 import * as E from "fp-ts/lib/Either";
 import * as H from "@pagopa/handler-kit";
 import { makeInfoHandler } from "../info";
@@ -18,7 +18,7 @@ describe("Info handler", () => {
   });
 
   it("should return an error if the application is unhealthy", async () => {
-    (mockInfoService.getPackageInfo as Mock).mockImplementation(
+    (mockInfoService.getPackageInfo as Mock).mockImplementationOnce(
       () => () => Promise.resolve(E.left(new Error("Error"))),
     );
 
@@ -29,5 +29,25 @@ describe("Info handler", () => {
     })();
 
     expect(result).toMatchObject(E.left(new H.HttpError()));
+  });
+
+  it("should succeed even if the InfoService returns 'UNKNOWN'", async () => {
+    const unknownValue = "UNKNOWN";
+    const unknownPackageInfo = {
+      name: unknownValue,
+      version: unknownValue,
+    };
+
+    (mockInfoService.getPackageInfo as Mock).mockImplementationOnce(
+      () => () => Promise.resolve(E.right(unknownPackageInfo)),
+    );
+
+    const result = await makeInfoHandler({
+      ...httpHandlerInputMocks,
+      InfoService: mockInfoService,
+      PackageUtils: mockPackageUtils,
+    })();
+
+    expect(result).toMatchObject(E.right(H.successJson(unknownPackageInfo)));
   });
 });
