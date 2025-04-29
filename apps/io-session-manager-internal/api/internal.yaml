@@ -7,7 +7,7 @@ info:
   description: |
     Documentation of the IO Session Manager Internal API here.
 servers:
-  - url: https://io-p-weu-auth-sm-int-func-01.azurewebsites.net
+  - url: https://io-p-weu-auth-sm-int-func-01.azurewebsites.net/api/v1
 paths:
   /info:
     get:
