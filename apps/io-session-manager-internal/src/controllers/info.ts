@@ -16,7 +16,10 @@ export const makeInfoHandler: H.Handler<
   Dependencies
 > = H.of((_: H.HttpRequest) =>
   pipe(
-    InfoService.getPackageInfo,
+    RTE.ask<Dependencies>(),
+    RTE.chain(({ InfoService, PackageUtils }) =>
+      RTE.fromTaskEither(InfoService.getPackageInfo({ PackageUtils })),
+    ),
     RTE.map((info) => H.successJson(info)),
     RTE.mapLeft((_problems) => new H.HttpError()),
   ),
