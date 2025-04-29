@@ -1,7 +1,8 @@
 import { vi } from "vitest";
+import * as E from "fp-ts/Either";
 import { InfoService } from "../../services/info";
 import { aPackageInfo } from "../../__mocks__/package.mock";
 
 export const mockInfoService: InfoService = {
-  getPackageInfo: vi.fn(() => Promise.resolve(aPackageInfo)),
-} as unknown as InfoService;
+  getPackageInfo: vi.fn(() => () => Promise.resolve(E.right(aPackageInfo))),
+};
