@@ -6,9 +6,9 @@ locals {
   instance_number = "01"
 
   adgroups = {
-    admins_name    = "io-p-adgroup-auth-admins"
-    devs_name      = "io-p-adgroup-auth-developers"
-    externals_name = "io-p-adgroup-auth-externals"
+    admins_name    = "${local.prefix}-${local.env_short}-adgroup-auth-admins"
+    devs_name      = "${local.prefix}-${local.env_short}-adgroup-auth-developers"
+    externals_name = "${local.prefix}-${local.env_short}-adgroup-auth-externals"
   }
 
   runner = {
@@ -56,8 +56,12 @@ locals {
   }
 
   key_vault = {
-    name                = "io-p-kv-common"
-    resource_group_name = "io-p-rg-common"
+    name                = "${local.prefix}-${local.env_short}-kv-common"
+    resource_group_name = "${local.prefix}-${local.env_short}-rg-common"
+  }
+
+  repo_secrets = {
+    "SONAR_TOKEN" = data.azurerm_key_vault_secret.sonacloud_token.value
   }
 
   tags = {
