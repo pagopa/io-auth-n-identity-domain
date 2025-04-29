@@ -1,10 +1,10 @@
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
-import { PackageUtils } from "../utils/package";
+import { Package } from "../repositories/package";
 import { ApplicationInfo } from "../generated/definitions/internal/ApplicationInfo";
 
 export type InfoServiceDeps = {
-  PackageUtils: PackageUtils;
+  Package: Package;
 };
 
 const getPackageInfo: RTE.ReaderTaskEither<
@@ -13,8 +13,8 @@ const getPackageInfo: RTE.ReaderTaskEither<
   ApplicationInfo
 > = (deps) =>
   TE.of({
-    name: deps.PackageUtils.getValueFromPackageJson("name"),
-    version: deps.PackageUtils.getCurrentBackendVersion(),
+    name: deps.Package.getValueFromPackageJson("name"),
+    version: deps.Package.getCurrentBackendVersion(),
   });
 
 export type InfoService = typeof InfoService;

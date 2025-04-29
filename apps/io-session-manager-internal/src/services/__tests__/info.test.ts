@@ -3,8 +3,8 @@ import * as E from "fp-ts/Either";
 import {
   aPackageInfo,
   aPackageVersion,
-  mockPackageUtils,
-} from "../../__mocks__/package.mock";
+  mockPackage,
+} from "../../repositories/__mocks__/package.mock";
 import { InfoService } from "../info";
 
 describe("Info service getPackageInfo", () => {
@@ -16,26 +16,26 @@ describe("Info service getPackageInfo", () => {
 
   it("should succeed", async () => {
     const result = await InfoService.getPackageInfo({
-      PackageUtils: mockPackageUtils,
+      Package: mockPackage,
     })();
 
-    expect(mockPackageUtils.getValueFromPackageJson).toHaveBeenCalledOnce();
-    expect(mockPackageUtils.getCurrentBackendVersion).toHaveBeenCalledOnce();
+    expect(mockPackage.getValueFromPackageJson).toHaveBeenCalledOnce();
+    expect(mockPackage.getCurrentBackendVersion).toHaveBeenCalledOnce();
     expect(result).toMatchObject(E.right(aPackageInfo));
   });
 
   it("should work even if getValueFromPackageJson returns UNKNOWN", async () => {
     const mockGetValueFromPackageJson = vi.fn().mockReturnValue(unknownValue);
     const result = await InfoService.getPackageInfo({
-      PackageUtils: {
-        ...mockPackageUtils,
+      Package: {
+        ...mockPackage,
         getValueFromPackageJson: mockGetValueFromPackageJson,
       },
     })();
 
-    expect(mockPackageUtils.getValueFromPackageJson).not.toHaveBeenCalled();
+    expect(mockPackage.getValueFromPackageJson).not.toHaveBeenCalled();
     expect(mockGetValueFromPackageJson).toHaveBeenCalledOnce();
-    expect(mockPackageUtils.getCurrentBackendVersion).toHaveBeenCalledOnce();
+    expect(mockPackage.getCurrentBackendVersion).toHaveBeenCalledOnce();
     expect(result).toMatchObject(
       E.right({
         name: unknownValue,
@@ -47,15 +47,15 @@ describe("Info service getPackageInfo", () => {
   it("should work even if getCurrentBackendVersion returns UNKNOWN", async () => {
     const mockGetCurrentBackendVersion = vi.fn().mockReturnValue(unknownValue);
     const result = await InfoService.getPackageInfo({
-      PackageUtils: {
-        ...mockPackageUtils,
+      Package: {
+        ...mockPackage,
         getCurrentBackendVersion: mockGetCurrentBackendVersion,
       },
     })();
 
-    expect(mockPackageUtils.getValueFromPackageJson).toHaveBeenCalledOnce();
+    expect(mockPackage.getValueFromPackageJson).toHaveBeenCalledOnce();
     expect(mockGetCurrentBackendVersion).toHaveBeenCalledOnce();
-    expect(mockPackageUtils.getCurrentBackendVersion).not.toHaveBeenCalled();
+    expect(mockPackage.getCurrentBackendVersion).not.toHaveBeenCalled();
     expect(result).toMatchObject(
       E.right({
         name: aPackageInfo.name,

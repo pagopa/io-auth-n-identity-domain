@@ -26,8 +26,8 @@ export const getValueFromPackageJson = (
 export const getCurrentBackendVersion = (): string =>
   getValueFromPackageJson("version");
 
-export type PackageUtils = typeof PackageUtils;
-export const PackageUtils = {
+export type Package = typeof Package;
+export const Package = {
   getValueFromPackageJson,
   getCurrentBackendVersion,
 };

@@ -1,11 +1,11 @@
 import { app } from "@azure/functions";
 import { InfoService } from "../services/info";
-import { PackageUtils } from "../utils/package";
+import { Package } from "../repositories/package";
 import { InfoFunction } from "./info";
 
 app.http("Info", {
   authLevel: "anonymous",
-  handler: InfoFunction({ InfoService, PackageUtils }),
+  handler: InfoFunction({ InfoService, Package }),
   methods: ["GET"],
   route: "api/v1/info",
 });
