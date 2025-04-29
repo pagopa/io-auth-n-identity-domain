@@ -25,7 +25,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /sessions/{fiscalcode}:
+  /sessions/{fiscalCode}:
     get:
       operationId: getSession
       summary: Get available user info from session
@@ -59,7 +59,7 @@ paths:
 components:
   parameters:
     FiscalCode:
-      name: fiscalcode
+      name: fiscalCode
       in: path
       required: true
       description: The fiscal code of the user, all in upper case.
@@ -92,3 +92,46 @@ components:
           type: boolean
       required:
         - active
+    SessionsList:
+      description: Contains all active sessions for an authenticated user.
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: "#/components/schemas/SessionInfo"
+      required:
+        - sessions
+    SessionInfo:
+      type: object
+      title: Session info of a user
+      description: Decribe a session of an authenticated user.
+      properties:
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        sessionToken:
+          type: string
+      required:
+        - createdAt
+        - sessionToken
+    Timestamp:
+      type: string
+      format: UTCISODateFromString
+      description: A date-time field in ISO-8601 format and UTC timezone.
+      x-import: "@pagopa/ts-commons/lib/dates"
+      example: "2018-10-13T00:00:00.000Z"
+    # AssertionRef possible inputs
+    AssertionRefSha256:
+      type: string
+      pattern: ^(sha256-[A-Za-z0-9-_=]{1,44})$
+    AssertionRefSha384:
+      type: string
+      pattern: ^(sha384-[A-Za-z0-9-_=]{1,66})$
+    AssertionRefSha512:
+      type: string
+      pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
+    AssertionRef:
+      oneOf:
+        - $ref: "#/components/schemas/AssertionRefSha512"
+        - $ref: "#/components/schemas/AssertionRefSha384"
+        - $ref: "#/components/schemas/AssertionRefSha256"
