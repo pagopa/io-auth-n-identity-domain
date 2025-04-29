@@ -13,18 +13,18 @@ paths:
     get:
       operationId: info
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApplicationInfo'
-        '500':
+                $ref: "#/components/schemas/ApplicationInfo"
+        "500":
           description: Internal Server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemJson'
+                $ref: "#/components/schemas/ProblemJson"
 
 components:
   schemas:
@@ -41,4 +41,4 @@ components:
         - name
         - version
     ProblemJson:
-        $ref: 'https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.22.0/openapi/definitions.yaml#/ProblemJson'
+        $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.22.0/openapi/definitions.yaml#/ProblemJson"
