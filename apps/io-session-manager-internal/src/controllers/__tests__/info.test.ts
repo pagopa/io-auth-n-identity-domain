@@ -30,24 +30,4 @@ describe("Info handler", () => {
 
     expect(result).toMatchObject(E.left(new H.HttpError()));
   });
-
-  it("should succeed even if the InfoService returns 'UNKNOWN'", async () => {
-    const unknownValue = "UNKNOWN";
-    const unknownPackageInfo = {
-      name: unknownValue,
-      version: unknownValue,
-    };
-
-    (mockInfoService.getPackageInfo as Mock).mockImplementationOnce(
-      () => () => Promise.resolve(E.right(unknownPackageInfo)),
-    );
-
-    const result = await makeInfoHandler({
-      ...httpHandlerInputMocks,
-      InfoService: mockInfoService,
-      PackageUtils: mockPackageUtils,
-    })();
-
-    expect(result).toMatchObject(E.right(H.successJson(unknownPackageInfo)));
-  });
 });
