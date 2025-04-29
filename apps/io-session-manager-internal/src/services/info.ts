@@ -13,17 +13,10 @@ const getPackageInfo: RTE.ReaderTaskEither<
   Error,
   ApplicationInfo
 > = (deps) =>
-  pipe(
-    TE.tryCatch(
-      () =>
-        Promise.resolve({
-          name: deps.PackageUtils.getValueFromPackageJson("name"),
-          version: deps.PackageUtils.getCurrentBackendVersion(),
-        }),
-      (err) =>
-        new Error(`InfoService|Error while getting package info: ${err}`),
-    ),
-  );
+  TE.of({
+    name: deps.PackageUtils.getValueFromPackageJson("name"),
+    version: deps.PackageUtils.getCurrentBackendVersion(),
+  });
 
 export type InfoService = typeof InfoService;
 export const InfoService = {
