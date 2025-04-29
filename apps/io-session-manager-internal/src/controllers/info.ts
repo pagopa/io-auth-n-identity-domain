@@ -22,6 +22,9 @@ export const makeInfoHandler: H.Handler<
     ),
     RTE.map((info) => H.successJson(info)),
     RTE.mapLeft((_problems) => new H.HttpError()),
+    RTE.orElseW((error) =>
+      RTE.right(H.problemJson({ status: error.status, title: error.message })),
+    ),
   ),
 );
 
