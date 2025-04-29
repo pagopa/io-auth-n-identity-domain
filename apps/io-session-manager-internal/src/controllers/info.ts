@@ -12,7 +12,9 @@ type Dependencies = {
 
 export const makeInfoHandler: H.Handler<
   H.HttpRequest,
-  H.HttpResponse<ApplicationInfo, 200> | H.HttpResponse<unknown, 500>,
+  | H.HttpResponse<ApplicationInfo, 200>
+  | H.HttpResponse<unknown, 500>
+  | H.HttpResponse<H.ProblemJson, H.HttpErrorStatusCode>,
   Dependencies
 > = H.of((_: H.HttpRequest) =>
   pipe(
