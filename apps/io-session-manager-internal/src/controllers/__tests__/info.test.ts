@@ -4,14 +4,15 @@ import * as H from "@pagopa/handler-kit";
 import { makeInfoHandler } from "../info";
 import { httpHandlerInputMocks } from "../__mocks__/handler.mock";
 import { mockInfoService } from "../__mocks__/info-service.mock";
-import { aPackageInfo, mockPackageUtils } from "../../__mocks__/package.mock";
+import { aPackageInfo } from "../../__mocks__/package.mock";
+import { PackageUtils } from "../../utils/package";
 
 describe("Info handler", () => {
   it("should succeed if the application is healthy", async () => {
     const result = await makeInfoHandler({
       ...httpHandlerInputMocks,
       InfoService: mockInfoService,
-      PackageUtils: mockPackageUtils,
+      PackageUtils: {} as PackageUtils,
     })();
 
     expect(result).toMatchObject(E.right(H.successJson(aPackageInfo)));
@@ -25,9 +26,11 @@ describe("Info handler", () => {
     const result = await makeInfoHandler({
       ...httpHandlerInputMocks,
       InfoService: mockInfoService,
-      PackageUtils: mockPackageUtils,
+      PackageUtils: {} as PackageUtils,
     })();
 
-    expect(result).toMatchObject(E.left(new H.HttpError()));
+    expect(result).toMatchObject(
+      E.right(H.problemJson({ status: 500, title: "" })),
+    );
   });
 });
