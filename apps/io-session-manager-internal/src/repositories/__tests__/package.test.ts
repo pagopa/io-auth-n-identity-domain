@@ -33,13 +33,6 @@ const mockPackageDescription = "This is a mocked package description";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pkg = require("../../../package.json");
 
-// The following test is to ensure that the package.json file is correctly mocked
-it("uses mocked package.json", () => {
-  expect(pkg.name).toBe(mockPackageName);
-  expect(pkg.version).toBe(mockPackageVersion);
-  expect(pkg.description).toBe(mockPackageDescription);
-});
-
 describe("Package getValueFromPackageJson", () => {
   it("should return the value of the specified key", () => {
     expect(Package.getValueFromPackageJson("name")).toBe(mockPackageName);
