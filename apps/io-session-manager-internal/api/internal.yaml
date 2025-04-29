@@ -21,6 +21,10 @@ paths:
                 $ref: '#/components/schemas/ApplicationInfo'
         '500':
           description: Internal Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
 
 components:
   schemas:
@@ -36,3 +40,5 @@ components:
       required:
         - name
         - version
+    ProblemJson:
+        $ref: 'https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.22.0/openapi/definitions.yaml#/ProblemJson'
