@@ -42,8 +42,6 @@ describe("Session Serviuce", () => {
     const result = await SessionService.getUserSession(aFiscalCode)(deps)();
 
     expect(mockUserHasActiveSessionsOrLV).toHaveBeenCalledTimes(1);
-    expect(result).toEqual(
-      E.left(new H.HttpError(`Internal Server Error: ${customError.message}`)),
-    );
+    expect(result).toEqual(E.left(customError));
   });
 });

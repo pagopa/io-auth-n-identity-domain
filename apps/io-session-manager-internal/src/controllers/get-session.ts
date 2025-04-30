@@ -10,7 +10,8 @@ import {
   SessionService,
   SessionServiceDeps,
 } from "../services/session-service";
-import { RequiredPathParamMiddleware } from "../utils/middlewares";
+import { RequiredPathParamMiddleware } from "../utils/middlewares/request";
+import { errorToHttpError } from "../utils/errors";
 
 type Dependencies = {
   SessionService: SessionService;
@@ -26,6 +27,7 @@ const getUserSession: (
   pipe(
     deps.SessionService.getUserSession(fiscalCode)(deps),
     TE.map(H.successJson),
+    TE.mapLeft(errorToHttpError),
   );
 
 export const makeGetSessionHandler: H.Handler<

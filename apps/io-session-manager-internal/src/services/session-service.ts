@@ -3,9 +3,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as AP from "fp-ts/Apply";
 import * as redisLib from "redis";
 import { pipe } from "fp-ts/lib/function";
-import * as H from "@pagopa/handler-kit";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { errorToHttpError } from "../utils/errors";
 import { RedisRepository } from "../repositories/redis";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 
@@ -17,7 +15,7 @@ export type SessionServiceDeps = {
 
 const getUserSession: (
   fiscalCode: FiscalCode,
-) => RTE.ReaderTaskEither<SessionServiceDeps, H.HttpError, UserSessionInfo> =
+) => RTE.ReaderTaskEither<SessionServiceDeps, Error, UserSessionInfo> =
   (fiscalCode) => (deps) =>
     pipe(
       {
@@ -35,7 +33,6 @@ const getUserSession: (
           TE.map((active) => UserSessionInfo.encode({ active })),
         ),
       ),
-      TE.mapLeft(errorToHttpError),
     );
 
 export type SessionService = typeof SessionService;

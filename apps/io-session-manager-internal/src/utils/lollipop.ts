@@ -2,7 +2,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
 import { JsonFromString } from "io-ts-types";
 import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
-import { LoginType } from "./fast-login";
+import { LoginType } from "../types/fast-login";
 
 // LollipopData
 export type LollipopData = t.TypeOf<typeof LollipopData>;

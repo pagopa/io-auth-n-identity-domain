@@ -13,7 +13,7 @@ import {
   LollipopData,
   NullableBackendAssertionRefFromString,
 } from "../utils/lollipop";
-import { LoginTypeEnum } from "../utils/fast-login";
+import { LoginTypeEnum } from "../types/fast-login";
 import { SessionInfo } from "../generated/definitions/internal/SessionInfo";
 import { SessionsList } from "../generated/definitions/internal/SessionsList";
 

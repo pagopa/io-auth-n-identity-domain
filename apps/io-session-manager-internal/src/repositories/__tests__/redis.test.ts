@@ -7,7 +7,7 @@ import {
   mockSmembers,
 } from "../../__mocks__/repositories/redis.mock";
 import { RedisRepository, userHasActiveSessionsLegacy } from "../redis";
-import { LoginTypeEnum } from "../../utils/fast-login";
+import { LoginTypeEnum } from "../../types/fast-login";
 import { AssertionRefSha256 } from "../../generated/internal/AssertionRefSha256";
 
 const aValidUser = {
