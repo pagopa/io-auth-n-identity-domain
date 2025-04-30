@@ -9,7 +9,9 @@ import { BooleanFromString } from "io-ts-types";
 const ApplicationInsightsConfig = t.intersection([
   t.type({
     APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
-    APPINSIGHTS_REDIS_TRACE_ENABLED: withDefault(BooleanFromString, false),
+    APPINSIGHTS_REDIS_TRACE_ENABLED: withDefault(t.string, "false").pipe(
+      BooleanFromString,
+    ),
   }),
   t.partial({
     APPINSIGHTS_DISABLE: t.boolean,
