@@ -14,8 +14,8 @@ import {
   NullableBackendAssertionRefFromString,
 } from "../utils/lollipop";
 import { LoginTypeEnum } from "../utils/fast-login";
-import { SessionInfo } from "../generated/internal/SessionInfo";
-import { SessionsList } from "../generated/internal/SessionsList";
+import { SessionInfo } from "../generated/definitions/internal/SessionInfo";
+import { SessionsList } from "../generated/definitions/internal/SessionsList";
 
 const lollipopDataPrefix = "KEYS-";
 const userSessionsSetKeyPrefix = "USERSESSIONS-";

@@ -7,7 +7,7 @@ import * as H from "@pagopa/handler-kit";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { errorToHttpError } from "../utils/errors";
 import { RedisRepository } from "../repositories/redis";
-import { UserSessionInfo } from "../generated/internal/UserSessionInfo";
+import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 
 export type SessionServiceDeps = {
   FastRedisClientTask: TE.TaskEither<Error, redisLib.RedisClusterType>;
