@@ -118,7 +118,13 @@ export const userHasActiveSessionsLegacy: RTE.ReaderTaskEither<
     ),
     TE.fold(
       (err) =>
-        err === sessionNotFoundError ? TE.right(false as const) : TE.left(err),
+        pipe(
+          err === sessionNotFoundError,
+          B.fold(
+            () => TE.left(err),
+            () => TE.right(false as const),
+          ),
+        ),
       (userSessions) =>
         pipe(
           customMGet({ fastClient, keys: userSessions }),
