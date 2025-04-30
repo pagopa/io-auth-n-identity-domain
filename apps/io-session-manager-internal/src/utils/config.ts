@@ -4,6 +4,17 @@ import { withDefault } from "@pagopa/ts-commons/lib/types";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
 import * as E from "fp-ts/lib/Either";
+import { BooleanFromString } from "io-ts-types";
+
+const ApplicationInsightsConfig = t.intersection([
+  t.type({
+    APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
+    APPINSIGHTS_REDIS_TRACE_ENABLED: withDefault(BooleanFromString, false),
+  }),
+  t.partial({
+    APPINSIGHTS_DISABLE: t.boolean,
+  }),
+]);
 
 const RedisClientConfig = t.intersection([
   t.type({
@@ -20,10 +31,9 @@ export type RedisClientConfig = t.TypeOf<typeof RedisClientConfig>;
 export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
-    APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
-
     isProduction: t.boolean,
   }),
+  ApplicationInsightsConfig,
   RedisClientConfig,
 ]);
 

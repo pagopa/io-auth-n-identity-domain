@@ -5,13 +5,26 @@ import { CreateRedisClientSingleton } from "../utils/redis-client";
 import { getConfigOrThrow } from "../utils/config";
 import { SessionService } from "../services/session-service";
 import { RedisRepository } from "../repositories/redis";
+import { initTelemetryClient } from "../utils/appinsights";
 import { InfoFunction } from "./info";
 import { GetSessionFunction } from "./get-session";
 
 const config = getConfigOrThrow();
 
-const fastRedisClientTask = CreateRedisClientSingleton(config, true);
-const safeRedisClientTask = CreateRedisClientSingleton(config, false);
+const appInsightsTelemetryClient = initTelemetryClient();
+
+const fastRedisClientTask = CreateRedisClientSingleton(
+  config,
+  true,
+  config.APPINSIGHTS_REDIS_TRACE_ENABLED,
+  appInsightsTelemetryClient,
+);
+const safeRedisClientTask = CreateRedisClientSingleton(
+  config,
+  false,
+  config.APPINSIGHTS_REDIS_TRACE_ENABLED,
+  appInsightsTelemetryClient,
+);
 
 app.http("Info", {
   authLevel: "anonymous",
