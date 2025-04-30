@@ -13,6 +13,7 @@
     "postbuild": "dependency-check package.json --no-dev --missing ./dist/**/*.js",
     "build:watch": "tsc -w",
     "typecheck": "tsc --noemit",
+    "extensions:install": "func extensions install",
     "start": "dotenv -e .env -- func start --javascript",
     "start:watch": "yarn start watch",
     "lint": "yarn lint:check --fix",

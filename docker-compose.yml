@@ -146,6 +146,22 @@ services:
       - cosmosdb
       - redis-standalone
 
+  io-session-manager-internal:
+    image: io-session-manager-internal
+    build:
+      context: ./
+      dockerfile: ./docker/function/Dockerfile
+      args:
+        FUNCTION_NAME: "io-session-manager-internal"
+    env_file:
+      - ./docker/generated/.env.io-session-manager-internal
+    ports:
+      - ${FUNCTION_SESSION_MANAGER_INTERNAL_PORT}:7071
+    networks:
+      - io-fn
+    depends_on:
+      - redis-cluster
+
   cosmosdb:
     image: cosmosdb
     build:
