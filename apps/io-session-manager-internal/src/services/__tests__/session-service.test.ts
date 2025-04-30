@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as H from "@pagopa/handler-kit";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import {
   RedisClientTaskMock,
   RedisRepositoryMock,
   mockUserHasActiveSessionsOrLV,
 } from "../../__mocks__/repositories/redis.mock";
 import { SessionService } from "../session-service";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 
@@ -18,7 +18,8 @@ describe("Session Serviuce", () => {
   });
 
   const deps = {
-    RedisClientTask: RedisClientTaskMock,
+    FastRedisClientTask: RedisClientTaskMock,
+    SafeRedisClientTask: RedisClientTaskMock,
     RedisRepository: RedisRepositoryMock,
   };
 

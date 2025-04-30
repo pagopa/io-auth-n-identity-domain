@@ -10,7 +10,8 @@ import { GetSessionFunction } from "./get-session";
 
 const config = getConfigOrThrow();
 
-const redisClientTask = CreateRedisClientSingleton(config);
+const fastRedisClientTask = CreateRedisClientSingleton(config, true);
+const safeRedisClientTask = CreateRedisClientSingleton(config, false);
 
 app.http("Info", {
   authLevel: "anonymous",
@@ -22,7 +23,8 @@ app.http("Info", {
 app.http("GetSession", {
   authLevel: "function",
   handler: GetSessionFunction({
-    RedisClientTask: redisClientTask,
+    FastRedisClientTask: fastRedisClientTask,
+    SafeRedisClientTask: safeRedisClientTask,
     SessionService,
     RedisRepository,
   }),

@@ -36,6 +36,6 @@ export const mockRedisClient = {
   ttl: mockTtl,
   exists: mockExists,
   quit: mockQuit,
-} as unknown as redisLib.RedisClientType;
+} as unknown as redisLib.RedisClusterType;
 
 export const RedisClientTaskMock = TE.right(mockRedisClient);

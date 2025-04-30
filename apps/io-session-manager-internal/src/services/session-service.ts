@@ -1,5 +1,6 @@
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
+import * as AP from "fp-ts/Apply";
 import * as redisLib from "redis";
 import { pipe } from "fp-ts/lib/function";
 import * as H from "@pagopa/handler-kit";
@@ -9,7 +10,8 @@ import { RedisRepository } from "../repositories/redis";
 import { UserSessionInfo } from "../generated/internal/UserSessionInfo";
 
 export type SessionServiceDeps = {
-  RedisClientTask: TE.TaskEither<Error, redisLib.RedisClusterType>;
+  FastRedisClientTask: TE.TaskEither<Error, redisLib.RedisClusterType>;
+  SafeRedisClientTask: TE.TaskEither<Error, redisLib.RedisClusterType>;
   RedisRepository: RedisRepository;
 };
 
@@ -18,11 +20,16 @@ const getUserSession: (
 ) => RTE.ReaderTaskEither<SessionServiceDeps, H.HttpError, UserSessionInfo> =
   (fiscalCode) => (deps) =>
     pipe(
-      deps.RedisClientTask,
-      TE.chain((redisClient) =>
+      {
+        fastClient: deps.FastRedisClientTask,
+        safeClient: deps.SafeRedisClientTask,
+      },
+      AP.sequenceS(TE.ApplySeq),
+      TE.chain(({ fastClient, safeClient }) =>
         pipe(
           deps.RedisRepository.userHasActiveSessionsOrLV({
-            client: redisClient,
+            fastClient,
+            safeClient,
             fiscalCode,
           }),
           TE.map((active) => UserSessionInfo.encode({ active })),

@@ -23,16 +23,18 @@ const sessionKeyPrefix = "SESSION-";
 
 export const sessionNotFoundError = new Error("Session not found");
 
-type Dependencies = { client: redisLib.RedisClusterType };
+type FastRedisClientDependency = { fastClient: redisLib.RedisClusterType };
+type SafeRedisClientDependency = { safeClient: redisLib.RedisClusterType };
+type Dependencies = FastRedisClientDependency & SafeRedisClientDependency;
 
 const getLollipopDataForUser: RTE.ReaderTaskEither<
-  Dependencies & { fiscalCode: FiscalCode },
+  SafeRedisClientDependency & { fiscalCode: FiscalCode },
   Error,
   O.Option<LollipopData>
-> = ({ client, fiscalCode }) =>
+> = ({ safeClient, fiscalCode }) =>
   pipe(
     TE.tryCatch(
-      () => client.get(`${lollipopDataPrefix}${fiscalCode}`),
+      () => safeClient.get(`${lollipopDataPrefix}${fiscalCode}`),
       E.toError,
     ),
     TE.chain(
@@ -62,13 +64,15 @@ const getLollipopDataForUser: RTE.ReaderTaskEither<
   );
 
 const customMGet: RTE.ReaderTaskEither<
-  Dependencies & { keys: string[] },
+  FastRedisClientDependency & { keys: string[] },
   Error,
   Array<string | null>
-> = ({ keys, client }) =>
+> = ({ keys, fastClient }) =>
   pipe(
     keys,
-    A.map((singleKey) => TE.tryCatch(() => client.get(singleKey), E.toError)),
+    A.map((singleKey) =>
+      TE.tryCatch(() => fastClient.get(singleKey), E.toError),
+    ),
     A.sequence(TE.ApplicativePar),
   );
 
@@ -96,13 +100,13 @@ const parseUserSessionList = (userSessionTokensResult: ReadonlyArray<string>) =>
   );
 
 export const userHasActiveSessionsLegacy: RTE.ReaderTaskEither<
-  Dependencies & { fiscalCode: FiscalCode },
+  FastRedisClientDependency & { fiscalCode: FiscalCode },
   Error,
   boolean
-> = ({ client, fiscalCode }) =>
+> = ({ fastClient, fiscalCode }) =>
   pipe(
     TE.tryCatch(
-      () => client.sMembers(`${userSessionsSetKeyPrefix}${fiscalCode}`),
+      () => fastClient.sMembers(`${userSessionsSetKeyPrefix}${fiscalCode}`),
       E.toError,
     ),
     TE.chain(
@@ -117,8 +121,7 @@ export const userHasActiveSessionsLegacy: RTE.ReaderTaskEither<
         err === sessionNotFoundError ? TE.right(false as const) : TE.left(err),
       (userSessions) =>
         pipe(
-          customMGet({ client, keys: userSessions }),
-
+          customMGet({ fastClient, keys: userSessions }),
           TE.map((keys) =>
             parseUserSessionList(
               keys.filter<string>((key): key is string => key !== null),
@@ -133,7 +136,7 @@ export const userHasActiveSessionsLegacy: RTE.ReaderTaskEither<
                 () => TE.right(false as const),
                 () =>
                   pipe(
-                    customMGet({ client, keys: sessionsList }),
+                    customMGet({ fastClient, keys: sessionsList }),
                     // Skipping null values from the array
                     TE.map(A.filter((key): key is string => key !== null)),
                     TE.map((filteredList) => filteredList.length > 0),

@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as E from "fp-ts/lib/Either";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import {
   mockGet,
   mockRedisClient,
   mockSmembers,
 } from "../../__mocks__/repositories/redis.mock";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { RedisRepository, userHasActiveSessionsLegacy } from "../redis";
 import { LoginTypeEnum } from "../../utils/fast-login";
 import { AssertionRefSha256 } from "../../generated/internal/AssertionRefSha256";
@@ -13,6 +13,12 @@ import { AssertionRefSha256 } from "../../generated/internal/AssertionRefSha256"
 const aValidUser = {
   session_token: "sessiontoken-abc",
   fiscal_code: "abc" as FiscalCode,
+};
+
+const deps = {
+  safeClient: mockRedisClient,
+  fastClient: mockRedisClient,
+  fiscalCode: aValidUser.fiscal_code,
 };
 
 describe("Redis repository - userHasActiveSessionsLegacy", () => {
@@ -48,10 +54,8 @@ describe("Redis repository - userHasActiveSessionsLegacy", () => {
     );
     mockGet.mockImplementationOnce((_, __) => Promise.resolve(null));
 
-    const userHasActiveSessionsResult = await userHasActiveSessionsLegacy({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const userHasActiveSessionsResult =
+      await userHasActiveSessionsLegacy(deps)();
 
     expect(mockGet).toHaveBeenNthCalledWith(
       3,
@@ -92,10 +96,8 @@ describe("Redis repository - userHasActiveSessionsLegacy", () => {
     mockGet.mockImplementationOnce((_, __) => Promise.resolve(null));
     mockGet.mockImplementationOnce((_, __) => Promise.resolve(null));
 
-    const userHasActiveSessionsResult = await userHasActiveSessionsLegacy({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const userHasActiveSessionsResult =
+      await userHasActiveSessionsLegacy(deps)();
     expect(E.isRight(userHasActiveSessionsResult)).toBeTruthy();
     if (E.isRight(userHasActiveSessionsResult)) {
       expect(userHasActiveSessionsResult.right).toEqual(false);
@@ -105,10 +107,8 @@ describe("Redis repository - userHasActiveSessionsLegacy", () => {
   it("should return false if doens't exists any session info for the user", async () => {
     mockSmembers.mockImplementationOnce((_) => Promise.resolve([]));
 
-    const userHasActiveSessionsResult = await userHasActiveSessionsLegacy({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const userHasActiveSessionsResult =
+      await userHasActiveSessionsLegacy(deps)();
     expect(E.isRight(userHasActiveSessionsResult)).toBeTruthy();
     if (E.isRight(userHasActiveSessionsResult)) {
       expect(userHasActiveSessionsResult.right).toEqual(false);
@@ -126,10 +126,8 @@ describe("Redis repository - userHasActiveSessionsLegacy", () => {
     mockGet.mockImplementationOnce((_, __) => Promise.resolve(null));
     mockGet.mockImplementationOnce((_, __) => Promise.resolve(null));
 
-    const userHasActiveSessionsResult = await userHasActiveSessionsLegacy({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const userHasActiveSessionsResult =
+      await userHasActiveSessionsLegacy(deps)();
     expect(E.isRight(userHasActiveSessionsResult)).toBeTruthy();
     if (E.isRight(userHasActiveSessionsResult)) {
       expect(userHasActiveSessionsResult.right).toEqual(false);
@@ -149,10 +147,8 @@ describe("Redis repository - userHasActiveSessionsLegacy", () => {
       Promise.reject(expectedRedisError),
     );
 
-    const userHasActiveSessionsResult = await userHasActiveSessionsLegacy({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const userHasActiveSessionsResult =
+      await userHasActiveSessionsLegacy(deps)();
     expect(E.isRight(userHasActiveSessionsResult)).toBeFalsy();
     if (E.isRight(userHasActiveSessionsResult)) {
       expect(userHasActiveSessionsResult.right).toEqual(expectedRedisError);
@@ -166,10 +162,8 @@ describe("Redis repository - userHasActiveSessionsLegacy", () => {
       Promise.reject(expectedRedisError),
     );
 
-    const userHasActiveSessionsResult = await userHasActiveSessionsLegacy({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const userHasActiveSessionsResult =
+      await userHasActiveSessionsLegacy(deps)();
     expect(E.isRight(userHasActiveSessionsResult)).toBeFalsy();
     if (E.isRight(userHasActiveSessionsResult)) {
       expect(userHasActiveSessionsResult.right).toEqual(expectedRedisError);
@@ -209,10 +203,7 @@ describe("Redis repository - userHasActiveSessionsOrLV", () => {
       JSON.stringify(lvLollipopData),
     );
 
-    const result = await RedisRepository.userHasActiveSessionsOrLV({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const result = await RedisRepository.userHasActiveSessionsOrLV(deps)();
     expect(result).toEqual(E.right(true));
 
     expectOnlyLollipopDataIsRetrieved(aValidUser.fiscal_code);
@@ -233,10 +224,7 @@ describe("Redis repository - userHasActiveSessionsOrLV", () => {
     );
     mockGet.mockImplementationOnce(async (_, __) => JSON.stringify(aValidUser));
 
-    const result = await RedisRepository.userHasActiveSessionsOrLV({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const result = await RedisRepository.userHasActiveSessionsOrLV(deps)();
     expect(result).toEqual(E.right(true));
 
     expectLollipopDataAndSessionInfoAreRetrieved(
@@ -248,10 +236,7 @@ describe("Redis repository - userHasActiveSessionsOrLV", () => {
   it("should return false if no LollipopData was found", async () => {
     mockGet.mockImplementationOnce(async (_, __) => null);
 
-    const result = await RedisRepository.userHasActiveSessionsOrLV({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const result = await RedisRepository.userHasActiveSessionsOrLV(deps)();
     expect(result).toEqual(E.right(false));
 
     expectOnlyLollipopDataIsRetrieved(aValidUser.fiscal_code);
@@ -267,10 +252,7 @@ describe("Redis repository - userHasActiveSessionsOrLV", () => {
 
     mockGet.mockImplementationOnce(() => Promise.resolve(null));
 
-    const result = await RedisRepository.userHasActiveSessionsOrLV({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const result = await RedisRepository.userHasActiveSessionsOrLV(deps)();
     expect(result).toEqual(E.right(false));
 
     expectLollipopDataAndSessionInfoAreRetrieved(
@@ -285,10 +267,7 @@ describe("Redis repository - userHasActiveSessionsOrLV", () => {
     );
     mockSmembers.mockImplementationOnce(async (_) => []);
 
-    const result = await RedisRepository.userHasActiveSessionsOrLV({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const result = await RedisRepository.userHasActiveSessionsOrLV(deps)();
     expect(result).toEqual(E.right(false));
 
     expect(mockGet).toHaveBeenNthCalledWith(
@@ -306,10 +285,7 @@ describe("Redis repository - userHasActiveSessionsOrLV", () => {
       Promise.reject(expectedRedisError),
     );
 
-    const result = await RedisRepository.userHasActiveSessionsOrLV({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const result = await RedisRepository.userHasActiveSessionsOrLV(deps)();
     expect(result).toEqual(E.left(expectedRedisError));
   });
 
@@ -320,10 +296,7 @@ describe("Redis repository - userHasActiveSessionsOrLV", () => {
 
     mockSmembers.mockRejectedValueOnce(expectedRedisError);
 
-    const result = await RedisRepository.userHasActiveSessionsOrLV({
-      client: mockRedisClient,
-      fiscalCode: aValidUser.fiscal_code,
-    })();
+    const result = await RedisRepository.userHasActiveSessionsOrLV(deps)();
     expect(result).toEqual(E.left(expectedRedisError));
   });
 });

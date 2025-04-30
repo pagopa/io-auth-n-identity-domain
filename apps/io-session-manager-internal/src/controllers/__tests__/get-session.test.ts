@@ -3,7 +3,7 @@ import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as H from "@pagopa/handler-kit";
-import { RedisClientType } from "redis";
+import { RedisClusterType } from "redis";
 import { httpHandlerInputMocks } from "../__mocks__/handler.mock";
 import { makeGetSessionHandler } from "../get-session";
 import {
@@ -33,7 +33,8 @@ describe("GetSession handler", () => {
       SessionService: SessionServiceMock,
       // service is already mocked, no need to mock the repositories
       RedisRepository: {} as RedisRepository,
-      RedisClientTask: TE.of({} as RedisClientType),
+      SafeRedisClientTask: TE.of({} as RedisClusterType),
+      FastRedisClientTask: TE.of({} as RedisClusterType),
     })();
 
     expect(mockGetUserSession).toHaveBeenCalledTimes(1);
@@ -55,7 +56,8 @@ describe("GetSession handler", () => {
       SessionService: SessionServiceMock,
       // service is already mocked, no need to mock the repositories
       RedisRepository: {} as RedisRepository,
-      RedisClientTask: TE.of({} as RedisClientType),
+      SafeRedisClientTask: TE.of({} as RedisClusterType),
+      FastRedisClientTask: TE.of({} as RedisClusterType),
     })();
 
     expect(mockGetUserSession).toHaveBeenCalledTimes(0);
@@ -79,7 +81,8 @@ describe("GetSession handler", () => {
       SessionService: SessionServiceMock,
       // service is already mocked, no need to mock the repositories
       RedisRepository: {} as RedisRepository,
-      RedisClientTask: TE.of({} as RedisClientType),
+      SafeRedisClientTask: TE.of({} as RedisClusterType),
+      FastRedisClientTask: TE.of({} as RedisClusterType),
     })();
 
     expect(mockGetUserSession).toHaveBeenCalledTimes(1);
