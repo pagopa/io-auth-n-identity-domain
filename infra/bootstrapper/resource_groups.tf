@@ -77,14 +77,14 @@ resource "azurerm_resource_group" "data_itn_01" {
 
 resource "azurerm_resource_group" "session_manager_weu_01" {
   name     = "${local.prefix}-${local.env_short}-weu-session-manager-rg-01"
-  location = local.location
+  location = "westeurope"
 
   tags = local.tags
 }
 
 resource "azurerm_resource_group" "auth_data" {
   name     = "${local.prefix}-${local.env_short}-citizen-auth-data-rg"
-  location = local.location
+  location = "westeurope"
 
   tags = local.tags
 }

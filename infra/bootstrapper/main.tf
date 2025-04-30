@@ -82,15 +82,15 @@ data "azuread_group" "externals" {
   display_name = local.adgroups.externals_name
 }
 
-import {
-  to = module.repo.github_branch_default.main
-  id = "io-auth-n-identity-domain"
-}
+# import {
+#   to = module.repo.github_branch_default.main
+#   id = "io-auth-n-identity-domain"
+# }
 
-import {
-  to = module.repo.github_repository.this
-  id = "io-auth-n-identity-domain"
-}
+# import {
+#   to = module.repo.github_repository.this
+#   id = "io-auth-n-identity-domain"
+# }
 
 import {
   to = module.repo.github_repository_environment.opex_prod_cd
@@ -114,7 +114,7 @@ import {
 
 module "repo" {
   source  = "pagopa-dx/azure-github-environment-bootstrap/azurerm"
-  version = "~>1.0"
+  version = "~>2.0"
 
   environment = {
     prefix          = local.prefix
@@ -139,7 +139,7 @@ module "repo" {
     azurerm_resource_group.auth_itn_01.id,
     azurerm_resource_group.webprof_itn_01.id,
     azurerm_resource_group.data_itn_01.id,
-    azurerm_resource_group.session_manager_weu_01.id,
+    azurerm_resource_group.session_manager_weu_01.id, # problem
     azurerm_resource_group.auth_data.id,
     azurerm_resource_group.shared_itn_01.id,
     azurerm_resource_group.ioweb_common_weu.id,
