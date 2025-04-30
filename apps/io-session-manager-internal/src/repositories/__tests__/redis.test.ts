@@ -147,11 +147,16 @@ describe("Redis repository - userHasActiveSessionsLegacy", () => {
       Promise.reject(expectedRedisError),
     );
 
+    mockGet.mockImplementationOnce((_, __) =>
+      Promise.reject(expectedRedisError),
+    );
+
     const userHasActiveSessionsResult =
       await userHasActiveSessionsLegacy(deps)();
+
     expect(E.isRight(userHasActiveSessionsResult)).toBeFalsy();
-    if (E.isRight(userHasActiveSessionsResult)) {
-      expect(userHasActiveSessionsResult.right).toEqual(expectedRedisError);
+    if (E.isLeft(userHasActiveSessionsResult)) {
+      expect(userHasActiveSessionsResult.left).toEqual(expectedRedisError);
     }
   });
 
@@ -165,8 +170,8 @@ describe("Redis repository - userHasActiveSessionsLegacy", () => {
     const userHasActiveSessionsResult =
       await userHasActiveSessionsLegacy(deps)();
     expect(E.isRight(userHasActiveSessionsResult)).toBeFalsy();
-    if (E.isRight(userHasActiveSessionsResult)) {
-      expect(userHasActiveSessionsResult.right).toEqual(expectedRedisError);
+    if (E.isLeft(userHasActiveSessionsResult)) {
+      expect(userHasActiveSessionsResult.left).toEqual(expectedRedisError);
     }
   });
 });
