@@ -3,32 +3,40 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { RedisClientConfig } from "../utils/config";
 
-const createSimpleRedisClient = async (
+const createRedisClusterClient = async (
   redisUrl: string,
   password?: string,
   port?: string,
   enableTls: boolean = true,
-): Promise<redis.RedisClientType> => {
+  useReplicas: boolean = true,
+): Promise<redis.RedisClusterType> => {
   const DEFAULT_REDIS_PORT = enableTls ? "6380" : "6379";
   const prefixUrl = enableTls ? "rediss://" : "redis://";
   const completeRedisUrl = `${prefixUrl}${redisUrl}`;
 
   const redisPort: number = parseInt(port || DEFAULT_REDIS_PORT, 10);
 
-  const redisClient = redis.createClient<
+  const redisClient = redis.createCluster<
     Record<string, never>,
     Record<string, never>,
     Record<string, never>
   >({
-    legacyMode: false,
-    password,
-    socket: {
-      checkServerIdentity: (_hostname, _cert) => undefined,
-      keepAlive: 2000,
-      reconnectStrategy: (retries) => Math.min(retries * 100, 3000),
-      tls: enableTls,
+    defaults: {
+      legacyMode: false,
+      password,
+      socket: {
+        checkServerIdentity: (_hostname, _cert) => undefined,
+        keepAlive: 2000,
+        reconnectStrategy: (retries) => Math.min(retries * 100, 3000),
+        tls: enableTls,
+      },
     },
-    url: `${completeRedisUrl}:${redisPort}`,
+    rootNodes: [
+      {
+        url: `${completeRedisUrl}:${redisPort}`,
+      },
+    ],
+    useReplicas,
   });
   await redisClient.connect();
   return redisClient;
@@ -36,11 +44,11 @@ const createSimpleRedisClient = async (
 
 const CreateRedisClientTask: (
   config: RedisClientConfig,
-) => TE.TaskEither<Error, redis.RedisClientType> = (config) =>
+) => TE.TaskEither<Error, redis.RedisClusterType> = (config) =>
   pipe(
     TE.tryCatch(
       () =>
-        createSimpleRedisClient(
+        createRedisClusterClient(
           config.REDIS_URL,
           config.REDIS_PASSWORD,
           config.REDIS_PORT,
@@ -78,7 +86,7 @@ const CreateRedisClientTask: (
   );
 
 // eslint-disable-next-line functional/no-let
-let REDIS_CLIENT: redis.RedisClientType;
+let REDIS_CLIENT: redis.RedisClusterType;
 
 /**
  * Create a TaskEither that evaluate REDIS_CLIENT at runtime.
@@ -91,14 +99,14 @@ let REDIS_CLIENT: redis.RedisClientType;
  */
 export const CreateRedisClientSingleton = (
   config: RedisClientConfig,
-): TE.TaskEither<Error, redis.RedisClientType> =>
+): TE.TaskEither<Error, redis.RedisClusterType> =>
   pipe(
     TE.of(void 0),
     TE.chainW(() =>
       pipe(
         REDIS_CLIENT,
         TE.fromPredicate(
-          (maybeRedisClient): maybeRedisClient is redis.RedisClientType =>
+          (maybeRedisClient): maybeRedisClient is redis.RedisClusterType =>
             maybeRedisClient !== undefined,
           () => void 0, // Redis Client not yet instantiated
         ),

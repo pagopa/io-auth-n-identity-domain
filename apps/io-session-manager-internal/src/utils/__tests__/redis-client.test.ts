@@ -11,7 +11,7 @@ const { mockCreateClient } = vi.hoisted(() => ({
   })),
 }));
 vi.mock("redis", () => ({
-  createClient: mockCreateClient,
+  createCluster: mockCreateClient,
 }));
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";

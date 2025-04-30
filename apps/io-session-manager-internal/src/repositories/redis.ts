@@ -23,7 +23,7 @@ const sessionKeyPrefix = "SESSION-";
 
 export const sessionNotFoundError = new Error("Session not found");
 
-type Dependencies = { client: redisLib.RedisClientType };
+type Dependencies = { client: redisLib.RedisClusterType };
 
 const getLollipopDataForUser: RTE.ReaderTaskEither<
   Dependencies & { fiscalCode: FiscalCode },

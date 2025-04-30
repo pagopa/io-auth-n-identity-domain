@@ -9,7 +9,7 @@ import { RedisRepository } from "../repositories/redis";
 import { UserSessionInfo } from "../generated/internal/UserSessionInfo";
 
 export type SessionServiceDeps = {
-  RedisClientTask: TE.TaskEither<Error, redisLib.RedisClientType>;
+  RedisClientTask: TE.TaskEither<Error, redisLib.RedisClusterType>;
   RedisRepository: RedisRepository;
 };
 
