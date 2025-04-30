@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.1.1
+
+### Patch Changes
+
+- 8ad70c2: Minor refactor
+
 ## 0.1.0
 
 ### Minor Changes
