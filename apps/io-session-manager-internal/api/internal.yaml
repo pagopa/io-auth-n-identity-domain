@@ -20,13 +20,56 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApplicationInfo"
         "500":
-          description: Internal Server error
+          description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-
+  /sessions/{fiscalCode}:
+    get:
+      operationId: getSession
+      summary: Get available user info from session
+      description: |-
+        Use this operation if you want to known the state of user session
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSessionInfo"
+              example:
+                "active": true
+        "400":
+          description: Bad request
+        "401":
+          description: Token null or invalid.
+        "404":
+          description: User not found.
+        "429":
+          description: Throttling.
+        "500":
+          description: There was an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
 components:
+  parameters:
+    FiscalCode:
+      name: fiscalCode
+      in: path
+      required: true
+      description: The fiscal code of the user, all in upper case.
+      schema:
+        type: string
+        maxLength: 16
+        minLength: 16
+        pattern: >-
+          [A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]
+        x-example: SPNDNL80R13C555X
   schemas:
     ApplicationInfo:
       type: object
@@ -41,4 +84,54 @@ components:
         - name
         - version
     ProblemJson:
-        $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.22.0/openapi/definitions.yaml#/ProblemJson"
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.22.0/openapi/definitions.yaml#/ProblemJson"
+    UserSessionInfo:
+      type: object
+      properties:
+        active:
+          type: boolean
+      required:
+        - active
+    SessionsList:
+      description: Contains all active sessions for an authenticated user.
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: "#/components/schemas/SessionInfo"
+      required:
+        - sessions
+    SessionInfo:
+      type: object
+      title: Session info of a user
+      description: Decribe a session of an authenticated user.
+      properties:
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        sessionToken:
+          type: string
+      required:
+        - createdAt
+        - sessionToken
+    Timestamp:
+      type: string
+      format: UTCISODateFromString
+      description: A date-time field in ISO-8601 format and UTC timezone.
+      x-import: "@pagopa/ts-commons/lib/dates"
+      example: "2018-10-13T00:00:00.000Z"
+    # AssertionRef possible inputs
+    AssertionRefSha256:
+      type: string
+      pattern: ^(sha256-[A-Za-z0-9-_=]{1,44})$
+    AssertionRefSha384:
+      type: string
+      pattern: ^(sha384-[A-Za-z0-9-_=]{1,66})$
+    AssertionRefSha512:
+      type: string
+      pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
+    AssertionRef:
+      oneOf:
+        - $ref: "#/components/schemas/AssertionRefSha512"
+        - $ref: "#/components/schemas/AssertionRefSha384"
+        - $ref: "#/components/schemas/AssertionRefSha256"

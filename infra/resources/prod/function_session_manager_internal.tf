@@ -4,6 +4,14 @@ locals {
     app_settings = {
       NODE_ENV = "production"
 
+      # Redis Config
+      REDIS_URL         = data.azurerm_redis_cache.redis_common.hostname
+      REDIS_PORT        = data.azurerm_redis_cache.redis_common.ssl_port
+      REDIS_PASSWORD    = data.azurerm_redis_cache.redis_common.primary_access_key
+      REDIS_TLS_ENABLED = "true"
+
+      APPINSIGHTS_REDIS_TRACE_ENABLED = "true"
+
       // Keepalive fields are all optionals
       FETCH_KEEPALIVE_ENABLED             = "true"
       FETCH_KEEPALIVE_SOCKET_ACTIVE_TTL   = "110000"

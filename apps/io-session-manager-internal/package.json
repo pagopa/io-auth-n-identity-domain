@@ -29,12 +29,14 @@
     "@pagopa/handler-kit-azure-func": "^2.0.7",
     "@pagopa/io-functions-commons": "^29.1.0",
     "@pagopa/ts-commons": "^13.1.1",
+    "@redis/client": "1.4.2",
     "applicationinsights": "^2.9.5",
     "fp-ts": "^2.16.9",
     "io-ts": "^2.2.22",
     "io-ts-types": "^0.5.16",
     "monocle-ts": "^2.3.13",
-    "newtype-ts": "^0.3.5"
+    "newtype-ts": "^0.3.5",
+    "redis": "~4.5.1"
   },
   "devDependencies": {
     "@pagopa/eslint-config": "^3.0.0",
