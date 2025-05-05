@@ -12,7 +12,7 @@ import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import {
   LollipopData,
   NullableBackendAssertionRefFromString,
-} from "../utils/lollipop";
+} from "../types/lollipop";
 import { LoginTypeEnum } from "../types/fast-login";
 import { SessionInfo } from "../generated/definitions/internal/SessionInfo";
 import { SessionsList } from "../generated/definitions/internal/SessionsList";
