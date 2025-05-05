@@ -10,7 +10,7 @@ import {
   SessionService,
   SessionServiceDeps,
 } from "../services/session-service";
-import { RequiredPathParamMiddleware } from "../utils/middlewares/request";
+import { RequiredPathParamMiddleware } from "../utils/middlewares/required-path-param";
 import { errorToHttpError } from "../utils/errors";
 
 type Dependencies = {
