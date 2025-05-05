@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.2.0
+
+### Minor Changes
+
+- f69221d: Introduced GetSession endpoint
+
 ## 0.1.1
 
 ### Patch Changes
