@@ -9,6 +9,7 @@ import { initTelemetryClient } from "../utils/appinsights";
 import { InfoFunction } from "./info";
 import { GetSessionFunction } from "./get-session";
 
+const v1BasePath = "api/v1";
 const config = getConfigOrThrow();
 
 const appInsightsTelemetryClient = initTelemetryClient();
@@ -30,7 +31,7 @@ app.http("Info", {
   authLevel: "anonymous",
   handler: InfoFunction({ InfoService, Package }),
   methods: ["GET"],
-  route: "api/v1/info",
+  route: `${v1BasePath}/info`,
 });
 
 app.http("GetSession", {
@@ -42,5 +43,5 @@ app.http("GetSession", {
     RedisRepository,
   }),
   methods: ["GET"],
-  route: "api/v1/sessions/{fiscalCode}",
+  route: `${v1BasePath}/sessions/{fiscalCode}`,
 });
