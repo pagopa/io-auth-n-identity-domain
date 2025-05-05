@@ -10,6 +10,7 @@ export default defineConfig({
         "*.js",
         "**/generated",
         "src/controllers/main.ts",
+        "src/utils/config.ts",
       ],
       reporter: ["lcov", "text"],
     },
