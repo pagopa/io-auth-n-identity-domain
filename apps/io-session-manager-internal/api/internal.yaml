@@ -56,6 +56,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
+  /auth/{fiscalCode}/lock:
+    post:
+      operationId: authLock
+      description: |-
+        Locks the user for the IO app.
+        This is intended to use with ioweb-profile lock functionality.
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthLockBody"
+      responses:
+        "204":
+          description: Lock created.
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Token null or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "409":
+          description: The user lock has been already created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "500":
+          description: There was an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
 components:
   parameters:
     FiscalCode:
@@ -135,3 +176,13 @@ components:
         - $ref: "#/components/schemas/AssertionRefSha512"
         - $ref: "#/components/schemas/AssertionRefSha384"
         - $ref: "#/components/schemas/AssertionRefSha256"
+    UnlockCode:
+      type: string
+      pattern: ^\\d{9}$
+    AuthLockBody:
+      type: object
+      properties:
+        unlock_code:
+          $ref: "#/components/schemas/UnlockCode"
+      required:
+        - unlock_code
