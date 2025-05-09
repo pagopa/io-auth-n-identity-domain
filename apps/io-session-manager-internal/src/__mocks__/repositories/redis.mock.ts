@@ -1,14 +1,27 @@
+import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import { vi } from "vitest";
 import * as redisLib from "redis";
 import { RedisRepository } from "../../repositories/redis";
+import { anAssertionRef } from "../user.mock";
 
 export const mockUserHasActiveSessionsOrLV = vi
   .fn()
   .mockReturnValue(TE.right(true));
 
+export const mockDelLollipopDataForUser = vi
+  .fn()
+  .mockReturnValue(TE.right(true));
+export const mockDelUserAllSessions = vi.fn().mockReturnValue(TE.right(true));
+export const mockGetLollipopAssertionRefForUser = vi
+  .fn()
+  .mockReturnValue(TE.right(O.some(anAssertionRef)));
+
 export const RedisRepositoryMock: RedisRepository = {
   userHasActiveSessionsOrLV: mockUserHasActiveSessionsOrLV,
+  delLollipopDataForUser: mockDelLollipopDataForUser,
+  delUserAllSessions: mockDelUserAllSessions,
+  getLollipopAssertionRefForUser: mockGetLollipopAssertionRefForUser,
 };
 
 export const mockGet = vi.fn();
