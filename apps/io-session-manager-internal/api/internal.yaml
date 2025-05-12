@@ -8,6 +8,8 @@ info:
     Documentation of the IO Session Manager Internal API here.
 servers:
   - url: https://io-p-weu-auth-sm-int-func-01.azurewebsites.net/api/v1
+security:
+  - ApiKeyAuth: []
 paths:
   /info:
     get:
@@ -64,6 +66,7 @@ paths:
         This is intended to use with ioweb-profile lock functionality.
       parameters:
         - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/Token"
       requestBody:
         required: true
         content:
@@ -98,6 +101,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
 components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Functions-Key
   parameters:
     FiscalCode:
       name: fiscalCode
@@ -111,6 +119,15 @@ components:
         pattern: >-
           [A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]
         x-example: SPNDNL80R13C555X
+    Token:
+      name: token
+      in: query
+      schema:
+        type: string
+      required: false
+      description: |-
+        The API key used to access io-backend session endpoints.
+        This is intended to be removed after initial rollout
   schemas:
     ApplicationInfo:
       type: object
