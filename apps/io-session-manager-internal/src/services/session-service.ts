@@ -11,7 +11,7 @@ import { QueueClient } from "@azure/storage-queue";
 import { RedisRepository } from "../repositories/redis";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
-import { SessionLockRepository } from "../repositories/session-lock";
+import { AuthLockRepository } from "../repositories/auth-lock";
 import {
   ConflictError,
   GenericError,
@@ -114,7 +114,7 @@ const clearInstallation: (
   );
 
 export type LockUserAuthenticationDeps = RedisDeps & {
-  SessionLockRepository: SessionLockRepository;
+  AuthLockRepository: AuthLockRepository;
   AuthenticationLockTableClient: TableClient;
   LollipopRepository: LollipopRepository;
   RevokeAssertionRefQueueClient: QueueClient;
@@ -140,7 +140,7 @@ const lockUserAuthentication: (
     ),
     TE.chainW(({ FastRedisClient, SafeRedisClient }) =>
       pipe(
-        deps.SessionLockRepository.isUserAuthenticationLocked(fiscalCode)(deps),
+        deps.AuthLockRepository.isUserAuthenticationLocked(fiscalCode)(deps),
         TE.mapLeft((e) => toGenericError(e.message)),
         TE.filterOrElseW(
           (isUserAuthenticationLocked) => !isUserAuthenticationLocked,
@@ -159,7 +159,7 @@ const lockUserAuthentication: (
               // for allowing allow the FE to retry the call in case of failure.
               clearInstallation(fiscalCode)(deps),
               // if clean up went well, lock user session
-              deps.SessionLockRepository.lockUserAuthentication(
+              deps.AuthLockRepository.lockUserAuthentication(
                 fiscalCode,
                 unlockCode,
               )(deps),

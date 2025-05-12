@@ -8,7 +8,7 @@ import { getConfigOrThrow } from "../utils/config";
 import { SessionService } from "../services/session-service";
 import { RedisRepository } from "../repositories/redis";
 import { initTelemetryClient } from "../utils/appinsights";
-import { SessionLockRepository } from "../repositories/session-lock";
+import { AuthLockRepository } from "../repositories/auth-lock";
 import { InstallationRepository } from "../repositories/installation";
 import { LollipopRepository } from "../repositories/lollipop";
 import { InfoFunction } from "./info";
@@ -74,7 +74,7 @@ app.http("AuthLock", {
     SafeRedisClientTask: safeRedisClientTask,
     SessionService,
     RedisRepository,
-    SessionLockRepository,
+    AuthLockRepository,
     InstallationRepository,
     LollipopRepository,
     NotificationQueueClient,

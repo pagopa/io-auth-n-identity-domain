@@ -1,7 +1,7 @@
 import { CreateTableEntityResponse, TableClient } from "@azure/data-tables";
 import { vi } from "vitest";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { NotReleasedAuthenticationLockData } from "../repositories/session-lock";
+import { NotReleasedAuthenticationLockData } from "../repositories/auth-lock";
 import { aFiscalCode, anUnlockCode } from "./user.mock";
 
 export const mockListEntities = vi

@@ -15,10 +15,10 @@ import {
 } from "../../__mocks__/repositories/redis.mock";
 import { SessionService } from "../session-service";
 import {
-  SessionLockRepositoryMock,
+  AuthLockRepositoryMock,
   mockIsUserAuthenticationLocked,
   mockLockUserAuthentication,
-} from "../../__mocks__/repositories/session-lock.mock";
+} from "../../__mocks__/repositories/auth-lock.mock";
 import { LollipopRepositoryMock } from "../../__mocks__/repositories/lollipop.mock";
 import {
   InstallationRepositoryMock,
@@ -73,7 +73,7 @@ describe("Session Service#lockUserAuthentication", () => {
     SafeRedisClientTask: RedisClientTaskMock,
     RedisRepository: RedisRepositoryMock,
 
-    SessionLockRepository: SessionLockRepositoryMock,
+    AuthLockRepository: AuthLockRepositoryMock,
     AuthenticationLockTableClient: {} as TableClient,
     LollipopRepository: LollipopRepositoryMock,
     RevokeAssertionRefQueueClient: {} as QueueClient,

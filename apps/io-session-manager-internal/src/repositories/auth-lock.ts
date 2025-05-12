@@ -78,8 +78,8 @@ const lockUserAuthentication: (
       TE.map(() => true as const),
     );
 
-export type SessionLockRepository = typeof SessionLockRepository;
-export const SessionLockRepository = {
+export type AuthLockRepository = typeof AuthLockRepository;
+export const AuthLockRepository = {
   getUserAuthenticationLocks,
   isUserAuthenticationLocked,
   lockUserAuthentication,

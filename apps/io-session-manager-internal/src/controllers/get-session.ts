@@ -8,7 +8,6 @@ import { sequenceS } from "fp-ts/lib/Apply";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import {
   GetUserSessionDeps,
-  LockUserAuthenticationDeps,
   SessionService,
 } from "../services/session-service";
 import { RequiredPathParamMiddleware } from "../utils/middlewares/required-path-param";

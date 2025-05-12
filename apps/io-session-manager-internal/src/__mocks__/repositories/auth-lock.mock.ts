@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
-import { SessionLockRepository } from "../../repositories/session-lock";
+import { AuthLockRepository } from "../../repositories/auth-lock";
 import { aNotReleasedData } from "../table-client.mock";
 
 export const mockGetUserAuthenticationLocks = vi
@@ -13,7 +13,7 @@ export const mockIsUserAuthenticationLocked = vi
   .fn()
   .mockReturnValue(RTE.right(false));
 
-export const SessionLockRepositoryMock: SessionLockRepository = {
+export const AuthLockRepositoryMock: AuthLockRepository = {
   getUserAuthenticationLocks: mockGetUserAuthenticationLocks,
   lockUserAuthentication: mockLockUserAuthentication,
   isUserAuthenticationLocked: mockIsUserAuthenticationLocked,

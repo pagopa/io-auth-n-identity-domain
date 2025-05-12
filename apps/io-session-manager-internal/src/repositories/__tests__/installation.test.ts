@@ -1,5 +1,4 @@
 import { describe, beforeEach, vi, it, expect } from "vitest";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import {

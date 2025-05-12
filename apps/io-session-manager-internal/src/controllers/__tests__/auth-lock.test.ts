@@ -10,7 +10,7 @@ import {
   mockLockUserAuthentication,
 } from "../../__mocks__/services/session-service.mock";
 import { RedisRepository } from "../../repositories/redis";
-import { SessionLockRepository } from "../../repositories/session-lock";
+import { AuthLockRepository } from "../../repositories/auth-lock";
 import { mockQueueClient } from "../../__mocks__/queue-client.mock";
 import { LollipopRepository } from "../../repositories/lollipop";
 import { InstallationRepository } from "../../repositories/installation";
@@ -27,7 +27,7 @@ const mockedDependencies = {
   RedisRepository: {} as RedisRepository,
   SafeRedisClientTask: TE.of({} as RedisClusterType),
   FastRedisClientTask: TE.of({} as RedisClusterType),
-  SessionLockRepository: {} as SessionLockRepository,
+  AuthLockRepository: {} as AuthLockRepository,
   AuthenticationLockTableClient: mockTableClient,
   LollipopRepository: {} as LollipopRepository,
   RevokeAssertionRefQueueClient: mockQueueClient,

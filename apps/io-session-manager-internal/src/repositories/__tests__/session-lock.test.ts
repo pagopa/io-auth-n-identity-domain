@@ -26,8 +26,8 @@ import {
 } from "../../__mocks__/user.mock";
 import {
   NotReleasedAuthenticationLockData,
-  SessionLockRepository,
-} from "../session-lock";
+  AuthLockRepository,
+} from "../auth-lock";
 import { UnlockCode } from "../../generated/definitions/internal/UnlockCode";
 
 const mockedDependencies = { AuthenticationLockTableClient: mockTableClient };
@@ -56,7 +56,7 @@ describe("Session lock repository#isUserAuthenticationLocked", () => {
     );
 
     const result =
-      await SessionLockRepository.isUserAuthenticationLocked(aFiscalCode)(
+      await AuthLockRepository.isUserAuthenticationLocked(aFiscalCode)(
         mockedDependencies,
       )();
 
@@ -68,7 +68,7 @@ describe("Session lock repository#isUserAuthenticationLocked", () => {
     mockListEntities.mockImplementationOnce(() => getLockedProfileIterator([]));
 
     const result =
-      await SessionLockRepository.isUserAuthenticationLocked(aFiscalCode)(
+      await AuthLockRepository.isUserAuthenticationLocked(aFiscalCode)(
         mockedDependencies,
       )();
 
@@ -88,7 +88,7 @@ describe("Session lock repository#isUserAuthenticationLocked", () => {
     );
 
     const result =
-      await SessionLockRepository.isUserAuthenticationLocked(aFiscalCode)(
+      await AuthLockRepository.isUserAuthenticationLocked(aFiscalCode)(
         mockedDependencies,
       )();
 
@@ -107,7 +107,7 @@ describe("LockProfileRepo#lockUserAuthentication", () => {
   });
 
   it("should return true if CF-unlockcode has been stored sucessfully in table storage", async () => {
-    const result = await SessionLockRepository.lockUserAuthentication(
+    const result = await AuthLockRepository.lockUserAuthentication(
       aFiscalCode,
       anUnlockCode,
     )(mockedDependencies)();
@@ -124,7 +124,7 @@ describe("LockProfileRepo#lockUserAuthentication", () => {
     mockCreateEntity.mockRejectedValueOnce(
       new RestError("Conflict", { statusCode: 409 }),
     );
-    const result = await SessionLockRepository.lockUserAuthentication(
+    const result = await AuthLockRepository.lockUserAuthentication(
       aFiscalCode,
       anUnlockCode,
     )(mockedDependencies)();
@@ -138,7 +138,7 @@ describe("LockProfileRepo#lockUserAuthentication", () => {
     mockCreateEntity.mockRejectedValueOnce(
       new RestError("Another Error", { statusCode: 418 }),
     );
-    const result = await SessionLockRepository.lockUserAuthentication(
+    const result = await AuthLockRepository.lockUserAuthentication(
       aFiscalCode,
       anUnlockCode,
     )(mockedDependencies)();
@@ -156,7 +156,7 @@ describe("AuthenticationLockService#getUserAuthenticationLocks", () => {
 
   it("should return an empty array if query returns no records from table storage", async () => {
     const result =
-      await SessionLockRepository.getUserAuthenticationLocks(aFiscalCode)(
+      await AuthLockRepository.getUserAuthenticationLocks(aFiscalCode)(
         mockedDependencies,
       )();
 
@@ -180,7 +180,7 @@ describe("AuthenticationLockService#getUserAuthenticationLocks", () => {
       );
 
       const result =
-        await SessionLockRepository.getUserAuthenticationLocks(aFiscalCode)(
+        await AuthLockRepository.getUserAuthenticationLocks(aFiscalCode)(
           mockedDependencies,
         )();
 
@@ -192,7 +192,7 @@ describe("AuthenticationLockService#getUserAuthenticationLocks", () => {
     mockListEntities.mockImplementationOnce(errorProfileLockedRecordIterator);
 
     const result =
-      await SessionLockRepository.getUserAuthenticationLocks(aFiscalCode)(
+      await AuthLockRepository.getUserAuthenticationLocks(aFiscalCode)(
         mockedDependencies,
       )();
 
@@ -205,7 +205,7 @@ describe("AuthenticationLockService#getUserAuthenticationLocks", () => {
     );
 
     const result =
-      await SessionLockRepository.getUserAuthenticationLocks(aFiscalCode)(
+      await AuthLockRepository.getUserAuthenticationLocks(aFiscalCode)(
         mockedDependencies,
       )();
 
