@@ -31,7 +31,7 @@ const lockUserAuthentication: (
       fiscalCode,
       authLockBody.unlock_code,
     )(deps),
-    TE.map(() => H.withStatusCode(204)(H.success(null))),
+    TE.map(() => H.empty),
     TE.mapLeft((error) => {
       switch (error.kind) {
         case DomainErrorTypes.GENERIC_ERROR:

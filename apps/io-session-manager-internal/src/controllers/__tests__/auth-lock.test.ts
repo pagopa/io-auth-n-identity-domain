@@ -58,9 +58,7 @@ describe("Auth Lock Handler", () => {
       ...mockedDependencies,
     })();
 
-    expect(result).toMatchObject(
-      E.right(H.withStatusCode(204)(H.success(null))),
-    );
+    expect(result).toMatchObject(E.right(H.empty));
   });
 
   it.each`
