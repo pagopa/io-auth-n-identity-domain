@@ -1,19 +1,22 @@
 import { app } from "@azure/functions";
 import { TableClient } from "@azure/data-tables";
 import { QueueClient } from "@azure/storage-queue";
-import { InfoService } from "../services/info";
-import { Package } from "../repositories/package";
 import { CreateRedisClientSingleton } from "../utils/redis-client";
-import { getConfigOrThrow } from "../utils/config";
-import { SessionService } from "../services/session-service";
-import { RedisRepository } from "../repositories/redis";
 import { initTelemetryClient } from "../utils/appinsights";
+import { getConfigOrThrow } from "../utils/config";
 import { AuthLockRepository } from "../repositories/auth-lock";
 import { InstallationRepository } from "../repositories/installation";
 import { LollipopRepository } from "../repositories/lollipop";
+import { Package } from "../repositories/package";
+import { RedisRepository } from "../repositories/redis";
+import { BlockedUsersRedisRepository } from "../repositories/blocked-users-redis";
+import { InfoService } from "../services/info";
+import { SessionService } from "../services/session-service";
+import { BlockedUsersService } from "../services/blocked-users-service";
 import { InfoFunction } from "./info";
 import { GetSessionFunction } from "./get-session";
 import { AuthLockFunction } from "./auth-lock";
+import { UnlockUserSessionFunction } from "./unlock-user-session";
 
 const v1BasePath = "api/v1";
 const config = getConfigOrThrow();
@@ -83,4 +86,16 @@ app.http("AuthLock", {
   }),
   methods: ["POST"],
   route: `${v1BasePath}/auth/{fiscalCode}/lock`,
+});
+
+app.http("UnlockUserSession", {
+  authLevel: "function",
+  handler: UnlockUserSessionFunction({
+    blockedUsersService: BlockedUsersService,
+    blockedUserRedisRepository: BlockedUsersRedisRepository,
+    fastRedisClientTask,
+    safeRedisClientTask,
+  }),
+  methods: ["DELETE"],
+  route: `${v1BasePath}/sessions/{fiscalCode}/lock`,
 });

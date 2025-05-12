@@ -100,6 +100,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
+  /sessions/{fiscalCode}/lock:
+    delete:
+      summary: Remove a lock to a user session
+      description: Use this operation if you want to unblock a user and re-allow to
+        login. The operation succeed if the user wasn't blocked
+      operationId: unlockUserSession
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/Token"
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: ok
+        "400":
+          description: Bad request
+          content: {}
+        "401":
+          description: Token null or invalid.
+          content: {}
+        "500":
+          description: There was an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -150,6 +180,11 @@ components:
           type: boolean
       required:
         - active
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
     SessionsList:
       description: Contains all active sessions for an authenticated user.
       type: object
