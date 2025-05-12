@@ -133,17 +133,7 @@ export const userHasActiveSessionsLegacy: RTE.ReaderTaskEither<
   boolean
 > = ({ fastClient, fiscalCode }) =>
   pipe(
-    TE.tryCatch(
-      () => fastClient.sMembers(`${userSessionsSetKeyPrefix}${fiscalCode}`),
-      E.toError,
-    ),
-    TE.chain(
-      TE.fromPredicate(
-        (res): res is NonEmptyArray<string> =>
-          Array.isArray(res) && res.length > 0,
-        () => sessionNotFoundError,
-      ),
-    ),
+    readSessionInfoKeys({ fiscalCode, fastClient }),
     TE.fold(
       (err) =>
         pipe(
@@ -155,7 +145,7 @@ export const userHasActiveSessionsLegacy: RTE.ReaderTaskEither<
         ),
       (userSessions) =>
         pipe(
-          customMGet({ fastClient, keys: userSessions }),
+          customMGet({ fastClient, keys: userSessions as string[] }),
           TE.map((keys) =>
             parseUserSessionList(
               keys.filter<string>((key): key is string => key !== null),
@@ -294,11 +284,6 @@ const getUserTokens = (
   },
 });
 
-const singleStringReplyAsync = (command: TE.TaskEither<Error, string | null>) =>
-  pipe(
-    command,
-    TE.map((reply) => reply === "OK"),
-  );
 const integerReplyAsync =
   (expectedReply?: number) =>
   (command: TE.TaskEither<Error, unknown>): TE.TaskEither<Error, boolean> =>
