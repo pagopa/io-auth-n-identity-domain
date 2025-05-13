@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.3.0
+
+### Minor Changes
+
+- 4e6084a: Ported AuthLock endpoint from io-backend
+
 ## 0.2.0
 
 ### Minor Changes
