@@ -1,10 +1,13 @@
 import { AzureFunction, Context } from "@azure/functions";
+import { Either } from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/function";
+import * as A from "fp-ts/Array";
+import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
-import { Either } from "fp-ts/lib/Either";
 import * as AI from "../utils/async-iterable-task";
 import {
   SessionExpirationRepository,
@@ -21,20 +24,25 @@ const processPage = (
   page: ReadonlyArray<Either<unknown, SessionExpiration>>
 ): TE.TaskEither<Error, void> => {
   const [rights, lefts] = [RA.rights(page), RA.lefts(page)];
+
   if (rights.length > 0) {
     console.log("Processing session expiration:", rights.length);
   }
+
   if (lefts.length > 0) {
-    console.error("Error decoding session expiration:", lefts.length);
-    lefts.forEach((left, i) => {
-      console.error(`Error decoding session expiration at index ${i}:`, left);
-    });
     return TE.left(
       new Error(
         `Error decoding session expiration: ${lefts.length} errors found`
       )
     );
   }
+
+  if (rights.length < 100) {
+    console.log("Forcing error");
+    return TE.left(new Error(`Forcing error`));
+  }
+
+  console.log("OK");
   return TE.right(void 0);
 };
 
@@ -46,31 +54,44 @@ export const processExpirations: (
   pipe(
     sessionExpirationRepository.findByExpirationDate(interval)(deps),
     TE.map(AI.fromAsyncIterable),
-    TE.map(AI.map(page => processPage(page))),
-    TE.chain(ait => TE.fromTask(AI.run(ait))),
-    // Simply print the end of the process
-    TE.map(_ => {
-      console.log("Processing expired sessions completed");
-      return void 0;
-    })
+    TE.map(AI.map(processPage)),
+    // Use reduceTaskEither to collect all results
+    TE.chain(
+      AI.reduceTaskEither(
+        err => err as Error,
+        [] as Array<Either<Error, void>>,
+        async (acc, taskEither) => {
+          const result = await taskEither();
+          return [...acc, result];
+        }
+      )
+    ),
+
+    TE.chain(results =>
+      pipe(
+        A.findFirst(E.isLeft)(results),
+        O.fold(
+          () => TE.right(void 0),
+          o => TE.left(o.left)
+        )
+      )
+    )
   );
 
 export const ExpiredSessionsScannerFunction = (
   deps: FunctionDependencies
-): AzureFunction => async (context: Context, _timer: unknown) =>
-  pipe(
+): AzureFunction => async (context: Context, _timer: unknown) => {
+  await pipe(
     processExpirations({
       from: new Date(1746992583924),
       to: new Date(1746992883924)
-      // from: new Date(Date.now() - 1000 * 60 * 60 * 24),
-      // to: new Date(Date.now())
     })(deps),
     TE.fold(
       error => {
         context.log.error(
           `Error processing expired sessions: ${error.message}`
         );
-        throw error;
+        return T.of(undefined);
       },
       () => {
         context.log("Expired sessions scan completed.");
@@ -78,3 +99,4 @@ export const ExpiredSessionsScannerFunction = (
       }
     )
   )();
+};
