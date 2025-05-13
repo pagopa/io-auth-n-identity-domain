@@ -86,17 +86,14 @@ export const ExpiredSessionsScannerFunction = (
       from: new Date(1746992583924),
       to: new Date(1746992883924)
     })(deps),
-    TE.fold(
+    TE.match(
       error => {
         context.log.error(
-          `Error processing expired sessions: ${error.message}`
+          `(Retry number: ${context.executionContext.retryContext?.retryCount ?? 'undefined'}) Error processing expired sessions on run number : ${error.message}`
         );
-        return T.of(undefined);
+        throw error;
       },
-      () => {
-        context.log("Expired sessions scan completed.");
-        return T.of(undefined);
-      }
+      () => context.log("Expired sessions scan completed.")
     )
   )();
 };
