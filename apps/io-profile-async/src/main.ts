@@ -31,6 +31,9 @@ import { OnProfileUpdateFunctionInput } from "./types/on-profile-update-input-do
 import { ProfileEmailRepository, ProfileRepository } from "./repositories";
 import { StoreSpidLogsFunction } from "./functions/store-spid-logs";
 import { StoreSpidLogsQueueMessage } from "./types/store-spid-logs-queue-message";
+import { ExpiredSessionsScannerFunction } from "./functions/expired-sessions-scanner";
+import { SessionExpirationRepository } from "./repositories/session-expiration";
+import { SessionExpirationModel } from "./models/session-expiration-model";
 
 const config = getConfigOrThrow();
 
@@ -64,6 +67,10 @@ const profileModel = new ProfileModel(
 
 const dataTableProfileEmailsRepository = new DataTableProfileEmailsRepository(
   profileEmailTableClient
+);
+
+const sessionExpirationModel = new SessionExpirationModel(
+  database.container(config.SESSION_EXPIRATION_CONTAINER_NAME)
 );
 
 export const Info = InfoFunction({
@@ -111,4 +118,9 @@ export const StoreSpidLogs = StoreSpidLogsFunction({
   spidLogsPublicKey: config.SPID_LOGS_PUBLIC_KEY,
   tracker,
   telemetryClient
+});
+
+export const ExpiredSessionsScanner = ExpiredSessionsScannerFunction({
+  sessionExpirationRepository: SessionExpirationRepository,
+  sessionExpirationModel
 });

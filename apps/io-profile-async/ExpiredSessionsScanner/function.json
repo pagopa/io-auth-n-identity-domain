@@ -1,0 +1,13 @@
+{
+  "bindings": [
+    {
+      "name": "expiredSessionsScannerTimer",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "0 0 7 * * *",
+      "runOnStartup": true
+    }
+  ],
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "ExpiredSessionsScanner"
+}
