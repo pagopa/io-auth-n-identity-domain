@@ -6,6 +6,11 @@ export const mockGetUserSession = vi
   .fn()
   .mockReturnValue(RTE.right({ active: true }));
 
+export const mockLockUserAuthentication = vi
+  .fn()
+  .mockReturnValue(RTE.right(null));
+
 export const SessionServiceMock: SessionService = {
   getUserSession: mockGetUserSession,
+  lockUserAuthentication: mockLockUserAuthentication,
 };

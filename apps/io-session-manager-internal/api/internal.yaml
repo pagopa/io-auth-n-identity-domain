@@ -8,6 +8,8 @@ info:
     Documentation of the IO Session Manager Internal API here.
 servers:
   - url: https://io-p-weu-auth-sm-int-func-01.azurewebsites.net/api/v1
+security:
+  - ApiKeyAuth: []
 paths:
   /info:
     get:
@@ -56,7 +58,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
+  /auth/{fiscalCode}/lock:
+    post:
+      operationId: authLock
+      description: |-
+        Locks the user for the IO app.
+        This is intended to use with ioweb-profile lock functionality.
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/Token"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthLockBody"
+      responses:
+        "204":
+          description: Lock created.
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Token null or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "409":
+          description: The user lock has been already created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "500":
+          description: There was an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
 components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Functions-Key
   parameters:
     FiscalCode:
       name: fiscalCode
@@ -70,6 +119,15 @@ components:
         pattern: >-
           [A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]
         x-example: SPNDNL80R13C555X
+    Token:
+      name: token
+      in: query
+      schema:
+        type: string
+      required: false
+      description: |-
+        The API key used to access io-backend session endpoints.
+        This is intended to be removed after initial rollout
   schemas:
     ApplicationInfo:
       type: object
@@ -135,3 +193,13 @@ components:
         - $ref: "#/components/schemas/AssertionRefSha512"
         - $ref: "#/components/schemas/AssertionRefSha384"
         - $ref: "#/components/schemas/AssertionRefSha256"
+    UnlockCode:
+      type: string
+      pattern: ^\d{9}$
+    AuthLockBody:
+      type: object
+      properties:
+        unlock_code:
+          $ref: "#/components/schemas/UnlockCode"
+      required:
+        - unlock_code
