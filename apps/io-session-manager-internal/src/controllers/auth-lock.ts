@@ -37,7 +37,7 @@ const lockUserAuthentication: (
         case DomainErrorTypes.GENERIC_ERROR:
           return new H.HttpError(error.causedBy?.message);
         case DomainErrorTypes.CONFLICT:
-          return new H.HttpConflictError();
+          return new H.HttpConflictError(error.causedBy?.message);
       }
     }),
   );

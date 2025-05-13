@@ -17,7 +17,7 @@ import { InstallationRepository } from "../../repositories/installation";
 import { mockTableClient } from "../../__mocks__/table-client.mock";
 import { httpHandlerInputMocks } from "../__mocks__/handler.mock";
 import { UnlockCode } from "../../generated/definitions/internal/UnlockCode";
-import { conflictError, toGenericError } from "../../utils/errors";
+import { toConflictError, toGenericError } from "../../utils/errors";
 
 const aFiscalCode = "SPNDNL80R13C555X";
 
@@ -81,7 +81,9 @@ describe("Auth Lock Handler", () => {
       ...mockedDependencies,
     })();
 
-    expect(result).toMatchObject(E.right({ body: { status: 400 } }));
+    expect(result).toMatchObject(
+      E.right({ body: { status: 400, title: "Missing or invalid body" } }),
+    );
   });
 
   it("should return Bad request on invalid path param", async () => {
@@ -99,7 +101,11 @@ describe("Auth Lock Handler", () => {
       ...mockedDependencies,
     })();
 
-    expect(result).toMatchObject(E.right({ body: { status: 400 } }));
+    expect(result).toMatchObject(
+      E.right({
+        body: { status: 400, title: `Invalid "fiscalCode" supplied` },
+      }),
+    );
   });
 
   it("should return Error internal coherent with service response", async () => {
@@ -121,7 +127,9 @@ describe("Auth Lock Handler", () => {
     })();
 
     expect(mockLockUserAuthentication).toHaveBeenCalledTimes(1);
-    expect(result).toMatchObject(E.right({ body: { status: 500 } }));
+    expect(result).toMatchObject(
+      E.right({ body: { status: 500, title: "ERROR" } }),
+    );
   });
 
   it("should return Conflict error coherent with service response", async () => {
@@ -132,7 +140,9 @@ describe("Auth Lock Handler", () => {
       },
       body: aValidPayload,
     };
-    mockLockUserAuthentication.mockReturnValueOnce(RTE.left(conflictError));
+    mockLockUserAuthentication.mockReturnValueOnce(
+      RTE.left(toConflictError("ERROR")),
+    );
 
     const result = await makeAuthLockHandler({
       ...httpHandlerInputMocks,
@@ -141,6 +151,8 @@ describe("Auth Lock Handler", () => {
     })();
 
     expect(mockLockUserAuthentication).toHaveBeenCalledTimes(1);
-    expect(result).toMatchObject(E.right({ body: { status: 409 } }));
+    expect(result).toMatchObject(
+      E.right({ body: { status: 409, title: "ERROR" } }),
+    );
   });
 });

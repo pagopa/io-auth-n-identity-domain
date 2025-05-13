@@ -67,10 +67,10 @@ export const formatError: FormatError = {
   kind: DomainErrorTypes.FORMAT_ERROR,
 };
 
-export const conflictError: ConflictError = {
-  causedBy: undefined,
+export const toConflictError = (msg?: string): ConflictError => ({
+  causedBy: msg ? new Error(msg) : undefined,
   kind: DomainErrorTypes.CONFLICT,
-};
+});
 
 export const toNotFoundError = (
   entityType: string,

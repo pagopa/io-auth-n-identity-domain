@@ -25,7 +25,7 @@ import {
   mockDeleteInstallation,
 } from "../../__mocks__/repositories/installation.mock";
 import { anUnlockCode } from "../../__mocks__/user.mock";
-import { conflictError, toGenericError } from "../../utils/errors";
+import { toConflictError, toGenericError } from "../../utils/errors";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 
@@ -106,9 +106,11 @@ describe("Session Service#lockUserAuthentication", () => {
     expect(result).toEqual(E.left(expectedError));
   });
 
-  it("should fail when the lock cant be retrieved", async () => {
+  it("should fail when the lock can't be retrieved", async () => {
     const anError = Error("ERROR");
-    const expectedError = toGenericError(anError.message);
+    const expectedError = toGenericError(
+      "Something went wrong while checking the user authentication lock",
+    );
     mockIsUserAuthenticationLocked.mockReturnValueOnce(RTE.left(anError));
     const result = await SessionService.lockUserAuthentication(
       aFiscalCode,
@@ -121,7 +123,9 @@ describe("Session Service#lockUserAuthentication", () => {
   });
 
   it("should fail and return conflict when a lock is already present", async () => {
-    const expectedError = conflictError;
+    const expectedError = toConflictError(
+      "Another user authentication lock has already been applied",
+    );
     mockIsUserAuthenticationLocked.mockReturnValueOnce(RTE.right(true));
     const result = await SessionService.lockUserAuthentication(
       aFiscalCode,

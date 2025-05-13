@@ -315,14 +315,11 @@ describe("Redis repository#getLollipopAssertionRefForUser", () => {
 
   it("should success and return an assertionRef", async () => {
     mockGet.mockImplementationOnce((_) => Promise.resolve(anAssertionRef));
-    await pipe(
-      RedisRepository.getLollipopAssertionRefForUser(deps),
-      TE.map((result) => expect(result).toEqual(O.some(anAssertionRef))),
-      TE.mapLeft((err) => expect(err).toBeFalsy()),
-    )();
+    const result = await RedisRepository.getLollipopAssertionRefForUser(deps)();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toBeCalledWith(`KEYS-${anUser.fiscal_code}`);
+    expect(result).toEqual(E.right(O.some(anAssertionRef)));
   });
 
   it("should success and return an assertionRef, if data is stored in new format", async () => {
@@ -331,51 +328,43 @@ describe("Redis repository#getLollipopAssertionRefForUser", () => {
         JSON.stringify({ a: anAssertionRef, t: LoginTypeEnum.LEGACY }),
       ),
     );
-    await pipe(
-      RedisRepository.getLollipopAssertionRefForUser(deps),
-      TE.map((result) => expect(result).toEqual(O.some(anAssertionRef))),
-      TE.mapLeft((err) => expect(err).toBeFalsy()),
-    )();
+    const result = await RedisRepository.getLollipopAssertionRefForUser(deps)();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toBeCalledWith(`KEYS-${anUser.fiscal_code}`);
+    expect(result).toEqual(E.right(O.some(anAssertionRef)));
   });
 
   it("should success and return none if assertionRef is missing", async () => {
     mockGet.mockImplementationOnce((_) => Promise.resolve(null));
-    await pipe(
-      RedisRepository.getLollipopAssertionRefForUser(deps),
-      TE.map((result) => expect(result).toEqual(O.none)),
-      TE.mapLeft((err) => expect(err).toBeFalsy()),
-    )();
+    const result = await RedisRepository.getLollipopAssertionRefForUser(deps)();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toBeCalledWith(`KEYS-${anUser.fiscal_code}`);
+    expect(result).toEqual(E.right(O.none));
   });
 
   it("should fail with a left response if an error occurs on redis", async () => {
     const expectedError = new Error("redis Error");
     mockGet.mockImplementationOnce((_) => Promise.reject(expectedError));
-    await pipe(
-      RedisRepository.getLollipopAssertionRefForUser(deps),
-      TE.map((result) => expect(result).toBeFalsy()),
-      TE.mapLeft((err) => expect(err).toEqual(expectedError)),
-    )();
+    const result = await RedisRepository.getLollipopAssertionRefForUser(deps)();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toBeCalledWith(`KEYS-${anUser.fiscal_code}`);
+    expect(result).toEqual(E.left(expectedError));
   });
 
   it("should fail with a left response if the value stored is invalid", async () => {
     mockGet.mockImplementationOnce((_) => Promise.resolve("an invalid value"));
-    await pipe(
-      RedisRepository.getLollipopAssertionRefForUser(deps),
-      TE.map((result) => expect(result).toBeFalsy()),
-      TE.mapLeft((err) => expect(err).toBeTruthy()),
-    )();
+    const result = await RedisRepository.getLollipopAssertionRefForUser(deps)();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toBeCalledWith(`KEYS-${anUser.fiscal_code}`);
+    expect(result).toMatchObject({
+      left: {
+        message: expect.stringContaining("is not a valid"),
+      },
+    });
   });
 });
 
@@ -386,36 +375,24 @@ describe("RedisSessionStorage#delLollipopDataForUser", () => {
 
   it("should success and return true if one element if removed", async () => {
     mockDel.mockResolvedValueOnce(1);
-    const result = await pipe(
-      RedisRepository.delLollipopDataForUser(deps),
-      TE.map((value) => {
-        expect(value).toEqual(true);
-      }),
-    )();
-    expect(E.isRight(result)).toBeTruthy();
+    const result = await RedisRepository.delLollipopDataForUser(deps)();
+
+    expect(result).toEqual(E.right(true));
   });
 
   it("should return an error if delete rise an error", async () => {
     const expectedError = new Error("redis error");
     mockDel.mockRejectedValueOnce(expectedError);
-    const result = await pipe(
-      RedisRepository.delLollipopDataForUser(deps),
-      TE.mapLeft((value) => {
-        expect(value).toEqual(expectedError);
-      }),
-    )();
-    expect(E.isLeft(result)).toBeTruthy();
+    const result = await RedisRepository.delLollipopDataForUser(deps)();
+
+    expect(result).toEqual(E.left(expectedError));
   });
 
   it("should return success if the delete operation doesn't found any document to delete", async () => {
     mockDel.mockResolvedValueOnce(0);
-    const result = await pipe(
-      RedisRepository.delLollipopDataForUser(deps),
-      TE.map((value) => {
-        expect(value).toEqual(true);
-      }),
-    )();
-    expect(E.isRight(result)).toBeTruthy();
+    const result = await RedisRepository.delLollipopDataForUser(deps)();
+
+    expect(result).toEqual(E.right(true));
   });
 });
 
@@ -429,10 +406,7 @@ describe("Redis repository#delUserAllSessions", () => {
     mockDel.mockResolvedValueOnce(1);
     const result = await RedisRepository.delUserAllSessions(deps)();
 
-    expect(E.isRight(result)).toBeTruthy();
-    if (E.isRight(result)) {
-      expect(result.right).toBe(true);
-    }
+    expect(result).toEqual(E.right(true));
   });
 
   it("should fail if there's an error retrieving user's sessions", async () => {
@@ -440,10 +414,7 @@ describe("Redis repository#delUserAllSessions", () => {
     mockSmembers.mockImplementationOnce((_) => Promise.reject(aError));
     const result = await RedisRepository.delUserAllSessions(deps)();
 
-    expect(E.isLeft(result)).toBeTruthy();
-    if (E.isLeft(result)) {
-      expect(result.left).toBe(aError);
-    }
+    expect(result).toEqual(E.left(aError));
   });
 
   it("should fail if the stored user profile is not valid", async () => {
@@ -454,10 +425,11 @@ describe("Redis repository#delUserAllSessions", () => {
     const result = await RedisRepository.delUserAllSessions(deps)();
 
     expect(mockGet).toHaveBeenCalledTimes(1);
-    expect(E.isLeft(result)).toBeTruthy();
-    if (E.isLeft(result)) {
-      expect(result.left instanceof Error).toBe(true);
-    }
+    expect(result).toMatchObject({
+      left: {
+        message: expect.stringContaining("is not valid JSON"),
+      },
+    });
   });
 
   it("should succeed if there's no user stored", async () => {
@@ -468,9 +440,7 @@ describe("Redis repository#delUserAllSessions", () => {
     const result = await RedisRepository.delUserAllSessions(deps)();
 
     expect(E.isRight(result)).toBeTruthy();
-    if (E.isRight(result)) {
-      expect(result.right).toBe(true);
-    }
+    expect(result).toEqual(E.right(true));
   });
 
   it("should succeed if everything is fine", async () => {
@@ -483,9 +453,6 @@ describe("Redis repository#delUserAllSessions", () => {
     const result = await RedisRepository.delUserAllSessions(deps)();
 
     expect(mockDel).toHaveBeenCalledTimes(8);
-    expect(E.isRight(result)).toBeTruthy();
-    if (E.isRight(result)) {
-      expect(result.right).toBe(true);
-    }
+    expect(result).toEqual(E.right(true));
   });
 });

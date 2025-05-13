@@ -15,7 +15,7 @@ import { AuthLockRepository } from "../repositories/auth-lock";
 import {
   ConflictError,
   GenericError,
-  conflictError,
+  toConflictError,
   toGenericError,
 } from "../utils/errors";
 import { LollipopRepository } from "../repositories/lollipop";
@@ -141,10 +141,17 @@ const lockUserAuthentication: (
     TE.chainW(({ FastRedisClient, SafeRedisClient }) =>
       pipe(
         deps.AuthLockRepository.isUserAuthenticationLocked(fiscalCode)(deps),
-        TE.mapLeft((e) => toGenericError(e.message)),
+        TE.mapLeft((_) =>
+          toGenericError(
+            "Something went wrong while checking the user authentication lock",
+          ),
+        ),
         TE.filterOrElseW(
           (isUserAuthenticationLocked) => !isUserAuthenticationLocked,
-          () => conflictError,
+          () =>
+            toConflictError(
+              "Another user authentication lock has already been applied",
+            ),
         ),
         TE.chainW(() =>
           pipe(
