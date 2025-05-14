@@ -28,6 +28,10 @@ services:
         condition: service_started
       storage:
         condition: service_started
+      io-profile:
+        condition: service_started
+      io-lollipop:
+        condition: service_started
     networks:
       - io-fn
 

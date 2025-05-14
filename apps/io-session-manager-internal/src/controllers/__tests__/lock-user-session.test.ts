@@ -11,12 +11,12 @@ import { LollipopRepository } from "../../repositories/lollipop";
 import { BlockedUsersRedisRepository } from "../../repositories/blocked-users-redis";
 import { RedisRepository } from "../../repositories/redis";
 
-import { makeUnlockUserSessionHandler } from "../unlock-user-session";
+import { makeLockUserSessionHandler } from "../lock-user-session";
 
 import { httpHandlerInputMocks } from "../__mocks__/handler.mock";
 import {
   BlockedUsersServiceMock,
-  mockUnlockUserSession,
+  mockLockUserSession,
 } from "../../__mocks__/services/blocked-users-service.mock";
 
 const aFiscalCode = "SPNDNL80R13C555X";
@@ -41,18 +41,18 @@ const aValidRequest = {
   },
 };
 
-describe("UnlockUserSession handler", () => {
+describe("LockUserSession handler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("should succeed if a session is found", async () => {
-    const result = await makeUnlockUserSessionHandler({
+  it("should succeed with a valid request", async () => {
+    const result = await makeLockUserSessionHandler({
       ...dependenciesMock,
       input: aValidRequest,
     })();
 
-    expect(mockUnlockUserSession).toHaveBeenCalledTimes(1);
+    expect(mockLockUserSession).toHaveBeenCalledTimes(1);
 
     expect(result).toEqual(E.right(H.successJson({ message: "ok" })));
   });
@@ -65,21 +65,21 @@ describe("UnlockUserSession handler", () => {
       },
     };
 
-    const result = await makeUnlockUserSessionHandler({
+    const result = await makeLockUserSessionHandler({
       ...dependenciesMock,
       input: req,
     })();
 
-    expect(mockUnlockUserSession).toHaveBeenCalledTimes(0);
+    expect(mockLockUserSession).toHaveBeenCalledTimes(0);
 
     expect(result).toMatchObject(E.right({ body: { status: 400 } }));
   });
 
-  it("should fail if SessionService fails", async () => {
+  it("should return Internal Server Error if an error occurred locking the user session", async () => {
     const errorMessage = "An error";
-    mockUnlockUserSession.mockReturnValueOnce(RTE.left(Error(errorMessage)));
+    mockLockUserSession.mockReturnValueOnce(RTE.left(Error(errorMessage)));
 
-    const result = await makeUnlockUserSessionHandler({
+    const result = await makeLockUserSessionHandler({
       ...dependenciesMock,
       input: aValidRequest,
     })();

@@ -36,10 +36,23 @@ const unsetBlockedUser: (
       ),
     );
 
+const setBlockedUser: (
+  fiscalCode: FiscalCode,
+) => RTE.ReaderTaskEither<Dependencies, Error, true> =
+  (fiscalCode) =>
+  ({ fastClient }) =>
+    pipe(
+      TE.tryCatch(
+        () => fastClient.sAdd(blockedUserSetKey, fiscalCode),
+        E.toError,
+      ),
+      TE.map<number, true>((_) => true),
+    );
+
 // -----------------------
 // Exports
 // -----------------------
 
 export type BlockedUserRedisDependencies = Dependencies;
 export type BlockedUsersRedisRepository = typeof BlockedUsersRedisRepository;
-export const BlockedUsersRedisRepository = { unsetBlockedUser };
+export const BlockedUsersRedisRepository = { setBlockedUser, unsetBlockedUser };

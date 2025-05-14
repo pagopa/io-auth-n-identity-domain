@@ -50,7 +50,7 @@ const getUserSession: (
       ),
     );
 
-const invalidateUserSession: (fiscalCode: FiscalCode) => Reader<
+const invalidateUserSession: (fiscalCode: FiscalCode) => RTE.ReaderTaskEither<
   {
     SafeRedisClient: redisLib.RedisClusterType;
     FastRedisClient: redisLib.RedisClusterType;
@@ -58,42 +58,43 @@ const invalidateUserSession: (fiscalCode: FiscalCode) => Reader<
     LockUserAuthenticationDeps,
     "RedisRepository" | "LollipopRepository" | "RevokeAssertionRefQueueClient"
   >,
-  [
-    TE.TaskEither<Error, boolean>,
-    TE.TaskEither<Error, boolean>,
-    TE.TaskEither<Error, true>,
-  ]
+  Error,
+  true
 > = (fiscalCode) => (deps) =>
-  [
-    pipe(
-      // retrieve the assertionRef for the user
-      deps.RedisRepository.getLollipopAssertionRefForUser({
-        safeClient: deps.SafeRedisClient,
-        fiscalCode,
-      }),
-      TE.chainW(
-        flow(
-          O.map((assertionRef) =>
-            deps.LollipopRepository.fireAndForgetRevokeAssertionRef(
-              assertionRef,
-            )(deps),
+  pipe(
+    AP.sequenceT(TE.ApplicativeSeq)(
+      // revoke pubkey
+      pipe(
+        // retrieve the assertionRef for the user
+        deps.RedisRepository.getLollipopAssertionRefForUser({
+          safeClient: deps.SafeRedisClient,
+          fiscalCode,
+        }),
+        TE.chainW(
+          flow(
+            O.map((assertionRef) =>
+              deps.LollipopRepository.fireAndForgetRevokeAssertionRef(
+                assertionRef,
+              )(deps),
+            ),
+            // continue if there's no assertionRef on redis
+            O.getOrElseW(() => TE.of(true as const)),
           ),
-          // continue if there's no assertionRef on redis
-          O.getOrElseW(() => TE.of(true)),
         ),
       ),
+      // delete the assertionRef for the user
+      deps.RedisRepository.delLollipopDataForUser({
+        fastClient: deps.FastRedisClient,
+        fiscalCode,
+      }),
+      // removes all sessions
+      deps.RedisRepository.delUserAllSessions({
+        fastClient: deps.FastRedisClient,
+        fiscalCode,
+      }),
     ),
-    // delete the assertionRef for the user
-    deps.RedisRepository.delLollipopDataForUser({
-      fastClient: deps.FastRedisClient,
-      fiscalCode,
-    }),
-    // removes all sessions
-    deps.RedisRepository.delUserAllSessions({
-      fastClient: deps.FastRedisClient,
-      fiscalCode,
-    }),
-  ] as const;
+    TE.map(() => true),
+  );
 
 const clearInstallation: (
   fiscalCode: FiscalCode,
@@ -157,7 +158,7 @@ const lockUserAuthentication: (
           pipe(
             AP.sequenceT(TE.ApplicativeSeq)(
               // clear session data
-              ...invalidateUserSession(fiscalCode)({
+              invalidateUserSession(fiscalCode)({
                 ...deps,
                 FastRedisClient,
                 SafeRedisClient,
@@ -180,4 +181,8 @@ const lockUserAuthentication: (
   );
 
 export type SessionService = typeof SessionService;
-export const SessionService = { getUserSession, lockUserAuthentication };
+export const SessionService = {
+  invalidateUserSession,
+  getUserSession,
+  lockUserAuthentication,
+};
