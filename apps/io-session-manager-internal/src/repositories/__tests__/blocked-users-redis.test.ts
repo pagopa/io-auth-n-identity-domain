@@ -13,7 +13,6 @@ import {
 export const aFiscalCode = "AAAAAA89S20I111X" as FiscalCode;
 
 const deps = {
-  safeClient: mockRedisClient,
   fastClient: mockRedisClient,
 };
 

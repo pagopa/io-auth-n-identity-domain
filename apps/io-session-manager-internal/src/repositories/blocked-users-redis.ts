@@ -10,8 +10,7 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { falsyResponseToErrorAsync, integerReplyAsync } from "./redis";
 
 type FastRedisClientDependency = { fastClient: redisLib.RedisClusterType };
-type SafeRedisClientDependency = { safeClient: redisLib.RedisClusterType };
-type Dependencies = FastRedisClientDependency & SafeRedisClientDependency;
+type Dependencies = FastRedisClientDependency;
 
 const blockedUserSetKey = "BLOCKEDUSERS";
 
