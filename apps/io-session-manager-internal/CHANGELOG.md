@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.4.0
+
+### Minor Changes
+
+- a8e0ba9: Expose `unlockUserSession` endpoint
+
 ## 0.3.0
 
 ### Minor Changes
