@@ -17,6 +17,7 @@ import { InfoFunction } from "./info";
 import { GetSessionFunction } from "./get-session";
 import { AuthLockFunction } from "./auth-lock";
 import { UnlockUserSessionFunction } from "./unlock-user-session";
+import { LockUserSessionFunction } from "./lock-user-session";
 
 const v1BasePath = "api/v1";
 const config = getConfigOrThrow();
@@ -88,14 +89,27 @@ app.http("AuthLock", {
   route: `${v1BasePath}/auth/{fiscalCode}/lock`,
 });
 
+const blockedUserServiceDeps = {
+  blockedUsersService: BlockedUsersService,
+  blockedUserRedisRepository: BlockedUsersRedisRepository,
+  fastRedisClientTask,
+  safeRedisClientTask,
+  sessionService: SessionService,
+  lollipopRepository: LollipopRepository,
+  redisRepository: RedisRepository,
+  RevokeAssertionRefQueueClient,
+};
+
+app.http("LockUserSession", {
+  authLevel: "function",
+  handler: LockUserSessionFunction(blockedUserServiceDeps),
+  methods: ["POST"],
+  route: `${v1BasePath}/sessions/{fiscalCode}/lock`,
+});
+
 app.http("UnlockUserSession", {
   authLevel: "function",
-  handler: UnlockUserSessionFunction({
-    blockedUsersService: BlockedUsersService,
-    blockedUserRedisRepository: BlockedUsersRedisRepository,
-    fastRedisClientTask,
-    safeRedisClientTask,
-  }),
+  handler: UnlockUserSessionFunction(blockedUserServiceDeps),
   methods: ["DELETE"],
   route: `${v1BasePath}/sessions/{fiscalCode}/lock`,
 });
