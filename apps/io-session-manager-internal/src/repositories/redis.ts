@@ -284,27 +284,6 @@ const getUserTokens = (
   },
 });
 
-const integerReplyAsync =
-  (expectedReply?: number) =>
-  (command: TE.TaskEither<Error, unknown>): TE.TaskEither<Error, boolean> =>
-    pipe(
-      command,
-      TE.chain((reply) => {
-        if (expectedReply !== undefined && expectedReply !== reply) {
-          return TE.right(false);
-        }
-        return TE.right(isNumber(reply));
-      }),
-    );
-
-const falsyResponseToErrorAsync =
-  (error: Error) =>
-  (response: TE.TaskEither<Error, boolean>): TE.TaskEither<Error, true> =>
-    pipe(
-      response,
-      TE.chain((_) => (_ ? TE.right(_) : TE.left(error))),
-    );
-
 const deleteUser: RTE.ReaderTaskEither<
   FastRedisClientDependency & { user: User },
   Error,
@@ -433,6 +412,35 @@ const delUserAllSessions: RTE.ReaderTaskEither<
     TE.chain(() => delSessionsSet(deps)),
   );
 };
+
+// -----------------------
+// Utilities
+// -----------------------
+
+export const integerReplyAsync =
+  (expectedReply?: number) =>
+  (command: TE.TaskEither<Error, unknown>): TE.TaskEither<Error, boolean> =>
+    pipe(
+      command,
+      TE.chain((reply) => {
+        if (expectedReply !== undefined && expectedReply !== reply) {
+          return TE.right(false);
+        }
+        return TE.right(isNumber(reply));
+      }),
+    );
+
+export const falsyResponseToErrorAsync =
+  (error: Error) =>
+  (response: TE.TaskEither<Error, boolean>): TE.TaskEither<Error, true> =>
+    pipe(
+      response,
+      TE.chain((_) => (_ ? TE.right(_) : TE.left(error))),
+    );
+
+// -----------------------
+// Exports
+// -----------------------
 
 export type RedisRepository = typeof RedisRepository;
 export const RedisRepository = {
