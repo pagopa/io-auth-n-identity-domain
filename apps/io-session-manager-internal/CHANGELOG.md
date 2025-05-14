@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.5.0
+
+### Minor Changes
+
+- e1ab55b: Expose `lockUserSession` endpoint
+
 ## 0.4.0
 
 ### Minor Changes
