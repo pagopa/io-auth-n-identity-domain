@@ -65,6 +65,7 @@ const invalidateUserSession: (fiscalCode: FiscalCode) => Reader<
   ]
 > = (fiscalCode) => (deps) =>
   [
+    // revoke pubkey
     pipe(
       // retrieve the assertionRef for the user
       deps.RedisRepository.getLollipopAssertionRefForUser({
@@ -180,4 +181,8 @@ const lockUserAuthentication: (
   );
 
 export type SessionService = typeof SessionService;
-export const SessionService = { getUserSession, lockUserAuthentication };
+export const SessionService = {
+  invalidateUserSession,
+  getUserSession,
+  lockUserAuthentication,
+};

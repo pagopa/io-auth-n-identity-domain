@@ -8,7 +8,7 @@ import { Reader } from "fp-ts/lib/Reader";
 import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
 import { base64EncodeObject } from "../utils/encoding";
 
-type Dependencies = {
+export type Dependencies = {
   RevokeAssertionRefQueueClient: QueueClient;
 };
 
