@@ -16,7 +16,11 @@ export const SESSION_EXPIRATION_ROW_KEY_FIELD = "expirationDate";
 export const SessionExpiration = t.type({
   // TODO: remove t.string
   id: t.union([FiscalCode, t.string]),
-  expirationDate: DateFromTimestamp
+  expirationDate: DateFromTimestamp,
+  notificationEvents: t.partial({
+    EXPIRED_SESSION: t.boolean,
+    EXPIRING_SESSION: t.boolean
+  })
 });
 
 export type SessionExpiration = t.TypeOf<typeof SessionExpiration>;

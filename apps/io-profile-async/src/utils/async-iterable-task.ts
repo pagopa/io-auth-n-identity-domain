@@ -62,7 +62,7 @@ export const fold = <A>(fa: AsyncIterableTask<A>): T.Task<ReadonlyArray<A>> =>
 /**
  * Process an AsyncIterableTask that can fail and return either an error or an array of results
  */
-export const foldTaskEither = <E, A>(onError: (err: unknown) => E) => (
+export const foldTaskEither = <E, A>(p0: (error: Error) => void, p1: unknown, onError: (err: unknown) => E) => (
   fa: AsyncIterableTask<A>
 ): TE.TaskEither<E, ReadonlyArray<A>> =>
   pipe(

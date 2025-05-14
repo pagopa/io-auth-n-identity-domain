@@ -1,4 +1,6 @@
 import { CosmosClient } from "@azure/cosmos";
+import { QueueClient } from "@azure/storage-queue";
+
 import { getMailerTransporter } from "@pagopa/io-functions-commons/dist/src/mailer";
 import {
   SERVICE_PREFERENCES_COLLECTION_NAME,
@@ -38,6 +40,11 @@ import { SessionExpirationModel } from "./models/session-expiration-model";
 const config = getConfigOrThrow();
 
 const telemetryClient = initTelemetryClient();
+
+const queueClient = new QueueClient(
+  config.AZURE_STORAGE_CONNECTION_STRING,
+  config.EXPIRED_SESSION_ADVISOR_QUEUE
+);
 
 const cosmosClient = new CosmosClient(config.COSMOSDB_CONNECTION_STRING);
 const database = cosmosClient.database(config.COSMOSDB_NAME);
@@ -121,6 +128,9 @@ export const StoreSpidLogs = StoreSpidLogsFunction({
 });
 
 export const ExpiredSessionsScanner = ExpiredSessionsScannerFunction({
-  sessionExpirationRepository: SessionExpirationRepository,
-  sessionExpirationModel
+  SessionExpirationRepository,
+  TrackerRepository: tracker,
+  QueueClient: queueClient,
+  sessionExpirationModel,
+  telemetryClient
 });

@@ -1,6 +1,8 @@
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
+import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import {
   SESSION_EXPIRATION_ROW_KEY_FIELD,
   SessionExpiration,
@@ -18,7 +20,7 @@ export type Dependencies = {
  * @param interval The interval to search for
  * @returns A TaskEither that resolves to an array of all session expiration documents within the interval
  */
-const findByExpirationDate: (
+const findByExpirationDateAsyncIterable: (
   interval: Interval
 ) => RTE.ReaderTaskEither<
   Dependencies,
@@ -46,7 +48,26 @@ const findByExpirationDate: (
     )
   );
 
+/**
+ * Updates notification events for a session expiration document.
+ *
+ * @param fiscalCode The fiscal code of the user
+ * @param notificationEvents The notification events to update
+ * @returns A TaskEither that resolves to the updated session expiration document
+ * */
+export const updateNotificationEvents: (
+  fiscalCode: FiscalCode | string,
+  notificationEvents: Partial<SessionExpiration["notificationEvents"]>
+) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, SessionExpiration> = (
+  fiscalCode,
+  notificationEvents
+) => deps =>
+  deps.sessionExpirationModel.patch([fiscalCode], {
+    notificationEvents
+  });
+
 export type SessionExpirationRepository = typeof SessionExpirationRepository;
 export const SessionExpirationRepository = {
-  findByExpirationDate
+  findByExpirationDateAsyncIterable,
+  updateNotificationEvents
 };
