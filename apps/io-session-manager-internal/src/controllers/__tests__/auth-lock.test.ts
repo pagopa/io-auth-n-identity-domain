@@ -4,10 +4,11 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
 import { RedisClusterType } from "redis";
 import * as H from "@pagopa/handler-kit";
-import { makeAuthLockHandler } from "../auth-lock";
+import { makeAuthLockHandler, makeReleaseAuthLockHandler } from "../auth-lock";
 import {
   SessionServiceMock,
   mockLockUserAuthentication,
+  mockUnlockUserAuthentication,
 } from "../../__mocks__/services/session-service.mock";
 import { RedisRepository } from "../../repositories/redis";
 import { AuthLockRepository } from "../../repositories/auth-lock";
@@ -17,7 +18,11 @@ import { InstallationRepository } from "../../repositories/installation";
 import { mockTableClient } from "../../__mocks__/table-client.mock";
 import { httpHandlerInputMocks } from "../__mocks__/handler.mock";
 import { UnlockCode } from "../../generated/definitions/internal/UnlockCode";
-import { toConflictError, toGenericError } from "../../utils/errors";
+import {
+  forbiddenError,
+  toConflictError,
+  toGenericError,
+} from "../../utils/errors";
 
 const aFiscalCode = "SPNDNL80R13C555X";
 
@@ -154,5 +159,68 @@ describe("Auth Lock Handler", () => {
     expect(result).toMatchObject(
       E.right({ body: { status: 409, title: "ERROR" } }),
     );
+  });
+});
+
+describe("Release Auth Lock Handler", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should succeed releasing a user authentication lock", async () => {
+    const req = {
+      ...H.request("mockUrl"),
+      path: {
+        fiscalCode: aFiscalCode,
+      },
+      body: {},
+    };
+    const result = await makeReleaseAuthLockHandler({
+      ...httpHandlerInputMocks,
+      input: req,
+      ...mockedDependencies,
+    })();
+
+    expect(mockUnlockUserAuthentication).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject(E.right(H.empty));
+  });
+
+  it("should fail on invalid request", async () => {
+    const req = {
+      ...H.request("mockUrl"),
+      path: {
+        fiscalCode: "invalid",
+      },
+    };
+    const result = await makeReleaseAuthLockHandler({
+      ...httpHandlerInputMocks,
+      input: req,
+      ...mockedDependencies,
+    })();
+
+    expect(result).toMatchObject(E.right({ body: { status: 400 } }));
+  });
+
+  it.each`
+    scenario       | value                      | status
+    ${"generic"}   | ${toGenericError("ERROR")} | ${500}
+    ${"forbidden"} | ${forbiddenError}          | ${403}
+  `("should fail on service $scenario error", async ({ value, status }) => {
+    const req = {
+      ...H.request("mockUrl"),
+      path: {
+        fiscalCode: aFiscalCode,
+      },
+      body: {},
+    };
+
+    mockUnlockUserAuthentication.mockReturnValueOnce(RTE.left(value));
+    const result = await makeReleaseAuthLockHandler({
+      ...httpHandlerInputMocks,
+      input: req,
+      ...mockedDependencies,
+    })();
+
+    expect(result).toMatchObject(E.right({ body: { status } }));
   });
 });

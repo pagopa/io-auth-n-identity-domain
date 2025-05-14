@@ -21,11 +21,9 @@ import {
   ConflictError,
   ForbiddenError,
   GenericError,
-  UnauthorizedError,
   forbiddenError,
   toConflictError,
   toGenericError,
-  unauthorizedError,
 } from "../utils/errors";
 import { LollipopRepository } from "../repositories/lollipop";
 import { InstallationRepository } from "../repositories/installation";

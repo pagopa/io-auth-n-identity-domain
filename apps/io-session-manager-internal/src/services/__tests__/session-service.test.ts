@@ -16,16 +16,23 @@ import {
 import { SessionService } from "../session-service";
 import {
   AuthLockRepositoryMock,
+  mockGetUserAuthenticationLocks,
   mockIsUserAuthenticationLocked,
   mockLockUserAuthentication,
+  mockUnlockUserAuthentication,
 } from "../../__mocks__/repositories/auth-lock.mock";
 import { LollipopRepositoryMock } from "../../__mocks__/repositories/lollipop.mock";
 import {
   InstallationRepositoryMock,
   mockDeleteInstallation,
 } from "../../__mocks__/repositories/installation.mock";
-import { anUnlockCode } from "../../__mocks__/user.mock";
-import { toConflictError, toGenericError } from "../../utils/errors";
+import { anUnlockCode, anotherUnlockCode } from "../../__mocks__/user.mock";
+import {
+  forbiddenError,
+  toConflictError,
+  toGenericError,
+} from "../../utils/errors";
+import { aNotReleasedData } from "../../__mocks__/table-client.mock";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 
@@ -206,5 +213,134 @@ describe("Session Service#lockUserAuthentication", () => {
 
     expect(mockLockUserAuthentication).toHaveBeenCalledTimes(1);
     expect(result).toEqual(E.left(expectedError));
+  });
+});
+
+describe("Session Service#unlockUserAuthentication", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const deps = {
+    AuthLockRepository: AuthLockRepositoryMock,
+    AuthenticationLockTableClient: {} as TableClient,
+  };
+  const aValidRequest = {
+    params: { fiscal_code: aFiscalCode },
+    body: { unlock_code: anUnlockCode },
+  };
+  const aValidRequestWithoutUnlockCode = {
+    params: { fiscal_code: aFiscalCode },
+    body: {},
+  };
+
+  it.each`
+    title                                      | request
+    ${"request contains unlock code"}          | ${aValidRequest}
+    ${"request does NOT contains unlock code"} | ${aValidRequestWithoutUnlockCode}
+  `(
+    "should succeed releasing CF-unlockcode when user authentication is locked and $title",
+    async ({ request }) => {
+      mockGetUserAuthenticationLocks.mockReturnValueOnce(
+        RTE.of([
+          aNotReleasedData,
+          { ...aNotReleasedData, rowKey: anotherUnlockCode },
+        ]),
+      );
+
+      const result = await SessionService.unlockUserAuthentication(
+        request.params.fiscal_code,
+        request.body.unlock_code,
+      )(deps)();
+
+      expect(result).toEqual(E.right(null));
+
+      expect(mockGetUserAuthenticationLocks).toHaveBeenCalledWith(aFiscalCode);
+      expect(mockUnlockUserAuthentication).toHaveBeenCalledWith(
+        aFiscalCode,
+        "unlock_code" in request.body
+          ? [request.body.unlock_code]
+          : [anUnlockCode, anotherUnlockCode],
+      );
+    },
+  );
+
+  it.each`
+    title                                      | request
+    ${"request contains unlock code"}          | ${aValidRequest}
+    ${"request does NOT contains unlock code"} | ${aValidRequestWithoutUnlockCode}
+  `(
+    "should succeed releasing CF-unlockcode when $title and query returns no records",
+    // This can occur in cases where there is either no user authentication lock or when an invalid unlock code has been provided.
+    async ({ request }) => {
+      mockGetUserAuthenticationLocks.mockReturnValueOnce(RTE.right([]));
+      const result = await SessionService.unlockUserAuthentication(
+        request.params.fiscal_code,
+        request.body.unlock_code,
+      )(deps)();
+
+      expect(result).toEqual(E.right(null));
+
+      expect(mockGetUserAuthenticationLocks).toHaveBeenCalledTimes(1);
+      expect(mockUnlockUserAuthentication).not.toHaveBeenCalled();
+    },
+  );
+
+  it("should return Forbidden releasing CF-unlockcode when unlock code does not match", async () => {
+    // This can occur in cases where there is either no user authentication lock or when an invalid unlock code has been provided.
+    mockGetUserAuthenticationLocks.mockReturnValueOnce(
+      RTE.right([{ ...aNotReleasedData, rowKey: anotherUnlockCode }]),
+    );
+
+    const result = await SessionService.unlockUserAuthentication(
+      aValidRequest.params.fiscal_code,
+      aValidRequest.body.unlock_code,
+    )(deps)();
+
+    expect(result).toEqual(E.left(forbiddenError));
+
+    expect(mockGetUserAuthenticationLocks).toHaveBeenCalled();
+    expect(mockUnlockUserAuthentication).not.toHaveBeenCalled();
+  });
+
+  it("should return GenericError when an error occurred retrieving user authentication lock data", async () => {
+    mockGetUserAuthenticationLocks.mockReturnValueOnce(
+      RTE.left(Error("an Error")),
+    );
+    const expectedError = toGenericError(
+      "Something went wrong while checking the user authentication lock",
+    );
+
+    const result = await SessionService.unlockUserAuthentication(
+      aValidRequest.params.fiscal_code,
+      aValidRequest.body.unlock_code,
+    )(deps)();
+
+    expect(result).toEqual(E.left(expectedError));
+
+    expect(mockUnlockUserAuthentication).not.toHaveBeenCalled();
+  });
+
+  it("should return GenericError when an error occurred releasing authentication lock", async () => {
+    mockGetUserAuthenticationLocks.mockReturnValueOnce(
+      RTE.of([aNotReleasedData]),
+    );
+
+    mockUnlockUserAuthentication.mockReturnValueOnce(
+      RTE.left(Error("an Error")),
+    );
+    const expectedError = toGenericError(
+      "Error releasing user authentication lock",
+    );
+
+    const result = await SessionService.unlockUserAuthentication(
+      aValidRequest.params.fiscal_code,
+      aValidRequest.body.unlock_code,
+    )(deps)();
+
+    expect(result).toEqual(E.left(expectedError));
+
+    expect(mockGetUserAuthenticationLocks).toHaveBeenCalledTimes(1);
+    expect(mockUnlockUserAuthentication).toHaveBeenCalledTimes(1);
   });
 });

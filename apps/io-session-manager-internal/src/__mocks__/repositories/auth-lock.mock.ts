@@ -12,9 +12,13 @@ export const mockLockUserAuthentication = vi
 export const mockIsUserAuthenticationLocked = vi
   .fn()
   .mockReturnValue(RTE.right(false));
+export const mockUnlockUserAuthentication = vi
+  .fn()
+  .mockReturnValue(RTE.right(true));
 
 export const AuthLockRepositoryMock: AuthLockRepository = {
   getUserAuthenticationLocks: mockGetUserAuthenticationLocks,
   lockUserAuthentication: mockLockUserAuthentication,
   isUserAuthenticationLocked: mockIsUserAuthenticationLocked,
+  unlockUserAuthentication: mockUnlockUserAuthentication,
 };
