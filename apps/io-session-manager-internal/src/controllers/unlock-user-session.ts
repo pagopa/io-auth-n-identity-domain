@@ -22,7 +22,6 @@ type Dependencies = {
 export const makeUnlockUserSessionHandler: H.Handler<
   H.HttpRequest,
   | H.HttpResponse<SuccessResponse, 200>
-  | H.HttpResponse<unknown, 500>
   | H.HttpResponse<H.ProblemJson, H.HttpErrorStatusCode>,
   Dependencies
 > = H.of((req: H.HttpRequest) =>

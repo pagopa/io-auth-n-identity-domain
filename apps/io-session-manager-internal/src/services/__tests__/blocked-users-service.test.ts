@@ -22,7 +22,7 @@ describe("Blocked Users Service", () => {
     blockedUserRedisRepository: BlockedUsersRedisRepositoryMock,
   };
 
-  it("should succeed with an $title session", async () => {
+  it("should succeed with an valid user", async () => {
     const result =
       await BlockedUsersService.unlockUserSession(aFiscalCode)(deps)();
 
@@ -30,7 +30,7 @@ describe("Blocked Users Service", () => {
     expect(result).toEqual(E.right(true));
   });
 
-  it("should error if unlockUserSession fails", async () => {
+  it("should fail if an error occurred removing the user from the blocked user list", async () => {
     const customError = Error("custom error");
     mockUnsetBlockedUser.mockReturnValueOnce(() => TE.left(customError));
 
