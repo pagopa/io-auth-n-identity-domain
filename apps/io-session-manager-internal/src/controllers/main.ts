@@ -15,9 +15,9 @@ import { SessionService } from "../services/session-service";
 import { BlockedUsersService } from "../services/blocked-users-service";
 import { InfoFunction } from "./info";
 import { GetSessionFunction } from "./get-session";
-import { AuthLockFunction } from "./auth-lock";
 import { UnlockUserSessionFunction } from "./unlock-user-session";
 import { LockUserSessionFunction } from "./lock-user-session";
+import { AuthLockFunction, ReleaseAuthLockFunction } from "./auth-lock";
 
 const v1BasePath = "api/v1";
 const config = getConfigOrThrow();
@@ -112,4 +112,15 @@ app.http("UnlockUserSession", {
   handler: UnlockUserSessionFunction(blockedUserServiceDeps),
   methods: ["DELETE"],
   route: `${v1BasePath}/sessions/{fiscalCode}/lock`,
+});
+
+app.http("ReleaseAuthLock", {
+  authLevel: "function",
+  handler: ReleaseAuthLockFunction({
+    SessionService,
+    AuthLockRepository,
+    AuthenticationLockTableClient,
+  }),
+  methods: ["POST"],
+  route: `${v1BasePath}/auth/{fiscalCode}/release-lock`,
 });
