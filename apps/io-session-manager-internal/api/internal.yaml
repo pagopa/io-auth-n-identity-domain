@@ -35,6 +35,7 @@ paths:
         Use this operation if you want to known the state of user session
       parameters:
         - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/Token"
       responses:
         "200":
           description: Success.
