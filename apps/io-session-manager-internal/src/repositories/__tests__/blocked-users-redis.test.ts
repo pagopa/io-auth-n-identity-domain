@@ -7,6 +7,7 @@ import { BlockedUsersRedisRepository } from "../blocked-users-redis";
 
 import {
   mockRedisClient,
+  mockSadd,
   mockSrem,
 } from "../../__mocks__/repositories/redis.mock";
 
@@ -15,6 +16,27 @@ export const aFiscalCode = "AAAAAA89S20I111X" as FiscalCode;
 const deps = {
   fastClient: mockRedisClient,
 };
+
+describe("BlockedUsersRedisRepository#setBlockedUser", () => {
+  it("should return E.right(true) if the user is correctly locked", async () => {
+    mockSadd.mockImplementationOnce((_, __) => Promise.resolve(1));
+
+    const result =
+      await BlockedUsersRedisRepository.setBlockedUser(aFiscalCode)(deps)();
+
+    expect(result).toEqual(E.right(true));
+  });
+
+  it("should return left if there is an error locking the user", async () => {
+    const aError = new Error("any error");
+    mockSadd.mockImplementationOnce((_, __) => Promise.reject(aError));
+
+    const result =
+      await BlockedUsersRedisRepository.setBlockedUser(aFiscalCode)(deps)();
+
+    expect(result).toEqual(E.left(aError));
+  });
+});
 
 describe("BlockedUsersRedisRepository#unsetBlockedUser", () => {
   it("should return E.right(true) if the user is correctly unlocked", async () => {
