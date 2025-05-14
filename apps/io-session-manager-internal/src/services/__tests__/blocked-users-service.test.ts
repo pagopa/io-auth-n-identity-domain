@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
-import * as R from "fp-ts/lib/Reader";
+import * as RTE from "fp-ts/lib/ReaderTaskEither";
 
 import { BlockedUsersService } from "../blocked-users-service";
 
@@ -58,9 +58,7 @@ describe("Blocked Users Service#lockUserSession", () => {
 
   it("should fail if an error occurred invalidation the user session", async () => {
     const customError = Error("session invalidation error");
-    mockInvalidateUserSession.mockReturnValueOnce(
-      R.of([TE.left(customError), TE.of(true), TE.of(true)]),
-    );
+    mockInvalidateUserSession.mockReturnValueOnce(RTE.left(customError));
 
     const result =
       await BlockedUsersService.lockUserSession(aFiscalCode)(deps)();

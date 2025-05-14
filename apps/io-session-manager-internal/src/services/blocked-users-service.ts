@@ -39,7 +39,7 @@ const lockUserSession: (
           deps.blockedUserRedisRepository.setBlockedUser(fiscalCode)(
             redisClients,
           ),
-          ...deps.sessionService.invalidateUserSession(fiscalCode)({
+          deps.sessionService.invalidateUserSession(fiscalCode)({
             FastRedisClient: redisClients.fastClient,
             SafeRedisClient: redisClients.safeClient,
             LollipopRepository: deps.lollipopRepository,

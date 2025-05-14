@@ -1,12 +1,10 @@
 import { vi } from "vitest";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
-import * as R from "fp-ts/lib/Reader";
-import * as TE from "fp-ts/lib/TaskEither";
 import { SessionService } from "../../services/session-service";
 
 export const mockInvalidateUserSession = vi
   .fn()
-  .mockReturnValue(R.of([TE.of(true), TE.of(true), TE.of(true)]));
+  .mockReturnValue(RTE.right(true));
 
 export const mockGetUserSession = vi
   .fn()
