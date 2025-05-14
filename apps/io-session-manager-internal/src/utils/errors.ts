@@ -9,6 +9,7 @@ export enum DomainErrorTypes {
   NOT_IMPLEMENTED = "NOT_IMPLEMENTED",
   FORMAT_ERROR = "FORMAT_ERROR",
   UNAUTHORIZED = "UNAUTHORIZED",
+  FORBIDDEN = "FORBIDDEN",
   CONFLICT = "CONFLICT",
 }
 
@@ -41,6 +42,10 @@ export type ConflictError = BaseError & {
   readonly kind: DomainErrorTypes.CONFLICT;
 };
 
+export type ForbiddenError = BaseError & {
+  readonly kind: DomainErrorTypes.FORBIDDEN;
+};
+
 /**
  * This type represents an error, any services and function of the core
  * package should use this as Error rappresentation
@@ -51,7 +56,8 @@ export type DomainError =
   | FormatError
   | UnauthorizedError
   | GenericError
-  | ConflictError;
+  | ConflictError
+  | ForbiddenError;
 
 // -----------------
 // Mappers
@@ -60,6 +66,11 @@ export type DomainError =
 export const unauthorizedError: UnauthorizedError = {
   causedBy: undefined,
   kind: DomainErrorTypes.UNAUTHORIZED,
+};
+
+export const forbiddenError: ForbiddenError = {
+  causedBy: undefined,
+  kind: DomainErrorTypes.FORBIDDEN,
 };
 
 export const formatError: FormatError = {
