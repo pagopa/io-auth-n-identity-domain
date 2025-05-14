@@ -1,10 +1,10 @@
+import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
-import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import {
-  SESSION_EXPIRATION_ROW_KEY_FIELD,
+  SESSION_EXPIRATION_ROW_PK_FIELD,
   SessionExpiration,
   SessionExpirationModel
 } from "../models/session-expiration-model";
@@ -40,10 +40,10 @@ const findByExpirationDateAsyncIterable: (
             value: interval.to.getTime()
           }
         ],
-        query: `SELECT * FROM c WHERE (c.${SESSION_EXPIRATION_ROW_KEY_FIELD} BETWEEN @from AND @to) AND
+        query: `SELECT * FROM c WHERE (c.${SESSION_EXPIRATION_ROW_PK_FIELD} BETWEEN @from AND @to) AND
                 (c.notificationEvents.EXPIRED_SESSION = false OR NOT IS_DEFINED(c.notificationEvents.EXPIRED_SESSION))`
       },
-      100,
+      50,
       1
     )
   );
@@ -57,12 +57,14 @@ const findByExpirationDateAsyncIterable: (
  * */
 export const updateNotificationEvents: (
   fiscalCode: FiscalCode | string,
+  expirationDate: number,
   notificationEvents: Partial<SessionExpiration["notificationEvents"]>
 ) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, SessionExpiration> = (
   fiscalCode,
+  expirationDate,
   notificationEvents
 ) => deps =>
-  deps.sessionExpirationModel.patch([fiscalCode], {
+  deps.sessionExpirationModel.patch([fiscalCode, expirationDate], {
     notificationEvents
   });
 

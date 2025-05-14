@@ -1,22 +1,20 @@
-import * as t from "io-ts";
 import { Container, SqlQuerySpec } from "@azure/cosmos";
-import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import {
-  CosmosdbModelTTL,
   BaseModelTTL,
+  CosmosdbModelTTL,
   CosmosResourceTTL
 } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model_ttl";
 import { wrapWithKind } from "@pagopa/io-functions-commons/dist/src/utils/types";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import * as t from "io-ts";
 
 // The partition key field for the session expiration model which is the fiscal code
-export const SESSION_EXPIRATION_MODEL_PK_FIELD = "id";
-export const SESSION_EXPIRATION_ROW_KEY_FIELD = "expirationDate";
+export const SESSION_EXPIRATION_MODEL_KEY_FIELD = "id";
+export const SESSION_EXPIRATION_ROW_PK_FIELD = "expirationDate";
 
 export const SessionExpiration = t.type({
   // TODO: remove t.string
-  id: t.union([FiscalCode, t.string]),
-  expirationDate: DateFromTimestamp,
+  id: t.string,
+  expirationDate: t.number,
   notificationEvents: t.partial({
     EXPIRED_SESSION: t.boolean,
     EXPIRING_SESSION: t.boolean
@@ -43,7 +41,8 @@ export class SessionExpirationModel extends CosmosdbModelTTL<
   SessionExpiration,
   NewSessionExpiration,
   RetrievedSessionExpiration,
-  typeof SESSION_EXPIRATION_MODEL_PK_FIELD
+  typeof SESSION_EXPIRATION_MODEL_KEY_FIELD,
+  typeof SESSION_EXPIRATION_ROW_PK_FIELD
 > {
   constructor(container: Container) {
     super(container, NewSessionExpiration, RetrievedSessionExpiration);

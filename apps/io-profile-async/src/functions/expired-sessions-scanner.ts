@@ -1,17 +1,13 @@
 import { AzureFunction, Context } from "@azure/functions";
-import { Either } from "fp-ts/lib/Either";
-import { pipe } from "fp-ts/function";
-import * as A from "fp-ts/Array";
+import { flow, pipe } from "fp-ts/function";
 import * as E from "fp-ts/Either";
-import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as RTE from "fp-ts/ReaderTaskEither";
+import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
-import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { QueueClient } from "@azure/storage-queue";
-import { error } from "@pagopa/logger";
-import { right } from "fp-ts/lib/EitherT";
-import * as AI from "../utils/async-iterable-task";
+import * as AI from "@pagopa/io-functions-commons/dist/src/utils/async_iterable_task";
 import {
   SessionExpirationRepository,
   Dependencies as SessionExpirationRepositoryDependencies
@@ -23,6 +19,22 @@ import { Tracker, TrackerRepositoryDependency } from "../repositories";
 import * as QueueUtils from "../utils/queue-utils";
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
 import { cosmosErrorsToString } from "../utils/cosmos/errors";
+
+const logger = {
+  info: (message: string) =>
+    console.log(
+      `[INFO][TEST USER ENGAGEMENT QUERY ITERATOR][${new Date().toISOString()}] => ${message}`
+    ),
+  error: (message: string, additionalData?: unknown) =>
+    additionalData
+      ? console.error(
+          `[ERROR][TEST USER ENGAGEMENT QUERY ITERATOR][${new Date().toISOString()}] => ${message}`,
+          additionalData
+        )
+      : console.error(
+          `[ERROR][TEST USER ENGAGEMENT QUERY ITERATOR][${new Date().toISOString()}] => ${message}`
+        )
+};
 
 // TODO: move to a common file
 export class TransientError extends Error {
@@ -40,7 +52,7 @@ export class PermanentError extends Error {
   }
 }
 
-type FunctionDependencies = {
+type Dependencies = {
   SessionExpirationRepository: SessionExpirationRepository;
   TrackerRepository: Tracker;
   QueueClient: QueueClient;
@@ -56,13 +68,17 @@ type FunctionDependencies = {
  */
 const updateNotificationEvents = (
   fiscalCode: string,
+  expirationDate: number,
   expiredSessionStatus: boolean
-) => (deps: FunctionDependencies): TE.TaskEither<Error, SessionExpiration> =>
-  // TODO: debounce on 429
+) => (deps: Dependencies): TE.TaskEither<Error, SessionExpiration> =>
   pipe(
-    deps.SessionExpirationRepository.updateNotificationEvents(fiscalCode, {
-      EXPIRING_SESSION: expiredSessionStatus // TODO: Change to EXPIRED_SESSION (using EXPIRING_SESSION for testing purposes based on the current query)
-    })(deps),
+    deps.SessionExpirationRepository.updateNotificationEvents(
+      fiscalCode,
+      expirationDate,
+      {
+        EXPIRED_SESSION: expiredSessionStatus
+      }
+    )(deps),
     TE.mapLeft(
       err =>
         new TransientError(
@@ -80,7 +96,7 @@ const updateNotificationEvents = (
  * @returns A TaskEither that resolves to a boolean indicating success or failure
  */
 const insertIntoQueue = (payload: ExpiredSessionAdvisorQueueMessage) => (
-  deps: FunctionDependencies
+  deps: Dependencies
 ): TE.TaskEither<QueueTransientError, boolean> =>
   pipe(
     QueueUtils.insertItemIntoQueue({
@@ -98,6 +114,32 @@ const insertIntoQueue = (payload: ExpiredSessionAdvisorQueueMessage) => (
   );
 
 /**
+ * Function to handle session expirations.
+ * It processes each session expiration and returns an array of fiscal codes.
+ *
+ * @param page - The array of session expiration objects
+ * @param deps - The dependencies for the function
+ * @returns A TaskEither that resolves to an array of fiscal codes or an error
+ * : TE.TaskEither<Error, void>
+ */
+const handleSessionExpirations = (
+  page: ReadonlyArray<E.Either<unknown, SessionExpiration>>
+) => (deps: Dependencies): TE.TaskEither<Error, number> =>
+  pipe(
+    page,
+    RA.rights,
+    RA.traverse(TE.ApplicativePar)(item => handleSessionExpiration(item, deps)),
+    TE.map(processedElements => {
+      logger.info(`PROCESSED ${processedElements.length} ELEMENTS`);
+      return processedElements.length;
+    }),
+    TE.mapLeft(e => {
+      logger.error("CHUNK FAILURE:", e);
+      return e;
+    })
+  );
+
+/**
  * Function to handle session expiration.
  * It updates the notification events and inserts a message into the queue.
  *
@@ -106,52 +148,39 @@ const insertIntoQueue = (payload: ExpiredSessionAdvisorQueueMessage) => (
  * @returns A TaskEither that resolves to a fiscal code or an error
  */
 const handleSessionExpiration = (
-  sessionExpiration: SessionExpiration,
-  deps: FunctionDependencies
-): TE.TaskEither<PermanentError | TransientError, FiscalCode | string> => {
-  const fiscalCode = sessionExpiration.id;
-  const expiredSessionAdvisorQueueMessage: ExpiredSessionAdvisorQueueMessage = {
-    fiscalCode: fiscalCode as FiscalCode,
-    expiredAt: sessionExpiration.expirationDate
-  };
-
-  const handleError = (error: string) =>
-    new TransientError(`Error during process [processPage]: ${error}`);
-
-  return pipe(
-    updateNotificationEvents(fiscalCode, true)(deps),
-    TE.mapLeft(error => handleError(`Updating notification events: ${error}`)),
-    TE.chain(() => insertIntoQueue(expiredSessionAdvisorQueueMessage)(deps)),
-    TE.map(() => fiscalCode),
-    TE.mapLeft(error => handleError(`Inserting into queue: ${error}`))
-  );
-};
-
-/**
- * Function to handle session expirations.
- * It processes each session expiration and returns an array of fiscal codes.
- *
- * @param page - The array of session expiration objects
- * @param deps - The dependencies for the function
- * @returns A TaskEither that resolves to an array of fiscal codes or an error
- */
-const handleSessionExpirations = (
-  page: ReadonlyArray<E.Either<unknown, SessionExpiration>>
-) => (
-  deps: FunctionDependencies
-): TE.TaskEither<
-  PermanentError | TransientError,
-  TE.TaskEither<Error, ReadonlyArray<FiscalCode | string>>
-> =>
-  TE.right(
-    pipe(
-      page,
-      RA.rights,
-      RA.map(sessionExpiration =>
-        handleSessionExpiration(sessionExpiration, deps)
-      ),
-      TE.sequenceArray
-    )
+  record: SessionExpiration,
+  { sessionExpirationModel, ...deps }: Dependencies,
+  retryAttempsLeft = 5
+): TE.TaskEither<Error, void> =>
+  pipe(
+    sessionExpirationModel.patch([record.id, record.expirationDate], {
+      notificationEvents: {
+        ...record.notificationEvents,
+        EXPIRED_SESSION: true
+      }
+    }),
+    TE.orElseW(e => {
+      if (retryAttempsLeft === 0) {
+        return TE.left(
+          new Error(`Error updating session expiration: ${e.kind}`)
+        );
+      } else {
+        logger.error(
+          `Error updating session expiration: ${e.kind}, retrying... Attempts left: ${retryAttempsLeft} FiscalCode: ${record.id}`
+        );
+        return pipe(
+          TE.fromTask(T.delay(500)(T.of(undefined))),
+          TE.chain(() =>
+            handleSessionExpiration(
+              record,
+              { sessionExpirationModel, ...deps },
+              retryAttempsLeft - 1
+            )
+          )
+        );
+      }
+    }),
+    TE.map(_ => void 0)
   );
 
 /**
@@ -162,18 +191,28 @@ const handleSessionExpirations = (
  */
 export const processExpirations: (
   interval: Interval
-) => RTE.ReaderTaskEither<
-  FunctionDependencies,
-  Error,
-  ReadonlyArray<FiscalCode | string> | any
-> = (interval: Interval) => ({ SessionExpirationRepository, ...deps }) =>
+) => RTE.ReaderTaskEither<Dependencies, Error, ReadonlyArray<number>> = (
+  interval: Interval
+) => ({ SessionExpirationRepository, ...deps }) =>
   pipe(
     SessionExpirationRepository.findByExpirationDateAsyncIterable(interval)(
       deps
     ),
-    TE.map(AI.fromAsyncIterable),
-    TE.map(AI.map(handleSessionExpirations)),
-    TE.mapLeft(_ => new Error("An error occurred during processing."))
+    TE.chainW(
+      flow(
+        AI.fromAsyncIterable,
+        AI.map(page =>
+          pipe(
+            handleSessionExpirations(page)({
+              SessionExpirationRepository,
+              ...deps
+            })
+          )
+        ),
+        AI.foldTaskEither(E.toError),
+        TE.chainW(tasks => pipe(tasks, RA.sequence(TE.ApplicativeSeq)))
+      )
+    )
   );
 
 /**
@@ -186,9 +225,9 @@ export const processExpirations: (
  * @returns An AzureFunction that processes expired sessions
  */
 export const ExpiredSessionsScannerFunction = (
-  deps: FunctionDependencies
-): AzureFunction => async (context: Context, _timer: unknown) => {
-  await pipe(
+  deps: Dependencies
+): AzureFunction => async (context: Context, _timer: unknown) =>
+  pipe(
     processExpirations({
       from: new Date(1746992583924),
       to: new Date(1746992883924)
@@ -215,4 +254,3 @@ export const ExpiredSessionsScannerFunction = (
       () => context.log("Expired sessions scan completed.")
     )
   )();
-};
