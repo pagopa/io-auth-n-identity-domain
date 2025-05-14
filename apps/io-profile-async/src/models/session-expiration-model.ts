@@ -11,14 +11,18 @@ import * as t from "io-ts";
 export const SESSION_EXPIRATION_MODEL_KEY_FIELD = "id";
 export const SESSION_EXPIRATION_ROW_PK_FIELD = "expirationDate";
 
+export const NotificationEvents = t.partial({
+  EXPIRED_SESSION: t.boolean,
+  EXPIRING_SESSION: t.boolean
+});
+
+export type NotificationEvents = t.TypeOf<typeof NotificationEvents>;
+
 export const SessionExpiration = t.type({
   // TODO: remove t.string
   id: t.string,
   expirationDate: t.number,
-  notificationEvents: t.partial({
-    EXPIRED_SESSION: t.boolean,
-    EXPIRING_SESSION: t.boolean
-  })
+  notificationEvents: NotificationEvents
 });
 
 export type SessionExpiration = t.TypeOf<typeof SessionExpiration>;
