@@ -7,7 +7,6 @@ import * as redisLib from "redis";
 import { flow, pipe } from "fp-ts/lib/function";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { TableClient } from "@azure/data-tables";
-import { Reader } from "fp-ts/lib/Reader";
 import { QueueClient } from "@azure/storage-queue";
 import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
 import { RedisRepository } from "../repositories/redis";
