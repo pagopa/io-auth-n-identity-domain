@@ -2,20 +2,31 @@ import { httpAzureFunction } from "@pagopa/handler-kit-azure-func";
 import * as H from "@pagopa/handler-kit";
 import * as RTE from "fp-ts/ReaderTaskEither";
 
-import {
-  getCurrentBackendVersion,
-  getValueFromPackageJson,
-} from "../utils/package";
+import { pipe } from "fp-ts/lib/function";
+import { ApplicationInfo } from "../generated/definitions/internal/ApplicationInfo";
+import { InfoService, InfoServiceDeps } from "../services/info";
+
+type Dependencies = {
+  InfoService: InfoService;
+} & InfoServiceDeps;
 
 export const makeInfoHandler: H.Handler<
   H.HttpRequest,
-  H.HttpResponse<{ name: string; version: string }, 200>
+  | H.HttpResponse<ApplicationInfo, 200>
+  | H.HttpResponse<unknown, 500>
+  | H.HttpResponse<H.ProblemJson, H.HttpErrorStatusCode>,
+  Dependencies
 > = H.of((_: H.HttpRequest) =>
-  RTE.of(
-    H.successJson({
-      name: getValueFromPackageJson("name"),
-      version: getCurrentBackendVersion(),
-    }),
+  pipe(
+    RTE.ask<Dependencies>(),
+    RTE.chain(({ InfoService, Package }) =>
+      RTE.fromTaskEither(InfoService.getPackageInfo({ Package })),
+    ),
+    RTE.map((info) => H.successJson(info)),
+    RTE.mapLeft((_problems) => new H.HttpError()),
+    RTE.orElseW((error) =>
+      RTE.right(H.problemJson({ status: error.status, title: error.message })),
+    ),
   ),
 );
 

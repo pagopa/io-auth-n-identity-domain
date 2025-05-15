@@ -8067,7 +8067,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "io-session-manager-internal@workspace:apps/io-session-manager-internal"
   dependencies:
+    "@azure/data-tables": "npm:^13.3.0"
     "@azure/functions": "npm:^4.7.0"
+    "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/handler-kit": "npm:^1.1.0"
     "@pagopa/handler-kit-azure-func": "npm:^2.0.7"
@@ -8075,6 +8077,7 @@ __metadata:
     "@pagopa/openapi-codegen-ts": "npm:^13.2.0"
     "@pagopa/ts-commons": "npm:^13.1.1"
     "@pagopa/typescript-config-node": "npm:*"
+    "@redis/client": "npm:1.4.2"
     "@types/node": "npm:~20.12.0"
     "@vitest/coverage-v8": "npm:~1.5.0"
     applicationinsights: "npm:^2.9.5"
@@ -8090,6 +8093,7 @@ __metadata:
     monocle-ts: "npm:^2.3.13"
     newtype-ts: "npm:^0.3.5"
     prettier: "npm:^3.2.5"
+    redis: "npm:~4.5.1"
     shx: "npm:^0.3.2"
     typescript: "npm:^5.4.3"
     vitest: "npm:~1.5.0"

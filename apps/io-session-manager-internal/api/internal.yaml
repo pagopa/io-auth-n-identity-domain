@@ -1,0 +1,318 @@
+openapi: 3.0.1
+info:
+  version: 0.1.0
+  title: IO Session Manager Internal API
+  x-logo:
+    url: https://io.italia.it/assets/img/io-logo-blue.svg
+  description: |
+    Documentation of the IO Session Manager Internal API here.
+servers:
+  - url: https://io-p-weu-auth-sm-int-func-01.azurewebsites.net/api/v1
+security:
+  - ApiKeyAuth: []
+paths:
+  /info:
+    get:
+      operationId: info
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationInfo"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+  /sessions/{fiscalCode}:
+    get:
+      operationId: getSession
+      summary: Get available user info from session
+      description: |-
+        Use this operation if you want to known the state of user session
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/Token"
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSessionInfo"
+              example:
+                "active": true
+        "400":
+          description: Bad request
+        "401":
+          description: Token null or invalid.
+        "404":
+          description: User not found.
+        "429":
+          description: Throttling.
+        "500":
+          description: There was an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+  /auth/{fiscalCode}/lock:
+    post:
+      operationId: authLock
+      description: |-
+        Locks the user for the IO app.
+        This is intended to use with ioweb-profile lock functionality.
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/Token"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthLockBody"
+      responses:
+        "204":
+          description: Lock created.
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Token null or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "409":
+          description: The user lock has been already created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "500":
+          description: There was an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+  /sessions/{fiscalCode}/lock:
+    post:
+      summary: Lock a user session and delete session data
+      description: |-
+        Use this operation if you want to block a user to log in.
+        The operation succeed if the user is already blocked
+      operationId: lockUserSession
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/Token"
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+              example:
+                message: ok
+        "400":
+          description: Bad request
+          content: {}
+        "401":
+          description: Token null or invalid.
+          content: {}
+        "404":
+          description: User not found.
+          content: {}
+        "500":
+          description: There was an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+    delete:
+      summary: Remove a lock to a user session
+      description:
+        Use this operation if you want to unblock a user and re-allow to
+        login. The operation succeed if the user wasn't blocked
+      operationId: unlockUserSession
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/Token"
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+              example:
+                message: ok
+        "400":
+          description: Bad request
+          content: {}
+        "401":
+          description: Token null or invalid.
+          content: {}
+        "500":
+          description: There was an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+  /auth/{fiscalCode}/release-lock:
+    post:
+      operationId: releaseAuthLock
+      description: |-
+        Release the user authentication lock for the IO app.
+        This is intended to use with ioweb-profile unlock functionality.
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/Token"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthUnlockBody"
+      responses:
+        "204":
+          description: Lock successfully released.
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Token null or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "403":
+          description: Operation forbidden.
+        "500":
+          description: There was an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Functions-Key
+  parameters:
+    FiscalCode:
+      name: fiscalCode
+      in: path
+      required: true
+      description: The fiscal code of the user, all in upper case.
+      schema:
+        type: string
+        maxLength: 16
+        minLength: 16
+        pattern: >-
+          [A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]
+        x-example: SPNDNL80R13C555X
+    Token:
+      name: token
+      in: query
+      schema:
+        type: string
+      required: false
+      description: |-
+        The API key used to access io-backend session endpoints.
+        This is intended to be removed after initial rollout
+  schemas:
+    ApplicationInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: io-session-manager-internal
+        version:
+          type: string
+          example: 1.0.0
+      required:
+        - name
+        - version
+    ProblemJson:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.22.0/openapi/definitions.yaml#/ProblemJson"
+    UserSessionInfo:
+      type: object
+      properties:
+        active:
+          type: boolean
+      required:
+        - active
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+    SessionsList:
+      description: Contains all active sessions for an authenticated user.
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: "#/components/schemas/SessionInfo"
+      required:
+        - sessions
+    SessionInfo:
+      type: object
+      title: Session info of a user
+      description: Decribe a session of an authenticated user.
+      properties:
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        sessionToken:
+          type: string
+      required:
+        - createdAt
+        - sessionToken
+    Timestamp:
+      type: string
+      format: UTCISODateFromString
+      description: A date-time field in ISO-8601 format and UTC timezone.
+      x-import: "@pagopa/ts-commons/lib/dates"
+      example: "2018-10-13T00:00:00.000Z"
+    # AssertionRef possible inputs
+    AssertionRefSha256:
+      type: string
+      pattern: ^(sha256-[A-Za-z0-9-_=]{1,44})$
+    AssertionRefSha384:
+      type: string
+      pattern: ^(sha384-[A-Za-z0-9-_=]{1,66})$
+    AssertionRefSha512:
+      type: string
+      pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
+    AssertionRef:
+      oneOf:
+        - $ref: "#/components/schemas/AssertionRefSha512"
+        - $ref: "#/components/schemas/AssertionRefSha384"
+        - $ref: "#/components/schemas/AssertionRefSha256"
+    UnlockCode:
+      type: string
+      pattern: ^\d{9}$
+    AuthLockBody:
+      type: object
+      properties:
+        unlock_code:
+          $ref: "#/components/schemas/UnlockCode"
+      required:
+        - unlock_code
+    AuthUnlockBody:
+      type: object
+      properties:
+        unlock_code:
+          $ref: "#/components/schemas/UnlockCode"

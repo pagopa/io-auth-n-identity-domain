@@ -33,4 +33,12 @@ data "azurerm_storage_account" "storage_logs" {
   resource_group_name = format("%s-rg-operations", local.common_project)
 }
 
+data "azurerm_storage_account" "push_notifications_storage" {
+  name                = replace(format("%s-weu-messages-notifst", local.common_project), "-", "")
+  resource_group_name = format("%s-weu-messages-notifications-rg", local.common_project)
+}
 
+data "azurerm_storage_account" "locked_profiles_storage" {
+  name                = replace(format("%s-locked-profiles-st", local.common_project), "-", "")
+  resource_group_name = format("%s-rg-internal", local.common_project)
+}
