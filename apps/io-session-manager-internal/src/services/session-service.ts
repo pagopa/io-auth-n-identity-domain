@@ -257,10 +257,43 @@ const unlockUserAuthentication: (
     TE.map(() => null),
   );
 
+export type DeleteUserSessionDeps = RedisDeps & {
+  LollipopRepository: LollipopRepository;
+  RevokeAssertionRefQueueClient: QueueClient;
+};
+const deleteUserSession: (
+  fiscalCode: FiscalCode,
+) => RTE.ReaderTaskEither<DeleteUserSessionDeps, GenericError, true> =
+  (fiscalCode) => (deps) =>
+    pipe(
+      {
+        SafeRedisClient: deps.SafeRedisClientTask,
+        FastRedisClient: deps.FastRedisClientTask,
+      },
+      AP.sequenceS(TE.ApplySeq),
+      TE.mapLeft((err) =>
+        toGenericError(
+          `Could not establish connection to redis: ${err.message}`,
+        ),
+      ),
+      TE.chain(({ FastRedisClient, SafeRedisClient }) =>
+        pipe(
+          invalidateUserSession(fiscalCode)({
+            ...deps,
+            FastRedisClient,
+            SafeRedisClient,
+          }),
+          TE.mapLeft((err) => toGenericError(err.message)),
+        ),
+      ),
+      TE.map((_) => true),
+    );
+
 export type SessionService = typeof SessionService;
 export const SessionService = {
   getUserSession,
   lockUserAuthentication,
   unlockUserAuthentication,
+  deleteUserSession,
   invalidateUserSession,
 };

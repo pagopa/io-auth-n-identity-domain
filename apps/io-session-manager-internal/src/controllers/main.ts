@@ -17,7 +17,12 @@ import { InfoFunction } from "./info";
 import { GetSessionFunction } from "./get-session";
 import { UnlockUserSessionFunction } from "./unlock-user-session";
 import { LockUserSessionFunction } from "./lock-user-session";
-import { AuthLockFunction, ReleaseAuthLockFunction } from "./auth-lock";
+import {
+  AuthLockFunction,
+  DeleteUserSessionFunction,
+  ReleaseAuthLockFunction,
+  makeDeleteUserSessionHandler,
+} from "./auth-lock";
 
 const v1BasePath = "api/v1";
 const config = getConfigOrThrow();
@@ -71,6 +76,9 @@ app.http("GetSession", {
   route: `${v1BasePath}/sessions/{fiscalCode}`,
 });
 
+// ////////////////////////// //
+//  IO-WEB PROFILE FEATURES  //
+// ///////////////////////// //
 app.http("AuthLock", {
   authLevel: "function",
   handler: AuthLockFunction({
@@ -99,6 +107,22 @@ app.http("ReleaseAuthLock", {
   methods: ["POST"],
   route: `${v1BasePath}/auth/{fiscalCode}/release-lock`,
 });
+
+app.http("DeleteUserSession", {
+  authLevel: "function",
+  handler: DeleteUserSessionFunction({
+    FastRedisClientTask: fastRedisClientTask,
+    SafeRedisClientTask: safeRedisClientTask,
+    SessionService,
+    RedisRepository,
+    LollipopRepository,
+    RevokeAssertionRefQueueClient,
+  }),
+  methods: ["POST"],
+  route: `${v1BasePath}/sessions/{fiscalCode}/logout`,
+});
+
+// //////////////////////////////
 
 const blockedUserServiceDeps = {
   blockedUsersService: BlockedUsersService,
