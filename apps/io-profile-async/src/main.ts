@@ -67,12 +67,6 @@ const dataTableProfileEmailsRepository = new DataTableProfileEmailsRepository(
   profileEmailTableClient
 );
 
-// To be used for the `SessionExpirationScannerFunction`
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const sessionExpirationModel = new SessionExpirationModel(
-  database.container(config.SESSION_EXPIRATION_CONTAINER_NAME)
-);
-
 export const Info = InfoFunction({
   connectionString: config.AZURE_STORAGE_CONNECTION_STRING,
   db: database
