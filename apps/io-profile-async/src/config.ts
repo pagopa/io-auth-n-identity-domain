@@ -61,6 +61,8 @@ export const IConfig = t.intersection([
     IOPSTLOGS_STORAGE_CONNECTION_STRING: NonEmptyString,
     SPID_LOGS_PUBLIC_KEY: NonEmptyString,
 
+    SESSION_EXPIRATION_CONTAINER_NAME: NonEmptyString,
+
     isProduction: t.boolean
   }),
   BackendInternalConfig,

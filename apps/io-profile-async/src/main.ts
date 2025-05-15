@@ -31,6 +31,7 @@ import { OnProfileUpdateFunctionInput } from "./types/on-profile-update-input-do
 import { ProfileEmailRepository, ProfileRepository } from "./repositories";
 import { StoreSpidLogsFunction } from "./functions/store-spid-logs";
 import { StoreSpidLogsQueueMessage } from "./types/store-spid-logs-queue-message";
+import { SessionExpirationModel } from "./models/session-expiration";
 
 const config = getConfigOrThrow();
 
@@ -64,6 +65,12 @@ const profileModel = new ProfileModel(
 
 const dataTableProfileEmailsRepository = new DataTableProfileEmailsRepository(
   profileEmailTableClient
+);
+
+// To be used for the `SessionExpirationScannerFunction`
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const sessionExpirationModel = new SessionExpirationModel(
+  database.container(config.SESSION_EXPIRATION_CONTAINER_NAME)
 );
 
 export const Info = InfoFunction({
