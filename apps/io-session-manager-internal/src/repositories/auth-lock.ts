@@ -1,6 +1,6 @@
-import { TableClient, odata } from "@azure/data-tables";
+import { TableClient, TransactionAction, odata } from "@azure/data-tables";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { flow, pipe } from "fp-ts/lib/function";
+import { flow, identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
 import { DateFromString } from "@pagopa/ts-commons/lib/dates";
@@ -78,9 +78,45 @@ const lockUserAuthentication: (
       TE.map(() => true as const),
     );
 
+const unlockUserAuthentication: (
+  fiscalCode: FiscalCode,
+  unlockCodes: ReadonlyArray<UnlockCode>,
+) => RTE.ReaderTaskEither<Dependencies, Error, true> =
+  (fiscalCode, unlockCodes) => (deps) =>
+    pipe(
+      unlockCodes,
+      ROA.map(
+        (unlockCode) =>
+          [
+            "update",
+            {
+              partitionKey: fiscalCode,
+              rowKey: unlockCode,
+              // eslint-disable-next-line sort-keys
+              Released: true,
+            },
+          ] as TransactionAction,
+      ),
+      (actions) =>
+        TE.tryCatch(
+          () =>
+            deps.AuthenticationLockTableClient.submitTransaction(
+              Array.from(actions),
+            ),
+          identity,
+        ),
+      TE.filterOrElseW(
+        (response) => response.status === 202,
+        () => void 0,
+      ),
+      TE.mapLeft(() => Error("Something went wrong updating the record")),
+      TE.map(() => true as const),
+    );
+
 export type AuthLockRepository = typeof AuthLockRepository;
 export const AuthLockRepository = {
   getUserAuthenticationLocks,
   isUserAuthenticationLocked,
   lockUserAuthentication,
+  unlockUserAuthentication,
 };

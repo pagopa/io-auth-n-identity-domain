@@ -8,11 +8,13 @@ import { sequenceS } from "fp-ts/lib/Apply";
 import {
   LockUserAuthenticationDeps,
   SessionService,
+  UnlockUserAuthenticationDeps,
 } from "../services/session-service";
 import { RequiredPathParamMiddleware } from "../utils/middlewares/required-path-param";
 import { DomainErrorTypes } from "../utils/errors";
 import { RequiredBodyMiddleware } from "../utils/middlewares/required-body";
 import { AuthLockBody } from "../generated/definitions/internal/AuthLockBody";
+import { AuthUnlockBody } from "../generated/definitions/internal/AuthUnlockBody";
 
 type Dependencies = {
   SessionService: SessionService;
@@ -67,4 +69,57 @@ export const makeAuthLockHandler: H.Handler<
   ),
 );
 
+const releaseAuthLock: (
+  fiscalCode: FiscalCode,
+  authUnlockBody: AuthUnlockBody,
+) => RTE.ReaderTaskEither<
+  Dependencies & UnlockUserAuthenticationDeps,
+  H.HttpError | H.HttpForbiddenError,
+  H.HttpResponse<null, 204>
+> = (fiscalCode, authUnlockBody) => (deps) =>
+  pipe(
+    deps,
+    deps.SessionService.unlockUserAuthentication(
+      fiscalCode,
+      authUnlockBody.unlock_code,
+    ),
+    TE.map((_) => H.empty),
+    TE.mapLeft((error) => {
+      switch (error.kind) {
+        case DomainErrorTypes.GENERIC_ERROR:
+          return new H.HttpError(error.causedBy?.message);
+        case DomainErrorTypes.FORBIDDEN:
+          return new H.HttpForbiddenError();
+      }
+    }),
+  );
+
+export const makeReleaseAuthLockHandler: H.Handler<
+  H.HttpRequest,
+  | H.HttpResponse<null, 204>
+  | H.HttpResponse<H.ProblemJson, H.HttpErrorStatusCode>,
+  Dependencies & UnlockUserAuthenticationDeps
+> = H.of((req: H.HttpRequest) =>
+  pipe(
+    req,
+    sequenceS(RTE.ApplyPar)({
+      fiscalCode: RequiredPathParamMiddleware(
+        FiscalCode,
+        "fiscalCode" as NonEmptyString,
+      ),
+      authUnlockBody: RequiredBodyMiddleware(AuthUnlockBody),
+    }),
+    RTE.fromTaskEither,
+    RTE.chain(({ fiscalCode, authUnlockBody }) =>
+      releaseAuthLock(fiscalCode, authUnlockBody),
+    ),
+    RTE.orElseW((error) =>
+      RTE.right(H.problemJson({ status: error.status, title: error.message })),
+    ),
+  ),
+);
+
 export const AuthLockFunction = httpAzureFunction(makeAuthLockHandler);
+export const ReleaseAuthLockFunction = httpAzureFunction(
+  makeReleaseAuthLockHandler,
+);

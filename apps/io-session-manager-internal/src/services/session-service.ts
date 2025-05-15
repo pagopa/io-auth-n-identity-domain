@@ -1,4 +1,5 @@
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
+import * as ROA from "fp-ts/ReadonlyArray";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as AP from "fp-ts/Apply";
 import * as O from "fp-ts/lib/Option";
@@ -6,15 +7,20 @@ import * as redisLib from "redis";
 import { flow, pipe } from "fp-ts/lib/function";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { TableClient } from "@azure/data-tables";
-import { Reader } from "fp-ts/lib/Reader";
 import { QueueClient } from "@azure/storage-queue";
+import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
 import { RedisRepository } from "../repositories/redis";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
-import { AuthLockRepository } from "../repositories/auth-lock";
+import {
+  AuthLockRepository,
+  NotReleasedAuthenticationLockData,
+} from "../repositories/auth-lock";
 import {
   ConflictError,
+  ForbiddenError,
   GenericError,
+  forbiddenError,
   toConflictError,
   toGenericError,
 } from "../utils/errors";
@@ -26,6 +32,9 @@ type RedisDeps = {
   SafeRedisClientTask: TE.TaskEither<Error, redisLib.RedisClusterType>;
   RedisRepository: RedisRepository;
 };
+
+const ERROR_CHECK_USER_AUTH_LOCK =
+  "Something went wrong while checking the user authentication lock";
 
 export type GetUserSessionDeps = RedisDeps;
 const getUserSession: (
@@ -142,11 +151,7 @@ const lockUserAuthentication: (
     TE.chainW(({ FastRedisClient, SafeRedisClient }) =>
       pipe(
         deps.AuthLockRepository.isUserAuthenticationLocked(fiscalCode)(deps),
-        TE.mapLeft((_) =>
-          toGenericError(
-            "Something went wrong while checking the user authentication lock",
-          ),
-        ),
+        TE.mapLeft((_) => toGenericError(ERROR_CHECK_USER_AUTH_LOCK)),
         TE.filterOrElseW(
           (isUserAuthenticationLocked) => !isUserAuthenticationLocked,
           () =>
@@ -180,9 +185,82 @@ const lockUserAuthentication: (
     TE.map((_) => null),
   );
 
+const unlockuserAuthenticationLockData: (
+  fiscalCode: FiscalCode,
+  maybeUnlockCode: O.Option<UnlockCode>,
+  authLockData: ReadonlyNonEmptyArray<NotReleasedAuthenticationLockData>,
+) => RTE.ReaderTaskEither<
+  UnlockUserAuthenticationDeps,
+  GenericError | ForbiddenError,
+  true
+> = (fiscalCode, maybeUnlockCode, authLockData) => (deps) =>
+  pipe(
+    {},
+    TE.fromPredicate(
+      () =>
+        O.isNone(maybeUnlockCode) ||
+        authLockData.some((data) => data.rowKey === maybeUnlockCode.value),
+      () => forbiddenError,
+    ),
+    TE.map(() =>
+      O.isSome(maybeUnlockCode)
+        ? [maybeUnlockCode.value]
+        : authLockData.map((data) => data.rowKey),
+    ),
+    TE.chainW((codesToUnlock) =>
+      pipe(
+        deps.AuthLockRepository.unlockUserAuthentication(
+          fiscalCode,
+          codesToUnlock,
+        )(deps),
+        TE.mapLeft(() =>
+          toGenericError("Error releasing user authentication lock"),
+        ),
+      ),
+    ),
+  );
+
+export type UnlockUserAuthenticationDeps = {
+  AuthLockRepository: AuthLockRepository;
+  AuthenticationLockTableClient: TableClient;
+};
+const unlockUserAuthentication: (
+  fiscalCode: FiscalCode,
+  unlockCode?: UnlockCode,
+) => RTE.ReaderTaskEither<
+  UnlockUserAuthenticationDeps,
+  GenericError | ForbiddenError,
+  null
+> = (fiscalCode, unlockCode) => (deps) =>
+  pipe(
+    unlockCode,
+    O.fromNullable,
+    TE.of,
+    TE.bindTo("maybeUnlockCode"),
+    TE.bind("authLockData", () =>
+      pipe(
+        deps.AuthLockRepository.getUserAuthenticationLocks(fiscalCode)(deps),
+        TE.mapLeft((_) => toGenericError(ERROR_CHECK_USER_AUTH_LOCK)),
+      ),
+    ),
+    TE.chainW(({ authLockData, maybeUnlockCode }) =>
+      ROA.isNonEmpty(authLockData)
+        ? // User auth is locked
+          unlockuserAuthenticationLockData(
+            fiscalCode,
+            maybeUnlockCode,
+            authLockData,
+          )(deps)
+        : // User auth is NOT locked
+          TE.of(true),
+    ),
+    TE.map(() => null),
+  );
+
 export type SessionService = typeof SessionService;
 export const SessionService = {
-  invalidateUserSession,
   getUserSession,
   lockUserAuthentication,
+  unlockUserAuthentication,
+  invalidateUserSession,
 };

@@ -1,4 +1,8 @@
-import { CreateTableEntityResponse, TableClient } from "@azure/data-tables";
+import {
+  CreateTableEntityResponse,
+  TableClient,
+  TableTransactionResponse,
+} from "@azure/data-tables";
 import { vi } from "vitest";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { NotReleasedAuthenticationLockData } from "../repositories/auth-lock";
@@ -12,9 +16,14 @@ export const mockCreateEntity = vi
   .fn()
   .mockResolvedValue({} as CreateTableEntityResponse);
 
+export const mockSubmitTransaction = vi.fn(
+  async () => ({ status: 202 }) as TableTransactionResponse,
+);
+
 export const mockTableClient = {
   listEntities: mockListEntities,
   createEntity: mockCreateEntity,
+  submitTransaction: mockSubmitTransaction,
 } as unknown as TableClient;
 
 export const getLockedProfileIterator = (

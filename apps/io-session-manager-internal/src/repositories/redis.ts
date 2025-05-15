@@ -16,6 +16,7 @@ import {
   readableReportSimplified,
 } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
+import { isNumber } from "fp-ts/lib/number";
 import {
   LollipopData,
   NullableBackendAssertionRefFromString,
@@ -26,7 +27,6 @@ import { SessionsList } from "../generated/definitions/internal/SessionsList";
 import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
 import { SessionToken } from "../types/token";
 import { User } from "../types/user";
-import { isNumber } from "fp-ts/lib/number";
 
 const lollipopDataPrefix = "KEYS-";
 const userSessionsSetKeyPrefix = "USERSESSIONS-";

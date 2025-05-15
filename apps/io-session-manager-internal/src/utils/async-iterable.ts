@@ -92,7 +92,7 @@ export const foldTaskEither =
 const foldIterableArray =
   <A>(asyncIterable: AsyncIterable<A>) =>
   async (): Promise<ReadonlyArray<A>> => {
-    const array: Array<A> = [];
+    const array: A[] = [];
     for await (const variable of asyncIterable) {
       array.push(variable);
     }

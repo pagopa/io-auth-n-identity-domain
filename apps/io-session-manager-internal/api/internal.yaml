@@ -165,6 +165,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
+  /auth/{fiscalCode}/release-lock:
+    post:
+      operationId: releaseAuthLock
+      description: |-
+        Release the user authentication lock for the IO app.
+        This is intended to use with ioweb-profile unlock functionality.
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/Token"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthUnlockBody"
+      responses:
+        "204":
+          description: Lock successfully released.
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Token null or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "403":
+          description: Operation forbidden.
+        "500":
+          description: There was an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -273,3 +311,8 @@ components:
           $ref: "#/components/schemas/UnlockCode"
       required:
         - unlock_code
+    AuthUnlockBody:
+      type: object
+      properties:
+        unlock_code:
+          $ref: "#/components/schemas/UnlockCode"

@@ -17,6 +17,7 @@ import {
   getLockedProfileIterator,
   mockCreateEntity,
   mockListEntities,
+  mockSubmitTransaction,
   mockTableClient,
 } from "../../__mocks__/table-client.mock";
 import {
@@ -215,6 +216,67 @@ describe("AuthenticationLockService#getUserAuthenticationLocks", () => {
           'value "CF" at root[0].partitionKey is not a valid [string that matches the pattern "^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$"]',
         ),
       ),
+    );
+  });
+});
+
+describe("LockProfileRepo#unlockUserAuthentication", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should return true when records update transaction succeded", async () => {
+    const result = await AuthLockRepository.unlockUserAuthentication(
+      aFiscalCode,
+      [anUnlockCode, anotherUnlockCode],
+    )(mockedDependencies)();
+
+    expect(result).toEqual(E.right(true));
+    expect(mockSubmitTransaction).toHaveBeenCalledWith([
+      [
+        "update",
+        {
+          partitionKey: aFiscalCode,
+          rowKey: anUnlockCode,
+          Released: true,
+        },
+      ],
+      [
+        "update",
+        {
+          partitionKey: aFiscalCode,
+          rowKey: anotherUnlockCode,
+          Released: true,
+        },
+      ],
+    ]);
+  });
+
+  it("should return an Error when at least one CF-unlock code was not found", async () => {
+    mockSubmitTransaction.mockRejectedValueOnce(
+      new RestError("Not Found", { statusCode: 404 }),
+    );
+    const result = await AuthLockRepository.unlockUserAuthentication(
+      aFiscalCode,
+      [anUnlockCode, anotherUnlockCode],
+    )(mockedDependencies)();
+
+    expect(result).toEqual(
+      E.left(new Error("Something went wrong updating the record")),
+    );
+  });
+
+  it("should return an Error when an error occurred updating the record", async () => {
+    mockSubmitTransaction.mockRejectedValueOnce(
+      new RestError("An Error", { statusCode: 500 }),
+    );
+    const result = await AuthLockRepository.unlockUserAuthentication(
+      aFiscalCode,
+      [anUnlockCode],
+    )(mockedDependencies)();
+
+    expect(result).toEqual(
+      E.left(new Error("Something went wrong updating the record")),
     );
   });
 });
