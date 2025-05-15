@@ -1,5 +1,5 @@
 import { AzureFunction, Context } from "@azure/functions";
-import { flow, not, pipe } from "fp-ts/function";
+import { flow, pipe } from "fp-ts/function";
 import * as E from "fp-ts/Either";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as RTE from "fp-ts/ReaderTaskEither";
@@ -16,7 +16,7 @@ import {
   NotificationEvents,
   SessionExpiration
 } from "../models/session-expiration-model";
-import { QueuePermanentError, QueueTransientError } from "../utils/queue-utils";
+import { QueueTransientError } from "../utils/queue-utils";
 import { Tracker, TrackerRepositoryDependency } from "../repositories";
 import * as QueueUtils from "../utils/queue-utils";
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
@@ -88,6 +88,7 @@ const updateNotificationEvents = (
  * @param payload - The message to be inserted into the queue
  * @returns A TaskEither that resolves to a boolean indicating success or failure
  */
+// TODO: 
 const insertIntoQueue = (payload: ExpiredSessionAdvisorQueueMessage) => (
   deps: Dependencies
 ): TE.TaskEither<QueueTransientError, boolean> =>
@@ -116,7 +117,7 @@ const insertIntoQueue = (payload: ExpiredSessionAdvisorQueueMessage) => (
 const handleSessionExpiration = (
   record: SessionExpiration,
   { sessionExpirationModel, ...deps }: Dependencies
-): TE.TaskEither<Error, boolean> =>
+): TE.TaskEither<QueueTransientError, boolean> =>
   pipe(
     // Update the notification events for the session expiration
     updateNotificationEvents(record.id, record.expirationDate, {
@@ -143,13 +144,15 @@ const handleSessionExpiration = (
             updateNotificationEvents(record.id, record.expirationDate, {
               EXPIRED_SESSION: false
             })({ sessionExpirationModel, ...deps }),
+            TE.chain(_ => TE.left(error)),
             TE.orElse(error => {
-              logger.error(
-                `Error reverting notification events: ${error} for ${record.id}`
-              );
-              return TE.left(error);
-            }),
-            TE.chain(() => TE.left(error))
+              deps.TrackerRepository.trackEvent(
+                "io.citizen-auth.prof-async.error.permanent" as NonEmptyString,
+                (error.message ??
+                  "Expired Sessions Scanner Error") as NonEmptyString
+              )(deps);
+              return TE.right(false);
+            })
           )
         )
       )
@@ -171,14 +174,7 @@ const handleSessionExpirations = (
     page,
     RA.rights,
     RA.traverse(TE.ApplicativePar)(item => handleSessionExpiration(item, deps)),
-    TE.map(processedElements => {
-      logger.info(`PROCESSED ${processedElements.length} ELEMENTS`);
-      return processedElements.length;
-    }),
-    TE.mapLeft(e => {
-      logger.error("CHUNK FAILURE:", e);
-      return e;
-    })
+    TE.map(processedElements => processedElements.length)
   );
 
 /**
@@ -196,6 +192,7 @@ export const processExpirations: (
     SessionExpirationRepository.findByExpirationDateAsyncIterable(interval)(
       deps
     ),
+    TE.of,
     TE.chainW(
       flow(
         AI.fromAsyncIterable,
@@ -208,6 +205,7 @@ export const processExpirations: (
           )
         ),
         AI.foldTaskEither(E.toError),
+        // TODO: test error handling
         TE.chainW(tasks => pipe(tasks, RA.sequence(TE.ApplicativeSeq)))
       )
     )
@@ -222,6 +220,7 @@ export const processExpirations: (
  * @param deps - The dependencies for the function
  * @returns An AzureFunction that processes expired sessions
  */
+// TODO: Check handler kit timer trigger support
 export const ExpiredSessionsScannerFunction = (
   deps: Dependencies
 ): AzureFunction => async (context: Context, _timer: unknown) =>
@@ -232,19 +231,20 @@ export const ExpiredSessionsScannerFunction = (
     })(deps),
     TE.match(
       error => {
-        if (error instanceof QueuePermanentError) {
-          deps.TrackerRepository.trackEvent(
-            "io.citizen-auth.prof-async.error.permanent" as NonEmptyString,
-            (error.message ??
-              "Expired Sessions Scanner Error") as NonEmptyString
-          )(deps);
-          return;
-        }
-
         context.log.error(
           `(Retry number: ${context.executionContext.retryContext?.retryCount ??
             "undefined"}) Error processing expired sessions: ${error.message}`
         );
+        if (
+          context.executionContext.retryContext?.retryCount ===
+          context.executionContext.retryContext?.maxRetryCount
+        ) {
+          // TODO: add from and to
+          deps.TrackerRepository.trackEvent(
+            "io.citizen-auth.prof-async.error.permanent" as NonEmptyString,
+            "Reached max retry for expired sessions" as NonEmptyString
+          );
+        }
         throw error;
       },
       () => context.log("Expired sessions scan completed.")
