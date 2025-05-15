@@ -4,9 +4,14 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
 import { RedisClusterType } from "redis";
 import * as H from "@pagopa/handler-kit";
-import { makeAuthLockHandler, makeReleaseAuthLockHandler } from "../auth-lock";
+import {
+  makeAuthLockHandler,
+  makeDeleteUserSessionHandler,
+  makeReleaseAuthLockHandler,
+} from "../auth-lock";
 import {
   SessionServiceMock,
+  mockDeleteUserSession,
   mockLockUserAuthentication,
   mockUnlockUserAuthentication,
 } from "../../__mocks__/services/session-service.mock";
@@ -222,5 +227,66 @@ describe("Release Auth Lock Handler", () => {
     })();
 
     expect(result).toMatchObject(E.right({ body: { status } }));
+  });
+});
+
+describe("Delete User Session Handler", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should succeed deleteing an user session", async () => {
+    const req = {
+      ...H.request("mockUrl"),
+      path: {
+        fiscalCode: aFiscalCode,
+      },
+    };
+    const result = await makeDeleteUserSessionHandler({
+      ...httpHandlerInputMocks,
+      input: req,
+      ...mockedDependencies,
+    })();
+
+    expect(mockDeleteUserSession).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject(E.right(H.successJson({ message: "ok" })));
+  });
+
+  it("should fail on invalid request", async () => {
+    const req = {
+      ...H.request("mockUrl"),
+      path: {
+        fiscalCode: "invalid",
+      },
+    };
+    const result = await makeDeleteUserSessionHandler({
+      ...httpHandlerInputMocks,
+      input: req,
+      ...mockedDependencies,
+    })();
+
+    expect(result).toMatchObject(E.right({ body: { status: 400 } }));
+  });
+
+  it("should fail on service generic error", async () => {
+    const req = {
+      ...H.request("mockUrl"),
+      path: {
+        fiscalCode: aFiscalCode,
+      },
+      body: {},
+    };
+
+    const anError = toGenericError("ERROR");
+    mockDeleteUserSession.mockReturnValueOnce(RTE.left(anError));
+    const result = await makeDeleteUserSessionHandler({
+      ...httpHandlerInputMocks,
+      input: req,
+      ...mockedDependencies,
+    })();
+
+    expect(result).toMatchObject(
+      E.right({ body: { status: 500, title: anError.causedBy?.message } }),
+    );
   });
 });

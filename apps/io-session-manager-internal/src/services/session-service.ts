@@ -263,7 +263,7 @@ export type DeleteUserSessionDeps = RedisDeps & {
 };
 const deleteUserSession: (
   fiscalCode: FiscalCode,
-) => RTE.ReaderTaskEither<DeleteUserSessionDeps, GenericError, true> =
+) => RTE.ReaderTaskEither<DeleteUserSessionDeps, GenericError, null> =
   (fiscalCode) => (deps) =>
     pipe(
       {
@@ -286,7 +286,7 @@ const deleteUserSession: (
           TE.mapLeft((err) => toGenericError(err.message)),
         ),
       ),
-      TE.map((_) => true),
+      TE.map((_) => null),
     );
 
 export type SessionService = typeof SessionService;
