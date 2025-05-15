@@ -9,7 +9,6 @@ import {
 } from "../session-expiration";
 import {
   NotificationEvents,
-  RetrievedSessionExpiration,
   SESSION_EXPIRATION_ROW_PK_FIELD,
   SessionExpiration,
   SessionExpirationModel
@@ -31,19 +30,6 @@ const aSessionExpiration = {
   notificationEvents: aNotificationEvents,
   ttl: aTtl
 } as SessionExpiration;
-
-const cosmosMetadata = {
-  _rid: "rid",
-  _self: "self",
-  _etag: "etag",
-  _ts: 1693992855
-};
-
-const aRetrievedSessionExpiration = {
-  ...aSessionExpiration,
-  ...cosmosMetadata,
-  kind: "IRetrievedSessionExpiration"
-} as RetrievedSessionExpiration;
 
 const mockSessionExpirationModel = ({
   buildAsyncIterable: vi.fn(),
