@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.6.0
+
+### Minor Changes
+
+- d902890: Added Release Auth Lock endpoint
+
 ## 0.5.0
 
 ### Minor Changes
