@@ -159,6 +159,12 @@ paths:
         "401":
           description: Token null or invalid.
           content: {}
+        "500":
+          description: There was an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
   /auth/{fiscalCode}/release-lock:
     post:
       operationId: releaseAuthLock

@@ -89,6 +89,17 @@ app.http("AuthLock", {
   route: `${v1BasePath}/auth/{fiscalCode}/lock`,
 });
 
+app.http("ReleaseAuthLock", {
+  authLevel: "function",
+  handler: ReleaseAuthLockFunction({
+    SessionService,
+    AuthLockRepository,
+    AuthenticationLockTableClient,
+  }),
+  methods: ["POST"],
+  route: `${v1BasePath}/auth/{fiscalCode}/release-lock`,
+});
+
 const blockedUserServiceDeps = {
   blockedUsersService: BlockedUsersService,
   blockedUserRedisRepository: BlockedUsersRedisRepository,
@@ -112,15 +123,4 @@ app.http("UnlockUserSession", {
   handler: UnlockUserSessionFunction(blockedUserServiceDeps),
   methods: ["DELETE"],
   route: `${v1BasePath}/sessions/{fiscalCode}/lock`,
-});
-
-app.http("ReleaseAuthLock", {
-  authLevel: "function",
-  handler: ReleaseAuthLockFunction({
-    SessionService,
-    AuthLockRepository,
-    AuthenticationLockTableClient,
-  }),
-  methods: ["POST"],
-  route: `${v1BasePath}/auth/{fiscalCode}/release-lock`,
 });
