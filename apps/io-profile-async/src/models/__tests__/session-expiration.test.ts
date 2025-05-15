@@ -11,7 +11,7 @@ import {
 } from "../session-expiration";
 
 const anId = "AAAAAA89S20I111X" as NonEmptyString;
-const anExpirationDate = 1746992855578;
+const anExpirationTimestamp = 1746992855578;
 const aTtl = 885551;
 
 const aNotificationEvents = {
@@ -21,7 +21,7 @@ const aNotificationEvents = {
 
 const aSessionExpiration = {
   id: anId,
-  expirationDate: anExpirationDate,
+  expiredAt: anExpirationTimestamp,
   notificationEvents: aNotificationEvents,
   ttl: aTtl
 } as SessionExpiration;

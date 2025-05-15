@@ -19,12 +19,12 @@ export type Dependencies = {
 };
 
 /**
- * Finds session expiration documents with expirationDate within a given interval.
+ * Finds session expiration documents with expiredAt within a given interval.
  *
  * @param interval The interval to search for
  * @returns A TaskEither that resolves to an array of all session expiration documents within the interval
  */
-const findByExpirationDateAsyncIterable: (
+const findByExpiredAtAsyncIterable: (
   interval: Interval
 ) => R.Reader<
   Dependencies,
@@ -58,15 +58,15 @@ const findByExpirationDateAsyncIterable: (
  * */
 export const updateNotificationEvents: (
   fiscalCode: FiscalCode | string,
-  expirationDate: number,
+  expiredAt: number,
   notificationEvents: NotificationEvents,
   maxRetry?: number
 ) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, SessionExpiration> = (
   fiscalCode,
-  expirationDate,
+  expiredAt,
   notificationEvents
 ) => deps =>
-  deps.sessionExpirationModel.patch([fiscalCode, expirationDate], {
+  deps.sessionExpirationModel.patch([fiscalCode, expiredAt], {
     notificationEvents
   });
 
@@ -74,6 +74,7 @@ export const updateNotificationEvents: (
  * Updates notification events for a session expiration document.
  *
  * @param fiscalCode The fiscal code of the user
+ * @param expiredAt The expiration timestamp of the session
  * @param notificationEvents The notification events to update
  * @param maxRetry The maximum number of retries
  * @param delay The delay between retries in milliseconds
@@ -81,23 +82,19 @@ export const updateNotificationEvents: (
  * */
 export const updateNotificationEventsWithRetry: (
   fiscalCode: FiscalCode | string,
-  expirationDate: number,
+  expiredAt: number,
   notificationEvents: NotificationEvents,
   maxRetry?: number,
   delay?: number
 ) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, SessionExpiration> = (
   fiscalCode,
-  expirationDate,
+  expiredAt,
   notificationEvents,
   maxRetry = 5,
   delay = 500
 ) => deps =>
   pipe(
-    updateNotificationEvents(
-      fiscalCode,
-      expirationDate,
-      notificationEvents
-    )(deps),
+    updateNotificationEvents(fiscalCode, expiredAt, notificationEvents)(deps),
     TE.orElse(error => {
       if (maxRetry <= 1) {
         return TE.left(error);
@@ -107,7 +104,7 @@ export const updateNotificationEventsWithRetry: (
         TE.chain(() =>
           updateNotificationEventsWithRetry(
             fiscalCode,
-            expirationDate,
+            expiredAt,
             notificationEvents,
             maxRetry - 1,
             delay
@@ -119,7 +116,7 @@ export const updateNotificationEventsWithRetry: (
 
 export type SessionExpirationRepository = typeof SessionExpirationRepository;
 export const SessionExpirationRepository = {
-  findByExpirationDateAsyncIterable,
+  findByExpiredAtAsyncIterable,
   updateNotificationEvents,
   updateNotificationEventsWithRetry
 };

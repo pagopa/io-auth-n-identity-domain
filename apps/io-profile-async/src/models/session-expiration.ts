@@ -19,7 +19,7 @@ export type NotificationEvents = t.TypeOf<typeof NotificationEvents>;
 
 export const SessionExpiration = t.type({
   id: t.string,
-  expirationDate: t.number,
+  expiredAt: t.number,
   notificationEvents: NotificationEvents
 });
 

@@ -16,7 +16,7 @@ import {
 import { Interval } from "../../types/interval";
 
 const anId = "AAAAAA89S20I111X" as NonEmptyString;
-const anExpirationDate = 1746992855578;
+const anExpirationTimestamp = 1746992855578;
 const aTtl = 885551;
 
 const aNotificationEvents = {
@@ -26,7 +26,7 @@ const aNotificationEvents = {
 
 const aSessionExpiration = {
   id: anId,
-  expirationDate: anExpirationDate,
+  expiredAt: anExpirationTimestamp,
   notificationEvents: aNotificationEvents,
   ttl: aTtl
 } as SessionExpiration;
@@ -45,16 +45,14 @@ describe("SessionExpirationRepository", () => {
     vi.clearAllMocks();
   });
 
-  describe("findByExpirationDateAsyncIterable", () => {
+  describe("findByExpiredAtAsyncIterable", () => {
     it("should call buildAsyncIterable with correct query and parameters", async () => {
       const interval: Interval = {
         from: new Date(2024, 0, 1),
         to: new Date(2024, 0, 2)
       };
 
-      SessionExpirationRepository.findByExpirationDateAsyncIterable(interval)(
-        deps
-      );
+      SessionExpirationRepository.findByExpiredAtAsyncIterable(interval)(deps);
 
       expect(
         mockSessionExpirationModel.buildAsyncIterable
@@ -81,12 +79,12 @@ describe("SessionExpirationRepository", () => {
 
       const result = await SessionExpirationRepository.updateNotificationEvents(
         anId,
-        anExpirationDate,
+        anExpirationTimestamp,
         aNotificationEvents
       )(deps)();
 
       expect(mockSessionExpirationModel.patch).toHaveBeenCalledWith(
-        [anId, anExpirationDate],
+        [anId, anExpirationTimestamp],
         { notificationEvents: aNotificationEvents }
       );
       expect(E.isRight(result)).toBe(true);
@@ -104,7 +102,7 @@ describe("SessionExpirationRepository", () => {
 
       const result = await SessionExpirationRepository.updateNotificationEvents(
         anId,
-        anExpirationDate,
+        anExpirationTimestamp,
         aNotificationEvents
       )(deps)();
 
@@ -121,7 +119,7 @@ describe("SessionExpirationRepository", () => {
 
       const result = await SessionExpirationRepository.updateNotificationEventsWithRetry(
         anId,
-        anExpirationDate,
+        anExpirationTimestamp,
         aNotificationEvents
       )(deps)();
 
@@ -141,7 +139,7 @@ describe("SessionExpirationRepository", () => {
 
       const result = await SessionExpirationRepository.updateNotificationEventsWithRetry(
         anId,
-        anExpirationDate,
+        anExpirationTimestamp,
         aNotificationEvents
       )(deps)();
 
@@ -161,7 +159,7 @@ describe("SessionExpirationRepository", () => {
 
       const result = await SessionExpirationRepository.updateNotificationEventsWithRetry(
         anId,
-        anExpirationDate,
+        anExpirationTimestamp,
         aNotificationEvents
       )(deps)();
 
