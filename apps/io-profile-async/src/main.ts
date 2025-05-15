@@ -31,7 +31,6 @@ import { OnProfileUpdateFunctionInput } from "./types/on-profile-update-input-do
 import { ProfileEmailRepository, ProfileRepository } from "./repositories";
 import { StoreSpidLogsFunction } from "./functions/store-spid-logs";
 import { StoreSpidLogsQueueMessage } from "./types/store-spid-logs-queue-message";
-import { SessionExpirationModel } from "./models/session-expiration";
 
 const config = getConfigOrThrow();
 
