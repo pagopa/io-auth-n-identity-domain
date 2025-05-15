@@ -19,7 +19,6 @@ export const NotificationEvents = t.partial({
 export type NotificationEvents = t.TypeOf<typeof NotificationEvents>;
 
 export const SessionExpiration = t.type({
-  // TODO: remove t.string
   id: t.string,
   expirationDate: t.number,
   notificationEvents: NotificationEvents
@@ -55,7 +54,7 @@ export class SessionExpirationModel extends CosmosdbModelTTL<
   /**
    * Build a Cosmos query iterator for session expiration documents.
    */
-  public buildAsyncIterator(
+  public buildAsyncIterable(
     query: string | SqlQuerySpec,
     cosmosChunkSize: number,
     cosmosDegreeOfParallelism: number

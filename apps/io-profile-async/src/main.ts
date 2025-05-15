@@ -41,6 +41,7 @@ const config = getConfigOrThrow();
 
 const telemetryClient = initTelemetryClient();
 
+// TODO: specify the correct name
 const queueClient = new QueueClient(
   config.AZURE_STORAGE_CONNECTION_STRING,
   config.EXPIRED_SESSION_ADVISOR_QUEUE
