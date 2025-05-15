@@ -8,7 +8,7 @@ import { wrapWithKind } from "@pagopa/io-functions-commons/dist/src/utils/types"
 import * as t from "io-ts";
 
 export const SESSION_EXPIRATION_MODEL_KEY_FIELD = "id";
-export const SESSION_EXPIRATION_ROW_PK_FIELD = "expirationDate";
+export const SESSION_EXPIRATION_ROW_PK_FIELD = "expiredAt";
 
 export const NotificationEvents = t.partial({
   EXPIRED_SESSION: t.boolean,
