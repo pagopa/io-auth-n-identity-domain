@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/TaskEither";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import {
   Dependencies,
@@ -15,7 +15,7 @@ import {
 } from "../../models/session-notifications";
 import { Interval } from "../../types/interval";
 
-const anId = "AAAAAA89S20I111X" as NonEmptyString;
+const anId = "AAAAAA89S20I111X" as FiscalCode;
 const anExpirationTimestamp = 1746992855578;
 const aTtl = 885551;
 

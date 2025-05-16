@@ -5,6 +5,7 @@ import {
   CosmosResourceTTL
 } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model_ttl";
 import { wrapWithKind } from "@pagopa/io-functions-commons/dist/src/utils/types";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as t from "io-ts";
 
 export const SESSION_NOTIFICATIONS_MODEL_KEY_FIELD = "id";
@@ -18,7 +19,7 @@ export const NotificationEvents = t.partial({
 export type NotificationEvents = t.TypeOf<typeof NotificationEvents>;
 
 export const SessionNotifications = t.type({
-  id: t.string,
+  id: FiscalCode,
   expiredAt: t.number,
   notificationEvents: NotificationEvents
 });

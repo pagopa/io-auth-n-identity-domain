@@ -54,10 +54,9 @@ const findByExpiredAtAsyncIterable: (
  * @returns A TaskEither that resolves to the updated session-notifications document
  * */
 export const updateNotificationEvents: (
-  fiscalCode: FiscalCode | string,
+  fiscalCode: FiscalCode,
   expiredAt: number,
-  notificationEvents: NotificationEvents,
-  maxRetry?: number
+  notificationEvents: NotificationEvents
 ) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, SessionNotifications> = (
   fiscalCode,
   expiredAt,

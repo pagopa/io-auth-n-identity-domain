@@ -1,8 +1,8 @@
-import { beforeEach, describe, it, expect, vi } from "vitest";
 import { Container } from "@azure/cosmos";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
 import * as t from "io-ts";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   NotificationEvents,
   RetrievedSessionNotifications,
@@ -10,7 +10,7 @@ import {
   SessionNotificationsModel
 } from "../session-notifications";
 
-const anId = "AAAAAA89S20I111X" as NonEmptyString;
+const anId = "AAAAAA89S20I111X" as FiscalCode;
 const anExpirationTimestamp = 1746992855578;
 const aTtl = 885551;
 
