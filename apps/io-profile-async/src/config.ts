@@ -42,8 +42,13 @@ export const IConfig = t.intersection([
 
     AZURE_STORAGE_CONNECTION_STRING: NonEmptyString,
 
+    // Old general CosmosDB
     COSMOSDB_NAME: NonEmptyString,
     COSMOSDB_CONNECTION_STRING: NonEmptyString,
+
+    // Domain Centric new CosmosDB
+    CITIZEN_AUTH_COSMOSDB_NAME: NonEmptyString,
+    CITIZEN_AUTH_COSMOSDB_CONNECTION_STRING: NonEmptyString,
 
     // Default is 10 sec timeout
     FETCH_TIMEOUT_MS: withDefault(t.string, "10000").pipe(NumberFromString),
@@ -60,6 +65,9 @@ export const IConfig = t.intersection([
     // StoreSpidLogs Config
     IOPSTLOGS_STORAGE_CONNECTION_STRING: NonEmptyString,
     SPID_LOGS_PUBLIC_KEY: NonEmptyString,
+
+    EXPIRED_SESSION_ADVISOR_QUEUE: NonEmptyString,
+    SESSION_NOTIFICATIONS_CONTAINER_NAME: NonEmptyString,
 
     isProduction: t.boolean
   }),

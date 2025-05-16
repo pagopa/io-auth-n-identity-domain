@@ -1,4 +1,6 @@
 import { CosmosClient } from "@azure/cosmos";
+import { QueueClient } from "@azure/storage-queue";
+
 import { getMailerTransporter } from "@pagopa/io-functions-commons/dist/src/mailer";
 import {
   SERVICE_PREFERENCES_COLLECTION_NAME,
@@ -31,16 +33,34 @@ import { OnProfileUpdateFunctionInput } from "./types/on-profile-update-input-do
 import { ProfileEmailRepository, ProfileRepository } from "./repositories";
 import { StoreSpidLogsFunction } from "./functions/store-spid-logs";
 import { StoreSpidLogsQueueMessage } from "./types/store-spid-logs-queue-message";
+import { ExpiredSessionsScannerFunction } from "./functions/expired-sessions-scanner";
+import { SessionNotificationsRepository } from "./repositories/session-notifications";
+import { SessionNotificationsModel } from "./models/session-notifications";
 
 const config = getConfigOrThrow();
 
 const telemetryClient = initTelemetryClient();
 
-const cosmosClient = new CosmosClient(config.COSMOSDB_CONNECTION_STRING);
-const database = cosmosClient.database(config.COSMOSDB_NAME);
+// TODO: specify the correct name
+const queueClient = new QueueClient(
+  config.AZURE_STORAGE_CONNECTION_STRING,
+  config.EXPIRED_SESSION_ADVISOR_QUEUE
+);
+
+const comsosApiCosmosClient = new CosmosClient(
+  config.COSMOSDB_CONNECTION_STRING
+);
+const cosmosApiDatabase = comsosApiCosmosClient.database(config.COSMOSDB_NAME);
+
+const citizenAuthCosmosClient = new CosmosClient(
+  config.CITIZEN_AUTH_COSMOSDB_CONNECTION_STRING
+);
+const citizenAuthDatabase = citizenAuthCosmosClient.database(
+  config.CITIZEN_AUTH_COSMOSDB_NAME
+);
 
 const servicePreferenceModel = new ServicesPreferencesModel(
-  database.container(SERVICE_PREFERENCES_COLLECTION_NAME),
+  cosmosApiDatabase.container(SERVICE_PREFERENCES_COLLECTION_NAME),
   SERVICE_PREFERENCES_COLLECTION_NAME
 );
 
@@ -59,16 +79,21 @@ const profileEmailTableClient = TableClient.fromConnectionString(
 );
 
 const profileModel = new ProfileModel(
-  database.container(PROFILE_COLLECTION_NAME)
+  cosmosApiDatabase.container(PROFILE_COLLECTION_NAME)
 );
 
 const dataTableProfileEmailsRepository = new DataTableProfileEmailsRepository(
   profileEmailTableClient
 );
 
+const sessionNotificationsModel = new SessionNotificationsModel(
+  citizenAuthDatabase.container(config.SESSION_NOTIFICATIONS_CONTAINER_NAME)
+);
+
 export const Info = InfoFunction({
   connectionString: config.AZURE_STORAGE_CONNECTION_STRING,
-  db: database
+  db: cosmosApiDatabase
+  // TODO: update healthcheck in order to include citizen-auth db too
 });
 
 export const ExpiredSessionAdvisor = ExpiredSessionAdvisorFunction({
@@ -110,5 +135,13 @@ export const StoreSpidLogs = StoreSpidLogsFunction({
   inputDecoder: StoreSpidLogsQueueMessage,
   spidLogsPublicKey: config.SPID_LOGS_PUBLIC_KEY,
   tracker,
+  telemetryClient
+});
+
+export const ExpiredSessionsScanner = ExpiredSessionsScannerFunction({
+  SessionNotificationsRepository,
+  TrackerRepository: tracker,
+  QueueClient: queueClient,
+  sessionNotificationsModel,
   telemetryClient
 });
