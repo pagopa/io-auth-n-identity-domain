@@ -15,7 +15,11 @@ export type Interval = t.TypeOf<typeof Interval>;
  * @returns An Interval object with the start and end dates
  */
 export const createInterval = (date: Date): Interval => {
-  const from = new Date(date.setHours(0, 0, 0, 0));
-  const to = new Date(date.setHours(24, 0, 0, 0));
+  const from = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() - 1)
+  );
+  const to = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  );
   return { from, to };
 };

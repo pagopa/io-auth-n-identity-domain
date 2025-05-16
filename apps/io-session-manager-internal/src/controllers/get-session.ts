@@ -7,20 +7,20 @@ import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { sequenceS } from "fp-ts/lib/Apply";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import {
+  GetUserSessionDeps,
   SessionService,
-  SessionServiceDeps,
 } from "../services/session-service";
 import { RequiredPathParamMiddleware } from "../utils/middlewares/required-path-param";
 import { errorToHttpError } from "../utils/errors";
 
 type Dependencies = {
   SessionService: SessionService;
-} & SessionServiceDeps;
+};
 
 const getUserSession: (
   fiscalCode: FiscalCode,
 ) => RTE.ReaderTaskEither<
-  Dependencies,
+  Dependencies & GetUserSessionDeps,
   H.HttpError,
   H.HttpResponse<UserSessionInfo, 200>
 > = (fiscalCode) => (deps) =>
@@ -34,7 +34,7 @@ export const makeGetSessionHandler: H.Handler<
   H.HttpRequest,
   | H.HttpResponse<UserSessionInfo, 200>
   | H.HttpResponse<H.ProblemJson, H.HttpErrorStatusCode>,
-  Dependencies
+  Dependencies & GetUserSessionDeps
 > = H.of((req: H.HttpRequest) =>
   pipe(
     req,

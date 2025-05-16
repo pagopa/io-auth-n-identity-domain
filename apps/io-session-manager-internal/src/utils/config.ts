@@ -14,7 +14,7 @@ const ApplicationInsightsConfig = t.intersection([
     ),
   }),
   t.partial({
-    APPINSIGHTS_DISABLE: t.boolean,
+    APPINSIGHTS_DISABLE: withDefault(t.string, "false").pipe(BooleanFromString),
   }),
 ]);
 
@@ -28,6 +28,7 @@ const RedisClientConfig = t.intersection([
     REDIS_PORT: NonEmptyString,
   }),
 ]);
+
 export type RedisClientConfig = t.TypeOf<typeof RedisClientConfig>;
 
 export type IConfig = t.TypeOf<typeof IConfig>;
@@ -37,6 +38,19 @@ export const IConfig = t.intersection([
   }),
   ApplicationInsightsConfig,
   RedisClientConfig,
+  t.type({
+    // Locked profiles config
+    LOCKED_PROFILES_STORAGE_CONNECTION_STRING: NonEmptyString,
+    LOCKED_PROFILES_TABLE_NAME: NonEmptyString,
+
+    // Push notifications queue config
+    PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING: NonEmptyString,
+    PUSH_NOTIFICATIONS_QUEUE_NAME: NonEmptyString,
+
+    // Lollipop revoke queue config
+    LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING: NonEmptyString,
+    LOLLIPOP_REVOKE_QUEUE_NAME: NonEmptyString,
+  }),
 ]);
 
 export const envConfig = {

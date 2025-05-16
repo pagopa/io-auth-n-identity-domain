@@ -19,6 +19,18 @@ locals {
       FETCH_KEEPALIVE_MAX_FREE_SOCKETS    = "10"
       FETCH_KEEPALIVE_FREE_SOCKET_TIMEOUT = "30000"
       FETCH_KEEPALIVE_TIMEOUT             = "60000"
+
+      // Revoke assertion ref queue config
+      LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.lollipop_assertion_storage.primary_connection_string
+      LOLLIPOP_REVOKE_QUEUE_NAME                = "pubkeys-revoke-v2"
+
+      // User authenticaiton locks table config
+      LOCKED_PROFILES_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.locked_profiles_storage.primary_connection_string
+      LOCKED_PROFILES_TABLE_NAME                = "lockedprofiles"
+
+      // Clear installation queue config
+      PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.push_notifications_storage.primary_connection_string
+      PUSH_NOTIFICATIONS_QUEUE_NAME                = "push-notifications"
     }
   }
 }
