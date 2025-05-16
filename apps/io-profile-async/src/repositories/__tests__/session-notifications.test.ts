@@ -5,14 +5,14 @@ import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import {
   Dependencies,
-  SessionExpirationRepository
-} from "../session-expiration";
+  SessionNotificationsRepository
+} from "../session-notifications";
 import {
   NotificationEvents,
-  SESSION_EXPIRATION_ROW_PK_FIELD,
-  SessionExpiration,
-  SessionExpirationModel
-} from "../../models/session-expiration";
+  SESSION_NOTIFICATIONS_ROW_PK_FIELD,
+  SessionNotifications,
+  SessionNotificationsModel
+} from "../../models/session-notifications";
 import { Interval } from "../../types/interval";
 
 const anId = "AAAAAA89S20I111X" as NonEmptyString;
@@ -24,23 +24,23 @@ const aNotificationEvents = {
   EXPIRED_SESSION: true
 } as NotificationEvents;
 
-const aSessionExpiration = {
+const aSessionNotifications = {
   id: anId,
   expiredAt: anExpirationTimestamp,
   notificationEvents: aNotificationEvents,
   ttl: aTtl
-} as SessionExpiration;
+} as SessionNotifications;
 
-const mockSessionExpirationModel = ({
+const mockSessionNotificationsModel = ({
   buildAsyncIterable: vi.fn(),
   patch: vi.fn()
-} as unknown) as SessionExpirationModel;
+} as unknown) as SessionNotificationsModel;
 
 const deps = {
-  sessionExpirationModel: mockSessionExpirationModel
+  sessionNotificationsModel: mockSessionNotificationsModel
 } as Dependencies;
 
-describe("SessionExpirationRepository", () => {
+describe("SessionNotificationsRepository", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -52,10 +52,12 @@ describe("SessionExpirationRepository", () => {
         to: new Date(2024, 0, 2)
       };
 
-      SessionExpirationRepository.findByExpiredAtAsyncIterable(interval)(deps);
+      SessionNotificationsRepository.findByExpiredAtAsyncIterable(interval)(
+        deps
+      );
 
       expect(
-        mockSessionExpirationModel.buildAsyncIterable
+        mockSessionNotificationsModel.buildAsyncIterable
       ).toHaveBeenCalledWith(
         {
           parameters: [
@@ -63,7 +65,7 @@ describe("SessionExpirationRepository", () => {
             { name: "@to", value: interval.to.getTime() }
           ],
           query:
-            `SELECT * FROM c WHERE (c.${SESSION_EXPIRATION_ROW_PK_FIELD} BETWEEN @from AND @to) AND ` +
+            `SELECT * FROM c WHERE (c.${SESSION_NOTIFICATIONS_ROW_PK_FIELD} BETWEEN @from AND @to) AND ` +
             "(c.notificationEvents.EXPIRED_SESSION = false OR NOT IS_DEFINED(c.notificationEvents.EXPIRED_SESSION))"
         },
         100
@@ -73,22 +75,22 @@ describe("SessionExpirationRepository", () => {
 
   describe("updateNotificationEvents", () => {
     it("should call patch with correct arguments", async () => {
-      (mockSessionExpirationModel.patch as Mock).mockReturnValueOnce(
-        TE.right(aSessionExpiration)
+      (mockSessionNotificationsModel.patch as Mock).mockReturnValueOnce(
+        TE.right(aSessionNotifications)
       );
 
-      const result = await SessionExpirationRepository.updateNotificationEvents(
+      const result = await SessionNotificationsRepository.updateNotificationEvents(
         anId,
         anExpirationTimestamp,
         aNotificationEvents
       )(deps)();
 
-      expect(mockSessionExpirationModel.patch).toHaveBeenCalledWith(
+      expect(mockSessionNotificationsModel.patch).toHaveBeenCalledWith(
         [anId, anExpirationTimestamp],
         { notificationEvents: aNotificationEvents }
       );
       expect(E.isRight(result)).toBe(true);
-      expect(result).toEqual(E.right(aSessionExpiration));
+      expect(result).toEqual(E.right(aSessionNotifications));
     });
 
     it("should return left on error", async () => {
@@ -96,11 +98,11 @@ describe("SessionExpirationRepository", () => {
         kind: "COSMOS_ERROR_RESPONSE",
         error: new Error("fail")
       };
-      (mockSessionExpirationModel.patch as Mock).mockReturnValueOnce(
+      (mockSessionNotificationsModel.patch as Mock).mockReturnValueOnce(
         TE.left(error)
       );
 
-      const result = await SessionExpirationRepository.updateNotificationEvents(
+      const result = await SessionNotificationsRepository.updateNotificationEvents(
         anId,
         anExpirationTimestamp,
         aNotificationEvents
@@ -113,19 +115,19 @@ describe("SessionExpirationRepository", () => {
 
   describe("updateNotificationEventsWithRetry", () => {
     it("should resolve to updated document if patch succeeds first try", async () => {
-      (mockSessionExpirationModel.patch as Mock).mockReturnValueOnce(
-        TE.right(aSessionExpiration)
+      (mockSessionNotificationsModel.patch as Mock).mockReturnValueOnce(
+        TE.right(aSessionNotifications)
       );
 
-      const result = await SessionExpirationRepository.updateNotificationEventsWithRetry(
+      const result = await SessionNotificationsRepository.updateNotificationEventsWithRetry(
         anId,
         anExpirationTimestamp,
         aNotificationEvents
       )(deps)();
 
       expect(E.isRight(result)).toBe(true);
-      expect(result).toEqual(E.right(aSessionExpiration));
-      expect(mockSessionExpirationModel.patch).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(E.right(aSessionNotifications));
+      expect(mockSessionNotificationsModel.patch).toHaveBeenCalledTimes(1);
     });
 
     it("should retry on failure and eventually succeed", async () => {
@@ -133,19 +135,19 @@ describe("SessionExpirationRepository", () => {
         kind: "COSMOS_ERROR_RESPONSE",
         error: new Error("fail")
       };
-      (mockSessionExpirationModel.patch as Mock)
+      (mockSessionNotificationsModel.patch as Mock)
         .mockReturnValueOnce(TE.left(error))
-        .mockReturnValueOnce(TE.right(aSessionExpiration));
+        .mockReturnValueOnce(TE.right(aSessionNotifications));
 
-      const result = await SessionExpirationRepository.updateNotificationEventsWithRetry(
+      const result = await SessionNotificationsRepository.updateNotificationEventsWithRetry(
         anId,
         anExpirationTimestamp,
         aNotificationEvents
       )(deps)();
 
       expect(E.isRight(result)).toBe(true);
-      expect(result).toEqual(E.right(aSessionExpiration));
-      expect(mockSessionExpirationModel.patch).toHaveBeenCalledTimes(2);
+      expect(result).toEqual(E.right(aSessionNotifications));
+      expect(mockSessionNotificationsModel.patch).toHaveBeenCalledTimes(2);
     });
 
     it("should return left if all retries fail", async () => {
@@ -153,11 +155,11 @@ describe("SessionExpirationRepository", () => {
         kind: "COSMOS_ERROR_RESPONSE",
         error: new Error("fail")
       };
-      (mockSessionExpirationModel.patch as Mock).mockReturnValue(
+      (mockSessionNotificationsModel.patch as Mock).mockReturnValue(
         TE.left(error)
       );
 
-      const result = await SessionExpirationRepository.updateNotificationEventsWithRetry(
+      const result = await SessionNotificationsRepository.updateNotificationEventsWithRetry(
         anId,
         anExpirationTimestamp,
         aNotificationEvents
@@ -165,7 +167,7 @@ describe("SessionExpirationRepository", () => {
 
       expect(E.isLeft(result)).toBe(true);
       expect(result).toEqual(E.left(error));
-      expect(mockSessionExpirationModel.patch).toHaveBeenCalledTimes(5);
+      expect(mockSessionNotificationsModel.patch).toHaveBeenCalledTimes(5);
     });
   });
 });

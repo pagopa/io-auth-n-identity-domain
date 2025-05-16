@@ -5,10 +5,10 @@ import * as E from "fp-ts/lib/Either";
 import * as t from "io-ts";
 import {
   NotificationEvents,
-  RetrievedSessionExpiration,
-  SessionExpiration,
-  SessionExpirationModel
-} from "../session-expiration";
+  RetrievedSessionNotifications,
+  SessionNotifications,
+  SessionNotificationsModel
+} from "../session-notifications";
 
 const anId = "AAAAAA89S20I111X" as NonEmptyString;
 const anExpirationTimestamp = 1746992855578;
@@ -19,12 +19,12 @@ const aNotificationEvents = {
   EXPIRED_SESSION: true
 } as NotificationEvents;
 
-const aSessionExpiration = {
+const aSessionNotifications = {
   id: anId,
   expiredAt: anExpirationTimestamp,
   notificationEvents: aNotificationEvents,
   ttl: aTtl
-} as SessionExpiration;
+} as SessionNotifications;
 
 const cosmosMetadata = {
   _rid: "rid",
@@ -33,59 +33,61 @@ const cosmosMetadata = {
   _ts: 1693992855
 };
 
-const aRetrievedSessionExpiration = {
-  ...aSessionExpiration,
+const aRetrievedSessionNotifications = {
+  ...aSessionNotifications,
   ...cosmosMetadata,
-  kind: "IRetrievedSessionExpiration"
-} as RetrievedSessionExpiration;
+  kind: "IRetrievedSessionNotifications"
+} as RetrievedSessionNotifications;
 
-describe("SessionExpiration model decoding", () => {
-  it("should decode a SessionExpiration", () => {
-    const sessionExpiration = SessionExpiration.decode(aSessionExpiration);
+describe("SessionNotifications model decoding", () => {
+  it("should decode a SessionNotifications", () => {
+    const sessionNotifications = SessionNotifications.decode(
+      aSessionNotifications
+    );
 
-    expect(sessionExpiration).toEqual(
+    expect(sessionNotifications).toEqual(
       E.right({
-        ...aSessionExpiration
+        ...aSessionNotifications
       })
     );
   });
 
-  it("should decode a RetrievedSessionExpiration as a SessionExpiration", () => {
-    const sessionExpiration = SessionExpiration.decode(
-      aRetrievedSessionExpiration
+  it("should decode a RetrievedSessionNotifications as a SessionNotifications", () => {
+    const sessionNotifications = SessionNotifications.decode(
+      aRetrievedSessionNotifications
     );
 
     // It keeps the data of the original object but it doesn't fail the decoding
-    expect(sessionExpiration).toEqual(
+    expect(sessionNotifications).toEqual(
       E.right({
-        ...aRetrievedSessionExpiration
+        ...aRetrievedSessionNotifications
       })
     );
   });
 });
 
-describe("RetrievedSessionExpiration model decoding", () => {
-  it("should decode a RetrievedSessionExpiration", () => {
-    const retrievedSessionExpiration = RetrievedSessionExpiration.decode(
-      aRetrievedSessionExpiration
+describe("RetrievedSessionNotifications model decoding", () => {
+  it("should decode a RetrievedSessionNotifications", () => {
+    const retrievedSessionNotifications = RetrievedSessionNotifications.decode(
+      aRetrievedSessionNotifications
     );
 
-    expect(retrievedSessionExpiration).toEqual(
+    expect(retrievedSessionNotifications).toEqual(
       E.right({
-        ...aRetrievedSessionExpiration
+        ...aRetrievedSessionNotifications
       })
     );
   });
 
-  it("should fail to decode a SessionExpiration as RetrievedSessionExpiration", () => {
-    const invalid = RetrievedSessionExpiration.decode(aSessionExpiration);
+  it("should fail to decode a SessionNotifications as RetrievedSessionNotifications", () => {
+    const invalid = RetrievedSessionNotifications.decode(aSessionNotifications);
     expect(E.isLeft(invalid)).toBe(true);
   });
 });
 
 describe("buildAsyncIterable", () => {
   const containerMock: Container = {} as Container;
-  const model: SessionExpirationModel = new SessionExpirationModel(
+  const model: SessionNotificationsModel = new SessionNotificationsModel(
     containerMock
   );
 
@@ -97,7 +99,7 @@ describe("buildAsyncIterable", () => {
     const query = "SELECT * FROM c";
     const chunkSize = 10;
     const expectedResult = {} as AsyncIterable<
-      ReadonlyArray<t.Validation<RetrievedSessionExpiration>>
+      ReadonlyArray<t.Validation<RetrievedSessionNotifications>>
     >;
 
     const getQueryIteratorSpy = vi

@@ -8,29 +8,29 @@ import * as t from "io-ts";
 import { pipe } from "fp-ts/lib/function";
 import {
   NotificationEvents,
-  SESSION_EXPIRATION_ROW_PK_FIELD,
-  SessionExpiration,
-  SessionExpirationModel
-} from "../models/session-expiration";
+  SESSION_NOTIFICATIONS_ROW_PK_FIELD,
+  SessionNotifications,
+  SessionNotificationsModel
+} from "../models/session-notifications";
 import { Interval } from "../types/interval";
 
 export type Dependencies = {
-  readonly sessionExpirationModel: SessionExpirationModel;
+  readonly sessionNotificationsModel: SessionNotificationsModel;
 };
 
 /**
- * Finds session expiration documents with expiredAt within a given interval.
+ * Finds session-notifications documents with expiredAt within a given interval.
  *
  * @param interval The interval to search for
- * @returns A TaskEither that resolves to an array of all session expiration documents within the interval
+ * @returns A TaskEither that resolves to an array of all session-notifications documents within the interval
  */
 const findByExpiredAtAsyncIterable: (
   interval: Interval
 ) => R.Reader<
   Dependencies,
-  AsyncIterable<ReadonlyArray<t.Validation<SessionExpiration>>>
+  AsyncIterable<ReadonlyArray<t.Validation<SessionNotifications>>>
 > = interval => deps =>
-  deps.sessionExpirationModel.buildAsyncIterable(
+  deps.sessionNotificationsModel.buildAsyncIterable(
     {
       parameters: [
         {
@@ -43,42 +43,42 @@ const findByExpiredAtAsyncIterable: (
         }
       ],
       query:
-        `SELECT * FROM c WHERE (c.${SESSION_EXPIRATION_ROW_PK_FIELD} BETWEEN @from AND @to) AND ` +
+        `SELECT * FROM c WHERE (c.${SESSION_NOTIFICATIONS_ROW_PK_FIELD} BETWEEN @from AND @to) AND ` +
         "(c.notificationEvents.EXPIRED_SESSION = false OR NOT IS_DEFINED(c.notificationEvents.EXPIRED_SESSION))"
     },
     100
   );
 
 /**
- * Updates notification events for a session expiration document.
+ * Updates notification events for a session-notifications document.
  *
  * @param fiscalCode The fiscal code of the user
  * @param notificationEvents The notification events to update
- * @returns A TaskEither that resolves to the updated session expiration document
+ * @returns A TaskEither that resolves to the updated session-notifications document
  * */
 export const updateNotificationEvents: (
   fiscalCode: FiscalCode | string,
   expiredAt: number,
   notificationEvents: NotificationEvents,
   maxRetry?: number
-) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, SessionExpiration> = (
+) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, SessionNotifications> = (
   fiscalCode,
   expiredAt,
   notificationEvents
 ) => deps =>
-  deps.sessionExpirationModel.patch([fiscalCode, expiredAt], {
+  deps.sessionNotificationsModel.patch([fiscalCode, expiredAt], {
     notificationEvents
   });
 
 /**
- * Updates notification events for a session expiration document.
+ * Updates notification events for a session-notifications document.
  *
  * @param fiscalCode The fiscal code of the user
  * @param expiredAt The expiration timestamp of the session
  * @param notificationEvents The notification events to update
  * @param maxRetry The maximum number of retries
  * @param delay The delay between retries in milliseconds
- * @returns A TaskEither that resolves to the updated session expiration document
+ * @returns A TaskEither that resolves to the updated session-notifications document
  * */
 export const updateNotificationEventsWithRetry: (
   fiscalCode: FiscalCode | string,
@@ -86,7 +86,7 @@ export const updateNotificationEventsWithRetry: (
   notificationEvents: NotificationEvents,
   maxRetry?: number,
   delay?: number
-) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, SessionExpiration> = (
+) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, SessionNotifications> = (
   fiscalCode,
   expiredAt,
   notificationEvents,
@@ -114,8 +114,8 @@ export const updateNotificationEventsWithRetry: (
     })
   );
 
-export type SessionExpirationRepository = typeof SessionExpirationRepository;
-export const SessionExpirationRepository = {
+export type SessionNotificationsRepository = typeof SessionNotificationsRepository;
+export const SessionNotificationsRepository = {
   findByExpiredAtAsyncIterable,
   updateNotificationEvents,
   updateNotificationEventsWithRetry
