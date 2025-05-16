@@ -6,7 +6,6 @@ import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
 import { flow, pipe } from "fp-ts/function";
 import * as O from "fp-ts/lib/Option";
-import * as RTE from "fp-ts/ReaderTaskEither";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
@@ -145,13 +144,9 @@ const markUserAsNotified = (
     TE.mapLeft(e => new QueueTransientError(`Error processing item: ${e.kind}`))
   );
 
-export const processItem: (
+export const processItem = (deps: Dependencies) => (
   item: ItemToProcess
-) => RTE.ReaderTaskEither<
-  Dependencies,
-  QueueTransientError,
-  void
-> = item => deps =>
+): TE.TaskEither<QueueTransientError, void> =>
   pipe(
     markUserAsNotified(item.originalItem, deps),
     TE.chainW(() =>
@@ -162,18 +157,14 @@ export const processItem: (
     )
   );
 
-export const processChunk: (
+export const processChunk = (deps: Dependencies) => (
   chunk: ReadonlyArray<ItemToProcess>
-) => RTE.ReaderTaskEither<
-  Dependencies,
-  QueueTransientError,
-  void
-> = chunk => deps =>
+): TE.TaskEither<QueueTransientError, void> =>
   pipe(
     chunk,
-    RA.map(item =>
-      pipe(
-        processItem(item)(deps),
+    RA.map(
+      flow(
+        processItem(deps),
         TE.mapLeft(error => [error])
       )
     ),
@@ -194,13 +185,12 @@ export const processChunk: (
     })
   );
 
-export const retrieveFromDbInChuncks: (
+export const retrieveFromDbInChuncks = (deps: Dependencies) => (
   interval: Interval
-) => RTE.ReaderTaskEither<
-  Dependencies,
+): TE.TaskEither<
   QueueTransientError,
   ReadonlyArray<ReadonlyArray<ItemToProcess>>
-> = (interval: Interval) => ({ SessionNotificationsRepository, ...deps }) =>
+> =>
   pipe(
     SessionNotificationsRepository.findByExpiredAtAsyncIterable(interval)(deps),
     TE.of,
@@ -218,18 +208,30 @@ export const retrieveFromDbInChuncks: (
     TE.map(RA.mapWithIndex(mapItemChunck))
   );
 
+// TODO: mocked method
+const calculateTimeInterval = (): Interval => ({
+  from: new Date("2025-05-17T00:00:00.000Z"),
+  to: new Date("2025-05-17T23:59:59.999Z")
+});
+
+// inject config
+export type ExpiredSessionScannerFunctionInput = {
+  placeholder: string;
+};
+
 export const ExpiredSessionsScannerFunction = (
   deps: Dependencies
-): AzureFunction => async (context: Context, _timer: unknown): Promise<void> =>
-  pipe(
-    // TODO: calculate dates interval
-    retrieveFromDbInChuncks({
-      from: new Date("2025-05-17T00:00:00.000Z"),
-      to: new Date("2025-05-17T23:59:59.999Z")
-    })(deps),
-    TE.chainW(
+): AzureFunction => async (
+  context: Context,
+  _timer: unknown
+): Promise<void> => {
+  const interval = calculateTimeInterval(); // TODO: replace with the dynamic one trying putting in pipe all the way down in order to add toCustomEvent
+  return pipe(
+    interval,
+    retrieveFromDbInChuncks(deps),
+    TE.chain(
       flow(
-        RA.map(chuck => processChunk(chuck)(deps)),
+        RA.map(processChunk(deps)),
         RA.sequence(T.ApplicativeSeq),
         T.chain(
           flow(
@@ -252,9 +254,12 @@ export const ExpiredSessionsScannerFunction = (
         // TODO: add from and to
         deps.TrackerRepository.trackEvent(
           "io.citizen-auth.prof-async.error.permanent" as NonEmptyString,
-          "Reached max retry for expired sessions" as NonEmptyString
+          "Reached max retry for expired sessions" as NonEmptyString,
+          false,
+          { interval }
         );
       }
       throw error;
     })
   )();
+};
