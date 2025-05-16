@@ -6,6 +6,7 @@ import { pipe } from "fp-ts/lib/function";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { sequenceS } from "fp-ts/lib/Apply";
 import {
+  DeleteUserSessionDeps,
   LockUserAuthenticationDeps,
   SessionService,
   UnlockUserAuthenticationDeps,
@@ -15,6 +16,7 @@ import { DomainErrorTypes } from "../utils/errors";
 import { RequiredBodyMiddleware } from "../utils/middlewares/required-body";
 import { AuthLockBody } from "../generated/definitions/internal/AuthLockBody";
 import { AuthUnlockBody } from "../generated/definitions/internal/AuthUnlockBody";
+import { SuccessResponse } from "../generated/definitions/internal/SuccessResponse";
 
 type Dependencies = {
   SessionService: SessionService;
@@ -119,7 +121,48 @@ export const makeReleaseAuthLockHandler: H.Handler<
   ),
 );
 
+const deleteUserSession: (
+  fiscalCode: FiscalCode,
+) => RTE.ReaderTaskEither<
+  Dependencies & DeleteUserSessionDeps,
+  H.HttpError,
+  H.HttpResponse<SuccessResponse, 200>
+> = (fiscalCode) => (deps) =>
+  pipe(
+    deps,
+    deps.SessionService.deleteUserSession(fiscalCode),
+    TE.map((_) => H.successJson({ message: "ok" })),
+    TE.mapLeft(
+      (genericError) => new H.HttpError(genericError.causedBy?.message),
+    ),
+  );
+
+export const makeDeleteUserSessionHandler: H.Handler<
+  H.HttpRequest,
+  | H.HttpResponse<SuccessResponse, 200>
+  | H.HttpResponse<H.ProblemJson, H.HttpErrorStatusCode>,
+  Dependencies & DeleteUserSessionDeps
+> = H.of((req: H.HttpRequest) =>
+  pipe(
+    req,
+    sequenceS(RTE.ApplyPar)({
+      fiscalCode: RequiredPathParamMiddleware(
+        FiscalCode,
+        "fiscalCode" as NonEmptyString,
+      ),
+    }),
+    RTE.fromTaskEither,
+    RTE.chain(({ fiscalCode }) => deleteUserSession(fiscalCode)),
+    RTE.orElseW((error) =>
+      RTE.right(H.problemJson({ status: error.status, title: error.message })),
+    ),
+  ),
+);
+
 export const AuthLockFunction = httpAzureFunction(makeAuthLockHandler);
 export const ReleaseAuthLockFunction = httpAzureFunction(
   makeReleaseAuthLockHandler,
+);
+export const DeleteUserSessionFunction = httpAzureFunction(
+  makeDeleteUserSessionHandler,
 );

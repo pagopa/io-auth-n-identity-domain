@@ -203,6 +203,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
+  /sessions/{fiscalCode}/logout:
+    post:
+      operationId: deleteUserSession
+      summary: Delete user session and invalidate lollipop data
+      description: |-
+        Use this operation to invalidate the user session and disable the lollipop params to prevent Fast Login token refresh.
+        This is intended to use with ioweb-profile logout functionality.
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/Token"
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+              example:
+                message: ok
+        "400":
+          description: Bad request
+        "401":
+          description: Token null or invalid.
+        "500":
+          description: There was an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+
 components:
   securitySchemes:
     ApiKeyAuth:

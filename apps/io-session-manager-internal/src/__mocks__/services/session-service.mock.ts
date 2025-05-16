@@ -18,9 +18,12 @@ export const mockUnlockUserAuthentication = vi
   .fn()
   .mockReturnValue(RTE.right(null));
 
+export const mockDeleteUserSession = vi.fn().mockReturnValue(RTE.right(null));
+
 export const SessionServiceMock: SessionService = {
   invalidateUserSession: mockInvalidateUserSession,
   getUserSession: mockGetUserSession,
   lockUserAuthentication: mockLockUserAuthentication,
   unlockUserAuthentication: mockUnlockUserAuthentication,
+  deleteUserSession: mockDeleteUserSession,
 };

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
+import * as O from "fp-ts/lib/Option";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { QueueClient } from "@azure/storage-queue";
 import { TableClient } from "@azure/data-tables";
@@ -21,7 +22,10 @@ import {
   mockLockUserAuthentication,
   mockUnlockUserAuthentication,
 } from "../../__mocks__/repositories/auth-lock.mock";
-import { LollipopRepositoryMock } from "../../__mocks__/repositories/lollipop.mock";
+import {
+  LollipopRepositoryMock,
+  mockfireAndForgetRevokeAssertionRef,
+} from "../../__mocks__/repositories/lollipop.mock";
 import {
   InstallationRepositoryMock,
   mockDeleteInstallation,
@@ -94,6 +98,24 @@ describe("Session Service#lockUserAuthentication", () => {
       anUnlockCode,
     )(deps)();
 
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.right(null));
+  });
+
+  it("should succeed to lock an user authentication with no assertionref for the user", async () => {
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(TE.right(O.none));
+    const result = await SessionService.lockUserAuthentication(
+      aFiscalCode,
+      anUnlockCode,
+    )(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockfireAndForgetRevokeAssertionRef).not.toHaveBeenCalled();
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
     expect(result).toEqual(E.right(null));
   });
 
@@ -342,5 +364,85 @@ describe("Session Service#unlockUserAuthentication", () => {
 
     expect(mockGetUserAuthenticationLocks).toHaveBeenCalledTimes(1);
     expect(mockUnlockUserAuthentication).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Session Service#deleteUserSession", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const deps = {
+    FastRedisClientTask: RedisClientTaskMock,
+    SafeRedisClientTask: RedisClientTaskMock,
+    RedisRepository: RedisRepositoryMock,
+    LollipopRepository: LollipopRepositoryMock,
+    RevokeAssertionRefQueueClient: {} as QueueClient,
+  };
+  it("should succeed deleting an user session", async () => {
+    const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.right(null));
+  });
+
+  it("should succeed deleting an user session with no assertionref", async () => {
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(TE.right(O.none));
+    const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockfireAndForgetRevokeAssertionRef).not.toHaveBeenCalled();
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.right(null));
+  });
+
+  it("should fail when redis is not available", async () => {
+    const anErrorMessage = "ERROR";
+    const expectedError = toGenericError(
+      `Could not establish connection to redis: ${anErrorMessage}`,
+    );
+    const result = await SessionService.deleteUserSession(aFiscalCode)({
+      ...deps,
+      FastRedisClientTask: TE.left(Error(anErrorMessage)),
+    })();
+
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return generic error when assertionref retrieval fails", async () => {
+    const anError = Error("ERROR");
+    const expectedError = toGenericError(anError.message);
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(TE.left(anError));
+
+    const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return generic error when delete of lollipopdata fails", async () => {
+    const anError = Error("ERROR");
+    const expectedError = toGenericError(anError.message);
+    mockDelLollipopDataForUser.mockReturnValueOnce(TE.left(anError));
+
+    const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return generic error when delete of all sessions fails", async () => {
+    const anError = Error("ERROR");
+    const expectedError = toGenericError(anError.message);
+    mockDelUserAllSessions.mockReturnValueOnce(TE.left(anError));
+
+    const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.left(expectedError));
   });
 });
