@@ -4,7 +4,7 @@ import { asyncIterableToArray } from "@pagopa/io-functions-commons/dist/src/util
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
-import { flow, pipe } from "fp-ts/function";
+import { flow, identity, pipe } from "fp-ts/function";
 import * as O from "fp-ts/lib/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as T from "fp-ts/Task";
@@ -54,10 +54,7 @@ const onBadRetrievedItem = (e: t.Errors): t.Errors => {
         ? O.fromNullable((actual as { _self?: string })["_self"])
         : O.none
     ),
-    O.fold(
-      () => "N/A",
-      self => self
-    )
+    O.fold(() => "N/A", identity)
   );
   // TODO: rimpiazzare con un trackEvent
   console.error("BAD ITEM RETRIEVED SKIPPING IT:", originalItem);
