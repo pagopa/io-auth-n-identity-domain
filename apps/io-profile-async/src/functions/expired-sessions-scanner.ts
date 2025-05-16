@@ -1,252 +1,260 @@
 import { AzureFunction, Context } from "@azure/functions";
-import { flow, pipe } from "fp-ts/function";
-import * as E from "fp-ts/Either";
-import * as RA from "fp-ts/ReadonlyArray";
-import * as RTE from "fp-ts/ReaderTaskEither";
-import * as TE from "fp-ts/TaskEither";
-import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { QueueClient } from "@azure/storage-queue";
-import * as AI from "@pagopa/io-functions-commons/dist/src/utils/async_iterable_task";
-import {
-  SessionExpirationRepository,
-  Dependencies as SessionExpirationRepositoryDependencies
-} from "../repositories/session-expiration";
-import { Interval } from "../types/interval";
-import {
-  NotificationEvents,
-  SessionExpiration
-} from "../models/session-expiration-model";
-import { QueueTransientError } from "../utils/queue-utils";
+import { asyncIterableToArray } from "@pagopa/io-functions-commons/dist/src/utils/async";
+import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import * as E from "fp-ts/Either";
+import { flow, pipe } from "fp-ts/function";
+import * as O from "fp-ts/lib/Option";
+import * as RTE from "fp-ts/ReaderTaskEither";
+import * as RA from "fp-ts/ReadonlyArray";
+import * as T from "fp-ts/Task";
+import * as TE from "fp-ts/TaskEither";
+import * as t from "io-ts";
+import { SessionNotifications } from "../models/session-notifications";
 import { Tracker, TrackerRepositoryDependency } from "../repositories";
-import * as QueueUtils from "../utils/queue-utils";
+import {
+  Dependencies as SessionENotificationsRepositoryDependencies,
+  SessionNotificationsRepository
+} from "../repositories/session-notifications";
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
-import { cosmosErrorsToString } from "../utils/cosmos/errors";
-
-const logger = {
-  info: (message: string) =>
-    console.log(
-      `[INFO][TEST USER ENGAGEMENT QUERY ITERATOR][${new Date().toISOString()}] => ${message}`
-    ),
-  error: (message: string, additionalData?: unknown) =>
-    additionalData
-      ? console.error(
-          `[ERROR][TEST USER ENGAGEMENT QUERY ITERATOR][${new Date().toISOString()}] => ${message}`,
-          additionalData
-        )
-      : console.error(
-          `[ERROR][TEST USER ENGAGEMENT QUERY ITERATOR][${new Date().toISOString()}] => ${message}`
-        )
-};
+import { Interval } from "../types/interval";
+import { QueueTransientError } from "../utils/queue-utils";
 
 type Dependencies = {
-  SessionExpirationRepository: SessionExpirationRepository;
+  SessionNotificationsRepository: SessionNotificationsRepository;
   TrackerRepository: Tracker;
   QueueClient: QueueClient;
-} & SessionExpirationRepositoryDependencies &
+} & SessionENotificationsRepositoryDependencies &
   TrackerRepositoryDependency;
 
-/**
- * Function to update the notification events status for a given fiscal code
- * in the SessionExpirationRepository.
- *
- * @param fiscalCode - The fiscal code of the user
- * @param expirationDate - The expiration date of the session
- * @param notificationStatus - The status of the notification events
- * @param maxRetry - The maximum number of retries for the operation
- * @returns A TaskEither that resolves to a SessionExpiration or an error
- */
-const updateNotificationEvents = (
-  fiscalCode: string,
-  expirationDate: number,
-  notificationStatus: NotificationEvents,
-  maxRetry?: number
-) => (
-  deps: Dependencies
-): TE.TaskEither<QueueTransientError, SessionExpiration> =>
-  pipe(
-    deps.SessionExpirationRepository.updateNotificationEventsWithRetry(
-      fiscalCode,
-      expirationDate,
-      notificationStatus,
-      maxRetry
-    )(deps),
-    x => {
-      logger.info(`Notification Status: ${JSON.stringify(notificationStatus)}`);
-      return x;
-    },
-    TE.mapLeft(
-      error =>
-        new QueueTransientError(
-          `Error updating notification events: ${cosmosErrorsToString(error)}`
-        )
+export type ItemToProcess = {
+  queuePayload: ExpiredSessionAdvisorQueueMessage;
+  originalItem: SessionNotifications;
+  itemTimeoutInSeconds?: number;
+};
+
+const createItemToProcess = (itemTimeoutInSeconds: number) => (
+  originalItem: SessionNotifications
+): ItemToProcess => ({
+  originalItem,
+  queuePayload: {
+    fiscalCode: originalItem.id,
+    expiredAt: new Date(originalItem.expiredAt)
+  },
+  itemTimeoutInSeconds
+});
+
+const onBadRetrievedItem = (e: t.Errors): t.Errors => {
+  // ritrovo _self dell' oggetto che ha fallito la validazione in modo da poterlo loggare in un trackEvent
+  // TODO: migliorare con oggetto base di cosmos
+  const originalItem = pipe(
+    O.tryCatch(() => e[0].context[0].actual),
+    O.chain(actual =>
+      typeof actual === "object" && actual !== null && "_self" in actual
+        ? O.fromNullable((actual as { _self?: string })["_self"])
+        : O.none
+    ),
+    O.fold(
+      () => "N/A",
+      self => self
     )
   );
+  // TODO: rimpiazzare con un trackEvent
+  console.error("BAD ITEM RETRIEVED SKIPPING IT:", originalItem);
+  return e;
+};
 
-/**
- * Function to insert an item into the queue
- *
- * @param payload - The message to be inserted into the queue
- * @returns A TaskEither that resolves to a boolean indicating success or failure
- */
-// TODO: 
-const insertIntoQueue = (payload: ExpiredSessionAdvisorQueueMessage) => (
-  deps: Dependencies
-): TE.TaskEither<QueueTransientError, boolean> =>
+const mapItemChunck = (
+  chunkNumber: number,
+  chunk: ReadonlyArray<t.Validation<SessionNotifications>>
+): ReadonlyArray<ItemToProcess> =>
   pipe(
-    QueueUtils.insertItemIntoQueue({
-      client: deps.QueueClient,
-      appInsightsTelemetryClient: deps.telemetryClient,
-      item: { payload } // TODO: check `itemTimeoutInSeconds`
-    }),
-    TE.mapLeft(
-      error =>
-        new QueueTransientError(
-          `Error while inserting in queue ${JSON.stringify(payload)}: ${error}`
-        )
-    )
-  );
-
-/**
- * Function to handle session expiration.
- * It updates the notification events and inserts a message into the queue.
- *
- * @param sessionExpiration - The session expiration object
- * @param deps - The dependencies for the function
- * @returns A TaskEither that resolves to a boolean or an error
- */
-const handleSessionExpiration = (
-  record: SessionExpiration,
-  { sessionExpirationModel, ...deps }: Dependencies
-): TE.TaskEither<QueueTransientError, boolean> =>
-  pipe(
-    // Update the notification events for the session expiration
-    updateNotificationEvents(record.id, record.expirationDate, {
-      EXPIRED_SESSION: true
-    })({ sessionExpirationModel, ...deps }),
-    TE.mapLeft(error => {
-      logger.error(`Error setting notified: ${error}`);
-      return new QueueTransientError(
-        `Error updating notification events: ${error}`
-      );
-    }),
-
-    TE.chain(() =>
-      pipe(
-        // Insert the session expiration into the queue
-        insertIntoQueue({
-          fiscalCode: record.id as FiscalCode,
-          expiredAt: new Date(record.expirationDate)
-        })({ sessionExpirationModel, ...deps }),
-        // If the queue insertion fails, revert the notification event update
-        TE.orElse(error =>
-          pipe(
-            // Revert the notification event update
-            updateNotificationEvents(record.id, record.expirationDate, {
-              EXPIRED_SESSION: false
-            })({ sessionExpirationModel, ...deps }),
-            TE.chain(_ => TE.left(error)),
-            TE.orElse(error => {
-              deps.TrackerRepository.trackEvent(
-                "io.citizen-auth.prof-async.error.permanent" as NonEmptyString,
-                (error.message ??
-                  "Expired Sessions Scanner Error") as NonEmptyString
-              )(deps);
-              return TE.right(false);
-            })
-          )
+    chunk,
+    RA.map(
+      flow(
+        E.bimap(
+          onBadRetrievedItem,
+          createItemToProcess(7 * chunkNumber) //TODO: put in configuration the baseTimeout
         )
       )
-    )
+    ),
+    RA.rights // Filter out the left values, which are already notified
   );
 
-/**
- * Function to handle session expirations.
- *
- * @param page - The array of session expiration objects
- * @param deps - The dependencies for the function
- * @returns A TaskEither that resolves to a number of success or an error
- * : TE.TaskEither<Error, number>
- */
-const handleSessionExpirations = (
-  page: ReadonlyArray<E.Either<unknown, SessionExpiration>>
-) => (deps: Dependencies): TE.TaskEither<Error, number> =>
+const onRevertItemFlagFailure = (record: SessionNotifications) => (
+  cosmosError: CosmosErrors
+): TE.TaskEither<CosmosErrors, void> =>
   pipe(
-    page,
-    RA.rights,
-    RA.traverse(TE.ApplicativePar)(item => handleSessionExpiration(item, deps)),
-    TE.map(processedElements => processedElements.length)
-  );
-
-/**
- * Function to process session expirations
- *
- * @param interval - The interval to filter session expirations
- * @returns A ReaderTaskEither that resolves to an array of fiscal codes or an error
- */
-export const processExpirations: (
-  interval: Interval
-) => RTE.ReaderTaskEither<Dependencies, Error, ReadonlyArray<number>> = (
-  interval: Interval
-) => ({ SessionExpirationRepository, ...deps }) =>
-  pipe(
-    SessionExpirationRepository.findByExpirationDateAsyncIterable(interval)(
-      deps
+    //TODO: here trackEvents, console.log is a placeholder
+    console.error(
+      `FATAL ERROR REVERTING ITEM FLAG for user having fiscalCode ${record.id}`,
+      cosmosError
     ),
     TE.of,
-    TE.chainW(
-      flow(
-        AI.fromAsyncIterable,
-        AI.map(page =>
-          pipe(
-            handleSessionExpirations(page)({
-              SessionExpirationRepository,
-              ...deps
-            })
-          )
-        ),
-        AI.foldTaskEither(E.toError),
-        // TODO: test error handling
-        TE.chainW(tasks => pipe(tasks, RA.sequence(TE.ApplicativeSeq)))
+    TE.chain(() => TE.left(cosmosError))
+  );
+
+const updateExpiredSessionNotificationFlag = (
+  record: SessionNotifications,
+  deps: Dependencies,
+  flagNewValue: boolean
+): TE.TaskEither<CosmosErrors, void> =>
+  pipe(
+    deps.SessionNotificationsRepository.updateNotificationEvents(
+      record.id,
+      record.expiredAt,
+      {
+        ...record.notificationEvents,
+        EXPIRED_SESSION: flagNewValue
+      }
+    )(deps),
+    TE.map(_ => void 0)
+  );
+
+const handleQueueInsertFailure = (
+  record: SessionNotifications,
+  deps: Dependencies
+) => (
+  queueInsertError: QueueTransientError
+): TE.TaskEither<QueueTransientError, undefined> =>
+  pipe(
+    updateExpiredSessionNotificationFlag(record, deps, false),
+    TE.map(() => void 0),
+    TE.orElse(onRevertItemFlagFailure(record)),
+    TE.bimap(
+      _ => void 0, // in case of error reverting not propagate the error, cause no retry should be triggered
+      () => queueInsertError // in case the revert was accomplished with succes, forward the queueInsert error
+    ),
+    TE.swap
+  );
+
+// TODO: placeholder function
+// replace with the implemented one
+const sendMessage: (
+  item: ItemToProcess
+) => TE.TaskEither<QueueTransientError, void> = item => pipe(TE.of(void 0));
+
+const markUserAsNotified = (
+  record: SessionNotifications,
+  deps: Dependencies
+): TE.TaskEither<QueueTransientError, void> =>
+  pipe(
+    updateExpiredSessionNotificationFlag(record, deps, true),
+    TE.map(_ => void 0),
+    TE.mapLeft(e => new QueueTransientError(`Error processing item: ${e.kind}`))
+  );
+
+export const processItem: (
+  item: ItemToProcess
+) => RTE.ReaderTaskEither<
+  Dependencies,
+  QueueTransientError,
+  void
+> = item => deps =>
+  pipe(
+    markUserAsNotified(item.originalItem, deps),
+    TE.chainW(() =>
+      pipe(
+        sendMessage(item),
+        TE.orElseW(handleQueueInsertFailure(item.originalItem, deps))
       )
     )
   );
 
-/**
- * Function to scan for expired sessions.
- * This function is triggered by a timer and processes expired sessions.
- * In case of a permanent error, it tracks the event using the TrackerRepository.
- * In case of a transient error, it will retry the operation by throwing the error.
- *
- * @param deps - The dependencies for the function
- * @returns An AzureFunction that processes expired sessions
- */
-// TODO: Check handler kit timer trigger support
+export const processChunk: (
+  chunk: ReadonlyArray<ItemToProcess>
+) => RTE.ReaderTaskEither<
+  Dependencies,
+  QueueTransientError,
+  void
+> = chunk => deps =>
+  pipe(
+    chunk,
+    RA.map(item =>
+      pipe(
+        processItem(item)(deps),
+        TE.mapLeft(error => [error])
+      )
+    ),
+    RA.sequence(
+      TE.getApplicativeTaskValidation(
+        T.ApplicativePar,
+        RA.getSemigroup<QueueTransientError>()
+      )
+    ),
+    TE.map(() => void 0),
+    TE.mapLeft(errors => {
+      errors.forEach(e =>
+        console.error(`Error processing chunck item: ${e.message}`)
+      ); // TODO: log errors occours in chunck process using RA
+      return new QueueTransientError(
+        "One or more error happen in chunck processing"
+      );
+    })
+  );
+
+export const retrieveFromDbInChuncks: (
+  interval: Interval
+) => RTE.ReaderTaskEither<
+  Dependencies,
+  QueueTransientError,
+  ReadonlyArray<ReadonlyArray<ItemToProcess>>
+> = (interval: Interval) => ({ SessionNotificationsRepository, ...deps }) =>
+  pipe(
+    SessionNotificationsRepository.findByExpiredAtAsyncIterable(interval)(deps),
+    TE.of,
+    TE.chainW(
+      flow(asyncIterableToArray, asyncIterator =>
+        TE.tryCatch(
+          () => asyncIterator,
+          _ =>
+            new QueueTransientError(
+              "Error retrieving session expirations, AsyncIterable fetch execution failure"
+            )
+        )
+      )
+    ),
+    TE.map(RA.mapWithIndex(mapItemChunck))
+  );
+
 export const ExpiredSessionsScannerFunction = (
   deps: Dependencies
-): AzureFunction => async (context: Context, _timer: unknown) =>
+): AzureFunction => async (context: Context, _timer: unknown): Promise<void> =>
   pipe(
-    processExpirations({
-      from: new Date(1746992583924),
-      to: new Date(1746992883924)
+    // TODO: calculate dates interval
+    retrieveFromDbInChuncks({
+      from: new Date("2025-05-17T00:00:00.000Z"),
+      to: new Date("2025-05-17T23:59:59.999Z")
     })(deps),
-    TE.match(
-      error => {
-        context.log.error(
-          `(Retry number: ${context.executionContext.retryContext?.retryCount ??
-            "undefined"}) Error processing expired sessions: ${error.message}`
+    TE.chainW(
+      flow(
+        RA.map(chuck => processChunk(chuck)(deps)),
+        RA.sequence(T.ApplicativeSeq),
+        T.chain(
+          flow(
+            RA.sequence(E.Applicative), // check chunck process results, if any in error(QueueTransientError), propagate in order to retry
+            TE.fromEither,
+            TE.map(_ => void 0)
+          )
+        )
+      )
+    ),
+    TE.getOrElse(error => {
+      context.log.error(
+        `(Retry number: ${context.executionContext.retryContext?.retryCount ??
+          "undefined"}) Error processing expired sessions: ${error.message}`
+      );
+      if (
+        context.executionContext.retryContext?.retryCount ===
+        context.executionContext.retryContext?.maxRetryCount
+      ) {
+        // TODO: add from and to
+        deps.TrackerRepository.trackEvent(
+          "io.citizen-auth.prof-async.error.permanent" as NonEmptyString,
+          "Reached max retry for expired sessions" as NonEmptyString
         );
-        if (
-          context.executionContext.retryContext?.retryCount ===
-          context.executionContext.retryContext?.maxRetryCount
-        ) {
-          // TODO: add from and to
-          deps.TrackerRepository.trackEvent(
-            "io.citizen-auth.prof-async.error.permanent" as NonEmptyString,
-            "Reached max retry for expired sessions" as NonEmptyString
-          );
-        }
-        throw error;
-      },
-      () => context.log("Expired sessions scan completed.")
-    )
+      }
+      throw error;
+    })
   )();

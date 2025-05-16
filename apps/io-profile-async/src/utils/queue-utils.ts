@@ -21,7 +21,7 @@ export class QueuePermanentError extends Error {
   }
 }
 
-export type Item<T> = {
+export type QueueItem<T> = {
   payload: T;
   itemTimeoutInSeconds?: number;
 };
@@ -32,7 +32,7 @@ export type CommonDependencies = {
 };
 
 type Dependencies<T> = CommonDependencies & {
-  item: Item<T>;
+  item: QueueItem<T>;
 };
 
 const base64EncodeObject = <T>(item: T): string =>
@@ -40,7 +40,7 @@ const base64EncodeObject = <T>(item: T): string =>
 
 const sendMessage: <T>(deps: {
   client: QueueClient;
-  item: Item<T>;
+  item: QueueItem<T>;
 }) => TE.TaskEither<Error, true> = ({ client, item }) =>
   pipe(
     TE.tryCatch(async () => base64EncodeObject(item.payload), E.toError),
