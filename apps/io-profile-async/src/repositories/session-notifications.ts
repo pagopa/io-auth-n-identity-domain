@@ -2,10 +2,7 @@ import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmos
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as R from "fp-ts/lib/Reader";
 import * as RTE from "fp-ts/ReaderTaskEither";
-import * as TE from "fp-ts/TaskEither";
-import * as T from "fp-ts/Task";
 import * as t from "io-ts";
-import { pipe } from "fp-ts/lib/function";
 import {
   NotificationEvents,
   SESSION_NOTIFICATIONS_ROW_PK_FIELD,
@@ -70,53 +67,8 @@ export const updateNotificationEvents: (
     notificationEvents
   });
 
-/**
- * Updates notification events for a session-notifications document.
- *
- * @param fiscalCode The fiscal code of the user
- * @param expiredAt The expiration timestamp of the session
- * @param notificationEvents The notification events to update
- * @param maxRetry The maximum number of retries
- * @param delay The delay between retries in milliseconds
- * @returns A TaskEither that resolves to the updated session-notifications document
- * */
-export const updateNotificationEventsWithRetry: (
-  fiscalCode: FiscalCode | string,
-  expiredAt: number,
-  notificationEvents: NotificationEvents,
-  maxRetry?: number,
-  delay?: number
-) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, SessionNotifications> = (
-  fiscalCode,
-  expiredAt,
-  notificationEvents,
-  maxRetry = 5,
-  delay = 500
-) => deps =>
-  pipe(
-    updateNotificationEvents(fiscalCode, expiredAt, notificationEvents)(deps),
-    TE.orElse(error => {
-      if (maxRetry <= 1) {
-        return TE.left(error);
-      }
-      return pipe(
-        TE.fromTask(T.delay(delay)(T.of(undefined))),
-        TE.chain(() =>
-          updateNotificationEventsWithRetry(
-            fiscalCode,
-            expiredAt,
-            notificationEvents,
-            maxRetry - 1,
-            delay
-          )(deps)
-        )
-      );
-    })
-  );
-
 export type SessionNotificationsRepository = typeof SessionNotificationsRepository;
 export const SessionNotificationsRepository = {
   findByExpiredAtAsyncIterable,
-  updateNotificationEvents,
-  updateNotificationEventsWithRetry
+  updateNotificationEvents
 };
