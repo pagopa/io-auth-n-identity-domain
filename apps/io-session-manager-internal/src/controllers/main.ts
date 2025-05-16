@@ -21,7 +21,6 @@ import {
   AuthLockFunction,
   DeleteUserSessionFunction,
   ReleaseAuthLockFunction,
-  makeDeleteUserSessionHandler,
 } from "./auth-lock";
 
 const v1BasePath = "api/v1";
