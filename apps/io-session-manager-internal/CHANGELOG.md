@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.7.0
+
+### Minor Changes
+
+- 673e6f9: Added DeleteUserSession endpoint
+
 ## 0.6.0
 
 ### Minor Changes
