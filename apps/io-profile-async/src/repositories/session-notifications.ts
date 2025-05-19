@@ -1,7 +1,9 @@
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { pipe } from "fp-ts/lib/function";
 import * as R from "fp-ts/lib/Reader";
 import * as RTE from "fp-ts/ReaderTaskEither";
+import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
 import {
   NotificationEvents,
@@ -48,6 +50,7 @@ const findByExpiredAtAsyncIterable: (
     chunckSize
   );
 
+// TODO: this method is not used anymore, remove it
 /**
  * Updates notification events for a session-notifications document.
  *
@@ -68,8 +71,30 @@ export const updateNotificationEvents: (
     notificationEvents
   });
 
+// TODO: add tests
+const updateExpiredSessionNotificationFlag: (
+  actualRecord: RetrievedSessionNotifications,
+  flagNewValue: boolean
+) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> = (
+  actualRecord: RetrievedSessionNotifications,
+  flagNewValue: boolean
+) => (deps: Dependencies) =>
+  pipe(
+    deps.sessionNotificationsModel.patch(
+      [actualRecord.id, actualRecord.expiredAt],
+      {
+        notificationEvents: {
+          ...actualRecord.notificationEvents,
+          EXPIRED_SESSION: flagNewValue
+        }
+      }
+    ),
+    TE.map(() => void 0)
+  );
+
 export type SessionNotificationsRepository = typeof SessionNotificationsRepository;
 export const SessionNotificationsRepository = {
   findByExpiredAtAsyncIterable,
-  updateNotificationEvents
+  updateNotificationEvents,
+  updateExpiredSessionNotificationFlag
 };

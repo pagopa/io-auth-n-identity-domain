@@ -10,10 +10,7 @@ import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
 import { ExpiredSessionScannerConfig } from "../config";
-import {
-  RetrievedSessionNotifications,
-  SessionNotifications
-} from "../models/session-notifications";
+import { RetrievedSessionNotifications } from "../models/session-notifications";
 import {
   SessionNotificationsRepository,
   Dependencies as SessionNotificationsRepositoryDependencies
@@ -53,7 +50,7 @@ const onBadRetrievedItem = (validationErrors: t.Errors): t.Errors => {
 
   trackEvent({
     name:
-      "io.citizen-auth.prof-async.expired-sessions-scanner.permanent.bad-record",
+      "io.citizen-auth.prof-async.expired-sessions-discoverer.permanent.bad-record",
     properties: {
       message: "Found a non compliant db record",
       badRecordSelf
@@ -85,7 +82,7 @@ const onRevertItemFlagFailure = (record: RetrievedSessionNotifications) => (
 ): CosmosErrors => {
   trackEvent({
     name:
-      "io.citizen-auth.prof-async.expired-sessions-scanner.permanent.revert-failure",
+      "io.citizen-auth.prof-async.expired-sessions-discoverer.permanent.revert-failure",
     properties: {
       message:
         "Error reverting expired session flag(EXPIRED_SESSION) after Queue write failure",
@@ -97,65 +94,60 @@ const onRevertItemFlagFailure = (record: RetrievedSessionNotifications) => (
   return cosmosError;
 };
 
-const updateExpiredSessionNotificationFlag: (
-  record: SessionNotifications,
-  flagNewValue: boolean
-) => RTE.ReaderTaskEither<TriggerDependencies, CosmosErrors, void> = (
-  record: SessionNotifications,
-  flagNewValue: boolean
+const handleQueueInsertFailure: (
+  record: RetrievedSessionNotifications
+) => (
+  queueInsertError: QueueTransientError
+) => RTE.ReaderTaskEither<
+  TriggerDependencies,
+  QueueTransientError,
+  undefined
+> = (record: RetrievedSessionNotifications) => (
+  queueInsertError: QueueTransientError
 ) => (deps: TriggerDependencies) =>
   pipe(
-    deps.SessionNotificationsRepository.updateNotificationEvents(
-      record.id,
-      record.expiredAt,
-      {
-        ...record.notificationEvents,
-        EXPIRED_SESSION: flagNewValue
-      }
+    deps.SessionNotificationsRepository.updateExpiredSessionNotificationFlag(
+      record,
+      false
     )(deps),
-    TE.map(() => void 0)
-  );
-
-const handleQueueInsertFailure = (record: RetrievedSessionNotifications) => (
-  queueInsertError: QueueTransientError
-): RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, undefined> =>
-  pipe(
-    updateExpiredSessionNotificationFlag(record, false),
-    RTE.mapLeft(onRevertItemFlagFailure(record)),
-    RTE.bimap(
+    TE.mapLeft(onRevertItemFlagFailure(record)),
+    TE.bimap(
       _ => void 0, // in case of error reverting not propagate the error, cause no retry should be triggered
       () => queueInsertError // in case the revert was accomplished with succes, forward the queueInsert error
     ),
-    RTE.swap
+    TE.swap
   );
 
 const sendMessage = (
   item: ItemToProcess
 ): RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, void> =>
-  RTE.of(void 0); // TODO: replace with actual implementation
+  RTE.left(new QueueTransientError("Error Simulated Queue")); // TODO: replace with actual implementation
 
-const markUserAsNotified = (
-  record: SessionNotifications
-): RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, void> =>
-  pipe(
-    updateExpiredSessionNotificationFlag(record, true),
-    RTE.mapLeft(
-      e => new QueueTransientError(`Error processing item: ${e.kind}`)
-    )
-  );
-
-export const processItem = (
+export const processItem: (
   item: ItemToProcess
-): RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, void> =>
+) => RTE.ReaderTaskEither<
+  TriggerDependencies,
+  QueueTransientError,
+  void
+> = item => deps =>
   pipe(
-    markUserAsNotified(item.retrivedDbItem),
+    deps.SessionNotificationsRepository.updateExpiredSessionNotificationFlag(
+      item.retrivedDbItem,
+      true
+    ),
+    RTE.mapLeft(
+      e =>
+        new QueueTransientError(
+          `Error updating expired session flag(EXPIRED_SESSION): ${e.kind}`
+        )
+    ),
     RTE.chainW(() =>
       pipe(
         sendMessage(item),
         RTE.orElseW(handleQueueInsertFailure(item.retrivedDbItem))
       )
     )
-  );
+  )(deps);
 
 export const processChunk = (
   chunk: ReadonlyArray<ItemToProcess>
@@ -244,12 +236,11 @@ export const ExpiredSessionsDiscovererFunction = (
     ),
     RTE.getOrElse(errors => {
       if (Array.isArray(errors)) {
-        // TODO: maybe a customEvent is better than logging each errors, just for logging purpose and not alert and so on.
-        // an alternative is not logging at all on TransientErorrs
+        // TODO: replace with a customEvent which includes the TransientError number
+        //TODO: Create a new error type, TransientError instead using the QueueTrigger specific ones
         context.log.error(
           `Multiple transient errors occurred during execution: count=${errors.length}`
         );
-        errors.forEach(e => context.log.error(` - ${e.message}`));
       } else if (errors instanceof QueueTransientError) {
         context.log.error(`Transient error occurred: ${errors.message}`);
       }
@@ -257,16 +248,14 @@ export const ExpiredSessionsDiscovererFunction = (
       if (isLastTimerTriggerRetry(context)) {
         trackEvent({
           name:
-            "io.citizen-auth.prof-async.expired-sessions-scanner.max-retry-reached",
+            "io.citizen-auth.prof-async.expired-sessions-discoverer.max-retry-reached",
           properties: {
             message: "Reached max retry for expired sessions",
             interval
           }
         });
       }
-      throw new QueueTransientError(
-        "One or more chunks failed during processing"
-      );
+      throw new Error("One or more chunks failed during processing");
     })
   )(deps)();
 };

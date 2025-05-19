@@ -4,14 +4,13 @@
       "name": "expiredSessionsScannerTimer",
       "type": "timerTrigger",
       "direction": "in",
-      "schedule": "0 0 7 * * *"
+      "schedule": "0 0 8 * * *"
     }
   ],
   "retry": {
-    "strategy": "exponentialBackoff",
-    "maxRetryCount": 10,
-    "minimumInterval": "00:00:05",
-    "maximumInterval": "00:30:00"
+    "strategy": "fixedDelay",
+    "maxRetryCount": 5,
+    "delayInterval": "00:15:00"
   },
   "scriptFile": "../dist/main.js",
   "entryPoint": "ExpiredSessionsDiscoverer"
