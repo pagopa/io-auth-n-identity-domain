@@ -4,6 +4,7 @@ import { asyncIterableToArray } from "@pagopa/io-functions-commons/dist/src/util
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
 import { flow, pipe } from "fp-ts/function";
+import * as RTE from "fp-ts/ReaderTaskEither";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
@@ -97,122 +98,122 @@ const onRevertItemFlagFailure = (record: RetrievedSessionNotifications) => (
 
 const updateExpiredSessionNotificationFlag = (
   record: SessionNotifications,
-  deps: Dependencies,
   flagNewValue: boolean
-): TE.TaskEither<CosmosErrors, void> =>
+): RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> =>
   pipe(
-    deps.SessionNotificationsRepository.updateNotificationEvents(
-      record.id,
-      record.expiredAt,
-      {
-        ...record.notificationEvents,
-        EXPIRED_SESSION: flagNewValue
-      }
-    )(deps),
-    TE.map(_ => void 0)
+    RTE.asks((deps: Dependencies) =>
+      deps.SessionNotificationsRepository.updateNotificationEvents(
+        record.id,
+        record.expiredAt,
+        {
+          ...record.notificationEvents,
+          EXPIRED_SESSION: flagNewValue
+        }
+      )(deps)
+    ),
+    RTE.map(() => void 0)
   );
 
-const handleQueueInsertFailure = (
-  record: RetrievedSessionNotifications,
-  deps: Dependencies
-) => (
+const handleQueueInsertFailure = (record: RetrievedSessionNotifications) => (
   queueInsertError: QueueTransientError
-): TE.TaskEither<QueueTransientError, undefined> =>
+): RTE.ReaderTaskEither<Dependencies, QueueTransientError, undefined> =>
   pipe(
-    updateExpiredSessionNotificationFlag(record, deps, false),
-    TE.mapLeft(onRevertItemFlagFailure(record)),
-    TE.bimap(
+    updateExpiredSessionNotificationFlag(record, false),
+    RTE.mapLeft(onRevertItemFlagFailure(record)),
+    RTE.bimap(
       _ => void 0, // in case of error reverting not propagate the error, cause no retry should be triggered
       () => queueInsertError // in case the revert was accomplished with succes, forward the queueInsert error
     ),
-    TE.swap
+    RTE.swap
   );
 
-// TODO: placeholder function
-// replace with the implemented one
-const sendMessage: (
+const sendMessage = (
   item: ItemToProcess
-) => TE.TaskEither<QueueTransientError, void> = item => pipe(TE.of(void 0));
+): RTE.ReaderTaskEither<Dependencies, QueueTransientError, void> =>
+  RTE.of(void 0); // TODO: replace with actual implementation
 
 const markUserAsNotified = (
-  record: SessionNotifications,
-  deps: Dependencies
-): TE.TaskEither<QueueTransientError, void> =>
+  record: SessionNotifications
+): RTE.ReaderTaskEither<Dependencies, QueueTransientError, void> =>
   pipe(
-    updateExpiredSessionNotificationFlag(record, deps, true),
-    TE.map(_ => void 0),
-    TE.mapLeft(e => new QueueTransientError(`Error processing item: ${e.kind}`))
+    updateExpiredSessionNotificationFlag(record, true),
+    RTE.mapLeft(
+      e => new QueueTransientError(`Error processing item: ${e.kind}`)
+    )
   );
 
-export const processItem = (deps: Dependencies) => (
+export const processItem = (
   item: ItemToProcess
-): TE.TaskEither<QueueTransientError, void> =>
+): RTE.ReaderTaskEither<Dependencies, QueueTransientError, void> =>
   pipe(
-    markUserAsNotified(item.retrivedDbItem, deps),
-    TE.chainW(() =>
+    markUserAsNotified(item.retrivedDbItem),
+    RTE.chainW(() =>
       pipe(
         sendMessage(item),
-        TE.orElseW(handleQueueInsertFailure(item.retrivedDbItem, deps))
+        RTE.orElseW(handleQueueInsertFailure(item.retrivedDbItem))
       )
     )
   );
 
-export const processChunk = (deps: Dependencies) => (
+export const processChunk = (
   chunk: ReadonlyArray<ItemToProcess>
-): TE.TaskEither<QueueTransientError, void> =>
+): RTE.ReaderTaskEither<
+  Dependencies,
+  ReadonlyArray<QueueTransientError>,
+  void
+> =>
   pipe(
     chunk,
     RA.map(
       flow(
-        processItem(deps),
-        TE.mapLeft(error => [error])
+        processItem,
+        RTE.mapLeft(error => [error])
       )
     ),
     RA.sequence(
-      TE.getApplicativeTaskValidation(
+      RTE.getApplicativeReaderTaskValidation(
         T.ApplicativePar,
         RA.getSemigroup<QueueTransientError>()
       )
     ),
-    TE.map(() => void 0),
-    TE.mapLeft(errors => {
-      errors.forEach(e =>
-        console.error(`Error processing chunck item: ${e.message}`)
-      ); // TODO: log errors occours in chunck process using RA
-      return new QueueTransientError(
-        "One or more error happen in chunck processing"
-      );
-    })
+    RTE.map(() => void 0)
   );
 
-export const retrieveFromDbInChuncks = (deps: Dependencies) => (
+export const retrieveFromDbInChuncks = (
   interval: Interval
-): TE.TaskEither<
+): RTE.ReaderTaskEither<
+  Dependencies,
   QueueTransientError,
   ReadonlyArray<ReadonlyArray<ItemToProcess>>
 > =>
   pipe(
-    SessionNotificationsRepository.findByExpiredAtAsyncIterable(
-      interval,
-      deps.expiredSessionsScannerConf.EXPIRED_SESSION_SCANNER_CHUNCK_SIZE
-    )(deps),
-    TE.of,
-    TE.chainW(
-      flow(asyncIterableToArray, asyncIterator =>
+    RTE.asks((deps: Dependencies) =>
+      SessionNotificationsRepository.findByExpiredAtAsyncIterable(
+        interval,
+        deps.expiredSessionsScannerConf.EXPIRED_SESSION_SCANNER_CHUNCK_SIZE
+      )(deps)
+    ),
+    RTE.chainW(asyncIterable =>
+      RTE.fromTaskEither(
         TE.tryCatch(
-          () => asyncIterator,
-          _ =>
+          () => asyncIterableToArray(asyncIterable),
+          () =>
             new QueueTransientError(
               "Error retrieving session expirations, AsyncIterable fetch execution failure"
             )
         )
       )
     ),
-    TE.map(
-      RA.mapWithIndex(
-        mapItemChunck(
-          deps.expiredSessionsScannerConf
-            .EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER
+    RTE.chain(items =>
+      RTE.asks((deps: Dependencies) =>
+        pipe(
+          items,
+          RA.mapWithIndex(
+            mapItemChunck(
+              deps.expiredSessionsScannerConf
+                .EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER
+            )
+          )
         )
       )
     )
@@ -229,24 +230,37 @@ export const ExpiredSessionsScannerFunction = (
   context: Context,
   _timer: unknown
 ): Promise<void> => {
-  const interval = createInterval(); // TODO: replace with the dynamic one trying putting in pipe all the way down in order to add toCustomEvent
+  const interval = createInterval();
   return pipe(
-    interval,
-    retrieveFromDbInChuncks(deps),
-    TE.chain(
+    retrieveFromDbInChuncks(interval),
+    RTE.chainW(
       flow(
-        RA.map(processChunk(deps)),
-        RA.sequence(T.ApplicativeSeq),
-        T.chain(
+        RA.map(
           flow(
-            RA.sequence(E.Applicative), // check chunck process results, if any in error(QueueTransientError), propagate in order to retry
-            TE.fromEither,
-            TE.map(_ => void 0)
+            processChunk,
+            RTE.mapLeft(error => [error]) // trasforma in array per accumulo
           )
-        )
+        ),
+        RA.sequence(
+          RTE.getApplicativeReaderTaskValidation(
+            T.ApplicativeSeq,
+            RA.getSemigroup<ReadonlyArray<QueueTransientError>>()
+          )
+        ),
+        RTE.map(() => void 0),
+        RTE.mapLeft(RA.flatten)
       )
     ),
-    TE.getOrElse(error => {
+    RTE.getOrElse(errors => {
+      if (Array.isArray(errors)) {
+        context.log.error(
+          `Multiple transient errors occurred during execution: count=${errors.length}`
+        );
+        errors.forEach(e => context.log.error(` - ${e.message}`));
+      } else if (errors instanceof QueueTransientError) {
+        context.log.error(`Transient error occurred: ${errors.message}`);
+      }
+
       if (isLastTimerTriggerRetry(context)) {
         trackEvent({
           name:
@@ -257,7 +271,9 @@ export const ExpiredSessionsScannerFunction = (
           }
         });
       }
-      throw error;
+      throw new QueueTransientError(
+        "One or more chunks failed during processing"
+      );
     })
-  )();
+  )(deps)();
 };
