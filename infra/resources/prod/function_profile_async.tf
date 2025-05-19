@@ -74,6 +74,13 @@ locals {
       //StoreSpidLogs Config
       IOPSTLOGS_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.storage_logs.primary_connection_string
       SPID_LOGS_PUBLIC_KEY                = trimspace(data.azurerm_key_vault_secret.fn_app_SPID_LOGS_PUBLIC_KEY.value)
+
+      //Domain cosmos account config
+      CITIZEN_AUTH_COSMOSDB_NAME              = "citizen-auth"
+      CITIZEN_AUTH_COSMOSDB_CONNECTION_STRING = data.azurerm_cosmosdb_account.cosmos_citizen_auth.primary_sql_connection_string
+
+      //ExpiredSessionsScanner timertrigger config
+      SESSION_NOTIFICATIONS_CONTAINER_NAME = "session-notifications"
     }
   }
 }
