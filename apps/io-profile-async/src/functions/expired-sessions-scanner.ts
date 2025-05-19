@@ -238,7 +238,7 @@ export const ExpiredSessionsScannerFunction = (
         RA.map(
           flow(
             processChunk,
-            RTE.mapLeft(error => [error]) // trasforma in array per accumulo
+            RTE.mapLeft(error => [error])
           )
         ),
         RA.sequence(
@@ -253,6 +253,8 @@ export const ExpiredSessionsScannerFunction = (
     ),
     RTE.getOrElse(errors => {
       if (Array.isArray(errors)) {
+        // TODO: maybe a customEvent is better than logging each errors, just for logging purpose and not alert and so on.
+        // an alternative is not logging at all on TransientErorrs
         context.log.error(
           `Multiple transient errors occurred during execution: count=${errors.length}`
         );
