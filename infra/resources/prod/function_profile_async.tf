@@ -81,6 +81,16 @@ locals {
 
       //ExpiredSessionsScanner timertrigger config
       SESSION_NOTIFICATIONS_CONTAINER_NAME = "session-notifications"
+      // following IOPID-2714, the optimal config found
+      // for the notification speed is ~50k items/h,
+      // divided in batches of 100 items each.
+      EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 100
+      // value (in seconds) representing the visibility timeout field of each
+      // item sent into the queue. this is multiplied by the batch index.
+      // HOURLY_BATCHES = DESIRED_HOURLY_LIMIT / CHUNK_SIZE
+      // TIMEOUT_MULTIPLIER = 3600 / HOURLY_BATCHES -> for ~50k, 7 seconds is
+      // the appropriate value
+      EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER = 7
     }
   }
 }
