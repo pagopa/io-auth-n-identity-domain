@@ -30,17 +30,17 @@ type TriggerDependencies = {
 
 export type ItemToProcess = {
   queuePayload: ExpiredSessionAdvisorQueueMessage;
-  retrivedDbItem: RetrievedSessionNotifications;
-  itemTimeoutInSeconds?: number;
+  retrievedDbItem: RetrievedSessionNotifications;
+  itemTimeoutInSeconds: number;
 };
 
 const createItemToProcess = (itemTimeoutInSeconds: number) => (
-  retrivedDbItem: RetrievedSessionNotifications
+  retrievedDbItem: RetrievedSessionNotifications
 ): ItemToProcess => ({
-  retrivedDbItem,
+  retrievedDbItem,
   queuePayload: {
-    fiscalCode: retrivedDbItem.id,
-    expiredAt: new Date(retrivedDbItem.expiredAt)
+    fiscalCode: retrievedDbItem.id,
+    expiredAt: new Date(retrievedDbItem.expiredAt)
   },
   itemTimeoutInSeconds
 });
@@ -132,7 +132,7 @@ export const processItem: (
 > = item => deps =>
   pipe(
     deps.SessionNotificationsRepository.updateExpiredSessionNotificationFlag(
-      item.retrivedDbItem,
+      item.retrievedDbItem,
       true
     ),
     RTE.mapLeft(
@@ -144,7 +144,7 @@ export const processItem: (
     RTE.chainW(() =>
       pipe(
         sendMessage(item),
-        RTE.orElseW(handleQueueInsertFailure(item.retrivedDbItem))
+        RTE.orElseW(handleQueueInsertFailure(item.retrievedDbItem))
       )
     )
   )(deps);
