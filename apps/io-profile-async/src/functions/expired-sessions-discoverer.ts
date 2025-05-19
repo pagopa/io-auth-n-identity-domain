@@ -9,7 +9,7 @@ import * as RA from "fp-ts/ReadonlyArray";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
-import { ExpiredSessionScannerConfig } from "../config";
+import { ExpiredSessionDiscovererConfig } from "../config";
 import { RetrievedSessionNotifications } from "../models/session-notifications";
 import {
   SessionNotificationsRepository,
@@ -25,7 +25,7 @@ import { QueueTransientError } from "../utils/queue-utils";
 type TriggerDependencies = {
   SessionNotificationsRepository: SessionNotificationsRepository;
   QueueClient: QueueClient;
-  expiredSessionsScannerConf: ExpiredSessionScannerConfig;
+  expiredSessionsDiscovererConf: ExpiredSessionDiscovererConfig;
 } & SessionNotificationsRepositoryDependencies;
 
 export type ItemToProcess = {
@@ -60,7 +60,7 @@ const onBadRetrievedItem = (validationErrors: t.Errors): t.Errors => {
   return validationErrors;
 };
 
-const mapItemChunck = (timeoutMultiplier: number) => (
+const mapItemChunk = (timeoutMultiplier: number) => (
   chunkNumber: number,
   chunk: ReadonlyArray<t.Validation<RetrievedSessionNotifications>>
 ): ReadonlyArray<ItemToProcess> =>
@@ -173,7 +173,7 @@ export const processChunk = (
     RTE.map(() => void 0)
   );
 
-export const retrieveFromDbInChuncks: (
+export const retrieveFromDbInChunks: (
   interval: Interval
 ) => RTE.ReaderTaskEither<
   TriggerDependencies,
@@ -183,7 +183,7 @@ export const retrieveFromDbInChuncks: (
   pipe(
     SessionNotificationsRepository.findByExpiredAtAsyncIterable(
       interval,
-      deps.expiredSessionsScannerConf.EXPIRED_SESSION_SCANNER_CHUNCK_SIZE
+      deps.expiredSessionsDiscovererConf.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
     )(deps),
     TE.of,
     TE.chainW(
@@ -199,8 +199,8 @@ export const retrieveFromDbInChuncks: (
     ),
     TE.map(
       RA.mapWithIndex(
-        mapItemChunck(
-          deps.expiredSessionsScannerConf
+        mapItemChunk(
+          deps.expiredSessionsDiscovererConf
             .EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER
         )
       )
@@ -215,7 +215,7 @@ export const ExpiredSessionsDiscovererFunction = (
 ): Promise<void> => {
   const interval = createInterval();
   return pipe(
-    retrieveFromDbInChuncks(interval),
+    retrieveFromDbInChunks(interval),
     RTE.chainW(
       flow(
         RA.map(

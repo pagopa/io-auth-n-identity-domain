@@ -34,13 +34,13 @@ export const DryRunFeatureFlag = t.type({
 
 export type DryRunFeatureFlag = t.TypeOf<typeof DryRunFeatureFlag>;
 
-export const ExpiredSessionScannerConfig = t.type({
-  EXPIRED_SESSION_SCANNER_CHUNCK_SIZE: withFallback(NumberFromString, 100),
+export const ExpiredSessionDiscovererConfig = t.type({
+  EXPIRED_SESSION_SCANNER_CHUNK_SIZE: withFallback(NumberFromString, 100),
   EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER: withFallback(NumberFromString, 7)
 });
 
-export type ExpiredSessionScannerConfig = t.TypeOf<
-  typeof ExpiredSessionScannerConfig
+export type ExpiredSessionDiscovererConfig = t.TypeOf<
+  typeof ExpiredSessionDiscovererConfig
 >;
 
 // global app configuration
@@ -85,7 +85,7 @@ export const IConfig = t.intersection([
     FunctionProfileConfig,
     MailerConfig,
     DryRunFeatureFlag,
-    ExpiredSessionScannerConfig
+    ExpiredSessionDiscovererConfig
   ])
 ]);
 

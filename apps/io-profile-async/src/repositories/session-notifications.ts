@@ -26,11 +26,11 @@ export type Dependencies = {
  */
 const findByExpiredAtAsyncIterable: (
   interval: Interval,
-  chunckSize: number
+  chunkSize: number
 ) => R.Reader<
   Dependencies,
   AsyncIterable<ReadonlyArray<t.Validation<RetrievedSessionNotifications>>>
-> = (interval, chunckSize) => deps =>
+> = (interval, chunkSize) => deps =>
   deps.sessionNotificationsModel.buildAsyncIterable(
     {
       parameters: [
@@ -47,7 +47,7 @@ const findByExpiredAtAsyncIterable: (
         `SELECT * FROM c WHERE (c.${SESSION_NOTIFICATIONS_ROW_PK_FIELD} BETWEEN @from AND @to) AND ` +
         "(c.notificationEvents.EXPIRED_SESSION = false OR NOT IS_DEFINED(c.notificationEvents.EXPIRED_SESSION))"
     },
-    chunckSize
+    chunkSize
   );
 
 // TODO: this method is not used anymore, remove it

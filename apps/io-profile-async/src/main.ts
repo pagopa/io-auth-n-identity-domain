@@ -142,5 +142,5 @@ export const ExpiredSessionsDiscoverer = ExpiredSessionsDiscovererFunction({
   SessionNotificationsRepository,
   QueueClient: queueClient,
   sessionNotificationsModel,
-  expiredSessionsScannerConf: config
+  expiredSessionsDiscovererConf: config
 });
