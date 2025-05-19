@@ -33,7 +33,7 @@ import { OnProfileUpdateFunctionInput } from "./types/on-profile-update-input-do
 import { ProfileEmailRepository, ProfileRepository } from "./repositories";
 import { StoreSpidLogsFunction } from "./functions/store-spid-logs";
 import { StoreSpidLogsQueueMessage } from "./types/store-spid-logs-queue-message";
-import { ExpiredSessionsScannerFunction } from "./functions/expired-sessions-scanner";
+import { ExpiredSessionsDiscovererFunction } from "./functions/expired-sessions-discoverer";
 import { SessionNotificationsRepository } from "./repositories/session-notifications";
 import { SessionNotificationsModel } from "./models/session-notifications";
 
@@ -138,7 +138,7 @@ export const StoreSpidLogs = StoreSpidLogsFunction({
   telemetryClient
 });
 
-export const ExpiredSessionsScanner = ExpiredSessionsScannerFunction({
+export const ExpiredSessionsDiscoverer = ExpiredSessionsDiscovererFunction({
   SessionNotificationsRepository,
   QueueClient: queueClient,
   sessionNotificationsModel,

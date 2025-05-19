@@ -215,7 +215,7 @@ export const retrieveFromDbInChuncks: (
     )
   );
 
-export const ExpiredSessionsScannerFunction = (
+export const ExpiredSessionsDiscovererFunction = (
   deps: TriggerDependencies
 ): AzureFunction => async (
   context: Context,
