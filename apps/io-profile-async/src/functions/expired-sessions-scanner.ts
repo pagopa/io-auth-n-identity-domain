@@ -96,22 +96,23 @@ const onRevertItemFlagFailure = (record: RetrievedSessionNotifications) => (
   return cosmosError;
 };
 
-const updateExpiredSessionNotificationFlag = (
+const updateExpiredSessionNotificationFlag: (
   record: SessionNotifications,
   flagNewValue: boolean
-): RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> =>
+) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> = (
+  record: SessionNotifications,
+  flagNewValue: boolean
+) => (deps: Dependencies) =>
   pipe(
-    RTE.asks((deps: Dependencies) =>
-      deps.SessionNotificationsRepository.updateNotificationEvents(
-        record.id,
-        record.expiredAt,
-        {
-          ...record.notificationEvents,
-          EXPIRED_SESSION: flagNewValue
-        }
-      )(deps)
-    ),
-    RTE.map(() => void 0)
+    deps.SessionNotificationsRepository.updateNotificationEvents(
+      record.id,
+      record.expiredAt,
+      {
+        ...record.notificationEvents,
+        EXPIRED_SESSION: flagNewValue
+      }
+    )(deps),
+    TE.map(() => void 0)
   );
 
 const handleQueueInsertFailure = (record: RetrievedSessionNotifications) => (
@@ -179,38 +180,37 @@ export const processChunk = (
     RTE.map(() => void 0)
   );
 
-export const retrieveFromDbInChuncks = (
+export const retrieveFromDbInChuncks: (
   interval: Interval
-): RTE.ReaderTaskEither<
+) => RTE.ReaderTaskEither<
   Dependencies,
   QueueTransientError,
   ReadonlyArray<ReadonlyArray<ItemToProcess>>
-> =>
-  RTE.asksReaderTaskEither((deps: Dependencies) =>
-    pipe(
-      SessionNotificationsRepository.findByExpiredAtAsyncIterable(
-        interval,
-        deps.expiredSessionsScannerConf.EXPIRED_SESSION_SCANNER_CHUNCK_SIZE
-      )(deps),
-      TE.tryCatchK(
-        asyncIterable => asyncIterableToArray(asyncIterable),
-        () =>
-          new QueueTransientError(
-            "Error retrieving session expirations, AsyncIterable fetch execution failure"
-          )
-      ),
-      TE.map(items =>
-        pipe(
-          items,
-          RA.mapWithIndex(
-            mapItemChunck(
-              deps.expiredSessionsScannerConf
-                .EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER
+> = (interval: Interval) => (deps: Dependencies) =>
+  pipe(
+    SessionNotificationsRepository.findByExpiredAtAsyncIterable(
+      interval,
+      deps.expiredSessionsScannerConf.EXPIRED_SESSION_SCANNER_CHUNCK_SIZE
+    )(deps),
+    TE.of,
+    TE.chainW(
+      flow(asyncIterableToArray, asyncIterator =>
+        TE.tryCatch(
+          () => asyncIterator,
+          _ =>
+            new QueueTransientError(
+              "Error retrieving session expirations, AsyncIterable fetch execution failure"
             )
-          )
         )
-      ),
-      RTE.fromTaskEither
+      )
+    ),
+    TE.map(
+      RA.mapWithIndex(
+        mapItemChunck(
+          deps.expiredSessionsScannerConf
+            .EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER
+        )
+      )
     )
   );
 
