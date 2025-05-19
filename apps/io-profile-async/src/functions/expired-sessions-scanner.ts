@@ -22,9 +22,10 @@ import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advi
 import { createInterval, Interval } from "../types/interval";
 import { trackEvent } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
+import { isLastTimerTriggerRetry } from "../utils/function-utils";
 import { QueueTransientError } from "../utils/queue-utils";
 
-type Dependencies = {
+type TriggerDependencies = {
   SessionNotificationsRepository: SessionNotificationsRepository;
   QueueClient: QueueClient;
   expiredSessionsScannerConf: ExpiredSessionScannerConfig;
@@ -99,10 +100,10 @@ const onRevertItemFlagFailure = (record: RetrievedSessionNotifications) => (
 const updateExpiredSessionNotificationFlag: (
   record: SessionNotifications,
   flagNewValue: boolean
-) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> = (
+) => RTE.ReaderTaskEither<TriggerDependencies, CosmosErrors, void> = (
   record: SessionNotifications,
   flagNewValue: boolean
-) => (deps: Dependencies) =>
+) => (deps: TriggerDependencies) =>
   pipe(
     deps.SessionNotificationsRepository.updateNotificationEvents(
       record.id,
@@ -117,7 +118,7 @@ const updateExpiredSessionNotificationFlag: (
 
 const handleQueueInsertFailure = (record: RetrievedSessionNotifications) => (
   queueInsertError: QueueTransientError
-): RTE.ReaderTaskEither<Dependencies, QueueTransientError, undefined> =>
+): RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, undefined> =>
   pipe(
     updateExpiredSessionNotificationFlag(record, false),
     RTE.mapLeft(onRevertItemFlagFailure(record)),
@@ -130,12 +131,12 @@ const handleQueueInsertFailure = (record: RetrievedSessionNotifications) => (
 
 const sendMessage = (
   item: ItemToProcess
-): RTE.ReaderTaskEither<Dependencies, QueueTransientError, void> =>
+): RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, void> =>
   RTE.of(void 0); // TODO: replace with actual implementation
 
 const markUserAsNotified = (
   record: SessionNotifications
-): RTE.ReaderTaskEither<Dependencies, QueueTransientError, void> =>
+): RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, void> =>
   pipe(
     updateExpiredSessionNotificationFlag(record, true),
     RTE.mapLeft(
@@ -145,7 +146,7 @@ const markUserAsNotified = (
 
 export const processItem = (
   item: ItemToProcess
-): RTE.ReaderTaskEither<Dependencies, QueueTransientError, void> =>
+): RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, void> =>
   pipe(
     markUserAsNotified(item.retrivedDbItem),
     RTE.chainW(() =>
@@ -159,7 +160,7 @@ export const processItem = (
 export const processChunk = (
   chunk: ReadonlyArray<ItemToProcess>
 ): RTE.ReaderTaskEither<
-  Dependencies,
+  TriggerDependencies,
   ReadonlyArray<QueueTransientError>,
   void
 > =>
@@ -183,10 +184,10 @@ export const processChunk = (
 export const retrieveFromDbInChuncks: (
   interval: Interval
 ) => RTE.ReaderTaskEither<
-  Dependencies,
+  TriggerDependencies,
   QueueTransientError,
   ReadonlyArray<ReadonlyArray<ItemToProcess>>
-> = (interval: Interval) => (deps: Dependencies) =>
+> = (interval: Interval) => (deps: TriggerDependencies) =>
   pipe(
     SessionNotificationsRepository.findByExpiredAtAsyncIterable(
       interval,
@@ -214,13 +215,8 @@ export const retrieveFromDbInChuncks: (
     )
   );
 
-const isLastTimerTriggerRetry = (context: Context) =>
-  !!context.executionContext.retryContext &&
-  context.executionContext.retryContext.retryCount ===
-    context.executionContext.retryContext.maxRetryCount;
-
 export const ExpiredSessionsScannerFunction = (
-  deps: Dependencies
+  deps: TriggerDependencies
 ): AzureFunction => async (
   context: Context,
   _timer: unknown

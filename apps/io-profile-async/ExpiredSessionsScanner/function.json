@@ -4,8 +4,7 @@
       "name": "expiredSessionsScannerTimer",
       "type": "timerTrigger",
       "direction": "in",
-      "schedule": "0 0 7 * * *",
-      "runOnStartup": true
+      "schedule": "0 0 7 * * *"
     }
   ],
   "retry": {
