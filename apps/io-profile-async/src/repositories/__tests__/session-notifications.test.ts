@@ -51,10 +51,12 @@ describe("SessionNotificationsRepository", () => {
         from: new Date(2024, 0, 1),
         to: new Date(2024, 0, 2)
       };
+      const chunckSize = 100;
 
-      SessionNotificationsRepository.findByExpiredAtAsyncIterable(interval)(
-        deps
-      );
+      SessionNotificationsRepository.findByExpiredAtAsyncIterable(
+        interval,
+        chunckSize
+      )(deps);
 
       expect(
         mockSessionNotificationsModel.buildAsyncIterable
@@ -68,7 +70,7 @@ describe("SessionNotificationsRepository", () => {
             `SELECT * FROM c WHERE (c.${SESSION_NOTIFICATIONS_ROW_PK_FIELD} BETWEEN @from AND @to) AND ` +
             "(c.notificationEvents.EXPIRED_SESSION = false OR NOT IS_DEFINED(c.notificationEvents.EXPIRED_SESSION))"
         },
-        100
+        chunckSize
       );
     });
   });

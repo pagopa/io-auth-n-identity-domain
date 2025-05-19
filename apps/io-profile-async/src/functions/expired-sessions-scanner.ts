@@ -18,7 +18,7 @@ import {
   Dependencies as SessionNotificationsRepositoryDependencies
 } from "../repositories/session-notifications";
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
-import { Interval } from "../types/interval";
+import { createInterval, Interval } from "../types/interval";
 import { trackEvent } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
 import { QueueTransientError } from "../utils/queue-utils";
@@ -192,7 +192,10 @@ export const retrieveFromDbInChuncks = (deps: Dependencies) => (
   ReadonlyArray<ReadonlyArray<ItemToProcess>>
 > =>
   pipe(
-    SessionNotificationsRepository.findByExpiredAtAsyncIterable(interval)(deps),
+    SessionNotificationsRepository.findByExpiredAtAsyncIterable(
+      interval,
+      deps.expiredSessionsScannerConf.EXPIRED_SESSION_SCANNER_CHUNCK_SIZE
+    )(deps),
     TE.of,
     TE.chainW(
       flow(asyncIterableToArray, asyncIterator =>
@@ -215,17 +218,6 @@ export const retrieveFromDbInChuncks = (deps: Dependencies) => (
     )
   );
 
-// TODO: mocked method
-const calculateTimeInterval = (): Interval => ({
-  from: new Date("2025-05-17T00:00:00.000Z"),
-  to: new Date("2025-05-17T23:59:59.999Z")
-});
-
-// TODO: inject config
-export type ExpiredSessionScannerFunctionInput = {
-  placeholder: string;
-};
-
 const isLastTimerTriggerRetry = (context: Context) =>
   !!context.executionContext.retryContext &&
   context.executionContext.retryContext.retryCount ===
@@ -237,7 +229,7 @@ export const ExpiredSessionsScannerFunction = (
   context: Context,
   _timer: unknown
 ): Promise<void> => {
-  const interval = calculateTimeInterval(); // TODO: replace with the dynamic one trying putting in pipe all the way down in order to add toCustomEvent
+  const interval = createInterval(); // TODO: replace with the dynamic one trying putting in pipe all the way down in order to add toCustomEvent
   return pipe(
     interval,
     retrieveFromDbInChuncks(deps),

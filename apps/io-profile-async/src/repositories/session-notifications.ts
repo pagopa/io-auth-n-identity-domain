@@ -23,11 +23,12 @@ export type Dependencies = {
  * @returns A TaskEither that resolves to an array of all session-notifications documents within the interval
  */
 const findByExpiredAtAsyncIterable: (
-  interval: Interval
+  interval: Interval,
+  chunckSize: number
 ) => R.Reader<
   Dependencies,
   AsyncIterable<ReadonlyArray<t.Validation<RetrievedSessionNotifications>>>
-> = interval => deps =>
+> = (interval, chunckSize) => deps =>
   deps.sessionNotificationsModel.buildAsyncIterable(
     {
       parameters: [
@@ -44,7 +45,7 @@ const findByExpiredAtAsyncIterable: (
         `SELECT * FROM c WHERE (c.${SESSION_NOTIFICATIONS_ROW_PK_FIELD} BETWEEN @from AND @to) AND ` +
         "(c.notificationEvents.EXPIRED_SESSION = false OR NOT IS_DEFINED(c.notificationEvents.EXPIRED_SESSION))"
     },
-    100
+    chunckSize
   );
 
 /**
