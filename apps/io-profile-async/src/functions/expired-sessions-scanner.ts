@@ -8,13 +8,14 @@ import * as RA from "fp-ts/ReadonlyArray";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
+import { ExpiredSessionScannerConfig } from "../config";
 import {
   RetrievedSessionNotifications,
   SessionNotifications
 } from "../models/session-notifications";
 import {
-  Dependencies as SessionENotificationsRepositoryDependencies,
-  SessionNotificationsRepository
+  SessionNotificationsRepository,
+  Dependencies as SessionNotificationsRepositoryDependencies
 } from "../repositories/session-notifications";
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
 import { Interval } from "../types/interval";
@@ -22,11 +23,11 @@ import { trackEvent } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
 import { QueueTransientError } from "../utils/queue-utils";
 
-// TODO: better dependencies refs
 type Dependencies = {
   SessionNotificationsRepository: SessionNotificationsRepository;
   QueueClient: QueueClient;
-} & SessionENotificationsRepositoryDependencies;
+  expiredSessionsScannerConf: ExpiredSessionScannerConfig;
+} & SessionNotificationsRepositoryDependencies;
 
 export type ItemToProcess = {
   queuePayload: ExpiredSessionAdvisorQueueMessage;
@@ -60,7 +61,7 @@ const onBadRetrievedItem = (validationErrors: t.Errors): t.Errors => {
   return validationErrors;
 };
 
-const mapItemChunck = (
+const mapItemChunck = (timeoutMultiplier: number) => (
   chunkNumber: number,
   chunk: ReadonlyArray<t.Validation<RetrievedSessionNotifications>>
 ): ReadonlyArray<ItemToProcess> =>
@@ -70,7 +71,7 @@ const mapItemChunck = (
       flow(
         E.bimap(
           onBadRetrievedItem,
-          createItemToProcess(7 * chunkNumber) //TODO: put in configuration the baseTimeout
+          createItemToProcess(timeoutMultiplier * chunkNumber)
         )
       )
     ),
@@ -204,7 +205,14 @@ export const retrieveFromDbInChuncks = (deps: Dependencies) => (
         )
       )
     ),
-    TE.map(RA.mapWithIndex(mapItemChunck))
+    TE.map(
+      RA.mapWithIndex(
+        mapItemChunck(
+          deps.expiredSessionsScannerConf
+            .EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER
+        )
+      )
+    )
   );
 
 // TODO: mocked method

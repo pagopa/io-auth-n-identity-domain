@@ -34,6 +34,15 @@ export const DryRunFeatureFlag = t.type({
 
 export type DryRunFeatureFlag = t.TypeOf<typeof DryRunFeatureFlag>;
 
+export const ExpiredSessionScannerConfig = t.type({
+  EXPIRED_SESSION_SCANNER_CHUNCK_SIZE: withFallback(NumberFromString, 100),
+  EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER: withFallback(NumberFromString, 7)
+});
+
+export type ExpiredSessionScannerConfig = t.TypeOf<
+  typeof ExpiredSessionScannerConfig
+>;
+
 // global app configuration
 export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
@@ -71,10 +80,13 @@ export const IConfig = t.intersection([
 
     isProduction: t.boolean
   }),
-  BackendInternalConfig,
-  FunctionProfileConfig,
-  MailerConfig,
-  DryRunFeatureFlag
+  t.intersection([
+    BackendInternalConfig,
+    FunctionProfileConfig,
+    MailerConfig,
+    DryRunFeatureFlag,
+    ExpiredSessionScannerConfig
+  ])
 ]);
 
 // No need to re-evaluate this object for each call
