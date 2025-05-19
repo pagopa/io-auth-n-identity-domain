@@ -186,26 +186,20 @@ export const retrieveFromDbInChuncks = (
   QueueTransientError,
   ReadonlyArray<ReadonlyArray<ItemToProcess>>
 > =>
-  pipe(
-    RTE.asks((deps: Dependencies) =>
+  RTE.asksReaderTaskEither((deps: Dependencies) =>
+    pipe(
       SessionNotificationsRepository.findByExpiredAtAsyncIterable(
         interval,
         deps.expiredSessionsScannerConf.EXPIRED_SESSION_SCANNER_CHUNCK_SIZE
-      )(deps)
-    ),
-    RTE.chainW(asyncIterable =>
-      RTE.fromTaskEither(
-        TE.tryCatch(
-          () => asyncIterableToArray(asyncIterable),
-          () =>
-            new QueueTransientError(
-              "Error retrieving session expirations, AsyncIterable fetch execution failure"
-            )
-        )
-      )
-    ),
-    RTE.chain(items =>
-      RTE.asks((deps: Dependencies) =>
+      )(deps),
+      TE.tryCatchK(
+        asyncIterable => asyncIterableToArray(asyncIterable),
+        () =>
+          new QueueTransientError(
+            "Error retrieving session expirations, AsyncIterable fetch execution failure"
+          )
+      ),
+      TE.map(items =>
         pipe(
           items,
           RA.mapWithIndex(
@@ -215,7 +209,8 @@ export const retrieveFromDbInChuncks = (
             )
           )
         )
-      )
+      ),
+      RTE.fromTaskEither
     )
   );
 
