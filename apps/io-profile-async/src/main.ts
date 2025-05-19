@@ -140,8 +140,6 @@ export const StoreSpidLogs = StoreSpidLogsFunction({
 
 export const ExpiredSessionsScanner = ExpiredSessionsScannerFunction({
   SessionNotificationsRepository,
-  TrackerRepository: tracker,
   QueueClient: queueClient,
-  sessionNotificationsModel,
-  telemetryClient
+  sessionNotificationsModel
 });

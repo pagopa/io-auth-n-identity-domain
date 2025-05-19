@@ -5,6 +5,7 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import * as t from "io-ts";
 import {
   NotificationEvents,
+  RetrievedSessionNotifications,
   SESSION_NOTIFICATIONS_ROW_PK_FIELD,
   SessionNotifications,
   SessionNotificationsModel
@@ -25,7 +26,7 @@ const findByExpiredAtAsyncIterable: (
   interval: Interval
 ) => R.Reader<
   Dependencies,
-  AsyncIterable<ReadonlyArray<t.Validation<SessionNotifications>>>
+  AsyncIterable<ReadonlyArray<t.Validation<RetrievedSessionNotifications>>>
 > = interval => deps =>
   deps.sessionNotificationsModel.buildAsyncIterable(
     {
