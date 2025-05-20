@@ -35,8 +35,10 @@ export const DryRunFeatureFlag = t.type({
 export type DryRunFeatureFlag = t.TypeOf<typeof DryRunFeatureFlag>;
 
 export const ExpiredSessionDiscovererConfig = t.type({
+  EXPIRED_SESSION_ADVISOR_QUEUE: NonEmptyString,
   EXPIRED_SESSION_SCANNER_CHUNK_SIZE: withFallback(NumberFromString, 100),
-  EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER: withFallback(NumberFromString, 7)
+  EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER: withFallback(NumberFromString, 7),
+  SESSION_NOTIFICATIONS_CONTAINER_NAME: NonEmptyString
 });
 
 export type ExpiredSessionDiscovererConfig = t.TypeOf<
@@ -74,9 +76,6 @@ export const IConfig = t.intersection([
     // StoreSpidLogs Config
     IOPSTLOGS_STORAGE_CONNECTION_STRING: NonEmptyString,
     SPID_LOGS_PUBLIC_KEY: NonEmptyString,
-
-    EXPIRED_SESSION_ADVISOR_QUEUE: NonEmptyString,
-    SESSION_NOTIFICATIONS_CONTAINER_NAME: NonEmptyString,
 
     isProduction: t.boolean
   }),
