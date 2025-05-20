@@ -1,5 +1,4 @@
 import { AzureFunction, Context } from "@azure/functions";
-import { QueueClient } from "@azure/storage-queue";
 import { asyncIterableToArray } from "@pagopa/io-functions-commons/dist/src/utils/async";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
@@ -12,6 +11,10 @@ import * as t from "io-ts";
 import { ExpiredSessionDiscovererConfig } from "../config";
 import { RetrievedSessionNotifications } from "../models/session-notifications";
 import {
+  ExpiredUserSessionsQueueRepository,
+  ExpiredUserSessionsQueueRepositoryDeps
+} from "../repositories/expired-user-sessions-queue";
+import {
   SessionNotificationsRepository,
   Dependencies as SessionNotificationsRepositoryDependencies
 } from "../repositories/session-notifications";
@@ -23,10 +26,11 @@ import { isLastTimerTriggerRetry } from "../utils/function-utils";
 import { QueueTransientError } from "../utils/queue-utils";
 
 type TriggerDependencies = {
-  SessionNotificationsRepository: SessionNotificationsRepository;
-  QueueClient: QueueClient;
+  SessionNotificationsRepo: SessionNotificationsRepository;
   expiredSessionsDiscovererConf: ExpiredSessionDiscovererConfig;
-} & SessionNotificationsRepositoryDependencies;
+  ExpiredUserSessionsQueueRepo: ExpiredUserSessionsQueueRepository;
+} & SessionNotificationsRepositoryDependencies &
+  ExpiredUserSessionsQueueRepositoryDeps;
 
 export type ItemToProcess = {
   queuePayload: ExpiredSessionAdvisorQueueMessage;
@@ -106,7 +110,7 @@ const handleQueueInsertFailure: (
   queueInsertError: QueueTransientError
 ) => (deps: TriggerDependencies) =>
   pipe(
-    deps.SessionNotificationsRepository.updateExpiredSessionNotificationFlag(
+    deps.SessionNotificationsRepo.updateExpiredSessionNotificationFlag(
       record,
       false
     )(deps),
@@ -118,12 +122,7 @@ const handleQueueInsertFailure: (
     TE.swap
   );
 
-const sendMessage = (
-  item: ItemToProcess
-): RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, void> =>
-  RTE.left(new QueueTransientError("Error Simulated Queue")); // TODO: replace with actual implementation
-
-export const processItem: (
+const sendMessage: (
   item: ItemToProcess
 ) => RTE.ReaderTaskEither<
   TriggerDependencies,
@@ -131,9 +130,30 @@ export const processItem: (
   void
 > = item => deps =>
   pipe(
-    deps.SessionNotificationsRepository.updateExpiredSessionNotificationFlag(
-      item.retrievedDbItem,
-      true
+    deps.ExpiredUserSessionsQueueRepo.sendExpiredUserSession(
+      item.queuePayload,
+      item.itemTimeoutInSeconds
+    )(deps),
+    TE.mapLeft(
+      e =>
+        new QueueTransientError(
+          "An error has occurred while sending message in queue",
+          e
+        )
+    ),
+    TE.map(() => void 0)
+  );
+
+export const processItem = (
+  item: ItemToProcess
+): RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, void> =>
+  pipe(
+    RTE.ask<TriggerDependencies>(),
+    RTE.chainW(({ SessionNotificationsRepo }) =>
+      SessionNotificationsRepo.updateExpiredSessionNotificationFlag(
+        item.retrievedDbItem,
+        true
+      )
     ),
     RTE.mapLeft(
       e =>
@@ -147,7 +167,7 @@ export const processItem: (
         RTE.orElseW(handleQueueInsertFailure(item.retrievedDbItem))
       )
     )
-  )(deps);
+  );
 
 export const processChunk = (
   chunk: ReadonlyArray<ItemToProcess>
@@ -181,7 +201,7 @@ export const retrieveFromDbInChunks: (
   ReadonlyArray<ReadonlyArray<ItemToProcess>>
 > = (interval: Interval) => (deps: TriggerDependencies) =>
   pipe(
-    SessionNotificationsRepository.findByExpiredAtAsyncIterable(
+    deps.SessionNotificationsRepo.findByExpiredAtAsyncIterable(
       interval,
       deps.expiredSessionsDiscovererConf.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
     )(deps),
@@ -218,20 +238,14 @@ export const ExpiredSessionsDiscovererFunction = (
     retrieveFromDbInChunks(interval),
     RTE.chainW(
       flow(
-        RA.map(
-          flow(
-            processChunk,
-            RTE.mapLeft(error => [error])
-          )
-        ),
+        RA.map(processChunk),
         RA.sequence(
           RTE.getApplicativeReaderTaskValidation(
             T.ApplicativeSeq,
-            RA.getSemigroup<ReadonlyArray<QueueTransientError>>()
+            RA.getSemigroup<QueueTransientError>()
           )
         ),
-        RTE.map(() => void 0),
-        RTE.mapLeft(RA.flatten)
+        RTE.map(() => void 0)
       )
     ),
     RTE.getOrElse(errors => {
