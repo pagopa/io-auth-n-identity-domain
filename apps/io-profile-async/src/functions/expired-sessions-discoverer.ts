@@ -58,6 +58,9 @@ const onBadRetrievedItem = (validationErrors: t.Errors): t.Errors => {
     properties: {
       message: "Found a non compliant db record",
       badRecordSelf
+    },
+    tagOverrides: {
+      samplingEnabled: "false"
     }
   });
 
@@ -92,6 +95,9 @@ const onRevertItemFlagFailure = (record: RetrievedSessionNotifications) => (
         "Error reverting expired session flag(EXPIRED_SESSION) after Queue write failure",
       // eslint-disable-next-line no-underscore-dangle
       itemDbSelf: record._self
+    },
+    tagOverrides: {
+      samplingEnabled: "false"
     }
   });
 
@@ -266,6 +272,9 @@ export const ExpiredSessionsDiscovererFunction = (
           properties: {
             message: "Reached max retry for expired sessions",
             interval
+          },
+          tagOverrides: {
+            samplingEnabled: "false"
           }
         });
       }
