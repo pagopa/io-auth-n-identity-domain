@@ -5,10 +5,6 @@
     <DefaultItemExcludes>**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.WebJobs.Script.ExtensionsMetadataGenerator"
-      Version="1.1.8" />
-  </ItemGroup>
-  <ItemGroup>
-    <FunctionsPreservedDependencies Include="System.Memory.Data.dll" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Script.ExtensionsMetadataGenerator" Version="1.1.8" />
   </ItemGroup>
 </Project>
