@@ -20,10 +20,7 @@ const sendExpiredUserSession: (
   TE.tryCatch(
     () =>
       deps.expiredUserSessionsQueueClient.sendMessage(
-        base64EncodeObject({
-          ...message,
-          expiredAt: message.expiredAt.getTime()
-        }),
+        base64EncodeObject(ExpiredSessionAdvisorQueueMessage.encode(message)),
         {
           visibilityTimeout
         }
