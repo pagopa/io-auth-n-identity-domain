@@ -72,23 +72,29 @@ export const updateNotificationEvents: (
   });
 
 // TODO: add tests
+/**
+ * Updates notification events for a session-notifications document.
+ *
+ * @param fiscalCode The user fiscal identification code(Container Unique Key for Partition).
+ * @param expiredAt The user session expiration date (Container PartitionKey)
+ * @param flagNewValue New value for EXPIRED_SESSION flag
+ * @returns A Either an Error in case of cosmos error on patch, void in case the operation is succesfully completed
+ * */
 const updateExpiredSessionNotificationFlag: (
-  actualRecord: RetrievedSessionNotifications,
+  fiscalCode: FiscalCode,
+  expiredAt: number,
   flagNewValue: boolean
 ) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> = (
-  actualRecord: RetrievedSessionNotifications,
-  flagNewValue: boolean
-) => (deps: Dependencies) =>
+  fiscalCode,
+  expiredAt,
+  flagNewValue
+) => deps =>
   pipe(
-    deps.sessionNotificationsModel.patch(
-      [actualRecord.id, actualRecord.expiredAt],
-      {
-        notificationEvents: {
-          ...actualRecord.notificationEvents,
-          EXPIRED_SESSION: flagNewValue
-        }
+    deps.sessionNotificationsModel.patch([fiscalCode, expiredAt], {
+      notificationEvents: {
+        EXPIRED_SESSION: flagNewValue
       }
-    ),
+    }),
     TE.map(() => void 0)
   );
 

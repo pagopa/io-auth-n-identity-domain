@@ -84,7 +84,7 @@ const mapItemChunk = (timeoutMultiplier: number) => (
     RA.rights // Filter out the left values, which are already notified
   );
 
-const onRevertItemFlagFailure = (record: RetrievedSessionNotifications) => (
+const onRevertItemFlagFailure = (itemDbSelf: string) => (
   cosmosError: CosmosErrors
 ): CosmosErrors => {
   trackEvent({
@@ -94,7 +94,7 @@ const onRevertItemFlagFailure = (record: RetrievedSessionNotifications) => (
       message:
         "Error reverting expired session flag(EXPIRED_SESSION) after Queue write failure",
       // eslint-disable-next-line no-underscore-dangle
-      itemDbSelf: record._self
+      itemDbSelf
     },
     tagOverrides: {
       samplingEnabled: "false"
@@ -112,15 +112,16 @@ const handleQueueInsertFailure: (
   TriggerDependencies,
   QueueTransientError,
   undefined
-> = (record: RetrievedSessionNotifications) => (
+> = ({ id, expiredAt, _self }: RetrievedSessionNotifications) => (
   queueInsertError: QueueTransientError
 ) => (deps: TriggerDependencies) =>
   pipe(
     deps.SessionNotificationsRepo.updateExpiredSessionNotificationFlag(
-      record,
+      id,
+      expiredAt,
       false
     )(deps),
-    TE.mapLeft(onRevertItemFlagFailure(record)),
+    TE.mapLeft(onRevertItemFlagFailure(_self)),
     TE.bimap(
       _ => void 0, // in case of error reverting not propagate the error, cause no retry should be triggered
       () => queueInsertError // in case the revert was accomplished with succes, forward the queueInsert error
@@ -129,16 +130,16 @@ const handleQueueInsertFailure: (
   );
 
 const sendMessage: (
-  item: ItemToProcess
-) => RTE.ReaderTaskEither<
-  TriggerDependencies,
-  QueueTransientError,
-  void
-> = item => deps =>
+  itemTimeoutInSeconds: number,
+  queuePayload: ExpiredSessionAdvisorQueueMessage
+) => RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, void> = (
+  itemTimeoutInSeconds,
+  queuePayload
+) => deps =>
   pipe(
     deps.ExpiredUserSessionsQueueRepo.sendExpiredUserSession(
-      item.queuePayload,
-      item.itemTimeoutInSeconds
+      queuePayload,
+      itemTimeoutInSeconds
     )(deps),
     TE.mapLeft(
       e =>
@@ -150,14 +151,21 @@ const sendMessage: (
     TE.map(() => void 0)
   );
 
-export const processItem = (
-  item: ItemToProcess
-): RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, void> =>
+export const processItem = ({
+  itemTimeoutInSeconds,
+  queuePayload,
+  retrievedDbItem
+}: ItemToProcess): RTE.ReaderTaskEither<
+  TriggerDependencies,
+  QueueTransientError,
+  void
+> =>
   pipe(
     RTE.ask<TriggerDependencies>(),
     RTE.chainW(({ SessionNotificationsRepo }) =>
       SessionNotificationsRepo.updateExpiredSessionNotificationFlag(
-        item.retrievedDbItem,
+        retrievedDbItem.id,
+        retrievedDbItem.expiredAt,
         true
       )
     ),
@@ -169,8 +177,8 @@ export const processItem = (
     ),
     RTE.chainW(() =>
       pipe(
-        sendMessage(item),
-        RTE.orElseW(handleQueueInsertFailure(item.retrievedDbItem))
+        sendMessage(itemTimeoutInSeconds, queuePayload),
+        RTE.orElseW(handleQueueInsertFailure(retrievedDbItem))
       )
     )
   );
