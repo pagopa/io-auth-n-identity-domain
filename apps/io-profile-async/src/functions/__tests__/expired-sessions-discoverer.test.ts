@@ -96,14 +96,14 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
   });
 
   describe("processItem", () => {
-    it("should succed when both flag update and write on queue end up succesfully", async () => {
+    it("should succeed when both the flag update and the write to the queue end successfully", async () => {
       const result = await processItem(item)(baseDeps)();
       //TODO: add expects on methods invocations
       expect(E.isRight(result)).toBe(true);
       expect(trackEventMock).not.toHaveBeenCalled();
     });
 
-    it("should fail when flag update fails", async () => {
+    it("should fail when the flag update fails", async () => {
       const aCosmosError = { kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors;
 
       updateExpiredSessionNotificationFlagMock.mockImplementationOnce(() =>
@@ -120,7 +120,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       );
     });
 
-    it("should fail when send queue fails and revert fails", async () => {
+    it("should fail when send to queue fails and flag revert fails", async () => {
       const anError = new Error("Send to queue failed");
       const aCosmosError = { kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors;
 
@@ -135,6 +135,6 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(E.isRight(result)).toBeTruthy();
     });
 
-    //TODO: test other functions
+    //TODO: Tests of other functions covering all behaviors
   });
 });
