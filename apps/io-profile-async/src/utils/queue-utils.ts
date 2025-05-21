@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 export class QueueTransientError extends Error {
   constructor(message?: string, error?: Error) {
     super(message, error);

@@ -22,8 +22,8 @@ import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advi
 import { createInterval, Interval } from "../types/interval";
 import { trackEvent } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
+import { TransientError } from "../utils/errors";
 import { isLastTimerTriggerRetry } from "../utils/function-utils";
-import { QueueTransientError } from "../utils/queue-utils";
 
 type TriggerDependencies = {
   SessionNotificationsRepo: SessionNotificationsRepository;
@@ -81,7 +81,7 @@ const mapItemChunk = (timeoutMultiplier: number) => (
         )
       )
     ),
-    RA.rights // Filter out the left values, which are already notified
+    RA.rights // Filter out the left values, malformed elements, as they cannot be processed, these were previously notified in a customEvent(onBadRetrievedItem function)
   );
 
 const onRevertItemFlagFailure = (itemDbSelf: string) => (
@@ -107,14 +107,14 @@ const onRevertItemFlagFailure = (itemDbSelf: string) => (
 const handleQueueInsertFailure: (
   record: RetrievedSessionNotifications
 ) => (
-  queueInsertError: QueueTransientError
-) => RTE.ReaderTaskEither<
-  TriggerDependencies,
-  QueueTransientError,
-  undefined
-> = ({ id, expiredAt, _self }: RetrievedSessionNotifications) => (
-  queueInsertError: QueueTransientError
-) => (deps: TriggerDependencies) =>
+  queueInsertError: TransientError
+) => RTE.ReaderTaskEither<TriggerDependencies, TransientError, undefined> = ({
+  id,
+  expiredAt,
+  _self
+}: RetrievedSessionNotifications) => (queueInsertError: TransientError) => (
+  deps: TriggerDependencies
+) =>
   pipe(
     deps.SessionNotificationsRepo.updateExpiredSessionNotificationFlag(
       id,
@@ -132,7 +132,7 @@ const handleQueueInsertFailure: (
 const sendMessage: (
   itemTimeoutInSeconds: number,
   queuePayload: ExpiredSessionAdvisorQueueMessage
-) => RTE.ReaderTaskEither<TriggerDependencies, QueueTransientError, void> = (
+) => RTE.ReaderTaskEither<TriggerDependencies, TransientError, void> = (
   itemTimeoutInSeconds,
   queuePayload
 ) => deps =>
@@ -143,7 +143,7 @@ const sendMessage: (
     )(deps),
     TE.mapLeft(
       e =>
-        new QueueTransientError(
+        new TransientError(
           "An error has occurred while sending message in queue",
           e
         )
@@ -157,7 +157,7 @@ export const processItem = ({
   retrievedDbItem
 }: ItemToProcess): RTE.ReaderTaskEither<
   TriggerDependencies,
-  QueueTransientError,
+  TransientError,
   void
 > =>
   pipe(
@@ -171,7 +171,7 @@ export const processItem = ({
     ),
     RTE.mapLeft(
       e =>
-        new QueueTransientError(
+        new TransientError(
           `Error updating expired session flag(EXPIRED_SESSION): ${e.kind}`
         )
     ),
@@ -187,7 +187,7 @@ export const processChunk = (
   chunk: ReadonlyArray<ItemToProcess>
 ): RTE.ReaderTaskEither<
   TriggerDependencies,
-  ReadonlyArray<QueueTransientError>,
+  ReadonlyArray<TransientError>,
   void
 > =>
   pipe(
@@ -201,7 +201,7 @@ export const processChunk = (
     RA.sequence(
       RTE.getApplicativeReaderTaskValidation(
         T.ApplicativePar,
-        RA.getSemigroup<QueueTransientError>()
+        RA.getSemigroup<TransientError>()
       )
     ),
     RTE.map(() => void 0)
@@ -211,7 +211,7 @@ export const retrieveFromDbInChunks: (
   interval: Interval
 ) => RTE.ReaderTaskEither<
   TriggerDependencies,
-  QueueTransientError,
+  TransientError,
   ReadonlyArray<ReadonlyArray<ItemToProcess>>
 > = (interval: Interval) => (deps: TriggerDependencies) =>
   pipe(
@@ -225,7 +225,7 @@ export const retrieveFromDbInChunks: (
         TE.tryCatch(
           () => asyncIterator,
           _ =>
-            new QueueTransientError(
+            new TransientError(
               "Error retrieving session expirations, AsyncIterable fetch execution failure"
             )
         )
@@ -256,7 +256,7 @@ export const ExpiredSessionsDiscovererFunction = (
         RA.sequence(
           RTE.getApplicativeReaderTaskValidation(
             T.ApplicativeSeq,
-            RA.getSemigroup<QueueTransientError>()
+            RA.getSemigroup<TransientError>()
           )
         ),
         RTE.map(() => void 0)
@@ -265,11 +265,10 @@ export const ExpiredSessionsDiscovererFunction = (
     RTE.getOrElse(errors => {
       if (Array.isArray(errors)) {
         // TODO: replace with a customEvent which includes the TransientError number
-        //TODO: Create a new error type, TransientError instead using the QueueTrigger specific ones
         context.log.error(
           `Multiple transient errors occurred during execution: count=${errors.length}`
         );
-      } else if (errors instanceof QueueTransientError) {
+      } else if (errors instanceof TransientError) {
         context.log.error(`Transient error occurred: ${errors.message}`);
       }
 
