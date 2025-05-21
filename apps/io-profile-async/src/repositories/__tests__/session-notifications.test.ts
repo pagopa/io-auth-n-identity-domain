@@ -1,12 +1,8 @@
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/TaskEither";
-import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
-import {
-  Dependencies,
-  SessionNotificationsRepository
-} from "../session-notifications";
+import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import {
   NotificationEvents,
   SESSION_NOTIFICATIONS_ROW_PK_FIELD,
@@ -14,6 +10,10 @@ import {
   SessionNotificationsModel
 } from "../../models/session-notifications";
 import { Interval } from "../../types/interval";
+import {
+  Dependencies,
+  SessionNotificationsRepository
+} from "../session-notifications";
 
 const anId = "AAAAAA89S20I111X" as FiscalCode;
 const anExpirationTimestamp = 1746992855578;
@@ -108,6 +108,42 @@ describe("SessionNotificationsRepository", () => {
         anId,
         anExpirationTimestamp,
         aNotificationEvents
+      )(deps)();
+
+      expect(E.isLeft(result)).toBe(true);
+      expect(result).toEqual(E.left(error));
+    });
+  });
+
+  describe("updateExpiredSessionNotificationFlag", () => {
+    it("should update the EXPIRED_SESSION flag successfully", async () => {
+      (mockSessionNotificationsModel.patch as Mock).mockReturnValueOnce(
+        TE.right(void 0)
+      );
+
+      const result = await SessionNotificationsRepository.updateExpiredSessionNotificationFlag(
+        anId,
+        anExpirationTimestamp,
+        true
+      )(deps)();
+
+      expect(E.isRight(result)).toBe(true);
+      expect(mockSessionNotificationsModel.patch).toHaveBeenCalledWith(
+        [anId, anExpirationTimestamp],
+        { notificationEvents: { EXPIRED_SESSION: true } }
+      );
+    });
+
+    it("should return a Cosmos error on failure", async () => {
+      const error = { kind: "COSMOS_ERROR", error: new Error("failure") };
+      (mockSessionNotificationsModel.patch as Mock).mockReturnValueOnce(
+        TE.left(error)
+      );
+
+      const result = await SessionNotificationsRepository.updateExpiredSessionNotificationFlag(
+        anId,
+        anExpirationTimestamp,
+        true
       )(deps)();
 
       expect(E.isLeft(result)).toBe(true);
