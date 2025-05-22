@@ -3,6 +3,7 @@ import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmos
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { tr } from "date-fns/locale";
 import { ExpiredSessionDiscovererConfig } from "../../config";
 import {
   RetrievedSessionNotifications,
@@ -98,7 +99,18 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
   describe("processItem", () => {
     it("should succeed when both the flag update and the write to the queue end successfully", async () => {
       const result = await processItem(item)(baseDeps)();
-      //TODO: add expects on methods invocations
+
+      expect(
+        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
+      ).toHaveBeenCalledWith(
+        item.retrievedDbItem.id,
+        item.retrievedDbItem.expiredAt,
+        true
+      );
+      // Nested call from `sendMessage` function invocation
+      expect(
+        mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
+      ).toHaveBeenCalledWith(item.queuePayload, item.itemTimeoutInSeconds);
       expect(E.isRight(result)).toBe(true);
       expect(trackEventMock).not.toHaveBeenCalled();
     });
@@ -110,7 +122,17 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         TE.left(aCosmosError)
       );
       const result = await processItem(item)(baseDeps)();
-      //TODO: add expects on methods invocations
+
+      expect(
+        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
+      ).toHaveBeenCalledWith(
+        item.retrievedDbItem.id,
+        item.retrievedDbItem.expiredAt,
+        true
+      );
+      expect(
+        mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
+      ).not.toHaveBeenCalled();
       expect(result).toStrictEqual(
         E.left(
           new TransientError(
@@ -131,10 +153,41 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       sendExpiredUserSessionMock.mockImplementationOnce(() => TE.left(anError));
 
       const result = await processItem(item)(baseDeps)();
-      //TODO: add expects on methods invocations
+      expect(
+        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
+      ).toHaveBeenNthCalledWith(
+        1,
+        item.retrievedDbItem.id,
+        item.retrievedDbItem.expiredAt,
+        true
+      );
+      expect(
+        mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
+      ).toHaveBeenCalledWith(item.queuePayload, item.itemTimeoutInSeconds);
+      expect(
+        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
+      ).toHaveBeenNthCalledWith(
+        2,
+        item.retrievedDbItem.id,
+        item.retrievedDbItem.expiredAt,
+        false
+      );
+      expect(trackEventMock).toHaveBeenCalledWith({
+        name:
+          "io.citizen-auth.prof-async.expired-sessions-discoverer.permanent.revert-failure",
+        properties: {
+          // eslint-disable-next-line no-underscore-dangle
+          itemDbSelf: item.retrievedDbItem._self,
+          message:
+            "Error reverting expired session flag(EXPIRED_SESSION) after Queue write failure"
+        },
+        tagOverrides: {
+          samplingEnabled: "false"
+        }
+      });
       expect(E.isRight(result)).toBeTruthy();
     });
 
-    //TODO: Tests of other functions covering all behaviors
+    // TODO: Tests of other functions covering all behaviors
   });
 });
