@@ -12,7 +12,11 @@ import { ExpiredUserSessionsQueueRepository } from "../../repositories/expired-u
 import { SessionNotificationsRepository } from "../../repositories/session-notifications";
 import * as appinsights from "../../utils/appinsights";
 import { TransientError } from "../../utils/errors";
-import { processItem } from "../expired-sessions-discoverer";
+import {
+  ItemToProcess,
+  processChunk,
+  processItem
+} from "../expired-sessions-discoverer";
 
 // TODO: THIS TEST IS IN EARLY WIP STAGE
 
@@ -36,7 +40,7 @@ const item = {
     expiredAt: new Date(aSession.expiredAt)
   },
   retrievedDbItem: aSession
-};
+} as ItemToProcess;
 
 const expiredSessionsDiscovererConfMock = {
   EXPIRED_SESSION_ADVISOR_QUEUE: "aQueueName",
@@ -90,6 +94,7 @@ const baseDeps = {
 
 const trackEventMock = vi.spyOn(appinsights, "trackEvent");
 
+// eslint-disable-next-line max-lines-per-function
 describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -186,7 +191,113 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       });
       expect(E.isRight(result)).toBeTruthy();
     });
+  });
 
-    // TODO: Tests of other functions covering all behaviors
+  describe("processChunk", () => {
+    it("should succeed when processItem succeed on each item", async () => {
+      const chunk = [item, item, item];
+      const result = await processChunk(chunk)(baseDeps)();
+
+      expect(
+        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
+      ).toHaveBeenCalledTimes(chunk.length);
+      expect(
+        mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
+      ).toHaveBeenCalledTimes(chunk.length);
+
+      expect(result).toStrictEqual(E.right(void 0));
+    });
+
+    it("should fail when processItem fails on an item", async () => {
+      const aCosmosError = { kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors;
+
+      updateExpiredSessionNotificationFlagMock.mockImplementationOnce(() =>
+        TE.left(aCosmosError)
+      );
+
+      const chunk = [item, item, item];
+      const result = await processChunk(chunk)(baseDeps)();
+
+      expect(
+        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
+      ).toHaveBeenCalledTimes(chunk.length);
+      expect(
+        mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
+      ).toHaveBeenCalledTimes(chunk.length - 1); // -1 for the failed item
+      expect(trackEventMock).not.toHaveBeenCalled();
+
+      expect(result).toStrictEqual(
+        E.left([
+          new TransientError(
+            `Error updating expired session flag(EXPIRED_SESSION): ${aCosmosError.kind}`
+          )
+        ])
+      );
+    });
+
+    it("should fail when processItem fails on some items, reporting the errors", async () => {
+      const aCosmosError = { kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors;
+
+      updateExpiredSessionNotificationFlagMock
+        .mockImplementationOnce(() => TE.left(aCosmosError))
+        .mockImplementationOnce(() => TE.left(aCosmosError));
+
+      const chunk = [item, item, item];
+      const result = await processChunk(chunk)(baseDeps)();
+
+      expect(
+        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
+      ).toHaveBeenCalledTimes(chunk.length);
+      expect(
+        mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
+      ).toHaveBeenCalledTimes(chunk.length - 2); // -2 for the failed items
+      expect(trackEventMock).not.toHaveBeenCalled();
+
+      expect(result).toStrictEqual(
+        E.left([
+          new TransientError(
+            `Error updating expired session flag(EXPIRED_SESSION): ${aCosmosError.kind}`
+          ),
+          new TransientError(
+            `Error updating expired session flag(EXPIRED_SESSION): ${aCosmosError.kind}`
+          )
+        ])
+      );
+    });
+
+    it("should succeed when a flag revert fails", async () => {
+      // When a flag revert fails, the process should continue and
+      // the error should be tracked, but not returned since the
+      // process should not be started again in this case.
+      const anError = new Error("Send to queue failed");
+      const aCosmosError = { kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors;
+
+      // Simulate an error while writing into the queue in the second item
+      sendExpiredUserSessionMock
+        .mockImplementationOnce(() => TE.of(void 0))
+        .mockImplementationOnce(() => TE.left(anError))
+        .mockImplementationOnce(() => TE.of(void 0));
+
+      // The update of the flag should be successful when setting it to true
+      // and should fail when reverting it to false
+      updateExpiredSessionNotificationFlagMock
+        .mockImplementationOnce(() => TE.of(void 0))
+        .mockImplementationOnce(() => TE.of(void 0))
+        .mockImplementationOnce(() => TE.of(void 0))
+        .mockImplementationOnce(() => TE.left(aCosmosError));
+
+      const chunk = [item, { ...item, shouldFail: false }, item];
+      const result = await processChunk(chunk)(baseDeps)();
+
+      expect(
+        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
+      ).toHaveBeenCalledTimes(chunk.length + 1); // +1 for the flag revert
+      expect(
+        mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
+      ).toHaveBeenCalledTimes(chunk.length);
+      expect(trackEventMock).toHaveBeenCalledOnce();
+
+      expect(result).toStrictEqual(E.right(void 0));
+    });
   });
 });
