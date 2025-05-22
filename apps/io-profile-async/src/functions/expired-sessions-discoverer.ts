@@ -93,7 +93,6 @@ const onRevertItemFlagFailure = (itemDbSelf: string) => (
     properties: {
       message:
         "Error reverting expired session flag(EXPIRED_SESSION) after Queue write failure",
-      // eslint-disable-next-line no-underscore-dangle
       itemDbSelf
     },
     tagOverrides: {
@@ -263,14 +262,21 @@ export const ExpiredSessionsDiscovererFunction = (
       )
     ),
     RTE.getOrElse(errors => {
-      if (Array.isArray(errors)) {
-        // TODO: replace with a customEvent which includes the TransientError number
-        context.log.error(
-          `Multiple transient errors occurred during execution: count=${errors.length}`
-        );
-      } else if (errors instanceof TransientError) {
-        context.log.error(`Transient error occurred: ${errors.message}`);
-      }
+      trackEvent({
+        name:
+          "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
+        properties: {
+          message: Array.isArray(errors)
+            ? `Multiple transient errors occurred during execution: count=${errors.length}`
+            : errors instanceof TransientError
+            ? `Transient error occurred: ${errors.message}`
+            : "Unknown error",
+          interval
+        },
+        tagOverrides: {
+          samplingEnabled: "false"
+        }
+      });
 
       if (isLastTimerTriggerRetry(context)) {
         trackEvent({
