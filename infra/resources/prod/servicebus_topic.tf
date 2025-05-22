@@ -84,7 +84,7 @@ module "sub_io_prof_async" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
   version = "~>1.0"
 
-  principal_id    = module.function_profile_async.function_app.principal_id
+  principal_id    = module.function_profile_async.function_app.function_app.principal_id
   subscription_id = data.azurerm_subscription.current.subscription_id
 
   service_bus = [
