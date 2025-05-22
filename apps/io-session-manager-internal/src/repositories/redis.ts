@@ -22,9 +22,9 @@ import {
   NullableBackendAssertionRefFromString,
 } from "../types/lollipop";
 import { LoginTypeEnum } from "../types/fast-login";
-import { SessionInfo } from "../generated/definitions/internal/SessionInfo";
-import { SessionsList } from "../generated/definitions/internal/SessionsList";
-import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
+import { SessionInfo } from "../generated/definitions/external/SessionInfo";
+import { SessionsList } from "../generated/definitions/external/SessionsList";
+import { AssertionRef } from "../generated/definitions/external/AssertionRef";
 import { SessionToken } from "../types/token";
 import { User } from "../types/user";
 
