@@ -3,7 +3,6 @@ import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmos
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { tr } from "date-fns/locale";
 import { ExpiredSessionDiscovererConfig } from "../../config";
 import {
   RetrievedSessionNotifications,
