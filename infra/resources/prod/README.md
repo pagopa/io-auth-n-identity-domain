@@ -11,7 +11,7 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azuread"></a> [azuread](#provider\_azuread) | 3.1.0 |
+| <a name="provider_azuread"></a> [azuread](#provider\_azuread) | 3.4.0 |
 | <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 3.116.0 |
 
 ## Modules
@@ -35,6 +35,10 @@
 | <a name="module_io_auth_internal_apim_api_itn"></a> [io\_auth\_internal\_apim\_api\_itn](#module\_io\_auth\_internal\_apim\_api\_itn) | ../../modules/internal_api | n/a |
 | <a name="module_io_profile_apim_api_itn"></a> [io\_profile\_apim\_api\_itn](#module\_io\_profile\_apim\_api\_itn) | ../../modules/operation_api | n/a |
 | <a name="module_io_public_apim_api_itn"></a> [io\_public\_apim\_api\_itn](#module\_io\_public\_apim\_api\_itn) | ../../modules/io_public_api | n/a |
+| <a name="module_pub_session_manager"></a> [pub\_session\_manager](#module\_pub\_session\_manager) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
+| <a name="module_sub_io_auth"></a> [sub\_io\_auth](#module\_sub\_io\_auth) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
+| <a name="module_sub_io_prof_async"></a> [sub\_io\_prof\_async](#module\_sub\_io\_prof\_async) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
+| <a name="module_topic_io_auth"></a> [topic\_io\_auth](#module\_topic\_io\_auth) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_webprofile_apim_api_itn"></a> [webprofile\_apim\_api\_itn](#module\_webprofile\_apim\_api\_itn) | ../../modules/ioweb_profile_api | n/a |
 
 ## Resources
@@ -55,6 +59,8 @@
 | [azurerm_monitor_scheduled_query_rules_alert_v2.alert_too_much_calls_on_unlock](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_scheduled_query_rules_alert_v2) | resource |
 | [azurerm_monitor_scheduled_query_rules_alert_v2.alert_too_much_invalid_codes_on_unlock](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_scheduled_query_rules_alert_v2) | resource |
 | [azurerm_service_plan.shared_plan](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan) | resource |
+| [azurerm_servicebus_subscription.io_auth_sub](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/servicebus_subscription) | resource |
+| [azurerm_servicebus_topic.io_auth_topic](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/servicebus_topic) | resource |
 | [azurerm_subnet.shared_plan_snet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) | resource |
 | [azuread_group.auth_admins](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/group) | data source |
 | [azuread_group.auth_devs](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/group) | data source |
@@ -91,6 +97,7 @@
 | [azurerm_key_vault_secret.spid_login_api_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.spid_login_jwt_pub_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_linux_web_app.app_backend_li](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/linux_web_app) | data source |
+| [azurerm_linux_web_app.weu_session_manager](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/linux_web_app) | data source |
 | [azurerm_redis_cache.core_domain_redis_common](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/redis_cache) | data source |
 | [azurerm_redis_cache.redis_common](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/redis_cache) | data source |
 | [azurerm_resource_group.auth_common_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |
@@ -107,6 +114,7 @@
 | [azurerm_resource_group.rg_elt](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |
 | [azurerm_resource_group.shared_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |
 | [azurerm_service_plan.shared_plan_itn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/service_plan) | data source |
+| [azurerm_servicebus_namespace.platform_service_bus_namespace](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/servicebus_namespace) | data source |
 | [azurerm_storage_account.citizen_auth_common](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) | data source |
 | [azurerm_storage_account.immutable_lv_audit_logs_storage](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) | data source |
 | [azurerm_storage_account.immutable_spid_logs_storage](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) | data source |
@@ -119,6 +127,7 @@
 | [azurerm_storage_account.storage_logs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) | data source |
 | [azurerm_subnet.private_endpoints_subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subnet) | data source |
 | [azurerm_subnet.weu_private_endpoints_subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subnet) | data source |
+| [azurerm_subscription.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subscription) | data source |
 | [azurerm_virtual_network.itn_common](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_network) | data source |
 | [azurerm_virtual_network.weu_common](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_network) | data source |
 

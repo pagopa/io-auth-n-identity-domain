@@ -1,5 +1,7 @@
 data "azurerm_client_config" "current" {}
 
+data "azurerm_subscription" "current" {}
+
 module "common_values" {
   source = "github.com/pagopa/io-infra//src/_modules/common_values?ref=main"
 }
@@ -43,6 +45,15 @@ data "azurerm_linux_web_app" "app_backend_li" {
   resource_group_name = "${local.common_project}-rg-linux"
 }
 
+data "azuread_group" "auth_devs" {
+  display_name = "${local.common_project}-adgroup-auth-developers"
+}
+
+
+data "azurerm_linux_web_app" "weu_session_manager" {
+  name                = "${local.weu_project}-session-manager-app-03"
+  resource_group_name = "${local.weu_project}-session-manager-rg-01"
+}
 
 ##########################
 # Entra ID
@@ -75,4 +86,12 @@ data "azurerm_service_plan" "shared_plan_itn" {
 data "azurerm_storage_account" "lollipop_assertion_storage" {
   name                = replace(format("%s-lollipop-assertions-st", local.common_project), "-", "")
   resource_group_name = format("%s-%s-data-rg", local.common_project, local.legacy_domain)
+}
+
+##########################
+# PLATFORM SERVICE BUS NS
+##########################
+data "azurerm_servicebus_namespace" "platform_service_bus_namespace" {
+  name                = format("%s-platform-sbns-01", local.project)
+  resource_group_name = format("%s-common-rg-01", local.project)
 }
