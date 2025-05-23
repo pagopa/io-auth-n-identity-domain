@@ -122,7 +122,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       ...makeHandlerInputs(aValidQueueMessage)
     })();
 
-    expect(E.isRight(response)).toBeTruthy();
+    expect(E.isRight(response)).toBe(true);
     expect(getSessionMock).toHaveBeenCalledOnce();
     expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
     expect(getProfileMock).toHaveBeenCalledOnce();
@@ -143,7 +143,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       ...makeHandlerInputs(aValidQueueMessage)
     })();
 
-    expect(E.isRight(response)).toBeTruthy();
+    expect(E.isRight(response)).toBe(true);
     expect(getSessionMock).toHaveBeenCalledOnce();
     expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
     expect(getProfileMock).toHaveBeenCalledOnce();
@@ -234,7 +234,7 @@ describe("ExpiredSessionAdvisor handler", () => {
         ...makeHandlerInputs(aValidQueueMessage)
       })();
 
-      expect(E.isRight(response)).toBeTruthy();
+      expect(E.isRight(response)).toBe(true);
       expect(getSessionMock).toHaveBeenCalledOnce();
       expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
       expect(getProfileMock).not.toHaveBeenCalled();
@@ -263,7 +263,7 @@ describe("ExpiredSessionAdvisor handler", () => {
         ...makeHandlerInputs(aValidQueueMessage)
       })();
 
-      expect(E.isRight(response)).toBeTruthy();
+      expect(E.isRight(response)).toBe(true);
       expect(getSessionMock).toHaveBeenCalledOnce();
       expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
       expect(getProfileMock).toHaveBeenCalledOnce();
@@ -292,7 +292,7 @@ describe("ExpiredSessionAdvisor handler", () => {
         ...makeHandlerInputs(aValidQueueMessage)
       })();
 
-      expect(E.isRight(response)).toBeTruthy();
+      expect(E.isRight(response)).toBe(true);
       expect(getSessionMock).toHaveBeenCalledOnce();
       expect(getSessionMock).toBeCalledWith({ fiscalcode: aFiscalCode });
       expect(getProfileMock).toHaveBeenCalledOnce();

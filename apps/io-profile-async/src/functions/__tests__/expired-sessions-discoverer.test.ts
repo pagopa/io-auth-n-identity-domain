@@ -192,7 +192,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
           samplingEnabled: "false"
         }
       });
-      expect(E.isRight(result)).toBeTruthy();
+      expect(E.isRight(result)).toBe(true);
     });
   });
 
