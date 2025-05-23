@@ -4,8 +4,6 @@ import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmos
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { afterEach, describe, expect, it, Mock, vi } from "vitest";
-import { prop } from "monocle-ts/lib/Traversal";
-import { ta } from "date-fns/locale";
 import { ExpiredSessionDiscovererConfig } from "../../config";
 import {
   RetrievedSessionNotifications,
@@ -197,7 +195,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
     });
   });
 
-  // eslint-disable-next-line max-lines-per-function
+  // eslint-disable-next-line max-lines-per-function, sonarjs/cognitive-complexity
   describe("processChunk", () => {
     it("should succeed when processItem succeed on each item", async () => {
       const chunk = [item, item, item];

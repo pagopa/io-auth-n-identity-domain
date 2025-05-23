@@ -4,7 +4,6 @@ import {
   CosmosErrors,
   CosmosResource
 } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import {
   getSelfFromModelValidationError,
   cosmosErrorsToString
