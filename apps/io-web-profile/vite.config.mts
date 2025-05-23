@@ -8,7 +8,9 @@ export default defineConfig({
         "/node_modules",
         "**/__integrations__",
         "src/generated/**",
-        "src/**/index.ts"
+        "src/**/index.ts",
+        "**/__mocks__",
+        "src/utils/config.ts"
       ],
       reporter: ["lcov", "text"]
     },
