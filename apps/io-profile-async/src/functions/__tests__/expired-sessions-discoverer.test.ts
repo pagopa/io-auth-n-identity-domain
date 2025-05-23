@@ -2,7 +2,7 @@ import { QueueClient } from "@azure/storage-queue";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, Mock, vi } from "vitest";
 import { ExpiredSessionDiscovererConfig } from "../../config";
 import {
   RetrievedSessionNotifications,
@@ -15,10 +15,10 @@ import { TransientError } from "../../utils/errors";
 import {
   ItemToProcess,
   processChunk,
-  processItem
+  processItem,
+  retrieveFromDbInChunks
 } from "../expired-sessions-discoverer";
-
-// TODO: THIS TEST IS IN EARLY WIP STAGE
+import { createInterval, Interval } from "../../types/interval";
 
 const aSession = ({
   id: "AAAAAA89S20I111X",
@@ -193,6 +193,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
     });
   });
 
+  // eslint-disable-next-line max-lines-per-function
   describe("processChunk", () => {
     it("should succeed when processItem succeed on each item", async () => {
       const chunk = [item, item, item];
@@ -298,6 +299,108 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(trackEventMock).toHaveBeenCalledOnce();
 
       expect(result).toStrictEqual(E.right(void 0));
+    });
+
+    describe("retrieveFromDbInChunks", () => {
+      it("should return chunks of ItemToProcess", async () => {
+        // eslint-disable-next-line functional/immutable-data
+        expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 5;
+        (mockSessionNotificationsRepository.findByExpiredAtAsyncIterable as Mock).mockImplementationOnce(
+          () =>
+            async function*() {
+              // eslint-disable-next-line functional/immutable-data
+              yield Array(
+                expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
+              ).fill(E.of(aSession));
+            }
+        );
+
+        const result = await retrieveFromDbInChunks(
+          createInterval(new Date("2025-01-01"))
+        )(baseDeps)();
+
+        expect(findByExpiredAtAsyncIterableMock).toHaveBeenCalledWith(
+          {
+            from: new Date("2024-12-31"),
+            to: new Date("2025-01-01")
+          } as Interval,
+          expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
+        );
+
+        expect(E.isRight(result)).toBe(true);
+        if (E.isRight(result)) {
+          // Expecting a single chunk of size CHUNK_SIZE
+          const chunks = result.right;
+          expect(chunks).toHaveLength(1);
+          expect(chunks[0]).toHaveLength(
+            expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
+          );
+          expect(chunks[0][0].itemTimeoutInSeconds).toBe(0);
+        }
+
+        // Revert the chunk size to the default value
+        // eslint-disable-next-line functional/immutable-data
+        expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 1;
+      });
+
+      it("should return a TransientError if asyncIterableToArray throws", async () => {
+        (mockSessionNotificationsRepository.findByExpiredAtAsyncIterable as Mock).mockImplementationOnce(
+          () =>
+            // eslint-disable-next-line require-yield
+            async function*() {
+              throw new Error("Async error");
+            }
+        );
+
+        const result = await retrieveFromDbInChunks(createInterval())(
+          baseDeps
+        )();
+        expect(E.isLeft(result)).toBe(true);
+        if (E.isLeft(result)) {
+          expect(result.left).toBeInstanceOf(TransientError);
+          expect(result.left.message).toMatch(
+            "Error retrieving session expirations, AsyncIterable fetch execution failure"
+          );
+        }
+      });
+
+      it("should map chunk items with correct timeout multiplier", async () => {
+        const chunks = 3;
+        (mockSessionNotificationsRepository.findByExpiredAtAsyncIterable as Mock).mockImplementationOnce(
+          () =>
+            async function*() {
+              // eslint-disable-next-line functional/no-let
+              for (let i = 0; i < chunks; i++) {
+                yield [E.of(aSession)];
+              }
+            }
+        );
+
+        const result = await retrieveFromDbInChunks(createInterval())(
+          baseDeps
+        )();
+
+        expect(E.isRight(result)).toBe(true);
+        if (E.isRight(result)) {
+          // Expecting 3 chunks of size 1
+          const chunks = result.right;
+          expect(chunks).toHaveLength(3);
+          expect(chunks[0]).toHaveLength(
+            expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
+          );
+          // expect the timeout to be the multiplier * index
+          // eslint-disable-next-line functional/no-let
+          for (let i = 0; i < chunks.length; i++) {
+            // check the timeout for each item in the chunk
+            for (const item of chunks[i]) {
+              expect(item.itemTimeoutInSeconds).toBe(
+                expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER *
+                  i
+              );
+            }
+          }
+        }
+      });
     });
   });
 });
