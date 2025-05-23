@@ -5,7 +5,12 @@ export default defineConfig({
   test: {
     coverage: {
       reporter: ["lcov", "text"],
-      exclude: ["**/__mocks__/**", "*.js", "src/generated/**"],
+      exclude: [
+        "**/__mocks__/**",
+        "*.js",
+        "src/generated/**",
+        "src/config.ts",
+        "src/main.ts"],
     },
     env: {
       ...config({ path: "env.example" }).parsed,
