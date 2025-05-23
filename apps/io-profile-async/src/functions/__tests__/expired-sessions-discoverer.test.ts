@@ -367,7 +367,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
 
       it("should map chunk items with correct timeout multiplier", async () => {
         const chunks = 3;
-        (mockSessionNotificationsRepository.findByExpiredAtAsyncIterable as Mock).mockImplementationOnce(
+        findByExpiredAtAsyncIterableMock.mockImplementationOnce(
           () =>
             async function*() {
               // eslint-disable-next-line functional/no-let
@@ -410,7 +410,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         const chunkSize = 3;
 
         expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = chunkSize;
-        (mockSessionNotificationsRepository.findByExpiredAtAsyncIterable as Mock).mockImplementationOnce(
+        findByExpiredAtAsyncIterableMock.mockImplementationOnce(
           () =>
             async function*() {
               yield [E.of(aSession), E.of(aSession), E.of(aSession)];
@@ -439,7 +439,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       it("should throw and track event when a chunk fails", async () => {
         // eslint-disable-next-line functional/immutable-data
         expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 2;
-        (mockSessionNotificationsRepository.findByExpiredAtAsyncIterable as Mock).mockImplementationOnce(
+        findByExpiredAtAsyncIterableMock.mockImplementationOnce(
           () =>
             async function*() {
               yield [E.of(aSession), E.of(aSession)];
