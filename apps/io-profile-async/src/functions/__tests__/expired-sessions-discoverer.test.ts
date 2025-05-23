@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 import { Context } from "@azure/functions";
 import { QueueClient } from "@azure/storage-queue";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
@@ -305,28 +306,32 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
 
     describe("retrieveFromDbInChunks", () => {
       it("should return chunks of ItemToProcess", async () => {
-        // eslint-disable-next-line functional/immutable-data
-        expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 5;
-        (mockSessionNotificationsRepository.findByExpiredAtAsyncIterable as Mock).mockImplementationOnce(
+        const chunkSize = 5;
+        findByExpiredAtAsyncIterableMock.mockImplementationOnce(
           () =>
             async function*() {
-              // eslint-disable-next-line functional/immutable-data
-              yield Array(
-                expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
-              ).fill(E.of(aSession));
+              yield Array(chunkSize).fill(E.of(aSession));
             }
         );
+        const deps = {
+          ...baseDeps,
+          expiredSessionsDiscovererConf: {
+            ...baseDeps.expiredSessionsDiscovererConf,
+            EXPIRED_SESSION_SCANNER_CHUNK_SIZE: 5
+          }
+        };
 
         const result = await retrieveFromDbInChunks(
           createInterval(new Date("2025-01-01"))
-        )(baseDeps)();
+        )(deps)();
 
+        expect(findByExpiredAtAsyncIterableMock).toHaveBeenCalledOnce();
         expect(findByExpiredAtAsyncIterableMock).toHaveBeenCalledWith(
           {
             from: new Date("2024-12-31"),
             to: new Date("2025-01-01")
           } as Interval,
-          expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
+          chunkSize
         );
 
         expect(E.isRight(result)).toBe(true);
@@ -334,19 +339,13 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
           // Expecting a single chunk of size CHUNK_SIZE
           const chunks = result.right;
           expect(chunks).toHaveLength(1);
-          expect(chunks[0]).toHaveLength(
-            expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
-          );
+          expect(chunks[0]).toHaveLength(chunkSize);
           expect(chunks[0][0].itemTimeoutInSeconds).toBe(0);
         }
-
-        // Revert the chunk size to the default value
-        // eslint-disable-next-line functional/immutable-data
-        expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 1;
       });
 
       it("should return a TransientError if asyncIterableToArray throws", async () => {
-        (mockSessionNotificationsRepository.findByExpiredAtAsyncIterable as Mock).mockImplementationOnce(
+        findByExpiredAtAsyncIterableMock.mockImplementationOnce(
           () =>
             // eslint-disable-next-line require-yield
             async function*() {
@@ -409,7 +408,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       it("should process all chunks and succeed when all items succeed", async () => {
         const chunks = 2;
         const chunkSize = 3;
-        // eslint-disable-next-line functional/immutable-data
+
         expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = chunkSize;
         (mockSessionNotificationsRepository.findByExpiredAtAsyncIterable as Mock).mockImplementationOnce(
           () =>
