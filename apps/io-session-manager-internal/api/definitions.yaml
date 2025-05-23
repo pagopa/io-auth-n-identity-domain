@@ -5,7 +5,7 @@ info:
   x-logo:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
   description: |
-    External type definitions used inside this microservice
+    Type definitions used inside this microservice
 
 paths:
   /dummy:

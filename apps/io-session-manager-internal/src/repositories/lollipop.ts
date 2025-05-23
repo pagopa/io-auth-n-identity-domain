@@ -5,7 +5,7 @@ import { constVoid, pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/lib/Either";
 import { RevokeAssertionRefInfo } from "@pagopa/io-functions-commons/dist/src/entities/revoke_assertion_ref_info";
 import { Reader } from "fp-ts/lib/Reader";
-import { AssertionRef } from "../generated/definitions/external/AssertionRef";
+import { AssertionRef } from "../generated/definitions/types/AssertionRef";
 import { base64EncodeObject } from "../utils/encoding";
 
 export type Dependencies = {
