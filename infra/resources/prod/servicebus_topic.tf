@@ -12,7 +12,7 @@ resource "azurerm_servicebus_topic" "io_auth_topic" {
 resource "azurerm_servicebus_subscription" "io_auth_sub" {
   name               = "io-auth-sub"
   topic_id           = azurerm_servicebus_topic.io_auth_topic.id
-  max_delivery_count = 1
+  max_delivery_count = 10
 }
 
 // TODO: add specific filter rules with azurerm_servicebus_subscription_rule
