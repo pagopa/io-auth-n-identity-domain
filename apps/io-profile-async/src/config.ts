@@ -34,6 +34,17 @@ export const DryRunFeatureFlag = t.type({
 
 export type DryRunFeatureFlag = t.TypeOf<typeof DryRunFeatureFlag>;
 
+export const ExpiredSessionDiscovererConfig = t.type({
+  EXPIRED_SESSION_ADVISOR_QUEUE: NonEmptyString,
+  EXPIRED_SESSION_SCANNER_CHUNK_SIZE: withFallback(NumberFromString, 100),
+  EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER: withFallback(NumberFromString, 7),
+  SESSION_NOTIFICATIONS_CONTAINER_NAME: NonEmptyString
+});
+
+export type ExpiredSessionDiscovererConfig = t.TypeOf<
+  typeof ExpiredSessionDiscovererConfig
+>;
+
 // global app configuration
 export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
@@ -42,8 +53,13 @@ export const IConfig = t.intersection([
 
     AZURE_STORAGE_CONNECTION_STRING: NonEmptyString,
 
+    // Old general CosmosDB
     COSMOSDB_NAME: NonEmptyString,
     COSMOSDB_CONNECTION_STRING: NonEmptyString,
+
+    // Domain Centric new CosmosDB
+    CITIZEN_AUTH_COSMOSDB_NAME: NonEmptyString,
+    CITIZEN_AUTH_COSMOSDB_CONNECTION_STRING: NonEmptyString,
 
     // Default is 10 sec timeout
     FETCH_TIMEOUT_MS: withDefault(t.string, "10000").pipe(NumberFromString),
@@ -63,10 +79,13 @@ export const IConfig = t.intersection([
 
     isProduction: t.boolean
   }),
-  BackendInternalConfig,
-  FunctionProfileConfig,
-  MailerConfig,
-  DryRunFeatureFlag
+  t.intersection([
+    BackendInternalConfig,
+    FunctionProfileConfig,
+    MailerConfig,
+    DryRunFeatureFlag,
+    ExpiredSessionDiscovererConfig
+  ])
 ]);
 
 // No need to re-evaluate this object for each call
