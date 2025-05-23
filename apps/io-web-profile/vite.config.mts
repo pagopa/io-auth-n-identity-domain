@@ -7,6 +7,7 @@ export default defineConfig({
         "dist",
         "/node_modules",
         "**/__integrations__",
+        "src/generated/**",
         "src/**/index.ts"
       ],
       reporter: ["lcov", "text"]
