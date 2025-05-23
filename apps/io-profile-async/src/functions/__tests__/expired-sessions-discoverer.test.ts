@@ -289,7 +289,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         .mockImplementationOnce(() => TE.of(void 0))
         .mockImplementationOnce(() => TE.left(aCosmosError));
 
-      const chunk = [item, { ...item, shouldFail: false }, item];
+      const chunk = [item, item, item];
       const result = await processChunk(chunk)(baseDeps)();
 
       expect(
