@@ -8,7 +8,7 @@ import * as E from "fp-ts/lib/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { RequiredBodyMiddleware } from "../middlewares/request";
 import { LogoutDependencies } from "../utils/ioweb/dependency";
-import { SuccessResponse as DeleteUserSessionSuccessResponse } from "../generated/definitions/backend-internal/SuccessResponse";
+import { SuccessResponse as DeleteUserSessionSuccessResponse } from "../generated/definitions/sm-internal/SuccessResponse";
 import { LogoutData } from "../generated/definitions/internal/LogoutData";
 
 const deleteUserSession: (
@@ -17,16 +17,19 @@ const deleteUserSession: (
   LogoutDependencies,
   H.HttpError,
   DeleteUserSessionSuccessResponse
-> = fiscal_code => ({ backendInternalClient }) =>
+> = fiscal_code => ({ sessionManagerInternalClient }) =>
   pipe(
     TE.tryCatch(
       () =>
-        backendInternalClient.deleteUserSession({ fiscalcode: fiscal_code }),
+        sessionManagerInternalClient.deleteUserSession({
+          fiscalCode: fiscal_code
+        }),
       () => new H.HttpError("Error while calling the downstream component")
     ),
     TE.chainEitherK(
       E.mapLeft(
-        _ => new H.HttpError("Unexpected response from backend internal")
+        _ =>
+          new H.HttpError("Unexpected response from session manager internal")
       )
     ),
     TE.chain(

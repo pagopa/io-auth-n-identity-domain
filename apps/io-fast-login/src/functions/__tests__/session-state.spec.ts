@@ -18,7 +18,7 @@ const mockGetUserSessionState = vi.fn().mockResolvedValue(
     value: aValidResponse
   })
 );
-const mockBackendInternalClient = {
+const sessionManagerInternalClient = {
   getUserSessionState: mockGetUserSessionState
 } as any;
 
@@ -34,12 +34,12 @@ describe("Session state handler", () => {
     const result = await makeSessionStateHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient
     })();
 
     expect(mockGetUserSessionState).toHaveBeenCalled();
     expect(mockGetUserSessionState).toHaveBeenCalledWith({
-      fiscalcode: aValidBody.fiscal_code
+      fiscalCode: aValidBody.fiscal_code
     });
     expect(E.isRight(result)).toEqual(true);
     expect(result).toMatchObject({
@@ -55,7 +55,7 @@ describe("Session state handler", () => {
     const result = await makeSessionStateHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient
     })();
 
     expect(mockGetUserSessionState).not.toHaveBeenCalled();
@@ -86,7 +86,7 @@ describe("Session state handler", () => {
       const result = await makeSessionStateHandler({
         ...httpHandlerInputMocks,
         input: mockReq,
-        backendInternalClient: mockBackendInternalClient
+        sessionManagerInternalClient
       })();
 
       expect(mockGetUserSessionState).toHaveBeenCalled();
@@ -112,12 +112,12 @@ describe("Session state handler", () => {
     const result = await makeSessionStateHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient
     })();
 
     expect(mockGetUserSessionState).toHaveBeenCalled();
     expect(mockGetUserSessionState).toHaveBeenCalledWith({
-      fiscalcode: aValidBody.fiscal_code
+      fiscalCode: aValidBody.fiscal_code
     });
     expect(E.isRight(result)).toEqual(true);
     expect(result).toMatchObject({
@@ -140,12 +140,12 @@ describe("Session state handler", () => {
     const result = await makeSessionStateHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient
     })();
 
     expect(mockGetUserSessionState).toHaveBeenCalled();
     expect(mockGetUserSessionState).toHaveBeenCalledWith({
-      fiscalcode: aValidBody.fiscal_code
+      fiscalCode: aValidBody.fiscal_code
     });
     expect(E.isRight(result)).toEqual(true);
     expect(result).toMatchObject({
@@ -153,7 +153,7 @@ describe("Session state handler", () => {
         statusCode: 500,
         body: {
           status: 500,
-          title: "Unexpected response from backend internal"
+          title: "Unexpected response from session manager internal"
         }
       }
     });

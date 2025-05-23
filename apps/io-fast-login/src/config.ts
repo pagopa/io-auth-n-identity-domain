@@ -28,11 +28,13 @@ const GetAssertionConfig = t.type(
 );
 type GetAssertionConfig = t.Type<typeof GetAssertionConfig>;
 
-const BackendInternalConfig = t.type({
-  BACKEND_INTERNAL_API_KEY: NonEmptyString,
-  BACKEND_INTERNAL_BASE_URL: UrlFromString
+const SessionManagerInternalConfig = t.type({
+  SESSION_MANAGER_INTERNAL_API_KEY: NonEmptyString,
+  SESSION_MANAGER_INTERNAL_BASE_URL: UrlFromString
 });
-type BackendInternalConfig = t.TypeOf<typeof BackendInternalConfig>;
+type SessionManagerInternalConfig = t.TypeOf<
+  typeof SessionManagerInternalConfig
+>;
 
 const RedisClientConfig = t.intersection([
   t.type({
@@ -58,7 +60,7 @@ export const IConfig = t.intersection([
 
     isProduction: t.boolean
   }),
-  BackendInternalConfig,
+  SessionManagerInternalConfig,
   GetAssertionConfig,
   RedisClientConfig
 ]);

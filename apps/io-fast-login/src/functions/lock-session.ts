@@ -19,19 +19,20 @@ const lockUserSession: (
   LockSessionDependency,
   H.HttpError | H.HttpConflictError,
   undefined
-> = (fiscal_code, unlock_code) => ({ backendInternalClient }) =>
+> = (fiscal_code, unlock_code) => ({ sessionManagerInternalClient }) =>
   pipe(
     TE.tryCatch(
       () =>
-        backendInternalClient.authLock({
+        sessionManagerInternalClient.authLock({
           body: { unlock_code },
-          fiscalcode: fiscal_code
+          fiscalCode: fiscal_code
         }),
       () => new H.HttpError("Error while calling the downstream component")
     ),
     TE.chainEitherK(
       E.mapLeft(
-        _ => new H.HttpError("Unexpected response from backend internal")
+        _ =>
+          new H.HttpError("Unexpected response from session manager internal")
       )
     ),
     TE.chain(({ status }) =>

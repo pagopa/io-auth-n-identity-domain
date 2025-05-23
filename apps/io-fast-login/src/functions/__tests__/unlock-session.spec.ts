@@ -12,7 +12,7 @@ const aValidPayload: UnlockSessionData = {
   unlock_code: "123456789" as UnlockCode
 };
 const mockReleaseAuthLock = vi.fn().mockResolvedValue(E.right({ status: 204 }));
-const mockBackendInternalClient = {
+const sessionManagerInternalClient = {
   releaseAuthLock: mockReleaseAuthLock
 } as any;
 
@@ -29,12 +29,12 @@ describe("UnlockSession handler", () => {
     const result = await makeUnlockSessionHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient
     })();
 
     expect(mockReleaseAuthLock).toHaveBeenCalled();
     expect(mockReleaseAuthLock).toHaveBeenCalledWith({
-      fiscalcode: aValidPayload.fiscal_code,
+      fiscalCode: aValidPayload.fiscal_code,
       body: { unlock_code: aValidPayload.unlock_code }
     });
     expect(E.isRight(result)).toEqual(true);
@@ -50,12 +50,12 @@ describe("UnlockSession handler", () => {
     const result = await makeUnlockSessionHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient
     })();
 
     expect(mockReleaseAuthLock).toHaveBeenCalled();
     expect(mockReleaseAuthLock).toHaveBeenCalledWith({
-      fiscalcode: aValidPayload.fiscal_code,
+      fiscalCode: aValidPayload.fiscal_code,
       body: { unlock_code: aValidPayload.unlock_code }
     });
     expect(E.isRight(result)).toEqual(true);
@@ -88,7 +88,7 @@ describe("UnlockSession handler", () => {
       const result = await makeUnlockSessionHandler({
         ...httpHandlerInputMocks,
         input: mockReq,
-        backendInternalClient: mockBackendInternalClient
+        sessionManagerInternalClient
       })();
 
       expect(mockReleaseAuthLock).toHaveBeenCalled();
@@ -114,12 +114,12 @@ describe("UnlockSession handler", () => {
     const result = await makeUnlockSessionHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient
     })();
 
     expect(mockReleaseAuthLock).toHaveBeenCalled();
     expect(mockReleaseAuthLock).toHaveBeenCalledWith({
-      fiscalcode: aValidPayload.fiscal_code,
+      fiscalCode: aValidPayload.fiscal_code,
       body: { unlock_code: aValidPayload.unlock_code }
     });
     expect(E.isRight(result)).toEqual(true);
@@ -143,12 +143,12 @@ describe("UnlockSession handler", () => {
     const result = await makeUnlockSessionHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient
     })();
 
     expect(mockReleaseAuthLock).toHaveBeenCalled();
     expect(mockReleaseAuthLock).toHaveBeenCalledWith({
-      fiscalcode: aValidPayload.fiscal_code,
+      fiscalCode: aValidPayload.fiscal_code,
       body: { unlock_code: aValidPayload.unlock_code }
     });
     expect(E.isRight(result)).toEqual(true);
@@ -157,7 +157,7 @@ describe("UnlockSession handler", () => {
         statusCode: 500,
         body: {
           status: 500,
-          title: "Unexpected response from backend internal"
+          title: "Unexpected response from session manager internal"
         }
       }
     });

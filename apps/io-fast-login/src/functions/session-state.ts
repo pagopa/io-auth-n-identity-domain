@@ -9,7 +9,7 @@ import * as E from "fp-ts/lib/Either";
 import { RequiredBodyMiddleware } from "../middlewares/request";
 import { SessionState } from "../generated/definitions/internal/SessionState";
 import { GetSessionStateData } from "../generated/definitions/internal/GetSessionStateData";
-import { SessionState as BackendInternalSessionStateResponse } from "../generated/definitions/backend-internal/SessionState";
+import { SessionState as SessionManagerInternalSessionStateResponse } from "../generated/definitions/sm-internal/SessionState";
 import { SessionStateDependency } from "../utils/ioweb/dependency";
 
 const getUserSessionState: (
@@ -17,17 +17,17 @@ const getUserSessionState: (
 ) => RTE.ReaderTaskEither<
   SessionStateDependency,
   H.HttpError,
-  BackendInternalSessionStateResponse
-> = fiscal_code => ({ backendInternalClient }) =>
+  SessionManagerInternalSessionStateResponse
+> = fiscal_code => ({ sessionManagerInternalClient }) =>
   pipe(
     TE.tryCatch(
-      () =>
-        backendInternalClient.getUserSessionState({ fiscalcode: fiscal_code }),
+      () => sessionManagerInternalClient.getUserSessionState({ fiscalCode: fiscal_code }),
       () => new H.HttpError("Error while calling the downstream component")
     ),
     TE.chainEitherK(
       E.mapLeft(
-        _ => new H.HttpError("Unexpected response from backend internal")
+        _ =>
+          new H.HttpError("Unexpected response from session manager internal")
       )
     ),
     TE.chain(({ status, value }) =>
