@@ -8,6 +8,7 @@ export default defineConfig({
         "/node_modules",
         "**/__mocks__/**",
         "*.js",
+        "src/generated/**",
         "src/config.ts",
         "src/main.ts"
       ],
