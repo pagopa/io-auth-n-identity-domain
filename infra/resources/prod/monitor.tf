@@ -14,11 +14,8 @@ data "azurerm_key_vault_secret" "alert_error_notification_opsgenie" {
   key_vault_id = data.azurerm_key_vault.kv.id
 }
 
-resource "azurerm_resource_group" "auth_common_rg" {
-  name     = "${local.project}-${local.domain}-common-rg-01"
-  location = local.location
-
-  tags = local.tags
+data "azurerm_resource_group" "auth_common_rg" {
+  name = "${local.project}-${local.domain}-common-rg-01"
 }
 
 data "azurerm_application_insights" "application_insights" {
@@ -27,7 +24,7 @@ data "azurerm_application_insights" "application_insights" {
 }
 
 resource "azurerm_monitor_action_group" "error_action_group" {
-  resource_group_name = azurerm_resource_group.auth_common_rg.name
+  resource_group_name = data.azurerm_resource_group.auth_common_rg.name
   name                = "${local.project}-${local.domain}-error-ag-01"
   short_name          = "${local.domain}-error"
 
