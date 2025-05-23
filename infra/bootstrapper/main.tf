@@ -87,36 +87,6 @@ data "azuread_group" "externals" {
   display_name = local.adgroups.externals_name
 }
 
-import {
-  to = module.repo.github_branch_default.main
-  id = "io-auth-n-identity-domain"
-}
-
-import {
-  to = module.repo.github_repository.this
-  id = "io-auth-n-identity-domain"
-}
-
-import {
-  to = module.repo.github_repository_environment.opex_prod_cd
-  id = "io-auth-n-identity-domain:opex-prod-cd"
-}
-
-import {
-  to = module.repo.github_repository_environment.opex_prod_ci
-  id = "io-auth-n-identity-domain:opex-prod-ci"
-}
-
-import {
-  to = module.repo.github_actions_secret.repo_secrets["ARM_TENANT_ID"]
-  id = "io-auth-n-identity-domain/ARM_TENANT_ID"
-}
-
-import {
-  to = module.repo.github_actions_secret.repo_secrets["ARM_SUBSCRIPTION_ID"]
-  id = "io-auth-n-identity-domain/ARM_SUBSCRIPTION_ID"
-}
-
 module "repo" {
   source  = "pagopa-dx/azure-github-environment-bootstrap/azurerm"
   version = "~>2.0"
@@ -144,7 +114,7 @@ module "repo" {
     azurerm_resource_group.auth_itn_01.id,
     azurerm_resource_group.webprof_itn_01.id,
     azurerm_resource_group.data_itn_01.id,
-    azurerm_resource_group.session_manager_weu_01.id, # problem
+    azurerm_resource_group.session_manager_weu_01.id,
     azurerm_resource_group.shared_itn_01.id,
     azurerm_resource_group.ioweb_common_weu.id,
     azurerm_resource_group.storage_weu.id,
@@ -195,10 +165,4 @@ module "repo" {
   ]
 
   tags = local.tags
-}
-
-
-import {
-  to = module.repo.module.github_runner.azurerm_container_app_job.github_runner
-  id = "/subscriptions/ec285037-c673-4f58-b594-d7c480da4e8b/resourceGroups/io-p-itn-auth-rg-01/providers/Microsoft.App/jobs/io-p-itn-auth-caj-01"
 }
