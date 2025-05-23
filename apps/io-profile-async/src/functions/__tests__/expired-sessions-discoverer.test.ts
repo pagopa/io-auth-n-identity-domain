@@ -298,7 +298,19 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(
         mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
       ).toHaveBeenCalledTimes(chunk.length);
-      expect(trackEventMock).toHaveBeenCalledOnce();
+      expect(trackEventMock).toHaveBeenCalledWith({
+        name:
+          "io.citizen-auth.prof-async.expired-sessions-discoverer.permanent.revert-failure",
+        properties: {
+          message:
+            "Error reverting expired session flag(EXPIRED_SESSION) after Queue write failure",
+          // eslint-disable-next-line no-underscore-dangle
+          itemDbSelf: item.retrievedDbItem._self
+        },
+        tagOverrides: {
+          samplingEnabled: "false"
+        }
+      });
 
       expect(result).toStrictEqual(E.right(void 0));
     });
