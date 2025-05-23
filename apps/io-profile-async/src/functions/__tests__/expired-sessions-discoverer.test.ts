@@ -545,7 +545,6 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
           })
         })
       );
-      vi.resetModules();
     });
   });
 });
