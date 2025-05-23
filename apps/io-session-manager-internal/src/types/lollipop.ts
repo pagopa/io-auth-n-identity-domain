@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
 import { JsonFromString } from "io-ts-types";
-import { AssertionRef } from "../generated/definitions/external/AssertionRef";
+import { AssertionRef } from "../generated/definitions/types/AssertionRef";
 import { LoginType } from "../types/fast-login";
 
 // LollipopData
