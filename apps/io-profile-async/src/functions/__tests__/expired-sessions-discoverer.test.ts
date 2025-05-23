@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 import { Context } from "@azure/functions";
 import { QueueClient } from "@azure/storage-queue";
@@ -329,7 +330,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         ...baseDeps,
         expiredSessionsDiscovererConf: {
           ...baseDeps.expiredSessionsDiscovererConf,
-          EXPIRED_SESSION_SCANNER_CHUNK_SIZE: 5
+          EXPIRED_SESSION_SCANNER_CHUNK_SIZE: chunkSize
         }
       };
 
@@ -380,9 +381,10 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       findByExpiredAtAsyncIterableMock.mockImplementationOnce(
         () =>
           async function*() {
-            // eslint-disable-next-line functional/no-let
             for (let i = 0; i < chunks; i++) {
-              yield [E.of(aSession)];
+              yield Array(
+                expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
+              ).fill(E.of(aSession));
             }
           }
       );
@@ -392,16 +394,16 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(E.isRight(result)).toBe(true);
       if (E.isRight(result)) {
         // Expecting 3 chunks of size 1
-        const chunks = result.right;
-        expect(chunks).toHaveLength(3);
-        expect(chunks[0]).toHaveLength(
+        const right = result.right;
+        expect(right).toHaveLength(chunks);
+        expect(right[0]).toHaveLength(
           expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
         );
         // expect the timeout to be the multiplier * index
         // eslint-disable-next-line functional/no-let
-        for (let i = 0; i < chunks.length; i++) {
+        for (let i = 0; i < right.length; i++) {
           // check the timeout for each item in the chunk
-          for (const item of chunks[i]) {
+          for (const item of right[i]) {
             expect(item.itemTimeoutInSeconds).toBe(
               expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER *
                 i
@@ -416,44 +418,51 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
     it("should process all chunks and succeed when all items succeed", async () => {
       const chunks = 2;
       const chunkSize = 3;
-
-      expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = chunkSize;
       findByExpiredAtAsyncIterableMock.mockImplementationOnce(
         () =>
           async function*() {
-            yield [E.of(aSession), E.of(aSession), E.of(aSession)];
-            yield [E.of(aSession), E.of(aSession), E.of(aSession)];
+            for (let i = 0; i < chunks; i++) {
+              yield Array(chunkSize).fill(E.of(aSession));
+            }
           }
       );
+      const deps = {
+        ...baseDeps,
+        expiredSessionsDiscovererConf: {
+          ...baseDeps.expiredSessionsDiscovererConf,
+          EXPIRED_SESSION_SCANNER_CHUNK_SIZE: chunkSize
+        }
+      };
 
       const context = { invocationId: "test" } as Context;
       await expect(
-        ExpiredSessionsDiscovererFunction(baseDeps)(context, {})
+        ExpiredSessionsDiscovererFunction(deps)(context, {})
       ).resolves.not.toThrow();
 
-      expect(
-        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
-      ).toHaveBeenCalledTimes(chunkSize * chunks);
-      expect(
-        mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
-      ).toHaveBeenCalledTimes(chunkSize * chunks);
+      expect(updateExpiredSessionNotificationFlagMock).toHaveBeenCalledTimes(
+        chunkSize * chunks
+      );
+      expect(sendExpiredUserSessionMock).toHaveBeenCalledTimes(
+        chunkSize * chunks
+      );
       expect(trackEventMock).not.toHaveBeenCalled();
-
-      // Reset chunk size
-      // eslint-disable-next-line functional/immutable-data
-      expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 1;
     });
 
     it("should throw and track event when a chunk fails", async () => {
-      // eslint-disable-next-line functional/immutable-data
-      expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 2;
+      const chunkSize = 4;
       findByExpiredAtAsyncIterableMock.mockImplementationOnce(
         () =>
           async function*() {
-            yield [E.of(aSession), E.of(aSession)];
-            yield [E.of(aSession), E.of(aSession)];
+            yield Array(chunkSize).fill(E.of(aSession));
           }
       );
+      const deps = {
+        ...baseDeps,
+        expiredSessionsDiscovererConf: {
+          ...baseDeps.expiredSessionsDiscovererConf,
+          EXPIRED_SESSION_SCANNER_CHUNK_SIZE: chunkSize
+        }
+      };
 
       // Fail the first two updates
       updateExpiredSessionNotificationFlagMock
@@ -473,7 +482,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       } as Context;
 
       await expect(
-        ExpiredSessionsDiscovererFunction(baseDeps)(context, {})
+        ExpiredSessionsDiscovererFunction(deps)(context, {})
       ).rejects.toThrow("One or more chunks failed during processing");
 
       expect(trackEventMock).toHaveBeenCalledWith({
@@ -488,10 +497,6 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
           samplingEnabled: "false"
         }
       });
-
-      // Reset chunk size
-      // eslint-disable-next-line functional/immutable-data
-      expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 1;
     });
 
     it("should track max retry event reached if isLastTimerTriggerRetry returns true", async () => {
