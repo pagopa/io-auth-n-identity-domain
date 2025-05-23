@@ -356,13 +356,13 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         const result = await retrieveFromDbInChunks(createInterval())(
           baseDeps
         )();
-        expect(E.isLeft(result)).toBe(true);
-        if (E.isLeft(result)) {
-          expect(result.left).toBeInstanceOf(TransientError);
-          expect(result.left.message).toMatch(
-            "Error retrieving session expirations, AsyncIterable fetch execution failure"
-          );
-        }
+        expect(result).toStrictEqual(
+          E.left(
+            new TransientError(
+              "Error retrieving session expirations, AsyncIterable fetch execution failure"
+            )
+          )
+        );
       });
 
       it("should map chunk items with correct timeout multiplier", async () => {
