@@ -11,6 +11,6 @@ jobs:
     name: Drift Detection
     secrets: inherit
     with:
-      environment: "prod"
+      environment: prod
       base_path: "infra/resources/"
       override_github_environment: "infra-prod"
