@@ -48,6 +48,11 @@ data "azurerm_api_management" "apim" {
   resource_group_name = local.apim.resource_group_name
 }
 
+data "azurerm_servicebus_namespace" "sbns" {
+  name                = local.sbns.name
+  resource_group_name = local.sbns.resource_group_name
+}
+
 data "azurerm_key_vault" "common" {
   name                = local.key_vault.name
   resource_group_name = local.key_vault.resource_group_name
@@ -82,15 +87,15 @@ data "azuread_group" "externals" {
   display_name = local.adgroups.externals_name
 }
 
-# import {
-#   to = module.repo.github_branch_default.main
-#   id = "io-auth-n-identity-domain"
-# }
+import {
+  to = module.repo.github_branch_default.main
+  id = "io-auth-n-identity-domain"
+}
 
-# import {
-#   to = module.repo.github_repository.this
-#   id = "io-auth-n-identity-domain"
-# }
+import {
+  to = module.repo.github_repository.this
+  id = "io-auth-n-identity-domain"
+}
 
 import {
   to = module.repo.github_repository_environment.opex_prod_cd
@@ -180,6 +185,7 @@ module "repo" {
   }
 
   apim_id                            = data.azurerm_api_management.apim.id
+  sbns_id                            = data.azurerm_servicebus_namespace.sbns.id
   pep_vnet_id                        = data.azurerm_virtual_network.common.id
   private_dns_zone_resource_group_id = data.azurerm_resource_group.common_weu.id
   opex_resource_group_id             = data.azurerm_resource_group.dashboards.id
@@ -189,4 +195,10 @@ module "repo" {
   ]
 
   tags = local.tags
+}
+
+
+import {
+  to = module.repo.module.github_runner.azurerm_container_app_job.github_runner
+  id = "/subscriptions/ec285037-c673-4f58-b594-d7c480da4e8b/resourceGroups/io-p-itn-auth-rg-01/providers/Microsoft.App/jobs/io-p-itn-auth-caj-01"
 }

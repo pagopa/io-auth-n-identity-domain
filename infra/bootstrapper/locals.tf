@@ -25,6 +25,11 @@ locals {
     resource_group_name = "${local.prefix}-${local.env_short}-itn-common-rg-01"
   }
 
+  sbns = {
+    name                = "${local.prefix}-${local.env_short}-itn-platform-sbns-01"
+    resource_group_name = "${local.prefix}-${local.env_short}-itn-common-rg-01"
+  }
+
   vnet = {
     name                = "${local.prefix}-${local.env_short}-itn-common-vnet-01"
     resource_group_name = "${local.prefix}-${local.env_short}-itn-common-rg-01"
