@@ -1,8 +1,11 @@
+import { Context } from "@azure/functions";
 import { QueueClient } from "@azure/storage-queue";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { afterEach, describe, expect, it, Mock, vi } from "vitest";
+import { prop } from "monocle-ts/lib/Traversal";
+import { ta } from "date-fns/locale";
 import { ExpiredSessionDiscovererConfig } from "../../config";
 import {
   RetrievedSessionNotifications,
@@ -13,6 +16,7 @@ import { SessionNotificationsRepository } from "../../repositories/session-notif
 import * as appinsights from "../../utils/appinsights";
 import { TransientError } from "../../utils/errors";
 import {
+  ExpiredSessionsDiscovererFunction,
   ItemToProcess,
   processChunk,
   processItem,
@@ -400,6 +404,137 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
             }
           }
         }
+      });
+    });
+
+    describe("ExpiredSessionsDiscovererFunction", () => {
+      it("should process all chunks and succeed when all items succeed", async () => {
+        const chunks = 2;
+        const chunkSize = 3;
+        // eslint-disable-next-line functional/immutable-data
+        expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = chunkSize;
+        (mockSessionNotificationsRepository.findByExpiredAtAsyncIterable as Mock).mockImplementationOnce(
+          () =>
+            async function*() {
+              yield [E.of(aSession), E.of(aSession), E.of(aSession)];
+              yield [E.of(aSession), E.of(aSession), E.of(aSession)];
+            }
+        );
+
+        const context = { invocationId: "test" } as Context;
+        await expect(
+          ExpiredSessionsDiscovererFunction(baseDeps)(context, {})
+        ).resolves.not.toThrow();
+
+        expect(
+          mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
+        ).toHaveBeenCalledTimes(chunkSize * chunks);
+        expect(
+          mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
+        ).toHaveBeenCalledTimes(chunkSize * chunks);
+        expect(trackEventMock).not.toHaveBeenCalled();
+
+        // Reset chunk size
+        // eslint-disable-next-line functional/immutable-data
+        expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 1;
+      });
+
+      it("should throw and track event when a chunk fails", async () => {
+        // eslint-disable-next-line functional/immutable-data
+        expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 2;
+        (mockSessionNotificationsRepository.findByExpiredAtAsyncIterable as Mock).mockImplementationOnce(
+          () =>
+            async function*() {
+              yield [E.of(aSession), E.of(aSession)];
+              yield [E.of(aSession), E.of(aSession)];
+            }
+        );
+
+        // Fail the first two updates
+        updateExpiredSessionNotificationFlagMock
+          .mockImplementationOnce(() =>
+            TE.left({ kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors)
+          )
+          .mockImplementationOnce(() =>
+            TE.left({ kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors)
+          )
+          .mockImplementation(() => TE.of(void 0));
+
+        const context = {
+          invocationId: "test",
+          executionContext: {
+            retryContext: { retryCount: 0, maxRetryCount: 5 }
+          }
+        } as Context;
+
+        await expect(
+          ExpiredSessionsDiscovererFunction(baseDeps)(context, {})
+        ).rejects.toThrow("One or more chunks failed during processing");
+
+        expect(trackEventMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name:
+              "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
+            properties: expect.objectContaining({
+              message: expect.stringContaining(
+                "Multiple transient errors occurred during execution"
+              )
+            })
+          })
+        );
+
+        // Reset chunk size
+        // eslint-disable-next-line functional/immutable-data
+        expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 1;
+      });
+
+      it("should track max retry event reached if isLastTimerTriggerRetry returns true", async () => {
+        updateExpiredSessionNotificationFlagMock.mockImplementation(() =>
+          TE.left({ kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors)
+        );
+
+        const context = {
+          invocationId: "test",
+          executionContext: {
+            retryContext: { retryCount: 5, maxRetryCount: 5 }
+          }
+        } as Context;
+
+        await expect(
+          ExpiredSessionsDiscovererFunction(baseDeps)(context, {})
+        ).rejects.toThrow("One or more chunks failed during processing");
+
+        expect(trackEventMock).toHaveBeenCalledTimes(2);
+        expect(trackEventMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name:
+              "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
+            properties: expect.objectContaining({
+              message: expect.stringContaining(
+                "Multiple transient errors occurred during execution"
+              )
+            })
+          })
+        );
+        expect(trackEventMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name:
+              "io.citizen-auth.prof-async.expired-sessions-discoverer.max-retry-reached",
+            properties: expect.objectContaining({
+              message: expect.stringContaining(
+                "Reached max retry for expired sessions"
+              ),
+              interval: expect.objectContaining({
+                from: expect.any(Date),
+                to: expect.any(Date)
+              })
+            }),
+            tagOverrides: expect.objectContaining({
+              samplingEnabled: "false"
+            })
+          })
+        );
+        vi.resetModules();
       });
     });
   });
