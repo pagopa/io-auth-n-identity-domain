@@ -96,7 +96,7 @@ module "function_profile_async" {
   health_check_path = "/info"
 
 
-  resource_group_name = azurerm_resource_group.main_resource_group.name
+  resource_group_name = data.azurerm_resource_group.main_resource_group.name
 
   subnet_cidr   = local.cidr_subnet_fn_profile_async
   subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
@@ -155,12 +155,12 @@ module "function_profile_async" {
 }
 
 module "function_profile_async_autoscale" {
-  depends_on = [azurerm_resource_group.main_resource_group]
+  depends_on = [data.azurerm_resource_group.main_resource_group]
   source     = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
   // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
   version = "0.0.2"
 
-  resource_group_name = azurerm_resource_group.main_resource_group.name
+  resource_group_name = data.azurerm_resource_group.main_resource_group.name
   target_service = {
     function_app_name = module.function_profile_async.function_app.function_app.name
   }
@@ -214,7 +214,7 @@ module "function_profile_async_autoscale" {
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "alert_service_preferences_migration_failed" {
   enabled                 = true
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] A service preferences migration failed"
-  resource_group_name     = azurerm_resource_group.main_resource_group.name
+  resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
   description             = "Some service preferences migration did not complete successfully"
   severity                = 1

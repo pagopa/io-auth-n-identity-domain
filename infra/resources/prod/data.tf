@@ -57,20 +57,6 @@ data "azuread_group" "auth_devs" {
 }
 
 ##########################
-# MANAGED IDENTITIES
-##########################
-
-data "azurerm_user_assigned_identity" "infra_ci_01" {
-  name                = "${local.project}-auth-infra-github-ci-id-01"
-  resource_group_name = data.azurerm_resource_group.itn_auth_01.name
-}
-
-data "azurerm_user_assigned_identity" "infra_cd_01" {
-  name                = "${local.project}-auth-infra-github-cd-id-01"
-  resource_group_name = data.azurerm_resource_group.itn_auth_01.name
-}
-
-##########################
 # APP GATEWAY DATA SOURCE
 ##########################
 data "azurerm_application_gateway" "app_gateway" {
