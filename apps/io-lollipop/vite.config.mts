@@ -4,6 +4,9 @@ export default defineConfig({
   test: {
     coverage: {
       exclude: ["dist",
+      "*.js",
+      "**/__mocks__",
+      "src/utils/config.ts",
         "/node_modules",
         "**/__integrations__",
         "src/generated/**",
