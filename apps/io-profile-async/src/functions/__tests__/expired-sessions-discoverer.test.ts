@@ -476,17 +476,18 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         ExpiredSessionsDiscovererFunction(baseDeps)(context, {})
       ).rejects.toThrow("One or more chunks failed during processing");
 
-      expect(trackEventMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name:
-            "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
-          properties: expect.objectContaining({
-            message: expect.stringContaining(
-              "Multiple transient errors occurred during execution"
-            )
-          })
-        })
-      );
+      expect(trackEventMock).toHaveBeenCalledWith({
+        name:
+          "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
+        properties: {
+          interval: createInterval(),
+          message:
+            "Multiple transient errors occurred during execution: count=2"
+        },
+        tagOverrides: {
+          samplingEnabled: "false"
+        }
+      });
 
       // Reset chunk size
       // eslint-disable-next-line functional/immutable-data
