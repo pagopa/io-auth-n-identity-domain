@@ -66,7 +66,8 @@ locals {
   }
 
   repo_secrets = {
-    "SONAR_TOKEN" = data.azurerm_key_vault_secret.sonacloud_token.value
+    "SONAR_TOKEN"       = data.azurerm_key_vault_secret.sonacloud_token.value
+    "SLACK_WEBHOOK_URL" = data.azurerm_key_vault_secret.slack_webhook_url.value
   }
 
   tags = {
