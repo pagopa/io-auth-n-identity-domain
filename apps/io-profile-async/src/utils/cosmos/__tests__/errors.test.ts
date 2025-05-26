@@ -44,7 +44,6 @@ describe("cosmosErrorsToString", () => {
 });
 
 describe("getSelfFromModelValidationError", () => {
-  const spyOnCosmosResourceIs = vi.spyOn(CosmosResource, "is");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const type = {} as any;
 
@@ -54,7 +53,7 @@ describe("getSelfFromModelValidationError", () => {
       _etag: "etag",
       _rid: "rid",
       _ts: 1234567890,
-      id: "INVALID_ID"
+      id: "AAAAAA89S20I111Y"
     } as CosmosResource;
 
     const validationErrors: t.Errors = [
@@ -69,7 +68,6 @@ describe("getSelfFromModelValidationError", () => {
       } as t.ValidationError
     ];
 
-    spyOnCosmosResourceIs.mockReturnValueOnce(true);
     expect(getSelfFromModelValidationError(validationErrors)).toBe(
       "resource-self"
     );
@@ -84,7 +82,6 @@ describe("getSelfFromModelValidationError", () => {
       }
     ];
 
-    spyOnCosmosResourceIs.mockReturnValueOnce(false);
     expect(getSelfFromModelValidationError(validationErrors)).toBe("N/A");
   });
 
