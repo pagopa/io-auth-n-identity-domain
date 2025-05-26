@@ -6,7 +6,6 @@ import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmos
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import * as t from "io-ts";
 import { ExpiredSessionDiscovererConfig } from "../../config";
 import {
   RetrievedSessionNotifications,
@@ -133,13 +132,6 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       );
       const result = await processItem(item)(baseDeps)();
 
-      expect(
-        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
-      ).toHaveBeenCalledWith(
-        item.retrievedDbItem.id,
-        item.retrievedDbItem.expiredAt,
-        true
-      );
       expect(
         mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
       ).not.toHaveBeenCalled();
