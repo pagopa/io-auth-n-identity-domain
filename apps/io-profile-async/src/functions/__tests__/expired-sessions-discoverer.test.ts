@@ -6,6 +6,7 @@ import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmos
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import * as t from "io-ts";
 import { ExpiredSessionDiscovererConfig } from "../../config";
 import {
   RetrievedSessionNotifications,
@@ -23,6 +24,7 @@ import {
   retrieveFromDbInChunks
 } from "../expired-sessions-discoverer";
 import { createInterval, Interval } from "../../types/interval";
+import { aValidationError } from "../__mocks__/expired-sessions.mock";
 
 const aSession = ({
   id: "AAAAAA89S20I111X",
@@ -411,6 +413,45 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
           }
         }
       }
+    });
+
+    it("should handle malformed item", async () => {
+      // Validation error
+
+      findByExpiredAtAsyncIterableMock.mockImplementationOnce(
+        () =>
+          async function*() {
+            yield [
+              E.left(aValidationError) as E.Either<
+                never,
+                RetrievedSessionNotifications
+              >
+            ];
+          }
+      );
+
+      const result = await retrieveFromDbInChunks(createInterval())(baseDeps)();
+
+      expect(E.isRight(result)).toBe(true);
+      // console.log(JSON.stringify(result, null, 4));
+      expect(trackEventMock).toHaveBeenCalledWith({
+        name:
+          "io.citizen-auth.prof-async.expired-sessions-discoverer.permanent.bad-record",
+        properties: {
+          message: "Found a non compliant db record",
+          badRecordSelf:
+            typeof aValidationError[0].context[0].actual === "object" &&
+            aValidationError[0].context[0].actual !== null &&
+            "_self" in aValidationError[0].context[0].actual
+              ? // eslint-disable-next-line no-underscore-dangle
+                (aValidationError[0].context[0].actual as { _self: string })
+                  ._self
+              : undefined
+        },
+        tagOverrides: {
+          samplingEnabled: "false"
+        }
+      });
     });
   });
 
