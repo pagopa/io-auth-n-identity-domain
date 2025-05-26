@@ -106,6 +106,8 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
   });
 
   describe("processItem", () => {
+    const queueInsertError = new Error("Send to queue failed");
+
     it("should succeed when both the flag update and the write to the queue end successfully", async () => {
       const result = await processItem(item)(baseDeps)();
 
@@ -144,15 +146,54 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       );
     });
 
+    it("should fail with a transient error when sending to the queue fails", async () => {
+      sendExpiredUserSessionMock.mockImplementationOnce(() =>
+        TE.left(queueInsertError)
+      );
+
+      const result = await processItem(item)(baseDeps)();
+
+      // Expect the flag to be set to true
+      expect(
+        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
+      ).toHaveBeenCalledWith(
+        item.retrievedDbItem.id,
+        item.retrievedDbItem.expiredAt,
+        true
+      );
+
+      // Failing call
+      expect(
+        mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
+      ).toHaveBeenCalled();
+
+      // Revert the flag to false
+      expect(
+        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
+      ).toHaveBeenCalledWith(
+        item.retrievedDbItem.id,
+        item.retrievedDbItem.expiredAt,
+        false
+      );
+      expect(result).toStrictEqual(
+        E.left(
+          new TransientError(
+            "An error has occurred while sending message in queue"
+          )
+        )
+      );
+    });
+
     it("should handle a fatal error by raising a not-sampled custom event", async () => {
-      const anError = new Error("Send to queue failed");
       const aCosmosError = { kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors;
 
       updateExpiredSessionNotificationFlagMock
         .mockImplementationOnce(() => TE.of(void 0))
         .mockImplementationOnce(() => TE.left(aCosmosError));
 
-      sendExpiredUserSessionMock.mockImplementationOnce(() => TE.left(anError));
+      sendExpiredUserSessionMock.mockImplementationOnce(() =>
+        TE.left(queueInsertError)
+      );
 
       const result = await processItem(item)(baseDeps)();
       expect(
