@@ -35,11 +35,8 @@ locals {
   }
 }
 
-resource "azurerm_resource_group" "function_public_rg" {
-  name     = "${local.project}-${local.domain}-${local.function_public.name}-rg-01"
-  location = local.location
-
-  tags = local.tags
+data "azurerm_resource_group" "function_public_rg" {
+  name = "${local.project}-${local.domain}-${local.function_public.name}-rg-01"
 }
 
 module "function_public" {
@@ -55,7 +52,7 @@ module "function_public" {
     instance_number = "02"
   }
 
-  resource_group_name = azurerm_resource_group.function_public_rg.name
+  resource_group_name = data.azurerm_resource_group.function_public_rg.name
   health_check_path   = "/info"
   node_version        = 20
   app_service_plan_id = data.azurerm_service_plan.shared_plan_itn.id

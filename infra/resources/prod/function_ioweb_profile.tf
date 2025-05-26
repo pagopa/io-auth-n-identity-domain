@@ -116,11 +116,8 @@ locals {
   }
 }
 
-resource "azurerm_resource_group" "function_web_profile_rg" {
-  name     = "${local.project}-${local.domain}-${local.function_ioweb_profile.name}-rg-01"
-  location = local.location
-
-  tags = local.tags
+data "azurerm_resource_group" "function_web_profile_rg" {
+  name = "${local.project}-${local.domain}-${local.function_ioweb_profile.name}-rg-01"
 }
 
 module "function_web_profile" {
@@ -136,7 +133,7 @@ module "function_web_profile" {
     instance_number = "01"
   }
 
-  resource_group_name = azurerm_resource_group.function_web_profile_rg.name
+  resource_group_name = data.azurerm_resource_group.function_web_profile_rg.name
   health_check_path   = "/api/v1/info"
   node_version        = 20
   app_service_plan_id = data.azurerm_service_plan.shared_plan_itn.id
@@ -192,12 +189,12 @@ module "function_web_profile" {
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "alert_too_much_invalid_codes_on_unlock" {
   enabled                 = true
   name                    = "[${upper(local.domain)} | ${module.function_web_profile.function_app.function_app.name}] Unexpected number of invalid codes to unlock endpoint"
-  resource_group_name     = azurerm_resource_group.function_web_profile_rg.name
+  resource_group_name     = data.azurerm_resource_group.function_web_profile_rg.name
   scopes                  = [data.azurerm_application_gateway.app_gateway.id]
   description             = "Too many invalid codes submitted to IO-WEB profile unlock functionality"
   severity                = 1
   auto_mitigation_enabled = false
-  location                = azurerm_resource_group.function_web_profile_rg.location
+  location                = data.azurerm_resource_group.function_web_profile_rg.location
 
   // check once every minute(evaluation_frequency)
   // on the last minute of data(window_duration)
@@ -231,12 +228,12 @@ AzureDiagnostics
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "alert_too_much_calls_on_unlock" {
   enabled                 = true
   name                    = "[${upper(local.domain)} | ${module.function_web_profile.function_app.function_app.name}] Unexpected number of calls to unlock endpoint"
-  resource_group_name     = azurerm_resource_group.function_web_profile_rg.name
+  resource_group_name     = data.azurerm_resource_group.function_web_profile_rg.name
   scopes                  = [data.azurerm_application_gateway.app_gateway.id]
   description             = "Too many calls submitted to IO-WEB profile unlock functionality"
   severity                = 1
   auto_mitigation_enabled = false
-  location                = azurerm_resource_group.function_web_profile_rg.location
+  location                = data.azurerm_resource_group.function_web_profile_rg.location
 
   // check once every minute(evaluation_frequency)
   // on the last minute of data(window_duration)

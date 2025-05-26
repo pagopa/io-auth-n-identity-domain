@@ -2,15 +2,14 @@
 # Shared Plan
 ##############################
 
-resource "azurerm_resource_group" "shared_rg" {
-  name     = format("%s-%s-shared-rg-01", local.project, local.legacy_domain)
-  location = local.location
+data "azurerm_resource_group" "shared_rg" {
+  name = format("%s-%s-shared-rg-01", local.project, local.legacy_domain)
 }
 
 resource "azurerm_service_plan" "shared_plan" {
   name                = format("%s-%s-shared-asp-01", local.project, local.legacy_domain)
-  location            = azurerm_resource_group.shared_rg.location
-  resource_group_name = azurerm_resource_group.shared_rg.name
+  location            = data.azurerm_resource_group.shared_rg.location
+  resource_group_name = data.azurerm_resource_group.shared_rg.name
 
   os_type  = "Linux"
   sku_name = "P1v3"
@@ -38,7 +37,7 @@ resource "azurerm_subnet" "shared_plan_snet" {
 ##############################
 resource "azurerm_monitor_autoscale_setting" "shared_plan_autoscale" {
   name                = format("%s-%s-public-func-01-autoscale", local.project, local.domain)
-  resource_group_name = azurerm_resource_group.shared_rg.name
+  resource_group_name = data.azurerm_resource_group.shared_rg.name
   location            = local.location
   target_resource_id  = azurerm_service_plan.shared_plan.id
 
