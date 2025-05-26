@@ -144,7 +144,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       );
     });
 
-    it("should fail when send to queue fails and flag revert fails", async () => {
+    it("should handle a fatal error by raising a not-sampled custom event", async () => {
       const anError = new Error("Send to queue failed");
       const aCosmosError = { kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors;
 
