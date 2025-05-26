@@ -28,7 +28,7 @@ MAILHOG_HOSTNAME=mailhog
 
 EXPIRED_SESSION_ADVISOR_QUEUE=test-expired-session-trigger-queue
 
-SESSION_NOTIFICATIONS_CONTAINER_NAME=test-cosmosdb-container
+SESSION_NOTIFICATIONS_CONTAINER_NAME=session-notifications
 
 # MigrateServicePreferenceFromLegacy Config
 IOPSTAPP_STORAGE_CONNECTION_STRING=${STORAGE_CONN_STRING}
