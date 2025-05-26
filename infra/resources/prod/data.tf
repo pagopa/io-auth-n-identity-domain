@@ -45,11 +45,6 @@ data "azurerm_linux_web_app" "app_backend_li" {
   resource_group_name = "${local.common_project}-rg-linux"
 }
 
-data "azuread_group" "auth_devs" {
-  display_name = "${local.common_project}-adgroup-auth-developers"
-}
-
-
 data "azurerm_linux_web_app" "weu_session_manager" {
   name                = "${local.weu_project}-session-manager-app-03"
   resource_group_name = "${local.weu_project}-session-manager-rg-01"

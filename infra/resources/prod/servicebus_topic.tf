@@ -15,8 +15,15 @@ resource "azurerm_servicebus_subscription" "io_auth_sub" {
   max_delivery_count = 10
 }
 
-// TODO: add specific filter rules with azurerm_servicebus_subscription_rule
-// terraform resource
+resource "azurerm_servicebus_subscription_rule" "session_events_filter" {
+  name            = "io-auth-session-events-filter"
+  subscription_id = azurerm_servicebus_subscription.io_auth_sub.id
+
+  filter_type = "SqlFilter"
+  # JMS SQL message selector syntax (supported ONLY on Service Bus Premium)
+  # this filter requires an "action" property on the topic message
+  sql_filter = "action = 'login' OR action = 'logout'"
+}
 
 /////////////////////////
 //         IAM         //
