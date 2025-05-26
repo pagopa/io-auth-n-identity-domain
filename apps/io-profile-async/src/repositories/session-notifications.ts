@@ -6,10 +6,8 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
 import {
-  NotificationEvents,
   RetrievedSessionNotifications,
   SESSION_NOTIFICATIONS_ROW_PK_FIELD,
-  SessionNotifications,
   SessionNotificationsModel
 } from "../models/session-notifications";
 import { Interval } from "../types/interval";
@@ -50,28 +48,6 @@ const findByExpiredAtAsyncIterable: (
     chunkSize
   );
 
-// TODO: this method is not used anymore, remove it
-/**
- * Updates notification events for a session-notifications document.
- *
- * @param fiscalCode The fiscal code of the user
- * @param notificationEvents The notification events to update
- * @returns A TaskEither that resolves to the updated session-notifications document
- * */
-export const updateNotificationEvents: (
-  fiscalCode: FiscalCode,
-  expiredAt: number,
-  notificationEvents: NotificationEvents
-) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, SessionNotifications> = (
-  fiscalCode,
-  expiredAt,
-  notificationEvents
-) => deps =>
-  deps.sessionNotificationsModel.patch([fiscalCode, expiredAt], {
-    notificationEvents
-  });
-
-// TODO: add tests
 /**
  * Updates notification events for a session-notifications document.
  *
@@ -101,6 +77,5 @@ const updateExpiredSessionNotificationFlag: (
 export type SessionNotificationsRepository = typeof SessionNotificationsRepository;
 export const SessionNotificationsRepository = {
   findByExpiredAtAsyncIterable,
-  updateNotificationEvents,
   updateExpiredSessionNotificationFlag
 };

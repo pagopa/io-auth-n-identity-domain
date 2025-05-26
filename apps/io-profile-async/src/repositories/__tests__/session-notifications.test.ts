@@ -1,12 +1,9 @@
-import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/TaskEither";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import {
-  NotificationEvents,
   SESSION_NOTIFICATIONS_ROW_PK_FIELD,
-  SessionNotifications,
   SessionNotificationsModel
 } from "../../models/session-notifications";
 import { Interval } from "../../types/interval";
@@ -17,19 +14,6 @@ import {
 
 const anId = "AAAAAA89S20I111X" as FiscalCode;
 const anExpirationTimestamp = 1746992855578;
-const aTtl = 885551;
-
-const aNotificationEvents = {
-  EXPIRING_SESSION: false,
-  EXPIRED_SESSION: true
-} as NotificationEvents;
-
-const aSessionNotifications = {
-  id: anId,
-  expiredAt: anExpirationTimestamp,
-  notificationEvents: aNotificationEvents,
-  ttl: aTtl
-} as SessionNotifications;
 
 const mockSessionNotificationsModel = ({
   buildAsyncIterable: vi.fn(),
@@ -72,46 +56,6 @@ describe("SessionNotificationsRepository", () => {
         },
         chunkSize
       );
-    });
-  });
-
-  describe("updateNotificationEvents", () => {
-    it("should call patch with correct arguments", async () => {
-      (mockSessionNotificationsModel.patch as Mock).mockReturnValueOnce(
-        TE.right(aSessionNotifications)
-      );
-
-      const result = await SessionNotificationsRepository.updateNotificationEvents(
-        anId,
-        anExpirationTimestamp,
-        aNotificationEvents
-      )(deps)();
-
-      expect(mockSessionNotificationsModel.patch).toHaveBeenCalledWith(
-        [anId, anExpirationTimestamp],
-        { notificationEvents: aNotificationEvents }
-      );
-      expect(E.isRight(result)).toBe(true);
-      expect(result).toEqual(E.right(aSessionNotifications));
-    });
-
-    it("should return left on error", async () => {
-      const error: CosmosErrors = {
-        kind: "COSMOS_ERROR_RESPONSE",
-        error: new Error("fail")
-      };
-      (mockSessionNotificationsModel.patch as Mock).mockReturnValueOnce(
-        TE.left(error)
-      );
-
-      const result = await SessionNotificationsRepository.updateNotificationEvents(
-        anId,
-        anExpirationTimestamp,
-        aNotificationEvents
-      )(deps)();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toEqual(E.left(error));
     });
   });
 
