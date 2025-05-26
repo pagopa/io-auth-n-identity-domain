@@ -5,6 +5,7 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { sequenceS } from "fp-ts/lib/Apply";
+import { OutputOf } from "io-ts";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import {
   GetUserSessionDeps,
@@ -12,9 +13,8 @@ import {
   SessionService,
 } from "../services/session-service";
 import { RequiredPathParamMiddleware } from "../utils/middlewares/required-path-param";
-import { DomainErrorTypes, errorToHttpError } from "../utils/errors";
+import { errorToHttpError } from "../utils/errors";
 import { SessionState } from "../generated/definitions/internal/SessionState";
-import { OutputOf } from "io-ts";
 
 type Dependencies = {
   SessionService: SessionService;
