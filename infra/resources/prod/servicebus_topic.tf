@@ -2,7 +2,7 @@
 //      TOPICS         //
 /////////////////////////
 resource "azurerm_servicebus_topic" "io_auth_topic" {
-  name         = "io-auth-topic"
+  name         = "io-auth-sessions-topic"
   namespace_id = data.azurerm_servicebus_namespace.platform_service_bus_namespace.id
 }
 
@@ -37,6 +37,15 @@ module "topic_io_auth" {
       role                = "owner"
       description         = "This role allows managing the given topic"
       topic_names         = [azurerm_servicebus_topic.io_auth_topic.name]
+    },
+    {
+      namespace_name      = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
+      resource_group_name = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
+      role                = "owner"
+      description         = "This role allows managing the given subscription"
+      subscriptions = {
+        io-auth-topic = [azurerm_servicebus_subscription.io_auth_sub.name],
+      }
     }
   ]
 }
@@ -55,27 +64,6 @@ module "pub_session_manager" {
       role                = "writer"
       description         = "This role allows managing the given topic"
       topic_names         = [azurerm_servicebus_topic.io_auth_topic.name]
-    }
-  ]
-}
-
-// Owner role to let the team explore the service bus events on azure portal
-module "sub_io_auth" {
-  source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~>1.0"
-
-  principal_id    = data.azuread_group.auth_devs.object_id
-  subscription_id = data.azurerm_subscription.current.subscription_id
-
-  service_bus = [
-    {
-      namespace_name      = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
-      resource_group_name = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
-      role                = "owner"
-      description         = "This role allows managing the given subscription"
-      subscriptions = {
-        io-auth-topic = [azurerm_servicebus_subscription.io_auth_sub.name],
-      }
     }
   ]
 }
