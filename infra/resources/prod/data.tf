@@ -8,6 +8,10 @@ data "azurerm_resource_group" "rg_common" {
   name = "${local.common_project}-rg-common"
 }
 
+data "azurerm_resource_group" "itn_auth_01" {
+  name = "${local.project}-auth-rg-01"
+}
+
 data "azurerm_resource_group" "ioweb_storage_rg" {
   name = "${local.weu_project}-ioweb-storage-rg"
 }
@@ -39,6 +43,18 @@ data "azurerm_linux_web_app" "app_backend_li" {
   resource_group_name = "${local.common_project}-rg-linux"
 }
 
+
+##########################
+# Entra ID
+##########################
+
+data "azuread_group" "auth_admins" {
+  display_name = "${local.common_project}-adgroup-auth-admins"
+}
+
+data "azuread_group" "auth_devs" {
+  display_name = "${local.common_project}-adgroup-auth-developers"
+}
 
 ##########################
 # APP GATEWAY DATA SOURCE

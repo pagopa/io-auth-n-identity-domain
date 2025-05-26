@@ -55,11 +55,8 @@ locals {
   }
 }
 
-resource "azurerm_resource_group" "function_lollipop_rg" {
-  name     = "${local.project}-${local.domain}-${local.function_lollipop.name}-rg-02"
-  location = local.location
-
-  tags = local.tags
+data "azurerm_resource_group" "function_lollipop_rg" {
+  name = "${local.project}-${local.domain}-${local.function_lollipop.name}-rg-02"
 }
 
 module "function_lollipop" {
@@ -75,7 +72,7 @@ module "function_lollipop" {
     instance_number = "02"
   }
 
-  resource_group_name = azurerm_resource_group.function_lollipop_rg.name
+  resource_group_name = data.azurerm_resource_group.function_lollipop_rg.name
   health_check_path   = "/info"
   node_version        = 20
   # P2mv3 SKU and 8 Worker process count
@@ -125,12 +122,12 @@ module "function_lollipop" {
 }
 
 module "function_lollipop_autoscale" {
-  depends_on = [azurerm_resource_group.function_lollipop_rg]
+  depends_on = [data.azurerm_resource_group.function_lollipop_rg]
   source     = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
   // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
   version = "0.0.2"
 
-  resource_group_name = azurerm_resource_group.function_lollipop_rg.name
+  resource_group_name = data.azurerm_resource_group.function_lollipop_rg.name
   target_service = {
     function_app_name = module.function_lollipop.function_app.function_app.name
   }

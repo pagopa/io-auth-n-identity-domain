@@ -59,11 +59,8 @@ locals {
 }
 
 
-resource "azurerm_resource_group" "function_lv_rg" {
-  name     = "${local.project}-${local.domain}-${local.function_lv.name}-rg-01"
-  location = local.location
-
-  tags = local.tags
+data "azurerm_resource_group" "function_lv_rg" {
+  name = "${local.project}-${local.domain}-${local.function_lv.name}-rg-01"
 }
 
 module "function_lv" {
@@ -79,7 +76,7 @@ module "function_lv" {
     instance_number = "02"
   }
 
-  resource_group_name = azurerm_resource_group.function_lv_rg.name
+  resource_group_name = data.azurerm_resource_group.function_lv_rg.name
   health_check_path   = "/info"
   node_version        = 20
   tier                = "xl"
@@ -130,12 +127,12 @@ module "function_lv" {
 
 
 module "function_lv_autoscale" {
-  depends_on = [azurerm_resource_group.function_lv_rg]
+  depends_on = [data.azurerm_resource_group.function_lv_rg]
   source     = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
   // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
   version = "0.0.2"
 
-  resource_group_name = azurerm_resource_group.function_lv_rg.name
+  resource_group_name = data.azurerm_resource_group.function_lv_rg.name
   target_service = {
     function_app_name = module.function_lv.function_app.function_app.name
   }
