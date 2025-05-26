@@ -57,7 +57,7 @@ module "function_session_manager_internal" {
   tier = "l"
 
 
-  resource_group_name = azurerm_resource_group.main_resource_group.name
+  resource_group_name = data.azurerm_resource_group.main_resource_group.name
 
   subnet_cidr   = local.cidr_subnet_fn_session_manager_internal
   subnet_pep_id = data.azurerm_subnet.weu_private_endpoints_subnet.id
@@ -89,7 +89,7 @@ module "function_session_manager_internal_autoscale" {
   // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
   version = "~> 0.0"
 
-  resource_group_name = azurerm_resource_group.main_resource_group.name
+  resource_group_name = data.azurerm_resource_group.main_resource_group.name
   target_service = {
     function_app_name = module.function_session_manager_internal.function_app.function_app.name
   }

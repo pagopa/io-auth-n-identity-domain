@@ -9,7 +9,7 @@ jobs:
     uses: pagopa/dx/.github/workflows/function_app_deploy.yaml@edaa2a22738b738092e71dd9bdf6494aca593980
     with:
       # '-cd' suffix added inside the pipeline
-      environment: apps-prod
+      environment: app-prod
       resource_group_name: "io-p-itn-auth-lv-rg-01"
       workspace_name: "io-fast-login"
       function_app_name: "io-p-itn-auth-lv-func-02"
