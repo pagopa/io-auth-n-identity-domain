@@ -72,11 +72,10 @@ describe("ExpiredUserSessionsQueueRepository", () => {
       visibilityTimeout
     )(deps)();
 
-    expect(base64EncodeObject).toHaveBeenCalledWith(
-      ExpiredSessionAdvisorQueueMessage.encode(
-        anExpiredSessionAdvisorQueueMessage
-      )
-    );
+    expect(base64EncodeObject).toHaveBeenCalledWith({
+      fiscalCode: anExpiredSessionAdvisorQueueMessage.fiscalCode,
+      expiredAt: anExpiredSessionAdvisorQueueMessage.expiredAt.getTime()
+    });
     expect(queueClientMock.sendMessage).toHaveBeenCalledWith(
       encodedMessage,
       expect.objectContaining({
