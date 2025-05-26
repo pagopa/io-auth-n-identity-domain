@@ -481,7 +481,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(trackEventMock).not.toHaveBeenCalled();
     });
 
-    it("should throw and track event when a chunk fails", async () => {
+    it("should throw and track event when one or more transient error occur", async () => {
       const chunkSize = 4;
       findByExpiredAtAsyncIterableMock.mockImplementationOnce(
         () =>
