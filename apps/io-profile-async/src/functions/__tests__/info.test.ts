@@ -1,18 +1,25 @@
-import { describe, expect, it, vi } from "vitest";
 import { Database } from "@azure/cosmos";
-import * as E from "fp-ts/lib/Either";
 import * as H from "@pagopa/handler-kit";
+import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
-import { makeInfoHandler } from "../info";
-import { httpHandlerInputMocks } from "../__mocks__/handler.mock";
+import { describe, expect, it, vi } from "vitest";
 import * as azureStorageHealthCheck from "../../utils/azurestorage/healthcheck";
 import * as packageUtils from "../../utils/package";
 import { connectionString } from "../__mocks__/azurestorage.mock";
+import { httpHandlerInputMocks } from "../__mocks__/handler.mock";
+import { makeInfoHandler } from "../info";
 
-const mockDatabaseAccount = vi.fn().mockResolvedValue("");
-const cosmosDatabaseMock = ({
+const mockCitizenAuthDatabaseAccount = vi.fn().mockResolvedValue("");
+const citizenAccountDatabaseMock = ({
   client: {
-    getDatabaseAccount: mockDatabaseAccount
+    getDatabaseAccount: mockCitizenAuthDatabaseAccount
+  }
+} as unknown) as Database;
+
+const mockCosmosApiDatabaseAccount = vi.fn().mockResolvedValue("");
+const cosmosApiDatabaseMock = ({
+  client: {
+    getDatabaseAccount: mockCosmosApiDatabaseAccount
   }
 } as unknown) as Database;
 
@@ -32,11 +39,15 @@ describe("Info handler", () => {
       TE.right(true as const)
     );
 
-    mockDatabaseAccount.mockRejectedValueOnce("db error");
+    mockCosmosApiDatabaseAccount.mockRejectedValueOnce("cosmos api db error");
+    mockCitizenAuthDatabaseAccount.mockRejectedValueOnce(
+      "citizen account db error"
+    );
 
     const result = await makeInfoHandler({
       ...httpHandlerInputMocks,
-      db: cosmosDatabaseMock,
+      cosmosApiDb: cosmosApiDatabaseMock,
+      citizenAuthDb: citizenAccountDatabaseMock,
       connectionString
     })();
 
@@ -44,7 +55,8 @@ describe("Info handler", () => {
       E.right(
         H.problemJson({
           status: 500,
-          title: "AzureCosmosDB|db error"
+          title:
+            "CosmosApiAzureCosmosDB|cosmos api db error\n\nCitizenAuthAzureCosmosDB|citizen account db error"
         })
       )
     );
@@ -58,7 +70,8 @@ describe("Info handler", () => {
 
     const result = await makeInfoHandler({
       ...httpHandlerInputMocks,
-      db: cosmosDatabaseMock,
+      cosmosApiDb: cosmosApiDatabaseMock,
+      citizenAuthDb: citizenAccountDatabaseMock,
       connectionString
     })();
 

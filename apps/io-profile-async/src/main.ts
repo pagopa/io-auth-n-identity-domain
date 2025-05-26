@@ -92,8 +92,8 @@ const sessionNotificationsModel = new SessionNotificationsModel(
 
 export const Info = InfoFunction({
   connectionString: config.AZURE_STORAGE_CONNECTION_STRING,
-  db: cosmosApiDatabase
-  // TODO: update healthcheck in order to include citizen-auth db too
+  cosmosApiDb: cosmosApiDatabase,
+  citizenAuthDb: citizenAuthDatabase
 });
 
 export const ExpiredSessionAdvisor = ExpiredSessionAdvisorFunction({
