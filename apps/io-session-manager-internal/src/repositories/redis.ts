@@ -21,7 +21,7 @@ import {
   LollipopData,
   NullableBackendAssertionRefFromString,
 } from "../types/lollipop";
-import { LoginTypeEnum } from "../types/fast-login";
+import { ActiveSessionInfo, LoginTypeEnum } from "../types/fast-login";
 import { SessionInfo } from "../generated/definitions/types/SessionInfo";
 import { SessionsList } from "../generated/definitions/types/SessionsList";
 import { AssertionRef } from "../generated/definitions/types/AssertionRef";
@@ -413,6 +413,40 @@ const delUserAllSessions: RTE.ReaderTaskEither<
   );
 };
 
+const getSessionRemainingTTL: RTE.ReaderTaskEither<
+  SafeRedisClientDependency & { fiscalCode: FiscalCode },
+  Error,
+  O.Option<ActiveSessionInfo>
+> = (deps) =>
+  pipe(
+    TE.tryCatch(
+      () => deps.safeClient.ttl(`${lollipopDataPrefix}${deps.fiscalCode}`),
+      E.toError,
+    ),
+    TE.chain(
+      TE.fromPredicate(
+        (_) => _ !== -1,
+        () => new Error("Unexpected missing CF-AssertionRef TTL"),
+      ),
+    ),
+    TE.map(flow(O.fromPredicate((ttl) => ttl > 0))),
+    TE.chain((maybeTtl) =>
+      O.isNone(maybeTtl)
+        ? TE.right(O.none)
+        : pipe(
+            getLollipopDataForUser(deps),
+            TE.chain(
+              TE.fromPredicate(O.isSome, () =>
+                Error("Unexpected missing value"),
+              ),
+            ),
+            TE.map(({ value }) =>
+              O.some({ ttl: maybeTtl.value, type: value.loginType }),
+            ),
+          ),
+    ),
+  );
+
 // -----------------------
 // Utilities
 // -----------------------
@@ -448,4 +482,5 @@ export const RedisRepository = {
   getLollipopAssertionRefForUser,
   delLollipopDataForUser,
   delUserAllSessions,
+  getSessionRemainingTTL,
 };
