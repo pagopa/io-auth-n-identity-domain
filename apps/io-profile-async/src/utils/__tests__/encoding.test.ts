@@ -36,7 +36,7 @@ describe("base64EncodeObject", () => {
     expect(decoded).toBeNull();
   });
 
-  it("should encode undefined to base64 as null", () => {
+  it("should throw when encoding undefined to base64", () => {
     // JSON.stringify(undefined) returns undefined, Buffer.from(undefined) throws
     // So we expect an error here
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
