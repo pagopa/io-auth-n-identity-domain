@@ -20,9 +20,8 @@ resource "azurerm_servicebus_subscription_rule" "session_events_filter" {
   subscription_id = azurerm_servicebus_subscription.io_auth_sub.id
 
   filter_type = "SqlFilter"
-  # JMS SQL message selector syntax (supported ONLY on Service Bus Premium)
   # this filter requires an "action" property on the topic message
-  sql_filter = "action = 'login' OR action = 'logout'"
+  sql_filter = "action IN ('login','logout')"
 }
 
 /////////////////////////
