@@ -1,4 +1,5 @@
 import { EmailString, FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { OutputOf } from "io-ts";
 import { AssertionRefSha256 } from "../generated/definitions/internal/AssertionRefSha256";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
 import {
@@ -11,6 +12,8 @@ import {
 } from "../types/token";
 import { SpidLevelEnum } from "../types/spid-level";
 import { User } from "../types/user";
+import { SessionState } from "../generated/definitions/internal/SessionState";
+import { TypeEnum } from "../generated/definitions/internal/SessionInfo";
 
 export const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 export const anEmailAddress = "garibaldi@example.com" as EmailString;
@@ -49,4 +52,13 @@ export const anUser: User = {
   spid_level: aValidSpidLevel,
   wallet_token: mockWalletToken,
   zendesk_token: mockZendeskToken,
+};
+
+export const anUnlockedUserSessionState: OutputOf<typeof SessionState> = {
+  access_enabled: true,
+  session_info: {
+    active: true,
+    expiration_date: "2025-05-01T00:00:00.000Z",
+    type: TypeEnum.LV,
+  },
 };

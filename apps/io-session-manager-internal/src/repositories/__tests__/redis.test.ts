@@ -8,11 +8,13 @@ import {
   mockRedisClient,
   mockSmembers,
   mockSrem,
+  mockTtl,
 } from "../../__mocks__/repositories/redis.mock";
 import { RedisRepository, userHasActiveSessionsLegacy } from "../redis";
 import { LoginTypeEnum } from "../../types/fast-login";
 import { AssertionRefSha256 } from "../../generated/internal/AssertionRefSha256";
 import {
+  aFiscalCode,
   anAssertionRef,
   anUser,
   mockSessionToken,
@@ -452,5 +454,100 @@ describe("Redis repository#delUserAllSessions", () => {
 
     expect(mockDel).toHaveBeenCalledTimes(8);
     expect(result).toEqual(E.right(true));
+  });
+});
+
+describe("Redis repository#getRemainingSessionTTL", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should return the remaining TTL of a session", async () => {
+    const expectedTtl = 1000;
+    mockTtl.mockImplementationOnce((_) => Promise.resolve(expectedTtl));
+    mockGet.mockImplementationOnce((_) => Promise.resolve(anAssertionRef));
+
+    const result = await RedisRepository.getSessionRemainingTTL(deps)();
+    expect(mockTtl).toHaveBeenCalledTimes(1);
+    expect(mockTtl).toBeCalledWith(`KEYS-${aFiscalCode}`);
+    expect(mockGet).toHaveBeenCalledTimes(1);
+    expect(mockGet).toBeCalledWith(`KEYS-${aFiscalCode}`);
+    expect(result).toEqual(
+      E.right(
+        O.some({
+          ttl: expectedTtl,
+          type: LoginTypeEnum.LEGACY,
+        }),
+      ),
+    );
+  });
+
+  it("should return none if no CF-AssertionRef ref exists in redis", async () => {
+    const expectedTtl = -2;
+    mockTtl.mockImplementationOnce((_) => Promise.resolve(expectedTtl));
+
+    const result = await RedisRepository.getSessionRemainingTTL(deps)();
+
+    expect(mockTtl).toHaveBeenCalledTimes(1);
+    expect(mockTtl).toBeCalledWith(`KEYS-${aFiscalCode}`);
+    expect(mockGet).not.toBeCalled();
+    expect(result).toEqual(E.right(O.none));
+  });
+
+  it("should return an error if exists a CF-AssertionRef without a TTL", async () => {
+    const expectedTtl = -1;
+    const expectedError = Error("Unexpected missing CF-AssertionRef TTL");
+    mockTtl.mockImplementationOnce((_) => Promise.resolve(expectedTtl));
+
+    const result = await RedisRepository.getSessionRemainingTTL(deps)();
+
+    expect(mockTtl).toHaveBeenCalledTimes(1);
+    expect(mockTtl).toBeCalledWith(`KEYS-${aFiscalCode}`);
+    expect(mockGet).not.toBeCalled();
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return an error if we retrieve a TTL but we can't retrieve the value", async () => {
+    const expectedTtl = 1000;
+    const expectedError = Error("Unexpected missing value");
+    mockTtl.mockImplementationOnce((_) => Promise.resolve(expectedTtl));
+    mockGet.mockImplementationOnce((_) => Promise.resolve(null));
+
+    const result = await RedisRepository.getSessionRemainingTTL(deps)();
+
+    expect(mockTtl).toHaveBeenCalledTimes(1);
+    expect(mockTtl).toBeCalledWith(`KEYS-${aFiscalCode}`);
+    expect(mockGet).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return an error if TTL retrieval fails", async () => {
+    const expectedError = Error("ERROR");
+    mockTtl.mockImplementationOnce((_) =>
+      Promise.reject(expectedError.message),
+    );
+
+    const result = await RedisRepository.getSessionRemainingTTL(deps)();
+
+    expect(mockTtl).toHaveBeenCalledTimes(1);
+    expect(mockTtl).toBeCalledWith(`KEYS-${aFiscalCode}`);
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return an error if lollipop data retrieval fails", async () => {
+    const expectedTtl = 1000;
+    const expectedError = Error("ERROR");
+    mockTtl.mockImplementationOnce((_) => Promise.resolve(expectedTtl));
+    mockGet.mockImplementationOnce((_) =>
+      Promise.reject(expectedError.message),
+    );
+
+    const result = await RedisRepository.getSessionRemainingTTL(deps)();
+
+    expect(mockTtl).toHaveBeenCalledTimes(1);
+    expect(mockTtl).toBeCalledWith(`KEYS-${aFiscalCode}`);
+    expect(mockGet).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.left(expectedError));
   });
 });

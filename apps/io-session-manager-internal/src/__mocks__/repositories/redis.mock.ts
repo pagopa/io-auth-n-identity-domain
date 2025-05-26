@@ -4,6 +4,7 @@ import { vi } from "vitest";
 import * as redisLib from "redis";
 import { RedisRepository } from "../../repositories/redis";
 import { anAssertionRef } from "../user.mock";
+import { LoginTypeEnum } from "../../types/fast-login";
 
 export const mockUserHasActiveSessionsOrLV = vi
   .fn()
@@ -16,12 +17,16 @@ export const mockDelUserAllSessions = vi.fn().mockReturnValue(TE.right(true));
 export const mockGetLollipopAssertionRefForUser = vi
   .fn()
   .mockReturnValue(TE.right(O.some(anAssertionRef)));
+export const mockGetSessionRemainingTTL = vi
+  .fn()
+  .mockReturnValue(TE.right(O.some({ ttl: 123, type: LoginTypeEnum.LV })));
 
 export const RedisRepositoryMock: RedisRepository = {
   userHasActiveSessionsOrLV: mockUserHasActiveSessionsOrLV,
   delLollipopDataForUser: mockDelLollipopDataForUser,
   delUserAllSessions: mockDelUserAllSessions,
   getLollipopAssertionRefForUser: mockGetLollipopAssertionRefForUser,
+  getSessionRemainingTTL: mockGetSessionRemainingTTL,
 };
 
 export const mockGet = vi.fn();
