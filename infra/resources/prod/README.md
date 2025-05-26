@@ -36,7 +36,6 @@
 | <a name="module_io_profile_apim_api_itn"></a> [io\_profile\_apim\_api\_itn](#module\_io\_profile\_apim\_api\_itn) | ../../modules/operation_api | n/a |
 | <a name="module_io_public_apim_api_itn"></a> [io\_public\_apim\_api\_itn](#module\_io\_public\_apim\_api\_itn) | ../../modules/io_public_api | n/a |
 | <a name="module_pub_session_manager"></a> [pub\_session\_manager](#module\_pub\_session\_manager) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
-| <a name="module_sub_io_auth"></a> [sub\_io\_auth](#module\_sub\_io\_auth) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_sub_io_prof_async"></a> [sub\_io\_prof\_async](#module\_sub\_io\_prof\_async) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_topic_io_auth"></a> [topic\_io\_auth](#module\_topic\_io\_auth) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_webprofile_apim_api_itn"></a> [webprofile\_apim\_api\_itn](#module\_webprofile\_apim\_api\_itn) | ../../modules/ioweb_profile_api | n/a |
@@ -60,6 +59,7 @@
 | [azurerm_monitor_scheduled_query_rules_alert_v2.alert_too_much_invalid_codes_on_unlock](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_scheduled_query_rules_alert_v2) | resource |
 | [azurerm_service_plan.shared_plan](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan) | resource |
 | [azurerm_servicebus_subscription.io_auth_sub](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/servicebus_subscription) | resource |
+| [azurerm_servicebus_subscription_rule.session_events_filter](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/servicebus_subscription_rule) | resource |
 | [azurerm_servicebus_topic.io_auth_topic](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/servicebus_topic) | resource |
 | [azurerm_subnet.shared_plan_snet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) | resource |
 | [azuread_group.auth_admins](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/group) | data source |

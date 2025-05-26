@@ -13,7 +13,6 @@
   "function_session_manager_internal": "367548c5df2a42f5273583c0de4181c865bd419a4d0aca3cffa2ba19a90c210a",
   "function_session_manager_internal_autoscale": "b1b16764fc57ccf0d91a2375a11719e3dac5fd2a7bf77e12cbc290866deac044",
   "pub_session_manager": "07cdce758d809d16a5154b997dcb2b017b7b443c53f5a6de776b9f0de6b19c9e",
-  "sub_io_auth": "07cdce758d809d16a5154b997dcb2b017b7b443c53f5a6de776b9f0de6b19c9e",
   "sub_io_prof_async": "07cdce758d809d16a5154b997dcb2b017b7b443c53f5a6de776b9f0de6b19c9e",
   "topic_io_auth": "07cdce758d809d16a5154b997dcb2b017b7b443c53f5a6de776b9f0de6b19c9e"
 }
