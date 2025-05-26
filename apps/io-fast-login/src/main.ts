@@ -46,7 +46,7 @@ const blobService = createBlobService(
 const sessionManagerInternalClient = sessionManagerInternalCreateClient<
   "ApiKeyAuth"
 >({
-  baseUrl: config.SESSION_MANAGER_INTERNAL_BASE_URL.href,
+  baseUrl: config.BACKEND_INTERNAL_BASE_URL.href,
   fetchApi: (toFetch(
     setFetchTimeout(config.FETCH_TIMEOUT_MS as Millisecond, abortableFetch)
   ) as unknown) as typeof fetch,
@@ -54,7 +54,8 @@ const sessionManagerInternalClient = sessionManagerInternalCreateClient<
   withDefaults: op => params =>
     op({
       ...params,
-      ApiKeyAuth: config.SESSION_MANAGER_INTERNAL_API_KEY
+      ApiKeyAuth: config.SESSION_MANAGER_INTERNAL_API_KEY,
+      token: config.BACKEND_INTERNAL_API_KEY
     })
 });
 
