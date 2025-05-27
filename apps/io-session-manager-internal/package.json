@@ -21,8 +21,9 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "generate": "yarn generate:definitions-internal",
-    "generate:definitions-internal": "shx rm -rf ./src/generated/definitions/internal && shx mkdir -p ./src/generated/definitions/internal && gen-api-models --api-spec ./api/internal.yaml --no-strict --out-dir ./src/generated/definitions/internal "
+    "generate": "yarn generate:definitions-internal && yarn generate:definitions-types",
+    "generate:definitions-internal": "shx rm -rf ./src/generated/definitions/internal && shx mkdir -p ./src/generated/definitions/internal && gen-api-models --api-spec ./api/internal.yaml --no-strict --out-dir ./src/generated/definitions/internal ",
+    "generate:definitions-types": "shx rm -rf ./src/generated/definitions/types && shx mkdir -p ./src/generated/definitions/types && gen-api-models --api-spec ./api/definitions.yaml --no-strict --out-dir ./src/generated/definitions/types"
   },
   "dependencies": {
     "@azure/data-tables": "^13.3.0",
@@ -34,6 +35,7 @@
     "@pagopa/ts-commons": "^13.1.1",
     "@redis/client": "1.4.2",
     "applicationinsights": "^2.9.5",
+    "date-fns": "^1.30.1",
     "fp-ts": "^2.16.9",
     "io-ts": "^2.2.22",
     "io-ts-types": "^0.5.16",

@@ -14,7 +14,7 @@ import { InfoService } from "../services/info";
 import { SessionService } from "../services/session-service";
 import { BlockedUsersService } from "../services/blocked-users-service";
 import { InfoFunction } from "./info";
-import { GetSessionFunction } from "./get-session";
+import { GetSessionFunction, GetSessionStateFunction } from "./get-session";
 import { UnlockUserSessionFunction } from "./unlock-user-session";
 import { LockUserSessionFunction } from "./lock-user-session";
 import {
@@ -78,6 +78,19 @@ app.http("GetSession", {
 // ////////////////////////// //
 //  IO-WEB PROFILE FEATURES  //
 // ///////////////////////// //
+app.http("GetUserSessionState", {
+  authLevel: "function",
+  handler: GetSessionStateFunction({
+    SafeRedisClientTask: safeRedisClientTask,
+    SessionService,
+    RedisRepository,
+    AuthLockRepository,
+    AuthenticationLockTableClient,
+  }),
+  methods: ["GET"],
+  route: `${v1BasePath}/sessions/{fiscalCode}/state`,
+});
+
 app.http("AuthLock", {
   authLevel: "function",
   handler: AuthLockFunction({
