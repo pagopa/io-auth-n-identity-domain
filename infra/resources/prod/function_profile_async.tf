@@ -74,6 +74,26 @@ locals {
       //StoreSpidLogs Config
       IOPSTLOGS_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.storage_logs.primary_connection_string
       SPID_LOGS_PUBLIC_KEY                = trimspace(data.azurerm_key_vault_secret.fn_app_SPID_LOGS_PUBLIC_KEY.value)
+
+      //Domain cosmos account config
+      CITIZEN_AUTH_COSMOSDB_NAME              = "citizen-auth"
+      CITIZEN_AUTH_COSMOSDB_CONNECTION_STRING = data.azurerm_cosmosdb_account.cosmos_citizen_auth.primary_sql_connection_string
+
+      //ExpiredSessionsScanner timertrigger config
+      SESSION_NOTIFICATIONS_CONTAINER_NAME = "session-notifications"
+
+      // following IOPID-2714, the optimal config found
+      // for the notification speed is ~50k items/h,
+      // divided in batches of 100 items each. a value below 1000 is strongly
+      // recommended due to SDK throttling found during testing
+      EXPIRED_SESSION_SCANNER_CHUNK_SIZE = 100
+
+      // value (in seconds) representing the visibility timeout field of each
+      // item sent into the queue. this is multiplied by the batch index.
+      // HOURLY_BATCHES = DESIRED_HOURLY_LIMIT / CHUNK_SIZE
+      // TIMEOUT_MULTIPLIER = 3600 / HOURLY_BATCHES -> for ~50k, 7 seconds is
+      // the appropriate value
+      EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER = 7
     }
   }
 }
@@ -114,6 +134,7 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5,
+      "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"                                                = "1"
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "0",
       "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "0"
@@ -126,6 +147,7 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100,
+      "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"                                                = "1"
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "1",
       "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "1"
@@ -137,6 +159,7 @@ module "function_profile_async" {
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage",
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
+    "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled",
     "AzureWebJobs.ExpiredSessionAdvisor.Disabled",
     "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",
     "AzureWebJobs.OnProfileUpdate.Disabled",
