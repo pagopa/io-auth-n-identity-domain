@@ -14,7 +14,7 @@ export type Interval = t.TypeOf<typeof Interval>;
  * @param date The date to create the interval from
  * @returns An Interval object with the start and end dates
  */
-export const createInterval = (date: Date): Interval => {
+export const createInterval = (date: Date = new Date()): Interval => {
   const from = new Date(
     Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() - 1)
   );

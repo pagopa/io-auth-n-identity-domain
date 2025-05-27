@@ -1,5 +1,6 @@
 import { Database } from "@azure/cosmos";
 
 export type CosmosDBDependency = {
-  readonly db: Database;
+  readonly cosmosApiDb: Database;
+  readonly citizenAuthDb: Database;
 };

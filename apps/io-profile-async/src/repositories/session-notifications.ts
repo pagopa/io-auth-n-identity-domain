@@ -1,12 +1,13 @@
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { pipe } from "fp-ts/lib/function";
 import * as R from "fp-ts/lib/Reader";
 import * as RTE from "fp-ts/ReaderTaskEither";
+import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
 import {
-  NotificationEvents,
+  RetrievedSessionNotifications,
   SESSION_NOTIFICATIONS_ROW_PK_FIELD,
-  SessionNotifications,
   SessionNotificationsModel
 } from "../models/session-notifications";
 import { Interval } from "../types/interval";
@@ -22,11 +23,12 @@ export type Dependencies = {
  * @returns A TaskEither that resolves to an array of all session-notifications documents within the interval
  */
 const findByExpiredAtAsyncIterable: (
-  interval: Interval
+  interval: Interval,
+  chunkSize: number
 ) => R.Reader<
   Dependencies,
-  AsyncIterable<ReadonlyArray<t.Validation<SessionNotifications>>>
-> = interval => deps =>
+  AsyncIterable<ReadonlyArray<t.Validation<RetrievedSessionNotifications>>>
+> = (interval, chunkSize) => deps =>
   deps.sessionNotificationsModel.buildAsyncIterable(
     {
       parameters: [
@@ -43,31 +45,37 @@ const findByExpiredAtAsyncIterable: (
         `SELECT * FROM c WHERE (c.${SESSION_NOTIFICATIONS_ROW_PK_FIELD} BETWEEN @from AND @to) AND ` +
         "(c.notificationEvents.EXPIRED_SESSION = false OR NOT IS_DEFINED(c.notificationEvents.EXPIRED_SESSION))"
     },
-    100
+    chunkSize
   );
 
 /**
  * Updates notification events for a session-notifications document.
  *
- * @param fiscalCode The fiscal code of the user
- * @param notificationEvents The notification events to update
- * @returns A TaskEither that resolves to the updated session-notifications document
+ * @param fiscalCode The user fiscal identification code(Container Unique Key for Partition).
+ * @param expiredAt The user session expiration date (Container PartitionKey)
+ * @param flagNewValue New value for EXPIRED_SESSION flag
+ * @returns A Either an Error in case of cosmos error on patch, void in case the operation is succesfully completed
  * */
-export const updateNotificationEvents: (
+const updateExpiredSessionNotificationFlag: (
   fiscalCode: FiscalCode,
   expiredAt: number,
-  notificationEvents: NotificationEvents
-) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, SessionNotifications> = (
+  flagNewValue: boolean
+) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> = (
   fiscalCode,
   expiredAt,
-  notificationEvents
+  flagNewValue
 ) => deps =>
-  deps.sessionNotificationsModel.patch([fiscalCode, expiredAt], {
-    notificationEvents
-  });
+  pipe(
+    deps.sessionNotificationsModel.patch([fiscalCode, expiredAt], {
+      notificationEvents: {
+        EXPIRED_SESSION: flagNewValue
+      }
+    }),
+    TE.map(() => void 0)
+  );
 
 export type SessionNotificationsRepository = typeof SessionNotificationsRepository;
 export const SessionNotificationsRepository = {
   findByExpiredAtAsyncIterable,
-  updateNotificationEvents
+  updateExpiredSessionNotificationFlag
 };
