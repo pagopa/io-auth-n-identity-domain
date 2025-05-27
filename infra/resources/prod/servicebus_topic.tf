@@ -1,7 +1,7 @@
 /////////////////////////
 //      TOPICS         //
 /////////////////////////
-resource "azurerm_servicebus_topic" "io_auth_topic" {
+resource "azurerm_servicebus_topic" "io_auth_sessions_topic" {
   name         = "io-auth-sessions-topic"
   namespace_id = data.azurerm_servicebus_namespace.platform_service_bus_namespace.id
 }
@@ -11,7 +11,7 @@ resource "azurerm_servicebus_topic" "io_auth_topic" {
 /////////////////////////
 resource "azurerm_servicebus_subscription" "io_auth_sub" {
   name               = "io-auth-sub"
-  topic_id           = azurerm_servicebus_topic.io_auth_topic.id
+  topic_id           = azurerm_servicebus_topic.io_auth_sessions_topic.id
   max_delivery_count = 10
 }
 
@@ -42,7 +42,7 @@ module "topic_io_auth" {
       resource_group_name = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
       role                = "owner"
       description         = "This role allows managing the given topic"
-      topic_names         = [azurerm_servicebus_topic.io_auth_topic.name]
+      topic_names         = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
     },
     {
       namespace_name      = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
@@ -69,7 +69,7 @@ module "pub_session_manager" {
       resource_group_name = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
       role                = "writer"
       description         = "This role allows managing the given topic"
-      topic_names         = [azurerm_servicebus_topic.io_auth_topic.name]
+      topic_names         = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
     }
   ]
 }
