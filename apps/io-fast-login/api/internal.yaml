@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  version: 4.1.0
+  version: 4.2.0
   title: IO Fast Login Function API
   x-logo:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
