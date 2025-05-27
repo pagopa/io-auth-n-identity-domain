@@ -14,7 +14,7 @@ jobs:
     uses: ./.github/workflows/_function_app_deploy.yml
     with:
       # '-cd' suffix added inside the pipeline
-      environment: apps-prod
+      environment: app-prod
       resource_group_name: "io-p-itn-auth-webprof-rg-01"
       workspace_name: "io-web-profile"
       function_app_name: "io-p-itn-auth-webprof-func-01"
