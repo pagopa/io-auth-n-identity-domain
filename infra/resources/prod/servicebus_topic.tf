@@ -20,8 +20,8 @@ resource "azurerm_servicebus_subscription_rule" "session_events_filter" {
   subscription_id = azurerm_servicebus_subscription.io_auth_sub.id
 
   filter_type = "SqlFilter"
-  # this filter requires an "action" property on the topic message
-  sql_filter = "action IN ('login','logout')"
+  # this filter requires an "eventType" property on the topic message
+  sql_filter = "eventType IN ('login','logout')"
 }
 
 /////////////////////////
