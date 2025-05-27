@@ -9,15 +9,15 @@ resource "azurerm_servicebus_topic" "io_auth_sessions_topic" {
 /////////////////////////
 //    SUBSCRIPTIONS    //
 /////////////////////////
-resource "azurerm_servicebus_subscription" "io_auth_sub" {
-  name               = "io-auth-sub"
+resource "azurerm_servicebus_subscription" "io_session_notifications_sub" {
+  name               = "io-session-notifications-sub"
   topic_id           = azurerm_servicebus_topic.io_auth_sessions_topic.id
   max_delivery_count = 10
 }
 
 resource "azurerm_servicebus_subscription_rule" "session_events_filter" {
   name            = "io-auth-session-events-filter"
-  subscription_id = azurerm_servicebus_subscription.io_auth_sub.id
+  subscription_id = azurerm_servicebus_subscription.io_session_notifications_sub.id
 
   filter_type = "SqlFilter"
   # this filter requires an "eventType" property on the topic message
@@ -50,7 +50,7 @@ module "topic_io_auth" {
       role                = "owner"
       description         = "This role allows managing the given subscription"
       subscriptions = {
-        io-auth-topic = [azurerm_servicebus_subscription.io_auth_sub.name],
+        io-auth-topic = [azurerm_servicebus_subscription.io_session_notifications_sub.name],
       }
     }
   ]
@@ -88,7 +88,7 @@ module "sub_io_prof_async" {
       role                = "reader"
       description         = "This role allows receiving messages from the given subscription"
       subscriptions = {
-        io-auth-topic = [azurerm_servicebus_subscription.io_auth_sub.name],
+        io-auth-topic = [azurerm_servicebus_subscription.io_session_notifications_sub.name],
       }
     }
   ]
