@@ -8,7 +8,7 @@ import * as E from "fp-ts/lib/Either";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { RequiredBodyMiddleware } from "../middlewares/request";
 import { UnlockSessionDependency } from "../utils/ioweb/dependency";
-import { UnlockCode } from "../generated/definitions/backend-internal/UnlockCode";
+import { UnlockCode } from "../generated/definitions/sm-internal/UnlockCode";
 import { UnlockSessionData } from "../generated/definitions/internal/UnlockSessionData";
 
 const unlockUserSession: (
@@ -17,19 +17,20 @@ const unlockUserSession: (
 ) => RTE.ReaderTaskEither<UnlockSessionDependency, H.HttpError, undefined> = (
   fiscalcode,
   unlock_code
-) => ({ backendInternalClient }) =>
+) => ({ sessionManagerInternalClient }) =>
   pipe(
     TE.tryCatch(
       () =>
-        backendInternalClient.releaseAuthLock({
+        sessionManagerInternalClient.releaseAuthLock({
           body: { unlock_code },
-          fiscalcode
+          fiscalCode: fiscalcode
         }),
       () => new H.HttpError("Error while calling the downstream component")
     ),
     TE.chainEitherK(
       E.mapLeft(
-        _ => new H.HttpError("Unexpected response from backend internal")
+        _ =>
+          new H.HttpError("Unexpected response from session manager internal")
       )
     ),
     TE.chainW(({ status }) =>

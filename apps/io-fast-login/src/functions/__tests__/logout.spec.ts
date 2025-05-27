@@ -8,7 +8,7 @@ import { aFiscalCode } from "../__mocks__/general";
 const mockDeleteUserSession = vi
   .fn()
   .mockResolvedValue(E.right({ status: 200 }));
-const mockBackendInternalClient = {
+const sessionManagerInternalClient = {
   deleteUserSession: mockDeleteUserSession
 } as any;
 
@@ -28,12 +28,12 @@ describe("Logout handler", () => {
     const result = await makeLogoutHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient
     })();
 
     expect(mockDeleteUserSession).toHaveBeenCalled();
     expect(mockDeleteUserSession).toHaveBeenCalledWith({
-      fiscalcode: aValidBody.fiscal_code
+      fiscalCode: aValidBody.fiscal_code
     });
     expect(E.isRight(result)).toEqual(true);
     expect(result).toMatchObject({ right: { statusCode: 204 } });
@@ -47,7 +47,7 @@ describe("Logout handler", () => {
     const result = await makeLogoutHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient
     })();
 
     expect(mockDeleteUserSession).not.toHaveBeenCalled();
@@ -78,7 +78,7 @@ describe("Logout handler", () => {
       const result = await makeLogoutHandler({
         ...httpHandlerInputMocks,
         input: mockReq,
-        backendInternalClient: mockBackendInternalClient
+        sessionManagerInternalClient
       })();
 
       expect(mockDeleteUserSession).toHaveBeenCalled();
@@ -104,12 +104,12 @@ describe("Logout handler", () => {
     const result = await makeLogoutHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient
     })();
 
     expect(mockDeleteUserSession).toHaveBeenCalled();
     expect(mockDeleteUserSession).toHaveBeenCalledWith({
-      fiscalcode: aValidBody.fiscal_code
+      fiscalCode: aValidBody.fiscal_code
     });
     expect(E.isRight(result)).toEqual(true);
     expect(result).toMatchObject({
@@ -132,12 +132,12 @@ describe("Logout handler", () => {
     const result = await makeLogoutHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient
     })();
 
     expect(mockDeleteUserSession).toHaveBeenCalled();
     expect(mockDeleteUserSession).toHaveBeenCalledWith({
-      fiscalcode: aValidBody.fiscal_code
+      fiscalCode: aValidBody.fiscal_code
     });
     expect(E.isRight(result)).toEqual(true);
     expect(result).toMatchObject({
@@ -145,7 +145,7 @@ describe("Logout handler", () => {
         statusCode: 500,
         body: {
           status: 500,
-          title: "Unexpected response from backend internal"
+          title: "Unexpected response from session manager internal"
         }
       }
     });

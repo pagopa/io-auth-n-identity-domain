@@ -11,7 +11,7 @@ import { InfoFunction } from "./functions/info";
 import { FastLoginFunction } from "./functions/fast-login";
 import { createClient } from "./generated/definitions/fn-lollipop/client";
 import { FnLollipopClient } from "./utils/lollipop/dependency";
-import { createClient as backendInternalCreateClient } from "./generated/definitions/backend-internal/client";
+import { createClient as sessionManagerInternalCreateClient } from "./generated/definitions/sm-internal/client";
 import { LogoutFunction } from "./functions/logout";
 import { LockSessionFunction } from "./functions/lock-session";
 import { SessionStateFunction } from "./functions/session-state";
@@ -43,7 +43,9 @@ const blobService = createBlobService(
   config.FAST_LOGIN_AUDIT_CONNECTION_STRING
 );
 
-const backendInternalClient = backendInternalCreateClient<"token">({
+const sessionManagerInternalClient = sessionManagerInternalCreateClient<
+  "ApiKeyAuth"
+>({
   baseUrl: config.BACKEND_INTERNAL_BASE_URL.href,
   fetchApi: (toFetch(
     setFetchTimeout(config.FETCH_TIMEOUT_MS as Millisecond, abortableFetch)
@@ -52,6 +54,7 @@ const backendInternalClient = backendInternalCreateClient<"token">({
   withDefaults: op => params =>
     op({
       ...params,
+      ApiKeyAuth: config.SESSION_MANAGER_INTERNAL_API_KEY,
       token: config.BACKEND_INTERNAL_API_KEY
     })
 });
@@ -64,8 +67,14 @@ export const FastLogin = FastLoginFunction({
   fnLollipopClient,
   redisClientTask
 });
-export const Logout = LogoutFunction({ backendInternalClient });
-export const LockSession = LockSessionFunction({ backendInternalClient });
-export const SessionState = SessionStateFunction({ backendInternalClient });
-export const UnlockSession = UnlockSessionFunction({ backendInternalClient });
+export const Logout = LogoutFunction({ sessionManagerInternalClient });
+export const LockSession = LockSessionFunction({
+  sessionManagerInternalClient
+});
+export const SessionState = SessionStateFunction({
+  sessionManagerInternalClient
+});
+export const UnlockSession = UnlockSessionFunction({
+  sessionManagerInternalClient
+});
 export const GenerateNonce = GenerateNonceFunction({ redisClientTask });

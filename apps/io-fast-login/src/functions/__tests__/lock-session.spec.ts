@@ -8,7 +8,7 @@ import { aFiscalCode } from "../__mocks__/general";
 const aValidBody = { fiscal_code: aFiscalCode, unlock_code: "123456789" };
 
 const mockLockUserSession = vi.fn().mockResolvedValue(E.right({ status: 204 }));
-const mockBackendInternalClient = {
+const mockSessionManagerInternalClient = {
   authLock: mockLockUserSession
 } as any;
 
@@ -25,12 +25,12 @@ describe("LockSession handler", () => {
     const result = await makeLockSessionHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient: mockSessionManagerInternalClient
     })();
 
     expect(mockLockUserSession).toHaveBeenCalled();
     expect(mockLockUserSession).toHaveBeenCalledWith({
-      fiscalcode: aValidBody.fiscal_code,
+      fiscalCode: aValidBody.fiscal_code,
       body: { unlock_code: aValidBody.unlock_code }
     });
     expect(E.isRight(result)).toEqual(true);
@@ -46,7 +46,7 @@ describe("LockSession handler", () => {
     const result = await makeLockSessionHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient: mockSessionManagerInternalClient
     })();
 
     expect(mockLockUserSession).toHaveBeenCalled();
@@ -77,7 +77,7 @@ describe("LockSession handler", () => {
       const result = await makeLockSessionHandler({
         ...httpHandlerInputMocks,
         input: mockReq,
-        backendInternalClient: mockBackendInternalClient
+        sessionManagerInternalClient: mockSessionManagerInternalClient
       })();
 
       expect(mockLockUserSession).toHaveBeenCalled();
@@ -103,12 +103,12 @@ describe("LockSession handler", () => {
     const result = await makeLockSessionHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient: mockSessionManagerInternalClient
     })();
 
     expect(mockLockUserSession).toHaveBeenCalled();
     expect(mockLockUserSession).toHaveBeenCalledWith({
-      fiscalcode: aValidBody.fiscal_code,
+      fiscalCode: aValidBody.fiscal_code,
       body: { unlock_code: aValidBody.unlock_code }
     });
     expect(E.isRight(result)).toEqual(true);
@@ -132,12 +132,12 @@ describe("LockSession handler", () => {
     const result = await makeLockSessionHandler({
       ...httpHandlerInputMocks,
       input: mockReq,
-      backendInternalClient: mockBackendInternalClient
+      sessionManagerInternalClient: mockSessionManagerInternalClient
     })();
 
     expect(mockLockUserSession).toHaveBeenCalled();
     expect(mockLockUserSession).toHaveBeenCalledWith({
-      fiscalcode: aValidBody.fiscal_code,
+      fiscalCode: aValidBody.fiscal_code,
       body: { unlock_code: aValidBody.unlock_code }
     });
     expect(E.isRight(result)).toEqual(true);
@@ -146,7 +146,7 @@ describe("LockSession handler", () => {
         statusCode: 500,
         body: {
           status: 500,
-          title: "Unexpected response from backend internal"
+          title: "Unexpected response from session manager internal"
         }
       }
     });
