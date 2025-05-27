@@ -33,7 +33,7 @@ module "topic_io_auth" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
   version = "~>1.0"
 
-  principal_id    = data.azuread_group.auth_devs.object_id
+  principal_id    = data.azuread_group.auth_admins.object_id
   subscription_id = data.azurerm_subscription.current.subscription_id
 
   service_bus = [
