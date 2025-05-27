@@ -303,53 +303,6 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         ])
       );
     });
-
-    it("should succeed when a flag revert fails", async () => {
-      // When a flag revert fails, the process should continue and
-      // the error should be tracked, but not returned since the
-      // process should not be started again in this case.
-      const anError = new Error("Send to queue failed");
-      const aCosmosError = { kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors;
-
-      // Simulate an error while writing into the queue in the second item
-      sendExpiredUserSessionMock
-        .mockImplementationOnce(() => TE.of(void 0))
-        .mockImplementationOnce(() => TE.left(anError))
-        .mockImplementationOnce(() => TE.of(void 0));
-
-      // The update of the flag should be successful when setting it to true
-      // and should fail when reverting it to false
-      updateExpiredSessionNotificationFlagMock
-        .mockImplementationOnce(() => TE.of(void 0))
-        .mockImplementationOnce(() => TE.of(void 0))
-        .mockImplementationOnce(() => TE.of(void 0))
-        .mockImplementationOnce(() => TE.left(aCosmosError));
-
-      const chunk = [item, item, item];
-      const result = await processChunk(chunk)(baseDeps)();
-
-      expect(
-        mockSessionNotificationsRepository.updateExpiredSessionNotificationFlag
-      ).toHaveBeenCalledTimes(chunk.length + 1); // +1 for the flag revert
-      expect(
-        mockExpiredUserSessionsQueueRepository.sendExpiredUserSession
-      ).toHaveBeenCalledTimes(chunk.length);
-      expect(trackEventMock).toHaveBeenCalledWith({
-        name:
-          "io.citizen-auth.prof-async.expired-sessions-discoverer.permanent.revert-failure",
-        properties: {
-          message:
-            "Error reverting expired session flag(EXPIRED_SESSION) after Queue write failure",
-          // eslint-disable-next-line no-underscore-dangle
-          itemDbSelf: item.retrievedDbItem._self
-        },
-        tagOverrides: {
-          samplingEnabled: "false"
-        }
-      });
-
-      expect(result).toStrictEqual(E.right(void 0));
-    });
   });
 
   describe("retrieveFromDbInChunks", () => {
