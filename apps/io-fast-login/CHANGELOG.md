@@ -1,5 +1,11 @@
 # io-fast-login
 
+## 4.2.0
+
+### Minor Changes
+
+- 6ac85b4: Update internal client
+
 ## 4.1.0
 
 ### Minor Changes
