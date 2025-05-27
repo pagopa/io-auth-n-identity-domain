@@ -511,7 +511,7 @@ describe("Session Service#getUserSessionState", () => {
     );
   });
 
-  it("should return success if a session doens't exists", async () => {
+  it("should return success if a session doesn't exist", async () => {
     mockGetSessionRemainingTTL.mockReturnValueOnce(TE.right(O.none));
 
     const result =

@@ -38,6 +38,9 @@ const bpdTokenPrefix = "BPD-";
 const zendeskTokenPrefix = "ZENDESK-";
 const fimsTokenPrefix = "FIMS-";
 
+const REDIS_KEY_NOT_FOUND = -2;
+const REDIS_KEY_NO_EXPIRE = -1;
+
 export const sessionNotFoundError = new Error("Session not found");
 
 type FastRedisClientDependency = { fastClient: redisLib.RedisClusterType };
@@ -423,25 +426,26 @@ const getSessionRemainingTTL: RTE.ReaderTaskEither<
       () => deps.safeClient.ttl(`${lollipopDataPrefix}${deps.fiscalCode}`),
       E.toError,
     ),
-    TE.chain(
-      TE.fromPredicate(
-        (_) => _ !== -1,
-        () => new Error("Unexpected missing CF-AssertionRef TTL"),
-      ),
-    ),
-    TE.map(flow(O.fromPredicate((ttl) => ttl > 0))),
+    TE.chain((ttl) => {
+      switch (ttl) {
+        case REDIS_KEY_NOT_FOUND:
+          return TE.right(O.none);
+
+        case REDIS_KEY_NO_EXPIRE:
+          return TE.left(Error("Unexpected missing CF-AssertionRef TTL"));
+
+        default:
+          return TE.right(O.some(ttl));
+      }
+    }),
     TE.chain((maybeTtl) =>
       O.isNone(maybeTtl)
         ? TE.right(O.none)
         : pipe(
             getLollipopDataForUser(deps),
-            TE.chain(
-              TE.fromPredicate(O.isSome, () =>
-                Error("Unexpected missing value"),
-              ),
-            ),
-            TE.map(({ value }) =>
-              O.some({ ttl: maybeTtl.value, type: value.loginType }),
+            TE.chain(TE.fromOption(() => Error("Unexpected missing value"))),
+            TE.map(({ loginType }) =>
+              O.some({ ttl: maybeTtl.value, type: loginType }),
             ),
           ),
     ),
