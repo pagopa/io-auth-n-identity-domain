@@ -9,6 +9,8 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { TableClient } from "@azure/data-tables";
 import { QueueClient } from "@azure/storage-queue";
 import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
+import { addSeconds } from "date-fns";
+import { OutputOf } from "io-ts";
 import { RedisRepository } from "../repositories/redis";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
@@ -26,6 +28,8 @@ import {
 } from "../utils/errors";
 import { LollipopRepository } from "../repositories/lollipop";
 import { InstallationRepository } from "../repositories/installation";
+import { SessionState } from "../generated/definitions/internal/SessionState";
+import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
 
 type RedisDeps = {
   FastRedisClientTask: TE.TaskEither<Error, redisLib.RedisClusterType>;
@@ -58,6 +62,72 @@ const getUserSession: (
         ),
       ),
     );
+
+export type GetUserSessionStateDeps = Pick<
+  RedisDeps,
+  "SafeRedisClientTask" | "RedisRepository"
+> & {
+  AuthLockRepository: AuthLockRepository;
+  AuthenticationLockTableClient: TableClient;
+};
+const getUserSessionState: (
+  fiscalCode: FiscalCode,
+) => RTE.ReaderTaskEither<
+  GetUserSessionStateDeps,
+  GenericError,
+  OutputOf<typeof SessionState>
+> = (fiscalCode) => (deps) =>
+  pipe(
+    deps.SafeRedisClientTask,
+    TE.mapLeft((err) =>
+      toGenericError(`Could not establish connection to redis: ${err.message}`),
+    ),
+    TE.chain((safeClient) =>
+      pipe(
+        AP.sequenceS(TE.ApplicativePar)({
+          isUserAuthenticationLocked: pipe(
+            deps.AuthLockRepository.isUserAuthenticationLocked(fiscalCode)(
+              deps,
+            ),
+            TE.mapLeft((err) =>
+              toGenericError(
+                `Error reading the auth lock info: [${err.message}]`,
+              ),
+            ),
+          ),
+          maybeSessionRemaningTTL: pipe(
+            deps.RedisRepository.getSessionRemainingTTL({
+              fiscalCode,
+              safeClient,
+            }),
+            TE.mapLeft((err) =>
+              toGenericError(
+                `Error reading the session info: [${err.message}]`,
+              ),
+            ),
+          ),
+        }),
+        TE.map(({ isUserAuthenticationLocked, maybeSessionRemaningTTL }) =>
+          O.isNone(maybeSessionRemaningTTL)
+            ? SessionState.encode({
+                access_enabled: !isUserAuthenticationLocked,
+                session_info: { active: false },
+              })
+            : SessionState.encode({
+                access_enabled: !isUserAuthenticationLocked,
+                session_info: {
+                  active: true,
+                  expiration_date: addSeconds(
+                    new Date(),
+                    maybeSessionRemaningTTL.value.ttl,
+                  ),
+                  type: LoginTypeEnum[maybeSessionRemaningTTL.value.type],
+                },
+              }),
+        ),
+      ),
+    ),
+  );
 
 const invalidateUserSession: (fiscalCode: FiscalCode) => RTE.ReaderTaskEither<
   {
@@ -296,4 +366,5 @@ export const SessionService = {
   unlockUserAuthentication,
   deleteUserSession,
   invalidateUserSession,
+  getUserSessionState,
 };

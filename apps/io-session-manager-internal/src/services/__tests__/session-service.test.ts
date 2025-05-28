@@ -6,12 +6,14 @@ import * as O from "fp-ts/lib/Option";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { QueueClient } from "@azure/storage-queue";
 import { TableClient } from "@azure/data-tables";
+import addSeconds from "date-fns/add_seconds";
 import {
   RedisClientTaskMock,
   RedisRepositoryMock,
   mockDelLollipopDataForUser,
   mockDelUserAllSessions,
   mockGetLollipopAssertionRefForUser,
+  mockGetSessionRemainingTTL,
   mockUserHasActiveSessionsOrLV,
 } from "../../__mocks__/repositories/redis.mock";
 import { SessionService } from "../session-service";
@@ -30,13 +32,18 @@ import {
   InstallationRepositoryMock,
   mockDeleteInstallation,
 } from "../../__mocks__/repositories/installation.mock";
-import { anUnlockCode, anotherUnlockCode } from "../../__mocks__/user.mock";
+import {
+  anUnlockCode,
+  anUnlockedUserSessionState,
+  anotherUnlockCode,
+} from "../../__mocks__/user.mock";
 import {
   forbiddenError,
   toConflictError,
   toGenericError,
 } from "../../utils/errors";
 import { aNotReleasedData } from "../../__mocks__/table-client.mock";
+import { LoginTypeEnum } from "../../types/fast-login";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 
@@ -444,5 +451,129 @@ describe("Session Service#deleteUserSession", () => {
 
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
     expect(result).toEqual(E.left(expectedError));
+  });
+});
+
+describe("Session Service#getUserSessionState", () => {
+  const aTTL = 123;
+  const frozenDate = new Date(2025, 5, 1, 0, 0, 0);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
+  });
+
+  const deps = {
+    SafeRedisClientTask: RedisClientTaskMock,
+    RedisRepository: RedisRepositoryMock,
+    AuthLockRepository: AuthLockRepositoryMock,
+    AuthenticationLockTableClient: {} as TableClient,
+  };
+
+  it("should return success if an unlocked session exists", async () => {
+    mockGetSessionRemainingTTL.mockReturnValueOnce(
+      TE.right(O.some({ ttl: aTTL, type: LoginTypeEnum.LV })),
+    );
+    const result =
+      await SessionService.getUserSessionState(aFiscalCode)(deps)();
+
+    expect(mockIsUserAuthenticationLocked).toHaveBeenCalledTimes(1);
+    expect(mockGetSessionRemainingTTL).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(
+      E.right({
+        ...anUnlockedUserSessionState,
+        session_info: {
+          active: true,
+          expiration_date: addSeconds(frozenDate, aTTL).toISOString(),
+          type: LoginTypeEnum.LV,
+        },
+      }),
+    );
+  });
+
+  it("should return success if a locked session exists", async () => {
+    mockIsUserAuthenticationLocked.mockReturnValueOnce(RTE.right(true));
+
+    const result =
+      await SessionService.getUserSessionState(aFiscalCode)(deps)();
+
+    expect(mockIsUserAuthenticationLocked).toHaveBeenCalledTimes(1);
+    expect(mockGetSessionRemainingTTL).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(
+      E.right({
+        access_enabled: false,
+        session_info: {
+          active: true,
+          expiration_date: addSeconds(frozenDate, aTTL).toISOString(),
+          type: LoginTypeEnum.LV,
+        },
+      }),
+    );
+  });
+
+  it("should return success if a session doesn't exist", async () => {
+    mockGetSessionRemainingTTL.mockReturnValueOnce(TE.right(O.none));
+
+    const result =
+      await SessionService.getUserSessionState(aFiscalCode)(deps)();
+
+    expect(mockIsUserAuthenticationLocked).toHaveBeenCalledTimes(1);
+    expect(mockGetSessionRemainingTTL).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(
+      E.right({
+        access_enabled: true,
+        session_info: {
+          active: false,
+        },
+      }),
+    );
+  });
+
+  it("should fail if an error occours on redis initialization", async () => {
+    const anErrorMessage = "an error";
+
+    const result = await SessionService.getUserSessionState(aFiscalCode)({
+      ...deps,
+      SafeRedisClientTask: TE.left(Error(anErrorMessage)),
+    })();
+
+    expect(result).toEqual(
+      E.left(
+        toGenericError(
+          `Could not establish connection to redis: ${anErrorMessage}`,
+        ),
+      ),
+    );
+  });
+
+  it("should fail if an error occours reading the session lock state", async () => {
+    const anErrorMessage = "an error";
+    mockIsUserAuthenticationLocked.mockReturnValueOnce(
+      RTE.left(new Error(anErrorMessage)),
+    );
+
+    const result =
+      await SessionService.getUserSessionState(aFiscalCode)(deps)();
+
+    expect(result).toEqual(
+      E.left(
+        toGenericError(`Error reading the auth lock info: [${anErrorMessage}]`),
+      ),
+    );
+  });
+
+  it("should fail if an error occours reading the session TTL", async () => {
+    const anErrorMessage = "an error";
+    mockGetSessionRemainingTTL.mockReturnValueOnce(
+      TE.left(new Error(anErrorMessage)),
+    );
+
+    const result =
+      await SessionService.getUserSessionState(aFiscalCode)(deps)();
+    expect(result).toEqual(
+      E.left(
+        toGenericError(`Error reading the session info: [${anErrorMessage}]`),
+      ),
+    );
   });
 });

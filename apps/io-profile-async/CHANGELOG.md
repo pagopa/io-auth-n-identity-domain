@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.6.0
+
+### Minor Changes
+
+- d000426: Add timer trigger `ExpiredSessionsDiscoverer`
+
 ## 1.5.0
 
 ### Minor Changes

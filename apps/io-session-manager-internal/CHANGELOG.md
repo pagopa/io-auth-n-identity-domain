@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.8.0
+
+### Minor Changes
+
+- f895c13: GetUserSessionState endpoint
+
 ## 0.7.0
 
 ### Minor Changes

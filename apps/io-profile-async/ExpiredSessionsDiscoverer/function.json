@@ -1,0 +1,17 @@
+{
+  "bindings": [
+    {
+      "name": "expiredSessionsDiscovererTimer",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "0 0 8 * * *"
+    }
+  ],
+  "retry": {
+    "strategy": "fixedDelay",
+    "maxRetryCount": 5,
+    "delayInterval": "00:15:00"
+  },
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "ExpiredSessionsDiscoverer"
+}

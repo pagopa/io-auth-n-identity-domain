@@ -21,10 +21,10 @@ import {
   LollipopData,
   NullableBackendAssertionRefFromString,
 } from "../types/lollipop";
-import { LoginTypeEnum } from "../types/fast-login";
-import { SessionInfo } from "../generated/definitions/internal/SessionInfo";
-import { SessionsList } from "../generated/definitions/internal/SessionsList";
-import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
+import { ActiveSessionInfo, LoginTypeEnum } from "../types/fast-login";
+import { SessionInfo } from "../generated/definitions/types/SessionInfo";
+import { SessionsList } from "../generated/definitions/types/SessionsList";
+import { AssertionRef } from "../generated/definitions/types/AssertionRef";
 import { SessionToken } from "../types/token";
 import { User } from "../types/user";
 
@@ -37,6 +37,9 @@ const myPortalTokenPrefix = "MYPORTAL-";
 const bpdTokenPrefix = "BPD-";
 const zendeskTokenPrefix = "ZENDESK-";
 const fimsTokenPrefix = "FIMS-";
+
+const REDIS_KEY_NOT_FOUND = -2;
+const REDIS_KEY_NO_EXPIRE = -1;
 
 export const sessionNotFoundError = new Error("Session not found");
 
@@ -413,6 +416,41 @@ const delUserAllSessions: RTE.ReaderTaskEither<
   );
 };
 
+const getSessionRemainingTTL: RTE.ReaderTaskEither<
+  SafeRedisClientDependency & { fiscalCode: FiscalCode },
+  Error,
+  O.Option<ActiveSessionInfo>
+> = (deps) =>
+  pipe(
+    TE.tryCatch(
+      () => deps.safeClient.ttl(`${lollipopDataPrefix}${deps.fiscalCode}`),
+      E.toError,
+    ),
+    TE.chain((ttl) => {
+      switch (ttl) {
+        case REDIS_KEY_NOT_FOUND:
+          return TE.right(O.none);
+
+        case REDIS_KEY_NO_EXPIRE:
+          return TE.left(Error("Unexpected missing CF-AssertionRef TTL"));
+
+        default:
+          return TE.right(O.some(ttl));
+      }
+    }),
+    TE.chain((maybeTtl) =>
+      O.isNone(maybeTtl)
+        ? TE.right(O.none)
+        : pipe(
+            getLollipopDataForUser(deps),
+            TE.chain(TE.fromOption(() => Error("Unexpected missing value"))),
+            TE.map(({ loginType }) =>
+              O.some({ ttl: maybeTtl.value, type: loginType }),
+            ),
+          ),
+    ),
+  );
+
 // -----------------------
 // Utilities
 // -----------------------
@@ -448,4 +486,5 @@ export const RedisRepository = {
   getLollipopAssertionRefForUser,
   delLollipopDataForUser,
   delUserAllSessions,
+  getSessionRemainingTTL,
 };
