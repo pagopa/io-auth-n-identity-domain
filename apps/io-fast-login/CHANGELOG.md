@@ -1,5 +1,11 @@
 # io-fast-login
 
+## 4.2.1
+
+### Patch Changes
+
+- 2d376fc: Update internal client reference
+
 ## 4.2.0
 
 ### Minor Changes
