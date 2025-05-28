@@ -38,14 +38,6 @@ locals {
       // --------------------------
       FAST_LOGIN_AUDIT_CONNECTION_STRING = data.azurerm_storage_account.immutable_lv_audit_logs_storage.primary_connection_string
 
-
-      // --------------------------
-      //  Config for backendli connection
-      // --------------------------
-      BACKEND_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.backendli_api_key.value
-      BACKEND_INTERNAL_BASE_URL = "https://${data.azurerm_linux_web_app.app_backend_li.default_hostname}"
-
-
       // --------------------------
       //  Config for session manager internal connection
       // --------------------------
