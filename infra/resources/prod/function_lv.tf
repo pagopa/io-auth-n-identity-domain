@@ -41,7 +41,7 @@ locals {
       // --------------------------
       //  Config for session manager internal connection
       // --------------------------
-      SESSION_MANAGER_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.session_manager_internal_api_key.value
+      SESSION_MANAGER_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.fast_login_session_manager_internal_api_key.value
       SESSION_MANAGER_INTERNAL_BASE_URL = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
     }
 
