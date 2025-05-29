@@ -38,7 +38,7 @@ export const retrieveSession: (
 > = (fiscalCode: FiscalCode) => ({ backendInternalClient }) =>
   pipe(
     TE.tryCatch(
-      () => backendInternalClient.getSession({ fiscalcode: fiscalCode }),
+      () => backendInternalClient.getSession({ fiscalCode }),
       () =>
         new QueueTransientError(
           "Error while calling the downstream component [retrieveSession]"
