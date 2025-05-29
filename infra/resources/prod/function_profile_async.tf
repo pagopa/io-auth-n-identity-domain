@@ -46,6 +46,10 @@ locals {
       BACKEND_INTERNAL_BASE_URL = "https://${data.azurerm_linux_web_app.app_backend_li.default_hostname}"
       BACKEND_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.backendli_api_key.value
 
+      // Session Manager Internal
+      SESSION_MANAGER_INTERNAL_BASE_URL = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
+      SESSION_MANAGER_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.profile_async_session_manager_internal_api_key.value
+
       // Function Profile
       FUNCTION_PROFILE_BASE_URL = "https://${module.function_profile.function_app.function_app.default_hostname}"
       FUNCTION_PROFILE_API_KEY  = data.azurerm_key_vault_secret.function_profile_key.value
