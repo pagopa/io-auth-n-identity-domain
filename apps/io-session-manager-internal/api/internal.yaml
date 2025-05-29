@@ -35,7 +35,6 @@ paths:
         Use this operation if you want to known the state of user session
       parameters:
         - $ref: "#/components/parameters/FiscalCode"
-        - $ref: "#/components/parameters/Token"
       responses:
         "200":
           description: Success.
@@ -48,7 +47,7 @@ paths:
         "400":
           description: Bad request
         "401":
-          description: Token null or invalid.
+          description: Unauthorized
         "404":
           description: User not found.
         "429":
@@ -67,7 +66,6 @@ paths:
         This is intended to use with ioweb-profile lock functionality.
       parameters:
         - $ref: "#/components/parameters/FiscalCode"
-        - $ref: "#/components/parameters/Token"
       requestBody:
         required: true
         content:
@@ -84,11 +82,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
         "401":
-          description: Token null or invalid.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProblemJson"
+          description: Unauthorized
         "409":
           description: The user lock has been already created.
           content:
@@ -110,7 +104,6 @@ paths:
       operationId: lockUserSession
       parameters:
         - $ref: "#/components/parameters/FiscalCode"
-        - $ref: "#/components/parameters/Token"
       responses:
         "200":
           description: Success.
@@ -124,7 +117,7 @@ paths:
           description: Bad request
           content: {}
         "401":
-          description: Token null or invalid.
+          description: Unauthorized
           content: {}
         "404":
           description: User not found.
@@ -143,7 +136,6 @@ paths:
       operationId: unlockUserSession
       parameters:
         - $ref: "#/components/parameters/FiscalCode"
-        - $ref: "#/components/parameters/Token"
       responses:
         "200":
           description: Success.
@@ -157,7 +149,7 @@ paths:
           description: Bad request
           content: {}
         "401":
-          description: Token null or invalid.
+          description: Unauthorized
           content: {}
         "500":
           description: There was an error
@@ -173,7 +165,6 @@ paths:
         This is intended to use with ioweb-profile unlock functionality.
       parameters:
         - $ref: "#/components/parameters/FiscalCode"
-        - $ref: "#/components/parameters/Token"
       requestBody:
         required: true
         content:
@@ -190,11 +181,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
         "401":
-          description: Token null or invalid.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProblemJson"
+          description: Unauthorized
         "403":
           description: Operation forbidden.
         "500":
@@ -212,7 +199,6 @@ paths:
         This is intended to use with ioweb-profile logout functionality.
       parameters:
         - $ref: "#/components/parameters/FiscalCode"
-        - $ref: "#/components/parameters/Token"
       responses:
         "200":
           description: Success.
@@ -225,7 +211,7 @@ paths:
         "400":
           description: Bad request
         "401":
-          description: Token null or invalid.
+          description: Unauthorized
         "500":
           description: There was an error
           content:
@@ -238,7 +224,6 @@ paths:
       summary: Get User Session State on IO App
       parameters:
         - $ref: "#/components/parameters/FiscalCode"
-        - $ref: "#/components/parameters/Token"
       responses:
         "200":
           description: Success.
@@ -284,15 +269,6 @@ components:
         pattern: >-
           [A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]
         x-example: SPNDNL80R13C555X
-    Token:
-      name: token
-      in: query
-      schema:
-        type: string
-      required: false
-      description: |-
-        The API key used to access io-backend session endpoints.
-        This is intended to be removed after initial rollout
   schemas:
     ApplicationInfo:
       type: object
