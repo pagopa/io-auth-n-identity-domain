@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.8.1
+
+### Patch Changes
+
+- 12cad28: Removed optional token authentication
+
 ## 0.8.0
 
 ### Minor Changes
