@@ -10,8 +10,8 @@ import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import * as E from "fp-ts/lib/Either";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as mailTemplate from "@pagopa/io-app-email-templates/ExpiredSessionUserReEngagement/index";
-import { Client as BackendInternalClient } from "../../generated/definitions/backend-session/client";
-import { UserSessionInfo } from "../../generated/definitions/backend-session/UserSessionInfo";
+import { Client as SessionManagerInternalClient } from "../../generated/definitions/sm-internal/client";
+import { UserSessionInfo } from "../../generated/definitions/sm-internal/UserSessionInfo";
 import { Client as FunctionProfileClient } from "../../generated/definitions/function-profile/client";
 import { ExtendedProfile } from "../../generated/definitions/function-profile/ExtendedProfile";
 import { ServicesPreferencesModeEnum } from "../../generated/definitions/function-profile/ServicesPreferencesMode";
@@ -70,9 +70,9 @@ const sendMailMock = vi.fn((_, f) => {
 });
 
 // Dependencies Mocks
-const mockBackendInternalClient = ({
+const mockSessionManagerInternalClient = ({
   getSession: getSessionMock
-} as unknown) as BackendInternalClient;
+} as unknown) as SessionManagerInternalClient;
 
 const mockBackendFunctionProfileClient = ({
   getProfile: getProfileMock
@@ -100,7 +100,7 @@ const makeHandlerInputs = (input: unknown) => ({
     ExpiredSessionAdvisorQueueMessage,
     input as ExpiredSessionAdvisorQueueMessage
   ),
-  backendInternalClient: mockBackendInternalClient,
+  sessionManagerInternalClient: mockSessionManagerInternalClient,
   functionProfileClient: mockBackendFunctionProfileClient,
   mailerTransporter: mockMailerTransporter
 });

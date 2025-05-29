@@ -4,14 +4,14 @@ import {
   createClient
 } from "../../generated/definitions/sm-internal/client";
 
-export type BackendInternalClientDependency = {
-  readonly backendInternalClient: Client<"ApiKeyAuth">;
+export type SessionManagerInternalClientDependency = {
+  readonly sessionManagerInternalClient: Client<"ApiKeyAuth">;
 };
 
-export const buildIoBackendInternalClient = (
+export const buildSessionManagerInternalClient = (
   fetchApi: typeof fetch,
   { BACKEND_INTERNAL_API_KEY, BACKEND_INTERNAL_BASE_URL }: IConfig
-): Client => {
+): Client<"ApiKeyAuth"> => {
   const baseUrlHref = BACKEND_INTERNAL_BASE_URL.href;
 
   return createClient<"ApiKeyAuth">({

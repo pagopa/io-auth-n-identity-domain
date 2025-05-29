@@ -17,7 +17,7 @@ import { EmailAddress } from "../generated/definitions/function-profile/EmailAdd
 import { ExtendedProfile } from "../generated/definitions/function-profile/ExtendedProfile";
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
 import { trackEvent } from "../utils/appinsights";
-import { BackendInternalClientDependency } from "../utils/backend-internal-client/dependency";
+import { SessionManagerInternalClientDependency } from "../utils/session-manager-internal-client/dependency";
 import { FunctionProfileClientDependency } from "../utils/function-profile-client/dependency";
 import { MailerTransporterDependency } from "../utils/mailer-transporter/dependency";
 import { QueuePermanentError, QueueTransientError } from "../utils/queue-utils";
@@ -32,10 +32,12 @@ export interface ExpiredSessionEmailParameters {
 export const retrieveSession: (
   fiscalCode: FiscalCode
 ) => RTE.ReaderTaskEither<
-  BackendInternalClientDependency,
+  SessionManagerInternalClientDependency,
   QueueTransientError,
   UserSessionInfo
-> = (fiscalCode: FiscalCode) => ({ backendInternalClient }) =>
+> = (fiscalCode: FiscalCode) => ({
+  sessionManagerInternalClient: backendInternalClient
+}) =>
   pipe(
     TE.tryCatch(
       () => backendInternalClient.getSession({ fiscalCode }),
@@ -171,7 +173,7 @@ export const ExpiredSessionAdvisorHandler: (
 ) => H.Handler<
   ExpiredSessionAdvisorQueueMessage,
   undefined,
-  BackendInternalClientDependency &
+  SessionManagerInternalClientDependency &
     FunctionProfileClientDependency &
     MailerTransporterDependency
 > = ({ expiredSessionEmailParameters, dryRunFeatureFlag }) =>
