@@ -12,7 +12,7 @@ import * as L from "@pagopa/logger";
 import * as mailTemplate from "@pagopa/io-app-email-templates/ExpiredSessionUserReEngagement/index";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
-import { UserSessionInfo } from "../generated/definitions/backend-session/UserSessionInfo";
+import { UserSessionInfo } from "../generated/definitions/sm-internal/UserSessionInfo";
 import { EmailAddress } from "../generated/definitions/function-profile/EmailAddress";
 import { ExtendedProfile } from "../generated/definitions/function-profile/ExtendedProfile";
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";

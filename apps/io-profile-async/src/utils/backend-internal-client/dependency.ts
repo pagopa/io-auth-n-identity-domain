@@ -2,7 +2,7 @@ import { IConfig } from "../../config";
 import {
   Client,
   createClient
-} from "../../generated/definitions/backend-session/client";
+} from "../../generated/definitions/sm-internal/client";
 
 export type BackendInternalClientDependency = {
   readonly backendInternalClient: Client<"ApiKeyAuth">;
