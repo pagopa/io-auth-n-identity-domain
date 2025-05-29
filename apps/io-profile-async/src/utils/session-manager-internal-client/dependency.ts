@@ -10,9 +10,12 @@ export type SessionManagerInternalClientDependency = {
 
 export const buildSessionManagerInternalClient = (
   fetchApi: typeof fetch,
-  { BACKEND_INTERNAL_API_KEY, BACKEND_INTERNAL_BASE_URL }: IConfig
+  {
+    SESSION_MANAGER_INTERNAL_API_KEY,
+    SESSION_MANAGER_INTERNAL_BASE_URL
+  }: IConfig
 ): Client<"ApiKeyAuth"> => {
-  const baseUrlHref = BACKEND_INTERNAL_BASE_URL.href;
+  const baseUrlHref = SESSION_MANAGER_INTERNAL_BASE_URL.href;
 
   return createClient<"ApiKeyAuth">({
     baseUrl: baseUrlHref.endsWith("/") ? baseUrlHref.slice(0, -1) : baseUrlHref,
@@ -21,8 +24,7 @@ export const buildSessionManagerInternalClient = (
     withDefaults: op => params =>
       op({
         ...params,
-        token: BACKEND_INTERNAL_API_KEY,
-        ApiKeyAuth: BACKEND_INTERNAL_API_KEY
+        ApiKeyAuth: SESSION_MANAGER_INTERNAL_API_KEY
       })
   });
 };
