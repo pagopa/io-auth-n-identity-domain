@@ -84,8 +84,7 @@ module "function_session_manager_internal" {
 }
 
 module "function_session_manager_internal_autoscale" {
-  depends_on = [module.function_session_manager_internal]
-  source     = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
+  source = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
   // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
   version = "~> 0.0"
 

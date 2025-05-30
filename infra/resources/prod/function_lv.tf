@@ -41,7 +41,7 @@ locals {
       // --------------------------
       //  Config for session manager internal connection
       // --------------------------
-      SESSION_MANAGER_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.session_manager_internal_api_key.value
+      SESSION_MANAGER_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.fast_login_session_manager_internal_api_key.value
       SESSION_MANAGER_INTERNAL_BASE_URL = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
     }
 
@@ -119,8 +119,7 @@ module "function_lv" {
 
 
 module "function_lv_autoscale" {
-  depends_on = [data.azurerm_resource_group.function_lv_rg]
-  source     = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
+  source = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
   // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
   version = "0.0.2"
 
