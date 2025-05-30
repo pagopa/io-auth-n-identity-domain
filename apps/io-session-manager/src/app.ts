@@ -18,6 +18,7 @@ import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
 import { RedisRepo, FnAppRepo, FnLollipopRepo } from "./repositories";
 import { attachTrackingData } from "./utils/appinsights";
 import { getRequiredENVVar } from "./utils/environment";
+import cookieparser from "cookie-parser";
 import {
   AuthenticationController,
   SessionController,
@@ -76,6 +77,7 @@ import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
+import { isUserElegibleForCookieValidation } from "./config/cookie-validation";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -130,6 +132,8 @@ export const newApp: (
 
   app.use(helmet());
 
+  app.use(cookieparser());
+
   //
   // Ensure that checkIP middleware has the client IP
   //
@@ -169,6 +173,7 @@ export const newApp: (
     ...pick(["fnAppAPIClient", "fnLollipopAPIClient"], APIClients),
     ...omit(["spidLogQueueClient"], storageDependencies),
     isUserElegibleForFastLogin,
+    isUserElegibleForCookieValidation,
   };
 
   pipe(

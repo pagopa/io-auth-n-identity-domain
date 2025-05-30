@@ -40,7 +40,10 @@ import {
   NotificationsRepo,
   RedisRepo,
 } from "../repositories";
-import { ClientErrorRedirectionUrlParams } from "../config/spid";
+import {
+  ClientErrorRedirectionUrlParams,
+  getClientErrorRedirectionUrl,
+} from "../config/spid";
 import { FnAppAPIRepositoryDeps } from "../repositories/fn-app-api";
 import { AdditionalLoginPropsT, LoginTypeEnum } from "../types/fast-login";
 import { toAppUser, validateSpidUser } from "../utils/user";
@@ -81,12 +84,15 @@ import { AccessToken } from "../generated/public/AccessToken";
 import { AppInsightsDeps } from "../utils/appinsights";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 import { AuthenticationController } from ".";
+import { lookup } from "fp-ts/lib/ReadonlyRecord";
+import { isUserElegibleForCookieValidation } from "../config/cookie-validation";
 
 // Minimum user age allowed to login if the Age limit is enabled
 export const AGE_LIMIT = 14;
 // Custom error codes handled by the client to show a specific error page
 export const AGE_LIMIT_ERROR_CODE = 1001;
 export const AUTHENTICATION_LOCKED_ERROR = 1002;
+export const COOKIE_VALIDATION_ERROR_CODE = 1003;
 
 export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   FnAppAPIRepositoryDeps &
@@ -110,6 +116,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
       typeof getIsUserElegibleForIoLoginUrlScheme
     >;
     isUserElegibleForFastLogin: (fiscalCode: FiscalCode) => boolean;
+    isUserElegibleForCookieValidation: (fiscalCode: FiscalCode) => boolean;
   };
 
 export const acs: (
@@ -196,12 +203,25 @@ export const acs: (
         ? [deps.lvTokenDurationSecs, deps.lvLongSessionDurationSecs]
         : [deps.standardTokenDurationSecs, deps.standardTokenDurationSecs];
 
+    const req = spidUser.getAcsOriginalRequest();
     // Retrieve user IP from request
-    const errorOrUserIp = IPString.decode(spidUser.getAcsOriginalRequest()?.ip);
+    const errorOrUserIp = IPString.decode(req?.ip);
 
     if (isUserElegibleForFastLoginResult && E.isLeft(errorOrUserIp)) {
       return ResponseErrorInternal("Error reading user IP");
     }
+
+    // Verify presence of validation cookie
+    if (
+      isUserElegibleForCookieValidation(spidUser.fiscalNumber) &&
+      O.isNone(lookup("test")(req.cookies))
+    )
+      return ResponsePermanentRedirect(
+        getClientErrorRedirectionUrl({
+          errorMessage: "Validation error" as NonEmptyString,
+          errorCode: COOKIE_VALIDATION_ERROR_CODE,
+        }),
+      );
 
     //
     // create a new user object
