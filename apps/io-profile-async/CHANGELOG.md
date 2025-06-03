@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.7.0
+
+### Minor Changes
+
+- cad3488: Update Internal client
+
 ## 1.6.0
 
 ### Minor Changes
