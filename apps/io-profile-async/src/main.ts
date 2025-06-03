@@ -34,7 +34,7 @@ import { ExpiredSessionAdvisorQueueMessage } from "./types/expired-session-advis
 import { OnProfileUpdateFunctionInput } from "./types/on-profile-update-input-document";
 import { StoreSpidLogsQueueMessage } from "./types/store-spid-logs-queue-message";
 import { initTelemetryClient } from "./utils/appinsights";
-import { buildIoBackendInternalClient } from "./utils/backend-internal-client/dependency";
+import { buildSessionManagerInternalClient } from "./utils/session-manager-internal-client/dependency";
 import { getFetchApi } from "./utils/fetch-utils";
 import { buildFunctionProfileClient } from "./utils/function-profile-client/dependency";
 
@@ -65,7 +65,10 @@ const servicePreferenceModel = new ServicesPreferencesModel(
 );
 
 const fetchApi = getFetchApi(config);
-const backendInternalClient = buildIoBackendInternalClient(fetchApi, config);
+const sessionManagerInternalClient = buildSessionManagerInternalClient(
+  fetchApi,
+  config
+);
 const functionProfileClient = buildFunctionProfileClient(fetchApi, config);
 
 const HTML_TO_TEXT_OPTIONS: HtmlToTextOptions = {
@@ -105,7 +108,7 @@ export const ExpiredSessionAdvisor = ExpiredSessionAdvisorFunction({
     ctaUrl: config.EXPIRED_SESSION_CTA_URL
   }
 })({
-  backendInternalClient,
+  sessionManagerInternalClient,
   functionProfileClient,
   inputDecoder: ExpiredSessionAdvisorQueueMessage,
   mailerTransporter: getMailerTransporter(config)
