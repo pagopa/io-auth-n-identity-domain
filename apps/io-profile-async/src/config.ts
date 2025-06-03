@@ -14,12 +14,14 @@ import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
 import { BooleanFromString, NumberFromString, withFallback } from "io-ts-types";
 
-export const BackendInternalConfig = t.type({
-  BACKEND_INTERNAL_BASE_URL: UrlFromString,
-  BACKEND_INTERNAL_API_KEY: NonEmptyString
+export const SessionManagerInternalConfig = t.type({
+  SESSION_MANAGER_INTERNAL_BASE_URL: UrlFromString,
+  SESSION_MANAGER_INTERNAL_API_KEY: NonEmptyString
 });
 
-export type BackendInternalConfig = t.TypeOf<typeof BackendInternalConfig>;
+export type SessionManagerInternalConfig = t.TypeOf<
+  typeof SessionManagerInternalConfig
+>;
 
 export const FunctionProfileConfig = t.type({
   FUNCTION_PROFILE_BASE_URL: UrlFromString,
@@ -80,7 +82,7 @@ export const IConfig = t.intersection([
     isProduction: t.boolean
   }),
   t.intersection([
-    BackendInternalConfig,
+    SessionManagerInternalConfig,
     FunctionProfileConfig,
     MailerConfig,
     DryRunFeatureFlag,

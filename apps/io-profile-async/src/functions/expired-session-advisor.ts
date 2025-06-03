@@ -12,12 +12,12 @@ import * as L from "@pagopa/logger";
 import * as mailTemplate from "@pagopa/io-app-email-templates/ExpiredSessionUserReEngagement/index";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
-import { UserSessionInfo } from "../generated/definitions/backend-session/UserSessionInfo";
+import { UserSessionInfo } from "../generated/definitions/sm-internal/UserSessionInfo";
 import { EmailAddress } from "../generated/definitions/function-profile/EmailAddress";
 import { ExtendedProfile } from "../generated/definitions/function-profile/ExtendedProfile";
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
 import { trackEvent } from "../utils/appinsights";
-import { BackendInternalClientDependency } from "../utils/backend-internal-client/dependency";
+import { SessionManagerInternalClientDependency } from "../utils/session-manager-internal-client/dependency";
 import { FunctionProfileClientDependency } from "../utils/function-profile-client/dependency";
 import { MailerTransporterDependency } from "../utils/mailer-transporter/dependency";
 import { QueuePermanentError, QueueTransientError } from "../utils/queue-utils";
@@ -32,13 +32,15 @@ export interface ExpiredSessionEmailParameters {
 export const retrieveSession: (
   fiscalCode: FiscalCode
 ) => RTE.ReaderTaskEither<
-  BackendInternalClientDependency,
+  SessionManagerInternalClientDependency,
   QueueTransientError,
   UserSessionInfo
-> = (fiscalCode: FiscalCode) => ({ backendInternalClient }) =>
+> = (fiscalCode: FiscalCode) => ({
+  sessionManagerInternalClient: backendInternalClient
+}) =>
   pipe(
     TE.tryCatch(
-      () => backendInternalClient.getSession({ fiscalcode: fiscalCode }),
+      () => backendInternalClient.getSession({ fiscalCode }),
       () =>
         new QueueTransientError(
           "Error while calling the downstream component [retrieveSession]"
@@ -171,7 +173,7 @@ export const ExpiredSessionAdvisorHandler: (
 ) => H.Handler<
   ExpiredSessionAdvisorQueueMessage,
   undefined,
-  BackendInternalClientDependency &
+  SessionManagerInternalClientDependency &
     FunctionProfileClientDependency &
     MailerTransporterDependency
 > = ({ expiredSessionEmailParameters, dryRunFeatureFlag }) =>
