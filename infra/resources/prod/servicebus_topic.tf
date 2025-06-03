@@ -13,6 +13,7 @@ resource "azurerm_servicebus_subscription" "io_session_notifications_sub" {
   name               = "io-session-notifications-sub"
   topic_id           = azurerm_servicebus_topic.io_auth_sessions_topic.id
   max_delivery_count = 10
+  requires_session   = true
 }
 
 resource "azurerm_servicebus_subscription_rule" "session_events_filter" {
