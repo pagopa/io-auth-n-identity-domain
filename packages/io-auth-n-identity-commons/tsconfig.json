@@ -11,10 +11,5 @@
     "inlineSources": true,
     "declaration": true,
     "strict": true
-  },
-  "exclude": [
-    "dist",
-    "node_modules",
-    "**/__tests__/*",
-  ]
+  }
 }
