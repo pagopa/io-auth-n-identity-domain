@@ -7,22 +7,22 @@ describe("AuthSessionEvent decode tests", () => {
     const aValidLoginEvent = {
       eventType: "login",
       fiscalCode: "VSFNVG14A39Y596X",
-      expiredAt: 1748508155
+      expiredAt: 1748508155,
     };
     const decodeResult = AuthSessionEvent.decode(aValidLoginEvent);
 
     expect(decodeResult).toStrictEqual(
       E.of({
         ...aValidLoginEvent,
-        expiredAt: new Date(aValidLoginEvent.expiredAt)
-      })
+        expiredAt: new Date(aValidLoginEvent.expiredAt),
+      }),
     );
   });
 
   it("should fail when a login event lack of required properties", () => {
     const aBadLoginEvent = {
       eventType: "login",
-      fiscalCode: "VSFNVG14A39Y596X"
+      fiscalCode: "VSFNVG14A39Y596X",
     };
     const decodeResult = AuthSessionEvent.decode(aBadLoginEvent);
 
@@ -32,7 +32,7 @@ describe("AuthSessionEvent decode tests", () => {
   it("should decode a valid Logout event", () => {
     const aValidLogoutEvent = {
       eventType: "logout",
-      fiscalCode: "VSFNVG14A39Y596X"
+      fiscalCode: "VSFNVG14A39Y596X",
     };
     const decodeResult = AuthSessionEvent.decode(aValidLogoutEvent);
 
@@ -41,7 +41,7 @@ describe("AuthSessionEvent decode tests", () => {
 
   it("should fail when a logout event lack of required properties", () => {
     const aBadLogoutEvent = {
-      eventType: "logout"
+      eventType: "logout",
     };
     const decodeResult = AuthSessionEvent.decode(aBadLogoutEvent);
 
@@ -51,7 +51,7 @@ describe("AuthSessionEvent decode tests", () => {
   it("should fail when an unknown event is given", () => {
     const anUnknownEvent = {
       eventType: "unknownEvent",
-      fiscalCode: "VSFNVG14A39Y596X"
+      fiscalCode: "VSFNVG14A39Y596X",
     };
     const decodeResult = AuthSessionEvent.decode(anUnknownEvent);
 

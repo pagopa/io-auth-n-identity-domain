@@ -5,29 +5,29 @@ import * as t from "io-ts";
 
 export enum EventTypeEunum {
   "LOGIN" = "login",
-  "LOGOUT" = "logout"
+  "LOGOUT" = "logout",
 }
 
 export type EventType = t.TypeOf<typeof EventType>;
 export const EventType = enumType<EventTypeEunum>(EventTypeEunum, "EventType");
 
-export const BaseAuthSessionEvent = t.type({
-  fiscalCode: FiscalCode
+const BaseAuthSessionEvent = t.type({
+  fiscalCode: FiscalCode,
 });
 
 export const LoginEvent = t.intersection([
   t.type({
-    expiredAt: DateFromTimestamp
+    expiredAt: DateFromTimestamp,
   }),
   t.type({ eventType: t.literal(EventTypeEunum.LOGIN) }),
-  BaseAuthSessionEvent
+  BaseAuthSessionEvent,
 ]);
 export type LoginEvent = t.TypeOf<typeof LoginEvent>;
 
 //TODO: this will contain more data, under definition what to include in this event
 export const LogoutEvent = t.intersection([
   t.type({ eventType: t.literal(EventTypeEunum.LOGOUT) }),
-  BaseAuthSessionEvent
+  BaseAuthSessionEvent,
 ]);
 export type LogoutEvent = t.TypeOf<typeof LogoutEvent>;
 
