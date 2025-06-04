@@ -1,6 +1,6 @@
 ## `@pagopa/io-auth-n-identity-commons`
 
-Shared modules, functions, and types for authentication and identity, used across multiple applications within the monorepo.
+Shared modules, helper functions, and types for authentication and identity, used across multiple applications within the monorepo.
 
 > This package is part of the monorepo and is intended to be used as an internal dependency to promote reuse and consistency across services.
 
