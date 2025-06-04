@@ -11,7 +11,8 @@
         "tsconfig.json"
       ],
       "outputs": [
-        "dist/**"
+        "dist/**",
+        "lib/**"
       ],
       "dependsOn": [
         "^clean",

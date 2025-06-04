@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  // We extend it from here, asap!
+  "extends": "@pagopa/typescript-config-node/tsconfig.json",
+  "compilerOptions": {
+    "module": "Node16",
+    "target": "es2022",
+    "outDir": "lib",
+    "rootDir": "src",
+    "sourceMap": true,
+    "inlineSources": true,
+    "declaration": true,
+    "strict": true
+  },
+  "exclude": [
+    "lib",
+    "node_modules",
+    "**/__mocks__/**",
+    "**/__tests__/*",
+    "**/__integrations__",
+    "vite.config.mts"
+  ]
+}
