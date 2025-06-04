@@ -73,8 +73,6 @@ coverage
 out/
 build
 dist
-packages/*/lib
-
 
 # Debug
 npm-debug.log*

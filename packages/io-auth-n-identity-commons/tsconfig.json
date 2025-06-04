@@ -5,7 +5,7 @@
   "compilerOptions": {
     "module": "Node16",
     "target": "es2022",
-    "outDir": "lib",
+    "outDir": "dist",
     "rootDir": "src",
     "sourceMap": true,
     "inlineSources": true,
@@ -13,11 +13,8 @@
     "strict": true
   },
   "exclude": [
-    "lib",
+    "dist",
     "node_modules",
-    "**/__mocks__/**",
     "**/__tests__/*",
-    "**/__integrations__",
-    "vite.config.mts"
   ]
 }

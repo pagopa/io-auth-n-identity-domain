@@ -2,11 +2,11 @@
   "name": "@pagopa/io-auth-n-identity-commons",
   "version": "0.0.0",
   "license": "MIT",
-  "files": [
-    "lib/"
-  ],
+  "exports": {
+    "./*": "./dist/*.js"
+  },
   "scripts": {
-    "clean": "shx rm -rf lib",
+    "clean": "shx rm -rf dist",
     "build": "tsc",
     "build:watch": "tsc -w",
     "typecheck": "tsc --noemit",
