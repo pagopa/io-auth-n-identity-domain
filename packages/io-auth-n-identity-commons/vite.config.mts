@@ -6,6 +6,7 @@ export default defineConfig({
       exclude: [
         "dist",
         "/node_modules",
+        "**/__mocks__/**",
         "*.js",
         "src/**/index.ts",
         "src/**/dependency.ts",
