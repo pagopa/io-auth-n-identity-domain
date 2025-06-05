@@ -9,6 +9,8 @@ import {
 } from "../../types/auth-session-event";
 import { AuthSessionsTopicRepository } from "../auth-sessions-topic-repository";
 
+const contentType = "application/json";
+
 const aLoginEvent: AuthSessionEvent = {
   eventType: EventTypeEunum.LOGIN,
   fiscalCode: "AAAAAA89S20I111X" as FiscalCode,
@@ -37,7 +39,7 @@ describe("AuthSessionsTopicRepository", () => {
 
     expect(sendMessagesMock).toHaveBeenCalledWith({
       body: aLogoutEvent,
-      contentType: "application/json",
+      contentType,
       applicationProperties: {
         evetType: aLogoutEvent.eventType,
       },
@@ -57,7 +59,7 @@ describe("AuthSessionsTopicRepository", () => {
         ...aLoginEvent,
         expiredAt: aLoginEvent.expiredAt.getTime(),
       },
-      contentType: "application/json",
+      contentType,
       applicationProperties: {
         evetType: aLoginEvent.eventType,
       },
@@ -81,7 +83,7 @@ describe("AuthSessionsTopicRepository", () => {
         ...aLoginEvent,
         expiredAt: aLoginEvent.expiredAt.getTime(),
       },
-      contentType: "application/json",
+      contentType,
       applicationProperties: {
         evetType: aLoginEvent.eventType,
       },
