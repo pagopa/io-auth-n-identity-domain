@@ -6,7 +6,7 @@ describe("AuthSessionEvent decode tests", () => {
   it("should decode a valid Login event", () => {
     const aValidLoginEvent = {
       eventType: "login",
-      fiscalCode: "VSFNVG14A39Y596X",
+      fiscalCode: "AAAAAA89S20I111X",
       expiredAt: 1748508155,
     };
     const decodeResult = AuthSessionEvent.decode(aValidLoginEvent);
@@ -22,7 +22,7 @@ describe("AuthSessionEvent decode tests", () => {
   it("should fail when a login event lack of required properties", () => {
     const aBadLoginEvent = {
       eventType: "login",
-      fiscalCode: "VSFNVG14A39Y596X",
+      fiscalCode: "AAAAAA89S20I111X",
     };
     const decodeResult = AuthSessionEvent.decode(aBadLoginEvent);
 
@@ -32,7 +32,7 @@ describe("AuthSessionEvent decode tests", () => {
   it("should decode a valid Logout event", () => {
     const aValidLogoutEvent = {
       eventType: "logout",
-      fiscalCode: "VSFNVG14A39Y596X",
+      fiscalCode: "AAAAAA89S20I111X",
     };
     const decodeResult = AuthSessionEvent.decode(aValidLogoutEvent);
 
@@ -51,7 +51,7 @@ describe("AuthSessionEvent decode tests", () => {
   it("should fail when an unknown event is given", () => {
     const anUnknownEvent = {
       eventType: "unknownEvent",
-      fiscalCode: "VSFNVG14A39Y596X",
+      fiscalCode: "AAAAAA89S20I111X",
     };
     const decodeResult = AuthSessionEvent.decode(anUnknownEvent);
 

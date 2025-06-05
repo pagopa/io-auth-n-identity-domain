@@ -15,6 +15,10 @@ const BaseAuthSessionEvent = t.type({
   fiscalCode: FiscalCode,
 });
 
+//TODO: LoginEvent and LogoutEvent will contain other data,
+// currently only the fields needed for user engagement are included,
+// under definition what to include in this event for other purposes
+
 export const LoginEvent = t.intersection([
   t.type({
     expiredAt: DateFromTimestamp,
@@ -24,7 +28,6 @@ export const LoginEvent = t.intersection([
 ]);
 export type LoginEvent = t.TypeOf<typeof LoginEvent>;
 
-//TODO: this will contain more data, under definition what to include in this event
 export const LogoutEvent = t.intersection([
   t.type({ eventType: t.literal(EventTypeEunum.LOGOUT) }),
   BaseAuthSessionEvent,

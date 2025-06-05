@@ -30,7 +30,7 @@ const serviceBusSenderMock = {
 const deps = { authSessionsTopicSender: serviceBusSenderMock };
 
 describe("AuthSessionsTopicRepository", () => {
-  it("should sucesfully emit a Logout Event", async () => {
+  it("should successfully emit a Log-Out event", async () => {
     sendMessagesMock.mockResolvedValueOnce(void 0);
 
     const result =
@@ -47,7 +47,7 @@ describe("AuthSessionsTopicRepository", () => {
     expect(E.isRight(result)).toBe(true);
   });
 
-  it("should sucesfully emit a Login Event", async () => {
+  it("should successfully emit a Log-In event", async () => {
     sendMessagesMock.mockResolvedValueOnce(void 0);
 
     const result =
@@ -67,7 +67,7 @@ describe("AuthSessionsTopicRepository", () => {
     expect(E.isRight(result)).toBe(true);
   });
 
-  it("should propagate the error on sender failure emitting an Event", async () => {
+  it("should fail on sender failure emitting an event", async () => {
     const aServiceBusSenderError = new Error(
       "Failure sending message on ServiceBus",
     );
