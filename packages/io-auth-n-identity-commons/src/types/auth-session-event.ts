@@ -21,9 +21,9 @@ const BaseAuthSessionEvent = t.type({
 
 export const LoginEvent = t.intersection([
   t.type({
+    eventType: t.literal(EventTypeEunum.LOGIN),
     expiredAt: DateFromTimestamp,
   }),
-  t.type({ eventType: t.literal(EventTypeEunum.LOGIN) }),
   BaseAuthSessionEvent,
 ]);
 export type LoginEvent = t.TypeOf<typeof LoginEvent>;

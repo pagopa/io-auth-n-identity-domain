@@ -40,7 +40,7 @@ describe("AuthSessionsTopicRepository", () => {
       body: aLogoutEvent,
       contentType,
       applicationProperties: {
-        evetType: aLogoutEvent.eventType,
+        eventType: aLogoutEvent.eventType,
       },
       sessionId: aLogoutEvent.fiscalCode,
     });
@@ -60,7 +60,7 @@ describe("AuthSessionsTopicRepository", () => {
       },
       contentType,
       applicationProperties: {
-        evetType: aLoginEvent.eventType,
+        eventType: aLoginEvent.eventType,
       },
       sessionId: aLoginEvent.fiscalCode,
     });
@@ -84,7 +84,7 @@ describe("AuthSessionsTopicRepository", () => {
       },
       contentType,
       applicationProperties: {
-        evetType: aLoginEvent.eventType,
+        eventType: aLoginEvent.eventType,
       },
       sessionId: aLoginEvent.fiscalCode,
     });
