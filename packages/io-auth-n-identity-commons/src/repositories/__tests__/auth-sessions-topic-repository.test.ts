@@ -2,21 +2,22 @@ import { ServiceBusSender } from "@azure/service-bus";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
 import { describe, expect, it, vi } from "vitest";
-import { AuthSessionsTopicRepository } from "../auth-sessions-topic-repository";
 import {
-  AuthSessionEvent,
   EventTypeEunum,
+  LoginEvent,
+  LogoutEvent,
 } from "../../types/auth-session-event";
+import { AuthSessionsTopicRepository } from "../auth-sessions-topic-repository";
 
 const contentType = "application/json";
 
-const aLoginEvent: AuthSessionEvent = {
+const aLoginEvent: LoginEvent = {
   eventType: EventTypeEunum.LOGIN,
   fiscalCode: "AAAAAA89S20I111X" as FiscalCode,
   expiredAt: new Date("2025-01-01T00:00:00Z"),
 };
 
-const aLogoutEvent: AuthSessionEvent = {
+const aLogoutEvent: LogoutEvent = {
   eventType: EventTypeEunum.LOGOUT,
   fiscalCode: "BBBAAA89S20I111X" as FiscalCode,
 };
