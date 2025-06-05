@@ -13,9 +13,7 @@
   "exclude": [
     "dist",
     "node_modules",
-    "**/__mocks__/**",
     "**/__tests__/*",
-    "**/__integrations__",
     "vite.config.mts"
   ]
 }
