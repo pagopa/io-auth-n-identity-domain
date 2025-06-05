@@ -1,13 +1,12 @@
 import { ServiceBusSender } from "@azure/service-bus";
-import { QueueSendMessageResponse } from "@azure/storage-queue";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
 import { describe, expect, it, vi } from "vitest";
+import { AuthSessionsTopicRepository } from "../auth-sessions-topic-repository";
 import {
   AuthSessionEvent,
   EventTypeEunum,
 } from "../../types/auth-session-event";
-import { AuthSessionsTopicRepository } from "../auth-sessions-topic-repository";
 
 const contentType = "application/json";
 

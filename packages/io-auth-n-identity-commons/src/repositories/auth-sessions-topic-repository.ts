@@ -7,7 +7,6 @@ import { AuthSessionEvent } from "../types/auth-session-event";
 export type AuthSessionsTopicRepositoryDeps = {
   authSessionsTopicSender: ServiceBusSender;
 };
-
 const emitSessionEvent: (
   eventData: AuthSessionEvent,
 ) => RTE.ReaderTaskEither<AuthSessionsTopicRepositoryDeps, Error, void> =

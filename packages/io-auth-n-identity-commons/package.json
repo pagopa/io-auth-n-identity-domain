@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "license": "MIT",
   "exports": {
-    "./*": "./dist/*.js"
+    "./*": {
+      "import": "./dist/*.js",
+      "types": "./dist/*.d.ts"
+    }
   },
   "scripts": {
     "clean": "shx rm -rf dist",
