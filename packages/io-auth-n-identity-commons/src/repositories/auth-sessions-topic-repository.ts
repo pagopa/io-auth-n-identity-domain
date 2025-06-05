@@ -17,7 +17,7 @@ const emitSessionEvent: (
           body: AuthSessionEvent.encode(eventData),
           contentType: "application/json",
           applicationProperties: {
-            evetType: eventData.eventType, // subscriptions filters apply to applicationProperties
+            eventType: eventData.eventType, // subscriptions filters apply to applicationProperties
           },
           sessionId: eventData.fiscalCode, // fiscalCode as ServiceBus session identifier
         }),
