@@ -136,6 +136,15 @@ jobs:
         with:
           projectBaseDir: apps/io-web-profile/
 
+      - name: SonarCloud io-auth-n-identity-commons scan
+        if: steps.sonarcloud_filter.outputs.io-auth-n-identity-commons == 'true'
+        uses: SonarSource/sonarcloud-github-action@19888635fa64d24e533d388efe8264402dfd721b
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: packages/io-auth-n-identity-commons/
+
   e2e:
     runs-on: ubuntu-latest
     steps:
