@@ -39,8 +39,8 @@ LOLLIPOP_REVOKE_QUEUE_NAME=pubkeys-revoke
 
 BACKEND_HOST=https://localhost
 SPID_TESTENV_URL=https://spid-testenv2:8088
-SAML_CALLBACK_URL=http://localhost:8081/assertionConsumerService
-SAML_LOGOUT_CALLBACK_URL=http://localhost:8081/slo
+SAML_CALLBACK_URL=https://localhost:8080/sm/assertionConsumerService
+SAML_LOGOUT_CALLBACK_URL=https://localhost:8080/sm/slo
 
 CIE_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/cie/latest
 IDP_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/spid/latest
@@ -84,3 +84,5 @@ ALLOW_PAGOPA_IP_SOURCE_RANGE="::/0"
 ## TEST LOGIN CONFIG
 TEST_LOGIN_PASSWORD=test
 TEST_LOGIN_FISCAL_CODES=AAAAAA00A00A000B
+
+FF_VALIDATION_COOKIE=ALL
