@@ -72,4 +72,12 @@ export default defineWorkspace([
       environment: "node",
     },
   },
+  {
+    extends: "packages/io-auth-n-identity-commons/vite.config.mts",
+    test: {
+      name: "io-auth-n-identity-commons",
+      include: ["packages/io-auth-n-identity-commons/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
 ]);
