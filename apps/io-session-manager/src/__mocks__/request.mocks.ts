@@ -12,6 +12,7 @@ export default function mockReq({
   query = {},
   user = {},
   ip = "10.0.0.1",
+  cookies = {},
 } = {}) {
   const request = {
     accepts: vi.fn(),
@@ -22,6 +23,7 @@ export default function mockReq({
     acceptsLanguage: vi.fn(),
     acceptsLanguages: vi.fn(),
     body,
+    cookies,
     header: vi.fn(),
     headers,
     is: vi.fn(),

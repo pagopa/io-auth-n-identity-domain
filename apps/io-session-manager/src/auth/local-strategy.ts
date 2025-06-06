@@ -10,6 +10,7 @@ import { flow, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import * as jose from "jose";
+import * as express from "express";
 import { SpidLevelEnum } from "../generated/backend/SpidLevel";
 import { log } from "../utils/logger";
 import {
@@ -19,6 +20,7 @@ import {
 import { LollipopApiClient } from "../repositories/lollipop-api";
 import { LollipopLoginParams, lollipopLoginHandler } from "../utils/lollipop";
 import { SpidUser } from "../types/user";
+import { VALIDATION_COOKIE_NAME } from "../config/validation-cookie";
 
 /**
  * Create a new Local Strategy with provided authorized fiscal code (user names)
@@ -47,10 +49,11 @@ export const localStrategy = (
       TE.chain(() =>
         TE.tryCatch(
           () =>
-            lollipopLoginHandler(
-              lollipopApiClient,
-              appInsightsTelemetryClient,
-            )(req),
+            lollipopLoginHandler(lollipopApiClient, appInsightsTelemetryClient)(
+              req,
+              // mock cookie setting function for test-login
+              { cookie: () => void 0 } as unknown as express.Response,
+            ),
           E.toError,
         ),
       ),
@@ -86,8 +89,14 @@ export const localStrategy = (
           issuer: Object.keys(SPID_IDP_IDENTIFIERS)[0] as Issuer,
           name: "Mario",
         };
+
+        // Setting req.cookies for test-login endpoint
+        // eslint-disable-next-line functional/immutable-data
+        req.cookies = { [VALIDATION_COOKIE_NAME]: inResponseTo };
+
         return {
           ...spidUserData,
+          // mock cookies to let validation pass
           getAcsOriginalRequest: () => req,
           getAssertionXml: () =>
             getASAMLAssertion_saml2Namespace(

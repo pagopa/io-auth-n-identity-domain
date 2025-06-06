@@ -13,12 +13,12 @@ import { ResponsePermanentRedirect } from "@pagopa/ts-commons/lib/responses";
 import * as E from "fp-ts/Either";
 import { CIDR, FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { pick } from "@pagopa/ts-commons/lib/types";
+import cookieparser from "cookie-parser";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
 import { RedisRepo, FnAppRepo, FnLollipopRepo } from "./repositories";
 import { attachTrackingData } from "./utils/appinsights";
 import { getRequiredENVVar } from "./utils/environment";
-import cookieparser from "cookie-parser";
 import {
   AuthenticationController,
   SessionController,
@@ -77,7 +77,7 @@ import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
-import { isUserElegibleForCookieValidation } from "./config/cookie-validation";
+import { isUserElegibleForValidationCookie } from "./config/validation-cookie";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -173,7 +173,7 @@ export const newApp: (
     ...pick(["fnAppAPIClient", "fnLollipopAPIClient"], APIClients),
     ...omit(["spidLogQueueClient"], storageDependencies),
     isUserElegibleForFastLogin,
-    isUserElegibleForCookieValidation,
+    isUserElegibleForCookieValidation: isUserElegibleForValidationCookie,
   };
 
   pipe(

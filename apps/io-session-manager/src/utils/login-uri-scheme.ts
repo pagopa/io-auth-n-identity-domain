@@ -9,13 +9,17 @@ import {
   IResponseErrorInternal,
   IResponsePermanentRedirect,
   ResponseErrorInternal,
-  ResponsePermanentRedirect,
 } from "@pagopa/ts-commons/lib/responses";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import {
   FeatureFlag,
   getIsUserEligibleForNewFeature,
 } from "@pagopa/ts-commons/lib/featureFlag";
+import {
+  VALIDATION_COOKIE_NAME,
+  VALIDATION_COOKIE_SETTINGS,
+} from "../config/validation-cookie";
+import { withCookieClearanceResponsePermanentRedirect } from "./responses";
 
 const IOLOGIN_URI_SCHEME = "iologin:";
 const defaultUrlSchemeRegex = new RegExp("^http[s]?:");
@@ -56,5 +60,11 @@ export const internalErrorOrIoLoginRedirect = (
         `Invalid url | ${readableReportSimplified(errors)}`,
       ),
     ),
-    E.map(ResponsePermanentRedirect),
+    E.map((location) =>
+      withCookieClearanceResponsePermanentRedirect(
+        location,
+        VALIDATION_COOKIE_NAME,
+        VALIDATION_COOKIE_SETTINGS,
+      ),
+    ),
   );
