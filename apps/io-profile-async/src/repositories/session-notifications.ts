@@ -1,5 +1,5 @@
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { pipe } from "fp-ts/lib/function";
 import * as R from "fp-ts/lib/Reader";
 import * as RTE from "fp-ts/ReaderTaskEither";
@@ -13,6 +13,7 @@ import {
   SessionNotificationsModel
 } from "../models/session-notifications";
 import { Interval } from "../types/interval";
+import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 
 export type Dependencies = {
   readonly sessionNotificationsModel: SessionNotificationsModel;
@@ -100,8 +101,10 @@ const createRecord: (
       notificationEvents: {
         EXPIRED_SESSION: false,
         EXPIRING_SESSION: false
-      }
-    } as NewSessionNotifications),
+      },
+      ttl: 1000 as NonNegativeInteger,
+      kind: "INewSessionNotifications"
+    }),
     TE.map(() => void 0)
   );
 
