@@ -5,3 +5,11 @@ export class TransientError extends Error {
     this.name = "TransientError";
   }
 }
+
+// Custom error, used to mark a permanent error occurred during AzureFunction execution, errors that cannot be recovered automatically by a retry
+export class PermanentError extends Error {
+  constructor(message?: string, error?: Error) {
+    super(message, error);
+    this.name = "PermanentError";
+  }
+}
