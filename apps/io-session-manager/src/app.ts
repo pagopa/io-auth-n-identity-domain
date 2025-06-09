@@ -173,7 +173,7 @@ export const newApp: (
     ...pick(["fnAppAPIClient", "fnLollipopAPIClient"], APIClients),
     ...omit(["spidLogQueueClient"], storageDependencies),
     isUserElegibleForFastLogin,
-    isUserElegibleForCookieValidation: isUserElegibleForValidationCookie,
+    isUserElegibleForValidationCookie,
   };
 
   pipe(

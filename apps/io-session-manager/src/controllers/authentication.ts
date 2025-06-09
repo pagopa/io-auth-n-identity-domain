@@ -150,7 +150,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
       typeof getIsUserElegibleForIoLoginUrlScheme
     >;
     isUserElegibleForFastLogin: (fiscalCode: FiscalCode) => boolean;
-    isUserElegibleForCookieValidation: (fiscalCode: FiscalCode) => boolean;
+    isUserElegibleForValidationCookie: (fiscalCode: FiscalCode) => boolean;
   };
 
 export const acs: (
@@ -443,7 +443,7 @@ export const acs: (
       TE.chainW((assertionRef) =>
         pipe(
           {
-            isUserElegible: deps.isUserElegibleForCookieValidation(
+            isUserElegible: deps.isUserElegibleForValidationCookie(
               spidUser.fiscalNumber,
             ),
             // even if the FF is off, we want to send an event if a mismatch
@@ -451,16 +451,26 @@ export const acs: (
             errorOrValidatedCookie: pipe(
               req.cookies,
               RR.lookup(VALIDATION_COOKIE_NAME),
-              E.fromOption(() => Error("Validation cookie missing")),
+              E.fromOption(() => {
+                deps.appInsightsTelemetryClient?.trackEvent({
+                  name: "acs.error.validation_cookie_missing",
+                  properties: {
+                    assertionRef,
+                    fiscal_code: sha256(spidUser.fiscalNumber),
+                    issuer: spidUser.issuer,
+                  },
+                  tagOverrides: {
+                    samplingEnabled: "false",
+                  },
+                });
+                return Error("Validation cookie missing");
+              }),
               E.chain(
                 E.fromPredicate(
                   (cookieValue) => assertionRef === cookieValue,
                   () => {
-                    log.error(
-                      "acs: cookie mismatch during equality check with InResponseTo from SAMLResponse",
-                    );
                     deps.appInsightsTelemetryClient?.trackEvent({
-                      name: "acs.error.cookie_validation_mismatch",
+                      name: "acs.error.validation_cookie_mismatch",
                       properties: {
                         assertionRef,
                         fiscal_code: sha256(spidUser.fiscalNumber),
@@ -485,7 +495,7 @@ export const acs: (
                 () =>
                   pipe(
                     errorOrValidatedCookie,
-                    E.fromPredicate(E.isRight, () =>
+                    E.mapLeft(() =>
                       // if user is elegible for cookie validation
                       // and cookie is either missing or invalid we return
                       // a custom error to the client

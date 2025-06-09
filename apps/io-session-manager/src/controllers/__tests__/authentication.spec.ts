@@ -46,7 +46,7 @@ import { mockRedisClientSelector } from "../../__mocks__/redis.mocks";
 import {
   mockTrackEvent,
   mockedAppinsightsTelemetryClient,
-} from "../../__mocks__/appinsights.mocks.ts";
+} from "../../__mocks__/appinsights.mocks";
 import {
   aFiscalCode,
   aSessionTrackingId,
@@ -95,8 +95,8 @@ import { toExpectedResponse } from "../../__tests__/utils";
 import {
   VALIDATION_COOKIE_NAME,
   VALIDATION_COOKIE_SETTINGS,
-} from "../../config/validation-cookie.ts";
-import { withCookieClearanceResponsePermanentRedirect } from "../../utils/responses.ts";
+} from "../../config/validation-cookie";
+import { withCookieClearanceResponsePermanentRedirect } from "../../utils/responses";
 
 const dependencies: AcsDependencies = {
   redisClientSelector: mockRedisClientSelector,
@@ -116,7 +116,7 @@ const dependencies: AcsDependencies = {
   isUserElegibleForIoLoginUrlScheme: () => false,
   appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
   isUserElegibleForFastLogin: () => false,
-  isUserElegibleForCookieValidation: () => false,
+  isUserElegibleForValidationCookie: () => false,
 };
 
 const req = mockReq();
@@ -486,7 +486,6 @@ describe("AuthenticationController#acs Age Limit", () => {
     const response = await acs(dependencies)(aYoungUserPayload);
     response.apply(res);
 
-    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toBeCalled();
     expect(res.redirect).toHaveBeenCalledWith(
       301,
       expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
@@ -1162,7 +1161,8 @@ describe("AuthenticationController#acs LV Notify user login", () => {
     expect(mockDeleteAssertionRefAssociation).toHaveBeenCalledTimes(1);
 
     expect(mockedAppinsightsTelemetryClient.trackEvent).toHaveBeenNthCalledWith(
-      1,
+      // 1st call is dedicated to validation_cookie missing
+      2,
       expect.objectContaining({
         name: "lollipop.error.acs.notify",
         properties: {
@@ -1182,7 +1182,7 @@ describe("AuthenticationController#acs cookie validation", () => {
 
   const cookieValidationScenarioDeps = {
     ...dependencies,
-    isUserElegibleForCookieValidation: () => true,
+    isUserElegibleForValidationCookie: () => true,
   };
   const validUserPayloadWithCookie = {
     ...validUserPayload,
@@ -1212,7 +1212,7 @@ describe("AuthenticationController#acs cookie validation", () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  test("should track cookie mismatch even if FF is off", async () => {
+  test("should track cookie mismatch event if FF is off", async () => {
     const invalidUserPayloadWithCookie = {
       ...validUserPayload,
       getAcsOriginalRequest: () =>
@@ -1223,7 +1223,7 @@ describe("AuthenticationController#acs cookie validation", () => {
 
     const response = await acs({
       ...cookieValidationScenarioDeps,
-      isUserElegibleForCookieValidation: () => false,
+      isUserElegibleForValidationCookie: () => false,
     })(invalidUserPayloadWithCookie);
     response.apply(res);
 
@@ -1240,7 +1240,7 @@ describe("AuthenticationController#acs cookie validation", () => {
     });
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledWith({
-      name: "acs.error.cookie_validation_mismatch",
+      name: "acs.error.validation_cookie_mismatch",
       properties: expect.objectContaining({
         assertionRef: anotherAssertionRef,
         issuer: invalidUserPayloadWithCookie.issuer,
@@ -1263,7 +1263,17 @@ describe("AuthenticationController#acs cookie validation", () => {
     );
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
-    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith({
+      name: "acs.error.validation_cookie_missing",
+      properties: expect.objectContaining({
+        assertionRef: anotherAssertionRef,
+        issuer: validUserPayload.issuer,
+      }),
+      tagOverrides: {
+        samplingEnabled: "false",
+      },
+    });
   });
 
   test("should error with cookie clearance on wrong cookie value", async () => {
@@ -1289,7 +1299,7 @@ describe("AuthenticationController#acs cookie validation", () => {
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledWith({
-      name: "acs.error.cookie_validation_mismatch",
+      name: "acs.error.validation_cookie_mismatch",
       properties: expect.objectContaining({
         assertionRef: anotherAssertionRef,
         issuer: validUserPayload.issuer,

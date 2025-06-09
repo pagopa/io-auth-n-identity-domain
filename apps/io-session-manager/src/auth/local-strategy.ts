@@ -96,7 +96,6 @@ export const localStrategy = (
 
         return {
           ...spidUserData,
-          // mock cookies to let validation pass
           getAcsOriginalRequest: () => req,
           getAssertionXml: () =>
             getASAMLAssertion_saml2Namespace(

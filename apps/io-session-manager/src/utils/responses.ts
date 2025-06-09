@@ -7,10 +7,8 @@ import {
   IResponseErrorInternal,
   IResponseErrorValidation,
   IResponsePermanentRedirect,
-  IResponseSuccessJson,
   ResponseErrorInternal,
   ResponseErrorValidation,
-  ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import * as t from "io-ts";
 import * as E from "fp-ts/Either";
