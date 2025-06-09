@@ -1,4 +1,9 @@
-import { Container, RequestOptions, SqlQuerySpec } from "@azure/cosmos";
+import {
+  Container,
+  FeedResponse,
+  RequestOptions,
+  SqlQuerySpec
+} from "@azure/cosmos";
 import {
   CosmosErrors,
   DocumentSearchKey,
@@ -10,7 +15,7 @@ import {
   CosmosResourceTTL
 } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model_ttl";
 import { wrapWithKind } from "@pagopa/io-functions-commons/dist/src/utils/types";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as t from "io-ts";
@@ -26,7 +31,7 @@ export const NotificationEvents = t.partial({
 export type NotificationEvents = t.TypeOf<typeof NotificationEvents>;
 
 export const SessionNotifications = t.type({
-  id: FiscalCode,
+  id: NonEmptyString,
   expiredAt: t.number,
   notificationEvents: NotificationEvents
 });
@@ -68,10 +73,12 @@ export class SessionNotificationsModel extends CosmosdbModelTTL<
   public buildAsyncIterable(
     query: string | SqlQuerySpec,
     cosmosChunkSize: number
-  ): AsyncIterable<ReadonlyArray<t.Validation<RetrievedSessionNotifications>>> {
-    return this.getQueryIterator(query, {
-      maxItemCount: cosmosChunkSize
-    });
+  ): AsyncIterable<FeedResponse<unknown>> {
+    return this.container.items
+      .query(query, {
+        maxItemCount: cosmosChunkSize
+      })
+      .getAsyncIterator();
   }
 
   /**

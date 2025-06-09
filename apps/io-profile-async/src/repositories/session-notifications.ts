@@ -1,4 +1,7 @@
+import { SqlQuerySpec } from "@azure/cosmos";
+import { mapAsyncIterable } from "@pagopa/io-functions-commons/dist/src/utils/async";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
+import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { pipe } from "fp-ts/lib/function";
 import * as R from "fp-ts/lib/Reader";
@@ -6,18 +9,33 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
 import {
-  NewSessionNotifications,
-  RetrievedSessionNotifications,
   SESSION_NOTIFICATIONS_MODEL_KEY_FIELD,
   SESSION_NOTIFICATIONS_ROW_PK_FIELD,
   SessionNotificationsModel
 } from "../models/session-notifications";
 import { Interval } from "../types/interval";
-import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
+import { RetrievedSessionNotificationsStrict } from "../types/session-notification-strict";
 
 export type Dependencies = {
   readonly sessionNotificationsModel: SessionNotificationsModel;
 };
+
+const findUsingStrictAsyncIterable: (
+  query: string | SqlQuerySpec,
+  cosmosChunkSize: number
+) => R.Reader<
+  Dependencies,
+  AsyncIterable<
+    ReadonlyArray<t.Validation<RetrievedSessionNotificationsStrict>>
+  >
+> = (query, cosmosChunkSize) => deps =>
+  pipe(
+    deps.sessionNotificationsModel.buildAsyncIterable(query, cosmosChunkSize),
+    iterator =>
+      mapAsyncIterable(iterator, feedResponse =>
+        feedResponse.resources.map(RetrievedSessionNotificationsStrict.decode)
+      )
+  );
 
 /**
  * Finds session-notifications documents with expiredAt within a given interval.
@@ -25,14 +43,16 @@ export type Dependencies = {
  * @param interval The interval to search for
  * @returns A TaskEither that resolves to an array of all session-notifications documents within the interval
  */
-const findByExpiredAtAsyncIterable: (
+const findByExpiredAtAsyncIterable = (
   interval: Interval,
   chunkSize: number
-) => R.Reader<
+): R.Reader<
   Dependencies,
-  AsyncIterable<ReadonlyArray<t.Validation<RetrievedSessionNotifications>>>
-> = (interval, chunkSize) => deps =>
-  deps.sessionNotificationsModel.buildAsyncIterable(
+  AsyncIterable<
+    ReadonlyArray<t.Validation<RetrievedSessionNotificationsStrict>>
+  >
+> =>
+  findUsingStrictAsyncIterable(
     {
       parameters: [
         {
@@ -58,14 +78,16 @@ const findByExpiredAtAsyncIterable: (
  * @param interval The interval to search for
  * @returns A TaskEither that resolves to an array of all session-notifications documents having the given fiscalCode
  */
-const findByFiscalCodeAsyncIterable: (
+const findByFiscalCodeAsyncIterable = (
   fiscalCode: FiscalCode,
   chunkSize: number
-) => R.Reader<
+): R.Reader<
   Dependencies,
-  AsyncIterable<ReadonlyArray<t.Validation<RetrievedSessionNotifications>>>
-> = (fiscalCode, chunkSize) => deps =>
-  deps.sessionNotificationsModel.buildAsyncIterable(
+  AsyncIterable<
+    ReadonlyArray<t.Validation<RetrievedSessionNotificationsStrict>>
+  >
+> =>
+  findUsingStrictAsyncIterable(
     {
       parameters: [
         {
@@ -96,7 +118,7 @@ const createRecord: (
 ) => deps =>
   pipe(
     deps.sessionNotificationsModel.create({
-      id: fiscalCode,
+      id: (fiscalCode as unknown) as NonEmptyString,
       expiredAt,
       notificationEvents: {
         EXPIRED_SESSION: false,

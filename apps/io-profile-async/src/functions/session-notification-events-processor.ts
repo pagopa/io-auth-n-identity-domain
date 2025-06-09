@@ -16,11 +16,11 @@ import * as RA from "fp-ts/ReadonlyArray";
 import * as TE from "fp-ts/TaskEither";
 import { Errors } from "io-ts";
 import { ExpiredSessionDiscovererConfig } from "../config";
-import { SessionNotifications } from "../models/session-notifications";
 import {
   SessionNotificationsRepository,
   Dependencies as SessionNotificationsRepositoryDependencies
 } from "../repositories/session-notifications";
+import { SessionNotificationsStrict } from "../types/session-notification-strict";
 import { trackEvent } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
 import { PermanentError, TransientError } from "../utils/errors";
@@ -71,7 +71,7 @@ export const retrievePreviousRecordFromDb: (
 ) => RTE.ReaderTaskEither<
   TriggerDependencies,
   PermanentError | TransientError,
-  ReadonlyArray<SessionNotifications>
+  ReadonlyArray<SessionNotificationsStrict>
 > = (fiscalCode: FiscalCode) => deps =>
   pipe(
     deps.SessionNotificationsRepo.findByFiscalCodeAsyncIterable(
@@ -98,7 +98,7 @@ export const retrievePreviousRecordFromDb: (
 
 // Delete All retrievedRecords
 export const deletePreviousRecords: (
-  previousRecords: ReadonlyArray<SessionNotifications>
+  previousRecords: ReadonlyArray<SessionNotificationsStrict>
 ) => RTE.ReaderTaskEither<
   TriggerDependencies,
   TransientError,
