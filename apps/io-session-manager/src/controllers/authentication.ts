@@ -442,42 +442,65 @@ export const acs: (
       ),
       TE.chainW((assertionRef) =>
         pipe(
-          deps.isUserElegibleForCookieValidation(spidUser.fiscalNumber),
-          B.fold(
-            () => TE.right(assertionRef),
-            () =>
-              pipe(
-                req.cookies,
-                RR.lookup(VALIDATION_COOKIE_NAME),
-                E.fromOption(() => Error("Validation cookie missing")),
-                E.chain(
-                  E.fromPredicate(
-                    (cookieValue) => assertionRef === cookieValue,
-                    () => Error("Validation step for cookie failed"),
-                  ),
+          {
+            isUserElegible: deps.isUserElegibleForCookieValidation(
+              spidUser.fiscalNumber,
+            ),
+            // even if the FF is off, we want to send an event if a mismatch
+            // happens. so this either is evaluated in each case
+            errorOrValidatedCookie: pipe(
+              req.cookies,
+              RR.lookup(VALIDATION_COOKIE_NAME),
+              E.fromOption(() => Error("Validation cookie missing")),
+              E.chain(
+                E.fromPredicate(
+                  (cookieValue) => assertionRef === cookieValue,
+                  () => {
+                    deps.appInsightsTelemetryClient?.trackEvent({
+                      name: "acs.error.cookie_validation_mismatch",
+                      properties: {
+                        assertionRef,
+                        fiscal_code: sha256(spidUser.fiscalNumber),
+                        issuer: spidUser.issuer,
+                      },
+                      tagOverrides: {
+                        samplingEnabled: "false",
+                      },
+                    });
+                    return Error("Validation step for cookie failed");
+                  },
                 ),
-                E.map(() => assertionRef),
-                E.mapLeft((error) => {
-                  deps.appInsightsTelemetryClient?.trackEvent({
-                    name: "acs.error.cookie_validation",
-                    properties: {
-                      fiscal_code: sha256(spidUser.fiscalNumber),
-                      message: error.message,
-                      assertionRef,
-                    },
-                  });
-                  return O.some(
-                    validationCookieClearancePermanentRedirect(
-                      getClientErrorRedirectionUrl({
-                        errorMessage: "Validation error" as NonEmptyString,
-                        errorCode: VALIDATION_COOKIE_ERROR_CODE,
-                      }),
-                    ),
-                  );
-                }),
-                TE.fromEither,
               ),
-          ),
+              E.map(() => void 0),
+            ),
+          },
+          ({ isUserElegible, errorOrValidatedCookie }) =>
+            pipe(
+              isUserElegible,
+              B.fold(
+                () => E.right(assertionRef),
+                () =>
+                  pipe(
+                    errorOrValidatedCookie,
+                    E.fromPredicate(E.isRight, () =>
+                      // is user is elegible for cookie validation
+                      // and cookie is either missing or invalid we return
+                      // a custom error to the client
+                      O.some(
+                        validationCookieClearancePermanentRedirect(
+                          getClientErrorRedirectionUrl({
+                            errorMessage: "Validation error" as NonEmptyString,
+                            errorCode: VALIDATION_COOKIE_ERROR_CODE,
+                          }),
+                        ),
+                      ),
+                    ),
+                    // proceed as usual
+                    E.map((_) => assertionRef),
+                  ),
+              ),
+            ),
+          TE.fromEither,
         ),
       ),
       TE.chainW((assertionRef) =>

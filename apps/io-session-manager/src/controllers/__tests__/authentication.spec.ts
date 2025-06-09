@@ -1212,6 +1212,45 @@ describe("AuthenticationController#acs cookie validation", () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
+  test("should track cookie mismatch even if FF is off", async () => {
+    const invalidUserPayloadWithCookie = {
+      ...validUserPayload,
+      getAcsOriginalRequest: () =>
+        mockReq({
+          cookies: { [VALIDATION_COOKIE_NAME]: "WRONG" },
+        }),
+    };
+
+    const response = await acs({
+      ...cookieValidationScenarioDeps,
+      isUserElegibleForCookieValidation: () => false,
+    })(invalidUserPayloadWithCookie);
+    response.apply(res);
+
+    expect(res.redirect).toHaveBeenCalledWith(
+      301,
+      expect.stringContaining(`?token=${mockSessionToken}`),
+    );
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+    expect(res.clearCookie).toHaveBeenCalledWith(VALIDATION_COOKIE_NAME, {
+      ...VALIDATION_COOKIE_SETTINGS,
+      maxAge: undefined,
+      expires: undefined,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith({
+      name: "acs.error.cookie_validation_mismatch",
+      properties: expect.objectContaining({
+        assertionRef: anotherAssertionRef,
+        issuer: invalidUserPayloadWithCookie.issuer,
+      }),
+      tagOverrides: {
+        samplingEnabled: "false",
+      },
+    });
+  });
+
   test("should error with cookie clearance on missing cookie", async () => {
     const response = await acs(cookieValidationScenarioDeps)(validUserPayload);
     response.apply(res);
@@ -1224,13 +1263,7 @@ describe("AuthenticationController#acs cookie validation", () => {
     );
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    expect(mockTrackEvent).toHaveBeenCalledWith({
-      name: "acs.error.cookie_validation",
-      properties: expect.objectContaining({
-        message: "Validation cookie missing",
-      }),
-    });
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   test("should error with cookie clearance on wrong cookie value", async () => {
@@ -1256,10 +1289,14 @@ describe("AuthenticationController#acs cookie validation", () => {
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledWith({
-      name: "acs.error.cookie_validation",
+      name: "acs.error.cookie_validation_mismatch",
       properties: expect.objectContaining({
-        message: "Validation step for cookie failed",
+        assertionRef: anotherAssertionRef,
+        issuer: validUserPayload.issuer,
       }),
+      tagOverrides: {
+        samplingEnabled: "false",
+      },
     });
   });
 });
