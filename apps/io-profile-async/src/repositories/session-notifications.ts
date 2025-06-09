@@ -6,6 +6,7 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
 import {
+  NewSessionNotifications,
   RetrievedSessionNotifications,
   SESSION_NOTIFICATIONS_MODEL_KEY_FIELD,
   SESSION_NOTIFICATIONS_ROW_PK_FIELD,
@@ -84,6 +85,25 @@ const deleteRecord: (
   fiscalCode,
   expiredAt
 ) => deps => deps.sessionNotificationsModel.delete([fiscalCode, expiredAt]);
+
+const createRecord: (
+  fiscalCode: FiscalCode,
+  expiredAt: number
+) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> = (
+  fiscalCode: FiscalCode,
+  expiredAt: number
+) => deps =>
+  pipe(
+    deps.sessionNotificationsModel.create({
+      id: fiscalCode,
+      expiredAt,
+      notificationEvents: {
+        EXPIRED_SESSION: false,
+        EXPIRING_SESSION: false
+      }
+    } as NewSessionNotifications),
+    TE.map(() => void 0)
+  );
 
 /**
  * Updates notification events for a session-notifications document.
