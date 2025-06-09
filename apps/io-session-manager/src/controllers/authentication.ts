@@ -456,6 +456,9 @@ export const acs: (
                 E.fromPredicate(
                   (cookieValue) => assertionRef === cookieValue,
                   () => {
+                    log.error(
+                      "acs: cookie mismatch during equality check with InResponseTo from SAMLResponse",
+                    );
                     deps.appInsightsTelemetryClient?.trackEvent({
                       name: "acs.error.cookie_validation_mismatch",
                       properties: {
@@ -483,7 +486,7 @@ export const acs: (
                   pipe(
                     errorOrValidatedCookie,
                     E.fromPredicate(E.isRight, () =>
-                      // is user is elegible for cookie validation
+                      // if user is elegible for cookie validation
                       // and cookie is either missing or invalid we return
                       // a custom error to the client
                       O.some(
