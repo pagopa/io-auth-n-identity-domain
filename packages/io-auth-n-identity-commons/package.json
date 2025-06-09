@@ -13,7 +13,6 @@
     "build": "tsc",
     "build:watch": "tsc -w",
     "typecheck": "tsc --noemit",
-    "import": "node ./dist/app.js",
     "lint": "yarn lint:check --fix",
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache",
     "test": "vitest run",
@@ -34,8 +33,10 @@
   },
   "dependencies": {
     "@azure/service-bus": "^7.9.5",
-    "@pagopa/ts-commons": "^13.1.2",
-    "fp-ts": "^2.16.10",
+    "@pagopa/ts-commons": "^13.1.2"
+  },
+  "peerDependencies": {
+    "fp-ts": "^2.16.9",
     "io-ts": "^2.2.22"
   }
 }
