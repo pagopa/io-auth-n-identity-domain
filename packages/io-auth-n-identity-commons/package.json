@@ -33,7 +33,9 @@
   },
   "dependencies": {
     "@azure/service-bus": "^7.9.5",
-    "@pagopa/ts-commons": "^13.1.2"
+    "@pagopa/ts-commons": "^13.1.2",
+    "fp-ts": "^2.16.9",
+    "io-ts": "^2.2.22"
   },
   "peerDependencies": {
     "fp-ts": "^2.16.9",
