@@ -1,0 +1,15 @@
+{
+  "bindings": [
+    {
+      "type": "serviceBusTrigger",
+      "name": "message",
+      "direction": "in",
+      "connection": "SERVICEBUS_NAMESPACE",
+      "subscriptionName": "%SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION%",
+      "topicName": "%SERVICEBUS_AUTH_SESSION_TOPIC%",
+      "autoComplete": true
+    }
+  ],
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "SessionNotificationEventsProcessor"
+}
