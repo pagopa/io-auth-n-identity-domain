@@ -273,3 +273,36 @@ customEvents
 
   tags = local.tags
 }
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-user-sessions-poison-queue-alert" {
+  enabled                 = true
+  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] An expired user sessions queue poison message was detected"
+  resource_group_name     = data.azurerm_resource_group.main_resource_group.name
+  scopes                  = [data.azurerm_application_insights.application_insights.id]
+  description             = "Some expired user sessions queue insertions failed and a poison message was detected in the queue."
+  severity                = 1
+  auto_mitigation_enabled = false
+  location                = local.location
+
+  // check once every day(evaluation_frequency)
+  // on the last 24 hours of data(window_duration)
+  evaluation_frequency = "P1D"
+  window_duration      = "P1D"
+
+  criteria {
+    query                   = <<-QUERY
+      StorageQueueLogs  
+      | where OperationName contains "PutMessage" 
+      | where ObjectKey == "/iopweucitizenauthst/expired-user-sessions-poison"
+    QUERY
+    operator                = "GreaterThan"
+    time_aggregation_method = "Count"
+    threshold               = 0
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}
