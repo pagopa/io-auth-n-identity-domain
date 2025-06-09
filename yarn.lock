@@ -1898,7 +1898,7 @@ __metadata:
   dependencies:
     "@azure/service-bus": "npm:^7.9.5"
     "@pagopa/eslint-config": "npm:^3.0.0"
-    "@pagopa/ts-commons": "npm:^13.1.2"
+    "@pagopa/ts-commons": "npm:^13.1.1"
     "@pagopa/typescript-config-node": "npm:*"
     "@types/node": "npm:^20.12.2"
     "@vitest/coverage-v8": "npm:~1.5.0"
@@ -1912,6 +1912,7 @@ __metadata:
     typescript: "npm:^5.4.5"
     vitest: "npm:~1.5.3"
   peerDependencies:
+    "@pagopa/ts-commons": ^13.1.1
     fp-ts: ^2.16.9
     io-ts: ^2.2.22
   languageName: unknown
