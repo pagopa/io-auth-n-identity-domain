@@ -175,7 +175,7 @@ jobs:
 
       - name: Generate Environment
         run: >-
-          cp docker/env.common.example docker/env.common &&
+          cp docker/.env.common.example docker/.env.common &&
           yarn docker:generate:env
 
       - uses: dorny/paths-filter@v3.0.2
