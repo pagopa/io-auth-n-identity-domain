@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.5.3
+
+### Patch Changes
+
+- fc30d79: Introduced Validation Cookie
+
 ## 1.5.2
 
 ### Patch Changes
