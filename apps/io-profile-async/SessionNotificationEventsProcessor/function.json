@@ -4,7 +4,7 @@
       "type": "serviceBusTrigger",
       "name": "message",
       "direction": "in",
-      "connection": "SERVICEBUS_NAMESPACE",
+      "connection": "PLATFORM_SERVICEBUS_CONNECTION",
       "subscriptionName": "%SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION%",
       "topicName": "%SERVICEBUS_AUTH_SESSION_TOPIC%",
       "autoComplete": true,
