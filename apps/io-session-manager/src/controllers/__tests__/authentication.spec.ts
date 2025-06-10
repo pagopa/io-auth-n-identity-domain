@@ -3,7 +3,6 @@ import {
   ResponseErrorInternal,
   ResponseErrorNotFound,
   ResponseErrorValidation,
-  ResponsePermanentRedirect,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import { Response } from "express";
@@ -21,7 +20,6 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import * as E from "fp-ts/Either";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
-import { TelemetryClient } from "applicationinsights";
 import {
   AGE_LIMIT,
   AGE_LIMIT_ERROR_CODE,
@@ -45,7 +43,10 @@ import {
   lvTokenDurationSecs,
 } from "../../config/fast-login";
 import { mockRedisClientSelector } from "../../__mocks__/redis.mocks";
-import { mockedAppinsightsTelemetryClient } from "../../__mocks__/appinsights.mocks.ts";
+import {
+  mockTrackEvent,
+  mockedAppinsightsTelemetryClient,
+} from "../../__mocks__/appinsights.mocks";
 import {
   aFiscalCode,
   aSessionTrackingId,
@@ -91,6 +92,11 @@ import { LoginTypeEnum } from "../../types/fast-login";
 import { SpidLevelEnum } from "../../types/spid-level";
 import * as AuthController from "../authentication";
 import { toExpectedResponse } from "../../__tests__/utils";
+import {
+  VALIDATION_COOKIE_NAME,
+  VALIDATION_COOKIE_SETTINGS,
+} from "../../config/validation-cookie";
+import { withCookieClearanceResponsePermanentRedirect } from "../../utils/responses";
 
 const dependencies: AcsDependencies = {
   redisClientSelector: mockRedisClientSelector,
@@ -110,6 +116,7 @@ const dependencies: AcsDependencies = {
   isUserElegibleForIoLoginUrlScheme: () => false,
   appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
   isUserElegibleForFastLogin: () => false,
+  isUserElegibleForValidationCookie: () => false,
 };
 
 const req = mockReq();
@@ -235,6 +242,7 @@ describe("AuthenticationController#acs", () => {
       301,
       expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(mockSet).toHaveBeenCalledWith(
       mockRedisClientSelector,
       standardTokenDurationSecs,
@@ -268,6 +276,7 @@ describe("AuthenticationController#acs", () => {
       301,
       expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(mockSet).toHaveBeenCalledWith(
       mockRedisClientSelector,
       standardTokenDurationSecs,
@@ -291,6 +300,7 @@ describe("AuthenticationController#acs", () => {
     const response = await acs(dependencies)(validUserPayload);
     response.apply(res);
 
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(mockSet).toHaveBeenCalledWith(
       mockRedisClientSelector,
       standardTokenDurationSecs,
@@ -324,6 +334,7 @@ describe("AuthenticationController#acs", () => {
     const response = await acs(dependencies)(validUserPayload);
     response.apply(res);
 
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(mockSet).toHaveBeenCalledWith(
       mockRedisClientSelector,
       standardTokenDurationSecs,
@@ -350,6 +361,7 @@ describe("AuthenticationController#acs", () => {
     response.apply(res);
 
     expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
 
     expect(res.json).toHaveBeenCalledWith(badRequestErrorResponse);
     expect(mockSet).not.toHaveBeenCalled();
@@ -362,6 +374,7 @@ describe("AuthenticationController#acs", () => {
     response.apply(res);
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(res.json).toHaveBeenCalledWith({
       ...anErrorResponse,
       detail: "Error creating the user session",
@@ -375,6 +388,7 @@ describe("AuthenticationController#acs", () => {
     response.apply(res);
 
     expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 
   test("should fail if Redis Client returns an error while getting info on user blocked", async () => {
@@ -384,6 +398,7 @@ describe("AuthenticationController#acs", () => {
     response.apply(res);
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(res.json).toHaveBeenCalledWith({
       ...anErrorResponse,
       detail: "Error while validating user",
@@ -397,6 +412,7 @@ describe("AuthenticationController#acs", () => {
     response.apply(res);
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(res.json).toHaveBeenCalledWith({
       ...anErrorResponse,
       detail: "Error while creating the user session",
@@ -430,6 +446,7 @@ describe("AuthenticationController#acs Age Limit", () => {
       301,
       expect.stringContaining(`/error.html?errorCode=${AGE_LIMIT_ERROR_CODE}`),
     );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 
   test(`should return unauthorized if the user is younger than ${AGE_LIMIT} yo with CIE date format`, async () => {
@@ -458,6 +475,7 @@ describe("AuthenticationController#acs Age Limit", () => {
       301,
       expect.stringContaining(`/error.html?errorCode=${AGE_LIMIT_ERROR_CODE}`),
     );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 
   test(`should redirects to the correct url if the user has ${AGE_LIMIT} yo`, async () => {
@@ -468,11 +486,11 @@ describe("AuthenticationController#acs Age Limit", () => {
     const response = await acs(dependencies)(aYoungUserPayload);
     response.apply(res);
 
-    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toBeCalled();
     expect(res.redirect).toHaveBeenCalledWith(
       301,
       expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(mockSet).toHaveBeenCalledWith(
       mockRedisClientSelector,
       standardTokenDurationSecs,
@@ -558,6 +576,7 @@ describe("AuthenticationController#acs Lollipop", () => {
       301,
       expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
     expect(mockGetLollipopAssertionRefForUser).toBeCalledWith(
@@ -610,6 +629,7 @@ describe("AuthenticationController#acs Lollipop", () => {
     await new Promise((resolve) => setTimeout(() => resolve(""), 10));
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
 
     expect(mockGetProfile).toHaveBeenCalledWith({
       fnAppAPIClient: mockedFnAppAPIClient,
@@ -657,6 +677,7 @@ describe("AuthenticationController#acs Lollipop", () => {
       });
 
       expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.clearCookie).toHaveBeenCalledTimes(1);
       expect(response).toEqual({
         apply: expect.any(Function),
         detail: "Internal server error: Error Activation Lollipop Key",
@@ -688,6 +709,7 @@ describe("AuthenticationController#acs Lollipop", () => {
     await new Promise((resolve) => setTimeout(() => resolve(""), 100));
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(response).toEqual({
       apply: expect.any(Function),
       detail: "Internal server error: Error Activation Lollipop Key",
@@ -734,6 +756,7 @@ describe("AuthenticationController#acs Lollipop", () => {
       });
 
       expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.clearCookie).toHaveBeenCalledTimes(1);
       expect(response).toEqual({
         apply: expect.any(Function),
         detail: `Internal server error: ${errorMessage}`,
@@ -772,6 +795,7 @@ describe("AuthenticationController#acs Lollipop", () => {
     });
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(response).toEqual({
       apply: expect.any(Function),
       detail:
@@ -817,6 +841,7 @@ describe("AuthenticationController#acs urischeme", () => {
         `${expectedUriScheme}//localhost/profile.html?token=` +
           mockSessionToken,
       );
+      expect(res.clearCookie).toHaveBeenCalledTimes(1);
     },
   );
 });
@@ -836,6 +861,7 @@ describe("AuthenticationController#acs CIE", () => {
     response.apply(res);
 
     expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 
   test.each`
@@ -862,6 +888,7 @@ describe("AuthenticationController#acs CIE", () => {
         301,
         "https://localhost/profile.html?token=" + mockSessionToken,
       );
+      expect(res.clearCookie).toHaveBeenCalledTimes(1);
     },
   );
 
@@ -979,6 +1006,7 @@ describe("AuthenticationController#acs LV", () => {
         301,
         expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
       );
+      expect(res.clearCookie).toHaveBeenCalledTimes(1);
     },
   );
 
@@ -1003,6 +1031,7 @@ describe("AuthenticationController#acs LV", () => {
       301,
       expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 
   test("should return a new token when user is NOT eligible for LV, regardless of the auth lock status", async () => {
@@ -1026,6 +1055,7 @@ describe("AuthenticationController#acs LV", () => {
       301,
       expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 
   test("should redirect to error page with AUTHENTICATION_LOCKED_ERROR code when user is eligible for LV, user auth is locked and login level < SpidL3", async () => {
@@ -1043,6 +1073,7 @@ describe("AuthenticationController#acs LV", () => {
         `/error.html?errorCode=${AUTHENTICATION_LOCKED_ERROR}`,
       ),
     );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -1058,6 +1089,7 @@ describe("AuthenticationController#acs LV Notify user login", () => {
       301,
       expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
     expect(mockSet).toHaveBeenCalledWith(
       mockRedisClientSelector,
       standardTokenDurationSecs,
@@ -1092,6 +1124,7 @@ describe("AuthenticationController#acs LV Notify user login", () => {
       301,
       expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
 
     expect(mockOnUserLogin).toHaveBeenCalledWith({
       ...expectedUserLoginData,
@@ -1121,13 +1154,15 @@ describe("AuthenticationController#acs LV Notify user login", () => {
     response.apply(res);
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
 
     expect(mockOnUserLogin).toHaveBeenCalled();
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDeleteAssertionRefAssociation).toHaveBeenCalledTimes(1);
 
     expect(mockedAppinsightsTelemetryClient.trackEvent).toHaveBeenNthCalledWith(
-      1,
+      // 1st call is dedicated to validation_cookie missing
+      2,
       expect.objectContaining({
         name: "lollipop.error.acs.notify",
         properties: {
@@ -1137,6 +1172,142 @@ describe("AuthenticationController#acs LV Notify user login", () => {
         },
       }),
     );
+  });
+});
+
+describe("AuthenticationController#acs cookie validation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const cookieValidationScenarioDeps = {
+    ...dependencies,
+    isUserElegibleForValidationCookie: () => true,
+  };
+  const validUserPayloadWithCookie = {
+    ...validUserPayload,
+    getAcsOriginalRequest: () =>
+      mockReq({
+        cookies: { [VALIDATION_COOKIE_NAME]: anotherAssertionRef },
+      }),
+  };
+
+  test("should redirect with cookie clearance with lollipop request", async () => {
+    const response = await acs(cookieValidationScenarioDeps)(
+      validUserPayloadWithCookie,
+    );
+    response.apply(res);
+
+    expect(res.redirect).toHaveBeenCalledWith(
+      301,
+      expect.stringContaining(`?token=${mockSessionToken}`),
+    );
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+    expect(res.clearCookie).toHaveBeenCalledWith(VALIDATION_COOKIE_NAME, {
+      ...VALIDATION_COOKIE_SETTINGS,
+      maxAge: undefined,
+      expires: undefined,
+    });
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  test("should track cookie mismatch event if FF is off", async () => {
+    const invalidUserPayloadWithCookie = {
+      ...validUserPayload,
+      getAcsOriginalRequest: () =>
+        mockReq({
+          cookies: { [VALIDATION_COOKIE_NAME]: "WRONG" },
+        }),
+    };
+
+    const response = await acs({
+      ...cookieValidationScenarioDeps,
+      isUserElegibleForValidationCookie: () => false,
+    })(invalidUserPayloadWithCookie);
+    response.apply(res);
+
+    expect(res.redirect).toHaveBeenCalledWith(
+      301,
+      expect.stringContaining(`?token=${mockSessionToken}`),
+    );
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+    expect(res.clearCookie).toHaveBeenCalledWith(VALIDATION_COOKIE_NAME, {
+      ...VALIDATION_COOKIE_SETTINGS,
+      maxAge: undefined,
+      expires: undefined,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith({
+      name: "acs.error.validation_cookie_mismatch",
+      properties: expect.objectContaining({
+        assertionRef: anotherAssertionRef,
+        issuer: invalidUserPayloadWithCookie.issuer,
+      }),
+      tagOverrides: {
+        samplingEnabled: "false",
+      },
+    });
+  });
+
+  test("should error with cookie clearance on missing cookie", async () => {
+    const response = await acs(cookieValidationScenarioDeps)(validUserPayload);
+    response.apply(res);
+
+    expect(res.redirect).toHaveBeenCalledWith(
+      301,
+      expect.stringContaining(
+        `error.html?errorCode=${AuthController.VALIDATION_COOKIE_ERROR_CODE}&errorMessage=Validation%20error`,
+      ),
+    );
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith({
+      name: "acs.error.validation_cookie_missing",
+      properties: expect.objectContaining({
+        assertionRef: anotherAssertionRef,
+        issuer: validUserPayload.issuer,
+      }),
+      tagOverrides: {
+        samplingEnabled: "false",
+      },
+    });
+  });
+
+  test("should error with cookie clearance on wrong cookie value", async () => {
+    const invalidUserPayloadWithCookie = {
+      ...validUserPayload,
+      getAcsOriginalRequest: () =>
+        mockReq({
+          cookies: { [VALIDATION_COOKIE_NAME]: "WRONG" },
+        }),
+    };
+    const response = await acs(cookieValidationScenarioDeps)(
+      invalidUserPayloadWithCookie,
+    );
+    response.apply(res);
+
+    expect(res.redirect).toHaveBeenCalledWith(
+      301,
+      expect.stringContaining(
+        `error.html?errorCode=${AuthController.VALIDATION_COOKIE_ERROR_CODE}&errorMessage=Validation%20error`,
+      ),
+    );
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith({
+      name: "acs.error.validation_cookie_mismatch",
+      properties: expect.objectContaining({
+        assertionRef: anotherAssertionRef,
+        issuer: validUserPayload.issuer,
+      }),
+      tagOverrides: {
+        samplingEnabled: "false",
+      },
+    });
   });
 });
 
@@ -1152,7 +1323,11 @@ describe("AuthenticationController#acsTest", () => {
   test("should return ResponseSuccessJson with a valid token if acs succeeded", async () => {
     const expectedToken = "token-111-222";
     acsSpyOn.mockReturnValueOnce(async (_: unknown) =>
-      ResponsePermanentRedirect(getClientProfileRedirectionUrl(expectedToken)),
+      withCookieClearanceResponsePermanentRedirect(
+        getClientProfileRedirectionUrl(expectedToken),
+        VALIDATION_COOKIE_NAME,
+        VALIDATION_COOKIE_SETTINGS,
+      ),
     );
     const response = await acsTest(validUserPayload)({
       ...dependencies,
@@ -1181,9 +1356,13 @@ describe("AuthenticationController#acsTest", () => {
 
   test("should return ResponseErrorInternal if the token is missing", async () => {
     acsSpyOn.mockReturnValueOnce(async (_: unknown) =>
-      ResponsePermanentRedirect({
-        href: "https://invalid-url",
-      } as ValidUrl),
+      withCookieClearanceResponsePermanentRedirect(
+        {
+          href: "https://invalid-url",
+        } as ValidUrl,
+        VALIDATION_COOKIE_NAME,
+        VALIDATION_COOKIE_SETTINGS,
+      ),
     );
     const response = await acsTest(validUserPayload)({
       ...dependencies,
@@ -1199,7 +1378,11 @@ describe("AuthenticationController#acsTest", () => {
 
   test("should return ResponseErrorInternal if the token decode fails", async () => {
     acsSpyOn.mockReturnValueOnce(async (_: unknown) =>
-      ResponsePermanentRedirect(getClientProfileRedirectionUrl("")),
+      withCookieClearanceResponsePermanentRedirect(
+        getClientProfileRedirectionUrl(""),
+        VALIDATION_COOKIE_NAME,
+        VALIDATION_COOKIE_SETTINGS,
+      ),
     );
     const response = await acsTest(validUserPayload)({
       ...dependencies,

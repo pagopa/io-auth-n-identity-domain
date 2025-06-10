@@ -2752,6 +2752,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/cookie-parser@npm:^1.4.8":
+  version: 1.4.8
+  resolution: "@types/cookie-parser@npm:1.4.8"
+  peerDependencies:
+    "@types/express": "*"
+  checksum: 10c0/c9a39da983203624a56ba16f9a7cb4b9d5fe113d863f05b60be15b2743699e8d3cea34c634a21a15c03054feb10a49f981a699d979357bff549d09e246561966
+  languageName: node
+  linkType: hard
+
 "@types/cookiejar@npm:^2.1.5":
   version: 2.1.5
   resolution: "@types/cookiejar@npm:2.1.5"
@@ -4947,6 +4956,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cookie-parser@npm:^1.4.7":
+  version: 1.4.7
+  resolution: "cookie-parser@npm:1.4.7"
+  dependencies:
+    cookie: "npm:0.7.2"
+    cookie-signature: "npm:1.0.6"
+  checksum: 10c0/46bef553de409031b69a6074ce512d131a98e4fa12612669f1a9c3dd98d56897a31db86a3f4338d4a3a895c6f8d5cfd6fa4d99cdf588e0e8eda655efc3f384dc
+  languageName: node
+  linkType: hard
+
 "cookie-signature@npm:1.0.6":
   version: 1.0.6
   resolution: "cookie-signature@npm:1.0.6"
@@ -4968,7 +4987,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie@npm:^0.7.0":
+"cookie@npm:0.7.2, cookie@npm:^0.7.0":
   version: 0.7.2
   resolution: "cookie@npm:0.7.2"
   checksum: 10c0/9596e8ccdbf1a3a88ae02cf5ee80c1c50959423e1022e4e60b91dd87c622af1da309253d8abdb258fb5e3eacb4f08e579dc58b4897b8087574eee0fd35dfa5d2
@@ -8295,6 +8314,7 @@ __metadata:
     "@pagopa/typescript-config-node": "npm:*"
     "@redis/client": "npm:1.4.2"
     "@types/body-parser": "npm:^1"
+    "@types/cookie-parser": "npm:^1.4.8"
     "@types/express": "npm:^4.17.21"
     "@types/jsonwebtoken": "npm:^9"
     "@types/node": "npm:~20.12.0"
@@ -8306,6 +8326,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:~1.5.0"
     applicationinsights: "npm:^2.9.5"
     body-parser: "npm:^1.20.2"
+    cookie-parser: "npm:^1.4.7"
     date-fns: "npm:^1.30.1"
     dependency-check: "npm:^4.1.0"
     dotenv: "npm:^16.4.5"

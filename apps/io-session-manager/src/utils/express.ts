@@ -54,13 +54,16 @@ export const toExpressHandler =
  * @deprecated
  */
 export function toExpressMiddleware<T, P>(
-  handler: (req: express.Request) => Promise<IResponse<T> | undefined>,
+  handler: (
+    req: express.Request,
+    res: express.Response,
+  ) => Promise<IResponse<T> | undefined>,
   object?: P,
 ): ExpressMiddleware {
   return (req, res, next): Promise<void> =>
     pipe(
       TE.tryCatch(
-        () => handler.call(object, req),
+        () => handler.call(object, req, res),
         flow(E.toError, (e) => ResponseErrorInternal(e.message)),
       ),
       TE.chainW(

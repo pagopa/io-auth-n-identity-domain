@@ -1,60 +1,56 @@
 /* eslint-disable max-lines-per-function */
-import { UrlFromString } from "@pagopa/ts-commons/lib/url";
+import { UserLoginParams } from "@pagopa/io-functions-app-sdk/UserLoginParams";
+import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
+import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
+import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
+import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
+import {
+  errorsToReadableMessages,
+  readableReportSimplified,
+} from "@pagopa/ts-commons/lib/reporters";
 import {
   IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
   IResponseErrorValidation,
+  IResponsePermanentRedirect,
   IResponseSuccessJson,
-  ResponseErrorForbiddenNotAuthorized,
-  ResponseErrorInternal,
-  ResponseErrorValidation,
-  ResponsePermanentRedirect,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
-import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
-import * as E from "fp-ts/Either";
 import {
   EmailString,
   FiscalCode,
   IPString,
   NonEmptyString,
 } from "@pagopa/ts-commons/lib/strings";
-import { flow, pipe } from "fp-ts/lib/function";
-import * as B from "fp-ts/lib/boolean";
-import * as O from "fp-ts/Option";
-import { addSeconds, parse } from "date-fns";
 import { Second } from "@pagopa/ts-commons/lib/units";
-import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
+import { UrlFromString } from "@pagopa/ts-commons/lib/url";
+import { addSeconds, parse } from "date-fns";
+import * as E from "fp-ts/Either";
+import * as B from "fp-ts/lib/boolean";
+import { flow, pipe } from "fp-ts/lib/function";
+import * as RR from "fp-ts/lib/ReadonlyRecord";
+import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
-import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
-import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
-import { UserLoginParams } from "@pagopa/io-functions-app-sdk/UserLoginParams";
 import {
-  errorsToReadableMessages,
-  readableReportSimplified,
-} from "@pagopa/ts-commons/lib/reporters";
+  VALIDATION_COOKIE_NAME,
+  VALIDATION_COOKIE_SETTINGS,
+} from "../config/validation-cookie";
 import {
-  LoginUserEventRepo,
+  ClientErrorRedirectionUrlParams,
+  getClientErrorRedirectionUrl,
+} from "../config/spid";
+import { AssertionRef } from "../generated/backend/AssertionRef";
+import { AccessToken } from "../generated/public/AccessToken";
+import {
   FnLollipopRepo,
+  LoginUserEventRepo,
   LollipopRevokeRepo,
   NotificationsRepo,
   RedisRepo,
 } from "../repositories";
-import { ClientErrorRedirectionUrlParams } from "../config/spid";
 import { FnAppAPIRepositoryDeps } from "../repositories/fn-app-api";
-import { AdditionalLoginPropsT, LoginTypeEnum } from "../types/fast-login";
-import { toAppUser, validateSpidUser } from "../utils/user";
-import { log } from "../utils/logger";
-import {
-  getIsUserElegibleForCIETestEnv,
-  isCIETestEnvLogin,
-} from "../utils/cie";
-import { isOlderThan } from "../utils/date";
-import {
-  getIsUserElegibleForIoLoginUrlScheme,
-  internalErrorOrIoLoginRedirect,
-} from "../utils/login-uri-scheme";
-import { acsRequestMapper, getLoginTypeOnElegible } from "../utils/fast-login";
+import { LockUserAuthenticationDeps } from "../repositories/locked-profiles";
+import { RevokeAssertionRefDeps } from "../repositories/lollipop-revoke-queue";
 import {
   AuthenticationLockService,
   LoginService,
@@ -63,6 +59,8 @@ import {
   RedisSessionStorageService,
   TokenService,
 } from "../services";
+import { CreateNewProfileDependencies } from "../services/profile";
+import { AdditionalLoginPropsT, LoginTypeEnum } from "../types/fast-login";
 import { isSpidL3 } from "../types/spid";
 import {
   BPDToken,
@@ -72,13 +70,26 @@ import {
   WalletToken,
   ZendeskToken,
 } from "../types/token";
-import { LockUserAuthenticationDeps } from "../repositories/locked-profiles";
-import { RevokeAssertionRefDeps } from "../repositories/lollipop-revoke-queue";
-import { getRequestIDFromResponse } from "../utils/spid";
-import { AssertionRef } from "../generated/backend/AssertionRef";
-import { CreateNewProfileDependencies } from "../services/profile";
-import { AccessToken } from "../generated/public/AccessToken";
 import { AppInsightsDeps } from "../utils/appinsights";
+import {
+  getIsUserElegibleForCIETestEnv,
+  isCIETestEnvLogin,
+} from "../utils/cie";
+import { isOlderThan } from "../utils/date";
+import { acsRequestMapper, getLoginTypeOnElegible } from "../utils/fast-login";
+import { log } from "../utils/logger";
+import {
+  getIsUserElegibleForIoLoginUrlScheme,
+  internalErrorOrIoLoginRedirect,
+} from "../utils/login-uri-scheme";
+import { getRequestIDFromResponse } from "../utils/spid";
+import { toAppUser, validateSpidUser } from "../utils/user";
+import {
+  withCookieClearanceResponseErrorInternal,
+  withCookieClearanceResponseErrorValidation,
+  withCookieClearanceResponseForbidden,
+  withCookieClearanceResponsePermanentRedirect,
+} from "../utils/responses";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 import { AuthenticationController } from ".";
 
@@ -87,6 +98,35 @@ export const AGE_LIMIT = 14;
 // Custom error codes handled by the client to show a specific error page
 export const AGE_LIMIT_ERROR_CODE = 1001;
 export const AUTHENTICATION_LOCKED_ERROR = 1002;
+export const VALIDATION_COOKIE_ERROR_CODE = 1003;
+
+const validationCookieClearanceErrorInternal = (detail: string) =>
+  withCookieClearanceResponseErrorInternal(
+    detail,
+    VALIDATION_COOKIE_NAME,
+    VALIDATION_COOKIE_SETTINGS,
+  );
+const validationCookieClearancePermanentRedirect = (location: UrlFromString) =>
+  withCookieClearanceResponsePermanentRedirect(
+    location,
+    VALIDATION_COOKIE_NAME,
+    VALIDATION_COOKIE_SETTINGS,
+  );
+const validationCookieClearanceErrorValidation = (
+  title: string,
+  detail: string,
+) =>
+  withCookieClearanceResponseErrorValidation(
+    title,
+    detail,
+    VALIDATION_COOKIE_NAME,
+    VALIDATION_COOKIE_SETTINGS,
+  );
+const validationCookieClearanceErrorForbidden =
+  withCookieClearanceResponseForbidden(
+    VALIDATION_COOKIE_NAME,
+    VALIDATION_COOKIE_SETTINGS,
+  );
 
 export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   FnAppAPIRepositoryDeps &
@@ -110,6 +150,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
       typeof getIsUserElegibleForIoLoginUrlScheme
     >;
     isUserElegibleForFastLogin: (fiscalCode: FiscalCode) => boolean;
+    isUserElegibleForValidationCookie: (fiscalCode: FiscalCode) => boolean;
   };
 
 export const acs: (
@@ -130,7 +171,10 @@ export const acs: (
         userPayload,
         errorOrSpidUser.left,
       );
-      return ResponseErrorValidation("Bad request", errorOrSpidUser.left);
+      return validationCookieClearanceErrorValidation(
+        "Bad request",
+        errorOrSpidUser.left,
+      );
     }
 
     const spidUser = errorOrSpidUser.right;
@@ -147,7 +191,7 @@ export const acs: (
         `unallowed CF tried to login on CIE TEST IDP, issuer: [%s]`,
         spidUser.issuer,
       );
-      return ResponseErrorForbiddenNotAuthorized;
+      return validationCookieClearanceErrorForbidden;
     }
 
     if (!isOlderThan(AGE_LIMIT)(parse(spidUser.dateOfBirth), new Date())) {
@@ -173,7 +217,8 @@ export const acs: (
       return pipe(
         deps.isUserElegibleForIoLoginUrlScheme(spidUser.fiscalNumber),
         B.fold(
-          () => E.right(ResponsePermanentRedirect(redirectionUrl)),
+          () =>
+            E.right(validationCookieClearancePermanentRedirect(redirectionUrl)),
           () => internalErrorOrIoLoginRedirect(redirectionUrl),
         ),
         E.toUnion,
@@ -196,11 +241,12 @@ export const acs: (
         ? [deps.lvTokenDurationSecs, deps.lvLongSessionDurationSecs]
         : [deps.standardTokenDurationSecs, deps.standardTokenDurationSecs];
 
+    const req = spidUser.getAcsOriginalRequest();
     // Retrieve user IP from request
-    const errorOrUserIp = IPString.decode(spidUser.getAcsOriginalRequest()?.ip);
+    const errorOrUserIp = IPString.decode(req?.ip);
 
     if (isUserElegibleForFastLoginResult && E.isLeft(errorOrUserIp)) {
-      return ResponseErrorInternal("Error reading user IP");
+      return validationCookieClearanceErrorInternal("Error reading user IP");
     }
 
     //
@@ -252,19 +298,21 @@ export const acs: (
       // the query to the session store failed
       const err = errorOrIsBlockedUser.left;
       log.error(`acs: error checking blocked user [${err.message}]`);
-      return ResponseErrorInternal("Error while validating user");
+      return validationCookieClearanceErrorInternal(
+        "Error while validating user",
+      );
     }
 
     const isBlockedUser = errorOrIsBlockedUser.right;
     if (isBlockedUser) {
-      return ResponseErrorForbiddenNotAuthorized;
+      return validationCookieClearanceErrorForbidden;
     }
 
     if (isUserElegibleForFastLoginResult) {
       if (E.isLeft(errorOrIsUserProfileLocked)) {
         const err = errorOrIsUserProfileLocked.left;
         log.error(`acs: error checking user profile lock [${err.message}]`);
-        return ResponseErrorInternal(
+        return validationCookieClearanceErrorInternal(
           "An error occurred during user verification.",
         );
       }
@@ -279,7 +327,10 @@ export const acs: (
         return pipe(
           deps.isUserElegibleForIoLoginUrlScheme(spidUser.fiscalNumber),
           B.fold(
-            () => E.right(ResponsePermanentRedirect(redirectionUrl)),
+            () =>
+              E.right(
+                validationCookieClearancePermanentRedirect(redirectionUrl),
+              ),
             () => internalErrorOrIoLoginRedirect(redirectionUrl),
           ),
           E.toUnion,
@@ -314,7 +365,7 @@ export const acs: (
           message: "Error retrieving previous lollipop configuration",
         },
       });
-      return ResponseErrorInternal(
+      return validationCookieClearanceErrorInternal(
         "Error retrieving previous lollipop configuration",
       );
     }
@@ -368,14 +419,16 @@ export const acs: (
             message: `acs: ${error.message}`,
           },
         });
-        return O.some(ResponseErrorInternal(error.message));
+        return O.some(validationCookieClearanceErrorInternal(error.message));
       }),
       TE.chainW(() =>
         pipe(
           safeXMLParseFromString(spidUser.getSamlResponseXml()),
           TE.fromOption(() =>
             O.some(
-              ResponseErrorInternal("Unexpected parsing error SAML Response"),
+              validationCookieClearanceErrorInternal(
+                "Unexpected parsing error SAML Response",
+              ),
             ),
           ),
           TE.map(getRequestIDFromResponse),
@@ -385,6 +438,82 @@ export const acs: (
         flow(
           O.chainEitherK(AssertionRef.decode),
           TE.fromOption(() => O.none),
+        ),
+      ),
+      TE.chainW((assertionRef) =>
+        pipe(
+          {
+            isUserElegible: deps.isUserElegibleForValidationCookie(
+              spidUser.fiscalNumber,
+            ),
+            // even if the FF is off, we want to send an event if a mismatch
+            // happens. so this either is evaluated in each case
+            errorOrValidatedCookie: pipe(
+              req.cookies,
+              RR.lookup(VALIDATION_COOKIE_NAME),
+              E.fromOption(() => {
+                deps.appInsightsTelemetryClient?.trackEvent({
+                  name: "acs.error.validation_cookie_missing",
+                  properties: {
+                    assertionRef,
+                    fiscal_code: sha256(spidUser.fiscalNumber),
+                    issuer: spidUser.issuer,
+                  },
+                  tagOverrides: {
+                    samplingEnabled: "false",
+                  },
+                });
+                return Error("Validation cookie missing");
+              }),
+              E.chain(
+                E.fromPredicate(
+                  (cookieValue) => assertionRef === cookieValue,
+                  () => {
+                    deps.appInsightsTelemetryClient?.trackEvent({
+                      name: "acs.error.validation_cookie_mismatch",
+                      properties: {
+                        assertionRef,
+                        fiscal_code: sha256(spidUser.fiscalNumber),
+                        issuer: spidUser.issuer,
+                      },
+                      tagOverrides: {
+                        samplingEnabled: "false",
+                      },
+                    });
+                    return Error("Validation step for cookie failed");
+                  },
+                ),
+              ),
+              E.map(() => void 0),
+            ),
+          },
+          ({ isUserElegible, errorOrValidatedCookie }) =>
+            pipe(
+              isUserElegible,
+              B.fold(
+                () => E.right(assertionRef),
+                () =>
+                  pipe(
+                    errorOrValidatedCookie,
+                    E.mapLeft(() =>
+                      // if user is elegible for cookie validation
+                      // and cookie is either missing or invalid we return
+                      // a custom error to the client
+                      O.some(
+                        validationCookieClearancePermanentRedirect(
+                          getClientErrorRedirectionUrl({
+                            errorMessage: "Validation error" as NonEmptyString,
+                            errorCode: VALIDATION_COOKIE_ERROR_CODE,
+                          }),
+                        ),
+                      ),
+                    ),
+                    // proceed as usual
+                    E.map((_) => assertionRef),
+                  ),
+              ),
+            ),
+          TE.fromEither,
         ),
       ),
       TE.chainW((assertionRef) =>
@@ -436,14 +565,20 @@ export const acs: (
             ),
           ),
           TE.mapLeft(() =>
-            O.some(ResponseErrorInternal("Error Activation Lollipop Key")),
+            O.some(
+              validationCookieClearanceErrorInternal(
+                "Error Activation Lollipop Key",
+              ),
+            ),
           ),
         ),
       ),
     )();
     if (
       E.isLeft(errorOrActivatedPubKey) &&
-      O.isSome(errorOrActivatedPubKey.left)
+      O.isSome<IResponseErrorInternal | IResponsePermanentRedirect>(
+        errorOrActivatedPubKey.left,
+      )
     ) {
       return errorOrActivatedPubKey.left.value;
     }
@@ -467,7 +602,9 @@ export const acs: (
       log.error(
         `acs: error while creating the user session [${error.message}]`,
       );
-      return ResponseErrorInternal("Error while creating the user session");
+      return validationCookieClearanceErrorInternal(
+        "Error while creating the user session",
+      );
     }
 
     const isSessionCreated = errorOrIsSessionCreated.right;
@@ -477,14 +614,18 @@ export const acs: (
       log.error(
         `acs: error while creating the user session [${error.message}]`,
       );
-      return ResponseErrorInternal("Error while creating the user session");
+      return validationCookieClearanceErrorInternal(
+        "Error while creating the user session",
+      );
     }
 
     const getProfileResponse = errorOrGetProfileResponse.right;
 
     if (isSessionCreated === false) {
       log.error("Error creating the user session");
-      return ResponseErrorInternal("Error creating the user session");
+      return validationCookieClearanceErrorInternal(
+        "Error creating the user session",
+      );
     }
 
     // eslint-disable-next-line functional/no-let
@@ -513,7 +654,9 @@ export const acs: (
         );
         // we switch to a generic error since the acs definition
         // in io-spid-commons does not support 429 / 409 errors
-        return ResponseErrorInternal("Error creating a new User Profile");
+        return validationCookieClearanceErrorInternal(
+          "Error creating a new User Profile",
+        );
       }
       userHasEmailValidated =
         errorOrCreateProfileResponse.right.value.is_email_validated;
@@ -534,7 +677,7 @@ export const acs: (
       );
       // we switch to a generic error since the acs definition
       // in io-spid-commons does not support 429 errors
-      return ResponseErrorInternal(getProfileResponse.kind);
+      return validationCookieClearanceErrorInternal(getProfileResponse.kind);
     } else {
       userHasEmailValidated = getProfileResponse.value.is_email_validated;
       userEmail =
@@ -626,7 +769,9 @@ export const acs: (
             },
           });
 
-          return ResponseErrorInternal("Unable to notify user login event");
+          return validationCookieClearanceErrorInternal(
+            "Unable to notify user login event",
+          );
         }),
       )();
 
@@ -652,7 +797,7 @@ export const acs: (
     return pipe(
       deps.isUserElegibleForIoLoginUrlScheme(user.fiscal_code),
       B.fold(
-        () => E.right(ResponsePermanentRedirect(urlWithToken)),
+        () => E.right(validationCookieClearancePermanentRedirect(urlWithToken)),
         () => internalErrorOrIoLoginRedirect(urlWithToken),
       ),
       E.toUnion,
@@ -713,7 +858,7 @@ export const acsTest: (
           ),
         ),
         E.map((token) => ResponseSuccessJson({ token })),
-        E.mapLeft((err) => ResponseErrorInternal(err.message)),
+        E.mapLeft((err) => validationCookieClearanceErrorInternal(err.message)),
         E.toUnion,
       );
     }
