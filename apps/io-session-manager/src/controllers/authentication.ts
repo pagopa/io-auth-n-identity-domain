@@ -468,13 +468,14 @@ export const acs: (
               E.chain(
                 E.fromPredicate(
                   (cookieValue) => assertionRef === cookieValue,
-                  () => {
+                  (cookieValue) => {
                     deps.appInsightsTelemetryClient?.trackEvent({
                       name: "acs.error.validation_cookie_mismatch",
                       properties: {
                         assertionRef,
                         fiscal_code: sha256(spidUser.fiscalNumber),
                         issuer: spidUser.issuer,
+                        received_cookie: cookieValue,
                       },
                       tagOverrides: {
                         samplingEnabled: "false",
