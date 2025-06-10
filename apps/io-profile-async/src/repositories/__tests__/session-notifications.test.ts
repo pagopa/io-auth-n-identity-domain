@@ -1,6 +1,8 @@
+import { FeedResponse } from "@azure/cosmos";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/TaskEither";
+import * as t from "io-ts";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import {
   SESSION_NOTIFICATIONS_ROW_PK_FIELD,
@@ -15,8 +17,18 @@ import {
 const anId = "AAAAAA89S20I111X" as FiscalCode;
 const anExpirationTimestamp = 1746992855578;
 
+const asyncIterableMock = {
+  [Symbol.asyncIterator]() {
+    return {
+      next() {
+        return Promise.resolve({ done: true, value: [] });
+      }
+    };
+  }
+};
+
 const mockSessionNotificationsModel = ({
-  buildAsyncIterable: vi.fn(),
+  buildAsyncIterable: vi.fn(() => asyncIterableMock),
   patch: vi.fn()
 } as unknown) as SessionNotificationsModel;
 
