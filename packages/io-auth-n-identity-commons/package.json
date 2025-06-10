@@ -1,6 +1,6 @@
 {
   "name": "@pagopa/io-auth-n-identity-commons",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "MIT",
   "exports": {
     "./*": {
