@@ -24,6 +24,7 @@ import { SessionNotificationsStrict } from "../types/session-notification-strict
 import { trackEvent } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
 import { PermanentError, TransientError } from "../utils/errors";
+import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 
 type TriggerDependencies = {
   SessionNotificationsRepo: SessionNotificationsRepository;
@@ -82,9 +83,10 @@ export const retrievePreviousRecordFromDb: (
     asyncIterable =>
       TE.tryCatch(
         () => asyncIterableToArray(asyncIterable),
-        () =>
+        err =>
           new TransientError(
-            "Error retrieving session expirations, AsyncIterable fetch execution failure"
+            "Error retrieving session expirations, AsyncIterable fetch execution failure",
+            E.toError(err)
           )
       ),
     TE.chainW(
@@ -117,11 +119,26 @@ export const deletePreviousRecords: (
   );
 
 // TODO: implements Create new record
-export const createNewRecord = (
+export const createNewRecord: (
   fiscalCode: FiscalCode,
   expiredAt: Date
-): RTE.ReaderTaskEither<TriggerDependencies, TransientError, void> =>
-  pipe(RTE.of(void 0));
+) => RTE.ReaderTaskEither<TriggerDependencies, TransientError, void> = (
+  fiscalCode,
+  expiredAt
+) => deps =>
+  pipe(
+    deps.SessionNotificationsRepo.createRecord(
+      fiscalCode,
+      expiredAt.getTime(),
+      1000 as NonNegativeInteger // TODO: calculate TTL based on ExpiredSessionDiscovererConfig
+    )(deps),
+    TE.mapLeft(
+      () =>
+        new TransientError(
+          "An Error occurred while creating a new session record"
+        )
+    )
+  );
 
 // 1. Retrieve all occurrences on DB for the event's fiscalCode
 // 2. Delete all occurrences found on DB for the event's fiscalCode
@@ -161,7 +178,11 @@ export const SessionNotificationEventsProcessorFunction = (
     AuthSessionEvent.decode(message),
     E.mapLeft(onBadMessageReceived),
     RTE.fromEither,
-    RTE.chain(decodedMessage => {
+    x => x,
+    RTE.chainW(decodedMessage => {
+      context.log.warn(
+        `Received message with eventType: ${decodedMessage.eventType} for fiscalCode: ${decodedMessage.fiscalCode}`
+      );
       switch (decodedMessage.eventType) {
         case "login":
           return processLoginEvent(decodedMessage);
@@ -175,9 +196,13 @@ export const SessionNotificationEventsProcessorFunction = (
           );
       }
     }),
+    RTE.map(x => {
+      context.log.warn(`Successfully Processed message`);
+      return x;
+    }),
     RTE.getOrElse(error => {
       //TODO: THROW ONLY ON TRANSIENT TO TRIGGER A RETRY
       context.log.error("Error=>", error.message);
-      throw new Error("Error Processing ServiceBus Event");
+      throw error;
     })
   )(deps)();

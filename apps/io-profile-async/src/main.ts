@@ -37,6 +37,7 @@ import { initTelemetryClient } from "./utils/appinsights";
 import { buildSessionManagerInternalClient } from "./utils/session-manager-internal-client/dependency";
 import { getFetchApi } from "./utils/fetch-utils";
 import { buildFunctionProfileClient } from "./utils/function-profile-client/dependency";
+import { SessionNotificationEventsProcessorFunction } from "./functions/session-notification-events-processor";
 
 const config = getConfigOrThrow();
 
@@ -148,3 +149,11 @@ export const ExpiredSessionsDiscoverer = ExpiredSessionsDiscovererFunction({
   sessionNotificationsModel,
   expiredSessionsDiscovererConf: config
 });
+
+export const SessionNotificationEventsProcessor = SessionNotificationEventsProcessorFunction(
+  {
+    SessionNotificationsRepo: SessionNotificationsRepository,
+    expiredSessionsDiscovererConf: config, // TODO: replace with ServiceBusTriggerConfiguration
+    sessionNotificationsModel
+  }
+);

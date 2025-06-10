@@ -5,7 +5,8 @@
   "exports": {
     "./*": {
       "import": "./dist/*.js",
-      "types": "./dist/*.d.ts"
+      "types": "./dist/*.d.ts",
+      "require": "./dist/*.js"
     }
   },
   "scripts": {

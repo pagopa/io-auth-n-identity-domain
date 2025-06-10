@@ -95,7 +95,7 @@ const findByFiscalCodeAsyncIterable = (
           value: fiscalCode
         }
       ],
-      query: `SELECT * FROM c WHERE c.${SESSION_NOTIFICATIONS_MODEL_KEY_FIELD} = @fiscalCode)`
+      query: `SELECT * FROM c WHERE c.${SESSION_NOTIFICATIONS_MODEL_KEY_FIELD} = @fiscalCode`
     },
     chunkSize
   );
@@ -109,22 +109,22 @@ const deleteRecord: (
   expiredAt
 ) => deps => deps.sessionNotificationsModel.delete([fiscalCode, expiredAt]);
 
+// TODO: Add Tests
 const createRecord: (
   fiscalCode: FiscalCode,
-  expiredAt: number
+  expiredAt: number,
+  ttl: NonNegativeInteger
 ) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> = (
   fiscalCode: FiscalCode,
-  expiredAt: number
+  expiredAt: number,
+  ttl: NonNegativeInteger
 ) => deps =>
   pipe(
     deps.sessionNotificationsModel.create({
       id: (fiscalCode as unknown) as NonEmptyString,
       expiredAt,
-      notificationEvents: {
-        EXPIRED_SESSION: false,
-        EXPIRING_SESSION: false
-      },
-      ttl: 1000 as NonNegativeInteger,
+      notificationEvents: {},
+      ttl,
       kind: "INewSessionNotifications"
     }),
     TE.map(() => void 0)
@@ -158,6 +158,7 @@ const updateExpiredSessionNotificationFlag: (
 
 export type SessionNotificationsRepository = typeof SessionNotificationsRepository;
 export const SessionNotificationsRepository = {
+  createRecord,
   deleteRecord,
   findByExpiredAtAsyncIterable,
   findByFiscalCodeAsyncIterable,

@@ -7,7 +7,8 @@
       "connection": "SERVICEBUS_NAMESPACE",
       "subscriptionName": "%SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION%",
       "topicName": "%SERVICEBUS_AUTH_SESSION_TOPIC%",
-      "autoComplete": true
+      "autoComplete": true,
+      "isSessionsEnabled": true
     }
   ],
   "scriptFile": "../dist/main.js",
