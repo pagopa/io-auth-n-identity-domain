@@ -1213,11 +1213,12 @@ describe("AuthenticationController#acs cookie validation", () => {
   });
 
   test("should track cookie mismatch event if FF is off", async () => {
+    const invalidCookieValue = "WRONG";
     const invalidUserPayloadWithCookie = {
       ...validUserPayload,
       getAcsOriginalRequest: () =>
         mockReq({
-          cookies: { [VALIDATION_COOKIE_NAME]: "WRONG" },
+          cookies: { [VALIDATION_COOKIE_NAME]: invalidCookieValue },
         }),
     };
 
@@ -1244,6 +1245,7 @@ describe("AuthenticationController#acs cookie validation", () => {
       properties: expect.objectContaining({
         assertionRef: anotherAssertionRef,
         issuer: invalidUserPayloadWithCookie.issuer,
+        received_cookie: invalidCookieValue,
       }),
       tagOverrides: {
         samplingEnabled: "false",
@@ -1277,11 +1279,12 @@ describe("AuthenticationController#acs cookie validation", () => {
   });
 
   test("should error with cookie clearance on wrong cookie value", async () => {
+    const invalidCookieValue = "WRONG";
     const invalidUserPayloadWithCookie = {
       ...validUserPayload,
       getAcsOriginalRequest: () =>
         mockReq({
-          cookies: { [VALIDATION_COOKIE_NAME]: "WRONG" },
+          cookies: { [VALIDATION_COOKIE_NAME]: invalidCookieValue },
         }),
     };
     const response = await acs(cookieValidationScenarioDeps)(
@@ -1303,6 +1306,7 @@ describe("AuthenticationController#acs cookie validation", () => {
       properties: expect.objectContaining({
         assertionRef: anotherAssertionRef,
         issuer: validUserPayload.issuer,
+        received_cookie: invalidCookieValue,
       }),
       tagOverrides: {
         samplingEnabled: "false",
