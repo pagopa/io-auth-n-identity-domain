@@ -365,6 +365,33 @@ services:
     networks:
       - io-fn
 
+  servicebus:
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator
+    container_name: servicebus
+    hostname: servicebus
+    restart: always
+    volumes:
+      - "./docker/servicebus/config.json:/ServiceBus_Emulator/ConfigFiles/Config.json:cached"
+    ports:
+      - "5672:5672"
+      - "5300:5300"
+    env_file:
+      - ./docker/generated/.env.servicebus
+    depends_on:
+      - sqledge
+    networks:
+      - io-fn
+
+  sqledge:
+    image: mcr.microsoft.com/azure-sql-edge
+    container_name: sqledge
+    hostname: sqledge
+    restart: always
+    networks:
+      - io-fn
+    env_file:
+      - ./docker/generated/.env.servicebus
+
 networks:
   # same network name for interoperability with io-mock docker-compose
   io-fn:
