@@ -41,6 +41,7 @@ const findUsingStrictAsyncIterable: (
  * Finds session-notifications documents with expiredAt within a given interval.
  *
  * @param interval The interval to search for
+ * @param chunkSize  The resultSet page size
  * @returns A TaskEither that resolves to an array of all session-notifications documents within the interval
  */
 const findByExpiredAtAsyncIterable = (
@@ -71,11 +72,11 @@ const findByExpiredAtAsyncIterable = (
     chunkSize
   );
 
-// TODO: Add Tests
 /**
  * Finds session-notifications documents by fiscalCode.
  *
- * @param interval The interval to search for
+ * @param fiscalCode The fiscalCode to search for
+ * @param chunkSize  The resultSet page size
  * @returns A TaskEither that resolves to an array of all session-notifications documents having the given fiscalCode
  */
 const findByFiscalCodeAsyncIterable = (

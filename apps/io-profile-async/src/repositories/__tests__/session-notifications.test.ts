@@ -1,10 +1,9 @@
-import { FeedResponse } from "@azure/cosmos";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/TaskEither";
-import * as t from "io-ts";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import {
+  SESSION_NOTIFICATIONS_MODEL_KEY_FIELD,
   SESSION_NOTIFICATIONS_ROW_PK_FIELD,
   SessionNotificationsModel
 } from "../../models/session-notifications";
@@ -29,6 +28,8 @@ const asyncIterableMock = {
 
 const mockSessionNotificationsModel = ({
   buildAsyncIterable: vi.fn(() => asyncIterableMock),
+  delete: vi.fn(),
+  create: vi.fn(),
   patch: vi.fn()
 } as unknown) as SessionNotificationsModel;
 
@@ -65,6 +66,27 @@ describe("SessionNotificationsRepository", () => {
           query:
             `SELECT * FROM c WHERE (c.${SESSION_NOTIFICATIONS_ROW_PK_FIELD} BETWEEN @from AND @to) AND ` +
             "(c.notificationEvents.EXPIRED_SESSION = false OR NOT IS_DEFINED(c.notificationEvents.EXPIRED_SESSION))"
+        },
+        chunkSize
+      );
+    });
+  });
+
+  describe("findByFiscalCodeAsyncIterable", () => {
+    it("should call buildAsyncIterable with correct query and parameters", async () => {
+      const chunkSize = 100;
+
+      SessionNotificationsRepository.findByFiscalCodeAsyncIterable(
+        anId,
+        chunkSize
+      )(deps);
+
+      expect(
+        mockSessionNotificationsModel.buildAsyncIterable
+      ).toHaveBeenCalledWith(
+        {
+          parameters: [{ name: "@fiscalCode", value: anId }],
+          query: `SELECT * FROM c WHERE c.${SESSION_NOTIFICATIONS_MODEL_KEY_FIELD} = @fiscalCode`
         },
         chunkSize
       );
