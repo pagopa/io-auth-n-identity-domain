@@ -1,5 +1,17 @@
 # io-session-manager
 
+## 1.5.4
+
+### Patch Changes
+
+- baaaab2: Additional property on validation cookie custom event
+
+## 1.5.3
+
+### Patch Changes
+
+- fc30d79: Introduced Validation Cookie
+
 ## 1.5.2
 
 ### Patch Changes

@@ -24,6 +24,8 @@ services:
     depends_on:
       redis-cluster:
         condition: service_healthy
+      traefik:
+        condition: service_started
       spid-testenv2:
         condition: service_started
       storage:
@@ -34,6 +36,17 @@ services:
         condition: service_started
     networks:
       - io-fn
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.io-session-manager.rule=PathPrefix(`/sm`)"
+      - "traefik.http.routers.io-session-manager.entrypoints=websecure"
+      # leveraging TLS termination, traefik will take https external request,
+      # try to forward HTTPS traffic to internal container network, it fails and
+      # tries to forward requests in plain HTTP
+      - "traefik.http.routers.io-session-manager.tls=true"
+      - "traefik.http.services.io-session-manager.loadBalancer.server.port=3000"
+      # apply middleware to route
+      - "traefik.http.routers.io-session-manager.middlewares=io-session-manager-stripprefix"
 
   io-lollipop:
     image: io-lollipop
@@ -208,6 +221,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     labels:
       # define middleware to be used in some functions services
+      - "traefik.http.middlewares.io-session-manager-stripprefix.stripprefix.prefixes=/sm"
       - "traefik.http.middlewares.io-lollipop-stripprefix.stripprefix.prefixes=//lollipop"
       - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-id=unused"
       - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-subscription-id=unused"

@@ -34,6 +34,7 @@ import { NextFunction, Request, Response } from "express";
 import { ulid } from "ulid";
 import { Errors } from "io-ts";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
+import { calculateJwkThumbprint } from "jose";
 import { withValidatedOrValidationError } from "../utils/responses";
 import { NewPubKey } from "../generated/lollipop-api/NewPubKey";
 import { FnLollipopRepo, RedisRepo } from "../repositories";
@@ -58,6 +59,10 @@ import { AssertionRefSha384 } from "../generated/lollipop-api/AssertionRefSha384
 import { AssertionRefSha512 } from "../generated/lollipop-api/AssertionRefSha512";
 import { LcParams } from "../generated/lollipop-api/LcParams";
 import { DomainErrorTypes, isUnauthorizedError } from "../models/domain-errors";
+import {
+  VALIDATION_COOKIE_NAME,
+  VALIDATION_COOKIE_SETTINGS,
+} from "../config/validation-cookie";
 import { errorsToError } from "./errors";
 import { ResLocals } from "./express";
 import { withOptionalUserFromRequest } from "./user";
@@ -93,6 +98,7 @@ export const lollipopLoginHandler =
   ) =>
   async (
     req: express.Request,
+    res: express.Response,
   ): Promise<
     | IResponseErrorValidation
     | IResponseErrorInternal
@@ -174,6 +180,21 @@ export const lollipopLoginHandler =
                     ? ResponseErrorConflict("PubKey is already reserved")
                     : ResponseErrorInternal("Cannot reserve pubKey"),
               ),
+              TE.chainW(() =>
+                pipe(
+                  TE.tryCatch(() => calculateJwkThumbprint(jwk), E.toError),
+                  TE.map((thumbprint) => {
+                    res.cookie(
+                      VALIDATION_COOKIE_NAME,
+                      `${algo}-${thumbprint}`,
+                      VALIDATION_COOKIE_SETTINGS,
+                    );
+                  }),
+                  TE.mapLeft(() =>
+                    ResponseErrorInternal("Cannot set cookie value"),
+                  ),
+                ),
+              ),
               TE.map(() => lollipopParams),
               TE.toUnion,
             )(),
@@ -189,16 +210,17 @@ export const lollipopLoginMiddleware =
   ) =>
   (
     req: express.Request,
+    res: express.Response,
   ): Promise<
     | IResponseErrorValidation
     | IResponseErrorInternal
     | IResponseErrorConflict
     | undefined
   > =>
-    lollipopLoginHandler(
-      lollipopApiClient,
-      appInsightsTelemetryClient,
-    )(req).then((_) => (LollipopLoginParams.is(_) ? undefined : _));
+    lollipopLoginHandler(lollipopApiClient, appInsightsTelemetryClient)(
+      req,
+      res,
+    ).then((_) => (LollipopLoginParams.is(_) ? undefined : _));
 
 const NONCE_REGEX = new RegExp(';?nonce="([^"]+)";?');
 // Take the first occurrence of the field keyid into the signature-params

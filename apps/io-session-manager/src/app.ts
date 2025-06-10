@@ -13,6 +13,7 @@ import { ResponsePermanentRedirect } from "@pagopa/ts-commons/lib/responses";
 import * as E from "fp-ts/Either";
 import { CIDR, FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { pick } from "@pagopa/ts-commons/lib/types";
+import cookieparser from "cookie-parser";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
 import { RedisRepo, FnAppRepo, FnLollipopRepo } from "./repositories";
@@ -76,6 +77,7 @@ import { isUserElegibleForFastLogin } from "./config/fast-login";
 import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
+import { isUserElegibleForValidationCookie } from "./config/validation-cookie";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -130,6 +132,8 @@ export const newApp: (
 
   app.use(helmet());
 
+  app.use(cookieparser());
+
   //
   // Ensure that checkIP middleware has the client IP
   //
@@ -169,6 +173,7 @@ export const newApp: (
     ...pick(["fnAppAPIClient", "fnLollipopAPIClient"], APIClients),
     ...omit(["spidLogQueueClient"], storageDependencies),
     isUserElegibleForFastLogin,
+    isUserElegibleForValidationCookie,
   };
 
   pipe(
