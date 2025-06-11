@@ -9,6 +9,7 @@ import {
   flattenAsyncIterable
 } from "@pagopa/io-functions-commons/dist/src/utils/async";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
+import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
 import { flow, identity, pipe } from "fp-ts/lib/function";
@@ -49,14 +50,17 @@ const onBadRetrievedItem = (validationErrors: Errors): PermanentError => {
   return new PermanentError("Bad Record found on DB for given fiscalCode");
 };
 
-//TODO: try getting the messageId from contex and include it on customEvent in order to made debug easier!
+//TODO: How manage the following error having the constraint of cannot include the fiscal code in customEvent?
+// if we retrun a PermanentError, the message will be lost and not retried
+// if we return a TransientError, the message will be retried, but it will fail again until reach the max retry count and then will be placed in DLQ
 const onBadMessageReceived = (validationErrors: Errors): PermanentError => {
   trackEvent({
     name:
       "io.citizen-auth.prof-async.session-notification-events-processor.permanent.bad-message",
     properties: {
       message: "Received A Bad Message",
-      messageId: "TODO: placeholder"
+      messageId: "TODO: placeholder",
+      formattedError: readableReportSimplified(validationErrors)
     },
     tagOverrides: {
       samplingEnabled: "false"
@@ -66,26 +70,23 @@ const onBadMessageReceived = (validationErrors: Errors): PermanentError => {
   return new PermanentError("Bad Message Received");
 };
 
-//TODO: try getting the messageId from contex and include it on customEvent in order to made debug easier!
 const onBadTTLCalculated = (expiredAt: Date) => (
-  error: Error
+  validationErrors: Errors
 ): PermanentError => {
   trackEvent({
     name:
       "io.citizen-auth.prof-async.session-notification-events-processor.permanent.unable-to-calculate-ttl",
     properties: {
       message: "Unable to calculate TTL for new session record",
-      expiredAt
+      expiredAt,
+      formattedError: readableReportSimplified(validationErrors)
     },
     tagOverrides: {
       samplingEnabled: "false"
     }
   });
 
-  return new PermanentError(
-    "Unable to calculate TTL for new session record",
-    error
-  );
+  return new PermanentError("Unable to calculate TTL for new session record");
 };
 
 // Method to retrieve from CosmosDB all items having the provided fiscalCode
@@ -157,9 +158,10 @@ export const createNewRecord: (
           ttl
         )(deps),
         TE.mapLeft(
-          () =>
+          err =>
             new TransientError(
-              "An Error occurred while creating a new session record"
+              "An Error occurred while creating a new session record",
+              E.toError(err)
             )
         )
       )
@@ -169,16 +171,10 @@ export const createNewRecord: (
 export const calculateRecordTTL = (
   date: Date,
   offsetSeconds: number
-): E.Either<Error, NonNegativeInteger> =>
+): E.Either<Errors, NonNegativeInteger> =>
   pipe(
-    Math.floor(date.getTime() - new Date().getTime() / 1000) + offsetSeconds,
-    NonNegativeInteger.decode,
-    E.mapLeft(
-      () =>
-        new Error(
-          "An error occurred while calculating TTL, result is not a NonNegativeInteger"
-        )
-    )
+    Math.floor((date.getTime() - new Date().getTime()) / 1000) + offsetSeconds,
+    NonNegativeInteger.decode
   );
 
 // 1. Retrieve all occurrences on DB for the event's fiscalCode
@@ -219,11 +215,7 @@ export const SessionNotificationEventsProcessorFunction = (
     AuthSessionEvent.decode(message),
     E.mapLeft(onBadMessageReceived),
     RTE.fromEither,
-    x => x,
     RTE.chainW(decodedMessage => {
-      context.log.warn(
-        `Received message with eventType: ${decodedMessage.eventType} for fiscalCode: ${decodedMessage.fiscalCode}`
-      );
       switch (decodedMessage.eventType) {
         case "login":
           return processLoginEvent(decodedMessage);
@@ -237,13 +229,11 @@ export const SessionNotificationEventsProcessorFunction = (
           );
       }
     }),
-    RTE.map(x => {
-      context.log.warn(`Successfully Processed message`);
-      return x;
-    }),
-    RTE.getOrElse(error => {
-      //TODO: THROW ONLY ON TRANSIENT TO TRIGGER A RETRY
-      context.log.error("Error=>", error.message);
+    RTE.getOrElseW(error => {
+      context.log.error("Error Processing Message, the reason was =>", error);
+      if (error instanceof PermanentError) {
+        return RTE.right(void 0); // Permanent errors do not trigger a retry
+      }
       throw error;
     })
   )(deps)();
