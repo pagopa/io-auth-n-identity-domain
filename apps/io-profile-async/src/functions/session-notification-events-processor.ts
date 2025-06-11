@@ -14,6 +14,7 @@ import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
 import { flow, identity, pipe } from "fp-ts/lib/function";
+import * as RT from "fp-ts/ReaderTask";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as TE from "fp-ts/TaskEither";
@@ -216,7 +217,7 @@ export const processLoginEvent = ({
 
 export const SessionNotificationEventsProcessorFunction = (
   deps: TriggerDependencies
-): AzureFunction => async (context: Context, message: unknown) =>
+): AzureFunction => async (context: Context, message: unknown): Promise<void> =>
   pipe(
     AuthSessionEvent.decode(message),
     E.mapLeft(onBadMessageReceived),
@@ -235,11 +236,10 @@ export const SessionNotificationEventsProcessorFunction = (
           );
       }
     }),
-    x => x,
     RTE.getOrElseW(error => {
       context.log.error("Error Processing Message, the reason was =>", error);
       if (error instanceof PermanentError) {
-        return RTE.right(void 0); // Permanent errors do not trigger a retry
+        return RT.of(void 0); // Permanent errors do not trigger a retry
       }
       throw error;
     })
