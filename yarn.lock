@@ -8268,6 +8268,7 @@ __metadata:
   dependencies:
     "@azure/data-tables": "npm:^13.3.0"
     "@azure/functions": "npm:^4.7.0"
+    "@azure/service-bus": "npm:^7.9.5"
     "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/handler-kit": "npm:^1.1.0"
