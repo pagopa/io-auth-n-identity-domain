@@ -49,6 +49,7 @@ import {
   ServiceBusSenderMock,
   mockEmitSessionEvent,
 } from "../../__mocks__/repositories/auth-sessions-topic.mock";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 
@@ -401,6 +402,10 @@ describe("Session Service#deleteUserSession", () => {
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
     expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      fiscalCode: aFiscalCode,
+      eventType: EventTypeEnum.LOGOUT,
+    });
     expect(result).toEqual(E.right(null));
   });
 
@@ -413,6 +418,10 @@ describe("Session Service#deleteUserSession", () => {
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
     expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      fiscalCode: aFiscalCode,
+      eventType: EventTypeEnum.LOGOUT,
+    });
     expect(result).toEqual(E.right(null));
   });
 
