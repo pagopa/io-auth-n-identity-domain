@@ -124,3 +124,45 @@ describe("buildAsyncIterable", () => {
     expect(result).toBe(expectedResult);
   });
 });
+describe("delete", () => {
+  const deleteMock = vi.fn().mockResolvedValue({});
+
+  const containerMock: Container = ({
+    item: vi.fn(() => ({
+      delete: deleteMock
+    }))
+  } as unknown) as Container;
+
+  const model: SessionNotificationsModel = new SessionNotificationsModel(
+    containerMock
+  );
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should call item.delete with correct parameters", async () => {
+    const result = await model.delete([anId, anExpirationTimestamp])();
+
+    expect(containerMock.item).toHaveBeenCalledWith(
+      anId,
+      anExpirationTimestamp
+    );
+    expect(deleteMock).toHaveBeenCalled();
+    expect(result).toEqual(E.right(undefined));
+  });
+
+  it("should propagate the error when item.delete fails", async () => {
+    const error = new Error("Delete failed");
+    deleteMock.mockRejectedValueOnce(error);
+
+    const result = await model.delete([anId, anExpirationTimestamp])();
+
+    expect(containerMock.item).toHaveBeenCalledWith(
+      anId,
+      anExpirationTimestamp
+    );
+    expect(deleteMock).toHaveBeenCalled();
+    expect(result).toEqual(E.left({ error, kind: "COSMOS_ERROR_RESPONSE" }));
+  });
+});
