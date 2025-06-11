@@ -4,7 +4,7 @@ import {
   LoginEvent,
   LogoutEvent
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
-import { containsKnownEventType } from "@pagopa/io-auth-n-identity-commons/utils/auth-session-event-utils";
+import { validationErrorsContainsKnownEventType } from "@pagopa/io-auth-n-identity-commons/utils/auth-session-event-utils";
 import {
   asyncIterableToArray,
   flattenAsyncIterable
@@ -54,9 +54,9 @@ const onBadRetrievedItem = (validationErrors: Errors): PermanentError => {
 const onBadMessageReceived = (
   validationErrors: Errors
 ): TransientError | PermanentError => {
-  if (containsKnownEventType(validationErrors)) {
-    // Return a TransientError if the message has a known eventType
-    // in order to after retry the message should be found in DLQ ready to be invstigated
+  if (validationErrorsContainsKnownEventType(validationErrors)) {
+    // Returns a TransientError if the message has a known eventType
+    // so that, after the various attempts, the message is moved to DLQ ready to be investigated.
     return new TransientError(`Bad Message Received having a known eventType`);
   }
 

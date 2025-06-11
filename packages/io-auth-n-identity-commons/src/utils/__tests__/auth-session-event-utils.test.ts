@@ -2,7 +2,7 @@ import * as O from "fp-ts/lib/Option";
 import { Errors } from "io-ts";
 import { describe, expect, it } from "vitest";
 import { EventTypeEnum } from "../../types/auth-session-event";
-import { containsKnownEventType } from "../auth-session-event-utils";
+import { validationErrorsContainsKnownEventType } from "../auth-session-event-utils";
 
 describe("AuthSessionEvent utils tests", () => {
   it("should return true in case of known eventType", () => {
@@ -16,7 +16,7 @@ describe("AuthSessionEvent utils tests", () => {
       },
     ] as unknown as Errors;
 
-    const result = containsKnownEventType(aValidationError);
+    const result = validationErrorsContainsKnownEventType(aValidationError);
     expect(result).toBe(true);
   });
 
@@ -31,7 +31,7 @@ describe("AuthSessionEvent utils tests", () => {
       },
     ] as unknown as Errors;
 
-    const result = containsKnownEventType(aValidationError);
+    const result = validationErrorsContainsKnownEventType(aValidationError);
     expect(result).toBe(false);
   });
 
@@ -46,7 +46,7 @@ describe("AuthSessionEvent utils tests", () => {
       },
     ] as unknown as Errors;
 
-    const result = containsKnownEventType(aValidationError);
+    const result = validationErrorsContainsKnownEventType(aValidationError);
     expect(result).toBe(false);
   });
 });

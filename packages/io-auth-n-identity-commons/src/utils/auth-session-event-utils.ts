@@ -4,7 +4,9 @@ import * as O from "fp-ts/Option";
 import { Errors } from "io-ts";
 import { EventType } from "../types/auth-session-event";
 
-export const containsKnownEventType = (validationErrors: Errors): boolean =>
+export const validationErrorsContainsKnownEventType = (
+  validationErrors: Errors,
+): boolean =>
   pipe(
     validationErrors,
     O.fromPredicate((e) => e.length > 0),
