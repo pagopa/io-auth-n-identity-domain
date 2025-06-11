@@ -48,11 +48,15 @@ export type ExpiredSessionDiscovererConfig = t.TypeOf<
 >;
 
 export const SessionNotificationEventsProcessorConfig = t.type({
-  SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET: withFallback(
-    NumberFromString,
-    432000 // 5 days in seconds
-  )
-});
+         SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET: withFallback(
+           NumberFromString,
+           432000 // 5 days in seconds
+         ),
+         SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE: withFallback(
+           NumberFromString,
+           100
+         )
+       });
 
 export type SessionNotificationEventsProcessorConfig = t.TypeOf<
   typeof SessionNotificationEventsProcessorConfig

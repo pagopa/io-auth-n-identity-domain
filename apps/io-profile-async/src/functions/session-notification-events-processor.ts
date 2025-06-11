@@ -28,7 +28,7 @@ import { trackEvent } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
 import { PermanentError, TransientError } from "../utils/errors";
 
-type TriggerDependencies = {
+export type TriggerDependencies = {
   SessionNotificationsRepo: SessionNotificationsRepository;
   sessionNotificationEventsProcessorConfig: SessionNotificationEventsProcessorConfig;
 } & SessionNotificationsRepositoryDependencies;
@@ -105,7 +105,8 @@ export const retrievePreviousRecordFromDb: (
   pipe(
     deps.SessionNotificationsRepo.findByFiscalCodeAsyncIterable(
       fiscalCode,
-      100
+      deps.sessionNotificationEventsProcessorConfig
+        .SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE
     )(deps),
     flattenAsyncIterable,
     asyncIterable =>
