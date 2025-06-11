@@ -29,6 +29,11 @@ const RedisClientConfig = t.intersection([
   }),
 ]);
 
+const ServiceBusConfig = t.type({
+  SERVICE_BUS_CONNECTION_STRING: NonEmptyString,
+  AUTH_SESSIONS_TOPIC_NAME: NonEmptyString,
+});
+
 export type RedisClientConfig = t.TypeOf<typeof RedisClientConfig>;
 
 export type IConfig = t.TypeOf<typeof IConfig>;
@@ -38,6 +43,7 @@ export const IConfig = t.intersection([
   }),
   ApplicationInsightsConfig,
   RedisClientConfig,
+  ServiceBusConfig,
   t.type({
     // Locked profiles config
     LOCKED_PROFILES_STORAGE_CONNECTION_STRING: NonEmptyString,
