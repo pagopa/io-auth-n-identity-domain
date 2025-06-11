@@ -4,6 +4,7 @@ import {
   LoginEvent,
   LogoutEvent
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { containsKnownEventType } from "@pagopa/io-auth-n-identity-commons/utils/auth-session-event-utils";
 import {
   asyncIterableToArray,
   flattenAsyncIterable
@@ -50,16 +51,20 @@ const onBadRetrievedItem = (validationErrors: Errors): PermanentError => {
   return new PermanentError("Bad Record found on DB for given fiscalCode");
 };
 
-//TODO: How manage the following error having the constraint of cannot include the fiscal code in customEvent?
-// if we retrun a PermanentError, the message will be lost and not retried
-// if we return a TransientError, the message will be retried, but it will fail again until reach the max retry count and then will be placed in DLQ
-const onBadMessageReceived = (validationErrors: Errors): PermanentError => {
+const onBadMessageReceived = (
+  validationErrors: Errors
+): TransientError | PermanentError => {
+  if (containsKnownEventType(validationErrors)) {
+    // Return a TransientError if the message has a known eventType
+    // in order to after retry the message should be found in DLQ ready to be invstigated
+    return new TransientError(`Bad Message Received having a known eventType`);
+  }
+
   trackEvent({
     name:
       "io.citizen-auth.prof-async.session-notification-events-processor.permanent.bad-message",
     properties: {
       message: "Received A Bad Message",
-      messageId: "TODO: placeholder",
       formattedError: readableReportSimplified(validationErrors)
     },
     tagOverrides: {
@@ -67,7 +72,7 @@ const onBadMessageReceived = (validationErrors: Errors): PermanentError => {
     }
   });
 
-  return new PermanentError("Bad Message Received");
+  return new PermanentError(`Bad Message Received`);
 };
 
 const onBadTTLCalculated = (expiredAt: Date) => (
@@ -229,6 +234,7 @@ export const SessionNotificationEventsProcessorFunction = (
           );
       }
     }),
+    x => x,
     RTE.getOrElseW(error => {
       context.log.error("Error Processing Message, the reason was =>", error);
       if (error instanceof PermanentError) {
