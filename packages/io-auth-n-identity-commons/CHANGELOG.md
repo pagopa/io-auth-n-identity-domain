@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-commons
 
+## 0.0.2
+
+### Patch Changes
+
+- 1cbfc95: `package.json` `require` section update and `EventTypeEnum` typo fix
+
 ## 0.0.1
 
 ### Patch Changes
