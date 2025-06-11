@@ -7,14 +7,14 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ExpiredSessionDiscovererConfig } from "../../config";
-import {
-  RetrievedSessionNotifications,
-  SessionNotificationsModel
-} from "../../models/session-notifications";
+import { SessionNotificationsModel } from "../../models/session-notifications";
 import { ExpiredUserSessionsQueueRepository } from "../../repositories/expired-user-sessions-queue";
 import { SessionNotificationsRepository } from "../../repositories/session-notifications";
+import { createInterval, Interval } from "../../types/interval";
+import { RetrievedSessionNotificationsStrict } from "../../types/session-notification-strict";
 import * as appinsights from "../../utils/appinsights";
 import { TransientError } from "../../utils/errors";
+import { aValidationError } from "../__mocks__/expired-sessions.mock";
 import {
   ExpiredSessionsDiscovererFunction,
   ItemToProcess,
@@ -22,8 +22,6 @@ import {
   processItem,
   retrieveFromDbInChunks
 } from "../expired-sessions-discoverer";
-import { createInterval, Interval } from "../../types/interval";
-import { aValidationError } from "../__mocks__/expired-sessions.mock";
 
 const aSession = ({
   id: "AAAAAA89S20I111X",
@@ -36,16 +34,16 @@ const aSession = ({
   _self: "self",
   _ts: 0,
   kind: "IRetrievedSessionNotifications"
-} as unknown) as RetrievedSessionNotifications;
+} as unknown) as RetrievedSessionNotificationsStrict;
 
-const item = {
+const item: ItemToProcess = {
   itemTimeoutInSeconds: 5,
   queuePayload: {
     fiscalCode: aSession.id,
     expiredAt: new Date(aSession.expiredAt)
   },
   retrievedDbItem: aSession
-} as ItemToProcess;
+};
 
 const expiredSessionsDiscovererConfMock = {
   EXPIRED_SESSION_ADVISOR_QUEUE: "aQueueName",
@@ -410,7 +408,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
             yield [
               E.left(aValidationError) as E.Either<
                 never,
-                RetrievedSessionNotifications
+                RetrievedSessionNotificationsStrict
               >
             ];
           }
