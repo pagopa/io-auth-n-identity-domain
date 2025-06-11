@@ -3,7 +3,7 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
 import { describe, expect, it, vi } from "vitest";
 import {
-  EventTypeEunum,
+  EventTypeEnum,
   LoginEvent,
   LogoutEvent,
 } from "../../types/auth-session-event";
@@ -12,13 +12,13 @@ import { AuthSessionsTopicRepository } from "../auth-sessions-topic-repository";
 const contentType = "application/json";
 
 const aLoginEvent: LoginEvent = {
-  eventType: EventTypeEunum.LOGIN,
+  eventType: EventTypeEnum.LOGIN,
   fiscalCode: "AAAAAA89S20I111X" as FiscalCode,
   expiredAt: new Date("2025-01-01T00:00:00Z"),
 };
 
 const aLogoutEvent: LogoutEvent = {
-  eventType: EventTypeEunum.LOGOUT,
+  eventType: EventTypeEnum.LOGOUT,
   fiscalCode: "BBBAAA89S20I111X" as FiscalCode,
 };
 
