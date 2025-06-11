@@ -15,6 +15,6 @@ export const validationErrorsContainsKnownEventType = (
 ): boolean =>
   pipe(
     O.tryCatch(() => validationErrors[0].context[0].actual),
-    O.map(flow(WithKnownEventType.decode, E.isRight)),
+    O.map(WithKnownEventType.is),
     O.getOrElse(() => false),
   );
