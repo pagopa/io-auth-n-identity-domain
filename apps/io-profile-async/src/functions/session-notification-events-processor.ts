@@ -8,6 +8,7 @@ import {
   asyncIterableToArray,
   flattenAsyncIterable
 } from "@pagopa/io-functions-commons/dist/src/utils/async";
+import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
 import { flow, identity, pipe } from "fp-ts/lib/function";
@@ -24,7 +25,6 @@ import { SessionNotificationsStrict } from "../types/session-notification-strict
 import { trackEvent } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
 import { PermanentError, TransientError } from "../utils/errors";
-import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 
 type TriggerDependencies = {
   SessionNotificationsRepo: SessionNotificationsRepository;
@@ -89,13 +89,7 @@ export const retrievePreviousRecordFromDb: (
             E.toError(err)
           )
       ),
-    TE.chainW(
-      flow(
-        RA.traverse(E.Applicative)(identity),
-        E.mapLeft(onBadRetrievedItem),
-        TE.fromEither
-      )
-    )
+    TE.map(flow(RA.map(E.bimap(onBadRetrievedItem, identity)), RA.rights))
   );
 
 // Delete All retrievedRecords
