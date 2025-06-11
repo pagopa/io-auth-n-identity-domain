@@ -297,6 +297,10 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "revert-failure-alert"
     operator                = "GreaterThan"
     time_aggregation_method = "Count"
     threshold               = 0
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
   }
 
   action {
@@ -330,6 +334,10 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "max-retry-reached-ale
     operator                = "GreaterThan"
     time_aggregation_method = "Count"
     threshold               = 0
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
   }
 
   action {
