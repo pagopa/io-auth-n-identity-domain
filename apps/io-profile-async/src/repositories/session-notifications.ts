@@ -42,7 +42,7 @@ const findUsingStrictAsyncIterable: (
  *
  * @param interval The interval to search for
  * @param chunkSize  The resultSet page size
- * @returns A TaskEither that resolves to an array of all session-notifications documents within the interval
+ * @returns An AsyncIterable that resolves to an array of all session-notifications documents within the interval
  */
 const findByExpiredAtAsyncIterable = (
   interval: Interval,
@@ -77,7 +77,7 @@ const findByExpiredAtAsyncIterable = (
  *
  * @param fiscalCode The fiscalCode to search for
  * @param chunkSize  The resultSet page size
- * @returns A TaskEither that resolves to an array of all session-notifications documents having the given fiscalCode
+ * @returns An AsyncIterable that resolves to an array of all session-notifications documents having the given fiscalCode
  */
 const findByFiscalCodeAsyncIterable = (
   fiscalCode: FiscalCode,
@@ -101,6 +101,13 @@ const findByFiscalCodeAsyncIterable = (
     chunkSize
   );
 
+/**
+ * Delete session-notifications documents by fiscalCode and expiredAt.
+ *
+ * @param fiscalCode The fiscalCode to search for
+ * @param expiredAt  The resultSet page size
+ * @returns A ReaderTaskEither that resolves to void if the operation is successful, or an error if it fails
+ */
 const deleteRecord: (
   fiscalCode: FiscalCode,
   expiredAt: number
@@ -109,6 +116,14 @@ const deleteRecord: (
   expiredAt
 ) => deps => deps.sessionNotificationsModel.delete([fiscalCode, expiredAt]);
 
+/**
+ * Create a new session-notifications documents.
+ *
+ * @param fiscalCode The fiscalCode to search for
+ * @param expiredAt  The resultSet page size
+ * @param ttl The time to live for the document in seconds
+ * @returns A ReaderTaskEither that resolves to void if the operation is successful, or an error if it fails
+ */
 const createRecord: (
   fiscalCode: FiscalCode,
   expiredAt: number,
