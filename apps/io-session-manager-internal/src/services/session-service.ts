@@ -11,6 +11,11 @@ import { QueueClient } from "@azure/storage-queue";
 import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
 import { addSeconds } from "date-fns";
 import { OutputOf } from "io-ts";
+import {
+  AuthSessionsTopicRepository,
+  AuthSessionsTopicRepositoryDeps,
+} from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import { RedisRepository } from "../repositories/redis";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
@@ -330,7 +335,8 @@ const unlockUserAuthentication: (
 export type DeleteUserSessionDeps = RedisDeps & {
   LollipopRepository: LollipopRepository;
   RevokeAssertionRefQueueClient: QueueClient;
-};
+  AuthSessionsTopicRepository: AuthSessionsTopicRepository;
+} & AuthSessionsTopicRepositoryDeps;
 const deleteUserSession: (
   fiscalCode: FiscalCode,
 ) => RTE.ReaderTaskEither<DeleteUserSessionDeps, GenericError, null> =
@@ -353,6 +359,12 @@ const deleteUserSession: (
             FastRedisClient,
             SafeRedisClient,
           }),
+          TE.chainFirst(() =>
+            AuthSessionsTopicRepository.emitSessionEvent({
+              fiscalCode,
+              eventType: EventTypeEnum.LOGOUT,
+            })(deps),
+          ),
           TE.mapLeft((err) => toGenericError(err.message)),
         ),
       ),

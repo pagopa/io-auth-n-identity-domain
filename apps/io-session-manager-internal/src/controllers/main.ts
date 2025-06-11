@@ -1,6 +1,8 @@
 import { app } from "@azure/functions";
 import { TableClient } from "@azure/data-tables";
 import { QueueClient } from "@azure/storage-queue";
+import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
+import { ServiceBusClient } from "@azure/service-bus";
 import { CreateRedisClientSingleton } from "../utils/redis-client";
 import { initTelemetryClient } from "../utils/appinsights";
 import { getConfigOrThrow } from "../utils/config";
@@ -54,6 +56,13 @@ const RevokeAssertionRefQueueClient = new QueueClient(
 const NotificationQueueClient = new QueueClient(
   config.PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING,
   config.PUSH_NOTIFICATIONS_QUEUE_NAME,
+);
+
+const serviceBusClient = new ServiceBusClient(
+  config.SERVICE_BUS_CONNECTION_STRING,
+);
+const authSessionsTopicServiceBusSender = serviceBusClient.createSender(
+  config.AUTH_SESSIONS_TOPIC_NAME,
 );
 
 app.http("Info", {
@@ -129,6 +138,8 @@ app.http("DeleteUserSession", {
     RedisRepository,
     LollipopRepository,
     RevokeAssertionRefQueueClient,
+    AuthSessionsTopicRepository,
+    authSessionsTopicSender: authSessionsTopicServiceBusSender,
   }),
   methods: ["POST"],
   route: `${v1BasePath}/sessions/{fiscalCode}/logout`,
