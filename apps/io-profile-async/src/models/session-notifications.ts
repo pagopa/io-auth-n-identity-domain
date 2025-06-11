@@ -96,7 +96,7 @@ export class SessionNotificationsModel extends CosmosdbModelTTL<
     options?: RequestOptions
   ): TE.TaskEither<CosmosErrors, void> {
     const documentId = searchKey[0];
-    const partitionKey = searchKey[1] || documentId;
+    const partitionKey = searchKey[1];
 
     return pipe(
       TE.tryCatch(
