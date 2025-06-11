@@ -359,8 +359,8 @@ const deleteUserSession: (
             FastRedisClient,
             SafeRedisClient,
           }),
-          TE.chainFirst(() =>
-            AuthSessionsTopicRepository.emitSessionEvent({
+          TE.map((_) =>
+            deps.AuthSessionsTopicRepository.emitSessionEvent({
               fiscalCode,
               eventType: EventTypeEnum.LOGOUT,
             })(deps),

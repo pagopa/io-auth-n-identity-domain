@@ -44,6 +44,11 @@ import {
 } from "../../utils/errors";
 import { aNotReleasedData } from "../../__mocks__/table-client.mock";
 import { LoginTypeEnum } from "../../types/fast-login";
+import {
+  AuthSessionsTopicRepositoryMock,
+  ServiceBusSenderMock,
+  mockEmitSessionEvent,
+} from "../../__mocks__/repositories/auth-sessions-topic.mock";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 
@@ -385,6 +390,8 @@ describe("Session Service#deleteUserSession", () => {
     RedisRepository: RedisRepositoryMock,
     LollipopRepository: LollipopRepositoryMock,
     RevokeAssertionRefQueueClient: {} as QueueClient,
+    AuthSessionsTopicRepository: AuthSessionsTopicRepositoryMock,
+    authSessionsTopicSender: ServiceBusSenderMock,
   };
   it("should succeed deleting an user session", async () => {
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
@@ -393,6 +400,7 @@ describe("Session Service#deleteUserSession", () => {
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
     expect(result).toEqual(E.right(null));
   });
 
@@ -404,6 +412,7 @@ describe("Session Service#deleteUserSession", () => {
     expect(mockfireAndForgetRevokeAssertionRef).not.toHaveBeenCalled();
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
     expect(result).toEqual(E.right(null));
   });
 
