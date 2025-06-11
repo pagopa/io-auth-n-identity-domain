@@ -101,7 +101,6 @@ const findByFiscalCodeAsyncIterable = (
     chunkSize
   );
 
-// TODO: Add Tests
 const deleteRecord: (
   fiscalCode: FiscalCode,
   expiredAt: number
@@ -110,7 +109,6 @@ const deleteRecord: (
   expiredAt
 ) => deps => deps.sessionNotificationsModel.delete([fiscalCode, expiredAt]);
 
-// TODO: Add Tests
 const createRecord: (
   fiscalCode: FiscalCode,
   expiredAt: number,
