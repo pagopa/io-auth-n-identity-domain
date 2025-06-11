@@ -16,7 +16,7 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as TE from "fp-ts/TaskEither";
 import { Errors } from "io-ts";
-import { ExpiredSessionDiscovererConfig } from "../config";
+import { SessionNotificationEventsProcessorConfig } from "../config";
 import {
   SessionNotificationsRepository,
   Dependencies as SessionNotificationsRepositoryDependencies
@@ -28,7 +28,7 @@ import { PermanentError, TransientError } from "../utils/errors";
 
 type TriggerDependencies = {
   SessionNotificationsRepo: SessionNotificationsRepository;
-  expiredSessionsDiscovererConf: ExpiredSessionDiscovererConfig;
+  sessionNotificationEventsProcessorConfig: SessionNotificationEventsProcessorConfig;
 } & SessionNotificationsRepositoryDependencies;
 
 const onBadRetrievedItem = (validationErrors: Errors): PermanentError => {
@@ -64,6 +64,28 @@ const onBadMessageReceived = (validationErrors: Errors): PermanentError => {
   });
 
   return new PermanentError("Bad Message Received");
+};
+
+//TODO: try getting the messageId from contex and include it on customEvent in order to made debug easier!
+const onBadTTLCalculated = (expiredAt: Date) => (
+  error: Error
+): PermanentError => {
+  trackEvent({
+    name:
+      "io.citizen-auth.prof-async.session-notification-events-processor.permanent.unable-to-calculate-ttl",
+    properties: {
+      message: "Unable to calculate TTL for new session record",
+      expiredAt
+    },
+    tagOverrides: {
+      samplingEnabled: "false"
+    }
+  });
+
+  return new PermanentError(
+    "Unable to calculate TTL for new session record",
+    error
+  );
 };
 
 // Method to retrieve from CosmosDB all items having the provided fiscalCode
@@ -112,7 +134,6 @@ export const deletePreviousRecords: (
     )
   );
 
-// TODO: implements Create new record
 export const createNewRecord: (
   fiscalCode: FiscalCode,
   expiredAt: Date
@@ -121,15 +142,41 @@ export const createNewRecord: (
   expiredAt
 ) => deps =>
   pipe(
-    deps.SessionNotificationsRepo.createRecord(
-      fiscalCode,
-      expiredAt.getTime(),
-      1000 as NonNegativeInteger // TODO: calculate TTL based on ExpiredSessionDiscovererConfig
-    )(deps),
-    TE.mapLeft(
+    calculateRecordTTL(
+      expiredAt,
+      deps.sessionNotificationEventsProcessorConfig
+        .SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
+    ),
+    E.mapLeft(onBadTTLCalculated(expiredAt)),
+    TE.fromEither,
+    TE.chainW(ttl =>
+      pipe(
+        deps.SessionNotificationsRepo.createRecord(
+          fiscalCode,
+          expiredAt.getTime(),
+          ttl
+        )(deps),
+        TE.mapLeft(
+          () =>
+            new TransientError(
+              "An Error occurred while creating a new session record"
+            )
+        )
+      )
+    )
+  );
+
+export const calculateRecordTTL = (
+  date: Date,
+  offsetSeconds: number
+): E.Either<Error, NonNegativeInteger> =>
+  pipe(
+    Math.floor(date.getTime() - new Date().getTime() / 1000) + offsetSeconds,
+    NonNegativeInteger.decode,
+    E.mapLeft(
       () =>
-        new TransientError(
-          "An Error occurred while creating a new session record"
+        new Error(
+          "An error occurred while calculating TTL, result is not a NonNegativeInteger"
         )
     )
   );
