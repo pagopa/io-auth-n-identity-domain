@@ -1892,7 +1892,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/io-auth-n-identity-commons@workspace:packages/io-auth-n-identity-commons":
+"@pagopa/io-auth-n-identity-commons@npm:*, @pagopa/io-auth-n-identity-commons@workspace:packages/io-auth-n-identity-commons":
   version: 0.0.0-use.local
   resolution: "@pagopa/io-auth-n-identity-commons@workspace:packages/io-auth-n-identity-commons"
   dependencies:
@@ -8272,6 +8272,7 @@ __metadata:
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/handler-kit": "npm:^1.1.0"
     "@pagopa/handler-kit-azure-func": "npm:^2.0.7"
+    "@pagopa/io-auth-n-identity-commons": "npm:*"
     "@pagopa/io-functions-commons": "npm:^29.1.0"
     "@pagopa/openapi-codegen-ts": "npm:^13.2.0"
     "@pagopa/ts-commons": "npm:^13.1.1"

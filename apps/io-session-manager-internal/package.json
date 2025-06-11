@@ -31,6 +31,7 @@
     "@azure/storage-queue": "^12.16.0",
     "@pagopa/handler-kit": "^1.1.0",
     "@pagopa/handler-kit-azure-func": "^2.0.7",
+    "@pagopa/io-auth-n-identity-commons": "*",
     "@pagopa/io-functions-commons": "^29.1.0",
     "@pagopa/ts-commons": "^13.1.1",
     "@redis/client": "1.4.2",
