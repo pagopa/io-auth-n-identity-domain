@@ -2,6 +2,7 @@ import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as ROA from "fp-ts/ReadonlyArray";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as AP from "fp-ts/Apply";
+import * as B from "fp-ts/lib/boolean";
 import * as O from "fp-ts/lib/Option";
 import * as redisLib from "redis";
 import { flow, pipe } from "fp-ts/lib/function";
@@ -16,6 +17,7 @@ import {
   AuthSessionsTopicRepositoryDeps,
 } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { getIsUserEligibleForNewFeature } from "@pagopa/ts-commons/lib/featureFlag";
 import { RedisRepository } from "../repositories/redis";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
@@ -35,6 +37,10 @@ import { LollipopRepository } from "../repositories/lollipop";
 import { InstallationRepository } from "../repositories/installation";
 import { SessionState } from "../generated/definitions/internal/SessionState";
 import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
+import {
+  FF_SERVICE_BUS_EVENTS,
+  SERVICE_BUS_EVENTS_USERS,
+} from "../utils/config";
 
 type RedisDeps = {
   FastRedisClientTask: TE.TaskEither<Error, redisLib.RedisClusterType>;
@@ -359,17 +365,36 @@ const deleteUserSession: (
             FastRedisClient,
             SafeRedisClient,
           }),
-          TE.map((_) =>
-            deps.AuthSessionsTopicRepository.emitSessionEvent({
-              fiscalCode,
-              eventType: EventTypeEnum.LOGOUT,
-            })(deps),
-          ),
+          TE.chainFirst((_) => emitLogoutIfEligible(fiscalCode)(deps)),
           TE.mapLeft((err) => toGenericError(err.message)),
         ),
       ),
       TE.map((_) => null),
     );
+
+const emitLogoutIfEligible =
+  (
+    fiscalCode: FiscalCode,
+  ): RTE.ReaderTaskEither<DeleteUserSessionDeps, Error, void> =>
+  (deps) =>
+    pipe(
+      isUserEligible(fiscalCode),
+      B.match(
+        () => TE.of(void 0),
+        () =>
+          deps.AuthSessionsTopicRepository.emitSessionEvent({
+            fiscalCode,
+            eventType: EventTypeEnum.LOGOUT,
+          })(deps),
+      ),
+    );
+
+const isUserEligible: (fiscalCode: FiscalCode) => boolean =
+  getIsUserEligibleForNewFeature<FiscalCode>(
+    (fiscalCode) => SERVICE_BUS_EVENTS_USERS.includes(fiscalCode),
+    () => false,
+    FF_SERVICE_BUS_EVENTS,
+  );
 
 export type SessionService = typeof SessionService;
 export const SessionService = {

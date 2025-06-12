@@ -107,7 +107,7 @@ export const FF_SERVICE_BUS_EVENTS = pipe(
   E.getOrElseW(() => FeatureFlagEnum.NONE),
 );
 
-export const SERVICE_BUS_EVENTS_USERS = pipe(
+export const SERVICE_BUS_EVENTS_USERS: ReadonlyArray<FiscalCode> = pipe(
   process.env.SERVICE_BUS_EVENTS_USERS,
   O.fromNullable,
   O.map(
