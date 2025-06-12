@@ -79,9 +79,14 @@ data "azurerm_storage_account" "lollipop_assertion_storage" {
 }
 
 ##########################
-# PLATFORM SERVICE BUS NS
+#       PLATFORM
 ##########################
 data "azurerm_servicebus_namespace" "platform_service_bus_namespace" {
   name                = format("%s-platform-sbns-01", local.project)
   resource_group_name = format("%s-common-rg-01", local.project)
+}
+
+data "azurerm_api_management" "platform_apim" {
+  resource_group_name = local.platform_apim_resource_group_name
+  name                = local.platform_apim_name
 }
