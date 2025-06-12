@@ -40,11 +40,6 @@ data "azurerm_subnet" "weu_private_endpoints_subnet" {
   resource_group_name  = data.azurerm_virtual_network.weu_common.resource_group_name
 }
 
-data "azurerm_linux_web_app" "app_backend_li" {
-  name                = "${local.common_project}-app-appbackendli"
-  resource_group_name = "${local.common_project}-rg-linux"
-}
-
 data "azurerm_linux_web_app" "weu_session_manager" {
   name                = "${local.weu_project}-session-manager-app-03"
   resource_group_name = "${local.weu_project}-session-manager-rg-01"
