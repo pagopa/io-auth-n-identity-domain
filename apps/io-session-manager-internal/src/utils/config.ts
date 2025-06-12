@@ -29,10 +29,15 @@ const RedisClientConfig = t.intersection([
   }),
 ]);
 
-const ServiceBusConfig = t.type({
-  SERVICE_BUS_CONNECTION_STRING: NonEmptyString,
-  AUTH_SESSIONS_TOPIC_NAME: NonEmptyString,
-});
+const ServiceBusConfig = t.intersection([
+  t.type({
+    SERVICE_BUS_NAMESPACE: NonEmptyString,
+    AUTH_SESSIONS_TOPIC_NAME: NonEmptyString,
+  }),
+  t.partial({
+    DEV_SERVICE_BUS_CONNECTION_STRING: NonEmptyString,
+  }),
+]);
 
 export type RedisClientConfig = t.TypeOf<typeof RedisClientConfig>;
 

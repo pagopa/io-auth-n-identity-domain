@@ -1,5 +1,6 @@
 import { app } from "@azure/functions";
 import { TableClient } from "@azure/data-tables";
+import { DefaultAzureCredential } from "@azure/identity";
 import { QueueClient } from "@azure/storage-queue";
 import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import { ServiceBusClient } from "@azure/service-bus";
@@ -58,9 +59,13 @@ const NotificationQueueClient = new QueueClient(
   config.PUSH_NOTIFICATIONS_QUEUE_NAME,
 );
 
-const serviceBusClient = new ServiceBusClient(
-  config.SERVICE_BUS_CONNECTION_STRING,
-);
+const serviceBusClient = config.DEV_SERVICE_BUS_CONNECTION_STRING
+  ? new ServiceBusClient(config.DEV_SERVICE_BUS_CONNECTION_STRING) // Use the development connection string if provided, otherwise use the DefaultAzureCredential
+  : new ServiceBusClient(
+      `${config.SERVICE_BUS_NAMESPACE}.servicebus.windows.net`,
+      new DefaultAzureCredential(),
+    );
+
 const authSessionsTopicServiceBusSender = serviceBusClient.createSender(
   config.AUTH_SESSIONS_TOPIC_NAME,
 );
