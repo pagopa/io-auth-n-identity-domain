@@ -1,6 +1,7 @@
 import { AzureFunction, Context } from "@azure/functions";
 import {
   AuthSessionEvent,
+  EventTypeEnum,
   LoginEvent,
   LogoutEvent
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
@@ -226,16 +227,14 @@ export const SessionNotificationEventsProcessorFunction = (
     RTE.fromEither,
     RTE.chainW(decodedMessage => {
       switch (decodedMessage.eventType) {
-        case "login":
+        case EventTypeEnum.LOGIN:
           return processLoginEvent(decodedMessage);
-        case "logout":
+        case EventTypeEnum.LOGOUT:
           return processLogoutEvent(decodedMessage);
         default:
-          return RTE.left(
-            new PermanentError(
-              `Unknown eventType received: ${decodedMessage.eventType}`
-            )
-          );
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const exhaustive: never = decodedMessage;
+          return RTE.left(new PermanentError("Unexpected EventType"));
       }
     }),
     RTE.getOrElseW(error => {
