@@ -96,7 +96,7 @@ const onBadTTLCalculated = (expiredAt: Date) => (
 };
 
 // Method to retrieve from CosmosDB all items having the provided fiscalCode
-export const retrievePreviousRecordFromDb: (
+const retrievePreviousRecordFromDb: (
   fiscalCode: FiscalCode
 ) => RTE.ReaderTaskEither<
   TriggerDependencies,
@@ -123,7 +123,7 @@ export const retrievePreviousRecordFromDb: (
   );
 
 // Delete All retrievedRecords
-export const deletePreviousRecords: (
+const deletePreviousRecords: (
   previousRecords: ReadonlyArray<SessionNotificationsStrict>
 ) => RTE.ReaderTaskEither<
   TriggerDependencies,
@@ -137,12 +137,14 @@ export const deletePreviousRecords: (
     ),
     TE.map(() => void 0),
     TE.mapLeft(
-      () =>
-        new TransientError("An Error occurred while deleting previous records")
+      e =>
+        new TransientError(
+          `An Error occurred while deleting previous records => ${e.kind}`
+        )
     )
   );
 
-export const createNewRecord: (
+const createNewRecord: (
   fiscalCode: FiscalCode,
   expiredAt: Date
 ) => RTE.ReaderTaskEither<TriggerDependencies, TransientError, void> = (
@@ -175,7 +177,7 @@ export const createNewRecord: (
     )
   );
 
-export const calculateRecordTTL = (
+const calculateRecordTTL = (
   date: Date,
   offsetSeconds: number
 ): E.Either<Errors, NonNegativeInteger> =>
@@ -201,7 +203,7 @@ export const processLogoutEvent = ({
 // 1. Retrieve all occurrences on DB for the event's fiscalCode
 // 2. Delete all occurrences found on DB for the event's fiscalCode
 // 3. Create a new record using the event data
-export const processLoginEvent = ({
+const processLoginEvent = ({
   fiscalCode,
   expiredAt
 }: LoginEvent): RTE.ReaderTaskEither<

@@ -1,4 +1,3 @@
-import * as O from "fp-ts/lib/Option";
 import { Errors } from "io-ts";
 import { describe, expect, it } from "vitest";
 import { EventTypeEnum } from "../../types/auth-session-event";
