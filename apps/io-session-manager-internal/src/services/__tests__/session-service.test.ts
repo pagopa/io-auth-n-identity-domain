@@ -8,6 +8,7 @@ import { QueueClient } from "@azure/storage-queue";
 import { TableClient } from "@azure/data-tables";
 import addSeconds from "date-fns/add_seconds";
 import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { FeatureFlagEnum } from "@pagopa/ts-commons/lib/featureFlag";
 import {
   RedisClientTaskMock,
   RedisRepositoryMock,
@@ -50,6 +51,11 @@ import {
   ServiceBusSenderMock,
   mockEmitSessionEvent,
 } from "../../__mocks__/repositories/auth-sessions-topic.mock";
+
+vi.mock("../../utils/config", () => ({
+  ...vi.importActual("../../utils/config"),
+  FF_SERVICE_BUS_EVENTS: FeatureFlagEnum.ALL,
+}));
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 
@@ -435,6 +441,7 @@ describe("Session Service#deleteUserSession", () => {
       FastRedisClientTask: TE.left(Error(anErrorMessage)),
     })();
 
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -446,6 +453,7 @@ describe("Session Service#deleteUserSession", () => {
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -457,6 +465,7 @@ describe("Session Service#deleteUserSession", () => {
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -468,6 +477,7 @@ describe("Session Service#deleteUserSession", () => {
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 });
