@@ -7,6 +7,7 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { QueueClient } from "@azure/storage-queue";
 import { TableClient } from "@azure/data-tables";
 import addSeconds from "date-fns/add_seconds";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import {
   RedisClientTaskMock,
   RedisRepositoryMock,
@@ -49,7 +50,6 @@ import {
   ServiceBusSenderMock,
   mockEmitSessionEvent,
 } from "../../__mocks__/repositories/auth-sessions-topic.mock";
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 

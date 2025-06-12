@@ -9,7 +9,6 @@ import {
 } from "@pagopa/ts-commons/lib/featureFlag";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
-
 import { flow, pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
 import * as E from "fp-ts/lib/Either";
