@@ -58,7 +58,6 @@ const mockIsUserEligibleForServiceBusEvents = vi.spyOn(
   ConfigModule,
   "isUserEligibleForServiceBusEvents",
 );
-mockIsUserEligibleForServiceBusEvents.mockReturnValue(true);
 
 describe("Session Service#userHasActiveSessionsOrLV", () => {
   beforeEach(() => {
@@ -402,6 +401,7 @@ describe("Session Service#deleteUserSession", () => {
     authSessionsTopicSender: ServiceBusSenderMock,
   };
   it("should succeed deleting an user session", async () => {
+    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
@@ -418,6 +418,7 @@ describe("Session Service#deleteUserSession", () => {
 
   it("should succeed deleting an user session with no assertionref", async () => {
     mockGetLollipopAssertionRefForUser.mockReturnValueOnce(TE.right(O.none));
+    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
@@ -429,6 +430,18 @@ describe("Session Service#deleteUserSession", () => {
       fiscalCode: aFiscalCode,
       eventType: EventTypeEnum.LOGOUT,
     });
+    expect(result).toEqual(E.right(null));
+  });
+
+  it("should succeed deleting an user session without emitting an event when the user is not eligible", async () => {
+    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(false);
+    const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.right(null));
   });
 
