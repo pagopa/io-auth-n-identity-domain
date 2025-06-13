@@ -374,16 +374,13 @@ const emitLogoutIfEligible: (
   (fiscalCode) => (deps) =>
     pipe(
       isUserEligibleForServiceBusEvents(fiscalCode),
-      TE.of,
-      TE.chain(
-        B.match(
-          () => TE.of(void 0),
-          () =>
-            deps.AuthSessionsTopicRepository.emitSessionEvent({
-              fiscalCode,
-              eventType: EventTypeEnum.LOGOUT,
-            })(deps),
-        ),
+      B.match(
+        () => TE.of(void 0),
+        () =>
+          deps.AuthSessionsTopicRepository.emitSessionEvent({
+            fiscalCode,
+            eventType: EventTypeEnum.LOGOUT,
+          })(deps),
       ),
     );
 
