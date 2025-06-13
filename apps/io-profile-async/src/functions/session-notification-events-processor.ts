@@ -239,7 +239,6 @@ export const SessionNotificationEventsProcessorFunction = (
       }
     }),
     RTE.getOrElseW(error => {
-      context.log.error("Error Processing Message, the reason was =>", error);
       if (error instanceof PermanentError) {
         return RT.of(void 0); // Permanent errors do not trigger a retry
       }
@@ -258,7 +257,7 @@ export const SessionNotificationEventsProcessorFunction = (
           properties: {
             message: "Reached max retry for event processing",
             errorMessage: error.message,
-            messageId: context.bindingData?.messageId ?? "N/A"
+            messageId: context.bindingData.messageId ?? "N/A"
           },
           tagOverrides: {
             samplingEnabled: "false"
