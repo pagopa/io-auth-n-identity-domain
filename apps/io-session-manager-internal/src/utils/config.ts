@@ -1,9 +1,19 @@
-import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import {
+  readableReport,
+  readableReportSimplified,
+} from "@pagopa/ts-commons/lib/reporters";
+import { CommaSeparatedListOf } from "@pagopa/ts-commons/lib/comma-separated-list";
+import {
+  FeatureFlag,
+  FeatureFlagEnum,
+  getIsUserEligibleForNewFeature,
+} from "@pagopa/ts-commons/lib/featureFlag";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
-import { pipe } from "fp-ts/lib/function";
+import { flow, pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
 import * as E from "fp-ts/lib/Either";
+import * as O from "fp-ts/lib/Option";
 import { BooleanFromString } from "io-ts-types";
 
 const ApplicationInsightsConfig = t.intersection([
@@ -29,6 +39,16 @@ const RedisClientConfig = t.intersection([
   }),
 ]);
 
+const ServiceBusConfig = t.intersection([
+  t.type({
+    SERVICE_BUS_NAMESPACE: NonEmptyString,
+    AUTH_SESSIONS_TOPIC_NAME: NonEmptyString,
+  }),
+  t.partial({
+    DEV_SERVICE_BUS_CONNECTION_STRING: NonEmptyString,
+  }),
+]);
+
 export type RedisClientConfig = t.TypeOf<typeof RedisClientConfig>;
 
 export type IConfig = t.TypeOf<typeof IConfig>;
@@ -38,6 +58,7 @@ export const IConfig = t.intersection([
   }),
   ApplicationInsightsConfig,
   RedisClientConfig,
+  ServiceBusConfig,
   t.type({
     // Locked profiles config
     LOCKED_PROFILES_STORAGE_CONNECTION_STRING: NonEmptyString,
@@ -79,3 +100,33 @@ export const getConfigOrThrow = (): IConfig =>
       );
     }),
   );
+
+const FF_SERVICE_BUS_EVENTS = pipe(
+  process.env.FF_SERVICE_BUS_EVENTS,
+  FeatureFlag.decode,
+  E.getOrElseW(() => FeatureFlagEnum.NONE),
+);
+
+const SERVICE_BUS_EVENTS_USERS: ReadonlyArray<FiscalCode> = pipe(
+  process.env.SERVICE_BUS_EVENTS_USERS,
+  O.fromNullable,
+  O.map(
+    flow(
+      CommaSeparatedListOf(FiscalCode).decode,
+      E.getOrElseW((err) => {
+        throw new Error(
+          `Invalid SERVICE_BUS_EVENTS_USERS value: ${readableReport(err)}`,
+        );
+      }),
+    ),
+  ),
+  O.getOrElseW(() => []),
+);
+
+export const isUserEligibleForServiceBusEvents: (
+  fiscalCode: FiscalCode,
+) => boolean = getIsUserEligibleForNewFeature<FiscalCode>(
+  (fiscalCode) => SERVICE_BUS_EVENTS_USERS.includes(fiscalCode),
+  () => false,
+  FF_SERVICE_BUS_EVENTS,
+);

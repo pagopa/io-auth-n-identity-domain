@@ -178,6 +178,7 @@ services:
       - io-fn
     depends_on:
       - redis-cluster
+      - servicebus
 
   cosmosdb:
     image: cosmosdb
