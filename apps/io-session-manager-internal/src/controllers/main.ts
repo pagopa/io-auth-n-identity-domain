@@ -62,7 +62,7 @@ const NotificationQueueClient = new QueueClient(
 const serviceBusClient = config.DEV_SERVICE_BUS_CONNECTION_STRING
   ? new ServiceBusClient(config.DEV_SERVICE_BUS_CONNECTION_STRING) // Use the development connection string if provided, otherwise use the DefaultAzureCredential
   : new ServiceBusClient(
-      `${config.SERVICE_BUS_NAMESPACE}.servicebus.windows.net`,
+      config.SERVICE_BUS_NAMESPACE,
       new DefaultAzureCredential(),
     );
 
