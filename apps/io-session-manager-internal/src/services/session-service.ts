@@ -17,7 +17,6 @@ import {
   AuthSessionsTopicRepositoryDeps,
 } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
-import { getIsUserEligibleForNewFeature } from "@pagopa/ts-commons/lib/featureFlag";
 import { RedisRepository } from "../repositories/redis";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
@@ -37,10 +36,7 @@ import { LollipopRepository } from "../repositories/lollipop";
 import { InstallationRepository } from "../repositories/installation";
 import { SessionState } from "../generated/definitions/internal/SessionState";
 import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
-import {
-  FF_SERVICE_BUS_EVENTS,
-  SERVICE_BUS_EVENTS_USERS,
-} from "../utils/config";
+import { isUserEligibleForServiceBusEvents } from "../utils/config";
 
 type RedisDeps = {
   FastRedisClientTask: TE.TaskEither<Error, redisLib.RedisClusterType>;
@@ -365,36 +361,31 @@ const deleteUserSession: (
             FastRedisClient,
             SafeRedisClient,
           }),
-          TE.chainFirst((_) => TE.of(emitLogoutIfEligible(fiscalCode)(deps))),
+          TE.chainFirst((_) => emitLogoutIfEligible(fiscalCode)(deps)),
           TE.mapLeft((err) => toGenericError(err.message)),
         ),
       ),
       TE.map((_) => null),
     );
 
-const emitLogoutIfEligible =
-  (
-    fiscalCode: FiscalCode,
-  ): RTE.ReaderTaskEither<DeleteUserSessionDeps, Error, void> =>
-  (deps) =>
+const emitLogoutIfEligible: (
+  fiscalCode: FiscalCode,
+) => RTE.ReaderTaskEither<DeleteUserSessionDeps, Error, void> =
+  (fiscalCode) => (deps) =>
     pipe(
-      isUserEligible(fiscalCode),
-      B.match(
-        () => TE.of(void 0),
-        () =>
-          deps.AuthSessionsTopicRepository.emitSessionEvent({
-            fiscalCode,
-            eventType: EventTypeEnum.LOGOUT,
-          })(deps),
+      isUserEligibleForServiceBusEvents(fiscalCode),
+      TE.of,
+      TE.chain(
+        B.match(
+          () => TE.of(void 0),
+          () =>
+            deps.AuthSessionsTopicRepository.emitSessionEvent({
+              fiscalCode,
+              eventType: EventTypeEnum.LOGOUT,
+            })(deps),
+        ),
       ),
     );
-
-const isUserEligible: (fiscalCode: FiscalCode) => boolean =
-  getIsUserEligibleForNewFeature<FiscalCode>(
-    (fiscalCode) => SERVICE_BUS_EVENTS_USERS.includes(fiscalCode),
-    () => false,
-    FF_SERVICE_BUS_EVENTS,
-  );
 
 export type SessionService = typeof SessionService;
 export const SessionService = {

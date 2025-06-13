@@ -6,6 +6,7 @@ import { CommaSeparatedListOf } from "@pagopa/ts-commons/lib/comma-separated-lis
 import {
   FeatureFlag,
   FeatureFlagEnum,
+  getIsUserEligibleForNewFeature,
 } from "@pagopa/ts-commons/lib/featureFlag";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
@@ -100,13 +101,13 @@ export const getConfigOrThrow = (): IConfig =>
     }),
   );
 
-export const FF_SERVICE_BUS_EVENTS = pipe(
+const FF_SERVICE_BUS_EVENTS = pipe(
   process.env.SERVICE_BUS_EVENTS,
   FeatureFlag.decode,
   E.getOrElseW(() => FeatureFlagEnum.NONE),
 );
 
-export const SERVICE_BUS_EVENTS_USERS: ReadonlyArray<FiscalCode> = pipe(
+const SERVICE_BUS_EVENTS_USERS: ReadonlyArray<FiscalCode> = pipe(
   process.env.SERVICE_BUS_EVENTS_USERS,
   O.fromNullable,
   O.map(
@@ -120,4 +121,12 @@ export const SERVICE_BUS_EVENTS_USERS: ReadonlyArray<FiscalCode> = pipe(
     ),
   ),
   O.getOrElseW(() => []),
+);
+
+export const isUserEligibleForServiceBusEvents: (
+  fiscalCode: FiscalCode,
+) => boolean = getIsUserEligibleForNewFeature<FiscalCode>(
+  (fiscalCode) => SERVICE_BUS_EVENTS_USERS.includes(fiscalCode),
+  () => false,
+  FF_SERVICE_BUS_EVENTS,
 );

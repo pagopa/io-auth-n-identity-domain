@@ -10,7 +10,7 @@ export const ServiceBusSenderMock = {
 
 export const mockEmitSessionEvent = vi
   .fn()
-  .mockImplementation(RTE.right(void 0));
+  .mockImplementation(() => RTE.right(void 0));
 export const AuthSessionsTopicRepositoryMock: AuthSessionsTopicRepository = {
   emitSessionEvent: mockEmitSessionEvent,
 };

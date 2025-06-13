@@ -8,7 +8,6 @@ import { QueueClient } from "@azure/storage-queue";
 import { TableClient } from "@azure/data-tables";
 import addSeconds from "date-fns/add_seconds";
 import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
-import { FeatureFlagEnum } from "@pagopa/ts-commons/lib/featureFlag";
 import {
   RedisClientTaskMock,
   RedisRepositoryMock,
@@ -51,13 +50,15 @@ import {
   ServiceBusSenderMock,
   mockEmitSessionEvent,
 } from "../../__mocks__/repositories/auth-sessions-topic.mock";
-
-vi.mock("../../utils/config", () => ({
-  ...vi.importActual("../../utils/config"),
-  FF_SERVICE_BUS_EVENTS: FeatureFlagEnum.ALL,
-}));
+import * as ConfigModule from "../../utils/config";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
+
+const mockIsUserEligibleForServiceBusEvents = vi.spyOn(
+  ConfigModule,
+  "isUserEligibleForServiceBusEvents",
+);
+mockIsUserEligibleForServiceBusEvents.mockReturnValue(true);
 
 describe("Session Service#userHasActiveSessionsOrLV", () => {
   beforeEach(() => {
