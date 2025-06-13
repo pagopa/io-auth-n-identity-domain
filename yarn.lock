@@ -1892,7 +1892,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/io-auth-n-identity-commons@workspace:packages/io-auth-n-identity-commons":
+"@pagopa/io-auth-n-identity-commons@npm:*, @pagopa/io-auth-n-identity-commons@workspace:packages/io-auth-n-identity-commons":
   version: 0.0.0-use.local
   resolution: "@pagopa/io-auth-n-identity-commons@workspace:packages/io-auth-n-identity-commons"
   dependencies:
@@ -8145,6 +8145,7 @@ __metadata:
     "@pagopa/handler-kit": "npm:^1.1.0"
     "@pagopa/handler-kit-azure-func": "npm:^1.2.1"
     "@pagopa/io-app-email-templates": "npm:^0.4.0"
+    "@pagopa/io-auth-n-identity-commons": "npm:*"
     "@pagopa/io-functions-commons": "npm:^29.3.0"
     "@pagopa/logger": "npm:^1.0.1"
     "@pagopa/openapi-codegen-ts": "npm:^14.0.0"

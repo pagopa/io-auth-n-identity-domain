@@ -1,35 +1,59 @@
+import { SqlQuerySpec } from "@azure/cosmos";
+import { mapAsyncIterable } from "@pagopa/io-functions-commons/dist/src/utils/async";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { pipe } from "fp-ts/lib/function";
 import * as R from "fp-ts/lib/Reader";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
 import {
-  RetrievedSessionNotifications,
+  SESSION_NOTIFICATIONS_MODEL_KEY_FIELD,
   SESSION_NOTIFICATIONS_ROW_PK_FIELD,
   SessionNotificationsModel
 } from "../models/session-notifications";
 import { Interval } from "../types/interval";
+import { RetrievedSessionNotificationsStrict } from "../types/session-notification-strict";
 
 export type Dependencies = {
   readonly sessionNotificationsModel: SessionNotificationsModel;
 };
 
+const findUsingStrictAsyncIterable: (
+  query: string | SqlQuerySpec,
+  cosmosChunkSize: number
+) => R.Reader<
+  Dependencies,
+  AsyncIterable<
+    ReadonlyArray<t.Validation<RetrievedSessionNotificationsStrict>>
+  >
+> = (query, cosmosChunkSize) => deps =>
+  pipe(
+    deps.sessionNotificationsModel.buildAsyncIterable(query, cosmosChunkSize),
+    iterator =>
+      mapAsyncIterable(iterator, feedResponse =>
+        feedResponse.resources.map(RetrievedSessionNotificationsStrict.decode)
+      )
+  );
+
 /**
  * Finds session-notifications documents with expiredAt within a given interval.
  *
  * @param interval The interval to search for
- * @returns A TaskEither that resolves to an array of all session-notifications documents within the interval
+ * @param chunkSize  The resultSet page size
+ * @returns An AsyncIterable that resolves to an array of all session-notifications documents within the interval
  */
-const findByExpiredAtAsyncIterable: (
+const findByExpiredAtAsyncIterable = (
   interval: Interval,
   chunkSize: number
-) => R.Reader<
+): R.Reader<
   Dependencies,
-  AsyncIterable<ReadonlyArray<t.Validation<RetrievedSessionNotifications>>>
-> = (interval, chunkSize) => deps =>
-  deps.sessionNotificationsModel.buildAsyncIterable(
+  AsyncIterable<
+    ReadonlyArray<t.Validation<RetrievedSessionNotificationsStrict>>
+  >
+> =>
+  findUsingStrictAsyncIterable(
     {
       parameters: [
         {
@@ -46,6 +70,78 @@ const findByExpiredAtAsyncIterable: (
         "(c.notificationEvents.EXPIRED_SESSION = false OR NOT IS_DEFINED(c.notificationEvents.EXPIRED_SESSION))"
     },
     chunkSize
+  );
+
+/**
+ * Finds session-notifications documents by fiscalCode.
+ *
+ * @param fiscalCode The fiscalCode to search for
+ * @param chunkSize  The resultSet page size
+ * @returns An AsyncIterable that resolves to an array of all session-notifications documents having the given fiscalCode
+ */
+const findByFiscalCodeAsyncIterable = (
+  fiscalCode: FiscalCode,
+  chunkSize: number
+): R.Reader<
+  Dependencies,
+  AsyncIterable<
+    ReadonlyArray<t.Validation<RetrievedSessionNotificationsStrict>>
+  >
+> =>
+  findUsingStrictAsyncIterable(
+    {
+      parameters: [
+        {
+          name: "@fiscalCode",
+          value: fiscalCode
+        }
+      ],
+      query: `SELECT * FROM c WHERE c.${SESSION_NOTIFICATIONS_MODEL_KEY_FIELD} = @fiscalCode`
+    },
+    chunkSize
+  );
+
+/**
+ * Delete session-notifications documents by fiscalCode and expiredAt.
+ *
+ * @param fiscalCode The fiscalCode to search for
+ * @param expiredAt  The resultSet page size
+ * @returns A ReaderTaskEither that resolves to void if the operation is successful, or an error if it fails
+ */
+const deleteRecord: (
+  fiscalCode: FiscalCode,
+  expiredAt: number
+) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> = (
+  fiscalCode,
+  expiredAt
+) => deps => deps.sessionNotificationsModel.delete([fiscalCode, expiredAt]);
+
+/**
+ * Create a new session-notifications documents.
+ *
+ * @param fiscalCode The fiscalCode to search for
+ * @param expiredAt  The resultSet page size
+ * @param ttl The time to live for the document in seconds
+ * @returns A ReaderTaskEither that resolves to void if the operation is successful, or an error if it fails
+ */
+const createRecord: (
+  fiscalCode: FiscalCode,
+  expiredAt: number,
+  ttl: NonNegativeInteger
+) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> = (
+  fiscalCode: FiscalCode,
+  expiredAt: number,
+  ttl: NonNegativeInteger
+) => deps =>
+  pipe(
+    deps.sessionNotificationsModel.create({
+      id: (fiscalCode as unknown) as NonEmptyString,
+      expiredAt,
+      notificationEvents: {},
+      ttl,
+      kind: "INewSessionNotifications"
+    }),
+    TE.map(() => void 0)
   );
 
 /**
@@ -76,6 +172,9 @@ const updateExpiredSessionNotificationFlag: (
 
 export type SessionNotificationsRepository = typeof SessionNotificationsRepository;
 export const SessionNotificationsRepository = {
+  createRecord,
+  deleteRecord,
   findByExpiredAtAsyncIterable,
+  findByFiscalCodeAsyncIterable,
   updateExpiredSessionNotificationFlag
 };

@@ -107,6 +107,7 @@ services:
     depends_on:
       - storage
       - cosmosdb
+      - servicebus
 
   io-profile:
     image: io-profile

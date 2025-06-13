@@ -47,6 +47,22 @@ export type ExpiredSessionDiscovererConfig = t.TypeOf<
   typeof ExpiredSessionDiscovererConfig
 >;
 
+export const SessionNotificationEventsProcessorConfig = t.type({
+  SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET: withFallback(
+    NumberFromString,
+    432000 // 5 days in seconds
+  ),
+  SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE: withFallback(
+    NumberFromString,
+    100
+  ),
+  SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT: NumberFromString
+});
+
+export type SessionNotificationEventsProcessorConfig = t.TypeOf<
+  typeof SessionNotificationEventsProcessorConfig
+>;
+
 // global app configuration
 export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
@@ -87,7 +103,8 @@ export const IConfig = t.intersection([
     MailerConfig,
     DryRunFeatureFlag,
     ExpiredSessionDiscovererConfig
-  ])
+  ]),
+  SessionNotificationEventsProcessorConfig
 ]);
 
 // No need to re-evaluate this object for each call
