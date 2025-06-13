@@ -102,7 +102,7 @@ export const getConfigOrThrow = (): IConfig =>
   );
 
 const FF_SERVICE_BUS_EVENTS = pipe(
-  process.env.SERVICE_BUS_EVENTS,
+  process.env.FF_SERVICE_BUS_EVENTS,
   FeatureFlag.decode,
   E.getOrElseW(() => FeatureFlagEnum.NONE),
 );
