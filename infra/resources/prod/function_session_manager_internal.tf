@@ -31,6 +31,12 @@ locals {
       // Clear installation queue config
       PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.push_notifications_storage.primary_connection_string
       PUSH_NOTIFICATIONS_QUEUE_NAME                = "push-notifications"
+
+      // Service Bus Config
+      SERVICE_BUS_NAMESPACE    = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
+      AUTH_SESSIONS_TOPIC_NAME = azurerm_servicebus_subscription.io_session_notifications_sub.name
+      FF_SERVICE_BUS_EVENTS    = "NONE"
+      SERVICE_BUS_EVENTS_USERS = ""
     }
   }
 }
