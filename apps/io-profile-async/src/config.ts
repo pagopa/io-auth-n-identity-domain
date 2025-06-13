@@ -55,7 +55,8 @@ export const SessionNotificationEventsProcessorConfig = t.type({
   SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE: withFallback(
     NumberFromString,
     100
-  )
+  ),
+  SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT: NumberFromString
 });
 
 export type SessionNotificationEventsProcessorConfig = t.TypeOf<

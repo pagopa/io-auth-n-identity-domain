@@ -95,9 +95,10 @@ locals {
       // the appropriate value
       EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER = 7
 
-      PLATFORM_SERVICEBUS_CONNECTION__fullyQualifiedNamespace = data.azurerm_servicebus_namespace.platform_service_bus_namespace.endpoint
-      SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION              = resource.azurerm_servicebus_subscription.io_session_notifications_sub.name
-      SERVICEBUS_AUTH_SESSION_TOPIC                           = resource.azurerm_servicebus_topic.io_auth_sessions_topic.name
+      PLATFORM_SERVICEBUS_CONNECTION__fullyQualifiedNamespace       = data.azurerm_servicebus_namespace.platform_service_bus_namespace.endpoint
+      SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION                    = resource.azurerm_servicebus_subscription.io_session_notifications_sub.name
+      SERVICEBUS_AUTH_SESSION_TOPIC                                 = resource.azurerm_servicebus_topic.io_auth_sessions_topic.name
+      SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT = local.io_session_notifications_sub_max_delivery_count
     }
   }
 }

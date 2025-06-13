@@ -29,6 +29,7 @@ import { SessionNotificationsStrict } from "../types/session-notification-strict
 import { trackEvent } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
 import { PermanentError, TransientError } from "../utils/errors";
+import { isLastServiceBusTriggerRetry } from "../utils/function-utils";
 
 export type TriggerDependencies = {
   SessionNotificationsRepo: SessionNotificationsRepository;
@@ -242,6 +243,29 @@ export const SessionNotificationEventsProcessorFunction = (
       if (error instanceof PermanentError) {
         return RT.of(void 0); // Permanent errors do not trigger a retry
       }
+
+      // dedicated customEvent on last retry failed
+      if (
+        isLastServiceBusTriggerRetry(
+          context,
+          deps.sessionNotificationEventsProcessorConfig
+            .SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT
+        )
+      ) {
+        trackEvent({
+          name:
+            "io.citizen-auth.session-notification-events-processor.max-retry-reached",
+          properties: {
+            message: "Reached max retry for event processing",
+            errorMessage: error.message,
+            messageId: context.bindingData?.messageId ?? "N/A"
+          },
+          tagOverrides: {
+            samplingEnabled: "false"
+          }
+        });
+      }
+
       throw error;
     })
   )(deps)();

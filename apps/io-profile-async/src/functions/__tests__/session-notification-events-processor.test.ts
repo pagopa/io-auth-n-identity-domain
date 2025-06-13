@@ -1,4 +1,5 @@
 /* eslint-disable max-lines-per-function */
+import { Context } from "@azure/functions";
 import {
   EventTypeEnum,
   LoginEvent,
@@ -64,7 +65,8 @@ const aValidServiceBusLogoutEventMessage: LogoutEvent = {
 
 const sessionNotificationEventsProcessorConfigMock = {
   SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET: 432000, // 5 days in seconds
-  SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE: 100
+  SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE: 100,
+  SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT: 10
 } as SessionNotificationEventsProcessorConfig;
 
 const aVoidReaderTaskEither: RTE.ReaderTaskEither<
@@ -111,6 +113,14 @@ const deps = {
 
 const trackEventMock = vi.spyOn(appinsights, "trackEvent");
 
+const serviceBusTriggerContextMock = ({
+  ...contextMock,
+  bindingData: {
+    messageId: "aServiceBusMessageId",
+    deliveryCount: 1
+  }
+} as unknown) as Context;
+
 describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
   const baseDate = new Date("2025-06-11T12:00:00Z");
 
@@ -125,7 +135,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
     it("should process the event succesfully removing previous cosmosDB records when present", async () => {
       await expect(
         SessionNotificationEventsProcessorFunction(deps)(
-          contextMock,
+          serviceBusTriggerContextMock,
           aValidServiceBusLoginEventMessage
         )
       ).resolves.not.toThrow();
@@ -161,7 +171,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
 
       await expect(
         SessionNotificationEventsProcessorFunction(deps)(
-          contextMock,
+          serviceBusTriggerContextMock,
           aValidServiceBusLoginEventMessage
         )
       ).resolves.not.toThrow();
@@ -188,7 +198,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
     it("should process the event succesfully removing previous cosmosDB records when present", async () => {
       await expect(
         SessionNotificationEventsProcessorFunction(deps)(
-          contextMock,
+          serviceBusTriggerContextMock,
           aValidServiceBusLogoutEventMessage
         )
       ).resolves.not.toThrow();
@@ -216,7 +226,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
 
       await expect(
         SessionNotificationEventsProcessorFunction(deps)(
-          contextMock,
+          serviceBusTriggerContextMock,
           aValidServiceBusLogoutEventMessage
         )
       ).resolves.not.toThrow();
@@ -231,7 +241,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
     });
   });
 
-  describe("Errors attempting ComsosDB Operation", () => {
+  describe("Transient and Permanent Errors Handling", () => {
     it("should throw on TranisentError while finding previousEvents", async () => {
       findByFiscalCodeAsyncIterableMock.mockReturnValueOnce((_deps: unknown) =>
         (async function*() {
@@ -241,7 +251,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
 
       await expect(
         SessionNotificationEventsProcessorFunction(deps)(
-          contextMock,
+          serviceBusTriggerContextMock,
           aValidServiceBusLoginEventMessage
         )
       ).rejects.toThrow(
@@ -267,7 +277,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
 
       await expect(
         SessionNotificationEventsProcessorFunction(deps)(
-          contextMock,
+          serviceBusTriggerContextMock,
           aValidServiceBusLoginEventMessage
         )
       ).rejects.toThrow(
@@ -296,7 +306,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
 
       await expect(
         SessionNotificationEventsProcessorFunction(deps)(
-          contextMock,
+          serviceBusTriggerContextMock,
           aValidServiceBusLoginEventMessage
         )
       ).rejects.toThrow(
@@ -332,7 +342,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
 
       await expect(
         SessionNotificationEventsProcessorFunction(deps)(
-          contextMock,
+          serviceBusTriggerContextMock,
           aValidServiceBusLoginEventMessage
         )
       ).resolves.not.toThrow();
@@ -378,7 +388,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
 
       await expect(
         SessionNotificationEventsProcessorFunction(deps)(
-          contextMock,
+          serviceBusTriggerContextMock,
           aValidServiceBusLoginEventMessage
         )
       ).resolves.not.toThrow();
@@ -418,10 +428,13 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
 
     it("should fail silently on PermanentError while creating new record(Bad TTL)", async () => {
       await expect(
-        SessionNotificationEventsProcessorFunction(deps)(contextMock, {
-          ...aValidServiceBusLoginEventMessage,
-          expiredAt: aPreviousExpiredAt.getTime()
-        })
+        SessionNotificationEventsProcessorFunction(deps)(
+          serviceBusTriggerContextMock,
+          {
+            ...aValidServiceBusLoginEventMessage,
+            expiredAt: aPreviousExpiredAt.getTime()
+          }
+        )
       ).resolves.not.toThrow();
 
       const expectedTtl =
@@ -453,15 +466,58 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       );
       expect(createRecordMock).not.toHaveBeenCalled();
     });
+
+    it("should emit a customEvent on TransientError and last retry", async () => {
+      const error = ({
+        kind: "COSMOS_ERROR",
+        error: anError
+      } as unknown) as CosmosErrors;
+      createRecordMock.mockReturnValueOnce(RTE.fromEither(E.left(error)));
+
+      const aLastRetryContextMock = ({
+        ...serviceBusTriggerContextMock,
+        bindingData: {
+          ...serviceBusTriggerContextMock.bindingData,
+          deliveryCount:
+            sessionNotificationEventsProcessorConfigMock.SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT
+        }
+      } as unknown) as Context;
+
+      const expectedErrorMessage =
+        "An Error occurred while creating a new session record";
+
+      await expect(
+        SessionNotificationEventsProcessorFunction(deps)(
+          aLastRetryContextMock,
+          aValidServiceBusLoginEventMessage
+        )
+      ).rejects.toThrow(expectedErrorMessage);
+
+      expect(trackEventMock).toHaveBeenCalledWith({
+        name:
+          "io.citizen-auth.session-notification-events-processor.max-retry-reached",
+        properties: {
+          errorMessage: expectedErrorMessage,
+          message: "Reached max retry for event processing",
+          messageId: aLastRetryContextMock.bindingData.messageId
+        },
+        tagOverrides: {
+          samplingEnabled: "false"
+        }
+      });
+    });
   });
 
   describe("Invalid Event Event Message Processing", () => {
     it("should throw in case of a bad message having an known eventType", async () => {
       await expect(
-        SessionNotificationEventsProcessorFunction(deps)(contextMock, {
-          eventType: EventTypeEnum.LOGOUT,
-          aBadProp: aFiscalCode
-        })
+        SessionNotificationEventsProcessorFunction(deps)(
+          serviceBusTriggerContextMock,
+          {
+            eventType: EventTypeEnum.LOGOUT,
+            aBadProp: aFiscalCode
+          }
+        )
       ).rejects.toThrow("Bad Message Received having a known eventType");
 
       expect(trackEventMock).not.toHaveBeenCalled();
@@ -473,10 +529,13 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
 
     it("should fail silently in case of a bad message having an unknown eventType", async () => {
       await expect(
-        SessionNotificationEventsProcessorFunction(deps)(contextMock, {
-          eventType: "anUnknownEventType",
-          fiscalCode: aFiscalCode
-        })
+        SessionNotificationEventsProcessorFunction(deps)(
+          serviceBusTriggerContextMock,
+          {
+            eventType: "anUnknownEventType",
+            fiscalCode: aFiscalCode
+          }
+        )
       ).resolves.not.toThrow();
 
       expect(trackEventMock).toHaveBeenCalledWith({
