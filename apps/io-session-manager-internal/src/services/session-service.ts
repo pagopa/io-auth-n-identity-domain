@@ -365,7 +365,7 @@ const deleteUserSession: (
             FastRedisClient,
             SafeRedisClient,
           }),
-          TE.map((_) => emitLogoutIfEligible(fiscalCode)(deps)),
+          TE.chainFirst((_) => TE.of(emitLogoutIfEligible(fiscalCode)(deps))),
           TE.mapLeft((err) => toGenericError(err.message)),
         ),
       ),
