@@ -2,8 +2,10 @@ import { SqlQuerySpec } from "@azure/cosmos";
 import { mapAsyncIterable } from "@pagopa/io-functions-commons/dist/src/utils/async";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
+import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { pipe } from "fp-ts/lib/function";
+import * as E from "fp-ts/Either";
+import { flow, pipe } from "fp-ts/lib/function";
 import * as R from "fp-ts/lib/Reader";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
@@ -15,7 +17,7 @@ import {
 } from "../models/session-notifications";
 import { Interval } from "../types/interval";
 import { RetrievedSessionNotificationsStrict } from "../types/session-notification-strict";
-
+import { PermanentError } from "../utils/errors";
 export type Dependencies = {
   readonly sessionNotificationsModel: SessionNotificationsModel;
 };
@@ -117,6 +119,31 @@ const deleteRecord: (
 ) => deps => deps.sessionNotificationsModel.delete([fiscalCode, expiredAt]);
 
 /**
+ * Calculate TTL for session-notifications documents creation.
+ *
+ * @param fiscalCode The fiscalCode to search for
+ * @param expiredAt  The resultSet page size
+ * @returns A ReaderTaskEither that resolves to void if the operation is successful, or an error if it fails
+ */
+const calculateRecordTTL = (
+  expiredAt: number,
+  offsetSeconds: number
+): E.Either<PermanentError, NonNegativeInteger> =>
+  pipe(
+    Math.floor((expiredAt - new Date().getTime()) / 1000) + offsetSeconds,
+    NonNegativeInteger.decode,
+    E.mapLeft(
+      flow(
+        readableReportSimplified,
+        reason =>
+          new PermanentError(
+            `Unable to calculate New Record TTL, the reason was => ${reason}`
+          )
+      )
+    )
+  );
+
+/**
  * Create a new session-notifications documents.
  *
  * @param fiscalCode The fiscalCode to search for
@@ -127,20 +154,24 @@ const deleteRecord: (
 const createRecord: (
   fiscalCode: FiscalCode,
   expiredAt: number,
-  ttl: NonNegativeInteger
-) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> = (
+  ttlOffset: number
+) => RTE.ReaderTaskEither<Dependencies, PermanentError | CosmosErrors, void> = (
   fiscalCode: FiscalCode,
   expiredAt: number,
-  ttl: NonNegativeInteger
+  ttlOffset: number
 ) => deps =>
   pipe(
-    deps.sessionNotificationsModel.create({
-      id: (fiscalCode as unknown) as NonEmptyString,
-      expiredAt,
-      notificationEvents: {},
-      ttl,
-      kind: "INewSessionNotifications"
-    }),
+    calculateRecordTTL(expiredAt, ttlOffset),
+    TE.fromEither,
+    TE.chainW(ttl =>
+      deps.sessionNotificationsModel.create({
+        id: (fiscalCode as unknown) as NonEmptyString,
+        expiredAt,
+        notificationEvents: {},
+        ttl,
+        kind: "INewSessionNotifications"
+      })
+    ),
     TE.map(() => void 0)
   );
 

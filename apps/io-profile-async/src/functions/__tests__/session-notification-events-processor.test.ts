@@ -11,12 +11,13 @@ import * as E from "fp-ts/Either";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as t from "io-ts";
 import { Validation } from "io-ts";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SessionNotificationEventsProcessorConfig } from "../../config";
 import { SessionNotificationsModel } from "../../models/session-notifications";
 import { SessionNotificationsRepository } from "../../repositories/session-notifications";
 import { RetrievedSessionNotificationsStrict } from "../../types/session-notification-strict";
 import * as appinsights from "../../utils/appinsights";
+import { PermanentError } from "../../utils/errors";
 import { contextMock } from "../__mocks__/azurefunctions.mock";
 import {
   SessionNotificationEventsProcessorFunction,
@@ -25,8 +26,6 @@ import {
 
 const aFiscalCode = "AAAAAA89S20I111X" as FiscalCode;
 const anExpiredAt = new Date("2026-06-11T12:00:00Z");
-const aPreviousExpiredAt = new Date("2025-05-11T12:00:00Z");
-const aYearInSeconds = 31536000; // 1 year in seconds
 
 const validSessionNotifications: RetrievedSessionNotificationsStrict = {
   id: aFiscalCode,
@@ -69,18 +68,22 @@ const sessionNotificationEventsProcessorConfigMock = {
   SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT: 10
 } as SessionNotificationEventsProcessorConfig;
 
-const aVoidReaderTaskEither: RTE.ReaderTaskEither<
-  TriggerDependencies,
-  CosmosErrors,
-  void
-> = RTE.of(void 0) as RTE.ReaderTaskEither<
-  TriggerDependencies,
-  CosmosErrors,
-  void
->;
-
-const deleteRecordMock = vi.fn(() => aVoidReaderTaskEither);
-const createRecordMock = vi.fn(() => aVoidReaderTaskEither);
+const deleteRecordMock = vi.fn(
+  () =>
+    RTE.of(void 0) as RTE.ReaderTaskEither<
+      TriggerDependencies,
+      CosmosErrors,
+      void
+    >
+);
+const createRecordMock = vi.fn(
+  () =>
+    RTE.of(void 0) as RTE.ReaderTaskEither<
+      TriggerDependencies,
+      PermanentError | CosmosErrors,
+      void
+    >
+);
 
 const findByFiscalCodeAsyncIterableMock = vi.fn(() => (_deps: unknown) =>
   (async function*() {
@@ -121,13 +124,7 @@ const serviceBusTriggerContextMock = ({
   }
 } as unknown) as Context;
 
-describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
-  const baseDate = new Date("2025-06-11T12:00:00Z");
-
-  beforeEach(() => {
-    vi.setSystemTime(baseDate);
-  });
-
+describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -139,10 +136,6 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
           aValidServiceBusLoginEventMessage
         )
       ).resolves.not.toThrow();
-
-      const expectedTtl =
-        aYearInSeconds +
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET;
 
       expect(trackEventMock).not.toHaveBeenCalled();
       expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
@@ -158,7 +151,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(createRecordMock).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt,
-        expectedTtl
+        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
       );
     });
 
@@ -176,10 +169,6 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         )
       ).resolves.not.toThrow();
 
-      const expectedTtl =
-        aYearInSeconds +
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET;
-
       expect(trackEventMock).not.toHaveBeenCalled();
       expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
@@ -190,7 +179,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(createRecordMock).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt,
-        expectedTtl
+        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
       );
     });
   });
@@ -328,8 +317,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(createRecordMock).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt,
-        aYearInSeconds +
-          sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
+        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
       );
     });
 
@@ -371,8 +359,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(createRecordMock).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt,
-        aYearInSeconds +
-          sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
+        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
       );
     });
 
@@ -421,34 +408,34 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(createRecordMock).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt,
-        aYearInSeconds +
-          sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
+        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
       );
     });
 
     it("should fail silently on PermanentError while creating new record(Bad TTL)", async () => {
+      const permanentError = new PermanentError(
+        "Unable to calculate New Record TTL, the reason was => value -1000 at root is not a valid [integer >= 0]"
+      );
+
+      createRecordMock.mockReturnValueOnce(
+        RTE.fromEither(E.left(permanentError))
+      );
+
       await expect(
         SessionNotificationEventsProcessorFunction(deps)(
           serviceBusTriggerContextMock,
-          {
-            ...aValidServiceBusLoginEventMessage,
-            expiredAt: aPreviousExpiredAt.getTime()
-          }
+          aValidServiceBusLoginEventMessage
         )
       ).resolves.not.toThrow();
-
-      const expectedTtl =
-        Math.floor((aPreviousExpiredAt.getTime() - baseDate.getTime()) / 1000) +
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET;
 
       expect(trackEventMock).toHaveBeenCalledOnce();
       expect(trackEventMock).toHaveBeenCalledWith({
         name:
-          "io.citizen-auth.prof-async.session-notification-events-processor.permanent.unable-to-calculate-ttl",
+          "io.citizen-auth.prof-async.session-notification-events-processor.permanent.unable-to-build-new-record",
         properties: {
-          expiredAt: aPreviousExpiredAt,
-          formattedError: `value ${expectedTtl} at root is not a valid [integer >= 0]`,
-          message: "Unable to calculate TTL for new session record"
+          expiredAt: anExpiredAt,
+          reason: permanentError.message,
+          message: "Unable to build new session-notifications record"
         },
         tagOverrides: {
           samplingEnabled: "false"
@@ -464,7 +451,13 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
-      expect(createRecordMock).not.toHaveBeenCalled();
+
+      expect(createRecordMock).toHaveBeenCalledOnce();
+      expect(createRecordMock).toHaveBeenCalledWith(
+        aValidServiceBusLoginEventMessage.fiscalCode,
+        aValidServiceBusLoginEventMessage.expiredAt,
+        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
+      );
     });
 
     it("should emit a customEvent on TransientError and last retry", async () => {

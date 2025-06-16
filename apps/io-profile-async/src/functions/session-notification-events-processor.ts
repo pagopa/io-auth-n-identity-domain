@@ -10,7 +10,6 @@ import {
   asyncIterableToArray,
   flattenAsyncIterable
 } from "@pagopa/io-functions-commons/dist/src/utils/async";
-import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
@@ -78,23 +77,27 @@ const onBadMessageReceived = (
   return new PermanentError(`Bad Message Received`);
 };
 
-const onBadTTLCalculated = (expiredAt: Date) => (
-  validationErrors: Errors
+const onNewRecordBuildFailure = (
+  expiredAt: Date,
+  reason: PermanentError
 ): PermanentError => {
   trackEvent({
     name:
-      "io.citizen-auth.prof-async.session-notification-events-processor.permanent.unable-to-calculate-ttl",
+      "io.citizen-auth.prof-async.session-notification-events-processor.permanent.unable-to-build-new-record",
     properties: {
-      message: "Unable to calculate TTL for new session record",
+      message: "Unable to build new session-notifications record",
       expiredAt,
-      formattedError: readableReportSimplified(validationErrors)
+      reason: reason.message
     },
     tagOverrides: {
       samplingEnabled: "false"
     }
   });
 
-  return new PermanentError("Unable to calculate TTL for new session record");
+  return new PermanentError(
+    "Unable to build new session-notifications record",
+    reason
+  );
 };
 
 // Method to retrieve from CosmosDB all items having the provided fiscalCode
@@ -149,43 +152,26 @@ const deletePreviousRecords: (
 const createNewRecord: (
   fiscalCode: FiscalCode,
   expiredAt: Date
-) => RTE.ReaderTaskEither<TriggerDependencies, TransientError, void> = (
-  fiscalCode,
-  expiredAt
-) => deps =>
+) => RTE.ReaderTaskEither<
+  TriggerDependencies,
+  PermanentError | TransientError,
+  void
+> = (fiscalCode, expiredAt) => deps =>
   pipe(
-    calculateRecordTTL(
-      expiredAt,
+    deps.SessionNotificationsRepo.createRecord(
+      fiscalCode,
+      expiredAt.getTime(),
       deps.sessionNotificationEventsProcessorConfig
         .SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
-    ),
-    E.mapLeft(onBadTTLCalculated(expiredAt)),
-    TE.fromEither,
-    TE.chainW(ttl =>
-      pipe(
-        deps.SessionNotificationsRepo.createRecord(
-          fiscalCode,
-          expiredAt.getTime(),
-          ttl
-        )(deps),
-        TE.mapLeft(
-          err =>
-            new TransientError(
-              "An Error occurred while creating a new session record",
-              E.toError(err)
-            )
-        )
-      )
+    )(deps),
+    TE.mapLeft(err =>
+      err instanceof PermanentError
+        ? onNewRecordBuildFailure(expiredAt, err)
+        : new TransientError(
+            "An Error occurred while creating a new session record",
+            E.toError(err)
+          )
     )
-  );
-
-const calculateRecordTTL = (
-  date: Date,
-  offsetSeconds: number
-): E.Either<Errors, NonNegativeInteger> =>
-  pipe(
-    Math.floor((date.getTime() - new Date().getTime()) / 1000) + offsetSeconds,
-    NonNegativeInteger.decode
   );
 
 // 1. Retrieve all occurrences on DB for the event's fiscalCode

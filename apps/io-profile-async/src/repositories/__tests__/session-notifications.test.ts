@@ -1,10 +1,11 @@
+/* eslint-disable max-lines-per-function */
 import { asyncIterableToArray } from "@pagopa/io-functions-commons/dist/src/utils/async";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/TaskEither";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   RetrievedSessionNotifications,
   SESSION_NOTIFICATIONS_MODEL_KEY_FIELD,
@@ -18,13 +19,20 @@ import {
   SessionNotificationsRepository
 } from "../session-notifications";
 
+import { PermanentError } from "../../utils/errors";
+
 const anId = "AAAAAA89S20I111X" as FiscalCode;
-const anExpirationTimestamp = 1746992855578;
+const anExpiredAt = new Date("2026-06-11T12:00:00Z");
+const anExpiredAtTimestamp = anExpiredAt.getTime();
+const aPreviousExpiredAt = new Date("2025-05-11T12:00:00Z");
 const aTtl = 885551 as NonNegativeInteger;
+
+const aTTLOffset = 432000;
+const aYearInSeconds = 31536000; // 1 year in seconds
 
 const aSessionNotifications = {
   id: (anId as unknown) as NonEmptyString,
-  expiredAt: anExpirationTimestamp,
+  expiredAt: anExpiredAtTimestamp,
   notificationEvents: {},
   ttl: aTtl
 } as SessionNotifications;
@@ -88,7 +96,12 @@ const deps = {
 } as Dependencies;
 
 describe("SessionNotificationsRepository", () => {
+  const baseDate = new Date("2025-06-11T12:00:00Z");
+
   beforeEach(() => {
+    vi.setSystemTime(baseDate);
+  });
+  afterEach(() => {
     vi.clearAllMocks();
   });
 
@@ -155,11 +168,11 @@ describe("SessionNotificationsRepository", () => {
     it("should update the EXPIRED_SESSION flag successfully", async () => {
       const result = await SessionNotificationsRepository.updateExpiredSessionNotificationFlag(
         anId,
-        anExpirationTimestamp,
+        anExpiredAtTimestamp,
         true
       )(deps)();
 
-      expect(mockPatch).toHaveBeenCalledWith([anId, anExpirationTimestamp], {
+      expect(mockPatch).toHaveBeenCalledWith([anId, anExpiredAtTimestamp], {
         notificationEvents: { EXPIRED_SESSION: true }
       });
       expect(E.isRight(result)).toBe(true);
@@ -174,11 +187,11 @@ describe("SessionNotificationsRepository", () => {
 
       const result = await SessionNotificationsRepository.updateExpiredSessionNotificationFlag(
         anId,
-        anExpirationTimestamp,
+        anExpiredAtTimestamp,
         true
       )(deps)();
 
-      expect(mockPatch).toHaveBeenCalledWith([anId, anExpirationTimestamp], {
+      expect(mockPatch).toHaveBeenCalledWith([anId, anExpiredAtTimestamp], {
         notificationEvents: { EXPIRED_SESSION: true }
       });
       expect(E.isLeft(result)).toBe(true);
@@ -190,15 +203,15 @@ describe("SessionNotificationsRepository", () => {
     it("should create the record successfully", async () => {
       const result = await SessionNotificationsRepository.createRecord(
         anId,
-        anExpirationTimestamp,
-        aTtl
+        anExpiredAtTimestamp,
+        aTTLOffset
       )(deps)();
 
       expect(mockCreate).toHaveBeenCalledWith({
         id: anId,
-        expiredAt: anExpirationTimestamp,
+        expiredAt: anExpiredAtTimestamp,
         notificationEvents: {},
-        ttl: aTtl,
+        ttl: aYearInSeconds + aTTLOffset,
         kind: "INewSessionNotifications"
       });
       expect(result).toEqual(E.right(void 0));
@@ -214,18 +227,40 @@ describe("SessionNotificationsRepository", () => {
 
       const result = await SessionNotificationsRepository.createRecord(
         anId,
-        anExpirationTimestamp,
-        aTtl
+        anExpiredAtTimestamp,
+        aTTLOffset
       )(deps)();
 
       expect(mockCreate).toHaveBeenCalledWith({
         id: anId,
-        expiredAt: anExpirationTimestamp,
+        expiredAt: anExpiredAtTimestamp,
         notificationEvents: {},
-        ttl: aTtl,
+        ttl: aYearInSeconds + aTTLOffset,
         kind: "INewSessionNotifications"
       });
       expect(result).toEqual(E.left(error));
+    });
+
+    it("should return a PermanentError when a Bad TTL is calculated", async () => {
+      const result = await SessionNotificationsRepository.createRecord(
+        anId,
+        aPreviousExpiredAt.getTime(),
+        aTTLOffset
+      )(deps)();
+
+      const expectedBadTtl =
+        Math.floor((aPreviousExpiredAt.getTime() - baseDate.getTime()) / 1000) +
+        aTTLOffset;
+
+      expect(mockCreate).not.toHaveBeenCalled();
+
+      expect(result).toEqual(
+        E.left(
+          new PermanentError(
+            `Unable to calculate New Record TTL, the reason was => value ${expectedBadTtl} at root is not a valid [integer >= 0]`
+          )
+        )
+      );
     });
   });
 
@@ -233,10 +268,10 @@ describe("SessionNotificationsRepository", () => {
     it("should delete the record successfully", async () => {
       const result = await SessionNotificationsRepository.deleteRecord(
         anId,
-        anExpirationTimestamp
+        anExpiredAtTimestamp
       )(deps)();
 
-      expect(mockDelete).toHaveBeenCalledWith([anId, anExpirationTimestamp]);
+      expect(mockDelete).toHaveBeenCalledWith([anId, anExpiredAtTimestamp]);
       expect(result).toEqual(E.right(void 0));
     });
 
@@ -250,10 +285,10 @@ describe("SessionNotificationsRepository", () => {
 
       const result = await SessionNotificationsRepository.deleteRecord(
         anId,
-        anExpirationTimestamp
+        anExpiredAtTimestamp
       )(deps)();
 
-      expect(mockDelete).toHaveBeenCalledWith([anId, anExpirationTimestamp]);
+      expect(mockDelete).toHaveBeenCalledWith([anId, anExpiredAtTimestamp]);
       expect(result).toEqual(E.left(error));
     });
   });
