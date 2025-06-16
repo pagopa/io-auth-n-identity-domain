@@ -1,5 +1,16 @@
 # io-session-manager-internal
 
+## 0.9.0
+
+### Minor Changes
+
+- 2095786: Emit logout event from io-web successful logout
+
+### Patch Changes
+
+- Updated dependencies [5a529d0]
+  - @pagopa/io-auth-n-identity-commons@0.0.3
+
 ## 0.8.1
 
 ### Patch Changes

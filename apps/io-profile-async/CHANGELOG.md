@@ -1,5 +1,16 @@
 # io-profile-async
 
+## 1.8.0
+
+### Minor Changes
+
+- 5a529d0: Add SessionNotificationEventsProcessor ServiceBusTrigger function, responsible for handling session related events and session-notifications cosmosDB container management
+
+### Patch Changes
+
+- Updated dependencies [5a529d0]
+  - @pagopa/io-auth-n-identity-commons@0.0.3
+
 ## 1.7.0
 
 ### Minor Changes
