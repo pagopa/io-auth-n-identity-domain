@@ -1,3 +1,8 @@
+data "azurerm_key_vault_secret" "events_beta_testers" {
+  name         = "function-session-manager-internal-events-beta-testers"
+  key_vault_id = data.azurerm_key_vault.kv.id
+}
+
 locals {
   function_session_manager_internal = {
     name = "sm-int"
@@ -35,8 +40,8 @@ locals {
       // Service Bus Config
       SERVICE_BUS_NAMESPACE    = data.azurerm_servicebus_namespace.platform_service_bus_namespace.endpoint
       AUTH_SESSIONS_TOPIC_NAME = azurerm_servicebus_subscription.io_session_notifications_sub.name
-      FF_SERVICE_BUS_EVENTS    = "NONE"
-      SERVICE_BUS_EVENTS_USERS = ""
+      FF_SERVICE_BUS_EVENTS    = "BETA"
+      SERVICE_BUS_EVENTS_USERS = data.azurerm_key_vault_secret.events_beta_testers.value
     }
   }
 }
