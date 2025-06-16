@@ -6,15 +6,18 @@ import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmos
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ExpiredSessionDiscovererConfig } from "../../config";
 import {
-  RetrievedSessionNotifications,
-  SessionNotificationsModel
-} from "../../models/session-notifications";
+  ExpiredSessionDiscovererConfig,
+  SessionNotificationsRepositoryConfig
+} from "../../config";
+import { SessionNotificationsModel } from "../../models/session-notifications";
 import { ExpiredUserSessionsQueueRepository } from "../../repositories/expired-user-sessions-queue";
 import { SessionNotificationsRepository } from "../../repositories/session-notifications";
+import { createInterval, Interval } from "../../types/interval";
+import { RetrievedSessionNotificationsStrict } from "../../types/session-notification-strict";
 import * as appinsights from "../../utils/appinsights";
 import { TransientError } from "../../utils/errors";
+import { aValidationError } from "../__mocks__/expired-sessions.mock";
 import {
   ExpiredSessionsDiscovererFunction,
   ItemToProcess,
@@ -22,8 +25,6 @@ import {
   processItem,
   retrieveFromDbInChunks
 } from "../expired-sessions-discoverer";
-import { createInterval, Interval } from "../../types/interval";
-import { aValidationError } from "../__mocks__/expired-sessions.mock";
 
 const aSession = ({
   id: "AAAAAA89S20I111X",
@@ -36,20 +37,24 @@ const aSession = ({
   _self: "self",
   _ts: 0,
   kind: "IRetrievedSessionNotifications"
-} as unknown) as RetrievedSessionNotifications;
+} as unknown) as RetrievedSessionNotificationsStrict;
 
-const item = {
+const item: ItemToProcess = {
   itemTimeoutInSeconds: 5,
   queuePayload: {
     fiscalCode: aSession.id,
     expiredAt: new Date(aSession.expiredAt)
   },
   retrievedDbItem: aSession
-} as ItemToProcess;
+};
+
+const sessionNotificationsRepositoryConfigMock = {
+  SESSION_NOTIFICATION_EVENTS_TTL_OFFSET: 432000, // 5 days in seconds
+  SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE: 1
+} as SessionNotificationsRepositoryConfig;
 
 const expiredSessionsDiscovererConfMock = {
   EXPIRED_SESSION_ADVISOR_QUEUE: "aQueueName",
-  EXPIRED_SESSION_SCANNER_CHUNK_SIZE: 1,
   EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER: 1,
   SESSION_NOTIFICATIONS_CONTAINER_NAME: "aContainerName"
 } as ExpiredSessionDiscovererConfig;
@@ -91,6 +96,7 @@ const mockExpiredUserSessionsQueueClient = ({
 
 const baseDeps = {
   expiredSessionsDiscovererConf: expiredSessionsDiscovererConfMock,
+  sessionNotificationsRepositoryConfig: sessionNotificationsRepositoryConfigMock,
   ExpiredUserSessionsQueueRepo: mockExpiredUserSessionsQueueRepository,
   SessionNotificationsRepo: mockSessionNotificationsRepository,
   sessionNotificationsModel: mockSessionsNotificationModel,
@@ -316,9 +322,9 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       );
       const deps = {
         ...baseDeps,
-        expiredSessionsDiscovererConf: {
-          ...baseDeps.expiredSessionsDiscovererConf,
-          EXPIRED_SESSION_SCANNER_CHUNK_SIZE: chunkSize
+        sessionNotificationsRepositoryConfig: {
+          ...baseDeps.sessionNotificationsRepositoryConfig,
+          SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE: chunkSize
         }
       };
 
@@ -327,13 +333,10 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       )(deps)();
 
       expect(findByExpiredAtAsyncIterableMock).toHaveBeenCalledOnce();
-      expect(findByExpiredAtAsyncIterableMock).toHaveBeenCalledWith(
-        {
-          from: new Date("2024-12-31"),
-          to: new Date("2025-01-01")
-        } as Interval,
-        chunkSize
-      );
+      expect(findByExpiredAtAsyncIterableMock).toHaveBeenCalledWith({
+        from: new Date("2024-12-31"),
+        to: new Date("2025-01-01")
+      } as Interval);
 
       expect(E.isRight(result)).toBe(true);
       if (E.isRight(result)) {
@@ -371,7 +374,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
           async function*() {
             for (let i = 0; i < chunks; i++) {
               yield Array(
-                expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
+                sessionNotificationsRepositoryConfigMock.SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE
               ).fill(E.of(aSession));
             }
           }
@@ -385,7 +388,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         const right = result.right;
         expect(right).toHaveLength(chunks);
         expect(right[0]).toHaveLength(
-          expiredSessionsDiscovererConfMock.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
+          sessionNotificationsRepositoryConfigMock.SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE
         );
         // expect the timeout to be the multiplier * index
         // eslint-disable-next-line functional/no-let
@@ -410,7 +413,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
             yield [
               E.left(aValidationError) as E.Either<
                 never,
-                RetrievedSessionNotifications
+                RetrievedSessionNotificationsStrict
               >
             ];
           }
@@ -455,9 +458,9 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       );
       const deps = {
         ...baseDeps,
-        expiredSessionsDiscovererConf: {
-          ...baseDeps.expiredSessionsDiscovererConf,
-          EXPIRED_SESSION_SCANNER_CHUNK_SIZE: chunkSize
+        sessionNotificationsRepositoryConfig: {
+          ...baseDeps.sessionNotificationsRepositoryConfig,
+          SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE: chunkSize
         }
       };
 
@@ -485,9 +488,9 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       );
       const deps = {
         ...baseDeps,
-        expiredSessionsDiscovererConf: {
-          ...baseDeps.expiredSessionsDiscovererConf,
-          EXPIRED_SESSION_SCANNER_CHUNK_SIZE: chunkSize
+        sessionNotificationsRepositoryConfig: {
+          ...baseDeps.sessionNotificationsRepositoryConfig,
+          SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE: chunkSize
         }
       };
 

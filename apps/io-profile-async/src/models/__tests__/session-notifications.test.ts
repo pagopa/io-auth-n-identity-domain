@@ -1,5 +1,5 @@
-import { Container } from "@azure/cosmos";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { Container, FeedResponse } from "@azure/cosmos";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
 import * as t from "io-ts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -20,7 +20,7 @@ const aNotificationEvents = {
 } as NotificationEvents;
 
 const aSessionNotifications = {
-  id: anId,
+  id: (anId as unknown) as NonEmptyString,
   expiredAt: anExpirationTimestamp,
   notificationEvents: aNotificationEvents,
   ttl: aTtl
@@ -86,7 +86,16 @@ describe("RetrievedSessionNotifications model decoding", () => {
 });
 
 describe("buildAsyncIterable", () => {
-  const containerMock: Container = {} as Container;
+  const getAsyncIteratorMock = vi.fn();
+
+  const containerMock: Container = ({
+    items: {
+      query: vi.fn(() => ({
+        getAsyncIterator: getAsyncIteratorMock
+      }))
+    }
+  } as unknown) as Container;
+
   const model: SessionNotificationsModel = new SessionNotificationsModel(
     containerMock
   );
@@ -99,18 +108,61 @@ describe("buildAsyncIterable", () => {
     const query = "SELECT * FROM c";
     const chunkSize = 10;
     const expectedResult = {} as AsyncIterable<
-      ReadonlyArray<t.Validation<RetrievedSessionNotifications>>
+      ReadonlyArray<t.Validation<FeedResponse<unknown>>>
     >;
 
-    const getQueryIteratorSpy = vi
-      .spyOn(model, "getQueryIterator")
-      .mockReturnValue(expectedResult);
+    getAsyncIteratorMock.mockReturnValueOnce(expectedResult);
 
     const result = model.buildAsyncIterable(query, chunkSize);
 
-    expect(getQueryIteratorSpy).toHaveBeenCalledWith(query, {
+    expect(containerMock.items.query).toHaveBeenCalledWith(query, {
       maxItemCount: chunkSize
     });
+
+    expect(getAsyncIteratorMock).toHaveBeenCalled();
+
     expect(result).toBe(expectedResult);
+  });
+});
+describe("delete", () => {
+  const deleteMock = vi.fn().mockResolvedValue({});
+
+  const containerMock: Container = ({
+    item: vi.fn(() => ({
+      delete: deleteMock
+    }))
+  } as unknown) as Container;
+
+  const model: SessionNotificationsModel = new SessionNotificationsModel(
+    containerMock
+  );
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should call item.delete with correct parameters", async () => {
+    const result = await model.delete([anId, anExpirationTimestamp])();
+
+    expect(containerMock.item).toHaveBeenCalledWith(
+      anId,
+      anExpirationTimestamp
+    );
+    expect(deleteMock).toHaveBeenCalled();
+    expect(result).toEqual(E.right(undefined));
+  });
+
+  it("should propagate the error when item.delete fails", async () => {
+    const error = new Error("Delete failed");
+    deleteMock.mockRejectedValueOnce(error);
+
+    const result = await model.delete([anId, anExpirationTimestamp])();
+
+    expect(containerMock.item).toHaveBeenCalledWith(
+      anId,
+      anExpirationTimestamp
+    );
+    expect(deleteMock).toHaveBeenCalled();
+    expect(result).toEqual(E.left({ error, kind: "COSMOS_ERROR_RESPONSE" }));
   });
 });

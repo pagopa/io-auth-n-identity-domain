@@ -9,7 +9,6 @@ import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
 import { ExpiredSessionDiscovererConfig } from "../config";
-import { RetrievedSessionNotifications } from "../models/session-notifications";
 import {
   ExpiredUserSessionsQueueRepository,
   ExpiredUserSessionsQueueRepositoryDeps
@@ -20,6 +19,7 @@ import {
 } from "../repositories/session-notifications";
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
 import { createInterval, Interval } from "../types/interval";
+import { RetrievedSessionNotificationsStrict } from "../types/session-notification-strict";
 import { trackEvent } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
 import { TransientError } from "../utils/errors";
@@ -34,12 +34,12 @@ type TriggerDependencies = {
 
 export type ItemToProcess = {
   queuePayload: ExpiredSessionAdvisorQueueMessage;
-  retrievedDbItem: RetrievedSessionNotifications;
+  retrievedDbItem: RetrievedSessionNotificationsStrict;
   itemTimeoutInSeconds: number;
 };
 
 const createItemToProcess = (itemTimeoutInSeconds: number) => (
-  retrievedDbItem: RetrievedSessionNotifications
+  retrievedDbItem: RetrievedSessionNotificationsStrict
 ): ItemToProcess => ({
   retrievedDbItem,
   queuePayload: {
@@ -69,7 +69,7 @@ const onBadRetrievedItem = (validationErrors: t.Errors): t.Errors => {
 
 const mapItemChunk = (timeoutMultiplier: number) => (
   chunkNumber: number,
-  chunk: ReadonlyArray<t.Validation<RetrievedSessionNotifications>>
+  chunk: ReadonlyArray<t.Validation<RetrievedSessionNotificationsStrict>>
 ): ReadonlyArray<ItemToProcess> =>
   pipe(
     chunk,
@@ -104,16 +104,16 @@ const onRevertItemFlagFailure = (itemDbSelf: string) => (
 };
 
 const handleQueueInsertFailure: (
-  record: RetrievedSessionNotifications
+  record: RetrievedSessionNotificationsStrict
 ) => (
   queueInsertError: TransientError
 ) => RTE.ReaderTaskEither<TriggerDependencies, TransientError, undefined> = ({
   id,
   expiredAt,
   _self
-}: RetrievedSessionNotifications) => (queueInsertError: TransientError) => (
-  deps: TriggerDependencies
-) =>
+}: RetrievedSessionNotificationsStrict) => (
+  queueInsertError: TransientError
+) => (deps: TriggerDependencies) =>
   pipe(
     deps.SessionNotificationsRepo.updateExpiredSessionNotificationFlag(
       id,
@@ -214,10 +214,7 @@ export const retrieveFromDbInChunks: (
   ReadonlyArray<ReadonlyArray<ItemToProcess>>
 > = (interval: Interval) => (deps: TriggerDependencies) =>
   pipe(
-    deps.SessionNotificationsRepo.findByExpiredAtAsyncIterable(
-      interval,
-      deps.expiredSessionsDiscovererConf.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
-    )(deps),
+    deps.SessionNotificationsRepo.findByExpiredAtAsyncIterable(interval)(deps),
     TE.of,
     TE.chainW(
       flow(asyncIterableToArray, asyncIterator =>

@@ -94,6 +94,11 @@ locals {
       // TIMEOUT_MULTIPLIER = 3600 / HOURLY_BATCHES -> for ~50k, 7 seconds is
       // the appropriate value
       EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER = 7
+
+      PLATFORM_SERVICEBUS_CONNECTION__fullyQualifiedNamespace       = data.azurerm_servicebus_namespace.platform_service_bus_namespace.endpoint
+      SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION                    = resource.azurerm_servicebus_subscription.io_session_notifications_sub.name
+      SERVICEBUS_AUTH_SESSION_TOPIC                                 = resource.azurerm_servicebus_topic.io_auth_sessions_topic.name
+      SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT = local.io_session_notifications_sub_max_delivery_count
     }
   }
 }
@@ -137,8 +142,9 @@ module "function_profile_async" {
       "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"                                                = "1"
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "0",
-      "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "0"
-      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "0"
+      "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "0",
+      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "0",
+      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"                                       = "0"
     }
   )
   slot_app_settings = merge(
@@ -150,8 +156,9 @@ module "function_profile_async" {
       "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"                                                = "1"
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "1",
-      "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "1"
-      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "1"
+      "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "1",
+      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "1",
+      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"                                       = "1"
     }
   )
 
@@ -163,7 +170,8 @@ module "function_profile_async" {
     "AzureWebJobs.ExpiredSessionAdvisor.Disabled",
     "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",
     "AzureWebJobs.OnProfileUpdate.Disabled",
-    "AzureWebJobs.StoreSpidLogs.Disabled"
+    "AzureWebJobs.StoreSpidLogs.Disabled",
+    "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"
   ]
 
   subnet_service_endpoints = {

@@ -23,6 +23,7 @@ import {
   MigrateServicesPreferencesQueueMessage
 } from "./functions/migrate-service-preference-from-legacy";
 import { OnProfileUpdateFunction } from "./functions/on-profile-update";
+import { SessionNotificationEventsProcessorFunction } from "./functions/session-notification-events-processor";
 import { StoreSpidLogsFunction } from "./functions/store-spid-logs";
 import { SessionNotificationsModel } from "./models/session-notifications";
 import { ProfileEmailRepository, ProfileRepository } from "./repositories";
@@ -34,9 +35,9 @@ import { ExpiredSessionAdvisorQueueMessage } from "./types/expired-session-advis
 import { OnProfileUpdateFunctionInput } from "./types/on-profile-update-input-document";
 import { StoreSpidLogsQueueMessage } from "./types/store-spid-logs-queue-message";
 import { initTelemetryClient } from "./utils/appinsights";
-import { buildSessionManagerInternalClient } from "./utils/session-manager-internal-client/dependency";
 import { getFetchApi } from "./utils/fetch-utils";
 import { buildFunctionProfileClient } from "./utils/function-profile-client/dependency";
+import { buildSessionManagerInternalClient } from "./utils/session-manager-internal-client/dependency";
 
 const config = getConfigOrThrow();
 
@@ -146,5 +147,15 @@ export const ExpiredSessionsDiscoverer = ExpiredSessionsDiscovererFunction({
   ExpiredUserSessionsQueueRepo: ExpiredUserSessionsQueueRepository,
   expiredUserSessionsQueueClient,
   sessionNotificationsModel,
-  expiredSessionsDiscovererConf: config
+  expiredSessionsDiscovererConf: config,
+  sessionNotificationsRepositoryConfig: config
 });
+
+export const SessionNotificationEventsProcessor = SessionNotificationEventsProcessorFunction(
+  {
+    SessionNotificationsRepo: SessionNotificationsRepository,
+    sessionNotificationEventsProcessorConfig: config,
+    sessionNotificationsRepositoryConfig: config,
+    sessionNotificationsModel
+  }
+);

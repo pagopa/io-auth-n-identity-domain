@@ -24,6 +24,8 @@ locals {
 
   io_web_profile_bff_basepath = "ioweb/backend/api/v1"
 
+  io_session_notifications_sub_max_delivery_count = 10
+
   tags = {
     CreatedBy      = "Terraform"
     Environment    = "Prod"
