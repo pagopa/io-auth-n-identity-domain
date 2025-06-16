@@ -12,7 +12,10 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import * as t from "io-ts";
 import { Validation } from "io-ts";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SessionNotificationEventsProcessorConfig } from "../../config";
+import {
+  SessionNotificationEventsProcessorConfig,
+  SessionNotificationsRepositoryConfig
+} from "../../config";
 import { SessionNotificationsModel } from "../../models/session-notifications";
 import { SessionNotificationsRepository } from "../../repositories/session-notifications";
 import { RetrievedSessionNotificationsStrict } from "../../types/session-notification-strict";
@@ -63,10 +66,13 @@ const aValidServiceBusLogoutEventMessage: LogoutEvent = {
 };
 
 const sessionNotificationEventsProcessorConfigMock = {
-  SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET: 432000, // 5 days in seconds
-  SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE: 100,
   SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT: 10
 } as SessionNotificationEventsProcessorConfig;
+
+const sessionNotificationsRepositoryConfigMock = {
+  SESSION_NOTIFICATION_EVENTS_TTL_OFFSET: 432000, // 5 days in seconds
+  SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE: 100
+} as SessionNotificationsRepositoryConfig;
 
 const deleteRecordMock = vi.fn(
   () =>
@@ -110,6 +116,7 @@ const mockSessionsNotificationModel = ({
 
 const deps = {
   sessionNotificationEventsProcessorConfig: sessionNotificationEventsProcessorConfigMock,
+  sessionNotificationsRepositoryConfig: sessionNotificationsRepositoryConfigMock,
   SessionNotificationsRepo: mockSessionNotificationsRepository,
   sessionNotificationsModel: mockSessionsNotificationModel
 };
@@ -139,8 +146,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
 
       expect(trackEventMock).not.toHaveBeenCalled();
       expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE
+        aValidServiceBusLoginEventMessage.fiscalCode
       );
       expect(deleteRecordMock).toHaveBeenCalledOnce();
       expect(deleteRecordMock).toHaveBeenCalledWith(
@@ -150,8 +156,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       expect(createRecordMock).toHaveBeenCalledOnce();
       expect(createRecordMock).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
-        aValidServiceBusLoginEventMessage.expiredAt,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
+        aValidServiceBusLoginEventMessage.expiredAt
       );
     });
 
@@ -171,15 +176,13 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
 
       expect(trackEventMock).not.toHaveBeenCalled();
       expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE
+        aValidServiceBusLoginEventMessage.fiscalCode
       );
       expect(deleteRecordMock).not.toHaveBeenCalled();
       expect(createRecordMock).toHaveBeenCalledOnce();
       expect(createRecordMock).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
-        aValidServiceBusLoginEventMessage.expiredAt,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
+        aValidServiceBusLoginEventMessage.expiredAt
       );
     });
   });
@@ -194,8 +197,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
 
       expect(trackEventMock).not.toHaveBeenCalled();
       expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE
+        aValidServiceBusLoginEventMessage.fiscalCode
       );
       expect(deleteRecordMock).toHaveBeenCalledOnce();
       expect(deleteRecordMock).toHaveBeenCalledWith(
@@ -222,8 +224,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
 
       expect(trackEventMock).not.toHaveBeenCalled();
       expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE
+        aValidServiceBusLoginEventMessage.fiscalCode
       );
       expect(deleteRecordMock).not.toHaveBeenCalled();
       expect(createRecordMock).not.toHaveBeenCalled();
@@ -249,8 +250,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
 
       expect(trackEventMock).not.toHaveBeenCalled();
       expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE
+        aValidServiceBusLoginEventMessage.fiscalCode
       );
       expect(deleteRecordMock).not.toHaveBeenCalled();
       expect(createRecordMock).not.toHaveBeenCalled();
@@ -275,8 +275,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
 
       expect(trackEventMock).not.toHaveBeenCalled();
       expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE
+        aValidServiceBusLoginEventMessage.fiscalCode
       );
       expect(deleteRecordMock).toHaveBeenCalledOnce();
       expect(deleteRecordMock).toHaveBeenCalledWith(
@@ -305,8 +304,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       expect(trackEventMock).not.toHaveBeenCalled();
 
       expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE
+        aValidServiceBusLoginEventMessage.fiscalCode
       );
       expect(deleteRecordMock).toHaveBeenCalledOnce();
       expect(deleteRecordMock).toHaveBeenCalledWith(
@@ -316,8 +314,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       expect(createRecordMock).toHaveBeenCalledOnce();
       expect(createRecordMock).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
-        aValidServiceBusLoginEventMessage.expiredAt,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
+        aValidServiceBusLoginEventMessage.expiredAt
       );
     });
 
@@ -350,16 +347,14 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       });
 
       expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE
+        aValidServiceBusLoginEventMessage.fiscalCode
       );
       expect(deleteRecordMock).not.toHaveBeenCalled();
 
       expect(createRecordMock).toHaveBeenCalledOnce();
       expect(createRecordMock).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
-        aValidServiceBusLoginEventMessage.expiredAt,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
+        aValidServiceBusLoginEventMessage.expiredAt
       );
     });
 
@@ -395,8 +390,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       });
 
       expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE
+        aValidServiceBusLoginEventMessage.fiscalCode
       );
       expect(deleteRecordMock).toHaveBeenCalledOnce();
       expect(deleteRecordMock).toHaveBeenCalledWith(
@@ -407,8 +401,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       expect(createRecordMock).toHaveBeenCalledOnce();
       expect(createRecordMock).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
-        aValidServiceBusLoginEventMessage.expiredAt,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
+        aValidServiceBusLoginEventMessage.expiredAt
       );
     });
 
@@ -443,8 +436,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       });
 
       expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE
+        aValidServiceBusLoginEventMessage.fiscalCode
       );
       expect(deleteRecordMock).toHaveBeenCalledOnce();
       expect(deleteRecordMock).toHaveBeenCalledWith(
@@ -455,8 +447,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       expect(createRecordMock).toHaveBeenCalledOnce();
       expect(createRecordMock).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
-        aValidServiceBusLoginEventMessage.expiredAt,
-        sessionNotificationEventsProcessorConfigMock.SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
+        aValidServiceBusLoginEventMessage.expiredAt
       );
     });
 

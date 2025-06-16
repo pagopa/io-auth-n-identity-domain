@@ -10,6 +10,7 @@ import * as R from "fp-ts/lib/Reader";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
+import { SessionNotificationsRepositoryConfig } from "../config";
 import {
   SESSION_NOTIFICATIONS_MODEL_KEY_FIELD,
   SESSION_NOTIFICATIONS_ROW_PK_FIELD,
@@ -18,21 +19,26 @@ import {
 import { Interval } from "../types/interval";
 import { RetrievedSessionNotificationsStrict } from "../types/session-notification-strict";
 import { PermanentError } from "../utils/errors";
+
 export type Dependencies = {
   readonly sessionNotificationsModel: SessionNotificationsModel;
+  readonly sessionNotificationsRepositoryConfig: SessionNotificationsRepositoryConfig;
 };
 
 const findUsingStrictAsyncIterable: (
-  query: string | SqlQuerySpec,
-  cosmosChunkSize: number
+  query: string | SqlQuerySpec
 ) => R.Reader<
   Dependencies,
   AsyncIterable<
     ReadonlyArray<t.Validation<RetrievedSessionNotificationsStrict>>
   >
-> = (query, cosmosChunkSize) => deps =>
+> = query => deps =>
   pipe(
-    deps.sessionNotificationsModel.buildAsyncIterable(query, cosmosChunkSize),
+    deps.sessionNotificationsModel.buildAsyncIterable(
+      query,
+      deps.sessionNotificationsRepositoryConfig
+        .SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE
+    ),
     iterator =>
       mapAsyncIterable(iterator, feedResponse =>
         feedResponse.resources.map(RetrievedSessionNotificationsStrict.decode)
@@ -47,32 +53,28 @@ const findUsingStrictAsyncIterable: (
  * @returns An AsyncIterable that resolves to an array of all session-notifications documents within the interval
  */
 const findByExpiredAtAsyncIterable = (
-  interval: Interval,
-  chunkSize: number
+  interval: Interval
 ): R.Reader<
   Dependencies,
   AsyncIterable<
     ReadonlyArray<t.Validation<RetrievedSessionNotificationsStrict>>
   >
 > =>
-  findUsingStrictAsyncIterable(
-    {
-      parameters: [
-        {
-          name: "@from",
-          value: interval.from.getTime()
-        },
-        {
-          name: "@to",
-          value: interval.to.getTime()
-        }
-      ],
-      query:
-        `SELECT * FROM c WHERE (c.${SESSION_NOTIFICATIONS_ROW_PK_FIELD} BETWEEN @from AND @to) AND ` +
-        "(c.notificationEvents.EXPIRED_SESSION = false OR NOT IS_DEFINED(c.notificationEvents.EXPIRED_SESSION))"
-    },
-    chunkSize
-  );
+  findUsingStrictAsyncIterable({
+    parameters: [
+      {
+        name: "@from",
+        value: interval.from.getTime()
+      },
+      {
+        name: "@to",
+        value: interval.to.getTime()
+      }
+    ],
+    query:
+      `SELECT * FROM c WHERE (c.${SESSION_NOTIFICATIONS_ROW_PK_FIELD} BETWEEN @from AND @to) AND ` +
+      "(c.notificationEvents.EXPIRED_SESSION = false OR NOT IS_DEFINED(c.notificationEvents.EXPIRED_SESSION))"
+  });
 
 /**
  * Finds session-notifications documents by fiscalCode.
@@ -82,26 +84,22 @@ const findByExpiredAtAsyncIterable = (
  * @returns An AsyncIterable that resolves to an array of all session-notifications documents having the given fiscalCode
  */
 const findByFiscalCodeAsyncIterable = (
-  fiscalCode: FiscalCode,
-  chunkSize: number
+  fiscalCode: FiscalCode
 ): R.Reader<
   Dependencies,
   AsyncIterable<
     ReadonlyArray<t.Validation<RetrievedSessionNotificationsStrict>>
   >
 > =>
-  findUsingStrictAsyncIterable(
-    {
-      parameters: [
-        {
-          name: "@fiscalCode",
-          value: fiscalCode
-        }
-      ],
-      query: `SELECT * FROM c WHERE c.${SESSION_NOTIFICATIONS_MODEL_KEY_FIELD} = @fiscalCode`
-    },
-    chunkSize
-  );
+  findUsingStrictAsyncIterable({
+    parameters: [
+      {
+        name: "@fiscalCode",
+        value: fiscalCode
+      }
+    ],
+    query: `SELECT * FROM c WHERE c.${SESSION_NOTIFICATIONS_MODEL_KEY_FIELD} = @fiscalCode`
+  });
 
 /**
  * Delete session-notifications documents by fiscalCode and expiredAt.
@@ -153,15 +151,17 @@ const calculateRecordTTL = (
  */
 const createRecord: (
   fiscalCode: FiscalCode,
-  expiredAt: number,
-  ttlOffset: number
+  expiredAt: number
 ) => RTE.ReaderTaskEither<Dependencies, PermanentError | CosmosErrors, void> = (
   fiscalCode: FiscalCode,
-  expiredAt: number,
-  ttlOffset: number
+  expiredAt: number
 ) => deps =>
   pipe(
-    calculateRecordTTL(expiredAt, ttlOffset),
+    calculateRecordTTL(
+      expiredAt,
+      deps.sessionNotificationsRepositoryConfig
+        .SESSION_NOTIFICATION_EVENTS_TTL_OFFSET
+    ),
     TE.fromEither,
     TE.chainW(ttl =>
       deps.sessionNotificationsModel.create({

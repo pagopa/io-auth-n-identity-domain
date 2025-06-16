@@ -38,7 +38,6 @@ export type DryRunFeatureFlag = t.TypeOf<typeof DryRunFeatureFlag>;
 
 export const ExpiredSessionDiscovererConfig = t.type({
   EXPIRED_SESSION_ADVISOR_QUEUE: NonEmptyString,
-  EXPIRED_SESSION_SCANNER_CHUNK_SIZE: withFallback(NumberFromString, 100),
   EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER: withFallback(NumberFromString, 7),
   SESSION_NOTIFICATIONS_CONTAINER_NAME: NonEmptyString
 });
@@ -47,15 +46,22 @@ export type ExpiredSessionDiscovererConfig = t.TypeOf<
   typeof ExpiredSessionDiscovererConfig
 >;
 
-export const SessionNotificationEventsProcessorConfig = t.type({
-  SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET: withFallback(
+export const SessionNotificationsRepositoryConfig = t.type({
+  SESSION_NOTIFICATION_EVENTS_TTL_OFFSET: withFallback(
     NumberFromString,
     432000 // 5 days in seconds
   ),
-  SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE: withFallback(
+  SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE: withFallback(
     NumberFromString,
     100
-  ),
+  )
+});
+
+export type SessionNotificationsRepositoryConfig = t.TypeOf<
+  typeof SessionNotificationsRepositoryConfig
+>;
+
+export const SessionNotificationEventsProcessorConfig = t.type({
   SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT: NumberFromString
 });
 
@@ -104,7 +110,8 @@ export const IConfig = t.intersection([
     DryRunFeatureFlag,
     ExpiredSessionDiscovererConfig
   ]),
-  SessionNotificationEventsProcessorConfig
+  SessionNotificationEventsProcessorConfig,
+  SessionNotificationsRepositoryConfig
 ]);
 
 // No need to re-evaluate this object for each call

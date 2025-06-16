@@ -6,6 +6,7 @@ import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/TaskEither";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { SessionNotificationsRepositoryConfig } from "../../config";
 import {
   RetrievedSessionNotifications,
   SESSION_NOTIFICATIONS_MODEL_KEY_FIELD,
@@ -26,8 +27,6 @@ const anExpiredAt = new Date("2026-06-11T12:00:00Z");
 const anExpiredAtTimestamp = anExpiredAt.getTime();
 const aPreviousExpiredAt = new Date("2025-05-11T12:00:00Z");
 const aTtl = 885551 as NonNegativeInteger;
-
-const aTTLOffset = 432000;
 const aYearInSeconds = 31536000; // 1 year in seconds
 
 const aSessionNotifications = {
@@ -91,8 +90,14 @@ const mockSessionNotificationsModel = ({
   patch: mockPatch
 } as unknown) as SessionNotificationsModel;
 
+const sessionNotificationsRepositoryConfigMock: SessionNotificationsRepositoryConfig = {
+  SESSION_NOTIFICATION_EVENTS_TTL_OFFSET: 432000, // 5 days in seconds
+  SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE: 1
+};
+
 const deps = {
-  sessionNotificationsModel: mockSessionNotificationsModel
+  sessionNotificationsModel: mockSessionNotificationsModel,
+  sessionNotificationsRepositoryConfig: sessionNotificationsRepositoryConfigMock
 } as Dependencies;
 
 describe("SessionNotificationsRepository", () => {
@@ -111,13 +116,11 @@ describe("SessionNotificationsRepository", () => {
         from: new Date(2024, 0, 1),
         to: new Date(2024, 0, 2)
       };
-      const chunkSize = 100;
 
       const result = await asyncIterableToArray(
-        SessionNotificationsRepository.findByExpiredAtAsyncIterable(
-          interval,
-          chunkSize
-        )(deps)
+        SessionNotificationsRepository.findByExpiredAtAsyncIterable(interval)(
+          deps
+        )
       );
 
       expect(
@@ -132,7 +135,7 @@ describe("SessionNotificationsRepository", () => {
             `SELECT * FROM c WHERE (c.${SESSION_NOTIFICATIONS_ROW_PK_FIELD} BETWEEN @from AND @to) AND ` +
             "(c.notificationEvents.EXPIRED_SESSION = false OR NOT IS_DEFINED(c.notificationEvents.EXPIRED_SESSION))"
         },
-        chunkSize
+        sessionNotificationsRepositoryConfigMock.SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE
       );
 
       expect(result).toStrictEqual([[E.of(aRetrievedSessionNotifications)]]);
@@ -141,13 +144,8 @@ describe("SessionNotificationsRepository", () => {
 
   describe("findByFiscalCodeAsyncIterable", () => {
     it("should call buildAsyncIterable with correct query and parameters", async () => {
-      const chunkSize = 100;
-
       const result = await asyncIterableToArray(
-        SessionNotificationsRepository.findByFiscalCodeAsyncIterable(
-          anId,
-          chunkSize
-        )(deps)
+        SessionNotificationsRepository.findByFiscalCodeAsyncIterable(anId)(deps)
       );
 
       expect(
@@ -157,7 +155,7 @@ describe("SessionNotificationsRepository", () => {
           parameters: [{ name: "@fiscalCode", value: anId }],
           query: `SELECT * FROM c WHERE c.${SESSION_NOTIFICATIONS_MODEL_KEY_FIELD} = @fiscalCode`
         },
-        chunkSize
+        sessionNotificationsRepositoryConfigMock.SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE
       );
 
       expect(result).toStrictEqual([[E.of(aRetrievedSessionNotifications)]]);
@@ -203,15 +201,18 @@ describe("SessionNotificationsRepository", () => {
     it("should create the record successfully", async () => {
       const result = await SessionNotificationsRepository.createRecord(
         anId,
-        anExpiredAtTimestamp,
-        aTTLOffset
+        anExpiredAtTimestamp
       )(deps)();
+
+      const expectedTtl =
+        aYearInSeconds +
+        sessionNotificationsRepositoryConfigMock.SESSION_NOTIFICATION_EVENTS_TTL_OFFSET;
 
       expect(mockCreate).toHaveBeenCalledWith({
         id: anId,
         expiredAt: anExpiredAtTimestamp,
         notificationEvents: {},
-        ttl: aYearInSeconds + aTTLOffset,
+        ttl: expectedTtl,
         kind: "INewSessionNotifications"
       });
       expect(result).toEqual(E.right(void 0));
@@ -227,15 +228,18 @@ describe("SessionNotificationsRepository", () => {
 
       const result = await SessionNotificationsRepository.createRecord(
         anId,
-        anExpiredAtTimestamp,
-        aTTLOffset
+        anExpiredAtTimestamp
       )(deps)();
+
+      const expectedTtl =
+        aYearInSeconds +
+        sessionNotificationsRepositoryConfigMock.SESSION_NOTIFICATION_EVENTS_TTL_OFFSET;
 
       expect(mockCreate).toHaveBeenCalledWith({
         id: anId,
         expiredAt: anExpiredAtTimestamp,
         notificationEvents: {},
-        ttl: aYearInSeconds + aTTLOffset,
+        ttl: expectedTtl,
         kind: "INewSessionNotifications"
       });
       expect(result).toEqual(E.left(error));
@@ -244,13 +248,12 @@ describe("SessionNotificationsRepository", () => {
     it("should return a PermanentError when a Bad TTL is calculated", async () => {
       const result = await SessionNotificationsRepository.createRecord(
         anId,
-        aPreviousExpiredAt.getTime(),
-        aTTLOffset
+        aPreviousExpiredAt.getTime()
       )(deps)();
 
       const expectedBadTtl =
         Math.floor((aPreviousExpiredAt.getTime() - baseDate.getTime()) / 1000) +
-        aTTLOffset;
+        sessionNotificationsRepositoryConfigMock.SESSION_NOTIFICATION_EVENTS_TTL_OFFSET;
 
       expect(mockCreate).not.toHaveBeenCalled();
 

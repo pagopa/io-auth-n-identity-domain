@@ -109,11 +109,9 @@ const retrievePreviousRecordFromDb: (
   ReadonlyArray<SessionNotificationsStrict>
 > = (fiscalCode: FiscalCode) => deps =>
   pipe(
-    deps.SessionNotificationsRepo.findByFiscalCodeAsyncIterable(
-      fiscalCode,
-      deps.sessionNotificationEventsProcessorConfig
-        .SESSION_NOTIFICATION_EVENTS_PROCESSOR_CHUNK_SIZE
-    )(deps),
+    deps.SessionNotificationsRepo.findByFiscalCodeAsyncIterable(fiscalCode)(
+      deps
+    ),
     flattenAsyncIterable,
     asyncIterable =>
       TE.tryCatch(
@@ -160,9 +158,7 @@ const createNewRecord: (
   pipe(
     deps.SessionNotificationsRepo.createRecord(
       fiscalCode,
-      expiredAt.getTime(),
-      deps.sessionNotificationEventsProcessorConfig
-        .SESSION_NOTIFICATION_EVENTS_PROCESSOR_TTL_OFFSET
+      expiredAt.getTime()
     )(deps),
     TE.mapLeft(err =>
       err instanceof PermanentError

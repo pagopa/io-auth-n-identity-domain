@@ -214,10 +214,7 @@ export const retrieveFromDbInChunks: (
   ReadonlyArray<ReadonlyArray<ItemToProcess>>
 > = (interval: Interval) => (deps: TriggerDependencies) =>
   pipe(
-    deps.SessionNotificationsRepo.findByExpiredAtAsyncIterable(
-      interval,
-      deps.expiredSessionsDiscovererConf.EXPIRED_SESSION_SCANNER_CHUNK_SIZE
-    )(deps),
+    deps.SessionNotificationsRepo.findByExpiredAtAsyncIterable(interval)(deps),
     TE.of,
     TE.chainW(
       flow(asyncIterableToArray, asyncIterator =>

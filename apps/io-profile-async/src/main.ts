@@ -147,13 +147,15 @@ export const ExpiredSessionsDiscoverer = ExpiredSessionsDiscovererFunction({
   ExpiredUserSessionsQueueRepo: ExpiredUserSessionsQueueRepository,
   expiredUserSessionsQueueClient,
   sessionNotificationsModel,
-  expiredSessionsDiscovererConf: config
+  expiredSessionsDiscovererConf: config,
+  sessionNotificationsRepositoryConfig: config
 });
 
 export const SessionNotificationEventsProcessor = SessionNotificationEventsProcessorFunction(
   {
     SessionNotificationsRepo: SessionNotificationsRepository,
     sessionNotificationEventsProcessorConfig: config,
+    sessionNotificationsRepositoryConfig: config,
     sessionNotificationsModel
   }
 );
