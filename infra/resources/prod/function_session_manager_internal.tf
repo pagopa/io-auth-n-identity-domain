@@ -1,5 +1,5 @@
 data "azurerm_key_vault_secret" "events_beta_testers" {
-  name         = "function-session-manager-internal-events-beta-testers"
+  name         = "service-bus-events-beta-testers"
   key_vault_id = data.azurerm_key_vault.kv.id
 }
 
