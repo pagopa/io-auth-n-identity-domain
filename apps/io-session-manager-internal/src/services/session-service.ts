@@ -2,6 +2,7 @@ import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as ROA from "fp-ts/ReadonlyArray";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as AP from "fp-ts/Apply";
+import * as B from "fp-ts/lib/boolean";
 import * as O from "fp-ts/lib/Option";
 import * as redisLib from "redis";
 import { flow, pipe } from "fp-ts/lib/function";
@@ -11,6 +12,11 @@ import { QueueClient } from "@azure/storage-queue";
 import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
 import { addSeconds } from "date-fns";
 import { OutputOf } from "io-ts";
+import {
+  AuthSessionsTopicRepository,
+  AuthSessionsTopicRepositoryDeps,
+} from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import { RedisRepository } from "../repositories/redis";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
@@ -30,6 +36,7 @@ import { LollipopRepository } from "../repositories/lollipop";
 import { InstallationRepository } from "../repositories/installation";
 import { SessionState } from "../generated/definitions/internal/SessionState";
 import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
+import { isUserEligibleForServiceBusEvents } from "../utils/config";
 
 type RedisDeps = {
   FastRedisClientTask: TE.TaskEither<Error, redisLib.RedisClusterType>;
@@ -330,7 +337,8 @@ const unlockUserAuthentication: (
 export type DeleteUserSessionDeps = RedisDeps & {
   LollipopRepository: LollipopRepository;
   RevokeAssertionRefQueueClient: QueueClient;
-};
+  AuthSessionsTopicRepository: AuthSessionsTopicRepository;
+} & AuthSessionsTopicRepositoryDeps;
 const deleteUserSession: (
   fiscalCode: FiscalCode,
 ) => RTE.ReaderTaskEither<DeleteUserSessionDeps, GenericError, null> =
@@ -353,10 +361,27 @@ const deleteUserSession: (
             FastRedisClient,
             SafeRedisClient,
           }),
+          TE.chainFirst((_) => emitLogoutIfEligible(fiscalCode)(deps)),
           TE.mapLeft((err) => toGenericError(err.message)),
         ),
       ),
       TE.map((_) => null),
+    );
+
+const emitLogoutIfEligible: (
+  fiscalCode: FiscalCode,
+) => RTE.ReaderTaskEither<DeleteUserSessionDeps, Error, void> =
+  (fiscalCode) => (deps) =>
+    pipe(
+      isUserEligibleForServiceBusEvents(fiscalCode),
+      B.match(
+        () => TE.of(void 0),
+        () =>
+          deps.AuthSessionsTopicRepository.emitSessionEvent({
+            fiscalCode,
+            eventType: EventTypeEnum.LOGOUT,
+          })(deps),
+      ),
     );
 
 export type SessionService = typeof SessionService;

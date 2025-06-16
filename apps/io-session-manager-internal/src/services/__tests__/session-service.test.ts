@@ -7,6 +7,7 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { QueueClient } from "@azure/storage-queue";
 import { TableClient } from "@azure/data-tables";
 import addSeconds from "date-fns/add_seconds";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import {
   RedisClientTaskMock,
   RedisRepositoryMock,
@@ -44,8 +45,19 @@ import {
 } from "../../utils/errors";
 import { aNotReleasedData } from "../../__mocks__/table-client.mock";
 import { LoginTypeEnum } from "../../types/fast-login";
+import {
+  AuthSessionsTopicRepositoryMock,
+  ServiceBusSenderMock,
+  mockEmitSessionEvent,
+} from "../../__mocks__/repositories/auth-sessions-topic.mock";
+import * as ConfigModule from "../../utils/config";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
+
+const mockIsUserEligibleForServiceBusEvents = vi.spyOn(
+  ConfigModule,
+  "isUserEligibleForServiceBusEvents",
+);
 
 describe("Session Service#userHasActiveSessionsOrLV", () => {
   beforeEach(() => {
@@ -385,25 +397,51 @@ describe("Session Service#deleteUserSession", () => {
     RedisRepository: RedisRepositoryMock,
     LollipopRepository: LollipopRepositoryMock,
     RevokeAssertionRefQueueClient: {} as QueueClient,
+    AuthSessionsTopicRepository: AuthSessionsTopicRepositoryMock,
+    authSessionsTopicSender: ServiceBusSenderMock,
   };
   it("should succeed deleting an user session", async () => {
+    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      fiscalCode: aFiscalCode,
+      eventType: EventTypeEnum.LOGOUT,
+    });
     expect(result).toEqual(E.right(null));
   });
 
   it("should succeed deleting an user session with no assertionref", async () => {
     mockGetLollipopAssertionRefForUser.mockReturnValueOnce(TE.right(O.none));
+    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
     expect(mockfireAndForgetRevokeAssertionRef).not.toHaveBeenCalled();
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      fiscalCode: aFiscalCode,
+      eventType: EventTypeEnum.LOGOUT,
+    });
+    expect(result).toEqual(E.right(null));
+  });
+
+  it("should succeed deleting an user session without emitting an event when the user is not eligible", async () => {
+    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(false);
+    const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.right(null));
   });
 
@@ -417,6 +455,7 @@ describe("Session Service#deleteUserSession", () => {
       FastRedisClientTask: TE.left(Error(anErrorMessage)),
     })();
 
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -428,6 +467,7 @@ describe("Session Service#deleteUserSession", () => {
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -439,6 +479,7 @@ describe("Session Service#deleteUserSession", () => {
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -450,6 +491,7 @@ describe("Session Service#deleteUserSession", () => {
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 });
