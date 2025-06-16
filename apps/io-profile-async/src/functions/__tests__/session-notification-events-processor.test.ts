@@ -231,7 +231,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
   });
 
   describe("Transient and Permanent Errors Handling", () => {
-    it("should throw on TranisentError while finding previousEvents", async () => {
+    it("should throw on TransientError when an error occurred while finding previousEvents", async () => {
       findByFiscalCodeAsyncIterableMock.mockReturnValueOnce((_deps: unknown) =>
         (async function*() {
           yield await Promise.reject(anError);
