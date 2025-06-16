@@ -434,7 +434,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
           "io.citizen-auth.prof-async.session-notification-events-processor.permanent.unable-to-build-new-record",
         properties: {
           expiredAt: anExpiredAt,
-          reason: permanentError.message,
+          reason: permanentError,
           message: "Unable to build new session-notifications record"
         },
         tagOverrides: {

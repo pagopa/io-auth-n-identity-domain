@@ -87,7 +87,7 @@ const onNewRecordBuildFailure = (
     properties: {
       message: "Unable to build new session-notifications record",
       expiredAt,
-      reason: reason.message
+      reason
     },
     tagOverrides: {
       samplingEnabled: "false"
