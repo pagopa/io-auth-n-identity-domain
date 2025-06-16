@@ -6,11 +6,8 @@ import {
   LogoutEvent
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
 import * as RTE from "fp-ts/ReaderTaskEither";
-import * as t from "io-ts";
-import { Validation } from "io-ts";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   SessionNotificationEventsProcessorConfig,
@@ -18,39 +15,21 @@ import {
 } from "../../config";
 import { SessionNotificationsModel } from "../../models/session-notifications";
 import { SessionNotificationsRepository } from "../../repositories/session-notifications";
-import { RetrievedSessionNotificationsStrict } from "../../types/session-notification-strict";
 import * as appinsights from "../../utils/appinsights";
 import { PermanentError } from "../../utils/errors";
 import { contextMock } from "../__mocks__/azurefunctions.mock";
 import {
-  SessionNotificationEventsProcessorFunction,
-  TriggerDependencies
-} from "../session-notification-events-processor";
-
-const aFiscalCode = "AAAAAA89S20I111X" as FiscalCode;
-const anExpiredAt = new Date("2026-06-11T12:00:00Z");
-
-const validSessionNotifications: RetrievedSessionNotificationsStrict = {
-  id: aFiscalCode,
-  expiredAt: anExpiredAt.getTime(),
-  notificationEvents: {},
-  _etag: "etag",
-  _rid: "rid",
-  _self: "self",
-  _ts: 123
-};
-
-const afakeValidationError: t.ValidationError = {
-  value: "some-invalid-value",
-  context: [
-    {
-      key: "eventType",
-      type: t.string,
-      actual: validSessionNotifications
-    }
-  ],
-  message: "Invalid eventType"
-} as t.ValidationError;
+  aFiscalCode,
+  aMixedSingleChuckAsyncIterable,
+  aMultiChuckAsyncIterable,
+  anEmptyAsyncIterable,
+  anExpiredAt,
+  aSingleChuckAsyncIterable,
+  aSingleInvalidItemAsyncIterable,
+  mockSessionNotificationsRepository,
+  validSessionNotifications
+} from "../__mocks__/session-notifications-repository.mock";
+import { SessionNotificationEventsProcessorFunction } from "../session-notification-events-processor";
 
 const anError = new Error("Simulated failure");
 
@@ -74,53 +53,6 @@ const sessionNotificationsRepositoryConfigMock = {
   SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE: 100
 } as SessionNotificationsRepositoryConfig;
 
-const deleteRecordMock = vi.fn(() =>
-  RTE.of<TriggerDependencies, CosmosErrors, void>(void 0)
-);
-const createRecordMock = vi.fn(() =>
-  RTE.of<TriggerDependencies, PermanentError | CosmosErrors, void>(void 0)
-);
-
-const anEmptyAsyncIterable = async function*() {
-  yield [];
-};
-
-const aSingleChuckAsyncIterable = async function*() {
-  yield [
-    E.right(validSessionNotifications),
-    E.right({
-      ...validSessionNotifications,
-      expiredAt: validSessionNotifications.expiredAt - 1
-    })
-  ];
-};
-
-const aMultiChuckAsyncIterable = async function*() {
-  yield [E.right(validSessionNotifications)];
-  yield [
-    E.right({
-      ...validSessionNotifications,
-      expiredAt: validSessionNotifications.expiredAt - 1
-    })
-  ];
-};
-
-const findByFiscalCodeAsyncIterableMock = vi.fn(() => (_deps: unknown) =>
-  (async function*() {
-    yield [
-      E.right(validSessionNotifications) as Validation<
-        RetrievedSessionNotificationsStrict
-      >
-    ];
-  })()
-);
-
-const mockSessionNotificationsRepository = ({
-  findByFiscalCodeAsyncIterable: findByFiscalCodeAsyncIterableMock,
-  deleteRecord: deleteRecordMock,
-  createRecord: createRecordMock
-} as unknown) as SessionNotificationsRepository;
-
 const mockSessionsNotificationModel = ({
   buildAsyncIterable: vi.fn(),
   patch: vi.fn(),
@@ -128,10 +60,12 @@ const mockSessionsNotificationModel = ({
   delete: vi.fn()
 } as unknown) as SessionNotificationsModel;
 
+const SessionNotificationsRepo = mockSessionNotificationsRepository;
+
 const deps = {
   sessionNotificationEventsProcessorConfig: sessionNotificationEventsProcessorConfigMock,
   sessionNotificationsRepositoryConfig: sessionNotificationsRepositoryConfigMock,
-  SessionNotificationsRepo: mockSessionNotificationsRepository,
+  SessionNotificationsRepo: (SessionNotificationsRepo as unknown) as SessionNotificationsRepository,
   sessionNotificationsModel: mockSessionsNotificationModel
 };
 
@@ -159,24 +93,24 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       ).resolves.not.toThrow();
 
       expect(trackEventMock).not.toHaveBeenCalled();
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).toHaveBeenCalledOnce();
-      expect(deleteRecordMock).toHaveBeenCalledWith(
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
-      expect(createRecordMock).toHaveBeenCalledOnce();
-      expect(createRecordMock).toHaveBeenCalledWith(
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
     });
 
     it("should process the event succesfully removing all the previous cosmosDB records(single chunck) when present", async () => {
-      findByFiscalCodeAsyncIterableMock.mockReturnValueOnce(() =>
-        aSingleChuckAsyncIterable()
+      SessionNotificationsRepo.findByFiscalCodeAsyncIterable.mockReturnValueOnce(
+        () => aSingleChuckAsyncIterable()
       );
 
       await expect(
@@ -187,30 +121,30 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       ).resolves.not.toThrow();
 
       expect(trackEventMock).not.toHaveBeenCalled();
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).toHaveBeenCalledTimes(2);
-      expect(deleteRecordMock).toHaveBeenNthCalledWith(
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledTimes(2);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenNthCalledWith(
         1,
         aValidServiceBusLoginEventMessage.fiscalCode,
         validSessionNotifications.expiredAt
       );
-      expect(deleteRecordMock).toHaveBeenNthCalledWith(
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenNthCalledWith(
         2,
         aValidServiceBusLoginEventMessage.fiscalCode,
         validSessionNotifications.expiredAt - 1
       );
-      expect(createRecordMock).toHaveBeenCalledOnce();
-      expect(createRecordMock).toHaveBeenCalledWith(
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
     });
 
     it("should process the event succesfully removing all the previous cosmosDB records(multiple chunck) when present", async () => {
-      findByFiscalCodeAsyncIterableMock.mockReturnValueOnce(() =>
-        aMultiChuckAsyncIterable()
+      SessionNotificationsRepo.findByFiscalCodeAsyncIterable.mockReturnValueOnce(
+        () => aMultiChuckAsyncIterable()
       );
 
       await expect(
@@ -221,30 +155,30 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       ).resolves.not.toThrow();
 
       expect(trackEventMock).not.toHaveBeenCalled();
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).toHaveBeenCalledTimes(2);
-      expect(deleteRecordMock).toHaveBeenNthCalledWith(
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledTimes(2);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenNthCalledWith(
         1,
         aValidServiceBusLoginEventMessage.fiscalCode,
         validSessionNotifications.expiredAt
       );
-      expect(deleteRecordMock).toHaveBeenNthCalledWith(
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenNthCalledWith(
         2,
         aValidServiceBusLoginEventMessage.fiscalCode,
         validSessionNotifications.expiredAt - 1
       );
-      expect(createRecordMock).toHaveBeenCalledOnce();
-      expect(createRecordMock).toHaveBeenCalledWith(
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
     });
 
     it("should process the event succesfully whitout removing previous cosmosDB records when not present", async () => {
-      findByFiscalCodeAsyncIterableMock.mockReturnValueOnce(() =>
-        anEmptyAsyncIterable()
+      SessionNotificationsRepo.findByFiscalCodeAsyncIterable.mockReturnValueOnce(
+        () => anEmptyAsyncIterable()
       );
 
       await expect(
@@ -255,12 +189,12 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       ).resolves.not.toThrow();
 
       expect(trackEventMock).not.toHaveBeenCalled();
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).not.toHaveBeenCalled();
-      expect(createRecordMock).toHaveBeenCalledOnce();
-      expect(createRecordMock).toHaveBeenCalledWith(
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).not.toHaveBeenCalled();
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
@@ -276,20 +210,20 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       ).resolves.not.toThrow();
 
       expect(trackEventMock).not.toHaveBeenCalled();
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).toHaveBeenCalledOnce();
-      expect(deleteRecordMock).toHaveBeenCalledWith(
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
-      expect(createRecordMock).not.toHaveBeenCalled();
+      expect(SessionNotificationsRepo.createRecord).not.toHaveBeenCalled();
     });
 
     it("should process the event succesfully removing all the previous cosmosDB records(single chunck) when present", async () => {
-      findByFiscalCodeAsyncIterableMock.mockReturnValueOnce(() =>
-        aSingleChuckAsyncIterable()
+      SessionNotificationsRepo.findByFiscalCodeAsyncIterable.mockReturnValueOnce(
+        () => aSingleChuckAsyncIterable()
       );
 
       await expect(
@@ -300,26 +234,26 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       ).resolves.not.toThrow();
 
       expect(trackEventMock).not.toHaveBeenCalled();
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).toHaveBeenCalledTimes(2);
-      expect(deleteRecordMock).toHaveBeenNthCalledWith(
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledTimes(2);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenNthCalledWith(
         1,
         aValidServiceBusLoginEventMessage.fiscalCode,
         validSessionNotifications.expiredAt
       );
-      expect(deleteRecordMock).toHaveBeenNthCalledWith(
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenNthCalledWith(
         2,
         aValidServiceBusLoginEventMessage.fiscalCode,
         validSessionNotifications.expiredAt - 1
       );
-      expect(createRecordMock).not.toHaveBeenCalled();
+      expect(SessionNotificationsRepo.createRecord).not.toHaveBeenCalled();
     });
 
     it("should process the event succesfully removing all the previous cosmosDB records(multiple chunck) when present", async () => {
-      findByFiscalCodeAsyncIterableMock.mockReturnValueOnce(() =>
-        aMultiChuckAsyncIterable()
+      SessionNotificationsRepo.findByFiscalCodeAsyncIterable.mockReturnValueOnce(
+        () => aMultiChuckAsyncIterable()
       );
 
       await expect(
@@ -330,27 +264,27 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       ).resolves.not.toThrow();
 
       expect(trackEventMock).not.toHaveBeenCalled();
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).toHaveBeenCalledTimes(2);
-      expect(deleteRecordMock).toHaveBeenNthCalledWith(
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledTimes(2);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenNthCalledWith(
         1,
         aValidServiceBusLoginEventMessage.fiscalCode,
         validSessionNotifications.expiredAt
       );
-      expect(deleteRecordMock).toHaveBeenNthCalledWith(
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenNthCalledWith(
         2,
         aValidServiceBusLoginEventMessage.fiscalCode,
         validSessionNotifications.expiredAt - 1
       );
-      expect(createRecordMock).not.toHaveBeenCalled();
+      expect(SessionNotificationsRepo.createRecord).not.toHaveBeenCalled();
     });
 
     it("should process the event succesfully whitout removing previous cosmosDB records when not present", async () => {
       // eslint-disable-next-line sonarjs/no-identical-functions
-      findByFiscalCodeAsyncIterableMock.mockReturnValueOnce(() =>
-        anEmptyAsyncIterable()
+      SessionNotificationsRepo.findByFiscalCodeAsyncIterable.mockReturnValueOnce(
+        () => anEmptyAsyncIterable()
       );
 
       await expect(
@@ -361,20 +295,21 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       ).resolves.not.toThrow();
 
       expect(trackEventMock).not.toHaveBeenCalled();
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).not.toHaveBeenCalled();
-      expect(createRecordMock).not.toHaveBeenCalled();
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).not.toHaveBeenCalled();
+      expect(SessionNotificationsRepo.createRecord).not.toHaveBeenCalled();
     });
   });
 
   describe("Transient and Permanent Errors Handling", () => {
     it("should throw on TransientError when an error occurred while finding previousEvents", async () => {
-      findByFiscalCodeAsyncIterableMock.mockReturnValueOnce((_deps: unknown) =>
-        (async function*() {
-          yield await Promise.reject(anError);
-        })()
+      SessionNotificationsRepo.findByFiscalCodeAsyncIterable.mockReturnValueOnce(
+        (_deps: unknown) =>
+          (async function*() {
+            yield await Promise.reject(anError);
+          })()
       );
 
       await expect(
@@ -387,11 +322,11 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       );
 
       expect(trackEventMock).not.toHaveBeenCalled();
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).not.toHaveBeenCalled();
-      expect(createRecordMock).not.toHaveBeenCalled();
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).not.toHaveBeenCalled();
+      expect(SessionNotificationsRepo.createRecord).not.toHaveBeenCalled();
     });
 
     it("should throw on TransientError while deleting previousEvents", async () => {
@@ -400,7 +335,9 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
         error: anError
       } as unknown) as CosmosErrors;
 
-      deleteRecordMock.mockReturnValueOnce(RTE.fromEither(E.left(error)));
+      SessionNotificationsRepo.deleteRecord.mockReturnValueOnce(
+        RTE.fromEither(E.left(error))
+      );
 
       await expect(
         SessionNotificationEventsProcessorFunction(deps)(
@@ -412,15 +349,15 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
       );
 
       expect(trackEventMock).not.toHaveBeenCalled();
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).toHaveBeenCalledOnce();
-      expect(deleteRecordMock).toHaveBeenCalledWith(
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
-      expect(createRecordMock).not.toHaveBeenCalled();
+      expect(SessionNotificationsRepo.createRecord).not.toHaveBeenCalled();
     });
 
     it("should throw on TransientError while creating new record", async () => {
@@ -428,7 +365,9 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
         kind: "COSMOS_ERROR",
         error: anError
       } as unknown) as CosmosErrors;
-      createRecordMock.mockReturnValueOnce(RTE.fromEither(E.left(error)));
+      SessionNotificationsRepo.createRecord.mockReturnValueOnce(
+        RTE.fromEither(E.left(error))
+      );
 
       await expect(
         SessionNotificationEventsProcessorFunction(deps)(
@@ -441,26 +380,24 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
 
       expect(trackEventMock).not.toHaveBeenCalled();
 
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).toHaveBeenCalledOnce();
-      expect(deleteRecordMock).toHaveBeenCalledWith(
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
-      expect(createRecordMock).toHaveBeenCalledOnce();
-      expect(createRecordMock).toHaveBeenCalledWith(
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
     });
 
     it("should not fail on Bad record received querying CosmosDB(only invalid item)", async () => {
-      findByFiscalCodeAsyncIterableMock.mockReturnValueOnce(() =>
-        (async function*() {
-          yield [E.left([afakeValidationError])];
-        })()
+      SessionNotificationsRepo.findByFiscalCodeAsyncIterable.mockReturnValueOnce(
+        () => aSingleInvalidItemAsyncIterable()
       );
 
       await expect(
@@ -484,26 +421,21 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
         }
       });
 
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).not.toHaveBeenCalled();
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).not.toHaveBeenCalled();
 
-      expect(createRecordMock).toHaveBeenCalledOnce();
-      expect(createRecordMock).toHaveBeenCalledWith(
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
     });
 
     it("should not fail on Bad record received querying CosmosDB (mixed query results, valid and invalid items)", async () => {
-      findByFiscalCodeAsyncIterableMock.mockReturnValueOnce(() =>
-        (async function*() {
-          yield [
-            E.left([afakeValidationError]),
-            E.right(validSessionNotifications)
-          ];
-        })()
+      SessionNotificationsRepo.findByFiscalCodeAsyncIterable.mockReturnValueOnce(
+        () => aMixedSingleChuckAsyncIterable()
       );
 
       await expect(
@@ -527,17 +459,17 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
         }
       });
 
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).toHaveBeenCalledOnce();
-      expect(deleteRecordMock).toHaveBeenCalledWith(
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
 
-      expect(createRecordMock).toHaveBeenCalledOnce();
-      expect(createRecordMock).toHaveBeenCalledWith(
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
@@ -548,7 +480,7 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
         "Unable to calculate New Record TTL, the reason was => value -1000 at root is not a valid [integer >= 0]"
       );
 
-      createRecordMock.mockReturnValueOnce(
+      SessionNotificationsRepo.createRecord.mockReturnValueOnce(
         RTE.fromEither(E.left(permanentError))
       );
 
@@ -573,17 +505,17 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
         }
       });
 
-      expect(findByFiscalCodeAsyncIterableMock).toHaveBeenCalledWith(
-        aValidServiceBusLoginEventMessage.fiscalCode
-      );
-      expect(deleteRecordMock).toHaveBeenCalledOnce();
-      expect(deleteRecordMock).toHaveBeenCalledWith(
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).toHaveBeenCalledWith(aValidServiceBusLoginEventMessage.fiscalCode);
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.deleteRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
 
-      expect(createRecordMock).toHaveBeenCalledOnce();
-      expect(createRecordMock).toHaveBeenCalledWith(
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledOnce();
+      expect(SessionNotificationsRepo.createRecord).toHaveBeenCalledWith(
         aValidServiceBusLoginEventMessage.fiscalCode,
         aValidServiceBusLoginEventMessage.expiredAt
       );
@@ -594,7 +526,9 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
         kind: "COSMOS_ERROR",
         error: anError
       } as unknown) as CosmosErrors;
-      createRecordMock.mockReturnValueOnce(RTE.fromEither(E.left(error)));
+      SessionNotificationsRepo.createRecord.mockReturnValueOnce(
+        RTE.fromEither(E.left(error))
+      );
 
       const aLastRetryContextMock = ({
         ...serviceBusTriggerContextMock,
@@ -644,9 +578,11 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
 
       expect(trackEventMock).not.toHaveBeenCalled();
 
-      expect(findByFiscalCodeAsyncIterableMock).not.toHaveBeenCalled();
-      expect(deleteRecordMock).not.toHaveBeenCalled();
-      expect(createRecordMock).not.toHaveBeenCalled();
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).not.toHaveBeenCalled();
+      expect(SessionNotificationsRepo.deleteRecord).not.toHaveBeenCalled();
+      expect(SessionNotificationsRepo.createRecord).not.toHaveBeenCalled();
     });
 
     it("should fail silently in case of a bad message having an unknown eventType", async () => {
@@ -671,9 +607,11 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
         }
       });
 
-      expect(findByFiscalCodeAsyncIterableMock).not.toHaveBeenCalled();
-      expect(deleteRecordMock).not.toHaveBeenCalled();
-      expect(createRecordMock).not.toHaveBeenCalled();
+      expect(
+        SessionNotificationsRepo.findByFiscalCodeAsyncIterable
+      ).not.toHaveBeenCalled();
+      expect(SessionNotificationsRepo.deleteRecord).not.toHaveBeenCalled();
+      expect(SessionNotificationsRepo.createRecord).not.toHaveBeenCalled();
     });
   });
 });
