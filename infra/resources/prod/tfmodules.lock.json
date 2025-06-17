@@ -94,5 +94,11 @@
     "version": "1.1.0",
     "name": "azure_role_assignments",
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.0"
+  },
+  "pub_session_manager_internal": {
+    "hash": "07cdce758d809d16a5154b997dcb2b017b7b443c53f5a6de776b9f0de6b19c9e",
+    "version": "1.1.0",
+    "name": "azure_role_assignments",
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.0"
   }
 }
