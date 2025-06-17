@@ -38,8 +38,8 @@ locals {
       PUSH_NOTIFICATIONS_QUEUE_NAME                = "push-notifications"
 
       // Service Bus Config
-      SERVICE_BUS_NAMESPACE    = data.azurerm_servicebus_namespace.platform_service_bus_namespace.endpoint
-      AUTH_SESSIONS_TOPIC_NAME = azurerm_servicebus_subscription.io_session_notifications_sub.name
+      SERVICE_BUS_NAMESPACE    = "${data.azurerm_servicebus_namespace.platform_service_bus_namespace.name}.servicebus.windows.net"
+      AUTH_SESSIONS_TOPIC_NAME = azurerm_servicebus_topic.io_auth_sessions_topic.name
       FF_SERVICE_BUS_EVENTS    = "BETA"
       SERVICE_BUS_EVENTS_USERS = data.azurerm_key_vault_secret.events_beta_testers.value
     }
