@@ -38,8 +38,8 @@ const aValidServiceBusLoginEventMessage: LoginEvent = ({
   eventType: EventTypeEnum.LOGIN,
   fiscalCode: aFiscalCode,
   expiredAt: anExpiredAt.getTime(),
-  loginType: "LV",
-  scenario: "STANDARD",
+  loginType: "lv",
+  scenario: "standard",
   idp: "idp.example.com",
   ts: aTimestamp.getTime()
 } as unknown) as LoginEvent;
@@ -47,8 +47,8 @@ const aValidServiceBusLoginEventMessage: LoginEvent = ({
 const aValidServiceBusLogoutEventMessage: LogoutEvent = ({
   eventType: EventTypeEnum.LOGOUT,
   fiscalCode: aFiscalCode,
-  scenario: "APP",
-  ts: aTimestamp
+  scenario: "app",
+  ts: aTimestamp.getTime()
 } as unknown) as LogoutEvent;
 
 const sessionNotificationEventsProcessorConfigMock = {
