@@ -380,6 +380,8 @@ const emitLogoutIfEligible: (
           deps.AuthSessionsTopicRepository.emitSessionEvent({
             fiscalCode,
             eventType: EventTypeEnum.LOGOUT,
+            scenario: "WEB",
+            ts: new Date(),
           })(deps),
       ),
     );
