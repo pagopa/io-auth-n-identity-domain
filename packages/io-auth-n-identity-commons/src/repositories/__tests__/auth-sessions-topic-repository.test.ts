@@ -15,8 +15,8 @@ const aLoginEvent: LoginEvent = {
   eventType: EventTypeEnum.LOGIN,
   fiscalCode: "AAAAAA89S20I111X" as FiscalCode,
   expiredAt: new Date("2025-01-01T00:00:00Z"),
-  loginType: "LV",
-  scenario: "STANDARD",
+  loginType: "lv",
+  scenario: "standard",
   idp: "idp.example.com",
   ts: new Date("2025-01-01T00:00:00Z"),
 };
@@ -24,7 +24,7 @@ const aLoginEvent: LoginEvent = {
 const aLogoutEvent: LogoutEvent = {
   eventType: EventTypeEnum.LOGOUT,
   fiscalCode: "BBBAAA89S20I111X" as FiscalCode,
-  scenario: "APP",
+  scenario: "app",
   ts: new Date("2025-01-01T10:00:00Z"),
 };
 

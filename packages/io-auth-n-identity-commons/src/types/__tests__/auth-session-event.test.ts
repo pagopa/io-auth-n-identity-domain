@@ -7,12 +7,12 @@ const aTimestamp = new Date().getTime();
 describe("AuthSessionEvent decode tests", () => {
   it("should decode a valid Login event", () => {
     const aValidLoginEvent = {
-      eventType: "LOGIN",
+      eventType: "login",
       fiscalCode: "AAAAAA89S20I111X",
       ts: aTimestamp,
       expiredAt: 1748508155,
-      loginType: "LEGACY",
-      scenario: "STANDARD",
+      loginType: "legacy",
+      scenario: "standard",
       idp: "idp.example.com",
     };
     const decodeResult = AuthSessionEvent.decode(aValidLoginEvent);
@@ -28,12 +28,12 @@ describe("AuthSessionEvent decode tests", () => {
 
   it("should fail when a login event lack of required properties", () => {
     const aBadLoginEvent = {
-      eventType: "LOGIN",
+      eventType: "login",
       fiscalCode: "AAAAAA89S20I111X",
       ts: aTimestamp,
       expiredAt: 1748508155,
-      loginType: "LEGACY",
-      scenario: "STANDARD",
+      loginType: "legacy",
+      scenario: "standard",
       // Missing 'idp' property
     };
     const decodeResult = AuthSessionEvent.decode(aBadLoginEvent);
@@ -43,10 +43,10 @@ describe("AuthSessionEvent decode tests", () => {
 
   it("should decode a valid Logout event", () => {
     const aValidLogoutEvent = {
-      eventType: "LOGOUT",
+      eventType: "logout",
       fiscalCode: "AAAAAA89S20I111X",
       ts: aTimestamp,
-      scenario: "APP",
+      scenario: "app",
     };
     const decodeResult = AuthSessionEvent.decode(aValidLogoutEvent);
 
@@ -60,7 +60,7 @@ describe("AuthSessionEvent decode tests", () => {
 
   it("should fail when a logout event lack of required properties", () => {
     const aBadLogoutEvent = {
-      eventType: "LOGOUT",
+      eventType: "logout",
     };
     const decodeResult = AuthSessionEvent.decode(aBadLogoutEvent);
 
@@ -69,7 +69,7 @@ describe("AuthSessionEvent decode tests", () => {
 
   it("should fail when an unknown event is given", () => {
     const anUnknownEvent = {
-      eventType: "UNKNOWN_EVENT",
+      eventType: "unknown_event",
       fiscalCode: "AAAAAA89S20I111X",
     };
     const decodeResult = AuthSessionEvent.decode(anUnknownEvent);
