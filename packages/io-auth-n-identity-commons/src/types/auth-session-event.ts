@@ -4,8 +4,8 @@ import { enumType } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
 
 export enum EventTypeEnum {
-  "LOGIN" = "login",
-  "LOGOUT" = "logout",
+  LOGIN = "LOGIN",
+  LOGOUT = "LOGOUT",
 }
 
 export type EventType = t.TypeOf<typeof EventType>;
@@ -13,6 +13,7 @@ export const EventType = enumType<EventTypeEnum>(EventTypeEnum, "EventType");
 
 const BaseAuthSessionEvent = t.type({
   fiscalCode: FiscalCode,
+  ts: DateFromTimestamp,
 });
 
 // TODO: LoginEvent and LogoutEvent will contain other data,
@@ -23,13 +24,28 @@ export const LoginEvent = t.intersection([
   t.type({
     eventType: t.literal(EventTypeEnum.LOGIN),
     expiredAt: DateFromTimestamp,
+    loginType: t.union([t.literal("LEGACY"), t.literal("LV")]),
+    scenario: t.union([
+      t.literal("NEW_USER"),
+      t.literal("STANDARD"),
+      t.literal("RELOGIN"),
+    ]),
+    idp: t.string,
   }),
   BaseAuthSessionEvent,
 ]);
 export type LoginEvent = t.TypeOf<typeof LoginEvent>;
 
 export const LogoutEvent = t.intersection([
-  t.type({ eventType: t.literal(EventTypeEnum.LOGOUT) }),
+  t.type({
+    eventType: t.literal(EventTypeEnum.LOGOUT),
+    scenario: t.union([
+      t.literal("APP"),
+      t.literal("WEB"),
+      t.literal("AUTH_LOCK"),
+      t.literal("ACCOUNT_REMOVAL"),
+    ]),
+  }),
   BaseAuthSessionEvent,
 ]);
 export type LogoutEvent = t.TypeOf<typeof LogoutEvent>;
