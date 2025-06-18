@@ -10,6 +10,7 @@ import { TriggerDependencies } from "../session-notification-events-processor";
 
 export const aFiscalCode = "AAAAAA89S20I111X" as FiscalCode;
 export const anExpiredAt = new Date("2026-06-11T12:00:00Z");
+export const aTimestamp = new Date("2025-06-11T12:00:00Z");
 
 export const validSessionNotifications: RetrievedSessionNotificationsStrict = {
   id: aFiscalCode,
