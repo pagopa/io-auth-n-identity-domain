@@ -415,7 +415,7 @@ describe("Session Service#deleteUserSession", () => {
     expect(mockEmitSessionEvent).toHaveBeenCalledWith({
       fiscalCode: aFiscalCode,
       eventType: EventTypeEnum.LOGOUT,
-      scenario: "WEB",
+      scenario: "web",
       ts: frozenDate,
     });
     expect(result).toEqual(E.right(null));
@@ -434,7 +434,7 @@ describe("Session Service#deleteUserSession", () => {
     expect(mockEmitSessionEvent).toHaveBeenCalledWith({
       fiscalCode: aFiscalCode,
       eventType: EventTypeEnum.LOGOUT,
-      scenario: "WEB",
+      scenario: "web",
       ts: frozenDate,
     });
     expect(result).toEqual(E.right(null));
