@@ -164,7 +164,6 @@ export const AuthLockFunction = httpAzureFunction(makeAuthLockHandler);
 export const ReleaseAuthLockFunction = httpAzureFunction(
   makeReleaseAuthLockHandler,
 );
-export const DeleteUserSessionFunction: (
-  deps: Dependencies & DeleteUserSessionDeps,
-) => (req: HttpRequest, ctx: InvocationContext) => Promise<HttpResponse> =
-  httpAzureFunction(makeDeleteUserSessionHandler);
+export const DeleteUserSessionFunction = httpAzureFunction(
+  makeDeleteUserSessionHandler,
+);
