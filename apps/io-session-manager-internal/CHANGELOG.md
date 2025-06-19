@@ -1,5 +1,16 @@
 # io-session-manager-internal
 
+## 0.10.0
+
+### Minor Changes
+
+- b54352b: Update web logout event with scenario and timestamp
+
+### Patch Changes
+
+- Updated dependencies [b54352b]
+  - @pagopa/io-auth-n-identity-commons@0.1.0
+
 ## 0.9.0
 
 ### Minor Changes
