@@ -107,14 +107,10 @@ export const newApp: (
   const APIClients = initAPIClientsDependencies();
   const storageDependencies = initStorageDependencies();
 
-  const serviceBusClient = O.fold(
-    () =>
-      new ServiceBusClient(
-        ServiceBusConfig.SERVICE_BUS_NAMESPACE,
-        new DefaultAzureCredential(),
-      ),
-    (connectionString: string) => new ServiceBusClient(connectionString),
-  )(ServiceBusConfig.DEV_SERVICE_BUS_CONNECTION_STRING);
+  const serviceBusClient = setupServiceBus(
+    ServiceBusConfig.SERVICE_BUS_NAMESPACE,
+    ServiceBusConfig.DEV_SERVICE_BUS_CONNECTION_STRING,
+  );
 
   const authSessionsTopicServiceBusSender = serviceBusClient.createSender(
     ServiceBusConfig.AUTH_SESSIONS_TOPIC_NAME,
@@ -514,4 +510,14 @@ function setupAuthenticationMiddlewares() {
       session: false,
     }),
   };
+}
+
+function setupServiceBus(
+  namespace: string,
+  devConnectionString: O.Option<string>,
+) {
+  return O.fold(
+    () => new ServiceBusClient(namespace, new DefaultAzureCredential()),
+    (connectionString: string) => new ServiceBusClient(connectionString),
+  )(devConnectionString);
 }
