@@ -33,7 +33,7 @@
     "prettier": "^3.2.5",
     "shx": "^0.4.0",
     "typescript": "^5.4.5",
-    "vitest": "~1.5.3"
+    "vitest": "~1.6.0"
   },
   "dependencies": {
     "@azure/service-bus": "^7.9.5",
