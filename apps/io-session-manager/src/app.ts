@@ -11,9 +11,12 @@ import * as TE from "fp-ts/TaskEither";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { ResponsePermanentRedirect } from "@pagopa/ts-commons/lib/responses";
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import { CIDR, FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { pick } from "@pagopa/ts-commons/lib/types";
 import cookieparser from "cookie-parser";
+import { ServiceBusClient } from "@azure/service-bus";
+import { DefaultAzureCredential } from "@azure/identity";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
 import { RedisRepo, FnAppRepo, FnLollipopRepo } from "./repositories";
@@ -52,6 +55,7 @@ import {
   ZendeskConfig,
   isDevEnv,
   AppInsightsConfig,
+  ServiceBusConfig,
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import { LollipopService, RedisSessionStorageService } from "./services";
@@ -102,6 +106,19 @@ export const newApp: (
   // Create the API client for the Azure Functions App
   const APIClients = initAPIClientsDependencies();
   const storageDependencies = initStorageDependencies();
+
+  const serviceBusClient = O.fold(
+    () =>
+      new ServiceBusClient(
+        ServiceBusConfig.SERVICE_BUS_NAMESPACE,
+        new DefaultAzureCredential(),
+      ),
+    (connectionString: string) => new ServiceBusClient(connectionString),
+  )(ServiceBusConfig.DEV_SERVICE_BUS_CONNECTION_STRING);
+
+  const authSessionsTopicServiceBusSender = serviceBusClient.createSender(
+    ServiceBusConfig.AUTH_SESSIONS_TOPIC_NAME,
+  );
 
   setupAuthentication(REDIS_CLIENT_SELECTOR);
 
