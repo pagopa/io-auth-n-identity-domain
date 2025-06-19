@@ -16,31 +16,55 @@ const BaseAuthSessionEvent = t.type({
   ts: DateFromTimestamp,
 });
 
+export enum LoginTypeEnum {
+  LEGACY = "legacy",
+  LV = "lv",
+}
+
+export type LoginType = t.TypeOf<typeof LoginType>;
+export const LoginType = enumType<LoginTypeEnum>(LoginTypeEnum, "LoginType");
+
+export enum LoginScenarioEnum {
+  NEW_USER = "new_user",
+  STANDARD = "standard",
+  RELOGIN = "relogin",
+}
+
+export type LoginScenario = t.TypeOf<typeof LoginScenario>;
+export const LoginScenario = enumType<LoginScenarioEnum>(
+  LoginScenarioEnum,
+  "LoginScenario",
+);
+
 export const LoginEvent = t.intersection([
   t.type({
     eventType: t.literal(EventTypeEnum.LOGIN),
     expiredAt: DateFromTimestamp,
-    loginType: t.union([t.literal("legacy"), t.literal("lv")]),
-    scenario: t.union([
-      t.literal("new_user"),
-      t.literal("standard"),
-      t.literal("relogin"),
-    ]),
+    loginType: LoginType,
+    scenario: LoginScenario,
     idp: t.string,
   }),
   BaseAuthSessionEvent,
 ]);
 export type LoginEvent = t.TypeOf<typeof LoginEvent>;
 
+export enum LogoutScenarioEnum {
+  APP = "app",
+  WEB = "web",
+  AUTH_LOCK = "auth_lock",
+  ACCOUNT_REMOVAL = "account_removal",
+}
+
+export type LogoutScenario = t.TypeOf<typeof LogoutScenario>;
+export const LogoutScenario = enumType<LogoutScenarioEnum>(
+  LogoutScenarioEnum,
+  "LogoutScenario",
+);
+
 export const LogoutEvent = t.intersection([
   t.type({
     eventType: t.literal(EventTypeEnum.LOGOUT),
-    scenario: t.union([
-      t.literal("app"),
-      t.literal("web"),
-      t.literal("auth_lock"),
-      t.literal("account_removal"),
-    ]),
+    scenario: LogoutScenario,
   }),
   BaseAuthSessionEvent,
 ]);
