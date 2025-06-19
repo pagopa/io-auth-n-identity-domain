@@ -16,10 +16,6 @@ const BaseAuthSessionEvent = t.type({
   ts: DateFromTimestamp,
 });
 
-// TODO: LoginEvent and LogoutEvent will contain other data,
-// currently only the fields needed for user engagement are included,
-// under definition what to include in this event for other purposes
-
 export const LoginEvent = t.intersection([
   t.type({
     eventType: t.literal(EventTypeEnum.LOGIN),
