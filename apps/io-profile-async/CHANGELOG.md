@@ -1,5 +1,16 @@
 # io-profile-async
 
+## 1.9.0
+
+### Minor Changes
+
+- b54352b: Update dependency `io-authn-identity-commons`
+
+### Patch Changes
+
+- Updated dependencies [b54352b]
+  - @pagopa/io-auth-n-identity-commons@0.1.0
+
 ## 1.8.0
 
 ### Minor Changes

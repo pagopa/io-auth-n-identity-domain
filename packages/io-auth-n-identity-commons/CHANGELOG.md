@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-commons
 
+## 0.1.0
+
+### Minor Changes
+
+- b54352b: Update events with additional properties
+
 ## 0.0.3
 
 ### Patch Changes
