@@ -15,11 +15,17 @@ const aLoginEvent: LoginEvent = {
   eventType: EventTypeEnum.LOGIN,
   fiscalCode: "AAAAAA89S20I111X" as FiscalCode,
   expiredAt: new Date("2025-01-01T00:00:00Z"),
+  loginType: "lv",
+  scenario: "standard",
+  idp: "idp.example.com",
+  ts: new Date("2025-01-01T00:00:00Z"),
 };
 
 const aLogoutEvent: LogoutEvent = {
   eventType: EventTypeEnum.LOGOUT,
   fiscalCode: "BBBAAA89S20I111X" as FiscalCode,
+  scenario: "app",
+  ts: new Date("2025-01-01T10:00:00Z"),
 };
 
 const sendMessagesMock = vi.fn();
@@ -38,7 +44,7 @@ describe("AuthSessionsTopicRepository", () => {
       await AuthSessionsTopicRepository.emitSessionEvent(aLogoutEvent)(deps)();
 
     expect(sendMessagesMock).toHaveBeenCalledWith({
-      body: aLogoutEvent,
+      body: { ...aLogoutEvent, ts: aLogoutEvent.ts.getTime() },
       contentType,
       applicationProperties: {
         eventType: aLogoutEvent.eventType,
@@ -58,6 +64,7 @@ describe("AuthSessionsTopicRepository", () => {
       body: {
         ...aLoginEvent,
         expiredAt: aLoginEvent.expiredAt.getTime(),
+        ts: aLoginEvent.ts.getTime(),
       },
       contentType,
       applicationProperties: {
@@ -82,6 +89,7 @@ describe("AuthSessionsTopicRepository", () => {
       body: {
         ...aLoginEvent,
         expiredAt: aLoginEvent.expiredAt.getTime(),
+        ts: aLoginEvent.ts.getTime(),
       },
       contentType,
       applicationProperties: {

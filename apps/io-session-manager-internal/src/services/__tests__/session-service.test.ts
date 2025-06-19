@@ -7,7 +7,10 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { QueueClient } from "@azure/storage-queue";
 import { TableClient } from "@azure/data-tables";
 import addSeconds from "date-fns/add_seconds";
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import {
+  EventTypeEnum,
+  LogoutScenarioEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import {
   RedisClientTaskMock,
   RedisRepositoryMock,
@@ -387,8 +390,11 @@ describe("Session Service#unlockUserAuthentication", () => {
 });
 
 describe("Session Service#deleteUserSession", () => {
+  const frozenDate = new Date(2025, 5, 1, 0, 0, 0);
+
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
   });
 
   const deps = {
@@ -412,6 +418,8 @@ describe("Session Service#deleteUserSession", () => {
     expect(mockEmitSessionEvent).toHaveBeenCalledWith({
       fiscalCode: aFiscalCode,
       eventType: EventTypeEnum.LOGOUT,
+      scenario: LogoutScenarioEnum.WEB,
+      ts: frozenDate,
     });
     expect(result).toEqual(E.right(null));
   });
@@ -429,6 +437,8 @@ describe("Session Service#deleteUserSession", () => {
     expect(mockEmitSessionEvent).toHaveBeenCalledWith({
       fiscalCode: aFiscalCode,
       eventType: EventTypeEnum.LOGOUT,
+      scenario: LogoutScenarioEnum.WEB,
+      ts: frozenDate,
     });
     expect(result).toEqual(E.right(null));
   });

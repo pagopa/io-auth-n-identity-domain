@@ -3,7 +3,10 @@ import { Context } from "@azure/functions";
 import {
   EventTypeEnum,
   LoginEvent,
-  LogoutEvent
+  LoginScenarioEnum,
+  LoginTypeEnum,
+  LogoutEvent,
+  LogoutScenarioEnum
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
@@ -26,6 +29,7 @@ import {
   anExpiredAt,
   aSingleChuckAsyncIterable,
   aSingleInvalidItemAsyncIterable,
+  aTimestamp,
   mockSessionNotificationsRepository,
   validSessionNotifications
 } from "../__mocks__/session-notifications-repository.mock";
@@ -36,13 +40,19 @@ const anError = new Error("Simulated failure");
 const aValidServiceBusLoginEventMessage: LoginEvent = ({
   eventType: EventTypeEnum.LOGIN,
   fiscalCode: aFiscalCode,
-  expiredAt: anExpiredAt.getTime()
+  expiredAt: anExpiredAt.getTime(),
+  loginType: LoginTypeEnum.LV,
+  scenario: LoginScenarioEnum.STANDARD,
+  idp: "idp.example.com",
+  ts: aTimestamp.getTime()
 } as unknown) as LoginEvent;
 
-const aValidServiceBusLogoutEventMessage: LogoutEvent = {
+const aValidServiceBusLogoutEventMessage: LogoutEvent = ({
   eventType: EventTypeEnum.LOGOUT,
-  fiscalCode: aFiscalCode
-};
+  fiscalCode: aFiscalCode,
+  scenario: LogoutScenarioEnum.APP,
+  ts: aTimestamp.getTime()
+} as unknown) as LogoutEvent;
 
 const sessionNotificationEventsProcessorConfigMock = {
   SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT: 10
