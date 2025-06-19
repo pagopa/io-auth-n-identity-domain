@@ -16,7 +16,10 @@ import {
   AuthSessionsTopicRepository,
   AuthSessionsTopicRepositoryDeps,
 } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import {
+  EventTypeEnum,
+  LogoutScenarioEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import { RedisRepository } from "../repositories/redis";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
@@ -380,7 +383,7 @@ const emitLogoutIfEligible: (
           deps.AuthSessionsTopicRepository.emitSessionEvent({
             fiscalCode,
             eventType: EventTypeEnum.LOGOUT,
-            scenario: "web",
+            scenario: LogoutScenarioEnum.WEB,
             ts: new Date(),
           })(deps),
       ),
