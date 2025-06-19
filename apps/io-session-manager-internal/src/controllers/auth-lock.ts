@@ -5,7 +5,6 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { sequenceS } from "fp-ts/lib/Apply";
-import { HttpRequest, HttpResponse, InvocationContext } from "@azure/functions";
 import {
   DeleteUserSessionDeps,
   LockUserAuthenticationDeps,

@@ -2,12 +2,18 @@ import * as E from "fp-ts/lib/Either";
 import { describe, expect, it } from "vitest";
 import { AuthSessionEvent } from "../auth-session-event";
 
+const aTimestamp = new Date().getTime();
+
 describe("AuthSessionEvent decode tests", () => {
   it("should decode a valid Login event", () => {
     const aValidLoginEvent = {
       eventType: "login",
       fiscalCode: "AAAAAA89S20I111X",
+      ts: aTimestamp,
       expiredAt: 1748508155,
+      loginType: "legacy",
+      scenario: "standard",
+      idp: "idp.example.com",
     };
     const decodeResult = AuthSessionEvent.decode(aValidLoginEvent);
 
@@ -15,6 +21,7 @@ describe("AuthSessionEvent decode tests", () => {
       E.of({
         ...aValidLoginEvent,
         expiredAt: new Date(aValidLoginEvent.expiredAt),
+        ts: new Date(aValidLoginEvent.ts),
       }),
     );
   });
@@ -23,6 +30,11 @@ describe("AuthSessionEvent decode tests", () => {
     const aBadLoginEvent = {
       eventType: "login",
       fiscalCode: "AAAAAA89S20I111X",
+      ts: aTimestamp,
+      expiredAt: 1748508155,
+      loginType: "legacy",
+      scenario: "standard",
+      // Missing 'idp' property
     };
     const decodeResult = AuthSessionEvent.decode(aBadLoginEvent);
 
@@ -33,10 +45,17 @@ describe("AuthSessionEvent decode tests", () => {
     const aValidLogoutEvent = {
       eventType: "logout",
       fiscalCode: "AAAAAA89S20I111X",
+      ts: aTimestamp,
+      scenario: "app",
     };
     const decodeResult = AuthSessionEvent.decode(aValidLogoutEvent);
 
-    expect(decodeResult).toStrictEqual(E.of(aValidLogoutEvent));
+    expect(decodeResult).toStrictEqual(
+      E.of({
+        ...aValidLogoutEvent,
+        ts: new Date(aValidLogoutEvent.ts),
+      }),
+    );
   });
 
   it("should fail when a logout event lack of required properties", () => {
@@ -50,7 +69,7 @@ describe("AuthSessionEvent decode tests", () => {
 
   it("should fail when an unknown event is given", () => {
     const anUnknownEvent = {
-      eventType: "unknownEvent",
+      eventType: "unknown_event",
       fiscalCode: "AAAAAA89S20I111X",
     };
     const decodeResult = AuthSessionEvent.decode(anUnknownEvent);
