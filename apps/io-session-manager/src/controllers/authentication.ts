@@ -732,6 +732,11 @@ export const acs: (
               ts: new Date(),
               expiredAt: addSeconds(new Date(), lollipopKeyTTL),
             })(deps),
+            TE.mapLeft((err) =>
+              validationCookieClearanceErrorInternal(
+                `Unable to emit login event: ${err.message}`,
+              ),
+            ),
           ),
       ),
     )();
