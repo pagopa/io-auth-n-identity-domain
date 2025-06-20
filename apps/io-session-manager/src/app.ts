@@ -17,6 +17,7 @@ import { pick } from "@pagopa/ts-commons/lib/types";
 import cookieparser from "cookie-parser";
 import { ServiceBusClient } from "@azure/service-bus";
 import { DefaultAzureCredential } from "@azure/identity";
+import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
 import { RedisRepo, FnAppRepo, FnLollipopRepo } from "./repositories";
@@ -82,6 +83,7 @@ import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { isUserElegibleForValidationCookie } from "./config/validation-cookie";
+import { isUserEligibleForServiceBusEvents } from "./config/service-bus";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -187,6 +189,9 @@ export const newApp: (
     ...omit(["spidLogQueueClient"], storageDependencies),
     isUserElegibleForFastLogin,
     isUserElegibleForValidationCookie,
+    AuthSessionsTopicRepository,
+    authSessionsTopicSender: authSessionsTopicServiceBusSender,
+    isUserEligibleForServiceBusEvents,
   };
 
   pipe(

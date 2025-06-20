@@ -20,6 +20,7 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import * as E from "fp-ts/Either";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
+import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import {
   AGE_LIMIT,
   AGE_LIMIT_ERROR_CODE,
@@ -117,6 +118,7 @@ const dependencies: AcsDependencies = {
   appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
   isUserElegibleForFastLogin: () => false,
   isUserElegibleForValidationCookie: () => false,
+  isUserEligibleForServiceBusEvents: () => false,
 };
 
 const req = mockReq();

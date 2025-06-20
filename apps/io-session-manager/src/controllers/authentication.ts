@@ -32,6 +32,11 @@ import * as RR from "fp-ts/lib/ReadonlyRecord";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import {
+  EventTypeEnum,
+  LoginScenarioEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { LoginTypeEnum as ServiceBusLoginTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import {
   VALIDATION_COOKIE_NAME,
   VALIDATION_COOKIE_SETTINGS,
 } from "../config/validation-cookie";
@@ -43,6 +48,7 @@ import { AssertionRef } from "../generated/backend/AssertionRef";
 import { AccessToken } from "../generated/public/AccessToken";
 import {
   FnLollipopRepo,
+  LoginEventsRepo,
   LoginUserEventRepo,
   LollipopRevokeRepo,
   NotificationsRepo,
@@ -90,6 +96,7 @@ import {
   withCookieClearanceResponseForbidden,
   withCookieClearanceResponsePermanentRedirect,
 } from "../utils/responses";
+import { LoginEventsDeps } from "../repositories/login-events";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 import { AuthenticationController } from ".";
 
@@ -136,7 +143,8 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   RevokeAssertionRefDeps &
   CreateNewProfileDependencies &
   NotificationsRepo.NotificationsueueDeps &
-  AppInsightsDeps & {
+  AppInsightsDeps &
+  LoginEventsDeps & {
     getClientErrorRedirectionUrl: (
       params: ClientErrorRedirectionUrlParams,
     ) => UrlFromString;
@@ -151,6 +159,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
     >;
     isUserElegibleForFastLogin: (fiscalCode: FiscalCode) => boolean;
     isUserElegibleForValidationCookie: (fiscalCode: FiscalCode) => boolean;
+    isUserEligibleForServiceBusEvents: (fiscalCode: FiscalCode) => boolean;
   };
 
 export const acs: (
@@ -697,6 +706,38 @@ export const acs: (
     } catch (e) {
       // Fire & forget, so just print a debug message
       log.debug("Cannot notify userLogin: %s", E.toError(e).message);
+    }
+
+    const errorOrEvent = await pipe(
+      deps.isUserEligibleForServiceBusEvents(spidUser.fiscalNumber),
+      B.fold(
+        () =>
+          // If the user is not elegible for service bus events, we don't log the login event
+          TE.right(void 0),
+        () =>
+          // If the user is eligible for service bus events, we log the login event
+          pipe(
+            LoginEventsRepo.emitLoginEvent({
+              eventType: EventTypeEnum.LOGIN,
+              fiscalCode: spidUser.fiscalNumber,
+              scenario:
+                getProfileResponse.kind === "IResponseErrorNotFound"
+                  ? LoginScenarioEnum.NEW_USER
+                  : LoginScenarioEnum.STANDARD,
+              loginType:
+                loginType === LoginTypeEnum.LV
+                  ? ServiceBusLoginTypeEnum.LV
+                  : ServiceBusLoginTypeEnum.LEGACY,
+              idp: spidUser.issuer,
+              ts: new Date(),
+              expiredAt: addSeconds(new Date(), lollipopKeyTTL),
+            })(deps),
+          ),
+      ),
+    )();
+
+    if (E.isLeft(errorOrEvent)) {
+      return errorOrEvent.left;
     }
 
     // async fire & forget
