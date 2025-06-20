@@ -8411,6 +8411,7 @@ __metadata:
     "@azure/service-bus": "npm:^7.9.5"
     "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
+    "@pagopa/io-auth-n-identity-commons": "npm:*"
     "@pagopa/io-functions-app-sdk": "npm:x"
     "@pagopa/io-functions-commons": "npm:^29.1.0"
     "@pagopa/io-spid-commons": "npm:^14.0.1"

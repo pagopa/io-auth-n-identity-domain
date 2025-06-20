@@ -39,6 +39,7 @@
     "@azure/identity": "^4.10.1",
     "@azure/service-bus": "^7.9.5",
     "@azure/storage-queue": "^12.16.0",
+    "@pagopa/io-auth-n-identity-commons": "*",
     "@pagopa/io-functions-app-sdk": "x",
     "@pagopa/io-functions-commons": "^29.1.0",
     "@pagopa/io-spid-commons": "^14.0.1",
