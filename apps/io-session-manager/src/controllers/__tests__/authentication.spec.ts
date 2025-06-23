@@ -98,6 +98,7 @@ import {
   VALIDATION_COOKIE_SETTINGS,
 } from "../../config/validation-cookie";
 import { withCookieClearanceResponsePermanentRedirect } from "../../utils/responses";
+import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
 
 const dependencies: AcsDependencies = {
   redisClientSelector: mockRedisClientSelector,
@@ -119,6 +120,8 @@ const dependencies: AcsDependencies = {
   isUserElegibleForFastLogin: () => false,
   isUserElegibleForValidationCookie: () => false,
   isUserEligibleForServiceBusEvents: () => false,
+  AuthSessionsTopicRepository,
+  authSessionsTopicSender: mockServiceBusSender,
 };
 
 const req = mockReq();
