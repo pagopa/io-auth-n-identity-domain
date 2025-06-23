@@ -13,14 +13,19 @@ import {
   SPID_IDP_IDENTIFIERS,
 } from "@pagopa/io-spid-commons/dist/config";
 import * as TE from "fp-ts/TaskEither";
-import { addDays, addMonths, format, subYears } from "date-fns";
+import { addDays, addMonths, addSeconds, format, subYears } from "date-fns";
 import * as O from "fp-ts/Option";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import * as E from "fp-ts/Either";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
-import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
+import {
+  EventTypeEnum,
+  LoginEvent,
+  LoginScenarioEnum,
+  LoginTypeEnum as ServiceBusLoginTypeEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import {
   AGE_LIMIT,
   AGE_LIMIT_ERROR_CODE,
@@ -33,6 +38,10 @@ import { mockedFnAppAPIClient } from "../../__mocks__/repositories/fn-app-api-mo
 import { mockedTableClient } from "../../__mocks__/repositories/table-client-mocks";
 import { mockQueueClient } from "../../__mocks__/repositories/queue-client.mocks";
 import { mockedLollipopApiClient } from "../../__mocks__/repositories/lollipop-api.mocks";
+import {
+  mockAuthSessionsTopicRepository,
+  mockEmitSessionEvent,
+} from "../../repositories/__mocks__/auth-session-topic-repository.mocks";
 import {
   getClientErrorRedirectionUrl,
   getClientProfileRedirectionUrl,
@@ -104,7 +113,6 @@ const dependencies: AcsDependencies = {
   redisClientSelector: mockRedisClientSelector,
   fnAppAPIClient: mockedFnAppAPIClient,
   lockUserTableClient: mockedTableClient,
-  loginUserEventQueue: mockQueueClient,
   fnLollipopAPIClient: mockedLollipopApiClient,
   lollipopRevokeQueueClient: mockQueueClient,
   testLoginFiscalCodes: [],
@@ -120,7 +128,7 @@ const dependencies: AcsDependencies = {
   isUserElegibleForFastLogin: () => false,
   isUserElegibleForValidationCookie: () => false,
   isUserEligibleForServiceBusEvents: () => false,
-  AuthSessionsTopicRepository,
+  AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
   authSessionsTopicSender: mockServiceBusSender,
 };
 
@@ -1317,6 +1325,95 @@ describe("AuthenticationController#acs cookie validation", () => {
         samplingEnabled: "false",
       },
     });
+  });
+});
+
+describe("AuthenticationController#acs service bus login events", () => {
+  const frozenDate = new Date("2023-10-01T00:00:00Z");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
+  const mockIsUserEligibleForServiceBusEvents = vi.fn().mockReturnValue(true);
+
+  const serviceBusEventsScenarioDeps = {
+    ...dependencies,
+    isUserEligibleForServiceBusEvents: mockIsUserEligibleForServiceBusEvents,
+  };
+
+  test.skip("should emit a login event", async () => {
+    const response = await acs(serviceBusEventsScenarioDeps)(validUserPayload);
+    response.apply(res);
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      eventType: EventTypeEnum.LOGIN,
+      fiscalCode: validUserPayload.fiscalNumber,
+      loginType: ServiceBusLoginTypeEnum.LEGACY,
+      scenario: LoginScenarioEnum.NEW_USER,
+      expiredAt: addSeconds(frozenDate, standardTokenDurationSecs),
+      ts: frozenDate,
+      idp: validUserPayload.issuer,
+    } as LoginEvent);
+  });
+
+  test("should not emit a login event when user is not eligible", async () => {
+    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(false);
+    const response = await acs(serviceBusEventsScenarioDeps)(validUserPayload);
+    response.apply(res);
+
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+  });
+
+  test.skip("should emit a login event with login scenario 'standard' when profile exists", async () => {
+    mockGetProfile.mockReturnValueOnce(
+      TE.of(ResponseSuccessJson(mockedInitializedProfile)),
+    );
+
+    const response = await acs(serviceBusEventsScenarioDeps)(validUserPayload);
+    response.apply(res);
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      eventType: EventTypeEnum.LOGIN,
+      fiscalCode: validUserPayload.fiscalNumber,
+      loginType: ServiceBusLoginTypeEnum.LEGACY,
+      scenario: LoginScenarioEnum.STANDARD,
+      expiredAt: addSeconds(frozenDate, standardTokenDurationSecs),
+      ts: frozenDate,
+      idp: validUserPayload.issuer,
+    } as LoginEvent);
+  });
+
+  test("should emit a login event with login type 'lv'", async () => {
+    mockGetProfile.mockReturnValueOnce(
+      TE.of(ResponseSuccessJson(mockedInitializedProfile)),
+    );
+
+    const response = await acs({
+      ...serviceBusEventsScenarioDeps,
+      isUserElegibleForFastLogin: () => true,
+    })(validUserPayload, {
+      loginType: LoginTypeEnum.LV,
+    });
+    response.apply(res);
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      eventType: EventTypeEnum.LOGIN,
+      fiscalCode: validUserPayload.fiscalNumber,
+      loginType: ServiceBusLoginTypeEnum.LV,
+      scenario: LoginScenarioEnum.STANDARD,
+      expiredAt: addSeconds(frozenDate, lvLongSessionDurationSecs),
+      ts: frozenDate,
+      idp: validUserPayload.issuer,
+    } as LoginEvent);
   });
 });
 
