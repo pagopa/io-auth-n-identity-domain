@@ -161,6 +161,8 @@ const blockedUserServiceDeps = {
   lollipopRepository: LollipopRepository,
   redisRepository: RedisRepository,
   RevokeAssertionRefQueueClient,
+  AuthSessionsTopicRepository,
+  authSessionsTopicSender: authSessionsTopicServiceBusSender,
 };
 
 app.http("LockUserSession", {
