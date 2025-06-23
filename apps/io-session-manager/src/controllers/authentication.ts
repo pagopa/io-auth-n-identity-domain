@@ -49,7 +49,6 @@ import { AccessToken } from "../generated/public/AccessToken";
 import {
   FnLollipopRepo,
   LoginEventsRepo,
-  LoginUserEventRepo,
   LollipopRevokeRepo,
   NotificationsRepo,
   RedisRepo,
@@ -137,7 +136,6 @@ const validationCookieClearanceErrorForbidden =
 export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   FnAppAPIRepositoryDeps &
   LockUserAuthenticationDeps &
-  LoginUserEventRepo.LoginUserEventDeps &
   FnLollipopRepo.LollipopApiDeps &
   RevokeAssertionRefDeps &
   CreateNewProfileDependencies &
@@ -693,18 +691,6 @@ export const acs: (
         userHasEmailValidated && getProfileResponse.value.email
           ? getProfileResponse.value.email
           : user.spid_email;
-    }
-
-    // Notify the user login
-    try {
-      await LoginUserEventRepo.logUserLogin({
-        fiscalCode: spidUser.fiscalNumber,
-        lastLoginAt: new Date(),
-        source: spidUser.email !== undefined ? "spid" : "cie",
-      })(deps)();
-    } catch (e) {
-      // Fire & forget, so just print a debug message
-      log.debug("Cannot notify userLogin: %s", E.toError(e).message);
     }
 
     const errorOrEvent = await pipe(
