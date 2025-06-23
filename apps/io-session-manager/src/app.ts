@@ -52,6 +52,7 @@ import {
   ZendeskConfig,
   isDevEnv,
   AppInsightsConfig,
+  PROXY_BASE_PATH,
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import { LollipopService, RedisSessionStorageService } from "./services";
@@ -149,16 +150,6 @@ export const newApp: (
 
   // Setup paths
 
-  app.get(
-    "/healthcheck",
-    pipe(
-      toExpressHandler({
-        redisClientSelector: REDIS_CLIENT_SELECTOR,
-      }),
-      ap(HealthCheckController.healthcheck),
-    ),
-  );
-
   const acsDependencies: AcsDependencies = {
     redisClientSelector: REDIS_CLIENT_SELECTOR,
     appInsightsTelemetryClient: appInsightsClient,
@@ -176,156 +167,74 @@ export const newApp: (
     isUserElegibleForValidationCookie,
   };
 
-  pipe(
-    LoginConfig.TEST_LOGIN_PASSWORD,
-    E.map((testLoginPassword) => {
-      passport.use(
-        "local",
-        localStrategy(
-          LoginConfig.TEST_LOGIN_FISCAL_CODES,
-          testLoginPassword,
-          APIClients.fnLollipopAPIClient,
-          appInsightsClient,
-        ),
-      );
-
-      app.post(`/test-login`, authMiddlewares.local, (req, res) =>
-        pipe(
-          toExpressHandler({
-            ...acsDependencies,
-            clientProfileRedirectionUrl,
-          })(
-            AuthenticationController.acsTest({
-              ...req.user,
-              getAcsOriginalRequest: () => req,
-            }),
-          ),
-          (handler) => handler(req, res),
-        ),
-      );
-    }),
-  );
-
-  app.get(
-    `${API_BASE_PATH}/session`,
-    authMiddlewares.bearerSession,
-    pipe(
-      toExpressHandler({
-        redisClientSelector: REDIS_CLIENT_SELECTOR,
-        fnAppAPIClient: APIClients.fnAppAPIClient,
-      }),
-      ap(withUserFromRequest(SessionController.getSessionState)),
-    ),
-  );
-
-  app.get(
-    `${API_BASE_PATH}/user-identity`,
-    authMiddlewares.bearerSession,
-    pipe(
-      toExpressHandler({
-        redisClientSelector: REDIS_CLIENT_SELECTOR,
-      }),
-      ap(withUserFromRequest(SessionController.getUserIdentity)),
-    ),
-  );
-
-  app.post(
-    `/logout`,
-    authMiddlewares.bearerSession,
-    pipe(
-      toExpressHandler({
-        // Clients
-        redisClientSelector: REDIS_CLIENT_SELECTOR,
-        lollipopApiClient: APIClients.fnLollipopAPIClient,
-        lollipopRevokeQueueClient:
-          storageDependencies.lollipopRevokeQueueClient,
-        // Services
-        redisSessionStorageService: RedisSessionStorageService,
-        lollipopService: LollipopService,
-      }),
-      ap(withUserFromRequest(SessionController.logout)),
-    ),
-  );
-
-  app.post(
-    `${API_BASE_PATH}/fast-login/nonce/generate`,
-    pipe(
-      toExpressHandler({
-        fnFastLoginAPIClient: APIClients.fnFastLoginAPIClient,
-      }),
-      ap(FastLoginController.generateNonceEndpoint),
-    ),
-  );
-
-  app.post(
-    `${API_BASE_PATH}/fast-login`,
-    expressLollipopMiddleware(
-      APIClients.fnLollipopAPIClient,
+  [API_BASE_PATH, PROXY_BASE_PATH].forEach((basePath) => {
+    setupExternalEndpoints(
+      app,
+      basePath,
+      APIClients,
+      storageDependencies,
+      LoginConfig,
+      FastLoginConfig,
+      authMiddlewares,
       REDIS_CLIENT_SELECTOR,
+      acsDependencies,
       appInsightsClient,
-    ),
-    pipe(
-      toExpressHandler({
-        redisClientSelector: REDIS_CLIENT_SELECTOR,
-        fnFastLoginAPIClient: APIClients.fnFastLoginAPIClient,
-        sessionTTL: FastLoginConfig.lvTokenDurationSecs,
-      }),
-      ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
-    ),
+      basePath !== PROXY_BASE_PATH,
+    );
+
+    setupInternalEndpoints(
+      app,
+      basePath,
+      authMiddlewares,
+      REDIS_CLIENT_SELECTOR,
+    );
+  });
+
+  [BPDConfig.BPD_BASE_PATH, `${PROXY_BASE_PATH}/bpd`].forEach((basePath) => {
+    setupBPDEndpoints(
+      app,
+      basePath,
+      BPDConfig,
+      APIClients.fnAppAPIClient,
+      authMiddlewares,
+    );
+  });
+
+  [PagoPAConfig.PAGOPA_BASE_PATH, `${PROXY_BASE_PATH}/pagopa`].forEach(
+    (basePath) => {
+      setupPagoPAEndpoints(
+        app,
+        basePath,
+        PagoPAConfig,
+        APIClients.fnAppAPIClient,
+        REDIS_CLIENT_SELECTOR,
+        authMiddlewares,
+      );
+    },
   );
 
-  setupFIMSEndpoints(
-    app,
-    FimsConfig.FIMS_BASE_PATH,
-    FimsConfig.ALLOW_FIMS_IP_SOURCE_RANGE,
-    authMiddlewares,
-    REDIS_CLIENT_SELECTOR,
-    APIClients.fnAppAPIClient,
-    APIClients.fnLollipopAPIClient,
-    appInsightsClient,
-  );
+  [ZENDESK_BASE_PATH, `${PROXY_BASE_PATH}/zendesk`].forEach((basePath) => {
+    setupZendeskEndpoints(
+      app,
+      basePath,
+      ZendeskConfig,
+      APIClients.fnAppAPIClient,
+      authMiddlewares,
+    );
+  });
 
-  app.post(
-    `${ZENDESK_BASE_PATH}/jwt`,
-    checkIP(ZendeskConfig.ALLOW_ZENDESK_IP_SOURCE_RANGE),
-    authMiddlewares.bearerZendesk,
-    pipe(
-      toExpressHandler({
-        fnAppAPIClient: APIClients.fnAppAPIClient,
-        jwtZendeskSupportTokenSecret:
-          ZendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_SECRET,
-        jwtZendeskSupportTokenExpiration:
-          ZendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_EXPIRATION,
-        jwtZendeskSupportTokenIssuer:
-          ZendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_ISSUER,
-      }),
-      ap(withUserFromRequest(ZendeskController.getZendeskSupportToken)),
-    ),
-  );
-
-  app.get(
-    `${BPDConfig.BPD_BASE_PATH}/user`,
-    checkIP(BPDConfig.ALLOW_BPD_IP_SOURCE_RANGE),
-    authMiddlewares.bearerBPD,
-    pipe(
-      toExpressHandler(pick(["fnAppAPIClient"], APIClients)),
-      ap(withUserFromRequest(BPDController.getUserForBPD)),
-    ),
-  );
-
-  app.get(
-    `${PagoPAConfig.PAGOPA_BASE_PATH}/user`,
-    checkIP(PagoPAConfig.ALLOW_PAGOPA_IP_SOURCE_RANGE),
-    authMiddlewares.bearerWallet,
-    pipe(
-      toExpressHandler({
-        enableNoticeEmailCache: PagoPAConfig.ENABLE_NOTICE_EMAIL_CACHE,
-        redisClientSelector: REDIS_CLIENT_SELECTOR,
-        ...pick(["fnAppAPIClient"], APIClients),
-      }),
-      ap(withUserFromRequest(PagoPAController.getUser)),
-    ),
-  );
+  [FimsConfig.FIMS_BASE_PATH, `${PROXY_BASE_PATH}/fims`].forEach((basePath) => {
+    setupFIMSEndpoints(
+      app,
+      basePath,
+      FimsConfig.ALLOW_FIMS_IP_SOURCE_RANGE,
+      authMiddlewares,
+      REDIS_CLIENT_SELECTOR,
+      APIClients.fnAppAPIClient,
+      APIClients.fnLollipopAPIClient,
+      appInsightsClient,
+    );
+  });
 
   const TIMER = TimeTracer();
 
@@ -469,6 +378,221 @@ function setupFIMSEndpoints(
         appInsightsTelemetryClient: appInsightsClient,
       }),
       ap(withUserFromRequest(SSOController.getLollipopUserForFIMS)),
+    ),
+  );
+}
+
+function setupExternalEndpoints(
+  app: express.Application,
+  basePath: string,
+  APIClients: ReturnType<typeof initAPIClientsDependencies>,
+  storageDependencies: ReturnType<typeof initStorageDependencies>,
+  loginConfig: typeof LoginConfig,
+  fastLoginConfig: typeof FastLoginConfig,
+  authMiddlewares: {
+    local: express.RequestHandler;
+    bearerSession: express.RequestHandler;
+  },
+  redisClientSelector: RedisClientSelectorType,
+  acsDependencies: AcsDependencies,
+  appInsightsClient?: appInsights.TelemetryClient,
+  // TODO: this parameter needs to be used
+  // during rollout of new routing system. the previous basePath
+  // argument can be set as mandatory after rollout
+  isLegacyRootPath: boolean = true,
+) {
+  pipe(
+    loginConfig.TEST_LOGIN_PASSWORD,
+    E.map((testLoginPassword) => {
+      passport.use(
+        "local",
+        localStrategy(
+          loginConfig.TEST_LOGIN_FISCAL_CODES,
+          testLoginPassword,
+          APIClients.fnLollipopAPIClient,
+          appInsightsClient,
+        ),
+      );
+
+      app.post(
+        `${isLegacyRootPath ? "" : basePath}/test-login`,
+        authMiddlewares.local,
+        (req, res) =>
+          pipe(
+            toExpressHandler({
+              ...acsDependencies,
+              clientProfileRedirectionUrl,
+            })(
+              AuthenticationController.acsTest({
+                ...req.user,
+                getAcsOriginalRequest: () => req,
+              }),
+            ),
+            (handler) => handler(req, res),
+          ),
+      );
+    }),
+  );
+
+  app.get(
+    `${isLegacyRootPath ? "" : basePath}/healthcheck`,
+    pipe(
+      toExpressHandler({
+        redisClientSelector,
+      }),
+      ap(HealthCheckController.healthcheck),
+    ),
+  );
+
+  app.post(
+    `${isLegacyRootPath ? "" : basePath}/logout`,
+    authMiddlewares.bearerSession,
+    pipe(
+      toExpressHandler({
+        // Clients
+        redisClientSelector,
+        lollipopApiClient: APIClients.fnLollipopAPIClient,
+        lollipopRevokeQueueClient:
+          storageDependencies.lollipopRevokeQueueClient,
+        // Services
+        redisSessionStorageService: RedisSessionStorageService,
+        lollipopService: LollipopService,
+      }),
+      ap(withUserFromRequest(SessionController.logout)),
+    ),
+  );
+
+  app.get(
+    `${basePath}/session`,
+    authMiddlewares.bearerSession,
+    pipe(
+      toExpressHandler({
+        redisClientSelector,
+        fnAppAPIClient: APIClients.fnAppAPIClient,
+      }),
+      ap(withUserFromRequest(SessionController.getSessionState)),
+    ),
+  );
+
+  app.post(
+    `${basePath}/fast-login/nonce/generate`,
+    pipe(
+      toExpressHandler({
+        fnFastLoginAPIClient: APIClients.fnFastLoginAPIClient,
+      }),
+      ap(FastLoginController.generateNonceEndpoint),
+    ),
+  );
+
+  app.post(
+    `${basePath}/fast-login`,
+    expressLollipopMiddleware(
+      APIClients.fnLollipopAPIClient,
+      redisClientSelector,
+      appInsightsClient,
+    ),
+    pipe(
+      toExpressHandler({
+        redisClientSelector,
+        fnFastLoginAPIClient: APIClients.fnFastLoginAPIClient,
+        sessionTTL: fastLoginConfig.lvTokenDurationSecs,
+      }),
+      ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
+    ),
+  );
+}
+
+function setupInternalEndpoints(
+  app: express.Application,
+  basePath: string,
+  authMiddlewares: {
+    bearerSession: express.RequestHandler;
+  },
+  redisClientSelector: RedisClientSelectorType,
+) {
+  app.get(
+    `${basePath}/user-identity`,
+    authMiddlewares.bearerSession,
+    pipe(
+      toExpressHandler({
+        redisClientSelector,
+      }),
+      ap(withUserFromRequest(SessionController.getUserIdentity)),
+    ),
+  );
+}
+
+function setupBPDEndpoints(
+  app: express.Application,
+  basePath: string,
+  bpdConfig: typeof BPDConfig,
+  fnAppAPIClient: FnAppRepo.FnAppAPIRepositoryDeps["fnAppAPIClient"],
+  authMiddlewares: {
+    bearerBPD: express.RequestHandler;
+  },
+) {
+  app.get(
+    `${basePath}/user`,
+    checkIP(bpdConfig.ALLOW_BPD_IP_SOURCE_RANGE),
+    authMiddlewares.bearerBPD,
+    pipe(
+      toExpressHandler({
+        fnAppAPIClient,
+      }),
+      ap(withUserFromRequest(BPDController.getUserForBPD)),
+    ),
+  );
+}
+
+function setupPagoPAEndpoints(
+  app: express.Application,
+  basePath: string,
+  pagopaConfig: typeof PagoPAConfig,
+  fnAppAPIClient: FnAppRepo.FnAppAPIRepositoryDeps["fnAppAPIClient"],
+  redisClientSelector: RedisClientSelectorType,
+  authMiddlewares: {
+    bearerWallet: express.RequestHandler;
+  },
+) {
+  app.get(
+    `${basePath}/user`,
+    checkIP(pagopaConfig.ALLOW_PAGOPA_IP_SOURCE_RANGE),
+    authMiddlewares.bearerWallet,
+    pipe(
+      toExpressHandler({
+        enableNoticeEmailCache: pagopaConfig.ENABLE_NOTICE_EMAIL_CACHE,
+        redisClientSelector,
+        fnAppAPIClient,
+      }),
+      ap(withUserFromRequest(PagoPAController.getUser)),
+    ),
+  );
+}
+
+function setupZendeskEndpoints(
+  app: express.Application,
+  basePath: string,
+  zendeskConfig: typeof ZendeskConfig,
+  fnAppAPIClient: FnAppRepo.FnAppAPIRepositoryDeps["fnAppAPIClient"],
+  authMiddlewares: {
+    bearerZendesk: express.RequestHandler;
+  },
+) {
+  app.post(
+    `${basePath}/jwt`,
+    checkIP(zendeskConfig.ALLOW_ZENDESK_IP_SOURCE_RANGE),
+    authMiddlewares.bearerZendesk,
+    pipe(
+      toExpressHandler({
+        fnAppAPIClient,
+        jwtZendeskSupportTokenSecret:
+          zendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_SECRET,
+        jwtZendeskSupportTokenExpiration:
+          zendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_EXPIRATION,
+        jwtZendeskSupportTokenIssuer:
+          zendeskConfig.JWT_ZENDESK_SUPPORT_TOKEN_ISSUER,
+      }),
+      ap(withUserFromRequest(ZendeskController.getZendeskSupportToken)),
     ),
   );
 }

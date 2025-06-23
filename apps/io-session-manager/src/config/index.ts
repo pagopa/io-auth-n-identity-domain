@@ -39,6 +39,8 @@ export const BACKEND_HOST = pipe(
   }),
 );
 
+export const PROXY_BASE_PATH = "/api/session-manager/v1";
+
 export {
   BPDConfig,
   FnAppConfig,
