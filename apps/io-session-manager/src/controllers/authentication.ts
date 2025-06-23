@@ -96,7 +96,6 @@ import {
   withCookieClearanceResponseForbidden,
   withCookieClearanceResponsePermanentRedirect,
 } from "../utils/responses";
-import { LoginEventsDeps } from "../repositories/login-events";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 import { AuthenticationController } from ".";
 
@@ -144,7 +143,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   CreateNewProfileDependencies &
   NotificationsRepo.NotificationsueueDeps &
   AppInsightsDeps &
-  LoginEventsDeps & {
+  LoginEventsRepo.LoginEventsDeps & {
     getClientErrorRedirectionUrl: (
       params: ClientErrorRedirectionUrlParams,
     ) => UrlFromString;
