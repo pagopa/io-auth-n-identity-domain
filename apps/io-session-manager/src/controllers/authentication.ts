@@ -711,7 +711,7 @@ export const acs: (
       deps.isUserEligibleForServiceBusEvents(spidUser.fiscalNumber),
       B.fold(
         () =>
-          // If the user is not elegible for service bus events, we don't log the login event
+          // If the user is not eligible for service bus events, we don't log the login event
           TE.right(void 0),
         () =>
           // If the user is eligible for service bus events, we log the login event
