@@ -8,7 +8,7 @@ import {
   LoginTypeEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import { mockedUser } from "../../__mocks__/user.mocks";
-import { LoginEventsRepo } from "..";
+import { AuthSessionEventsRepo } from "..";
 import {
   mockAuthSessionsTopicRepository,
   mockEmitSessionEvent,
@@ -18,7 +18,7 @@ import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
 const deps = {
   AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
   authSessionsTopicSender: mockServiceBusSender,
-} as LoginEventsRepo.LoginEventsDeps;
+} as AuthSessionEventsRepo.AuthSessionEventsDeps;
 
 describe("emitLoginEvent", () => {
   beforeEach(() => {
@@ -36,7 +36,8 @@ describe("emitLoginEvent", () => {
   };
 
   it("should call emitSessionEvent with the correct arguments and resolve on success", async () => {
-    const result = await LoginEventsRepo.emitLoginEvent(mockLoginEvent)(deps)();
+    const result =
+      await AuthSessionEventsRepo.emitAuthSessionEvent(mockLoginEvent)(deps)();
 
     expect(mockEmitSessionEvent).toHaveBeenCalledWith(mockLoginEvent);
     expect(E.isRight(result)).toBe(true);
@@ -46,7 +47,8 @@ describe("emitLoginEvent", () => {
     const error = new Error("emit failed");
     mockEmitSessionEvent.mockImplementationOnce(() => () => TE.left(error));
 
-    const result = await LoginEventsRepo.emitLoginEvent(mockLoginEvent)(deps)();
+    const result =
+      await AuthSessionEventsRepo.emitAuthSessionEvent(mockLoginEvent)(deps)();
 
     expect(mockEmitSessionEvent).toHaveBeenCalledWith(mockLoginEvent);
     expect(E.isLeft(result)).toBe(true);
