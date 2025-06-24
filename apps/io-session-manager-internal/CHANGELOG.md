@@ -1,5 +1,12 @@
 # io-session-manager-internal
 
+## 0.11.0
+
+### Minor Changes
+
+- 4bb3d46: Emit logout event for AUTH_LOCK scenario
+- bfc4940: emit logout event for ACCOUNT_REMOVAL scenario
+
 ## 0.10.0
 
 ### Minor Changes

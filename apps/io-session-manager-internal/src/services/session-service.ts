@@ -210,7 +210,9 @@ export type LockUserAuthenticationDeps = RedisDeps & {
   RevokeAssertionRefQueueClient: QueueClient;
   InstallationRepository: InstallationRepository;
   NotificationQueueClient: QueueClient;
-};
+  AuthSessionsTopicRepository: AuthSessionsTopicRepository;
+} & AuthSessionsTopicRepositoryDeps;
+
 const lockUserAuthentication: (
   fiscalCode: FiscalCode,
   unlockCode: UnlockCode,
@@ -260,6 +262,12 @@ const lockUserAuthentication: (
             TE.mapLeft((err) => toGenericError(err.message)),
           ),
         ),
+      ),
+    ),
+    TE.chainFirstW(() =>
+      pipe(
+        emitLogoutIfEligible(fiscalCode, LogoutScenarioEnum.AUTH_LOCK)(deps),
+        TE.mapLeft((err) => toGenericError(err.message)),
       ),
     ),
     TE.map((_) => null),
@@ -364,7 +372,9 @@ const deleteUserSession: (
             FastRedisClient,
             SafeRedisClient,
           }),
-          TE.chainFirst((_) => emitLogoutIfEligible(fiscalCode)(deps)),
+          TE.chainFirst((_) =>
+            emitLogoutIfEligible(fiscalCode, LogoutScenarioEnum.WEB)(deps),
+          ),
           TE.mapLeft((err) => toGenericError(err.message)),
         ),
       ),
@@ -373,8 +383,9 @@ const deleteUserSession: (
 
 const emitLogoutIfEligible: (
   fiscalCode: FiscalCode,
+  scenario: LogoutScenarioEnum,
 ) => RTE.ReaderTaskEither<DeleteUserSessionDeps, Error, void> =
-  (fiscalCode) => (deps) =>
+  (fiscalCode, scenario) => (deps) =>
     pipe(
       isUserEligibleForServiceBusEvents(fiscalCode),
       B.match(
@@ -383,7 +394,7 @@ const emitLogoutIfEligible: (
           deps.AuthSessionsTopicRepository.emitSessionEvent({
             fiscalCode,
             eventType: EventTypeEnum.LOGOUT,
-            scenario: LogoutScenarioEnum.WEB,
+            scenario,
             ts: new Date(),
           })(deps),
       ),
