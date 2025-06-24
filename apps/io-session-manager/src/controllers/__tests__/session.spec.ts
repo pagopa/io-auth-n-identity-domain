@@ -34,6 +34,8 @@ import {
 import { toExpectedResponse } from "../../__tests__/utils";
 import { RedisSessionStorageService, TokenService } from "../../services";
 import { UserIdentityWithTtl } from "../../generated/introspection/UserIdentityWithTtl";
+import { mockAuthSessionsTopicRepository } from "../../repositories/__mocks__/auth-session-topic-repository.mocks";
+import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
 
 vi.setSystemTime(new Date(2025, 0, 1));
 
@@ -507,6 +509,10 @@ describe("logout", () => {
     // Services
     lollipopService: mockedLollipopService,
     redisSessionStorageService: mockedRedisSessionStorageService,
+
+    AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
+    authSessionsTopicSender: mockServiceBusSender,
+    isUserEligibleForServiceBusEvents: () => true,
 
     user: mockedUser,
     req,

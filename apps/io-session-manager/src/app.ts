@@ -260,6 +260,7 @@ export const newApp: (
         // Services
         redisSessionStorageService: RedisSessionStorageService,
         lollipopService: LollipopService,
+
         AuthSessionsTopicRepository,
         authSessionsTopicSender: authSessionsTopicServiceBusSender,
         isUserEligibleForServiceBusEvents,
