@@ -9,7 +9,7 @@ export type AuthSessionEventsDeps = {
   AuthSessionsTopicRepository: AuthSessionsTopicRepository;
 } & AuthSessionsTopicRepositoryDeps;
 
-export const emitLoginEvent: (
+export const emitAuthSessionEvent: (
   event: AuthSessionEvent,
 ) => RTE.ReaderTaskEither<AuthSessionEventsDeps, Error, void> =
   (event) => (deps) =>

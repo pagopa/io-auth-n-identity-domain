@@ -836,7 +836,7 @@ const errorOrEmitEventIfEligible: (
       deps.isUserEligibleForServiceBusEvents(event.fiscalCode),
       B.fold(
         () => TE.right(void 0),
-        () => AuthSessionEventsRepo.emitLoginEvent(event)(deps),
+        () => AuthSessionEventsRepo.emitAuthSessionEvent(event)(deps),
       ),
     );
 
