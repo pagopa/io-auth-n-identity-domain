@@ -5,12 +5,12 @@ import {
 } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import { LoginEvent } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 
-export type LoginEventsDeps = {
+export type AuthSessionEventsDeps = {
   AuthSessionsTopicRepository: AuthSessionsTopicRepository;
 } & AuthSessionsTopicRepositoryDeps;
 
 export const emitLoginEvent: (
   loginEvent: LoginEvent,
-) => RTE.ReaderTaskEither<LoginEventsDeps, Error, void> =
+) => RTE.ReaderTaskEither<AuthSessionEventsDeps, Error, void> =
   (loginEvent) => (deps) =>
     deps.AuthSessionsTopicRepository.emitSessionEvent(loginEvent)(deps);

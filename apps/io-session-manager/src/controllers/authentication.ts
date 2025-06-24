@@ -142,7 +142,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   CreateNewProfileDependencies &
   NotificationsRepo.NotificationsueueDeps &
   AppInsightsDeps &
-  AuthSessionEventsRepo.LoginEventsDeps & {
+  AuthSessionEventsRepo.AuthSessionEventsDeps & {
     getClientErrorRedirectionUrl: (
       params: ClientErrorRedirectionUrlParams,
     ) => UrlFromString;
