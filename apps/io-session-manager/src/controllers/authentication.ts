@@ -33,6 +33,7 @@ import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import {
   EventTypeEnum,
+  LoginEvent,
   LoginScenarioEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import { LoginTypeEnum as ServiceBusLoginTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
@@ -693,43 +694,6 @@ export const acs: (
           : user.spid_email;
     }
 
-    const errorOrEvent = await pipe(
-      deps.isUserEligibleForServiceBusEvents(spidUser.fiscalNumber),
-      B.fold(
-        () =>
-          // If the user is not eligible for service bus events, we don't log the login event
-          TE.right(void 0),
-        () =>
-          // If the user is eligible for service bus events, we log the login event
-          pipe(
-            LoginEventsRepo.emitLoginEvent({
-              eventType: EventTypeEnum.LOGIN,
-              fiscalCode: spidUser.fiscalNumber,
-              scenario:
-                getProfileResponse.kind === "IResponseErrorNotFound"
-                  ? LoginScenarioEnum.NEW_USER
-                  : LoginScenarioEnum.STANDARD,
-              loginType:
-                loginType === LoginTypeEnum.LV
-                  ? ServiceBusLoginTypeEnum.LV
-                  : ServiceBusLoginTypeEnum.LEGACY,
-              idp: spidUser.issuer,
-              ts: new Date(),
-              expiredAt: addSeconds(new Date(), lollipopKeyTTL),
-            })(deps),
-            TE.mapLeft((err) =>
-              validationCookieClearanceErrorInternal(
-                `Unable to emit login event: ${err.message}`,
-              ),
-            ),
-          ),
-      ),
-    )();
-
-    if (E.isLeft(errorOrEvent)) {
-      return errorOrEvent.left;
-    }
-
     // async fire & forget
     pipe(
       NotificationsRepo.deleteInstallation(user.fiscal_code)(deps),
@@ -826,15 +790,55 @@ export const acs: (
       user.session_token,
     );
 
-    return pipe(
+    const event: LoginEvent = {
+      eventType: EventTypeEnum.LOGIN,
+      fiscalCode: spidUser.fiscalNumber,
+      scenario:
+        getProfileResponse.kind === "IResponseErrorNotFound"
+          ? LoginScenarioEnum.NEW_USER
+          : LoginScenarioEnum.STANDARD,
+      loginType:
+        loginType === LoginTypeEnum.LV
+          ? ServiceBusLoginTypeEnum.LV
+          : ServiceBusLoginTypeEnum.LEGACY,
+      idp: spidUser.issuer,
+      ts: new Date(),
+      expiredAt: addSeconds(new Date(), lollipopKeyTTL),
+    };
+
+    const res = await pipe(
       deps.isUserElegibleForIoLoginUrlScheme(user.fiscal_code),
       B.fold(
-        () => E.right(validationCookieClearancePermanentRedirect(urlWithToken)),
-        () => internalErrorOrIoLoginRedirect(urlWithToken),
+        () =>
+          pipe(
+            errorOrEmitEventIfEligible(event)(deps),
+            TE.map(() =>
+              validationCookieClearancePermanentRedirect(urlWithToken),
+            ),
+            TE.mapLeft((err) =>
+              validationCookieClearanceErrorInternal(
+                `Unable to emit login event: ${err.message}`,
+              ),
+            ),
+          ),
+        () => TE.fromEither(internalErrorOrIoLoginRedirect(urlWithToken)),
       ),
-      E.toUnion,
-    );
+    )();
+
+    return E.toUnion(res);
   };
+
+const errorOrEmitEventIfEligible: (
+  event: LoginEvent,
+) => (dependencies: AcsDependencies) => TE.TaskEither<Error, void> =
+  (event) => (deps) =>
+    pipe(
+      deps.isUserEligibleForServiceBusEvents(event.fiscalCode),
+      B.fold(
+        () => TE.right(void 0),
+        () => LoginEventsRepo.emitLoginEvent(event)(deps),
+      ),
+    );
 
 export const acsTest: (
   userPayload: unknown,
