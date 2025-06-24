@@ -97,8 +97,10 @@ describe("Session Service#userHasActiveSessionsOrLV", () => {
 });
 
 describe("Session Service#lockUserAuthentication", () => {
+  const frozenDate = new Date(2025, 5, 1, 0, 0, 0);
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
   });
 
   const deps = {
@@ -112,6 +114,8 @@ describe("Session Service#lockUserAuthentication", () => {
     RevokeAssertionRefQueueClient: {} as QueueClient,
     InstallationRepository: InstallationRepositoryMock,
     NotificationQueueClient: {} as QueueClient,
+    AuthSessionsTopicRepository: AuthSessionsTopicRepositoryMock,
+    authSessionsTopicSender: ServiceBusSenderMock,
   };
 
   it("should succeed to lock an user authentication", async () => {
@@ -124,6 +128,29 @@ describe("Session Service#lockUserAuthentication", () => {
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(0);
+    expect(result).toEqual(E.right(null));
+  });
+
+  it("should succeed to lock an user authentication and raise an event, when user is eligible", async () => {
+    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
+
+    const result = await SessionService.lockUserAuthentication(
+      aFiscalCode,
+      anUnlockCode,
+    )(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      fiscalCode: aFiscalCode,
+      eventType: EventTypeEnum.LOGOUT,
+      scenario: LogoutScenarioEnum.AUTH_LOCK,
+      ts: frozenDate,
+    });
     expect(result).toEqual(E.right(null));
   });
 

@@ -118,6 +118,8 @@ app.http("AuthLock", {
     NotificationQueueClient,
     AuthenticationLockTableClient,
     RevokeAssertionRefQueueClient,
+    AuthSessionsTopicRepository,
+    authSessionsTopicSender: authSessionsTopicServiceBusSender,
   }),
   methods: ["POST"],
   route: `${v1BasePath}/auth/{fiscalCode}/lock`,
