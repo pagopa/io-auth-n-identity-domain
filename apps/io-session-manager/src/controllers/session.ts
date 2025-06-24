@@ -20,7 +20,7 @@ import { sequenceS } from "fp-ts/lib/Apply";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { addSeconds } from "date-fns";
 import { OutputOf } from "io-ts";
-import { RedisRepo, FnAppRepo } from "../repositories";
+import { RedisRepo, FnAppRepo, AuthSessionEventsRepo } from "../repositories";
 import {
   LollipopService,
   RedisSessionStorageService,
@@ -38,6 +38,7 @@ import { log } from "../utils/logger";
 import { Concat, Union2Tuple, parseFilter } from "../utils/fields-filter";
 import { AssertionRef } from "../generated/lollipop-api/AssertionRef";
 import { UserIdentityWithTtl } from "../generated/introspection/UserIdentityWithTtl";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;
@@ -245,7 +246,10 @@ export type LogoutDependencies = {
 > &
   RedisSessionStorageServiceDepencency &
   WithUser &
-  WithExpressRequest;
+  WithExpressRequest &
+  AuthSessionEventsRepo.AuthSessionEventsDeps & {
+    isUserEligibleForServiceBusEvents: (fiscalCode: FiscalCode) => boolean;
+  };
 
 export const logout: RTE.ReaderTaskEither<
   LogoutDependencies,
