@@ -3,9 +3,20 @@ import * as redisLib from "redis";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as AP from "fp-ts/lib/Apply";
+import * as B from "fp-ts/lib/boolean";
+
 import { pipe } from "fp-ts/lib/function";
 
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+
+import {
+  AuthSessionsTopicRepository,
+  AuthSessionsTopicRepositoryDeps,
+} from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
+import {
+  EventTypeEnum,
+  LogoutScenarioEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 
 import { BlockedUsersRedisRepository } from "../repositories/blocked-users-redis";
 import { RedisRepository } from "../repositories/redis";
@@ -13,6 +24,7 @@ import {
   LollipopRepository,
   Dependencies as LollipopRepoDependencies,
 } from "../repositories/lollipop";
+import { isUserEligibleForServiceBusEvents } from "../utils/config";
 import { SessionService } from "./session-service";
 
 export type BlockedUsersServiceDeps = {
@@ -22,7 +34,9 @@ export type BlockedUsersServiceDeps = {
   blockedUserRedisRepository: BlockedUsersRedisRepository;
   redisRepository: RedisRepository;
   lollipopRepository: LollipopRepository;
-} & LollipopRepoDependencies;
+  AuthSessionsTopicRepository: AuthSessionsTopicRepository;
+} & AuthSessionsTopicRepositoryDeps &
+  LollipopRepoDependencies;
 
 const lockUserSession: (
   fiscalCode: FiscalCode,
@@ -48,8 +62,38 @@ const lockUserSession: (
           }),
         ),
       ),
+      TE.chainFirst((_) =>
+        emitLogoutIfEligible(
+          fiscalCode,
+          LogoutScenarioEnum.ACCOUNT_REMOVAL,
+        )(deps),
+      ),
       TE.map((_) => true),
     );
+
+const emitLogoutIfEligible: (
+  fiscalCode: FiscalCode,
+  scenario: LogoutScenarioEnum,
+) => RTE.ReaderTaskEither<
+  {
+    AuthSessionsTopicRepository: AuthSessionsTopicRepository;
+  } & AuthSessionsTopicRepositoryDeps,
+  Error,
+  void
+> = (fiscalCode, scenario) => (deps) =>
+  pipe(
+    isUserEligibleForServiceBusEvents(fiscalCode),
+    B.match(
+      () => TE.of(void 0),
+      () =>
+        deps.AuthSessionsTopicRepository.emitSessionEvent({
+          fiscalCode,
+          eventType: EventTypeEnum.LOGOUT,
+          scenario,
+          ts: new Date(),
+        })(deps),
+    ),
+  );
 
 const unlockUserSession: (
   fiscalCode: FiscalCode,
