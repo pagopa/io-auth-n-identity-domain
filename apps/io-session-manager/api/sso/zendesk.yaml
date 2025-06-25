@@ -1,0 +1,46 @@
+openapi: 3.0.1
+servers:
+  - url: https://api-app.io.pagopa.it/api/session-manager/v1/zendesk
+info:
+  title: User authentication for zendesk
+  version: 0.0.1
+paths:
+  /jwt:
+    post:
+      operationId: getJwtForZendesk
+      summary: Get jwt with user's data for zendesk
+      description: Returns jwt with user's data for zendesk backend.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                user_token:
+                  type: string
+      responses:
+        "200":
+          description: Found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ZendeskToken"
+              example:
+                jwt: "a.jwt.token"
+                expires_in: 1200
+        "401":
+          description: Token null or expired.
+        "500":
+          description: There was an error in retrieving the user data.
+
+components:
+  schemas:
+    ZendeskToken:
+      title: Zendesk support token
+      description: A Support Token response to authenticate to Zendesk
+      type: object
+      properties:
+        jwt:
+          type: string
+      required:
+        - jwt
