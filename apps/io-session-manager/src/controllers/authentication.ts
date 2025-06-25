@@ -1,4 +1,5 @@
 /* eslint-disable max-lines-per-function */
+import { error } from "console";
 import { UserLoginParams } from "@pagopa/io-functions-app-sdk/UserLoginParams";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
@@ -806,26 +807,32 @@ export const acs: (
       expiredAt: addSeconds(new Date(), lollipopKeyTTL),
     };
 
-    const res = await pipe(
+    const errorOrRedirect = pipe(
       deps.isUserElegibleForIoLoginUrlScheme(user.fiscal_code),
       B.fold(
-        () =>
-          pipe(
-            errorOrEmitEventIfEligible(event)(deps),
-            TE.map(() =>
-              validationCookieClearancePermanentRedirect(urlWithToken),
-            ),
-            TE.mapLeft((err) =>
-              validationCookieClearanceErrorInternal(
-                `Unable to emit login event: ${err.message}`,
-              ),
-            ),
-          ),
-        () => TE.fromEither(internalErrorOrIoLoginRedirect(urlWithToken)),
+        () => E.right(validationCookieClearancePermanentRedirect(urlWithToken)),
+        () => internalErrorOrIoLoginRedirect(urlWithToken),
+      ),
+    );
+
+    if (E.isLeft(errorOrRedirect)) {
+      return errorOrRedirect.left;
+    }
+
+    const errorOrEventEmitted = await pipe(
+      errorOrEmitEventIfEligible(event)(deps),
+      TE.mapLeft((err) =>
+        validationCookieClearanceErrorInternal(
+          `Unable to emit login event: ${err.message}`,
+        ),
       ),
     )();
 
-    return E.toUnion(res);
+    if (E.isLeft(errorOrEventEmitted)) {
+      return errorOrEventEmitted.left;
+    }
+
+    return errorOrRedirect.right;
   };
 
 const errorOrEmitEventIfEligible: (
