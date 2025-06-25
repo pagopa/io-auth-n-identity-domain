@@ -9,6 +9,11 @@ import * as O from "fp-ts/Option";
 import { ResponseSuccessJson } from "@pagopa/ts-commons/lib/responses";
 import { addSeconds } from "date-fns";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
+import {
+  EventTypeEnum,
+  LogoutEvent,
+  LogoutScenarioEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import mockRes from "../../__mocks__/response.mocks";
 import {
   mockedInitializedProfile,
@@ -741,4 +746,79 @@ describe("getUserIdentity", () => {
       E.left(new Error("Unexpected session token TTL value")),
     );
   });
+});
+
+describe("ServiceBus Events", () => {
+  const req = mockReq() as unknown as Request;
+
+  const mockedDependencies = {
+    // Repositories are not used, since we mocked the service layer
+    lollipopApiClient: {} as LollipopApiClient,
+    redisClientSelector: {} as RedisClientSelectorType,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    lollipopRevokeQueueClient: {} as any,
+    // Services
+    lollipopService: mockedLollipopService,
+    redisSessionStorageService: mockedRedisSessionStorageService,
+
+    AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
+    authSessionsTopicSender: mockServiceBusSender,
+    isUserEligibleForServiceBusEvents: () => true,
+
+    user: mockedUser,
+    req,
+  };
+
+  const frozenDate = new Date(2025, 0, 10);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
+  test("should emit auth session event on logout", async () => {
+    const mockEmitSessionEvent = vi.spyOn(
+      mockAuthSessionsTopicRepository,
+      "emitSessionEvent",
+    );
+
+    const expectedEvent: LogoutEvent = {
+      eventType: EventTypeEnum.LOGOUT,
+      fiscalCode: mockedUser.fiscal_code,
+      scenario: LogoutScenarioEnum.APP,
+      ts: frozenDate,
+    };
+
+    const result = await logout(mockedDependencies)();
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedEvent);
+    expect(result).toEqual(
+      E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
+    );
+  });
+
+  test("should not emit auth session event if user is not eligible", async () => {
+    const mockEmitSessionEvent = vi.spyOn(
+      mockAuthSessionsTopicRepository,
+      "emitSessionEvent",
+    );
+
+    const mockedDependenciesWithIneligibleUser = {
+      ...mockedDependencies,
+      isUserEligibleForServiceBusEvents: () => false,
+    };
+
+    const result = await logout(mockedDependenciesWithIneligibleUser)();
+
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(result).toEqual(
+      E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
+    );
+  });
+  
+  //
 });
