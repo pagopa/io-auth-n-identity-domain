@@ -3,6 +3,10 @@ import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 
+import {
+  EventTypeEnum,
+  LogoutScenarioEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import { BlockedUsersService } from "../blocked-users-service";
 
 import {
@@ -21,6 +25,18 @@ import {
   mockInvalidateUserSession,
   SessionServiceMock,
 } from "../../__mocks__/services/session-service.mock";
+import {
+  AuthSessionsTopicRepositoryMock,
+  mockEmitSessionEvent,
+  ServiceBusSenderMock,
+} from "../../__mocks__/repositories/auth-sessions-topic.mock";
+
+import * as ConfigModule from "../../utils/config";
+
+const mockIsUserEligibleForServiceBusEvents = vi.spyOn(
+  ConfigModule,
+  "isUserEligibleForServiceBusEvents",
+);
 
 const deps = {
   fastRedisClientTask: RedisClientTaskMock,
@@ -30,11 +46,16 @@ const deps = {
   lollipopRepository: LollipopRepositoryMock,
   redisRepository: RedisRepositoryMock,
   RevokeAssertionRefQueueClient: mockQueueClient,
+  AuthSessionsTopicRepository: AuthSessionsTopicRepositoryMock,
+  authSessionsTopicSender: ServiceBusSenderMock,
 };
 
 describe("Blocked Users Service#lockUserSession", () => {
+  const frozenDate = new Date(2025, 5, 1, 0, 0, 0);
+
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
   });
 
   it("should succeed locking a user session", async () => {
@@ -43,6 +64,24 @@ describe("Blocked Users Service#lockUserSession", () => {
 
     expect(mockInvalidateUserSession).toHaveBeenCalledTimes(1);
     expect(mockSetBlockedUser).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(0);
+    expect(result).toEqual(E.right(true));
+  });
+
+  it("should succeed locking a user session and raising a logout event, when user is eligible", async () => {
+    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
+    const result =
+      await BlockedUsersService.lockUserSession(aFiscalCode)(deps)();
+
+    expect(mockInvalidateUserSession).toHaveBeenCalledTimes(1);
+    expect(mockSetBlockedUser).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      fiscalCode: aFiscalCode,
+      eventType: EventTypeEnum.LOGOUT,
+      scenario: LogoutScenarioEnum.ACCOUNT_REMOVAL,
+      ts: frozenDate,
+    });
     expect(result).toEqual(E.right(true));
   });
 

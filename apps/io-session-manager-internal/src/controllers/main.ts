@@ -118,6 +118,8 @@ app.http("AuthLock", {
     NotificationQueueClient,
     AuthenticationLockTableClient,
     RevokeAssertionRefQueueClient,
+    AuthSessionsTopicRepository,
+    authSessionsTopicSender: authSessionsTopicServiceBusSender,
   }),
   methods: ["POST"],
   route: `${v1BasePath}/auth/{fiscalCode}/lock`,
@@ -161,6 +163,8 @@ const blockedUserServiceDeps = {
   lollipopRepository: LollipopRepository,
   redisRepository: RedisRepository,
   RevokeAssertionRefQueueClient,
+  AuthSessionsTopicRepository,
+  authSessionsTopicSender: authSessionsTopicServiceBusSender,
 };
 
 app.http("LockUserSession", {

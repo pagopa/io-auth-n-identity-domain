@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.6.0
+
+### Minor Changes
+
+- 132b78e: Multiple mount for all endpoints
+
 ## 1.5.4
 
 ### Patch Changes
