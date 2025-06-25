@@ -1,0 +1,617 @@
+openapi: 3.0.1
+servers:
+  - url: https://api-app.io.pagopa.it/api/session-manager/v1
+info:
+  title: Collection of exposed endpoints to interact with user's auth session.
+  version: 0.0.1
+paths:
+  /fast-login:
+    post:
+      operationId: fastLogin
+      summary: POST a session refresh request with Lollipop
+      security: null # Authentication not needed for this operation
+      parameters:
+        - name: x-pagopa-lollipop-original-method
+          in: header
+          description: The method of the endpoint called by IO app
+          required: true
+          schema:
+            $ref: "#/components/schemas/LollipopMethod"
+        - name: x-pagopa-lollipop-original-url
+          in: header
+          description: The url of the endpoint called by IO app
+          required: true
+          schema:
+            $ref: "#/components/schemas/LollipopOriginalURL"
+        - name: signature-input
+          in: header
+          description: The signature input, needed to verify the `signature` header
+          required: true
+          schema:
+            $ref: "#/components/schemas/LollipopSignatureInput"
+        - name: signature
+          in: header
+          description: >-
+            The signature of the HTTP request, signed by the client with its
+            private key.
+          required: true
+          schema:
+            $ref: "#/components/schemas/LollipopSignature"
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FastLoginResponse"
+        "401":
+          description: Unauthorized(invalid signature or nonce)
+        "403":
+          description: |
+            Forbidden access.
+            Fast login won't work. A FULL login flow is REQUIRED
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "502":
+          description: Bad gateway.
+        "504":
+          description: Gateway timeout.
+  /fast-login/nonce/generate:
+    post:
+      operationId: lvGenerateNonce
+      summary: Generate a Nonce for a session refresh flow
+      security: null # Authentication not needed for this operation
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateNonceResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+  /session:
+    get:
+      operationId: getSessionState
+      summary: Get the user current session
+      security:
+        - Bearer: []
+      description: Return the session state for the current authenticated user.
+      parameters:
+        - in: query
+          name: fields
+          schema:
+            type: string
+          description: |
+            The use of this parameters allows the client to obtain only the
+            requested parameters. NOTE: nested fields retrieval is currently not supported.
+            NOTE: field names are case-sensitive
+            Example: ?fields=(spidLevel,walletToken)
+            For more info, see https://opensource.zalando.com/restful-api-guidelines/#157
+      responses:
+        "200":
+          description: Found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicSession"
+              example:
+                spidLevel: "https://www.spid.gov.it/SpidL2"
+                walletToken: "c77de47586c841adbd1a1caeb90dce25dcecebed620488a4f932a6280b10ee99a77b6c494a8a6e6884ccbeb6d3fe736b"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Bearer token null or expired.
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+  /logout:
+    post:
+      operationId: logout
+      summary: Execute the logout
+      security:
+        - Bearer: []
+      description: Delete user's active session and tokens.
+      responses:
+        "200":
+          description: Logout succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+              example:
+                message: ok
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Bearer token null or expired.
+        "500":
+          description: There was an error deleting user's session.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+  /login:
+    get:
+      operationId: login
+      summary: Login SPID/CIE
+      security: null # Authentication not needed for this operation
+      description: Login with SPID or CIE for IO APP
+      parameters:
+        - $ref: "#/components/parameters/EntityId"
+        - $ref: "#/components/parameters/AuthLevel"
+        - $ref: "#/components/parameters/JwkPubKeyToken"
+        - $ref: "#/components/parameters/JwkPubKeyHashAlgorithm"
+        - $ref: "#/components/parameters/LoginType"
+      responses:
+        "200":
+          description: dummy response for generator
+        "302":
+          description: Redirect to IDP
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Redirect endpoint with SAML AuthNRequest query parameters
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "503":
+          description: Service unavailable
+  /test-login:
+    post:
+      operationId: testLogin
+      summary: Login Test User with password
+      security: null # Authentication not needed for this operation
+      description: Login Test User with password and Fiscal Code
+      parameters:
+        - $ref: "#/components/parameters/JwkPubKeyToken"
+        - $ref: "#/components/parameters/JwkPubKeyHashAlgorithm"
+        - $ref: "#/components/parameters/LoginType"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordLogin"
+            example:
+              username: AAABBB01C02D345Z
+              password: secret
+        required: true
+      responses:
+        "200":
+          description: Access token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessToken"
+        "401":
+          description: Invalid credentials
+        "500":
+          description: Unavailable service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+  /healthcheck:
+    get:
+      operationId: healthcheck
+      summary: The healthcheck endpoint
+      security: null # Authentication not needed for this operation
+      description: Responde with the app version if running
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackendVersion"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+  /assertionConsumerService:
+    post:
+      operationId: acs
+      summary: ACS step of Login SPID/CIE
+      security: null # Authentication not needed for this operation
+      description: Login with SPID or CIE for IO APP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SAMLResponse"
+        required: true
+      responses:
+        "200":
+          description: dummy response for generator
+        "301":
+          description: Redirect to home page
+          headers:
+            Location:
+              schema:
+                type: string
+components:
+  parameters:
+    EntityId:
+      name: entityID
+      in: query
+      schema:
+        type: string
+        enum:
+          - lepidaid
+          - infocertid
+          - sielteid
+          - namirialid
+          - timid
+          - arubaid
+          - posteid
+          - spiditalia
+          - teamsystemid
+          - ehtid
+          - infocamereid
+          - intesiid
+          - xx_servizicie_coll
+          - xx_servizicie
+          - xx_servizicie_test
+      description: An ID that refers to a specific IDP
+      required: true
+    AuthLevel:
+      name: authLevel
+      in: query
+      schema:
+        type: string
+        enum: [SpidL2, SpidL3]
+      description: SPID AuthLevel
+      required: true
+      x-example: SpidL2
+    LoginType:
+      name: loginType
+      in: header
+      schema:
+        type: string
+        enum: [LV, LEGACY]
+      required: false
+      x-example: LEGACY
+    JwkPubKeyToken:
+      in: header
+      name: x-pagopa-lollipop-pub-key
+      schema:
+        type: string
+        format: JwkPublicKeyFromToken
+      description: represents a Base64url encode of a JWK Public Key
+      x-import: "@pagopa/ts-commons/lib/jwk"
+      x-example: "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IjRmMzB6dUdNcm9kRXl3cEoxelZKbWFRLVYtZlM4OVZBTW8yZnN6dWxOTmsiLCJ5IjoibG5NdmExengxaFJncVY5enVEU3dkV0dyUlhTREl4UXQ1YVJVeG1EVW44NCJ9"
+    JwkPubKeyHashAlgorithm:
+      in: header
+      name: x-pagopa-lollipop-pub-key-hash-algo
+      schema:
+        type: string
+        enum: [sha256, sha384, sha512]
+      description: Represents the selected hashing algorithm for jwk thumbprint
+      x-example: "sha256"
+  schemas:
+    FiscalCode:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/FiscalCode"
+    LollipopMethod:
+      type: string
+      enum:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+    LollipopOriginalURL:
+      type: string
+      pattern: ^https://
+    LollipopSignatureInput:
+      type: string
+      pattern: ^(?:sig\d+=[^,]*)(?:,\s*(?:sig\d+=[^,]*))*$
+    LollipopSignature:
+      type: string
+      pattern: ^((sig[0-9]+)=:[A-Za-z0-9+/=]*:(, ?)?)+$
+    FastLoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+          description: 48 bytes token (hex encoded)
+          example: >-
+            c77de47586c841adbd1a1caeb90dce25dcecebed620488a4f932a6280b10ee99a77b6c494a8a6e6884ccbeb6d3fe736b
+      required:
+        - token
+    ProblemJson:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |-
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type
+            (e.g., using HTML).
+          default: about:blank
+          example: https://example.com/problem/constraint-violation
+        title:
+          type: string
+          description: >-
+            A short, summary of the problem type. Written in english and
+            readable
+
+            for engineers (usually not suited for non technical stakeholders and
+
+            not localized); example: Service Unavailable
+        status:
+          type: integer
+          format: int32
+          description: >-
+            The HTTP status code generated by the origin server for this
+            occurrence
+
+            of the problem.
+          minimum: 100
+          maximum: 600
+          exclusiveMaximum: true
+          example: 200
+        detail:
+          type: string
+          description: |-
+            A human readable explanation specific to this occurrence of the
+            problem.
+          example: There was an error processing the request
+        instance:
+          type: string
+          format: uri
+          description: >-
+            An absolute URI that identifies the specific occurrence of the
+            problem.
+
+            It may or may not yield further information if dereferenced.
+    Nonce:
+      type: string
+      pattern: >-
+        ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+      description: UUID v4 formatted nonce as per RFC 4122
+      example: 870c6d89-a3c4-48b1-a796-cdacddaf94b4
+    GenerateNonceResponse:
+      type: object
+      properties:
+        nonce:
+          $ref: "#/components/schemas/Nonce"
+      required:
+        - nonce
+    SpidLevel:
+      type: string
+      description: A SPID level.
+      enum:
+        - https://www.spid.gov.it/SpidL1
+        - https://www.spid.gov.it/SpidL2
+        - https://www.spid.gov.it/SpidL3
+    AssertionRefSha256:
+      type: string
+      pattern: ^(sha256-[A-Za-z0-9-_=]{1,44})$
+    AssertionRefSha384:
+      type: string
+      pattern: ^(sha384-[A-Za-z0-9-_=]{1,66})$
+    AssertionRefSha512:
+      type: string
+      pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
+    AssertionRef:
+      oneOf:
+        - $ref: "#/components/schemas/AssertionRefSha512"
+        - $ref: "#/components/schemas/AssertionRefSha384"
+        - $ref: "#/components/schemas/AssertionRefSha256"
+    PublicSession:
+      type: object
+      title: User session data
+      description: Describe the current session of an authenticated user.
+      properties:
+        spidLevel:
+          $ref: "#/components/schemas/SpidLevel"
+        expirationDate:
+          type: string
+          format: date-time
+        lollipopAssertionRef:
+          $ref: "#/components/schemas/AssertionRef"
+        walletToken:
+          type: string
+        myPortalToken:
+          type: string
+        bpdToken:
+          type: string
+        zendeskToken:
+          type: string
+        fimsToken:
+          type: string
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+    PasswordLogin:
+      type: object
+      properties:
+        username:
+          $ref: "#/components/schemas/FiscalCode"
+        password:
+          type: string
+          minLength: 1
+      required:
+        - username
+        - password
+    AccessToken:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+      required:
+        - token
+    SAMLResponse:
+      type: string
+      description: A string representation of a signed SPID/CIE response
+      minLength: 1
+    BackendVersion:
+      type: object
+      title: The App version
+      properties:
+        version:
+          type: string
+    ############################
+    #  COMPONENTS FOR TYPE GEN #
+    ############################
+    AcceptedTosVersion:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/AcceptedTosVersion"
+    AppVersion:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/AppVersion"
+    BlockedInboxOrChannels:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/BlockedInboxOrChannels"
+    EmailAddress:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/EmailAddress"
+    PreferredLanguage:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/PreferredLanguage"
+    PreferredLanguages:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/PreferredLanguages"
+    Profile:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/Profile"
+    ExtendedProfile:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/ExtendedProfile"
+    IsEmailEnabled:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/IsEmailEnabled"
+    IsInboxEnabled:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/IsInboxEnabled"
+    IsEmailValidated:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/IsEmailValidated"
+    IsEmailAlreadyTaken:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/IsEmailAlreadyTaken"
+    ReminderStatus:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/ReminderStatus"
+    PushNotificationsContentType:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/PushNotificationsContentType"
+    IsTestProfile:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/IsTestProfile"
+    IsWebhookEnabled:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/IsWebhookEnabled"
+    LimitedProfile:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/LimitedProfile"
+    Timestamp:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/Timestamp"
+    ServicePreferencesSettings:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/ServicePreferencesSettings"
+    ServicesPreferencesMode:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/ServicesPreferencesMode"
+    BasicServicePreference:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/BasicServicePreference"
+    ServicePreference:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/ServicePreference"
+    # Definitions from pagopa-proxy
+    InitializedProfile:
+      type: object
+      title: Initialized profile
+      description: Describes the user's profile after it has been stored in the Profile API.
+      properties:
+        accepted_tos_version:
+          $ref: "#/components/schemas/AcceptedTosVersion"
+        email:
+          $ref: "#/components/schemas/EmailAddress"
+        blocked_inbox_or_channels:
+          $ref: "#/components/schemas/BlockedInboxOrChannels"
+        preferred_languages:
+          $ref: "#/components/schemas/PreferredLanguages"
+        is_inbox_enabled:
+          $ref: "#/components/schemas/IsInboxEnabled"
+        is_email_validated:
+          $ref: "#/components/schemas/IsEmailValidated"
+        is_email_enabled:
+          $ref: "#/components/schemas/IsEmailEnabled"
+        is_email_already_taken:
+          $ref: "#/components/schemas/IsEmailAlreadyTaken"
+        reminder_status:
+          $ref: "#/components/schemas/ReminderStatus"
+        push_notifications_content_type:
+          $ref: "#/components/schemas/PushNotificationsContentType"
+        is_webhook_enabled:
+          $ref: "#/components/schemas/IsWebhookEnabled"
+        family_name:
+          type: string
+        fiscal_code:
+          $ref: "#/components/schemas/FiscalCode"
+        has_profile:
+          $ref: "#/components/schemas/HasProfile"
+        last_app_version:
+          $ref: "#/components/schemas/AppVersion"
+        name:
+          type: string
+        spid_email:
+          $ref: "#/components/schemas/EmailAddress"
+        date_of_birth:
+          type: string
+          format: date
+        service_preferences_settings:
+          $ref: "#/components/schemas/ServicePreferencesSettings"
+        version:
+          $ref: "#/components/schemas/Version"
+      required:
+        - family_name
+        - fiscal_code
+        - has_profile
+        - is_inbox_enabled
+        - is_email_enabled
+        - is_webhook_enabled
+        - name
+        - service_preferences_settings
+        - version
+    SessionInfo:
+      type: object
+      title: Session info of a user
+      description: Decribe a session of an authenticated user.
+      properties:
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        sessionToken:
+          type: string
+      required:
+        - createdAt
+        - sessionToken
+    HasProfile:
+      type: boolean
+      default: false
+      description: True if the user has a remote profile.
+    Version:
+      type: integer
+      description: The entity version.
+  securitySchemes:
+    Bearer:
+      type: apiKey
+      name: Authorization
+      in: header
