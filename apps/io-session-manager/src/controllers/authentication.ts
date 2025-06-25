@@ -807,18 +807,6 @@ export const acs: (
       expiredAt: addSeconds(new Date(), lollipopKeyTTL),
     };
 
-    const errorOrRedirect = pipe(
-      deps.isUserElegibleForIoLoginUrlScheme(user.fiscal_code),
-      B.fold(
-        () => E.right(validationCookieClearancePermanentRedirect(urlWithToken)),
-        () => internalErrorOrIoLoginRedirect(urlWithToken),
-      ),
-    );
-
-    if (E.isLeft(errorOrRedirect)) {
-      return errorOrRedirect.left;
-    }
-
     const errorOrEventEmitted = await pipe(
       errorOrEmitEventIfEligible(event)(deps),
       TE.mapLeft((err) =>
@@ -832,7 +820,14 @@ export const acs: (
       return errorOrEventEmitted.left;
     }
 
-    return errorOrRedirect.right;
+    return pipe(
+      deps.isUserElegibleForIoLoginUrlScheme(user.fiscal_code),
+      B.fold(
+        () => E.right(validationCookieClearancePermanentRedirect(urlWithToken)),
+        () => internalErrorOrIoLoginRedirect(urlWithToken),
+      ),
+      E.toUnion,
+    );
   };
 
 const errorOrEmitEventIfEligible: (
