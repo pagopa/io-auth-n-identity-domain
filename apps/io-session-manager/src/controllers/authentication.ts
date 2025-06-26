@@ -640,10 +640,13 @@ export const acs: (
     let userEmail: EmailString | undefined;
     // eslint-disable-next-line functional/no-let
     let userHasEmailValidated: boolean | undefined;
+    // eslint-disable-next-line functional/no-let
+    let loginScenario: LoginScenarioEnum | undefined;
 
     if (getProfileResponse.kind === "IResponseErrorNotFound") {
       // a profile for the user does not yet exist, we attempt to create a new
       // one
+      loginScenario = LoginScenarioEnum.NEW_USER;
 
       const errorOrCreateProfileResponse = await ProfileService.createProfile(
         user,
@@ -687,6 +690,7 @@ export const acs: (
       // in io-spid-commons does not support 429 errors
       return validationCookieClearanceErrorInternal(getProfileResponse.kind);
     } else {
+      loginScenario = LoginScenarioEnum.STANDARD;
       userHasEmailValidated = getProfileResponse.value.is_email_validated;
       userEmail =
         userHasEmailValidated && getProfileResponse.value.email
@@ -793,10 +797,7 @@ export const acs: (
     const event: LoginEvent = {
       eventType: EventTypeEnum.LOGIN,
       fiscalCode: spidUser.fiscalNumber,
-      scenario:
-        getProfileResponse.kind === "IResponseErrorNotFound"
-          ? LoginScenarioEnum.NEW_USER
-          : LoginScenarioEnum.STANDARD,
+      scenario: loginScenario,
       loginType:
         loginType === LoginTypeEnum.LV
           ? ServiceBusLoginTypeEnum.LV
