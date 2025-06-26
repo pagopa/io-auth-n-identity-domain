@@ -1013,7 +1013,12 @@ describe("AuthenticationController#acs LV", () => {
       const exp = getExpirePubKeyFn() as Date;
       const diff = Math.floor((exp.getTime() - now.getTime()) / 1000);
 
-      expect(diff).toEqual(expectedLongSessionDuration);
+      expect(diff).toBeGreaterThanOrEqual(
+        parseInt(expectedLongSessionDuration, 10) - 1,
+      );
+      expect(diff).toBeLessThanOrEqual(
+        parseInt(expectedLongSessionDuration, 10),
+      );
 
       expect(res.redirect).toHaveBeenCalledWith(
         301,
@@ -1347,7 +1352,7 @@ describe("AuthenticationController#acs service bus login events", () => {
     isUserEligibleForServiceBusEvents: mockIsUserEligibleForServiceBusEvents,
   };
 
-  test.skip("should emit a login event", async () => {
+  test("should emit a login event", async () => {
     const response = await acs(serviceBusEventsScenarioDeps)(validUserPayload);
     response.apply(res);
 
@@ -1371,7 +1376,7 @@ describe("AuthenticationController#acs service bus login events", () => {
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
   });
 
-  test.skip("should emit a login event with login scenario 'standard' when profile exists", async () => {
+  test("should emit a login event with login scenario 'standard' when profile exists", async () => {
     mockGetProfile.mockReturnValueOnce(
       TE.of(ResponseSuccessJson(mockedInitializedProfile)),
     );

@@ -248,6 +248,8 @@ export const acs: (
         ? [deps.lvTokenDurationSecs, deps.lvLongSessionDurationSecs]
         : [deps.standardTokenDurationSecs, deps.standardTokenDurationSecs];
 
+    const lollipopKeyExpiration = addSeconds(new Date(), lollipopKeyTTL);
+
     const req = spidUser.getAcsOriginalRequest();
     // Retrieve user IP from request
     const errorOrUserIp = IPString.decode(req?.ip);
@@ -530,7 +532,7 @@ export const acs: (
             assertionRef,
             fiscalCode: user.fiscal_code,
             assertion: spidUser.getSamlResponseXml(),
-            getExpirePubKeyFn: () => addSeconds(new Date(), lollipopKeyTTL),
+            getExpirePubKeyFn: () => lollipopKeyExpiration,
             appInsightsTelemetryClient: deps.appInsightsTelemetryClient,
             fnLollipopAPIClient: deps.fnLollipopAPIClient,
           }),
@@ -640,10 +642,13 @@ export const acs: (
     let userEmail: EmailString | undefined;
     // eslint-disable-next-line functional/no-let
     let userHasEmailValidated: boolean | undefined;
+    // eslint-disable-next-line functional/no-let
+    let loginScenario: LoginScenarioEnum | undefined;
 
     if (getProfileResponse.kind === "IResponseErrorNotFound") {
       // a profile for the user does not yet exist, we attempt to create a new
       // one
+      loginScenario = LoginScenarioEnum.NEW_USER;
 
       const errorOrCreateProfileResponse = await ProfileService.createProfile(
         user,
@@ -687,6 +692,7 @@ export const acs: (
       // in io-spid-commons does not support 429 errors
       return validationCookieClearanceErrorInternal(getProfileResponse.kind);
     } else {
+      loginScenario = LoginScenarioEnum.STANDARD;
       userHasEmailValidated = getProfileResponse.value.is_email_validated;
       userEmail =
         userHasEmailValidated && getProfileResponse.value.email
@@ -793,39 +799,37 @@ export const acs: (
     const event: LoginEvent = {
       eventType: EventTypeEnum.LOGIN,
       fiscalCode: spidUser.fiscalNumber,
-      scenario:
-        getProfileResponse.kind === "IResponseErrorNotFound"
-          ? LoginScenarioEnum.NEW_USER
-          : LoginScenarioEnum.STANDARD,
+      scenario: loginScenario,
       loginType:
         loginType === LoginTypeEnum.LV
           ? ServiceBusLoginTypeEnum.LV
           : ServiceBusLoginTypeEnum.LEGACY,
       idp: spidUser.issuer,
       ts: new Date(),
-      expiredAt: addSeconds(new Date(), lollipopKeyTTL),
+      expiredAt: lollipopKeyExpiration,
     };
 
-    const res = await pipe(
-      deps.isUserElegibleForIoLoginUrlScheme(user.fiscal_code),
-      B.fold(
-        () =>
-          pipe(
-            errorOrEmitEventIfEligible(event)(deps),
-            TE.map(() =>
-              validationCookieClearancePermanentRedirect(urlWithToken),
-            ),
-            TE.mapLeft((err) =>
-              validationCookieClearanceErrorInternal(
-                `Unable to emit login event: ${err.message}`,
-              ),
-            ),
-          ),
-        () => TE.fromEither(internalErrorOrIoLoginRedirect(urlWithToken)),
+    const errorOrEventEmitted = await pipe(
+      errorOrEmitEventIfEligible(event)(deps),
+      TE.mapLeft((err) =>
+        validationCookieClearanceErrorInternal(
+          `Unable to emit login event: ${err.message}`,
+        ),
       ),
     )();
 
-    return E.toUnion(res);
+    if (E.isLeft(errorOrEventEmitted)) {
+      return errorOrEventEmitted.left;
+    }
+
+    return pipe(
+      deps.isUserElegibleForIoLoginUrlScheme(user.fiscal_code),
+      B.fold(
+        () => E.right(validationCookieClearancePermanentRedirect(urlWithToken)),
+        () => internalErrorOrIoLoginRedirect(urlWithToken),
+      ),
+      E.toUnion,
+    );
   };
 
 const errorOrEmitEventIfEligible: (
