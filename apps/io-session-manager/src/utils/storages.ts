@@ -5,10 +5,6 @@ import {
   LOCKED_PROFILES_TABLE_NAME,
 } from "../config/lock-profile";
 import {
-  USERS_LOGIN_STORAGE_CONNECTION_STRING,
-  USERS_LOGIN_QUEUE_NAME,
-} from "../config/login";
-import {
   LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING,
   LOLLIPOP_REVOKE_QUEUE_NAME,
 } from "../config/lollipop";
@@ -23,11 +19,6 @@ export const initStorageDependencies = () => {
     LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
     LOCKED_PROFILES_TABLE_NAME,
     { allowInsecureConnection: isDevEnv },
-  );
-
-  const loginUserEventQueue = new QueueClient(
-    USERS_LOGIN_STORAGE_CONNECTION_STRING,
-    USERS_LOGIN_QUEUE_NAME,
   );
 
   const lollipopRevokeQueueClient = new QueueClient(
@@ -48,7 +39,6 @@ export const initStorageDependencies = () => {
 
   return {
     lockUserTableClient,
-    loginUserEventQueue,
     lollipopRevokeQueueClient,
     notificationQueueClient,
     spidLogQueueClient,
