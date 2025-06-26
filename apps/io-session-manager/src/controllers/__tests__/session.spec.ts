@@ -42,7 +42,8 @@ import { UserIdentityWithTtl } from "../../generated/introspection/UserIdentityW
 import { mockAuthSessionsTopicRepository } from "../../repositories/__mocks__/auth-session-topic-repository.mocks";
 import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
 
-vi.setSystemTime(new Date(2025, 0, 1));
+const frozenDate = new Date(2025, 0, 1);
+vi.setSystemTime(frozenDate);
 
 afterAll(() => {
   vi.useRealTimers();
@@ -769,15 +770,8 @@ describe("ServiceBus Events", () => {
     req,
   };
 
-  const frozenDate = new Date(2025, 0, 10);
-
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers({ now: frozenDate });
-  });
-
-  afterAll(() => {
-    vi.useRealTimers();
   });
 
   test("should emit auth session event on logout", async () => {
