@@ -1,5 +1,5 @@
-oa3_spec: apps/io-session-manager/api/fast-login.yaml
-name: opex_session_manager_api_fast_login
+oa3_spec: apps/io-session-manager/api/external.yaml
+name: opex_session_manager_api_external
 location: West Europe
 timespan: 5m
 evaluation_frequency: 10
