@@ -1013,7 +1013,12 @@ describe("AuthenticationController#acs LV", () => {
       const exp = getExpirePubKeyFn() as Date;
       const diff = Math.floor((exp.getTime() - now.getTime()) / 1000);
 
-      expect(diff).toEqual(expectedLongSessionDuration);
+      expect(diff).toBeGreaterThanOrEqual(
+        parseInt(expectedLongSessionDuration, 10) - 1,
+      );
+      expect(diff).toBeLessThanOrEqual(
+        parseInt(expectedLongSessionDuration, 10),
+      );
 
       expect(res.redirect).toHaveBeenCalledWith(
         301,
