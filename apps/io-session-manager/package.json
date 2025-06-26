@@ -32,7 +32,7 @@
     "generate:proxy:bpd-models": "shx rm -rf src/generated/bpd && gen-api-models --api-spec api/sso/bpd.yaml --out-dir src/generated/bpd",
     "generate:proxy:pagopa-models": "shx rm -rf src/generated/pagopa && gen-api-models --api-spec api/sso/pagopa.yaml --out-dir src/generated/pagopa",
     "generate:proxy:public-models": "shx rm -rf src/generated/public  && gen-api-models --api-spec api/external.yaml --out-dir src/generated/public",
-    "generate:proxy:introspection": "shx rm -rf src/generated/introspection  && gen-api-models --api-spec api/internal_rev2.yaml --out-dir src/generated/introspection"
+    "generate:proxy:introspection": "shx rm -rf src/generated/introspection  && gen-api-models --api-spec api/internal.yaml --out-dir src/generated/introspection"
   },
   "dependencies": {
     "@azure/data-tables": "^13.2.2",
