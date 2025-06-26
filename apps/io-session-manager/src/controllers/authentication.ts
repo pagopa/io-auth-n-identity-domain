@@ -1,5 +1,4 @@
 /* eslint-disable max-lines-per-function */
-import { error } from "console";
 import { UserLoginParams } from "@pagopa/io-functions-app-sdk/UserLoginParams";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
