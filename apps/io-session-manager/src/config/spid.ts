@@ -28,6 +28,13 @@ import { ENV, BACKEND_HOST } from "./index";
 // Redirection urls
 export const CLIENT_ERROR_REDIRECTION_URL = `${BACKEND_HOST}/error.html`;
 
+// TODO: this basepath needs to be optional
+// for the rollout of the new routing. after proper verification
+// this can be set as mandatory.
+// NOTE: this does not work on express.js 5 without a refactor
+// see https://expressjs.com/en/guide/migrating-5.html#path-syntax
+export const SPID_OPTIONAL_API_BASE_PATH = "(/api/session-manager/v1)?";
+
 export const clientProfileRedirectionUrl = `${BACKEND_HOST}/profile.html?token={token}`;
 
 export const getClientProfileRedirectionUrl = (token: string): UrlFromString =>
@@ -128,13 +135,13 @@ export const STARTUP_IDPS_METADATA: Record<string, string> | undefined = pipe(
 );
 
 export const appConfig: IApplicationConfig = {
-  assertionConsumerServicePath: "/assertionConsumerService",
+  assertionConsumerServicePath: `${SPID_OPTIONAL_API_BASE_PATH}/assertionConsumerService`,
   clientErrorRedirectionUrl: CLIENT_ERROR_REDIRECTION_URL,
   clientLoginRedirectionUrl: CLIENT_REDIRECTION_URL,
   hasClockSkewLoggingEvent,
-  loginPath: "/login",
-  metadataPath: "/metadata",
-  sloPath: "/slo",
+  loginPath: `${SPID_OPTIONAL_API_BASE_PATH}/login`,
+  metadataPath: `${SPID_OPTIONAL_API_BASE_PATH}/metadata`,
+  sloPath: `${SPID_OPTIONAL_API_BASE_PATH}/slo`,
   spidLevelsWhitelist: SPID_LEVEL_WHITELIST,
   startupIdpsMetadata: STARTUP_IDPS_METADATA,
 };

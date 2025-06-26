@@ -1,5 +1,23 @@
 # io-session-manager-internal
 
+## 0.11.0
+
+### Minor Changes
+
+- 4bb3d46: Emit logout event for AUTH_LOCK scenario
+- bfc4940: emit logout event for ACCOUNT_REMOVAL scenario
+
+## 0.10.0
+
+### Minor Changes
+
+- b54352b: Update web logout event with scenario and timestamp
+
+### Patch Changes
+
+- Updated dependencies [b54352b]
+  - @pagopa/io-auth-n-identity-commons@0.1.0
+
 ## 0.9.0
 
 ### Minor Changes
