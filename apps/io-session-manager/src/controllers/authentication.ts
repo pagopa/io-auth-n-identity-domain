@@ -248,7 +248,7 @@ export const acs: (
         ? [deps.lvTokenDurationSecs, deps.lvLongSessionDurationSecs]
         : [deps.standardTokenDurationSecs, deps.standardTokenDurationSecs];
 
-    const lollipopKeyExpiration = addSeconds(new Date(), lollipopKeyTTL);
+    const userSessionExpiration = addSeconds(new Date(), lollipopKeyTTL);
 
     const req = spidUser.getAcsOriginalRequest();
     // Retrieve user IP from request
@@ -532,7 +532,7 @@ export const acs: (
             assertionRef,
             fiscalCode: user.fiscal_code,
             assertion: spidUser.getSamlResponseXml(),
-            getExpirePubKeyFn: () => lollipopKeyExpiration,
+            getExpirePubKeyFn: () => userSessionExpiration,
             appInsightsTelemetryClient: deps.appInsightsTelemetryClient,
             fnLollipopAPIClient: deps.fnLollipopAPIClient,
           }),
@@ -806,7 +806,7 @@ export const acs: (
           : ServiceBusLoginTypeEnum.LEGACY,
       idp: spidUser.issuer,
       ts: new Date(),
-      expiredAt: lollipopKeyExpiration,
+      expiredAt: userSessionExpiration,
     };
 
     const errorOrEventEmitted = await pipe(

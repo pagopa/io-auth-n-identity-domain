@@ -932,6 +932,17 @@ const mockIsUserAuthenticationLocked = vi
   .mockReturnValue(() => TE.of(false));
 
 describe("AuthenticationController#acs LV", () => {
+  const frozenDate = new Date("2025-10-01T00:00:00Z");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   // validSpidL3User has all every field correctly set.
   const validSpidL3UserPayload = {
     authnContextClassRef: SpidLevelEnum["https://www.spid.gov.it/SpidL3"],
@@ -982,7 +993,7 @@ describe("AuthenticationController#acs LV", () => {
 
       if (isUserElegible) {
         expect(mockSetLollipopDataForUser).toHaveBeenCalledWith(
-          { ...mockedUser, created_at: expect.any(Number) }, // TODO: mock date
+          { ...mockedUser, created_at: frozenDate.getTime() },
           {
             ...lollipopData,
             loginType: loginType ? loginType : LoginTypeEnum.LEGACY,
@@ -991,7 +1002,7 @@ describe("AuthenticationController#acs LV", () => {
         );
       } else {
         expect(mockSetLollipopAssertionRefForUser).toHaveBeenCalledWith(
-          { ...mockedUser, created_at: expect.any(Number) }, // TODO: mock date,
+          { ...mockedUser, created_at: frozenDate.getTime() },
           lollipopData.assertionRef,
           expectedLongSessionDuration,
         );
@@ -1009,9 +1020,9 @@ describe("AuthenticationController#acs LV", () => {
 
       const { getExpirePubKeyFn } = mockActivateLolliPoPKey.mock.calls[0][0];
 
-      const now = new Date();
+      const now = new Date(); // frozenDate "2025-10-01T00:00:00Z"
       const exp = getExpirePubKeyFn() as Date;
-      const diff = Math.floor((exp.getTime() - now.getTime()) / 1000);
+      const diff = Math.floor((exp.getTime() - now.getTime()) / 1000); // (1790812800000 - 1759276800000) / 1000 = 31536000000 / 1000 = 31536000
 
       expect(diff).toBeGreaterThanOrEqual(
         parseInt(expectedLongSessionDuration, 10) - 1,

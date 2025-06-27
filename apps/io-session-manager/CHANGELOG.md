@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.7.0
+
+### Minor Changes
+
+- 6c6cddb: Emit ServiceBus Login event
+
 ## 1.6.0
 
 ### Minor Changes
