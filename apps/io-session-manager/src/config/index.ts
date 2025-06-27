@@ -21,6 +21,7 @@ import * as ZendeskConfig from "./zendesk";
 import * as PagoPAConfig from "./pagopa";
 import * as AppInsightsConfig from "./appinsights";
 import * as FimsConfig from "./fims";
+import * as ServiceBusConfig from "./service-bus";
 
 export const ENV = getNodeEnvironmentFromProcessEnv(process.env);
 
@@ -54,4 +55,5 @@ export {
   PagoPAConfig,
   AppInsightsConfig,
   FimsConfig,
+  ServiceBusConfig,
 };

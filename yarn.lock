@@ -485,6 +485,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@azure/identity@npm:^4.10.1":
+  version: 4.10.1
+  resolution: "@azure/identity@npm:4.10.1"
+  dependencies:
+    "@azure/abort-controller": "npm:^2.0.0"
+    "@azure/core-auth": "npm:^1.9.0"
+    "@azure/core-client": "npm:^1.9.2"
+    "@azure/core-rest-pipeline": "npm:^1.17.0"
+    "@azure/core-tracing": "npm:^1.0.0"
+    "@azure/core-util": "npm:^1.11.0"
+    "@azure/logger": "npm:^1.0.0"
+    "@azure/msal-browser": "npm:^4.2.0"
+    "@azure/msal-node": "npm:^3.5.0"
+    open: "npm:^10.1.0"
+    tslib: "npm:^2.2.0"
+  checksum: 10c0/c75cf6ff420761b70a335b45d74ed7f2641742a2c42804f95be7e1d20b99a4731c105ad1350d62469298e5407ca351d648ba7646987c91eab3e16fd55911a6ac
+  languageName: node
+  linkType: hard
+
 "@azure/identity@npm:^4.5.0":
   version: 4.5.0
   resolution: "@azure/identity@npm:4.5.0"
@@ -8388,8 +8407,11 @@ __metadata:
   resolution: "io-session-manager@workspace:apps/io-session-manager"
   dependencies:
     "@azure/data-tables": "npm:^13.2.2"
+    "@azure/identity": "npm:^4.10.1"
+    "@azure/service-bus": "npm:^7.9.5"
     "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
+    "@pagopa/io-auth-n-identity-commons": "npm:*"
     "@pagopa/io-functions-app-sdk": "npm:x"
     "@pagopa/io-functions-commons": "npm:^29.1.0"
     "@pagopa/io-spid-commons": "npm:^14.0.1"

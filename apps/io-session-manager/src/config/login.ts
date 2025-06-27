@@ -53,14 +53,6 @@ export const IOLOGIN_CANARY_USERS_SHA_REGEX = pipe(
   E.getOrElse(() => "^([(0-9)|(a-f)|(A-F)]{63}0)$" as NonEmptyString),
 );
 
-// Needed to forward SPID/CIE successful login
-export const USERS_LOGIN_STORAGE_CONNECTION_STRING = getRequiredENVVar(
-  "USERS_LOGIN_STORAGE_CONNECTION_STRING",
-);
-export const USERS_LOGIN_QUEUE_NAME = getRequiredENVVar(
-  "USERS_LOGIN_QUEUE_NAME",
-);
-
 // Set default session duration to 30 days
 const DEFAULT_TOKEN_DURATION_IN_SECONDS = (3600 * 24 * 30) as Second;
 export const standardTokenDurationSecs = process.env.TOKEN_DURATION_IN_SECONDS

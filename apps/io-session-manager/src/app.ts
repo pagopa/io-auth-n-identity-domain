@@ -11,9 +11,13 @@ import * as TE from "fp-ts/TaskEither";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { ResponsePermanentRedirect } from "@pagopa/ts-commons/lib/responses";
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import { CIDR, FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { pick } from "@pagopa/ts-commons/lib/types";
 import cookieparser from "cookie-parser";
+import { ServiceBusClient } from "@azure/service-bus";
+import { DefaultAzureCredential } from "@azure/identity";
+import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import bearerSessionTokenStrategy from "./auth/session-token-strategy";
 import bearerFIMSTokenStrategy from "./auth/bearer-FIMS-token-strategy";
 import { RedisRepo, FnAppRepo, FnLollipopRepo } from "./repositories";
@@ -52,6 +56,7 @@ import {
   ZendeskConfig,
   isDevEnv,
   AppInsightsConfig,
+  ServiceBusConfig,
   PROXY_BASE_PATH,
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
@@ -79,6 +84,7 @@ import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { isUserElegibleForValidationCookie } from "./config/validation-cookie";
+import { isUserEligibleForServiceBusEvents } from "./config/service-bus";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -103,6 +109,15 @@ export const newApp: (
   // Create the API client for the Azure Functions App
   const APIClients = initAPIClientsDependencies();
   const storageDependencies = initStorageDependencies();
+
+  const serviceBusClient = setupServiceBus(
+    ServiceBusConfig.SERVICE_BUS_NAMESPACE,
+    ServiceBusConfig.DEV_SERVICE_BUS_CONNECTION_STRING,
+  );
+
+  const authSessionsTopicServiceBusSender = serviceBusClient.createSender(
+    ServiceBusConfig.AUTH_SESSIONS_TOPIC_NAME,
+  );
 
   setupAuthentication(REDIS_CLIENT_SELECTOR);
 
@@ -165,6 +180,9 @@ export const newApp: (
     ...omit(["spidLogQueueClient"], storageDependencies),
     isUserElegibleForFastLogin,
     isUserElegibleForValidationCookie,
+    AuthSessionsTopicRepository,
+    authSessionsTopicSender: authSessionsTopicServiceBusSender,
+    isUserEligibleForServiceBusEvents,
   };
 
   [API_BASE_PATH, PROXY_BASE_PATH].forEach((basePath) => {
@@ -621,4 +639,14 @@ function setupAuthenticationMiddlewares() {
       session: false,
     }),
   };
+}
+
+function setupServiceBus(
+  namespace: string,
+  devConnectionString: O.Option<string>,
+) {
+  return O.fold(
+    () => new ServiceBusClient(namespace, new DefaultAzureCredential()),
+    (connectionString: string) => new ServiceBusClient(connectionString),
+  )(devConnectionString);
 }
