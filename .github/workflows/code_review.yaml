@@ -189,6 +189,4 @@ jobs:
 
       - name: "E2E Tests"
         if: steps.test_filter.outputs.io-session-manager == 'true'
-        run: >-
-          yarn docker:start:build io-session-manager &&
-          yarn workspace e2e start
+        run: yarn workspace e2e start
