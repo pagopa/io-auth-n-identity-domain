@@ -301,16 +301,19 @@ export const logout: RTE.ReaderTaskEither<
       ),
     ),
     TE.chain((_) =>
-      B.fold(
-        () => TE.of(void 0),
-        () =>
-          AuthSessionEventsRepo.emitAuthSessionEvent({
-            eventType: EventTypeEnum.LOGOUT,
-            fiscalCode: deps.user.fiscal_code,
-            scenario: LogoutScenarioEnum.APP,
-            ts: new Date(),
-          } as LogoutEvent)(deps),
-      )(deps.isUserEligibleForServiceBusEvents(deps.user.fiscal_code)),
+      pipe(
+        deps.isUserEligibleForServiceBusEvents(deps.user.fiscal_code),
+        B.fold(
+          () => TE.of(void 0),
+          () =>
+            AuthSessionEventsRepo.emitAuthSessionEvent({
+              eventType: EventTypeEnum.LOGOUT,
+              fiscalCode: deps.user.fiscal_code,
+              scenario: LogoutScenarioEnum.APP,
+              ts: new Date(),
+            } as LogoutEvent)(deps),
+        ),
+      ),
     ),
     TE.mapLeft((err) => {
       log.error(err.message);
