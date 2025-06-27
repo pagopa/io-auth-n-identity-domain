@@ -39,7 +39,7 @@ export const BACKEND_HOST = pipe(
   }),
 );
 
-export const PROXY_BASE_PATH = "/api/session-manager/v1";
+export const PROXY_BASE_PATH = "/api/auth/v1";
 
 export {
   BPDConfig,

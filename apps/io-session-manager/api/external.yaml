@@ -1,6 +1,6 @@
 openapi: 3.0.1
 servers:
-  - url: https://api-app.io.pagopa.it/api/session-manager/v1
+  - url: https://api-app.io.pagopa.it/api/auth/v1
 info:
   title: Collection of exposed endpoints to interact with user's auth session.
   version: 0.0.1

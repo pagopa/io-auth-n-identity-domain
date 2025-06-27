@@ -4,7 +4,7 @@ info:
   description: Collection of internal endpoints to interact with user's auth session.
   version: 16.7.0
 servers:
-  - url: https://api-app.io.pagopa.it/api/session-manager/v1
+  - url: https://api-app.io.pagopa.it/api/auth/v1
 security:
   - Bearer: []
 paths:
