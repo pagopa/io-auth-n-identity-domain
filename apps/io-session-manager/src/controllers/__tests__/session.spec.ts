@@ -813,6 +813,4 @@ describe("ServiceBus Events", () => {
       E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
     );
   });
-  
-  //
 });
