@@ -1024,12 +1024,7 @@ describe("AuthenticationController#acs LV", () => {
       const exp = getExpirePubKeyFn() as Date;
       const diff = Math.floor((exp.getTime() - now.getTime()) / 1000); // (1790812800000 - 1759276800000) / 1000 = 31536000000 / 1000 = 31536000
 
-      expect(diff).toBeGreaterThanOrEqual(
-        parseInt(expectedLongSessionDuration, 10) - 1,
-      );
-      expect(diff).toBeLessThanOrEqual(
-        parseInt(expectedLongSessionDuration, 10),
-      );
+      expect(diff).toEqual(expectedLongSessionDuration);
 
       expect(res.redirect).toHaveBeenCalledWith(
         301,
