@@ -4,12 +4,15 @@ servers:
 info:
   title: Collection of exposed endpoints to interact with user's auth session.
   version: 0.0.1
+security:
+  # Global security strategy, unless overridden at operation level
+  - Bearer: []
 paths:
   /fast-login:
     post:
       operationId: fastLogin
       summary: POST a session refresh request with Lollipop
-      security: null # Authentication not needed for this operation
+      security: [] # Authentication not needed for this operation
       parameters:
         - name: x-pagopa-lollipop-original-method
           in: header
@@ -64,7 +67,7 @@ paths:
     post:
       operationId: lvGenerateNonce
       summary: Generate a Nonce for a session refresh flow
-      security: null # Authentication not needed for this operation
+      security: [] # Authentication not needed for this operation
       responses:
         "200":
           description: Success response
@@ -82,8 +85,6 @@ paths:
     get:
       operationId: getSessionState
       summary: Get the user current session
-      security:
-        - Bearer: []
       description: Return the session state for the current authenticated user.
       parameters:
         - in: query
@@ -124,8 +125,6 @@ paths:
     post:
       operationId: logout
       summary: Execute the logout
-      security:
-        - Bearer: []
       description: Delete user's active session and tokens.
       responses:
         "200":
@@ -154,7 +153,7 @@ paths:
     get:
       operationId: login
       summary: Login SPID/CIE
-      security: null # Authentication not needed for this operation
+      security: [] # Authentication not needed for this operation
       description: Login with SPID or CIE for IO APP
       parameters:
         - $ref: "#/components/parameters/EntityId"
@@ -190,7 +189,7 @@ paths:
     post:
       operationId: testLogin
       summary: Login Test User with password
-      security: null # Authentication not needed for this operation
+      security: [] # Authentication not needed for this operation
       description: Login Test User with password and Fiscal Code
       parameters:
         - $ref: "#/components/parameters/JwkPubKeyToken"
@@ -224,7 +223,7 @@ paths:
     get:
       operationId: healthcheck
       summary: The healthcheck endpoint
-      security: null # Authentication not needed for this operation
+      security: [] # Authentication not needed for this operation
       description: Responde with the app version if running
       responses:
         "200":
@@ -243,7 +242,7 @@ paths:
     post:
       operationId: acs
       summary: ACS step of Login SPID/CIE
-      security: null # Authentication not needed for this operation
+      security: [] # Authentication not needed for this operation
       description: Login with SPID or CIE for IO APP
       requestBody:
         content:
