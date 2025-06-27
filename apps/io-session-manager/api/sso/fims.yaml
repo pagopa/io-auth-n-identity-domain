@@ -1,6 +1,6 @@
 openapi: 3.0.1
 servers:
-  - url: https://api-app.io.pagopa.it/api/session-manager/v1/fims
+  - url: https://api-app.io.pagopa.it/api/sso/fims/v1
 info:
   title: Federated Identity Management System API for user authentication.
   version: 0.0.1

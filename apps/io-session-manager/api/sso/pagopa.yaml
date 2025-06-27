@@ -1,6 +1,6 @@
 openapi: 3.0.1
 servers:
-  - url: https://api-app.io.pagopa.it/api/session-manager/v1/pagopa
+  - url: https://api-app.io.pagopa.it/api/sso/pagopa/v1
 info:
   title: Mobile and web proxy API gateway.
   version: 0.0.1

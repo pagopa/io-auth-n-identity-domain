@@ -1,6 +1,6 @@
 openapi: 3.0.1
 servers:
-  - url: https://api-app.io.pagopa.it/api/session-manager/v1/zendesk
+  - url: https://api-app.io.pagopa.it/api/sso/zendesk/v1
 info:
   title: User authentication for zendesk
   version: 0.0.1

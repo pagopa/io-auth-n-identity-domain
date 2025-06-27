@@ -1,6 +1,6 @@
 openapi: 3.0.1
 servers:
-  - url: https://api-app.io.pagopa.it/api/session-manager/v1/bpd
+  - url: https://api-app.io.pagopa.it/api/sso/bpd/v1
 info:
   title: Bonus Pagamenti Digitali API for user authentication.
   version: 0.0.1
