@@ -33,7 +33,7 @@ export const CLIENT_ERROR_REDIRECTION_URL = `${BACKEND_HOST}/error.html`;
 // this can be set as mandatory.
 // NOTE: this does not work on express.js 5 without a refactor
 // see https://expressjs.com/en/guide/migrating-5.html#path-syntax
-export const SPID_OPTIONAL_API_BASE_PATH = "(/api/session-manager/v1)?";
+export const SPID_OPTIONAL_API_BASE_PATH = "(/api/auth/v1)?";
 
 export const clientProfileRedirectionUrl = `${BACKEND_HOST}/profile.html?token={token}`;
 

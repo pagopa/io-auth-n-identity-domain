@@ -1,648 +1,155 @@
-swagger: "2.0"
+openapi: 3.0.1
 info:
-  version: 1.0.0
-  title: Proxy API
-  description: Mobile and web proxy API gateway.
-host: localhost
-basePath: /
-schemes:
-  - https
+  title: Internal OpenAPI Spec
+  description: Collection of internal endpoints to interact with user's auth session.
+  version: 16.7.0
+servers:
+  - url: https://api-app.io.pagopa.it/api/auth/v1
 security:
   - Bearer: []
 paths:
-  /api/v1/session:
+  /user-identity:
     get:
-      operationId: getSessionState
-      summary: Get the user current session
-      description: Return the session state for the current authenticated user.
-      parameters:
-        - in: query
-          name: fields
-          type: string
-          description: |
-            The use of this parameters allows the client to obtain only the
-            requested parameters. NOTE: nested fields retrieval is currently not supported.
-            NOTE: field names are case-sensitive
-            Example: ?fields=(spidLevel,walletToken)
-            For more info, see https://opensource.zalando.com/restful-api-guidelines/#157
+      summary: Session token introspection
+      description: Introspect the session token and returns the related user identity
+      operationId: getUserIdentity
       responses:
         "200":
           description: Found.
-          schema:
-            $ref: "#/definitions/PublicSession"
-          examples:
-            application/json:
-              spidLevel: "https://www.spid.gov.it/SpidL2"
-              walletToken: "c77de47586c841adbd1a1caeb90dce25dcecebed620488a4f932a6280b10ee99a77b6c494a8a6e6884ccbeb6d3fe736b"
-        "400":
-          description: Bad request
-          schema:
-            $ref: "#/definitions/ProblemJson"
-        "401":
-          description: Bearer token null or expired.
-        "500":
-          description: Internal server error
-          schema:
-            $ref: "#/definitions/ProblemJson"
-  /logout:
-    post:
-      operationId: logout
-      summary: Execute the logout
-      description: Delete user's active session and tokens.
-      responses:
-        "200":
-          description: Logout succeeded
-          schema:
-            $ref: "#/definitions/SuccessResponse"
-          examples:
-            application/json:
-              message: ok
-        "400":
-          description: Bad request
-          schema:
-            $ref: "#/definitions/ProblemJson"
-        "401":
-          description: Bearer token null or expired.
-        "500":
-          description: There was an error deleting user's session.
-          schema:
-            $ref: "#/definitions/ProblemJson"
-
-definitions:
-  # Definitions from the digital citizenship APIs
-  AcceptedTosVersion:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/AcceptedTosVersion"
-  AppVersion:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/AppVersion"
-  BlockedInboxOrChannels:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/BlockedInboxOrChannels"
-  DepartmentName:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/DepartmentName"
-  EmailAddress:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/EmailAddress"
-  PreferredLanguage:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PreferredLanguage"
-  PreferredLanguages:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PreferredLanguages"
-  Profile:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/Profile"
-  ExtendedProfile:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ExtendedProfile"
-  FiscalCode:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/FiscalCode"
-  IsEmailEnabled:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/IsEmailEnabled"
-  IsInboxEnabled:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/IsInboxEnabled"
-  IsEmailValidated:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/IsEmailValidated"
-  IsEmailAlreadyTaken:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/IsEmailAlreadyTaken"
-  UpdateProfile412ErrorTypes:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/problemJson_definitions.yaml#/UpdateProfile412ErrorTypes"
-  ReminderStatus:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ReminderStatus"
-  PushNotificationsContentType:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PushNotificationsContentType"
-  IsTestProfile:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/IsTestProfile"
-  IsWebhookEnabled:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/IsWebhookEnabled"
-  LimitedProfile:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/LimitedProfile"
-  MessageBodyMarkdown:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageBodyMarkdown"
-  MessageContent:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageContent"
-  MessageResponseNotificationStatus:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageResponseNotificationStatus"
-  NotificationChannelStatusValue:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/NotificationChannelStatusValue"
-  NotificationChannel:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/NotificationChannel"
-  MessageSubject:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageSubject"
-  MessageContentBase:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageContentBase"
-  EUCovidCert:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/EUCovidCert"
-  OrganizationFiscalCode:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/OrganizationFiscalCode"
-  NewMessageContent:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/NewMessageContent"
-  Payee:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/Payee"
-  PaymentDataBase:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PaymentDataBase"
-  PaymentDataWithRequiredPayee:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PaymentDataWithRequiredPayee"
-  OrganizationName:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/OrganizationName"
-  PaginationResponse:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PaginationResponse"
-  PrescriptionData:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PrescriptionData"
-  ProblemJson:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ProblemJson"
-  ServiceId:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ServiceId"
-  ServiceName:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ServiceName"
-  ServicePublic:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ServicePublic"
-  ServiceMetadata:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ServiceMetadata"
-  CommonServiceMetadata:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/CommonServiceMetadata"
-  StandardServiceMetadata:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/StandardServiceMetadata"
-  SpecialServiceMetadata:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/SpecialServiceMetadata"
-  ServiceTuple:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ServiceTuple"
-  ServiceScope:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ServiceScope"
-  ServiceCategory:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ServiceCategory"
-  SpecialServiceCategory:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/SpecialServiceCategory"
-  StandardServiceCategory:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/StandardServiceCategory"
-  PaginatedServiceTupleCollection:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PaginatedServiceTupleCollection"
-  Timestamp:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/Timestamp"
-  PaymentNoticeNumber:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PaymentNoticeNumber"
-  PaymentAmount:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PaymentAmount"
-  PaymentData:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PaymentData"
-  TimeToLiveSeconds:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/TimeToLiveSeconds"
-  CreatedMessageWithContent:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/CreatedMessageWithContent"
-  CreatedMessageWithoutContent:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/CreatedMessageWithoutContent"
-  CreatedMessageWithoutContentCollection:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/CreatedMessageWithoutContentCollection"
-  PaginatedCreatedMessageWithoutContentCollection:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PaginatedCreatedMessageWithoutContentCollection"
-  UserDataProcessingStatus:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/UserDataProcessingStatus"
-  UserDataProcessingChoice:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/UserDataProcessingChoice"
-  UserDataProcessingChoiceRequest:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/UserDataProcessingChoiceRequest"
-  UserDataProcessing:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/UserDataProcessing"
-  MessageResponseWithContent:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageResponseWithContent"
-  ServicePreferencesSettings:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ServicePreferencesSettings"
-  ServicesPreferencesMode:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ServicesPreferencesMode"
-  BasicServicePreference:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/BasicServicePreference"
-  ServicePreference:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ServicePreference"
-  UpsertServicePreference:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/UpsertServicePreference"
-  EnrichedMessage:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/EnrichedMessage"
-  PublicMessage:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PublicMessage"
-  PublicMessagesCollection:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PublicMessagesCollection"
-  PaginatedPublicMessagesCollection:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PaginatedPublicMessagesCollection"
-  MessageCategory:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageCategory"
-  MessageCategoryBase:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageCategoryBase"
-  MessageCategoryPayment:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageCategoryPayment"
-  LegalMessageWithContent:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/LegalMessageWithContent"
-  MessageCategoryPN:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageCategoryPN"
-  LegalMessage:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/LegalMessage"
-  ThirdPartyData:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ThirdPartyData"
-  ThirdPartyMessageWithContent:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ThirdPartyMessageWithContent"
-  ThirdPartyMessage:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ThirdPartyMessage"
-  ThirdPartyAttachment:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ThirdPartyAttachment"
-  ThirdPartyMessagePrecondition:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ThirdPartyMessagePrecondition"
-  HasPrecondition:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/HasPrecondition"
-  RemoteContentDetails:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/RemoteContentDetails"
-  LegalMessageEml:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/LegalMessageEml"
-  LegalMessageCertData:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/LegalMessageCertData"
-  CertData:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/CertData"
-  CertDataHeader:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/CertDataHeader"
-  Attachment:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/Attachment"
-  LegalData:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/LegalData"
-  MessageStatusValue:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageStatusValue"
-  RejectedMessageStatusValue:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/RejectedMessageStatusValue"
-  NotRejectedMessageStatusValue:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/NotRejectedMessageStatusValue"
-  MessageStatusAttributes:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageStatusAttributes"
-  MessageStatusReadingChange:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageStatusReadingChange"
-  MessageStatusArchivingChange:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageStatusArchivingChange"
-  MessageStatusBulkChange:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageStatusBulkChange"
-  MessageStatusChange:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/MessageStatusChange"
-  CreatedMessageWithContentResponse:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/CreatedMessageWithContentResponse"
-  CreatedMessageWithContentAndEnrichedData:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/CreatedMessageWithContentAndEnrichedData"
-  Ulid:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/Ulid"
-  PathTraversalSafePathParam:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/PathTraversalSafePathParam"
-  # Definitions from pagopa-proxy
-  PaymentProblemJson:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/PaymentProblemJson"
-  CodiceContestoPagamento:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/CodiceContestoPagamento"
-  EnteBeneficiario:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/EnteBeneficiario"
-  Iban:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/Iban"
-  ImportoEuroCents:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/ImportoEuroCents"
-  PaymentActivationsGetResponse:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/PaymentActivationsGetResponse"
-  PaymentActivationsPostRequest:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/PaymentActivationsPostRequest"
-  PaymentActivationsPostResponse:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/PaymentActivationsPostResponse"
-  PaymentRequestsGetResponse:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/PaymentRequestsGetResponse"
-  RptId:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/RptId"
-  SpezzoneStrutturatoCausaleVersamento:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/SpezzoneStrutturatoCausaleVersamento"
-  SpezzoniCausaleVersamento:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/SpezzoniCausaleVersamento"
-  SpezzoniCausaleVersamentoItem:
-    $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v1.6.0/api-spec/api-for-io.yaml#/definitions/SpezzoniCausaleVersamentoItem"
-  # AssertionRef possible inputs
-  AssertionRefSha256:
-    type: string
-    pattern: ^(sha256-[A-Za-z0-9-_=]{1,44})$
-  AssertionRefSha384:
-    type: string
-    pattern: ^(sha384-[A-Za-z0-9-_=]{1,66})$
-  AssertionRefSha512:
-    type: string
-    pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
-  AssertionRef:
-    x-one-of: true
-    allOf:
-      - $ref: "#/definitions/AssertionRefSha512"
-      - $ref: "#/definitions/AssertionRefSha384"
-      - $ref: "#/definitions/AssertionRefSha256"
-  MessageContentWithAttachments:
-    allOf:
-      - type: object
-        properties:
-          attachments:
-            type: array
-            items:
-              $ref: "#/definitions/MessageAttachment"
-      - $ref: "#/definitions/NewMessageContent"
-  MessageAttachment:
-    type: object
-    title: MessageAttachment
-    description: Describes a message's attachment
-    properties:
-      name:
-        type: string
-      content:
-        type: string
-      mime_type:
-        type: string
-    required:
-      - name
-      - content
-      - mime_type
-  CreatedMessageWithContentAndAttachments:
-    allOf:
-      - type: object
-        properties:
           content:
-            $ref: "#/definitions/MessageContentWithAttachments"
-        required:
-          - content
-      - $ref: "#/definitions/CreatedMessageWithContentResponse"
-  Installation:
-    type: object
-    title: Installation
-    description: Describes an app installation.
-    properties:
-      platform:
-        $ref: "#/definitions/Platform"
-      pushChannel:
-        $ref: "#/definitions/PushChannel"
-    required:
-      - platform
-      - pushChannel
-  InitializedProfile:
-    type: object
-    title: Initialized profile
-    description: Describes the user's profile after it has been stored in the Profile API.
-    properties:
-      accepted_tos_version:
-        $ref: "#/definitions/AcceptedTosVersion"
-      email:
-        $ref: "#/definitions/EmailAddress"
-      blocked_inbox_or_channels:
-        $ref: "#/definitions/BlockedInboxOrChannels"
-      preferred_languages:
-        $ref: "#/definitions/PreferredLanguages"
-      is_inbox_enabled:
-        $ref: "#/definitions/IsInboxEnabled"
-      is_email_validated:
-        $ref: "#/definitions/IsEmailValidated"
-      is_email_enabled:
-        $ref: "#/definitions/IsEmailEnabled"
-      is_email_already_taken:
-        $ref: "#/definitions/IsEmailAlreadyTaken"
-      reminder_status:
-        $ref: "#/definitions/ReminderStatus"
-      push_notifications_content_type:
-        $ref: "#/definitions/PushNotificationsContentType"
-      is_webhook_enabled:
-        $ref: "#/definitions/IsWebhookEnabled"
-      family_name:
-        type: string
-      fiscal_code:
-        $ref: "#/definitions/FiscalCode"
-      has_profile:
-        $ref: "#/definitions/HasProfile"
-      last_app_version:
-        $ref: "#/definitions/AppVersion"
-      name:
-        type: string
-      spid_email:
-        $ref: "#/definitions/EmailAddress"
-      date_of_birth:
-        type: string
-        format: date
-      service_preferences_settings:
-        $ref: "#/definitions/ServicePreferencesSettings"
-      version:
-        $ref: "#/definitions/Version"
-    required:
-      - family_name
-      - fiscal_code
-      - has_profile
-      - is_inbox_enabled
-      - is_email_enabled
-      - is_webhook_enabled
-      - name
-      - service_preferences_settings
-      - version
-  UserMetadata:
-    type: object
-    title: User Metadata information
-    properties:
-      version:
-        type: number
-      metadata:
-        type: string
-    required:
-      - version
-      - metadata
-  PublicSession:
-    type: object
-    title: User session data
-    description: Describe the current session of an authenticated user.
-    properties:
-      spidLevel:
-        $ref: "#/definitions/SpidLevel"
-      expirationDate:
-        type: string
-        format: date-time
-      lollipopAssertionRef:
-        $ref: "#/definitions/AssertionRef"
-      walletToken:
-        type: string
-      myPortalToken:
-        type: string
-      bpdToken:
-        type: string
-      zendeskToken:
-        type: string
-      fimsToken:
-        type: string
-  SessionInfo:
-    type: object
-    title: Session info of a user
-    description: Decribe a session of an authenticated user.
-    properties:
-      createdAt:
-        $ref: "#/definitions/Timestamp"
-      sessionToken:
-        type: string
-    required:
-      - createdAt
-      - sessionToken
-  SessionsList:
-    description: Contains all active sessions for an authenticated user.
-    type: object
-    properties:
-      sessions:
-        type: array
-        items:
-          $ref: "#/definitions/SessionInfo"
-    required:
-      - sessions
-  InstallationID:
-    type: string
-    description: |-
-      The sixteen octets of an Installation ID are represented as 32 hexadecimal (base 16) digits, displayed in five groups
-      separated by hyphens, in the form 8-4-4-4-12 for a total of 36 characters (32 alphanumeric characters and four
-      hyphens).
-      See https://en.wikipedia.org/wiki/Universally_unique_identifier
-    minLength: 1
-  HasProfile:
-    type: boolean
-    default: false
-    description: True if the user has a remote profile.
-  IsEmailSet:
-    type: boolean
-    default: false
-    description: True if the user has presonalized the email.
-  Version:
-    type: integer
-    description: The entity version.
-  Platform:
-    type: string
-    description: The platform type where the installation happened.
-    x-extensible-enum:
-      - apns
-      - gcm
-  PushChannel:
-    type: string
-    description: |-
-      The Push Notification Service handle for this Installation.
-      See https://docs.microsoft.com/en-us/azure/notification-hubs/notification-hubs-push-notification-registration-management
-  SpidLevel:
-    type: string
-    description: A SPID level.
-    x-extensible-enum:
-      - https://www.spid.gov.it/SpidL1
-      - https://www.spid.gov.it/SpidL2
-      - https://www.spid.gov.it/SpidL3
-  SuccessResponse:
-    type: object
-    properties:
-      message:
-        type: string
-  LimitedFederatedUser:
-    title: Federated user
-    description: User data needed by federated applications.
-    type: object
-    properties:
-      fiscal_code:
-        $ref: "#/definitions/FiscalCode"
-    required:
-      - fiscal_code
-  FederatedUser:
-    title: Federated user
-    description: User data needed by federated applications.
-    allOf:
-      - type: object
-        properties:
-          name:
-            type: string
-          family_name:
-            type: string
-        required:
-          - name
-          - family_name
-      - $ref: "#/definitions/LimitedFederatedUser"
-  SupportToken:
-    title: Support token
-    description: A Support Token response
-    type: object
-    properties:
-      access_token:
-        type: string
-      expires_in:
-        type: number
-    required:
-      - access_token
-      - expires_in
-  InvalidThirdPartyMessageType:
-    type: string
-    x-extensible-enum:
-      - ATTACHMENTS_NOT_PRESENT
-      - REMOTE_CONTENT_NOT_PRESENT
-      - MARKDOWN_VALIDATION_ERROR
-      - SUBJECT_VALIDATION_ERROR
-    description: A representation of all the error type for an invalid ThirdPartyMessage
-    x-example: ATTACHMENTS_NOT_PRESENT
-responses: {}
-parameters:
-  MessageId:
-    name: id
-    in: path
-    type: string
-    maxLength: 26
-    minLength: 26
-    required: true
-    description: The message id in ulid format
-    pattern: >-
-      [0-9a-hjkmnp-tv-zA-HJKMNP-TV-Z]{26}
-    x-example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
-  PublicMessage:
-    name: public_message
-    in: query
-    type: boolean
-    description: Discriminate when to return public message shape. Default to false.
-  EnrichResultData:
-    name: enrich_result_data
-    type: boolean
-    in: query
-    required: false
-    description: Indicates whether result data should be enriched or not.
-  GetArchivedMessages:
-    name: archived
-    type: boolean
-    in: query
-    required: false
-    description: Indicates whether retrieve archived/not archived messages. Default is false
-  PageSize:
-    name: page_size
-    type: integer
-    in: query
-    minimum: 1
-    maximum: 100
-    required: false
-    description: How many items a page should include.
-  MaximumId:
-    name: maximum_id
-    type: string
-    in: query
-    required: false
-    maxLength: 26
-    minLength: 26
-    description: The maximum id to get messages until to.
-    pattern: >-
-      [0-9a-hjkmnp-tv-zA-HJKMNP-TV-Z]{26}
-    x-example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
-  MinimumId:
-    name: minimum_id
-    type: string
-    in: query
-    required: false
-    maxLength: 26
-    minLength: 26
-    description: The minimum id to get messages from.
-    pattern: >-
-      [0-9a-hjkmnp-tv-zA-HJKMNP-TV-Z]{26}
-    x-example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
-  PaginationRequest:
-    type: string
-    name: cursor
-    in: query
-    minimum: 1
-    description: An opaque identifier that points to the next item in the collection.
-  UserDataProcessingChoiceParam:
-    name: choice
-    in: path
-    type: string
-    enum: [DOWNLOAD, DELETE]
-    description: A representation of a user data processing choice
-    required: true
-    x-example: DOWNLOAD
-consumes:
-  - application/json
-produces:
-  - application/json
-securityDefinitions:
-  Bearer:
-    type: apiKey
-    name: Authorization
-    in: header
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserIdentityWithTtl"
+              example:
+                family_name: Rossi
+                fiscal_code: TMMEXQ60A10Y526X
+                name: Mario
+                spid_email: preferred@example.com
+                spid_level: https://www.spid.gov.it/SpidL2
+                date_of_birth: "2007-07-21"
+                created_at: "2017-07-21T17:32:28Z"
+                token_remaining_ttl: 35
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Bearer token null or expired.
+          content: {}
+        "500":
+          description: There was an error retrieving user's identity.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+    x-swagger-router-controller: AuthenticationController
+components:
+  schemas:
+    HttpStatusCode:
+      maximum: 600
+      exclusiveMaximum: true
+      minimum: 100
+      type: integer
+      description:
+        The HTTP status code generated by the origin server for this occurrence
+        of the problem.
+      format: int32
+      example: 200
+    ProblemJson:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |-
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type
+            (e.g., using HTML).
+          default: about:blank
+          example: https://example.com/problem/constraint-violation
+        title:
+          type: string
+          description: |-
+            A short, summary of the problem type. Written in english and readable
+            for engineers (usually not suited for non technical stakeholders and
+            not localized); example: Service Unavailable
+        status:
+          $ref: "#/components/schemas/HttpStatusCode"
+        detail:
+          type: string
+          description: |-
+            A human readable explanation specific to this occurrence of the
+            problem.
+          example: There was an error processing the request
+        instance:
+          type: string
+          format: uri
+          description: |-
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
+    FiscalCode:
+      type: string
+      description: User's fiscal code.
+      format: FiscalCode
+      x-import: "@pagopa/ts-commons/lib/strings"
+      example: SPNDNL80R13C555X
+    EmailAddress:
+      type: string
+      format: email
+      example: foobar@example.com
+    SpidLevel:
+      type: string
+      description: A SPID level.
+      enum:
+        - https://www.spid.gov.it/SpidL1
+        - https://www.spid.gov.it/SpidL2
+        - https://www.spid.gov.it/SpidL3
+    SessionTTL:
+      type: object
+      properties:
+        created_at:
+          type: number
+        token_remaining_ttl:
+          type: number
+          format: integer
+      required:
+        - created_at
+        - token_remaining_ttl
+    UserIdentity:
+      title: CIE or SPID User Identity
+      type: object
+      description: Describes the user's identity while it's authenticated.
+      properties:
+        family_name:
+          type: string
+        fiscal_code:
+          $ref: "#/components/schemas/FiscalCode"
+        name:
+          type: string
+        date_of_birth:
+          type: string
+        spid_email:
+          $ref: "#/components/schemas/EmailAddress"
+        spid_level:
+          $ref: "#/components/schemas/SpidLevel"
+        spid_idp:
+          type: string
+        session_tracking_id:
+          type: string
+      required:
+        - date_of_birth
+        - family_name
+        - fiscal_code
+        - name
+        - spid_level
+    UserIdentityWithTtl:
+      allOf:
+        - $ref: "#/components/schemas/UserIdentity"
+        - $ref: "#/components/schemas/SessionTTL"
+  securitySchemes:
+    Bearer:
+      type: apiKey
+      name: Authorization
+      in: header

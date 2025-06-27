@@ -1,4 +1,4 @@
-oa3_spec: apps/io-session-manager/api/fims.yaml
+oa3_spec: apps/io-session-manager/api/sso/fims.yaml
 name: opex_session_manager_api_fims
 location: West Europe
 timespan: 5m

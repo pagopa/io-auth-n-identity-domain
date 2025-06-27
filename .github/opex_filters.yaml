@@ -13,25 +13,22 @@ apply-action:
   - ".github/workflows/opex_api_web_profile.yaml"
   - ".github/workflows/call_opex_api.yml"
 bpd:
-  - "apps/io-session-manager/api/bpd.yaml"
+  - "apps/io-session-manager/api/sso/bpd.yaml"
   - "apps/io-session-manager/.opex/bpd/**"
-fast-login:
-  - "apps/io-session-manager/api/fast-login.yaml"
-  - "apps/io-session-manager/.opex/fast-login/**"
+external:
+  - "apps/io-session-manager/api/external.yaml"
+  - "apps/io-session-manager/.opex/external/**"
 fims:
-  - "apps/io-session-manager/api/fims.yaml"
+  - "apps/io-session-manager/api/sso/fims.yaml"
   - "apps/io-session-manager/.opex/fims/**"
 internal:
   - "apps/io-session-manager/api/internal.yaml"
   - "apps/io-session-manager/.opex/internal/**"
 pagopa:
-  - "apps/io-session-manager/api/pagopa.yaml"
+  - "apps/io-session-manager/api/sso/pagopa.yaml"
   - "apps/io-session-manager/.opex/pagopa/**"
-public:
-  - "apps/io-session-manager/api/public.yaml"
-  - "apps/io-session-manager/.opex/public/**"
 zendesk:
-  - "apps/io-session-manager/api/zendesk.yaml"
+  - "apps/io-session-manager/api/sso/zendesk.yaml"
   - "apps/io-session-manager/.opex/zendesk/**"
 lollipop-external:
   - "apps/io-lollipop/api/external.yaml"

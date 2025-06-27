@@ -29,11 +29,10 @@ jobs:
     outputs:
       plan-action: ${{ steps.filter.outputs.plan-action }}
       bpd: ${{ steps.filter.outputs.bpd }}
-      fast-login: ${{ steps.filter.outputs.fast-login }}
       fims: ${{ steps.filter.outputs.fims }}
       internal: ${{ steps.filter.outputs.internal }}
+      external: ${{ steps.filter.outputs.external }}
       pagopa: ${{ steps.filter.outputs.pagopa }}
-      public: ${{ steps.filter.outputs.public }}
       zendesk: ${{ steps.filter.outputs.zendesk }}
     # Checks to see if openapi specs in the PR match one of the ones listed.
     # We can use the result to decide which job to run
@@ -53,14 +52,14 @@ jobs:
     with:
       api_name: bpd
       app_name: io-session-manager
-  plan-fast-login:
+  plan-external:
     needs: filter
-    if: ${{ needs.filter.outputs.fast-login == 'true' || needs.filter.outputs.plan-action == 'true' }}
+    if: ${{ needs.filter.outputs.external == 'true' || needs.filter.outputs.plan-action == 'true' }}
     uses: ./.github/workflows/call_pr_opex_api.yml
-    name: (Fast-login) Plan changes against Production
+    name: (External) Plan changes against Production
     secrets: inherit
     with:
-      api_name: fast-login
+      api_name: external
       app_name: io-session-manager
   plan-fims:
     needs: filter
@@ -88,15 +87,6 @@ jobs:
     secrets: inherit
     with:
       api_name: pagopa
-      app_name: io-session-manager
-  plan-public:
-    needs: filter
-    if: ${{ needs.filter.outputs.public == 'true' || needs.filter.outputs.plan-action == 'true' }}
-    uses: ./.github/workflows/call_pr_opex_api.yml
-    name: (Public) Plan changes against Production
-    secrets: inherit
-    with:
-      api_name: public
       app_name: io-session-manager
   plan-zendesk:
     needs: filter

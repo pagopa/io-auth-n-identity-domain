@@ -58,6 +58,7 @@ import {
   AppInsightsConfig,
   ServiceBusConfig,
   PROXY_BASE_PATH,
+  toProxySSOBasePath,
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import { LollipopService, RedisSessionStorageService } from "./services";
@@ -208,7 +209,7 @@ export const newApp: (
     );
   });
 
-  [BPDConfig.BPD_BASE_PATH, `${PROXY_BASE_PATH}/bpd`].forEach((basePath) => {
+  [BPDConfig.BPD_BASE_PATH, toProxySSOBasePath("bpd")].forEach((basePath) => {
     setupBPDEndpoints(
       app,
       basePath,
@@ -218,7 +219,7 @@ export const newApp: (
     );
   });
 
-  [PagoPAConfig.PAGOPA_BASE_PATH, `${PROXY_BASE_PATH}/pagopa`].forEach(
+  [PagoPAConfig.PAGOPA_BASE_PATH, toProxySSOBasePath("pagopa")].forEach(
     (basePath) => {
       setupPagoPAEndpoints(
         app,
@@ -231,7 +232,7 @@ export const newApp: (
     },
   );
 
-  [ZENDESK_BASE_PATH, `${PROXY_BASE_PATH}/zendesk`].forEach((basePath) => {
+  [ZENDESK_BASE_PATH, toProxySSOBasePath("zendesk")].forEach((basePath) => {
     setupZendeskEndpoints(
       app,
       basePath,
@@ -241,18 +242,20 @@ export const newApp: (
     );
   });
 
-  [FimsConfig.FIMS_BASE_PATH, `${PROXY_BASE_PATH}/fims`].forEach((basePath) => {
-    setupFIMSEndpoints(
-      app,
-      basePath,
-      FimsConfig.ALLOW_FIMS_IP_SOURCE_RANGE,
-      authMiddlewares,
-      REDIS_CLIENT_SELECTOR,
-      APIClients.fnAppAPIClient,
-      APIClients.fnLollipopAPIClient,
-      appInsightsClient,
-    );
-  });
+  [FimsConfig.FIMS_BASE_PATH, toProxySSOBasePath("fims")].forEach(
+    (basePath) => {
+      setupFIMSEndpoints(
+        app,
+        basePath,
+        FimsConfig.ALLOW_FIMS_IP_SOURCE_RANGE,
+        authMiddlewares,
+        REDIS_CLIENT_SELECTOR,
+        APIClients.fnAppAPIClient,
+        APIClients.fnLollipopAPIClient,
+        appInsightsClient,
+      );
+    },
+  );
 
   const TIMER = TimeTracer();
 
