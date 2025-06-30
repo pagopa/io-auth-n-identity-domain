@@ -128,28 +128,9 @@ components:
         - lc_authentication_bearer
     ## needed to solve opex bug during referencing
     LimitedFederatedUser:
-      title: Federated user
-      description: User data needed by federated applications.
-      type: object
-      properties:
-        fiscal_code:
-          $ref: "#/components/schemas/FiscalCode"
-      required:
-        - fiscal_code
+      $ref: "sso_definitions.yaml#/components/schemas/LimitedFederatedUser"
     FederatedUser:
-      title: Federated user
-      description: User data needed by federated applications.
-      allOf:
-        - type: object
-          properties:
-            name:
-              type: string
-            family_name:
-              type: string
-          required:
-            - name
-            - family_name
-        - $ref: "#/components/schemas/LimitedFederatedUser"
+      $ref: "sso_definitions.yaml#/components/schemas/FederatedUser"
     EmailAddress:
       type: string
       format: email
@@ -192,8 +173,6 @@ components:
         - operation_id
     ProblemJson:
       $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ProblemJson"
-    FiscalCode:
-      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/FiscalCode"
     SpidLevel:
       type: string
       description: A SPID level.
