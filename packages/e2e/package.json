@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@pagopa/eslint-config": "^3.0.0",
-    "@pagopa/openapi-codegen-ts": "^13.2.0",
+    "@pagopa/openapi-codegen-ts": "^14.0.1",
     "@pagopa/ts-commons": "^13.1.1",
     "@pagopa/typescript-config-node": "*",
     "@types/node-fetch": "^2.6.11",
