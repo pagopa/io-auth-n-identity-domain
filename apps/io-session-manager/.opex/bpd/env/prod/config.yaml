@@ -1,5 +1,5 @@
 oa3_spec: apps/io-session-manager/api/sso/bpd.yaml
-name: opex_session_manager_api_bpd
+name: opex_session_manager_api_sso_bpd
 location: West Europe
 timespan: 5m
 evaluation_frequency: 5
