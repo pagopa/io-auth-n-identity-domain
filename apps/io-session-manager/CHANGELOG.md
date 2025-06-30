@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.8.0
+
+### Minor Changes
+
+- 444a2c5: New OpenAPI specs exposed
+
 ## 1.7.0
 
 ### Minor Changes
