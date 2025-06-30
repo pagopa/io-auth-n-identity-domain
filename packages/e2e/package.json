@@ -10,13 +10,13 @@
     "clean": "shx rm -rf dist",
     "build": "tsc",
     "generate": "yarn generate:session-manager",
-    "generate:session-manager": "shx rm -rf src/generated/session-manager && gen-api-models --api-spec ../../apps/io-session-manager/api/public.yaml --out-dir src/generated/session-mananger --no-strict --request-types --response-decoders --client",
+    "generate:session-manager": "shx rm -rf src/generated/session-manager && gen-api-models --api-spec ../../apps/io-session-manager/api/external.yaml --out-dir src/generated/session-mananger --no-strict --request-types --response-decoders --client",
     "start": "node ./dist/index.js",
     "test:e2e": "vitest run"
   },
   "devDependencies": {
     "@pagopa/eslint-config": "^3.0.0",
-    "@pagopa/openapi-codegen-ts": "^13.2.0",
+    "@pagopa/openapi-codegen-ts": "^14.0.1",
     "@pagopa/ts-commons": "^13.1.1",
     "@pagopa/typescript-config-node": "*",
     "@types/node-fetch": "^2.6.11",

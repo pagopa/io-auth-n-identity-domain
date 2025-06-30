@@ -2251,6 +2251,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@pagopa/openapi-codegen-ts@npm:^14.0.1":
+  version: 14.0.1
+  resolution: "@pagopa/openapi-codegen-ts@npm:14.0.1"
+  dependencies:
+    "@pagopa/ts-commons": "npm:^10.15.0"
+    fs-extra: "npm:^6.0.0"
+    nunjucks: "npm:^3.2.3"
+    openapi-types: "npm:^10.0.0"
+    prettier: "npm:^1.12.1"
+    safe-identifier: "npm:^0.4.2"
+    swagger-parser: "npm:^10.0.3"
+    write-yaml-file: "npm:^4.1.3"
+    yargs: "npm:^15.0.1"
+  peerDependencies:
+    fp-ts: ^2.16.5
+    io-ts: ^2.2.21
+  bin:
+    bundle-api-spec: dist/commands/bundle-api-spec/cli.js
+    gen-api-models: dist/commands/gen-api-models/cli.js
+    gen-api-sdk: dist/commands/gen-api-sdk/cli.js
+  checksum: 10c0/f816a8835f29694019e0016a96fabe3e90b2ef43be403c7c649b123668ea704c3e33c3004cb8ee8fd1a7469c305d4fa6b2ff975e6ed4ac9a92cf47da01700635
+  languageName: node
+  linkType: hard
+
 "@pagopa/ts-commons@npm:^10.0.0, @pagopa/ts-commons@npm:^10.15.0, @pagopa/ts-commons@npm:^10.3.0":
   version: 10.15.0
   resolution: "@pagopa/ts-commons@npm:10.15.0"
@@ -5720,7 +5744,7 @@ __metadata:
   resolution: "e2e@workspace:packages/e2e"
   dependencies:
     "@pagopa/eslint-config": "npm:^3.0.0"
-    "@pagopa/openapi-codegen-ts": "npm:^13.2.0"
+    "@pagopa/openapi-codegen-ts": "npm:^14.0.1"
     "@pagopa/ts-commons": "npm:^13.1.1"
     "@pagopa/typescript-config-node": "npm:*"
     "@types/node-fetch": "npm:^2.6.11"
@@ -8415,7 +8439,7 @@ __metadata:
     "@pagopa/io-functions-app-sdk": "npm:x"
     "@pagopa/io-functions-commons": "npm:^29.1.0"
     "@pagopa/io-spid-commons": "npm:^14.0.1"
-    "@pagopa/openapi-codegen-ts": "npm:^13.2.0"
+    "@pagopa/openapi-codegen-ts": "npm:^14.0.1"
     "@pagopa/ts-commons": "npm:^13.1.1"
     "@pagopa/typescript-config-node": "npm:*"
     "@redis/client": "npm:1.4.2"

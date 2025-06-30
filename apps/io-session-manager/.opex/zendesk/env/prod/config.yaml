@@ -1,5 +1,5 @@
-oa3_spec: apps/io-session-manager/api/zendesk.yaml
-name: opex_session_manager_api_zendesk
+oa3_spec: apps/io-session-manager/api/sso/zendesk.yaml
+name: opex_session_manager_api_sso_zendesk
 location: West Europe
 timespan: 5m
 evaluation_frequency: 5

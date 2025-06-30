@@ -1,0 +1,50 @@
+openapi: 3.0.1
+servers:
+  - url: https://api-app.io.pagopa.it/api/sso/bpd/v1
+info:
+  title: Bonus Pagamenti Digitali API for user authentication.
+  version: 0.0.1
+security:
+  # Apply bearer auth globally, unless overridden at operation level
+  - Bearer: []
+paths:
+  /user:
+    get:
+      operationId: getUserForBPD
+      summary: Get user's data
+      description: Returns the user data needed by BPD backend.
+      responses:
+        "200":
+          description: Found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BPDUser"
+              example:
+                name: "Name"
+                family_name: "Surname"
+                fiscal_code: "AAABBB01C02D123Z"
+        "401":
+          description: Token null or expired.
+        "500":
+          description: There was an error in retrieving the user data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+components:
+  schemas:
+    FiscalCode:
+      $ref: "sso_definitions.yaml#/components/schemas/FiscalCode"
+    LimitedFederatedUser:
+      $ref: "sso_definitions.yaml#/components/schemas/LimitedFederatedUser"
+    BPDUser:
+      $ref: "sso_definitions.yaml#/components/schemas/FederatedUser"
+    ProblemJson:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ProblemJson"
+
+  securitySchemes:
+    Bearer:
+      type: apiKey
+      name: Authorization
+      in: header

@@ -1,0 +1,40 @@
+openapi: 3.0.1
+info:
+  title: SSO common definitions
+  version: 1.0.0
+
+# Dummy unused endpoint
+paths:
+  /dummy:
+    get:
+      responses:
+        "200":
+          description: "ok"
+
+components:
+  schemas:
+    FiscalCode:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/FiscalCode"
+    LimitedFederatedUser:
+      title: Federated user
+      description: User data needed by federated applications.
+      type: object
+      properties:
+        fiscal_code:
+          $ref: "#/components/schemas/FiscalCode"
+      required:
+        - fiscal_code
+    FederatedUser:
+      title: Federated user
+      description: User data needed by federated applications.
+      allOf:
+        - type: object
+          properties:
+            name:
+              type: string
+            family_name:
+              type: string
+          required:
+            - name
+            - family_name
+        - $ref: "#/components/schemas/LimitedFederatedUser"

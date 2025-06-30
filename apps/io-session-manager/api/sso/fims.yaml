@@ -1,0 +1,189 @@
+openapi: 3.0.1
+servers:
+  - url: https://api-app.io.pagopa.it/api/sso/fims/v1
+info:
+  title: Federated Identity Management System API for user authentication.
+  version: 0.0.1
+security:
+  # Apply bearer auth globally, unless overridden at operation level
+  - Bearer: []
+paths:
+  /user:
+    get:
+      operationId: getUserForFIMS
+      summary: Get user's data
+      description: Returns the user data needed by FIMS backend.
+      responses:
+        "200":
+          description: Found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FIMSUser"
+              example:
+                name: "Name"
+                family_name: "Surname"
+                fiscal_code: "AAABBB01C02D123Z"
+                auth_time: 1648474413
+                acr: "https://www.spid.gov.it/SpidL2"
+                email: "email@test.com"
+                date_of_birth: "2002-01-01"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Token null or expired.
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "429":
+          description: Too may requests
+        "500":
+          description: There was an error in retrieving the user data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+  /lollipop-user:
+    post:
+      operationId: getLollipopUserForFIMS
+      summary: Get user's data and generate LCParams
+      description: Returns the user data needed by FIMS backend and the LCParams needed by the RC to verify the Lollipop request.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetLollipopUserForFIMSPayload"
+        required: true
+      responses:
+        "200":
+          description: Found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FIMSPlusUser"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Token null or expired.
+        "403":
+          description: Forbidden - Not Authorized
+        "404":
+          description: User or Lollipop Data not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "429":
+          description: Too may requests
+        "500":
+          description: There was an error in retrieving the user data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+components:
+  schemas:
+    AssertionRefSha256:
+      type: string
+      pattern: ^(sha256-[A-Za-z0-9-_=]{1,44})$
+    AssertionRefSha384:
+      type: string
+      pattern: ^(sha384-[A-Za-z0-9-_=]{1,66})$
+    AssertionRefSha512:
+      type: string
+      pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
+    AssertionRef:
+      oneOf:
+        - $ref: "#/components/schemas/AssertionRefSha256"
+        - $ref: "#/components/schemas/AssertionRefSha384"
+        - $ref: "#/components/schemas/AssertionRefSha512"
+    JwkPubKeyToken:
+      type: string
+      minLength: 1
+      description: represents a base64 url encoded JWK Public Key
+    LCParamsForFims:
+      type: object
+      properties:
+        assertion_ref:
+          $ref: "#/components/schemas/AssertionRef"
+        pub_key:
+          $ref: "#/components/schemas/JwkPubKeyToken"
+        lc_authentication_bearer:
+          type: string
+          minLength: 1
+      required:
+        - assertion_ref
+        - pub_key
+        - lc_authentication_bearer
+    ## needed to solve opex bug during referencing
+    FiscalCode:
+      $ref: "sso_definitions.yaml#/components/schemas/FiscalCode"
+    LimitedFederatedUser:
+      $ref: "sso_definitions.yaml#/components/schemas/LimitedFederatedUser"
+    FederatedUser:
+      $ref: "sso_definitions.yaml#/components/schemas/FederatedUser"
+    EmailAddress:
+      type: string
+      format: email
+      example: foobar@example.com
+    FIMSUser:
+      allOf:
+        - type: object
+          properties:
+            date_of_birth:
+              type: string
+              format: date
+            email:
+              $ref: "#/components/schemas/EmailAddress"
+            auth_time:
+              type: number
+            acr:
+              $ref: "#/components/schemas/SpidLevel"
+          required:
+            - date_of_birth
+            - auth_time
+            - acr
+        - $ref: "#/components/schemas/FederatedUser"
+    FIMSPlusUser:
+      type: object
+      properties:
+        profile:
+          $ref: "#/components/schemas/FIMSUser"
+        lc_params:
+          $ref: "#/components/schemas/LCParamsForFims"
+      required:
+        - profile
+        - lc_params
+    GetLollipopUserForFIMSPayload:
+      type: object
+      properties:
+        operation_id:
+          type: string
+          minLength: 1
+      required:
+        - operation_id
+    ProblemJson:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ProblemJson"
+    SpidLevel:
+      type: string
+      description: A SPID level.
+      enum:
+        - https://www.spid.gov.it/SpidL1
+        - https://www.spid.gov.it/SpidL2
+        - https://www.spid.gov.it/SpidL3
+  securitySchemes:
+    Bearer:
+      type: apiKey
+      name: Authorization
+      in: header

@@ -1,0 +1,94 @@
+openapi: 3.0.1
+servers:
+  - url: https://api-app.io.pagopa.it/api/sso/pagopa/v1
+info:
+  title: Mobile and web proxy API gateway.
+  version: 0.0.1
+security:
+  # Apply bearer auth globally, unless overridden at operation level
+  - Bearer: []
+paths:
+  /user:
+    get:
+      operationId: getUser
+      summary: Get user's data
+      description: Returns the user data needed by PagoPA Wallet backend.
+      parameters:
+        - in: query
+          name: version
+          schema:
+            type: string
+            enum:
+              - "20200114"
+      responses:
+        "200":
+          description: Found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagoPAUser"
+              example:
+                email: email@example.com
+                name: Name
+                family_name: Surname
+        "400":
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Token null or invalid.
+        "404":
+          description: User Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "500":
+          description: There was an error in retrieving the user data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+
+components:
+  schemas:
+    EmailAddress:
+      type: string
+      format: email
+      example: foobar@example.com
+    ProblemJson:
+      $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ProblemJson"
+    ## needed to solve opex bug during referencing
+    FiscalCode:
+      $ref: "sso_definitions.yaml#/components/schemas/FiscalCode"
+    LimitedFederatedUser:
+      $ref: "sso_definitions.yaml#/components/schemas/LimitedFederatedUser"
+    FederatedUser:
+      $ref: "sso_definitions.yaml#/components/schemas/FederatedUser"
+    PagoPAUser:
+      title: PagoPA user
+      description: User data needed by PagaPA proxy.
+      allOf:
+        - $ref: "#/components/schemas/FederatedUser"
+        - type: object
+          properties:
+            spid_email:
+              $ref: "#/components/schemas/EmailAddress"
+            notice_email:
+              $ref: "#/components/schemas/EmailAddress"
+          required:
+            - notice_email
+
+  securitySchemes:
+    Bearer:
+      type: apiKey
+      name: Authorization
+      in: header
