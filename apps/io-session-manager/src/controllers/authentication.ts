@@ -32,6 +32,12 @@ import * as RR from "fp-ts/lib/ReadonlyRecord";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import {
+  EventTypeEnum,
+  LoginEvent,
+  LoginScenarioEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { LoginTypeEnum as ServiceBusLoginTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import {
   VALIDATION_COOKIE_NAME,
   VALIDATION_COOKIE_SETTINGS,
 } from "../config/validation-cookie";
@@ -43,7 +49,7 @@ import { AssertionRef } from "../generated/backend/AssertionRef";
 import { AccessToken } from "../generated/public/AccessToken";
 import {
   FnLollipopRepo,
-  LoginUserEventRepo,
+  LoginEventsRepo,
   LollipopRevokeRepo,
   NotificationsRepo,
   RedisRepo,
@@ -131,12 +137,12 @@ const validationCookieClearanceErrorForbidden =
 export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   FnAppAPIRepositoryDeps &
   LockUserAuthenticationDeps &
-  LoginUserEventRepo.LoginUserEventDeps &
   FnLollipopRepo.LollipopApiDeps &
   RevokeAssertionRefDeps &
   CreateNewProfileDependencies &
   NotificationsRepo.NotificationsueueDeps &
-  AppInsightsDeps & {
+  AppInsightsDeps &
+  LoginEventsRepo.LoginEventsDeps & {
     getClientErrorRedirectionUrl: (
       params: ClientErrorRedirectionUrlParams,
     ) => UrlFromString;
@@ -151,6 +157,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
     >;
     isUserElegibleForFastLogin: (fiscalCode: FiscalCode) => boolean;
     isUserElegibleForValidationCookie: (fiscalCode: FiscalCode) => boolean;
+    isUserEligibleForServiceBusEvents: (fiscalCode: FiscalCode) => boolean;
   };
 
 export const acs: (
@@ -240,6 +247,8 @@ export const acs: (
       loginType === LoginTypeEnum.LV
         ? [deps.lvTokenDurationSecs, deps.lvLongSessionDurationSecs]
         : [deps.standardTokenDurationSecs, deps.standardTokenDurationSecs];
+
+    const userSessionExpiration = addSeconds(new Date(), lollipopKeyTTL);
 
     const req = spidUser.getAcsOriginalRequest();
     // Retrieve user IP from request
@@ -523,7 +532,7 @@ export const acs: (
             assertionRef,
             fiscalCode: user.fiscal_code,
             assertion: spidUser.getSamlResponseXml(),
-            getExpirePubKeyFn: () => addSeconds(new Date(), lollipopKeyTTL),
+            getExpirePubKeyFn: () => userSessionExpiration,
             appInsightsTelemetryClient: deps.appInsightsTelemetryClient,
             fnLollipopAPIClient: deps.fnLollipopAPIClient,
           }),
@@ -633,10 +642,13 @@ export const acs: (
     let userEmail: EmailString | undefined;
     // eslint-disable-next-line functional/no-let
     let userHasEmailValidated: boolean | undefined;
+    // eslint-disable-next-line functional/no-let
+    let loginScenario: LoginScenarioEnum | undefined;
 
     if (getProfileResponse.kind === "IResponseErrorNotFound") {
       // a profile for the user does not yet exist, we attempt to create a new
       // one
+      loginScenario = LoginScenarioEnum.NEW_USER;
 
       const errorOrCreateProfileResponse = await ProfileService.createProfile(
         user,
@@ -680,23 +692,12 @@ export const acs: (
       // in io-spid-commons does not support 429 errors
       return validationCookieClearanceErrorInternal(getProfileResponse.kind);
     } else {
+      loginScenario = LoginScenarioEnum.STANDARD;
       userHasEmailValidated = getProfileResponse.value.is_email_validated;
       userEmail =
         userHasEmailValidated && getProfileResponse.value.email
           ? getProfileResponse.value.email
           : user.spid_email;
-    }
-
-    // Notify the user login
-    try {
-      await LoginUserEventRepo.logUserLogin({
-        fiscalCode: spidUser.fiscalNumber,
-        lastLoginAt: new Date(),
-        source: spidUser.email !== undefined ? "spid" : "cie",
-      })(deps)();
-    } catch (e) {
-      // Fire & forget, so just print a debug message
-      log.debug("Cannot notify userLogin: %s", E.toError(e).message);
     }
 
     // async fire & forget
@@ -795,6 +796,32 @@ export const acs: (
       user.session_token,
     );
 
+    const event: LoginEvent = {
+      eventType: EventTypeEnum.LOGIN,
+      fiscalCode: spidUser.fiscalNumber,
+      scenario: loginScenario,
+      loginType:
+        loginType === LoginTypeEnum.LV
+          ? ServiceBusLoginTypeEnum.LV
+          : ServiceBusLoginTypeEnum.LEGACY,
+      idp: spidUser.issuer,
+      ts: new Date(),
+      expiredAt: userSessionExpiration,
+    };
+
+    const errorOrEventEmitted = await pipe(
+      errorOrEmitEventIfEligible(event)(deps),
+      TE.mapLeft((err) =>
+        validationCookieClearanceErrorInternal(
+          `Unable to emit login event: ${err.message}`,
+        ),
+      ),
+    )();
+
+    if (E.isLeft(errorOrEventEmitted)) {
+      return errorOrEventEmitted.left;
+    }
+
     return pipe(
       deps.isUserElegibleForIoLoginUrlScheme(user.fiscal_code),
       B.fold(
@@ -804,6 +831,18 @@ export const acs: (
       E.toUnion,
     );
   };
+
+const errorOrEmitEventIfEligible: (
+  event: LoginEvent,
+) => (dependencies: AcsDependencies) => TE.TaskEither<Error, void> =
+  (event) => (deps) =>
+    pipe(
+      deps.isUserEligibleForServiceBusEvents(event.fiscalCode),
+      B.fold(
+        () => TE.right(void 0),
+        () => LoginEventsRepo.emitLoginEvent(event)(deps),
+      ),
+    );
 
 export const acsTest: (
   userPayload: unknown,
