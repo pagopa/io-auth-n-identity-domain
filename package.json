@@ -25,9 +25,9 @@
     "docker:generate:env:io-profile": "dotenv -e docker/.env.common envsub docker/io-profile/env-dev docker/generated/.env.io-profile",
     "docker:generate:env:io-session-manager-internal": "dotenv -e docker/.env.common envsub docker/io-session-manager-internal/env-dev docker/generated/.env.io-session-manager-internal",
     "docker:generate:env:servicebus": "dotenv -e docker/.env.common envsub docker/servicebus/env-dev docker/generated/.env.servicebus",
-    "docker:build": "COMPOSE_BAKE=true docker compose --env-file docker/.env.common build",
+    "docker:build": "docker compose --env-file docker/.env.common build",
     "docker:start": "docker compose --env-file docker/.env.common up -d",
-    "docker:start:build": "COMPOSE_BAKE=true docker compose --env-file docker/.env.common up --build -d",
+    "docker:start:build": "docker compose --env-file docker/.env.common up --build -d",
     "test:integrations": "yarn run test:integrations:io-lollipop",
     "test:integrations:io-lollipop": "docker compose --env-file docker/.env.common exec io-lollipop /bin/bash -c 'yarn run vitest run src/__integrations__/__tests__ -c src/__integrations__/vite.config.mts' --no-file-parallelism"
   },
