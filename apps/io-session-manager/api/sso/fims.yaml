@@ -127,8 +127,6 @@ components:
         - pub_key
         - lc_authentication_bearer
     ## needed to solve opex bug during referencing
-    LimitedFederatedUser:
-      $ref: "sso_definitions.yaml#/components/schemas/LimitedFederatedUser"
     FederatedUser:
       $ref: "sso_definitions.yaml#/components/schemas/FederatedUser"
     EmailAddress:

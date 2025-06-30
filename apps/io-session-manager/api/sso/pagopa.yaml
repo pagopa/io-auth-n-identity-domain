@@ -67,8 +67,6 @@ components:
     ProblemJson:
       $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v28.18.3/openapi/definitions.yaml#/ProblemJson"
     ## needed to solve opex bug during referencing
-    LimitedFederatedUser:
-      $ref: "sso_definitions.yaml#/components/schemas/LimitedFederatedUser"
     FederatedUser:
       $ref: "sso_definitions.yaml#/components/schemas/FederatedUser"
     PagoPAUser:
