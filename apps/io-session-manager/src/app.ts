@@ -153,6 +153,7 @@ export const newApp: (
   //
   // Ensure that checkIP middleware has the client IP
   //
+
   if (!isDevEnv) {
     // Trust proxy uses proxy X-Forwarded-Proto for ssl.
     app.enable("trust proxy");
