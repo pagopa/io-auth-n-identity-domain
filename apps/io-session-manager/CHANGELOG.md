@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.9.0
+
+### Minor Changes
+
+- e44be3a: Emit ServiceBus Logout event
+
 ## 1.8.0
 
 ### Minor Changes
