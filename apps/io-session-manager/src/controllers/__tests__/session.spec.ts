@@ -500,6 +500,18 @@ describe("getSessionState", () => {
 });
 
 describe("logout", () => {
+  const mockEmitSessionEvent = vi.spyOn(
+    mockAuthSessionsTopicRepository,
+    "emitSessionEvent",
+  );
+
+  const expectedLogoutEvent: LogoutEvent = {
+    eventType: EventTypeEnum.LOGOUT,
+    fiscalCode: mockedUser.fiscal_code,
+    scenario: LogoutScenarioEnum.APP,
+    ts: frozenDate,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -545,6 +557,7 @@ describe("logout", () => {
       "logout from lollipop session",
     );
     expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedLogoutEvent);
   });
 
   test(`
@@ -563,6 +576,7 @@ describe("logout", () => {
 
     expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
     expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedLogoutEvent);
   });
 
   test(`
@@ -581,6 +595,7 @@ describe("logout", () => {
 
     expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
     expect(mockDeleteUser).not.toHaveBeenCalled();
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -596,6 +611,7 @@ describe("logout", () => {
     expect(result).toEqual(E.left(Error("Error revoking the AssertionRef")));
 
     expect(mockDeleteUser).not.toHaveBeenCalled();
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -613,6 +629,7 @@ describe("logout", () => {
     );
 
     expect(mockDeleteUser).not.toHaveBeenCalled();
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -628,6 +645,7 @@ describe("logout", () => {
     expect(result).toEqual(E.left(Error("Error destroying the user session")));
 
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -643,41 +661,13 @@ describe("logout", () => {
     expect(result).toEqual(E.left(Error("deleteUser error")));
 
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
-  });
-
-  test(`
-    GIVEN a valid request
-    WHEN the user is eligible for service bus events
-    THEN it should send the logout event`, async () => {
-    const mockEmitSessionEvent = vi.spyOn(
-      mockAuthSessionsTopicRepository,
-      "emitSessionEvent",
-    );
-
-    const expectedEvent: LogoutEvent = {
-      eventType: EventTypeEnum.LOGOUT,
-      fiscalCode: mockedUser.fiscal_code,
-      scenario: LogoutScenarioEnum.APP,
-      ts: frozenDate,
-    };
-
-    const result = await logout(mockedDependencies)();
-
-    expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedEvent);
-    expect(result).toEqual(
-      E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
-    );
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
   });
 
   test(`
     GIVEN a valid request
     WHEN the user is NOT eligible for service bus events
     THEN it should NOT send the logout event`, async () => {
-    const mockEmitSessionEvent = vi.spyOn(
-      mockAuthSessionsTopicRepository,
-      "emitSessionEvent",
-    );
-
     const mockedDependenciesWithIneligibleUser = {
       ...mockedDependencies,
       isUserEligibleForServiceBusEvents: () => false,
