@@ -9,6 +9,11 @@ import * as O from "fp-ts/Option";
 import { ResponseSuccessJson } from "@pagopa/ts-commons/lib/responses";
 import { addSeconds } from "date-fns";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
+import {
+  EventTypeEnum,
+  LogoutEvent,
+  LogoutScenarioEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import mockRes from "../../__mocks__/response.mocks";
 import {
   mockedInitializedProfile,
@@ -34,8 +39,11 @@ import {
 import { toExpectedResponse } from "../../__tests__/utils";
 import { RedisSessionStorageService, TokenService } from "../../services";
 import { UserIdentityWithTtl } from "../../generated/introspection/UserIdentityWithTtl";
+import { mockAuthSessionsTopicRepository } from "../../repositories/__mocks__/auth-session-topic-repository.mocks";
+import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
 
-vi.setSystemTime(new Date(2025, 0, 1));
+const frozenDate = new Date(2025, 0, 1);
+vi.setSystemTime(frozenDate);
 
 afterAll(() => {
   vi.useRealTimers();
@@ -492,6 +500,18 @@ describe("getSessionState", () => {
 });
 
 describe("logout", () => {
+  const mockEmitSessionEvent = vi.spyOn(
+    mockAuthSessionsTopicRepository,
+    "emitSessionEvent",
+  );
+
+  const expectedLogoutEvent: LogoutEvent = {
+    eventType: EventTypeEnum.LOGOUT,
+    fiscalCode: mockedUser.fiscal_code,
+    scenario: LogoutScenarioEnum.APP,
+    ts: frozenDate,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -507,6 +527,10 @@ describe("logout", () => {
     // Services
     lollipopService: mockedLollipopService,
     redisSessionStorageService: mockedRedisSessionStorageService,
+
+    AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
+    authSessionsTopicSender: mockServiceBusSender,
+    isUserEligibleForServiceBusEvents: () => true,
 
     user: mockedUser,
     req,
@@ -533,6 +557,7 @@ describe("logout", () => {
       "logout from lollipop session",
     );
     expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedLogoutEvent);
   });
 
   test(`
@@ -551,6 +576,7 @@ describe("logout", () => {
 
     expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
     expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedLogoutEvent);
   });
 
   test(`
@@ -569,6 +595,7 @@ describe("logout", () => {
 
     expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
     expect(mockDeleteUser).not.toHaveBeenCalled();
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -584,6 +611,7 @@ describe("logout", () => {
     expect(result).toEqual(E.left(Error("Error revoking the AssertionRef")));
 
     expect(mockDeleteUser).not.toHaveBeenCalled();
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -601,6 +629,7 @@ describe("logout", () => {
     );
 
     expect(mockDeleteUser).not.toHaveBeenCalled();
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -616,6 +645,7 @@ describe("logout", () => {
     expect(result).toEqual(E.left(Error("Error destroying the user session")));
 
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -631,6 +661,24 @@ describe("logout", () => {
     expect(result).toEqual(E.left(Error("deleteUser error")));
 
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+  });
+
+  test(`
+    GIVEN a valid request
+    WHEN the user is NOT eligible for service bus events
+    THEN it should NOT send the logout event`, async () => {
+    const mockedDependenciesWithIneligibleUser = {
+      ...mockedDependencies,
+      isUserEligibleForServiceBusEvents: () => false,
+    };
+
+    const result = await logout(mockedDependenciesWithIneligibleUser)();
+
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(result).toEqual(
+      E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
+    );
   });
 });
 

@@ -475,6 +475,10 @@ function setupExternalEndpoints(
         // Services
         redisSessionStorageService: RedisSessionStorageService,
         lollipopService: LollipopService,
+
+        AuthSessionsTopicRepository,
+        authSessionsTopicSender: acsDependencies.authSessionsTopicSender,
+        isUserEligibleForServiceBusEvents,
       }),
       ap(withUserFromRequest(SessionController.logout)),
     ),

@@ -6,7 +6,8 @@ import * as SpidLogsRepo from "./spid-logs";
 import * as LockedProfileRepo from "./locked-profiles";
 import * as LollipopRevokeRepo from "./lollipop-revoke-queue";
 import * as NotificationsRepo from "./notifications";
-import * as LoginEventsRepo from "./login-events";
+import * as AuthSessionEventsRepo from "./auth-session-events";
+
 
 export {
   FnAppRepo,
@@ -17,5 +18,5 @@ export {
   LollipopRevokeRepo,
   NotificationsRepo,
   SpidLogsRepo,
-  LoginEventsRepo,
+  AuthSessionEventsRepo,
 };
