@@ -20,7 +20,13 @@ import { sequenceS } from "fp-ts/lib/Apply";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { addSeconds } from "date-fns";
 import { OutputOf } from "io-ts";
-import { RedisRepo, FnAppRepo } from "../repositories";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import {
+  EventTypeEnum,
+  LogoutEvent,
+  LogoutScenarioEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { RedisRepo, FnAppRepo, AuthSessionEventsRepo } from "../repositories";
 import {
   LollipopService,
   RedisSessionStorageService,
@@ -245,7 +251,10 @@ export type LogoutDependencies = {
 > &
   RedisSessionStorageServiceDepencency &
   WithUser &
-  WithExpressRequest;
+  WithExpressRequest &
+  AuthSessionEventsRepo.AuthSessionEventsDeps & {
+    isUserEligibleForServiceBusEvents: (fiscalCode: FiscalCode) => boolean;
+  };
 
 export const logout: RTE.ReaderTaskEither<
   LogoutDependencies,
@@ -288,6 +297,21 @@ export const logout: RTE.ReaderTaskEither<
             (result) => result === true,
             () => new Error("Error destroying the user session"),
           ),
+        ),
+      ),
+    ),
+    TE.chain((_) =>
+      pipe(
+        deps.isUserEligibleForServiceBusEvents(deps.user.fiscal_code),
+        B.fold(
+          () => TE.of(void 0),
+          () =>
+            AuthSessionEventsRepo.emitAuthSessionEvent({
+              eventType: EventTypeEnum.LOGOUT,
+              fiscalCode: deps.user.fiscal_code,
+              scenario: LogoutScenarioEnum.APP,
+              ts: new Date(),
+            } as LogoutEvent)(deps),
         ),
       ),
     ),

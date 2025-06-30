@@ -49,7 +49,7 @@ import { AssertionRef } from "../generated/backend/AssertionRef";
 import { AccessToken } from "../generated/public/AccessToken";
 import {
   FnLollipopRepo,
-  LoginEventsRepo,
+  AuthSessionEventsRepo,
   LollipopRevokeRepo,
   NotificationsRepo,
   RedisRepo,
@@ -142,7 +142,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   CreateNewProfileDependencies &
   NotificationsRepo.NotificationsueueDeps &
   AppInsightsDeps &
-  LoginEventsRepo.LoginEventsDeps & {
+  AuthSessionEventsRepo.AuthSessionEventsDeps & {
     getClientErrorRedirectionUrl: (
       params: ClientErrorRedirectionUrlParams,
     ) => UrlFromString;
@@ -840,7 +840,7 @@ const errorOrEmitEventIfEligible: (
       deps.isUserEligibleForServiceBusEvents(event.fiscalCode),
       B.fold(
         () => TE.right(void 0),
-        () => LoginEventsRepo.emitLoginEvent(event)(deps),
+        () => AuthSessionEventsRepo.emitAuthSessionEvent(event)(deps),
       ),
     );
 
