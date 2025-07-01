@@ -61,7 +61,7 @@ data "azuread_group" "auth_devs" {
 # APP GATEWAY DATA SOURCE
 ##########################
 data "azurerm_application_gateway" "app_gateway" {
-  name                = format("%s-appgateway", local.common_project)
+  name                = format("%s-agw-01", local.project)
   resource_group_name = local.appgw_resource_group_name
 }
 
