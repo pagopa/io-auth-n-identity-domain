@@ -3,6 +3,7 @@ locals {
   <policies>
       <inbound>
         <base />
+        <set-backend-service id="session-manager-url" backend-id="${azurerm_api_management_backend.session_manager.name}">
       </inbound>
       <backend>
           <base />
