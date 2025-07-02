@@ -5,13 +5,11 @@ module "io_platform_apim_api_itn" {
   platform_apim_resource_group_name = data.azurerm_api_management.platform_apim.resource_group_name
   platform_apim_id                  = data.azurerm_api_management.platform_apim.id
 
-  session_manager_url    = "https://${data.azurerm_linux_web_app.weu_session_manager.default_hostname}/"
-  session_manager_prefix = "session-manager"
+  session_manager_url = "https://${data.azurerm_linux_web_app.weu_session_manager.default_hostname}/"
 
-  bpd_api_base_path                 = "bpd/api/v1"
-  fast_login_api_base_path          = "api/v1"
-  fims_api_base_path                = "fims/api/v1"
-  pagopa_api_base_path              = "pagopa/api/v1"
-  token_introspection_api_base_path = "api/v1"
-  zendesk_api_base_path             = "api/backend/zendesk/v1"
+  bpd_api_base_path      = "api/sso/bpd"
+  fims_api_base_path     = "api/sso/fims"
+  pagopa_api_base_path   = "api/sso/pagopa"
+  external_api_base_path = "api/auth"
+  zendesk_api_base_path  = "api/sso/zendesk"
 }

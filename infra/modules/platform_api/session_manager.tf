@@ -3,8 +3,6 @@ locals {
   <policies>
       <inbound>
         <base />
-        <rewrite-uri template="@(context.Request.OriginalUrl.Path.Replace("${var.session_manager_prefix}", ""))" />
-        <set-backend-service id="session-manager-public-url" backend-id="${azurerm_api_management_backend.session_manager.id}">
       </inbound>
       <backend>
           <base />
@@ -37,7 +35,7 @@ resource "azurerm_api_management_backend" "session_manager" {
 }
 
 resource "azurerm_api_management_product_group" "session_manager_group_association" {
-  product_id          = module.apim_platform_product_domain.product_id
+  product_id          = data.azurerm_api_management_product.apim_platform_domain_product.id
   group_name          = azurerm_api_management_group.api_session_manager_group.name
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
@@ -48,26 +46,37 @@ resource "azurerm_api_management_tag" "session_manager_tag" {
   name              = "Auth-Session-Manager"
 }
 
+
+resource "azurerm_api_management_api_version_set" "bpd_v1" {
+  name                = "bpd_v1"
+  resource_group_name = var.platform_apim_resource_group_name
+  api_management_name = var.platform_apim_name
+  display_name        = "Auth & Identity bpd v1"
+  versioning_scheme   = "Segment"
+}
+
 module "bpd_api_session_manager" {
   source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
 
   name                = "io-session-manager-bpd-api"
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
-  revision            = "1"
   display_name        = "IO SESSION MANAGER BPD API"
   description         = "Auth & Identity Session Manager BPD API"
 
-  path        = "${var.session_manager_prefix}/${var.bpd_api_base_path}"
-  protocols   = ["https"]
-  product_ids = [module.apim_platform_product_domain.product_id]
+  version_set_id = azurerm_api_management_api_version_set.bpd_v1.id
+  api_version    = "v1"
+  revision       = 1
+  path           = var.bpd_api_base_path
+  protocols      = ["https"]
+  product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
   service_url = null
 
   subscription_required = false
 
   content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/%40pagopa/io-session-manager%400.16.1/apps/session-manager/api/bpd.yaml"
+  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.0/apps/io-session-manager/api/sso/bpd.yaml"
 
   xml_content = local.session_manager_base_policy
 }
@@ -77,55 +86,76 @@ resource "azurerm_api_management_api_tag" "bpd_api_tag" {
   name   = azurerm_api_management_tag.session_manager_tag.name
 }
 
-module "fast_login_api_session_manager" {
-  source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
 
-  name                = "io-session-manager-fast-login-api"
+resource "azurerm_api_management_api_version_set" "auth_v1" {
+  name                = "auth_v1"
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
-  revision            = "1"
-  display_name        = "IO SESSION MANAGER FAST LOGIN API"
-  description         = "Auth & Identity Session Manager Fast Login API"
+  display_name        = "Auth & Identity auth v1"
+  versioning_scheme   = "Segment"
+}
 
-  path        = "${var.session_manager_prefix}/${var.fast_login_api_base_path}"
-  protocols   = ["https"]
-  product_ids = [module.apim_platform_product_domain.product_id]
+module "external_api_session_manager" {
+  source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
+
+  name                = "io-session-manager-external-api"
+  resource_group_name = var.platform_apim_resource_group_name
+  api_management_name = var.platform_apim_name
+  display_name        = "IO SESSION MANAGER EXTERNAL API"
+  description         = "Auth & Identity Session Manager External API"
+
+  version_set_id = azurerm_api_management_api_version_set.auth_v1.id
+  api_version    = "v1"
+  revision       = 1
+  path           = var.external_api_base_path
+  protocols      = ["https"]
+  product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
   service_url = null
 
   subscription_required = false
 
   content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/%40pagopa/io-session-manager%400.16.1/apps/session-manager/api/fast-login.yaml"
+  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.0/apps/io-session-manager/api/external.yaml"
 
   xml_content = local.session_manager_base_policy
 }
 
-resource "azurerm_api_management_api_tag" "fast_login_api_tag" {
-  api_id = module.fast_login_api_session_manager.id
+resource "azurerm_api_management_api_tag" "external_api_tag" {
+  api_id = module.external_api_session_manager.id
   name   = azurerm_api_management_tag.session_manager_tag.name
 }
 
+
+resource "azurerm_api_management_api_version_set" "fims_v1" {
+  name                = "fims_v1"
+  resource_group_name = var.platform_apim_resource_group_name
+  api_management_name = var.platform_apim_name
+  display_name        = "Auth & Identity FIMS v1"
+  versioning_scheme   = "Segment"
+}
 module "fims_api_session_manager" {
   source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
 
   name                = "io-session-manager-fims-api"
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
-  revision            = "1"
   display_name        = "IO SESSION MANAGER FIMS API"
   description         = "Auth & Identity Session Manager Fims API"
 
-  path        = "${var.session_manager_prefix}/${var.fims_api_base_path}"
-  protocols   = ["https"]
-  product_ids = [module.apim_platform_product_domain.product_id]
+  version_set_id = azurerm_api_management_api_version_set.fims_v1.id
+  api_version    = "v1"
+  revision       = 1
+  path           = var.fims_api_base_path
+  protocols      = ["https"]
+  product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
   service_url = null
 
   subscription_required = false
 
   content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/%40pagopa/io-session-manager%400.16.1/apps/session-manager/api/fims.yaml"
+  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.0/apps/io-session-manager/api/sso/fims.yaml"
 
   xml_content = local.session_manager_base_policy
 }
@@ -135,55 +165,35 @@ resource "azurerm_api_management_api_tag" "fims_api_tag" {
   name   = azurerm_api_management_tag.session_manager_tag.name
 }
 
-module "internal_api_session_manager" {
-  source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
-
-  name                = "io-session-manager-internal-api"
+resource "azurerm_api_management_api_version_set" "pagopa_v1" {
+  name                = "pagopa_v1"
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
-  revision            = "1"
-  display_name        = "IO SESSION MANAGER INTERNAL API"
-  description         = "Auth & Identity Session Manager Internal API"
-
-  path        = var.session_manager_prefix
-  protocols   = ["https"]
-  product_ids = [module.apim_platform_product_domain.product_id]
-
-  service_url = null
-
-  subscription_required = false
-
-  content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/%40pagopa/io-session-manager%400.16.1/apps/session-manager/api/internal.yaml"
-
-  xml_content = local.session_manager_base_policy
+  display_name        = "Auth & Identity Pagopa v1"
+  versioning_scheme   = "Segment"
 }
-
-resource "azurerm_api_management_api_tag" "internal_api_tag" {
-  api_id = module.internal_api_session_manager.id
-  name   = azurerm_api_management_tag.session_manager_tag.name
-}
-
 module "pagopa_api_session_manager" {
   source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
 
   name                = "io-session-manager-pagopa-api"
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
-  revision            = "1"
   display_name        = "IO SESSION MANAGER PAGOPA API"
   description         = "Auth & Identity Session Manager Pagopa API"
 
-  path        = "${var.session_manager_prefix}/${var.pagopa_api_base_path}"
-  protocols   = ["https"]
-  product_ids = [module.apim_platform_product_domain.product_id]
+  version_set_id = azurerm_api_management_api_version_set.pagopa_v1.id
+  api_version    = "v1"
+  revision       = 1
+  path           = var.pagopa_api_base_path
+  protocols      = ["https"]
+  product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
   service_url = null
 
   subscription_required = false
 
   content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/%40pagopa/io-session-manager%400.16.1/apps/session-manager/api/pagopa.yaml"
+  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.0/apps/io-session-manager/api/sso/pagopa.yaml"
 
   xml_content = local.session_manager_base_policy
 }
@@ -193,84 +203,35 @@ resource "azurerm_api_management_api_tag" "pagopa_api_tag" {
   name   = azurerm_api_management_tag.session_manager_tag.name
 }
 
-module "public_api_session_manager" {
-  source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
-
-  name                = "io-session-manager-public-api"
+resource "azurerm_api_management_api_version_set" "zendesk_v1" {
+  name                = "zendesk_v1"
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
-  revision            = "1"
-  display_name        = "IO SESSION MANAGER PUBLIC API"
-  description         = "Auth & Identity Session Manager Public API"
-
-  path        = var.session_manager_prefix
-  protocols   = ["https"]
-  product_ids = [module.apim_platform_product_domain.product_id]
-
-  service_url = null
-
-  subscription_required = false
-
-  content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/%40pagopa/io-session-manager%400.16.1/apps/session-manager/api/public.yaml"
-
-  xml_content = local.session_manager_base_policy
+  display_name        = "Auth & Identity Zendesk v1"
+  versioning_scheme   = "Segment"
 }
-
-resource "azurerm_api_management_api_tag" "public_api_tag" {
-  api_id = module.public_api_session_manager.id
-  name   = azurerm_api_management_tag.session_manager_tag.name
-}
-
-module "token_introspection_api_session_manager" {
-  source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
-
-  name                = "io-session-manager-token-introspection-api"
-  resource_group_name = var.platform_apim_resource_group_name
-  api_management_name = var.platform_apim_name
-  revision            = "1"
-  display_name        = "IO SESSION MANAGER TOKEN INTROSPECTION API"
-  description         = "Auth & Identity Session Manager Token Introspection API"
-
-  path        = "${var.session_manager_prefix}/${var.token_introspection_api_base_path}"
-  protocols   = ["https"]
-  product_ids = [module.apim_platform_product_domain.product_id]
-
-  service_url = null
-
-  subscription_required = false
-
-  content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/%40pagopa/io-session-manager%400.16.1/apps/session-manager/api/token_introspection.yaml"
-
-  xml_content = local.session_manager_base_policy
-}
-
-resource "azurerm_api_management_api_tag" "token_introspection_api_tag" {
-  api_id = module.token_introspection_api_session_manager.id
-  name   = azurerm_api_management_tag.session_manager_tag.name
-}
-
 module "zendesk_api_session_manager" {
   source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
 
   name                = "io-session-manager-zendesk-api"
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
-  revision            = "1"
   display_name        = "IO SESSION MANAGER ZENDESK API"
   description         = "Auth & Identity Session Manager Zendesk API"
 
-  path        = "${var.session_manager_prefix}/${var.zendesk_api_base_path}"
-  protocols   = ["https"]
-  product_ids = [module.apim_platform_product_domain.product_id]
+  version_set_id = azurerm_api_management_api_version_set.zendesk_v1.id
+  api_version    = "v1"
+  revision       = 1
+  path           = var.zendesk_api_base_path
+  protocols      = ["https"]
+  product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
   service_url = null
 
   subscription_required = false
 
   content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/%40pagopa/io-session-manager%400.16.1/apps/session-manager/api/zendesk.yaml"
+  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.0/apps/io-session-manager/api/sso/zendesk.yaml"
 
   xml_content = local.session_manager_base_policy
 }
