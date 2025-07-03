@@ -18,14 +18,6 @@ locals {
   XML
 }
 
-resource "azurerm_api_management_group" "api_session_manager_group" {
-  name                = "apisessionmanager"
-  resource_group_name = var.platform_apim_resource_group_name
-  api_management_name = var.platform_apim_name
-  display_name        = "ApiSessionManager"
-  description         = "A group representing session manager API"
-}
-
 resource "azurerm_api_management_backend" "session_manager" {
   title               = "Session Manager"
   name                = "session-manager-backend"
@@ -35,19 +27,14 @@ resource "azurerm_api_management_backend" "session_manager" {
   url                 = var.session_manager_url
 }
 
-resource "azurerm_api_management_product_group" "session_manager_group_association" {
-  product_id          = data.azurerm_api_management_product.apim_platform_domain_product.id
-  group_name          = azurerm_api_management_group.api_session_manager_group.name
-  resource_group_name = var.platform_apim_resource_group_name
-  api_management_name = var.platform_apim_name
-}
-
 resource "azurerm_api_management_tag" "session_manager_tag" {
   api_management_id = var.platform_apim_id
   name              = "Auth-Session-Manager"
 }
 
-
+##################
+#      BPD       #
+##################
 resource "azurerm_api_management_api_version_set" "bpd_v1" {
   name                = "bpd_v1"
   resource_group_name = var.platform_apim_resource_group_name
@@ -88,6 +75,9 @@ resource "azurerm_api_management_api_tag" "bpd_api_tag" {
 }
 
 
+##################
+#    EXTERNAL    #
+##################
 resource "azurerm_api_management_api_version_set" "auth_v1" {
   name                = "auth_v1"
   resource_group_name = var.platform_apim_resource_group_name
@@ -128,6 +118,9 @@ resource "azurerm_api_management_api_tag" "external_api_tag" {
 }
 
 
+##################
+#      FIMS      #
+##################
 resource "azurerm_api_management_api_version_set" "fims_v1" {
   name                = "fims_v1"
   resource_group_name = var.platform_apim_resource_group_name
@@ -166,6 +159,9 @@ resource "azurerm_api_management_api_tag" "fims_api_tag" {
   name   = azurerm_api_management_tag.session_manager_tag.name
 }
 
+##################
+#     PAGOPA     #
+##################
 resource "azurerm_api_management_api_version_set" "pagopa_v1" {
   name                = "pagopa_v1"
   resource_group_name = var.platform_apim_resource_group_name
@@ -204,6 +200,9 @@ resource "azurerm_api_management_api_tag" "pagopa_api_tag" {
   name   = azurerm_api_management_tag.session_manager_tag.name
 }
 
+##################
+#     ZENDESK    #
+##################
 resource "azurerm_api_management_api_version_set" "zendesk_v1" {
   name                = "zendesk_v1"
   resource_group_name = var.platform_apim_resource_group_name
