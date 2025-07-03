@@ -58,8 +58,8 @@ locals {
       COSMOSDB_CONNECTION_STRING = format("AccountEndpoint=%s;AccountKey=%s;", data.azurerm_cosmosdb_account.cosmos_api.endpoint, data.azurerm_cosmosdb_account.cosmos_api.primary_key)
 
       //Queue
-      EXPIRED_SESSION_ADVISOR_QUEUE            = "expired-user-sessions"               // TODO: replace when this queue is migrate in the monorepo
-      SESSION_NOTIFICATION_INIT_RECOVERY_QUEUE = "session-notifications-init-recovery" // TODO: this is temporary, will be removed when SessionNotificationsInitRecovery will not be needed
+      EXPIRED_SESSION_ADVISOR_QUEUE             = "expired-user-sessions"               // TODO: replace when this queue is migrate in the monorepo
+      SESSION_NOTIFICATIONS_INIT_RECOVERY_QUEUE = "session-notifications-init-recovery" // TODO: this is temporary, will be removed when SessionNotificationsInitRecovery will not be needed
 
       // Storage
       AZURE_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.citizen_auth_common.primary_connection_string
