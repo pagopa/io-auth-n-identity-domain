@@ -4,6 +4,7 @@ import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { SessionNotificationsRepositoryConfig } from "../../config";
 import { Client as SessionManagerInternalClient } from "../../generated/definitions/sm-internal/client";
 import { UserSessionInfo } from "../../generated/definitions/sm-internal/UserSessionInfo";
@@ -16,9 +17,8 @@ import {
   anEmptyAsyncIterable,
   mockSessionNotificationsRepository
 } from "../__mocks__/session-notifications-repository.mock";
-import { SessionNotificationsInitRecoveryHandler } from "../session-notification-init-recovery";
+import { SessionNotificationsInitRecoveryHandler } from "../session-notifications-init-recovery";
 import { PermanentError, TransientError } from "../../utils/errors";
-import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 
 const aFiscalCode = "BBBBBB00B00B000B" as FiscalCode;
 const anExpiredAtDate = new Date();
