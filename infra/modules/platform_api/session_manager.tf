@@ -3,7 +3,6 @@ locals {
   <policies>
       <inbound>
         <base />
-        <set-backend-service id="session-manager-url" backend-id="${azurerm_api_management_backend.session_manager.name}">
       </inbound>
       <backend>
           <base />
@@ -59,7 +58,7 @@ module "bpd_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = null
+  service_url = azurerm_api_management_backend.session_manager.url
 
   subscription_required = false
 
@@ -102,7 +101,7 @@ module "external_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = null
+  service_url = azurerm_api_management_backend.session_manager.url
 
   subscription_required = false
 
@@ -144,7 +143,7 @@ module "fims_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = null
+  service_url = azurerm_api_management_backend.session_manager.url
 
   subscription_required = false
 
@@ -185,7 +184,7 @@ module "pagopa_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = null
+  service_url = azurerm_api_management_backend.session_manager.url
 
   subscription_required = false
 
@@ -226,7 +225,7 @@ module "zendesk_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = null
+  service_url = azurerm_api_management_backend.session_manager.url
 
   subscription_required = false
 

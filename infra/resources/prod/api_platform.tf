@@ -7,9 +7,9 @@ module "io_platform_apim_api_itn" {
 
   session_manager_url = "https://${data.azurerm_linux_web_app.weu_session_manager.default_hostname}/"
 
+  external_api_base_path = "api/auth"
   bpd_api_base_path      = "api/sso/bpd"
   fims_api_base_path     = "api/sso/fims"
   pagopa_api_base_path   = "api/sso/pagopa"
-  external_api_base_path = "api/auth"
   zendesk_api_base_path  = "api/sso/zendesk"
 }

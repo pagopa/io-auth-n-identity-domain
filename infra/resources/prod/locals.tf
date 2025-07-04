@@ -17,9 +17,9 @@ locals {
   appgw_resource_group_name           = "${local.project}-common-rg-01"
   immutable_audit_logs_container_name = "auditlogs"
 
-  apim_itn_name                     = "${local.prefix}-${local.env_short}-itn-apim-01"
-  apim_itn_resource_group_name      = "${local.prefix}-${local.env_short}-itn-common-rg-01"
-  platform_apim_name                = "${local.common_project}-${local.location_short}-platform-api-gateway-apim-01"
+  apim_itn_name                     = "${local.project}-apim-01"
+  apim_itn_resource_group_name      = "${local.project}-common-rg-01"
+  platform_apim_name                = "${local.project}-platform-api-gateway-apim-01"
   platform_apim_resource_group_name = local.apim_itn_resource_group_name
 
   io_web_profile_bff_basepath = "ioweb/backend/api/v1"
