@@ -112,3 +112,36 @@ module "sub_io_prof_async" {
     }
   ]
 }
+
+
+/////////////////////////
+//       ALERTS        //
+/////////////////////////
+module "azure-service-bus-alerts" {
+  source  = "pagopa-dx/azure-service-bus-alerts/azurerm"
+  version = "~>0.1"
+
+  service_bus_namespace_id = data.azurerm_servicebus_namespace.platform_service_bus_namespace.id
+
+  alerts_on_dlq_messages = {
+    description  = "Alert on dead-lettered messages in the Service Bus topic for '${azurerm_servicebus_topic.io_auth_sessions_topic.name}'"
+    entity_names = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
+    // TODO: check the desired values for the following parameters
+    // severity        = "Error"
+    // automitigate    = true
+    // check_every     = "PT1M"
+    // lookback_period = "PT5M"
+  }
+
+  environment = {
+    prefix          = local.prefix
+    env_short       = local.env_short
+    location        = local.location
+    domain          = local.domain
+    app_name        = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
+    instance_number = "01"
+  }
+
+  action_group_ids = [azurerm_monitor_action_group.error_action_group.id]
+  tags             = local.tags
+}
