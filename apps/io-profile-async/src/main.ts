@@ -38,6 +38,7 @@ import { initTelemetryClient } from "./utils/appinsights";
 import { getFetchApi } from "./utils/fetch-utils";
 import { buildFunctionProfileClient } from "./utils/function-profile-client/dependency";
 import { buildSessionManagerInternalClient } from "./utils/session-manager-internal-client/dependency";
+import { SessionNotificationsInitRecoveryFunction } from "./functions/session-notifications-init-recovery";
 
 const config = getConfigOrThrow();
 
@@ -155,6 +156,16 @@ export const SessionNotificationEventsProcessor = SessionNotificationEventsProce
   {
     SessionNotificationsRepo: SessionNotificationsRepository,
     sessionNotificationEventsProcessorConfig: config,
+    sessionNotificationsRepositoryConfig: config,
+    sessionNotificationsModel
+  }
+);
+
+export const SessionNotificationsInitRecovery = SessionNotificationsInitRecoveryFunction(
+  {
+    sessionManagerInternalClient,
+    inputDecoder: ExpiredSessionAdvisorQueueMessage,
+    SessionNotificationsRepo: SessionNotificationsRepository,
     sessionNotificationsRepositoryConfig: config,
     sessionNotificationsModel
   }
