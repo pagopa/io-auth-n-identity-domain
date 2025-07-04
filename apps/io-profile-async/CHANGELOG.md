@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.10.0
+
+### Minor Changes
+
+- 8dec30c: Adding SessionNotificationsInitRecovery, a QueueTrigger needed in order to recover sessions created previously the Auth ServiceBus events are activated.
+
 ## 1.9.0
 
 ### Minor Changes

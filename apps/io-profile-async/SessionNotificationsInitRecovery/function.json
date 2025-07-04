@@ -1,0 +1,19 @@
+{
+  "bindings": [
+    {
+      "type": "queueTrigger",
+      "direction": "in",
+      "name": "messageUserSessionToRecover",
+      "queueName": "%SESSION_NOTIFICATIONS_INIT_RECOVERY_QUEUE%",
+      "connection": "AZURE_STORAGE_CONNECTION_STRING"
+    }
+  ],
+  "retry": {
+    "strategy": "exponentialBackoff",
+    "maxRetryCount": 10,
+    "minimumInterval": "00:00:05",
+    "maximumInterval": "00:30:00"
+  },
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "SessionNotificationsInitRecovery"
+}
