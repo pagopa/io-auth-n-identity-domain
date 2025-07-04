@@ -174,7 +174,8 @@ module "function_profile_async" {
     "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",
     "AzureWebJobs.OnProfileUpdate.Disabled",
     "AzureWebJobs.StoreSpidLogs.Disabled",
-    "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"
+    "AzureWebJobs.SessionNotificationEventsProcessor.Disabled",
+    "AzureWebJobs.SessionNotificationsInitRecovery.Disabled"
   ]
 
   subnet_service_endpoints = {
