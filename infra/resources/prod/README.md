@@ -18,6 +18,7 @@
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_azure-service-bus-alerts"></a> [azure-service-bus-alerts](#module\_azure-service-bus-alerts) | pagopa-dx/azure-service-bus-alerts/azurerm | ~>0.1 |
 | <a name="module_common_values"></a> [common\_values](#module\_common\_values) | github.com/pagopa/io-infra//src/_modules/common_values | main |
 | <a name="module_eventhub"></a> [eventhub](#module\_eventhub) | ../../modules/eventhub | n/a |
 | <a name="module_function_lollipop"></a> [function\_lollipop](#module\_function\_lollipop) | pagopa-dx/azure-function-app/azurerm | ~> 0.0 |
