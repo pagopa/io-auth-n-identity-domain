@@ -78,27 +78,27 @@
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-app-service-plan-autoscaler/azurerm/0.0.2"
   },
   "pub_session_manager": {
-    "hash": "b2cac5b9d354adabbef1e0404691e8cbda83fde6e16fd9a2ececd03d9278b119",
-    "version": "1.1.1",
+    "hash": "433fe44b2863b8af8d4f4206ee2590599b0cb67d78b372e65d68317d3199aaa1",
+    "version": "1.1.2",
     "name": "azure_role_assignments",
-    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.1"
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.2"
   },
   "sub_io_prof_async": {
-    "hash": "b2cac5b9d354adabbef1e0404691e8cbda83fde6e16fd9a2ececd03d9278b119",
-    "version": "1.1.1",
+    "hash": "433fe44b2863b8af8d4f4206ee2590599b0cb67d78b372e65d68317d3199aaa1",
+    "version": "1.1.2",
     "name": "azure_role_assignments",
-    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.1"
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.2"
   },
   "topic_io_auth": {
-    "hash": "b2cac5b9d354adabbef1e0404691e8cbda83fde6e16fd9a2ececd03d9278b119",
-    "version": "1.1.1",
+    "hash": "433fe44b2863b8af8d4f4206ee2590599b0cb67d78b372e65d68317d3199aaa1",
+    "version": "1.1.2",
     "name": "azure_role_assignments",
-    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.1"
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.2"
   },
   "pub_session_manager_internal": {
-    "hash": "b2cac5b9d354adabbef1e0404691e8cbda83fde6e16fd9a2ececd03d9278b119",
-    "version": "1.1.1",
+    "hash": "433fe44b2863b8af8d4f4206ee2590599b0cb67d78b372e65d68317d3199aaa1",
+    "version": "1.1.2",
     "name": "azure_role_assignments",
-    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.1"
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.2"
   }
 }
