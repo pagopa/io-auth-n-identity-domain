@@ -52,6 +52,7 @@ export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
     FAST_LOGIN_AUDIT_CONNECTION_STRING: NonEmptyString,
+    FAST_LOGIN_AUDIT_CONTAINER_NAME: NonEmptyString,
 
     // Default is 10 sec timeout
     FETCH_TIMEOUT_MS: withDefault(t.string, "10000").pipe(NumberFromString),
