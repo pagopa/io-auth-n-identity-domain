@@ -15,7 +15,7 @@ No requirements.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_apim_itn_bff_api"></a> [apim\_itn\_bff\_api](#module\_apim\_itn\_bff\_api) | git::https://github.com/pagopa/terraform-azurerm-v3//api_management_api | v8.61.0 |
+| <a name="module_apim_itn_bff_api"></a> [apim\_itn\_bff\_api](#module\_apim\_itn\_bff\_api) | git::https://github.com/pagopa/terraform-azurerm-v4//api_management_api | v7.16.0 |
 
 ## Resources
 

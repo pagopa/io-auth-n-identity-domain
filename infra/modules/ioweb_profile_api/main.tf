@@ -1,5 +1,5 @@
 module "apim_itn_bff_api" {
-  source = "git::https://github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.61.0"
+  source = "git::https://github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.16.0"
 
   name                  = format("%s-ioweb-bff", local.product)
   api_management_name   = data.azurerm_api_management.apim.name
@@ -38,3 +38,4 @@ resource "azurerm_api_management_named_value" "io_fn3_services_key_itn" {
   value               = data.azurerm_key_vault_secret.io_fn3_services_key_secret.value
   secret              = "true"
 }
+
