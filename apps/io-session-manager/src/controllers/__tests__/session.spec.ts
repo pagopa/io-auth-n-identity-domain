@@ -708,7 +708,7 @@ describe("logout", () => {
     expect(mockedAppinsightsTelemetryClient.trackEvent).toHaveBeenCalledWith({
       name: "service-bus.auth-event.emission-failure",
       properties: {
-        ...expectedLogoutEvent,
+        eventData: expectedLogoutEvent,
         message: simulatedError.message,
       },
     });

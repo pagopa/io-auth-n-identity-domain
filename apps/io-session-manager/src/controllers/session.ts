@@ -329,7 +329,7 @@ const emitEventOnLogout: (
         deps.appInsightsTelemetryClient?.trackEvent({
           name: "service-bus.auth-event.emission-failure",
           properties: {
-            ...eventData,
+            eventData,
             message: err.message,
           },
         });
