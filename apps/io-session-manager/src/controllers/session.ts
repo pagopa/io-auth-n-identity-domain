@@ -301,19 +301,12 @@ export const logout: RTE.ReaderTaskEither<
       ),
     ),
     TE.chain((_) =>
-      pipe(
-        deps.isUserEligibleForServiceBusEvents(deps.user.fiscal_code),
-        B.fold(
-          () => TE.of(void 0),
-          () =>
-            AuthSessionEventsRepo.emitAuthSessionEvent({
-              eventType: EventTypeEnum.LOGOUT,
-              fiscalCode: deps.user.fiscal_code,
-              scenario: LogoutScenarioEnum.APP,
-              ts: new Date(),
-            } as LogoutEvent)(deps),
-        ),
-      ),
+      emitEventOnLogout({
+        eventType: EventTypeEnum.LOGOUT,
+        fiscalCode: deps.user.fiscal_code,
+        scenario: LogoutScenarioEnum.APP,
+        ts: new Date(),
+      })(deps),
     ),
     TE.mapLeft((err) => {
       log.error(err.message);
@@ -321,6 +314,28 @@ export const logout: RTE.ReaderTaskEither<
     }),
     TE.map((_) => ResponseSuccessJson({ message: "ok" })),
   );
+
+const emitEventOnLogout: (
+  eventData: LogoutEvent,
+) => (dependencies: LogoutDependencies) => TE.TaskEither<Error, void> =
+  (eventData) => (deps) =>
+    pipe(
+      deps.isUserEligibleForServiceBusEvents(eventData.fiscalCode),
+      B.fold(
+        () => TE.right(void 0),
+        () => AuthSessionEventsRepo.emitAuthSessionEvent(eventData)(deps),
+      ),
+      TE.mapLeft((err) => {
+        deps.appInsightsTelemetryClient?.trackEvent({
+          name: "service-bus.auth-event.emission-failure",
+          properties: {
+            ...eventData,
+            message: err.message,
+          },
+        });
+        return err;
+      }),
+    );
 
 /**
  * Introspects the user's session token and returns the related user identity along with token TTL.

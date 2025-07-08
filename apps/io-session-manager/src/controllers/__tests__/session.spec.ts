@@ -41,6 +41,7 @@ import { RedisSessionStorageService, TokenService } from "../../services";
 import { UserIdentityWithTtl } from "../../generated/introspection/UserIdentityWithTtl";
 import { mockAuthSessionsTopicRepository } from "../../repositories/__mocks__/auth-session-topic-repository.mocks";
 import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
+import { mockedAppinsightsTelemetryClient } from "../../__mocks__/appinsights.mocks";
 
 const frozenDate = new Date(2025, 0, 1);
 vi.setSystemTime(frozenDate);
@@ -531,6 +532,7 @@ describe("logout", () => {
     AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
     authSessionsTopicSender: mockServiceBusSender,
     isUserEligibleForServiceBusEvents: () => true,
+    appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
 
     user: mockedUser,
     req,
@@ -679,6 +681,37 @@ describe("logout", () => {
     expect(result).toEqual(
       E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
     );
+  });
+
+  test(`
+    GIVEN a valid request
+    WHEN a failure occurs while sending the servicBus logout event
+    THEN an applicationInsights customEvent should be sent containing all logout event data`, async () => {
+    mockGetLollipopAssertionRefForUser.mockImplementationOnce((_deps) =>
+      TE.of(O.none),
+    );
+
+    const simulatedError = new Error("Simulated Error");
+
+    mockEmitSessionEvent.mockImplementationOnce(
+      () => () => TE.left(simulatedError),
+    );
+
+    const result = await logout(mockedDependencies)();
+
+    expect(result).toEqual(E.left(simulatedError));
+
+    expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
+    expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedLogoutEvent);
+    expect(mockedAppinsightsTelemetryClient.trackEvent).toHaveBeenCalledOnce();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).toHaveBeenCalledWith({
+      name: "service-bus.auth-event.emission-failure",
+      properties: {
+        ...expectedLogoutEvent,
+        message: simulatedError.message,
+      },
+    });
   });
 });
 
