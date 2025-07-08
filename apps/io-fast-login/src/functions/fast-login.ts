@@ -89,14 +89,15 @@ export const StoreFastLoginAuditLogs: (
   H.HttpError,
   azureStorage.BlobService.BlobResult
 > = (fastLoginAuditLogDoc: FastLoginAuditDoc, logFileName: string) => ({
-  blobService
+  blobService,
+  containerName
 }) =>
   pipe(
     TE.tryCatch(
       () =>
         upsertBlobFromObject(
           blobService,
-          "logs",
+          containerName,
           logFileName,
           FastLoginAuditDoc.encode(fastLoginAuditLogDoc)
         ),

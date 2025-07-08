@@ -66,6 +66,7 @@ The following table contains the required ENV variables that the applicative req
 | LOLLIPOP_GET_ASSERTION_API_KEY     | API Key to authorize `getAssertion`           | string  |
 | LOLLIPOP_GET_ASSERTION_BASE_URL    | API Url for `getAssertion` operation          | string  |
 | FAST_LOGIN_AUDIT_CONNECTION_STRING | Audit logs blob connection string             | string  |
+| FAST_LOGIN_AUDIT_CONTAINER_NAME    | Audit logs blob container                     | string  |
 | FETCH_TIMEOUT_MS                   | (optional) Fetch Timeout for AbortableFetch   | number  |
 | SESSION_MANAGER_INTERNAL_API_KEY   | API Key to authorize `logout`                 | string  |
 | SESSION_MANAGER_INTERNAL_BASE_URL  | API Url for `logout` operation                | string  |
