@@ -286,7 +286,7 @@ customEvents
   tags = local.tags
 }
 
-resource "azurerm_monitor_scheduled_query_rules_alert_v2" "revert-failure-alert" {
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-discoverer-revert-failure-alert" {
   enabled                 = true
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Failed to revert a notification status"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
@@ -323,7 +323,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "revert-failure-alert"
 }
 
 
-resource "azurerm_monitor_scheduled_query_rules_alert_v2" "max-retry-reached-alert" {
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-discoverer-max-retry-reached-alert" {
   enabled                 = true
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Expired Sessions Discoverer max retry reached"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
@@ -360,7 +360,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "max-retry-reached-ale
 }
 
 
-resource "azurerm_monitor_scheduled_query_rules_alert_v2" "bad-record-alert" {
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-discoverer-bad-record-alert" {
   enabled                 = true
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Expired Sessions Discoverer found bad record(s)"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
