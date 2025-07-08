@@ -102,9 +102,9 @@
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.2"
   },
   "azure-service-bus-alerts": {
-    "hash": "d5b2f548915ac305239b2d89e3cdf37ceaf15aa72b1e3f7b5a3ffec38db6c751",
-    "version": "0.1.1",
+    "hash": "59ffb11ffb5dcdeb362d4c6c56338aff8d015de8e2da7c80403cf13b946a28ea",
+    "version": "0.1.2",
     "name": "azure_service_bus_alerts",
-    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-service-bus-alerts/azurerm/0.1.1"
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-service-bus-alerts/azurerm/0.1.2"
   }
 }
