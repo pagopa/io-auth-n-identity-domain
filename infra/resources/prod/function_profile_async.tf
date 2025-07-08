@@ -288,7 +288,7 @@ customEvents
 
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-discoverer-revert-failure-alert" {
   enabled                 = true
-  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Failed to revert a notification status"
+  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Expired Sessions Discoverer failed to revert a notification status"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
   description             = "Some notifications status reverts did not complete successfully"
