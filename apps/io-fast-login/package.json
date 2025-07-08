@@ -1,6 +1,6 @@
 {
   "name": "io-fast-login",
-  "version": "4.2.1",
+  "version": "4.3.0",
   "author": "IO Auth & Identity Team",
   "description": "Fast Login functions",
   "main": "./dist/main.js",
