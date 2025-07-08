@@ -395,3 +395,151 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "bad-record-alert" {
 
   tags = local.tags
 }
+
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-events-processor-max-retry-reached-alert" {
+  enabled                 = true
+  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Session Notification Events Processor max retry reached"
+  resource_group_name     = data.azurerm_resource_group.main_resource_group.name
+  scopes                  = [data.azurerm_application_insights.application_insights.id]
+  description             = "The Session Notification Events Processor function reached the maximum number of retries"
+  severity                = 1
+  auto_mitigation_enabled = false
+  location                = local.location
+
+  // check once every day(evaluation_frequency)
+  // on the last 24 hours of data(window_duration)
+  evaluation_frequency = "P1D"
+  window_duration      = "P1D"
+
+  criteria {
+    query                   = <<-QUERY
+      customEvents
+      | where name == "io.citizen-auth.prof-async.session-notification-events-processor.max-retry-reached"
+    QUERY
+    operator                = "GreaterThan"
+    time_aggregation_method = "Count"
+    threshold               = 0
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}
+
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-events-processor-bad-record-alert" {
+  enabled                 = true
+  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Session Notification Events Processor found bad record(s)"
+  resource_group_name     = data.azurerm_resource_group.main_resource_group.name
+  scopes                  = [data.azurerm_application_insights.application_insights.id]
+  description             = "The Session Notification Events Processor function found bad record(s) that may require attention."
+  severity                = 1
+  auto_mitigation_enabled = false
+  location                = local.location
+
+  // check once every day(evaluation_frequency)
+  // on the last 24 hours of data(window_duration)
+  evaluation_frequency = "P1D"
+  window_duration      = "P1D"
+
+  criteria {
+    query                   = <<-QUERY
+      customEvents
+      | where name == "io.citizen-auth.prof-async.session-notification-events-processor.permanent.bad-record"
+    QUERY
+    operator                = "GreaterThan"
+    time_aggregation_method = "Count"
+    threshold               = 0
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}
+
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-events-processor-unable-to-build-new-record-alert" {
+  enabled                 = true
+  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Session Notification Events Processor unable to build a record"
+  resource_group_name     = data.azurerm_resource_group.main_resource_group.name
+  scopes                  = [data.azurerm_application_insights.application_insights.id]
+  description             = "The Session Notification Events Processor function was not able to build a record."
+  severity                = 1
+  auto_mitigation_enabled = false
+  location                = local.location
+
+  // check once every day(evaluation_frequency)
+  // on the last 24 hours of data(window_duration)
+  evaluation_frequency = "P1D"
+  window_duration      = "P1D"
+
+  criteria {
+    query                   = <<-QUERY
+      customEvents
+      | where name == "io.citizen-auth.prof-async.session-notification-events-processor.permanent.unable-to-build-new-record"
+    QUERY
+    operator                = "GreaterThan"
+    time_aggregation_method = "Count"
+    threshold               = 0
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}
+
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-events-processor-bad-message-alert" {
+  enabled                 = true
+  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Session Notification Events Processor found bad message(s)"
+  resource_group_name     = data.azurerm_resource_group.main_resource_group.name
+  scopes                  = [data.azurerm_application_insights.application_insights.id]
+  description             = "The Session Notification Events Processor function found bad message(s) while processing events."
+  severity                = 1
+  auto_mitigation_enabled = false
+  location                = local.location
+
+  // check once every day(evaluation_frequency)
+  // on the last 24 hours of data(window_duration)
+  evaluation_frequency = "P1D"
+  window_duration      = "P1D"
+
+  criteria {
+    query                   = <<-QUERY
+      customEvents
+      | where name == "io.citizen-auth.prof-async.session-notification-events-processor.permanent.bad-message"
+    QUERY
+    operator                = "GreaterThan"
+    time_aggregation_method = "Count"
+    threshold               = 0
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}
