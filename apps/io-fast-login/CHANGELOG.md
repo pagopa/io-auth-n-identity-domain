@@ -1,5 +1,11 @@
 # io-fast-login
 
+## 4.3.0
+
+### Minor Changes
+
+- 242a030: Read audit log container name from config
+
 ## 4.2.1
 
 ### Patch Changes
