@@ -15,8 +15,8 @@ No requirements.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_api_v2_profile_internal"></a> [api\_v2\_profile\_internal](#module\_api\_v2\_profile\_internal) | github.com/pagopa/terraform-azurerm-v3//api_management_api | v8.27.0 |
-| <a name="module_apim_v2_product_auth-n-identity_internal"></a> [apim\_v2\_product\_auth-n-identity\_internal](#module\_apim\_v2\_product\_auth-n-identity\_internal) | github.com/pagopa/terraform-azurerm-v3//api_management_product | v8.27.0 |
+| <a name="module_api_v2_profile_internal"></a> [api\_v2\_profile\_internal](#module\_api\_v2\_profile\_internal) | github.com/pagopa/terraform-azurerm-v4//api_management_api | v7.16.0 |
+| <a name="module_apim_v2_product_auth-n-identity_internal"></a> [apim\_v2\_product\_auth-n-identity\_internal](#module\_apim\_v2\_product\_auth-n-identity\_internal) | github.com/pagopa/terraform-azurerm-v4//api_management_product | v7.16.0 |
 
 ## Resources
 

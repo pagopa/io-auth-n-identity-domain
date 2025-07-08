@@ -9,14 +9,14 @@ No requirements.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 3.117.0 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | n/a |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_api_v2_profile_operation"></a> [api\_v2\_profile\_operation](#module\_api\_v2\_profile\_operation) | github.com/pagopa/terraform-azurerm-v3//api_management_api | v8.27.0 |
-| <a name="module_apim_v2_product_auth-n-identity_operation"></a> [apim\_v2\_product\_auth-n-identity\_operation](#module\_apim\_v2\_product\_auth-n-identity\_operation) | github.com/pagopa/terraform-azurerm-v3//api_management_product | v8.27.0 |
+| <a name="module_api_v2_profile_operation"></a> [api\_v2\_profile\_operation](#module\_api\_v2\_profile\_operation) | github.com/pagopa/terraform-azurerm-v4//api_management_api | v7.16.0 |
+| <a name="module_apim_v2_product_auth-n-identity_operation"></a> [apim\_v2\_product\_auth-n-identity\_operation](#module\_apim\_v2\_product\_auth-n-identity\_operation) | github.com/pagopa/terraform-azurerm-v4//api_management_product | v7.16.0 |
 
 ## Resources
 
