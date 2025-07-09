@@ -26,7 +26,7 @@ LOLLIPOP_GET_ASSERTION_BASE_URL=http://host.docker.internal
 # Fast Login Audit log storage
 ###
 FAST_LOGIN_AUDIT_CONNECTION_STRING=${STORAGE_CONN_STRING}
-
+FAST_LOGIN_AUDIT_CONTAINER_NAME=logs
 
 ###
 # SessionManagerInternal

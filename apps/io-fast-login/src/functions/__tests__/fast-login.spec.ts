@@ -7,7 +7,7 @@ import * as O from "fp-ts/Option";
 import * as azureStorage from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as mattrglobalUtils from "@mattrglobal/http-signatures/lib/verify/verifySignatureHeader";
-import { okAsync, errAsync, Result, ResultAsync } from "neverthrow";
+import { okAsync, errAsync } from "neverthrow";
 import { aFiscalCode, anotherFiscalCode } from "../__mocks__/general";
 import {
   aLollipopInvalidSignature,
@@ -46,6 +46,7 @@ const mockValidateSignature = vi
   .spyOn(mattrglobalUtils, "verifySignatureHeader")
   .mockReturnValue(okAsync({ verified: true }));
 
+// eslint-disable-next-line max-lines-per-function
 describe("Fast Login handler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -65,6 +66,7 @@ describe("Fast Login handler", () => {
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
       blobService: mockBlobService,
+      containerName: "logs" as NonEmptyString,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).toHaveBeenCalled();
@@ -112,6 +114,7 @@ describe("Fast Login handler", () => {
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
       blobService: mockBlobService,
+      containerName: "logs" as NonEmptyString,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).not.toHaveBeenCalled();
@@ -141,6 +144,7 @@ describe("Fast Login handler", () => {
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
       blobService: mockBlobService,
+      containerName: "logs" as NonEmptyString,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).not.toHaveBeenCalled();
@@ -172,6 +176,7 @@ describe("Fast Login handler", () => {
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
       blobService: mockBlobService,
+      containerName: "logs" as NonEmptyString,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).not.toHaveBeenCalled();
@@ -204,6 +209,7 @@ describe("Fast Login handler", () => {
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
       blobService: mockBlobService,
+      containerName: "logs" as NonEmptyString,
       redisClientTask: mockRedisClientTask
     })();
     expect(E.isRight(result)).toBeTruthy();
@@ -243,6 +249,7 @@ describe("Fast Login handler", () => {
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
       blobService: mockBlobService,
+      containerName: "logs" as NonEmptyString,
       redisClientTask: mockRedisClientTask
     })();
     expect(E.isRight(result)).toBeTruthy();
@@ -276,6 +283,7 @@ describe("Fast Login handler", () => {
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
       blobService: mockBlobService,
+      containerName: "logs" as NonEmptyString,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).toHaveBeenCalled();
@@ -316,6 +324,7 @@ describe("Fast Login handler", () => {
         input: req,
         fnLollipopClient: mockedFnLollipopClient,
         blobService: mockBlobService,
+        containerName: "logs" as NonEmptyString,
         redisClientTask: mockRedisClientTask
       })();
       expect(mockValidateSignature).toHaveBeenCalled();
@@ -361,6 +370,7 @@ describe("Fast Login handler", () => {
         input: req,
         fnLollipopClient: mockedFnLollipopClient,
         blobService: mockBlobService,
+        containerName: "logs" as NonEmptyString,
         redisClientTask: mockRedisClientTask
       })();
       expect(mockValidateSignature).toHaveBeenCalled();
@@ -412,6 +422,7 @@ describe("Fast Login handler", () => {
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
       blobService: mockBlobService,
+      containerName: "logs" as NonEmptyString,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).toHaveBeenCalled();
@@ -452,6 +463,7 @@ describe("Fast Login handler", () => {
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
       blobService: mockBlobService,
+      containerName: "logs" as NonEmptyString,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).toHaveBeenCalled();
@@ -488,6 +500,7 @@ describe("Fast Login handler", () => {
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
       blobService: mockBlobService,
+      containerName: "logs" as NonEmptyString,
       redisClientTask: TE.left(new Error(anError))
     })();
     expect(mockValidateSignature).toHaveBeenCalled();
@@ -524,6 +537,7 @@ describe("Fast Login handler", () => {
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
       blobService: mockBlobService,
+      containerName: "logs" as NonEmptyString,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).toHaveBeenCalled();

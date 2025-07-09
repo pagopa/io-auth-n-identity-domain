@@ -63,6 +63,7 @@ const redisClientTask = CreateRedisClientSingleton(config);
 export const Info = InfoFunction({ redisClientTask });
 export const FastLogin = FastLoginFunction({
   blobService,
+  containerName: config.FAST_LOGIN_AUDIT_CONTAINER_NAME,
   fnLollipopClient,
   redisClientTask
 });
