@@ -2,5 +2,5 @@
 
 * @pagopa/io-auth-n-identity-backend
 
-/infra/ @pagopa/engineering-team-cloud-eng @pagopa/io-auth-n-identity-backend
-/.github/ @pagopa/engineering-team-cloud-eng @pagopa/io-auth-n-identity-backend
+/infra/ @pagopa/engineering-team-devex @pagopa/io-auth-n-identity-backend
+/.github/ @pagopa/engineering-team-devex @pagopa/io-auth-n-identity-backend
