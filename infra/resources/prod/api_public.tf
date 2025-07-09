@@ -1,5 +1,5 @@
 module "io_public_apim_api_itn" {
-  source = "../../modules/io_public_api"
+  source = "../modules/io_public_api"
 
   apim_name                = local.apim_itn_name
   apim_resource_group_name = local.apim_itn_resource_group_name

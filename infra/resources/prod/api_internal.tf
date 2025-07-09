@@ -1,5 +1,5 @@
 module "io_auth_internal_apim_api_itn" {
-  source = "../../modules/internal_api"
+  source = "../modules/internal_api"
 
   apim_name                = local.apim_itn_name
   apim_resource_group_name = local.apim_itn_resource_group_name
