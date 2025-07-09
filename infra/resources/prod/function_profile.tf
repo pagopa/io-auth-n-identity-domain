@@ -18,7 +18,6 @@ data "azurerm_key_vault_secret" "fn_app_PUBLIC_API_KEY" {
   key_vault_id = data.azurerm_key_vault.common_kv.id
 }
 
-
 locals {
   function_profile = {
     name = "profile"

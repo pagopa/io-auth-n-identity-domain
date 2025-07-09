@@ -46,8 +46,6 @@ locals {
   }
 }
 
-
-
 module "function_session_manager_internal" {
   source  = "pagopa-dx/azure-function-app/azurerm"
   version = "~> 0.0"
