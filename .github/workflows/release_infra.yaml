@@ -7,7 +7,6 @@ on:
       - main
     paths:
       - "infra/resources/**"
-      - "infra/modules/**"
       # Terraform version edit
       - ".terraform-version"
 
