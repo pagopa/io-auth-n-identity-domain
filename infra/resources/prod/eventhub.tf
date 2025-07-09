@@ -3,7 +3,7 @@ data "azurerm_resource_group" "rg_elt" {
 }
 
 module "eventhub" {
-  source              = "../../modules/eventhub"
+  source              = "../modules/eventhub"
   prefix              = local.prefix
   env_short           = local.env_short
   location            = local.location

@@ -1,5 +1,5 @@
 module "webprofile_apim_api_itn" {
-  source                        = "../../modules/ioweb_profile_api"
+  source                        = "../modules/ioweb_profile_api"
   prefix                        = local.prefix
   env_short                     = local.env_short
   apim_name                     = local.apim_itn_name

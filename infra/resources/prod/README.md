@@ -19,7 +19,7 @@
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_common_values"></a> [common\_values](#module\_common\_values) | github.com/pagopa/io-infra//src/_modules/common_values | main |
-| <a name="module_eventhub"></a> [eventhub](#module\_eventhub) | ../../modules/eventhub | n/a |
+| <a name="module_eventhub"></a> [eventhub](#module\_eventhub) | ../modules/eventhub | n/a |
 | <a name="module_function_lollipop"></a> [function\_lollipop](#module\_function\_lollipop) | pagopa-dx/azure-function-app/azurerm | ~> 0.0 |
 | <a name="module_function_lollipop_autoscale"></a> [function\_lollipop\_autoscale](#module\_function\_lollipop\_autoscale) | pagopa-dx/azure-app-service-plan-autoscaler/azurerm | 0.0.2 |
 | <a name="module_function_lv"></a> [function\_lv](#module\_function\_lv) | pagopa-dx/azure-function-app/azurerm | ~> 0.0 |
@@ -32,15 +32,15 @@
 | <a name="module_function_session_manager_internal"></a> [function\_session\_manager\_internal](#module\_function\_session\_manager\_internal) | pagopa-dx/azure-function-app/azurerm | ~> 0.0 |
 | <a name="module_function_session_manager_internal_autoscale"></a> [function\_session\_manager\_internal\_autoscale](#module\_function\_session\_manager\_internal\_autoscale) | pagopa-dx/azure-app-service-plan-autoscaler/azurerm | ~> 0.0 |
 | <a name="module_function_web_profile"></a> [function\_web\_profile](#module\_function\_web\_profile) | pagopa-dx/azure-function-app/azurerm | ~> 0.0 |
-| <a name="module_io_auth_internal_apim_api_itn"></a> [io\_auth\_internal\_apim\_api\_itn](#module\_io\_auth\_internal\_apim\_api\_itn) | ../../modules/internal_api | n/a |
-| <a name="module_io_profile_apim_api_itn"></a> [io\_profile\_apim\_api\_itn](#module\_io\_profile\_apim\_api\_itn) | ../../modules/operation_api | n/a |
-| <a name="module_io_public_apim_api_itn"></a> [io\_public\_apim\_api\_itn](#module\_io\_public\_apim\_api\_itn) | ../../modules/io_public_api | n/a |
+| <a name="module_io_auth_internal_apim_api_itn"></a> [io\_auth\_internal\_apim\_api\_itn](#module\_io\_auth\_internal\_apim\_api\_itn) | ../modules/internal_api | n/a |
+| <a name="module_io_profile_apim_api_itn"></a> [io\_profile\_apim\_api\_itn](#module\_io\_profile\_apim\_api\_itn) | ../modules/operation_api | n/a |
+| <a name="module_io_public_apim_api_itn"></a> [io\_public\_apim\_api\_itn](#module\_io\_public\_apim\_api\_itn) | ../modules/io_public_api | n/a |
 | <a name="module_key_vaults"></a> [key\_vaults](#module\_key\_vaults) | ../../modules/key_vaults | n/a |
 | <a name="module_pub_session_manager"></a> [pub\_session\_manager](#module\_pub\_session\_manager) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_pub_session_manager_internal"></a> [pub\_session\_manager\_internal](#module\_pub\_session\_manager\_internal) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_sub_io_prof_async"></a> [sub\_io\_prof\_async](#module\_sub\_io\_prof\_async) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_topic_io_auth"></a> [topic\_io\_auth](#module\_topic\_io\_auth) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
-| <a name="module_webprofile_apim_api_itn"></a> [webprofile\_apim\_api\_itn](#module\_webprofile\_apim\_api\_itn) | ../../modules/ioweb_profile_api | n/a |
+| <a name="module_webprofile_apim_api_itn"></a> [webprofile\_apim\_api\_itn](#module\_webprofile\_apim\_api\_itn) | ../modules/ioweb_profile_api | n/a |
 
 ## Resources
 

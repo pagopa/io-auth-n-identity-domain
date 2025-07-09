@@ -1,5 +1,5 @@
 module "io_profile_apim_api_itn" {
-  source = "../../modules/operation_api"
+  source = "../modules/operation_api"
 
   apim_name                = local.apim_itn_name
   apim_resource_group_name = local.apim_itn_resource_group_name
