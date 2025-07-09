@@ -112,3 +112,44 @@ module "sub_io_prof_async" {
     }
   ]
 }
+
+
+/////////////////////////
+//       ALERTS        //
+/////////////////////////
+module "azure-service-bus-alerts" {
+  source  = "pagopa-dx/azure-service-bus-alerts/azurerm"
+  version = "~>0.1"
+
+  service_bus_namespace_id = data.azurerm_servicebus_namespace.platform_service_bus_namespace.id
+
+  alerts_on_active_messages = {
+    description     = "Alert on active messages in the Service Bus topic for '${azurerm_servicebus_topic.io_auth_sessions_topic.name}'. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1853456776/Auth+Sessions+Topic+Active+Messages"
+    entity_names    = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
+    threshold       = 5000
+    check_every     = "PT5M"
+    lookback_period = "PT5M"
+    severity        = "Warning"
+  }
+
+  alerts_on_dlq_messages = {
+    description     = "Alert on dead-lettered messages in the Service Bus topic for '${azurerm_servicebus_topic.io_auth_sessions_topic.name}'. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1852407824/Max+Retry+Reached+SessionNotificationEventsProcessor"
+    entity_names    = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
+    threshold       = 0
+    check_every     = "PT1H"
+    lookback_period = "PT1H"
+    severity        = "Error"
+  }
+
+  environment = {
+    prefix          = local.prefix
+    env_short       = local.env_short
+    location        = local.location
+    domain          = local.domain
+    app_name        = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
+    instance_number = "01"
+  }
+
+  action_group_ids = [azurerm_monitor_action_group.error_action_group.id]
+  tags             = local.tags
+}
