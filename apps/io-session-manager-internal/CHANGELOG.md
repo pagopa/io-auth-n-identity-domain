@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.11.1
+
+### Patch Changes
+
+- 2010846: Write an applicationInsights customEvent when emitting a logout serviceBus event fails
+
 ## 0.11.0
 
 ### Minor Changes
