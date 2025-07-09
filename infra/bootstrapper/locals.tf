@@ -53,7 +53,7 @@ locals {
     description              = "Auth&Identity Monorepo"
     topics                   = ["auth", "io"]
     jira_boards_ids          = ["CES", "IO-PID"]
-    reviewers_teams          = ["io-auth-n-identity-backend", "engineering-team-cloud-eng"]
+    reviewers_teams          = ["io-auth-n-identity-backend", "engineering-team-devex"]
     default_branch_name      = "main"
     infra_cd_policy_branches = ["main"]
     opex_cd_policy_branches  = ["main"]
