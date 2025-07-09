@@ -4,6 +4,7 @@ import { afterAll, describe, test, expect, vi, beforeEach } from "vitest";
 import { Request, Response } from "express";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
+import * as RTE from "fp-ts/ReaderTaskEither";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { ResponseSuccessJson } from "@pagopa/ts-commons/lib/responses";
@@ -693,7 +694,7 @@ describe("logout", () => {
 
   test(`
     GIVEN a valid request
-    WHEN a failure occurs while sending the servicBus logout event
+    WHEN a failure occurs while sending the serviceBus logout event
     THEN an applicationInsights customEvent should be sent containing all logout event data`, async () => {
     mockGetLollipopAssertionRefForUser.mockImplementationOnce((_deps) =>
       TE.of(O.none),
@@ -701,9 +702,7 @@ describe("logout", () => {
 
     const simulatedError = new Error("Simulated Error");
 
-    mockEmitSessionEvent.mockImplementationOnce(
-      () => () => TE.left(simulatedError),
-    );
+    mockEmitSessionEvent.mockImplementationOnce(() => RTE.left(simulatedError));
 
     const result = await logout(mockedDependencies)();
 
