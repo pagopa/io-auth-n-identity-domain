@@ -137,7 +137,7 @@ module "azure-service-bus-alerts" {
     entity_names    = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
     threshold       = 0
     check_every     = "PT1H"
-    lookback_period = "PT6H"
+    lookback_period = "PT1H"
     severity        = "Error"
   }
 
