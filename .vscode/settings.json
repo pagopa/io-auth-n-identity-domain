@@ -15,7 +15,10 @@
       "severity": "warn"
     }
   ],
-
   // Vitest
   "vitest.workspaceConfig": "./vitest.workspace.mts",
+  "[terraform]": {
+    "editor.defaultFormatter": "hashicorp.terraform",
+    "editor.formatOnSave": true
+  }
 }
