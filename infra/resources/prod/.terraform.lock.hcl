@@ -72,8 +72,8 @@ provider "registry.terraform.io/hashicorp/external" {
 }
 
 provider "registry.terraform.io/pagopa-dx/azure" {
-  version     = "0.6.1"
-  constraints = ">= 0.0.6, ~> 0.3, < 1.0.0"
+  version     = "0.6.0"
+  constraints = ">= 0.0.6, < 1.0.0"
   hashes = [
     "h1:8YmbHtPFNm0s1JV6KpiF77pz6gCE4xLZbWj3/Lbbzzc=",
     "h1:9zgzppbkpZzUBzmkdSE9zuYbjBARXZi0Epd92M3VWkY=",
@@ -83,11 +83,17 @@ provider "registry.terraform.io/pagopa-dx/azure" {
     "zh:18876c0523e679d290d1ef3fcfbc5a0a31fed9f4c94ae162bd01369e69fddf3e",
     "zh:3a30787e6a6746b528224c3b450e7267bbe46832e8b3069ba10c609c00fa5243",
     "zh:775bd9cb0411c11bcb40646a60354e8346678c00e297bd0e1305c6dec834815f",
-    "zh:84af31e155eb7a1e94f772b2e9582f5916b5343bc99ed24f2e480a72a518a39d",
-    "zh:915272f78488a431cabd86bd1067bc927b357675697fa611792b94c2e09ee606",
-    "zh:a39567013127df69853e091ee89813678a871e4cc0886dc0c505410b814669bd",
-    "zh:b6618ec8cf835c6fe31885b4ac99d81932205eed2c4a20d2d4cbee40b5db9718",
-    "zh:b6fc29720e99ce6ac839c31c9c6774cd926f695b02800fcceb876810c8fbdd1f",
-    "zh:bc0190929824067617b30d1ecec9713a74a9aaf055134b5f44996a4e49adb2cd",
+    "zh:86715ce1fd9e07896df95a7f17415bc899647628b048b11bda2a68c1e511385e",
+    "zh:8ed4e5198c7b947022082a599fc29db39e73817a3e8c5d223775e1ec53a0d83d",
+    "zh:911e475a70439eb442deedf91b3ab03b2c2b70eed77821212bc26734e963f757",
+    "zh:9a5365c598c7a82c080522c54addacf80f337fe0a3a8b08b12c68fceba5268a6",
+    "zh:a2ed6c4a13e1e013144db32665b0b120b72223386a363f8b8332dd23c6c60275",
+    "zh:ac774b4e1cb5608064c6ebfe99db6c7226a29d8752a42c78c72d79e906fab104",
+    "zh:bd2ac7a33b89ede9714362e66c09d748e37005233ffa6fb0e9445ad0492a2b0f",
+    "zh:cd8c520f6a7fedabaee8bbd89fc05749a4d92fc25d4c69a1548cda2dac786c6f",
+    "zh:d14a6ff5970d6ee6d21e63f9807f9f3cd448feaec1e6aeea5af96205ef51089b",
+    "zh:e4539d1fcec357cb8cb8ee8af26480e8a2cab32969d8327dc36ee4f4ccc9a620",
+    "zh:f3a9b834c8066496baad1ad74c11eaef3aa0bd2516d090f44ad2ee3c4c1d581b",
+    "zh:f45a3f41a65af599abc88f4d21d9ad01182abc33913d6156c9f243c23158d2af",
   ]
 }
