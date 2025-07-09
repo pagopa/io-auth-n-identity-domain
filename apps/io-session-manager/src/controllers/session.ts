@@ -317,7 +317,7 @@ export const logout: RTE.ReaderTaskEither<
 
 const emitEventOnLogout: (
   eventData: LogoutEvent,
-) => (dependencies: LogoutDependencies) => TE.TaskEither<Error, void> =
+) => RTE.ReaderTaskEither<LogoutDependencies, Error, void> =
   (eventData) => (deps) =>
     pipe(
       deps.isUserEligibleForServiceBusEvents(eventData.fiscalCode),
