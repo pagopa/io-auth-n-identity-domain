@@ -4,6 +4,7 @@ import { afterAll, describe, test, expect, vi, beforeEach } from "vitest";
 import { Request, Response } from "express";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
+import * as RTE from "fp-ts/ReaderTaskEither";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { ResponseSuccessJson } from "@pagopa/ts-commons/lib/responses";
@@ -41,6 +42,7 @@ import { RedisSessionStorageService, TokenService } from "../../services";
 import { UserIdentityWithTtl } from "../../generated/introspection/UserIdentityWithTtl";
 import { mockAuthSessionsTopicRepository } from "../../repositories/__mocks__/auth-session-topic-repository.mocks";
 import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
+import { mockedAppinsightsTelemetryClient } from "../../__mocks__/appinsights.mocks";
 
 const frozenDate = new Date(2025, 0, 1);
 vi.setSystemTime(frozenDate);
@@ -531,6 +533,7 @@ describe("logout", () => {
     AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
     authSessionsTopicSender: mockServiceBusSender,
     isUserEligibleForServiceBusEvents: () => true,
+    appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
 
     user: mockedUser,
     req,
@@ -558,6 +561,7 @@ describe("logout", () => {
     );
     expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
     expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedLogoutEvent);
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -577,6 +581,7 @@ describe("logout", () => {
     expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
     expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
     expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedLogoutEvent);
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -596,6 +601,7 @@ describe("logout", () => {
     expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
     expect(mockDeleteUser).not.toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -612,6 +618,7 @@ describe("logout", () => {
 
     expect(mockDeleteUser).not.toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -630,6 +637,7 @@ describe("logout", () => {
 
     expect(mockDeleteUser).not.toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -646,6 +654,7 @@ describe("logout", () => {
 
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -662,6 +671,7 @@ describe("logout", () => {
 
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -676,9 +686,42 @@ describe("logout", () => {
     const result = await logout(mockedDependenciesWithIneligibleUser)();
 
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
     expect(result).toEqual(
       E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
     );
+  });
+
+  test(`
+    GIVEN a valid request
+    WHEN a failure occurs while sending the serviceBus logout event
+    THEN an applicationInsights customEvent should be sent containing all logout event data`, async () => {
+    mockGetLollipopAssertionRefForUser.mockImplementationOnce((_deps) =>
+      TE.of(O.none),
+    );
+
+    const simulatedError = new Error("Simulated Error");
+
+    mockEmitSessionEvent.mockImplementationOnce(() => RTE.left(simulatedError));
+
+    const result = await logout(mockedDependencies)();
+
+    expect(result).toEqual(E.left(simulatedError));
+
+    expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
+    expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedLogoutEvent);
+    expect(mockedAppinsightsTelemetryClient.trackEvent).toHaveBeenCalledOnce();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).toHaveBeenCalledWith({
+      name: "service-bus.auth-event.emission-failure",
+      properties: {
+        eventData: expectedLogoutEvent,
+        message: simulatedError.message,
+      },
+      tagOverrides: {
+        samplingEnabled: "false",
+      },
+    });
   });
 });
 

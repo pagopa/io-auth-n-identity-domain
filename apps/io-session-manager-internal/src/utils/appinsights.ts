@@ -1,10 +1,11 @@
-import * as ai from "applicationinsights";
-import * as E from "fp-ts/lib/Either";
 import { initAppInsights } from "@pagopa/ts-commons/lib/appinsights";
 import { IntegerFromString } from "@pagopa/ts-commons/lib/numbers";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import * as ai from "applicationinsights";
+import { EventTelemetry } from "applicationinsights/out/Declarations/Contracts";
+import * as E from "fp-ts/lib/Either";
+import * as O from "fp-ts/lib/Option";
 import { pipe } from "fp-ts/lib/function";
-
 // the internal function runtime has MaxTelemetryItem per second set to 20 by default
 // @see https://github.com/Azure/azure-functions-host/blob/master/src/WebJobs.Script/Config/ApplicationInsightsLoggerOptionsSetup.cs#L29
 const DEFAULT_SAMPLING_PERCENTAGE = 5;
@@ -31,3 +32,12 @@ export const initTelemetryClient = (
             }),
         ),
       );
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const trackEvent = (event: EventTelemetry) => {
+  pipe(
+    initTelemetryClient(),
+    O.fromNullable,
+    O.chain((_) => O.tryCatch(() => _.trackEvent(event))),
+  );
+};

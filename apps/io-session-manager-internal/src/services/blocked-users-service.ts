@@ -1,9 +1,9 @@
 import * as redisLib from "redis";
 
-import * as RTE from "fp-ts/lib/ReaderTaskEither";
-import * as TE from "fp-ts/lib/TaskEither";
 import * as AP from "fp-ts/lib/Apply";
 import * as B from "fp-ts/lib/boolean";
+import * as RTE from "fp-ts/lib/ReaderTaskEither";
+import * as TE from "fp-ts/lib/TaskEither";
 
 import { pipe } from "fp-ts/lib/function";
 
@@ -15,15 +15,17 @@ import {
 } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import {
   EventTypeEnum,
+  LogoutEvent,
   LogoutScenarioEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 
 import { BlockedUsersRedisRepository } from "../repositories/blocked-users-redis";
-import { RedisRepository } from "../repositories/redis";
 import {
-  LollipopRepository,
   Dependencies as LollipopRepoDependencies,
+  LollipopRepository,
 } from "../repositories/lollipop";
+import { RedisRepository } from "../repositories/redis";
+import { trackEvent } from "../utils/appinsights";
 import { isUserEligibleForServiceBusEvents } from "../utils/config";
 import { SessionService } from "./session-service";
 
@@ -63,37 +65,41 @@ const lockUserSession: (
         ),
       ),
       TE.chainFirst((_) =>
-        emitLogoutIfEligible(
+        emitLogoutIfEligible({
           fiscalCode,
-          LogoutScenarioEnum.ACCOUNT_REMOVAL,
-        )(deps),
+          eventType: EventTypeEnum.LOGOUT,
+          scenario: LogoutScenarioEnum.ACCOUNT_REMOVAL,
+          ts: new Date(),
+        })(deps),
       ),
       TE.map((_) => true),
     );
 
 const emitLogoutIfEligible: (
-  fiscalCode: FiscalCode,
-  scenario: LogoutScenarioEnum,
-) => RTE.ReaderTaskEither<
-  {
-    AuthSessionsTopicRepository: AuthSessionsTopicRepository;
-  } & AuthSessionsTopicRepositoryDeps,
-  Error,
-  void
-> = (fiscalCode, scenario) => (deps) =>
-  pipe(
-    isUserEligibleForServiceBusEvents(fiscalCode),
-    B.match(
-      () => TE.of(void 0),
-      () =>
-        deps.AuthSessionsTopicRepository.emitSessionEvent({
-          fiscalCode,
-          eventType: EventTypeEnum.LOGOUT,
-          scenario,
-          ts: new Date(),
-        })(deps),
-    ),
-  );
+  eventData: LogoutEvent,
+) => RTE.ReaderTaskEither<BlockedUsersServiceDeps, Error, void> =
+  (eventData) => (deps) =>
+    pipe(
+      isUserEligibleForServiceBusEvents(eventData.fiscalCode),
+      B.match(
+        () => TE.of(void 0),
+        () =>
+          deps.AuthSessionsTopicRepository.emitSessionEvent(eventData)(deps),
+      ),
+      TE.mapLeft((err) => {
+        trackEvent({
+          name: "service-bus.auth-event.emission-failure",
+          properties: {
+            eventData,
+            message: err.message,
+          },
+          tagOverrides: {
+            samplingEnabled: "false",
+          },
+        });
+        return err;
+      }),
+    );
 
 const unlockUserSession: (
   fiscalCode: FiscalCode,

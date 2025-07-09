@@ -12,6 +12,16 @@ const PROJECT_BASE_PATH = resolvePath(`${process.cwd()}/../../`);
 
 const main = async () => {
   const results: ProcessResult[] = [];
+
+  // eslint-disable-next-line functional/immutable-data
+  results.push(
+    await promisifyProcess(
+      runProcess(
+        `docker compose --file ${PROJECT_BASE_PATH}/docker-compose.yml build cosmosdb io-profile io-lollipop`,
+      ),
+    ),
+  );
+
   // eslint-disable-next-line functional/immutable-data
   results.push(
     await promisifyProcess(
