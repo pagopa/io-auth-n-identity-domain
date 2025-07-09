@@ -35,6 +35,7 @@
 | <a name="module_io_auth_internal_apim_api_itn"></a> [io\_auth\_internal\_apim\_api\_itn](#module\_io\_auth\_internal\_apim\_api\_itn) | ../../modules/internal_api | n/a |
 | <a name="module_io_profile_apim_api_itn"></a> [io\_profile\_apim\_api\_itn](#module\_io\_profile\_apim\_api\_itn) | ../../modules/operation_api | n/a |
 | <a name="module_io_public_apim_api_itn"></a> [io\_public\_apim\_api\_itn](#module\_io\_public\_apim\_api\_itn) | ../../modules/io_public_api | n/a |
+| <a name="module_key_vaults"></a> [key\_vaults](#module\_key\_vaults) | ../../modules/key_vaults | n/a |
 | <a name="module_pub_session_manager"></a> [pub\_session\_manager](#module\_pub\_session\_manager) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_pub_session_manager_internal"></a> [pub\_session\_manager\_internal](#module\_pub\_session\_manager\_internal) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_sub_io_prof_async"></a> [sub\_io\_prof\_async](#module\_sub\_io\_prof\_async) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
