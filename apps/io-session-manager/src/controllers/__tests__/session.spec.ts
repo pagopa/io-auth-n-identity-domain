@@ -719,6 +719,9 @@ describe("logout", () => {
         eventData: expectedLogoutEvent,
         message: simulatedError.message,
       },
+      tagOverrides: {
+        samplingEnabled: "false",
+      },
     });
   });
 });

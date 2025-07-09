@@ -411,6 +411,9 @@ const emitLogoutIfEligible: (
             eventData,
             message: err.message,
           },
+          tagOverrides: {
+            samplingEnabled: "false",
+          },
         });
         return err;
       }),

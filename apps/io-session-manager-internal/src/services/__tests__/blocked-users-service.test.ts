@@ -118,6 +118,9 @@ describe("Blocked Users Service#lockUserSession", () => {
         eventData: expectedEventData,
         message: simulatedError.message,
       },
+      tagOverrides: {
+        samplingEnabled: "false",
+      },
     });
     expect(result).toEqual(E.left(simulatedError));
   });
