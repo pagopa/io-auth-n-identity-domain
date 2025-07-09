@@ -560,6 +560,7 @@ describe("logout", () => {
     );
     expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
     expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedLogoutEvent);
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -579,6 +580,7 @@ describe("logout", () => {
     expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
     expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
     expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedLogoutEvent);
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -598,6 +600,7 @@ describe("logout", () => {
     expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
     expect(mockDeleteUser).not.toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -614,6 +617,7 @@ describe("logout", () => {
 
     expect(mockDeleteUser).not.toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -632,6 +636,7 @@ describe("logout", () => {
 
     expect(mockDeleteUser).not.toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -648,6 +653,7 @@ describe("logout", () => {
 
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -664,6 +670,7 @@ describe("logout", () => {
 
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 
   test(`
@@ -678,6 +685,7 @@ describe("logout", () => {
     const result = await logout(mockedDependenciesWithIneligibleUser)();
 
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
     expect(result).toEqual(
       E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
     );
