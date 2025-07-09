@@ -286,12 +286,12 @@ customEvents
   tags = local.tags
 }
 
-resource "azurerm_monitor_scheduled_query_rules_alert_v2" "revert-failure-alert" {
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-discoverer-revert-failure-alert" {
   enabled                 = true
-  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Failed to revert a notification status"
+  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Expired Sessions Discoverer failed to revert a notification status"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
-  description             = "Some notifications status reverts did not complete successfully"
+  description             = "Some notifications status reverts did not complete successfully. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1850704407/Revert+Failure"
   severity                = 1
   auto_mitigation_enabled = false
   location                = local.location
@@ -323,12 +323,12 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "revert-failure-alert"
 }
 
 
-resource "azurerm_monitor_scheduled_query_rules_alert_v2" "max-retry-reached-alert" {
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-discoverer-max-retry-reached-alert" {
   enabled                 = true
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Expired Sessions Discoverer max retry reached"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
-  description             = "The Expired Sessions Discoverer function reached the maximum number of retries"
+  description             = "The Expired Sessions Discoverer function reached the maximum number of retries https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1850540864/Max+Retry+Reached+ExpiredSessionsDiscoverer"
   severity                = 1
   auto_mitigation_enabled = false
   location                = local.location
@@ -360,12 +360,12 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "max-retry-reached-ale
 }
 
 
-resource "azurerm_monitor_scheduled_query_rules_alert_v2" "bad-record-alert" {
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-discoverer-bad-record-alert" {
   enabled                 = true
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Expired Sessions Discoverer found bad record(s)"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
-  description             = "The Expired Sessions Discoverer function found bad record(s) that may require attention."
+  description             = "The Expired Sessions Discoverer function found bad record(s) that may require attention. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1849853343/Bad+Record"
   severity                = 1
   auto_mitigation_enabled = false
   location                = local.location
@@ -379,6 +379,117 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "bad-record-alert" {
     query                   = <<-QUERY
       customEvents
       | where name == "io.citizen-auth.prof-async.expired-sessions-discoverer.permanent.bad-record"
+    QUERY
+    operator                = "GreaterThan"
+    time_aggregation_method = "Count"
+    threshold               = 0
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}
+
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-events-processor-bad-record-alert" {
+  enabled                 = true
+  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Session Notification Events Processor found bad record(s)"
+  resource_group_name     = data.azurerm_resource_group.main_resource_group.name
+  scopes                  = [data.azurerm_application_insights.application_insights.id]
+  description             = "The Session Notification Events Processor function found bad record(s) that may require attention. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1849853343/Bad+Record"
+  severity                = 1
+  auto_mitigation_enabled = false
+  location                = local.location
+
+  // check once every day(evaluation_frequency)
+  // on the last 24 hours of data(window_duration)
+  evaluation_frequency = "P1D"
+  window_duration      = "P1D"
+
+  criteria {
+    query                   = <<-QUERY
+      customEvents
+      | where name == "io.citizen-auth.prof-async.session-notification-events-processor.permanent.bad-record"
+    QUERY
+    operator                = "GreaterThan"
+    time_aggregation_method = "Count"
+    threshold               = 0
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}
+
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-events-processor-unable-to-build-new-record-alert" {
+  enabled                 = true
+  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Session Notification Events Processor unable to build a record"
+  resource_group_name     = data.azurerm_resource_group.main_resource_group.name
+  scopes                  = [data.azurerm_application_insights.application_insights.id]
+  description             = "The Session Notification Events Processor function was not able to build a record. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1851523312/Unable+to+Build+New+Record"
+  severity                = 1
+  auto_mitigation_enabled = false
+  location                = local.location
+
+  // check once every day(evaluation_frequency)
+  // on the last 24 hours of data(window_duration)
+  evaluation_frequency = "P1D"
+  window_duration      = "P1D"
+
+  criteria {
+    query                   = <<-QUERY
+      customEvents
+      | where name == "io.citizen-auth.prof-async.session-notification-events-processor.permanent.unable-to-build-new-record"
+    QUERY
+    operator                = "GreaterThan"
+    time_aggregation_method = "Count"
+    threshold               = 0
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}
+
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-events-processor-bad-message-alert" {
+  enabled                 = true
+  name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Session Notification Events Processor found bad message(s)"
+  resource_group_name     = data.azurerm_resource_group.main_resource_group.name
+  scopes                  = [data.azurerm_application_insights.application_insights.id]
+  description             = "The Session Notification Events Processor function found bad message(s) while processing events. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1851982088/Bad+Message"
+  severity                = 1
+  auto_mitigation_enabled = false
+  location                = local.location
+
+  // check once every day(evaluation_frequency)
+  // on the last 24 hours of data(window_duration)
+  evaluation_frequency = "P1D"
+  window_duration      = "P1D"
+
+  criteria {
+    query                   = <<-QUERY
+      customEvents
+      | where name == "io.citizen-auth.prof-async.session-notification-events-processor.permanent.bad-message"
     QUERY
     operator                = "GreaterThan"
     time_aggregation_method = "Count"
