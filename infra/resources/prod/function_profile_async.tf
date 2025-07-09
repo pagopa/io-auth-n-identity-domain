@@ -291,7 +291,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-disc
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Expired Sessions Discoverer failed to revert a notification status"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
-  description             = "Some notifications status reverts did not complete successfully"
+  description             = "Some notifications status reverts did not complete successfully. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1850704407/Revert+Failure"
   severity                = 1
   auto_mitigation_enabled = false
   location                = local.location
@@ -328,7 +328,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-disc
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Expired Sessions Discoverer max retry reached"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
-  description             = "The Expired Sessions Discoverer function reached the maximum number of retries"
+  description             = "The Expired Sessions Discoverer function reached the maximum number of retries https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1850540864/Max+Retry+Reached+ExpiredSessionsDiscoverer"
   severity                = 1
   auto_mitigation_enabled = false
   location                = local.location
@@ -365,7 +365,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-disc
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Expired Sessions Discoverer found bad record(s)"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
-  description             = "The Expired Sessions Discoverer function found bad record(s) that may require attention."
+  description             = "The Expired Sessions Discoverer function found bad record(s) that may require attention. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1849853343/Bad+Record"
   severity                = 1
   auto_mitigation_enabled = false
   location                = local.location
@@ -402,7 +402,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Session Notification Events Processor found bad record(s)"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
-  description             = "The Session Notification Events Processor function found bad record(s) that may require attention."
+  description             = "The Session Notification Events Processor function found bad record(s) that may require attention. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1849853343/Bad+Record"
   severity                = 1
   auto_mitigation_enabled = false
   location                = local.location
@@ -439,7 +439,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Session Notification Events Processor unable to build a record"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
-  description             = "The Session Notification Events Processor function was not able to build a record."
+  description             = "The Session Notification Events Processor function was not able to build a record. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1851523312/Unable+to+Build+New+Record"
   severity                = 1
   auto_mitigation_enabled = false
   location                = local.location
@@ -476,7 +476,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Session Notification Events Processor found bad message(s)"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
-  description             = "The Session Notification Events Processor function found bad message(s) while processing events."
+  description             = "The Session Notification Events Processor function found bad message(s) while processing events. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1851982088/Bad+Message"
   severity                = 1
   auto_mitigation_enabled = false
   location                = local.location
