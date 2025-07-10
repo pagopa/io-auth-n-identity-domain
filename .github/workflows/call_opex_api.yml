@@ -40,7 +40,11 @@ jobs:
           cp -r apps/${{ env.APP_NAME }}/.opex ./
         shell: bash
 
-      - uses: pagopa/opex-dashboard-azure-action@c77cc5b4cb94a91e2757a809f0fcf055aa11af86 # action v1.2.2
+      - name: Get terraform version from .terraform-version file
+        id: get-terraform-version
+        uses: pagopa/dx/.github/actions/get-terraform-version@main
+
+      - uses: pagopa/opex-dashboard-azure-action@3bbf7e465d7dcf31f0676effb726c43670909b8b # action v1.2.3
         with:
           environment: prod
           api-name: ${{ env.API_NAME }}
@@ -49,3 +53,4 @@ jobs:
           tenant-id: ${{ secrets.ARM_TENANT_ID }}
           subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           docker-version: ${{ env.DOCKER_IMAGE_TAG }}
+          terraform-version: ${{ steps.get-terraform-version.outputs.terraform_version }}
