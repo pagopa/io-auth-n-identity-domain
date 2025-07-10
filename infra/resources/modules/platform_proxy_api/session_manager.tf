@@ -101,7 +101,7 @@ module "external_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = azurerm_api_management_backend.session_manager.url
+  service_url = "${azurerm_api_management_backend.session_manager.url}${var.external_api_base_path}/v1"
 
   subscription_required = false
 
@@ -143,7 +143,7 @@ module "fims_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = azurerm_api_management_backend.session_manager.url
+  service_url = "${azurerm_api_management_backend.session_manager.url}${var.fims_api_base_path}/v1"
 
   subscription_required = false
 
@@ -184,7 +184,7 @@ module "pagopa_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = azurerm_api_management_backend.session_manager.url
+  service_url = "${azurerm_api_management_backend.session_manager.url}${var.pagopa_api_base_path}/v1"
 
   subscription_required = false
 
@@ -225,7 +225,7 @@ module "zendesk_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = azurerm_api_management_backend.session_manager.url
+  service_url = "${azurerm_api_management_backend.session_manager.url}${var.zendesk_api_base_path}/v1"
 
   subscription_required = false
 
