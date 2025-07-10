@@ -4,6 +4,7 @@ import { Context } from "@azure/functions";
 import { QueueClient } from "@azure/storage-queue";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -23,7 +24,8 @@ import {
   ItemToProcess,
   processChunk,
   processItem,
-  retrieveFromDbInChunks
+  retrieveFromDbInChunks,
+  extractDate
 } from "../expired-sessions-discoverer";
 
 const aSession = ({
@@ -575,6 +577,53 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
           })
         })
       );
+    });
+  });
+
+  describe("extractDate", () => {
+    it("should return right(None) when no date is provided in context", () => {
+      const context = { bindingData: {} } as Context;
+      const result = extractDate(context);
+      expect(result).toEqual(E.right(O.none));
+    });
+
+    it("should return right(Some date) when a valid date is provided in context", () => {
+      const date = new Date("2025-01-01");
+      const context = ({
+        bindingData: { expiredSessionsDiscovererTimer: { date } }
+      } as unknown) as Context;
+      const result = extractDate(context);
+      expect(result).toEqual(E.right(O.some(date)));
+    });
+
+    it("should return right(None) when date is null or undefined in context", () => {
+      const contextWithNullDate = ({
+        bindingData: { expiredSessionsDiscovererTimer: { date: null } }
+      } as unknown) as Context;
+      const contextWithUndefinedDate = ({
+        bindingData: { expiredSessionsDiscovererTimer: {} }
+      } as unknown) as Context;
+
+      expect(extractDate(contextWithNullDate)).toEqual(E.right(O.none));
+      expect(extractDate(contextWithUndefinedDate)).toEqual(E.right(O.none));
+    });
+
+    it("should return left when date is an empty string", () => {
+      const context = ({
+        bindingData: { expiredSessionsDiscovererTimer: { date: "" } }
+      } as unknown) as Context;
+      const result = extractDate(context);
+      expect(result).toEqual(E.left(new Error("Invalid date")));
+    });
+
+    it("should return left when date is an invalid date string", () => {
+      const context = ({
+        bindingData: {
+          expiredSessionsDiscovererTimer: { date: "invalid-date" }
+        }
+      } as unknown) as Context;
+      const result = extractDate(context);
+      expect(result).toEqual(E.left(new Error("Invalid date")));
     });
   });
 });

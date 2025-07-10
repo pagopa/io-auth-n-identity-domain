@@ -238,10 +238,21 @@ export const retrieveFromDbInChunks: (
     )
   );
 
-const extractDate = (context: Context): O.Option<Date> => {
-  const date = context.bindingData?.expiredSessionsDiscovererTimer?.date;
-  return O.fromNullable(date ? new Date(date) : undefined);
-};
+export const extractDate = (
+  context: Context
+): E.Either<Error, O.Option<Date>> =>
+  pipe(
+    O.fromNullable(context.bindingData?.expiredSessionsDiscovererTimer?.date),
+    O.match(
+      () => E.right(O.none),
+      rawDate => {
+        const date = new Date(rawDate);
+        return isNaN(date.getTime())
+          ? E.left(new Error("Invalid date"))
+          : E.right(O.some(date));
+      }
+    )
+  );
 
 export const ExpiredSessionsDiscovererFunction = (
   deps: TriggerDependencies
@@ -249,13 +260,25 @@ export const ExpiredSessionsDiscovererFunction = (
   context: Context,
   _timer: unknown
 ): Promise<void> => {
-  const interval = pipe(
+  const date = pipe(
     extractDate(context),
-    O.fold(
-      () => createInterval(),
-      date => createInterval(date)
+    E.mapLeft(
+      () =>
+        new Error(
+          "Invalid date provided in context for expired sessions discoverer timer"
+        )
+    ),
+    E.map(
+      O.fold(
+        () => createInterval(new Date()),
+        date => createInterval(date)
+      )
     )
   );
+  if (E.isLeft(date)) {
+    throw date.left;
+  }
+  const interval = date.right;
   return pipe(
     retrieveFromDbInChunks(interval),
     RTE.chainW(
