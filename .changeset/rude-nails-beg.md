@@ -1,5 +1,5 @@
 ---
-"io-session-manager": minor
+"io-session-manager": patch
 ---
 
 Introduced metadata operation
