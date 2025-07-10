@@ -3,6 +3,7 @@ import { asyncIterableToArray } from "@pagopa/io-functions-commons/dist/src/util
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
 import { flow, pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as T from "fp-ts/Task";
@@ -237,13 +238,24 @@ export const retrieveFromDbInChunks: (
     )
   );
 
+const extractDate = (context: Context): O.Option<Date> => {
+  const date = context.bindingData?.expiredSessionsDiscovererTimer?.date;
+  return O.fromNullable(date ? new Date(date) : undefined);
+};
+
 export const ExpiredSessionsDiscovererFunction = (
   deps: TriggerDependencies
 ): AzureFunction => async (
   context: Context,
   _timer: unknown
 ): Promise<void> => {
-  const interval = createInterval();
+  const interval = pipe(
+    extractDate(context),
+    O.fold(
+      () => createInterval(),
+      date => createInterval(date)
+    )
+  );
   return pipe(
     retrieveFromDbInChunks(interval),
     RTE.chainW(
