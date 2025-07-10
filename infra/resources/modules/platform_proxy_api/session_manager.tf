@@ -78,7 +78,7 @@ resource "azurerm_api_management_api_tag" "bpd_api_tag" {
 #    EXTERNAL    #
 ##################
 resource "azurerm_api_management_api_version_set" "auth_v1" {
-  name                = "auth_v1"
+  name                = "io_auth_v1"
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
   display_name        = "Auth & Identity auth v1"
