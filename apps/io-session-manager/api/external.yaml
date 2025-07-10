@@ -259,6 +259,16 @@ paths:
             Location:
               schema:
                 type: string
+  /metadata:
+    get:
+      operationId: getMetadata
+      summary: Get SPID metadata
+      security: [] # Authentication not needed for this operation
+      responses:
+        "200":
+          description: SPID metadata
+          content:
+            application/xml: {}
 components:
   parameters:
     EntityId:
