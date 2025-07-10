@@ -36,6 +36,9 @@ import {
   getDate
 } from "../expired-sessions-discoverer";
 
+const getDateError =
+  "Invalid date provided in context for expired sessions discoverer timer";
+
 const aSession = ({
   id: "AAAAAA89S20I111X",
   expiredAt: Date.now(),
@@ -586,6 +589,18 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         })
       );
     });
+
+    it("should throw an invalid date is passed in a manual invocation", async () => {
+      const invalidDate = "invalid-date";
+      const context = ({
+        invocationId: "test",
+        bindingData: { expiredSessionsDiscovererTimer: { date: invalidDate } }
+      } as unknown) as Context;
+
+      await expect(
+        ExpiredSessionsDiscovererFunction(baseDeps)(context, {})
+      ).rejects.toThrow(new Error(getDateError));
+    });
   });
 
   describe("extractDate", () => {
@@ -632,13 +647,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         bindingData: { expiredSessionsDiscovererTimer: { date: "" } }
       } as unknown) as Context;
       const result = getDate(context);
-      expect(result).toEqual(
-        E.left(
-          new Error(
-            "Invalid date provided in context for expired sessions discoverer timer"
-          )
-        )
-      );
+      expect(result).toEqual(E.left(new Error(getDateError)));
     });
 
     it("should return left when date is an invalid date string", () => {
@@ -648,13 +657,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         }
       } as unknown) as Context;
       const result = getDate(context);
-      expect(result).toEqual(
-        E.left(
-          new Error(
-            "Invalid date provided in context for expired sessions discoverer timer"
-          )
-        )
-      );
+      expect(result).toEqual(E.left(new Error(getDateError)));
     });
   });
 });
