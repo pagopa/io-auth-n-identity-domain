@@ -43,7 +43,7 @@ resource "azurerm_api_management_api_version_set" "bpd_v1" {
 }
 
 module "bpd_api_session_manager" {
-  source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
+  source = "github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.16.0"
 
   name                = "io-session-manager-bpd-api"
   resource_group_name = var.platform_apim_resource_group_name
@@ -86,7 +86,7 @@ resource "azurerm_api_management_api_version_set" "auth_v1" {
 }
 
 module "external_api_session_manager" {
-  source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
+  source = "github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.16.0"
 
   name                = "io-session-manager-external-api"
   resource_group_name = var.platform_apim_resource_group_name
@@ -128,7 +128,7 @@ resource "azurerm_api_management_api_version_set" "fims_v1" {
   versioning_scheme   = "Segment"
 }
 module "fims_api_session_manager" {
-  source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
+  source = "github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.16.0"
 
   name                = "io-session-manager-fims-api"
   resource_group_name = var.platform_apim_resource_group_name
@@ -169,7 +169,7 @@ resource "azurerm_api_management_api_version_set" "pagopa_v1" {
   versioning_scheme   = "Segment"
 }
 module "pagopa_api_session_manager" {
-  source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
+  source = "github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.16.0"
 
   name                = "io-session-manager-pagopa-api"
   resource_group_name = var.platform_apim_resource_group_name
@@ -210,7 +210,7 @@ resource "azurerm_api_management_api_version_set" "zendesk_v1" {
   versioning_scheme   = "Segment"
 }
 module "zendesk_api_session_manager" {
-  source = "github.com/pagopa/terraform-azurerm-v3//api_management_api?ref=v8.27.0"
+  source = "github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.16.0"
 
   name                = "io-session-manager-zendesk-api"
   resource_group_name = var.platform_apim_resource_group_name
