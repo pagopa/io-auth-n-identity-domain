@@ -8,8 +8,6 @@ import * as RA from "fp-ts/ReadonlyArray";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import * as t from "io-ts";
-import * as H from "@pagopa/handler-kit";
-import { httpAzureFunction } from "@pagopa/handler-kit-azure-func";
 import { ExpiredSessionDiscovererConfig } from "../config";
 import {
   ExpiredUserSessionsQueueRepository,
@@ -305,31 +303,3 @@ export const ExpiredSessionsDiscovererFunction = (
     })
   )(deps)();
 };
-
-const makeExpiredSessionsDiscovererHttpTrigger: H.Handler<
-  H.HttpRequest,
-  | H.HttpResponse<{ message: "OK" }, 200>
-  | H.HttpResponse<H.ProblemJson, H.HttpErrorStatusCode>,
-  TriggerDependencies
-> = H.of((_: H.HttpRequest) =>
-  pipe(
-    ExpiredSessionsDiscoverer(createInterval()),
-    RTE.map(() => H.successJson({ message: "OK" as const })),
-    RTE.orElseW(errors =>
-      RTE.right(
-        H.problemJson({
-          status: 500 as const,
-          title: Array.isArray(errors)
-            ? `Multiple transient errors occurred during execution: count=${errors.length}`
-            : errors instanceof TransientError
-            ? `Transient error occurred: ${errors.message}`
-            : "Unknown error"
-        })
-      )
-    )
-  )
-);
-
-export const ExpiredSessionsDiscovererHttpTrigger = httpAzureFunction(
-  makeExpiredSessionsDiscovererHttpTrigger
-);
