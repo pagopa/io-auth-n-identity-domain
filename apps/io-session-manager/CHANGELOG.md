@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.9.2
+
+### Patch Changes
+
+- 8174913: Introduced metadata operation
+
 ## 1.9.1
 
 ### Patch Changes
