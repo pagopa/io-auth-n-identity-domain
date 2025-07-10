@@ -58,7 +58,7 @@ module "bpd_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = azurerm_api_management_backend.session_manager.url
+  service_url = "${azurerm_api_management_backend.session_manager.url}${var.bpd_api_base_path}/v1"
 
   subscription_required = false
 
