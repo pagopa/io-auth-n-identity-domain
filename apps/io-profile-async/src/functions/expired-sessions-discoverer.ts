@@ -237,14 +237,14 @@ export const retrieveFromDbInChunks: (
     )
   );
 
-export const ExpiredSessionsDiscovererFunction = (
-  deps: TriggerDependencies
-): AzureFunction => async (
-  context: Context,
-  _timer: unknown
-): Promise<void> => {
-  const interval = createInterval();
-  return pipe(
+const ExpiredSessionsDiscoverer = (
+  interval: Interval
+): RTE.ReaderTaskEither<
+  TriggerDependencies,
+  TransientError | ReadonlyArray<TransientError>,
+  void
+> =>
+  pipe(
     retrieveFromDbInChunks(interval),
     RTE.chainW(
       flow(
@@ -257,7 +257,18 @@ export const ExpiredSessionsDiscovererFunction = (
         ),
         RTE.map(() => void 0)
       )
-    ),
+    )
+  );
+
+export const ExpiredSessionsDiscovererFunction = (
+  deps: TriggerDependencies
+): AzureFunction => async (
+  context: Context,
+  _timer: unknown
+): Promise<void> => {
+  const interval = createInterval();
+  return pipe(
+    ExpiredSessionsDiscoverer(interval),
     RTE.getOrElse(errors => {
       trackEvent({
         name:
