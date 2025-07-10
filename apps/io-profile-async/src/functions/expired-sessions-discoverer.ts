@@ -238,20 +238,35 @@ export const retrieveFromDbInChunks: (
     )
   );
 
-export const extractDate = (
-  context: Context
-): E.Either<Error, O.Option<Date>> =>
+/**
+ * Extracts the date from the context binding data for the expired sessions discoverer timer if provided,
+ * otherwise defaults to the current date.
+ *
+ * This function retrieves the date to use for the expired sessions discoverer timer from the context,
+ * which is expected to be found when the function is triggered manually and passed in the body of the request.
+ * If the date is not provided, it defaults to the current date, e.g. when the function is triggered by a timer.
+ *
+ * If the provided date is invalid, it returns a left with an error indicating the invalid date.
+ *
+ * @param context - The Azure Function context containing the binding data.
+ * @return An Either containing the date if valid, or an error if the date is invalid or not provided.
+ */
+export const getDate = (context: Context): E.Either<Error, Date> =>
   pipe(
     O.fromNullable(context.bindingData?.expiredSessionsDiscovererTimer?.date),
-    O.match(
-      () => E.right(O.none),
-      rawDate => {
-        const date = new Date(rawDate);
-        return isNaN(date.getTime())
-          ? E.left(new Error("Invalid date"))
-          : E.right(O.some(date));
-      }
-    )
+    O.map(rawDate =>
+      pipe(
+        new Date(rawDate),
+        E.fromPredicate(
+          date => !isNaN(date.getTime()),
+          () =>
+            new Error(
+              "Invalid date provided in context for expired sessions discoverer timer"
+            )
+        )
+      )
+    ),
+    O.getOrElse(() => E.right(new Date()))
   );
 
 export const ExpiredSessionsDiscovererFunction = (
@@ -260,25 +275,13 @@ export const ExpiredSessionsDiscovererFunction = (
   context: Context,
   _timer: unknown
 ): Promise<void> => {
-  const date = pipe(
-    extractDate(context),
-    E.mapLeft(
-      () =>
-        new Error(
-          "Invalid date provided in context for expired sessions discoverer timer"
-        )
-    ),
-    E.map(
-      O.fold(
-        () => createInterval(new Date()),
-        date => createInterval(date)
-      )
-    )
+  const interval = pipe(
+    getDate(context),
+    E.map(createInterval),
+    E.getOrElseW(error => {
+      throw error;
+    })
   );
-  if (E.isLeft(date)) {
-    throw date.left;
-  }
-  const interval = date.right;
   return pipe(
     retrieveFromDbInChunks(interval),
     RTE.chainW(
