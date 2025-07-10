@@ -60,7 +60,7 @@ jobs:
 
       - name: Get terraform version from .terraform-version file
         id: get-terraform-version
-        uses: pagopa/dx/.github/actions/get-terraform-version@main
+        uses: pagopa/dx/.github/actions/get-terraform-version@db1f984df813e12cab4dc82845eb245ea588970f
 
       - name: Setup Terraform
         id: terraform_setup
