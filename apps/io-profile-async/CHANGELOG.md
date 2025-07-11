@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.11.0
+
+### Minor Changes
+
+- a3a9e4d: Date input support for timer trigger `ExpiredSessionsDiscoverer`
+
 ## 1.10.0
 
 ### Minor Changes
