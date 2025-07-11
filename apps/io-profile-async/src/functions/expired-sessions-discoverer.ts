@@ -3,6 +3,7 @@ import { asyncIterableToArray } from "@pagopa/io-functions-commons/dist/src/util
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
 import { flow, pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as T from "fp-ts/Task";
@@ -237,13 +238,50 @@ export const retrieveFromDbInChunks: (
     )
   );
 
+/**
+ * Extracts the date from the context binding data for the expired sessions discoverer timer if provided,
+ * otherwise defaults to the current date.
+ *
+ * This function retrieves the date to use for the expired sessions discoverer timer from the context,
+ * which is expected to be found when the function is triggered manually and passed in the body of the request.
+ * If the date is not provided, it defaults to the current date, e.g. when the function is triggered by a timer.
+ *
+ * If the provided date is invalid, it returns a left with an error indicating the invalid date.
+ *
+ * @param context - The Azure Function context containing the binding data.
+ * @return An Either containing the date if valid, or an error if the date is invalid or not provided.
+ */
+export const getDate = (context: Context): E.Either<Error, Date> =>
+  pipe(
+    O.fromNullable(context.bindingData?.expiredSessionsDiscovererTimer?.date),
+    O.map(rawDate =>
+      pipe(
+        new Date(rawDate),
+        E.fromPredicate(
+          date => !isNaN(date.getTime()),
+          () =>
+            new Error(
+              "Invalid date provided in context for expired sessions discoverer timer"
+            )
+        )
+      )
+    ),
+    O.getOrElse(() => E.right(new Date()))
+  );
+
 export const ExpiredSessionsDiscovererFunction = (
   deps: TriggerDependencies
 ): AzureFunction => async (
   context: Context,
   _timer: unknown
 ): Promise<void> => {
-  const interval = createInterval();
+  const interval = pipe(
+    getDate(context),
+    E.map(createInterval),
+    E.getOrElseW(error => {
+      throw error;
+    })
+  );
   return pipe(
     retrieveFromDbInChunks(interval),
     RTE.chainW(
