@@ -16,7 +16,7 @@ jobs:
     env:
       API_NAME: ${{ inputs.api_name }}
       APP_NAME: ${{ inputs.app_name }}
-      DOCKER_IMAGE_TAG: sha256:b17f49fc762cc2049f887f0999642c95b5546d1eb44e5ae19bed080f9d1859d4 # opex-dashboard-action v1.2.2
+      DOCKER_IMAGE_TAG: sha256:eb3354b7e5c07e9557182828489fc0bf8092dd80886035429268d019250f5cd3 # opex-dashboard-action v1.2.3
 
       TEMPLATE_DIR: azure-dashboard
       ARM_USE_OIDC: true
@@ -58,11 +58,15 @@ jobs:
         run: |
           cp -R apps/${{ env.APP_NAME }}/.opex/${{ env.API_NAME }}/env ./${{ env.TEMPLATE_DIR }}
 
+      - name: Get terraform version from .terraform-version file
+        id: get-terraform-version
+        uses: pagopa/dx/.github/actions/get-terraform-version@db1f984df813e12cab4dc82845eb245ea588970f
+
       - name: Setup Terraform
         id: terraform_setup
         uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36
         with:
-          terraform_version: 1.6.6
+          terraform_version: ${{ steps.get-terraform-version.outputs.terraform_version }}
           terraform_wrapper: true
 
       - name: Terraform Plan
