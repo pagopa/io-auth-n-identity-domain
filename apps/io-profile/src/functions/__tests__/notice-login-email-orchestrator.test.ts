@@ -15,9 +15,11 @@ import {
   OrchestratorSuccessResult,
 } from "../notice-login-email-orchestrator";
 
-const someRetryOptions = new df.RetryOptions(5000, 10);
+const someRetryOptions = new df.RetryOptions(5000, 20);
 // eslint-disable-next-line functional/immutable-data
 someRetryOptions.backoffCoefficient = 1.5;
+// eslint-disable-next-line functional/immutable-data
+someRetryOptions.maxRetryIntervalInMilliseconds = 20 * 60 * 1000; // do not exceed 20 min interval between retries
 
 const aDate = new Date("1970-01-01");
 const anIPAddress = "127.0.0.1" as IPString;
