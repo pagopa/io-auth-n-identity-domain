@@ -14,9 +14,9 @@ services:
       dockerfile: ./docker/server/Dockerfile
       args:
         SERVER_NAME: "io-session-manager"
-      # specifies dependency of dependency link.
       # this is needed to prevent failures during container build
-      # in this case cosmosdb is dependency of io-lollipop
+      # for a regression introduced in docker compose.
+      # more infos in https://github.com/docker/compose/issues/12892
       additional_contexts:
         cosmosdb: service:cosmosdb
         io-lollipop: service:io-lollipop
