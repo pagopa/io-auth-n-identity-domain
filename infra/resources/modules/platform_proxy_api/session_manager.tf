@@ -63,7 +63,7 @@ module "bpd_api_session_manager" {
   subscription_required = false
 
   content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.0/apps/io-session-manager/api/sso/bpd.yaml"
+  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/sso/bpd.yaml"
 
   xml_content = local.session_manager_base_policy
 }
@@ -106,7 +106,7 @@ module "external_api_session_manager" {
   subscription_required = false
 
   content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.0/apps/io-session-manager/api/external.yaml"
+  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/external.yaml"
 
   xml_content = local.session_manager_base_policy
 }
@@ -148,7 +148,7 @@ module "fims_api_session_manager" {
   subscription_required = false
 
   content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.0/apps/io-session-manager/api/sso/fims.yaml"
+  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/sso/fims.yaml"
 
   xml_content = local.session_manager_base_policy
 }
@@ -189,7 +189,7 @@ module "pagopa_api_session_manager" {
   subscription_required = false
 
   content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.0/apps/io-session-manager/api/sso/pagopa.yaml"
+  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/sso/pagopa.yaml"
 
   xml_content = local.session_manager_base_policy
 }
@@ -230,7 +230,7 @@ module "zendesk_api_session_manager" {
   subscription_required = false
 
   content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.0/apps/io-session-manager/api/sso/zendesk.yaml"
+  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/sso/zendesk.yaml"
 
   xml_content = local.session_manager_base_policy
 }
