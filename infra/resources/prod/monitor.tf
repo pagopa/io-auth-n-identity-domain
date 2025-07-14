@@ -53,7 +53,7 @@ resource "azurerm_monitor_action_group" "error_action_group" {
 
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "auth-events" {
   enabled                 = true
-  name                    = "[${upper(local.domain)}] ServiceBus Authentication Event(s) emission failure(s)"
+  name                    = "[${upper(local.domain)}] ServiceBus Log-Out Event(s) emission failure(s)"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
   description             = "Failure(s) detected on ServiceBus Authentication Event emission. See https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/1859846279/Fallimento+emissione+evento+di+Log-Out"
@@ -70,6 +70,8 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "auth-events" {
     query                   = <<-QUERY
       customEvents
       | where name == "service-bus.auth-event.emission-failure"
+      | extend eventData = parse_json(tostring(customDimensions.eventData))
+      | where eventData.eventType == "logout""
     QUERY
     operator                = "GreaterThan"
     time_aggregation_method = "Count"
