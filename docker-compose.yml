@@ -19,6 +19,8 @@ services:
       # in this case cosmosdb is dependency of io-lollipop
       additional_contexts:
         cosmosdb: service:cosmosdb
+        io-lollipop: service:io-lollipop
+        io-profile: service:io-profile
     env_file:
       - ./docker/generated/.env.io-session-manager
     volumes:
