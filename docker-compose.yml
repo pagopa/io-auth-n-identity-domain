@@ -14,6 +14,11 @@ services:
       dockerfile: ./docker/server/Dockerfile
       args:
         SERVER_NAME: "io-session-manager"
+      # specifies dependency of dependency link.
+      # this is needed to prevent failures during container build
+      # in this case cosmosdb is dependency of io-lollipop
+      additional_contexts:
+        cosmosdb: service:cosmosdb
     env_file:
       - ./docker/generated/.env.io-session-manager
     volumes:
@@ -33,6 +38,8 @@ services:
       io-profile:
         condition: service_started
       io-lollipop:
+        condition: service_started
+      servicebus:
         condition: service_started
     networks:
       - io-fn
