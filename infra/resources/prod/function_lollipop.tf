@@ -1,11 +1,11 @@
 data "azurerm_key_vault_secret" "first_lollipop_consumer_subscription_key" {
-  name         = "first-lollipop-consumer-pagopa-subscription-key-itn"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  name         = "first-lollipop-consumer-pagopa-subscription-key"
+  key_vault_id = module.key_vaults.auth.id
 }
 
 data "azurerm_key_vault_certificate_data" "lollipop_certificate_v1" {
   name         = "lollipop-certificate-v1"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  key_vault_id = module.key_vaults.auth.id
 }
 
 locals {
