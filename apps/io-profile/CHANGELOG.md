@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.25.2
+
+### Patch Changes
+
+- 0eb8020: Extend retries to 20 attempts with retry interval capped at 20 minutes
+
 ## 5.25.1
 
 ### Patch Changes
