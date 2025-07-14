@@ -58,6 +58,8 @@ module "topic_io_auth" {
 }
 
 //Publishers
+
+//NOTE: staging slot has been enabled on io-infra
 module "pub_session_manager" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
   version = "~>1.0"
