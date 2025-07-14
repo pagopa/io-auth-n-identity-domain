@@ -45,6 +45,7 @@ data "azurerm_linux_web_app" "weu_session_manager" {
   resource_group_name = "${local.weu_project}-session-manager-rg-01"
 }
 
+
 ##########################
 # Entra ID
 ##########################
