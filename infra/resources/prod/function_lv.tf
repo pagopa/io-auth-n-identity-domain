@@ -1,6 +1,11 @@
 data "azurerm_key_vault_secret" "fast_login_subscription_key" {
-  name         = "fast-login-subscription-key-itn"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  name         = "fast-login-subscription-key"
+  key_vault_id = module.key_vaults.auth.id
+}
+
+data "azurerm_key_vault_secret" "fast_login_session_manager_internal_api_key" {
+  name         = "fast-login-session-manager-internal-key"
+  key_vault_id = module.key_vaults.auth.id
 }
 
 locals {

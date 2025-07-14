@@ -13,11 +13,6 @@ data "azurerm_key_vault" "common_kv" {
   resource_group_name = "${local.common_project}-rg-common"
 }
 
-data "azurerm_key_vault_secret" "fast_login_session_manager_internal_api_key" {
-  name         = "fast-login-session-manager-internal-key"
-  key_vault_id = data.azurerm_key_vault.kv.id
-}
-
 data "azurerm_key_vault_secret" "profile_async_session_manager_internal_api_key" {
   name         = "profile-async-session-manager-internal-key"
   key_vault_id = data.azurerm_key_vault.kv.id
