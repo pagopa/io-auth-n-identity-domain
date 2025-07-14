@@ -1,6 +1,6 @@
 data "azurerm_key_vault_secret" "events_beta_testers" {
   name         = "service-bus-events-beta-testers"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  key_vault_id = module.key_vaults.auth.id
 }
 
 locals {
@@ -45,8 +45,6 @@ locals {
     }
   }
 }
-
-
 
 module "function_session_manager_internal" {
   source  = "pagopa-dx/azure-function-app/azurerm"
@@ -95,13 +93,18 @@ module "function_session_manager_internal" {
 }
 
 module "function_session_manager_internal_autoscale" {
-  source = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
-  // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
-  version = "~> 0.0"
+  source  = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
+  version = "~> 2.0"
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
+  location            = local.weu_location
+  app_service_plan_id = module.function_session_manager_internal.function_app.plan.id
   target_service = {
-    function_app_name = module.function_session_manager_internal.function_app.function_app.name
+    function_apps = [
+      {
+        name = module.function_session_manager_internal.function_app.function_app.name
+      }
+    ]
   }
 
   scheduler = {
