@@ -11,7 +11,7 @@ on:
 jobs:
   deploy_to_azure_1:
     name: Deploy to Azure App Service
-    uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@add-healthcheck-and-optional-swap
+    uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@a08a2c9d95678902fd74382804693d33c8169e55
     with:
       # '-cd' suffix added inside the pipeline
       environment: app-prod
