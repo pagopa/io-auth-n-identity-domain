@@ -9,6 +9,9 @@
   "extensions": {
     "http": {
       "routePrefix": ""
+    },
+    "serviceBus": {
+      "maxConcurrentSessions": 32
     }
   },
   "extensionBundle": {
