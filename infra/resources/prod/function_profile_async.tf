@@ -1,11 +1,11 @@
 data "azurerm_key_vault_secret" "io_com_mailup_username" {
-  name         = "iocom-MAILUP-USERNAME"
-  key_vault_id = data.azurerm_key_vault.common_kv.id
+  name         = "mailup-username"
+  key_vault_id = module.key_vaults.auth.id
 }
 
 data "azurerm_key_vault_secret" "io_com_mailup_secret" {
-  name         = "iocom-MAILUP-SECRET"
-  key_vault_id = data.azurerm_key_vault.common_kv.id
+  name         = "mailup-secret"
+  key_vault_id = module.key_vaults.auth.id
 }
 
 data "azurerm_key_vault_secret" "function_profile_key" {
@@ -14,8 +14,8 @@ data "azurerm_key_vault_secret" "function_profile_key" {
 }
 
 data "azurerm_key_vault_secret" "fn_app_SPID_LOGS_PUBLIC_KEY" {
-  name         = "funcapp-KEY-SPIDLOGS-PUB"
-  key_vault_id = data.azurerm_key_vault.common_kv.id
+  name         = "funcapp-spid-logs-public-key"
+  key_vault_id = module.key_vaults.auth.id
 }
 
 data "azurerm_key_vault_secret" "profile_async_session_manager_internal_api_key" {
