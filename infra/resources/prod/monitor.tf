@@ -51,7 +51,7 @@ resource "azurerm_monitor_action_group" "error_action_group" {
 }
 
 
-resource "azurerm_monitor_scheduled_query_rules_alert_v2" "auth-events" {
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "service-bus-logout-events-emission-failure" {
   enabled                 = true
   name                    = "[${upper(local.domain)}] ServiceBus Log-Out Event(s) emission failure(s)"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
