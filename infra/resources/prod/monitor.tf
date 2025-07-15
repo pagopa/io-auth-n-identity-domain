@@ -71,7 +71,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "service-bus-logout-ev
       customEvents
       | where name == "service-bus.auth-event.emission-failure"
       | extend eventData = parse_json(tostring(customDimensions.eventData))
-      | where eventData.eventType == "logout""
+      | where eventData.eventType == "logout"
     QUERY
     operator                = "GreaterThan"
     time_aggregation_method = "Count"
