@@ -1,6 +1,6 @@
 data "azurerm_key_vault" "auth" {
-  name                = "${local.prefix}-${local.env_short}-itn-${local.domain}-kv-01"
-  resource_group_name = "${local.prefix}-${local.env_short}-itn-${local.domain}-main-rg-01"
+  name                = "${local.prefix}-${local.env_short}-${local.location_short}-${local.domain}-kv-01"
+  resource_group_name = "${local.prefix}-${local.env_short}-${local.location_short}-${local.domain}-main-rg-01"
 }
 
 data "azurerm_key_vault_secret" "sonacloud_token" {
