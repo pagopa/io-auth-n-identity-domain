@@ -140,7 +140,8 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5,
-      AzureFunctionsJobHost__extensions__serviceBus__maxConcurrentSessions                             = 32,
+      AzureFunctionsJobHost__extensions__serviceBus__maxConcurrentSessions                             = 256,
+      AzureFunctionsJobHost__extensions__serviceBus__sessionIdleTimeout                                = "00:00:05",
       "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"                                                = "1"
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "0",
@@ -157,6 +158,7 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100,
       AzureFunctionsJobHost__extensions__serviceBus__maxConcurrentSessions                             = 8,
+      AzureFunctionsJobHost__extensions__serviceBus__sessionIdleTimeout                                = "00:01:00",
       "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"                                                = "1"
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "1",
@@ -172,6 +174,7 @@ module "function_profile_async" {
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
     "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
     "AzureFunctionsJobHost__extensions__serviceBus__maxConcurrentSessions",
+    "AzureFunctionsJobHost__extensions__serviceBus__sessionIdleTimeout",
     "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled",
     "AzureWebJobs.ExpiredSessionAdvisor.Disabled",
     "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",
