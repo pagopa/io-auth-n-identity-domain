@@ -4,8 +4,8 @@ data "azurerm_key_vault" "kv" {
 }
 
 data "azurerm_key_vault" "ioweb_kv" {
-  name                = "${local.common_project}-ioweb-kv"
-  resource_group_name = "${local.common_project}-ioweb-sec-rg"
+  name                = "${local.project}-ioweb-kv-01"
+  resource_group_name = "${local.project}-${local.domain}-main-rg-01"
 }
 
 data "azurerm_key_vault" "common_kv" {
