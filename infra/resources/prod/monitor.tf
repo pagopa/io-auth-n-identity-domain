@@ -1,17 +1,17 @@
 
 data "azurerm_key_vault_secret" "alert_error_notification_email" {
   name         = "alert-error-notification-email"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  key_vault_id = module.key_vaults.auth.id
 }
 
 data "azurerm_key_vault_secret" "alert_error_notification_slack" {
   name         = "alert-error-notification-slack"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  key_vault_id = module.key_vaults.auth.id
 }
 
 data "azurerm_key_vault_secret" "alert_error_notification_opsgenie" {
   name         = "alert-error-notification-opsgenie"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  key_vault_id = module.key_vaults.auth.id
 }
 
 data "azurerm_resource_group" "auth_common_rg" {
