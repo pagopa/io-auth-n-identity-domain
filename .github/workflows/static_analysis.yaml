@@ -14,7 +14,7 @@ jobs:
   tf_analysis:
     # Don't run in Changeset PRs
     if: ${{ github.actor != 'github-actions[bot]' }}
-    uses: pagopa/dx/.github/workflows/static_analysis.yaml@main
+    uses: pagopa/dx/.github/workflows/static_analysis.yaml@908d5be26b5fda60cfa8e6d252398d89fb8254ef
     name: Terraform Validation
     secrets: inherit
     with:
