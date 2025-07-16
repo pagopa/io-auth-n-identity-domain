@@ -140,7 +140,7 @@ module "function_profile_async" {
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
       AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5,
-      AzureFunctionsJobHost__extensions__serviceBus__maxConcurrentSessions                             = 256,
+      AzureFunctionsJobHost__extensions__serviceBus__maxConcurrentSessions                             = 100,
       AzureFunctionsJobHost__extensions__serviceBus__sessionIdleTimeout                                = "00:00:05",
       "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"                                                = "1"
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0",
