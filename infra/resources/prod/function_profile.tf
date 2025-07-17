@@ -77,7 +77,7 @@ locals {
 
 module "function_profile" {
   source  = "pagopa-dx/azure-function-app/azurerm"
-  version = "~> 0.0"
+  version = "~> 1.0"
 
   environment = {
     prefix          = local.prefix
@@ -123,13 +123,18 @@ module "function_profile" {
 }
 
 module "function_profile_autoscale" {
-  source = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
-  // TODO: in order to update to version 1.0.0, add the required inputs `app_service_plan_id` and `location`
-  version = "~> 0.0"
+  source  = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
+  version = "~> 2.0"
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
+  location            = local.location
+  app_service_plan_id = module.function_profile.function_app.plan.id
   target_service = {
-    function_app_name = module.function_profile.function_app.function_app.name
+    function_apps = [
+      {
+        name = module.function_profile.function_app.function_app.name
+      }
+    ]
   }
 
   scheduler = {

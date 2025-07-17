@@ -1,4 +1,5 @@
-import { Container, FeedResponse } from "@azure/cosmos";
+/* eslint-disable functional/immutable-data */
+import { Container, ErrorResponse, FeedResponse } from "@azure/cosmos";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/lib/Either";
 import * as t from "io-ts";
@@ -164,5 +165,21 @@ describe("delete", () => {
     );
     expect(deleteMock).toHaveBeenCalled();
     expect(result).toEqual(E.left({ error, kind: "COSMOS_ERROR_RESPONSE" }));
+  });
+
+  it("should not fail on 404 results", async () => {
+    const aCosmosErrorResponse = new ErrorResponse("Document not found");
+    aCosmosErrorResponse.code = 404;
+
+    deleteMock.mockRejectedValueOnce(aCosmosErrorResponse);
+
+    const result = await model.delete([anId, anExpirationTimestamp])();
+
+    expect(containerMock.item).toHaveBeenCalledWith(
+      anId,
+      anExpirationTimestamp
+    );
+    expect(deleteMock).toHaveBeenCalled();
+    expect(result).toEqual(E.right(undefined));
   });
 });

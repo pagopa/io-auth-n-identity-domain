@@ -103,7 +103,13 @@ export class SessionNotificationsModel extends CosmosdbModelTTL<
         () => this.container.item(documentId, partitionKey).delete(options),
         toCosmosErrorResponse
       ),
-      TE.map(() => void 0)
+      TE.map(() => void 0),
+      TE.orElseW(failure => {
+        if (failure.error.code === 404) {
+          return TE.right(void 0);
+        }
+        return TE.left(failure);
+      })
     );
   }
 }
