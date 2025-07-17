@@ -13,7 +13,6 @@ jobs:
       resource_group_name: "io-p-itn-auth-lv-rg-01"
       workspace_name: "io-fast-login"
       function_app_name: "io-p-itn-auth-lv-func-02"
-      health_check_path: "/info"
       use_staging_slot: true
       use_private_agent: true
     secrets: inherit
