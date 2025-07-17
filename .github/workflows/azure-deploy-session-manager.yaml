@@ -2,11 +2,6 @@ name: Deploy (io-session-manager)
 
 on:
   workflow_dispatch:
-    inputs:
-      swap_slot_step:
-        type: boolean
-        description: Use slot swapping step
-        default: true
 
 jobs:
   deploy_to_azure_1:
@@ -19,7 +14,6 @@ jobs:
       workspace_name: "io-session-manager"
       web_app_name: "io-p-weu-session-manager-app-03"
       use_staging_slot: true
-      swap_slot_step: ${{ inputs.swap_slot_step }}
       use_private_agent: true
     secrets: inherit
 
