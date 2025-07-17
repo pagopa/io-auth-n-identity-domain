@@ -24,7 +24,7 @@ data "azurerm_key_vault_secret" "profile_async_session_manager_internal_api_key"
 }
 
 module "key_vaults" {
-  source = "../../modules/key_vaults"
+  source = "../modules/key_vaults"
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
   tenant_id           = data.azurerm_client_config.current.tenant_id

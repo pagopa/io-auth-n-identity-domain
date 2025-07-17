@@ -66,9 +66,12 @@ export const getNoticeLoginEmailOrchestratorHandler = function* (
 ): Generator<unknown> {
   const logPrefix = "NoticeLoginEmailOrchestrator";
 
-  const retryOptions = new df.RetryOptions(5000, 10);
+  // Total time ~2h30min
+  const retryOptions = new df.RetryOptions(5000, 20);
   // eslint-disable-next-line functional/immutable-data
   retryOptions.backoffCoefficient = 1.5;
+  // eslint-disable-next-line functional/immutable-data
+  retryOptions.maxRetryIntervalInMilliseconds = 20 * 60 * 1000; // do not exceed 20 min interval between retries
 
   context.log.verbose(`${logPrefix}|Notice login email process started`);
 

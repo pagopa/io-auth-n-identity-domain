@@ -72,10 +72,10 @@
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-function-app/azurerm/0.3.1"
   },
   "function_session_manager_internal_autoscale": {
-    "hash": "b1b16764fc57ccf0d91a2375a11719e3dac5fd2a7bf77e12cbc290866deac044",
-    "version": "0.0.2",
+    "hash": "42ca301a262ca7cb78e9dfb2072922e778328460b91e9859d1bf2af974f9518a",
+    "version": "2.0.0",
     "name": "azure_app_service_plan_autoscaler",
-    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-app-service-plan-autoscaler/azurerm/0.0.2"
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-app-service-plan-autoscaler/azurerm/2.0.0"
   },
   "pub_session_manager": {
     "hash": "433fe44b2863b8af8d4f4206ee2590599b0cb67d78b372e65d68317d3199aaa1",
@@ -102,9 +102,15 @@
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.2"
   },
   "azure-service-bus-alerts": {
-    "hash": "59ffb11ffb5dcdeb362d4c6c56338aff8d015de8e2da7c80403cf13b946a28ea",
-    "version": "0.1.2",
+    "hash": "8b373aecede6a758fef57772021db5b3fa50fc692be49b7030b1d579702e9e8e",
+    "version": "0.1.3",
     "name": "azure_service_bus_alerts",
-    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-service-bus-alerts/azurerm/0.1.2"
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-service-bus-alerts/azurerm/0.1.3"
+  },
+  "iam_kv.kv_func": {
+    "hash": "433fe44b2863b8af8d4f4206ee2590599b0cb67d78b372e65d68317d3199aaa1",
+    "version": "1.1.2",
+    "name": "azure_role_assignments",
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.2"
   }
 }

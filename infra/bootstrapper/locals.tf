@@ -2,6 +2,7 @@ locals {
   prefix          = "io"
   env_short       = "p"
   location        = "italynorth"
+  location_short  = "itn"
   domain          = "auth"
   instance_number = "01"
 

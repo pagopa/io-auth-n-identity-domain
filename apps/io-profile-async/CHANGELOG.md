@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.11.1
+
+### Patch Changes
+
+- aedc7ad: Increase maxConcurrentSessions for serviceBusTrigger AZFN
+
 ## 1.11.0
 
 ### Minor Changes

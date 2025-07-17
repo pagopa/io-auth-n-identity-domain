@@ -31,13 +31,14 @@
 | <a name="module_function_profile_autoscale"></a> [function\_profile\_autoscale](#module\_function\_profile\_autoscale) | pagopa-dx/azure-app-service-plan-autoscaler/azurerm | ~> 0.0 |
 | <a name="module_function_public"></a> [function\_public](#module\_function\_public) | pagopa-dx/azure-function-app/azurerm | ~> 0.0 |
 | <a name="module_function_session_manager_internal"></a> [function\_session\_manager\_internal](#module\_function\_session\_manager\_internal) | pagopa-dx/azure-function-app/azurerm | ~> 0.0 |
-| <a name="module_function_session_manager_internal_autoscale"></a> [function\_session\_manager\_internal\_autoscale](#module\_function\_session\_manager\_internal\_autoscale) | pagopa-dx/azure-app-service-plan-autoscaler/azurerm | ~> 0.0 |
+| <a name="module_function_session_manager_internal_autoscale"></a> [function\_session\_manager\_internal\_autoscale](#module\_function\_session\_manager\_internal\_autoscale) | pagopa-dx/azure-app-service-plan-autoscaler/azurerm | ~> 2.0 |
 | <a name="module_function_web_profile"></a> [function\_web\_profile](#module\_function\_web\_profile) | pagopa-dx/azure-function-app/azurerm | ~> 0.0 |
+| <a name="module_iam_kv"></a> [iam\_kv](#module\_iam\_kv) | ../modules/iam_kv | n/a |
 | <a name="module_io_auth_internal_apim_api_itn"></a> [io\_auth\_internal\_apim\_api\_itn](#module\_io\_auth\_internal\_apim\_api\_itn) | ../modules/internal_api | n/a |
 | <a name="module_io_platform_apim_api_itn"></a> [io\_platform\_apim\_api\_itn](#module\_io\_platform\_apim\_api\_itn) | ../modules/platform_proxy_api | n/a |
 | <a name="module_io_profile_apim_api_itn"></a> [io\_profile\_apim\_api\_itn](#module\_io\_profile\_apim\_api\_itn) | ../modules/operation_api | n/a |
 | <a name="module_io_public_apim_api_itn"></a> [io\_public\_apim\_api\_itn](#module\_io\_public\_apim\_api\_itn) | ../modules/io_public_api | n/a |
-| <a name="module_key_vaults"></a> [key\_vaults](#module\_key\_vaults) | ../../modules/key_vaults | n/a |
+| <a name="module_key_vaults"></a> [key\_vaults](#module\_key\_vaults) | ../modules/key_vaults | n/a |
 | <a name="module_pub_session_manager"></a> [pub\_session\_manager](#module\_pub\_session\_manager) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_pub_session_manager_internal"></a> [pub\_session\_manager\_internal](#module\_pub\_session\_manager\_internal) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_sub_io_prof_async"></a> [sub\_io\_prof\_async](#module\_sub\_io\_prof\_async) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
@@ -64,6 +65,7 @@
 | [azurerm_monitor_scheduled_query_rules_alert_v2.expired-sessions-discoverer-bad-record-alert](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_scheduled_query_rules_alert_v2) | resource |
 | [azurerm_monitor_scheduled_query_rules_alert_v2.expired-sessions-discoverer-max-retry-reached-alert](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_scheduled_query_rules_alert_v2) | resource |
 | [azurerm_monitor_scheduled_query_rules_alert_v2.expired-sessions-discoverer-revert-failure-alert](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_scheduled_query_rules_alert_v2) | resource |
+| [azurerm_monitor_scheduled_query_rules_alert_v2.service-bus-logout-events-emission-failure](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_scheduled_query_rules_alert_v2) | resource |
 | [azurerm_monitor_scheduled_query_rules_alert_v2.session-notification-events-processor-bad-message-alert](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_scheduled_query_rules_alert_v2) | resource |
 | [azurerm_monitor_scheduled_query_rules_alert_v2.session-notification-events-processor-bad-record-alert](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_scheduled_query_rules_alert_v2) | resource |
 | [azurerm_monitor_scheduled_query_rules_alert_v2.session-notification-events-processor-unable-to-build-new-record-alert](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_scheduled_query_rules_alert_v2) | resource |
