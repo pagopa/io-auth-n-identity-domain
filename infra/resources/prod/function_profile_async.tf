@@ -100,6 +100,10 @@ locals {
       SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION                    = resource.azurerm_servicebus_subscription.io_session_notifications_sub.name
       SERVICEBUS_AUTH_SESSION_TOPIC                                 = resource.azurerm_servicebus_topic.io_auth_sessions_topic.name
       SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT = local.io_session_notifications_sub_max_delivery_count
+
+      // ServiceBusTrigger config
+      AzureFunctionsJobHost__extensions__serviceBus__maxConcurrentSessions = 100
+      AzureFunctionsJobHost__extensions__serviceBus__sessionIdleTimeout    = "00:00:05"
     }
   }
 }
