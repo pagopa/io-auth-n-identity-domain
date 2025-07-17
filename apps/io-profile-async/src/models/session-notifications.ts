@@ -103,13 +103,6 @@ export class SessionNotificationsModel extends CosmosdbModelTTL<
         () => this.container.item(documentId, partitionKey).delete(options),
         toCosmosErrorResponse
       ),
-      TE.mapLeft(err => {
-        console.error(
-          `Error deleting document with id ${documentId} and partition key ${partitionKey}`,
-          err.error
-        );
-        return err;
-      }),
       TE.map(() => void 0),
       TE.orElseW(failure => {
         if (failure.error.code === 404) {
