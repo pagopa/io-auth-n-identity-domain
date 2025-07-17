@@ -13,7 +13,6 @@ jobs:
       resource_group_name: "io-p-itn-auth-main-rg-01"
       workspace_name: "io-session-manager-internal"
       function_app_name: "io-p-weu-auth-sm-int-func-01"
-      health_check_path: "/api/v1/info"
       use_staging_slot: true
       use_private_agent: true
     secrets: inherit
