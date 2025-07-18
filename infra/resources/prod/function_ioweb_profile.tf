@@ -119,6 +119,46 @@ data "azurerm_resource_group" "function_web_profile_rg" {
   name = "${local.project}-${local.domain}-${local.function_ioweb_profile.name}-rg-01"
 }
 
+module "kv_ioweb_func_web_profile_secret_reader" {
+  source  = "pagopa-dx/azure-role-assignments/azurerm"
+  version = "~> 1.1"
+
+  subscription_id = data.azurerm_subscription.current.subscription_id
+  principal_id    = module.function_web_profile.function_app.function_app.principal_id
+
+  key_vault = [
+    {
+      name                = module.key_vaults.ioweb.name
+      resource_group_name = module.key_vaults.ioweb.resource_group_name
+      has_rbac_support    = true
+      description         = "Allow ioweb profile function to read secrets from ioweb key vault"
+      roles = {
+        secrets = "reader"
+      }
+    }
+  ]
+}
+
+module "kv_ioweb_func_web_profile_staging_secret_reader" {
+  source  = "pagopa-dx/azure-role-assignments/azurerm"
+  version = "~> 1.1"
+
+  subscription_id = data.azurerm_subscription.current.subscription_id
+  principal_id    = module.function_web_profile.function_app.function_app.slot.principal_id
+
+  key_vault = [
+    {
+      name                = module.key_vaults.ioweb.name
+      resource_group_name = module.key_vaults.ioweb.resource_group_name
+      has_rbac_support    = true
+      description         = "Allow ioweb profile function (staging) to read secrets from ioweb key vault"
+      roles = {
+        secrets = "reader"
+      }
+    }
+  ]
+}
+
 module "function_web_profile" {
   source  = "pagopa-dx/azure-function-app/azurerm"
   version = "~> 1.0"
