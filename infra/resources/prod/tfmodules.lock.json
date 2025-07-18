@@ -113,13 +113,7 @@
     "name": "azure_role_assignments",
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.2"
   },
-  "kv_ioweb_func_web_profile_secret_reader": {
-    "hash": "433fe44b2863b8af8d4f4206ee2590599b0cb67d78b372e65d68317d3199aaa1",
-    "version": "1.1.2",
-    "name": "azure_role_assignments",
-    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.1.2"
-  },
-  "kv_ioweb_func_web_profile_staging_secret_reader": {
+  "iam_kv_ioweb.kv_func": {
     "hash": "433fe44b2863b8af8d4f4206ee2590599b0cb67d78b372e65d68317d3199aaa1",
     "version": "1.1.2",
     "name": "azure_role_assignments",
