@@ -48,7 +48,7 @@ locals {
 
 module "function_session_manager_internal" {
   source  = "pagopa-dx/azure-function-app/azurerm"
-  version = "~> 0.0"
+  version = "~> 1.0"
 
   # Note: SM and SM-int must be deployed in the WEU region to ensure connectivity with Redis.
   environment = {

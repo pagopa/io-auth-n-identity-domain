@@ -7,7 +7,7 @@ on:
 
 jobs:
   drift_detection:
-    uses: pagopa/dx/.github/workflows/infra_drift_detection.yml@main
+    uses: pagopa/dx/.github/workflows/infra_drift_detection.yml@a79e9620d5fb466238d41a96cd407e10de29d855
     name: Drift Detection
     secrets: inherit
     with:

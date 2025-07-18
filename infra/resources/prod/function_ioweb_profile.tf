@@ -122,7 +122,7 @@ data "azurerm_resource_group" "function_web_profile_rg" {
 
 module "function_web_profile" {
   source  = "pagopa-dx/azure-function-app/azurerm"
-  version = "~> 0.0"
+  version = "~> 1.0"
 
   environment = {
     prefix          = local.prefix
@@ -223,7 +223,6 @@ AzureDiagnostics
 
   tags = local.tags
 }
-
 
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "alert_too_much_calls_on_unlock" {
   enabled                 = true

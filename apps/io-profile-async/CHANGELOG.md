@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.11.2
+
+### Patch Changes
+
+- 72c5d77: Handle 404 on delete for session-notifications model
+
 ## 1.11.1
 
 ### Patch Changes
