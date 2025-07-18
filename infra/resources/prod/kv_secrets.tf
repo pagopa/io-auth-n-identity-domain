@@ -50,6 +50,14 @@ resource "azurerm_key_vault_secret" "cosmos_api_connection_string" {
   tags = local.tags
 }
 
+resource "azurerm_key_vault_secret" "cosmos_auth_connection_string" {
+  name         = "cosmos-auth-connection-string"
+  key_vault_id = module.key_vaults.auth.id
+  value        = format("AccountEndpoint=%s;AccountKey=%s;", data.azurerm_cosmosdb_account.cosmos_citizen_auth.endpoint, data.azurerm_cosmosdb_account.cosmos_citizen_auth.primary_key)
+
+  tags = local.tags
+}
+
 resource "azurerm_key_vault_secret" "citizen_auth_common_connection_string" {
   name         = "citizen-auth-common-connection-string"
   key_vault_id = data.azurerm_key_vault.kv.id

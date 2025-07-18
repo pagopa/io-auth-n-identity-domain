@@ -1,11 +1,11 @@
 data "azurerm_key_vault_secret" "first_lollipop_consumer_subscription_key" {
-  name         = "first-lollipop-consumer-pagopa-subscription-key-itn"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  name         = "first-lollipop-consumer-pagopa-subscription-key"
+  key_vault_id = module.key_vaults.auth.id
 }
 
 data "azurerm_key_vault_certificate_data" "lollipop_certificate_v1" {
   name         = "lollipop-certificate-v1"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  key_vault_id = module.key_vaults.auth.id
 }
 
 locals {
@@ -26,7 +26,7 @@ locals {
       COSMOSDB_NAME                = "citizen-auth"
       COSMOSDB_URI                 = data.azurerm_cosmosdb_account.cosmos_citizen_auth.endpoint
       COSMOSDB_KEY                 = data.azurerm_cosmosdb_account.cosmos_citizen_auth.primary_key
-      COSMOS_API_CONNECTION_STRING = format("AccountEndpoint=%s;AccountKey=%s;", data.azurerm_cosmosdb_account.cosmos_citizen_auth.endpoint, data.azurerm_cosmosdb_account.cosmos_citizen_auth.primary_key)
+      COSMOS_API_CONNECTION_STRING = azurerm_key_vault_secret.cosmos_auth_connection_string.value
 
       #TODO: move to new storage on itn
       LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.lollipop_assertion_storage.primary_connection_string
