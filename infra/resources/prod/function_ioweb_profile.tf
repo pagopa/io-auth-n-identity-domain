@@ -66,7 +66,7 @@ locals {
       // FF AND TESTERS
       // --------------
       FF_API_ENABLED = "ALL"
-      BETA_TESTERS   = data.azurerm_key_vault_secret.api_beta_testers.value
+      BETA_TESTERS   = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.api_beta_testers.versionless_id})"
 
       // ------------
       // JWT Config
@@ -90,19 +90,19 @@ locals {
       // -------------------------
       // Fast Login config
       // -------------------------
-      FAST_LOGIN_API_KEY         = data.azurerm_key_vault_secret.functions_fast_login_api_key.value
+      FAST_LOGIN_API_KEY         = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.functions_fast_login_api_key.versionless_id})"
       FAST_LOGIN_CLIENT_BASE_URL = "https://io-p-itn-auth-lv-func-02.azurewebsites.net"
 
       // -------------------------
       // Functions App config
       // -------------------------
-      FUNCTIONS_APP_API_KEY         = data.azurerm_key_vault_secret.functions_app_api_key.value
+      FUNCTIONS_APP_API_KEY         = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.functions_app_api_key.versionless_id})"
       FUNCTIONS_APP_CLIENT_BASE_URL = "https://io-p-itn-auth-profile-func-02.azurewebsites.net"
 
       // -------------------------
       // Hub Spid Login for ioweb config
       // -------------------------
-      HUB_SPID_LOGIN_API_KEY         = data.azurerm_key_vault_secret.spid_login_api_key.value
+      HUB_SPID_LOGIN_API_KEY         = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.spid_login_api_key.versionless_id})"
       HUB_SPID_LOGIN_CLIENT_BASE_URL = "https://io-p-weu-ioweb-spid-login.azurewebsites.net"
 
       // -------------------------
