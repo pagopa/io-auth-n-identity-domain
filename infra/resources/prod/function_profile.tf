@@ -18,7 +18,6 @@ data "azurerm_key_vault_secret" "fn_app_PUBLIC_API_KEY" {
   key_vault_id = data.azurerm_key_vault.common_kv.id
 }
 
-
 locals {
   function_profile = {
     name = "profile"
@@ -69,11 +68,29 @@ locals {
       MAILUP_USERNAME = data.azurerm_key_vault_secret.common_MAILUP_USERNAME.value
       MAILUP_SECRET   = data.azurerm_key_vault_secret.common_MAILUP_SECRET.value
       PUBLIC_API_KEY  = trimspace(data.azurerm_key_vault_secret.fn_app_PUBLIC_API_KEY.value)
-
     }
   }
 }
 
+resource "azurerm_key_vault_access_policy" "func_profile_kv_common" {
+  key_vault_id = data.azurerm_key_vault.common_kv.id
+  object_id    = module.function_profile.function_app.function_app.principal_id
+  tenant_id    = data.azurerm_subscription.current.tenant_id
+
+  secret_permissions = [
+    "Get"
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "func_profile_staging_kv_common" {
+  key_vault_id = data.azurerm_key_vault.common_kv.id
+  object_id    = module.function_profile.function_app.function_app.slot.principal_id
+  tenant_id    = data.azurerm_subscription.current.tenant_id
+
+  secret_permissions = [
+    "Get"
+  ]
+}
 
 module "function_profile" {
   source  = "pagopa-dx/azure-function-app/azurerm"
@@ -94,7 +111,6 @@ module "function_profile" {
 
   # P2mv3 SKU and 8 Worker process count(sku set as of io-infra function-profile definition)
   tier = "xl"
-
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
 

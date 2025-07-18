@@ -11,6 +11,15 @@ module "iam_kv" {
   principal_ids = [
     module.function_profile_async.function_app.function_app.principal_id,
     module.function_profile_async.function_app.function_app.slot.principal_id,
+
+    module.function_lollipop.function_app.function_app.principal_id,
+    module.function_lollipop.function_app.function_app.slot.principal_id,
+
+    module.function_lv.function_app.function_app.principal_id,
+    module.function_lv.function_app.function_app.slot.principal_id,
+
+    module.function_session_manager_internal.function_app.function_app.principal_id,
+    module.function_session_manager_internal.function_app.function_app.slot.principal_id,
   ]
 }
 
@@ -27,6 +36,8 @@ module "iam_kv_ioweb" {
   principal_ids = [
     module.function_web_profile.function_app.function_app.principal_id,
     module.function_web_profile.function_app.function_app.slot.principal_id,
+
+    module.function_profile.function_app.function_app.principal_id,
+    module.function_profile.function_app.function_app.slot.principal_id,
   ]
 }
-
