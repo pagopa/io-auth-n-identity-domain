@@ -141,38 +141,29 @@ module "function_profile_async" {
   app_settings = merge(
     local.function_profile_async.app_settings,
     {
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 5,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 5,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 5,
-      "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"                                                = "1"
-      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "0",
-      "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "0",
-      "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "0",
-      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "0",
-      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"                                       = "0",
-      "AzureWebJobs.SessionNotificationsInitRecovery.Disabled"                                         = "0"
+      "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"          = "1"
+      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"              = "0",
+      "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled" = "0",
+      "AzureWebJobs.OnProfileUpdate.Disabled"                    = "0",
+      "AzureWebJobs.StoreSpidLogs.Disabled"                      = "0",
+      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled" = "0",
+      "AzureWebJobs.SessionNotificationsInitRecovery.Disabled"   = "0"
     }
   )
   slot_app_settings = merge(
     local.function_profile_async.app_settings,
     {
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = 100,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = 100,
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = 100,
-      "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"                                                = "1"
-      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                                                    = "1",
-      "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"                                       = "1",
-      "AzureWebJobs.OnProfileUpdate.Disabled"                                                          = "1",
-      "AzureWebJobs.StoreSpidLogs.Disabled"                                                            = "1",
-      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"                                       = "1",
-      "AzureWebJobs.SessionNotificationsInitRecovery.Disabled"                                         = "1"
+      "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"          = "1"
+      "AzureWebJobs.ExpiredSessionAdvisor.Disabled"              = "1",
+      "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled" = "1",
+      "AzureWebJobs.OnProfileUpdate.Disabled"                    = "1",
+      "AzureWebJobs.StoreSpidLogs.Disabled"                      = "1",
+      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled" = "1",
+      "AzureWebJobs.SessionNotificationsInitRecovery.Disabled"   = "1"
     }
   )
 
   sticky_app_setting_names = [
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage",
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
     "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled",
     "AzureWebJobs.ExpiredSessionAdvisor.Disabled",
     "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",

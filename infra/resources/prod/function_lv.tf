@@ -46,11 +46,9 @@ locals {
       SESSION_MANAGER_INTERNAL_BASE_URL = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
     }
 
-    prod_slot_sampling_percentage    = 5
-    staging_slot_sampling_percentage = 100
+    prod_slot_sampling_percentage = 5
   }
 }
-
 
 data "azurerm_resource_group" "function_lv_rg" {
   name = "${local.project}-${local.domain}-${local.function_lv.name}-rg-01"
@@ -88,30 +86,11 @@ module "function_lv" {
     resource_group_name = data.azurerm_virtual_network.itn_common.resource_group_name
   }
 
-  app_settings = merge(
-    local.function_lv.app_settings,
-    {
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_lv.prod_slot_sampling_percentage
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_lv.prod_slot_sampling_percentage
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_lv.prod_slot_sampling_percentage
-    },
-  )
-  slot_app_settings = merge(
-    local.function_lv.app_settings,
-    {
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_lv.staging_slot_sampling_percentage
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_lv.staging_slot_sampling_percentage
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_lv.staging_slot_sampling_percentage
-    },
-  )
+  app_settings      = local.function_lv.app_settings
+  slot_app_settings = local.function_lv.app_settings
 
-  sticky_app_setting_names = [
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage",
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
-  ]
-
-  application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
+  application_insights_connection_string   = data.azurerm_application_insights.application_insights.connection_string
+  application_insights_sampling_percentage = local.function_lv.prod_slot_sampling_percentage
 
   action_group_id = azurerm_monitor_action_group.error_action_group.id
 
