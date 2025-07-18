@@ -30,8 +30,7 @@ locals {
 
     # Using 100% sampling for production slot since the amount of traffic is
     # low and we want to have a good coverage of the logs
-    prod_slot_sampling_percentage    = 100
-    staging_slot_sampling_percentage = 100
+    prod_slot_sampling_percentage = 100
   }
 }
 
@@ -67,28 +66,8 @@ module "function_public" {
     resource_group_name = data.azurerm_virtual_network.itn_common.resource_group_name
   }
 
-  app_settings = merge(
-    local.function_public.app_settings,
-    {
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_public.prod_slot_sampling_percentage
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_public.prod_slot_sampling_percentage
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_public.prod_slot_sampling_percentage
-    }
-  )
-  slot_app_settings = merge(
-    local.function_public.app_settings,
-    {
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage     = local.function_public.staging_slot_sampling_percentage
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage     = local.function_public.staging_slot_sampling_percentage
-      AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage = local.function_public.staging_slot_sampling_percentage
-    }
-  )
-
-  sticky_app_setting_names = [
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__minSamplingPercentage",
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__maxSamplingPercentage",
-    "AzureFunctionsJobHost__logging__applicationInsights__samplingSettings__initialSamplingPercentage",
-  ]
+  app_settings      = local.function_public.app_settings
+  slot_app_settings = local.function_public.app_settings
 
   subnet_service_endpoints = {
     web = true

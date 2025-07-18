@@ -65,7 +65,6 @@ module "function_session_manager_internal" {
 
   tier = "l"
 
-
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
 
   subnet_cidr   = local.cidr_subnet_fn_session_manager_internal
