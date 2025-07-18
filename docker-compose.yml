@@ -14,6 +14,12 @@ services:
       dockerfile: ./docker/server/Dockerfile
       args:
         SERVER_NAME: "io-session-manager"
+      # this is needed to prevent failures during container build
+      # for a regression introduced in docker compose.
+      # more infos in https://github.com/docker/compose/issues/12892
+      additional_contexts:
+        io-lollipop: service:io-lollipop
+        io-profile: service:io-profile
     env_file:
       - ./docker/generated/.env.io-session-manager
     volumes:
@@ -33,6 +39,8 @@ services:
       io-profile:
         condition: service_started
       io-lollipop:
+        condition: service_started
+      servicebus:
         condition: service_started
     networks:
       - io-fn
@@ -55,6 +63,8 @@ services:
       dockerfile: ./docker/function/Dockerfile
       args:
         FUNCTION_NAME: "io-lollipop"
+      additional_contexts:
+        cosmosdb: service:cosmosdb
     env_file:
       - ./docker/generated/.env.io-lollipop
     volumes:
@@ -116,6 +126,8 @@ services:
       dockerfile: ./docker/function/Dockerfile
       args:
         FUNCTION_NAME: "io-profile"
+      additional_contexts:
+        cosmosdb: service:cosmosdb
     env_file:
       - ./docker/generated/.env.io-profile
     ports:
