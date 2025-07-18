@@ -57,6 +57,9 @@ module "topic_io_auth" {
   ]
 }
 
+//Publishers
+
+//NOTE: staging slot has been enabled on io-infra
 module "pub_session_manager" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
   version = "~>1.0"
@@ -92,12 +95,51 @@ module "pub_session_manager_internal" {
     }
   ]
 }
+module "pub_session_manager_internal_staging" {
+  source  = "pagopa-dx/azure-role-assignments/azurerm"
+  version = "~>1.0"
+
+  principal_id    = module.function_session_manager_internal.function_app.function_app.slot.principal_id
+  subscription_id = data.azurerm_subscription.current.subscription_id
+
+  service_bus = [
+    {
+      namespace_name      = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
+      resource_group_name = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
+      role                = "writer"
+      description         = "This role allows managing the given topic"
+      topic_names         = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
+    }
+  ]
+}
+
+// Subscribers
 
 module "sub_io_prof_async" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
   version = "~>1.0"
 
   principal_id    = module.function_profile_async.function_app.function_app.principal_id
+  subscription_id = data.azurerm_subscription.current.subscription_id
+
+  service_bus = [
+    {
+      namespace_name      = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
+      resource_group_name = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
+      role                = "reader"
+      description         = "This role allows receiving messages from the given subscription"
+      subscriptions = {
+        io-auth-sessions-topic = [azurerm_servicebus_subscription.io_session_notifications_sub.name],
+      }
+    }
+  ]
+}
+
+module "sub_io_prof_async_staging" {
+  source  = "pagopa-dx/azure-role-assignments/azurerm"
+  version = "~>1.0"
+
+  principal_id    = module.function_profile_async.function_app.function_app.slot.principal_id
   subscription_id = data.azurerm_subscription.current.subscription_id
 
   service_bus = [
