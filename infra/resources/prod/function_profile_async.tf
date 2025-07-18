@@ -1,25 +1,27 @@
-
-
 data "azurerm_key_vault_secret" "io_com_mailup_username" {
-  name         = "iocom-MAILUP-USERNAME"
-  key_vault_id = data.azurerm_key_vault.common_kv.id
+  name         = "mailup-username"
+  key_vault_id = module.key_vaults.auth.id
 }
 
 data "azurerm_key_vault_secret" "io_com_mailup_secret" {
-  name         = "iocom-MAILUP-SECRET"
-  key_vault_id = data.azurerm_key_vault.common_kv.id
+  name         = "mailup-secret"
+  key_vault_id = module.key_vaults.auth.id
 }
 
 data "azurerm_key_vault_secret" "function_profile_key" {
   name         = "profile-async-function-profile-key"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  key_vault_id = module.key_vaults.auth.id
 }
 
 data "azurerm_key_vault_secret" "fn_app_SPID_LOGS_PUBLIC_KEY" {
-  name         = "funcapp-KEY-SPIDLOGS-PUB"
-  key_vault_id = data.azurerm_key_vault.common_kv.id
+  name         = "funcapp-spid-logs-public-key"
+  key_vault_id = module.key_vaults.auth.id
 }
 
+data "azurerm_key_vault_secret" "profile_async_session_manager_internal_api_key" {
+  name         = "profile-async-session-manager-internal-key"
+  key_vault_id = module.key_vaults.auth.id
+}
 
 locals {
   function_profile_async = {
@@ -107,7 +109,6 @@ locals {
     }
   }
 }
-
 
 module "function_profile_async" {
   source  = "pagopa-dx/azure-function-app/azurerm"
@@ -322,7 +323,6 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-disc
   tags = local.tags
 }
 
-
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-discoverer-max-retry-reached-alert" {
   enabled                 = true
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Expired Sessions Discoverer max retry reached"
@@ -358,7 +358,6 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-disc
 
   tags = local.tags
 }
-
 
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-discoverer-bad-record-alert" {
   enabled                 = true
@@ -396,7 +395,6 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired-sessions-disc
   tags = local.tags
 }
 
-
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-events-processor-bad-record-alert" {
   enabled                 = true
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Session Notification Events Processor found bad record(s)"
@@ -433,7 +431,6 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-
   tags = local.tags
 }
 
-
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-events-processor-unable-to-build-new-record-alert" {
   enabled                 = true
   name                    = "[${upper(local.domain)} | ${module.function_profile_async.function_app.function_app.name}] Session Notification Events Processor unable to build a record"
@@ -469,7 +466,6 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-
 
   tags = local.tags
 }
-
 
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-events-processor-bad-message-alert" {
   enabled                 = true
