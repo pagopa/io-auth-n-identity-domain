@@ -16,6 +16,7 @@
     "typecheck": "tsc --noemit",
     "start": "node dist/server.js",
     "start:watch": "yarn start watch",
+    "start:debug": "node --inspect=0.0.0.0:5859 dist/server.js",
     "lint": "yarn lint:check --fix",
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache",
     "test": "vitest run",

@@ -26,7 +26,8 @@ services:
       - ./apps/io-session-manager/certs:/usr/src/app/apps/io-session-manager/certs:cached
     ports:
       - 8081:3000
-    command: ["yarn", "start"]
+      - 5859:5859
+    command: ["yarn", "start:debug"]
     depends_on:
       redis-cluster:
         condition: service_healthy
