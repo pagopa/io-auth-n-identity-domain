@@ -34,6 +34,7 @@
 | <a name="module_function_session_manager_internal_autoscale"></a> [function\_session\_manager\_internal\_autoscale](#module\_function\_session\_manager\_internal\_autoscale) | pagopa-dx/azure-app-service-plan-autoscaler/azurerm | ~> 2.0 |
 | <a name="module_function_web_profile"></a> [function\_web\_profile](#module\_function\_web\_profile) | pagopa-dx/azure-function-app/azurerm | ~> 1.0 |
 | <a name="module_iam_kv"></a> [iam\_kv](#module\_iam\_kv) | ../modules/iam_kv | n/a |
+| <a name="module_iam_kv_ioweb"></a> [iam\_kv\_ioweb](#module\_iam\_kv\_ioweb) | ../modules/iam_kv | n/a |
 | <a name="module_io_auth_internal_apim_api_itn"></a> [io\_auth\_internal\_apim\_api\_itn](#module\_io\_auth\_internal\_apim\_api\_itn) | ../modules/internal_api | n/a |
 | <a name="module_io_platform_apim_api_itn"></a> [io\_platform\_apim\_api\_itn](#module\_io\_platform\_apim\_api\_itn) | ../modules/platform_proxy_api | n/a |
 | <a name="module_io_profile_apim_api_itn"></a> [io\_profile\_apim\_api\_itn](#module\_io\_profile\_apim\_api\_itn) | ../modules/operation_api | n/a |
@@ -41,7 +42,9 @@
 | <a name="module_key_vaults"></a> [key\_vaults](#module\_key\_vaults) | ../modules/key_vaults | n/a |
 | <a name="module_pub_session_manager"></a> [pub\_session\_manager](#module\_pub\_session\_manager) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_pub_session_manager_internal"></a> [pub\_session\_manager\_internal](#module\_pub\_session\_manager\_internal) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
+| <a name="module_pub_session_manager_internal_staging"></a> [pub\_session\_manager\_internal\_staging](#module\_pub\_session\_manager\_internal\_staging) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_sub_io_prof_async"></a> [sub\_io\_prof\_async](#module\_sub\_io\_prof\_async) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
+| <a name="module_sub_io_prof_async_staging"></a> [sub\_io\_prof\_async\_staging](#module\_sub\_io\_prof\_async\_staging) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_topic_io_auth"></a> [topic\_io\_auth](#module\_topic\_io\_auth) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_webprofile_apim_api_itn"></a> [webprofile\_apim\_api\_itn](#module\_webprofile\_apim\_api\_itn) | ../modules/ioweb_profile_api | n/a |
 
@@ -51,6 +54,8 @@
 |------|------|
 | [azurerm_key_vault_access_policy.func_profas](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) | resource |
 | [azurerm_key_vault_access_policy.func_profas_staging](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) | resource |
+| [azurerm_key_vault_access_policy.func_profile_kv_common](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) | resource |
+| [azurerm_key_vault_access_policy.func_profile_staging_kv_common](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) | resource |
 | [azurerm_key_vault_access_policy.kv_common_func_profas](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) | resource |
 | [azurerm_key_vault_access_policy.kv_common_func_profas_staging](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) | resource |
 | [azurerm_key_vault_secret.citizen_auth_common_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
