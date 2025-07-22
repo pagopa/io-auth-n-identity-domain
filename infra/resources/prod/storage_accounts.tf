@@ -17,8 +17,8 @@ module "storage_accounts" {
   tags = local.tags
 }
 
-module "storage_account_entities" {
-  source = "../modules/storage_account_entities"
+module "storage_account_services" {
+  source = "../modules/storage_account_services"
 
   storage_account = {
     id   = module.storage_accounts.session.id
