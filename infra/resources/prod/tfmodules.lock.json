@@ -124,11 +124,30 @@
     "version": "1.2.0",
     "name": "azure_role_assignments",
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.2.0"
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.2.0"
   },
   "sub_io_prof_async_staging": {
     "hash": "cec66e15f8a41169c11dbd6822da998c5d01fea9f5e49ec21f0959c340f2ac59",
     "version": "1.2.0",
     "name": "azure_role_assignments",
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.2.0"
+  },
+  "iam_kv.kv_st": {
+    "hash": "cec66e15f8a41169c11dbd6822da998c5d01fea9f5e49ec21f0959c340f2ac59",
+    "version": "1.2.0",
+    "name": "azure_role_assignments",
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.2.0"
+  },
+  "iam_kv_ioweb.kv_st": {
+    "hash": "cec66e15f8a41169c11dbd6822da998c5d01fea9f5e49ec21f0959c340f2ac59",
+    "version": "1.2.0",
+    "name": "azure_role_assignments",
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.2.0"
+  },
+  "storage_accounts.st_session_01": {
+    "hash": "74bcea37fe35b2d95a2eb2b1e29c0f6ca3ffa8a5475c3e70bd42ef17fc17bd7e",
+    "version": "1.0.0",
+    "name": "azure_storage_account",
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-storage-account/azurerm/1.0.0"
   }
 }
