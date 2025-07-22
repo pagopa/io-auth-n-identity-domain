@@ -32,15 +32,6 @@ resource "azurerm_key_vault_key" "lollipop_assertion_01" {
     "wrapKey"
   ]
 
-  rotation_policy {
-    automatic {
-      time_before_expiry = "P30D"
-    }
-
-    expire_after         = "P90D"
-    notify_before_expiry = "P29D"
-  }
-
   tags = var.tags
 }
 
@@ -58,15 +49,6 @@ resource "azurerm_key_vault_key" "lv_logs_01" {
     "verify",
     "wrapKey"
   ]
-
-  rotation_policy {
-    automatic {
-      time_before_expiry = "P30D"
-    }
-
-    expire_after         = "P90D"
-    notify_before_expiry = "P29D"
-  }
 
   tags = var.tags
 }
