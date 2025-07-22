@@ -18,6 +18,10 @@ terraform {
 
 provider "azurerm" {
   features {
+    key_vault {
+      recover_soft_deleted_keys             = true
+      purge_soft_deleted_secrets_on_destroy = true
+    }
   }
 
   storage_use_azuread = true
