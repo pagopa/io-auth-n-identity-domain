@@ -29,8 +29,8 @@ module "iam_kv_ioweb" {
   subscription_id = data.azurerm_subscription.current.subscription_id
 
   key_vault = {
-    name                = module.key_vaults.ioweb.name
-    resource_group_name = module.key_vaults.ioweb.resource_group_name
+    name                = data.azurerm_key_vault.ioweb.name
+    resource_group_name = data.azurerm_key_vault.ioweb.resource_group_name
   }
 
   principal_ids = [
