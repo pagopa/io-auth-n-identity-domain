@@ -1,6 +1,6 @@
 data "azurerm_key_vault_secret" "ioweb_profile_function_api_key" {
   name         = "ioweb-profile-api-key"
-  key_vault_id = data.azurerm_key_vault.ioweb_kv.id
+  key_vault_id = data.azurerm_key_vault.ioweb.id
 }
 
 data "azurerm_key_vault_secret" "common_MAILUP_USERNAME" {
