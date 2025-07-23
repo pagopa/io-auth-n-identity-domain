@@ -9,3 +9,15 @@ output "session" {
     }
   }
 }
+
+output "audit" {
+  value = {
+    id                  = module.st_audit_01.id
+    name                = module.st_audit_01.name
+    resource_group_name = module.st_audit_01.resource_group_name
+    principal_id        = module.st_audit_01.principal_id
+    encryption_scopes = {
+      lv_logs = azurerm_storage_encryption_scope.lvlogs.name
+    }
+  }
+}

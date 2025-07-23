@@ -13,6 +13,7 @@ module "storage_accounts" {
   subnet_pep_id                        = data.azurerm_subnet.private_endpoints_subnet.id
 
   lollipop_key_vault_key_id = module.key_vaults.lollipop_assertion_01.id
+  lvlogs_key_vault_key_id   = module.key_vaults.lv_logs_01.id
 
   tags = local.tags
 }
@@ -42,6 +43,25 @@ module "storage_account_services" {
     "lockedprofile01",
     "profileemails01"
   ]
+
+  tags = local.tags
+}
+
+module "storage_account_audit_services" {
+  source = "../modules/storage_account_services"
+
+  storage_account = {
+    id   = module.storage_accounts.audit.id
+    name = module.storage_accounts.audit.name
+  }
+
+  containers = [
+    "lv-logs"
+  ]
+
+  encryption_scopes = {
+    "lv_logs" = module.storage_accounts.audit.encryption_scopes["lv_logs"]
+  }
 
   tags = local.tags
 }

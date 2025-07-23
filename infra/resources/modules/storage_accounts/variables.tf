@@ -28,3 +28,7 @@ variable "subnet_pep_id" {
 variable "lollipop_key_vault_key_id" {
   type = string
 }
+
+variable "lvlogs_key_vault_key_id" {
+  type = string
+}
