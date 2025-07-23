@@ -199,7 +199,7 @@ const updateExpiredSessionNotificationFlag: (
         .SESSION_NOTIFICATION_EVENTS_TTL_OFFSET
     ),
     // on error calculateRecordTTL falling back to the default retention ttl time
-    E.getOrElseW(
+    E.getOrElse(
       () =>
         deps.sessionNotificationsRepositoryConfig
           .SESSION_NOTIFICATION_EVENTS_TTL_OFFSET as NonNegativeInteger
