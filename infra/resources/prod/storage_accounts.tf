@@ -13,7 +13,7 @@ module "storage_accounts" {
   subnet_pep_id                        = data.azurerm_subnet.private_endpoints_subnet.id
 
   lollipop_key_vault_key_id = module.key_vaults.lollipop_assertion_01.id
-  lvlogs_key_vault_key_id   = module.key_vaults.lv_logs_01.id
+  lvlogs_key_vault_key_id   = module.key_vaults.lv_logs_01.versionless_id
 
   tags = local.tags
 }
