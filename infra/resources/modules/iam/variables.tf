@@ -1,6 +1,13 @@
-variable "principal_ids" {
+variable "function_apps_principal_ids" {
   type        = set(string)
-  description = "List of principal IDs to which the role will be assigned."
+  description = "List of Function App principal IDs to give secret access as reader"
+  default     = []
+}
+
+variable "storage_account_principal_ids" {
+  type        = set(string)
+  description = "List of Storage Account principal IDs to give crypto access as writer"
+  default     = []
 }
 
 variable "key_vault" {

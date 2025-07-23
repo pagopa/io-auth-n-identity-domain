@@ -8,7 +8,7 @@ resource "azurerm_key_vault" "auth" {
   location                 = var.environment.location
   resource_group_name      = var.resource_group_name
   tenant_id                = var.tenant_id
-  purge_protection_enabled = false
+  purge_protection_enabled = true
 
   tags = var.tags
 
