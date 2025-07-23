@@ -15,6 +15,7 @@ import {
   CosmosResourceTTL
 } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model_ttl";
 import { wrapWithKind } from "@pagopa/io-functions-commons/dist/src/utils/types";
+import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -33,7 +34,8 @@ export type NotificationEvents = t.TypeOf<typeof NotificationEvents>;
 export const SessionNotifications = t.type({
   id: NonEmptyString,
   expiredAt: t.number,
-  notificationEvents: NotificationEvents
+  notificationEvents: NotificationEvents,
+  ttl: NonNegativeInteger
 });
 
 export type SessionNotifications = t.TypeOf<typeof SessionNotifications>;

@@ -187,17 +187,26 @@ const updateExpiredSessionNotificationFlag: (
   fiscalCode: FiscalCode,
   expiredAt: number,
   flagNewValue: boolean
-) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> = (
+) => RTE.ReaderTaskEither<Dependencies, PermanentError | CosmosErrors, void> = (
   fiscalCode,
   expiredAt,
   flagNewValue
 ) => deps =>
   pipe(
-    deps.sessionNotificationsModel.patch([fiscalCode, expiredAt], {
-      notificationEvents: {
-        EXPIRED_SESSION: flagNewValue
-      }
-    }),
+    calculateRecordTTL(
+      expiredAt,
+      deps.sessionNotificationsRepositoryConfig
+        .SESSION_NOTIFICATION_EVENTS_TTL_OFFSET
+    ),
+    TE.fromEither,
+    TE.chainW(ttl =>
+      deps.sessionNotificationsModel.patch([fiscalCode, expiredAt], {
+        notificationEvents: {
+          EXPIRED_SESSION: flagNewValue
+        },
+        ttl
+      })
+    ),
     TE.map(() => void 0)
   );
 
