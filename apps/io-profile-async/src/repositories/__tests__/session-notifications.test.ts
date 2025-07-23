@@ -170,8 +170,13 @@ describe("SessionNotificationsRepository", () => {
         true
       )(deps)();
 
+      const expectedTtl =
+        aYearInSeconds +
+        sessionNotificationsRepositoryConfigMock.SESSION_NOTIFICATION_EVENTS_TTL_OFFSET;
+
       expect(mockPatch).toHaveBeenCalledWith([anId, anExpiredAtTimestamp], {
-        notificationEvents: { EXPIRED_SESSION: true }
+        notificationEvents: { EXPIRED_SESSION: true },
+        ttl: expectedTtl
       });
       expect(E.isRight(result)).toBe(true);
     });
@@ -189,9 +194,40 @@ describe("SessionNotificationsRepository", () => {
         true
       )(deps)();
 
+      const expectedTtl =
+        aYearInSeconds +
+        sessionNotificationsRepositoryConfigMock.SESSION_NOTIFICATION_EVENTS_TTL_OFFSET;
+
       expect(mockPatch).toHaveBeenCalledWith([anId, anExpiredAtTimestamp], {
-        notificationEvents: { EXPIRED_SESSION: true }
+        notificationEvents: { EXPIRED_SESSION: true },
+        ttl: expectedTtl
       });
+      expect(E.isLeft(result)).toBe(true);
+      expect(result).toEqual(E.left(error));
+    });
+
+    it("should use as fallback ttl the retetion offset when cannot be calculated a valid ttl based on record expiredAt", async () => {
+      const error = ({
+        kind: "COSMOS_ERROR",
+        error: new Error("failure")
+      } as unknown) as CosmosErrors;
+      mockPatch.mockReturnValueOnce(TE.left(error));
+
+      const result = await SessionNotificationsRepository.updateExpiredSessionNotificationFlag(
+        anId,
+        aPreviousExpiredAt.getTime(),
+        true
+      )(deps)();
+
+      expect(mockPatch).toHaveBeenCalledWith(
+        [anId, aPreviousExpiredAt.getTime()],
+        {
+          notificationEvents: { EXPIRED_SESSION: true },
+          ttl:
+            deps.sessionNotificationsRepositoryConfig
+              .SESSION_NOTIFICATION_EVENTS_TTL_OFFSET
+        }
+      );
       expect(E.isLeft(result)).toBe(true);
       expect(result).toEqual(E.left(error));
     });
