@@ -17,10 +17,11 @@ on:
 
 jobs:
   code_review_prod:
-    uses: pagopa/dx/.github/workflows/infra_plan.yaml@908d5be26b5fda60cfa8e6d252398d89fb8254ef
+    uses: pagopa/dx/.github/workflows/infra_plan.yaml@d27023c5a7f04f4daceff1d34a40748f6ea6afc3
     name: Code Review Infrastructure Plan
     secrets: inherit
     with:
       environment: prod
       base_path: infra/resources
       override_github_environment: "infra-prod"
+      use_private_agent: true
