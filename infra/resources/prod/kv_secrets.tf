@@ -58,6 +58,22 @@ resource "azurerm_key_vault_secret" "cosmos_auth_connection_string" {
   tags = local.tags
 }
 
+resource "azurerm_key_vault_secret" "cosmos_primary_key" {
+  name         = "cosmos-auth-primary-key"
+  value        = data.azurerm_cosmosdb_account.cosmos_citizen_auth.primary_key
+  key_vault_id = module.key_vaults.auth.id
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "lollipop_assertions_st_connection_string" {
+  name         = "lollipop-assertions-st-connection-string"
+  value        = data.azurerm_storage_account.lollipop_assertion_storage.primary_connection_string
+  key_vault_id = module.key_vaults.auth.id
+
+  tags = local.tags
+}
+
 resource "azurerm_key_vault_secret" "citizen_auth_common_connection_string" {
   name         = "citizen-auth-common-connection-string"
   key_vault_id = data.azurerm_key_vault.kv.id

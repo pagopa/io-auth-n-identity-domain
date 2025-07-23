@@ -25,11 +25,11 @@ locals {
 
       COSMOSDB_NAME                = "citizen-auth"
       COSMOSDB_URI                 = data.azurerm_cosmosdb_account.cosmos_citizen_auth.endpoint
-      COSMOSDB_KEY                 = data.azurerm_cosmosdb_account.cosmos_citizen_auth.primary_key
-      COSMOS_API_CONNECTION_STRING = azurerm_key_vault_secret.cosmos_auth_connection_string.value
+      COSMOSDB_KEY                 = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.cosmos_primary_key.versionless_id})"
+      COSMOS_API_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.cosmos_auth_connection_string.versionless_id})"
 
       #TODO: move to new storage on itn
-      LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.lollipop_assertion_storage.primary_connection_string
+      LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.lollipop_assertions_st_connection_string.versionless_id})"
       LOLLIPOP_ASSERTION_REVOKE_QUEUE              = "pubkeys-revoke-v2"
 
       // ------------
@@ -47,7 +47,7 @@ locals {
       // First LolliPoP Consumer
       // -------------------------
       FIRST_LC_ASSERTION_CLIENT_BASE_URL         = "https://api.io.pagopa.it"
-      FIRST_LC_ASSERTION_CLIENT_SUBSCRIPTION_KEY = data.azurerm_key_vault_secret.first_lollipop_consumer_subscription_key.value
+      FIRST_LC_ASSERTION_CLIENT_SUBSCRIPTION_KEY = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.first_lollipop_consumer_subscription_key.versionless_id})"
     }
 
     prod_slot_sampling_percentage = 5
