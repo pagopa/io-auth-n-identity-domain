@@ -1,5 +1,5 @@
 module "iam_kv" {
-  source = "../modules/iam_kv"
+  source = "../modules/iam"
 
   subscription_id = data.azurerm_subscription.current.subscription_id
 
@@ -28,7 +28,7 @@ module "iam_kv" {
 }
 
 module "iam_kv_ioweb" {
-  source = "../modules/iam_kv"
+  source = "../modules/iam"
 
   subscription_id = data.azurerm_subscription.current.subscription_id
 
