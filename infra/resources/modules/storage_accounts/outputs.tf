@@ -15,3 +15,12 @@ output "audit" {
     principal_id        = module.st_audit_01.principal_id
   }
 }
+
+output "maintenance" {
+  value = {
+    id                  = module.st_maintenance_01.id
+    name                = module.st_maintenance_01.name
+    resource_group_name = module.st_maintenance_01.resource_group_name
+    principal_id        = module.st_maintenance_01.principal_id
+  }
+}

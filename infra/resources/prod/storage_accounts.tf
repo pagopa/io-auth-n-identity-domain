@@ -95,7 +95,27 @@ module "storage_account_audit_services" {
   tags = local.tags
 }
 
-moved {
-  from = module.storage_accounts.azurerm_storage_encryption_scope.lollipop_assertions
-  to   = azurerm_storage_encryption_scope.lollipop_assertions
+module "storage_account_maintenance_services" {
+  source = "../modules/storage_account_services"
+
+  storage_account = {
+    id   = module.storage_accounts.maintenance.id
+    name = module.storage_accounts.maintenance.name
+  }
+
+  containers = [
+    "data-factory-exports-01"
+  ]
+
+  queues = [
+    "profile-migrate-services-preferences-from-legacy-01",
+    "profiles-to-sanitize-01",
+    "profile-events-01"
+  ]
+
+  tables = [
+    "validationtokens01"
+  ]
+
+  tags = local.tags
 }
