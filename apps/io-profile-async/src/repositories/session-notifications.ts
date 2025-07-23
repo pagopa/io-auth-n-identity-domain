@@ -187,7 +187,7 @@ const updateExpiredSessionNotificationFlag: (
   fiscalCode: FiscalCode,
   expiredAt: number,
   flagNewValue: boolean
-) => RTE.ReaderTaskEither<Dependencies, PermanentError | CosmosErrors, void> = (
+) => RTE.ReaderTaskEither<Dependencies, CosmosErrors, void> = (
   fiscalCode,
   expiredAt,
   flagNewValue
@@ -197,6 +197,13 @@ const updateExpiredSessionNotificationFlag: (
       expiredAt,
       deps.sessionNotificationsRepositoryConfig
         .SESSION_NOTIFICATION_EVENTS_TTL_OFFSET
+    ),
+    // on error calculateRecordTTL falling ack to the default retention ttl time
+    E.orElseW(() =>
+      E.right(
+        deps.sessionNotificationsRepositoryConfig
+          .SESSION_NOTIFICATION_EVENTS_TTL_OFFSET as NonNegativeInteger
+      )
     ),
     TE.fromEither,
     TE.chainW(ttl =>
