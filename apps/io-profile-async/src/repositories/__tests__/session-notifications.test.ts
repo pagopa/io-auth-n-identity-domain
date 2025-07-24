@@ -101,11 +101,6 @@ const deps = {
 } as Dependencies;
 
 describe("SessionNotificationsRepository", () => {
-  const baseDate = new Date("2025-06-11T12:00:00Z");
-
-  beforeEach(() => {
-    vi.setSystemTime(baseDate);
-  });
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -163,6 +158,14 @@ describe("SessionNotificationsRepository", () => {
   });
 
   describe("updateExpiredSessionNotificationFlag", () => {
+    // Usually this function is called the day after record expirationDate
+    // so we mock as current date the day after the expiration date, to match real scenario
+    const baseDate = new Date("2026-06-12T12:00:00Z");
+
+    beforeEach(() => {
+      vi.setSystemTime(baseDate);
+    });
+
     it("should update the EXPIRED_SESSION flag successfully", async () => {
       const result = await SessionNotificationsRepository.updateExpiredSessionNotificationFlag(
         anId,
@@ -170,13 +173,18 @@ describe("SessionNotificationsRepository", () => {
         true
       )(deps)();
 
+      const expectedTtl =
+        Math.floor((anExpiredAtTimestamp - baseDate.getTime()) / 1000) +
+        sessionNotificationsRepositoryConfigMock.SESSION_NOTIFICATION_EVENTS_TTL_OFFSET;
+
       expect(mockPatch).toHaveBeenCalledWith([anId, anExpiredAtTimestamp], {
-        notificationEvents: { EXPIRED_SESSION: true }
+        notificationEvents: { EXPIRED_SESSION: true },
+        ttl: expectedTtl
       });
       expect(E.isRight(result)).toBe(true);
     });
 
-    it("should return a Cosmos error on failure", async () => {
+    it("should return a Cosmos error on update failure", async () => {
       const error = ({
         kind: "COSMOS_ERROR",
         error: new Error("failure")
@@ -189,15 +197,52 @@ describe("SessionNotificationsRepository", () => {
         true
       )(deps)();
 
+      const expectedTtl =
+        Math.floor((anExpiredAtTimestamp - baseDate.getTime()) / 1000) +
+        sessionNotificationsRepositoryConfigMock.SESSION_NOTIFICATION_EVENTS_TTL_OFFSET;
+
       expect(mockPatch).toHaveBeenCalledWith([anId, anExpiredAtTimestamp], {
-        notificationEvents: { EXPIRED_SESSION: true }
+        notificationEvents: { EXPIRED_SESSION: true },
+        ttl: expectedTtl
       });
+      expect(E.isLeft(result)).toBe(true);
+      expect(result).toEqual(E.left(error));
+    });
+
+    it("should use as fallback ttl the retention offset when cannot be calculated a valid ttl based on record expiredAt", async () => {
+      const error = ({
+        kind: "COSMOS_ERROR",
+        error: new Error("failure")
+      } as unknown) as CosmosErrors;
+      mockPatch.mockReturnValueOnce(TE.left(error));
+
+      const result = await SessionNotificationsRepository.updateExpiredSessionNotificationFlag(
+        anId,
+        aPreviousExpiredAt.getTime(),
+        true
+      )(deps)();
+
+      expect(mockPatch).toHaveBeenCalledWith(
+        [anId, aPreviousExpiredAt.getTime()],
+        {
+          notificationEvents: { EXPIRED_SESSION: true },
+          ttl:
+            deps.sessionNotificationsRepositoryConfig
+              .SESSION_NOTIFICATION_EVENTS_TTL_OFFSET
+        }
+      );
       expect(E.isLeft(result)).toBe(true);
       expect(result).toEqual(E.left(error));
     });
   });
 
   describe("createRecord", () => {
+    const baseDate = new Date("2025-06-11T12:00:00Z");
+
+    beforeEach(() => {
+      vi.setSystemTime(baseDate);
+    });
+
     it("should create the record successfully", async () => {
       const result = await SessionNotificationsRepository.createRecord(
         anId,

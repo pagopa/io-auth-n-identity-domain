@@ -193,11 +193,24 @@ const updateExpiredSessionNotificationFlag: (
   flagNewValue
 ) => deps =>
   pipe(
-    deps.sessionNotificationsModel.patch([fiscalCode, expiredAt], {
-      notificationEvents: {
-        EXPIRED_SESSION: flagNewValue
-      }
-    }),
+    calculateRecordTTL(
+      expiredAt,
+      deps.sessionNotificationsRepositoryConfig
+        .SESSION_NOTIFICATION_EVENTS_TTL_OFFSET
+    ),
+    // on error calculateRecordTTL falling back to the default retention ttl time
+    E.getOrElse(
+      () =>
+        deps.sessionNotificationsRepositoryConfig
+          .SESSION_NOTIFICATION_EVENTS_TTL_OFFSET as NonNegativeInteger
+    ),
+    ttl =>
+      deps.sessionNotificationsModel.patch([fiscalCode, expiredAt], {
+        notificationEvents: {
+          EXPIRED_SESSION: flagNewValue
+        },
+        ttl
+      }),
     TE.map(() => void 0)
   );
 
