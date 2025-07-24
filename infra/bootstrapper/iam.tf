@@ -13,6 +13,7 @@ module "infra_ci_roles" {
       description         = "Grant read access to Key Vault secrets for workflow identities"
       roles = {
         secrets = "reader"
+        keys    = "writer"
       }
     }
   ]
@@ -33,6 +34,7 @@ module "infra_cd_roles" {
       description         = "Grant read access to Key Vault secrets for workflow identities"
       roles = {
         secrets = "reader"
+        keys    = "writer"
       }
     }
   ]
