@@ -5,7 +5,7 @@ module "st_maintenance_01" {
   environment = merge(
     var.environment,
     {
-      app_name        = "maintenance",
+      app_name        = "mnt",
       instance_number = "01"
   })
 
