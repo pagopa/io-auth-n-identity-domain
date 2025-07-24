@@ -3,47 +3,52 @@
 ###
 data "azurerm_key_vault_secret" "api_beta_testers" {
   name         = "ioweb-profile-api-beta-testers"
-  key_vault_id = data.azurerm_key_vault.ioweb_kv.id
+  key_vault_id = data.azurerm_key_vault.ioweb.id
 }
 
 data "azurerm_key_vault_secret" "functions_fast_login_api_key" {
   name         = "ioweb-profile-functions-fast-login-api-key"
-  key_vault_id = data.azurerm_key_vault.ioweb_kv.id
+  key_vault_id = data.azurerm_key_vault.ioweb.id
+}
+
+data "azurerm_key_vault_secret" "immutable_spid_logs_storage" {
+  name         = "spid-logs-st-connection-string"
+  key_vault_id = data.azurerm_key_vault.ioweb.id
 }
 
 data "azurerm_key_vault_secret" "functions_app_api_key" {
   name         = "ioweb-profile-functions-app-api-key"
-  key_vault_id = data.azurerm_key_vault.ioweb_kv.id
+  key_vault_id = data.azurerm_key_vault.ioweb.id
 }
 
 data "azurerm_key_vault_secret" "spid_login_jwt_pub_key" {
   name         = "spid-login-jwt-pub-key"
-  key_vault_id = data.azurerm_key_vault.ioweb_kv.id
+  key_vault_id = data.azurerm_key_vault.ioweb.id
 }
 
 data "azurerm_key_vault_secret" "spid_login_api_key" {
   name         = "ioweb-profile-spid-login-api-key"
-  key_vault_id = data.azurerm_key_vault.ioweb_kv.id
+  key_vault_id = data.azurerm_key_vault.ioweb.id
 }
 
 data "azurerm_key_vault_secret" "exchange_jwt_pub_key" {
   name         = "ioweb-profile-exchange-jwt-pub-key"
-  key_vault_id = data.azurerm_key_vault.ioweb_kv.id
+  key_vault_id = data.azurerm_key_vault.ioweb.id
 }
 
 data "azurerm_key_vault_secret" "exchange_jwt_private_key" {
   name         = "ioweb-profile-exchange-jwt-private-key"
-  key_vault_id = data.azurerm_key_vault.ioweb_kv.id
+  key_vault_id = data.azurerm_key_vault.ioweb.id
 }
 
 data "azurerm_key_vault_secret" "magic_link_jwe_pub_key" {
   name         = "ioweb-profile-magic-link-jwe-pub-key"
-  key_vault_id = data.azurerm_key_vault.ioweb_kv.id
+  key_vault_id = data.azurerm_key_vault.ioweb.id
 }
 
 data "azurerm_key_vault_secret" "magic_link_jwe_private_key" {
   name         = "ioweb-profile-magic-link-jwe-private-key"
-  key_vault_id = data.azurerm_key_vault.ioweb_kv.id
+  key_vault_id = data.azurerm_key_vault.ioweb.id
 }
 ###
 
@@ -108,7 +113,7 @@ locals {
       // -------------------------
       // Audit Logs config
       // -------------------------
-      AUDIT_LOG_CONNECTION_STRING = data.azurerm_storage_account.immutable_spid_logs_storage.primary_connection_string
+      AUDIT_LOG_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.immutable_spid_logs_storage.versionless_id})"
       AUDIT_LOG_CONTAINER         = local.immutable_audit_logs_container_name
     }
     prod_slot_sampling_percentage = 5

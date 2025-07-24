@@ -22,6 +22,8 @@
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_infra_cd_roles"></a> [infra\_cd\_roles](#module\_infra\_cd\_roles) | pagopa-dx/azure-role-assignments/azurerm | ~> 1.1 |
+| <a name="module_infra_ci_roles"></a> [infra\_ci\_roles](#module\_infra\_ci\_roles) | pagopa-dx/azure-role-assignments/azurerm | ~> 1.1 |
 | <a name="module_repo"></a> [repo](#module\_repo) | pagopa-dx/azure-github-environment-bootstrap/azurerm | ~>2.0 |
 
 ## Resources
@@ -52,6 +54,7 @@
 | [azurerm_container_app_environment.runner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/container_app_environment) | data source |
 | [azurerm_key_vault.auth](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 | [azurerm_key_vault.common](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
+| [azurerm_key_vault.ioweb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 | [azurerm_key_vault_secret.slack_webhook_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.sonacloud_token](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_resource_group.common_weu](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |

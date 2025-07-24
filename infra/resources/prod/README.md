@@ -33,8 +33,8 @@
 | <a name="module_function_session_manager_internal"></a> [function\_session\_manager\_internal](#module\_function\_session\_manager\_internal) | pagopa-dx/azure-function-app/azurerm | ~> 1.0 |
 | <a name="module_function_session_manager_internal_autoscale"></a> [function\_session\_manager\_internal\_autoscale](#module\_function\_session\_manager\_internal\_autoscale) | pagopa-dx/azure-app-service-plan-autoscaler/azurerm | ~> 2.0 |
 | <a name="module_function_web_profile"></a> [function\_web\_profile](#module\_function\_web\_profile) | pagopa-dx/azure-function-app/azurerm | ~> 1.0 |
-| <a name="module_iam_kv"></a> [iam\_kv](#module\_iam\_kv) | ../modules/iam_kv | n/a |
-| <a name="module_iam_kv_ioweb"></a> [iam\_kv\_ioweb](#module\_iam\_kv\_ioweb) | ../modules/iam_kv | n/a |
+| <a name="module_iam_kv"></a> [iam\_kv](#module\_iam\_kv) | ../modules/iam | n/a |
+| <a name="module_iam_kv_ioweb"></a> [iam\_kv\_ioweb](#module\_iam\_kv\_ioweb) | ../modules/iam | n/a |
 | <a name="module_io_auth_internal_apim_api_itn"></a> [io\_auth\_internal\_apim\_api\_itn](#module\_io\_auth\_internal\_apim\_api\_itn) | ../modules/internal_api | n/a |
 | <a name="module_io_platform_apim_api_itn"></a> [io\_platform\_apim\_api\_itn](#module\_io\_platform\_apim\_api\_itn) | ../modules/platform_proxy_api | n/a |
 | <a name="module_io_profile_apim_api_itn"></a> [io\_profile\_apim\_api\_itn](#module\_io\_profile\_apim\_api\_itn) | ../modules/operation_api | n/a |
@@ -43,6 +43,8 @@
 | <a name="module_pub_session_manager"></a> [pub\_session\_manager](#module\_pub\_session\_manager) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_pub_session_manager_internal"></a> [pub\_session\_manager\_internal](#module\_pub\_session\_manager\_internal) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_pub_session_manager_internal_staging"></a> [pub\_session\_manager\_internal\_staging](#module\_pub\_session\_manager\_internal\_staging) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
+| <a name="module_storage_account_services"></a> [storage\_account\_services](#module\_storage\_account\_services) | ../modules/storage_account_services | n/a |
+| <a name="module_storage_accounts"></a> [storage\_accounts](#module\_storage\_accounts) | ../modules/storage_accounts | n/a |
 | <a name="module_sub_io_prof_async"></a> [sub\_io\_prof\_async](#module\_sub\_io\_prof\_async) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_sub_io_prof_async_staging"></a> [sub\_io\_prof\_async\_staging](#module\_sub\_io\_prof\_async\_staging) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_topic_io_auth"></a> [topic\_io\_auth](#module\_topic\_io\_auth) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
@@ -61,8 +63,10 @@
 | [azurerm_key_vault_secret.citizen_auth_common_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.cosmos_api_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.cosmos_auth_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.cosmos_primary_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.iopstapp_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.iopstlogs_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.lollipop_assertions_st_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_monitor_action_group.error_action_group](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_action_group) | resource |
 | [azurerm_monitor_autoscale_setting.shared_plan_autoscale](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_autoscale_setting) | resource |
 | [azurerm_monitor_scheduled_query_rules_alert_v2.alert_service_preferences_migration_failed](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_scheduled_query_rules_alert_v2) | resource |
@@ -89,7 +93,7 @@
 | [azurerm_cosmosdb_account.cosmos_api](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/cosmosdb_account) | data source |
 | [azurerm_cosmosdb_account.cosmos_citizen_auth](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/cosmosdb_account) | data source |
 | [azurerm_key_vault.common_kv](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
-| [azurerm_key_vault.ioweb_kv](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
+| [azurerm_key_vault.ioweb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 | [azurerm_key_vault.kv](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 | [azurerm_key_vault_certificate_data.lollipop_certificate_v1](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_certificate_data) | data source |
 | [azurerm_key_vault_secret.alert_error_notification_email](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
@@ -109,6 +113,7 @@
 | [azurerm_key_vault_secret.function_profile_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.functions_app_api_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.functions_fast_login_api_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.immutable_spid_logs_storage](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.io_com_mailup_secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.io_com_mailup_username](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.ioweb_profile_function_api_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |

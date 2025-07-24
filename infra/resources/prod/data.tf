@@ -67,6 +67,14 @@ data "azurerm_application_gateway" "app_gateway" {
 }
 
 ##########################
+# KEY VAULT
+##########################
+data "azurerm_key_vault" "ioweb" {
+  name                = "${local.project}-ioweb-kv-01"
+  resource_group_name = "${local.project}-ioweb-rg-01"
+}
+
+##########################
 # SHARED APP SERVICE PLAN
 ##########################
 data "azurerm_service_plan" "shared_plan_itn" {

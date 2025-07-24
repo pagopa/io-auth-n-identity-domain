@@ -3,11 +3,6 @@ data "azurerm_key_vault" "kv" {
   resource_group_name = "${local.common_project}-citizen-auth-sec-rg"
 }
 
-data "azurerm_key_vault" "ioweb_kv" {
-  name                = "${local.project}-ioweb-kv-01"
-  resource_group_name = "${local.project}-${local.domain}-main-rg-01"
-}
-
 data "azurerm_key_vault" "common_kv" {
   name                = "${local.common_project}-kv-common"
   resource_group_name = "${local.common_project}-rg-common"
