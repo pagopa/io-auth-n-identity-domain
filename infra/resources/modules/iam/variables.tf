@@ -14,6 +14,7 @@ variable "key_vault" {
   type = object({
     name                = string
     resource_group_name = string
+    id                  = string
   })
   description = "Details of the Key Vault to which the role will be applied"
 }

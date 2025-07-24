@@ -41,3 +41,12 @@ module "kv_st" {
     }
   ]
 }
+
+resource "azurerm_role_assignment" "kv_keys_st" {
+  for_each = var.storage_account_principal_ids
+
+  scope                = var.key_vault.id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  principal_id         = each.value
+  description          = "Allow Storage Account to use Key Vault keys for encryption operations"
+}

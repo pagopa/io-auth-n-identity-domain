@@ -4,6 +4,7 @@ module "iam_kv" {
   subscription_id = data.azurerm_subscription.current.subscription_id
 
   key_vault = {
+    id                  = module.key_vaults.auth.id
     name                = module.key_vaults.auth.name
     resource_group_name = module.key_vaults.auth.resource_group_name
   }
@@ -34,6 +35,7 @@ module "iam_kv_ioweb" {
   subscription_id = data.azurerm_subscription.current.subscription_id
 
   key_vault = {
+    id                  = data.azurerm_key_vault.ioweb.id
     name                = data.azurerm_key_vault.ioweb.name
     resource_group_name = data.azurerm_key_vault.ioweb.resource_group_name
   }
