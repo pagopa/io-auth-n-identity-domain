@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.11.3
+
+### Patch Changes
+
+- 6502dd7: Update ttl field when updating the EXPIRED_SESSION notification flag on session-notifications cosmosDB container
+
 ## 1.11.2
 
 ### Patch Changes
