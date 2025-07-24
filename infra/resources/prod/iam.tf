@@ -45,6 +45,10 @@ module "iam_kv_ioweb" {
     "${module.function_profile.function_app.function_app.name}"    = module.function_profile.function_app.function_app.principal_id
     "${module.function_profile.function_app.function_app.name}-st" = module.function_profile.function_app.function_app.slot.principal_id
   }
+
+  storage_account_principal_ids = {
+    "${module.storage_accounts.audit.name}" = module.storage_accounts.audit.principal_id
+  }
 }
 
 moved {
