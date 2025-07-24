@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Launch file",
+      "program": "${file}",
+      "sourceMaps": true,
+      "cwd": "${workspaceFolder}",
+      "resolveSourceMapsLocation": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      "type": "pwa-node",
+      "request": "attach",
+      "name": "Attach to container",
+      "port": 5859,
+      "address ": "localhost",
+      "sourceMaps ": true,
+      "protocol ": "inspector",
+      "cwd": "${workspaceFolder}",
+      "resolveSourceMapsLocation": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "/usr/src/app"
+    }
+  ]
+}
