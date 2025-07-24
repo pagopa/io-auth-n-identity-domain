@@ -1,7 +1,8 @@
 module "storage_accounts" {
   source = "../modules/storage_accounts"
 
-  resource_group_name = data.azurerm_resource_group.main_resource_group.name
+  resource_group_name       = data.azurerm_resource_group.main_resource_group.name
+  audit_resource_group_name = data.azurerm_resource_group.audit.name
 
   environment = {
     prefix    = local.prefix
@@ -56,11 +57,17 @@ module "storage_account_audit_services" {
   }
 
   containers = [
-    "lv-logs"
+    "lv-logs-01",
+    "ioweb-auditlogs-01"
   ]
 
+  immutability_policies = {
+    "lv-logs-01"         = "730"
+    "ioweb-auditlogs-01" = "730"
+  }
+
   encryption_scopes = {
-    "lv_logs" = module.storage_accounts.audit.encryption_scopes["lv_logs"]
+    "lv-logs-01" = module.storage_accounts.audit.encryption_scopes["lv_logs"]
   }
 
   tags = local.tags

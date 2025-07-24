@@ -19,6 +19,13 @@ resource "azurerm_resource_group" "common_itn_01" {
   tags = local.tags
 }
 
+resource "azurerm_resource_group" "audit_itn_01" {
+  name     = "${local.prefix}-${local.env_short}-itn-auth-audit-rg-01"
+  location = local.location
+
+  tags = local.tags
+}
+
 resource "azurerm_resource_group" "elt_itn_01" {
   name     = "${local.prefix}-${local.env_short}-itn-auth-elt-rg-01"
   location = local.location

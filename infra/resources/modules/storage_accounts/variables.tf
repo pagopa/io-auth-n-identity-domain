@@ -6,6 +6,10 @@ variable "resource_group_name" {
   type = string
 }
 
+variable "audit_resource_group_name" {
+  type = string
+}
+
 variable "environment" {
   type = object({
     prefix    = string,
