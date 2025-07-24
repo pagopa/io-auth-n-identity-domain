@@ -1,12 +1,12 @@
 variable "function_apps_principal_ids" {
   type        = map(string)
-  description = "List of Function App principal IDs to give secret access as reader"
+  description = "Map of Function App principal IDs to give secret access as reader"
   default     = {}
 }
 
 variable "storage_account_principal_ids" {
   type        = map(string)
-  description = "List of Storage Account principal IDs to give crypto access as writer"
+  description = "Map of Storage Account principal IDs to give crypto access as writer"
   default     = {}
 }
 

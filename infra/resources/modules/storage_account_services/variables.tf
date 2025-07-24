@@ -30,7 +30,7 @@ variable "immutability_policies" {
   default     = {}
   description = <<EOT
   "A map of string containing the name of containers that should have an immutability policies applied.
-  The map shoudl have the container name as key and the number of days as value.
+  The map should have the container name as key and the number of days as value (e.g. `{ "container_name" = "10" }`).
   The name of the container must be set also in the `containers` variable, otherwise it will be ignored
   EOT
 }
