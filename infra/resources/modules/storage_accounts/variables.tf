@@ -36,3 +36,7 @@ variable "lollipop_key_vault_key_id" {
 variable "lvlogs_key_vault_key_id" {
   type = string
 }
+
+variable "ioweb_audit_logs_key_vault_key_id" {
+  type = string
+}

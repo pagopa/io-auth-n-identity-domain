@@ -28,11 +28,19 @@ module "st_audit_01" {
 }
 
 resource "azurerm_storage_encryption_scope" "lvlogs" {
-  name               = "lvlogs"
+  name               = "lvlogs01"
   storage_account_id = module.st_audit_01.id
   source             = "Microsoft.KeyVault"
 
   key_vault_key_id = var.lvlogs_key_vault_key_id
+}
+
+resource "azurerm_storage_encryption_scope" "ioweb_audit_logs" {
+  name               = "iowebauditlogs01"
+  storage_account_id = module.st_audit_01.id
+  source             = "Microsoft.KeyVault"
+
+  key_vault_key_id = var.ioweb_audit_logs_key_vault_key_id
 }
 
 resource "azurerm_management_lock" "st_audit_01" {
