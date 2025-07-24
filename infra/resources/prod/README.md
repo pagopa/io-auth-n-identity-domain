@@ -43,6 +43,7 @@
 | <a name="module_pub_session_manager"></a> [pub\_session\_manager](#module\_pub\_session\_manager) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_pub_session_manager_internal"></a> [pub\_session\_manager\_internal](#module\_pub\_session\_manager\_internal) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_pub_session_manager_internal_staging"></a> [pub\_session\_manager\_internal\_staging](#module\_pub\_session\_manager\_internal\_staging) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
+| <a name="module_storage_account_audit_services"></a> [storage\_account\_audit\_services](#module\_storage\_account\_audit\_services) | ../modules/storage_account_services | n/a |
 | <a name="module_storage_account_maintenance_services"></a> [storage\_account\_maintenance\_services](#module\_storage\_account\_maintenance\_services) | ../modules/storage_account_services | n/a |
 | <a name="module_storage_account_services"></a> [storage\_account\_services](#module\_storage\_account\_services) | ../modules/storage_account_services | n/a |
 | <a name="module_storage_accounts"></a> [storage\_accounts](#module\_storage\_accounts) | ../modules/storage_accounts | n/a |
