@@ -28,15 +28,3 @@ variable "private_dns_zone_resource_group_name" {
 variable "subnet_pep_id" {
   type = string
 }
-
-variable "lollipop_key_vault_key_id" {
-  type = string
-}
-
-variable "lvlogs_key_vault_key_id" {
-  type = string
-}
-
-variable "ioweb_audit_logs_key_vault_key_id" {
-  type = string
-}

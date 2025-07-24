@@ -25,14 +25,6 @@ module "st_session_01" {
   tags = var.tags
 }
 
-resource "azurerm_storage_encryption_scope" "lollipop_assertions" {
-  name               = "lollipopassertions01"
-  storage_account_id = module.st_session_01.id
-  source             = "Microsoft.KeyVault"
-
-  key_vault_key_id = var.lollipop_key_vault_key_id
-}
-
 resource "azurerm_management_lock" "st_session_01" {
   name       = module.st_session_01.name
   scope      = module.st_session_01.id
