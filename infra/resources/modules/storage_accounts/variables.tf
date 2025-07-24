@@ -6,6 +6,10 @@ variable "resource_group_name" {
   type = string
 }
 
+variable "audit_resource_group_name" {
+  type = string
+}
+
 variable "environment" {
   type = object({
     prefix    = string,
@@ -26,5 +30,13 @@ variable "subnet_pep_id" {
 }
 
 variable "lollipop_key_vault_key_id" {
+  type = string
+}
+
+variable "lvlogs_key_vault_key_id" {
+  type = string
+}
+
+variable "ioweb_audit_logs_key_vault_key_id" {
   type = string
 }

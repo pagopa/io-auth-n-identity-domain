@@ -1,13 +1,13 @@
 variable "function_apps_principal_ids" {
-  type        = set(string)
-  description = "List of Function App principal IDs to give secret access as reader"
-  default     = []
+  type        = map(string)
+  description = "Map of Function App principal IDs to give secret access as reader"
+  default     = {}
 }
 
 variable "storage_account_principal_ids" {
-  type        = set(string)
-  description = "List of Storage Account principal IDs to give crypto access as writer"
-  default     = []
+  type        = map(string)
+  description = "Map of Storage Account principal IDs to give crypto access as writer"
+  default     = {}
 }
 
 variable "key_vault" {

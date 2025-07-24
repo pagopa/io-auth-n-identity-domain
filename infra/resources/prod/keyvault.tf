@@ -22,3 +22,23 @@ module "key_vaults" {
 
   tags = local.tags
 }
+
+
+resource "azurerm_key_vault_key" "ioweb_audit_logs_01" {
+  name         = "ioweb-audit-logs-01"
+  key_vault_id = data.azurerm_key_vault.ioweb.id
+  key_type     = "RSA"
+  key_size     = 4096
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey"
+  ]
+
+  tags = local.tags
+}
+

@@ -118,6 +118,7 @@ module "repo" {
     azurerm_resource_group.shared_itn_01.id,
     azurerm_resource_group.ioweb_common_weu.id,
     azurerm_resource_group.storage_weu.id,
+    azurerm_resource_group.audit_itn_01.id,
   ]
 
   entraid_groups = {

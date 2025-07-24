@@ -43,6 +43,7 @@
 | <a name="module_pub_session_manager"></a> [pub\_session\_manager](#module\_pub\_session\_manager) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_pub_session_manager_internal"></a> [pub\_session\_manager\_internal](#module\_pub\_session\_manager\_internal) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
 | <a name="module_pub_session_manager_internal_staging"></a> [pub\_session\_manager\_internal\_staging](#module\_pub\_session\_manager\_internal\_staging) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
+| <a name="module_storage_account_audit_services"></a> [storage\_account\_audit\_services](#module\_storage\_account\_audit\_services) | ../modules/storage_account_services | n/a |
 | <a name="module_storage_account_services"></a> [storage\_account\_services](#module\_storage\_account\_services) | ../modules/storage_account_services | n/a |
 | <a name="module_storage_accounts"></a> [storage\_accounts](#module\_storage\_accounts) | ../modules/storage_accounts | n/a |
 | <a name="module_sub_io_prof_async"></a> [sub\_io\_prof\_async](#module\_sub\_io\_prof\_async) | pagopa-dx/azure-role-assignments/azurerm | ~>1.0 |
@@ -60,6 +61,7 @@
 | [azurerm_key_vault_access_policy.func_profile_staging_kv_common](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) | resource |
 | [azurerm_key_vault_access_policy.kv_common_func_profas](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) | resource |
 | [azurerm_key_vault_access_policy.kv_common_func_profas_staging](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) | resource |
+| [azurerm_key_vault_key.ioweb_audit_logs_01](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key) | resource |
 | [azurerm_key_vault_secret.citizen_auth_common_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.cosmos_api_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.cosmos_auth_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
@@ -125,6 +127,7 @@
 | [azurerm_linux_web_app.weu_session_manager](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/linux_web_app) | data source |
 | [azurerm_redis_cache.core_domain_redis_common](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/redis_cache) | data source |
 | [azurerm_redis_cache.redis_common](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/redis_cache) | data source |
+| [azurerm_resource_group.audit](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |
 | [azurerm_resource_group.auth_common_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |
 | [azurerm_resource_group.core_domain_data_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |
 | [azurerm_resource_group.core_domain_redis_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |

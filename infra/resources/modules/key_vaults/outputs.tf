@@ -15,8 +15,9 @@ output "lollipop_assertion_01" {
 
 output "lv_logs_01" {
   value = {
-    id   = azurerm_key_vault_key.lv_logs_01.id
-    name = azurerm_key_vault_key.lv_logs_01.name
+    id             = azurerm_key_vault_key.lv_logs_01.id
+    name           = azurerm_key_vault_key.lv_logs_01.name
+    versionless_id = azurerm_key_vault_key.lv_logs_01.versionless_id
   }
 }
 
