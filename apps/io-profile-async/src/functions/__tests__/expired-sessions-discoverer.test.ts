@@ -1,3 +1,5 @@
+/* eslint-disable max-lines-per-function */
+/* eslint-disable sonarjs/no-duplicate-string */
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 import { Context } from "@azure/functions";
@@ -32,7 +34,8 @@ import {
   ItemToProcess,
   processChunk,
   processItem,
-  retrieveFromDbInChunks
+  retrieveFromDbInChunks,
+  trackTransientErrors
 } from "../expired-sessions-discoverer";
 
 const getDateError =
@@ -490,7 +493,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(trackEventMock).not.toHaveBeenCalled();
     });
 
-    it("should throw and track event when one or more transient error occur", async () => {
+    it("should throw and track event when more transient error occur", async () => {
       const chunkSize = 4;
       findByExpiredAtAsyncIterableMock.mockImplementationOnce(
         () =>
@@ -673,6 +676,61 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       } as unknown) as Context;
       const result = getDate(context);
       expect(result).toEqual(E.left(new Error(getDateError)));
+    });
+  });
+
+  describe("trackTransientErrors", () => {
+    it("should track a single transient errors with correct properties", () => {
+      const error = new TransientError("Test transient error");
+      const interval = createInterval();
+
+      trackTransientErrors(interval, error);
+
+      expect(trackEventMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name:
+            "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
+          properties: expect.objectContaining({
+            message: expect.stringContaining(error.message),
+            interval: expect.objectContaining({
+              from: expect.any(Date),
+              to: expect.any(Date)
+            })
+          }),
+          tagOverrides: {
+            samplingEnabled: "false"
+          }
+        })
+      );
+    });
+
+    it("should track multiple transient errors with correct properties", () => {
+      const errors = [
+        new TransientError("error1"),
+        new TransientError("error2")
+      ];
+      const interval = createInterval();
+
+      trackTransientErrors(interval, errors);
+
+      errors.forEach(error =>
+        expect(trackEventMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name:
+              "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
+            properties: expect.objectContaining({
+              message: expect.stringContaining(error.message),
+              interval: expect.objectContaining({
+                from: expect.any(Date),
+                to: expect.any(Date)
+              })
+            }),
+            tagOverrides: {
+              samplingEnabled: "false"
+            }
+          })
+        )
+      );
     });
   });
 });

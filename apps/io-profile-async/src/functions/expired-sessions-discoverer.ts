@@ -269,7 +269,7 @@ export const getDate = (context: Context): E.Either<Error, Date> =>
     O.getOrElse(() => E.right(new Date()))
   );
 
-const trackTransientErrors = (
+export const trackTransientErrors = (
   interval: Interval,
   errors: ReadonlyArray<TransientError> | TransientError
 ): void =>
