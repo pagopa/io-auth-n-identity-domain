@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 5.25.2
+  version: 5.25.3
   title: IO API for App
   contact:
     name: Digital Transformation Team
@@ -23,37 +23,6 @@ schemes:
 security:
   - SubscriptionKey: []
 paths:
-  /services/{service_id}:
-    get:
-      operationId: getService
-      summary: GetService
-      description: A previously created service with the provided service ID is returned.
-      tags:
-        - restricted
-      parameters:
-        - name: service_id
-          in: path
-          type: string
-          required: true
-          description: The ID of an existing Service.
-      responses:
-        '200':
-          description: Service found.
-          schema:
-            $ref: '#/definitions/ServicePublic'
-          examples:
-            application/json:
-              department_name: dept
-              organization_name: org
-              service_id: 2b3e728c1a5d1efa035c
-              service_name: service
-              version: 1
-        '401':
-          description: Unauthorized
-        '404':
-          description: No service found for the provided ID.
-        '429':
-          description: Too many requests
   /profiles/{fiscal_code}:
     get:
       operationId: getProfile
@@ -747,37 +716,6 @@ definitions:
     type: string
     description: The name of the service. Will be added to the content of sent messages.
     minLength: 1
-  ServicePublic:
-    title: Service (public)
-    description: A Service associated to an user's subscription.
-    type: object
-    properties:
-      service_id:
-        $ref: '#/definitions/ServiceId'
-      service_name:
-        $ref: '#/definitions/ServiceName'
-      organization_name:
-        $ref: '#/definitions/OrganizationName'
-      department_name:
-        $ref: '#/definitions/DepartmentName'
-      organization_fiscal_code:
-        $ref: '#/definitions/OrganizationFiscalCode'
-      available_notification_channels:
-        description: All the notification channels available for a service.
-        type: array
-        items:
-          $ref: '#/definitions/NotificationChannel'
-      version:
-        type: integer
-      service_metadata:
-        $ref: '#/definitions/ServiceMetadata'
-    required:
-      - service_id
-      - service_name
-      - organization_name
-      - department_name
-      - organization_fiscal_code
-      - version
   EmailAddress:
     type: string
     format: email

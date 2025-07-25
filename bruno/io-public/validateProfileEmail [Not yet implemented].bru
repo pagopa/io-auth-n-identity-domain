@@ -1,0 +1,17 @@
+meta {
+  name: validateProfileEmail [Not yet implemented]
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{IO_PUBLIC_BASE_URL}}/api/v2/validate-profile-email
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "token": ""
+  }
+}
