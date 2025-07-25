@@ -21,7 +21,7 @@ import {
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
 import { createInterval, Interval } from "../types/interval";
 import { RetrievedSessionNotificationsStrict } from "../types/session-notification-strict";
-import { trackEvent } from "../utils/appinsights";
+import { trackEvent, trackException } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
 import { TransientError } from "../utils/errors";
 import { isLastTimerTriggerRetry } from "../utils/function-utils";
@@ -269,6 +269,27 @@ export const getDate = (context: Context): E.Either<Error, Date> =>
     O.getOrElse(() => E.right(new Date()))
   );
 
+const trackTransientErrors = (
+  interval: Interval,
+  errors: ReadonlyArray<TransientError> | TransientError
+): void =>
+  pipe(Array.isArray(errors) ? errors : [errors], errorList =>
+    errorList.forEach(err => {
+      trackEvent({
+        name:
+          "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
+        properties: {
+          message: err.message,
+          stack: err.stack,
+          interval
+        },
+        tagOverrides: {
+          samplingEnabled: "false"
+        }
+      });
+    })
+  );
+
 export const ExpiredSessionsDiscovererFunction = (
   deps: TriggerDependencies
 ): AzureFunction => async (
@@ -297,21 +318,8 @@ export const ExpiredSessionsDiscovererFunction = (
       )
     ),
     RTE.getOrElse(errors => {
-      trackEvent({
-        name:
-          "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
-        properties: {
-          message: Array.isArray(errors)
-            ? `Multiple transient errors occurred during execution: count=${errors.length}`
-            : errors instanceof TransientError
-            ? `Transient error occurred: ${errors.message}`
-            : "Unknown error",
-          interval
-        },
-        tagOverrides: {
-          samplingEnabled: "false"
-        }
-      });
+      // Track each TransientError occurred on processing
+      trackTransientErrors(interval, errors);
 
       if (isLastTimerTriggerRetry(context)) {
         trackEvent({
