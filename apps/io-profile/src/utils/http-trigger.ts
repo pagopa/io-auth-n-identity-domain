@@ -16,7 +16,6 @@ import { AbortUserDataProcessing } from "../functions/abort-user-data-processing
 import { CreateProfile } from "../functions/create-profile";
 import { IConfig } from "../config";
 import { GetProfile } from "../functions/get-profile";
-import { GetService } from "../functions/get-service";
 import { GetServicePreferences } from "../functions/get-service-preferences";
 import { GetUserDataProcessing } from "../functions/get-user-data-processing";
 import { Info } from "../functions/info";
@@ -97,8 +96,6 @@ export const createWebServer = ({
       profileEmailReader,
     ),
   );
-
-  app.get("/api/v1/services/:serviceid", GetService(serviceModel));
 
   app.get(
     "/api/v1/profiles/:fiscalcode/services/:serviceId/preferences",
