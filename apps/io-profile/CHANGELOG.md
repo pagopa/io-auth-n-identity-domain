@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.25.3
+
+### Patch Changes
+
+- 526f4b3: Remove unused GetService endpoint
+
 ## 5.25.2
 
 ### Patch Changes
