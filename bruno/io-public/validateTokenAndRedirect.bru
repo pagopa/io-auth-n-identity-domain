@@ -5,13 +5,13 @@ meta {
 }
 
 get {
-  url: {{IO_PUBLIC_BASE_URL}}/validate-profile-email?token=01K10EJW6W39WJE7M967Q18GTC:56ddaa5e0ae1e6c1842d7b4b&flow=CONFIRM
+  url: {{IO_PUBLIC_BASE_URL}}/validate-profile-email?token={{EMAIL_VALIDATION_TOKEN}}&flow=CONFIRM
   body: none
   auth: none
 }
 
 params:query {
-  token: 01K10EJW6W39WJE7M967Q18GTC:56ddaa5e0ae1e6c1842d7b4b
+  token: {{EMAIL_VALIDATION_TOKEN}}
   flow: CONFIRM
 }
 
