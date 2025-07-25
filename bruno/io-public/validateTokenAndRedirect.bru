@@ -1,0 +1,23 @@
+meta {
+  name: validateTokenAndRedirect
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{IO_PUBLIC_BASE_URL}}/validate-profile-email?token=01K10EJW6W39WJE7M967Q18GTC:56ddaa5e0ae1e6c1842d7b4b&flow=CONFIRM
+  body: none
+  auth: none
+}
+
+params:query {
+  token: 01K10EJW6W39WJE7M967Q18GTC:56ddaa5e0ae1e6c1842d7b4b
+  flow: CONFIRM
+}
+
+script:pre-request {
+  // This allows the inspection of the redirect URL.
+  // Remove the following line to follow the redirect.
+  req.setMaxRedirects(0)
+  
+}
