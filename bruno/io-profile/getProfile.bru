@@ -1,0 +1,15 @@
+meta {
+  name: getProfile
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{IO_PROFILE_BASE_URL}}/profiles/:fiscalCode
+  body: none
+  auth: inherit
+}
+
+params:path {
+  fiscalCode: ISPXNB32R82Y766D
+}
