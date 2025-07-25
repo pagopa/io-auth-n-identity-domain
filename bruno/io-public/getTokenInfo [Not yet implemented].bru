@@ -1,0 +1,15 @@
+meta {
+  name: getTokenInfo [Not yet implemented]
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{IO_PUBLIC_BASE_URL}}/api/v2/validate-profile-email
+  body: none
+  auth: none
+}
+
+headers {
+  x-pagopa-email-validation-token: 
+}

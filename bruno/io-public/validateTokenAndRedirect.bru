@@ -1,0 +1,23 @@
+meta {
+  name: validateTokenAndRedirect
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{IO_PUBLIC_BASE_URL}}/validate-profile-email?token={{EMAIL_VALIDATION_TOKEN}}&flow=CONFIRM
+  body: none
+  auth: none
+}
+
+params:query {
+  token: {{EMAIL_VALIDATION_TOKEN}}
+  flow: CONFIRM
+}
+
+script:pre-request {
+  // This allows the inspection of the redirect URL.
+  // Remove the following line to follow the redirect.
+  req.setMaxRedirects(0)
+  
+}
