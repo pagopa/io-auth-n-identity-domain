@@ -8,7 +8,13 @@ import { createCosmosDbAndCollections } from "../utils/fixtures";
 import { getNodeFetch } from "../utils/fetch";
 import { log } from "../utils/logger";
 
-import { WAIT_MS, SHOW_LOGS, COSMOSDB_URI, COSMOSDB_NAME, BASE_URL } from "../env";
+import {
+  WAIT_MS,
+  SHOW_LOGS,
+  COSMOSDB_URI,
+  COSMOSDB_NAME,
+  BASE_URL
+} from "../env";
 import { fetchReservePubKey } from "../utils/client";
 
 const MAX_ATTEMPT = 50;
@@ -26,13 +32,13 @@ const nodeFetch = (getNodeFetch() as unknown) as typeof fetch;
 beforeAll(async () => {
   await pipe(
     createCosmosDbAndCollections(COSMOSDB_NAME),
-    TE.getOrElse((e) => {
+    TE.getOrElse(e => {
       throw Error("Cannot create db: " + JSON.stringify(e));
     })
   )();
 
   await waitFunctionToSetup();
-});
+}, TIMEOUT);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -65,64 +71,76 @@ const anotherReservePubKeyPayload = {
 };
 
 describe("ReservePubKey", () => {
-  test("GIVEN a new public key WHEN reserve the key THEN return a success containing the assertion ref", { timeout: TIMEOUT }, async () => {
-    const result = await fetchReservePubKey(
-      aReservePubKeyPayload,
-      baseUrl,
-      nodeFetch
-    );
-    const content = await result.json();
-    expect(content).toEqual(
-      expect.objectContaining({
-        assertion_ref: aReservePubKeyPayloadAssertionRef
-      })
-    );
-  });
+  test(
+    "GIVEN a new public key WHEN reserve the key THEN return a success containing the assertion ref",
+    { timeout: TIMEOUT },
+    async () => {
+      const result = await fetchReservePubKey(
+        aReservePubKeyPayload,
+        baseUrl,
+        nodeFetch
+      );
+      const content = await result.json();
+      expect(content).toEqual(
+        expect.objectContaining({
+          assertion_ref: aReservePubKeyPayloadAssertionRef
+        })
+      );
+    }
+  );
 
-  test("GIVEN an already reserved public key WHEN reserve the key with any algo THEN return a conflict", { timeout: TIMEOUT }, async () => {
-    const reserve = await fetchReservePubKey(
-      anotherReservePubKeyPayload,
-      baseUrl,
-      nodeFetch
-    );
-    expect(reserve.status).toEqual(201);
+  test(
+    "GIVEN an already reserved public key WHEN reserve the key with any algo THEN return a conflict",
+    { timeout: TIMEOUT },
+    async () => {
+      const reserve = await fetchReservePubKey(
+        anotherReservePubKeyPayload,
+        baseUrl,
+        nodeFetch
+      );
+      expect(reserve.status).toEqual(201);
 
-    const fail = await fetchReservePubKey(
-      anotherReservePubKeyPayload,
-      baseUrl,
-      nodeFetch
-    );
-    expect(fail.status).toEqual(409);
+      const fail = await fetchReservePubKey(
+        anotherReservePubKeyPayload,
+        baseUrl,
+        nodeFetch
+      );
+      expect(fail.status).toEqual(409);
 
-    const failWith512 = await fetchReservePubKey(
-      {
-        ...anotherReservePubKeyPayload,
-        algo: "sha512"
-      },
-      baseUrl,
-      nodeFetch
-    );
-    expect(failWith512.status).toEqual(409);
+      const failWith512 = await fetchReservePubKey(
+        {
+          ...anotherReservePubKeyPayload,
+          algo: "sha512"
+        },
+        baseUrl,
+        nodeFetch
+      );
+      expect(failWith512.status).toEqual(409);
 
-    const failWith384 = await fetchReservePubKey(
-      {
-        ...anotherReservePubKeyPayload,
-        algo: "sha384"
-      },
-      baseUrl,
-      nodeFetch
-    );
-    expect(failWith384.status).toEqual(409);
-  });
+      const failWith384 = await fetchReservePubKey(
+        {
+          ...anotherReservePubKeyPayload,
+          algo: "sha384"
+        },
+        baseUrl,
+        nodeFetch
+      );
+      expect(failWith384.status).toEqual(409);
+    }
+  );
 
-  test("GIVEN a malformed public key WHEN reserve the key THEN return a bad request", { timeout: TIMEOUT }, async () => {
-    const reserve = await fetchReservePubKey(
-      { wrong: "wrong" },
-      baseUrl,
-      nodeFetch
-    );
-    expect(reserve.status).toEqual(400);
-  });
+  test(
+    "GIVEN a malformed public key WHEN reserve the key THEN return a bad request",
+    { timeout: TIMEOUT },
+    async () => {
+      const reserve = await fetchReservePubKey(
+        { wrong: "wrong" },
+        baseUrl,
+        nodeFetch
+      );
+      expect(reserve.status).toEqual(400);
+    }
+  );
 });
 
 // -----------------------

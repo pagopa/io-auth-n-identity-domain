@@ -57,7 +57,7 @@ beforeAll(async () => {
   )();
 
   await waitFunctionToSetup();
-});
+}, TIMEOUT);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -85,89 +85,109 @@ const aNotExistingSha256AssertionRef =
   "sha256-LWmgzxnrIhywpNW0mctCFWfh2CptjGJJN_H2_FLN1gg";
 
 describe("GenerateLcParams", () => {
-  test("GIVEN a new correctly initialized public key WHEN calling generateLcParams THEN return a success containing LcParams", { timeout: TIMEOUT }, async () => {
-    await model.upsert({
-      ...aLolliPopPubKeys,
-      expiredAt: date_fns.addDays(new Date(), 30)
-    })();
+  test(
+    "GIVEN a new correctly initialized public key WHEN calling generateLcParams THEN return a success containing LcParams",
+    { timeout: TIMEOUT },
+    async () => {
+      await model.upsert({
+        ...aLolliPopPubKeys,
+        expiredAt: date_fns.addDays(new Date(), 30)
+      })();
 
-    const result = await fetchGenerateLcParams(
-      anAssertionRef,
-      aGenerateLcParamsPayload,
-      baseUrl,
-      nodeFetch
-    );
-    const content = await result.json();
-    expect(content).toEqual(
-      expect.objectContaining({
-        assertion_file_name: aLolliPopPubKeys.assertionFileName,
-        assertion_ref: aLolliPopPubKeys.assertionRef,
-        assertion_type: aLolliPopPubKeys.assertionType,
-        fiscal_code: aLolliPopPubKeys.fiscalCode,
-        pub_key: aLolliPopPubKeys.pubKey,
-        status: aLolliPopPubKeys.status
-      })
-    );
-    expect(jwt.decode(content.lc_authentication_bearer)).toEqual(
-      expect.objectContaining({
-        assertionRef: anAssertionRef,
-        operationId: aGenerateLcParamsPayload.operation_id
-      })
-    );
-  });
+      const result = await fetchGenerateLcParams(
+        anAssertionRef,
+        aGenerateLcParamsPayload,
+        baseUrl,
+        nodeFetch
+      );
+      const content = await result.json();
+      expect(content).toEqual(
+        expect.objectContaining({
+          assertion_file_name: aLolliPopPubKeys.assertionFileName,
+          assertion_ref: aLolliPopPubKeys.assertionRef,
+          assertion_type: aLolliPopPubKeys.assertionType,
+          fiscal_code: aLolliPopPubKeys.fiscalCode,
+          pub_key: aLolliPopPubKeys.pubKey,
+          status: aLolliPopPubKeys.status
+        })
+      );
+      expect(jwt.decode(content.lc_authentication_bearer)).toEqual(
+        expect.objectContaining({
+          assertionRef: anAssertionRef,
+          operationId: aGenerateLcParamsPayload.operation_id
+        })
+      );
+    }
+  );
 
-  test("GIVEN a pending public key WHEN calling generateLcParams THEN return Forbidden", { timeout: TIMEOUT }, async () => {
-    await model.create({
-      ...aPendingLolliPopPubKeys,
-      assertionRef: aPendingSha256AssertionRef as any
-    })();
+  test(
+    "GIVEN a pending public key WHEN calling generateLcParams THEN return Forbidden",
+    { timeout: TIMEOUT },
+    async () => {
+      await model.create({
+        ...aPendingLolliPopPubKeys,
+        assertionRef: aPendingSha256AssertionRef as any
+      })();
 
-    const result = await fetchGenerateLcParams(
-      aPendingSha256AssertionRef,
-      aGenerateLcParamsPayload,
-      baseUrl,
-      nodeFetch
-    );
-    expect(result.status).toEqual(403);
-  });
+      const result = await fetchGenerateLcParams(
+        aPendingSha256AssertionRef,
+        aGenerateLcParamsPayload,
+        baseUrl,
+        nodeFetch
+      );
+      expect(result.status).toEqual(403);
+    }
+  );
 
-  test("GIVEN a not existing public key WHEN calling generateLcParams THEN return Not Found", { timeout: TIMEOUT }, async () => {
-    const result = await fetchGenerateLcParams(
-      aNotExistingSha256AssertionRef,
-      aGenerateLcParamsPayload,
-      baseUrl,
-      nodeFetch
-    );
-    expect(result.status).toEqual(404);
-  });
+  test(
+    "GIVEN a not existing public key WHEN calling generateLcParams THEN return Not Found",
+    { timeout: TIMEOUT },
+    async () => {
+      const result = await fetchGenerateLcParams(
+        aNotExistingSha256AssertionRef,
+        aGenerateLcParamsPayload,
+        baseUrl,
+        nodeFetch
+      );
+      expect(result.status).toEqual(404);
+    }
+  );
 
-  test("GIVEN an expired public key WHEN calling generateLcParams THEN return Forbidden", { timeout: TIMEOUT }, async () => {
-    await model.upsert({
-      ...aLolliPopPubKeys,
-      assertionRef: aSha256AssertionRef as any,
-      expiredAt: date_fns.addDays(new Date(), -1000)
-    })();
+  test(
+    "GIVEN an expired public key WHEN calling generateLcParams THEN return Forbidden",
+    { timeout: TIMEOUT },
+    async () => {
+      await model.upsert({
+        ...aLolliPopPubKeys,
+        assertionRef: aSha256AssertionRef as any,
+        expiredAt: date_fns.addDays(new Date(), -1000)
+      })();
 
-    const result = await fetchGenerateLcParams(
-      aSha256AssertionRef,
-      aGenerateLcParamsPayload,
-      baseUrl,
-      nodeFetch
-    );
-    expect(result.status).toEqual(403);
-  });
+      const result = await fetchGenerateLcParams(
+        aSha256AssertionRef,
+        aGenerateLcParamsPayload,
+        baseUrl,
+        nodeFetch
+      );
+      expect(result.status).toEqual(403);
+    }
+  );
 
-  test("GIVEN a malformed payload WHEN calling generateLcParams THEN return a bad request", { timeout: TIMEOUT }, async () => {
-    const result = await fetchGenerateLcParams(
-      anAssertionRef,
-      {
-        wrong: "wrong"
-      },
-      baseUrl,
-      nodeFetch
-    );
-    expect(result.status).toEqual(400);
-  });
+  test(
+    "GIVEN a malformed payload WHEN calling generateLcParams THEN return a bad request",
+    { timeout: TIMEOUT },
+    async () => {
+      const result = await fetchGenerateLcParams(
+        anAssertionRef,
+        {
+          wrong: "wrong"
+        },
+        baseUrl,
+        nodeFetch
+      );
+      expect(result.status).toEqual(400);
+    }
+  );
 });
 
 // -----------------------
