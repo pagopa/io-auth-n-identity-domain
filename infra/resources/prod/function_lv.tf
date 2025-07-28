@@ -30,24 +30,24 @@ locals {
       // --------------------------
       REDIS_URL      = data.azurerm_redis_cache.core_domain_redis_common.hostname
       REDIS_PORT     = data.azurerm_redis_cache.core_domain_redis_common.ssl_port
-      REDIS_PASSWORD = data.azurerm_redis_cache.core_domain_redis_common.primary_access_key
+      REDIS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.redis_access_key.versionless_id})"
 
       // --------------------------
       //  Config for getAssertion
       // --------------------------
       LOLLIPOP_GET_ASSERTION_BASE_URL = "https://api-internal.io.italia.it"
-      LOLLIPOP_GET_ASSERTION_API_KEY  = data.azurerm_key_vault_secret.fast_login_subscription_key.value
+      LOLLIPOP_GET_ASSERTION_API_KEY  = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.fast_login_subscription_key.versionless_id})"
 
       // --------------------------
       //  Fast login audit log storage
       // --------------------------
-      FAST_LOGIN_AUDIT_CONNECTION_STRING = data.azurerm_storage_account.immutable_lv_audit_logs_storage.primary_connection_string
+      FAST_LOGIN_AUDIT_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.lv_audit_logs_st_connection_string.versionless_id})"
       FAST_LOGIN_AUDIT_CONTAINER_NAME    = "logs"
 
       // --------------------------
       //  Config for session manager internal connection
       // --------------------------
-      SESSION_MANAGER_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.fast_login_session_manager_internal_api_key.value
+      SESSION_MANAGER_INTERNAL_API_KEY  = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.fast_login_session_manager_internal_api_key.versionless_id})"
       SESSION_MANAGER_INTERNAL_BASE_URL = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
     }
 
@@ -101,7 +101,6 @@ module "function_lv" {
 
   tags = local.tags
 }
-
 
 module "function_lv_autoscale" {
   source  = "pagopa-dx/azure-app-service-plan-autoscaler/azurerm"
