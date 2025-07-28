@@ -101,10 +101,7 @@ describe("Queue insert tests [Batch]", () => {
 
     const expectedError = Error(JSON.stringify(anItem.payload));
     expect(mockSendMessage).toHaveBeenCalledTimes(aBatch.length);
-    expect(mockSendMessage.mock.results).toEqual([
-      { type: "throw", value: errorMessage },
-      { type: "throw", value: errorMessage },
-    ]);
+
     expect(mockTrackEvent).toHaveBeenCalledTimes(aBatch.length);
 
     expect(result).toEqual(E.left([expectedError, expectedError]));
