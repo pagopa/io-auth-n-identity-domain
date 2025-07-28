@@ -23,6 +23,7 @@ import {
   ExpiredSessionAdvisorHandler,
   ExpiredSessionEmailParameters
 } from "../expired-session-advisor";
+import { aValidationErrorWithoutValidation } from "../__mocks__/validation.mock";
 
 const aFiscalCode = "BBBBBB00B00B000B" as FiscalCode;
 const anExpiredAtDate = new Date();
@@ -169,7 +170,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       ...makeHandlerInputs({ badProp: "bad" })
     })();
 
-    expect(response).toStrictEqual(E.left(new ValidationError([])));
+    expect(response).toStrictEqual(aValidationErrorWithoutValidation);
     expect(getSessionMock).not.toBeCalled();
     expect(getProfileMock).not.toBeCalled();
     expect(mailTemplateApplySpyOn).not.toBeCalled();
@@ -186,7 +187,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       })
     })();
 
-    expect(response).toStrictEqual(E.left(new ValidationError([])));
+    expect(response).toStrictEqual(aValidationErrorWithoutValidation);
     expect(getSessionMock).not.toBeCalled();
     expect(getProfileMock).not.toBeCalled();
     expect(mailTemplateApplySpyOn).not.toBeCalled();
@@ -203,7 +204,7 @@ describe("ExpiredSessionAdvisor handler", () => {
       })
     })();
 
-    expect(response).toStrictEqual(E.left(new ValidationError([])));
+    expect(response).toStrictEqual(aValidationErrorWithoutValidation);
     expect(getSessionMock).not.toBeCalled();
     expect(getProfileMock).not.toBeCalled();
     expect(mailTemplateApplySpyOn).not.toBeCalled();
