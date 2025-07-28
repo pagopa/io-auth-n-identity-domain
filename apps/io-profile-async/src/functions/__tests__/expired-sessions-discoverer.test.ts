@@ -1,5 +1,4 @@
 /* eslint-disable max-lines-per-function */
-/* eslint-disable sonarjs/no-duplicate-string */
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 import { Context } from "@azure/functions";
@@ -493,7 +492,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(trackEventMock).not.toHaveBeenCalled();
     });
 
-    it("should throw and track event when more transient error occur", async () => {
+    it("should throw and track event when more transient errors occurs", async () => {
       const chunkSize = 4;
       findByExpiredAtAsyncIterableMock.mockImplementationOnce(
         () =>
@@ -680,7 +679,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
   });
 
   describe("trackTransientErrors", () => {
-    it("should track a single transient errors with correct properties", () => {
+    it("should track a single transient error with correct properties", () => {
       const error = new TransientError("Test transient error");
       const interval = createInterval();
 

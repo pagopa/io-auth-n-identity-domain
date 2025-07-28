@@ -21,7 +21,7 @@ import {
 import { ExpiredSessionAdvisorQueueMessage } from "../types/expired-session-advisor-queue-message";
 import { createInterval, Interval } from "../types/interval";
 import { RetrievedSessionNotificationsStrict } from "../types/session-notification-strict";
-import { trackEvent, trackException } from "../utils/appinsights";
+import { trackEvent } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
 import { TransientError } from "../utils/errors";
 import { isLastTimerTriggerRetry } from "../utils/function-utils";
