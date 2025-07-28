@@ -19,6 +19,7 @@ import {
 } from "../__mocks__/session-notifications-repository.mock";
 import { SessionNotificationsInitRecoveryHandler } from "../session-notifications-init-recovery";
 import { PermanentError, TransientError } from "../../utils/errors";
+import { aValidationErrorWithoutValidation } from "../__mocks__/validation.mock";
 
 const aFiscalCode = "BBBBBB00B00B000B" as FiscalCode;
 const anExpiredAtDate = new Date();
@@ -112,7 +113,7 @@ describe("SessionNotificationsInitRecovery handler", () => {
         ...makeHandlerInputs({ badProp: "bad" })
       })();
 
-      expect(response).toStrictEqual(E.left(new ValidationError([])));
+      expect(response).toStrictEqual(aValidationErrorWithoutValidation);
       expect(getSessionMock).not.toHaveBeenCalled();
       expect(
         SessionNotificationsRepo.findByFiscalCodeAsyncIterable
@@ -128,7 +129,7 @@ describe("SessionNotificationsInitRecovery handler", () => {
         })
       })();
 
-      expect(response).toStrictEqual(E.left(new ValidationError([])));
+      expect(response).toStrictEqual(aValidationErrorWithoutValidation);
       expect(getSessionMock).not.toHaveBeenCalled();
       expect(
         SessionNotificationsRepo.findByFiscalCodeAsyncIterable
@@ -144,7 +145,7 @@ describe("SessionNotificationsInitRecovery handler", () => {
         })
       })();
 
-      expect(response).toStrictEqual(E.left(new ValidationError([])));
+      expect(response).toStrictEqual(aValidationErrorWithoutValidation);
       expect(getSessionMock).not.toHaveBeenCalled();
       expect(
         SessionNotificationsRepo.findByFiscalCodeAsyncIterable

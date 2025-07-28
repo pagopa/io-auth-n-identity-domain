@@ -33,7 +33,7 @@ describe("Lollipop repository#fireAndForgetRevokeAssertionRef", () => {
       )();
 
     expect(mockSendMessage).toBeCalledWith(expectedMessage);
-    expect(mockSendMessage).toHaveReturnedWith(expectedResponse);
+    expect(mockSendMessage).toHaveResolvedWith(expectedResponse);
     expect(result).toEqual(E.right(true));
   });
 
