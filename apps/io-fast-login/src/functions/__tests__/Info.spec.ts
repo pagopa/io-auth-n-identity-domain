@@ -3,6 +3,7 @@ import * as E from "fp-ts/lib/Either";
 import { makeInfoHandler } from "../info";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import { mockRedisClientTask, mockPing } from "../__mocks__/redis";
+import { HttpError } from "@pagopa/handler-kit";
 
 describe("Info handler", () => {
   it("should return an error if Redis PING command fail", async () => {
@@ -12,7 +13,7 @@ describe("Info handler", () => {
       redisClientTask: mockRedisClientTask
     })();
     expect(result).toMatchObject(
-      E.left(new Error("Redis|Error executing the ping to redis"))
+      E.left(new HttpError("Redis|Error executing the ping to redis"))
     );
   });
 
