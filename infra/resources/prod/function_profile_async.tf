@@ -38,36 +38,36 @@ locals {
       FETCH_KEEPALIVE_TIMEOUT             = "60000"
 
       // Mailup setup
-      MAILUP_USERNAME = data.azurerm_key_vault_secret.io_com_mailup_username.value
-      MAILUP_SECRET   = data.azurerm_key_vault_secret.io_com_mailup_secret.value
+      MAILUP_USERNAME = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.io_com_mailup_username.versionless_id})"
+      MAILUP_SECRET   = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.io_com_mailup_secret.versionless_id})"
 
       // Mail
       MAIL_FROM = "IO - l'app dei servizi pubblici <no-reply@io.italia.it>"
 
       // Session Manager Internal
       SESSION_MANAGER_INTERNAL_BASE_URL = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
-      SESSION_MANAGER_INTERNAL_API_KEY  = data.azurerm_key_vault_secret.profile_async_session_manager_internal_api_key.value
+      SESSION_MANAGER_INTERNAL_API_KEY  = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.profile_async_session_manager_internal_api_key.versionless_id})"
 
       // Function Profile
       FUNCTION_PROFILE_BASE_URL = "https://${module.function_profile.function_app.function_app.default_hostname}"
-      FUNCTION_PROFILE_API_KEY  = data.azurerm_key_vault_secret.function_profile_key.value
+      FUNCTION_PROFILE_API_KEY  = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.function_profile_key.versionless_id})"
 
       // Expired Session Mail prop
       EXPIRED_SESSION_CTA_URL = "https://continua.io.pagopa.it?utm_source=email&utm_medium=email&utm_campaign=session_expired&pt=121080668&ct=email_session_expired&mt=8"
 
       // Cosmos
       COSMOSDB_NAME              = "db"
-      COSMOSDB_CONNECTION_STRING = format("AccountEndpoint=%s;AccountKey=%s;", data.azurerm_cosmosdb_account.cosmos_api.endpoint, data.azurerm_cosmosdb_account.cosmos_api.primary_key)
+      COSMOSDB_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.cosmos_api_connection_string.versionless_id})"
 
       //Queue
       EXPIRED_SESSION_ADVISOR_QUEUE             = "expired-user-sessions"               // TODO: replace when this queue is migrate in the monorepo
       SESSION_NOTIFICATIONS_INIT_RECOVERY_QUEUE = "session-notifications-init-recovery" // TODO: this is temporary, will be removed when SessionNotificationsInitRecovery will not be needed
 
       // Storage
-      AZURE_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.citizen_auth_common.primary_connection_string
+      AZURE_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.citizen_auth_common_connection_string.versionless_id})"
 
       //MigrateServicePreferenceFromLegacy Config
-      IOPSTAPP_STORAGE_CONNECTION_STRING              = data.azurerm_storage_account.storage_app.primary_connection_string
+      IOPSTAPP_STORAGE_CONNECTION_STRING              = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.st_app_connection_string.versionless_id})"
       MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME = "profile-migrate-services-preferences-from-legacy" // TODO: replace when this queue is migrate in the monorepo
       //
       // OnProfileUpdate cosmosDB trigger variables
@@ -75,12 +75,12 @@ locals {
       PROFILE_EMAIL_STORAGE_TABLE_NAME = "profileEmails"
 
       //StoreSpidLogs Config
-      IOPSTLOGS_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.storage_logs.primary_connection_string
+      IOPSTLOGS_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.st_logs_connection_string.versionless_id})"
       SPID_LOGS_PUBLIC_KEY                = trimspace(data.azurerm_key_vault_secret.fn_app_SPID_LOGS_PUBLIC_KEY.value)
 
       //Domain cosmos account config
       CITIZEN_AUTH_COSMOSDB_NAME              = "citizen-auth"
-      CITIZEN_AUTH_COSMOSDB_CONNECTION_STRING = data.azurerm_cosmosdb_account.cosmos_citizen_auth.primary_sql_connection_string
+      CITIZEN_AUTH_COSMOSDB_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.cosmos_auth_connection_string.versionless_id})"
 
       //ExpiredSessionsScanner timertrigger config
       SESSION_NOTIFICATIONS_CONTAINER_NAME = "session-notifications"

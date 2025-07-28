@@ -42,12 +42,19 @@ resource "azurerm_key_vault_access_policy" "kv_common_func_profas_staging" {
   ]
 }
 
-resource "azurerm_key_vault_secret" "cosmos_api_connection_string" {
+data "azurerm_key_vault_secret" "cosmos_api_connection_string" {
   name         = "cosmos-api-connection-string"
-  key_vault_id = data.azurerm_key_vault.kv.id
-  value        = format("AccountEndpoint=%s;AccountKey=%s;", data.azurerm_cosmosdb_account.cosmos_api.endpoint, data.azurerm_cosmosdb_account.cosmos_api.primary_key)
+  key_vault_id = data.azurerm_key_vault.common_kv.id
+}
 
-  tags = local.tags
+data "azurerm_key_vault_secret" "st_app_connection_string" {
+  name         = "st-app-primary-connection-string"
+  key_vault_id = data.azurerm_key_vault.common_kv.id
+}
+
+data "azurerm_key_vault_secret" "st_logs_connection_string" {
+  name         = "st-logs-primary-connection-string"
+  key_vault_id = data.azurerm_key_vault.common_kv.id
 }
 
 resource "azurerm_key_vault_secret" "cosmos_auth_connection_string" {
@@ -76,7 +83,7 @@ resource "azurerm_key_vault_secret" "lollipop_assertions_st_connection_string" {
 
 resource "azurerm_key_vault_secret" "citizen_auth_common_connection_string" {
   name         = "citizen-auth-common-connection-string"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  key_vault_id = module.key_vaults.auth.id
   value        = data.azurerm_storage_account.citizen_auth_common.primary_connection_string
 
   tags = local.tags
@@ -84,7 +91,7 @@ resource "azurerm_key_vault_secret" "citizen_auth_common_connection_string" {
 
 resource "azurerm_key_vault_secret" "iopstapp_connection_string" {
   name         = "iopstapp-connection-string"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  key_vault_id = module.key_vaults.auth.id
   value        = data.azurerm_storage_account.storage_app.primary_connection_string
 
   tags = local.tags
@@ -92,7 +99,7 @@ resource "azurerm_key_vault_secret" "iopstapp_connection_string" {
 
 resource "azurerm_key_vault_secret" "iopstlogs_connection_string" {
   name         = "iopstlogs-connection-string"
-  key_vault_id = data.azurerm_key_vault.kv.id
+  key_vault_id = module.key_vaults.auth.id
   value        = data.azurerm_storage_account.storage_logs.primary_connection_string
 
   tags = local.tags
