@@ -885,13 +885,7 @@ describe("getUserIdentity", () => {
     const result = await getUserIdentity(mockedDependencies)();
 
     // Assert
-    expect(result).toEqual(
-      E.left(
-        expect.objectContaining({
-          message: expect.stringContaining(expectedError.message),
-        }),
-      ),
-    );
+    expect(result).toEqual(E.left(new Error(expectedError.message)));
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledWith({
       redisClientSelector: mockedDependencies.redisClientSelector,
       fiscalCode: mockedDependencies.user.fiscal_code,
