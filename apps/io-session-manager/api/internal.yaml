@@ -117,6 +117,20 @@ components:
       required:
         - created_at
         - token_remaining_ttl
+    AssertionRefSha256:
+      type: string
+      pattern: ^(sha256-[A-Za-z0-9-_=]{1,44})$
+    AssertionRefSha384:
+      type: string
+      pattern: ^(sha384-[A-Za-z0-9-_=]{1,66})$
+    AssertionRefSha512:
+      type: string
+      pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
+    AssertionRef:
+      oneOf:
+        - $ref: "#/components/schemas/AssertionRefSha512"
+        - $ref: "#/components/schemas/AssertionRefSha384"
+        - $ref: "#/components/schemas/AssertionRefSha256"
     UserIdentity:
       title: CIE or SPID User Identity
       type: object
@@ -126,6 +140,10 @@ components:
           type: string
         fiscal_code:
           $ref: "#/components/schemas/FiscalCode"
+        # assertion_ref here is optional.
+        # An user may not have initialized a lollipop session
+        assertion_ref:
+          $ref: "#/components/schemas/AssertionRef"
         name:
           type: string
         date_of_birth:
