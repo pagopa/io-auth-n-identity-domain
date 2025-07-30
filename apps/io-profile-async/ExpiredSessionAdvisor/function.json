@@ -4,8 +4,8 @@
       "type": "queueTrigger",
       "direction": "in",
       "name": "messageExpiredSession",
-      "queueName": "%EXPIRED_SESSION_ADVISOR_QUEUE%",
-      "connection": "AZURE_STORAGE_CONNECTION_STRING"
+      "queueName": "%EXPIRED_SESSION_ADVISOR_QUEUE_01%",
+      "connection": "AZURE_STORAGE_CONNECTION_STRING_ITN"
     }
   ],
   "retry": {
