@@ -6,7 +6,7 @@ on:
 jobs:
   deploy_to_azure_1:
     name: Deploy to Azure App Service
-    uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@3d0729135be7a7984dc1b64e6b583185361c6a84
+    uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@a08a2c9d95678902fd74382804693d33c8169e55
     with:
       # '-cd' suffix added inside the pipeline
       environment: app-prod
