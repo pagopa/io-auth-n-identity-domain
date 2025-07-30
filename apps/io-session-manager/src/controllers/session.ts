@@ -9,6 +9,7 @@ import {
 } from "@pagopa/ts-commons/lib/responses";
 import * as TE from "fp-ts/TaskEither";
 import * as RTE from "fp-ts/ReaderTaskEither";
+import * as AP from "fp-ts/Apply";
 import * as B from "fp-ts/boolean";
 import * as R from "fp-ts/Record";
 import { flow, pipe } from "fp-ts/lib/function";
@@ -357,19 +358,29 @@ export const getUserIdentity: RTE.ReaderTaskEither<
   IResponseErrorInternal | IResponseSuccessJson<UserIdentityWithTtl>
 > = (deps) =>
   pipe(
-    deps,
-    RedisSessionStorageService.getSessionTtl(deps.user.session_token),
-    TE.chain(
-      TE.fromPredicate(
-        (ttlResponse) => ttlResponse > 0,
-        () => new Error("Unexpected session token TTL value"),
+    // Performs the retrieval of the info in parallel
+    AP.sequenceS(TE.ApplyPar)({
+      ttl: pipe(
+        RedisSessionStorageService.getSessionTtl(deps.user.session_token)(deps),
+        TE.chain(
+          TE.fromPredicate(
+            (ttlResponse) => ttlResponse > 0,
+            () => new Error("Unexpected session token TTL value"),
+          ),
+        ),
       ),
-    ),
-    TE.map((ttl) =>
+      maybeAssertionRef:
+        RedisSessionStorageService.getLollipopAssertionRefForUser({
+          redisClientSelector: deps.redisClientSelector,
+          fiscalCode: deps.user.fiscal_code,
+        }),
+    }),
+    TE.map(({ ttl, maybeAssertionRef }) =>
       ResponseSuccessJson(
         UserIdentityWithTtl.encode({
           ...deps.user,
           token_remaining_ttl: ttl,
+          assertion_ref: O.toUndefined(maybeAssertionRef),
         }),
       ),
     ),

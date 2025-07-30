@@ -742,10 +742,17 @@ describe("getUserIdentity", () => {
     RedisSessionStorageService,
     "getSessionTtl",
   );
+  const mockGetLollipopAssertionRefForUser = vi.spyOn(
+    RedisSessionStorageService,
+    "getLollipopAssertionRefForUser",
+  );
 
-  test("GIVEN a valid session token with positive TTL THEN it should return user identity with remaining TTL", async () => {
+  test("GIVEN a valid lollipop session and token with positive TTL THEN it should return user identity with remaining TTL", async () => {
     // Arrange
     const expectedTtl = 3600; // 1 hour
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(
+      TE.right(O.some(anAssertionRef)),
+    );
     mockGetSessionTtl.mockReturnValueOnce(() => TE.right(expectedTtl));
 
     // Act
@@ -757,6 +764,10 @@ describe("getUserIdentity", () => {
     )();
 
     // Assert
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledWith({
+      redisClientSelector: mockedDependencies.redisClientSelector,
+      fiscalCode: mockedDependencies.user.fiscal_code,
+    });
     expect(mockGetSessionTtl).toHaveBeenCalledWith(
       mockedDependencies.user.session_token,
     );
@@ -767,6 +778,7 @@ describe("getUserIdentity", () => {
           withoutUndefinedValues({
             created_at: mockedUser.created_at,
             name: mockedUser.name,
+            assertion_ref: anAssertionRef,
             family_name: mockedUser.family_name,
             spid_email: mockedUser.spid_email,
             date_of_birth: mockedUser.date_of_birth,
@@ -781,9 +793,36 @@ describe("getUserIdentity", () => {
     );
   });
 
+  test("GIVEN a non lollipop session THEN it should not return assertion ref", async () => {
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(TE.right(O.none));
+    mockGetSessionTtl.mockReturnValueOnce(() => TE.right(3600));
+    // Act
+    await pipe(
+      mockedDependencies,
+      getUserIdentity,
+      TE.map((response) => response.apply(res)),
+      TE.mapLeft((err) => expect(err).toBeFalsy()),
+    )();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledWith({
+      redisClientSelector: mockedDependencies.redisClientSelector,
+      fiscalCode: mockedDependencies.user.fiscal_code,
+    });
+    expect(mockGetSessionTtl).toHaveBeenCalledWith(
+      mockedDependencies.user.session_token,
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.not.objectContaining({ assertion_ref: expect.any(String) }),
+    );
+  });
+
   test("GIVEN Redis throws an error THEN it should return error", async () => {
     // Arrange
     const expectedError = new Error("Redis connection error");
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(
+      TE.right(O.some(anAssertionRef)),
+    );
     mockGetSessionTtl.mockReturnValueOnce(() => TE.left(expectedError));
 
     // Act
@@ -797,12 +836,19 @@ describe("getUserIdentity", () => {
         }),
       ),
     );
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledWith({
+      redisClientSelector: mockedDependencies.redisClientSelector,
+      fiscalCode: mockedDependencies.user.fiscal_code,
+    });
     expect(mockGetSessionTtl).toHaveBeenCalledWith(
       mockedDependencies.user.session_token,
     );
   });
 
   test("GIVEN a session token with zero or negative TTL THEN it should return error", async () => {
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(
+      TE.right(O.some(anAssertionRef)),
+    );
     // Arrange
     // The session token is missing
     mockGetSessionTtl.mockReturnValueOnce(() => TE.right(-2));
@@ -824,6 +870,28 @@ describe("getUserIdentity", () => {
 
     expect(resultNegative).toEqual(
       E.left(new Error("Unexpected session token TTL value")),
+    );
+  });
+
+  test("GIVEN Redis throws an error during assertion retrieval THEN it should return error", async () => {
+    // Arrange
+    const expectedError = new Error("Redis connection error");
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(
+      TE.left(expectedError),
+    );
+    mockGetSessionTtl.mockReturnValueOnce(() => TE.right(3600));
+
+    // Act
+    const result = await getUserIdentity(mockedDependencies)();
+
+    // Assert
+    expect(result).toEqual(E.left(new Error(expectedError.message)));
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledWith({
+      redisClientSelector: mockedDependencies.redisClientSelector,
+      fiscalCode: mockedDependencies.user.fiscal_code,
+    });
+    expect(mockGetSessionTtl).toHaveBeenCalledWith(
+      mockedDependencies.user.session_token,
     );
   });
 });
