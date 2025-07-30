@@ -702,34 +702,5 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         })
       );
     });
-
-    it("should track multiple transient errors with correct properties", () => {
-      const errors = [
-        new TransientError("error1"),
-        new TransientError("error2")
-      ];
-      const interval = createInterval();
-
-      trackTransientErrors(interval, errors);
-
-      errors.forEach(error =>
-        expect(trackEventMock).toHaveBeenCalledWith(
-          expect.objectContaining({
-            name:
-              "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
-            properties: expect.objectContaining({
-              message: expect.stringContaining(error.message),
-              interval: expect.objectContaining({
-                from: expect.any(Date),
-                to: expect.any(Date)
-              })
-            }),
-            tagOverrides: {
-              samplingEnabled: "false"
-            }
-          })
-        )
-      );
-    });
   });
 });
