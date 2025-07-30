@@ -47,16 +47,6 @@ data "azurerm_key_vault_secret" "cosmos_api_connection_string" {
   key_vault_id = data.azurerm_key_vault.common_kv.id
 }
 
-data "azurerm_key_vault_secret" "st_app_connection_string" {
-  name         = "st-app-primary-connection-string"
-  key_vault_id = data.azurerm_key_vault.common_kv.id
-}
-
-data "azurerm_key_vault_secret" "st_logs_connection_string" {
-  name         = "st-logs-primary-connection-string"
-  key_vault_id = data.azurerm_key_vault.common_kv.id
-}
-
 resource "azurerm_key_vault_secret" "cosmos_auth_connection_string" {
   name         = "cosmos-auth-connection-string"
   key_vault_id = module.key_vaults.auth.id

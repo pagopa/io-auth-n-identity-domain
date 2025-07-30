@@ -67,7 +67,7 @@ locals {
       AZURE_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.citizen_auth_common_connection_string.versionless_id})"
 
       //MigrateServicePreferenceFromLegacy Config
-      IOPSTAPP_STORAGE_CONNECTION_STRING              = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.st_app_connection_string.versionless_id})"
+      IOPSTAPP_STORAGE_CONNECTION_STRING              = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.iopstapp_connection_string.versionless_id})"
       MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME = "profile-migrate-services-preferences-from-legacy" // TODO: replace when this queue is migrate in the monorepo
       //
       // OnProfileUpdate cosmosDB trigger variables
@@ -75,7 +75,7 @@ locals {
       PROFILE_EMAIL_STORAGE_TABLE_NAME = "profileEmails"
 
       //StoreSpidLogs Config
-      IOPSTLOGS_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.st_logs_connection_string.versionless_id})"
+      IOPSTLOGS_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.iopstlogs_connection_string.versionless_id})"
       SPID_LOGS_PUBLIC_KEY                = trimspace(data.azurerm_key_vault_secret.fn_app_SPID_LOGS_PUBLIC_KEY.value)
 
       //Domain cosmos account config
