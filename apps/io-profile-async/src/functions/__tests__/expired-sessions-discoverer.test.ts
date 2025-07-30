@@ -1,10 +1,10 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 import { Context } from "@azure/functions";
 import { QueueClient } from "@azure/storage-queue";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
-import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import {
   afterAll,
@@ -29,11 +29,12 @@ import { TransientError } from "../../utils/errors";
 import { aValidationError } from "../__mocks__/expired-sessions.mock";
 import {
   ExpiredSessionsDiscovererFunction,
+  getDate,
   ItemToProcess,
   processChunk,
   processItem,
   retrieveFromDbInChunks,
-  getDate
+  trackTransientErrors
 } from "../expired-sessions-discoverer";
 
 const getDateError =
@@ -491,7 +492,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       expect(trackEventMock).not.toHaveBeenCalled();
     });
 
-    it("should throw and track event when one or more transient error occur", async () => {
+    it("should throw and track event when more transient errors occurs", async () => {
       const chunkSize = 4;
       findByExpiredAtAsyncIterableMock.mockImplementationOnce(
         () =>
@@ -499,6 +500,7 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
             yield Array(chunkSize).fill(E.of(aSession));
           }
       );
+
       const deps = {
         ...baseDeps,
         sessionNotificationsRepositoryConfig: {
@@ -507,14 +509,15 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         }
       };
 
+      const cosmosSimulatedErrors = [
+        { kind: "COSMOS_ERROR_RESPONSE" },
+        { kind: "COSMOS_DECODING_ERROR" }
+      ] as CosmosErrors[];
+
       // Fail the first two updates
       updateExpiredSessionNotificationFlagMock
-        .mockImplementationOnce(() =>
-          TE.left({ kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors)
-        )
-        .mockImplementationOnce(() =>
-          TE.left({ kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors)
-        )
+        .mockImplementationOnce(() => TE.left(cosmosSimulatedErrors[0]))
+        .mockImplementationOnce(() => TE.left(cosmosSimulatedErrors[1]))
         .mockImplementation(() => TE.of(void 0));
 
       const context = {
@@ -528,23 +531,32 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
         ExpiredSessionsDiscovererFunction(deps)(context, {})
       ).rejects.toThrow("One or more chunks failed during processing");
 
-      expect(trackEventMock).toHaveBeenCalledWith({
-        name:
-          "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
-        properties: {
-          interval: createInterval(),
-          message:
-            "Multiple transient errors occurred during execution: count=2"
-        },
-        tagOverrides: {
-          samplingEnabled: "false"
-        }
+      expect(trackEventMock).toHaveBeenCalledTimes(2);
+
+      cosmosSimulatedErrors.forEach(error => {
+        expect(trackEventMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name:
+              "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
+            properties: expect.objectContaining({
+              message: expect.stringContaining(error.kind),
+              interval: expect.objectContaining({
+                from: expect.any(Date),
+                to: expect.any(Date)
+              })
+            }),
+            tagOverrides: {
+              samplingEnabled: "false"
+            }
+          })
+        );
       });
     });
 
     it("should track max retry event reached if isLastTimerTriggerRetry returns true", async () => {
+      const aCosmosError = { kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors;
       updateExpiredSessionNotificationFlagMock.mockImplementation(() =>
-        TE.left({ kind: "COSMOS_ERROR_RESPONSE" } as CosmosErrors)
+        TE.left(aCosmosError)
       );
 
       const context = {
@@ -564,10 +576,15 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
           name:
             "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
           properties: expect.objectContaining({
-            message: expect.stringContaining(
-              "Multiple transient errors occurred during execution"
-            )
-          })
+            message: expect.stringContaining(aCosmosError.kind),
+            interval: expect.objectContaining({
+              from: expect.any(Date),
+              to: expect.any(Date)
+            })
+          }),
+          tagOverrides: {
+            samplingEnabled: "false"
+          }
         })
       );
       expect(trackEventMock).toHaveBeenCalledWith(
@@ -583,9 +600,9 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
               to: expect.any(Date)
             })
           }),
-          tagOverrides: expect.objectContaining({
+          tagOverrides: {
             samplingEnabled: "false"
-          })
+          }
         })
       );
     });
@@ -658,6 +675,32 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
       } as unknown) as Context;
       const result = getDate(context);
       expect(result).toEqual(E.left(new Error(getDateError)));
+    });
+  });
+
+  describe("trackTransientErrors", () => {
+    it("should track a single transient error with correct properties", () => {
+      const error = new TransientError("Test transient error");
+      const interval = createInterval();
+
+      trackTransientErrors(interval, error);
+
+      expect(trackEventMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name:
+            "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
+          properties: expect.objectContaining({
+            message: expect.stringContaining(error.message),
+            interval: expect.objectContaining({
+              from: expect.any(Date),
+              to: expect.any(Date)
+            })
+          }),
+          tagOverrides: {
+            samplingEnabled: "false"
+          }
+        })
+      );
     });
   });
 });

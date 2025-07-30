@@ -269,6 +269,27 @@ export const getDate = (context: Context): E.Either<Error, Date> =>
     O.getOrElse(() => E.right(new Date()))
   );
 
+export const trackTransientErrors = (
+  interval: Interval,
+  errors: ReadonlyArray<TransientError> | TransientError
+): void =>
+  pipe(Array.isArray(errors) ? errors : [errors], errorList =>
+    errorList.forEach(err => {
+      trackEvent({
+        name:
+          "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
+        properties: {
+          message: err.message,
+          stack: err.stack,
+          interval
+        },
+        tagOverrides: {
+          samplingEnabled: "false"
+        }
+      });
+    })
+  );
+
 export const ExpiredSessionsDiscovererFunction = (
   deps: TriggerDependencies
 ): AzureFunction => async (
@@ -297,21 +318,8 @@ export const ExpiredSessionsDiscovererFunction = (
       )
     ),
     RTE.getOrElse(errors => {
-      trackEvent({
-        name:
-          "io.citizen-auth.prof-async.expired-sessions-discoverer.transient",
-        properties: {
-          message: Array.isArray(errors)
-            ? `Multiple transient errors occurred during execution: count=${errors.length}`
-            : errors instanceof TransientError
-            ? `Transient error occurred: ${errors.message}`
-            : "Unknown error",
-          interval
-        },
-        tagOverrides: {
-          samplingEnabled: "false"
-        }
-      });
+      // Track each TransientError occurred on processing
+      trackTransientErrors(interval, errors);
 
       if (isLastTimerTriggerRetry(context)) {
         trackEvent({
