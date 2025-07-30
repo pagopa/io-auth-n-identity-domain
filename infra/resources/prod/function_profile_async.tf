@@ -60,11 +60,14 @@ locals {
       COSMOSDB_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.cosmos_api_connection_string.versionless_id})"
 
       //Queue
-      EXPIRED_SESSION_ADVISOR_QUEUE             = "expired-user-sessions"               // TODO: replace when this queue is migrate in the monorepo
-      SESSION_NOTIFICATIONS_INIT_RECOVERY_QUEUE = "session-notifications-init-recovery" // TODO: this is temporary, will be removed when SessionNotificationsInitRecovery will not be needed
+      EXPIRED_SESSION_ADVISOR_QUEUE                = "expired-user-sessions" // TODO: replace when this queue is migrate in the monorepo
+      EXPIRED_SESSION_ADVISOR_QUEUE_01             = "expired-user-sessions-01"
+      SESSION_NOTIFICATIONS_INIT_RECOVERY_QUEUE    = "session-notifications-init-recovery" // TODO: this is temporary, will be removed when SessionNotificationsInitRecovery will not be needed
+      SESSION_NOTIFICATIONS_INIT_RECOVERY_QUEUE_01 = "session-notifications-init-recovery-01"
 
       // Storage
-      AZURE_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.citizen_auth_common_connection_string.versionless_id})"
+      AZURE_STORAGE_CONNECTION_STRING     = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.citizen_auth_common_connection_string.versionless_id})"
+      AZURE_STORAGE_CONNECTION_STRING_ITN = module.storage_accounts.session.primary_connection_string
 
       //MigrateServicePreferenceFromLegacy Config
       IOPSTAPP_STORAGE_CONNECTION_STRING              = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.iopstapp_connection_string.versionless_id})"
