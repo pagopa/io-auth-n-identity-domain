@@ -97,3 +97,19 @@ resource "azurerm_key_vault_secret" "iopstlogs_connection_string" {
 
   tags = local.tags
 }
+
+resource "azurerm_key_vault_secret" "redis_access_key" {
+  name         = "redis-access-key"
+  key_vault_id = module.key_vaults.auth.id
+  value        = data.azurerm_redis_cache.core_domain_redis_common.primary_access_key
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "lv_audit_logs_st_connection_string" {
+  name         = "lv-audit-logs-st-connection-string"
+  key_vault_id = module.key_vaults.auth.id
+  value        = data.azurerm_storage_account.immutable_lv_audit_logs_storage.primary_connection_string
+
+  tags = local.tags
+}

@@ -70,13 +70,13 @@ const cosmosClient = new CosmosClient({
 beforeAll(async () => {
   await pipe(
     createCosmosDbAndCollections(COSMOSDB_NAME),
-    TE.getOrElse((e) => {
+    TE.getOrElse(e => {
       throw Error("Cannot create infra resources: " + JSON.stringify(e));
     })
   )();
   await pipe(
     createBlobs(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME]),
-    TE.getOrElse((e) => {
+    TE.getOrElse(e => {
       throw Error("Cannot create azure storage: " + JSON.stringify(e));
     })
   )();
@@ -106,258 +106,282 @@ const validActivatePubKeyPayload: ActivatePubKeyPayload = {
 // -------------------------
 
 describe("activatePubKey |> Validation Failures", () => {
-  it("should fail when an invalid assertionRef is passed to the endpoint", { timeout: TIMEOUT }, async () => {
-    const anInvalidAssertionRef = `anInvalidAssertionRef`;
+  it(
+    "should fail when an invalid assertionRef is passed to the endpoint",
+    { timeout: TIMEOUT },
+    async () => {
+      const anInvalidAssertionRef = `anInvalidAssertionRef`;
 
-    const response = await fetchActivatePubKey(
-      anInvalidAssertionRef,
-      validActivatePubKeyPayload,
-      BASE_URL,
-      (myFetch as unknown) as typeof fetch
-    );
+      const response = await fetchActivatePubKey(
+        anInvalidAssertionRef,
+        validActivatePubKeyPayload,
+        BASE_URL,
+        (myFetch as unknown) as typeof fetch
+      );
 
-    expect(response.status).toEqual(400);
-    const body = await response.json();
-    expect(body).toMatchObject({
-      status: 400,
-      title: "Invalid AssertionRef"
-    });
-  });
+      expect(response.status).toEqual(400);
+      const body = await response.json();
+      expect(body).toMatchObject({
+        status: 400,
+        title: "Invalid AssertionRef"
+      });
+    }
+  );
 
-  it("should fail when an invalid payload is passed to the endpoint", { timeout: TIMEOUT }, async () => {
-    const response = await fetchActivatePubKey(
-      aValidSha256AssertionRef,
-      { ...validActivatePubKeyPayload, fiscal_code: "anInvalidFiscalCode" },
-      BASE_URL,
-      (myFetch as unknown) as typeof fetch
-    );
+  it(
+    "should fail when an invalid payload is passed to the endpoint",
+    { timeout: TIMEOUT },
+    async () => {
+      const response = await fetchActivatePubKey(
+        aValidSha256AssertionRef,
+        { ...validActivatePubKeyPayload, fiscal_code: "anInvalidFiscalCode" },
+        BASE_URL,
+        (myFetch as unknown) as typeof fetch
+      );
 
-    expect(response.status).toEqual(400);
-    const body = await response.json();
-    expect(body).toMatchObject({
-      status: 400,
-      title: "Invalid ActivatePubKeyPayload"
-    });
-  });
+      expect(response.status).toEqual(400);
+      const body = await response.json();
+      expect(body).toMatchObject({
+        status: 400,
+        title: "Invalid ActivatePubKeyPayload"
+      });
+    }
+  );
 });
 
 describe("activatePubKey |> Failures", () => {
-  it("should return 500 Error when document cannot be found in cosmos", { timeout: TIMEOUT }, async () => {
-    const randomJwk = await generateJwkForTest();
-    const randomAssertionRef = await generateAssertionRefForTest(randomJwk);
+  it(
+    "should return 500 Error when document cannot be found in cosmos",
+    { timeout: TIMEOUT },
+    async () => {
+      const randomJwk = await generateJwkForTest();
+      const randomAssertionRef = await generateAssertionRefForTest(randomJwk);
 
-    const response = await fetchActivatePubKey(
-      randomAssertionRef,
-      validActivatePubKeyPayload,
-      BASE_URL,
-      (myFetch as unknown) as typeof fetch
-    );
+      const response = await fetchActivatePubKey(
+        randomAssertionRef,
+        validActivatePubKeyPayload,
+        BASE_URL,
+        (myFetch as unknown) as typeof fetch
+      );
 
-    expect(response.status).toEqual(500);
-    const body = await response.json();
-    expect(body).toMatchObject({
-      status: 500,
-      title: "Internal server error",
-      detail: "Error while reading pop document: NotFound"
-    });
-  });
+      expect(response.status).toEqual(500);
+      const body = await response.json();
+      expect(body).toMatchObject({
+        status: 500,
+        title: "Internal server error",
+        detail: "Error while reading pop document: NotFound"
+      });
+    }
+  );
 
-  it("should return 403 when the retrieved pop document has status DIFFERENT FROM PENDING", { timeout: TIMEOUT }, async () => {
-    const randomJwk = await generateJwkForTest();
-    const randomAssertionRef = await generateAssertionRefForTest(randomJwk);
-    const randomAssertionFileName = `${aFiscalCode}-${randomAssertionRef}` as AssertionFileName;
+  it(
+    "should return 403 when the retrieved pop document has status DIFFERENT FROM PENDING",
+    { timeout: TIMEOUT },
+    async () => {
+      const randomJwk = await generateJwkForTest();
+      const randomAssertionRef = await generateAssertionRefForTest(randomJwk);
+      const randomAssertionFileName = `${aFiscalCode}-${randomAssertionRef}` as AssertionFileName;
 
-    const randomNewPopDocument: NewLolliPopPubKeys = {
-      pubKey: toEncodedJwk(randomJwk),
-      ttl: TTL_VALUE_FOR_RESERVATION,
-      assertionRef: randomAssertionRef,
-      status: PubKeyStatusEnum.REVOKED,
-      assertionFileName: randomAssertionFileName,
-      assertionType: AssertionTypeEnum.SAML,
-      fiscalCode: aFiscalCode,
-      expiredAt: expires
-    };
-    const randomActivatePubKeyPayload: ActivatePubKeyPayload = {
-      fiscal_code: aFiscalCode,
-      assertion: "aValidAssertion" as NonEmptyString,
-      assertion_type: AssertionTypeEnum.SAML,
-      expired_at: expires
-    };
+      const randomNewPopDocument: NewLolliPopPubKeys = {
+        pubKey: toEncodedJwk(randomJwk),
+        ttl: TTL_VALUE_FOR_RESERVATION,
+        assertionRef: randomAssertionRef,
+        status: PubKeyStatusEnum.REVOKED,
+        assertionFileName: randomAssertionFileName,
+        assertionType: AssertionTypeEnum.SAML,
+        fiscalCode: aFiscalCode,
+        expiredAt: expires
+      };
+      const randomActivatePubKeyPayload: ActivatePubKeyPayload = {
+        fiscal_code: aFiscalCode,
+        assertion: "aValidAssertion" as NonEmptyString,
+        assertion_type: AssertionTypeEnum.SAML,
+        expired_at: expires
+      };
 
-    const res = await lolliPOPKeysModel.create(randomNewPopDocument)();
+      const res = await lolliPOPKeysModel.create(randomNewPopDocument)();
 
-    expect(E.isRight(res)).toBeTruthy();
+      expect(E.isRight(res)).toBeTruthy();
 
-    const response = await fetchActivatePubKey(
-      randomAssertionRef,
-      randomActivatePubKeyPayload,
-      BASE_URL,
-      (myFetch as unknown) as typeof fetch
-    );
+      const response = await fetchActivatePubKey(
+        randomAssertionRef,
+        randomActivatePubKeyPayload,
+        BASE_URL,
+        (myFetch as unknown) as typeof fetch
+      );
 
-    expect(response.status).toEqual(403);
-  });
+      expect(response.status).toEqual(403);
+    }
+  );
 });
 
 describe("activatePubKey |> Success Results", () => {
-  it("should succeed when valid payload is passed to the endpoint AND when algo DIFFERS FROM master", { timeout: TIMEOUT }, async () => {
-    const randomJwk = await generateJwkForTest();
-    const reserveResult = await fetchReservePubKey(
-      { pub_key: randomJwk, algo: JwkPubKeyHashAlgorithmEnum.sha256 },
-      BASE_URL,
-      (myFetch as unknown) as typeof fetch
-    );
+  it(
+    "should succeed when valid payload is passed to the endpoint AND when algo DIFFERS FROM master",
+    { timeout: TIMEOUT },
+    async () => {
+      const randomJwk = await generateJwkForTest();
+      const reserveResult = await fetchReservePubKey(
+        { pub_key: randomJwk, algo: JwkPubKeyHashAlgorithmEnum.sha256 },
+        BASE_URL,
+        (myFetch as unknown) as typeof fetch
+      );
 
-    expect(reserveResult.status).toEqual(201);
-    const resultBody = await reserveResult.json();
+      expect(reserveResult.status).toEqual(201);
+      const resultBody = await reserveResult.json();
 
-    const anAssertionFileNameForSha256 = `${aFiscalCode}-${resultBody.assertion_ref}`;
+      const anAssertionFileNameForSha256 = `${aFiscalCode}-${resultBody.assertion_ref}`;
 
-    const response = await fetchActivatePubKey(
-      resultBody.assertion_ref,
-      validActivatePubKeyPayload,
-      BASE_URL,
-      (myFetch as unknown) as typeof fetch
-    );
+      const response = await fetchActivatePubKey(
+        resultBody.assertion_ref,
+        validActivatePubKeyPayload,
+        BASE_URL,
+        (myFetch as unknown) as typeof fetch
+      );
 
-    expect(response.status).toEqual(200);
-    const body = await response.json();
-    expect(body).toMatchObject({
-      fiscal_code: validActivatePubKeyPayload.fiscal_code,
-      expired_at: validActivatePubKeyPayload.expired_at.toISOString(),
-      assertion_type: validActivatePubKeyPayload.assertion_type,
-      assertion_ref: resultBody.assertion_ref,
-      assertion_file_name: anAssertionFileNameForSha256,
-      pub_key: toEncodedJwk(randomJwk),
-      status: PubKeyStatusEnum.VALID,
-      ttl: TTL_VALUE_AFTER_UPDATE,
-      version: 1
-    });
+      expect(response.status).toEqual(200);
+      const body = await response.json();
+      expect(body).toMatchObject({
+        fiscal_code: validActivatePubKeyPayload.fiscal_code,
+        expired_at: validActivatePubKeyPayload.expired_at.toISOString(),
+        assertion_type: validActivatePubKeyPayload.assertion_type,
+        assertion_ref: resultBody.assertion_ref,
+        assertion_file_name: anAssertionFileNameForSha256,
+        pub_key: toEncodedJwk(randomJwk),
+        status: PubKeyStatusEnum.VALID,
+        ttl: TTL_VALUE_AFTER_UPDATE,
+        version: 1
+      });
 
-    // Check values on storages
+      // Check values on storages
 
-    const assertionBlob = await pipe(
-      getBlobAsTextWithError(
-        blobService,
-        LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
-      )(anAssertionFileNameForSha256)
-    )();
+      const assertionBlob = await pipe(
+        getBlobAsTextWithError(
+          blobService,
+          LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
+        )(anAssertionFileNameForSha256)
+      )();
 
-    expect(assertionBlob).toEqual(
-      E.right(O.some(validActivatePubKeyPayload.assertion))
-    );
+      expect(assertionBlob).toEqual(
+        E.right(O.some(validActivatePubKeyPayload.assertion))
+      );
 
-    // Check used key
-    const sha256Document = await lolliPOPKeysModel.findLastVersionByModelId([
-      resultBody.assertion_ref
-    ])();
+      // Check used key
+      const sha256Document = await lolliPOPKeysModel.findLastVersionByModelId([
+        resultBody.assertion_ref
+      ])();
 
-    expect(sha256Document).toEqual(
-      E.right(
-        O.some(
-          expect.objectContaining({
-            assertionRef: resultBody.assertion_ref,
-            assertionFileName: anAssertionFileNameForSha256,
-            status: PubKeyStatusEnum.VALID
-          })
+      expect(sha256Document).toEqual(
+        E.right(
+          O.some(
+            expect.objectContaining({
+              assertionRef: resultBody.assertion_ref,
+              assertionFileName: anAssertionFileNameForSha256,
+              status: PubKeyStatusEnum.VALID
+            })
+          )
         )
-      )
-    );
+      );
 
-    // Check master document
-    const masterAssertionRef = await generateAssertionRefForTest(
-      randomJwk,
-      MASTER_HASH_ALGO
-    );
-    const masterDocument = await lolliPOPKeysModel.findLastVersionByModelId([
-      masterAssertionRef
-    ])();
+      // Check master document
+      const masterAssertionRef = await generateAssertionRefForTest(
+        randomJwk,
+        MASTER_HASH_ALGO
+      );
+      const masterDocument = await lolliPOPKeysModel.findLastVersionByModelId([
+        masterAssertionRef
+      ])();
 
-    expect(masterDocument).toEqual(
-      E.right(
-        O.some(
-          expect.objectContaining({
-            assertionRef: masterAssertionRef,
-            assertionFileName: anAssertionFileNameForSha256,
-            status: PubKeyStatusEnum.VALID,
-            version: 1
-          })
+      expect(masterDocument).toEqual(
+        E.right(
+          O.some(
+            expect.objectContaining({
+              assertionRef: masterAssertionRef,
+              assertionFileName: anAssertionFileNameForSha256,
+              status: PubKeyStatusEnum.VALID,
+              version: 1
+            })
+          )
         )
-      )
-    );
-  });
+      );
+    }
+  );
 
-  it("should succeed when valid payload is passed to the endpoint AND when algo EQUALS TO master", { timeout: TIMEOUT }, async () => {
-    const randomJwk = await generateJwkForTest();
-    const randomAssertionRef = await generateAssertionRefForTest(
-      randomJwk,
-      MASTER_HASH_ALGO
-    );
-    const randomAssertionFileName = `${validActivatePubKeyPayload.fiscal_code}-${randomAssertionRef}`;
+  it(
+    "should succeed when valid payload is passed to the endpoint AND when algo EQUALS TO master",
+    { timeout: TIMEOUT },
+    async () => {
+      const randomJwk = await generateJwkForTest();
+      const randomAssertionRef = await generateAssertionRefForTest(
+        randomJwk,
+        MASTER_HASH_ALGO
+      );
+      const randomAssertionFileName = `${validActivatePubKeyPayload.fiscal_code}-${randomAssertionRef}`;
 
-    const resolveResult = await fetchReservePubKey(
-      {
-        pub_key: randomJwk,
-        algo: MASTER_HASH_ALGO
-      },
-      BASE_URL,
-      (myFetch as unknown) as typeof fetch
-    );
+      const resolveResult = await fetchReservePubKey(
+        {
+          pub_key: randomJwk,
+          algo: MASTER_HASH_ALGO
+        },
+        BASE_URL,
+        (myFetch as unknown) as typeof fetch
+      );
 
-    const resultBody = await resolveResult.json();
+      const resultBody = await resolveResult.json();
 
-    const response = await fetchActivatePubKey(
-      resultBody.assertion_ref,
-      validActivatePubKeyPayload,
-      BASE_URL,
-      (myFetch as unknown) as typeof fetch
-    );
+      const response = await fetchActivatePubKey(
+        resultBody.assertion_ref,
+        validActivatePubKeyPayload,
+        BASE_URL,
+        (myFetch as unknown) as typeof fetch
+      );
 
-    expect(response.status).toEqual(200);
-    const body = await response.json();
-    expect(body).toMatchObject({
-      fiscal_code: validActivatePubKeyPayload.fiscal_code,
-      expired_at: validActivatePubKeyPayload.expired_at.toISOString(),
-      assertion_type: validActivatePubKeyPayload.assertion_type,
-      assertion_ref: resultBody.assertion_ref,
-      assertion_file_name: randomAssertionFileName,
-      pub_key: toEncodedJwk(randomJwk),
-      status: PubKeyStatusEnum.VALID,
-      ttl: TTL_VALUE_AFTER_UPDATE,
-      version: 1
-    });
+      expect(response.status).toEqual(200);
+      const body = await response.json();
+      expect(body).toMatchObject({
+        fiscal_code: validActivatePubKeyPayload.fiscal_code,
+        expired_at: validActivatePubKeyPayload.expired_at.toISOString(),
+        assertion_type: validActivatePubKeyPayload.assertion_type,
+        assertion_ref: resultBody.assertion_ref,
+        assertion_file_name: randomAssertionFileName,
+        pub_key: toEncodedJwk(randomJwk),
+        status: PubKeyStatusEnum.VALID,
+        ttl: TTL_VALUE_AFTER_UPDATE,
+        version: 1
+      });
 
-    // Check values on storages
+      // Check values on storages
 
-    const assertionBlob = await pipe(
-      getBlobAsTextWithError(
-        blobService,
-        LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
-      )(randomAssertionFileName)
-    )();
+      const assertionBlob = await pipe(
+        getBlobAsTextWithError(
+          blobService,
+          LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
+        )(randomAssertionFileName)
+      )();
 
-    expect(assertionBlob).toEqual(
-      E.right(O.some(validActivatePubKeyPayload.assertion))
-    );
+      expect(assertionBlob).toEqual(
+        E.right(O.some(validActivatePubKeyPayload.assertion))
+      );
 
-    // Check master document(the only one present)
-    const masterDocument = await lolliPOPKeysModel.findLastVersionByModelId([
-      randomAssertionRef
-    ])();
+      // Check master document(the only one present)
+      const masterDocument = await lolliPOPKeysModel.findLastVersionByModelId([
+        randomAssertionRef
+      ])();
 
-    expect(masterDocument).toEqual(
-      E.right(
-        O.some(
-          expect.objectContaining({
-            assertionRef: randomAssertionRef,
-            assertionFileName: randomAssertionFileName,
-            status: PubKeyStatusEnum.VALID,
-            version: 1
-          })
+      expect(masterDocument).toEqual(
+        E.right(
+          O.some(
+            expect.objectContaining({
+              assertionRef: randomAssertionRef,
+              assertionFileName: randomAssertionFileName,
+              status: PubKeyStatusEnum.VALID,
+              version: 1
+            })
+          )
         )
-      )
-    );
-  });
+      );
+    }
+  );
 });
 
 // -----------------------
