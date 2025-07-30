@@ -37,7 +37,7 @@ export const DryRunFeatureFlag = t.type({
 export type DryRunFeatureFlag = t.TypeOf<typeof DryRunFeatureFlag>;
 
 export const ExpiredSessionDiscovererConfig = t.type({
-  EXPIRED_SESSION_ADVISOR_QUEUE: NonEmptyString,
+  EXPIRED_SESSION_ADVISOR_QUEUE_01: NonEmptyString,
   EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER: withFallback(NumberFromString, 7),
   SESSION_NOTIFICATIONS_CONTAINER_NAME: NonEmptyString
 });
@@ -76,6 +76,7 @@ export const IConfig = t.intersection([
     APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
 
     AZURE_STORAGE_CONNECTION_STRING: NonEmptyString,
+    AZURE_STORAGE_CONNECTION_STRING_ITN: NonEmptyString,
 
     // Old general CosmosDB
     COSMOSDB_NAME: NonEmptyString,
