@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.10.0
+
+### Minor Changes
+
+- f7baa02: Added assertion_ref optional parameter to token introspect
+
 ## 1.9.2
 
 ### Patch Changes
