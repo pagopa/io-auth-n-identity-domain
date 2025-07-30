@@ -58,7 +58,8 @@ module "storage_account_services" {
 
   queues = [
     "pubkeys-revoke-01",
-    "expired-user-sessions-01"
+    "expired-user-sessions-01",
+    "expired-user-sessions-poison-01"
   ]
 
   tables = [
