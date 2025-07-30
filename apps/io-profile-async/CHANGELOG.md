@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.11.4
+
+### Patch Changes
+
+- b766712: Improve Logs on ExpiredSessionsDiscoverer
+
 ## 1.11.3
 
 ### Patch Changes
