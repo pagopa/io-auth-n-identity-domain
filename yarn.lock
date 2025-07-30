@@ -6451,10 +6451,10 @@ __metadata:
     "@typescript-eslint/parser": "npm:^7.5.0"
     eslint: "npm:^8.56.0"
     eslint-config-prettier: "npm:^9.1.0"
-    eslint-config-turbo: "npm:^1.12.4"
+    eslint-config-turbo: "npm:^2.5.5"
     eslint-plugin-import: "npm:^2.29.1"
     eslint-plugin-only-warn: "npm:^1.1.0"
-    eslint-plugin-turbo: "npm:^1.13.3"
+    eslint-plugin-turbo: "npm:^2.5.5"
     typescript: "npm:^5.3.3"
   languageName: unknown
   linkType: soft
@@ -6481,14 +6481,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-turbo@npm:^1.12.4":
-  version: 1.13.2
-  resolution: "eslint-config-turbo@npm:1.13.2"
+"eslint-config-turbo@npm:^2.5.5":
+  version: 2.5.5
+  resolution: "eslint-config-turbo@npm:2.5.5"
   dependencies:
-    eslint-plugin-turbo: "npm:1.13.2"
+    eslint-plugin-turbo: "npm:2.5.5"
   peerDependencies:
     eslint: ">6.6.0"
-  checksum: 10c0/645a374e399507917ded9f6c780088318cd08aa6d2bffb31aaa822a6395c88a5bb3dfc1dfd73ffc6d0474ccde9ed3c425cee0d1119658f5ac639ad70c8c13099
+    turbo: ">2.0.0"
+  checksum: 10c0/759530385f98d2f88304b68f45588275ff09079e26fa93e1f94aab3d7203e2483156b3757e9beb3bc546874c796337c25aaee674319eaf7d57ff097f3037703e
   languageName: node
   linkType: hard
 
@@ -6711,25 +6712,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-turbo@npm:1.13.2":
-  version: 1.13.2
-  resolution: "eslint-plugin-turbo@npm:1.13.2"
+"eslint-plugin-turbo@npm:2.5.5, eslint-plugin-turbo@npm:^2.5.5":
+  version: 2.5.5
+  resolution: "eslint-plugin-turbo@npm:2.5.5"
   dependencies:
     dotenv: "npm:16.0.3"
   peerDependencies:
     eslint: ">6.6.0"
-  checksum: 10c0/1e518aa4024fdc86d5fc42301cd60a9e408078357d739a815b40b062975ead53c433803ff9c3ff68b40bf057b7a8bb72e0f730279aca8c05fa44b1096265e3d8
-  languageName: node
-  linkType: hard
-
-"eslint-plugin-turbo@npm:^1.13.3":
-  version: 1.13.3
-  resolution: "eslint-plugin-turbo@npm:1.13.3"
-  dependencies:
-    dotenv: "npm:16.0.3"
-  peerDependencies:
-    eslint: ">6.6.0"
-  checksum: 10c0/8cb4e7a7fcc41713578f3d18bff5173167c866b38e5bf9336e63ac56a777c9dc02f93835d1768dee5a9d799804ea8da1527878e9222b4e39b1409a185179ce68
+    turbo: ">2.0.0"
+  checksum: 10c0/129b03b8b5155bc7e67393da81090d58ab99004efdafbff617d546a188f2443d502588b472b39e0e99cff556e53f4fff63a4a89092ff24a8d85dc244221cdf6f
   languageName: node
   linkType: hard
 
@@ -8258,7 +8249,7 @@ __metadata:
     eslint-import-resolver-typescript: "npm:^3.6.1"
     eslint-plugin-import: "npm:^2.29.1"
     eslint-plugin-only-warn: "npm:^1.1.0"
-    eslint-plugin-turbo: "npm:^1.13.3"
+    eslint-plugin-turbo: "npm:^2.5.5"
     prettier: "npm:3.1.1"
     shx: "npm:^0.3.4"
     turbo: "npm:^2.5.5"
