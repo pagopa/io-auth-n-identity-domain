@@ -3,7 +3,7 @@
   "globalDependencies": [
     "**/env.example"
   ],
-  "pipeline": {
+  "tasks": {
     "build": {
       "inputs": [
         "src/**/*.ts",
@@ -50,11 +50,11 @@
         "src/**/*.ts",
         "**/vite.config.mts"
       ],
-      "outputMode": "full",
       "dependsOn": [
         "^build",
         "^test"
-      ]
+      ],
+      "outputLogs": "full"
     },
     "test:coverage": {
       "inputs": [
@@ -64,19 +64,27 @@
       "outputs": [
         "coverage/**"
       ],
-      "outputMode": "errors-only",
       "dependsOn": [
         "^build",
         "^test"
-      ]
+      ],
+      "outputLogs": "errors-only"
     },
     "generate": {
-      "inputs": ["api/**/*.yaml", "api/**/*.yaml.template"],
-      "outputs": ["src/generated/**/*.ts", "certs"],
-      "outputMode": "errors-only"
+      "inputs": [
+        "api/**/*.yaml",
+        "api/**/*.yaml.template"
+      ],
+      "outputs": [
+        "src/generated/**/*.ts",
+        "certs"
+      ],
+      "outputLogs": "errors-only"
     },
     "clean": {
-      "inputs": ["dist/**"],
+      "inputs": [
+        "dist/**"
+      ],
       "cache": false
     }
   }
