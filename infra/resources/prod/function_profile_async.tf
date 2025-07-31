@@ -65,7 +65,7 @@ locals {
 
       // Storage
       AZURE_STORAGE_CONNECTION_STRING     = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.citizen_auth_common_connection_string.versionless_id})"
-      AZURE_STORAGE_CONNECTION_STRING_ITN = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
+      AZURE_STORAGE_CONNECTION_STRING_ITN = module.storage_accounts.session.primary_connection_string
 
       //MigrateServicePreferenceFromLegacy Config
       IOPSTAPP_STORAGE_CONNECTION_STRING              = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.iopstapp_connection_string.versionless_id})"
