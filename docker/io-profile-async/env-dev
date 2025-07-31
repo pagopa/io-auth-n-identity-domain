@@ -27,7 +27,7 @@ EXPIRED_SESSION_CTA_URL=https://ctaurl
 MAIL_FROM=sender@example.com
 MAILHOG_HOSTNAME=mailhog
 
-EXPIRED_SESSION_ADVISOR_QUEUE=test-expired-session-trigger-queue-01
+EXPIRED_SESSION_ADVISOR_QUEUE=test-expired-session-trigger-queue
 
 SESSION_NOTIFICATIONS_CONTAINER_NAME=session-notifications
 
