@@ -60,7 +60,7 @@ locals {
       COSMOSDB_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.cosmos_api_connection_string.versionless_id})"
 
       //Queue
-      EXPIRED_SESSION_ADVISOR_QUEUE             = "expired-user-sessions-01"
+      EXPIRED_SESSION_ADVISOR_QUEUE             = local.expired_user_sessions_queue_name
       SESSION_NOTIFICATIONS_INIT_RECOVERY_QUEUE = "session-notifications-init-recovery" // TODO: this is temporary, will be removed when SessionNotificationsInitRecovery will not be needed
 
       // Storage
@@ -498,6 +498,41 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "session-notification-
       minimum_failing_periods_to_trigger_alert = 1
       number_of_evaluation_periods             = 1
     }
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "expired_user_sessions_failure_alert_rule" {
+  enabled             = true
+  name                = "[CITIZEN-AUTH | ${module.storage_accounts.session.name}] Failures on ${local.expired_user_sessions_poison_queue_name} queue"
+  resource_group_name = data.azurerm_resource_group.main_resource_group.name
+  location            = local.location
+
+  scopes                  = [module.storage_accounts.session.id]
+  description             = <<-EOT
+    Permanent failures processing ${local.expired_user_sessions_queue_name} queue. REQUIRED MANUAL ACTION.
+  EOT
+  severity                = 1
+  auto_mitigation_enabled = false
+
+  // daily check
+  window_duration      = "P1D" # Select the interval that's used to group the data points by using the aggregation type function. Choose an Aggregation granularity (period) that's greater than the Frequency of evaluation to reduce the likelihood of missing the first evaluation period of an added time series.
+  evaluation_frequency = "P1D" # Select how often the alert rule is to be run. Select a frequency that's smaller than the aggregation granularity to generate a sliding window for the evaluation.
+
+  criteria {
+    query                   = <<-QUERY
+      StorageQueueLogs
+        | where OperationName contains "PutMessage"
+        | where Uri contains "${local.expired_user_sessions_poison_queue_name}"
+      QUERY
+    operator                = "GreaterThan"
+    threshold               = 0
+    time_aggregation_method = "Count"
   }
 
   action {
