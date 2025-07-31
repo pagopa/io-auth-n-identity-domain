@@ -64,7 +64,8 @@ locals {
       SESSION_NOTIFICATIONS_INIT_RECOVERY_QUEUE = "session-notifications-init-recovery" // TODO: this is temporary, will be removed when SessionNotificationsInitRecovery will not be needed
 
       // Storage
-      AZURE_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.citizen_auth_common_connection_string.versionless_id})"
+      AZURE_STORAGE_CONNECTION_STRING     = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.citizen_auth_common_connection_string.versionless_id})"
+      AZURE_STORAGE_CONNECTION_STRING_ITN = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
 
       //MigrateServicePreferenceFromLegacy Config
       IOPSTAPP_STORAGE_CONNECTION_STRING              = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.iopstapp_connection_string.versionless_id})"
