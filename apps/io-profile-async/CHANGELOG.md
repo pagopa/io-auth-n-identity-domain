@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.12.0
+
+### Minor Changes
+
+- 3f482d7: Update `EXPIRED_SESSION_ADVISOR_QUEUE` reference
+
 ## 1.11.4
 
 ### Patch Changes
