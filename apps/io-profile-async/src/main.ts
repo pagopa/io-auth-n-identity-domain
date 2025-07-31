@@ -46,7 +46,7 @@ const telemetryClient = initTelemetryClient();
 
 const expiredUserSessionsQueueClient = new QueueClient(
   config.AZURE_STORAGE_CONNECTION_STRING_ITN,
-  config.EXPIRED_SESSION_ADVISOR_QUEUE_01
+  config.EXPIRED_SESSION_ADVISOR_QUEUE
 );
 
 const comsosApiCosmosClient = new CosmosClient(
