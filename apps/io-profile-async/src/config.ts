@@ -76,6 +76,7 @@ export const IConfig = t.intersection([
     APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
 
     AZURE_STORAGE_CONNECTION_STRING: NonEmptyString,
+    AZURE_STORAGE_CONNECTION_STRING_ITN: NonEmptyString,
 
     // Old general CosmosDB
     COSMOSDB_NAME: NonEmptyString,
