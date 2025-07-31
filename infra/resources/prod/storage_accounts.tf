@@ -58,8 +58,8 @@ module "storage_account_services" {
 
   queues = [
     "pubkeys-revoke-01",
-    "expired-user-sessions-01",
-    "expired-user-sessions-01-poison"
+    local.expired_user_sessions_queue_name,
+    local.expired_user_sessions_poison_queue_name
   ]
 
   tables = [
