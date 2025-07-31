@@ -110,3 +110,11 @@ resource "azurerm_key_vault_secret" "lv_audit_logs_st_connection_string" {
 
   tags = local.tags
 }
+
+resource "azurerm_key_vault_secret" "session_st_connection_string" {
+  name         = "session-st-connection-string"
+  key_vault_id = module.key_vaults.auth.id
+  value        = module.storage_accounts.session.primary_connection_string
+
+  tags = local.tags
+}
