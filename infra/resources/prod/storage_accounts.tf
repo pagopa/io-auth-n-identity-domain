@@ -120,3 +120,23 @@ module "storage_account_maintenance_services" {
 
   tags = local.tags
 }
+
+
+resource "azurerm_monitor_diagnostic_setting" "io_storage_account_session_diagnostic_setting" {
+  name                       = "${module.storage_accounts.session.name}-ds-01"
+  target_resource_id         = "${module.storage_accounts.session.id}/queueServices/default"
+  log_analytics_workspace_id = data.azurerm_application_insights.application_insights.workspace_id
+
+  enabled_log {
+    category = "StorageWrite"
+  }
+
+  metric {
+    category = "Capacity"
+    enabled  = false
+  }
+  metric {
+    category = "Transaction"
+    enabled  = false
+  }
+}
