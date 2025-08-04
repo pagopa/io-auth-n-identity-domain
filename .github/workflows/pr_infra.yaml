@@ -17,7 +17,7 @@ on:
 
 jobs:
   code_review_prod:
-    uses: pagopa/dx/.github/workflows/infra_plan.yaml@d27023c5a7f04f4daceff1d34a40748f6ea6afc3
+    uses: pagopa/dx/.github/workflows/infra_plan.yaml@CES-1174-aumentare-parallelismo-del-terraform-plan
     name: Code Review Infrastructure Plan
     secrets: inherit
     with:
