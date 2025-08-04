@@ -29,6 +29,8 @@ locals {
   expired_user_sessions_queue_name        = "expired-user-sessions-01"
   expired_user_sessions_poison_queue_name = "expired-user-sessions-01-poison"
 
+  profile_events_queue_name = "profile-events-01"
+
   tags = {
     CreatedBy      = "Terraform"
     Environment    = "Prod"
