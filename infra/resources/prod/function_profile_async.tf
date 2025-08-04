@@ -109,7 +109,7 @@ locals {
       AzureFunctionsJobHost__extensions__serviceBus__sessionIdleTimeout    = "00:00:05"
 
       // Dry Run enabled, no mail will be sent on ExpiredSessionAdvisor
-      FF_DRY_RUN = false
+      FF_DRY_RUN = true
     }
   }
 }
@@ -146,7 +146,7 @@ module "function_profile_async" {
   app_settings = merge(
     local.function_profile_async.app_settings,
     {
-      "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"          = "1"
+      "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"          = "0"
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"              = "0",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled" = "0",
       "AzureWebJobs.OnProfileUpdate.Disabled"                    = "0",
