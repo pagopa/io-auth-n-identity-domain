@@ -118,3 +118,11 @@ resource "azurerm_key_vault_secret" "session_st_connection_string" {
 
   tags = local.tags
 }
+
+resource "azurerm_key_vault_secret" "maintenance_st_connection_string" {
+  name         = "maintenance-st-connection-string"
+  key_vault_id = module.key_vaults.auth.id
+  value        = module.storage_accounts.maintenance.primary_connection_string
+
+  tags = local.tags
+}
