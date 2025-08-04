@@ -7,11 +7,12 @@ COPY . /usr/src/app
 FROM base AS builder
 ARG SERVER_NAME
 WORKDIR /usr/src/app
-RUN yarn dlx turbo@^1.12.5 prune ${SERVER_NAME} --docker
+RUN yarn dlx turbo@^2.5.5 prune ${SERVER_NAME} --docker
 
 
 FROM node:20.12.2-alpine3.19 AS installer
 WORKDIR /usr/src/app
+RUN apk add openssl
 COPY --from=builder /usr/src/app/out/json/ .
 RUN yarn install --immutable
 COPY --from=builder /usr/src/app/out/full/ .

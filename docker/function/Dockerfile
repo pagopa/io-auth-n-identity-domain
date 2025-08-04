@@ -7,7 +7,7 @@ COPY . /usr/src/app
 FROM base AS builder
 ARG FUNCTION_NAME
 WORKDIR /usr/src/app
-RUN yarn dlx turbo@^1.12.5 prune ${FUNCTION_NAME} --docker
+RUN yarn dlx turbo@^2.5.5 prune ${FUNCTION_NAME} --docker
 
 
 FROM node:20.12.2 AS installer
