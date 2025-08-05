@@ -1,5 +1,5 @@
 {
-  "name": "io-auth-adr-002-template-func",
+  "name": "io-auth-template-func",
   "version": "0.0.0",
   "author": "IO Auth & Identity Team",
   "main": "dist/controllers/main.js",
@@ -39,7 +39,7 @@
     "@pagopa/openapi-codegen-ts": "^13.2.0",
     "@pagopa/typescript-config-node": "*",
     "@types/node": "~20.12.0",
-    "@vitest/coverage-v8": "~1.5.0",
+    "@vitest/coverage-v8": "~3.2.4",
     "dependency-check": "^4.1.0",
     "dotenv": "^16.4.5",
     "dotenv-cli": "^7.4.1",
@@ -49,6 +49,6 @@
     "prettier": "^3.2.5",
     "shx": "^0.3.2",
     "typescript": "^5.4.3",
-    "vitest": "~1.5.0"
+    "vitest": "~3.2.4"
   }
 }
