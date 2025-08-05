@@ -3,7 +3,7 @@ export type CustomDependencyRepositoryDeps = object;
 
 const ping: (
   _deps: CustomDependencyRepositoryDeps,
-) => TE.TaskEither<Error, boolean> = () => TE.right(true as const);
+) => TE.TaskEither<Error, true> = () => TE.right(true as const);
 
 export type CustomDependencyRepository = typeof CustomDependencyRepository;
 export const CustomDependencyRepository = {
