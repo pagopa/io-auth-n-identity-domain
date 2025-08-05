@@ -21,10 +21,7 @@ const getUserSessionState: (
 > = fiscal_code => ({ sessionManagerInternalClient }) =>
   pipe(
     TE.tryCatch(
-      () =>
-        sessionManagerInternalClient.getUserSessionState({
-          fiscalCode: fiscal_code
-        }),
+      () => sessionManagerInternalClient.getUserSessionState({ fiscalCode: fiscal_code }),
       () => new H.HttpError("Error while calling the downstream component")
     ),
     TE.chainEitherK(
