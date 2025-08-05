@@ -1,0 +1,13 @@
+openapi: 3.0.1
+info:
+  title: Dummy API Specification
+  description: Dummy API Specification
+  version: 1.0.0
+
+# Dummy endpoint
+paths:
+  /dummy:
+    get:
+      responses:
+        "200":
+          description: "ok"
