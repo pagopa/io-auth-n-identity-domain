@@ -17,7 +17,7 @@ on:
 
 jobs:
   code_review_prod:
-    uses: pagopa/dx/.github/workflows/infra_plan.yaml@0f87b45450d586c3e8ea4735f151360c2e6fbdad
+    uses: pagopa/dx/.github/workflows/infra_plan.yaml@3585afcf2d306da91d68cabfd0344a82e1ee10f3
     name: Code Review Infrastructure Plan
     secrets: inherit
     with:
