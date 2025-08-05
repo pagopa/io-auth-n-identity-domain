@@ -14,7 +14,8 @@ export const makeInfoHandler: H.Handler<
   Dependencies
 > = H.of((_: H.HttpRequest) =>
   pipe(
-    InfoService.pingCustomDependency,
+    RTE.ask<Dependencies>(),
+    RTE.chainW((deps) => deps.InfoService.pingCustomDependency),
     RTE.map(() => H.successJson({ message: "success" as const })),
     RTE.mapLeft((_problems) => new H.HttpError()),
   ),
