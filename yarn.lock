@@ -8236,6 +8236,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"io-auth-n-identity-bruno-collections@workspace:bruno":
+  version: 0.0.0-use.local
+  resolution: "io-auth-n-identity-bruno-collections@workspace:bruno"
+  languageName: unknown
+  linkType: soft
+
 "io-auth-n-identity-domain@workspace:.":
   version: 0.0.0-use.local
   resolution: "io-auth-n-identity-domain@workspace:."
