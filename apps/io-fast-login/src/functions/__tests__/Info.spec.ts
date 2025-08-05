@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import * as E from "fp-ts/lib/Either";
+import { HttpError } from "@pagopa/handler-kit";
 import { makeInfoHandler } from "../info";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import { mockRedisClientTask, mockPing } from "../__mocks__/redis";
-import { HttpError } from "@pagopa/handler-kit";
 
 describe("Info handler", () => {
   it("should return an error if Redis PING command fail", async () => {
