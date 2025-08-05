@@ -111,7 +111,7 @@ module "storage_account_maintenance_services" {
   queues = [
     "profile-migrate-services-preferences-from-legacy-01",
     "profiles-to-sanitize-01",
-    "profile-events-01"
+    local.profile_events_queue_name
   ]
 
   tables = [

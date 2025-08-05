@@ -49,8 +49,8 @@ locals {
       IOPSTAPP_STORAGE_CONNECTION_STRING              = data.azurerm_storage_account.storage_app.primary_connection_string
 
       // Events configs
-      EventsQueueStorageConnection = data.azurerm_storage_account.storage_apievents.primary_connection_string
-      EventsQueueName              = "events" # reference to https://github.com/pagopa/io-infra/blob/12a2f3bffa49dab481990fccc9f2a904004862ec/src/core/storage_apievents.tf#L7
+      EventsQueueStorageConnection = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.maintenance_st_connection_string.versionless_id})"
+      EventsQueueName              = local.profile_events_queue_name
 
       # Cashback welcome message
       IS_CASHBACK_ENABLED = "false"
