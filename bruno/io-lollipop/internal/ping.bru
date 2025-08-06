@@ -1,0 +1,23 @@
+meta {
+  name: ping
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{IO_LOLLIPOP_BASE_URL}}/info
+  body: none
+  auth: none
+}
+
+headers {
+  ~x-functions-key: SET_IN_PREREQUEST_SCRIPT
+}
+
+script:pre-request {
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioLollipopApiKey = bru.getEnvVar("IO_LOLLIPOP_API_KEY");
+  if (ioLollipopApiKey != null ) {
+    req.setHeader("x-functions-key", ioLollipopApiKey);
+  }
+}

@@ -1,0 +1,47 @@
+meta {
+  name: getAssertion
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{IO_LOLLIPOP_BASE_URL}}{{IO_LOLLIPOP_API_PATH}}/assertions/:assertion_ref
+  body: none
+  auth: inherit
+}
+
+params:path {
+  assertion_ref: SET_IN_PREREQUEST_SCRIPT
+}
+
+headers {
+  x-pagopa-lollipop-auth: Bearer SET_IN_PREREQUEST_SCRIPT
+  x-user-id: unused
+  x-subscription-id: unused
+  x-user-groups: ApiLollipopAssertionRead
+  x-user-email: unused@example.com
+  x-user-note: unused
+  ~x-functions-key: SET_IN_PREREQUEST_SCRIPT
+}
+
+script:pre-request {
+  // Set the URL path param 'assertion_ref'
+  const lollipopAssertionRef = bru.getVar("lollipopAssertionRef");
+  if (!lollipopAssertionRef) {
+    throw new Error("Var 'lollipopAssertionRef' is not defined! Run 'reservePubKey' before 'activatePubKey'");
+  }
+  req.setUrl(
+    req.url.replace(":assertion_ref", lollipopAssertionRef)
+  );
+  
+  // Set Bearer token
+  const bearer = bru.getVar("lcAuthenticationBearer");
+  if (!bearer) {
+    throw new Error("Var 'lcAuthenticationBearer' is not defined! Run 'generateLCParams' before 'getAssertion'");
+  }
+  req.setHeader("x-pagopa-lollipop-auth", `Bearer ${bearer}`);
+}
+
+settings {
+  encodeUrl: true
+}

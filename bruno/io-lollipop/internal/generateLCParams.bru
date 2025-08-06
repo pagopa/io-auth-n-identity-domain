@@ -1,0 +1,43 @@
+meta {
+  name: generateLCParams
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{IO_LOLLIPOP_BASE_URL}}{{IO_LOLLIPOP_API_PATH}}/pubKeys/:assertion_ref/generate
+  body: json
+  auth: none
+}
+
+params:path {
+  assertion_ref: 
+}
+
+headers {
+  ~x-functions-key: SET_IN_PREREQUEST_SCRIPT
+}
+
+body:json {
+  {
+    "operation_id": "SET_IN_PREREQUEST"
+  }
+}
+
+script:pre-request {
+  // Set the URL path param 'assertion_ref'
+  const lollipopAssertionRef = bru.getVar("lollipopAssertionRef");
+  if (!lollipopAssertionRef) {
+    throw new Error("Var 'lollipopAssertionRef' is not defined! Run 'reservePubKey' before 'activatePubKey'");
+  }
+  req.setUrl(
+    req.url.replace(":assertion_ref", lollipopAssertionRef)
+  );
+  
+  req.setBody({ operation_id: "TEST"});
+}
+
+script:post-response {
+  bru.setVar("lcAuthenticationBearer" ,res.body.lc_authentication_bearer);
+  
+}

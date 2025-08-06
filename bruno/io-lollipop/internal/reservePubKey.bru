@@ -1,0 +1,41 @@
+meta {
+  name: reservePubKey
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{IO_LOLLIPOP_BASE_URL}}{{IO_LOLLIPOP_API_PATH}}/pubkeys
+  body: json
+  auth: none
+}
+
+headers {
+  ~x-functions-key: SET_IN_PREREQUEST_SCRIPT
+}
+
+body:json {
+  {
+    "algo": "SET_IN_PREREQUEST_SCRIPT",
+    "pub_key": "SET_IN_PREREQUEST_SCRIPT"
+  }
+}
+
+script:pre-request {
+  const jose = require("node-jose");
+  
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioLollipopApiKey = bru.getEnvVar("IO_LOLLIPOP_API_KEY");
+  if (ioLollipopApiKey != null ) {
+    req.setHeader("x-functions-key", ioLollipopApiKey);
+  }
+  const key = await jose.JWK.createKey('EC', 'P-256', { alg: 'ES256' });
+  req.setBody({
+    algo: "sha256",
+    pub_key: key,
+  });
+}
+
+script:post-response {
+  bru.setVar("lollipopAssertionRef", res.body.assertion_ref);
+}
