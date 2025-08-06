@@ -86,6 +86,7 @@ import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { isUserElegibleForValidationCookie } from "./config/validation-cookie";
 import { isUserEligibleForServiceBusEvents } from "./config/service-bus";
+import { loginRouteSessionResolverMiddleware } from "./utils/login-current-user-middleware";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -150,6 +151,9 @@ export const newApp: (
   app.use(helmet());
 
   app.use(cookieparser());
+
+  //Intercept and resolve session token in /login route
+  app.use(loginRouteSessionResolverMiddleware(REDIS_CLIENT_SELECTOR));
 
   //
   // Ensure that checkIP middleware has the client IP

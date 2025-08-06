@@ -186,7 +186,6 @@ export const acs: (
 
     const spidUser = errorOrSpidUser.right;
 
-    console.error("CURRENT USER CF: ", additionalProps?.currentUser);
     if (
       additionalProps?.currentUser &&
       additionalProps?.currentUser !== spidUser.fiscalNumber
@@ -194,7 +193,7 @@ export const acs: (
       // If the currentUser is provided, we use it to override the userPayload
       // and avoid re-validating the SPID user.
       // This is useful for testing purposes.
-      log.debug("Using currentUser from additionalProps");
+      // TODO: this error should be changed with a client mapped one!
       return validationCookieClearanceErrorValidation(
         "Bad request",
         "Spid user does not match currentUser",

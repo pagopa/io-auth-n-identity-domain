@@ -1,10 +1,10 @@
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import express from "express";
-import * as t from "io-ts";
 import {
   FeatureFlag,
   getIsUserEligibleForNewFeature,
 } from "@pagopa/ts-commons/lib/featureFlag";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import express from "express";
+import * as t from "io-ts";
 import {
   AdditionalLoginProps,
   AdditionalLoginPropsT,
@@ -34,5 +34,5 @@ export const acsRequestMapper = (
 ): t.Validation<AdditionalLoginPropsT> =>
   AdditionalLoginProps.decode({
     loginType: req.header("x-pagopa-login-type"),
-    currentUser: req.header("x-pagopa-current-user"),
+    currentUser: req.res?.locals.currentUser,
   });
