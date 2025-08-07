@@ -3,5 +3,8 @@
     "version": "*",
     "dependencies": {
         "node-jose": "^2.2.0"
+    },
+    "devDependencies": {
+        "@usebruno/cli": "^2.9.0"
     }
 }
