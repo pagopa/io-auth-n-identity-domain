@@ -45,3 +45,6 @@ io-auth-n-identity-commons:
   - "packages/io-auth-n-identity-commons/**/*.ts"
   # package.json, function.json, tsconfig.json, ...
   - "packages/io-auth-n-identity-commons/**/*.json"
+bruno:
+  - "bruno/**/*.json"
+  - "bruno/**/*.bru"

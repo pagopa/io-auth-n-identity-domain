@@ -21,3 +21,16 @@ script:pre-request {
     req.setHeader("x-functions-key", ioLollipopApiKey);
   }
 }
+
+tests {
+  const semverRegex = /^(\d+)\.(\d+)\.(\d+)(?:-[\da-z\-\.]+)?(?:\+[\da-z\-\.]+)?$/i;
+  
+  test("should return package info", function() {
+    expect(res.getStatus()).to.equal(200);
+    const data = res.getBody();
+    expect(data).to.have.property("name");
+    expect(data).to.have.property("version");
+    expect(data.name).to.equal("io-lollipop");
+    expect(data.version).to.match(semverRegex);
+  });
+}

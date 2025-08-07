@@ -190,3 +190,8 @@ jobs:
       - name: "E2E Tests"
         if: steps.test_filter.outputs.io-session-manager == 'true'
         run: yarn workspace e2e start
+
+      - name: Run Bruno Lollipop API Tests
+        if: steps.test_filter.outputs.io-lollipop == 'true' || 
+            steps.test_filter.outputs.bruno == 'true'
+        run: yarn bru run --env Development
