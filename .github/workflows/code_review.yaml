@@ -197,4 +197,8 @@ jobs:
           steps.test_filter.outputs.bruno == 'true'
         run: >-
           yarn docker:start:build io-lollipop && 
-          yarn bru run --env Development
+          yarn workspace io-auth-n-identity-bruno-collections \
+            bru run \
+              io-lollipop/internal \
+              io-lollipop/external \
+              --env Development
