@@ -1,4 +1,5 @@
 locals {
+  session_manager_pool_name   = "session-manager-pool"
   session_manager_base_policy = <<XML
   <policies>
       <inbound>
@@ -18,12 +19,37 @@ locals {
 }
 
 resource "azurerm_api_management_backend" "session_manager" {
-  title               = "Session Manager"
-  name                = "session-manager-backend"
+  count               = length(var.session_manager_urls)
+  title               = "Session Manager ${count.index + 1}"
+  name                = "session-manager-backend-${count.index + 1}"
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
   protocol            = "http"
-  url                 = var.session_manager_url
+  url                 = var.session_manager_urls[count.index]
+}
+
+resource "azapi_resource" "session_manager_pool" {
+  type      = "Microsoft.ApiManagement/service/backends@2024-06-01-preview"
+  name      = local.session_manager_pool_name
+  parent_id = var.platform_apim_name
+  body = {
+    properties = {
+      protocol    = null
+      url         = null
+      type        = "Pool"
+      description = "Load Balancer of Session Manager"
+      pool = {
+        services = [
+          {
+            id = azurerm_api_management_backend.session_manager[0].id
+          },
+          {
+            id = azurerm_api_management_backend.session_manager[1].id
+          }
+        ]
+      }
+    }
+  }
 }
 
 resource "azurerm_api_management_tag" "session_manager_tag" {
@@ -58,7 +84,7 @@ module "bpd_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = "${azurerm_api_management_backend.session_manager.url}${var.bpd_api_base_path}/v1"
+  service_url = "${azurerm_api_management_backend.session_manager[0].url}${var.bpd_api_base_path}/v1"
 
   subscription_required = false
 
@@ -101,7 +127,7 @@ module "external_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = "${azurerm_api_management_backend.session_manager.url}${var.external_api_base_path}/v1"
+  service_url = "${azurerm_api_management_backend.session_manager[0].url}${var.external_api_base_path}/v1"
 
   subscription_required = false
 
@@ -162,7 +188,7 @@ module "fims_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = "${azurerm_api_management_backend.session_manager.url}${var.fims_api_base_path}/v1"
+  service_url = "${azurerm_api_management_backend.session_manager[0].url}${var.fims_api_base_path}/v1"
 
   subscription_required = false
 
@@ -203,7 +229,7 @@ module "pagopa_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = "${azurerm_api_management_backend.session_manager.url}${var.pagopa_api_base_path}/v1"
+  service_url = "${azurerm_api_management_backend.session_manager[0].url}${var.pagopa_api_base_path}/v1"
 
   subscription_required = false
 
@@ -244,7 +270,7 @@ module "zendesk_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = "${azurerm_api_management_backend.session_manager.url}${var.zendesk_api_base_path}/v1"
+  service_url = "${azurerm_api_management_backend.session_manager[0].url}${var.zendesk_api_base_path}/v1"
 
   subscription_required = false
 
