@@ -17,9 +17,9 @@ variable "platform_apim_resource_group_name" {
   description = "APIM Resource group name"
 }
 
-variable "session_manager_url" {
-  type        = string
-  description = "URL of session manager app service where to redirect requests"
+variable "session_manager_urls" {
+  type        = list(string)
+  description = "List of URLs of session manager app services where to redirect requests"
 }
 
 variable "bpd_api_base_path" {
