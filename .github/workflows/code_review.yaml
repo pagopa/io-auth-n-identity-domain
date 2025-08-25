@@ -195,11 +195,11 @@ jobs:
         if: >- 
           steps.test_filter.outputs.io-lollipop == 'true' || 
           steps.test_filter.outputs.bruno == 'true'
-        run: >-
-          yarn docker:start:build io-lollipop &
+        run: |
+          yarn docker:start:build io-lollipop
 
           healthy=false
-          while [ $i -le 30 ]; do
+          for i in {1..30}; do
             if curl -fsS http://localhost:7071/info >/dev/null; then
               echo "Service is healthy!"
               healthy=true
@@ -207,7 +207,6 @@ jobs:
             fi
             echo "Not ready yet... retrying in 5s"
             sleep 5
-            i=$((i+1))
           done
 
           if [ "$healthy" = false ]; then
