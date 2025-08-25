@@ -182,43 +182,21 @@ jobs:
           filters: ./.github/ci_filters.yaml
 
       - name: "io-lollipop integration Tests"
-        if: steps.test_filter.outputs.io-lollipop == 'true'
+        if: >-
+          steps.test_filter.outputs.io-lollipop == 'true' ||
+          steps.test_filter.outputs.bruno-io-lollipop == 'true'
         run: >-
           yarn docker:start:build io-lollipop &&
-          yarn test:integrations:io-lollipop
-
-      - name: "E2E Tests"
-        if: steps.test_filter.outputs.io-session-manager == 'true'
-        run: yarn workspace e2e start
-
-      - name: Run Bruno Lollipop API Tests
-        if: >- 
-          steps.test_filter.outputs.io-lollipop == 'true' || 
-          steps.test_filter.outputs.bruno == 'true'
-        run: |
-          yarn docker:start:build io-lollipop
-
-          reached=false
-          for i in {1..30}; do
-            if curl -sS http://localhost:7071/info >/dev/null; then
-              echo "Service reached!"
-              reached=true
-              break
-            fi
-            echo "Not ready yet... retrying in 10s"
-            sleep 10
-          done
-
-          if [ "$reached" = false ]; then
-            echo "Service unreachable in time" >&2
-            exit 1
-          fi
-
-          # Wait 10 seconds to let the service fully start
-          sleep 10
-
+          yarn test:integrations:io-lollipop && 
+          # TODO: in order to replicate the test with Bruno collections on the other services,
+          # it is necessary to integrate io-fixtures in the current project in order to
+          # setup and teardown the database.
           yarn workspace io-auth-n-identity-bruno-collections \
             bru run \
               io-lollipop/internal \
               io-lollipop/external \
               --env Development
+
+      - name: "E2E Tests"
+        if: steps.test_filter.outputs.io-session-manager == 'true'
+        run: yarn workspace e2e start

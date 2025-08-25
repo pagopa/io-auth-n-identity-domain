@@ -28,7 +28,7 @@ script:pre-request {
   // Set the URL path param 'assertion_ref'
   const lollipopAssertionRef = bru.getVar("lollipopAssertionRef");
   if (!lollipopAssertionRef) {
-    throw new Error("Var 'lollipopAssertionRef' is not defined! Run 'reservePubKey' before 'activatePubKey'");
+    throw new Error("Var 'lollipopAssertionRef' is not defined! Run 'reservePubKey' before 'getAssertion'");
   }
   req.setUrl(
     req.url.replace(":assertion_ref", lollipopAssertionRef)
