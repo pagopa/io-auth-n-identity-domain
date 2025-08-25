@@ -34,6 +34,7 @@ script:pre-request {
     algo: "sha256",
     pub_key: key,
   });
+  bru.setVar("pubKey", key)
 }
 
 script:post-response {

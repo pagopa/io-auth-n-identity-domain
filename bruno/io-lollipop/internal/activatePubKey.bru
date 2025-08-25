@@ -51,3 +51,21 @@ script:pre-request {
     req.url.replace(":assertion_ref", lollipopAssertionRef)
   )
 }
+
+tests {
+  test("should have expected assertion_file_name", function() {
+    expect(res.getStatus()).to.equal(200);
+    const data = res.getBody();
+    const expectedAssertionFileName = req.body.fiscal_code + "-sha256-" + bru.getVar("pubKey").kid
+    expect(data.assertion_file_name).to.equal(expectedAssertionFileName);
+  });
+  
+  test("should have expected pub_key", function() {
+    expect(res.getStatus()).to.equal(200);
+    const data = res.getBody();
+    const key = bru.getVar("pubKey");
+    delete key.kid;
+    delete key.alg;
+    expect(data.pub_key).to.equal(Buffer.from(JSON.stringify(key)).toString("base64url"));
+  });
+}
