@@ -214,6 +214,9 @@ jobs:
             exit 1
           fi
 
+          # Wait 10 seconds to let the service fully start
+          sleep 10
+
           yarn workspace io-auth-n-identity-bruno-collections \
             bru run \
               io-lollipop/internal \
