@@ -196,7 +196,24 @@ jobs:
           steps.test_filter.outputs.io-lollipop == 'true' || 
           steps.test_filter.outputs.bruno == 'true'
         run: >-
-          yarn docker:start:build io-lollipop && 
+          yarn docker:start:build io-lollipop &
+
+          healthy=false
+          for i in {1..30}; do
+            if curl -fsS http://localhost:8080/health >/dev/null; then
+              echo "Service is healthy!"
+              healthy=true
+              break
+            fi
+            echo "Not ready yet... retrying in 5s"
+            sleep 5
+          done
+
+          if [ "$healthy" = false ]; then
+            echo "Service did not become healthy in time" >&2
+            exit 1
+          fi
+
           yarn workspace io-auth-n-identity-bruno-collections \
             bru run \
               io-lollipop/internal \
