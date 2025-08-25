@@ -206,7 +206,7 @@ jobs:
               break
             fi
             echo "Not ready yet... retrying in 5s"
-            sleep 5
+            sleep 10
           done
 
           if [ "$healthy" = false ]; then
