@@ -199,7 +199,7 @@ jobs:
           yarn docker:start:build io-lollipop &
 
           healthy=false
-          for i in {1..30}; do
+          for i in $(seq 1 30); do
             if curl -fsS http://localhost:7071/info >/dev/null; then
               echo "Service is healthy!"
               healthy=true
