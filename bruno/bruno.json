@@ -2,8 +2,10 @@
   "version": "1",
   "name": "io-auth-n-identity",
   "type": "collection",
-  "ignore": [
-    "node_modules",
-    ".git"
-  ]
+  "ignore": ["node_modules", ".git"],
+  "scripts": {
+    "filesystemAccess": {
+      "allow": true
+    }
+  }
 }
