@@ -181,6 +181,9 @@ jobs:
         with:
           filters: ./.github/ci_filters.yaml
 
+      # TODO: in order to replicate the test with Bruno collections on the other services,
+      # it is necessary to integrate io-fixtures in the current project in order to
+      # setup and teardown the database.
       - name: "io-lollipop integration Tests"
         if: >-
           steps.test_filter.outputs.io-lollipop == 'true' ||
@@ -188,9 +191,6 @@ jobs:
         run: >-
           yarn docker:start:build io-lollipop &&
           yarn test:integrations:io-lollipop && 
-          # TODO: in order to replicate the test with Bruno collections on the other services,
-          # it is necessary to integrate io-fixtures in the current project in order to
-          # setup and teardown the database.
           yarn workspace io-auth-n-identity-bruno-collections \
             bru run \
               io-lollipop/internal \
