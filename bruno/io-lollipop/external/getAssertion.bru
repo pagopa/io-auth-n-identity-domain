@@ -42,6 +42,14 @@ script:pre-request {
   req.setHeader("x-pagopa-lollipop-auth", `Bearer ${bearer}`);
 }
 
+tests {
+  test("should have expected response", function() {
+    expect(res.getStatus()).to.equal(200);
+    const data = res.getBody();
+    expect(data).to.have.property("response_xml");
+  });
+}
+
 settings {
   encodeUrl: true
 }

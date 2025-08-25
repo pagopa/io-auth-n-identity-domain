@@ -28,16 +28,34 @@ script:pre-request {
   // Set the URL path param 'assertion_ref'
   const lollipopAssertionRef = bru.getVar("lollipopAssertionRef");
   if (!lollipopAssertionRef) {
-    throw new Error("Var 'lollipopAssertionRef' is not defined! Run 'reservePubKey' before 'generateLCParams'");
+    throw new Error("Var 'lollipopAssertionRef' is not defined! Run 'reservePubKey' and 'activatePubKey' before 'generateLCParams'");
   }
   req.setUrl(
     req.url.replace(":assertion_ref", lollipopAssertionRef)
   );
   
-  req.setBody({ operation_id: "TEST"});
+  const operationId = "TEST";
+  req.setBody({ operation_id: operationId });
+  bru.setVar("operationId", operationId);
 }
 
 script:post-response {
   bru.setVar("lcAuthenticationBearer" ,res.body.lc_authentication_bearer);
   
+}
+
+tests {
+  test("should have expected lc_authentication_bearer", function() {
+    expect(res.getStatus()).to.equal(200);
+    const data = res.getBody();
+    const lcAuthenticationBearer = data.lc_authentication_bearer;
+    const payload = JSON.parse(Buffer.from(lcAuthenticationBearer.split(".")[1], "base64").toString());
+    
+    expect(payload.assertionRef).to.equal(bru.getVar("lollipopAssertionRef"));
+    expect(payload.operationId).to.equal(bru.getVar("operationId"));
+    expect(payload.iat).to.be.a("number");
+    expect(payload.exp).to.be.a("number");
+    expect(payload.iss).to.equal("io-lollipop");
+    expect(payload).to.have.property("jti");
+  });
 }
