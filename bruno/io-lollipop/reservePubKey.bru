@@ -53,6 +53,7 @@ script:pre-request {
   const thumbprint = await jose.JWK.asKey(publicKey).then(key => key.thumbprint("SHA-256")).then(thumbprint => thumbprint.toString("base64url"));
   
   bru.setVar("pubKey", publicKey);
+  bru.setVar("privKey", privateKey);
   bru.setVar("encodedPrivateKey", encodedPrivateKey);
   bru.setVar("encodedPublicKey", encodedPublicKey);
   bru.setVar("lollipopThumbprint", thumbprint);

@@ -43,7 +43,12 @@ script:pre-request {
   const url = `https://localhost:8000/first-lollipop/sign`;
   const alg = mattrglobal.AlgorithmTypes["ecdsa-p256-sha256"];
   const keyid = lollipopThumbprint;
-  const privateKey = JSON.parse(Buffer.from(jose.util.base64url.decode(bru.getVar("encodedPrivateKey"))));
+  
+  const privateKey = bru.getVar("privKey");
+  if(!privateKey) {
+    throw new Error("Var 'privKey' is not defined! Run 'reservePubKey' and 'activatePubKey' before!");
+  }
+  
   
   const signEcdsaSha256 =
     (key) =>
