@@ -84,17 +84,14 @@ script:pre-request {
   
   const result = await mattrglobal.createSignatureHeader(options);
   
-  req.setHeader("x-pagopa-lollipop-original-method", method)
-  req.setHeader("x-pagopa-lollipop-original-url", url)
-  req.setHeader("x-pagopa-lollipop-public-key", bru.getVar("encodedPublicKey"))
-  req.setHeader("x-pagopa-lollipop-assertion-ref", lollipopAssertionRef)
-  req.setHeader("x-pagopa-lollipop-assertion-type", "SAML")
-  req.setHeader("x-pagopa-lollipop-auth-jwt", bru.getVar("lcAuthenticationBearer"))
-  req.setHeader("x-pagopa-lollipop-user-id", "ISPXNB32R82Y766D")
-  req.setHeader("signature", result.value.signature)
-  req.setHeader("signature-input", result.value.signatureInput)
-  req.setHeader("content-digest", result.value.digest)
-  
-  console.log(result.isOk());
-  console.log(req.headers);
+  req.setHeader("x-pagopa-lollipop-original-method", method);
+  req.setHeader("x-pagopa-lollipop-original-url", url);
+  req.setHeader("x-pagopa-lollipop-public-key", bru.getVar("encodedPublicKey"));
+  req.setHeader("x-pagopa-lollipop-assertion-ref", lollipopAssertionRef);
+  req.setHeader("x-pagopa-lollipop-assertion-type", "SAML");
+  req.setHeader("x-pagopa-lollipop-auth-jwt", bru.getVar("lcAuthenticationBearer"));
+  req.setHeader("x-pagopa-lollipop-user-id", "ISPXNB32R82Y766D");
+  req.setHeader("signature", result.value.signature);
+  req.setHeader("signature-input", result.value.signatureInput);
+  req.setHeader("content-digest", result.value.digest);
 }

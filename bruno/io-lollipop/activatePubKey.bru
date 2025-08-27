@@ -48,7 +48,6 @@ script:pre-request {
   }
   
   const assertion = fs.readFileSync(assertionFile, "utf8").replaceAll("{{IN_RESPONSE_TO}}",lollipopAssertionRef);
-  console.log(assertion)
   
   req.setBody({ ...req.body, assertion: assertion});
   
