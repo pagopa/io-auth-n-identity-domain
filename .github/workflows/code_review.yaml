@@ -193,8 +193,7 @@ jobs:
           yarn test:integrations:io-lollipop && 
           yarn workspace io-auth-n-identity-bruno-collections \
             bru run \
-              io-lollipop/internal \
-              io-lollipop/external \
+              io-lollipop \
               --env Development
 
       - name: "E2E Tests"
