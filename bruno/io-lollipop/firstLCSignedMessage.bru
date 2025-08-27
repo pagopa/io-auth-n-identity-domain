@@ -31,12 +31,12 @@ script:pre-request {
   
   const lollipopAssertionRef = bru.getVar("lollipopAssertionRef");
   if (!lollipopAssertionRef) {
-    throw new Error("Var 'lollipopAssertionRef' is not defined! Run 'reservePubKey' and 'activatePubKey' before 'generateLCParams'");
+    throw new Error("Var 'lollipopAssertionRef' is not defined! Run 'reservePubKey' and 'activatePubKey' before!");
   }
   
   const lollipopThumbprint = bru.getVar("lollipopThumbprint");
   if (!lollipopThumbprint) {
-    throw new Error("Var 'lollipopThumbprint' is not defined! Run 'reservePubKey' and 'activatePubKey' before calling API");
+    throw new Error("Var 'lollipopThumbprint' is not defined! Run 'reservePubKey' and 'activatePubKey' before!");
   }
   
   const method = req.method;
@@ -80,12 +80,22 @@ script:pre-request {
   
   const result = await mattrglobal.createSignatureHeader(options);
   
+  const encodedPublicKey = bru.getVar("encodedPublicKey");
+  if (!encodedPublicKey) {
+    throw new Error("Var 'encodedPublicKey' is not defined! Run 'reservePubKey' and 'activatePubKey' before!");
+  }
+  
+  const lcAuthenticationBearer = bru.getVar("lcAuthenticationBearer");
+  if (!lcAuthenticationBearer) {
+    throw new Error("Var 'lcAuthenticationBearer' is not defined! Run 'generateLCParams' before!");
+  }
+  
   req.setHeader("x-pagopa-lollipop-original-method", method);
   req.setHeader("x-pagopa-lollipop-original-url", url);
-  req.setHeader("x-pagopa-lollipop-public-key", bru.getVar("encodedPublicKey"));
+  req.setHeader("x-pagopa-lollipop-public-key", encodedPublicKey);
   req.setHeader("x-pagopa-lollipop-assertion-ref", lollipopAssertionRef);
   req.setHeader("x-pagopa-lollipop-assertion-type", "SAML");
-  req.setHeader("x-pagopa-lollipop-auth-jwt", bru.getVar("lcAuthenticationBearer"));
+  req.setHeader("x-pagopa-lollipop-auth-jwt", lcAuthenticationBearer);
   req.setHeader("x-pagopa-lollipop-user-id", "ISPXNB32R82Y766D");
   req.setHeader("signature", result.value.signature);
   req.setHeader("signature-input", result.value.signatureInput);
