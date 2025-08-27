@@ -1,0 +1,100 @@
+meta {
+  name: firstLCSignedMessage
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{IO_LOLLIPOP_BASE_URL}}{{IO_LOLLIPOP_API_PATH}}/first-lollipop-consumer/signed-message
+  body: json
+  auth: none
+}
+
+headers {
+  ~x-functions-key: SET_IN_PREREQUEST_SCRIPT
+}
+
+body:json {
+  { "message": "hello world" }
+}
+
+body:text {
+  {"message":"hello"}
+}
+
+script:pre-request {
+  const crypto = require("node:crypto");
+  const jose = require("node-jose");
+  const mattrglobal = require("@mattrglobal/http-signatures");
+  
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioLollipopApiKey = bru.getEnvVar("IO_LOLLIPOP_API_KEY");
+  if (ioLollipopApiKey != null ) {
+    req.setHeader("x-functions-key", ioLollipopApiKey);
+  }
+  
+  const lollipopAssertionRef = bru.getVar("lollipopAssertionRef");
+  if (!lollipopAssertionRef) {
+    throw new Error("Var 'lollipopAssertionRef' is not defined! Run 'reservePubKey' and 'activatePubKey' before 'generateLCParams'");
+  }
+  
+  const lollipopThumbprint = bru.getVar("lollipopThumbprint");
+  if (!lollipopThumbprint) {
+    throw new Error("Var 'lollipopThumbprint' is not defined! Run 'reservePubKey' and 'activatePubKey' before calling API");
+  }
+  
+  const method = req.method;
+  const url = `https://localhost:8000/first-lollipop/sign`;
+  const alg = mattrglobal.AlgorithmTypes["ecdsa-p256-sha256"];
+  const keyid = lollipopThumbprint;
+  const privateKey = JSON.parse(Buffer.from(jose.util.base64url.decode(bru.getVar("encodedPrivateKey"))));
+  
+  const signEcdsaSha256 =
+    (key) =>
+      async (data) => {
+        const keyObject = crypto.createPrivateKey({ key, format: "jwk" });
+  
+        let payload = null;
+        try {
+          payload = crypto.createSign("SHA256").update(Buffer.from(data)).sign({ key: keyObject, dsaEncoding: "ieee-p1363" });
+        } catch (Error) {
+          throw Error;
+        }
+        return payload;
+      };
+  
+  const sign = signEcdsaSha256(privateKey);
+  
+  const options = {
+    alg,
+    signer: { keyid, sign },
+    url,
+    method,
+    httpHeaders: {
+      ["x-pagopa-lollipop-original-method"]: method,
+      ["x-pagopa-lollipop-original-url"]: url,
+    },
+    body: { message: "hello world" },
+    coveredFields: [
+      "content-digest",
+      "x-pagopa-lollipop-original-method",
+      "x-pagopa-lollipop-original-url"
+    ].map(v => [v.toLowerCase(), new Map()])
+  };
+  
+  const result = await mattrglobal.createSignatureHeader(options);
+  
+  req.setHeader("x-pagopa-lollipop-original-method", method)
+  req.setHeader("x-pagopa-lollipop-original-url", url)
+  req.setHeader("x-pagopa-lollipop-public-key", bru.getVar("encodedPublicKey"))
+  req.setHeader("x-pagopa-lollipop-assertion-ref", lollipopAssertionRef)
+  req.setHeader("x-pagopa-lollipop-assertion-type", "SAML")
+  req.setHeader("x-pagopa-lollipop-auth-jwt", bru.getVar("lcAuthenticationBearer"))
+  req.setHeader("x-pagopa-lollipop-user-id", "ISPXNB32R82Y766D")
+  req.setHeader("signature", result.value.signature)
+  req.setHeader("signature-input", result.value.signatureInput)
+  req.setHeader("content-digest", result.value.digest)
+  
+  console.log(result.isOk());
+  console.log(req.headers);
+}

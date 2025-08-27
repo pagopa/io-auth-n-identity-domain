@@ -1,0 +1,35 @@
+meta {
+  name: handlePubKeyRevoke
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{IO_LOLLIPOP_BASE_URL}}/admin/functions/HandlePubKeyRevoke
+  body: json
+  auth: none
+}
+
+headers {
+  ~x-functions-key: SET_IN_PREREQUEST_SCRIPT
+}
+
+body:json {
+  {
+    "input": "SET_IN_PREREQUEST_SCRIPT"
+  }
+}
+
+script:pre-request {
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioLollipopApiKey = bru.getEnvVar("IO_LOLLIPOP_API_KEY");
+  if (ioLollipopApiKey != null ) {
+    req.setHeader("x-functions-key", ioLollipopApiKey);
+  }
+   
+  const lollipopAssertionRef = bru.getVar("lollipopAssertionRef");
+  if (!lollipopAssertionRef) {
+    throw new Error("Var 'lollipopAssertionRef' is not defined! Run 'reservePubKey' and 'activatePubKey' before 'handlePubKeyRevoke'");
+  }
+  req.setBody({ input: JSON.stringify({ assertion_ref: lollipopAssertionRef }) })
+}
