@@ -10819,6 +10819,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "io-auth-n-identity-bruno-collections@workspace:bruno"
   dependencies:
+    "@mattrglobal/http-signatures": "npm:^4.0.1"
     "@usebruno/cli": "npm:^2.9.0"
     node-jose: "npm:^2.2.0"
   languageName: unknown
