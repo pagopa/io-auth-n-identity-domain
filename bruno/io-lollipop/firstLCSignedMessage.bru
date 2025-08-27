@@ -15,7 +15,7 @@ headers {
 }
 
 body:json {
-  { "message": "hello world" }
+  {"message":"hello world"}
 }
 
 body:text {
@@ -74,7 +74,7 @@ script:pre-request {
       ["x-pagopa-lollipop-original-method"]: method,
       ["x-pagopa-lollipop-original-url"]: url,
     },
-    body: { message: "hello world" },
+    body: req.body,
     coveredFields: [
       "content-digest",
       "x-pagopa-lollipop-original-method",
@@ -94,4 +94,12 @@ script:pre-request {
   req.setHeader("signature", result.value.signature);
   req.setHeader("signature-input", result.value.signatureInput);
   req.setHeader("content-digest", result.value.digest);
+}
+
+tests {
+  test("should have expected response", function() {
+    expect(res.getStatus()).to.equal(200);
+    const data = res.getBody();
+    expect(data.response).to.equal(bru.getVar("lollipopAssertionRef"));
+  });
 }
