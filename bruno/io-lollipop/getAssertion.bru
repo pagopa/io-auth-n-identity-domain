@@ -25,6 +25,12 @@ headers {
 }
 
 script:pre-request {
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioLollipopApiKey = bru.getEnvVar("IO_LOLLIPOP_API_KEY");
+  if (ioLollipopApiKey != null) {
+    req.setHeader("x-functions-key", ioLollipopApiKey);
+  }
+  
   // Set the URL path param 'assertion_ref'
   const lollipopAssertionRef = bru.getVar("lollipopAssertionRef");
   if (!lollipopAssertionRef) {
