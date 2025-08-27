@@ -46,8 +46,7 @@ script:pre-request {
 }
 
 script:post-response {
-  bru.setVar("lcAuthenticationBearer" ,res.body.lc_authentication_bearer);
-  
+  bru.setVar("lcAuthenticationBearer", res.body.lc_authentication_bearer);
 }
 
 tests {
