@@ -1,0 +1,66 @@
+meta {
+  name: generateLCParams
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{IO_LOLLIPOP_BASE_URL}}{{IO_LOLLIPOP_API_PATH}}/pubKeys/:assertion_ref/generate
+  body: json
+  auth: none
+}
+
+params:path {
+  assertion_ref: SET_IN_PREREQUEST_SCRIPT
+}
+
+headers {
+  ~x-functions-key: SET_IN_PREREQUEST_SCRIPT
+}
+
+body:json {
+  {
+    "operation_id": "SET_IN_PREREQUEST"
+  }
+}
+
+script:pre-request {
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioLollipopApiKey = bru.getEnvVar("IO_LOLLIPOP_API_KEY");
+  if (ioLollipopApiKey != null) {
+    req.setHeader("x-functions-key", ioLollipopApiKey);
+  }
+  
+  // Set the URL path param 'assertion_ref'
+  const lollipopAssertionRef = bru.getVar("lollipopAssertionRef");
+  if (!lollipopAssertionRef) {
+    throw new Error("Var 'lollipopAssertionRef' is not defined! Run 'reservePubKey' and 'activatePubKey' before 'generateLCParams'");
+  }
+  req.setUrl(
+    req.url.replace(":assertion_ref", lollipopAssertionRef)
+  );
+  
+  const operationId = "TEST";
+  req.setBody({ operation_id: operationId });
+  bru.setVar("operationId", operationId);
+}
+
+script:post-response {
+  bru.setVar("lcAuthenticationBearer", res.body.lc_authentication_bearer);
+}
+
+tests {
+  test("should have expected lc_authentication_bearer", function() {
+    expect(res.getStatus()).to.equal(200);
+    const data = res.getBody();
+    const lcAuthenticationBearer = data.lc_authentication_bearer;
+    const payload = JSON.parse(Buffer.from(lcAuthenticationBearer.split(".")[1], "base64").toString());
+    
+    expect(payload.assertionRef).to.equal(bru.getVar("lollipopAssertionRef"));
+    expect(payload.operationId).to.equal(bru.getVar("operationId"));
+    expect(payload.iat).to.be.a("number");
+    expect(payload.exp).to.be.a("number");
+    expect(payload.iss).to.equal("io-lollipop");
+    expect(payload).to.have.property("jti");
+  });
+}

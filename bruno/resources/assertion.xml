@@ -1,0 +1,92 @@
+<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" Version="2.0"
+    ID="id_e95ebbc6c72dd73514ab2bb69a607afaedd0e383" IssueInstant="2025-07-17T13:13:22Z"
+    Destination="https://localhost:8080/sm/assertionConsumerService"
+    InResponseTo="{{IN_RESPONSE_TO}}">
+    <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity" NameQualifier="https://spid-testenv2:8088">
+        https://spid-testenv2:8088</saml:Issuer>
+    <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+        <ds:SignedInfo>
+            <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+            <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
+            <ds:Reference URI="#id_e95ebbc6c72dd73514ab2bb69a607afaedd0e383">
+                <ds:Transforms>
+                    <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
+                    <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+                </ds:Transforms>
+                <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />
+                <ds:DigestValue>tWa0DrXTYiCZZE/HRh7PV7R3LNCx9ilY+r8EzPdVZ10=</ds:DigestValue>
+            </ds:Reference>
+        </ds:SignedInfo>
+        <ds:SignatureValue>
+            Ge3OfggqS6uKjX8ZVNoHxJs9TPXJ5KY74Oh1jAXC79U3yMv+J9lG0iUsiC+qCm65dLbMknOkXIh4kLd58+nuiX8iAv4ouSoDDwcLeonZ72IGVgIeaH1pEGyDQVbGGVFSxYkJxYEXrv4OXo72YT4ab3KKD0Dno3QmIh4BN6tfNG5e2+ZQD4P9+K8FOmht1a9aGcq2KNIyze2GnwVTeLhtfo0qBeINcZ3cPWwUlkGc6O/+s5aqrG3lq6c7yJHQnv4+BnA7Zdw6Rg/EAevfPzVOLXhuvMu68QIbRQ8w1HoU8crVe+GjpAldlvI6Tv+SGGcy0Ulq1RnB97d2MsXHuaop05PIqIVhXp22G+oYFp6S9DbDTIgOhEoOfxPve8mGMITmRSmlf6ahIkSiYyShXpwfYzqgudZPgr4hBhfYH6VlECuerliSeeICytl6hAULXa3VQPIsN0IfGaxemPsvigzbsvzddpy+ss/K/eHZEg31Vw3Ey1mBuRGJFTZI/buTxXjDxQOALyRECvdI1HiwG8mj7SLkoSUF3/pn9gIW0EMzfhY++vovRyAu5r2AZ4u5cOyrVJpYweBffvIFe1/WfYbPf9hPYF2lEiFUDiGe4G+0oiUOAJourfMOwd4sch1hNOpmWuVLooA7cdeMdFhBd20+OorvLoZR+YeLuTqSBBZhsks=</ds:SignatureValue>
+        <ds:KeyInfo>
+            <ds:X509Data>
+                <ds:X509Certificate>
+                    MIIFvTCCA6WgAwIBAgIUOeEZgLd9qO9ud4XdjnbwpaFQGfIwDQYJKoZIhvcNAQELBQAwbjELMAkGA1UEBhMCSVQxDjAMBgNVBAgMBUl0YWx5MQ0wCwYDVQQHDARSb21lMQ0wCwYDVQQKDARBQ01FMRYwFAYDVQQLDA1JVCBEZXBhcnRtZW50MRkwFwYDVQQDDBBhcGkuaXRhbGlhLmxvY2FsMB4XDTI0MDUwODA5NDM0MFoXDTI1MDUwODA5NDM0MFowbjELMAkGA1UEBhMCSVQxDjAMBgNVBAgMBUl0YWx5MQ0wCwYDVQQHDARSb21lMQ0wCwYDVQQKDARBQ01FMRYwFAYDVQQLDA1JVCBEZXBhcnRtZW50MRkwFwYDVQQDDBBhcGkuaXRhbGlhLmxvY2FsMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEArJEhHKt8CGZu6v6OxCBc8OxE0kFqoyd98K3bOArvuPiVG7asaYm1w/xwthRnq/w7Q2tLW3pOwN/djkQdcJxDdsnFdwPbFu5ik4HfNUkHkpTkJMlJvAvtshSnzY0AOJU0cf++AEG7tURns7fRPMN+I6qDPPC1UmXdwXf97Ut9K9JnuSAz7dSMjjaldWKlwP/A1KZNWkpf/GBihNYYC9XI2VKROZksdaRyKfduXmL35uth92GVa1AdnCizIkI1EsDBCPpEOLEgNdG8+UQK7YdBMk10Q6GLgSoAYbzuKbJ9z6WC2XLbeJ5NSWaqmwKZpXzbnWd04zujLWaYudgb+U/c4h1wn6UmFrwFKvBDTP09bVyCymOBapFHT3mqQC2hgORqMJigHLJOrehxWUcsTFvA/qmt2Cih68JPdwudUpT6S7o3Ikj+4pymxJjxj5ED11ePGdkdq9QEGQTq0SrHCQRz3gbz+3OExSo3hSdlfuKkCtNHB4sgAF21mnEm1llasdqMJGiVKl+sltxxIp6h2Ditnue5cPZkmJSlgrKuJLFqzVkmnaHP/WiG2fdhWz/5gMZtWhZ3Qsh34OWdu5d5zY5nlffbqP8+TggrrJyksyZ3g7aTsKeccjact+FPUIOrM9iGgZMyy6f06rmEfBI9amwpnx4+aLtYmNLAuu3wMAutT5kCAwEAAaNTMFEwHQYDVR0OBBYEFEQ7ChdGZYFnhC6oZ8VDLSB3W1hoMB8GA1UdIwQYMBaAFEQ7ChdGZYFnhC6oZ8VDLSB3W1hoMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggIBAJiWxu2rV+N8Bdhk/lu5BY3tOunNHOEDd74cZsNa44ia67RQgkFbUbB2byqHQxHTD8hgZK+VUdmRnCKrJPwcqS7wid1uOjiDgqcW5QtOVle8w9SsSFwWa3WGISjs+XpVNgqK6GJOZzA99q/x91FEjeqpVKOfa4E6IPsze+FsQrYBcwATztQRGHlev8RxGNeQDN38tNcIG3Z50NQfuLyLxM30Sk3WebACu/QkEth4DvSS98MuIBmvar0rnrObeGuNqFbyxaqSS2J1mQtFAUQ0lDg3lVZMrMrev1JczHW6MFrVG7FyMhkbeHne/dgjExiW/8DxH01sYPtYBBdh0kbCzTQzEhpSfhKtG9+Mp7+t4lpOFwkR6l6XkJXaZ2UrODuuKs3p7nLnT1uOJ3IA7gwuJdlsl/jQUpWdFj4Glb6L8pBDP8tTx8c/IDsxV3jddFhT2hFkvxBpE0OhHcVnQSgpBk+1gMEUGL/S94OA/0XLkGLMkXAolUjcS4b+OUFqMbz+CSxseb7MUagwRS8uKGxrgZnwjWHlTXo4nt7/Wk0g5VcLLXaXRfy4O4XgT2QG1wK8kIu4lrwWQKPgMdPVNy6z0TL99EoLVfe1x45rSlYvkgvjU1Ihc0jWpwsLO0N6PcMjt/UztKD60B4TDsPS+0gxawQcwx9AFh6iveD9pXd9f5Yq</ds:X509Certificate>
+            </ds:X509Data>
+        </ds:KeyInfo>
+    </ds:Signature>
+    <samlp:Status>
+        <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
+    </samlp:Status>
+    <saml:Assertion xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="2.0" ID="id_dbcfc4777637c59ea9812438389e3d69c3160f83" IssueInstant="2025-07-17T13:13:22Z">
+        <saml:Issuer Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity" NameQualifier="https://spid-testenv2:8088">https://spid-testenv2:8088</saml:Issuer>
+        <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+            <ds:SignedInfo>
+                <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+                <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
+                <ds:Reference URI="#id_dbcfc4777637c59ea9812438389e3d69c3160f83">
+                    <ds:Transforms>
+                        <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
+                        <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+                    </ds:Transforms>
+                    <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />
+                    <ds:DigestValue>Ol880YAuKNTYGqP3qaw23B2hZtlNmE9JvbRtZgwq9wc=</ds:DigestValue>
+                </ds:Reference>
+            </ds:SignedInfo>
+            <ds:SignatureValue>
+                OJW7vsXU3VVL3LCqEYTDhxN3ZQiEK9WM75u+fwbhMxqM2+KMR0QPvKS0WdO3/t3XocOra/G+0jgmY2bLgXp7kbFNkuuV/UCnQt1qBNngyXEtVX89+pgbc61KWYGm20yvFhf0TL5rg39rROPe/VUJxlN7kJuDTcU4AW8YY6nM6ZPijR6oJY6F/u08/hhJU/cmtbktW3yBzcG9Ol1JpfiKc3x/EWU2JvpTtjvUyLwRdww+SVoLZidGZ2bJ15PHh+xYYIoGgc8F6qJthEF6aVpuS8MQfr4/8xSpJSp/7yN5P9lz7U2/5lH/Y6cWKmLa0eMlTGCIEtitySrrG2tBEf4byS1qgxXD9/gnstVxJgzTsecMYBE6pyZusb7FEmALaRXBE0anmpwba/yf0qhX9plwr8w3mJgSZQM88GgbfjOAgOBgYMUTYZzbdvzjywxHxwl+2O8xmInaOr8F8Rtsinb+qtnA8BZBuaZfH+zW3rtEA6IScu+nsCNkpuB/dmX/DpFEHCFS11lyHBu1nALi7/vbPQRum4QcSAw4E+99Xg28g9RVzP+DdYwxAQ/vZE0kkXLbp9YbtAVnSoZjRZtHV7riTrVW/D4kIU6KPAAmAXUKYg0xn0sGio4d6NlxYbU/FdoJNbsvfqxV1oK1uR2F0irYkxfqYDEVTVOjCzllfcSnFdM=</ds:SignatureValue>
+            <ds:KeyInfo>
+                <ds:X509Data>
+                    <ds:X509Certificate>
+                        MIIFvTCCA6WgAwIBAgIUOeEZgLd9qO9ud4XdjnbwpaFQGfIwDQYJKoZIhvcNAQELBQAwbjELMAkGA1UEBhMCSVQxDjAMBgNVBAgMBUl0YWx5MQ0wCwYDVQQHDARSb21lMQ0wCwYDVQQKDARBQ01FMRYwFAYDVQQLDA1JVCBEZXBhcnRtZW50MRkwFwYDVQQDDBBhcGkuaXRhbGlhLmxvY2FsMB4XDTI0MDUwODA5NDM0MFoXDTI1MDUwODA5NDM0MFowbjELMAkGA1UEBhMCSVQxDjAMBgNVBAgMBUl0YWx5MQ0wCwYDVQQHDARSb21lMQ0wCwYDVQQKDARBQ01FMRYwFAYDVQQLDA1JVCBEZXBhcnRtZW50MRkwFwYDVQQDDBBhcGkuaXRhbGlhLmxvY2FsMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEArJEhHKt8CGZu6v6OxCBc8OxE0kFqoyd98K3bOArvuPiVG7asaYm1w/xwthRnq/w7Q2tLW3pOwN/djkQdcJxDdsnFdwPbFu5ik4HfNUkHkpTkJMlJvAvtshSnzY0AOJU0cf++AEG7tURns7fRPMN+I6qDPPC1UmXdwXf97Ut9K9JnuSAz7dSMjjaldWKlwP/A1KZNWkpf/GBihNYYC9XI2VKROZksdaRyKfduXmL35uth92GVa1AdnCizIkI1EsDBCPpEOLEgNdG8+UQK7YdBMk10Q6GLgSoAYbzuKbJ9z6WC2XLbeJ5NSWaqmwKZpXzbnWd04zujLWaYudgb+U/c4h1wn6UmFrwFKvBDTP09bVyCymOBapFHT3mqQC2hgORqMJigHLJOrehxWUcsTFvA/qmt2Cih68JPdwudUpT6S7o3Ikj+4pymxJjxj5ED11ePGdkdq9QEGQTq0SrHCQRz3gbz+3OExSo3hSdlfuKkCtNHB4sgAF21mnEm1llasdqMJGiVKl+sltxxIp6h2Ditnue5cPZkmJSlgrKuJLFqzVkmnaHP/WiG2fdhWz/5gMZtWhZ3Qsh34OWdu5d5zY5nlffbqP8+TggrrJyksyZ3g7aTsKeccjact+FPUIOrM9iGgZMyy6f06rmEfBI9amwpnx4+aLtYmNLAuu3wMAutT5kCAwEAAaNTMFEwHQYDVR0OBBYEFEQ7ChdGZYFnhC6oZ8VDLSB3W1hoMB8GA1UdIwQYMBaAFEQ7ChdGZYFnhC6oZ8VDLSB3W1hoMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggIBAJiWxu2rV+N8Bdhk/lu5BY3tOunNHOEDd74cZsNa44ia67RQgkFbUbB2byqHQxHTD8hgZK+VUdmRnCKrJPwcqS7wid1uOjiDgqcW5QtOVle8w9SsSFwWa3WGISjs+XpVNgqK6GJOZzA99q/x91FEjeqpVKOfa4E6IPsze+FsQrYBcwATztQRGHlev8RxGNeQDN38tNcIG3Z50NQfuLyLxM30Sk3WebACu/QkEth4DvSS98MuIBmvar0rnrObeGuNqFbyxaqSS2J1mQtFAUQ0lDg3lVZMrMrev1JczHW6MFrVG7FyMhkbeHne/dgjExiW/8DxH01sYPtYBBdh0kbCzTQzEhpSfhKtG9+Mp7+t4lpOFwkR6l6XkJXaZ2UrODuuKs3p7nLnT1uOJ3IA7gwuJdlsl/jQUpWdFj4Glb6L8pBDP8tTx8c/IDsxV3jddFhT2hFkvxBpE0OhHcVnQSgpBk+1gMEUGL/S94OA/0XLkGLMkXAolUjcS4b+OUFqMbz+CSxseb7MUagwRS8uKGxrgZnwjWHlTXo4nt7/Wk0g5VcLLXaXRfy4O4XgT2QG1wK8kIu4lrwWQKPgMdPVNy6z0TL99EoLVfe1x45rSlYvkgvjU1Ihc0jWpwsLO0N6PcMjt/UztKD60B4TDsPS+0gxawQcwx9AFh6iveD9pXd9f5Yq</ds:X509Certificate>
+                </ds:X509Data>
+            </ds:KeyInfo>
+        </ds:Signature>
+        <saml:Subject>
+            <saml:NameID Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient" NameQualifier="https://spid-testenv2:8088">id_3064def0c792c3583f81d08a6d0d9e2e187bd2b9</saml:NameID>
+            <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+                <saml:SubjectConfirmationData
+                    Recipient="https://localhost:8080/sm/assertionConsumerService"
+                    NotOnOrAfter="2025-07-17T13:15:22Z" InResponseTo="{{IN_RESPONSE_TO}}" />
+            </saml:SubjectConfirmation>
+        </saml:Subject>
+        <saml:Conditions NotBefore="2025-07-17T13:11:22Z" NotOnOrAfter="2025-07-17T13:15:22Z">
+            <saml:AudienceRestriction>
+                <saml:Audience>https://spid.agid.gov.it/cd</saml:Audience>
+            </saml:AudienceRestriction>
+        </saml:Conditions>
+        <saml:AuthnStatement AuthnInstant="2025-07-17T13:13:22Z" SessionIndex="id_1623928272c35f5bd30ae9374ea8c0a7632d3d45">
+            <saml:AuthnContext>
+                <saml:AuthnContextClassRef>https://www.spid.gov.it/SpidL2</saml:AuthnContextClassRef>
+            </saml:AuthnContext>
+        </saml:AuthnStatement>
+        <saml:AttributeStatement>
+            <saml:Attribute Name="email">
+                <saml:AttributeValue xsi:type="xs:string">cittadinanzadigitale@teamdigitale.governo.it</saml:AttributeValue>
+            </saml:Attribute>
+            <saml:Attribute Name="name">
+                <saml:AttributeValue xsi:type="xs:string">Carla</saml:AttributeValue>
+            </saml:Attribute>
+            <saml:Attribute Name="familyName">
+                <saml:AttributeValue xsi:type="xs:string">Rossi</saml:AttributeValue>
+            </saml:Attribute>
+            <saml:Attribute Name="fiscalNumber">
+                <saml:AttributeValue xsi:type="xs:string">ISPXNB32R82Y766D</saml:AttributeValue>
+            </saml:Attribute>
+            <saml:Attribute Name="dateOfBirth">
+                <saml:AttributeValue xsi:type="xs:date">2000-12-12</saml:AttributeValue>
+            </saml:Attribute>
+        </saml:AttributeStatement>
+    </saml:Assertion>
+</samlp:Response>

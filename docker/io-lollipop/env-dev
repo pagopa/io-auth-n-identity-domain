@@ -38,7 +38,7 @@ COSMOSDB_PORT=${COSMOSDB_PORT}
 # FirstLcAssertionClient
 # --------
 EXPECTED_FIRST_LC_ORIGINAL_URL=https://localhost:8000/first-lollipop/sign
-FIRST_LC_ASSERTION_CLIENT_BASE_URL=https://localhost:7071
+FIRST_LC_ASSERTION_CLIENT_BASE_URL=http://host.docker.internal/
 FIRST_LC_ASSERTION_CLIENT_SUBSCRIPTION_KEY=aSubscriptionKey
 
 # ----------
