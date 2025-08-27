@@ -189,7 +189,7 @@ jobs:
           steps.test_filter.outputs.io-lollipop == 'true' ||
           steps.test_filter.outputs.bruno-io-lollipop == 'true'
         run: >-
-          yarn docker:start:build io-lollipop &&
+          yarn docker:start:build traefik io-lollipop &&
           yarn test:integrations:io-lollipop && 
           yarn workspace io-auth-n-identity-bruno-collections \
             bru run \
