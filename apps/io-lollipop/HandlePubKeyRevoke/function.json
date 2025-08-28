@@ -5,7 +5,7 @@
       "direction": "in",
       "name": "messagerevoke",
       "queueName": "%LOLLIPOP_ASSERTION_REVOKE_QUEUE%",
-      "connection":"LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING"
+      "connection": "SESSION_STORAGE_CONNECTION_STRING"
     }
   ],
   "retry": {
