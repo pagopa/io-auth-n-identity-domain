@@ -28,9 +28,10 @@ locals {
       COSMOSDB_KEY                 = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.cosmos_primary_key.versionless_id})"
       COSMOS_API_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.cosmos_auth_connection_string.versionless_id})"
 
-      #TODO: move to new storage on itn
+      #TODO: remove in favor of the new storage on itn with connection string 'SESSION_STORAGE_CONNECTION_STRING' when no longer needed
       LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.lollipop_assertions_st_connection_string.versionless_id})"
-      LOLLIPOP_ASSERTION_REVOKE_QUEUE              = "pubkeys-revoke-v2"
+      SESSION_STORAGE_CONNECTION_STRING            = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
+      LOLLIPOP_ASSERTION_REVOKE_QUEUE              = local.pubkeys_revoke_queue_name
 
       // ------------
       // JWT Config
