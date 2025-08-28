@@ -1,0 +1,81 @@
+meta {
+  name: reservePubKey
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{IO_LOLLIPOP_BASE_URL}}{{IO_LOLLIPOP_API_PATH}}/pubkeys
+  body: json
+  auth: none
+}
+
+headers {
+  ~x-functions-key: SET_IN_PREREQUEST_SCRIPT
+}
+
+body:json {
+  {
+    "algo": "SET_IN_PREREQUEST_SCRIPT",
+    "pub_key": "SET_IN_PREREQUEST_SCRIPT"
+  }
+}
+
+script:pre-request {
+  const jose = require("node-jose");
+  const crypto = require("node:crypto");
+  
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioLollipopApiKey = bru.getEnvVar("IO_LOLLIPOP_API_KEY");
+  if (ioLollipopApiKey != null) {
+    req.setHeader("x-functions-key", ioLollipopApiKey);
+  }
+  
+  const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
+    namedCurve: "P-256",
+    publicKeyEncoding: {
+      type: "spki",
+      format: "jwk",
+    },
+    privateKeyEncoding: {
+      type: "pkcs8",
+      format: "jwk"
+    }
+  });
+  
+  req.setBody({
+    algo: "sha256",
+    pub_key: publicKey,
+  });
+  
+  const encodedPublicKey = Buffer.from(JSON.stringify(publicKey)).toString("base64url");
+  const encodedPrivateKey = Buffer.from(JSON.stringify(privateKey)).toString("base64url");
+  const thumbprint = await jose.JWK.asKey(publicKey).then(key => key.thumbprint("SHA-256")).then(thumbprint => thumbprint.toString("base64url"));
+  
+  bru.setVar("pubKey", publicKey);
+  bru.setVar("privKey", privateKey);
+  bru.setVar("encodedPublicKey", encodedPublicKey);
+  bru.setVar("lollipopThumbprint", thumbprint);
+  
+}
+
+script:post-response {
+  bru.setVar("lollipopAssertionRef", res.body.assertion_ref);
+  
+}
+
+tests {
+  test("should have expected assertion_ref", function() {
+    expect(res.getStatus()).to.equal(201);
+    const data = res.getBody();
+    const expectedAssertionRef = "sha256-" + bru.getVar("lollipopThumbprint");
+    expect(data.assertion_ref).to.equal(expectedAssertionRef);
+  });
+  
+  test("should have expected pub_key", function() {
+    expect(res.getStatus()).to.equal(201);
+    const data = res.getBody();
+    const key = req.body.pub_key;
+    expect(data.pub_key).to.equal(Buffer.from(JSON.stringify(key)).toString("base64url"));
+  });
+}

@@ -1,0 +1,75 @@
+meta {
+  name: activatePubKey
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{IO_LOLLIPOP_BASE_URL}}{{IO_LOLLIPOP_API_PATH}}/pubKeys/:assertion_ref
+  body: json
+  auth: none
+}
+
+params:path {
+  assertion_ref: SET_IN_PREREQUEST_SCRIPT
+}
+
+headers {
+  ~x-functions-key: SET_IN_PREREQUEST_SCRIPT
+}
+
+body:json {
+  {
+    "fiscal_code": "ISPXNB32R82Y766D",
+    "assertion_type": "SAML",
+    "expired_at": "2030-01-01T12:00:00Z",
+    "assertion": "SET_IN_PREREQUEST_SCRIPT"
+  }
+}
+
+script:pre-request {
+  const path = require("node:path");
+  const fs = require("fs");
+  
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioLollipopApiKey = bru.getEnvVar("IO_LOLLIPOP_API_KEY");
+  if (ioLollipopApiKey != null) {
+    req.setHeader("x-functions-key", ioLollipopApiKey);
+  }
+  
+  // Set the assertion in request body
+  const assertionFile = path.join(bru.cwd(), "resources", "assertion.xml");
+  
+  
+  // Set the URL path param 'assertion_ref'
+  const lollipopAssertionRef = bru.getVar("lollipopAssertionRef");
+  if (!lollipopAssertionRef) {
+    throw new Error("Var 'lollipopAssertionRef' is not defined! Run 'reservePubKey' before 'activatePubKey'");
+  }
+  
+  const assertion = fs.readFileSync(assertionFile, "utf8").replaceAll("{{IN_RESPONSE_TO}}",lollipopAssertionRef);
+  
+  req.setBody({ ...req.body, assertion: assertion});
+  
+  req.setUrl(
+    req.url.replace(":assertion_ref", lollipopAssertionRef)
+  )
+}
+
+tests {
+  test("should have expected assertion_file_name", function() {
+    expect(res.getStatus()).to.equal(200);
+    const data = res.getBody();
+    const expectedAssertionFileName = req.body.fiscal_code + "-sha256-" + bru.getVar("lollipopThumbprint");
+    expect(data.assertion_file_name).to.equal(expectedAssertionFileName);
+  });
+  
+  test("should have expected pub_key", function() {
+    expect(res.getStatus()).to.equal(200);
+    const data = res.getBody();
+    const key = bru.getVar("pubKey");
+    delete key.kid;
+    delete key.alg;
+    expect(data.pub_key).to.equal(Buffer.from(JSON.stringify(key)).toString("base64url"));
+  });
+}
