@@ -159,16 +159,12 @@
     "hash": "a2a257b25753f91b36acef29e080efc4d62dea59e803f56e33e813e7a343e66b",
     "version": "1.0.1",
     "name": "azure_storage_account",
-<<<<<<< HEAD
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-storage-account/azurerm/1.0.1"
-=======
-    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-storage-account/azurerm/1.0.0"
   },
   "pub_session_manager_bis": {
     "hash": "9d429fd0aba8a29c1a0dbb6005e7dd72a79d9d8dda5076220eb9f0c8bef438ae",
     "version": "1.2.1",
     "name": "azure_role_assignments",
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.2.1"
->>>>>>> 30b8530f ([#IOPLT-1303] Grant permission to SB topic for session-manager-bis)
   }
 }
