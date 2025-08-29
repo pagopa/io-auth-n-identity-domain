@@ -113,7 +113,7 @@ module "external_api_session_manager" {
 
 ### REVISION 2
 resource "azurerm_api_management_api" "external_api_session_manager_revision_2" {
-  name                = "io-session-manager-external-api"
+  name                = "io-session-manager-external-api-v1"
   api_management_name = var.platform_apim_name
   resource_group_name = var.platform_apim_resource_group_name
 
@@ -121,28 +121,13 @@ resource "azurerm_api_management_api" "external_api_session_manager_revision_2" 
   version        = "v1"
   revision       = 2
   source_api_id  = module.external_api_session_manager.id
+  display_name   = "IO SESSION MANAGER EXTERNAL API"
+  path           = var.external_api_base_path
+  protocols      = ["https"]
+  description    = "Auth & Identity Session Manager External API"
 
   service_url           = "${azurerm_api_management_backend.session_manager.url}${var.external_api_base_path}/v1"
   subscription_required = false
-
-  import {
-    content_format = "openapi-link"
-    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/external.yaml"
-  }
-}
-resource "azurerm_api_management_api_policy" "external_api_session_manager_revision_2_policy" {
-  api_name            = azurerm_api_management_api.external_api_session_manager_revision_2.name
-  api_management_name = var.platform_apim_name
-  resource_group_name = var.platform_apim_resource_group_name
-
-  xml_content = local.session_manager_base_policy
-}
-
-resource "azurerm_api_management_product_api" "this" {
-  api_name            = azurerm_api_management_api.external_api_session_manager_revision_2.name
-  api_management_name = var.platform_apim_name
-  product_id          = data.azurerm_api_management_product.apim_platform_domain_product.product_id
-  resource_group_name = var.platform_apim_resource_group_name
 }
 
 resource "azurerm_api_management_api_tag" "external_api_tag" {
