@@ -18,6 +18,7 @@ jobs:
     secrets: inherit
   deploy_to_azure_2:
     name: Deploy to Azure App Service
+    needs: deploy_to_azure_1
     uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@a08a2c9d95678902fd74382804693d33c8169e55
     with:
       # '-cd' suffix added inside the pipeline
