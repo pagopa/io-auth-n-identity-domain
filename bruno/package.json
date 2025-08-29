@@ -1,0 +1,11 @@
+{
+  "name": "io-auth-n-identity-bruno-collections",
+  "version": "0.1.0",
+  "dependencies": {
+    "node-jose": "^2.2.0"
+  },
+  "devDependencies": {
+    "@mattrglobal/http-signatures": "^4.0.1",
+    "@usebruno/cli": "^2.9.0"
+  }
+}

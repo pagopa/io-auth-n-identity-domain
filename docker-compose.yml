@@ -85,6 +85,8 @@ services:
       - "traefik.http.routers.io-lollipop.entrypoints=web"
       # apply middleware to route
       - "traefik.http.routers.io-lollipop.middlewares=io-lollipop-stripprefix,setHeader"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   io-web-profile:
     image: io-web-profile
