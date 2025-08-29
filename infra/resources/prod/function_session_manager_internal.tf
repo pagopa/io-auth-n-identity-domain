@@ -26,8 +26,8 @@ locals {
       FETCH_KEEPALIVE_TIMEOUT             = "60000"
 
       // Revoke assertion ref queue config
-      LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.lollipop_assertion_storage.primary_connection_string
-      LOLLIPOP_REVOKE_QUEUE_NAME                = "pubkeys-revoke-v2"
+      LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
+      LOLLIPOP_REVOKE_QUEUE_NAME                = local.pubkeys_revoke_queue_name
 
       // User authenticaiton locks table config
       LOCKED_PROFILES_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.locked_profiles_storage.primary_connection_string
