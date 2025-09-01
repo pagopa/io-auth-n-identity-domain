@@ -16,6 +16,25 @@ locals {
       </on-error>
   </policies>
   XML
+
+  session_manager_base_policy_zendesk_pool = <<XML
+  <policies>
+      <inbound>
+          <base />
+          <set-backend-service id="apim-pool-session-manager" backend-id="${local.session_manager_pool_name}" />
+          <rewrite-uri template='@(context.Request.Url.Path)' />
+      </inbound>
+      <backend>
+          <base />
+      </backend>
+      <outbound>
+          <base />
+      </outbound>
+      <on-error>
+          <base />
+      </on-error>
+  </policies>
+  XML
 }
 
 # Remove when the backend pool is used in policies
@@ -280,14 +299,14 @@ module "zendesk_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = "${azurerm_api_management_backend.session_manager.url}${var.zendesk_api_base_path}/v1"
+  service_url = null
 
   subscription_required = false
 
   content_format = "openapi-link"
   content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/sso/zendesk.yaml"
 
-  xml_content = local.session_manager_base_policy
+  xml_content = local.session_manager_base_policy_zendesk_pool
 }
 
 resource "azurerm_api_management_api_tag" "zendesk_api_tag" {
