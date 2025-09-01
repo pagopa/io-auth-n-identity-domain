@@ -1,6 +1,6 @@
 locals {
-  session_manager_pool_name        = "session-manager-pool"
-  session_manager_base_policy      = <<XML
+  session_manager_pool_name   = "session-manager-pool"
+  session_manager_base_policy = <<XML
   <policies>
       <inbound>
         <base />
@@ -16,6 +16,7 @@ locals {
       </on-error>
   </policies>
   XML
+
   session_manager_base_policy_pool = <<XML
   <policies>
       <inbound>
@@ -296,6 +297,8 @@ module "zendesk_api_session_manager" {
   path           = var.zendesk_api_base_path
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
+
+  service_url = null
 
   subscription_required = false
 
