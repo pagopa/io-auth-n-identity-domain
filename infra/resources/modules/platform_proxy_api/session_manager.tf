@@ -152,7 +152,7 @@ resource "azurerm_api_management_api" "external_api_session_manager_revision_2" 
   protocols      = ["https"]
   description    = "Auth & Identity Session Manager External API"
 
-  service_url           = "${azurerm_api_management_backend.session_manager.url}${var.external_api_base_path}/v1"
+  service_url           = "${azurerm_api_management_backend.session_manager[0].url}${var.external_api_base_path}/v1"
   subscription_required = false
 }
 
