@@ -31,7 +31,7 @@ resource "azurerm_api_management_backend" "session_manager" {
 resource "azapi_resource" "session_manager_pool" {
   type      = "Microsoft.ApiManagement/service/backends@2024-06-01-preview"
   name      = local.session_manager_pool_name
-  parent_id = var.platform_apim_name
+  parent_id = var.platform_apim_id
   body = {
     properties = {
       protocol    = null
