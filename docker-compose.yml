@@ -1,9 +1,3 @@
-# this will ensure compatibility with io-mock docker-compose
-# you can, for example, run io-backend on io-mock and
-# redis-cluster and session-manager here
-#
-# NOTE: make sure to disable redis-cluster dependency for io-backend service in
-# io-mock docker-compose
 name: io-mock
 
 services:
@@ -29,8 +23,8 @@ services:
       - 5859:5859
     command: ["yarn", "start:debug"]
     depends_on:
-      redis-cluster:
-        condition: service_healthy
+      redis-cluster-builder:
+        condition: service_started
       traefik:
         condition: service_started
       spid-testenv2:
@@ -193,7 +187,7 @@ services:
     networks:
       - io-fn
     depends_on:
-      - redis-cluster
+      - redis-cluster-builder
       - servicebus
 
   cosmosdb:
@@ -254,102 +248,96 @@ services:
   #
   #
   redis-node-0:
-    image: docker.io/bitnami/redis-cluster:6.2
+    image: redis:latest
     networks:
       - io-fn
     ports:
-      - 6380:6379
+      - 6380:6380
     volumes:
-      - redis-node-0-data:/bitnami/redis/data
-    environment:
-      - "REDIS_PASSWORD=bitnami"
-      - "REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
+      - ./docker/redis/6380/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-1:
-    image: docker.io/bitnami/redis-cluster:6.2
+    image: redis:latest
     networks:
       - io-fn
     ports:
-      - 6381:6379
+      - 6381:6381
     volumes:
-      - redis-node-1-data:/bitnami/redis/data
-    environment:
-      - "REDIS_PASSWORD=bitnami"
-      - "REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
+      - ./docker/redis/6381/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
+  
   redis-node-2:
-    image: docker.io/bitnami/redis-cluster:6.2
+    image: redis:latest
     networks:
       - io-fn
     ports:
-      - 6382:6379
+      - 6382:6382
     volumes:
-      - redis-node-2-data:/bitnami/redis/data
-    environment:
-      - "REDIS_PASSWORD=bitnami"
-      - "REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
+      - ./docker/redis/6382/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-3:
-    image: docker.io/bitnami/redis-cluster:6.2
+    image: redis:latest
     networks:
       - io-fn
     ports:
-      - 6383:6379
+      - 6383:6383
     volumes:
-      - redis-node-3-data:/bitnami/redis/data
-    environment:
-      - "REDIS_PASSWORD=bitnami"
-      - "REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
-
+      - ./docker/redis/6383/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+  
   redis-node-4:
-    image: docker.io/bitnami/redis-cluster:6.2
+    image: redis:latest
     networks:
       - io-fn
     ports:
-      - 6384:6379
+      - 6384:6384
     volumes:
-      - redis-node-4-data:/bitnami/redis/data
-    environment:
-      - "REDIS_PASSWORD=bitnami"
-      - "REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
+      - ./docker/redis/6384/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-5:
-    image: docker.io/bitnami/redis-cluster:6.2
+    image: redis:latest
     networks:
       - io-fn
     ports:
-      - 6385:6379
+      - 6385:6385
     volumes:
-      - redis-node-5-data:/bitnami/redis/data
-    environment:
-      - "REDIS_PASSWORD=bitnami"
-      - "REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
+      - ./docker/redis/6385/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-6:
-    image: docker.io/bitnami/redis-cluster:6.2
+    image: redis:latest
     networks:
       - io-fn
     ports:
-      - 6386:6379
+      - 6386:6386
     volumes:
-      - redis-node-6-data:/bitnami/redis/data
-    environment:
-      - "REDIS_PASSWORD=bitnami"
-      - "REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
-
-  redis-cluster:
-    image: docker.io/bitnami/redis-cluster:6.2
+      - ./docker/redis/6386/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+  
+  redis-cluster-builder:
+    image: redis:latest
+    ports:
+      - 6999:6999
     networks:
       - io-fn
-    ports:
-      - 6379:6379
-    volumes:
-      - redis-cluster-data:/bitnami/redis/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "bitnami", "-c", "--raw", "incr", "ping"]
-      interval: 1s
-      timeout: 3s
-      retries: 5
+    command: |-
+      redis-cli
+      -a bitnami
+      -p 6380
+      --cluster create
+      redis-node-0:6380
+      redis-node-1:6381
+      redis-node-2:6382
+      redis-node-3:6383
+      redis-node-4:6384
+      redis-node-5:6385
+      redis-node-6:6386
+      --cluster-replicas 1
+      --cluster-yes
     depends_on:
       - redis-node-0
       - redis-node-1
@@ -358,12 +346,7 @@ services:
       - redis-node-4
       - redis-node-5
       - redis-node-6
-    environment:
-      - "REDIS_PASSWORD=bitnami"
-      - "REDISCLI_AUTH=bitnami"
-      - "REDIS_CLUSTER_REPLICAS=1"
-      - "REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
-      - "REDIS_CLUSTER_CREATOR=yes"
+
 
   # Redis standalone (used by `io-fast-login`)
   redis-standalone:
@@ -429,13 +412,3 @@ networks:
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: 1450
-
-volumes:
-  redis-node-0-data:
-  redis-node-1-data:
-  redis-node-2-data:
-  redis-node-3-data:
-  redis-node-4-data:
-  redis-node-5-data:
-  redis-node-6-data:
-  redis-cluster-data:
