@@ -325,6 +325,7 @@ services:
     networks:
       - io-fn
     command: |-
+      sleep 10 &&
       redis-cli
       -a bitnami
       -p 6380
