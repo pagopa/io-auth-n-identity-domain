@@ -18,6 +18,7 @@ locals {
   XML
 }
 
+# Remove when the backend pool is used in policies
 resource "azurerm_api_management_backend" "session_manager" {
   title               = "Session Manager"
   name                = "session-manager-backend"
