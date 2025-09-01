@@ -17,11 +17,12 @@ locals {
   </policies>
   XML
 
-  session_manager_base_policy_pool = <<XML
+  session_manager_base_policy_zendesk_pool = <<XML
   <policies>
       <inbound>
           <base />
           <set-backend-service id="apim-pool-session-manager" backend-id="${local.session_manager_pool_name}" />
+          <rewrite-uri template='@(context.Request.Url.Path)' />
       </inbound>
       <backend>
           <base />
@@ -305,7 +306,7 @@ module "zendesk_api_session_manager" {
   content_format = "openapi-link"
   content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/sso/zendesk.yaml"
 
-  xml_content = local.session_manager_base_policy_pool
+  xml_content = local.session_manager_base_policy_zendesk_pool
 }
 
 resource "azurerm_api_management_api_tag" "zendesk_api_tag" {
