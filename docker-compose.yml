@@ -195,6 +195,7 @@ services:
     networks:
       - io-fn
     depends_on:
+      - redis-cluster
       - cluster-builder
       - servicebus
 
