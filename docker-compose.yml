@@ -265,6 +265,7 @@ services:
       - 6380:6380
     volumes:
       - ./docker/redis/6380/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-node-0-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-1:
@@ -275,6 +276,7 @@ services:
       - 6381:6381
     volumes:
       - ./docker/redis/6381/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-node-1-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   
@@ -286,6 +288,7 @@ services:
       - 6382:6382
     volumes:
       - ./docker/redis/6382/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-node-2-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-3:
@@ -296,6 +299,7 @@ services:
       - 6383:6383
     volumes:
       - ./docker/redis/6383/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-node-3-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
   
   redis-node-4:
@@ -306,6 +310,7 @@ services:
       - 6384:6384
     volumes:
       - ./docker/redis/6384/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-node-4-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-5:
@@ -316,6 +321,7 @@ services:
       - 6385:6385
     volumes:
       - ./docker/redis/6385/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-node-5-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-6:
@@ -326,6 +332,7 @@ services:
       - 6386:6386
     volumes:
       - ./docker/redis/6386/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-node-6-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
   
   redis-cluster-builder:
@@ -424,3 +431,12 @@ networks:
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: 1450
+
+volumes:
+  redis-node-0-data:
+  redis-node-1-data:
+  redis-node-2-data:
+  redis-node-3-data:
+  redis-node-4-data:
+  redis-node-5-data:
+  redis-node-6-data:
