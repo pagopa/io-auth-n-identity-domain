@@ -1,4 +1,3 @@
-// TODO: remove this TODO
 /* eslint-disable turbo/no-undeclared-env-vars */
 import * as appInsights from "applicationinsights";
 import passport from "passport";
