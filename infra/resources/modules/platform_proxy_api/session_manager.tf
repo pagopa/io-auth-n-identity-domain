@@ -188,7 +188,7 @@ resource "azurerm_api_management_api" "external_api_session_manager_revision_2" 
 resource "azurerm_api_management_api_operation_policy" "external_api_session_manager_rev2_login_policy" {
   api_management_name = var.platform_apim_name
   resource_group_name = var.platform_apim_resource_group_name
-  api_name            = "${azurerm_api_management_api.external_api_session_manager_revision_2.name};rev=2"
+  api_name            = azurerm_api_management_api.external_api_session_manager_revision_2.name
 
   # Operation ID defined in the openapi spec
   operation_id = "login"
