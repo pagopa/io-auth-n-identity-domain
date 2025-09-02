@@ -1,4 +1,5 @@
 locals {
+  session_manager_pool_name   = "session-manager-pool"
   session_manager_base_policy = <<XML
   <policies>
       <inbound>
@@ -15,15 +16,69 @@ locals {
       </on-error>
   </policies>
   XML
+
+  session_manager_base_policy_zendesk_pool = <<XML
+  <policies>
+      <inbound>
+          <base />
+          <set-backend-service id="apim-pool-session-manager" backend-id="${local.session_manager_pool_name}" />
+          <rewrite-uri template='@(context.Request.Url.Path)' />
+      </inbound>
+      <backend>
+          <base />
+      </backend>
+      <outbound>
+          <base />
+      </outbound>
+      <on-error>
+          <base />
+      </on-error>
+  </policies>
+  XML
 }
 
+# Remove when the backend pool is used in policies
 resource "azurerm_api_management_backend" "session_manager" {
   title               = "Session Manager"
   name                = "session-manager-backend"
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
   protocol            = "http"
-  url                 = var.session_manager_url
+  url                 = var.session_manager_urls[0]
+}
+
+resource "azurerm_api_management_backend" "session_manager_backends" {
+  count               = length(var.session_manager_urls)
+  title               = "Session Manager ${count.index + 1}"
+  name                = "session-manager-backend-${count.index + 1}"
+  resource_group_name = var.platform_apim_resource_group_name
+  api_management_name = var.platform_apim_name
+  protocol            = "http"
+  url                 = var.session_manager_urls[count.index]
+}
+
+resource "azapi_resource" "session_manager_pool" {
+  type      = "Microsoft.ApiManagement/service/backends@2024-06-01-preview"
+  name      = local.session_manager_pool_name
+  parent_id = var.platform_apim_id
+  body = {
+    properties = {
+      protocol    = null
+      url         = null
+      type        = "Pool"
+      description = "Load Balancer of Session Manager"
+      pool = {
+        services = [
+          {
+            id = azurerm_api_management_backend.session_manager_backends[0].id
+          },
+          {
+            id = azurerm_api_management_backend.session_manager_backends[1].id
+          }
+        ]
+      }
+    }
+  }
 }
 
 resource "azurerm_api_management_tag" "session_manager_tag" {
@@ -279,14 +334,14 @@ module "zendesk_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = "${azurerm_api_management_backend.session_manager.url}${var.zendesk_api_base_path}/v1"
+  service_url = null
 
   subscription_required = false
 
   content_format = "openapi-link"
   content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/sso/zendesk.yaml"
 
-  xml_content = local.session_manager_base_policy
+  xml_content = local.session_manager_base_policy_zendesk_pool
 }
 
 resource "azurerm_api_management_api_tag" "zendesk_api_tag" {
