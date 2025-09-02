@@ -166,23 +166,39 @@ module "external_api_session_manager" {
   xml_content = local.session_manager_base_policy
 }
 
-### REVISION 2
-resource "azurerm_api_management_api" "external_api_session_manager_revision_2" {
-  name                = "io-session-manager-external-api-v1"
+resource "azurerm_api_management_api_operation_policy" "external_api_session_manager_login_policy" {
   api_management_name = var.platform_apim_name
   resource_group_name = var.platform_apim_resource_group_name
+  api_name            = module.external_api_session_manager.name
 
-  version_set_id = azurerm_api_management_api_version_set.auth_v1.id
-  version        = "v1"
-  revision       = 2
-  source_api_id  = module.external_api_session_manager.id
-  display_name   = "IO SESSION MANAGER EXTERNAL API"
-  path           = var.external_api_base_path
-  protocols      = ["https"]
-  description    = "Auth & Identity Session Manager External API"
+  # Operation ID defined in the openapi spec
+  operation_id = "login"
+  xml_content  = <<XML
+      <policies>
+        <inbound>
+          <base />
+          <set-variable name="startMaintenanceTime" value="2025-09-04T04:00:00.000+00:00" />
+          <set-variable name="endMaintenanceTime" value="2025-09-04T06:00:00.000+00:00" />
 
-  service_url           = "${azurerm_api_management_backend.session_manager.url}${var.external_api_base_path}/v1"
-  subscription_required = false
+          <choose>
+            <when condition="@(DateTime.UtcNow >= Convert.ToDateTime(context.Variables["startMaintenanceTime"]) && DateTime.UtcNow <= Convert.ToDateTime(context.Variables["endMaintenanceTime"]))">
+              <return-response>
+                <set-status code="500" reason="Ongoing Maintenance" />
+              </return-response>
+            </when>
+          </choose>
+        </inbound>
+        <backend>
+          <base />
+        </backend>
+        <outbound>
+          <base />
+        </outbound>
+        <on-error>
+          <base />
+        </on-error>
+      </policies>
+  XML
 }
 
 resource "azurerm_api_management_api_tag" "external_api_tag" {
