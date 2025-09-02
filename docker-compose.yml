@@ -248,7 +248,7 @@ services:
   #
   #
   redis-cluster:
-    image: redis:8.2-alpine
+    image: redis:6.0-alpine
     networks:
       - io-fn
     ports:
@@ -258,7 +258,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-0:
-    image: redis:8.2-alpine
+    image: redis:6.0-alpine
     networks:
       - io-fn
     ports:
@@ -269,7 +269,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-1:
-    image: redis:8.2-alpine
+    image: redis:6.0-alpine
     networks:
       - io-fn
     ports:
@@ -281,7 +281,7 @@ services:
 
   
   redis-node-2:
-    image: redis:8.2-alpine
+    image: redis:6.0-alpine
     networks:
       - io-fn
     ports:
@@ -292,7 +292,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-3:
-    image: redis:8.2-alpine
+    image: redis:6.0-alpine
     networks:
       - io-fn
     ports:
@@ -303,7 +303,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
   
   redis-node-4:
-    image: redis:8.2-alpine
+    image: redis:6.0-alpine
     networks:
       - io-fn
     ports:
@@ -314,7 +314,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-5:
-    image: redis:8.2-alpine
+    image: redis:6.0-alpine
     networks:
       - io-fn
     ports:
@@ -325,7 +325,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-6:
-    image: redis:8.2-alpine
+    image: redis:6.0-alpine
     networks:
       - io-fn
     ports:
@@ -336,7 +336,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
   
   redis-cluster-builder:
-    image: redis:8.2-alpine
+    image: redis:6.0-alpine
     ports:
       - 6999:6999
     networks:
