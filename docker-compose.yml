@@ -1,3 +1,9 @@
+# this will ensure compatibility with io-mock docker-compose
+# you can, for example, run io-backend on io-mock and
+# redis-cluster and session-manager here
+#
+# NOTE: make sure to disable redis-cluster dependency for io-backend service in
+# io-mock docker-compose
 name: io-mock
 
 services:
