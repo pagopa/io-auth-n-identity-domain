@@ -257,6 +257,15 @@ services:
       - ./docker/redis/6379/redis.conf:/usr/local/etc/redis/redis.conf
       - redis-cluster-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    # The following depends_on is needed to ensure that all nodes are started
+    # by simply starting the `redis-cluster` service.
+    depends_on:
+      - redis-node-0
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+      - redis-node-5
 
   redis-node-0:
     image: redis:7.0-alpine
