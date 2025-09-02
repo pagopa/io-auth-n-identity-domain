@@ -32,7 +32,7 @@ services:
       cluster-builder:
         condition: service_started
       redis-cluster:
-        condition: service_started
+        condition: service_healthy
       traefik:
         condition: service_started
       spid-testenv2:
