@@ -31,6 +31,8 @@ services:
     depends_on:
       cluster-builder:
         condition: service_started
+      redis-cluster:
+        condition: service_started
       traefik:
         condition: service_started
       spid-testenv2:
