@@ -247,16 +247,6 @@ services:
   # |__| |_____|_____|__|_____|____|__|_____|_____|____|_____|__|
   #
   #
-  redis-cluster:
-    image: redis:6.0-alpine
-    networks:
-      - io-fn
-    ports:
-      - 6379:6379
-    volumes:
-      - ./docker/redis/6379/redis.conf:/usr/local/etc/redis/redis.conf
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
-
   redis-node-0:
     image: redis:6.0-alpine
     networks:
@@ -344,9 +334,8 @@ services:
     command: |-
       redis-cli
       -a bitnami
-      -p 6379
+      -p 6380
       --cluster create
-      redis-cluster:6379
       redis-node-0:6380
       redis-node-1:6381
       redis-node-2:6382
@@ -357,7 +346,6 @@ services:
       --cluster-replicas 1
       --cluster-yes
     depends_on:
-      - redis-cluster
       - redis-node-0
       - redis-node-1
       - redis-node-2
