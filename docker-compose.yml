@@ -324,17 +324,6 @@ services:
       - ./docker/redis/6385/redis.conf:/usr/local/etc/redis/redis.conf
       - redis-node-5-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
-
-  redis-node-6:
-    image: redis:7.0-alpine
-    networks:
-      - io-fn
-    ports:
-      - 6386:6386
-    volumes:
-      - ./docker/redis/6386/redis.conf:/usr/local/etc/redis/redis.conf
-      - redis-node-6-data:/data
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
   
   redis-cluster-builder:
     image: redis:7.0-alpine
@@ -354,7 +343,6 @@ services:
       redis-node-3:6383
       redis-node-4:6384
       redis-node-5:6385
-      redis-node-6:6386
       --cluster-replicas 1
       --cluster-yes
     depends_on:
@@ -365,7 +353,6 @@ services:
       - redis-node-3
       - redis-node-4
       - redis-node-5
-      - redis-node-6
 
 
   # Redis standalone (used by `io-fast-login`)
@@ -441,4 +428,3 @@ volumes:
   redis-node-3-data:
   redis-node-4-data:
   redis-node-5-data:
-  redis-node-6-data:
