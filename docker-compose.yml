@@ -332,6 +332,8 @@ services:
     volumes:
       - ./docker/redis/6379/redis.conf:/usr/local/etc/redis/redis.conf
       - redis-cluster-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "bitnami", "-c", "--raw", "incr", "ping"]
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     # The following depends_on is needed to ensure that all nodes are started
     # by simply starting the `redis-cluster` service.
