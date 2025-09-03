@@ -17,7 +17,7 @@ locals {
   </policies>
   XML
 
-  session_manager_base_policy_zendesk_pool = <<XML
+  session_manager_base_policy_pool = <<XML
   <policies>
       <inbound>
           <base />
@@ -35,16 +35,6 @@ locals {
       </on-error>
   </policies>
   XML
-}
-
-# Remove when the backend pool is used in policies
-resource "azurerm_api_management_backend" "session_manager" {
-  title               = "Session Manager"
-  name                = "session-manager-backend"
-  resource_group_name = var.platform_apim_resource_group_name
-  api_management_name = var.platform_apim_name
-  protocol            = "http"
-  url                 = var.session_manager_urls[0]
 }
 
 resource "azurerm_api_management_backend" "session_manager_backends" {
@@ -113,14 +103,14 @@ module "bpd_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = "${azurerm_api_management_backend.session_manager.url}${var.bpd_api_base_path}/v1"
+  service_url = null
 
   subscription_required = false
 
   content_format = "openapi-link"
   content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/sso/bpd.yaml"
 
-  xml_content = local.session_manager_base_policy
+  xml_content = local.session_manager_base_policy_pool
 }
 
 resource "azurerm_api_management_api_tag" "bpd_api_tag" {
@@ -156,14 +146,14 @@ module "external_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = "${azurerm_api_management_backend.session_manager.url}${var.external_api_base_path}/v1"
+  service_url = null
 
   subscription_required = false
 
   content_format = "openapi-link"
   content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/external.yaml"
 
-  xml_content = local.session_manager_base_policy
+  xml_content = local.session_manager_base_policy_pool
 }
 
 resource "azurerm_api_management_api_operation_policy" "external_api_session_manager_login_policy" {
@@ -233,14 +223,14 @@ module "fims_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = "${azurerm_api_management_backend.session_manager.url}${var.fims_api_base_path}/v1"
+  service_url = null
 
   subscription_required = false
 
   content_format = "openapi-link"
   content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/sso/fims.yaml"
 
-  xml_content = local.session_manager_base_policy
+  xml_content = local.session_manager_base_policy_pool
 }
 
 resource "azurerm_api_management_api_tag" "fims_api_tag" {
@@ -274,14 +264,14 @@ module "pagopa_api_session_manager" {
   protocols      = ["https"]
   product_ids    = [data.azurerm_api_management_product.apim_platform_domain_product.product_id]
 
-  service_url = "${azurerm_api_management_backend.session_manager.url}${var.pagopa_api_base_path}/v1"
+  service_url = null
 
   subscription_required = false
 
   content_format = "openapi-link"
   content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/sso/pagopa.yaml"
 
-  xml_content = local.session_manager_base_policy
+  xml_content = local.session_manager_base_policy_pool
 }
 
 resource "azurerm_api_management_api_tag" "pagopa_api_tag" {
@@ -322,7 +312,7 @@ module "zendesk_api_session_manager" {
   content_format = "openapi-link"
   content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/sso/zendesk.yaml"
 
-  xml_content = local.session_manager_base_policy_zendesk_pool
+  xml_content = local.session_manager_base_policy_pool
 }
 
 resource "azurerm_api_management_api_tag" "zendesk_api_tag" {
