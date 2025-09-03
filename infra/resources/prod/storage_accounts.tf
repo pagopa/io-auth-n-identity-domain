@@ -57,7 +57,8 @@ module "storage_account_services" {
   }
 
   queues = [
-    "pubkeys-revoke-01",
+    local.pubkeys_revoke_queue_name,
+    local.pubkeys_revoke_poison_queue_name,
     local.expired_user_sessions_queue_name,
     local.expired_user_sessions_poison_queue_name
   ]
