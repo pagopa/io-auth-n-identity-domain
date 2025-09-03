@@ -1,5 +1,11 @@
 # io-lollipop
 
+## 1.14.0
+
+### Minor Changes
+
+- fda2758: Introduce new storage for public key revocation
+
 ## 1.13.4
 
 ### Patch Changes

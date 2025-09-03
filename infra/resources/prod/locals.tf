@@ -26,6 +26,8 @@ locals {
 
   io_session_notifications_sub_max_delivery_count = 10
 
+  pubkeys_revoke_queue_name               = "pubkeys-revoke-01"
+  pubkeys_revoke_poison_queue_name        = "pubkeys-revoke-01-poison"
   expired_user_sessions_queue_name        = "expired-user-sessions-01"
   expired_user_sessions_poison_queue_name = "expired-user-sessions-01-poison"
 
