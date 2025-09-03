@@ -195,3 +195,39 @@ module "function_lollipop_autoscale" {
 
   tags = local.tags
 }
+
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "pubkeys_revoke_failure_alert_rule" {
+  enabled             = true
+  name                = "[CITIZEN-AUTH | ${module.storage_accounts.session.name}] Failures on ${local.pubkeys_revoke_poison_queue_name} queue"
+  resource_group_name = data.azurerm_resource_group.main_resource_group.name
+  location            = local.location
+
+  scopes                  = [module.storage_accounts.session.id]
+  description             = <<-EOT
+    Permanent failures processing ${local.pubkeys_revoke_queue_name} queue. REQUIRED MANUAL ACTION.
+  EOT
+  severity                = 1
+  auto_mitigation_enabled = false
+
+  // daily check
+  window_duration      = "P1D"
+  evaluation_frequency = "P1D"
+
+  criteria {
+    query                   = <<-QUERY
+      StorageQueueLogs
+        | where OperationName contains "PutMessage"
+        | where Uri contains "${local.pubkeys_revoke_poison_queue_name}"
+      QUERY
+    operator                = "GreaterThan"
+    threshold               = 0
+    time_aggregation_method = "Count"
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}
