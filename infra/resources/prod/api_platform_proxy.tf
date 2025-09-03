@@ -5,7 +5,10 @@ module "io_platform_apim_api_itn" {
   platform_apim_resource_group_name = data.azurerm_api_management.platform_apim.resource_group_name
   platform_apim_id                  = data.azurerm_api_management.platform_apim.id
 
-  session_manager_url = "https://${data.azurerm_linux_web_app.weu_session_manager.default_hostname}/"
+  session_manager_urls = [
+    "https://${data.azurerm_linux_web_app.weu_session_manager.default_hostname}/",
+    "https://${data.azurerm_linux_web_app.weu_session_manager_bis.default_hostname}/"
+  ]
 
   external_api_base_path = "api/auth"
   bpd_api_base_path      = "api/sso/bpd"
