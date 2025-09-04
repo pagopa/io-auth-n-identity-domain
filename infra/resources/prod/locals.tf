@@ -31,6 +31,10 @@ locals {
   expired_user_sessions_queue_name        = "expired-user-sessions-01"
   expired_user_sessions_poison_queue_name = "expired-user-sessions-01-poison"
 
+  # Temporary queues for SessionNotificationsInitRecovery from io-profile-async
+  session_notifications_init_recovery_queue_name        = "session-notifications-init-recovery-01"
+  session_notifications_init_recovery_poison_queue_name = "session-notifications-init-recovery-01-poison"
+
   profile_events_queue_name = "profile-events-01"
 
   tags = {
