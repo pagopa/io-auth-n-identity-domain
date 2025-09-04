@@ -3360,17 +3360,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@pagopa/io-functions-app-sdk@npm:x":
-  version: 5.14.1
-  resolution: "@pagopa/io-functions-app-sdk@npm:5.14.1"
-  dependencies:
-    "@pagopa/ts-commons": "npm:^10.0.0"
-    fp-ts: "npm:^2.10.5"
-    io-ts: "npm:^2.2.16"
-  checksum: 10c0/9039d8047e693cc9375053dd469ca5fa0c47fb84c43d264d749b3920eeb5d41e221da7f77a92fff308b1d3bd69d219a2aa44a90509f1f26339628e2f99183c56
-  languageName: node
-  linkType: hard
-
 "@pagopa/io-functions-commons@npm:28.1.0":
   version: 28.1.0
   resolution: "@pagopa/io-functions-commons@npm:28.1.0"
@@ -3652,7 +3641,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/ts-commons@npm:^10.0.0, @pagopa/ts-commons@npm:^10.15.0, @pagopa/ts-commons@npm:^10.3.0":
+"@pagopa/ts-commons@npm:^10.15.0, @pagopa/ts-commons@npm:^10.3.0":
   version: 10.15.0
   resolution: "@pagopa/ts-commons@npm:10.15.0"
   dependencies:
@@ -11146,7 +11135,6 @@ __metadata:
     "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/io-auth-n-identity-commons": "npm:*"
-    "@pagopa/io-functions-app-sdk": "npm:x"
     "@pagopa/io-functions-commons": "npm:^29.1.0"
     "@pagopa/io-spid-commons": "npm:^14.0.1"
     "@pagopa/openapi-codegen-ts": "npm:^14.0.1"
