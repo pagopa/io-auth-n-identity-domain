@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.13.0
+
+### Minor Changes
+
+- 6cbb4e6: Update `SessionNotificationInitRecovery` storage connection to ITN maintenance
+
 ## 1.12.0
 
 ### Minor Changes
