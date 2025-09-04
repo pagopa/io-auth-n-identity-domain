@@ -1,9 +1,9 @@
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
-import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
-import { UserLoginParams } from "@pagopa/io-functions-app-sdk/UserLoginParams";
 import * as RTE from "fp-ts/ReaderTaskEither";
+import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
+import { UserLoginParams } from "../generated/io-profile/UserLoginParams";
 import { FnAppAPIRepositoryDeps } from "../repositories/fn-app-api";
 
 export const onUserLogin: (

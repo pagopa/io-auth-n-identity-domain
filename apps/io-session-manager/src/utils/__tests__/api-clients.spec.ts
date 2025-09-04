@@ -1,7 +1,7 @@
 import { beforeAll, afterAll, describe, expect, test, vi } from "vitest";
 import ServerMock from "mock-http-server";
 import { AbortError } from "node-fetch";
-import { createClient as FnAppClient } from "@pagopa/io-functions-app-sdk/client";
+import { createClient as FnAppClient } from "../../generated/io-profile/client";
 import { createClient as FastLoginClient } from "../../generated/fast-login-api/client";
 import { createClient as LollipopClient } from "../../generated/lollipop-api/client";
 import { aFiscalCode } from "../../__mocks__/user.mocks";
