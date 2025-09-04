@@ -5,7 +5,7 @@
       "direction": "in",
       "name": "messageUserSessionToRecover",
       "queueName": "%SESSION_NOTIFICATIONS_INIT_RECOVERY_QUEUE%",
-      "connection": "AZURE_STORAGE_CONNECTION_STRING"
+      "connection": "AZURE_MAINTENANCE_STORAGE_CONNECTION_STRING_ITN"
     }
   ],
   "retry": {
