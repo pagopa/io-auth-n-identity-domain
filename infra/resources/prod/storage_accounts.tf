@@ -110,7 +110,8 @@ module "storage_account_maintenance_services" {
   ]
 
   queues = [
-    "profile-migrate-services-preferences-from-legacy-01",
+    local.profile_migrate_services_preferences_from_legacy_queue_name,
+    local.profile_migrate_services_preferences_from_legacy_poison_queue_name,
     "profiles-to-sanitize-01",
     local.profile_events_queue_name,
     local.session_notifications_init_recovery_queue_name,
