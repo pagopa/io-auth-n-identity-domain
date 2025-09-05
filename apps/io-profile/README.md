@@ -69,7 +69,7 @@ These must be the other variables values for the `local.settings.json` file:
 Then, copy `.env.example` to `.env` and fill the variables with the following mandatory variables:
 
 - EventsQueueStorageConnection=**connection string**
-- IOPSTAPP_STORAGE_CONNECTION_STRING=**connection string**
+- MIGRATE_SERVICES_PREFERENCES_PROFILE_CONNECTION_STRING=**connection string**
 
 The **connection string** is the same used for the AzureWebJobsStorage in the `local.settings.json` file.
 

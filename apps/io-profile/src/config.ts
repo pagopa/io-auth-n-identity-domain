@@ -68,7 +68,7 @@ export const IConfig = t.intersection([
     // eslint-disable-next-line sort-keys
     EventsQueueName: NonEmptyString,
     EventsQueueStorageConnection: NonEmptyString,
-    IOPSTAPP_STORAGE_CONNECTION_STRING: NonEmptyString,
+    MIGRATE_SERVICES_PREFERENCES_PROFILE_CONNECTION_STRING: NonEmptyString,
     MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME: NonEmptyString,
     QueueStorageConnection: NonEmptyString,
 
