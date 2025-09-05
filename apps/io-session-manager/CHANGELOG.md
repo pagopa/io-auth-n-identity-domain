@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.11.0
+
+### Minor Changes
+
+- 7c3f451: migrate from fn-profile SDK to generated client
+
 ## 1.10.0
 
 ### Minor Changes
