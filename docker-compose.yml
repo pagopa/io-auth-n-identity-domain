@@ -41,6 +41,8 @@ services:
         condition: service_started
       io-lollipop:
         condition: service_started
+      io-fast-login:
+        condition: service_started
       servicebus:
         condition: service_started
     networks:
@@ -174,7 +176,7 @@ services:
       - io-fn
     depends_on:
       - io-lollipop
-      - io-session-manager
+      - io-session-manager-internal
       - storage
       - cosmosdb
       - redis-standalone

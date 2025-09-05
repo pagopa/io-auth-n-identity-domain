@@ -10,13 +10,13 @@ import {
   IResponseErrorConflict,
   ResponseErrorConflict,
 } from "@pagopa/ts-commons/lib/responses";
-import { ExtendedProfile as ExtendedProfileApi } from "@pagopa/io-functions-app-sdk/ExtendedProfile";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { NewProfile } from "@pagopa/io-functions-app-sdk/NewProfile";
+import { NewProfile } from "../generated/io-profile/NewProfile";
+import { ExtendedProfile as ExtendedProfileApi } from "../generated/io-profile/ExtendedProfile";
 import {
   unhandledResponseStatus,
   withValidatedOrInternalError,

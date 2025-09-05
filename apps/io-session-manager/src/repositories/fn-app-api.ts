@@ -1,5 +1,5 @@
 import nodeFetch from "node-fetch";
-import { Client, createClient } from "@pagopa/io-functions-app-sdk/client";
+import { Client, createClient } from "../generated/io-profile/client";
 
 export const FnAppAPIClient = (
   baseUrl: string,

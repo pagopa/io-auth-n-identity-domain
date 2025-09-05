@@ -1,5 +1,4 @@
 /* eslint-disable max-lines-per-function */
-import { UserLoginParams } from "@pagopa/io-functions-app-sdk/UserLoginParams";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
 import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
@@ -47,6 +46,7 @@ import {
 } from "../config/spid";
 import { AssertionRef } from "../generated/backend/AssertionRef";
 import { AccessToken } from "../generated/public/AccessToken";
+import { UserLoginParams } from "../generated/io-profile/UserLoginParams";
 import {
   FnLollipopRepo,
   AuthSessionEventsRepo,

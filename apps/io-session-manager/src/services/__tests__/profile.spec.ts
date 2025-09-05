@@ -1,7 +1,6 @@
 import { describe, test, expect, vi, afterEach } from "vitest";
 import * as t from "io-ts";
-import { ReminderStatusEnum } from "@pagopa/io-functions-app-sdk/ReminderStatus";
-import { PushNotificationsContentTypeEnum } from "@pagopa/io-functions-app-sdk/PushNotificationsContentType";
+
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
@@ -9,13 +8,18 @@ import {
   Issuer,
   SPID_IDP_IDENTIFIERS,
 } from "@pagopa/io-spid-commons/dist/config";
-import { NewProfile } from "@pagopa/io-functions-app-sdk/NewProfile";
+
 import {
   ResponseErrorConflict,
   ResponseErrorInternal,
   ResponseErrorTooManyRequests,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
+
+import { NewProfile } from "../../generated/io-profile/NewProfile";
+import { ReminderStatusEnum } from "../../generated/io-profile/ReminderStatus";
+import { PushNotificationsContentTypeEnum } from "../../generated/io-profile/PushNotificationsContentType";
+
 import {
   aFiscalCode,
   aSpidEmailAddress,

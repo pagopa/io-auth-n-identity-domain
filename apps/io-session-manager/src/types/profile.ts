@@ -1,6 +1,5 @@
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
-import { ExtendedProfile } from "@pagopa/io-functions-app-sdk/ExtendedProfile";
 import * as t from "io-ts";
 import {
   EmailString,
@@ -8,6 +7,7 @@ import {
   NonEmptyString,
 } from "@pagopa/ts-commons/lib/strings";
 import { formatDate } from "../utils/date";
+import { ExtendedProfile } from "../generated/io-profile/ExtendedProfile";
 import { InitializedProfile } from "../generated/backend/InitializedProfile";
 import { EmailAddress } from "../generated/backend/EmailAddress";
 import { User } from "./user";

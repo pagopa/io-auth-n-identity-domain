@@ -2,9 +2,9 @@ import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import {
   PreferredLanguage,
   PreferredLanguageEnum,
-} from "@pagopa/io-functions-app-sdk/PreferredLanguage";
-import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-app-sdk/ServicesPreferencesMode";
-import { ExtendedProfile } from "@pagopa/io-functions-app-sdk/ExtendedProfile";
+} from "../generated/io-profile/PreferredLanguage";
+import { ServicesPreferencesModeEnum } from "../generated/io-profile/ServicesPreferencesMode";
+import { ExtendedProfile } from "../generated/io-profile/ExtendedProfile";
 import { EmailAddress } from "../generated/backend/EmailAddress";
 import { FiscalCode } from "../generated/backend/FiscalCode";
 import { SpidLevelEnum } from "../types/spid-level";
