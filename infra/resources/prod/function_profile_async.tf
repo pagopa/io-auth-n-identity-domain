@@ -69,9 +69,10 @@ locals {
       AZURE_MAINTENANCE_STORAGE_CONNECTION_STRING_ITN = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.maintenance_st_connection_string.versionless_id})"
 
       //MigrateServicePreferenceFromLegacy Config
-      IOPSTAPP_STORAGE_CONNECTION_STRING              = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.iopstapp_connection_string.versionless_id})"
-      MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME = "profile-migrate-services-preferences-from-legacy" // TODO: replace when this queue is migrate in the monorepo
-      //
+      IOPSTAPP_STORAGE_CONNECTION_STRING              = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.maintenance_st_connection_string.versionless_id})"
+      MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME = local.profile_migrate_services_preferences_from_legacy_queue_name
+      MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.maintenance_st_connection_string.versionless_id})"
+
       // OnProfileUpdate cosmosDB trigger variables
       ON_PROFILE_UPDATE_LEASES_PREFIX  = "OnProfileUpdateLeasesPrefix-001"
       PROFILE_EMAIL_STORAGE_TABLE_NAME = "profileEmails"
