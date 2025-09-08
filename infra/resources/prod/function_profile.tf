@@ -45,8 +45,8 @@ locals {
       FUNCTIONS_PUBLIC_URL     = "https://api.io.pagopa.it/public"
 
       // Service Preferences Migration Queue
-      MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME        = local.profile_migrate_services_preferences_from_legacy_queue_name
-      MIGRATE_SERVICES_PREFERENCES_PROFILE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.maintenance_st_connection_string.versionless_id})"
+      MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME = local.profile_migrate_services_preferences_from_legacy_queue_name
+      MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.maintenance_st_connection_string.versionless_id})"
 
       // Events configs
       EventsQueueStorageConnection = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.maintenance_st_connection_string.versionless_id})"
