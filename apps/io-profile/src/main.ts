@@ -107,7 +107,7 @@ const eventsQueueServiceClient = QueueServiceClient.fromConnectionString(
 
 const migrateServicePreferencesQueueClient =
   QueueServiceClient.fromConnectionString(
-    config.IOPSTAPP_STORAGE_CONNECTION_STRING,
+    config.MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING,
   ).getQueueClient(config.MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME);
 
 // Email data

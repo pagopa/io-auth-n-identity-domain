@@ -26,10 +26,12 @@ locals {
 
   io_session_notifications_sub_max_delivery_count = 10
 
-  pubkeys_revoke_queue_name               = "pubkeys-revoke-01"
-  pubkeys_revoke_poison_queue_name        = "pubkeys-revoke-01-poison"
-  expired_user_sessions_queue_name        = "expired-user-sessions-01"
-  expired_user_sessions_poison_queue_name = "expired-user-sessions-01-poison"
+  pubkeys_revoke_queue_name                                          = "pubkeys-revoke-01"
+  pubkeys_revoke_poison_queue_name                                   = "pubkeys-revoke-01-poison"
+  expired_user_sessions_queue_name                                   = "expired-user-sessions-01"
+  expired_user_sessions_poison_queue_name                            = "expired-user-sessions-01-poison"
+  profile_migrate_services_preferences_from_legacy_queue_name        = "profile-migrate-services-preferences-from-legacy-01"
+  profile_migrate_services_preferences_from_legacy_poison_queue_name = "profile-migrate-services-preferences-from-legacy-01-poison"
 
   # Temporary queues for SessionNotificationsInitRecovery from io-profile-async
   session_notifications_init_recovery_queue_name        = "session-notifications-init-recovery-01"
