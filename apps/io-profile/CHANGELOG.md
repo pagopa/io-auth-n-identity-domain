@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.26.0
+
+### Minor Changes
+
+- 912ca42: Rename environment variable from `IOPSTAPP_STORAGE_CONNECTION_STRING` to `MIGRATE_SERVICES_PREFERENCES_PROFILE_CONNECTION_STRING`
+
 ## 5.25.3
 
 ### Patch Changes
