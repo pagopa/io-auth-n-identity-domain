@@ -93,7 +93,7 @@ export const IConfig = t.intersection([
     EXPIRED_SESSION_CTA_URL: UrlFromString,
 
     // MigrateServicePreferenceFromLegacy Config
-    IOPSTAPP_STORAGE_CONNECTION_STRING: NonEmptyString,
+    MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING: NonEmptyString,
     MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME: NonEmptyString,
 
     ON_PROFILE_UPDATE_LEASES_PREFIX: NonEmptyString,
