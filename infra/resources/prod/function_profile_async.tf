@@ -109,8 +109,8 @@ locals {
       AzureFunctionsJobHost__extensions__serviceBus__maxConcurrentSessions = 100
       AzureFunctionsJobHost__extensions__serviceBus__sessionIdleTimeout    = "00:00:05"
 
-      // Dry Run enabled, no mail will be sent on ExpiredSessionAdvisor
-      FF_DRY_RUN = true
+      // On DRY_RUN FeatureFlag enabled, no mail will be sent on ExpiredSessionAdvisor
+      FF_DRY_RUN = false
     }
   }
 }
