@@ -1,5 +1,0 @@
----
-"io-profile-async": minor
----
-
-Rename environment variable from `IOPSTAPP_STORAGE_CONNECTION_STRING` to `MIGRATE_SERVICES_PREFERENCES_PROFILE_CONNECTION_STRING`
