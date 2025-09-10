@@ -10,7 +10,10 @@ export type LoginTypeT = t.TypeOf<typeof LoginType>;
 export const LoginType = enumType<LoginTypeEnum>(LoginTypeEnum, "LoginType");
 
 export type AdditionalLoginPropsT = t.TypeOf<typeof AdditionalLoginProps>;
-export const AdditionalLoginProps = t.partial({ loginType: LoginType });
+export const AdditionalLoginProps = t.partial({
+  loginType: LoginType,
+  currentUser: NonEmptyString,
+});
 
 export const FastLoginResponse = t.type({
   token: NonEmptyString,
