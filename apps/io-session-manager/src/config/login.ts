@@ -24,7 +24,7 @@ export const TEST_LOGIN_FISCAL_CODES: ReadonlyArray<FiscalCode> = pipe(
   E.getOrElseW(() => []),
 );
 
-export function decompressFiscalCodeList(envVar?: string) {
+export function decompressFiscalCodeList(envVar?: string): Set<FiscalCode> {
   return pipe(
     envVar,
     NonEmptyString.decode,
@@ -37,14 +37,14 @@ export function decompressFiscalCodeList(envVar?: string) {
         throw Error(`Invalid compressed FiscalCode list value: ${err}`);
       }
     }),
-    E.map((_) => _.split(",")),
-    E.map((_) => A.rights(_.map(FiscalCode.decode))),
+    E.chain(CommaSeparatedListOf(FiscalCode).decode),
     E.getOrElseW(() => []),
+    (array) => new Set(array),
   );
 }
 
 // Password login params
-export const TEST_LOGIN_FISCAL_CODES_COMPRESSED: ReadonlyArray<FiscalCode> =
+export const TEST_LOGIN_FISCAL_CODES_COMPRESSED: Set<FiscalCode> =
   decompressFiscalCodeList(process.env.TEST_LOGIN_FISCAL_CODES_COMPRESSED);
 
 // IOLOGIN FF variable
@@ -95,4 +95,4 @@ export const TEST_LOGIN_PASSWORD = NonEmptyString.decode(
 );
 
 export const isTestUser = (fiscalCode: FiscalCode) =>
-  TEST_LOGIN_FISCAL_CODES_COMPRESSED.includes(fiscalCode);
+  TEST_LOGIN_FISCAL_CODES_COMPRESSED.has(fiscalCode);
