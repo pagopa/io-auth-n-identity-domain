@@ -70,8 +70,7 @@
     "range_check": "^2.0.4",
     "redis": "~4.5.1",
     "ulid": "^2.3.0",
-    "winston": "^3.13.0",
-    "zlib": "^1.0.5"
+    "winston": "^3.13.0"
   },
   "devDependencies": {
     "@pagopa/eslint-config": "^3.0.0",
