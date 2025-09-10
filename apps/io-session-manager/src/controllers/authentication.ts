@@ -186,6 +186,20 @@ export const acs: (
 
     const spidUser = errorOrSpidUser.right;
 
+    if (
+      additionalProps?.currentUser &&
+      additionalProps?.currentUser !== sha256(spidUser.fiscalNumber)
+    ) {
+      // If the currentUser is provided, we use it to override the userPayload
+      // and avoid re-validating the SPID user.
+      // This is useful for testing purposes.
+      // TODO: this error should be changed with a client mapped one!
+      return validationCookieClearanceErrorValidation(
+        "Bad request",
+        "Spid user does not match currentUser",
+      );
+    }
+
     // if the CIE test user is not in the whitelist we return
     // with a not authorized
     if (
