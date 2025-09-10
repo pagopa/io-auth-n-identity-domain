@@ -28,7 +28,7 @@ import { VALIDATION_COOKIE_NAME } from "../config/validation-cookie";
  * the fiscal code (user name) provided during login.
  */
 export const localStrategy = (
-  validUsernameList: ReadonlyArray<FiscalCode>,
+  isTestUser: (fiscalCode: FiscalCode) => boolean,
   validPassword: string,
   lollipopApiClient: LollipopApiClient,
   appInsightsTelemetryClient?: appInsights.TelemetryClient,
@@ -37,7 +37,7 @@ export const localStrategy = (
     pipe(
       TE.of(
         FiscalCode.is(username) &&
-          validUsernameList.includes(username) &&
+          isTestUser(username) &&
           validPassword === password,
       ),
       TE.chain(
