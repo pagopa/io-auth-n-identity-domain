@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.14.0
+
+### Minor Changes
+
+- 5912a83: Rename environment variable from `IOPSTAPP_STORAGE_CONNECTION_STRING` to `MIGRATE_SERVICES_PREFERENCES_PROFILE_CONNECTION_STRING`
+
 ## 1.13.0
 
 ### Minor Changes
