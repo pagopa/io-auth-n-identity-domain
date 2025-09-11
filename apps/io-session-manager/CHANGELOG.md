@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.12.0
+
+### Minor Changes
+
+- d22df37: Encrease the number of test users managed via environment variable, using a compressed string.
+
 ## 1.11.0
 
 ### Minor Changes
