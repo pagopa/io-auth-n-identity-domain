@@ -105,6 +105,7 @@ export const AGE_LIMIT = 14;
 export const AGE_LIMIT_ERROR_CODE = 1001;
 export const AUTHENTICATION_LOCKED_ERROR = 1002;
 export const VALIDATION_COOKIE_ERROR_CODE = 1003;
+export const DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE = 1004;
 
 const validationCookieClearanceErrorInternal = (detail: string) =>
   withCookieClearanceResponseErrorInternal(
@@ -186,17 +187,30 @@ export const acs: (
 
     const spidUser = errorOrSpidUser.right;
 
-    if (
-      additionalProps?.currentUser &&
-      additionalProps?.currentUser !== sha256(spidUser.fiscalNumber)
-    ) {
-      // If the currentUser is provided, we use it to override the userPayload
-      // and avoid re-validating the SPID user.
-      // This is useful for testing purposes.
-      // TODO: this error should be changed with a client mapped one!
-      return validationCookieClearanceErrorValidation(
-        "Bad request",
-        "Spid user does not match currentUser",
+    if (isDifferentUserTryingToLogin(spidUser.fiscalNumber, additionalProps)) {
+      // In Case of provided currentUser, we check if it match the spidUser.fiscalNumber in SAMLResponse
+      // In case not we will block the login cause a different user is attempting an "active session login"
+      const redirectionUrl = deps.getClientErrorRedirectionUrl({
+        errorCode: DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
+      });
+
+      deps.appInsightsTelemetryClient?.trackEvent({
+        name: "acs.error.different_user_active_session_login",
+        properties: {
+          message:
+            "User login blocked due to a mismatch on FiscalCode between SAMLResponse and currentUser header",
+          type: "INFO",
+        },
+      });
+
+      return pipe(
+        deps.isUserElegibleForIoLoginUrlScheme(spidUser.fiscalNumber),
+        B.fold(
+          () =>
+            E.right(validationCookieClearancePermanentRedirect(redirectionUrl)),
+          () => internalErrorOrIoLoginRedirect(redirectionUrl),
+        ),
+        E.toUnion,
       );
     }
 
@@ -858,6 +872,18 @@ const errorOrEmitEventIfEligible: (
       ),
     );
 
+const isDifferentUserTryingToLogin = (
+  spidUserFiscalCode: FiscalCode,
+  additionalProps?: AdditionalLoginPropsT,
+): boolean =>
+  pipe(
+    additionalProps?.currentUser,
+    O.fromNullable,
+    O.map(
+      (currentUserSha256) => currentUserSha256 !== sha256(spidUserFiscalCode),
+    ),
+    O.getOrElse(() => false),
+  );
 export const acsTest: (
   userPayload: unknown,
 ) => (
