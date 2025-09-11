@@ -179,7 +179,11 @@ describe("ProfileService#createProfile", () => {
     is_email_validated: false,
     is_test_profile: false,
   };
-  test("create an user profile to the API", async () => {
+  test.each`
+    is_test_profile
+    ${false}
+    ${true}
+  `("create an user profile to the API", async ({ is_test_profile }) => {
     mockCreateProfile.mockResolvedValueOnce(t.success(validApiProfileResponse));
 
     const result = await pipe(
@@ -188,16 +192,20 @@ describe("ProfileService#createProfile", () => {
         validUserPayload,
       )({
         fnAppAPIClient: mockedFnAppAPIClient,
-        testLoginFiscalCodes: [],
+        isTestUser: () => is_test_profile,
       }),
     )();
 
     expect(mockCreateProfile).toHaveBeenCalledWith({
       fiscal_code: mockedUser.fiscal_code,
-      body: createProfileRequest,
+      body: { ...createProfileRequest, is_test_profile },
     });
     expect(result).toEqual(
-      E.right(toExpectedResponse(ResponseSuccessJson(createProfileRequest))),
+      E.right(
+        toExpectedResponse(
+          ResponseSuccessJson({ ...createProfileRequest, is_test_profile }),
+        ),
+      ),
     );
   });
 
@@ -217,7 +225,7 @@ describe("ProfileService#createProfile", () => {
         validUserPayload,
       )({
         fnAppAPIClient: mockedFnAppAPIClient,
-        testLoginFiscalCodes: [],
+        isTestUser: () => false,
       }),
     )();
 
@@ -243,7 +251,7 @@ describe("ProfileService#createProfile", () => {
         validUserPayload,
       )({
         fnAppAPIClient: mockedFnAppAPIClient,
-        testLoginFiscalCodes: [],
+        isTestUser: () => false,
       }),
     )();
 
@@ -265,7 +273,7 @@ describe("ProfileService#createProfile", () => {
         validUserPayload,
       )({
         fnAppAPIClient: mockedFnAppAPIClient,
-        testLoginFiscalCodes: [],
+        isTestUser: () => false,
       }),
     )();
 
