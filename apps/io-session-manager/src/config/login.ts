@@ -15,15 +15,6 @@ import { Second } from "@pagopa/ts-commons/lib/units";
 import { getIsUserElegibleForIoLoginUrlScheme } from "../utils/login-uri-scheme";
 import { gunzipSync } from "zlib";
 
-// Password login params
-export const TEST_LOGIN_FISCAL_CODES: ReadonlyArray<FiscalCode> = pipe(
-  process.env.TEST_LOGIN_FISCAL_CODES,
-  NonEmptyString.decode,
-  E.map((_) => _.split(",")),
-  E.map((_) => A.rights(_.map(FiscalCode.decode))),
-  E.getOrElseW(() => []),
-);
-
 export function decompressFiscalCodeList(envVar?: string): Set<FiscalCode> {
   return pipe(
     envVar,

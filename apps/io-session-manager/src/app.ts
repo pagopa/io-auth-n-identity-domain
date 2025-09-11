@@ -77,7 +77,6 @@ import {
 import {
   isUserElegibleForIoLoginUrlScheme,
   standardTokenDurationSecs,
-  isTestUser,
 } from "./config/login";
 import { initStorageDependencies } from "./utils/storages";
 import { omit } from "./utils/types";
@@ -173,7 +172,7 @@ export const newApp: (
     getClientErrorRedirectionUrl,
     getClientProfileRedirectionUrl,
     isUserElegibleForIoLoginUrlScheme,
-    testLoginFiscalCodes: LoginConfig.TEST_LOGIN_FISCAL_CODES,
+    isTestUser: LoginConfig.isTestUser,
     allowedCieTestFiscalCodes: ALLOWED_CIE_TEST_FISCAL_CODES,
     standardTokenDurationSecs,
     lvTokenDurationSecs: FastLoginConfig.lvTokenDurationSecs,
