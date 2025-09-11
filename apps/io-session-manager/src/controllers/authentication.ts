@@ -199,7 +199,6 @@ export const acs: (
         properties: {
           message:
             "User login blocked due to a mismatch on FiscalCode between SAMLResponse and currentUser header",
-          type: "INFO",
         },
       });
 
@@ -879,10 +878,7 @@ const isDifferentUserTryingToLogin = (
   pipe(
     additionalProps?.currentUser,
     O.fromNullable,
-    O.map(
-      (currentUserSha256) => currentUserSha256 !== sha256(spidUserFiscalCode),
-    ),
-    O.getOrElse(() => false),
+    O.exists((c) => c !== sha256(spidUserFiscalCode))
   );
 export const acsTest: (
   userPayload: unknown,

@@ -481,7 +481,6 @@ describe("AuthenticationController#acs Active Session Test", () => {
         name: "acs.error.different_user_active_session_login",
         properties: {
           message: expect.any(String),
-          type: "INFO",
         },
       }),
     );
