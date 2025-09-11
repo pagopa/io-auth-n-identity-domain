@@ -5,14 +5,15 @@ import {
 } from "@pagopa/ts-commons/lib/featureFlag";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { CommaSeparatedListOf } from "@pagopa/ts-commons/lib/comma-separated-list";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import * as O from "fp-ts/Option";
-import * as A from "fp-ts/lib/Array";
+import * as A from "fp-ts/Array";
 import { Second } from "@pagopa/ts-commons/lib/units";
-import { getRequiredENVVar } from "../utils/environment";
 import { getIsUserElegibleForIoLoginUrlScheme } from "../utils/login-uri-scheme";
+import { gunzipSync } from "zlib";
 
 // Password login params
 export const TEST_LOGIN_FISCAL_CODES: ReadonlyArray<FiscalCode> = pipe(
@@ -22,6 +23,29 @@ export const TEST_LOGIN_FISCAL_CODES: ReadonlyArray<FiscalCode> = pipe(
   E.map((_) => A.rights(_.map(FiscalCode.decode))),
   E.getOrElseW(() => []),
 );
+
+export function decompressFiscalCodeList(envVar?: string): Set<FiscalCode> {
+  return pipe(
+    envVar,
+    NonEmptyString.decode,
+    E.map((_) => Buffer.from(_, "base64")),
+    E.map((buffer) => {
+      try {
+        const decompressedBuffer = gunzipSync(buffer).toString();
+        return decompressedBuffer;
+      } catch (err) {
+        throw Error(`Invalid compressed FiscalCode list value: ${err}`);
+      }
+    }),
+    E.chain(CommaSeparatedListOf(FiscalCode).decode),
+    E.getOrElseW(() => []),
+    (array) => new Set(array),
+  );
+}
+
+// Password login params
+export const TEST_LOGIN_FISCAL_CODES_COMPRESSED: Set<FiscalCode> =
+  decompressFiscalCodeList(process.env.TEST_LOGIN_FISCAL_CODES_COMPRESSED);
 
 // IOLOGIN FF variable
 export const FF_IOLOGIN = pipe(
@@ -69,3 +93,6 @@ export const isUserElegibleForIoLoginUrlScheme =
 export const TEST_LOGIN_PASSWORD = NonEmptyString.decode(
   process.env.TEST_LOGIN_PASSWORD,
 );
+
+export const isTestUser = (fiscalCode: FiscalCode) =>
+  TEST_LOGIN_FISCAL_CODES_COMPRESSED.has(fiscalCode);

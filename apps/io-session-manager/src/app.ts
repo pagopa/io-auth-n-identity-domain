@@ -77,6 +77,7 @@ import {
 import {
   isUserElegibleForIoLoginUrlScheme,
   standardTokenDurationSecs,
+  isTestUser,
 } from "./config/login";
 import { initStorageDependencies } from "./utils/storages";
 import { omit } from "./utils/types";
@@ -428,7 +429,7 @@ function setupExternalEndpoints(
       passport.use(
         "local",
         localStrategy(
-          loginConfig.TEST_LOGIN_FISCAL_CODES,
+          loginConfig.isTestUser,
           testLoginPassword,
           APIClients.fnLollipopAPIClient,
           appInsightsClient,
