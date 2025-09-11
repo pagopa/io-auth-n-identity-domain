@@ -30,6 +30,7 @@ import {
   AGE_LIMIT,
   AGE_LIMIT_ERROR_CODE,
   AUTHENTICATION_LOCKED_ERROR,
+  DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
   AcsDependencies,
   acs,
   acsTest,
@@ -430,6 +431,68 @@ describe("AuthenticationController#acs", () => {
       ...anErrorResponse,
       detail: "Error while creating the user session",
     });
+  });
+});
+
+describe("AuthenticationController#acs Active Session Test", () => {
+  test("should redirects to the correct url when the fiscalCode on userPayload match the one received from the APP(stored in additionalProps)", async () => {
+    const additionalProps = {
+      currentUser: sha256(validUserPayload.fiscalNumber),
+    };
+
+    mockGetProfile.mockReturnValueOnce(
+      TE.of(ResponseSuccessJson(mockedInitializedProfile)),
+    );
+
+    const response = await acs(dependencies)(validUserPayload, additionalProps);
+    response.apply(res);
+
+    expect(res.redirect).toHaveBeenCalledWith(
+      301,
+      expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
+    );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+    expect(mockSet).toHaveBeenCalledWith(
+      mockRedisClientSelector,
+      standardTokenDurationSecs,
+    );
+    expect(mockGetProfile).toHaveBeenCalledWith({
+      fnAppAPIClient: mockedFnAppAPIClient,
+      user: expect.objectContaining({
+        ...mockedUser,
+        created_at: expect.any(Number), // TODO: mock date
+      }),
+    });
+    expect(mockCreateProfile).not.toBeCalled();
+
+    expect(mockOnUserLogin).toHaveBeenCalled();
+  });
+
+  test("should redirects to the error url if the fiscalCode on userPayload mismatch the one received from the APP(stored in additionalProps)", async () => {
+    const additionalProps = {
+      currentUser: "aDifferentFiscalCodeHash",
+    };
+
+    const response = await acs(dependencies)(validUserPayload, additionalProps);
+    response.apply(res);
+
+    expect(mockedAppinsightsTelemetryClient.trackEvent).toBeCalledWith(
+      expect.objectContaining({
+        name: "acs.error.different_user_active_session_login",
+        properties: {
+          message: expect.any(String),
+          type: "INFO",
+        },
+      }),
+    );
+    expect(mockSet).not.toBeCalled();
+    expect(res.redirect).toHaveBeenCalledWith(
+      301,
+      expect.stringContaining(
+        `/error.html?errorCode=${DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE}`,
+      ),
+    );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 });
 
