@@ -878,7 +878,7 @@ const isDifferentUserTryingToLogin = (
   pipe(
     additionalProps?.currentUser,
     O.fromNullable,
-    O.exists((c) => c !== sha256(spidUserFiscalCode))
+    O.exists((c) => c.toString() !== sha256(spidUserFiscalCode).toString()),
   );
 export const acsTest: (
   userPayload: unknown,
