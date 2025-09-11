@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.13.0
+
+### Minor Changes
+
+- 340c327: Update acs with new 'isTestUser' check
+
 ## 1.12.0
 
 ### Minor Changes
