@@ -85,7 +85,7 @@ export const getProfile: RTE.ReaderTaskEither<
   );
 
 export type CreateNewProfileDependencies = {
-  testLoginFiscalCodes: ReadonlyArray<FiscalCode>;
+  isTestUser: (fiscalCode: FiscalCode) => boolean;
 };
 
 export const createProfile: (
@@ -101,7 +101,7 @@ export const createProfile: (
   // from this Response Success JSON.
   | IResponseSuccessJson<NewProfile>
 > = (user, spidUser) => (deps) => {
-  const isTestProfile = deps.testLoginFiscalCodes.includes(user.fiscal_code);
+  const isTestProfile = deps.isTestUser(user.fiscal_code);
   const newProfile = {
     email: spidUser.email,
     // is_email_validated is always false for new users

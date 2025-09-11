@@ -172,7 +172,7 @@ export const newApp: (
     getClientErrorRedirectionUrl,
     getClientProfileRedirectionUrl,
     isUserElegibleForIoLoginUrlScheme,
-    testLoginFiscalCodes: LoginConfig.TEST_LOGIN_FISCAL_CODES,
+    isTestUser: LoginConfig.isTestUser,
     allowedCieTestFiscalCodes: ALLOWED_CIE_TEST_FISCAL_CODES,
     standardTokenDurationSecs,
     lvTokenDurationSecs: FastLoginConfig.lvTokenDurationSecs,
@@ -428,7 +428,7 @@ function setupExternalEndpoints(
       passport.use(
         "local",
         localStrategy(
-          loginConfig.TEST_LOGIN_FISCAL_CODES,
+          loginConfig.isTestUser,
           testLoginPassword,
           APIClients.fnLollipopAPIClient,
           appInsightsClient,
