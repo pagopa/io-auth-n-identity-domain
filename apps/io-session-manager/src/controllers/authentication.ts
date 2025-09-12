@@ -105,6 +105,7 @@ export const AGE_LIMIT = 14;
 export const AGE_LIMIT_ERROR_CODE = 1001;
 export const AUTHENTICATION_LOCKED_ERROR = 1002;
 export const VALIDATION_COOKIE_ERROR_CODE = 1003;
+export const DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE = 1004;
 
 const validationCookieClearanceErrorInternal = (detail: string) =>
   withCookieClearanceResponseErrorInternal(
@@ -185,6 +186,35 @@ export const acs: (
     }
 
     const spidUser = errorOrSpidUser.right;
+
+    if (isDifferentUserTryingToLogin(spidUser.fiscalNumber, additionalProps)) {
+      // In Case of provided currentUser, we check if it match the spidUser.fiscalNumber in SAMLResponse
+      // In case not we will block the login cause a different user is attempting an "active session login"
+      const redirectionUrl = deps.getClientErrorRedirectionUrl({
+        errorCode: DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
+      });
+
+      deps.appInsightsTelemetryClient?.trackEvent({
+        name: "acs.error.different_user_active_session_login",
+        properties: {
+          message:
+            "User login blocked due to a mismatch on FiscalCode between SAMLResponse and currentUser header",
+        },
+        tagOverrides: {
+          samplingEnabled: "false",
+        },
+      });
+
+      return pipe(
+        deps.isUserElegibleForIoLoginUrlScheme(spidUser.fiscalNumber),
+        B.fold(
+          () =>
+            E.right(validationCookieClearancePermanentRedirect(redirectionUrl)),
+          () => internalErrorOrIoLoginRedirect(redirectionUrl),
+        ),
+        E.toUnion,
+      );
+    }
 
     // if the CIE test user is not in the whitelist we return
     // with a not authorized
@@ -844,6 +874,15 @@ const errorOrEmitEventIfEligible: (
       ),
     );
 
+const isDifferentUserTryingToLogin = (
+  spidUserFiscalCode: FiscalCode,
+  additionalProps?: AdditionalLoginPropsT,
+): boolean =>
+  pipe(
+    additionalProps?.currentUser,
+    O.fromNullable,
+    O.exists((c) => c.toString() !== sha256(spidUserFiscalCode).toString()),
+  );
 export const acsTest: (
   userPayload: unknown,
 ) => (
