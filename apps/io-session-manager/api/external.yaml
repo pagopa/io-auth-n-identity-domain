@@ -333,7 +333,7 @@ components:
       name: x-pagopa-current-user
       in: header
       schema:
-        type: string
+        $ref: "#/components/schemas/Sha256HexString"
       description: Represents the currently logged in (if any) user's FiscalCode hashed with sha256
       required: false
   schemas:
@@ -443,6 +443,9 @@ components:
     AssertionRefSha512:
       type: string
       pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
+    Sha256HexString:
+      type: string
+      pattern: ^[a-fA-F0-9]{64}$
     AssertionRef:
       oneOf:
         - $ref: "#/components/schemas/AssertionRefSha512"
