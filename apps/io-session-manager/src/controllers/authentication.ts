@@ -200,6 +200,9 @@ export const acs: (
           message:
             "User login blocked due to a mismatch on FiscalCode between SAMLResponse and currentUser header",
         },
+        tagOverrides: {
+          samplingEnabled: "false",
+        },
       });
 
       return pipe(

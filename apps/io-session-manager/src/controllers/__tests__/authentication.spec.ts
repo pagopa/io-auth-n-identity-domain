@@ -470,7 +470,8 @@ describe("AuthenticationController#acs Active Session Test", () => {
 
   test("should redirects to the error url if the fiscalCode on userPayload mismatch the one received from the APP(stored in additionalProps)", async () => {
     const additionalProps = {
-      currentUser: "192f21644cee286251c289a4a4dbf5489bab4d463ba5cf07f140a0d16220276e", // sha256 of a dummy fiscal code AAAAAA00B11C222D
+      currentUser:
+        "192f21644cee286251c289a4a4dbf5489bab4d463ba5cf07f140a0d16220276e", // sha256 of a dummy fiscal code AAAAAA00B11C222D
     };
 
     const response = await acs(dependencies)(validUserPayload, additionalProps);
@@ -481,6 +482,9 @@ describe("AuthenticationController#acs Active Session Test", () => {
         name: "acs.error.different_user_active_session_login",
         properties: {
           message: expect.any(String),
+        },
+        tagOverrides: {
+          samplingEnabled: "false",
         },
       }),
     );
