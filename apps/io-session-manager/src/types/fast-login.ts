@@ -1,7 +1,7 @@
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { enumType } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
-import { Sha256HexString } from "../generated/backend/Sha256HexString";
+import { Sha256HexString } from "./crypto";
 
 export enum LoginTypeEnum {
   "LV" = "LV",
