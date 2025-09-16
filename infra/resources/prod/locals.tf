@@ -39,6 +39,8 @@ locals {
 
   profile_events_queue_name = "profile-events-01"
 
+  lv_audit_logs_container_name = "lv-logs-01"
+
   tags = {
     CreatedBy      = "Terraform"
     Environment    = "Prod"
