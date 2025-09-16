@@ -109,10 +109,6 @@ locals {
       AzureFunctionsJobHost__extensions__serviceBus__maxConcurrentSessions = 100
       AzureFunctionsJobHost__extensions__serviceBus__sessionIdleTimeout    = "00:00:05"
 
-      // LogLevel Runtime ServiceBus
-      "AzureFunctionsJobHost__logging__logLevel__Microsoft.Azure.ServiceBus" = "Warning"
-      "AzureFunctionsJobHost__logging__logLevel__Azure.Messaging.ServiceBus" = "Warning"
-
       // On DRY_RUN FeatureFlag enabled, no mail will be sent on ExpiredSessionAdvisor
       FF_DRY_RUN = false
     }
