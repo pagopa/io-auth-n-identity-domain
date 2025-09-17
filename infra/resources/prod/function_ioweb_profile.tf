@@ -113,7 +113,7 @@ locals {
       // -------------------------
       // Audit Logs config
       // -------------------------
-      AUDIT_LOG_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.audit_st_connection_string.versionless_id})"
+      AUDIT_LOG_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.ioweb_kv_audit_st_connection_string.versionless_id})"
       AUDIT_LOG_CONTAINER         = local.immutable_audit_logs_container_name
     }
     prod_slot_sampling_percentage = 5
