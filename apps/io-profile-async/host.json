@@ -3,7 +3,10 @@
   "logging": {
     "logLevel": {
       "default": "Information",
-      "function": "Warning"
+      "Function": "Warning",
+      "Microsoft.Azure.ServiceBus": "Warning",
+      "Azure.Messaging.ServiceBus": "Warning",
+      "Microsoft.Azure.WebJobs.ServiceBus.Listeners.ServiceBusListener": "Warning"
     }
   },
   "extensions": {
