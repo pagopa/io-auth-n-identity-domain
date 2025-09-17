@@ -134,3 +134,12 @@ resource "azurerm_key_vault_secret" "audit_st_connection_string" {
 
   tags = local.tags
 }
+
+resource "azurerm_key_vault_secret" "ioweb_kv_audit_st_connection_string" {
+  name         = "ioweb-kv-audit-st-connection-string"
+  key_vault_id = data.azurerm_key_vault.ioweb.id
+  value        = module.storage_accounts.audit.primary_connection_string
+
+  tags = local.tags
+}
+
