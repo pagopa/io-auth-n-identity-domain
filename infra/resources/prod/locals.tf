@@ -15,7 +15,7 @@ locals {
   lollipop_jwt_host = "api.io.pagopa.it"
 
   appgw_resource_group_name           = "${local.project}-common-rg-01"
-  immutable_audit_logs_container_name = "auditlogs"
+  immutable_audit_logs_container_name = "ioweb-auditlogs-01"
 
   apim_itn_name                     = "${local.project}-apim-01"
   apim_itn_resource_group_name      = "${local.project}-common-rg-01"

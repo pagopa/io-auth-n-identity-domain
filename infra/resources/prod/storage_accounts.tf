@@ -81,17 +81,17 @@ module "storage_account_audit_services" {
 
   containers = [
     "lv-logs-01",
-    "ioweb-auditlogs-01"
+    local.immutable_audit_logs_container_name
   ]
 
   immutability_policies = {
-    "lv-logs-01"         = "730"
-    "ioweb-auditlogs-01" = "730"
+    "lv-logs-01"                                = "730"
+    (local.immutable_audit_logs_container_name) = "738"
   }
 
   encryption_scopes = {
-    "lv-logs-01"         = azurerm_storage_encryption_scope.lvlogs.name
-    "ioweb-auditlogs-01" = azurerm_storage_encryption_scope.ioweb_audit_logs.name
+    "lv-logs-01"                                = azurerm_storage_encryption_scope.lvlogs.name
+    (local.immutable_audit_logs_container_name) = azurerm_storage_encryption_scope.ioweb_audit_logs.name
   }
 
   tags = local.tags
