@@ -86,7 +86,7 @@ module "storage_account_audit_services" {
 
   immutability_policies = {
     (local.lv_audit_logs_container_name)        = "731"
-    (local.immutable_audit_logs_container_name) = "730"
+    (local.immutable_audit_logs_container_name) = "738"
   }
 
   encryption_scopes = {
