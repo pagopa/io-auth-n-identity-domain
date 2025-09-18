@@ -1,7 +1,6 @@
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { enumType } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
-import { Sha256HexString } from "./crypto";
 
 export enum LoginTypeEnum {
   "LV" = "LV",
@@ -13,7 +12,7 @@ export const LoginType = enumType<LoginTypeEnum>(LoginTypeEnum, "LoginType");
 export type AdditionalLoginPropsT = t.TypeOf<typeof AdditionalLoginProps>;
 export const AdditionalLoginProps = t.partial({
   loginType: LoginType,
-  currentUser: Sha256HexString,
+  currentUser: NonEmptyString,
 });
 
 export const FastLoginResponse = t.type({
