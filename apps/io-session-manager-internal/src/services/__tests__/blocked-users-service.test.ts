@@ -32,12 +32,6 @@ import {
   ServiceBusSenderMock,
 } from "../../__mocks__/repositories/auth-sessions-topic.mock";
 
-import * as ConfigModule from "../../utils/config";
-
-const mockIsUserEligibleForServiceBusEvents = vi.spyOn(
-  ConfigModule,
-  "isUserEligibleForServiceBusEvents",
-);
 
 const deps = {
   fastRedisClientTask: RedisClientTaskMock,
@@ -61,19 +55,7 @@ describe("Blocked Users Service#lockUserSession", () => {
     vi.useFakeTimers({ now: frozenDate });
   });
 
-  it("should succeed locking a user session", async () => {
-    const result =
-      await BlockedUsersService.lockUserSession(aFiscalCode)(deps)();
-
-    expect(mockInvalidateUserSession).toHaveBeenCalledTimes(1);
-    expect(mockSetBlockedUser).toHaveBeenCalledTimes(1);
-    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(0);
-    expect(trackEventMock).not.toHaveBeenCalled();
-    expect(result).toEqual(E.right(true));
-  });
-
-  it("should succeed locking a user session and raising a logout event, when user is eligible", async () => {
-    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
+  it("should succeed locking a user session and raising a logout event", async () => {
     const result =
       await BlockedUsersService.lockUserSession(aFiscalCode)(deps)();
 
@@ -91,8 +73,6 @@ describe("Blocked Users Service#lockUserSession", () => {
   });
 
   it("should write a new applicationInsight customEvent, when an error occurs while emitting a serviceBus logout event", async () => {
-    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
-
     const simulatedError = new Error("Simulated Error");
 
     mockEmitSessionEvent.mockImplementationOnce(() => RTE.left(simulatedError));
@@ -132,6 +112,7 @@ describe("Blocked Users Service#lockUserSession", () => {
     const result =
       await BlockedUsersService.lockUserSession(aFiscalCode)(deps)();
 
+    expect(mockEmitSessionEvent).not.toHaveBeenCalledOnce();
     expect(result).toEqual(E.left(customError));
   });
 
@@ -142,6 +123,7 @@ describe("Blocked Users Service#lockUserSession", () => {
     const result =
       await BlockedUsersService.lockUserSession(aFiscalCode)(deps)();
 
+    expect(mockEmitSessionEvent).not.toHaveBeenCalledOnce();
     expect(result).toEqual(E.left(customError));
   });
 });

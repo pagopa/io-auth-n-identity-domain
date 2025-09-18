@@ -40,7 +40,6 @@ import { LollipopRepository } from "../repositories/lollipop";
 import { InstallationRepository } from "../repositories/installation";
 import { SessionState } from "../generated/definitions/internal/SessionState";
 import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
-import { isUserEligibleForServiceBusEvents } from "../utils/config";
 import { trackEvent } from "../utils/appinsights";
 
 type RedisDeps = {
@@ -398,12 +397,7 @@ const emitLogoutIfEligible: (
 ) => RTE.ReaderTaskEither<DeleteUserSessionDeps, Error, void> =
   (eventData) => (deps) =>
     pipe(
-      isUserEligibleForServiceBusEvents(eventData.fiscalCode),
-      B.match(
-        () => TE.of(void 0),
-        () =>
-          deps.AuthSessionsTopicRepository.emitSessionEvent(eventData)(deps),
-      ),
+      deps.AuthSessionsTopicRepository.emitSessionEvent(eventData)(deps),
       TE.mapLeft((err) => {
         trackEvent({
           name: "service-bus.auth-event.emission-failure",

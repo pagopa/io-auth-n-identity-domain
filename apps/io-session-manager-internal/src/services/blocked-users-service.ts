@@ -1,7 +1,6 @@
 import * as redisLib from "redis";
 
 import * as AP from "fp-ts/lib/Apply";
-import * as B from "fp-ts/lib/boolean";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
 
@@ -26,7 +25,6 @@ import {
 } from "../repositories/lollipop";
 import { RedisRepository } from "../repositories/redis";
 import { trackEvent } from "../utils/appinsights";
-import { isUserEligibleForServiceBusEvents } from "../utils/config";
 import { SessionService } from "./session-service";
 
 export type BlockedUsersServiceDeps = {
@@ -80,12 +78,7 @@ const emitLogoutIfEligible: (
 ) => RTE.ReaderTaskEither<BlockedUsersServiceDeps, Error, void> =
   (eventData) => (deps) =>
     pipe(
-      isUserEligibleForServiceBusEvents(eventData.fiscalCode),
-      B.match(
-        () => TE.of(void 0),
-        () =>
-          deps.AuthSessionsTopicRepository.emitSessionEvent(eventData)(deps),
-      ),
+      deps.AuthSessionsTopicRepository.emitSessionEvent(eventData)(deps),
       TE.mapLeft((err) => {
         trackEvent({
           name: "service-bus.auth-event.emission-failure",
