@@ -1,62 +1,50 @@
-import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
-import {
-  ResponseErrorInternal,
-  ResponseErrorNotFound,
-  ResponseErrorValidation,
-  ResponseSuccessJson,
-} from "@pagopa/ts-commons/lib/responses";
-import { Response } from "express";
-import {
-  CIE_IDP_IDENTIFIERS,
-  IDP_NAMES,
-  Issuer,
-  SPID_IDP_IDENTIFIERS,
-} from "@pagopa/io-spid-commons/dist/config";
-import * as TE from "fp-ts/TaskEither";
-import { addDays, addMonths, addSeconds, format, subYears } from "date-fns";
-import * as O from "fp-ts/Option";
-import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
-import * as E from "fp-ts/Either";
-import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import {
   EventTypeEnum,
   LoginEvent,
   LoginScenarioEnum,
   LoginTypeEnum as ServiceBusLoginTypeEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import {
-  AGE_LIMIT,
-  AGE_LIMIT_ERROR_CODE,
-  AUTHENTICATION_LOCKED_ERROR,
-  AcsDependencies,
-  acs,
-  acsTest,
-} from "../authentication";
-import { mockedFnAppAPIClient } from "../../__mocks__/repositories/fn-app-api-mocks";
-import { mockedTableClient } from "../../__mocks__/repositories/table-client-mocks";
-import { mockQueueClient } from "../../__mocks__/repositories/queue-client.mocks";
-import { mockedLollipopApiClient } from "../../__mocks__/repositories/lollipop-api.mocks";
+  CIE_IDP_IDENTIFIERS,
+  IDP_NAMES,
+  Issuer,
+  SPID_IDP_IDENTIFIERS,
+} from "@pagopa/io-spid-commons/dist/config";
 import {
-  mockAuthSessionsTopicRepository,
-  mockEmitSessionEvent,
-} from "../../repositories/__mocks__/auth-session-topic-repository.mocks";
-import {
-  getClientErrorRedirectionUrl,
-  getClientProfileRedirectionUrl,
-  clientProfileRedirectionUrl,
-} from "../../config/spid";
-import { standardTokenDurationSecs } from "../../config/login";
-import {
-  lvLongSessionDurationSecs,
-  lvTokenDurationSecs,
-} from "../../config/fast-login";
-import { mockRedisClientSelector } from "../../__mocks__/redis.mocks";
+  ResponseErrorInternal,
+  ResponseErrorNotFound,
+  ResponseErrorValidation,
+  ResponseSuccessJson,
+} from "@pagopa/ts-commons/lib/responses";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
+import { ValidUrl } from "@pagopa/ts-commons/lib/url";
+import { addDays, addMonths, addSeconds, format, subYears } from "date-fns";
+import { Response } from "express";
+import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
+import * as TE from "fp-ts/TaskEither";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   mockTrackEvent,
   mockedAppinsightsTelemetryClient,
 } from "../../__mocks__/appinsights.mocks";
+import {
+  aLollipopAssertion,
+  aSpidL3LollipopAssertion,
+  anAssertionRef,
+  anotherAssertionRef,
+  lollipopData,
+} from "../../__mocks__/lollipop.mocks";
+import { mockRedisClientSelector } from "../../__mocks__/redis.mocks";
+import { mockedFnAppAPIClient } from "../../__mocks__/repositories/fn-app-api-mocks";
+import { mockedLollipopApiClient } from "../../__mocks__/repositories/lollipop-api.mocks";
+import { mockQueueClient } from "../../__mocks__/repositories/queue-client.mocks";
+import { mockedTableClient } from "../../__mocks__/repositories/table-client-mocks";
+import mockReq from "../../__mocks__/request.mocks";
+import mockRes, { resetMock } from "../../__mocks__/response.mocks";
+import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
 import {
   aFiscalCode,
   aSessionTrackingId,
@@ -74,15 +62,31 @@ import {
   mockedInitializedProfile,
   mockedUser,
 } from "../../__mocks__/user.mocks";
+import { toExpectedResponse } from "../../__tests__/utils";
 import {
-  aLollipopAssertion,
-  aSpidL3LollipopAssertion,
-  anAssertionRef,
-  anotherAssertionRef,
-  lollipopData,
-} from "../../__mocks__/lollipop.mocks";
-import mockReq from "../../__mocks__/request.mocks";
-import mockRes, { resetMock } from "../../__mocks__/response.mocks";
+  lvLongSessionDurationSecs,
+  lvTokenDurationSecs,
+} from "../../config/fast-login";
+import { standardTokenDurationSecs } from "../../config/login";
+import {
+  clientProfileRedirectionUrl,
+  getClientErrorRedirectionUrl,
+  getClientProfileRedirectionUrl,
+} from "../../config/spid";
+import {
+  VALIDATION_COOKIE_NAME,
+  VALIDATION_COOKIE_SETTINGS,
+} from "../../config/validation-cookie";
+import { AssertionTypeEnum } from "../../generated/fast-login-api/AssertionType";
+import { ActivatedPubKey } from "../../generated/lollipop-api/ActivatedPubKey";
+import { AssertionRef } from "../../generated/lollipop-api/AssertionRef";
+import { JwkPubKey } from "../../generated/lollipop-api/JwkPubKey";
+import { PubKeyStatusEnum } from "../../generated/lollipop-api/PubKeyStatus";
+import { LollipopRevokeRepo } from "../../repositories";
+import {
+  mockAuthSessionsTopicRepository,
+  mockEmitSessionEvent,
+} from "../../repositories/__mocks__/auth-session-topic-repository.mocks";
 import {
   AuthenticationLockService,
   LoginService,
@@ -91,23 +95,20 @@ import {
   RedisSessionStorageService,
   TokenService,
 } from "../../services";
-import { SpidUser } from "../../types/user";
-import { PubKeyStatusEnum } from "../../generated/lollipop-api/PubKeyStatus";
-import { AssertionRef } from "../../generated/lollipop-api/AssertionRef";
-import { AssertionTypeEnum } from "../../generated/fast-login-api/AssertionType";
-import { JwkPubKey } from "../../generated/lollipop-api/JwkPubKey";
-import { ActivatedPubKey } from "../../generated/lollipop-api/ActivatedPubKey";
-import { LollipopRevokeRepo } from "../../repositories";
 import { LoginTypeEnum } from "../../types/fast-login";
 import { SpidLevelEnum } from "../../types/spid-level";
-import * as AuthController from "../authentication";
-import { toExpectedResponse } from "../../__tests__/utils";
-import {
-  VALIDATION_COOKIE_NAME,
-  VALIDATION_COOKIE_SETTINGS,
-} from "../../config/validation-cookie";
+import { SpidUser } from "../../types/user";
 import { withCookieClearanceResponsePermanentRedirect } from "../../utils/responses";
-import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
+import * as AuthController from "../authentication";
+import {
+  AGE_LIMIT,
+  AGE_LIMIT_ERROR_CODE,
+  AUTHENTICATION_LOCKED_ERROR,
+  AcsDependencies,
+  DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
+  acs,
+  acsTest,
+} from "../authentication";
 
 const dependencies: AcsDependencies = {
   redisClientSelector: mockRedisClientSelector,
@@ -430,6 +431,89 @@ describe("AuthenticationController#acs", () => {
       ...anErrorResponse,
       detail: "Error while creating the user session",
     });
+  });
+});
+
+describe("AuthenticationController#acs Active Session Test", () => {
+  test("should redirects to the correct url when the fiscalCode on userPayload match the one received from the APP(stored in additionalProps)", async () => {
+    const additionalProps = {
+      currentUser: sha256(validUserPayload.fiscalNumber),
+    };
+
+    mockGetProfile.mockReturnValueOnce(
+      TE.of(ResponseSuccessJson(mockedInitializedProfile)),
+    );
+
+    const response = await acs(dependencies)(validUserPayload, additionalProps);
+    response.apply(res);
+
+    expect(res.redirect).toHaveBeenCalledWith(
+      301,
+      expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
+    );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+    expect(mockSet).toHaveBeenCalledWith(
+      mockRedisClientSelector,
+      standardTokenDurationSecs,
+    );
+    expect(mockGetProfile).toHaveBeenCalledWith({
+      fnAppAPIClient: mockedFnAppAPIClient,
+      user: expect.objectContaining({
+        ...mockedUser,
+        created_at: expect.any(Number), // TODO: mock date
+      }),
+    });
+    expect(mockCreateProfile).not.toBeCalled();
+
+    expect(mockOnUserLogin).toHaveBeenCalled();
+  });
+
+  test("should redirects to the error url if the fiscalCode on userPayload mismatch the one received from the APP(stored in additionalProps)", async () => {
+    const aDifferentUserFiscalCodeHash =
+      "192f21644cee286251c289a4a4dbf5489bab4d463ba5cf07f140a0d16220276e"; // sha256 of a dummy fiscal code AAAAAA00B11C222D
+    const additionalProps = {
+      currentUser: aDifferentUserFiscalCodeHash,
+    };
+
+    const response = await acs(dependencies)(validUserPayload, additionalProps);
+    response.apply(res);
+
+    expect(mockedAppinsightsTelemetryClient.trackEvent).toBeCalledWith(
+      expect.objectContaining({
+        name: "acs.error.different_user_active_session_login",
+        properties: {
+          message: expect.any(String),
+          currentUser: aDifferentUserFiscalCodeHash,
+          spidFiscalNumberSha256: sha256(validUserPayload.fiscalNumber),
+        },
+        tagOverrides: {
+          samplingEnabled: "false",
+        },
+      }),
+    );
+    expect(mockSet).not.toBeCalled();
+    expect(res.redirect).toHaveBeenCalledWith(
+      301,
+      expect.stringContaining(
+        `/error.html?errorCode=${DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE}`,
+      ),
+    );
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+  });
+
+  test("should return a 400 error response when a bad currentUser is provided in additionalProps)", async () => {
+    const additionalProps = {
+      currentUser: "bad_current_user",
+    };
+
+    const response = await acs(dependencies)(validUserPayload, additionalProps);
+    response.apply(res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+
+    expect(res.json).toHaveBeenCalledWith(badRequestErrorResponse);
+    expect(mockSet).not.toHaveBeenCalled();
   });
 });
 

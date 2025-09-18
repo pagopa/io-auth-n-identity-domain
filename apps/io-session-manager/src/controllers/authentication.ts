@@ -1,4 +1,10 @@
 /* eslint-disable max-lines-per-function */
+import {
+  EventTypeEnum,
+  LoginEvent,
+  LoginScenarioEnum,
+  LoginTypeEnum as ServiceBusLoginTypeEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
 import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
@@ -30,26 +36,21 @@ import { flow, pipe } from "fp-ts/lib/function";
 import * as RR from "fp-ts/lib/ReadonlyRecord";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
-import {
-  EventTypeEnum,
-  LoginEvent,
-  LoginScenarioEnum,
-} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
-import { LoginTypeEnum as ServiceBusLoginTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
-import {
-  VALIDATION_COOKIE_NAME,
-  VALIDATION_COOKIE_SETTINGS,
-} from "../config/validation-cookie";
+import { AuthenticationController } from ".";
 import {
   ClientErrorRedirectionUrlParams,
   getClientErrorRedirectionUrl,
 } from "../config/spid";
-import { AssertionRef } from "../generated/backend/AssertionRef";
-import { AccessToken } from "../generated/public/AccessToken";
-import { UserLoginParams } from "../generated/io-profile/UserLoginParams";
 import {
-  FnLollipopRepo,
+  VALIDATION_COOKIE_NAME,
+  VALIDATION_COOKIE_SETTINGS,
+} from "../config/validation-cookie";
+import { AssertionRef } from "../generated/backend/AssertionRef";
+import { UserLoginParams } from "../generated/io-profile/UserLoginParams";
+import { AccessToken } from "../generated/public/AccessToken";
+import {
   AuthSessionEventsRepo,
+  FnLollipopRepo,
   LollipopRevokeRepo,
   NotificationsRepo,
   RedisRepo,
@@ -66,6 +67,7 @@ import {
   TokenService,
 } from "../services";
 import { CreateNewProfileDependencies } from "../services/profile";
+import { Sha256HexString } from "../types/crypto";
 import { AdditionalLoginPropsT, LoginTypeEnum } from "../types/fast-login";
 import { isSpidL3 } from "../types/spid";
 import {
@@ -88,16 +90,15 @@ import {
   getIsUserElegibleForIoLoginUrlScheme,
   internalErrorOrIoLoginRedirect,
 } from "../utils/login-uri-scheme";
-import { getRequestIDFromResponse } from "../utils/spid";
-import { toAppUser, validateSpidUser } from "../utils/user";
 import {
   withCookieClearanceResponseErrorInternal,
   withCookieClearanceResponseErrorValidation,
   withCookieClearanceResponseForbidden,
   withCookieClearanceResponsePermanentRedirect,
 } from "../utils/responses";
+import { getRequestIDFromResponse } from "../utils/spid";
+import { toAppUser, validateSpidUser } from "../utils/user";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
-import { AuthenticationController } from ".";
 
 // Minimum user age allowed to login if the Age limit is enabled
 export const AGE_LIMIT = 14;
@@ -105,6 +106,7 @@ export const AGE_LIMIT = 14;
 export const AGE_LIMIT_ERROR_CODE = 1001;
 export const AUTHENTICATION_LOCKED_ERROR = 1002;
 export const VALIDATION_COOKIE_ERROR_CODE = 1003;
+export const DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE = 1004;
 
 const validationCookieClearanceErrorInternal = (detail: string) =>
   withCookieClearanceResponseErrorInternal(
@@ -185,6 +187,53 @@ export const acs: (
     }
 
     const spidUser = errorOrSpidUser.right;
+
+    // Validates AdditionalLoginProps.currentUser if provided
+    const currentUserValidationResult = validateCurrentUser(additionalProps);
+
+    // validate currentUser in additional props (if provided)
+    if (E.isLeft(currentUserValidationResult)) {
+      log.error(
+        "acs: error additionalProp.currentUser -> [%O]  => [%s]",
+        additionalProps?.currentUser,
+        currentUserValidationResult.left,
+      );
+      return validationCookieClearanceErrorValidation(
+        "Bad request",
+        currentUserValidationResult.left,
+      );
+    }
+
+    if (isDifferentUserTryingToLogin(spidUser.fiscalNumber, additionalProps)) {
+      // In Case of provided currentUser, we check if it match the spidUser.fiscalNumber in SAMLResponse
+      // In case not we will block the login cause a different user is attempting an "active session login"
+      const redirectionUrl = deps.getClientErrorRedirectionUrl({
+        errorCode: DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
+      });
+
+      deps.appInsightsTelemetryClient?.trackEvent({
+        name: "acs.error.different_user_active_session_login",
+        properties: {
+          message:
+            "User login blocked due to a mismatch on FiscalCode between SAMLResponse and currentUser header",
+          spidFiscalNumberSha256: sha256(spidUser.fiscalNumber),
+          currentUser: additionalProps?.currentUser,
+        },
+        tagOverrides: {
+          samplingEnabled: "false",
+        },
+      });
+
+      return pipe(
+        deps.isUserElegibleForIoLoginUrlScheme(spidUser.fiscalNumber),
+        B.fold(
+          () =>
+            E.right(validationCookieClearancePermanentRedirect(redirectionUrl)),
+          () => internalErrorOrIoLoginRedirect(redirectionUrl),
+        ),
+        E.toUnion,
+      );
+    }
 
     // if the CIE test user is not in the whitelist we return
     // with a not authorized
@@ -844,6 +893,34 @@ const errorOrEmitEventIfEligible: (
       ),
     );
 
+const isDifferentUserTryingToLogin = (
+  spidUserFiscalCode: FiscalCode,
+  additionalProps?: AdditionalLoginPropsT,
+): boolean =>
+  pipe(
+    additionalProps?.currentUser,
+    O.fromNullable,
+    O.exists((c) => c !== sha256(spidUserFiscalCode)),
+  );
+
+// If not provided currentUser is valid
+const validateCurrentUser = (
+  additionalProps?: AdditionalLoginPropsT,
+): E.Either<string, void> => {
+  if (!additionalProps?.currentUser) {
+    return E.right(void 0);
+  }
+
+  return pipe(
+    additionalProps.currentUser,
+    Sha256HexString.decode,
+    E.mapLeft(
+      (errs) =>
+        `Invalid currentUser: not a valid sha256HexString (${errorsToReadableMessages(errs).join(" / ")})`,
+    ),
+    E.map(() => void 0),
+  );
+};
 export const acsTest: (
   userPayload: unknown,
 ) => (
