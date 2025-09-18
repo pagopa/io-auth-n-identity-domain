@@ -497,6 +497,21 @@ describe("AuthenticationController#acs Active Session Test", () => {
     );
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
+
+  test("should return a 400 error response when a bad currentUser is provided in additionalProps)", async () => {
+    const additionalProps = {
+      currentUser: "bad_current_user",
+    };
+
+    const response = await acs(dependencies)(validUserPayload, additionalProps);
+    response.apply(res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+
+    expect(res.json).toHaveBeenCalledWith(badRequestErrorResponse);
+    expect(mockSet).not.toHaveBeenCalled();
+  });
 });
 
 describe("AuthenticationController#acs Age Limit", () => {
