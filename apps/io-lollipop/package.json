@@ -62,7 +62,6 @@
     "@pagopa/winston-ts": "^2.2.0",
     "@xmldom/xmldom": "^0.8.10",
     "applicationinsights": "1.8.10",
-    "azure-storage": "^2.10.3",
     "date-fns": "^2.29.3",
     "express": "^4.15.3",
     "fp-ts": "^2.10.5",
