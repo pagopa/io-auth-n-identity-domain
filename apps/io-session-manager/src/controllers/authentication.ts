@@ -216,6 +216,8 @@ export const acs: (
         properties: {
           message:
             "User login blocked due to a mismatch on FiscalCode between SAMLResponse and currentUser header",
+          spidFiscalNumberSha256: sha256(spidUser.fiscalNumber),
+          currentUser: additionalProps?.currentUser,
         },
         tagOverrides: {
           samplingEnabled: "false",
