@@ -1,8 +1,3 @@
-data "azurerm_key_vault_secret" "events_beta_testers" {
-  name         = "service-bus-events-beta-testers"
-  key_vault_id = module.key_vaults.auth.id
-}
-
 locals {
   function_session_manager_internal = {
     name = "sm-int"
@@ -40,8 +35,6 @@ locals {
       // Service Bus Config
       SERVICE_BUS_NAMESPACE    = "${data.azurerm_servicebus_namespace.platform_service_bus_namespace.name}.servicebus.windows.net"
       AUTH_SESSIONS_TOPIC_NAME = azurerm_servicebus_topic.io_auth_sessions_topic.name
-      FF_SERVICE_BUS_EVENTS    = "ALL"
-      SERVICE_BUS_EVENTS_USERS = data.azurerm_key_vault_secret.events_beta_testers.value
     }
   }
 }

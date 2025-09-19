@@ -56,14 +56,8 @@ import {
   ServiceBusSenderMock,
   mockEmitSessionEvent,
 } from "../../__mocks__/repositories/auth-sessions-topic.mock";
-import * as ConfigModule from "../../utils/config";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
-
-const mockIsUserEligibleForServiceBusEvents = vi.spyOn(
-  ConfigModule,
-  "isUserEligibleForServiceBusEvents",
-);
 
 const trackEventMock = vi.spyOn(appinsights, "trackEvent");
 
@@ -123,24 +117,7 @@ describe("Session Service#lockUserAuthentication", () => {
     authSessionsTopicSender: ServiceBusSenderMock,
   };
 
-  it("should succeed to lock an user authentication", async () => {
-    const result = await SessionService.lockUserAuthentication(
-      aFiscalCode,
-      anUnlockCode,
-    )(deps)();
-
-    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
-    expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
-    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
-    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
-    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(0);
-    expect(trackEventMock).not.toHaveBeenCalled();
-    expect(result).toEqual(E.right(null));
-  });
-
   it("should succeed to lock an user authentication and raise an event, when user is eligible", async () => {
-    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
-
     const result = await SessionService.lockUserAuthentication(
       aFiscalCode,
       anUnlockCode,
@@ -162,8 +139,6 @@ describe("Session Service#lockUserAuthentication", () => {
   });
 
   it("should write a new applicationInsight customEvent, when an error occurs while emitting a serviceBus logout event on lock user", async () => {
-    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
-
     const anErrorMessage = "Simulated Error";
     const expectedError = toGenericError(anErrorMessage);
 
@@ -214,6 +189,13 @@ describe("Session Service#lockUserAuthentication", () => {
     expect(mockfireAndForgetRevokeAssertionRef).not.toHaveBeenCalled();
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      fiscalCode: aFiscalCode,
+      eventType: EventTypeEnum.LOGOUT,
+      scenario: LogoutScenarioEnum.AUTH_LOCK,
+      ts: frozenDate,
+    });
     expect(result).toEqual(E.right(null));
   });
 
@@ -229,7 +211,7 @@ describe("Session Service#lockUserAuthentication", () => {
       ...deps,
       FastRedisClientTask: TE.left(Error(anErrorMessage)),
     })();
-
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -245,7 +227,7 @@ describe("Session Service#lockUserAuthentication", () => {
     )(deps)();
 
     expect(mockIsUserAuthenticationLocked).toHaveBeenCalledTimes(1);
-
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -259,7 +241,7 @@ describe("Session Service#lockUserAuthentication", () => {
       anUnlockCode,
     )(deps)();
     expect(mockIsUserAuthenticationLocked).toHaveBeenCalledTimes(1);
-
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -274,6 +256,7 @@ describe("Session Service#lockUserAuthentication", () => {
     )(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -288,6 +271,7 @@ describe("Session Service#lockUserAuthentication", () => {
     )(deps)();
 
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -302,6 +286,7 @@ describe("Session Service#lockUserAuthentication", () => {
     )(deps)();
 
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -318,6 +303,7 @@ describe("Session Service#lockUserAuthentication", () => {
     )(deps)();
 
     expect(mockDeleteInstallation).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 
@@ -332,6 +318,7 @@ describe("Session Service#lockUserAuthentication", () => {
     )(deps)();
 
     expect(mockLockUserAuthentication).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(result).toEqual(E.left(expectedError));
   });
 });
@@ -483,7 +470,6 @@ describe("Session Service#deleteUserSession", () => {
     authSessionsTopicSender: ServiceBusSenderMock,
   };
   it("should succeed deleting an user session", async () => {
-    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
@@ -502,7 +488,6 @@ describe("Session Service#deleteUserSession", () => {
   });
 
   it("should write an ApplicationInsights customEvent, when a failure emitting the logout event fails(deleting an user session)", async () => {
-    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
     const anErrorMessage = "Simulated Error";
     const expectedError = toGenericError(anErrorMessage);
 
@@ -541,7 +526,6 @@ describe("Session Service#deleteUserSession", () => {
 
   it("should succeed deleting an user session with no assertionref", async () => {
     mockGetLollipopAssertionRefForUser.mockReturnValueOnce(TE.right(O.none));
-    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(true);
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
@@ -555,19 +539,6 @@ describe("Session Service#deleteUserSession", () => {
       scenario: LogoutScenarioEnum.WEB,
       ts: frozenDate,
     });
-    expect(trackEventMock).not.toHaveBeenCalled();
-    expect(result).toEqual(E.right(null));
-  });
-
-  it("should succeed deleting an user session without emitting an event when the user is not eligible", async () => {
-    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(false);
-    const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
-
-    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
-    expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
-    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
-    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
-    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(trackEventMock).not.toHaveBeenCalled();
     expect(result).toEqual(E.right(null));
   });
