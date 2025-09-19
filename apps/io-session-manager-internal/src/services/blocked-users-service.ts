@@ -63,7 +63,7 @@ const lockUserSession: (
         ),
       ),
       TE.chainFirst((_) =>
-        emitLogoutIfEligible({
+        emitLogoutEvent({
           fiscalCode,
           eventType: EventTypeEnum.LOGOUT,
           scenario: LogoutScenarioEnum.ACCOUNT_REMOVAL,
@@ -73,7 +73,7 @@ const lockUserSession: (
       TE.map((_) => true),
     );
 
-const emitLogoutIfEligible: (
+const emitLogoutEvent: (
   eventData: LogoutEvent,
 ) => RTE.ReaderTaskEither<BlockedUsersServiceDeps, Error, void> =
   (eventData) => (deps) =>

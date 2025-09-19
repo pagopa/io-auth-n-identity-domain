@@ -267,7 +267,7 @@ const lockUserAuthentication: (
     ),
     TE.chainFirstW(() =>
       pipe(
-        emitLogoutIfEligible({
+        emitLogoutEvent({
           fiscalCode,
           eventType: EventTypeEnum.LOGOUT,
           scenario: LogoutScenarioEnum.AUTH_LOCK,
@@ -379,7 +379,7 @@ const deleteUserSession: (
             SafeRedisClient,
           }),
           TE.chainFirst((_) =>
-            emitLogoutIfEligible({
+            emitLogoutEvent({
               fiscalCode,
               eventType: EventTypeEnum.LOGOUT,
               scenario: LogoutScenarioEnum.WEB,
@@ -392,7 +392,7 @@ const deleteUserSession: (
       TE.map((_) => null),
     );
 
-const emitLogoutIfEligible: (
+const emitLogoutEvent: (
   eventData: LogoutEvent,
 ) => RTE.ReaderTaskEither<DeleteUserSessionDeps, Error, void> =
   (eventData) => (deps) =>
