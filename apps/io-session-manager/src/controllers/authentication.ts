@@ -159,7 +159,6 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
     >;
     isUserElegibleForFastLogin: (fiscalCode: FiscalCode) => boolean;
     isUserElegibleForValidationCookie: (fiscalCode: FiscalCode) => boolean;
-    isUserEligibleForServiceBusEvents: (fiscalCode: FiscalCode) => boolean;
   };
 
 export const acs: (
@@ -859,7 +858,7 @@ export const acs: (
     };
 
     const errorOrEventEmitted = await pipe(
-      errorOrEmitEventIfEligible(event)(deps),
+      AuthSessionEventsRepo.emitAuthSessionEvent(event)(deps),
       TE.mapLeft((err) =>
         validationCookieClearanceErrorInternal(
           `Unable to emit login event: ${err.message}`,
@@ -880,18 +879,6 @@ export const acs: (
       E.toUnion,
     );
   };
-
-const errorOrEmitEventIfEligible: (
-  event: LoginEvent,
-) => (dependencies: AcsDependencies) => TE.TaskEither<Error, void> =
-  (event) => (deps) =>
-    pipe(
-      deps.isUserEligibleForServiceBusEvents(event.fiscalCode),
-      B.fold(
-        () => TE.right(void 0),
-        () => AuthSessionEventsRepo.emitAuthSessionEvent(event)(deps),
-      ),
-    );
 
 const isDifferentUserTryingToLogin = (
   spidUserFiscalCode: FiscalCode,
