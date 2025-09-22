@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.14.0
+
+### Minor Changes
+
+- 8b744d1: Block "Active Session Login" when the FiscalCode included in SAMLResponse does not match the current one
+
 ## 1.13.0
 
 ### Minor Changes
