@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.14.1
+
+### Patch Changes
+
+- 5dbcf8c: Remove FeatureFlag on session ServiceBus Events emission
+
 ## 1.14.0
 
 ### Minor Changes
