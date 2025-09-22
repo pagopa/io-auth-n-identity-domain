@@ -161,6 +161,7 @@ paths:
         - $ref: "#/components/parameters/JwkPubKeyToken"
         - $ref: "#/components/parameters/JwkPubKeyHashAlgorithm"
         - $ref: "#/components/parameters/LoginType"
+        - $ref: "#/components/parameters/CurrentUser"
       responses:
         "200":
           description: dummy response for generator
@@ -328,6 +329,14 @@ components:
         enum: [sha256, sha384, sha512]
       description: Represents the selected hashing algorithm for jwk thumbprint
       x-example: "sha256"
+    CurrentUser:
+      name: x-pagopa-current-user
+      in: header
+      schema:
+        type: string
+        format: ^[a-fA-F0-9]{64}$
+      description: Represents the currently logged in (if any) user's FiscalCode hashed with sha256
+      required: false
   schemas:
     FiscalCode:
       $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/refs/heads/openapi-v3-definitions/openapi/definitions_v3.yaml#/FiscalCode"

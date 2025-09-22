@@ -34,4 +34,5 @@ export const acsRequestMapper = (
 ): t.Validation<AdditionalLoginPropsT> =>
   AdditionalLoginProps.decode({
     loginType: req.header("x-pagopa-login-type"),
+    currentUser: req.header("x-pagopa-current-user"),
   });
