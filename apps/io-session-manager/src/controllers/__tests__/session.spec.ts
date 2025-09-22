@@ -532,7 +532,6 @@ describe("logout", () => {
 
     AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
     authSessionsTopicSender: mockServiceBusSender,
-    isUserEligibleForServiceBusEvents: () => true,
     appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
 
     user: mockedUser,
@@ -672,24 +671,6 @@ describe("logout", () => {
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
-  });
-
-  test(`
-    GIVEN a valid request
-    WHEN the user is NOT eligible for service bus events
-    THEN it should NOT send the logout event`, async () => {
-    const mockedDependenciesWithIneligibleUser = {
-      ...mockedDependencies,
-      isUserEligibleForServiceBusEvents: () => false,
-    };
-
-    const result = await logout(mockedDependenciesWithIneligibleUser)();
-
-    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
-    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
-    expect(result).toEqual(
-      E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
-    );
   });
 
   test(`
