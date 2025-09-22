@@ -156,41 +156,6 @@ module "external_api_session_manager" {
   xml_content = local.session_manager_base_policy_pool
 }
 
-resource "azurerm_api_management_api_operation_policy" "external_api_session_manager_login_policy" {
-  api_management_name = var.platform_apim_name
-  resource_group_name = var.platform_apim_resource_group_name
-  api_name            = module.external_api_session_manager.name
-
-  # Operation ID defined in the openapi spec
-  operation_id = "login"
-  xml_content  = <<XML
-      <policies>
-        <inbound>
-          <base />
-          <set-variable name="startMaintenanceTime" value="2025-09-04T04:00:00.000+00:00" />
-          <set-variable name="endMaintenanceTime" value="2025-09-04T06:00:00.000+00:00" />
-
-          <choose>
-            <when condition="@(DateTime.UtcNow >= Convert.ToDateTime(context.Variables["startMaintenanceTime"]) && DateTime.UtcNow <= Convert.ToDateTime(context.Variables["endMaintenanceTime"]))">
-              <return-response>
-                <set-status code="500" reason="Ongoing Maintenance" />
-              </return-response>
-            </when>
-          </choose>
-        </inbound>
-        <backend>
-          <base />
-        </backend>
-        <outbound>
-          <base />
-        </outbound>
-        <on-error>
-          <base />
-        </on-error>
-      </policies>
-  XML
-}
-
 resource "azurerm_api_management_api_tag" "external_api_tag" {
   api_id = module.external_api_session_manager.id
   name   = azurerm_api_management_tag.session_manager_tag.name
