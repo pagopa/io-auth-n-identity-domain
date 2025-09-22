@@ -85,7 +85,6 @@ import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { isUserElegibleForValidationCookie } from "./config/validation-cookie";
-import { isUserEligibleForServiceBusEvents } from "./config/service-bus";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -183,7 +182,6 @@ export const newApp: (
     isUserElegibleForValidationCookie,
     AuthSessionsTopicRepository,
     authSessionsTopicSender: authSessionsTopicServiceBusSender,
-    isUserEligibleForServiceBusEvents,
   };
 
   [API_BASE_PATH, PROXY_BASE_PATH].forEach((basePath) => {
@@ -481,7 +479,6 @@ function setupExternalEndpoints(
 
         AuthSessionsTopicRepository,
         authSessionsTopicSender: acsDependencies.authSessionsTopicSender,
-        isUserEligibleForServiceBusEvents,
       }),
       ap(withUserFromRequest(SessionController.logout)),
     ),

@@ -253,9 +253,7 @@ export type LogoutDependencies = {
   RedisSessionStorageServiceDepencency &
   WithUser &
   WithExpressRequest &
-  AuthSessionEventsRepo.AuthSessionEventsDeps & {
-    isUserEligibleForServiceBusEvents: (fiscalCode: FiscalCode) => boolean;
-  };
+  AuthSessionEventsRepo.AuthSessionEventsDeps;
 
 export const logout: RTE.ReaderTaskEither<
   LogoutDependencies,
@@ -321,11 +319,7 @@ const emitEventOnLogout: (
 ) => RTE.ReaderTaskEither<LogoutDependencies, Error, void> =
   (eventData) => (deps) =>
     pipe(
-      deps.isUserEligibleForServiceBusEvents(eventData.fiscalCode),
-      B.fold(
-        () => TE.right(void 0),
-        () => AuthSessionEventsRepo.emitAuthSessionEvent(eventData)(deps),
-      ),
+      AuthSessionEventsRepo.emitAuthSessionEvent(eventData)(deps),
       TE.mapLeft((err) => {
         deps.appInsightsTelemetryClient?.trackEvent({
           name: "service-bus.auth-event.emission-failure",
