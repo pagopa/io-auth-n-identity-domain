@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.11.2
+
+### Patch Changes
+
+- b92f68a: Remove ServiceBus event emission feature flag
+
 ## 0.11.1
 
 ### Patch Changes
