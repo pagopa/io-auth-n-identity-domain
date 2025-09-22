@@ -60,8 +60,7 @@ locals {
       COSMOSDB_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.cosmos_api_connection_string.versionless_id})"
 
       //Queue
-      EXPIRED_SESSION_ADVISOR_QUEUE             = local.expired_user_sessions_queue_name
-      SESSION_NOTIFICATIONS_INIT_RECOVERY_QUEUE = local.session_notifications_init_recovery_queue_name // TODO: this is temporary, will be removed when SessionNotificationsInitRecovery will not be needed
+      EXPIRED_SESSION_ADVISOR_QUEUE = local.expired_user_sessions_queue_name
 
       // Storage
       AZURE_STORAGE_CONNECTION_STRING                 = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.citizen_auth_common_connection_string.versionless_id})"
