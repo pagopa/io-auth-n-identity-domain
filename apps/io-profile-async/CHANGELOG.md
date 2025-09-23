@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.15.0
+
+### Minor Changes
+
+- 986f098: Remove SessionNotificationsInitRecovery Function, this functions was temporary and now it's no longer needed
+
 ## 1.14.1
 
 ### Patch Changes
