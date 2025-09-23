@@ -128,7 +128,6 @@ const dependencies: AcsDependencies = {
   appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
   isUserElegibleForFastLogin: () => false,
   isUserElegibleForValidationCookie: () => false,
-  isUserEligibleForServiceBusEvents: () => false,
   AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
   authSessionsTopicSender: mockServiceBusSender,
 };
@@ -1435,11 +1434,8 @@ describe("AuthenticationController#acs service bus login events", () => {
     vi.useRealTimers();
   });
 
-  const mockIsUserEligibleForServiceBusEvents = vi.fn().mockReturnValue(true);
-
   const serviceBusEventsScenarioDeps = {
     ...dependencies,
-    isUserEligibleForServiceBusEvents: mockIsUserEligibleForServiceBusEvents,
   };
 
   test("should emit a login event", async () => {
@@ -1456,14 +1452,6 @@ describe("AuthenticationController#acs service bus login events", () => {
       ts: frozenDate,
       idp: validUserPayload.issuer,
     } as LoginEvent);
-  });
-
-  test("should not emit a login event when user is not eligible", async () => {
-    mockIsUserEligibleForServiceBusEvents.mockReturnValueOnce(false);
-    const response = await acs(serviceBusEventsScenarioDeps)(validUserPayload);
-    response.apply(res);
-
-    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
   });
 
   test("should emit a login event with login scenario 'standard' when profile exists", async () => {
