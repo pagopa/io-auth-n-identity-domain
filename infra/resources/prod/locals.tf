@@ -33,10 +33,6 @@ locals {
   profile_migrate_services_preferences_from_legacy_queue_name        = "profile-migrate-services-preferences-from-legacy-01"
   profile_migrate_services_preferences_from_legacy_poison_queue_name = "profile-migrate-services-preferences-from-legacy-01-poison"
 
-  # Temporary queues for SessionNotificationsInitRecovery from io-profile-async
-  session_notifications_init_recovery_queue_name        = "session-notifications-init-recovery-01"
-  session_notifications_init_recovery_poison_queue_name = "session-notifications-init-recovery-01-poison"
-
   profile_events_queue_name = "profile-events-01"
 
   lv_audit_logs_container_name = "lv-logs-01"

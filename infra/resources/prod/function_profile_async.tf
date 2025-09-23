@@ -60,8 +60,7 @@ locals {
       COSMOSDB_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.cosmos_api_connection_string.versionless_id})"
 
       //Queue
-      EXPIRED_SESSION_ADVISOR_QUEUE             = local.expired_user_sessions_queue_name
-      SESSION_NOTIFICATIONS_INIT_RECOVERY_QUEUE = local.session_notifications_init_recovery_queue_name // TODO: this is temporary, will be removed when SessionNotificationsInitRecovery will not be needed
+      EXPIRED_SESSION_ADVISOR_QUEUE = local.expired_user_sessions_queue_name
 
       // Storage
       AZURE_STORAGE_CONNECTION_STRING                 = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.citizen_auth_common_connection_string.versionless_id})"
@@ -152,8 +151,7 @@ module "function_profile_async" {
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled" = "0",
       "AzureWebJobs.OnProfileUpdate.Disabled"                    = "0",
       "AzureWebJobs.StoreSpidLogs.Disabled"                      = "0",
-      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled" = "0",
-      "AzureWebJobs.SessionNotificationsInitRecovery.Disabled"   = "0"
+      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled" = "0"
     }
   )
   slot_app_settings = merge(
@@ -164,8 +162,7 @@ module "function_profile_async" {
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled" = "1",
       "AzureWebJobs.OnProfileUpdate.Disabled"                    = "1",
       "AzureWebJobs.StoreSpidLogs.Disabled"                      = "1",
-      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled" = "1",
-      "AzureWebJobs.SessionNotificationsInitRecovery.Disabled"   = "1"
+      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled" = "1"
     }
   )
 
@@ -175,8 +172,7 @@ module "function_profile_async" {
     "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",
     "AzureWebJobs.OnProfileUpdate.Disabled",
     "AzureWebJobs.StoreSpidLogs.Disabled",
-    "AzureWebJobs.SessionNotificationEventsProcessor.Disabled",
-    "AzureWebJobs.SessionNotificationsInitRecovery.Disabled"
+    "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"
   ]
 
   subnet_service_endpoints = {
