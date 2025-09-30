@@ -34,23 +34,26 @@ export const copyTableData = (
         let errors: ReadonlyArray<Error> = [];
         let counter = 0;
 
-        for await (const entity of originClient.listEntities<LockedProfile>()) {
-          const result = await copyEntity(entity, destinationClient)();
-          counter++;
+        for await (const page of originClient
+          .listEntities<LockedProfile>()
+          .byPage({ maxPageSize: 1000 })) {
+          for (const entity of page) {
+            const result = await copyEntity(entity, destinationClient)();
+            counter++;
 
-          errors = pipe(
-            result,
-            E.fold(
-              (err) => ROA.append(err)(errors),
-              () => errors,
-            ),
-          );
-
-          if (counter % 100 === 0) {
-            // eslint-disable-next-line no-console
-            console.log(
-              `Processed ${counter} entities so far with ${ROA.size(errors)} errors...`,
+            errors = pipe(
+              result,
+              E.fold(
+                (err) => ROA.append(err)(errors),
+                () => errors,
+              ),
             );
+            if (counter % 100 === 0) {
+              // eslint-disable-next-line no-console
+              console.log(
+                `Processed ${counter} entities so far with ${ROA.size(errors)} errors...`,
+              );
+            }
           }
         }
 
