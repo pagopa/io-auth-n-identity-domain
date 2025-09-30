@@ -5,6 +5,7 @@
     "build": "tsc",
     "build:watch": "tsc -w",
     "session:expire:insert": "node ./dist/session-expire-queue-insert/index.js",
+    "table:import": "node ./dist/table-importer/index.js",
     "typecheck": "tsc --noemit",
     "lint": "yarn lint:check --fix",
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache",
@@ -12,6 +13,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@azure/data-tables": "^13.2.2",
     "@azure/storage-queue": "^12.22.0",
     "@pagopa/ts-commons": "^13.1.2",
     "applicationinsights": "^2.9.5",
