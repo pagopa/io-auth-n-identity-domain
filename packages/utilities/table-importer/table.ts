@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable functional/no-let */
 import { TableClient } from "@azure/data-tables";
 import * as TE from "fp-ts/TaskEither";
@@ -49,14 +50,15 @@ export const copyTableData = (
               ),
             );
             if (counter % 100 === 0) {
-              // eslint-disable-next-line no-console
               console.log(
                 `Processed ${counter} entities so far with ${ROA.size(errors)} errors...`,
               );
             }
           }
         }
-
+        console.log(
+          `Processed ${counter} entities in total with ${ROA.size(errors)} errors!`,
+        );
         return errors;
       },
       (err) => [err as Error],
