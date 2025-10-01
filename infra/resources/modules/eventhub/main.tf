@@ -23,7 +23,7 @@ module "eventhub" {
   action_group_id = data.azurerm_monitor_action_group.error_action_group.id
   metric_alerts   = local.evhns.metric_alerts
 
-  tier = local.evhns.tier
+  use_case = local.evhns.use_case
 
   tags = var.tags
 }
