@@ -20,7 +20,7 @@ terraform {
     resource_group_name  = "terraform-state-rg"
     storage_account_name = "iopitntfst001"
     container_name       = "terraform-state"
-    key                  = "io-auth-n-identity-domain.bootstrapper.tfstate"
+    key                  = "io-auth-n-identity-domain.bootstrapper.prod.tfstate"
     use_azuread_auth     = true
   }
 }
@@ -89,7 +89,7 @@ data "azuread_group" "externals" {
 
 module "repo" {
   source  = "pagopa-dx/azure-github-environment-bootstrap/azurerm"
-  version = "~>2.0"
+  version = "~> 3.0"
 
   environment = {
     prefix          = local.prefix
@@ -133,15 +133,8 @@ module "repo" {
   }
 
   repository = {
-    name                     = local.repository.name
-    description              = local.repository.description
-    topics                   = local.repository.topics
-    jira_boards_ids          = local.repository.jira_boards_ids
-    reviewers_teams          = local.repository.reviewers_teams
-    default_branch_name      = local.repository.default_branch_name
-    infra_cd_policy_branches = local.repository.infra_cd_policy_branches
-    opex_cd_policy_branches  = local.repository.opex_cd_policy_branches
-    app_cd_policy_branches   = local.repository.app_cd_policy_branches
+    owner = "pagopa"
+    name  = local.repository.name
   }
 
   github_private_runner = {
