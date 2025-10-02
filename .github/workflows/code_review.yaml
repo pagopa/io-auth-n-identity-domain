@@ -59,7 +59,7 @@ jobs:
 
       # this step uses a set of filters to prevent
       # additional work not needed
-      - uses: dorny/paths-filter@v3.0.2
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: sonarcloud_filter
         with:
           filters: ./.github/ci_filters.yaml
@@ -176,7 +176,7 @@ jobs:
       - name: Generate Environment
         run: yarn docker:generate:env
 
-      - uses: dorny/paths-filter@v3.0.2
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: test_filter
         with:
           filters: ./.github/ci_filters.yaml
