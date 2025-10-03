@@ -35,7 +35,7 @@ locals {
 
   profile_events_queue_name = "profile-events-01"
 
-  profile_email_table_name = "profileemails01"
+  profile_emails_table_name = "profileemails01"
 
   lv_audit_logs_container_name = "lv-logs-01"
 
