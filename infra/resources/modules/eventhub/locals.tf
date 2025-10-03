@@ -3,7 +3,7 @@ locals {
   function_name = "io-fn-elt"
 
   evhns = {
-    tier = "m"
+    use_case = "default"
 
     eventhubs = [{
       name                   = "service-preferences"
