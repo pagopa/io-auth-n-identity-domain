@@ -65,7 +65,7 @@ module "storage_account_services" {
 
   tables = [
     "lockedprofile01",
-    local.profile_email_table_name
+    local.profile_emails_table_name
   ]
 
   tags = local.tags
