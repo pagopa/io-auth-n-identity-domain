@@ -79,6 +79,7 @@ locals {
       // After the migration is complete, this setting can be removed and the value
       // of PROFILE_EMAIL_STORAGE_TABLE_NAME can be changed to local.profile_email_table_name
       PROFILE_EMAIL_STORAGE_TABLE_NAME_ITN = local.profile_emails_table_name
+      ON_PROFILE_UPDATE_2_LEASES_PREFIX    = "OnProfileUpdateLeasesPrefix-002"
 
       //StoreSpidLogs Config
       IOPSTLOGS_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.iopstlogs_connection_string.versionless_id})"
