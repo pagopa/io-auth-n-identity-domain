@@ -1474,6 +1474,32 @@ describe("AuthenticationController#acs service bus login events", () => {
     } as LoginEvent);
   });
 
+  test("should emit a login event with login scenario 'relogin' when profile exists and is an active session login", async () => {
+    const additionalProps = {
+      currentUser: sha256(validUserPayload.fiscalNumber),
+    };
+    mockGetProfile.mockReturnValueOnce(
+      TE.of(ResponseSuccessJson(mockedInitializedProfile)),
+    );
+
+    const response = await acs(serviceBusEventsScenarioDeps)(
+      validUserPayload,
+      additionalProps,
+    );
+    response.apply(res);
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      eventType: EventTypeEnum.LOGIN,
+      fiscalCode: validUserPayload.fiscalNumber,
+      loginType: ServiceBusLoginTypeEnum.LEGACY,
+      scenario: LoginScenarioEnum.RELOGIN,
+      expiredAt: addSeconds(frozenDate, standardTokenDurationSecs),
+      ts: frozenDate,
+      idp: validUserPayload.issuer,
+    } as LoginEvent);
+  });
+
   test("should emit a login event with login type 'lv'", async () => {
     mockGetProfile.mockReturnValueOnce(
       TE.of(ResponseSuccessJson(mockedInitializedProfile)),
