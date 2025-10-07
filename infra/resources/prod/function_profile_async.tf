@@ -156,6 +156,7 @@ module "function_profile_async" {
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"              = "0",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled" = "0",
       "AzureWebJobs.OnProfileUpdate.Disabled"                    = "0",
+      "AzureWebJobs.TableImporter.Disabled"                      = "0",
       "AzureWebJobs.StoreSpidLogs.Disabled"                      = "0",
       "AzureWebJobs.SessionNotificationEventsProcessor.Disabled" = "0"
     }
@@ -167,6 +168,7 @@ module "function_profile_async" {
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"              = "1",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled" = "1",
       "AzureWebJobs.OnProfileUpdate.Disabled"                    = "1",
+      "AzureWebJobs.TableImporter.Disabled"                      = "1",
       "AzureWebJobs.StoreSpidLogs.Disabled"                      = "1",
       "AzureWebJobs.SessionNotificationEventsProcessor.Disabled" = "1"
     }
