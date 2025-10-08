@@ -740,7 +740,10 @@ export const acs: (
       // in io-spid-commons does not support 429 errors
       return validationCookieClearanceErrorInternal(getProfileResponse.kind);
     } else {
-      loginScenario = LoginScenarioEnum.STANDARD;
+      // If additionalProps?.currentUser is found we are in a relogin scenario
+      loginScenario = additionalProps?.currentUser
+        ? LoginScenarioEnum.RELOGIN
+        : LoginScenarioEnum.STANDARD;
       userHasEmailValidated = getProfileResponse.value.is_email_validated;
       userEmail =
         userHasEmailValidated && getProfileResponse.value.email
