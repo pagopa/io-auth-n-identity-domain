@@ -148,16 +148,6 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     steps:
-      - name: Free up some space before proceeding
-        run: |
-          echo "::warning ::Disk usage before clean up:"
-          echo "::warning ::$(df -h)"
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          echo "::warning::Disk usage after clean up:"
-          echo "::warning::$(df -h)"
       - name: Check out code
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -190,6 +180,21 @@ jobs:
         id: test_filter
         with:
           filters: ./.github/ci_filters.yaml
+
+      - name: Free up some space before proceeding
+        if: >-
+          steps.test_filter.outputs.io-lollipop == 'true' ||
+          steps.test_filter.outputs.bruno-io-lollipop == 'true' ||
+          steps.test_filter.outputs.io-session-manager == 'true'
+        run: |
+          echo "::warning ::Disk usage before clean up:"
+          echo "::warning ::$(df -h)"
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          echo "::warning::Disk usage after clean up:"
+          echo "::warning::$(df -h)"
 
       # TODO: in order to replicate the test with Bruno collections on the other services,
       # it is necessary to integrate io-fixtures in the current project in order to
