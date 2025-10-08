@@ -3231,6 +3231,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@pagopa/azure-storage-legacy-migration-kit@npm:0.0.4":
+  version: 0.0.4
+  resolution: "@pagopa/azure-storage-legacy-migration-kit@npm:0.0.4"
+  dependencies:
+    azure-storage: "npm:^2.10.7"
+    fp-ts: "npm:^2.13.1"
+    io-ts: "npm:^2.2.20"
+    tsup: "npm:^6.6.3"
+  checksum: 10c0/1126c2bf9e98809c6a014c26e7445bb82efc416add338aa665ea1aa1a97e10fa000bce26cc351d638e066e56c655087bd178ec8a4b450f8cfa41c5e9582b0765
+  languageName: node
+  linkType: hard
+
 "@pagopa/eslint-config@npm:^3.0.0":
   version: 3.0.0
   resolution: "@pagopa/eslint-config@npm:3.0.0"
@@ -10911,6 +10923,7 @@ __metadata:
     "@azure/cosmos": "npm:^3.17.2"
     "@azure/functions": "npm:^3.2.0"
     "@mattrglobal/http-signatures": "npm:^4.0.1"
+    "@pagopa/azure-storage-legacy-migration-kit": "npm:0.0.4"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/express-azure-functions": "npm:^2.0.0"
     "@pagopa/io-functions-commons": "npm:28.1.0"
