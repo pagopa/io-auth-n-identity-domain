@@ -150,14 +150,14 @@ jobs:
     steps:
       - name: Free up some space before proceeding
         run: |
-          echo "::info::Disk usage before clean up:"
-          echo "::info::$(df -h)"
+          echo "::warning ::Disk usage before clean up:"
+          echo "::warning ::$(df -h)"
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          echo "::info::Disk usage after clean up:"
-          echo "::info::$(df -h)"
+          echo "::warning::Disk usage after clean up:"
+          echo "::warning::$(df -h)"
       - name: Check out code
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
