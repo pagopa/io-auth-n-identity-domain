@@ -1,4 +1,4 @@
-import { BlobService } from "azure-storage";
+import { BlobServiceClient } from "@azure/storage-blob";
 import { QueueServiceClient } from "@azure/storage-queue";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as RA from "fp-ts/lib/ReadonlyArray";
@@ -6,7 +6,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
 import * as T from "fp-ts/lib/Task";
 
-export const createBlobs = (blobServiceClient: BlobService, blobs: string[]) =>
+export const createBlobs = (blobServiceClient: BlobServiceClient, blobs: string[]) =>
   pipe(
     blobs,
     T.of,
@@ -14,14 +14,7 @@ export const createBlobs = (blobServiceClient: BlobService, blobs: string[]) =>
       flow(
         RA.map(b =>
           TE.tryCatch(
-            async () =>
-              blobServiceClient.createContainerIfNotExists(
-                b,
-                (error, result) => {
-                  if (!error) Promise.resolve(result);
-                  else Promise.reject(error);
-                }
-              ),
+            () => blobServiceClient.getContainerClient(b).createIfNotExists(),
             E.toError
           )
         ),

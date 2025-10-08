@@ -6,7 +6,7 @@ import {
   Database,
   IndexingPolicy
 } from "@azure/cosmos";
-import { BlobService } from "azure-storage";
+import { BlobServiceClient } from "@azure/storage-blob";
 import { pipe } from "fp-ts/lib/function";
 import {
   CosmosErrors,
@@ -99,7 +99,7 @@ export const createContext = (
   hasStorage = false
 ) => {
   let db: Database;
-  let storage: BlobService;
+  let storage: BlobServiceClient;
   let container: Container;
   return {
     async init(indexingPolicy?: IndexingPolicy) {
@@ -123,12 +123,8 @@ export const createContext = (
         )
       )();
       if (hasStorage) {
-        storage = new BlobService(storageConnectionString);
-        await new Promise((resolve, reject) => {
-          storage.createContainerIfNotExists(containerName, (err, res) =>
-            err ? reject(err) : resolve(res)
-          );
-        });
+        storage = BlobServiceClient.fromConnectionString(storageConnectionString);
+        await storage.getContainerClient(containerName).createIfNotExists();
       }
       db = r.db;
       container = r.container;
