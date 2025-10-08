@@ -6,7 +6,7 @@ import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middl
 
 import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src/createAzureFunctionsHandler";
 
-import { createBlobService } from "azure-storage";
+import { BlobServiceClient } from "@azure/storage-blob";
 import { useWinstonFor } from "@pagopa/winston-ts";
 import { LoggerId } from "@pagopa/winston-ts/dist/types/logging";
 import { withApplicationInsight } from "@pagopa/io-functions-commons/dist/src/utils/transports/application_insight";
@@ -36,7 +36,7 @@ const lollipopKeysModel = new LolliPOPKeysModel(
   cosmosdbInstance.container(LOLLIPOPKEYS_COLLECTION_NAME)
 );
 
-const assertionBlobService = createBlobService(
+const assertionBlobService = BlobServiceClient.fromConnectionString(
   config.LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING
 );
 
