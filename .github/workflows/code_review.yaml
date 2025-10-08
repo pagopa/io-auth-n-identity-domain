@@ -181,6 +181,21 @@ jobs:
         with:
           filters: ./.github/ci_filters.yaml
 
+      - name: Free up some space before proceeding
+        if: >-
+          steps.test_filter.outputs.io-lollipop == 'true' ||
+          steps.test_filter.outputs.bruno-io-lollipop == 'true' ||
+          steps.test_filter.outputs.io-session-manager == 'true'
+        run: |
+          echo "::warning ::Disk usage before clean up:"
+          echo "::warning ::$(df -h)"
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          echo "::warning::Disk usage after clean up:"
+          echo "::warning::$(df -h)"
+
       # TODO: in order to replicate the test with Bruno collections on the other services,
       # it is necessary to integrate io-fixtures in the current project in order to
       # setup and teardown the database.
