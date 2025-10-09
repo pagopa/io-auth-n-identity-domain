@@ -41,14 +41,18 @@ export const getPopDocumentWriter = (
 const doesBlobExist = (
   blobService: BlobService,
   container: string,
-  blobName: string
+  blobName: string,
+  tracker: "primary" | "secondary"
 ): TE.TaskEither<InternalError, boolean> =>
   pipe(
     TE.taskify<Error, BlobService.BlobResult>(cb =>
       blobService.doesBlobExist(container, blobName, cb)
     )(),
     TE.mapLeft(error =>
-      toInternalError(error.message, "Error checking assertion file existance")
+      toInternalError(
+        error.message,
+        `Error checking assertion file existance on ${tracker} blob storage`
+      )
     ),
     TE.map(result => result.exists ?? false)
   );
@@ -64,7 +68,8 @@ export const getAssertionWriter = (
     doesBlobExist(
       assertionBlobService.primary,
       lollipopAssertionStorageContainerName,
-      assertionFileName
+      assertionFileName,
+      "primary"
     ),
     TE.filterOrElseW(
       exists => !exists,
@@ -77,7 +82,8 @@ export const getAssertionWriter = (
             doesBlobExist(
               assertionBlobService.secondary,
               lollipopAssertionStorageContainerName,
-              assertionFileName
+              assertionFileName,
+              "secondary"
             ),
             TE.filterOrElseW(
               exists => !exists,
