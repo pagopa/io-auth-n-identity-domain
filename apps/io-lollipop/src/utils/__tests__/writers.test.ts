@@ -230,8 +230,8 @@ describe("AssertionWriter", () => {
     expect(result).toEqual(
       E.left({
         kind: "Internal",
-        detail: `Error checking assertion file existance on primary blob storage`,
-        message: `an Error`
+        detail: "Error checking assertion file existence on primary blob storage",
+        message: "an Error"
       })
     );
   });
@@ -252,8 +252,8 @@ describe("AssertionWriter", () => {
     expect(result).toEqual(
       E.left({
         kind: "Internal",
-        detail: `Error checking assertion file existance on secondary blob storage`,
-        message: `an Error`
+        detail: "Error checking assertion file existence on secondary blob storage",
+        message: "an Error"
       })
     );
   });

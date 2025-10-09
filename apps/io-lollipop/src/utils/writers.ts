@@ -51,7 +51,7 @@ const doesBlobExist = (
     TE.mapLeft(error =>
       toInternalError(
         error.message,
-        `Error checking assertion file existance on ${tracker} blob storage`
+        `Error checking assertion file existence on ${tracker} blob storage`
       )
     ),
     TE.map(result => result.exists ?? false)
