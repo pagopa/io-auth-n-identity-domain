@@ -1,8 +1,11 @@
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
-import { upsertBlobFromText } from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 import { BlobService } from "azure-storage";
+import {
+  BlobServiceWithFallBack,
+  upsertBlobFromText
+} from "@pagopa/azure-storage-legacy-migration-kit";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import {
   LolliPOPKeysModel,
@@ -35,42 +38,63 @@ export const getPopDocumentWriter = (
     )
   );
 
+const doesBlobExist = (
+  blobService: BlobService,
+  container: string,
+  blobName: string
+): TE.TaskEither<InternalError, boolean> =>
+  pipe(
+    TE.taskify<Error, BlobService.BlobResult>(cb =>
+      blobService.doesBlobExist(container, blobName, cb)
+    )(),
+    TE.mapLeft(error =>
+      toInternalError(error.message, "Error checking assertion file existance")
+    ),
+    TE.map(result => result.exists ?? false)
+  );
+
 export const getAssertionWriter = (
-  assertionBlobService: BlobService,
+  assertionBlobService: BlobServiceWithFallBack,
   lollipopAssertionStorageContainerName: NonEmptyString
 ): AssertionWriter => (
   assertionFileName,
   assertion
 ): ReturnType<AssertionWriter> =>
   pipe(
-    TE.taskify<Error, BlobService.BlobResult>(cb =>
-      assertionBlobService.doesBlobExist(
-        lollipopAssertionStorageContainerName,
-        assertionFileName,
-        cb
-      )
-    )(),
-    TE.mapLeft(error =>
-      toInternalError(error.message, "Error checking assertion file existance")
+    doesBlobExist(
+      assertionBlobService.primary,
+      lollipopAssertionStorageContainerName,
+      assertionFileName
     ),
-    TE.map(blobResult => blobResult.exists ?? false),
-    TE.filterOrElse(
-      fileEsists => !fileEsists,
-      () => toInternalError(`Assertion already exists`)
+    TE.filterOrElseW(
+      exists => !exists,
+      () => toInternalError("Assertion already exists")
     ),
+    // Check also on secondary
+    TE.chainW(() =>
+      assertionBlobService.secondary
+        ? pipe(
+            doesBlobExist(
+              assertionBlobService.secondary,
+              lollipopAssertionStorageContainerName,
+              assertionFileName
+            ),
+            TE.filterOrElseW(
+              exists => !exists,
+              () => toInternalError("Assertion already exists")
+            )
+          )
+        : TE.right(false)
+    ),
+    TE.map(() => true),
     TE.chainW(() =>
       pipe(
-        TE.tryCatch(
-          () =>
-            upsertBlobFromText(
-              assertionBlobService,
-              lollipopAssertionStorageContainerName,
-              assertionFileName,
-              assertion
-            ),
-          E.toError
+        upsertBlobFromText(
+          assertionBlobService,
+          lollipopAssertionStorageContainerName,
+          assertionFileName,
+          assertion
         ),
-        TE.chainW(TE.fromEither),
         TE.mapLeft((error: Error) =>
           toInternalError(
             error.message,

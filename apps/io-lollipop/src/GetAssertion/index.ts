@@ -6,7 +6,7 @@ import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middl
 
 import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src/createAzureFunctionsHandler";
 
-import { createBlobService } from "azure-storage";
+import { createBlobService } from "@pagopa/azure-storage-legacy-migration-kit";
 import { useWinstonFor } from "@pagopa/winston-ts";
 import { LoggerId } from "@pagopa/winston-ts/dist/types/logging";
 import { withApplicationInsight } from "@pagopa/io-functions-commons/dist/src/utils/transports/application_insight";

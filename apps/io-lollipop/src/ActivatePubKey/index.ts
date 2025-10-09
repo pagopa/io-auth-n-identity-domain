@@ -3,7 +3,7 @@ import express from "express";
 import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
 import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src/createAzureFunctionsHandler";
-import { createBlobService } from "azure-storage";
+import { createBlobService } from "@pagopa/azure-storage-legacy-migration-kit";
 import { withApplicationInsight } from "@pagopa/io-functions-commons/dist/src/utils/transports/application_insight";
 import { AzureContextTransport } from "@pagopa/io-functions-commons/dist/src/utils/logging";
 import { useWinstonFor } from "@pagopa/winston-ts";

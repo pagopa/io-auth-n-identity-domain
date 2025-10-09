@@ -6,7 +6,6 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 
-import * as fn_commons from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 import { AssertionTypeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/lollipop/AssertionType";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
@@ -55,10 +54,19 @@ const lollipopPubKeysModelMock = ({
   upsert: upsertMock
 } as unknown) as LolliPOPKeysModel;
 
-const upsertBlobFromTextMock = vi.spyOn(fn_commons, "upsertBlobFromText");
-upsertBlobFromTextMock.mockImplementation(async () =>
-  E.right(O.fromNullable({ name: "blob" } as BlobService.BlobResult))
-);
+const upsertBlobFromTextMock = vi
+  .fn()
+  .mockImplementation(() => TE.of(O.fromNullable({ name: "blob" } as BlobService.BlobResult)));
+
+vi.mock("@pagopa/azure-storage-legacy-migration-kit", async () => {
+  const actual: object = await vi.importActual(
+    "@pagopa/azure-storage-legacy-migration-kit"
+  );
+  return {
+    ...actual,
+    upsertBlobFromText: (...args: unknown[]) => upsertBlobFromTextMock(...args)
+  };
+});
 
 // Variables
 
@@ -137,7 +145,7 @@ describe("AssertionWriter", () => {
 
   it("should return InternalError if an error occurred storing the assertion", async () => {
     upsertBlobFromTextMock.mockImplementationOnce(() =>
-      Promise.reject(Error("an Error"))
+      TE.left(Error("an Error"))
     );
     const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
 
@@ -155,8 +163,8 @@ describe("AssertionWriter", () => {
   });
 
   it("should return InternalError if upsertBlobFromText returns a Left object", async () => {
-    upsertBlobFromTextMock.mockImplementationOnce(async () =>
-      E.left(new Error("another Error"))
+    upsertBlobFromTextMock.mockImplementationOnce(() =>
+      TE.left(new Error("another Error"))
     );
     const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
 
@@ -174,7 +182,7 @@ describe("AssertionWriter", () => {
   });
 
   it("should return InternalError if upsertBlobFromText returns O.none", async () => {
-    upsertBlobFromTextMock.mockImplementationOnce(async () => E.right(O.none));
+    upsertBlobFromTextMock.mockImplementationOnce(() => TE.right(O.none));
     const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
 
     const result = await assertionWriter(

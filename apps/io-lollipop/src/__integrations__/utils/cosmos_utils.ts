@@ -6,7 +6,7 @@ import {
   Database,
   IndexingPolicy
 } from "@azure/cosmos";
-import { BlobService } from "azure-storage";
+import { BlobServiceWithFallBack, createBlobService } from "@pagopa/azure-storage-legacy-migration-kit";
 import { pipe } from "fp-ts/lib/function";
 import {
   CosmosErrors,
@@ -99,7 +99,7 @@ export const createContext = (
   hasStorage = false
 ) => {
   let db: Database;
-  let storage: BlobService;
+  let storage: BlobServiceWithFallBack;
   let container: Container;
   return {
     async init(indexingPolicy?: IndexingPolicy) {
@@ -123,9 +123,14 @@ export const createContext = (
         )
       )();
       if (hasStorage) {
-        storage = new BlobService(storageConnectionString);
+        storage = createBlobService(storageConnectionString);
         await new Promise((resolve, reject) => {
-          storage.createContainerIfNotExists(containerName, (err, res) =>
+          storage.primary.createContainerIfNotExists(containerName, (err, res) =>
+            err ? reject(err) : resolve(res)
+          );
+        });
+        await new Promise((resolve, reject) => {
+          storage.secondary?.createContainerIfNotExists(containerName, (err, res) =>
             err ? reject(err) : resolve(res)
           );
         });
