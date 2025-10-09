@@ -211,8 +211,8 @@ describe("AssertionWriter", () => {
     expect(result).toEqual(
       E.left({
         kind: "Internal",
-        detail: `Assertion already exists`,
-        message: `Assertion already exists`
+        detail: "Assertion already exists on primary storage",
+        message: "Assertion already exists on primary storage"
       })
     );
   });
@@ -233,8 +233,8 @@ describe("AssertionWriter", () => {
     expect(result).toEqual(
       E.left({
         kind: "Internal",
-        detail: `Assertion already exists`,
-        message: `Assertion already exists`
+        detail: "Assertion already exists on secondary storage",
+        message: "Assertion already exists on secondary storage"
       })
     );
   });

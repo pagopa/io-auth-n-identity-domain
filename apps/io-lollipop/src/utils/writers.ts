@@ -73,7 +73,7 @@ export const getAssertionWriter = (
     ),
     TE.filterOrElseW(
       exists => !exists,
-      () => toInternalError("Assertion already exists")
+      () => toInternalError("Assertion already exists on primary storage")
     ),
     // Check also on secondary
     TE.chainW(() =>
@@ -87,7 +87,7 @@ export const getAssertionWriter = (
             ),
             TE.filterOrElseW(
               exists => !exists,
-              () => toInternalError("Assertion already exists")
+              () => toInternalError("Assertion already exists on secondary storage")
             )
           )
         : TE.right(false)
