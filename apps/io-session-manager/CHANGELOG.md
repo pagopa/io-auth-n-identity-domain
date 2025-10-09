@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.14.2
+
+### Patch Changes
+
+- ec38bf0: Send RELOGIN Scenario in ServiceBus when an active session login is made
+
 ## 1.14.1
 
 ### Patch Changes
