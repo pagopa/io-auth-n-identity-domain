@@ -198,7 +198,29 @@ describe("AssertionWriter", () => {
     );
   });
 
-  it("should return InternalError if the blob already exists", async () => {
+  it("should return InternalError if the blob already exists on primary storage", async () => {
+    doesBlobExistMock.mockImplementationOnce((_, __, callback) =>
+      callback(undefined, { exists: true })
+    );
+    const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
+
+    const result = await assertionWriter(
+      aRetrievedValidLollipopPubKeySha256.assertionFileName,
+      "an Assertion"
+    )();
+    expect(result).toEqual(
+      E.left({
+        kind: "Internal",
+        detail: `Assertion already exists`,
+        message: `Assertion already exists`
+      })
+    );
+  });
+
+  it("should return InternalError if the blob already exists on secondary storage", async () => {
+    doesBlobExistMock.mockImplementationOnce((_, __, callback) =>
+      callback(undefined, { exists: false })
+    );
     doesBlobExistMock.mockImplementationOnce((_, __, callback) =>
       callback(undefined, { exists: true })
     );
