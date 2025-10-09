@@ -129,6 +129,13 @@ export const createContext = (
             err ? reject(err) : resolve(res)
           );
         });
+        if (storage.secondary) {
+          await new Promise((resolve, reject) => {
+            storage.secondary!.createContainerIfNotExists(containerName, (err, res) =>
+              err ? reject(err) : resolve(res)
+            );
+          });
+        }
       }
       db = r.db;
       container = r.container;
