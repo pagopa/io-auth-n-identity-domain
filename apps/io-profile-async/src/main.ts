@@ -82,12 +82,22 @@ const profileEmailTableClient = TableClient.fromConnectionString(
   config.PROFILE_EMAIL_STORAGE_TABLE_NAME
 );
 
+const itnProfileEmailTableClient = TableClient.fromConnectionString(
+  config.AZURE_STORAGE_CONNECTION_STRING_ITN,
+  config.PROFILE_EMAIL_STORAGE_TABLE_NAME_ITN
+);
+
 const profileModel = new ProfileModel(
   cosmosApiDatabase.container(PROFILE_COLLECTION_NAME)
 );
 
 const dataTableProfileEmailsRepository = new DataTableProfileEmailsRepository(
   profileEmailTableClient
+);
+
+// TODO: cleanup after ITN migration
+const itnDataTableProfileEmailsRepository = new DataTableProfileEmailsRepository(
+  itnProfileEmailTableClient
 );
 
 const sessionNotificationsModel = new SessionNotificationsModel(
@@ -131,6 +141,16 @@ export const OnProfileUpdate = OnProfileUpdateFunction({
   TrackerRepository: tracker,
   profileModel,
   dataTableProfileEmailsRepository,
+  telemetryClient,
+  inputDecoder: OnProfileUpdateFunctionInput
+});
+
+export const TableImporter = OnProfileUpdateFunction({
+  ProfileRepository,
+  ProfileEmailRepository,
+  TrackerRepository: tracker,
+  profileModel,
+  dataTableProfileEmailsRepository: itnDataTableProfileEmailsRepository,
   telemetryClient,
   inputDecoder: OnProfileUpdateFunctionInput
 });
