@@ -81,6 +81,15 @@ export const IConfig = t.intersection([
       t.string,
       `${DEFAULT_KEYS_EXPIRE_GRACE_PERIODS_IN_DAYS}`
     ).pipe(NonNegativeIntegerFromString),
+
+    LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONNECTION_STRING: withDefault(
+      t.union([NonEmptyString, t.undefined]),
+      undefined
+    ),
+    LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONTAINER_NAME: withDefault(
+      t.union([NonEmptyString, t.undefined]),
+      undefined
+    ),
     LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING: NonEmptyString,
     LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME: withDefault(
       NonEmptyString,
