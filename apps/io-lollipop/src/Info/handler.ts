@@ -53,7 +53,13 @@ export const Info = (): express.RequestHandler => {
       c =>
         healthcheck.checkAzureStorageHealth(
           c.LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING
-        )
+        ),
+      c =>
+        c.LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONNECTION_STRING
+          ? healthcheck.checkAzureStorageHealth(
+              c.LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONNECTION_STRING
+            )
+          : TE.right(true)
     ])
   );
 
