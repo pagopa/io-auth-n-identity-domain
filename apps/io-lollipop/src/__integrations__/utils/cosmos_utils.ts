@@ -22,6 +22,9 @@ const key = getRequiredStringEnv("COSMOSDB_KEY");
 const storageConnectionString = getRequiredStringEnv(
   "LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING"
 );
+const secondaryStorageConnectionString = getRequiredStringEnv(
+  "LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONNECTION_STRING"
+);
 export const cosmosDatabaseName = getRequiredStringEnv("COSMOSDB_NAME");
 
 //in jest 27 fail is no longer defined, we can define this function as workaround
@@ -96,6 +99,7 @@ export const deleteContainer = (
 export const createContext = (
   partitionKey: string,
   containerName: NonEmptyString,
+  secondaryContainerName: NonEmptyString,
   hasStorage = false
 ) => {
   let db: Database;
@@ -123,7 +127,7 @@ export const createContext = (
         )
       )();
       if (hasStorage) {
-        storage = createBlobService(storageConnectionString);
+        storage = createBlobService(storageConnectionString, secondaryStorageConnectionString);
         await new Promise((resolve, reject) => {
           storage.primary.createContainerIfNotExists(containerName, (err, res) =>
             err ? reject(err) : resolve(res)
@@ -131,7 +135,7 @@ export const createContext = (
         });
         if (storage.secondary) {
           await new Promise((resolve, reject) => {
-            storage.secondary!.createContainerIfNotExists(containerName, (err, res) =>
+            storage.secondary!.createContainerIfNotExists(secondaryContainerName, (err, res) =>
               err ? reject(err) : resolve(res)
             );
           });
