@@ -109,8 +109,8 @@ module "function_profile" {
   health_check_path     = "/api/v1/info"
   has_durable_functions = "true"
 
-  # P2mv3 SKU and 8 Worker process count(sku set as of io-infra function-profile definition)
-  tier = "xl"
+  # P3mv3 SKU and 10 Worker process count
+  tier = "xxl"
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
 

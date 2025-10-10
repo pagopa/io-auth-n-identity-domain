@@ -6,10 +6,10 @@
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-service-bus-alerts/azurerm/0.1.3"
   },
   "eventhub.eventhub": {
-    "hash": "ec7e3d9527cdeb8f9a575b487f7c907825efc04b3bb107933d5a46acf37e70bd",
-    "version": "0.0.11",
+    "hash": "dbe7be54650ef9e344642733ae5e6b9ce385e97a7e40af2278cdb44581d59146",
+    "version": "0.1.0",
     "name": "azure_event_hub",
-    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-event-hub/azurerm/0.0.11"
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-event-hub/azurerm/0.1.0"
   },
   "function_lollipop": {
     "hash": "20d1bf568efdf78dc97cf5dac105c7f30caf710e7a49a3edf7acab1ea78a4699",
