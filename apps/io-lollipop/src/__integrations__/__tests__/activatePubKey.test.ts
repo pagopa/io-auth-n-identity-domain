@@ -56,6 +56,7 @@ const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
 const myFetch = getNodeFetch();
 
 const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "assertions";
+const LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONTAINER_NAME = "assertions-secondary";
 
 // ----------------
 // Setup dbs
@@ -79,7 +80,8 @@ beforeAll(async () => {
     })
   )();
   await pipe(
-    createBlobsOnStorages(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME]),
+    // This will create both primary and secondary containers on both storages (if secondary storage connection string is set)
+    createBlobsOnStorages(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME, LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONTAINER_NAME]),
     TE.getOrElse(e => {
       throw Error("Cannot create azure storage: " + JSON.stringify(e));
     })
@@ -275,7 +277,7 @@ describe("activatePubKey |> Success Results", () => {
         const secondaryAssertionBlob = await pipe(
           getBlobAsTextWithError(
             blobService.secondary,
-            LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
+            LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONTAINER_NAME
           )(anAssertionFileNameForSha256)
         )();
         expect(secondaryAssertionBlob).toEqual(
@@ -389,7 +391,7 @@ describe("activatePubKey |> Success Results", () => {
         const secondaryAssertionBlob = await pipe(
           getBlobAsTextWithError(
             blobService.secondary,
-            LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
+            LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONTAINER_NAME
           )(randomAssertionFileName)
         )();
         expect(secondaryAssertionBlob).toEqual(

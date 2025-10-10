@@ -74,6 +74,7 @@ const baseUrl = BASE_URL;
 const myFetch = (getNodeFetch(customHeaders) as unknown) as typeof fetch;
 
 const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "assertions";
+const LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONTAINER_NAME = "assertions-secondary";
 
 // ----------------
 // Setup dbs
@@ -97,7 +98,8 @@ beforeAll(async () => {
     })
   )();
   await pipe(
-    createBlobsOnStorages(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME]),
+    // This will create both primary and secondary containers on both storages (if secondary storage connection string is set)
+    createBlobsOnStorages(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME, LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONTAINER_NAME]),
     TE.getOrElse(e => {
       throw Error("Cannot create azure storage: " + JSON.stringify(e));
     })
@@ -383,7 +385,7 @@ describe("getAssertion |> Validation Failures", () => {
         const deletedOnSecondary = await TE.taskify<Error, ServiceResponse>(cb =>
           blobService.secondary
             ? blobService.secondary.deleteBlob(
-              LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME,
+              LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONTAINER_NAME,
               lcParams.assertion_file_name,
               cb
             )
