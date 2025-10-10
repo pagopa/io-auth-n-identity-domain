@@ -17,8 +17,9 @@ import { CosmosClient } from "@azure/cosmos";
 import { COSMOSDB_URI, COSMOSDB_KEY, COSMOSDB_NAME } from "../../env";
 
 const containerName = makeRandomContainerName();
+const secondaryContainerName = makeRandomContainerName();
 
-const context = createContext(LOLLIPOPKEYS_MODEL_PK_FIELD, containerName, true);
+const context = createContext(LOLLIPOPKEYS_MODEL_PK_FIELD, containerName, secondaryContainerName, true);
 
 beforeEach(async () => { await context.init() });
 afterEach(async () => { await context.dispose() });

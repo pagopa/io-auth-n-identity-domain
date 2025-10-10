@@ -7,7 +7,6 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import * as fn_commons from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 
 import { LolliPOPKeysModel } from "../../model/lollipop_keys";
 import { getAssertionReader, getPublicKeyDocumentReader } from "../readers";
@@ -37,12 +36,19 @@ const lollipopPubKeysModelMock = ({
   upsert: upsertMock
 } as unknown) as LolliPOPKeysModel;
 
-const getBlobAsTextMock = vi.spyOn(fn_commons, "getBlobAsText");
-getBlobAsTextMock.mockImplementation(
-  async (blobService, containerName, assertionName) =>
-    E.right(O.some(anAssertionContent))
-);
+const getBlobAsTextMock = vi
+  .fn()
+  .mockImplementation(() => TE.of(O.some(anAssertionContent)));
 
+vi.mock("@pagopa/azure-storage-legacy-migration-kit", async () => {
+  const actual: object = await vi.importActual(
+    "@pagopa/azure-storage-legacy-migration-kit"
+  );
+  return {
+    ...actual,
+    getBlobAsText: (...args: unknown[]) => getBlobAsTextMock(...args)
+  };
+});
 // --------------------------
 // Tests
 // --------------------------
@@ -116,8 +122,7 @@ describe("AssertionReader", () => {
 
   it("should return an internal error when an error occurred retrieving the assertion from blob storage", async () => {
     getBlobAsTextMock.mockImplementationOnce(
-      async (blobService, containerName, assertionName) =>
-        E.left(({ message: "an Error" } as unknown) as StorageError)
+      () => TE.left(({ message: "an Error" } as unknown) as StorageError)
     );
 
     const assertionReader = getAssertionReader(
@@ -137,7 +142,7 @@ describe("AssertionReader", () => {
 
   it("should return an internal error when the assertion content is empty", async () => {
     getBlobAsTextMock.mockImplementationOnce(
-      async (blobService, containerName, assertionName) => E.right(O.some(""))
+      () => TE.right(O.some(""))
     );
 
     const assertionReader = getAssertionReader(
@@ -157,7 +162,7 @@ describe("AssertionReader", () => {
 
   it("should return a not found error when there no assertion was found in blob storage for a given assertion file name", async () => {
     getBlobAsTextMock.mockImplementationOnce(
-      async (blobService, containerName, assertionName) => E.right(O.none)
+      () => TE.right(O.none)
     );
 
     const assertionReader = getAssertionReader(

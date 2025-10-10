@@ -6,7 +6,7 @@ import {
   Database,
   IndexingPolicy
 } from "@azure/cosmos";
-import { BlobService } from "azure-storage";
+import { BlobServiceWithFallBack, createBlobService } from "@pagopa/azure-storage-legacy-migration-kit";
 import { pipe } from "fp-ts/lib/function";
 import {
   CosmosErrors,
@@ -21,6 +21,9 @@ const endpoint = getRequiredStringEnv("COSMOSDB_URI");
 const key = getRequiredStringEnv("COSMOSDB_KEY");
 const storageConnectionString = getRequiredStringEnv(
   "LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING"
+);
+const secondaryStorageConnectionString = getRequiredStringEnv(
+  "LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONNECTION_STRING"
 );
 export const cosmosDatabaseName = getRequiredStringEnv("COSMOSDB_NAME");
 
@@ -96,10 +99,11 @@ export const deleteContainer = (
 export const createContext = (
   partitionKey: string,
   containerName: NonEmptyString,
+  secondaryContainerName: NonEmptyString,
   hasStorage = false
 ) => {
   let db: Database;
-  let storage: BlobService;
+  let storage: BlobServiceWithFallBack;
   let container: Container;
   return {
     async init(indexingPolicy?: IndexingPolicy) {
@@ -123,12 +127,19 @@ export const createContext = (
         )
       )();
       if (hasStorage) {
-        storage = new BlobService(storageConnectionString);
+        storage = createBlobService(storageConnectionString, secondaryStorageConnectionString);
         await new Promise((resolve, reject) => {
-          storage.createContainerIfNotExists(containerName, (err, res) =>
+          storage.primary.createContainerIfNotExists(containerName, (err, res) =>
             err ? reject(err) : resolve(res)
           );
         });
+        if (storage.secondary) {
+          await new Promise((resolve, reject) => {
+            storage.secondary!.createContainerIfNotExists(secondaryContainerName, (err, res) =>
+              err ? reject(err) : resolve(res)
+            );
+          });
+        }
       }
       db = r.db;
       container = r.container;

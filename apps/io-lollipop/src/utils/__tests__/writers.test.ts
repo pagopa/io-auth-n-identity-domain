@@ -6,7 +6,6 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 
-import * as fn_commons from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 import { AssertionTypeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/lollipop/AssertionType";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
@@ -55,10 +54,19 @@ const lollipopPubKeysModelMock = ({
   upsert: upsertMock
 } as unknown) as LolliPOPKeysModel;
 
-const upsertBlobFromTextMock = vi.spyOn(fn_commons, "upsertBlobFromText");
-upsertBlobFromTextMock.mockImplementation(async () =>
-  E.right(O.fromNullable({ name: "blob" } as BlobService.BlobResult))
-);
+const upsertBlobFromTextMock = vi
+  .fn()
+  .mockImplementation(() => TE.of(O.fromNullable({ name: "blob" } as BlobService.BlobResult)));
+
+vi.mock("@pagopa/azure-storage-legacy-migration-kit", async () => {
+  const actual: object = await vi.importActual(
+    "@pagopa/azure-storage-legacy-migration-kit"
+  );
+  return {
+    ...actual,
+    upsertBlobFromText: (...args: unknown[]) => upsertBlobFromTextMock(...args)
+  };
+});
 
 // Variables
 
@@ -137,7 +145,7 @@ describe("AssertionWriter", () => {
 
   it("should return InternalError if an error occurred storing the assertion", async () => {
     upsertBlobFromTextMock.mockImplementationOnce(() =>
-      Promise.reject(Error("an Error"))
+      TE.left(Error("an Error"))
     );
     const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
 
@@ -155,8 +163,8 @@ describe("AssertionWriter", () => {
   });
 
   it("should return InternalError if upsertBlobFromText returns a Left object", async () => {
-    upsertBlobFromTextMock.mockImplementationOnce(async () =>
-      E.left(new Error("another Error"))
+    upsertBlobFromTextMock.mockImplementationOnce(() =>
+      TE.left(new Error("another Error"))
     );
     const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
 
@@ -174,7 +182,7 @@ describe("AssertionWriter", () => {
   });
 
   it("should return InternalError if upsertBlobFromText returns O.none", async () => {
-    upsertBlobFromTextMock.mockImplementationOnce(async () => E.right(O.none));
+    upsertBlobFromTextMock.mockImplementationOnce(() => TE.right(O.none));
     const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
 
     const result = await assertionWriter(
@@ -190,7 +198,7 @@ describe("AssertionWriter", () => {
     );
   });
 
-  it("should return InternalError if the blob already exists", async () => {
+  it("should return InternalError if the blob already exists on primary storage", async () => {
     doesBlobExistMock.mockImplementationOnce((_, __, callback) =>
       callback(undefined, { exists: true })
     );
@@ -203,13 +211,35 @@ describe("AssertionWriter", () => {
     expect(result).toEqual(
       E.left({
         kind: "Internal",
-        detail: `Assertion already exists`,
-        message: `Assertion already exists`
+        detail: "Assertion already exists on primary storage",
+        message: "Assertion already exists on primary storage"
       })
     );
   });
 
-  it("should return InternalError if doesBlobExist rejects", async () => {
+  it("should return InternalError if the blob already exists on secondary storage", async () => {
+    doesBlobExistMock.mockImplementationOnce((_, __, callback) =>
+      callback(undefined, { exists: false })
+    );
+    doesBlobExistMock.mockImplementationOnce((_, __, callback) =>
+      callback(undefined, { exists: true })
+    );
+    const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
+
+    const result = await assertionWriter(
+      aRetrievedValidLollipopPubKeySha256.assertionFileName,
+      "an Assertion"
+    )();
+    expect(result).toEqual(
+      E.left({
+        kind: "Internal",
+        detail: "Assertion already exists on secondary storage",
+        message: "Assertion already exists on secondary storage"
+      })
+    );
+  });
+
+  it("should return InternalError if primary storage doesBlobExist rejects", async () => {
     doesBlobExistMock.mockImplementationOnce((_, __, callback) =>
       callback(new Error("an Error"), undefined)
     );
@@ -222,8 +252,30 @@ describe("AssertionWriter", () => {
     expect(result).toEqual(
       E.left({
         kind: "Internal",
-        detail: `Error checking assertion file existance`,
-        message: `an Error`
+        detail: "Error checking assertion file existence on primary blob storage",
+        message: "an Error"
+      })
+    );
+  });
+
+  it("should return InternalError if secondary storage doesBlobExist rejects", async () => {
+    doesBlobExistMock.mockImplementationOnce((_, __, callback) =>
+      callback(undefined, { exists: false })
+    );
+    doesBlobExistMock.mockImplementationOnce((_, __, callback) =>
+      callback(new Error("an Error"), undefined)
+    );
+    const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
+
+    const result = await assertionWriter(
+      aRetrievedValidLollipopPubKeySha256.assertionFileName,
+      "an Assertion"
+    )();
+    expect(result).toEqual(
+      E.left({
+        kind: "Internal",
+        detail: "Error checking assertion file existence on secondary blob storage",
+        message: "an Error"
       })
     );
   });
