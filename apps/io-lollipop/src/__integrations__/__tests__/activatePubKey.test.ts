@@ -29,7 +29,7 @@ import {
   BASE_URL
 } from "../env";
 import { QueueStorageConnection } from "../env";
-import { createBlobs } from "../utils/azure_storage";
+import { createBlobsOnStorages } from "../utils/azure_storage";
 import { PubKeyStatusEnum } from "../../generated/definitions/internal/PubKeyStatus";
 import {
   aFiscalCode,
@@ -43,10 +43,12 @@ import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { fetchActivatePubKey, fetchReservePubKey } from "../utils/client";
 import { JwkPubKeyHashAlgorithmEnum } from "../../generated/definitions/internal/JwkPubKeyHashAlgorithm";
 import { MASTER_HASH_ALGO } from "../../utils/lollipopKeys";
-import { createBlobService } from "azure-storage";
+import { StorageError } from "@pagopa/azure-storage-legacy-migration-kit";
+import { createBlobService } from "@pagopa/azure-storage-legacy-migration-kit";
 import { AssertionFileName } from "../../generated/definitions/internal/AssertionFileName";
 import { CosmosClient } from "@azure/cosmos";
 import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
+import { getRequiredStringEnv } from "../utils/env";
 
 const MAX_ATTEMPT = 50;
 const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
@@ -58,8 +60,10 @@ const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "assertions";
 // ----------------
 // Setup dbs
 // ----------------
-
-const blobService = createBlobService(QueueStorageConnection);
+const secondaryStorageConnectionString = getRequiredStringEnv(
+  "LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONNECTION_STRING"
+);
+const blobService = createBlobService(QueueStorageConnection, secondaryStorageConnectionString);
 
 const cosmosClient = new CosmosClient({
   endpoint: COSMOSDB_URI,
@@ -75,7 +79,7 @@ beforeAll(async () => {
     })
   )();
   await pipe(
-    createBlobs(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME]),
+    createBlobsOnStorages(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME]),
     TE.getOrElse(e => {
       throw Error("Cannot create azure storage: " + JSON.stringify(e));
     })
@@ -257,7 +261,7 @@ describe("activatePubKey |> Success Results", () => {
 
       const assertionBlob = await pipe(
         getBlobAsTextWithError(
-          blobService,
+          blobService.primary,
           LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
         )(anAssertionFileNameForSha256)
       )();
@@ -265,6 +269,23 @@ describe("activatePubKey |> Success Results", () => {
       expect(assertionBlob).toEqual(
         E.right(O.some(validActivatePubKeyPayload.assertion))
       );
+
+      // We check that the assertion is NOT present on secondary storage, even if set, since the write op should be done only on primary
+      if (blobService.secondary) {
+        const secondaryAssertionBlob = await pipe(
+          getBlobAsTextWithError(
+            blobService.secondary,
+            LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
+          )(anAssertionFileNameForSha256)
+        )();
+        expect(secondaryAssertionBlob).toEqual(
+          E.left(expect.objectContaining({
+            name: "StorageError",
+            message: expect.stringContaining("The specified blob does not exist."),
+            code: "BlobNotFound",
+          }))
+        );
+      }
 
       // Check used key
       const sha256Document = await lolliPOPKeysModel.findLastVersionByModelId([
@@ -354,7 +375,7 @@ describe("activatePubKey |> Success Results", () => {
 
       const assertionBlob = await pipe(
         getBlobAsTextWithError(
-          blobService,
+          blobService.primary,
           LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
         )(randomAssertionFileName)
       )();
@@ -362,6 +383,23 @@ describe("activatePubKey |> Success Results", () => {
       expect(assertionBlob).toEqual(
         E.right(O.some(validActivatePubKeyPayload.assertion))
       );
+
+      // We check that the assertion is NOT present on secondary storage, even if set, since the write op should be done only on primary
+      if (blobService.secondary) {
+        const secondaryAssertionBlob = await pipe(
+          getBlobAsTextWithError(
+            blobService.secondary,
+            LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
+          )(randomAssertionFileName)
+        )();
+        expect(secondaryAssertionBlob).toEqual(
+          E.left(expect.objectContaining({
+              name: "StorageError",
+              message: expect.stringContaining("The specified blob does not exist."),
+              code: "BlobNotFound",
+            }))
+        );
+      }
 
       // Check master document(the only one present)
       const masterDocument = await lolliPOPKeysModel.findLastVersionByModelId([

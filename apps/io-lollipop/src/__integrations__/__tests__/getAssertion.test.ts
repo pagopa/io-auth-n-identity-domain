@@ -4,7 +4,8 @@ import * as date_fns from "date-fns";
 import * as jwt from "jsonwebtoken";
 
 import { CosmosClient } from "@azure/cosmos";
-import { createBlobService, ServiceResponse } from "azure-storage";
+import { ServiceResponse } from "azure-storage";
+import { createBlobService } from "@pagopa/azure-storage-legacy-migration-kit";
 
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
@@ -38,7 +39,7 @@ import {
   createCosmosDbAndCollections,
   LOLLIPOP_COSMOSDB_COLLECTION_NAME
 } from "../utils/fixtures";
-import { createBlobs } from "../utils/azure_storage";
+import { createBlobsOnStorages } from "../utils/azure_storage";
 import {
   fetchActivatePubKey,
   fetchGenerateLcParams,
@@ -53,6 +54,7 @@ import {
 } from "../../__mocks__/lollipopPubKey.mock";
 import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
 import { ulid } from "ulid";
+import { getRequiredStringEnv } from "../utils/env";
 
 const MAX_ATTEMPT = 50;
 const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
@@ -76,8 +78,10 @@ const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "assertions";
 // ----------------
 // Setup dbs
 // ----------------
-
-const blobService = createBlobService(QueueStorageConnection);
+const secondaryStorageConnectionString = getRequiredStringEnv(
+  "LOLLIPOP_ASSERTION_SECONDARY_STORAGE_CONNECTION_STRING"
+);
+const blobService = createBlobService(QueueStorageConnection, secondaryStorageConnectionString);
 
 const cosmosClient = new CosmosClient({
   endpoint: COSMOSDB_URI,
@@ -93,7 +97,7 @@ beforeAll(async () => {
     })
   )();
   await pipe(
-    createBlobs(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME]),
+    createBlobsOnStorages(blobService, [LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME]),
     TE.getOrElse(e => {
       throw Error("Cannot create azure storage: " + JSON.stringify(e));
     })
@@ -365,7 +369,7 @@ describe("getAssertion |> Validation Failures", () => {
 
       // Delete Blob to let retrieve fail later in the flow
       const deleted = await TE.taskify<Error, ServiceResponse>(cb =>
-        blobService.deleteBlob(
+        blobService.primary.deleteBlob(
           LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME,
           lcParams.assertion_file_name,
           cb
@@ -373,6 +377,21 @@ describe("getAssertion |> Validation Failures", () => {
       )()();
 
       expect(E.isRight(deleted)).toBeTruthy();
+
+      if (blobService.secondary) {
+        // We check that the assertion deletion on secondary storage cannot be performed since the write op has been done only on primary
+        const deletedOnSecondary = await TE.taskify<Error, ServiceResponse>(cb =>
+          blobService.secondary
+            ? blobService.secondary.deleteBlob(
+              LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME,
+              lcParams.assertion_file_name,
+              cb
+            )
+            : cb(null, {} as ServiceResponse)
+        )()();
+        expect(E.isRight(deletedOnSecondary)).toBe(false);
+      }
+      
 
       const response = await fetchGetAssertion(
         lcParams.assertion_ref,
