@@ -47,13 +47,13 @@ export const ReqServiceIdConfig = t.union([
   }),
 ]);
 
-export const ValidationEmailConfiguration = t.partial({
-  VALIDATION_EMAIL_MAILUP_USERNAME: NonEmptyString,
-  VALIDATION_EMAIL_MAILUP_SECRET: NonEmptyString,
+export const ValidationEmailConfigurationOverride = t.partial({
+  OVERRIDE_MAILUP_USERNAME_VALIDATION_EMAIL: NonEmptyString,
+  OVERRIDE_MAILUP_SECRET_VALIDATION_EMAIL: NonEmptyString,
 });
 
-export type ValidationEmailConfiguration = t.TypeOf<
-  typeof ValidationEmailConfiguration
+export type ValidationEmailConfigurationOverride = t.TypeOf<
+  typeof ValidationEmailConfigurationOverride
 >;
 
 // global app configuration
@@ -99,19 +99,36 @@ export const IConfig = t.intersection([
   }),
   MailerConfig,
   ReqServiceIdConfig,
-  ValidationEmailConfiguration,
+  ValidationEmailConfigurationOverride,
 ]);
 
 // Default value is expressed as a Unix timestamp so it can be safely compared with Cosmos timestamp
 // This means that Date representation is in the past compared to the effectively switch Date we want to set
 const DEFAULT_OPT_OUT_EMAIL_SWITCH_DATE = 1625781600;
 
-export const getValidationEmailMailerConfig = (config: IConfig): MailerConfig =>
-  pipe(
+/**
+ * This method is used to override the MailerConfig with custom MailUp credentials for validation email.
+ * If both OVERRIDE_MAILUP_USERNAME_VALIDATION_EMAIL and OVERRIDE_MAILUP_SECRET_VALIDATION_EMAIL are set,
+ * the override is applied and the MailerConfig is decoded with these values.
+ * Otherwise, the original config is returned as is.
+ *
+ * @param config The application configuration object
+ * @returns The overridden MailerConfig or the original config
+ */
+export const getValidationEmailMailerConfig = (
+  config: IConfig,
+): MailerConfig => {
+  if (
+    !config.OVERRIDE_MAILUP_USERNAME_VALIDATION_EMAIL ||
+    !config.OVERRIDE_MAILUP_SECRET_VALIDATION_EMAIL
+  ) {
+    return config;
+  }
+  return pipe(
     {
       ...config,
-      MAILUP_USERNAME: config.VALIDATION_EMAIL_MAILUP_USERNAME,
-      MAILUP_SECRET: config.VALIDATION_EMAIL_MAILUP_SECRET,
+      MAILUP_USERNAME: config.OVERRIDE_MAILUP_USERNAME_VALIDATION_EMAIL,
+      MAILUP_SECRET: config.OVERRIDE_MAILUP_SECRET_VALIDATION_EMAIL,
     },
     MailerConfig.decode,
     E.getOrElseW((errors) => {
@@ -120,6 +137,7 @@ export const getValidationEmailMailerConfig = (config: IConfig): MailerConfig =>
       );
     }),
   );
+};
 
 // get a boolen value from string
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

@@ -70,9 +70,9 @@ locals {
       MAILUP_SECRET   = data.azurerm_key_vault_secret.common_MAILUP_SECRET.value
       PUBLIC_API_KEY  = trimspace(data.azurerm_key_vault_secret.fn_app_PUBLIC_API_KEY.value)
 
-      // Specific configuration for validation email
-      VALIDATION_EMAIL_MAILUP_USERNAME = data.azurerm_key_vault_secret.common_MAILUP_USERNAME.value
-      VALIDATION_EMAIL_MAILUP_SECRET   = data.azurerm_key_vault_secret.common_MAILUP_SECRET.value
+      // Override MailUp Account for validation email (Optional we can remove in this PR and put when needed Are here only for demo purpose)
+      OVERRIDE_MAILUP_USERNAME_VALIDATION_EMAIL = data.azurerm_key_vault_secret.common_MAILUP_USERNAME.value
+      OVERRIDE_MAILUP_SECRET_VALIDATION_EMAIL   = data.azurerm_key_vault_secret.common_MAILUP_SECRET.value
     }
   }
 }
