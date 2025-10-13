@@ -113,7 +113,7 @@ const DEFAULT_OPT_OUT_EMAIL_SWITCH_DATE = 1625781600;
  * Otherwise, the original config is returned as is.
  *
  * @param config The application configuration object
- * @returns The overridden MailerConfig or the original config
+ * @returns The overridden MailerConfig or the MailerConfig derived from the original config
  */
 export const getValidationEmailMailerConfig = (
   config: IConfig,
