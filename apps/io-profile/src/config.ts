@@ -5,16 +5,16 @@
  * The configuration is evaluate eagerly at the first access to the module. The module exposes convenient methods to access such value.
  */
 
-import * as t from "io-ts";
-import * as E from "fp-ts/lib/Either";
-import { flow, pipe } from "fp-ts/lib/function";
-import * as O from "fp-ts/lib/Option";
 import { MailerConfig } from "@pagopa/io-functions-commons/dist/src/mailer";
 import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import { NumberFromString } from "@pagopa/ts-commons/lib/numbers";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
+import * as E from "fp-ts/lib/Either";
+import { flow, pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/lib/Option";
+import * as t from "io-ts";
 
 // exclude a specific value from a type
 // as strict equality is performed, allowed input types are constrained to be values not references (object, arrays, etc)
@@ -46,6 +46,15 @@ export const ReqServiceIdConfig = t.union([
     REQ_SERVICE_ID: NonEmptyString,
   }),
 ]);
+
+export const ValidationEmailConfiguration = t.partial({
+  VALIDATION_EMAIL_MAILUP_USERNAME: NonEmptyString,
+  VALIDATION_EMAIL_MAILUP_SECRET: NonEmptyString,
+});
+
+export type ValidationEmailConfiguration = t.TypeOf<
+  typeof ValidationEmailConfiguration
+>;
 
 // global app configuration
 export type IConfig = t.TypeOf<typeof IConfig>;
@@ -90,11 +99,27 @@ export const IConfig = t.intersection([
   }),
   MailerConfig,
   ReqServiceIdConfig,
+  ValidationEmailConfiguration,
 ]);
 
 // Default value is expressed as a Unix timestamp so it can be safely compared with Cosmos timestamp
 // This means that Date representation is in the past compared to the effectively switch Date we want to set
 const DEFAULT_OPT_OUT_EMAIL_SWITCH_DATE = 1625781600;
+
+export const getValidationEmailMailerConfig = (config: IConfig): MailerConfig =>
+  pipe(
+    {
+      ...config,
+      MAILUP_USERNAME: config.VALIDATION_EMAIL_MAILUP_USERNAME,
+      MAILUP_SECRET: config.VALIDATION_EMAIL_MAILUP_SECRET,
+    },
+    MailerConfig.decode,
+    E.getOrElseW((errors) => {
+      throw new Error(
+        `Error building MailerConfig for ValidationEmail, the reason was => ${readableReport(errors)}`,
+      );
+    }),
+  );
 
 // get a boolen value from string
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

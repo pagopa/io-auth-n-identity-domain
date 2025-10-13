@@ -69,6 +69,10 @@ locals {
       MAILUP_USERNAME = data.azurerm_key_vault_secret.common_MAILUP_USERNAME.value
       MAILUP_SECRET   = data.azurerm_key_vault_secret.common_MAILUP_SECRET.value
       PUBLIC_API_KEY  = trimspace(data.azurerm_key_vault_secret.fn_app_PUBLIC_API_KEY.value)
+
+      // Specific configuration for validation email
+      VALIDATION_EMAIL_MAILUP_USERNAME = data.azurerm_key_vault_secret.common_MAILUP_USERNAME.value
+      VALIDATION_EMAIL_MAILUP_SECRET   = data.azurerm_key_vault_secret.common_MAILUP_SECRET.value
     }
   }
 }
