@@ -58,5 +58,3 @@ module "redis_common_itn" {
 
   tags = local.tags
 }
-
-
