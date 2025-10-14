@@ -132,9 +132,10 @@ const validationEmailDefaults = {
 };
 
 const loginEmailMailerTransporter = getMailerTransporter(config);
-const validationEmailMailerConfig = getValidationEmailMailerConfig(config);
-const validationEmailMailerTransporter = getMailerTransporter(
-  validationEmailMailerConfig,
+const validationEmailMailerTransporter = pipe(
+  config,
+  getValidationEmailMailerConfig,
+  getMailerTransporter,
 );
 
 const httpTriggerDependencies: WebServerDependencies = {
