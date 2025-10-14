@@ -1,5 +1,5 @@
 module "apim_v2_product_auth-n-identity_internal" {
-  source = "github.com/pagopa/terraform-azurerm-v4//api_management_product?ref=v7.16.0"
+  source = "github.com/pagopa/terraform-azurerm-v4//api_management_product?ref=v7.40.3"
 
   product_id            = "io-auth-n-identity-internal-api"
   api_management_name   = var.apim_name

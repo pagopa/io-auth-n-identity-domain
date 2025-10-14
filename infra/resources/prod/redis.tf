@@ -13,7 +13,7 @@ data "azurerm_redis_cache" "redis_common" {
 }
 
 module "redis_common_itn" {
-  source              = "github.com/pagopa/terraform-azurerm-v4//redis_cache?ref=v7.16.0"
+  source              = "github.com/pagopa/terraform-azurerm-v4//redis_cache?ref=v7.40.3"
   name                = "${local.project}-${local.domain}-redis-01"
   resource_group_name = data.azurerm_resource_group.core_domain_redis_rg.name
   location            = local.location

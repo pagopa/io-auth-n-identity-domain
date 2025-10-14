@@ -16,7 +16,7 @@ resource "azurerm_api_management_named_value" "api_profile_internal_read_group_n
 }
 
 module "api_v2_profile_internal" {
-  source = "github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.16.0"
+  source = "github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.40.3"
 
   name                = "io-profile-internal-api"
   api_management_name = var.apim_name
