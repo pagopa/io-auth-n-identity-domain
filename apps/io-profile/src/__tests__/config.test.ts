@@ -30,10 +30,7 @@ describe("getValidationEmailMailerConfig", () => {
 
   it("should override MailerConfig when both override values are set", () => {
     const config = {
-      MAIL_FROM: "aMailFrom",
-      MAILUP_SECRET: "aMailupSecret",
-      MAILUP_USERNAME: "aMailupUsername",
-      NODE_ENV: "production",
+      ...baseConfig,
       OVERRIDE_MAILUP_USERNAME_VALIDATION_EMAIL: anOverriddenMailupUsername,
       OVERRIDE_MAILUP_SECRET_VALIDATION_EMAIL: anOverriddenMailupSecret,
     };
