@@ -37,6 +37,8 @@ locals {
 
   lv_audit_logs_container_name = "lv-logs-01"
 
+  validation_tokens_table_name = "validationtokens01"
+
   tags = {
     CreatedBy      = "Terraform"
     Environment    = "Prod"
