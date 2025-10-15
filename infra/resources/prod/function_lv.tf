@@ -28,9 +28,9 @@ locals {
       // --------------------------
       //  Redis Config
       // --------------------------
-      REDIS_URL      = data.azurerm_redis_cache.core_domain_redis_common.hostname
-      REDIS_PORT     = data.azurerm_redis_cache.core_domain_redis_common.ssl_port
-      REDIS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.redis_access_key.versionless_id})"
+      REDIS_URL      = module.redis_common_itn.hostname
+      REDIS_PORT     = module.redis_common_itn.ssl_port
+      REDIS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.redis_access_key_itn.versionless_id})"
 
       // --------------------------
       //  Config for getAssertion
