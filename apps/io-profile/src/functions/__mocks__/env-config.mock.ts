@@ -16,6 +16,8 @@ export const envConfig = {
   EventsQueueStorageConnection: "aaa" as NonEmptyString,
   EventsQueueName: "aaa" as NonEmptyString,
   MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME: "aaa" as NonEmptyString,
+  VALIDATION_TOKENS_TABLE_NAME: "validation-tokens" as NonEmptyString,
+
   QueueStorageConnection: "aaa" as NonEmptyString,
 
   SUBSCRIPTIONS_FEED_TABLE: "aaa" as NonEmptyString,
