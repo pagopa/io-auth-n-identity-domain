@@ -50,6 +50,10 @@ data "azurerm_linux_web_app" "weu_session_manager_bis" {
   resource_group_name = "${local.weu_project}-session-manager-rg-01"
 }
 
+data "azurerm_private_dns_zone" "privatelink_redis_cache" {
+  name                = "privatelink.redis.cache.windows.net"
+  resource_group_name = data.azurerm_resource_group.rg_common.name
+}
 
 ##########################
 # Entra ID

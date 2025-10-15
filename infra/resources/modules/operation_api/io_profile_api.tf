@@ -60,7 +60,7 @@ resource "azurerm_api_management_named_value" "io_fn_admin_trigger_url" {
 }
 
 module "api_v2_profile_operation" {
-  source = "github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.16.0"
+  source = "github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.40.3"
 
   name                = "io-profile-operation-api"
   api_management_name = var.apim_name
