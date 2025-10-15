@@ -24,7 +24,6 @@ import {
   SERVICE_PREFERENCES_COLLECTION_NAME,
   ServicesPreferencesModel,
 } from "@pagopa/io-functions-commons/dist/src/models/service_preference";
-import { VALIDATION_TOKEN_TABLE_NAME } from "@pagopa/io-functions-commons/dist/src/entities/validation_token";
 import { getMailerTransporter } from "@pagopa/io-functions-commons/dist/src/mailer";
 import { pipe } from "fp-ts/lib/function";
 import { ulidGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
@@ -101,6 +100,10 @@ const TOKEN_INVALID_AFTER_MS = (1000 * 60 * 60 * 24 * 30) as Millisecond; // 30 
 
 const tableService = createTableService(config.QueueStorageConnection);
 
+const maintenanceTableService = createTableService(
+  config.MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING,
+);
+
 const eventsQueueServiceClient = QueueServiceClient.fromConnectionString(
   config.EventsQueueStorageConnection,
 );
@@ -155,8 +158,8 @@ export const httpTriggerEntrypoint = pipe(
 export const CreateValidationTokenActivity =
   getCreateValidationTokenActivityHandler(
     ulidGenerator,
-    tableService,
-    VALIDATION_TOKEN_TABLE_NAME,
+    maintenanceTableService,
+    config.VALIDATION_TOKENS_TABLE_NAME,
     TOKEN_INVALID_AFTER_MS,
     randomBytes,
     toHash,
