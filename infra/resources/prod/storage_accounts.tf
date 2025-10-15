@@ -117,7 +117,7 @@ module "storage_account_maintenance_services" {
   ]
 
   tables = [
-    "validationtokens01"
+    local.validation_tokens_table_name
   ]
 
   tags = local.tags
