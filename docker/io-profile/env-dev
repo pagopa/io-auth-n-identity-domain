@@ -30,6 +30,7 @@ REQ_SERVICE_ID=req_id_dev
 MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME=profile-migrate-services-preferences-from-legacy
 
 EventsQueueName=events
+VALIDATION_TOKENS_TABLE_NAME=validationtokens
 
 COSMOSDB_NAME=${COSMOSDB_NAME}
 COSMOSDB_CONNECTION_STRING="AccountEndpoint=${COSMOSDB_URI};AccountKey=${COSMOSDB_KEY};"
