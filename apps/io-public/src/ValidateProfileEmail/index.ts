@@ -9,7 +9,6 @@ import { isLeft } from "fp-ts/lib/Either";
 
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 
-import { VALIDATION_TOKEN_TABLE_NAME } from "@pagopa/io-functions-commons/dist/src/entities/validation_token";
 import {
   PROFILE_COLLECTION_NAME,
   ProfileModel
@@ -41,8 +40,8 @@ if (isLeft(errorOrValidationCallbackValidUrl)) {
 const validationCallbackValidUrl = errorOrValidationCallbackValidUrl.right;
 
 const tableClient = TableClient.fromConnectionString(
-  config.StorageConnection,
-  VALIDATION_TOKEN_TABLE_NAME
+  config.MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING,
+  config.VALIDATION_TOKENS_TABLE_NAME
 );
 
 const cosmosClient = new CosmosClient({
