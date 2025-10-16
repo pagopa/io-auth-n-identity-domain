@@ -95,14 +95,6 @@ resource "azurerm_key_vault_secret" "iopstlogs_connection_string" {
   tags = local.tags
 }
 
-resource "azurerm_key_vault_secret" "redis_access_key" {
-  name         = "redis-access-key"
-  key_vault_id = module.key_vaults.auth.id
-  value        = data.azurerm_redis_cache.core_domain_redis_common.primary_access_key
-
-  tags = local.tags
-}
-
 resource "azurerm_key_vault_secret" "redis_access_key_itn" {
   name         = "redis-access-key-itn"
   key_vault_id = module.key_vaults.auth.id
