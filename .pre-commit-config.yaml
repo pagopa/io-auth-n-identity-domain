@@ -38,3 +38,4 @@ repos:
         args:
           - --args=--skip-dirs="**/.terraform"
           - --args=--ignorefile=__GIT_WORKING_DIR__/.trivyignore
+          - --hook-config=--parallelism-limit=1
