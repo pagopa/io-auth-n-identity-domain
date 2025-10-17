@@ -70,6 +70,7 @@ export const IConfig = t.intersection([
     EventsQueueStorageConnection: NonEmptyString,
     MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING: NonEmptyString,
     MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME: NonEmptyString,
+    VALIDATION_TOKENS_TABLE_NAME: NonEmptyString,
     QueueStorageConnection: NonEmptyString,
 
     SUBSCRIPTIONS_FEED_TABLE: NonEmptyString,
