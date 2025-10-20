@@ -1,5 +1,11 @@
 # io-public
 
+## 1.6.0
+
+### Minor Changes
+
+- d51d6f3: Migrate Validation Token Check into ITN Storage Account
+
 ## 1.5.5
 
 ### Patch Changes

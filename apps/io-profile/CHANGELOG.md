@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.27.0
+
+### Minor Changes
+
+- 2f0f043: Migrate Validation Token Creation into ITN Storage Account
+
 ## 5.26.0
 
 ### Minor Changes
