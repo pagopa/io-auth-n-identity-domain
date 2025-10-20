@@ -1,6 +1,6 @@
 {
   "name": "io-public",
-  "version": "1.5.5",
+  "version": "1.6.0",
   "license": "MIT",
   "scripts": {
     "clean": "shx rm -rf dist",
