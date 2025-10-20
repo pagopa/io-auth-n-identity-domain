@@ -22,8 +22,6 @@ locals {
       COSMOSDB_KEY  = data.azurerm_cosmosdb_account.cosmos_api.primary_key
       COSMOSDB_NAME = "db"
 
-      StorageConnection = data.azurerm_storage_account.storage_api.primary_connection_string
-
       VALIDATION_CALLBACK_URL = "https://api-app.io.pagopa.it/email_verification.html"
       CONFIRM_CHOICE_PAGE_URL = "https://api-app.io.pagopa.it/email_confirm.html"
 
