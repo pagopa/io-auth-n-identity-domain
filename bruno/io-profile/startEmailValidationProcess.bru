@@ -1,0 +1,33 @@
+meta {
+  name: startEmailValidationProcess
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{IO_PROFILE_BASE_URL}}/email-validation-process/:fiscalCode
+  body: json
+  auth: inherit
+}
+
+params:path {
+  fiscalCode: {{FISCAL_CODE}}
+}
+
+body:json {
+  {
+    "name": "MockedUserName"
+  }
+}
+
+script:pre-request {
+  const ioProfileApiKey = bru.getEnvVar("IO_PROFILE_API_KEY")
+  if (ioProfileApiKey != null ) {
+    req.setHeader("x-functions-key", ioProfileApiKey)
+  }
+  
+}
+
+docs {
+  Start the email validation process that create the validation toke and send the validation email to the given user
+}
