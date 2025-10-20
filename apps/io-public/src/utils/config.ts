@@ -43,8 +43,6 @@ export const IConfig = t.type({
   PROFILE_EMAIL_STORAGE_CONNECTION_STRING: NonEmptyString,
   PROFILE_EMAIL_STORAGE_TABLE_NAME: NonEmptyString,
 
-  StorageConnection: NonEmptyString,
-
   MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING: NonEmptyString,
   VALIDATION_TOKENS_TABLE_NAME: NonEmptyString,
 
