@@ -8,7 +8,10 @@
 import { MailerConfig } from "@pagopa/io-functions-commons/dist/src/mailer";
 import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import { NumberFromString } from "@pagopa/ts-commons/lib/numbers";
-import { readableReport } from "@pagopa/ts-commons/lib/reporters";
+import {
+  readableReport,
+  readableReportSimplified,
+} from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 import * as E from "fp-ts/lib/Either";
@@ -133,7 +136,7 @@ export const getValidationEmailMailerConfig = (
     MailerConfig.decode,
     E.getOrElseW((errors) => {
       throw new Error(
-        `Error building MailerConfig for ValidationEmail, the reason was => ${readableReport(errors)}`,
+        `Error building MailerConfig for ValidationEmail, the reason was => ${readableReportSimplified(errors)}`,
       );
     }),
   );
