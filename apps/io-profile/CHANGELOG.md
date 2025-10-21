@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.27.1
+
+### Patch Changes
+
+- c7a3581: Chore: added optional ENVs to override the MailUp account to be used for sending validation emails
+
 ## 5.27.0
 
 ### Minor Changes
