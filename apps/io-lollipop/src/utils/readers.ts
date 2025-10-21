@@ -1,12 +1,17 @@
-import { BlobService } from "azure-storage";
+import {
+  BlobDownloadResponseParsed,
+  BlobServiceClient
+} from "@azure/storage-blob";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/Either";
-import { identity, pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/Option";
+import { flow, identity, pipe } from "fp-ts/lib/function";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { getBlobAsText } from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 
+import { Context } from "@azure/functions";
 import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
 import {
   LolliPOPKeysModel,
@@ -20,6 +25,7 @@ import {
   DomainError,
   ErrorKind
 } from "./errors";
+import { streamToText } from "./azure_storage";
 
 export type PublicKeyDocumentReader = RTE.ReaderTaskEither<
   AssertionRef,
@@ -67,7 +73,7 @@ export const getPublicKeyDocumentReader = (
  * @returns The AssertionReader
  */
 export const getAssertionReader = (
-  blobService: BlobService,
+  blobService: BlobServiceClient,
   assertionContainerName: NonEmptyString
 ): AssertionReader => (
   assertionFileName: AssertionFileName
@@ -75,17 +81,34 @@ export const getAssertionReader = (
   pipe(
     TE.tryCatch(
       () =>
-        getBlobAsText(blobService, assertionContainerName, assertionFileName),
+        blobService
+          .getContainerClient(assertionContainerName)
+          .getBlobClient(assertionFileName)
+          .download(),
       E.toError
     ),
-    TE.chainEitherK(identity),
     TE.mapLeft(error =>
-      toInternalError(
-        `Unable to retrieve assertion from blob storage: ${error.message}`,
-        `Unable to retrieve assertion`
+      error.message === "The specified blob does not exist."
+        ? toNotFoundError()
+        : toInternalError(
+            `Unable to download assertion blob: ${error.message}`,
+            `Unable to download assertion blob`
+          )
+    ),
+    TE.chainW(r =>
+      pipe(
+        r.readableStreamBody,
+        O.fromNullable,
+        TE.fromOption(() => toInternalError("Assertion is empty")),
+        TE.map(streamToText),
+        TE.mapLeft(error =>
+          toInternalError(
+            `Unable to read assertion stream: ${error.message}`,
+            `Unable to read assertion stream`
+          )
+        )
       )
     ),
-    TE.chainW(TE.fromOption(() => toNotFoundError())),
     TE.filterOrElseW(NonEmptyString.is, () =>
       toInternalError(`Assertion is empty`)
     )
