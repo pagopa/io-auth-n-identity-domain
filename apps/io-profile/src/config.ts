@@ -5,16 +5,19 @@
  * The configuration is evaluate eagerly at the first access to the module. The module exposes convenient methods to access such value.
  */
 
-import * as t from "io-ts";
-import * as E from "fp-ts/lib/Either";
-import { flow, pipe } from "fp-ts/lib/function";
-import * as O from "fp-ts/lib/Option";
 import { MailerConfig } from "@pagopa/io-functions-commons/dist/src/mailer";
 import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import { NumberFromString } from "@pagopa/ts-commons/lib/numbers";
-import { readableReport } from "@pagopa/ts-commons/lib/reporters";
+import {
+  readableReport,
+  readableReportSimplified,
+} from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
+import * as E from "fp-ts/lib/Either";
+import { flow, pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/lib/Option";
+import * as t from "io-ts";
 
 // exclude a specific value from a type
 // as strict equality is performed, allowed input types are constrained to be values not references (object, arrays, etc)
@@ -46,6 +49,15 @@ export const ReqServiceIdConfig = t.union([
     REQ_SERVICE_ID: NonEmptyString,
   }),
 ]);
+
+export const ValidationEmailConfigurationOverride = t.partial({
+  OVERRIDE_MAILUP_USERNAME_VALIDATION_EMAIL: NonEmptyString,
+  OVERRIDE_MAILUP_SECRET_VALIDATION_EMAIL: NonEmptyString,
+});
+
+export type ValidationEmailConfigurationOverride = t.TypeOf<
+  typeof ValidationEmailConfigurationOverride
+>;
 
 // global app configuration
 export type IConfig = t.TypeOf<typeof IConfig>;
@@ -90,11 +102,45 @@ export const IConfig = t.intersection([
   }),
   MailerConfig,
   ReqServiceIdConfig,
+  ValidationEmailConfigurationOverride,
 ]);
 
 // Default value is expressed as a Unix timestamp so it can be safely compared with Cosmos timestamp
 // This means that Date representation is in the past compared to the effectively switch Date we want to set
 const DEFAULT_OPT_OUT_EMAIL_SWITCH_DATE = 1625781600;
+
+/**
+ * This method is used to override the MailerConfig with custom MailUp credentials for validation email.
+ * If both OVERRIDE_MAILUP_USERNAME_VALIDATION_EMAIL and OVERRIDE_MAILUP_SECRET_VALIDATION_EMAIL are set,
+ * the override is applied and the MailerConfig is decoded with these values.
+ * Otherwise, the original config is returned as is.
+ *
+ * @param config The application configuration object
+ * @returns The overridden MailerConfig or the MailerConfig derived from the original config
+ */
+export const getValidationEmailMailerConfig = (
+  config: IConfig,
+): MailerConfig => {
+  if (
+    !config.OVERRIDE_MAILUP_USERNAME_VALIDATION_EMAIL ||
+    !config.OVERRIDE_MAILUP_SECRET_VALIDATION_EMAIL
+  ) {
+    return config;
+  }
+  return pipe(
+    {
+      ...config,
+      MAILUP_USERNAME: config.OVERRIDE_MAILUP_USERNAME_VALIDATION_EMAIL,
+      MAILUP_SECRET: config.OVERRIDE_MAILUP_SECRET_VALIDATION_EMAIL,
+    },
+    MailerConfig.decode,
+    E.getOrElseW((errors) => {
+      throw new Error(
+        `Error building MailerConfig for ValidationEmail, the reason was => ${readableReportSimplified(errors)}`,
+      );
+    }),
+  );
+};
 
 // get a boolen value from string
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
