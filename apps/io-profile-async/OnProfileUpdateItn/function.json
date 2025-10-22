@@ -9,8 +9,8 @@
       "containerName": "profiles",
       "startFromBeginning": true,
       "createLeaseContainerIfNotExists": true,
-      "leaseContainerName": "profile-emails-uniqueness-leases-TEMP",
-      "leaseContainerPrefix": "%ON_PROFILE_UPDATE_2_LEASES_PREFIX%-",
+      "leaseContainerName": "profile-emails-uniqueness-leases-itn",
+      "leaseContainerPrefix": "%ON_PROFILE_UPDATE_ITN_LEASES_PREFIX%-",
       "feedPollDelay": 2500
     }
   ],
@@ -21,5 +21,5 @@
     "maximumInterval": "00:01:00"
   },
   "scriptFile": "../dist/main.js",
-  "entryPoint": "TableImporter"
+  "entryPoint": "OnProfileUpdateItn"
 }
