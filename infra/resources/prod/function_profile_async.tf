@@ -71,15 +71,16 @@ locals {
       MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME = local.profile_migrate_services_preferences_from_legacy_queue_name
       MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.maintenance_st_connection_string.versionless_id})"
 
+
+      // TODO: cleanup after ITN migration
       // OnProfileUpdate cosmosDB trigger variables
       ON_PROFILE_UPDATE_LEASES_PREFIX  = "OnProfileUpdateLeasesPrefix-001"
       PROFILE_EMAIL_STORAGE_TABLE_NAME = "profileEmails"
-      // TODO: cleanup after ITN migration
-      // Used temporarily to migrate data from old table to new one.
-      // After the migration is complete, this setting can be removed and the value
-      // of PROFILE_EMAIL_STORAGE_TABLE_NAME can be changed to local.profile_email_table_name
+
+      // OnProfileUpdateItn cosmosDB trigger variables
+      ON_PROFILE_UPDATE_ITN_LEASES_PREFIX  = "OnProfileUpdateLeasesPrefix-002"
       PROFILE_EMAIL_STORAGE_TABLE_NAME_ITN = local.profile_emails_table_name
-      ON_PROFILE_UPDATE_2_LEASES_PREFIX    = "OnProfileUpdateLeasesPrefix-002"
+
 
       //StoreSpidLogs Config
       IOPSTLOGS_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.iopstlogs_connection_string.versionless_id})"
@@ -155,8 +156,10 @@ module "function_profile_async" {
       "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"          = "0"
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"              = "0",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled" = "0",
-      "AzureWebJobs.OnProfileUpdate.Disabled"                    = "0",
-      "AzureWebJobs.TableImporter.Disabled"                      = "0",
+      // TODO: remove "AzureWebJobs.OnProfileUpdate.Disabled" after ITN migration
+      "AzureWebJobs.OnProfileUpdate.Disabled" = "0",
+      // TODO: set to 0 to enable ITN migration
+      "AzureWebJobs.OnProfileUpdateItn.Disabled"                 = "1",
       "AzureWebJobs.StoreSpidLogs.Disabled"                      = "0",
       "AzureWebJobs.SessionNotificationEventsProcessor.Disabled" = "0"
     }
@@ -167,8 +170,9 @@ module "function_profile_async" {
       "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"          = "1"
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"              = "1",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled" = "1",
+      // TODO: remove "AzureWebJobs.OnProfileUpdate.Disabled" entry after ITN migration
       "AzureWebJobs.OnProfileUpdate.Disabled"                    = "1",
-      "AzureWebJobs.TableImporter.Disabled"                      = "1",
+      "AzureWebJobs.OnProfileUpdateItn.Disabled"                 = "1",
       "AzureWebJobs.StoreSpidLogs.Disabled"                      = "1",
       "AzureWebJobs.SessionNotificationEventsProcessor.Disabled" = "1"
     }

@@ -91,11 +91,11 @@ const profileModel = new ProfileModel(
   cosmosApiDatabase.container(PROFILE_COLLECTION_NAME)
 );
 
+// TODO: cleanup after ITN migration
 const dataTableProfileEmailsRepository = new DataTableProfileEmailsRepository(
   profileEmailTableClient
 );
 
-// TODO: cleanup after ITN migration
 const itnDataTableProfileEmailsRepository = new DataTableProfileEmailsRepository(
   itnProfileEmailTableClient
 );
@@ -145,7 +145,7 @@ export const OnProfileUpdate = OnProfileUpdateFunction({
   inputDecoder: OnProfileUpdateFunctionInput
 });
 
-export const TableImporter = OnProfileUpdateFunction({
+export const OnProfileUpdateItn = OnProfileUpdateFunction({
   ProfileRepository,
   ProfileEmailRepository,
   TrackerRepository: tracker,
