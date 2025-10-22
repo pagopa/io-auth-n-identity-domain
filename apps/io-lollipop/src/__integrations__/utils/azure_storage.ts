@@ -39,3 +39,15 @@ export const createQueues = (
       )
     )
   );
+
+export const deleteBlob = (
+  blobServiceClient: BlobServiceClient,
+  containerName: string,
+  blobName: string
+) =>
+  pipe(
+    TE.tryCatch(
+      () => blobServiceClient.getContainerClient(containerName).getBlobClient(blobName).delete(),
+      E.toError
+    )
+  );

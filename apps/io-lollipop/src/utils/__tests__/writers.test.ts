@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorResponse } from "@azure/cosmos";
-import { BlobService } from "azure-storage";
+import { BlobServiceClient } from "@azure/storage-blob";
 
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";

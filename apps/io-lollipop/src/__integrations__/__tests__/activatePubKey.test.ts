@@ -43,10 +43,13 @@ import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { fetchActivatePubKey, fetchReservePubKey } from "../utils/client";
 import { JwkPubKeyHashAlgorithmEnum } from "../../generated/definitions/internal/JwkPubKeyHashAlgorithm";
 import { MASTER_HASH_ALGO } from "../../utils/lollipopKeys";
-import { createBlobService } from "azure-storage";
+import { BlobServiceClient } from "@azure/storage-blob";
 import { AssertionFileName } from "../../generated/definitions/internal/AssertionFileName";
 import { CosmosClient } from "@azure/cosmos";
 import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
+import { streamToText } from "../../utils/azure_storage";
+import { X } from "vitest/dist/chunks/reporters.d.BFLkQcL6.js";
+import { toInternalError, toNotFoundError } from "../../utils/errors";
 
 const MAX_ATTEMPT = 50;
 const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
@@ -59,7 +62,7 @@ const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "assertions";
 // Setup dbs
 // ----------------
 
-const blobService = createBlobService(QueueStorageConnection);
+const blobService = BlobServiceClient.fromConnectionString(QueueStorageConnection);
 
 const cosmosClient = new CosmosClient({
   endpoint: COSMOSDB_URI,
@@ -255,6 +258,11 @@ describe("activatePubKey |> Success Results", () => {
 
       // Check values on storages
 
+      const containerClient = blobService.getContainerClient(LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME);
+      const blobClient = containerClient.getBlobClient(anAssertionFileNameForSha256);
+      const blob = await blobClient.download();
+      expect(blob).toBeTruthy();
+
       const assertionBlob = await pipe(
         getBlobAsTextWithError(
           blobService,
@@ -353,10 +361,39 @@ describe("activatePubKey |> Success Results", () => {
       // Check values on storages
 
       const assertionBlob = await pipe(
-        getBlobAsTextWithError(
-          blobService,
-          LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
-        )(randomAssertionFileName)
+        TE.tryCatch(
+              () =>
+                blobService
+              .getContainerClient(LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME)
+              .getBlobClient(randomAssertionFileName)
+                  .download(),
+              E.toError
+        ),
+        TE.mapLeft(error =>
+          error.message === "The specified blob does not exist."
+            ? toNotFoundError()
+            : toInternalError(
+                `Unable to download assertion blob: ${error.message}`,
+                `Unable to download assertion blob`
+              )
+        ),
+        TE.chainW(r =>
+          pipe(
+            r.readableStreamBody,
+            O.fromNullable,
+            TE.fromOption(() => toInternalError("Assertion is empty")),
+            TE.map(streamToText),
+            TE.mapLeft(error =>
+              toInternalError(
+                `Unable to read assertion stream: ${error.message}`,
+                `Unable to read assertion stream`
+              )
+            )
+          )
+        ),
+        TE.filterOrElseW(NonEmptyString.is, () =>
+          toInternalError(`Assertion is empty`)
+        )
       )();
 
       expect(assertionBlob).toEqual(

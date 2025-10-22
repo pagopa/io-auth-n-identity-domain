@@ -4,7 +4,7 @@ import * as date_fns from "date-fns";
 import * as jwt from "jsonwebtoken";
 
 import { CosmosClient } from "@azure/cosmos";
-import { createBlobService, ServiceResponse } from "azure-storage";
+import { BlobServiceClient } from "@azure/storage-blob";
 
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
@@ -38,7 +38,7 @@ import {
   createCosmosDbAndCollections,
   LOLLIPOP_COSMOSDB_COLLECTION_NAME
 } from "../utils/fixtures";
-import { createBlobs } from "../utils/azure_storage";
+import { createBlobs, deleteBlob } from "../utils/azure_storage";
 import {
   fetchActivatePubKey,
   fetchGenerateLcParams,
@@ -53,6 +53,7 @@ import {
 } from "../../__mocks__/lollipopPubKey.mock";
 import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
 import { ulid } from "ulid";
+import { ClientRequest } from "http";
 
 const MAX_ATTEMPT = 50;
 const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
@@ -77,7 +78,7 @@ const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "assertions";
 // Setup dbs
 // ----------------
 
-const blobService = createBlobService(QueueStorageConnection);
+const blobService = BlobServiceClient.fromConnectionString(QueueStorageConnection);
 
 const cosmosClient = new CosmosClient({
   endpoint: COSMOSDB_URI,
@@ -364,15 +365,23 @@ describe("getAssertion |> Validation Failures", () => {
       const lcParams = await setupTestAndGenerateLcParams();
 
       // Delete Blob to let retrieve fail later in the flow
-      const deleted = await TE.taskify<Error, ServiceResponse>(cb =>
-        blobService.deleteBlob(
-          LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME,
-          lcParams.assertion_file_name,
-          cb
-        )
-      )()();
+      const deleted = await deleteBlob(
+        blobService,
+        LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME,
+        lcParams.assertion_file_name
+      )();
 
       expect(E.isRight(deleted)).toBeTruthy();
+      expect(deleted).toMatchObject(E.right({
+        clientRequestId: expect.any(String),
+        requestId: expect.any(String),
+        version: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),  // e.g., "2025-12-13"
+        date: expect.any(Date),
+        errorCode: undefined,
+        "content-length": "0",
+        "x-ms-delete-type-permanent": "true",
+        body: undefined
+      }));
 
       const response = await fetchGetAssertion(
         lcParams.assertion_ref,
@@ -428,6 +437,7 @@ describe("getAssertion |> Success", () => {
         myFetch
       );
 
+      console.log("### RESPONSE", response);
       expect(response.status).toEqual(200);
       const body = await response.json();
       expect(body).toMatchObject({
