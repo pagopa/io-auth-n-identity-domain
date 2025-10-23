@@ -180,6 +180,7 @@ module "function_profile_async" {
     "AzureWebJobs.ExpiredSessionAdvisor.Disabled",
     "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",
     "AzureWebJobs.OnProfileUpdate.Disabled",
+    "AzureWebJobs.OnProfileUpdateItn.Disabled", // TODO: remove after ITN migration
     "AzureWebJobs.StoreSpidLogs.Disabled",
     "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"
   ]
