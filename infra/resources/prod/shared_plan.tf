@@ -46,7 +46,7 @@ resource "azurerm_monitor_autoscale_setting" "shared_plan_autoscale" {
 
     capacity {
       default = 10
-      minimum = 3
+      minimum = 4
       maximum = 30
     }
 
