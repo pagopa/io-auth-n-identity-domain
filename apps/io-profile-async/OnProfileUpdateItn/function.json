@@ -9,7 +9,7 @@
       "containerName": "profiles",
       "startFromBeginning": true,
       "createLeaseContainerIfNotExists": true,
-      "leaseContainerName": "profile-emails-uniqueness-leases",
+      "leaseContainerName": "profile-emails-uniqueness-leases-itn",
       "leaseContainerPrefix": "%ON_PROFILE_UPDATE_ITN_LEASES_PREFIX%-",
       "feedPollDelay": 2500
     }
