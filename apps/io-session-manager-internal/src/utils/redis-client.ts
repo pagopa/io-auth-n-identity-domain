@@ -105,11 +105,11 @@ const createRedisClusterClient = async (
   const redisClient = createWrappedRedisClusterClient(
     {
       defaults: {
-        legacyMode: false,
         password,
         socket: {
           checkServerIdentity: (_hostname, _cert) => undefined,
-          keepAlive: 2000,
+          keepAlive: true,
+          keepAliveInitialDelay: 2000,
           reconnectStrategy: (retries) => Math.min(retries * 100, 3000),
           tls: enableTls,
         },
