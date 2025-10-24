@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.16.0
+
+### Minor Changes
+
+- ad0a84e: Add OnProfileUpdateItn trigger
+
 ## 1.15.0
 
 ### Minor Changes

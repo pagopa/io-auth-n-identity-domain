@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.12.0
+
+### Minor Changes
+
+- e46f9a4: Redis upgrade
+
 ## 0.11.2
 
 ### Patch Changes
