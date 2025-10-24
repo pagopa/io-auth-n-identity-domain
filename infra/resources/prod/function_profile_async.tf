@@ -136,8 +136,8 @@ module "function_profile_async" {
 
   node_version      = 20
   health_check_path = "/info"
-  # P3mv3 SKU and 10 Worker process count
-  tier = "xxl"
+  # P2mv3 SKU and 8 Worker process count
+  tier = "xl"
 
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
