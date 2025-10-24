@@ -17340,6 +17340,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "utilities@workspace:packages/utilities"
   dependencies:
+    "@azure/data-tables": "npm:^13.2.2"
     "@azure/storage-queue": "npm:^12.22.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/ts-commons": "npm:^13.1.2"
