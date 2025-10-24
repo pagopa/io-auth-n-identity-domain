@@ -2,7 +2,7 @@ import * as redis from "redis";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import appInsights from "applicationinsights";
-import commands from "@redis/client/dist/lib/cluster/commands";
+import commands from "@redis/client/dist/lib/commands";
 import { RedisClientConfig } from "../utils/config";
 
 function wrapAsyncFunctionWithAppInsights<
@@ -76,7 +76,7 @@ function wrapRedisClusterClient(
 }
 
 function createWrappedRedisClusterClient(
-  options: redis.RedisClusterOptions,
+  options: redis.RedisClusterOptions<redis.RedisDefaultModules, {}, {}, 2>,
   clientName: string,
   enableDependencyTrace: boolean = false,
   appInsightsClient?: appInsights.TelemetryClient,
