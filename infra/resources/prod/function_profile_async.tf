@@ -71,9 +71,16 @@ locals {
       MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME = local.profile_migrate_services_preferences_from_legacy_queue_name
       MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.maintenance_st_connection_string.versionless_id})"
 
+
+      // TODO: cleanup after ITN migration
       // OnProfileUpdate cosmosDB trigger variables
       ON_PROFILE_UPDATE_LEASES_PREFIX  = "OnProfileUpdateLeasesPrefix-001"
       PROFILE_EMAIL_STORAGE_TABLE_NAME = "profileEmails"
+
+      // OnProfileUpdateItn cosmosDB trigger variables
+      ON_PROFILE_UPDATE_ITN_LEASES_PREFIX  = "OnProfileUpdateLeasesPrefix-002"
+      PROFILE_EMAIL_STORAGE_TABLE_NAME_ITN = local.profile_emails_table_name
+
 
       //StoreSpidLogs Config
       IOPSTLOGS_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.iopstlogs_connection_string.versionless_id})"
@@ -129,6 +136,8 @@ module "function_profile_async" {
 
   node_version      = 20
   health_check_path = "/info"
+  # P2mv3 SKU and 8 Worker process count
+  tier = "xl"
 
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
@@ -149,7 +158,8 @@ module "function_profile_async" {
       "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"          = "0"
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"              = "0",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled" = "0",
-      "AzureWebJobs.OnProfileUpdate.Disabled"                    = "0",
+      "AzureWebJobs.OnProfileUpdate.Disabled"                    = "0", // TODO: remove after ITN migration
+      "AzureWebJobs.OnProfileUpdateItn.Disabled"                 = "1", // TODO: set to 0 to enable ITN migration
       "AzureWebJobs.StoreSpidLogs.Disabled"                      = "0",
       "AzureWebJobs.SessionNotificationEventsProcessor.Disabled" = "0"
     }
@@ -160,7 +170,8 @@ module "function_profile_async" {
       "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"          = "1"
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"              = "1",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled" = "1",
-      "AzureWebJobs.OnProfileUpdate.Disabled"                    = "1",
+      "AzureWebJobs.OnProfileUpdate.Disabled"                    = "1", // TODO: remove after ITN migration
+      "AzureWebJobs.OnProfileUpdateItn.Disabled"                 = "1",
       "AzureWebJobs.StoreSpidLogs.Disabled"                      = "1",
       "AzureWebJobs.SessionNotificationEventsProcessor.Disabled" = "1"
     }
@@ -170,7 +181,8 @@ module "function_profile_async" {
     "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled",
     "AzureWebJobs.ExpiredSessionAdvisor.Disabled",
     "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",
-    "AzureWebJobs.OnProfileUpdate.Disabled",
+    "AzureWebJobs.OnProfileUpdate.Disabled", // TODO: remove after ITN migration
+    "AzureWebJobs.OnProfileUpdateItn.Disabled",
     "AzureWebJobs.StoreSpidLogs.Disabled",
     "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"
   ]
@@ -203,7 +215,7 @@ module "function_profile_async_autoscale" {
 
   scheduler = {
     normal_load = {
-      minimum = 3
+      minimum = 8
       default = 10
     },
     maximum = 30

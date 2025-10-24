@@ -1,0 +1,25 @@
+{
+  "bindings": [
+    {
+      "type": "cosmosDBTrigger",
+      "name": "documents",
+      "direction": "in",
+      "connection": "COSMOSDB_CONNECTION_STRING",
+      "databaseName": "%COSMOSDB_NAME%",
+      "containerName": "profiles",
+      "startFromBeginning": true,
+      "createLeaseContainerIfNotExists": true,
+      "leaseContainerName": "profile-emails-uniqueness-leases-itn",
+      "leaseContainerPrefix": "%ON_PROFILE_UPDATE_ITN_LEASES_PREFIX%-",
+      "feedPollDelay": 2500
+    }
+  ],
+  "retry": {
+    "strategy": "exponentialBackoff",
+    "maxRetryCount": 5,
+    "minimumInterval": "00:00:05",
+    "maximumInterval": "00:01:00"
+  },
+  "scriptFile": "../dist/main.js",
+  "entryPoint": "OnProfileUpdateItn"
+}
