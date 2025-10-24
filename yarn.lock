@@ -3838,6 +3838,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@redis/client@npm:1.6.1":
+  version: 1.6.1
+  resolution: "@redis/client@npm:1.6.1"
+  dependencies:
+    cluster-key-slot: "npm:1.1.2"
+    generic-pool: "npm:3.9.0"
+    yallist: "npm:4.0.0"
+  checksum: 10c0/216c61f5aa2fef212386c2ef5b5f6d10f44244f6928682f370e190402d23338e11260377c08e87dd6d678408fa7c0a6b7bb5571ecadb830abfa3d7355b9eff1e
+  languageName: node
+  linkType: hard
+
 "@redis/graph@npm:1.1.0":
   version: 1.1.0
   resolution: "@redis/graph@npm:1.1.0"
@@ -11101,7 +11112,7 @@ __metadata:
     "@pagopa/openapi-codegen-ts": "npm:^13.2.0"
     "@pagopa/ts-commons": "npm:^13.1.2"
     "@pagopa/typescript-config-node": "npm:*"
-    "@redis/client": "npm:1.4.2"
+    "@redis/client": "npm:1.6.1"
     "@types/node": "npm:~20.12.0"
     "@vitest/coverage-v8": "npm:~3.2.4"
     applicationinsights: "npm:^2.9.5"
@@ -11118,7 +11129,7 @@ __metadata:
     monocle-ts: "npm:^2.3.13"
     newtype-ts: "npm:^0.3.5"
     prettier: "npm:^3.2.5"
-    redis: "npm:~4.5.1"
+    redis: "npm:4.7.1"
     shx: "npm:^0.3.2"
     typescript: "npm:^5.4.3"
     vitest: "npm:~3.2.4"
@@ -14878,6 +14889,20 @@ __metadata:
     indent-string: "npm:^4.0.0"
     strip-indent: "npm:^3.0.0"
   checksum: 10c0/d64a6b5c0b50eb3ddce3ab770f866658a2b9998c678f797919ceb1b586bab9259b311407280bd80b804e2a7c7539b19238ae6a2a20c843f1a7fcff21d48c2eae
+  languageName: node
+  linkType: hard
+
+"redis@npm:4.7.1":
+  version: 4.7.1
+  resolution: "redis@npm:4.7.1"
+  dependencies:
+    "@redis/bloom": "npm:1.2.0"
+    "@redis/client": "npm:1.6.1"
+    "@redis/graph": "npm:1.1.1"
+    "@redis/json": "npm:1.0.7"
+    "@redis/search": "npm:1.2.0"
+    "@redis/time-series": "npm:1.1.0"
+  checksum: 10c0/36fc11b7b305e73cafd0a32c5e7070aef72d3a33f2b34f609a1c295afb7d1a022d74eeda96e8d887ef596bbe8ce10811450d02b63175a338d2ff258ff34bd237
   languageName: node
   linkType: hard
 
