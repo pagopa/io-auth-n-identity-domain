@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.16.1
+
+### Patch Changes
+
+- de3ea12: Update `leaseContainerName` of `OnProfileUpdateItn`
+
 ## 1.16.0
 
 ### Minor Changes
