@@ -4,9 +4,12 @@ import * as TE from "fp-ts/lib/TaskEither";
 import {
   EventTypeEnum,
   LoginEvent,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+
+import {
   LoginScenarioEnum,
   LoginTypeEnum,
-} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+} from "@pagopa/io-auth-n-identity-commons/types/login-event";
 import { mockedUser } from "../../__mocks__/user.mocks";
 import { AuthSessionEventsRepo } from "..";
 import {

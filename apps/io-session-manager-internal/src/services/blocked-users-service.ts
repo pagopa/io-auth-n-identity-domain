@@ -15,8 +15,8 @@ import {
 import {
   EventTypeEnum,
   LogoutEvent,
-  LogoutScenarioEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { LogoutScenarioEnum } from "@pagopa/io-auth-n-identity-commons/types/logout-event";
 
 import { BlockedUsersRedisRepository } from "../repositories/blocked-users-redis";
 import {

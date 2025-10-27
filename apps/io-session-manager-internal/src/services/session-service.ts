@@ -19,8 +19,10 @@ import {
 import {
   EventTypeEnum,
   LogoutEvent,
-  LogoutScenarioEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+
+import { LogoutScenarioEnum } from "@pagopa/io-auth-n-identity-commons/types/logout-event";
+
 import { RedisRepository } from "../repositories/redis";
 import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";

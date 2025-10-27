@@ -5,8 +5,8 @@ import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import {
   EventTypeEnum,
   LogoutEvent,
-  LogoutScenarioEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { LogoutScenarioEnum } from "@pagopa/io-auth-n-identity-commons/types/logout-event";
 import * as appinsights from "../../utils/appinsights";
 import { BlockedUsersService } from "../blocked-users-service";
 
@@ -31,7 +31,6 @@ import {
   mockEmitSessionEvent,
   ServiceBusSenderMock,
 } from "../../__mocks__/repositories/auth-sessions-topic.mock";
-
 
 const deps = {
   fastRedisClientTask: RedisClientTaskMock,

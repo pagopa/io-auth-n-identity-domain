@@ -3,11 +3,13 @@ import { Context } from "@azure/functions";
 import {
   EventTypeEnum,
   LoginEvent,
-  LoginScenarioEnum,
-  LoginTypeEnum,
-  LogoutEvent,
-  LogoutScenarioEnum
+  LogoutEvent
 } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import {
+  LoginScenarioEnum,
+  LoginTypeEnum
+} from "@pagopa/io-auth-n-identity-commons/types/login-event";
+import { LogoutScenarioEnum } from "@pagopa/io-auth-n-identity-commons/types/logout-event";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
 import * as RTE from "fp-ts/ReaderTaskEither";

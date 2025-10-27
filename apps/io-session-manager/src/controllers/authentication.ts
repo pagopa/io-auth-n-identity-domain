@@ -2,9 +2,13 @@
 import {
   EventTypeEnum,
   LoginEvent,
+} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+
+import {
   LoginScenarioEnum,
   LoginTypeEnum as ServiceBusLoginTypeEnum,
-} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+} from "@pagopa/io-auth-n-identity-commons/types/login-event";
+
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
 import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
