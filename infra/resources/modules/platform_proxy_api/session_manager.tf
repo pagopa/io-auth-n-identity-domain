@@ -149,8 +149,9 @@ resource "azurerm_api_management_api" "external_api_session_manager_revision_2" 
   version_set_id = azurerm_api_management_api_version_set.auth_v1.id
   version        = "v1"
   revision       = 2
-  source_api_id  = module.external_api_session_manager.id
   path           = var.external_api_base_path
+  display_name   = "IO SESSION MANAGER EXTERNAL API"
+  protocols      = ["https"]
   description    = "Auth & Identity Session Manager External API"
 
   subscription_required = false
