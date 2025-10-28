@@ -1,7 +1,12 @@
-import { IPString, PatternString } from "@pagopa/ts-commons/lib/strings";
+import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
+import {
+  FiscalCode,
+  IPString,
+  PatternString,
+} from "@pagopa/ts-commons/lib/strings";
 import { enumType } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
-import { BaseAuthSessionEvent, EventTypeEnum } from "./auth-session-event";
+import { EventTypeEnum } from "./event-type";
 
 export enum RejectedLoginCauseEnum {
   AGE_BLOCK = "age_block",
@@ -15,28 +20,31 @@ export const RejectedLoginCause = enumType<RejectedLoginCauseEnum>(
   "RejectedLoginCause",
 );
 
-// TODO: Provisional fields (fiscalCode and ts already in the base event)
-export const BaseRejectedLoginEventContent = t.intersection([
-  t.type({
-    // ServiceBus event type for auth-session-topic
-    eventType: t.literal(EventTypeEnum.REJECTED_LOGIN),
-    // Date of the SPID request / response in YYYY-MM-DD format
-    createdAtDay: PatternString("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"),
+export const BaseRejectedLoginEventContent = t.type({
+  // ServiceBus event type for auth-session-topic
+  eventType: t.literal(EventTypeEnum.REJECTED_LOGIN),
 
-    // IP of the client that made a SPID login action
-    ip: t.string.pipe(IPString),
+  // Fiscal code of the user that attempted to login
+  fiscalCode: FiscalCode,
 
-    // XML payload of the SPID Request
-    requestPayload: t.string,
+  // Timestamp of the rejected login event
+  ts: DateFromTimestamp,
 
-    // XML payload of the SPID Response
-    responsePayload: t.string,
+  // Date of the SPID request / response in YYYY-MM-DD format
+  createdAtDay: PatternString("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"),
 
-    // SPID request id
-    spidRequestId: t.union([t.undefined, t.string]),
-  }),
-  BaseAuthSessionEvent,
-]);
+  // IP of the client that made a SPID login action
+  ip: t.string.pipe(IPString),
+
+  // XML payload of the SPID Request
+  requestPayload: t.string,
+
+  // XML payload of the SPID Response
+  responsePayload: t.string,
+
+  // SPID request id
+  spidRequestId: t.union([t.undefined, t.string]),
+});
 export type BaseRejectedLoginEventContent = t.TypeOf<
   typeof BaseRejectedLoginEventContent
 >;

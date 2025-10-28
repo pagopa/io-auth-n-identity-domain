@@ -4,7 +4,7 @@ import {
   AuthSessionsTopicRepository,
   AuthSessionsTopicRepositoryDeps,
 } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/event-type";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { addSeconds } from "date-fns";
 import * as AP from "fp-ts/Apply";

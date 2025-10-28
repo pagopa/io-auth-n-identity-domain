@@ -2,11 +2,13 @@ import { ServiceBusSender } from "@azure/service-bus";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
 import { describe, expect, it, vi } from "vitest";
+import { EventTypeEnum } from "../../types/event-type";
 import {
-  EventTypeEnum,
   LoginEvent,
-  LogoutEvent,
-} from "../../types/auth-session-event";
+  LoginScenarioEnum,
+  LoginTypeEnum,
+} from "../../types/login-event";
+import { LogoutEvent, LogoutScenarioEnum } from "../../types/logout-event";
 import { AuthSessionsTopicRepository } from "../auth-sessions-topic-repository";
 
 const contentType = "application/json";
@@ -15,8 +17,8 @@ const aLoginEvent: LoginEvent = {
   eventType: EventTypeEnum.LOGIN,
   fiscalCode: "AAAAAA89S20I111X" as FiscalCode,
   expiredAt: new Date("2025-01-01T00:00:00Z"),
-  loginType: "lv",
-  scenario: "standard",
+  loginType: LoginTypeEnum.LV,
+  scenario: LoginScenarioEnum.STANDARD,
   idp: "idp.example.com",
   ts: new Date("2025-01-01T00:00:00Z"),
 };
@@ -24,7 +26,7 @@ const aLoginEvent: LoginEvent = {
 const aLogoutEvent: LogoutEvent = {
   eventType: EventTypeEnum.LOGOUT,
   fiscalCode: "BBBAAA89S20I111X" as FiscalCode,
-  scenario: "app",
+  scenario: LogoutScenarioEnum.APP,
   ts: new Date("2025-01-01T10:00:00Z"),
 };
 

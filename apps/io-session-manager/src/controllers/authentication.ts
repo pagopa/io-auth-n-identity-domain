@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/event-type";
 
 import {
   LoginEvent,

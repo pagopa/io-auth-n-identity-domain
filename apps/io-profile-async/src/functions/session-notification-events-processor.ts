@@ -1,5 +1,5 @@
 import { AzureFunction, Context } from "@azure/functions";
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/event-type";
 import { LoginEvent } from "@pagopa/io-auth-n-identity-commons/types/login-event";
 import { LogoutEvent } from "@pagopa/io-auth-n-identity-commons/types/logout-event";
 import { validationErrorsContainsKnownEventType } from "@pagopa/io-auth-n-identity-commons/utils/auth-session-event-utils";

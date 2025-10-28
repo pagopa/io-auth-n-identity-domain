@@ -12,7 +12,7 @@ import {
   AuthSessionsTopicRepository,
   AuthSessionsTopicRepositoryDeps,
 } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/event-type";
 import {
   LogoutEvent,
   LogoutScenarioEnum,

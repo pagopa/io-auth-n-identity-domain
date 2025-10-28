@@ -1,6 +1,8 @@
+import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { enumType } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
-import { BaseAuthSessionEvent, EventTypeEnum } from "./auth-session-event";
+import { EventTypeEnum } from "./event-type";
 export enum LogoutScenarioEnum {
   APP = "app",
   WEB = "web",
@@ -14,12 +16,11 @@ export const LogoutScenario = enumType<LogoutScenarioEnum>(
   "LogoutScenario",
 );
 
-export const LogoutEvent = t.intersection([
-  t.type({
-    eventType: t.literal(EventTypeEnum.LOGOUT),
-    scenario: LogoutScenario,
-  }),
-  BaseAuthSessionEvent,
-]);
+export const LogoutEvent = t.type({
+  eventType: t.literal(EventTypeEnum.LOGOUT),
+  fiscalCode: FiscalCode,
+  ts: DateFromTimestamp,
+  scenario: LogoutScenario,
+});
 
 export type LogoutEvent = t.TypeOf<typeof LogoutEvent>;

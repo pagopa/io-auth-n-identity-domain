@@ -1,6 +1,6 @@
 import { Errors } from "io-ts";
 import { describe, expect, it } from "vitest";
-import { EventTypeEnum } from "../../types/auth-session-event";
+import { EventTypeEnum } from "../../types/event-type";
 import { validationErrorsContainsKnownEventType } from "../auth-session-event-utils";
 
 describe("AuthSessionEvent utils tests", () => {
