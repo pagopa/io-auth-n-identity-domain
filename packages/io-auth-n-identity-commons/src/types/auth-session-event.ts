@@ -2,9 +2,9 @@ import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { enumType } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
-import { RejectedLoginEventContent } from "./rejected-login-event";
 import { LoginEventContent } from "./login-event";
 import { LogoutEventContent } from "./logout-event";
+import { RejectedLoginEventContent } from "./rejected-login-event";
 
 export enum EventTypeEnum {
   LOGIN = "login",

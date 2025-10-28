@@ -14,6 +14,7 @@ export const RejectedLoginCause = enumType<RejectedLoginCauseEnum>(
   "RejectedLoginCause",
 );
 
+// TODO: Provisional fields (fiscalCode and ts already in the base event)
 export const BaseRejectedLoginEventContent = t.type({
   // Date of the SPID request / response in YYYY-MM-DD format
   createdAtDay: PatternString("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"),
