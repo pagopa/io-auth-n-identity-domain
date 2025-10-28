@@ -5,7 +5,7 @@
     "build": "tsc",
     "build:watch": "tsc -w",
     "session:expire:insert": "node ./dist/session-expire-queue-insert/index.js",
-    "user-data-delete-orchestrator-v2-invoker": "dotenv -e ./user-data-delete-orchestrator-v2-invoker/.env --  node ./dist/user-data-delete-orchestrator-v2-invoker/index.js",
+    "user-data-processing-invoker": "dotenv -e ./user-data-processing-invoker/.env --  node ./dist/user-data-processing-invoker/index.js",
     "typecheck": "tsc --noemit",
     "lint": "yarn lint:check --fix",
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache",

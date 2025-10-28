@@ -8,7 +8,7 @@ import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { Config } from "./types";
 import { getConfigOrThrow } from "./env";
 
-const UTILITY_NAME = "UserDataDeleteOrchestratorV2 Invoker";
+const UTILITY_NAME = "UserDataProcessing Invoker";
 
 console.time("Process time");
 const run = async () => {
