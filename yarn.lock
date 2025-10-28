@@ -17348,6 +17348,7 @@ __metadata:
     "@types/yargs": "npm:^17.0.33"
     "@vitest/coverage-v8": "npm:~3.2.4"
     applicationinsights: "npm:^2.9.5"
+    dotenv-cli: "npm:^3.2.0"
     eslint: "npm:^8.57.0"
     eslint-config-monorepo: "npm:*"
     eslint-plugin-prettier: "npm:^5.1.3"

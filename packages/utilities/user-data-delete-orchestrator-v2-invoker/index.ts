@@ -6,11 +6,13 @@ import { pipe } from "fp-ts/lib/function";
 import { hideBin } from "yargs/helpers";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { Config } from "./types";
+import { getConfigOrThrow } from "./env";
 
 const UTILITY_NAME = "UserDataDeleteOrchestratorV2 Invoker";
 
 console.time("Process time");
 const run = async () => {
+  const envConfig = getConfigOrThrow();
   const args = await yargs(hideBin(process.argv))
     .command(
       "inputFilePath",
@@ -23,7 +25,13 @@ const run = async () => {
     .parse();
 
   const config = pipe(
-    args,
+    {
+      ...{
+        apiUrl: envConfig.API_URL,
+        apiKey: envConfig.API_KEY,
+      },
+      ...args,
+    },
     Config.decode,
     E.getOrElseW((errors) => {
       throw Error(
