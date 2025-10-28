@@ -4,6 +4,17 @@ import { AuthSessionEvent } from "../auth-session-event";
 
 const aTimestamp = new Date().getTime();
 
+const aBaseRejectedLoginEvent = {
+  eventType: "rejected_login",
+  createdAtDay: "2023-08-15",
+  ip: "127.0.0.1",
+  requestPayload: "<xml>request</xml>",
+  responsePayload: "<xml>response</xml>",
+  spidRequestId: "request-id-123",
+  fiscalCode: "AAAAAA89S20I111X",
+  ts: aTimestamp,
+};
+
 describe("AuthSessionEvent decode tests", () => {
   it("should decode a valid Login event", () => {
     const aValidLoginEvent = {
@@ -69,15 +80,8 @@ describe("AuthSessionEvent decode tests", () => {
 
   it("should decode a valid RejectedLogin (Age Block) event", () => {
     const aValidRejectedLoginEvent = {
-      eventType: "rejected_login",
-      createdAtDay: "2023-08-15",
-      ip: "127.0.0.1",
-      requestPayload: "<xml>request</xml>",
-      responsePayload: "<xml>response</xml>",
       rejectionCause: "age_block",
-      spidRequestId: "request-id-123",
-      fiscalCode: "AAAAAA89S20I111X",
-      ts: aTimestamp,
+      ...aBaseRejectedLoginEvent,
     };
     const decodeResult = AuthSessionEvent.decode(aValidRejectedLoginEvent);
 
@@ -91,15 +95,8 @@ describe("AuthSessionEvent decode tests", () => {
 
   it("should decode a valid RejectedLogin (Auth Lock) event", () => {
     const aValidRejectedLoginEvent = {
-      eventType: "rejected_login",
-      createdAtDay: "2023-08-15",
-      ip: "127.0.0.1",
-      requestPayload: "<xml>request</xml>",
-      responsePayload: "<xml>response</xml>",
       rejectionCause: "auth_lock",
-      spidRequestId: "request-id-123",
-      fiscalCode: "AAAAAA89S20I111X",
-      ts: aTimestamp,
+      ...aBaseRejectedLoginEvent,
     };
     const decodeResult = AuthSessionEvent.decode(aValidRejectedLoginEvent);
 
@@ -113,17 +110,12 @@ describe("AuthSessionEvent decode tests", () => {
 
   it("should decode a valid RejectedLogin (User Mismatch) event", () => {
     const aValidRejectedLoginEvent = {
-      eventType: "rejected_login",
-      createdAtDay: "2023-08-15",
-      ip: "127.0.0.1",
-      requestPayload: "<xml>request</xml>",
-      responsePayload: "<xml>response</xml>",
       rejectionCause: "cf_mismatch",
-      currentFiscalCode: "438cb21f4edc118a51ae28dc4125f4cf59c29e252f30e4e77746b24c6d39fae6", // sha256 of "BBBBBB89S20I111Y"
-      spidRequestId: "request-id-123",
-      fiscalCode: "AAAAAA89S20I111X",
-      ts: aTimestamp,
+      currentFiscalCode:
+        "438cb21f4edc118a51ae28dc4125f4cf59c29e252f30e4e77746b24c6d39fae6", // sha256 of "BBBBBB89S20I111Y",
+      ...aBaseRejectedLoginEvent,
     };
+
     const decodeResult = AuthSessionEvent.decode(aValidRejectedLoginEvent);
 
     expect(decodeResult).toStrictEqual(
