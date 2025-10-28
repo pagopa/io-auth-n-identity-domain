@@ -1,6 +1,5 @@
 import { AzureFunction, Context } from "@azure/functions";
 import {
-  AuthSessionEvent,
   EventTypeEnum,
   LoginEvent,
   LogoutEvent
@@ -18,6 +17,7 @@ import * as RT from "fp-ts/ReaderTask";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as TE from "fp-ts/TaskEither";
+import * as t from "io-ts";
 import { Errors } from "io-ts";
 import { SessionNotificationEventsProcessorConfig } from "../config";
 import {
@@ -29,6 +29,14 @@ import { trackEvent } from "../utils/appinsights";
 import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
 import { PermanentError, TransientError } from "../utils/errors";
 import { isLastServiceBusTriggerRetry } from "../utils/function-utils";
+
+export const SessionNotificationTriggerInput = t.union([
+  LoginEvent,
+  LogoutEvent
+]);
+export type SessionNotificationTriggerInput = t.TypeOf<
+  typeof SessionNotificationTriggerInput
+>;
 
 export type TriggerDependencies = {
   SessionNotificationsRepo: SessionNotificationsRepository;
@@ -205,7 +213,7 @@ export const SessionNotificationEventsProcessorFunction = (
   deps: TriggerDependencies
 ): AzureFunction => async (context: Context, message: unknown): Promise<void> =>
   pipe(
-    AuthSessionEvent.decode(message),
+    SessionNotificationTriggerInput.decode(message),
     E.mapLeft(onBadMessageReceived),
     RTE.fromEither,
     RTE.chainW(decodedMessage => {
@@ -215,6 +223,8 @@ export const SessionNotificationEventsProcessorFunction = (
         case EventTypeEnum.LOGOUT:
           return processLogoutEvent(decodedMessage);
         default:
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const exhaustive: never = decodedMessage;
           return RTE.left(new PermanentError("Unexpected EventType"));
       }
     }),
