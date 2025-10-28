@@ -212,7 +212,11 @@ export const SessionNotificationEventsProcessorFunction = (
           return processLoginEvent(decodedMessage);
         case EventTypeEnum.LOGOUT:
           return processLogoutEvent(decodedMessage);
+        case EventTypeEnum.REJECTED_LOGIN:
+          return RTE.left(new PermanentError("Unexpected EventType"));
         default:
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const exhaustive: never = decodedMessage;
           return RTE.left(new PermanentError("Unexpected EventType"));
       }
     }),
