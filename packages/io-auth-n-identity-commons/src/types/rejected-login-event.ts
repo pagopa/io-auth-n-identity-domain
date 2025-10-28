@@ -6,6 +6,7 @@ import {
 } from "@pagopa/ts-commons/lib/strings";
 import { enumType } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
+import { Sha256HexString } from "./crypto";
 import { EventTypeEnum } from "./event-type";
 
 export enum RejectedLoginCauseEnum {
@@ -69,7 +70,7 @@ export const UserMismatchRejectedLogin = t.intersection([
   t.type({
     rejectionCause: t.literal(RejectedLoginCauseEnum.CF_MISMATCH),
     // The fiscal code of the currently authenticated user in the app.
-    currentFiscalCode: t.string, // TODO: move from session manager the Sha256HexString io-ts type in this lib
+    currentFiscalCode: Sha256HexString,
   }),
   BaseRejectedLoginEventContent,
 ]);
