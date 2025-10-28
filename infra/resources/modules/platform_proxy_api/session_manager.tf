@@ -157,6 +157,15 @@ resource "azurerm_api_management_api" "external_api_session_manager_revision_2" 
   subscription_required = false
 }
 
+resource "azurerm_api_management_named_value" "io_auth_login_acceptance_percentage" {
+  name                = "io-auth-login-acceptance-percentage"
+  api_management_name = var.platform_apim_name
+  resource_group_name = var.platform_apim_resource_group_name
+  display_name        = "io-auth-login-acceptance-percentage"
+  value               = "100"
+  secret              = "false"
+}
+
 resource "azurerm_api_management_api_operation_policy" "external_api_session_manager_login_policy" {
   depends_on          = [azurerm_api_management_api.external_api_session_manager_revision_2]
   api_management_name = var.platform_apim_name
@@ -169,21 +178,21 @@ resource "azurerm_api_management_api_operation_policy" "external_api_session_man
 <policies>
     <inbound>
         <base />
-        <set-variable name="acceptancePercentage" value="50" />
-
         <choose>
             <when condition="@{
-                int acceptanceThreshold = Convert.ToInt32(context.Variables["acceptancePercentage"]);
+                int acceptanceThreshold = Convert.ToInt32({{io-auth-login-acceptance-percentage}});
 
                 Random random = new Random();
                 int randomValue = random.Next(0, 100);
 
-                return randomValue >= acceptanceThreshold;
+                return randomValue < acceptanceThreshold;
             }">
+            </when>
+            <otherwise>
                 <return-response>
                     <set-status code="500" reason="Ongoing Maintenance" />
                 </return-response>
-            </when>
+            </otherwise>
         </choose>
     </inbound>
     <backend>
