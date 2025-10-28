@@ -81,6 +81,7 @@ describe("AuthSessionEvent decode tests", () => {
   it("should decode a valid RejectedLogin (Age Block) event", () => {
     const aValidRejectedLoginEvent = {
       rejectionCause: "age_block",
+      minimumAge: 14,
       ...aBaseRejectedLoginEvent,
     };
     const decodeResult = AuthSessionEvent.decode(aValidRejectedLoginEvent);

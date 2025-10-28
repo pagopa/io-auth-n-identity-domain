@@ -53,6 +53,7 @@ export type BaseRejectedLoginEventContent = t.TypeOf<
 export const AgeBlockRejectedLogin = t.intersection([
   t.type({
     rejectionCause: t.literal(RejectedLoginCauseEnum.AGE_BLOCK),
+    minimumAge: t.number,
   }),
   BaseRejectedLoginEventContent,
 ]);

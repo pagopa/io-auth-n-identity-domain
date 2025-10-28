@@ -19,6 +19,7 @@ describe("RejectedLoginEvent decode tests", () => {
   it("should decode a valid RejectedLogin (Age Block) event", () => {
     const aValidRejectedLoginEvent = {
       rejectionCause: "age_block",
+      minimumAge: 14,
       ...aBaseRejectedLoginEvent,
     };
     const decodeResult = RejectedLoginEvent.decode(aValidRejectedLoginEvent);
