@@ -2,13 +2,16 @@ import { ServiceBusSender } from "@azure/service-bus";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
 import { describe, expect, it, vi } from "vitest";
-import { EventTypeEnum } from "../../types/event-type";
+import { EventTypeEnum } from "../../types/session-event/event-type";
 import {
   LoginEvent,
   LoginScenarioEnum,
   LoginTypeEnum,
-} from "../../types/login-event";
-import { LogoutEvent, LogoutScenarioEnum } from "../../types/logout-event";
+} from "../../types/session-event/login-event";
+import {
+  LogoutEvent,
+  LogoutScenarioEnum,
+} from "../../types/session-event/logout-event";
 import { AuthSessionsTopicRepository } from "../auth-sessions-topic-repository";
 
 const contentType = "application/json";

@@ -1,4 +1,5 @@
 import * as t from "io-ts";
+
 import { LoginEvent } from "./login-event";
 import { LogoutEvent } from "./logout-event";
 import { RejectedLoginEvent } from "./rejected-login-event";

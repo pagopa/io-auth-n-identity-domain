@@ -4,7 +4,7 @@ import {
   AuthSessionsTopicRepository,
   AuthSessionsTopicRepositoryDeps,
 } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/event-type";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-event/event-type";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { addSeconds } from "date-fns";
 import * as AP from "fp-ts/Apply";
@@ -20,7 +20,7 @@ import * as redisLib from "redis";
 import {
   LogoutEvent,
   LogoutScenarioEnum,
-} from "@pagopa/io-auth-n-identity-commons/types/logout-event";
+} from "@pagopa/io-auth-n-identity-commons/types/session-event/logout-event";
 
 import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
 import { SessionState } from "../generated/definitions/internal/SessionState";

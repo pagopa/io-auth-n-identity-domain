@@ -1,15 +1,15 @@
 /* eslint-disable max-lines-per-function */
 import { Context } from "@azure/functions";
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/event-type";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-event/event-type";
 import {
   LoginEvent,
   LoginScenarioEnum,
   LoginTypeEnum
-} from "@pagopa/io-auth-n-identity-commons/types/login-event";
+} from "@pagopa/io-auth-n-identity-commons/types/session-event/login-event";
 import {
   LogoutEvent,
   LogoutScenarioEnum
-} from "@pagopa/io-auth-n-identity-commons/types/logout-event";
+} from "@pagopa/io-auth-n-identity-commons/types/session-event/logout-event";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
 import * as RTE from "fp-ts/ReaderTaskEither";

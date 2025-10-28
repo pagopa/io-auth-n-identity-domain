@@ -6,7 +6,7 @@ import {
 } from "@pagopa/ts-commons/lib/strings";
 import { enumType } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
-import { Sha256HexString } from "./crypto";
+import { Sha256HexString } from "../crypto";
 import { EventTypeEnum } from "./event-type";
 
 export enum RejectedLoginCauseEnum {

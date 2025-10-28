@@ -1,4 +1,4 @@
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/event-type";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-event/event-type";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,7 +7,7 @@ import {
   LoginEvent,
   LoginScenarioEnum,
   LoginTypeEnum,
-} from "@pagopa/io-auth-n-identity-commons/types/login-event";
+} from "@pagopa/io-auth-n-identity-commons/types/session-event/login-event";
 import { AuthSessionEventsRepo } from "..";
 import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
 import { mockedUser } from "../../__mocks__/user.mocks";

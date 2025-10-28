@@ -2,7 +2,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as t from "io-ts";
 import { Errors } from "io-ts";
-import { EventType } from "../types/event-type";
+import { EventType } from "../types/session-event/event-type";
 
 const WithKnownEventType = t.type({
   eventType: EventType,

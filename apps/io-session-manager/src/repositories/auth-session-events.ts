@@ -3,7 +3,7 @@ import {
   AuthSessionsTopicRepository,
   AuthSessionsTopicRepositoryDeps,
 } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
-import { AuthSessionEvent } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { AuthSessionEvent } from "@pagopa/io-auth-n-identity-commons/types/session-event/auth-session-event";
 
 export type AuthSessionEventsDeps = {
   AuthSessionsTopicRepository: AuthSessionsTopicRepository;
