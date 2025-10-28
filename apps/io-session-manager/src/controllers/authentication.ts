@@ -1,10 +1,8 @@
 /* eslint-disable max-lines-per-function */
-import {
-  EventTypeEnum,
-  LoginEvent,
-} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 
 import {
+  LoginEvent,
   LoginScenarioEnum,
   LoginTypeEnum as ServiceBusLoginTypeEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/login-event";

@@ -1,36 +1,36 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as E from "fp-ts/lib/Either";
-import * as TE from "fp-ts/lib/TaskEither";
-import * as RTE from "fp-ts/lib/ReaderTaskEither";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import {
-  EventTypeEnum,
   LogoutEvent,
-} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
-import { LogoutScenarioEnum } from "@pagopa/io-auth-n-identity-commons/types/logout-event";
+  LogoutScenarioEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/logout-event";
+import * as E from "fp-ts/lib/Either";
+import * as RTE from "fp-ts/lib/ReaderTaskEither";
+import * as TE from "fp-ts/lib/TaskEither";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as appinsights from "../../utils/appinsights";
 import { BlockedUsersService } from "../blocked-users-service";
 
-import {
-  RedisClientTaskMock,
-  RedisRepositoryMock,
-} from "../../__mocks__/repositories/redis.mock";
-import {
-  mockUnsetBlockedUser,
-  BlockedUsersRedisRepositoryMock,
-  mockSetBlockedUser,
-} from "../../__mocks__/repositories/blocked-users-redis.mock";
-import { aFiscalCode } from "../../repositories/__tests__/blocked-users-redis.test";
-import { LollipopRepositoryMock } from "../../__mocks__/repositories/lollipop.mock";
 import { mockQueueClient } from "../../__mocks__/queue-client.mock";
-import {
-  mockInvalidateUserSession,
-  SessionServiceMock,
-} from "../../__mocks__/services/session-service.mock";
 import {
   AuthSessionsTopicRepositoryMock,
   mockEmitSessionEvent,
   ServiceBusSenderMock,
 } from "../../__mocks__/repositories/auth-sessions-topic.mock";
+import {
+  BlockedUsersRedisRepositoryMock,
+  mockSetBlockedUser,
+  mockUnsetBlockedUser,
+} from "../../__mocks__/repositories/blocked-users-redis.mock";
+import { LollipopRepositoryMock } from "../../__mocks__/repositories/lollipop.mock";
+import {
+  RedisClientTaskMock,
+  RedisRepositoryMock,
+} from "../../__mocks__/repositories/redis.mock";
+import {
+  mockInvalidateUserSession,
+  SessionServiceMock,
+} from "../../__mocks__/services/session-service.mock";
+import { aFiscalCode } from "../../repositories/__tests__/blocked-users-redis.test";
 
 const deps = {
   fastRedisClientTask: RedisClientTaskMock,

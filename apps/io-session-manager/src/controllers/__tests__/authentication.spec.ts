@@ -1,8 +1,6 @@
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import {
-  EventTypeEnum,
   LoginEvent,
-} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
-import {
   LoginScenarioEnum,
   LoginTypeEnum as ServiceBusLoginTypeEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/login-event";

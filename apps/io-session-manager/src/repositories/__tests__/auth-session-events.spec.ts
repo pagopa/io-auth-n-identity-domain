@@ -1,22 +1,20 @@
-import { beforeEach, describe, it, expect, vi } from "vitest";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
-import {
-  EventTypeEnum,
-  LoginEvent,
-} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  LoginEvent,
   LoginScenarioEnum,
   LoginTypeEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/login-event";
-import { mockedUser } from "../../__mocks__/user.mocks";
 import { AuthSessionEventsRepo } from "..";
+import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
+import { mockedUser } from "../../__mocks__/user.mocks";
 import {
   mockAuthSessionsTopicRepository,
   mockEmitSessionEvent,
 } from "../__mocks__/auth-session-topic-repository.mocks";
-import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
 
 const deps = {
   AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
