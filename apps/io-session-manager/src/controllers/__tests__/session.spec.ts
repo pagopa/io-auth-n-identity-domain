@@ -1,33 +1,26 @@
 /* eslint-disable max-lines-per-function */
 import crypto from "crypto";
-import { afterAll, describe, test, expect, vi, beforeEach } from "vitest";
-import { Request, Response } from "express";
-import { pipe } from "fp-ts/lib/function";
-import * as TE from "fp-ts/TaskEither";
-import * as RTE from "fp-ts/ReaderTaskEither";
-import * as E from "fp-ts/Either";
-import * as O from "fp-ts/Option";
-import { ResponseSuccessJson } from "@pagopa/ts-commons/lib/responses";
-import { addSeconds } from "date-fns";
-import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
 import {
-  EventTypeEnum,
   LogoutEvent,
   LogoutScenarioEnum,
-} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
-import mockRes from "../../__mocks__/response.mocks";
-import {
-  mockedInitializedProfile,
-  mockedUser,
-} from "../../__mocks__/user.mocks";
-import { mockGet, mockRedisClientSelector } from "../../__mocks__/redis.mocks";
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
+import { ResponseSuccessJson } from "@pagopa/ts-commons/lib/responses";
+import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
+import { addSeconds } from "date-fns";
+import { Request, Response } from "express";
+import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/Option";
+import * as RTE from "fp-ts/ReaderTaskEither";
+import * as TE from "fp-ts/TaskEither";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
+import { mockedAppinsightsTelemetryClient } from "../../__mocks__/appinsights.mocks";
 import { anAssertionRef } from "../../__mocks__/lollipop.mocks";
+import { mockGet, mockRedisClientSelector } from "../../__mocks__/redis.mocks";
 import mockReq from "../../__mocks__/request.mocks";
-import * as profileService from "../../services/profile";
-import { FnAppAPIClient } from "../../repositories/fn-app-api";
-import { getSessionState, logout, getUserIdentity } from "../session";
-import { RedisClientSelectorType } from "../../types/redis";
-import { LollipopApiClient } from "../../repositories/lollipop-api";
+import mockRes from "../../__mocks__/response.mocks";
+import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
 import {
   mockRevokeAssertionRefAssociation,
   mockedLollipopService,
@@ -37,12 +30,19 @@ import {
   mockGetLollipopAssertionRefForUser,
   mockedRedisSessionStorageService,
 } from "../../__mocks__/services/redisSessionStorageService.mocks";
+import {
+  mockedInitializedProfile,
+  mockedUser,
+} from "../../__mocks__/user.mocks";
 import { toExpectedResponse } from "../../__tests__/utils";
-import { RedisSessionStorageService, TokenService } from "../../services";
 import { UserIdentityWithTtl } from "../../generated/introspection/UserIdentityWithTtl";
 import { mockAuthSessionsTopicRepository } from "../../repositories/__mocks__/auth-session-topic-repository.mocks";
-import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
-import { mockedAppinsightsTelemetryClient } from "../../__mocks__/appinsights.mocks";
+import { FnAppAPIClient } from "../../repositories/fn-app-api";
+import { LollipopApiClient } from "../../repositories/lollipop-api";
+import { RedisSessionStorageService, TokenService } from "../../services";
+import * as profileService from "../../services/profile";
+import { RedisClientSelectorType } from "../../types/redis";
+import { getSessionState, getUserIdentity, logout } from "../session";
 
 const frozenDate = new Date(2025, 0, 1);
 vi.setSystemTime(frozenDate);

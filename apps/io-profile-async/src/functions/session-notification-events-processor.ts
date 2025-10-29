@@ -1,10 +1,8 @@
 import { AzureFunction, Context } from "@azure/functions";
-import {
-  AuthSessionEvent,
-  EventTypeEnum,
-  LoginEvent,
-  LogoutEvent
-} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+import { AuthSessionEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/auth-session-event";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
+import { LoginEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/login-event";
+import { LogoutEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
 import { validationErrorsContainsKnownEventType } from "@pagopa/io-auth-n-identity-commons/utils/auth-session-event-utils";
 import {
   asyncIterableToArray,
@@ -214,6 +212,8 @@ export const SessionNotificationEventsProcessorFunction = (
           return processLoginEvent(decodedMessage);
         case EventTypeEnum.LOGOUT:
           return processLogoutEvent(decodedMessage);
+        case EventTypeEnum.REJECTED_LOGIN:
+          return RTE.left(new PermanentError("Unexpected EventType"));
         default:
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const exhaustive: never = decodedMessage;

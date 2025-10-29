@@ -21,12 +21,11 @@ import { sequenceS } from "fp-ts/lib/Apply";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { addSeconds } from "date-fns";
 import { OutputOf } from "io-ts";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
 import {
-  EventTypeEnum,
   LogoutEvent,
   LogoutScenarioEnum,
-} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
 import { RedisRepo, FnAppRepo, AuthSessionEventsRepo } from "../repositories";
 import {
   LollipopService,

@@ -1,9 +1,8 @@
-import * as E from "fp-ts/lib/Either";
-import { flow, pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as t from "io-ts";
 import { Errors } from "io-ts";
-import { EventType } from "../types/auth-session-event";
+import { EventType } from "../types/session-events/event-type";
 
 const WithKnownEventType = t.type({
   eventType: EventType,

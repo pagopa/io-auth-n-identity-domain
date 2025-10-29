@@ -1,33 +1,39 @@
-import * as RTE from "fp-ts/lib/ReaderTaskEither";
-import * as ROA from "fp-ts/ReadonlyArray";
-import * as TE from "fp-ts/lib/TaskEither";
-import * as AP from "fp-ts/Apply";
-import * as B from "fp-ts/lib/boolean";
-import * as O from "fp-ts/lib/Option";
-import * as redisLib from "redis";
-import { flow, pipe } from "fp-ts/lib/function";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { TableClient } from "@azure/data-tables";
 import { QueueClient } from "@azure/storage-queue";
-import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
-import { addSeconds } from "date-fns";
-import { OutputOf } from "io-ts";
 import {
   AuthSessionsTopicRepository,
   AuthSessionsTopicRepositoryDeps,
 } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { addSeconds } from "date-fns";
+import * as AP from "fp-ts/Apply";
+import { flow, pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/lib/Option";
+import * as RTE from "fp-ts/lib/ReaderTaskEither";
+import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
+import * as TE from "fp-ts/lib/TaskEither";
+import * as ROA from "fp-ts/ReadonlyArray";
+import { OutputOf } from "io-ts";
+import * as redisLib from "redis";
+
 import {
-  EventTypeEnum,
   LogoutEvent,
   LogoutScenarioEnum,
-} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
-import { RedisRepository } from "../repositories/redis";
-import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
+
+import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
+import { SessionState } from "../generated/definitions/internal/SessionState";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
+import { UserSessionInfo } from "../generated/definitions/internal/UserSessionInfo";
 import {
   AuthLockRepository,
   NotReleasedAuthenticationLockData,
 } from "../repositories/auth-lock";
+import { InstallationRepository } from "../repositories/installation";
+import { LollipopRepository } from "../repositories/lollipop";
+import { RedisRepository } from "../repositories/redis";
+import { trackEvent } from "../utils/appinsights";
 import {
   ConflictError,
   ForbiddenError,
@@ -36,11 +42,6 @@ import {
   toConflictError,
   toGenericError,
 } from "../utils/errors";
-import { LollipopRepository } from "../repositories/lollipop";
-import { InstallationRepository } from "../repositories/installation";
-import { SessionState } from "../generated/definitions/internal/SessionState";
-import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
-import { trackEvent } from "../utils/appinsights";
 
 type RedisDeps = {
   FastRedisClientTask: TE.TaskEither<Error, redisLib.RedisClusterType>;

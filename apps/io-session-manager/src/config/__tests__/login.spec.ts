@@ -1,8 +1,8 @@
+import zlib from "zlib";
 import { describe, test, expect } from "vitest";
 
-import { decompressFiscalCodeList } from "../login";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import zlib from "zlib";
+import { decompressFiscalCodeList } from "../login";
 
 describe("Config#login", () => {
   test("decode compressed list of fiscal code", async () => {

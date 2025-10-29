@@ -12,11 +12,11 @@ import {
   AuthSessionsTopicRepository,
   AuthSessionsTopicRepositoryDeps,
 } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
 import {
-  EventTypeEnum,
   LogoutEvent,
   LogoutScenarioEnum,
-} from "@pagopa/io-auth-n-identity-commons/types/auth-session-event";
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
 
 import { BlockedUsersRedisRepository } from "../repositories/blocked-users-redis";
 import {
