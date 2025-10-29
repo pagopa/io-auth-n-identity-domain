@@ -1,5 +1,4 @@
 import fs from "fs";
-import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import { pipe } from "fp-ts/function";
@@ -66,7 +65,7 @@ export const ProcessFiscalCode =
   (fiscalCode: FiscalCode): RTE.ReaderTaskEither<Config, Error, Response> =>
   ({ apiUrl, apiKey, errorsFiscalCodesFilePath, dryRun }) =>
     pipe(
-      apiUrl.replace("${fiscalCode}", fiscalCode),
+      apiUrl.replace("{fiscalCode}", fiscalCode),
       (url) => put(url, apiKey, dryRun),
       TE.orElse((err) =>
         pipe(

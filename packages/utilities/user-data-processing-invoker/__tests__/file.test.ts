@@ -1,11 +1,11 @@
-import { beforeEach } from "node:test";
-import { writeFileSync, readFileSync } from "fs";
-import { vi, expect, describe, it, assert, afterEach } from "vitest";
+import { writeFileSync, readFileSync, existsSync } from "fs";
+import { vi, expect, describe, it, afterEach } from "vitest";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as E from "fp-ts/Either";
 import { readFiscalCodesFromFile } from "../file";
 
 vi.mock("fs");
+vi.mocked(existsSync).mockImplementation(() => true);
 const mockReadFile = vi.mocked(readFileSync);
 const mockWriteFile = vi.mocked(writeFileSync);
 
@@ -26,7 +26,6 @@ const FISCAL_CODES: ReadonlyArray<FiscalCode> = FISCAL_CODES_LIST;
 const INVALID_FISCAL_CODES_LIST = ["INVALID1", "INVALID2"];
 
 const VALID_FISCAL_CODES_FILE_CONTENT = FISCAL_CODES_LIST.join("\n");
-const INVALID_FISCAL_CODES_FILE_CONTENT = INVALID_FISCAL_CODES_LIST.join("\n");
 const MIXED_FISCAL_CODES_FILE_CONTENT = [
   ...FISCAL_CODES_LIST,
   ...INVALID_FISCAL_CODES_LIST,

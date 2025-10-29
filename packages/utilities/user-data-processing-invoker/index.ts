@@ -65,7 +65,17 @@ const run = async () => {
     TE.chain((fiscalCodes) =>
       pipe(
         fiscalCodes,
-        RA.traverse(TE.ApplicativeSeq)((fc) => ProcessFiscalCode(fc)(config)),
+        RA.traverse(TE.ApplicativeSeq)((fiscalCode) =>
+          pipe(
+            ProcessFiscalCode(fiscalCode)(config),
+            TE.map((res) => {
+              console.info(
+                `PROCESSING | ${fiscalCode} | ${fiscalCode}: HTTP ${res.status}`,
+              );
+              return res;
+            }),
+          ),
+        ),
       ),
     ),
     TE.map(() => {
