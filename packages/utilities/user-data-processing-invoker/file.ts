@@ -15,12 +15,17 @@ const readLinesFromFile = (
   filename: string,
 ): E.Either<Error, ReadonlyArray<string>> =>
   E.tryCatch(
-    () =>
-      fs
+    () => {
+      // If the file does not exist, throw an Error so tryCatch will catch it
+      if (!fs.existsSync(filename)) {
+        throw new Error(`Input file not found: ${filename}`);
+      }
+      return fs
         .readFileSync(filename, { encoding: "utf-8" })
         .split("\n")
         .map((line) => line.trim())
-        .filter((line) => line.length > 0),
+        .filter((line) => line.length > 0);
+    },
     (reason) => new Error(`Failed to read file: ${reason}`),
   );
 

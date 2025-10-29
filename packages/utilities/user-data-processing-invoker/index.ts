@@ -59,6 +59,9 @@ const run = async () => {
       config.invalidFiscalCodesFilePath,
     ),
     TE.fromEither,
+    TE.mapLeft((err) => {
+      throw err;
+    }),
     TE.chain((fiscalCodes) =>
       pipe(
         fiscalCodes,
