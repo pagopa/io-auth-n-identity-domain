@@ -64,6 +64,21 @@ describe("RejectedLoginEvent decode tests", () => {
     );
   });
 
+  it("should decode a valid RejectedLogin (Ongoing User Deletion) event", () => {
+    const aValidRejectedLoginEvent = {
+      rejectionCause: "ongoing_user_deletion",
+      ...aBaseRejectedLoginEvent,
+    };
+    const decodeResult = RejectedLoginEvent.decode(aValidRejectedLoginEvent);
+
+    expect(decodeResult).toStrictEqual(
+      E.of({
+        ...aValidRejectedLoginEvent,
+        ts: new Date(aValidRejectedLoginEvent.ts),
+      }),
+    );
+  });
+
   it("should fail when a rejected_login event lack of required properties", () => {
     const aBadRejectedLoginEvent = {
       eventType: "rejected_login",

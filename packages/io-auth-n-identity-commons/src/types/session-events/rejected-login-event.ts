@@ -13,6 +13,7 @@ export enum RejectedLoginCauseEnum {
   AGE_BLOCK = "age_block",
   AUTH_LOCK = "auth_lock",
   CF_MISMATCH = "cf_mismatch",
+  ONGOING_USER_DELETION = "ongoing_user_deletion",
 }
 
 export type RejectedLoginCause = t.TypeOf<typeof RejectedLoginCause>;
@@ -76,9 +77,20 @@ export type UserMismatchRejectedLogin = t.TypeOf<
   typeof UserMismatchRejectedLogin
 >;
 
+export const OngoingUserDeletionRejectedLogin = t.intersection([
+  t.type({
+    rejectionCause: t.literal(RejectedLoginCauseEnum.ONGOING_USER_DELETION),
+  }),
+  BaseRejectedLoginEventContent,
+]);
+export type OngoingUserDeletionRejectedLogin = t.TypeOf<
+  typeof OngoingUserDeletionRejectedLogin
+>;
+
 export const RejectedLoginEvent = t.union([
   AgeBlockRejectedLogin,
   AuthLockRejectedLogin,
   UserMismatchRejectedLogin,
+  OngoingUserDeletionRejectedLogin,
 ]);
 export type RejectedLoginEvent = t.TypeOf<typeof RejectedLoginEvent>;

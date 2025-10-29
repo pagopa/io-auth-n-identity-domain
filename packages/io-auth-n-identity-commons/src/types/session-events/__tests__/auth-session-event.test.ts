@@ -108,6 +108,21 @@ describe("AuthSessionEvent decode tests", () => {
     );
   });
 
+  it("should decode a valid RejectedLogin (Ongoing User Deletion) event", () => {
+    const aValidRejectedLoginEvent = {
+      rejectionCause: "ongoing_user_deletion",
+      ...aBaseRejectedLoginEvent,
+    };
+    const decodeResult = AuthSessionEvent.decode(aValidRejectedLoginEvent);
+
+    expect(decodeResult).toStrictEqual(
+      E.of({
+        ...aValidRejectedLoginEvent,
+        ts: new Date(aValidRejectedLoginEvent.ts),
+      }),
+    );
+  });
+
   it("should decode a valid RejectedLogin (User Mismatch) event", () => {
     const aValidRejectedLoginEvent = {
       rejectionCause: "cf_mismatch",
