@@ -1,9 +1,9 @@
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-event/event-type";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
 import {
   LoginEvent,
   LoginScenarioEnum,
   LoginTypeEnum as ServiceBusLoginTypeEnum,
-} from "@pagopa/io-auth-n-identity-commons/types/session-event/login-event";
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/login-event";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import {
   CIE_IDP_IDENTIFIERS,

@@ -1,8 +1,8 @@
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-event/event-type";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
 import {
   LogoutEvent,
   LogoutScenarioEnum,
-} from "@pagopa/io-auth-n-identity-commons/types/session-event/logout-event";
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
 import * as E from "fp-ts/lib/Either";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";

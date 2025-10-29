@@ -1,8 +1,8 @@
 import { AzureFunction, Context } from "@azure/functions";
-import { AuthSessionEvent } from "@pagopa/io-auth-n-identity-commons/types/session-event/auth-session-event";
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-event/event-type";
-import { LoginEvent } from "@pagopa/io-auth-n-identity-commons/types/session-event/login-event";
-import { LogoutEvent } from "@pagopa/io-auth-n-identity-commons/types/session-event/logout-event";
+import { AuthSessionEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/auth-session-event";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
+import { LoginEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/login-event";
+import { LogoutEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
 import { validationErrorsContainsKnownEventType } from "@pagopa/io-auth-n-identity-commons/utils/auth-session-event-utils";
 import {
   asyncIterableToArray,

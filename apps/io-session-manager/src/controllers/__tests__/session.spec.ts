@@ -1,9 +1,9 @@
 /* eslint-disable max-lines-per-function */
-import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-event/event-type";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
 import {
   LogoutEvent,
   LogoutScenarioEnum,
-} from "@pagopa/io-auth-n-identity-commons/types/session-event/logout-event";
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
 import { ResponseSuccessJson } from "@pagopa/ts-commons/lib/responses";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import crypto from "crypto";

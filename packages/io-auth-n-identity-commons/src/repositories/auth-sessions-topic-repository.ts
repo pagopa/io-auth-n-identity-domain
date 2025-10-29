@@ -2,7 +2,7 @@ import { ServiceBusSender } from "@azure/service-bus";
 import * as E from "fp-ts/Either";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
-import { AuthSessionEvent } from "../types/session-event/auth-session-event";
+import { AuthSessionEvent } from "../types/session-events/auth-session-event";
 
 export type AuthSessionsTopicRepositoryDeps = {
   authSessionsTopicSender: ServiceBusSender;
