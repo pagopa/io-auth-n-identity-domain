@@ -15,8 +15,8 @@ locals {
       FETCH_KEEPALIVE_TIMEOUT             = "60000"
 
       # UNIQUE EMAIL ENFORCEMENT
-      PROFILE_EMAIL_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.citizen_auth_common.primary_connection_string
-      PROFILE_EMAIL_STORAGE_TABLE_NAME        = "profileEmails"
+      PROFILE_EMAIL_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
+      PROFILE_EMAIL_STORAGE_TABLE_NAME        = local.profile_emails_table_name
 
       COSMOSDB_URI  = data.azurerm_cosmosdb_account.cosmos_api.endpoint
       COSMOSDB_KEY  = data.azurerm_cosmosdb_account.cosmos_api.primary_key
