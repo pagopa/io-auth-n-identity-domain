@@ -1,16 +1,12 @@
+import { get } from "http";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
+import { getConfigOrThrow } from "./env";
 
-export type EnvConfig = t.TypeOf<typeof EnvConfig>;
-export const EnvConfig = t.type({
+export const Config = t.type({
   apiUrl: NonEmptyString,
   apiKey: NonEmptyString,
-  dryRun: withDefault(t.boolean, false),
-});
-
-export type CliParams = t.TypeOf<typeof CliParams>;
-export const CliParams = t.type({
   inputFilePath: withDefault(NonEmptyString, "users.txt" as NonEmptyString),
   invalidFiscalCodesFilePath: withDefault(
     NonEmptyString,
@@ -23,4 +19,3 @@ export const CliParams = t.type({
 });
 
 export type Config = t.TypeOf<typeof Config>;
-export const Config = t.intersection([EnvConfig, CliParams]);
