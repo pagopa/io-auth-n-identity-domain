@@ -78,6 +78,25 @@ describe("RejectedLoginEvent decode tests", () => {
     );
   });
 
+  it("should decode a valid RejectedLogin when the loginId is missing", () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { loginId, ...withoutLoginId } = aBaseRejectedLoginEvent;
+
+    const aValidRejectedLoginEvent = {
+      rejectionCause: "age_block",
+      minimumAge: 14,
+      ...withoutLoginId,
+    };
+    const decodeResult = RejectedLoginEvent.decode(aValidRejectedLoginEvent);
+
+    expect(decodeResult).toStrictEqual(
+      E.of({
+        ...aValidRejectedLoginEvent,
+        ts: new Date(aValidRejectedLoginEvent.ts),
+      }),
+    );
+  });
+
   it("should fail when a rejected_login event lack of required properties", () => {
     const aBadRejectedLoginEvent = {
       eventType: "rejected_login",
