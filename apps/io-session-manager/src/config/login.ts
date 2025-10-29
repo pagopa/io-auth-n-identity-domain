@@ -1,4 +1,5 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
+import { gunzipSync } from "zlib";
 import {
   FeatureFlag,
   FeatureFlagEnum,
@@ -13,7 +14,6 @@ import * as O from "fp-ts/Option";
 import * as A from "fp-ts/Array";
 import { Second } from "@pagopa/ts-commons/lib/units";
 import { getIsUserElegibleForIoLoginUrlScheme } from "../utils/login-uri-scheme";
-import { gunzipSync } from "zlib";
 
 export function decompressFiscalCodeList(envVar?: string): Set<FiscalCode> {
   return pipe(
@@ -22,8 +22,7 @@ export function decompressFiscalCodeList(envVar?: string): Set<FiscalCode> {
     E.map((_) => Buffer.from(_, "base64")),
     E.map((buffer) => {
       try {
-        const decompressedBuffer = gunzipSync(buffer).toString();
-        return decompressedBuffer;
+        return gunzipSync(buffer).toString();
       } catch (err) {
         throw Error(`Invalid compressed FiscalCode list value: ${err}`);
       }

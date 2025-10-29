@@ -1,8 +1,8 @@
 import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import { enumType } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
-import { EventTypeEnum } from "./event-type";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { EventTypeEnum } from "./event-type";
 export enum LoginTypeEnum {
   LEGACY = "legacy",
   LV = "lv",

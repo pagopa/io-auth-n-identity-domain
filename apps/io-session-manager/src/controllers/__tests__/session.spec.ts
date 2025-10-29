@@ -1,4 +1,5 @@
 /* eslint-disable max-lines-per-function */
+import crypto from "crypto";
 import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
 import {
   LogoutEvent,
@@ -6,7 +7,6 @@ import {
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
 import { ResponseSuccessJson } from "@pagopa/ts-commons/lib/responses";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
-import crypto from "crypto";
 import { addSeconds } from "date-fns";
 import { Request, Response } from "express";
 import * as E from "fp-ts/Either";
