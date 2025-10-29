@@ -190,7 +190,7 @@ resource "azurerm_api_management_api_operation_policy" "external_api_session_man
             </when>
             <otherwise>
                 <return-response>
-                    <set-status code="500" reason="Ongoing Maintenance" />
+                    <set-status code="503" reason="Service Unavailable" />
                 </return-response>
             </otherwise>
         </choose>
