@@ -8,8 +8,7 @@ const aBaseRejectedLoginEvent = {
   eventType: "rejected_login",
   createdAtDay: "2023-08-15",
   ip: "127.0.0.1",
-  responsePayload: "<xml>response</xml>",
-  spidRequestId: "request-id-123",
+  loginId: "request-id-123",
   fiscalCode: "AAAAAA89S20I111X",
   ts: aTimestamp,
 };

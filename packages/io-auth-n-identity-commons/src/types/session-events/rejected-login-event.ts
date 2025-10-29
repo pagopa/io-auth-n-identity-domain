@@ -38,11 +38,8 @@ export const BaseRejectedLoginEventContent = t.type({
   // IP of the client that made a SPID login action
   ip: t.string.pipe(IPString),
 
-  // XML payload of the SPID Response
-  responsePayload: t.string,
-
-  // SPID request id
-  spidRequestId: t.union([t.undefined, t.string]),
+  // Login id (spidRequestId) associated to the SPID login attempt
+  loginId: t.union([t.undefined, t.string]),
 });
 export type BaseRejectedLoginEventContent = t.TypeOf<
   typeof BaseRejectedLoginEventContent
