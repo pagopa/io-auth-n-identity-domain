@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.15.0
+
+### Minor Changes
+
+- 2529ee3: Redis client upgrade
+
 ## 1.14.2
 
 ### Patch Changes
