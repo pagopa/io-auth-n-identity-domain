@@ -1,21 +1,5 @@
 locals {
-  session_manager_pool_name   = "session-manager-pool"
-  session_manager_base_policy = <<XML
-  <policies>
-      <inbound>
-        <base />
-      </inbound>
-      <backend>
-          <base />
-      </backend>
-      <outbound>
-          <base />
-      </outbound>
-      <on-error>
-          <base />
-      </on-error>
-  </policies>
-  XML
+  session_manager_pool_name = "session-manager-pool"
 
   session_manager_base_policy_pool = <<XML
   <policies>
@@ -154,6 +138,74 @@ module "external_api_session_manager" {
   content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/external.yaml"
 
   xml_content = local.session_manager_base_policy_pool
+}
+
+### REVISION 2
+resource "azurerm_api_management_api" "external_api_session_manager_revision_2" {
+  name                = "io-session-manager-external-api-v1"
+  api_management_name = var.platform_apim_name
+  resource_group_name = var.platform_apim_resource_group_name
+
+  version_set_id = azurerm_api_management_api_version_set.auth_v1.id
+  version        = "v1"
+  revision       = 2
+  path           = var.external_api_base_path
+  display_name   = "IO SESSION MANAGER EXTERNAL API"
+  protocols      = ["https"]
+  description    = "Auth & Identity Session Manager External API"
+
+  subscription_required = false
+}
+
+resource "azurerm_api_management_named_value" "io_auth_login_acceptance_percentage" {
+  name                = "io-auth-login-acceptance-percentage"
+  api_management_name = var.platform_apim_name
+  resource_group_name = var.platform_apim_resource_group_name
+  display_name        = "io-auth-login-acceptance-percentage"
+  value               = "100"
+  secret              = "false"
+}
+
+resource "azurerm_api_management_api_operation_policy" "external_api_session_manager_login_policy" {
+  depends_on          = [azurerm_api_management_api.external_api_session_manager_revision_2]
+  api_management_name = var.platform_apim_name
+  resource_group_name = var.platform_apim_resource_group_name
+  api_name            = azurerm_api_management_api.external_api_session_manager_revision_2.name
+
+  # Operation ID defined in the openapi spec
+  operation_id = "login"
+  xml_content  = <<XML
+<policies>
+    <inbound>
+        <base />
+        <choose>
+            <when condition="@{
+                int acceptanceThreshold = Convert.ToInt32({{io-auth-login-acceptance-percentage}});
+
+                Random random = new Random();
+                int randomValue = random.Next(0, 100);
+
+                return randomValue < acceptanceThreshold;
+            }">
+            </when>
+            <otherwise>
+                <return-response>
+                    <set-status code="503" reason="Service Unavailable" />
+                </return-response>
+            </otherwise>
+        </choose>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>
+  XML
 }
 
 resource "azurerm_api_management_api_tag" "external_api_tag" {
