@@ -136,8 +136,6 @@ module "function_profile_async" {
 
   node_version      = 20
   health_check_path = "/info"
-  # P2mv3 SKU and 8 Worker process count
-  tier = "xl"
 
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
@@ -215,7 +213,7 @@ module "function_profile_async_autoscale" {
 
   scheduler = {
     normal_load = {
-      minimum = 8
+      minimum = 3
       default = 10
     },
     maximum = 30

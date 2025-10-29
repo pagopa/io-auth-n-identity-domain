@@ -63,8 +63,8 @@ locals {
       MAGIC_LINK_SERVICE_PUBLIC_URL = "https://${module.function_web_profile.function_app.function_app.default_hostname}"
       IOWEB_ACCESS_REF              = "https://account.ioapp.it"
 
-      PROFILE_EMAIL_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.citizen_auth_common.primary_connection_string
-      PROFILE_EMAIL_STORAGE_TABLE_NAME        = "profileEmails"
+      PROFILE_EMAIL_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
+      PROFILE_EMAIL_STORAGE_TABLE_NAME        = local.profile_emails_table_name
 
       MAILUP_USERNAME = data.azurerm_key_vault_secret.common_MAILUP_USERNAME.value
       MAILUP_SECRET   = data.azurerm_key_vault_secret.common_MAILUP_SECRET.value
