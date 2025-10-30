@@ -1,9 +1,11 @@
 import fs from "fs";
+import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import { pipe } from "fp-ts/function";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { Config } from "./types";
+import { getErrorMessage } from "./utils";
 
 /**
  * Writes a fiscal code and its error message to the error file.
@@ -17,13 +19,12 @@ const writeErrorToFile = (
   filePath: string,
   fiscalCode: FiscalCode,
   error: Error,
-): TE.TaskEither<Error, void> =>
-  TE.tryCatch(
-    () =>
-      fs.promises.appendFile(filePath, `${fiscalCode}: ${error.message}\n`, {
-        encoding: "utf-8",
-      }),
-    (reason) => new Error(`Failed to write error log: ${String(reason)}`),
+): E.Either<Error, void> =>
+  E.tryCatch(
+    () => {
+      fs.appendFileSync(filePath, `${fiscalCode}: ${error.message}\n`, "utf-8");
+    },
+    (error) => new Error(`Failed to write to file: ${getErrorMessage(error)}`),
   );
 
 /**
@@ -48,15 +49,17 @@ const put = (
             method: "PUT",
             headers: { "x-functions-key": apiKey },
           }).then((res) => {
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            if (res.ok !== true)
+              throw new Error(`HTTP ${res.status} ${res.statusText}`);
             return res;
           }),
-    (reason) => new Error(`Failed to PUT ${url}: ${String(reason)}`),
+    (error) => new Error(`Failed HTTP PUT '${url}': ${getErrorMessage(error)}`),
   );
 
 /**
  * Processes a single fiscal code by invoking the remote API.
- * On failure, logs the error into `errorsFiscalCodesFilePath` and continues.
+ * On failure, logs the error into `errorsFiscalCodesFilePath` and returns a Left.
+ * If the write to the error file fails, then returns an error combining both errors.
  *
  * @param fiscalCode The fiscal code to process.
  * @returns A ReaderTaskEither that takes Config and returns either an Error or Response.
@@ -70,7 +73,16 @@ export const ProcessFiscalCode =
       TE.orElse((err) =>
         pipe(
           writeErrorToFile(errorsFiscalCodesFilePath, fiscalCode, err),
-          TE.chain(() => TE.left(err)),
+          TE.fromEither,
+          TE.fold(
+            (writeErr) =>
+              TE.left(
+                new Error(
+                  `Error while writing to file: ${writeErr.message} | Original error: ${err.message}`,
+                ),
+              ),
+            () => TE.left(err),
+          ),
         ),
       ),
     );

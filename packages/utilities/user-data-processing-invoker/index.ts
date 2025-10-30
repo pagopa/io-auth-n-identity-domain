@@ -78,8 +78,10 @@ const run = async () => {
         ),
       ),
     ),
-    TE.map(() => {
-      console.info(`SUCCESS | ${UTILITY_NAME} | Done.`);
+    TE.map((responses) => {
+      console.info(
+        `SUCCESS | ${UTILITY_NAME} | Done (processed: ${responses.length}).`,
+      );
     }),
   )();
 };
