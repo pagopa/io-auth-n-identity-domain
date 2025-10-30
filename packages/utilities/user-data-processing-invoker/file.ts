@@ -78,7 +78,8 @@ const writeInvalidFiscalCodes = (
         `Wrote ${fiscalCodes.length} invalid fiscal codes to ${errorFilePath}`,
       );
     },
-    (reason) => new Error(`Failed to write error file: ${reason}`),
+    (reason) =>
+      new Error(`Failed to write error file: ${reason} | ${errors.join(", ")}`),
   );
 
 /**
