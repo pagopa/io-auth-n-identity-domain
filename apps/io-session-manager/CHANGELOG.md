@@ -1,5 +1,14 @@
 # io-session-manager
 
+## 1.15.1
+
+### Patch Changes
+
+- 4059950: Update imports after @pagopa/io-auth-n-identity-commons refactoring
+- Updated dependencies [01c4221]
+- Updated dependencies [4059950]
+  - @pagopa/io-auth-n-identity-commons@0.2.0
+
 ## 1.15.0
 
 ### Minor Changes
