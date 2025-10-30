@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import * as E from "fp-ts/Either";
-import * as RA from "fp-ts/ReadonlyArray";
+import * as ROA from "fp-ts/ReadonlyArray";
 import * as TE from "fp-ts/TaskEither";
 import yargs from "yargs";
 import { pipe } from "fp-ts/lib/function";
@@ -65,13 +65,11 @@ const run = async () => {
     TE.chain((fiscalCodes) =>
       pipe(
         fiscalCodes,
-        RA.traverse(TE.ApplicativeSeq)((fiscalCode) =>
+        ROA.traverse(TE.ApplicativeSeq)((fiscalCode) =>
           pipe(
             ProcessFiscalCode(fiscalCode)(config),
             TE.map((res) => {
-              console.info(
-                `PROCESSING | ${fiscalCode} | ${fiscalCode}: HTTP ${res.status}`,
-              );
+              console.info(`PROCESSING | ${fiscalCode} | HTTP ${res.status}`);
               return res;
             }),
           ),
