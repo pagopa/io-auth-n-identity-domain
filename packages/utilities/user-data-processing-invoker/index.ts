@@ -72,6 +72,9 @@ const run = async () => {
               console.info(`PROCESSING | ${fiscalCode} | HTTP ${res.status}`);
               return res;
             }),
+            TE.mapLeft((errors) => {
+              console.error(`PROCESSING | ${fiscalCode} | ERROR ${errors}`);
+            }),
           ),
         ),
       ),
