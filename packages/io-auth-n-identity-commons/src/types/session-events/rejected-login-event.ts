@@ -2,6 +2,7 @@ import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
 import {
   FiscalCode,
   IPString,
+  NonEmptyString,
   PatternString,
 } from "@pagopa/ts-commons/lib/strings";
 import { enumType } from "@pagopa/ts-commons/lib/types";
@@ -22,25 +23,28 @@ export const RejectedLoginCause = enumType<RejectedLoginCauseEnum>(
   "RejectedLoginCause",
 );
 
-export const BaseRejectedLoginEventContent = t.type({
-  // ServiceBus event type for auth-session-topic
-  eventType: t.literal(EventTypeEnum.REJECTED_LOGIN),
+export const BaseRejectedLoginEventContent = t.intersection([
+  t.type({
+    // ServiceBus event type for auth-session-topic
+    eventType: t.literal(EventTypeEnum.REJECTED_LOGIN),
 
-  // Fiscal code of the user that attempted to login
-  fiscalCode: FiscalCode,
+    // Fiscal code of the user that attempted to login
+    fiscalCode: FiscalCode,
 
-  // Timestamp of the rejected login event
-  ts: DateFromTimestamp,
+    // Timestamp of the rejected login event
+    ts: DateFromTimestamp,
 
-  // Date of the SPID request / response in YYYY-MM-DD format
-  createdAtDay: PatternString("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"),
+    // Date of the SPID request / response in YYYY-MM-DD format
+    createdAtDay: PatternString("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"),
 
-  // IP of the client that made a SPID login action
-  ip: t.string.pipe(IPString),
-
-  // Login id (spidRequestId) associated to the SPID login attempt
-  loginId: t.union([t.undefined, t.string]),
-});
+    // IP of the client that made a SPID login action
+    ip: t.string.pipe(IPString),
+  }),
+  t.partial({
+    // Login id (spidRequestId) associated to the SPID login attempt
+    loginId: NonEmptyString,
+  }),
+]);
 export type BaseRejectedLoginEventContent = t.TypeOf<
   typeof BaseRejectedLoginEventContent
 >;
