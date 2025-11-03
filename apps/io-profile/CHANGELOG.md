@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.28.0
+
+### Minor Changes
+
+- ba3e5c5: Introduced cache for service info retrieval
+
 ## 5.27.1
 
 ### Patch Changes
