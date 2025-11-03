@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable max-lines-per-function */
 import * as O from "fp-ts/lib/Option";
 import { none, some } from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -26,6 +27,7 @@ import {
   aServicePreferenceVersion,
 } from "../__mocks__/mocks.service_preference";
 import { GetServicePreferencesHandler } from "../get-service-preferences";
+import { mockRedisClientTask } from "../__mocks__/redis.mock";
 
 const aRetrievedProfileInValidState = {
   ...aRetrievedProfileWithEmail,
@@ -67,6 +69,7 @@ describe("GetServicePreferences", () => {
       serviceModelMock as any,
       servicePreferenceModelMock as any,
       {} as any,
+      mockRedisClientTask,
     );
 
     const response = await getServicePreferencesHandler(
@@ -101,6 +104,7 @@ describe("GetServicePreferences", () => {
       serviceModelMock as any,
       servicePreferenceModelMock as any,
       {} as any,
+      mockRedisClientTask,
     );
 
     const response = await getServicePreferencesHandler(
@@ -141,6 +145,7 @@ describe("GetServicePreferences", () => {
       serviceModelMock as any,
       servicePreferenceModelMock as any,
       {} as any,
+      mockRedisClientTask,
     );
 
     const response = await getServicePreferencesHandler(
@@ -178,6 +183,7 @@ describe("GetServicePreferences", () => {
       serviceModelMock as any,
       servicePreferenceModelMock as any,
       {} as any,
+      mockRedisClientTask,
     );
 
     const response = await getServicePreferencesHandler(
@@ -190,6 +196,7 @@ describe("GetServicePreferences", () => {
       kind: "IResponseErrorNotFound",
     });
 
+    expect(serviceModelMock.findLastVersionByModelId).not.toHaveBeenCalled();
     expect(servicePreferenceModelMock.find).not.toHaveBeenCalled();
   });
 
@@ -209,6 +216,7 @@ describe("GetServicePreferences", () => {
       serviceModelMock as any,
       servicePreferenceModelMock as any,
       {} as any,
+      mockRedisClientTask,
     );
 
     const response = await getServicePreferencesHandler(
@@ -245,6 +253,7 @@ describe("GetServicePreferences", () => {
       serviceModelMock as any,
       servicePreferenceModelMock as any,
       {} as any,
+      mockRedisClientTask,
     );
 
     const response = await getServicePreferencesHandler(
@@ -276,6 +285,7 @@ describe("GetServicePreferences", () => {
       serviceModelMock as any,
       servicePreferenceModelMock as any,
       {} as any,
+      mockRedisClientTask,
     );
 
     const response = await getServicePreferencesHandler(
@@ -323,6 +333,7 @@ describe("GetServicePreferences", () => {
         serviceModelMock as any,
         servicePreferenceModelMock as any,
         mockActivation as any,
+        mockRedisClientTask,
       );
 
       const response = await getServicePreferencesHandler(
@@ -364,6 +375,7 @@ describe("GetServicePreferences", () => {
       serviceModelMock as any,
       servicePreferenceModelMock as any,
       mockActivation as any,
+      mockRedisClientTask,
     );
 
     const response = await getServicePreferencesHandler(

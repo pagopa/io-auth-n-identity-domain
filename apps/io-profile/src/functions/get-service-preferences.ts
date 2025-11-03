@@ -46,6 +46,7 @@ import {
 import { ServiceCategory } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceCategory";
 import { SpecialServiceCategoryEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/SpecialServiceCategory";
 import { ActivationModel } from "@pagopa/io-functions-commons/dist/src/models/activation";
+import { RedisClientType } from "redis";
 import {
   getServiceCategoryOrStandard,
   getServiceOrErrorResponse,
@@ -166,6 +167,7 @@ export const GetServicePreferencesHandler = (
   serviceModel: ServiceModel,
   servicePreferencesModel: ServicesPreferencesModel,
   activationModel: ActivationModel,
+  redisClientTask: TE.TaskEither<Error, RedisClientType>,
   // eslint-disable-next-line arrow-body-style
 ): IGetServicePreferencesHandler => {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -173,7 +175,10 @@ export const GetServicePreferencesHandler = (
     pipe(
       sequenceS(TE.ApplicativeSeq)({
         profile: getProfileOrErrorResponse(profileModel)(fiscalCode),
-        service: getServiceOrErrorResponse(serviceModel)(serviceId),
+        service: getServiceOrErrorResponse(
+          serviceModel,
+          redisClientTask,
+        )(serviceId),
       }),
       TE.chainW(
         TE.fromPredicate(
@@ -227,12 +232,14 @@ export function GetServicePreferences(
   serviceModel: ServiceModel,
   servicePreferencesModel: ServicesPreferencesModel,
   activationModel: ActivationModel,
+  redisClientTask: TE.TaskEither<Error, RedisClientType>,
 ): express.RequestHandler {
   const handler = GetServicePreferencesHandler(
     profileModel,
     serviceModel,
     servicePreferencesModel,
     activationModel,
+    redisClientTask,
   );
 
   const middlewaresWrap = withRequestMiddlewares(

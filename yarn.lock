@@ -10989,6 +10989,7 @@ __metadata:
     node-fetch: "npm:^2.6.1"
     nodemailer: "npm:^6.4.16"
     prettier: "npm:^3.2.5"
+    redis: "npm:4.7.1"
     shx: "npm:^0.3.2"
     typescript: "npm:^5.4.5"
     vitest: "npm:~3.2.4"

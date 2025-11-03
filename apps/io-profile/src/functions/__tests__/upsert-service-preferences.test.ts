@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable max-lines-per-function */
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -31,6 +32,7 @@ import {
 } from "../__mocks__/mocks.service_preference";
 import * as subscriptionFeedHandler from "../update-subscriptions-feed-activity";
 import { GetUpsertServicePreferencesHandler } from "../upsert-service-preferences";
+import { mockRedisClientTask } from "../__mocks__/redis.mock";
 
 const makeContext = () => ({ ...context, bindings: {} }) as unknown as Context;
 
@@ -107,9 +109,9 @@ const upsertServicePreferencesHandler = GetUpsertServicePreferencesHandler(
   mockActivationModel as any,
   {} as any,
   "SubFeedTableName" as NonEmptyString,
+  mockRedisClientTask,
 );
 
-// eslint-disable-next-line sonar/sonar-max-lines-per-function
 describe("UpsertServicePreferences", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -382,7 +384,7 @@ describe("UpsertServicePreferences", () => {
     });
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
-    expect(serviceModelMock.findLastVersionByModelId).toHaveBeenCalled();
+    expect(serviceModelMock.findLastVersionByModelId).not.toHaveBeenCalled();
     expect(servicePreferenceModelMock.upsert).not.toHaveBeenCalled();
   });
 

@@ -54,6 +54,7 @@ import {
 } from "./utils/http-trigger";
 import { getMagicLinkServiceClient } from "./utils/magic-code";
 import { getProfileEmailTableClient } from "./utils/unique-email-enforcement";
+import { CreateRedisClientSingleton } from "./utils/redis";
 
 // HTTP external requests timeout in milliseconds
 const REQUEST_TIMEOUT_MS = 5000;
@@ -108,6 +109,8 @@ const eventsQueueServiceClient = QueueServiceClient.fromConnectionString(
   config.EventsQueueStorageConnection,
 );
 
+const redisClientTask = CreateRedisClientSingleton(config);
+
 const migrateServicePreferencesQueueClient =
   QueueServiceClient.fromConnectionString(
     config.MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING,
@@ -149,6 +152,7 @@ const httpTriggerDependencies: WebServerDependencies = {
   telemetryClient,
   migrateServicePreferencesQueueClient,
   subscriptionFeedTableService: tableService,
+  redisClientTask,
 };
 
 export const httpTriggerEntrypoint = pipe(

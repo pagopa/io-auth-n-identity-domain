@@ -12,6 +12,8 @@ import { ActivationModel } from "@pagopa/io-functions-commons/dist/src/models/ac
 import { TelemetryClient } from "applicationinsights";
 import { QueueClient } from "@azure/storage-queue";
 import { TableService } from "azure-storage";
+import { RedisClientType } from "redis";
+import * as TE from "fp-ts/lib/TaskEither";
 import { AbortUserDataProcessing } from "../functions/abort-user-data-processing";
 import { CreateProfile } from "../functions/create-profile";
 import { IConfig } from "../config";
@@ -38,6 +40,7 @@ export type WebServerDependencies = {
   telemetryClient?: TelemetryClient;
   migrateServicePreferencesQueueClient: QueueClient;
   subscriptionFeedTableService: TableService;
+  redisClientTask: TE.TaskEither<Error, RedisClientType>;
 };
 
 export const createWebServer = ({
@@ -51,6 +54,7 @@ export const createWebServer = ({
   telemetryClient,
   migrateServicePreferencesQueueClient,
   subscriptionFeedTableService,
+  redisClientTask,
 }: WebServerDependencies) => {
   // configure app
   const app = express();
@@ -104,6 +108,7 @@ export const createWebServer = ({
       serviceModel,
       servicePreferencesModel,
       activationModel,
+      redisClientTask,
     ),
   );
 
@@ -132,6 +137,7 @@ export const createWebServer = ({
       activationModel,
       subscriptionFeedTableService,
       config.SUBSCRIPTIONS_FEED_TABLE,
+      redisClientTask,
     ),
   );
 
