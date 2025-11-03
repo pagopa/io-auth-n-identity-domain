@@ -169,8 +169,8 @@ module "function_profile_autoscale" {
       }
     },
     normal_load = {
-      minimum = 6
-      default = 10
+      minimum = 15
+      default = 15
     },
     maximum = 30
   }

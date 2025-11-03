@@ -133,8 +133,8 @@ module "function_lv_autoscale" {
       }
     },
     normal_load = {
-      minimum = 8
-      default = 10
+      minimum = 15
+      default = 15
     },
     maximum = 30
   }

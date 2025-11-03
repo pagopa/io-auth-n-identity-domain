@@ -101,8 +101,8 @@ module "function_session_manager_internal_autoscale" {
 
   scheduler = {
     normal_load = {
-      minimum = 3
-      default = 10
+      minimum = 15
+      default = 15
     },
     maximum = 30
   }
