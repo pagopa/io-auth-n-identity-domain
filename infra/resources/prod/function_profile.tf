@@ -69,6 +69,14 @@ locals {
       MAILUP_USERNAME = data.azurerm_key_vault_secret.common_MAILUP_USERNAME.value
       MAILUP_SECRET   = data.azurerm_key_vault_secret.common_MAILUP_SECRET.value
       PUBLIC_API_KEY  = trimspace(data.azurerm_key_vault_secret.fn_app_PUBLIC_API_KEY.value)
+
+
+      // --------------------------
+      //  Redis Config
+      // --------------------------
+      REDIS_URL      = module.redis_common_itn.hostname
+      REDIS_PORT     = module.redis_common_itn.ssl_port
+      REDIS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.redis_access_key_itn.versionless_id})"
     }
   }
 }
