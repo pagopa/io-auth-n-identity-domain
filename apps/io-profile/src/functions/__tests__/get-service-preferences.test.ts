@@ -27,7 +27,11 @@ import {
   aServicePreferenceVersion,
 } from "../__mocks__/mocks.service_preference";
 import { GetServicePreferencesHandler } from "../get-service-preferences";
-import { mockRedisClientTask } from "../__mocks__/redis.mock";
+import {
+  mockGet,
+  mockRedisClientTask,
+  mockSetEx,
+} from "../__mocks__/redis.mock";
 
 const aRetrievedProfileInValidState = {
   ...aRetrievedProfileWithEmail,
@@ -161,6 +165,96 @@ describe("GetServicePreferences", () => {
         is_inbox_enabled: false,
         is_webhook_enabled: false,
         settings_version: 1,
+      },
+    });
+  });
+
+  it("should NOT retrieve service from DB on cache HIT", async () => {
+    mockGet.mockResolvedValueOnce(JSON.stringify(aRetrievedService));
+
+    const profileModelMock = {
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(some(aRetrievedProfileInValidState)),
+      ),
+    };
+
+    const servicePreferenceModelMock = {
+      find: vi.fn((_) => TE.of(some(aRetrievedServicePreference))),
+    };
+
+    const getServicePreferencesHandler = GetServicePreferencesHandler(
+      profileModelMock as any,
+      serviceModelMock as any,
+      servicePreferenceModelMock as any,
+      {} as any,
+      mockRedisClientTask,
+    );
+
+    const response = await getServicePreferencesHandler(
+      aFiscalCode,
+      aServiceId,
+    );
+
+    expect(mockSetEx).not.toHaveBeenCalled();
+    expect(mockGet).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+    );
+    expect(mockServiceFindLastVersionByModelId).not.toHaveBeenCalled();
+
+    expect(response).toMatchObject({
+      kind: "IResponseSuccessJson",
+      value: {
+        is_email_enabled: true,
+        is_inbox_enabled: true,
+        is_webhook_enabled: true,
+        settings_version: aServicePreferenceVersion,
+      },
+    });
+  });
+
+  it("should retrieve service from DB on cache MISS and call SETEX", async () => {
+    mockGet.mockResolvedValueOnce(null);
+
+    const profileModelMock = {
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(some(aRetrievedProfileInValidState)),
+      ),
+    };
+
+    const servicePreferenceModelMock = {
+      find: vi.fn((_) => TE.of(some(aRetrievedServicePreference))),
+    };
+
+    const getServicePreferencesHandler = GetServicePreferencesHandler(
+      profileModelMock as any,
+      serviceModelMock as any,
+      servicePreferenceModelMock as any,
+      {} as any,
+      mockRedisClientTask,
+    );
+
+    const response = await getServicePreferencesHandler(
+      aFiscalCode,
+      aServiceId,
+    );
+
+    expect(mockGet).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+    );
+    expect(mockSetEx).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+      60,
+      JSON.stringify(aRetrievedService),
+    );
+    expect(mockServiceFindLastVersionByModelId).toHaveBeenCalledOnce();
+
+    expect(response).toMatchObject({
+      kind: "IResponseSuccessJson",
+      value: {
+        is_email_enabled: true,
+        is_inbox_enabled: true,
+        is_webhook_enabled: true,
+        settings_version: aServicePreferenceVersion,
       },
     });
   });
@@ -389,5 +483,155 @@ describe("GetServicePreferences", () => {
     expect(mockServiceFindLastVersionByModelId).toBeCalledTimes(1);
     expect(servicePreferenceModelMock.find).toBeCalledTimes(1);
     expect(mockActivation.findLastVersionByModelId).toBeCalledTimes(1);
+  });
+
+  it("should correctly retrieve service from DB on cache MISS and SETEX failure", async () => {
+    const anError = Error("anError");
+    mockGet.mockResolvedValueOnce(null);
+    mockSetEx.mockRejectedValueOnce(anError);
+
+    const profileModelMock = {
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(some(aRetrievedProfileInValidState)),
+      ),
+    };
+
+    const servicePreferenceModelMock = {
+      find: vi.fn((_) => TE.of(some(aRetrievedServicePreference))),
+    };
+
+    const getServicePreferencesHandler = GetServicePreferencesHandler(
+      profileModelMock as any,
+      serviceModelMock as any,
+      servicePreferenceModelMock as any,
+      {} as any,
+      mockRedisClientTask,
+    );
+
+    const response = await getServicePreferencesHandler(
+      aFiscalCode,
+      aServiceId,
+    );
+
+    expect(mockGet).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+    );
+    expect(mockSetEx).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+      60,
+      JSON.stringify(aRetrievedService),
+    );
+    expect(mockSetEx.mock.settledResults).toEqual([
+      {
+        type: "rejected",
+        value: anError,
+      },
+    ]);
+    expect(mockServiceFindLastVersionByModelId).toHaveBeenCalledOnce();
+
+    expect(response).toMatchObject({
+      kind: "IResponseSuccessJson",
+      value: {
+        is_email_enabled: true,
+        is_inbox_enabled: true,
+        is_webhook_enabled: true,
+        settings_version: aServicePreferenceVersion,
+      },
+    });
+  });
+
+  it("should correctly retrieve service from DB on cache get failure", async () => {
+    const anError = Error("anError");
+    mockGet.mockRejectedValueOnce(anError);
+
+    const profileModelMock = {
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(some(aRetrievedProfileInValidState)),
+      ),
+    };
+
+    const servicePreferenceModelMock = {
+      find: vi.fn((_) => TE.of(some(aRetrievedServicePreference))),
+    };
+
+    const getServicePreferencesHandler = GetServicePreferencesHandler(
+      profileModelMock as any,
+      serviceModelMock as any,
+      servicePreferenceModelMock as any,
+      {} as any,
+      mockRedisClientTask,
+    );
+
+    const response = await getServicePreferencesHandler(
+      aFiscalCode,
+      aServiceId,
+    );
+
+    expect(mockGet).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+    );
+    expect(mockSetEx).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+      60,
+      JSON.stringify(aRetrievedService),
+    );
+    expect(mockGet.mock.settledResults).toEqual([
+      {
+        type: "rejected",
+        value: anError,
+      },
+    ]);
+    expect(mockServiceFindLastVersionByModelId).toHaveBeenCalledOnce();
+
+    expect(response).toMatchObject({
+      kind: "IResponseSuccessJson",
+      value: {
+        is_email_enabled: true,
+        is_inbox_enabled: true,
+        is_webhook_enabled: true,
+        settings_version: aServicePreferenceVersion,
+      },
+    });
+  });
+
+  it("should correctly retrieve service from DB on cache unavailable", async () => {
+    const anError = Error("anError");
+
+    const profileModelMock = {
+      findLastVersionByModelId: vi.fn(() =>
+        TE.of(some(aRetrievedProfileInValidState)),
+      ),
+    };
+
+    const servicePreferenceModelMock = {
+      find: vi.fn((_) => TE.of(some(aRetrievedServicePreference))),
+    };
+
+    const getServicePreferencesHandler = GetServicePreferencesHandler(
+      profileModelMock as any,
+      serviceModelMock as any,
+      servicePreferenceModelMock as any,
+      {} as any,
+      TE.left(anError),
+    );
+
+    const response = await getServicePreferencesHandler(
+      aFiscalCode,
+      aServiceId,
+    );
+
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(mockSetEx).not.toHaveBeenCalled();
+    expect(mockServiceFindLastVersionByModelId).toHaveBeenCalledOnce();
+
+    expect(response).toMatchObject({
+      kind: "IResponseSuccessJson",
+      value: {
+        is_email_enabled: true,
+        is_inbox_enabled: true,
+        is_webhook_enabled: true,
+        settings_version: aServicePreferenceVersion,
+      },
+    });
   });
 });

@@ -85,7 +85,7 @@ const retrieveServiceFromRedis = (
     TE.chain(
       flow(
         J.parse,
-        E.mapLeft(() => Error("Error while parsing JSON")),
+        E.mapLeft((err) => Error(`Error while parsing JSON: ${err}`)),
         E.chain(
           flow(
             Service.decode,
