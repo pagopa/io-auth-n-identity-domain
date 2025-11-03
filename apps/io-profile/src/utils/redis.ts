@@ -20,6 +20,8 @@ export const createSimpleRedisClient = async (
     Record<string, never>,
     Record<string, never>
   >({
+    // this will let all command in queue reject
+    disableOfflineQueue: true,
     legacyMode: false,
     password,
     socket: {
