@@ -13,11 +13,13 @@ import {
   readableReportSimplified,
 } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { withDefault } from "@pagopa/ts-commons/lib/types";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 import * as E from "fp-ts/lib/Either";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
+import { withFallback } from "io-ts-types";
 
 // exclude a specific value from a type
 // as strict equality is performed, allowed input types are constrained to be values not references (object, arrays, etc)
@@ -59,6 +61,18 @@ export type ValidationEmailConfigurationOverride = t.TypeOf<
   typeof ValidationEmailConfigurationOverride
 >;
 
+const RedisClientConfig = t.intersection([
+  t.type({
+    REDIS_TLS_ENABLED: withDefault(t.boolean, true),
+    REDIS_URL: NonEmptyString,
+  }),
+  t.partial({
+    REDIS_PASSWORD: NonEmptyString,
+    REDIS_PORT: NonEmptyString,
+  }),
+]);
+export type RedisClientConfig = t.TypeOf<typeof RedisClientConfig>;
+
 // global app configuration
 export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
@@ -98,11 +112,14 @@ export const IConfig = t.intersection([
     PROFILE_EMAIL_STORAGE_CONNECTION_STRING: NonEmptyString,
     PROFILE_EMAIL_STORAGE_TABLE_NAME: NonEmptyString,
 
+    SERVICE_CACHE_TTL_SECONDS: withFallback(NumberFromString, 60),
+
     isProduction: t.boolean,
   }),
   MailerConfig,
   ReqServiceIdConfig,
   ValidationEmailConfigurationOverride,
+  RedisClientConfig,
 ]);
 
 // Default value is expressed as a Unix timestamp so it can be safely compared with Cosmos timestamp
@@ -168,6 +185,9 @@ const errorOrConfig: t.Validation<IConfig> = IConfig.decode({
     ),
     E.toUnion,
   ),
+  REDIS_TLS_ENABLED:
+    process.env.REDIS_TLS_ENABLED &&
+    process.env.REDIS_TLS_ENABLED.toLowerCase() === "true",
   isProduction: process.env.NODE_ENV === "production",
 });
 
