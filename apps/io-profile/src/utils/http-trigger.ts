@@ -41,6 +41,7 @@ export type WebServerDependencies = {
   migrateServicePreferencesQueueClient: QueueClient;
   subscriptionFeedTableService: TableService;
   redisClientTask: TE.TaskEither<Error, RedisClientType>;
+  serviceCacheTTL: number;
 };
 
 export const createWebServer = ({
@@ -55,6 +56,7 @@ export const createWebServer = ({
   migrateServicePreferencesQueueClient,
   subscriptionFeedTableService,
   redisClientTask,
+  serviceCacheTTL,
 }: WebServerDependencies) => {
   // configure app
   const app = express();
@@ -109,6 +111,7 @@ export const createWebServer = ({
       servicePreferencesModel,
       activationModel,
       redisClientTask,
+      serviceCacheTTL,
     ),
   );
 
@@ -138,6 +141,7 @@ export const createWebServer = ({
       subscriptionFeedTableService,
       config.SUBSCRIPTIONS_FEED_TABLE,
       redisClientTask,
+      serviceCacheTTL,
     ),
   );
 

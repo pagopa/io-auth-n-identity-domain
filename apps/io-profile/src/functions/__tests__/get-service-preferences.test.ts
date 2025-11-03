@@ -28,6 +28,7 @@ import {
 } from "../__mocks__/mocks.service_preference";
 import { GetServicePreferencesHandler } from "../get-service-preferences";
 import {
+  DEFAULT_REDIS_SERVICE_CACHE_TTL,
   mockGet,
   mockRedisClientTask,
   mockSetEx,
@@ -74,6 +75,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       {} as any,
       mockRedisClientTask,
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(
@@ -109,6 +111,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       {} as any,
       mockRedisClientTask,
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(
@@ -150,6 +153,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       {} as any,
       mockRedisClientTask,
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(
@@ -188,6 +192,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       {} as any,
       mockRedisClientTask,
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(
@@ -231,6 +236,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       {} as any,
       mockRedisClientTask,
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(
@@ -278,6 +284,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       {} as any,
       mockRedisClientTask,
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(
@@ -311,6 +318,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       {} as any,
       mockRedisClientTask,
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(
@@ -348,6 +356,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       {} as any,
       mockRedisClientTask,
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(
@@ -380,6 +389,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       {} as any,
       mockRedisClientTask,
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(
@@ -428,6 +438,7 @@ describe("GetServicePreferences", () => {
         servicePreferenceModelMock as any,
         mockActivation as any,
         mockRedisClientTask,
+        DEFAULT_REDIS_SERVICE_CACHE_TTL,
       );
 
       const response = await getServicePreferencesHandler(
@@ -470,6 +481,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       mockActivation as any,
       mockRedisClientTask,
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(
@@ -506,6 +518,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       {} as any,
       mockRedisClientTask,
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(
@@ -560,6 +573,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       {} as any,
       mockRedisClientTask,
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(
@@ -613,6 +627,7 @@ describe("GetServicePreferences", () => {
       servicePreferenceModelMock as any,
       {} as any,
       TE.left(anError),
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     );
 
     const response = await getServicePreferencesHandler(

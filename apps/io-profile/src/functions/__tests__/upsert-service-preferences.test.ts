@@ -33,6 +33,7 @@ import {
 import * as subscriptionFeedHandler from "../update-subscriptions-feed-activity";
 import { GetUpsertServicePreferencesHandler } from "../upsert-service-preferences";
 import {
+  DEFAULT_REDIS_SERVICE_CACHE_TTL,
   mockGet,
   mockRedisClientTask,
   mockSetEx,
@@ -114,6 +115,7 @@ const upsertServicePreferencesHandler = GetUpsertServicePreferencesHandler(
   {} as any,
   "SubFeedTableName" as NonEmptyString,
   mockRedisClientTask,
+  DEFAULT_REDIS_SERVICE_CACHE_TTL,
 );
 
 describe("UpsertServicePreferences", () => {
@@ -778,6 +780,7 @@ describe("UpsertServicePreferences", () => {
       "SubFeedTableName" as NonEmptyString,
       // cache unavailable
       TE.left(anError),
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
     )(makeContext(), aFiscalCode, aServiceId, aServicePreference);
 
     expect(response).toMatchObject({

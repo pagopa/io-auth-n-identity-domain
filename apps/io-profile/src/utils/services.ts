@@ -22,7 +22,6 @@ import { ServiceId } from "../generated/backend/ServiceId";
 
 const FN_DEFAULT_PREFIX = "FNPROFILE-";
 const SERVICE_KEY_PREFIX = `${FN_DEFAULT_PREFIX}SERVICE-`;
-const DEFAULT_SERVICE_TTL_SECONDS = 60;
 
 /**
  * Return a task containing either an error or the required Service
@@ -31,6 +30,7 @@ export const getServiceOrErrorResponse =
   (
     serviceModel: ServiceModel,
     redisClientTask: TE.TaskEither<Error, RedisClientType>,
+    serviceCacheTTL: number,
   ) =>
   (
     serviceId: ServiceId,
@@ -60,7 +60,12 @@ export const getServiceOrErrorResponse =
               pipe(
                 redisClientTask,
                 TE.chain((redisClient) =>
-                  saveServiceToRedis(redisClient, serviceId, service),
+                  saveServiceToRedis(
+                    redisClient,
+                    serviceCacheTTL,
+                    serviceId,
+                    service,
+                  ),
                 ),
                 // discard every error
                 TE.orElseW(() => TE.right(service)),
@@ -101,6 +106,7 @@ const retrieveServiceFromRedis = (
 
 const saveServiceToRedis = (
   redisClient: RedisClientType,
+  ttl: number,
   serviceId: ServiceId,
   service: Service,
 ): TE.TaskEither<Error, string> =>
@@ -111,11 +117,7 @@ const saveServiceToRedis = (
       pipe(
         TE.tryCatch(
           () =>
-            redisClient.setEx(
-              `${SERVICE_KEY_PREFIX}${serviceId}`,
-              DEFAULT_SERVICE_TTL_SECONDS,
-              value,
-            ),
+            redisClient.setEx(`${SERVICE_KEY_PREFIX}${serviceId}`, ttl, value),
           E.toError,
         ),
       ),

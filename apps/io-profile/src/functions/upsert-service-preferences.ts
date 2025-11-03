@@ -208,6 +208,7 @@ export const GetUpsertServicePreferencesHandler = (
   tableService: TableService,
   subscriptionFeedTableName: NonEmptyString,
   redisClientTask: TE.TaskEither<Error, RedisClientType>,
+  serviceCacheTTL: number,
   logPrefix: string = "GetUpsertServicePreferencesHandler",
   // eslint-disable-next-line max-params, arrow-body-style
 ): IUpsertServicePreferencesHandler => {
@@ -219,6 +220,7 @@ export const GetUpsertServicePreferencesHandler = (
         service: getServiceOrErrorResponse(
           serviceModels,
           redisClientTask,
+          serviceCacheTTL,
         )(serviceId),
       }),
       TE.filterOrElseW(
@@ -392,6 +394,7 @@ export function UpsertServicePreferences(
   tableService: TableService,
   subscriptionFeedTableName: NonEmptyString,
   redisClientTask: TE.TaskEither<Error, RedisClientType>,
+  serviceCacheTTL: number,
 ): express.RequestHandler {
   const handler = GetUpsertServicePreferencesHandler(
     telemetryClient,
@@ -402,6 +405,7 @@ export function UpsertServicePreferences(
     tableService,
     subscriptionFeedTableName,
     redisClientTask,
+    serviceCacheTTL,
   );
 
   const middlewaresWrap = withRequestMiddlewares(

@@ -2,6 +2,8 @@ import { vi } from "vitest";
 import * as redis from "redis";
 import * as TE from "fp-ts/TaskEither";
 
+export const DEFAULT_REDIS_SERVICE_CACHE_TTL = 60;
+
 export const mockSetEx = vi.fn().mockResolvedValue("OK");
 export const mockPing = vi.fn().mockResolvedValue("PONG");
 // customize this inside your test

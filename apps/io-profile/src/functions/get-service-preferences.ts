@@ -168,6 +168,7 @@ export const GetServicePreferencesHandler = (
   servicePreferencesModel: ServicesPreferencesModel,
   activationModel: ActivationModel,
   redisClientTask: TE.TaskEither<Error, RedisClientType>,
+  serviceCacheTTL: number,
   // eslint-disable-next-line arrow-body-style
 ): IGetServicePreferencesHandler => {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -178,6 +179,7 @@ export const GetServicePreferencesHandler = (
         service: getServiceOrErrorResponse(
           serviceModel,
           redisClientTask,
+          serviceCacheTTL,
         )(serviceId),
       }),
       TE.chainW(
@@ -233,6 +235,7 @@ export function GetServicePreferences(
   servicePreferencesModel: ServicesPreferencesModel,
   activationModel: ActivationModel,
   redisClientTask: TE.TaskEither<Error, RedisClientType>,
+  serviceCacheTTL: number,
 ): express.RequestHandler {
   const handler = GetServicePreferencesHandler(
     profileModel,
@@ -240,6 +243,7 @@ export function GetServicePreferences(
     servicePreferencesModel,
     activationModel,
     redisClientTask,
+    serviceCacheTTL,
   );
 
   const middlewaresWrap = withRequestMiddlewares(

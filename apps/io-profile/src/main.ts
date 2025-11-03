@@ -153,6 +153,7 @@ const httpTriggerDependencies: WebServerDependencies = {
   migrateServicePreferencesQueueClient,
   subscriptionFeedTableService: tableService,
   redisClientTask,
+  serviceCacheTTL: config.SERVICE_CACHE_TTL_SECONDS,
 };
 
 export const httpTriggerEntrypoint = pipe(
