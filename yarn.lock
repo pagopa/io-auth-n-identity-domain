@@ -10939,7 +10939,7 @@ __metadata:
     monocle-ts: "npm:^2.3.13"
     newtype-ts: "npm:^0.3.5"
     node-fetch: "npm:^2.6.9"
-    nodemailer: "npm:^6.10.0"
+    nodemailer: "npm:^7.0.0"
     prettier: "npm:^1.18.2"
     shx: "npm:^0.3.2"
     typescript: "npm:^5.4.5"
@@ -10987,7 +10987,7 @@ __metadata:
     monocle-ts: "npm:^2.3.13"
     newtype-ts: "npm:^0.3.5"
     node-fetch: "npm:^2.6.1"
-    nodemailer: "npm:^6.4.16"
+    nodemailer: "npm:^7.0.0"
     prettier: "npm:^3.2.5"
     redis: "npm:4.7.1"
     shx: "npm:^0.3.2"
@@ -13438,13 +13438,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:^6.10.0, nodemailer@npm:^6.4.16":
-  version: 6.10.0
-  resolution: "nodemailer@npm:6.10.0"
-  checksum: 10c0/39fd35d65b021b94c968eeac82a66dd843021b6ba53c659d01b1dd4cda73b6a2f96e20facfe500efa4b8d3f1cb23df10245c6c86b2bde5f806691ed17ce87826
-  languageName: node
-  linkType: hard
-
 "nodemailer@npm:^6.6.1":
   version: 6.9.16
   resolution: "nodemailer@npm:6.9.16"
@@ -13456,6 +13449,13 @@ __metadata:
   version: 6.9.13
   resolution: "nodemailer@npm:6.9.13"
   checksum: 10c0/4d6899f45abb7760a7d3b4d1046de7e08e80a471b84d1f09065a25941ded482e7f9877be248550e681e0270383cb9299f6caded507cbc0e917341bb137cc94a4
+  languageName: node
+  linkType: hard
+
+"nodemailer@npm:^7.0.0":
+  version: 7.0.10
+  resolution: "nodemailer@npm:7.0.10"
+  checksum: 10c0/9bb39bde904397879a6394e5202146167cabc3bd4089c1b0255ce16875e721d1cf132afde25a570fc4cf38f159ba6b6b5411d3b9371775543d38343fbd505101
   languageName: node
   linkType: hard
 
