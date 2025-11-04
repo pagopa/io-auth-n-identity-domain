@@ -66,12 +66,17 @@ locals {
       PROFILE_EMAIL_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
       PROFILE_EMAIL_STORAGE_TABLE_NAME        = local.profile_emails_table_name
 
-      MAILUP_USERNAME = data.azurerm_key_vault_secret.common_MAILUP_USERNAME.value
-      MAILUP_SECRET   = data.azurerm_key_vault_secret.common_MAILUP_SECRET.value
-      PUBLIC_API_KEY  = trimspace(data.azurerm_key_vault_secret.fn_app_PUBLIC_API_KEY.value)
+      // Switch login email to io-com mailup account
+      MAILUP_USERNAME = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.io_com_mailup_username.versionless_id})"
+      MAILUP_SECRET   = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.io_com_mailup_secret.versionless_id})"
 
+      // Leave validation email on io-auth mailup account
+      OVERRIDE_MAILUP_USERNAME_VALIDATION_EMAIL = data.azurerm_key_vault_secret.common_MAILUP_USERNAME.value
+      OVERRIDE_MAILUP_SECRET_VALIDATION_EMAIL   = data.azurerm_key_vault_secret.common_MAILUP_SECRET.value
 
-      // --------------------------
+      PUBLIC_API_KEY = trimspace(data.azurerm_key_vault_secret.fn_app_PUBLIC_API_KEY.value)
+
+      // ------------------\--------
       //  Redis Config
       // --------------------------
       REDIS_URL      = module.redis_common_itn.hostname
