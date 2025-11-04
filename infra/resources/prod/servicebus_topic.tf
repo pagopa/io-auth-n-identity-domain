@@ -126,6 +126,13 @@ module "pub_session_manager_internal" {
       role                = "writer"
       description         = "This role allows managing the given topic"
       topic_names         = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
+    },
+    {
+      namespace_name      = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
+      resource_group_name = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
+      role                = "reader"
+      description         = "This role allows receiving messages from the subscription"
+      topic_names         = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
     }
   ]
 }
@@ -142,6 +149,13 @@ module "pub_session_manager_internal_staging" {
       resource_group_name = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
       role                = "writer"
       description         = "This role allows managing the given topic"
+      topic_names         = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
+    },
+    {
+      namespace_name      = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
+      resource_group_name = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
+      role                = "reader"
+      description         = "This role allows receiving messages from the subscription"
       topic_names         = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
     }
   ]
