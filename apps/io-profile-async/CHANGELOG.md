@@ -1,5 +1,14 @@
 # io-profile-async
 
+## 1.16.2
+
+### Patch Changes
+
+- 4059950: Update imports after @pagopa/io-auth-n-identity-commons refactoring
+- Updated dependencies [01c4221]
+- Updated dependencies [4059950]
+  - @pagopa/io-auth-n-identity-commons@0.2.0
+
 ## 1.16.1
 
 ### Patch Changes

@@ -2,7 +2,11 @@ import { ActivationStatusEnum } from "@pagopa/io-functions-commons/dist/generate
 import { ServiceId } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceId";
 import { ServicePreference } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicePreference";
 import { Activation } from "@pagopa/io-functions-commons/dist/src/models/activation";
-import { RetrievedService } from "@pagopa/io-functions-commons/dist/src/models/service";
+import {
+  RetrievedService,
+  toAuthorizedCIDRs,
+  toAuthorizedRecipients,
+} from "@pagopa/io-functions-commons/dist/src/models/service";
 import {
   AccessReadMessageStatusEnum,
   makeServicesPreferencesDocumentId,
@@ -10,6 +14,12 @@ import {
   RetrievedServicePreference,
 } from "@pagopa/io-functions-commons/dist/src/models/service_preference";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
+import {
+  FiscalCode,
+  NonEmptyString,
+  OrganizationFiscalCode,
+} from "@pagopa/ts-commons/lib/strings";
+import { CIDR } from "@pagopa/io-functions-commons/dist/generated/definitions/CIDR";
 import { aCosmosResourceMetadata, aFiscalCode } from "./mocks";
 
 export const aServiceId = "aServiceId" as ServiceId;
@@ -48,9 +58,18 @@ export const aRetrievedService: RetrievedService = {
   ...aCosmosResourceMetadata,
   serviceId: aServiceId,
   isVisible: true,
-  serviceName: "a Service",
-  organizationName: "a Organization",
-} as any as RetrievedService;
+  id: aServiceId,
+  serviceName: "a Service" as NonEmptyString,
+  organizationName: "a Organization" as NonEmptyString,
+  departmentName: "a name" as NonEmptyString,
+  authorizedCIDRs: toAuthorizedCIDRs(["0.0.0.0"]),
+  authorizedRecipients: toAuthorizedRecipients(["AAAAAA00A00A000A"]),
+  organizationFiscalCode: "00000000000" as OrganizationFiscalCode,
+  maxAllowedPaymentAmount: 9999999999,
+  requireSecureChannels: false,
+  version: 0 as NonNegativeInteger,
+  kind: "IRetrievedService",
+};
 
 export const anActiveActivation: Activation = {
   ...aCosmosResourceMetadata,

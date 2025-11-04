@@ -54,6 +54,7 @@ import { TableService } from "azure-storage";
 import { ActivationModel } from "@pagopa/io-functions-commons/dist/src/models/activation";
 import { SpecialServiceCategoryEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/SpecialServiceCategory";
 import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
+import { RedisClientType } from "redis";
 import { getServiceCategoryOrStandard } from "../utils/services";
 import {
   getServicePreferenceSettingsVersion,
@@ -206,6 +207,8 @@ export const GetUpsertServicePreferencesHandler = (
   activationModel: ActivationModel,
   tableService: TableService,
   subscriptionFeedTableName: NonEmptyString,
+  redisClientTask: TE.TaskEither<Error, RedisClientType>,
+  serviceCacheTTL: number,
   logPrefix: string = "GetUpsertServicePreferencesHandler",
   // eslint-disable-next-line max-params, arrow-body-style
 ): IUpsertServicePreferencesHandler => {
@@ -214,7 +217,11 @@ export const GetUpsertServicePreferencesHandler = (
     pipe(
       sequenceS(TE.ApplicativeSeq)({
         profile: getProfileOrErrorResponse(profileModels)(fiscalCode),
-        service: getServiceOrErrorResponse(serviceModels)(serviceId),
+        service: getServiceOrErrorResponse(
+          serviceModels,
+          redisClientTask,
+          serviceCacheTTL,
+        )(serviceId),
       }),
       TE.filterOrElseW(
         ({ profile }) => nonLegacyServicePreferences(profile),
@@ -386,6 +393,8 @@ export function UpsertServicePreferences(
   activationModel: ActivationModel,
   tableService: TableService,
   subscriptionFeedTableName: NonEmptyString,
+  redisClientTask: TE.TaskEither<Error, RedisClientType>,
+  serviceCacheTTL: number,
 ): express.RequestHandler {
   const handler = GetUpsertServicePreferencesHandler(
     telemetryClient,
@@ -395,6 +404,8 @@ export function UpsertServicePreferences(
     activationModel,
     tableService,
     subscriptionFeedTableName,
+    redisClientTask,
+    serviceCacheTTL,
   );
 
   const middlewaresWrap = withRequestMiddlewares(

@@ -1,5 +1,15 @@
 # @pagopa/io-auth-n-identity-commons
 
+## 0.2.0
+
+### Minor Changes
+
+- 4059950: Added RejectedLoginEvent, session events serviceBus io-ts types refactoring
+
+### Patch Changes
+
+- 01c4221: Minor refinement on RejectedLoginEvent io-ts type
+
 ## 0.1.0
 
 ### Minor Changes

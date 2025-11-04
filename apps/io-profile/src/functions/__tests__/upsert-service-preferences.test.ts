@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable max-lines-per-function */
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -31,6 +32,12 @@ import {
 } from "../__mocks__/mocks.service_preference";
 import * as subscriptionFeedHandler from "../update-subscriptions-feed-activity";
 import { GetUpsertServicePreferencesHandler } from "../upsert-service-preferences";
+import {
+  DEFAULT_REDIS_SERVICE_CACHE_TTL,
+  mockGet,
+  mockRedisClientTask,
+  mockSetEx,
+} from "../__mocks__/redis.mock";
 
 const makeContext = () => ({ ...context, bindings: {} }) as unknown as Context;
 
@@ -107,9 +114,10 @@ const upsertServicePreferencesHandler = GetUpsertServicePreferencesHandler(
   mockActivationModel as any,
   {} as any,
   "SubFeedTableName" as NonEmptyString,
+  mockRedisClientTask,
+  DEFAULT_REDIS_SERVICE_CACHE_TTL,
 );
 
-// eslint-disable-next-line sonar/sonar-max-lines-per-function
 describe("UpsertServicePreferences", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -345,6 +353,60 @@ describe("UpsertServicePreferences", () => {
     },
   );
 
+  it("should return Success with service cache HIT", async () => {
+    mockGet.mockResolvedValueOnce(JSON.stringify(aRetrievedService));
+
+    const response = await upsertServicePreferencesHandler(
+      makeContext(),
+      aFiscalCode,
+      aServiceId,
+      aServicePreference,
+    );
+
+    expect(response).toMatchObject({
+      kind: "IResponseSuccessJson",
+      value: aServicePreference,
+    });
+
+    expect(mockSetEx).not.toHaveBeenCalled();
+    expect(mockGet).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+    );
+    expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
+    expect(serviceModelMock.findLastVersionByModelId).not.toHaveBeenCalled();
+    expect(servicePreferenceModelMock.upsert).toHaveBeenCalled();
+    expect(servicePreferenceModelMock.find).toHaveBeenCalled();
+  });
+
+  it("should return Success with service cache MISS", async () => {
+    mockGet.mockResolvedValueOnce(null);
+
+    const response = await upsertServicePreferencesHandler(
+      makeContext(),
+      aFiscalCode,
+      aServiceId,
+      aServicePreference,
+    );
+
+    expect(response).toMatchObject({
+      kind: "IResponseSuccessJson",
+      value: aServicePreference,
+    });
+
+    expect(mockGet).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+    );
+    expect(mockSetEx).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+      60,
+      JSON.stringify(aRetrievedService),
+    );
+    expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
+    expect(serviceModelMock.findLastVersionByModelId).toHaveBeenCalled();
+    expect(servicePreferenceModelMock.upsert).toHaveBeenCalled();
+    expect(servicePreferenceModelMock.find).toHaveBeenCalled();
+  });
+
   // ---------------------------------------------
   // Errors
   // ---------------------------------------------
@@ -382,7 +444,7 @@ describe("UpsertServicePreferences", () => {
     });
 
     expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
-    expect(serviceModelMock.findLastVersionByModelId).toHaveBeenCalled();
+    expect(serviceModelMock.findLastVersionByModelId).not.toHaveBeenCalled();
     expect(servicePreferenceModelMock.upsert).not.toHaveBeenCalled();
   });
 
@@ -631,4 +693,106 @@ describe("UpsertServicePreferences", () => {
       expect(ctx.bindings.apievents).toBe(undefined);
     },
   );
+
+  it("should return Success with service cache MISS and SETEX failure", async () => {
+    const anError = Error("anError");
+    mockGet.mockResolvedValueOnce(null);
+    mockSetEx.mockRejectedValueOnce(anError);
+
+    const response = await upsertServicePreferencesHandler(
+      makeContext(),
+      aFiscalCode,
+      aServiceId,
+      aServicePreference,
+    );
+
+    expect(response).toMatchObject({
+      kind: "IResponseSuccessJson",
+      value: aServicePreference,
+    });
+
+    expect(mockGet).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+    );
+    expect(mockSetEx).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+      60,
+      JSON.stringify(aRetrievedService),
+    );
+    expect(mockSetEx.mock.settledResults).toEqual([
+      {
+        type: "rejected",
+        value: anError,
+      },
+    ]);
+    expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
+    expect(serviceModelMock.findLastVersionByModelId).toHaveBeenCalled();
+    expect(servicePreferenceModelMock.upsert).toHaveBeenCalled();
+    expect(servicePreferenceModelMock.find).toHaveBeenCalled();
+  });
+
+  it("should return Success with service cache GET failure", async () => {
+    const anError = Error("anError");
+    mockGet.mockRejectedValueOnce(anError);
+
+    const response = await upsertServicePreferencesHandler(
+      makeContext(),
+      aFiscalCode,
+      aServiceId,
+      aServicePreference,
+    );
+
+    expect(response).toMatchObject({
+      kind: "IResponseSuccessJson",
+      value: aServicePreference,
+    });
+
+    expect(mockGet).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+    );
+    expect(mockSetEx).toHaveBeenCalledExactlyOnceWith(
+      `FNPROFILE-SERVICE-${aServiceId}`,
+      60,
+      JSON.stringify(aRetrievedService),
+    );
+    expect(mockGet.mock.settledResults).toEqual([
+      {
+        type: "rejected",
+        value: anError,
+      },
+    ]);
+    expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
+    expect(serviceModelMock.findLastVersionByModelId).toHaveBeenCalled();
+    expect(servicePreferenceModelMock.upsert).toHaveBeenCalled();
+    expect(servicePreferenceModelMock.find).toHaveBeenCalled();
+  });
+
+  it("should return Success with service cache unavailable", async () => {
+    const anError = Error("anError");
+
+    const response = await GetUpsertServicePreferencesHandler(
+      telemetryClientMock as any,
+      profileModelMock as any,
+      serviceModelMock as any,
+      servicePreferenceModelMock as any,
+      mockActivationModel as any,
+      {} as any,
+      "SubFeedTableName" as NonEmptyString,
+      // cache unavailable
+      TE.left(anError),
+      DEFAULT_REDIS_SERVICE_CACHE_TTL,
+    )(makeContext(), aFiscalCode, aServiceId, aServicePreference);
+
+    expect(response).toMatchObject({
+      kind: "IResponseSuccessJson",
+      value: aServicePreference,
+    });
+
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(mockSetEx).not.toHaveBeenCalled();
+    expect(profileModelMock.findLastVersionByModelId).toHaveBeenCalled();
+    expect(serviceModelMock.findLastVersionByModelId).toHaveBeenCalled();
+    expect(servicePreferenceModelMock.upsert).toHaveBeenCalled();
+    expect(servicePreferenceModelMock.find).toHaveBeenCalled();
+  });
 });

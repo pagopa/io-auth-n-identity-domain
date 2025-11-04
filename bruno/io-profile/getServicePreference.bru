@@ -1,0 +1,24 @@
+meta {
+  name: getServicePreference
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{IO_PROFILE_BASE_URL}}/profiles/:fiscalCode/services/:serviceId/preferences
+  body: none
+  auth: inherit
+}
+
+params:path {
+  serviceId: {{SERVICE_ID}}
+  fiscalCode: {{FISCAL_CODE}}
+}
+
+script:pre-request {
+  const ioProfileApiKey = bru.getEnvVar("IO_PROFILE_API_KEY")
+  if (ioProfileApiKey != null ) {
+    req.setHeader("x-functions-key", ioProfileApiKey)
+  }
+  
+}
