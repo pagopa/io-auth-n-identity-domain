@@ -47,7 +47,7 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { AssertionFileName } from "../../generated/definitions/internal/AssertionFileName";
 import { CosmosClient } from "@azure/cosmos";
 import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
-import { streamToText } from "../../utils/azure_storage";
+import { streamToText } from "../../utils/blob_utils";
 import { X } from "vitest/dist/chunks/reporters.d.BFLkQcL6.js";
 import { toInternalError, toNotFoundError } from "../../utils/errors";
 
