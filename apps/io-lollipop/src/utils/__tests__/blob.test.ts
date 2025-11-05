@@ -1,12 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as E from "fp-ts/Either";
-import * as TE from "fp-ts/TaskEither";
 import { Readable } from "stream";
 import {
-    streamToText,
     blobExists,
     getBlobAsText,
-    upsertBlobFromText
+    streamToText,
+    uploadBlobFromText
 } from "../blob";
 import { toInternalError, toNotFoundError } from "../errors";
 
@@ -131,7 +130,7 @@ describe("blobUtils", () => {
         it("should upload text successfully", async () => {
             mockBlockBlobClient.uploadData.mockResolvedValue({});
 
-            const result = await upsertBlobFromText(
+            const result = await uploadBlobFromText(
                 mockBlobServiceClient,
                 "container",
                 "blob",
@@ -145,7 +144,7 @@ describe("blobUtils", () => {
         it("should map upload errors to InternalError", async () => {
             mockBlockBlobClient.uploadData.mockRejectedValue(new Error("upload failed"));
 
-            const result = await upsertBlobFromText(
+            const result = await uploadBlobFromText(
                 mockBlobServiceClient,
                 "container",
                 "blob",

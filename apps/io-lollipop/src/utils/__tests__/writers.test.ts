@@ -6,7 +6,6 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 
-import * as fn_commons from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 import { AssertionTypeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/lollipop/AssertionType";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
@@ -30,15 +29,18 @@ import {
   toEncodedJwk
 } from "../../__mocks__/lollipopPubKey.mock";
 
-import {
-  blobServiceMock,
-  doesBlobExistMock
-} from "../../__mocks__/blobService.mock";
+import * as blobUtils from "../blob";
 import { AssertionFileName } from "../../generated/definitions/internal/AssertionFileName";
+import { blobServiceMock } from "../../__mocks__/blobService.mock";
+import { toInternalError } from "../errors";
 
 // --------------------------
 // Mocks
 // --------------------------
+vi.mock("../blob", async () => ({
+  blobExists: vi.fn(),
+  uploadBlobFromText: vi.fn()
+}));
 
 const findLastVersionByModelIdMock = vi
   .fn()
@@ -54,11 +56,6 @@ const lollipopPubKeysModelMock = ({
   findLastVersionByModelId: findLastVersionByModelIdMock,
   upsert: upsertMock
 } as unknown) as LolliPOPKeysModel;
-
-const upsertBlobFromTextMock = vi.spyOn(fn_commons, "upsertBlobFromText");
-upsertBlobFromTextMock.mockImplementation(async () =>
-  E.right(O.fromNullable({ name: "blob" } as BlobService.BlobResult))
-);
 
 // Variables
 
@@ -113,118 +110,66 @@ describe("PopDocumentWriter", () => {
 });
 
 describe("AssertionWriter", () => {
-  beforeEach(() => vi.clearAllMocks());
-
+  const mockBlobServiceClient = blobServiceMock;
   const containerName = "container-name" as NonEmptyString;
+  const assertionFileName = "assertion1.txt" as AssertionFileName;
+  const assertion = "some assertion text" as NonEmptyString;
 
-  it("should return true if assertion has beed stored in blob storage", async () => {
-    const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
+  const writer = getAssertionWriter(mockBlobServiceClient, containerName);
 
-    const result = await assertionWriter(
-      aRetrievedValidLollipopPubKeySha256.assertionFileName,
-      "an Assertion"
-    )();
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+
+  it("should write the assertion when the blob does not exist", async () => {
+    vi.mocked(blobUtils.blobExists).mockReturnValue(TE.right(false));
+    vi.mocked(blobUtils.uploadBlobFromText).mockReturnValue(TE.right(undefined));
+
+    const result = await writer(assertionFileName, assertion)();
+
     expect(result).toEqual(E.right(true));
-
-    expect(doesBlobExistMock).toHaveBeenCalled();
-    expect(upsertBlobFromTextMock).toHaveBeenCalledWith(
-      blobServiceMock,
+    expect(blobUtils.blobExists).toHaveBeenCalledWith(
+      mockBlobServiceClient,
       containerName,
-      aRetrievedValidLollipopPubKeySha256.assertionFileName,
-      "an Assertion"
+      assertionFileName
+    );
+    expect(blobUtils.uploadBlobFromText).toHaveBeenCalledWith(
+      mockBlobServiceClient,
+      containerName,
+      assertionFileName,
+      assertion
     );
   });
 
-  it("should return InternalError if an error occurred storing the assertion", async () => {
-    upsertBlobFromTextMock.mockImplementationOnce(() =>
-      Promise.reject(Error("an Error"))
-    );
-    const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
+  it("should fail if the blob already exists", async () => {
+    vi.mocked(blobUtils.blobExists).mockReturnValue(TE.right(true));
 
-    const result = await assertionWriter(
-      aRetrievedValidLollipopPubKeySha256.assertionFileName,
-      "an Assertion"
-    )();
-    expect(result).toEqual(
-      E.left({
-        kind: "Internal",
-        detail: "Error saving assertion file on blob storage",
-        message: "an Error"
-      })
-    );
+    const result = await writer(assertionFileName, assertion)();
+
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(E.left(toInternalError("Assertion already exists")));
+
+    expect(blobUtils.uploadBlobFromText).not.toHaveBeenCalled();
   });
 
-  it("should return InternalError if upsertBlobFromText returns a Left object", async () => {
-    upsertBlobFromTextMock.mockImplementationOnce(async () =>
-      E.left(new Error("another Error"))
-    );
-    const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
+  it("it should fail if blobExists returns an InternalError", async () => {
+    const err = toInternalError("cannot check blob");
+    vi.mocked(blobUtils.blobExists).mockReturnValue(TE.left(err));
 
-    const result = await assertionWriter(
-      aRetrievedValidLollipopPubKeySha256.assertionFileName,
-      "an Assertion"
-    )();
-    expect(result).toEqual(
-      E.left({
-        kind: "Internal",
-        detail: "Error saving assertion file on blob storage",
-        message: "another Error"
-      })
-    );
+    const result = await writer(assertionFileName, assertion)();
+
+    expect(result).toEqual(E.left({kind: "Internal", message: err.message, detail: err.detail}));
+    expect(blobUtils.uploadBlobFromText).not.toHaveBeenCalled();
   });
 
-  it("should return InternalError if upsertBlobFromText returns O.none", async () => {
-    upsertBlobFromTextMock.mockImplementationOnce(async () => E.right(O.none));
-    const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
+  it("it should fail if upsertBlobFromText fails", async () => {
+    vi.mocked(blobUtils.blobExists).mockReturnValue(TE.right(false));
+    const err = toInternalError("upload failed");
+    vi.mocked(blobUtils.uploadBlobFromText).mockReturnValue(TE.left(err));
 
-    const result = await assertionWriter(
-      aRetrievedValidLollipopPubKeySha256.assertionFileName,
-      "an Assertion"
-    )();
-    expect(result).toEqual(
-      E.left({
-        kind: "Internal",
-        detail: "Can not upload blob to storage",
-        message: "Can not upload blob to storage"
-      })
-    );
-  });
+    const result = await writer(assertionFileName, assertion)();
 
-  it("should return InternalError if the blob already exists", async () => {
-    doesBlobExistMock.mockImplementationOnce((_, __, callback) =>
-      callback(undefined, { exists: true })
-    );
-    const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
-
-    const result = await assertionWriter(
-      aRetrievedValidLollipopPubKeySha256.assertionFileName,
-      "an Assertion"
-    )();
-    expect(result).toEqual(
-      E.left({
-        kind: "Internal",
-        detail: `Assertion already exists`,
-        message: `Assertion already exists`
-      })
-    );
-  });
-
-  it("should return InternalError if doesBlobExist rejects", async () => {
-    doesBlobExistMock.mockImplementationOnce((_, __, callback) =>
-      callback(new Error("an Error"), undefined)
-    );
-    const assertionWriter = getAssertionWriter(blobServiceMock, containerName);
-
-    const result = await assertionWriter(
-      aRetrievedValidLollipopPubKeySha256.assertionFileName,
-      "an Assertion"
-    )();
-    expect(result).toEqual(
-      E.left({
-        kind: "Internal",
-        detail: `Error checking assertion file existance`,
-        message: `an Error`
-      })
-    );
+    expect(result).toMatchObject(E.left({kind: "Internal", message: err.message, detail: err.detail}));
   });
 });

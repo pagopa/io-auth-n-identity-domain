@@ -9,7 +9,7 @@ import {
 } from "../model/lollipop_keys";
 import { AssertionFileName } from "../generated/definitions/internal/AssertionFileName";
 import { cosmosErrorsToString, InternalError, toInternalError } from "./errors";
-import { blobExists, upsertBlobFromText } from "./blob";
+import { blobExists, uploadBlobFromText } from "./blob";
 
 export type PopDocumentWriter = (
   item: NewLolliPopPubKeys
@@ -52,7 +52,7 @@ export const getAssertionWriter = (
       () => toInternalError("Assertion already exists")
     ),
     TE.chainW(() =>
-      upsertBlobFromText(
+      uploadBlobFromText(
         assertionBlobService,
         lollipopAssertionStorageContainerName,
         assertionFileName,

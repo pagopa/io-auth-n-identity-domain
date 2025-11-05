@@ -47,8 +47,7 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { AssertionFileName } from "../../generated/definitions/internal/AssertionFileName";
 import { CosmosClient } from "@azure/cosmos";
 import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
-import { streamToText } from "../../utils/blob_utils";
-import { X } from "vitest/dist/chunks/reporters.d.BFLkQcL6.js";
+import { streamToText } from "../../utils/blob";
 import { toInternalError, toNotFoundError } from "../../utils/errors";
 
 const MAX_ATTEMPT = 50;
@@ -263,14 +262,8 @@ describe("activatePubKey |> Success Results", () => {
       const blob = await blobClient.download();
       expect(blob).toBeTruthy();
 
-      const assertionBlob = await pipe(
-        getBlobAsTextWithError(
-          blobService,
-          LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
-        )(anAssertionFileNameForSha256)
-      )();
-
-      expect(assertionBlob).toEqual(
+      expect(blob.readableStreamBody).toBeDefined();
+      expect(streamToText(blob.readableStreamBody!)).toEqual(
         E.right(O.some(validActivatePubKeyPayload.assertion))
       );
 
