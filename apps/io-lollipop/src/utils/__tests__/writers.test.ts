@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorResponse } from "@azure/cosmos";
-import { BlobServiceClient } from "@azure/storage-blob";
 
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
@@ -39,7 +38,7 @@ import { toInternalError } from "../errors";
 // --------------------------
 vi.mock("../blob", async () => ({
   blobExists: vi.fn(),
-  uploadBlobFromText: vi.fn()
+  upsertBlobFromText: vi.fn()
 }));
 
 const findLastVersionByModelIdMock = vi
