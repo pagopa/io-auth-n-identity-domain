@@ -400,11 +400,11 @@ describe("getAssertion |> Validation Failures", () => {
         myFetch
       );
 
-      expect(response.status).toEqual(500); // TODO: it was 410, check if we can restore it
+      expect(response.status).toEqual(410);
       const body = await response.json();
-      // expect(body).toMatchObject({
-      //   detail: "Resource gone"
-      // });
+      expect(body).toMatchObject({
+        detail: "Resource gone"
+      });
     }
   );
 

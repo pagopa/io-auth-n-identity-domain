@@ -47,8 +47,7 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { AssertionFileName } from "../../generated/definitions/internal/AssertionFileName";
 import { CosmosClient } from "@azure/cosmos";
 import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
-import { streamToText } from "../../utils/blob";
-import { toInternalError, toNotFoundError } from "../../utils/errors";
+import { getBlobAsText } from "../../utils/blob";
 
 const MAX_ATTEMPT = 50;
 const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
@@ -257,14 +256,13 @@ describe("activatePubKey |> Success Results", () => {
 
       // Check values on storages
 
-      const containerClient = blobService.getContainerClient(LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME);
-      const blobClient = containerClient.getBlobClient(anAssertionFileNameForSha256);
-      const blob = await blobClient.download();
-      expect(blob).toBeTruthy();
-
-      expect(blob.readableStreamBody).toBeDefined();
-      expect(streamToText(blob.readableStreamBody!)).toEqual(
-        E.right(O.some(validActivatePubKeyPayload.assertion))
+      const blob = await getBlobAsText(
+        blobService,
+        LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME,
+        anAssertionFileNameForSha256
+      )();
+      expect(blob).toEqual(
+        E.right(validActivatePubKeyPayload.assertion)
       );
 
       // Check used key
@@ -272,6 +270,7 @@ describe("activatePubKey |> Success Results", () => {
         resultBody.assertion_ref
       ])();
 
+      console.log("### sha256Document:", sha256Document);
       expect(sha256Document).toEqual(
         E.right(
           O.some(
@@ -353,44 +352,14 @@ describe("activatePubKey |> Success Results", () => {
 
       // Check values on storages
 
-      const assertionBlob = await pipe(
-        TE.tryCatch(
-              () =>
-                blobService
-              .getContainerClient(LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME)
-              .getBlobClient(randomAssertionFileName)
-                  .download(),
-              E.toError
-        ),
-        TE.mapLeft(error =>
-          error.message === "The specified blob does not exist."
-            ? toNotFoundError()
-            : toInternalError(
-                `Unable to download assertion blob: ${error.message}`,
-                `Unable to download assertion blob`
-              )
-        ),
-        TE.chainW(r =>
-          pipe(
-            r.readableStreamBody,
-            O.fromNullable,
-            TE.fromOption(() => toInternalError("Assertion is empty")),
-            TE.map(streamToText),
-            TE.mapLeft(error =>
-              toInternalError(
-                `Unable to read assertion stream: ${error.message}`,
-                `Unable to read assertion stream`
-              )
-            )
-          )
-        ),
-        TE.filterOrElseW(NonEmptyString.is, () =>
-          toInternalError(`Assertion is empty`)
-        )
+      const assertionBlob = await getBlobAsText(
+        blobService,
+        LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME,
+        randomAssertionFileName
       )();
 
       expect(assertionBlob).toEqual(
-        E.right(O.some(validActivatePubKeyPayload.assertion))
+        E.right(validActivatePubKeyPayload.assertion)
       );
 
       // Check master document(the only one present)

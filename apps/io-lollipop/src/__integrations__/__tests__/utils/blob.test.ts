@@ -64,7 +64,7 @@ describe("blobUtils integration", () => {
         )();
 
         expect(E.isLeft(result)).toBe(true);
-        expect(result).toMatchObject(E.left({ kind: "NotFound", message: expect.stringContaining("The specified blob does not exist.") }));
+        expect(result).toMatchObject(E.left({ kind: "NotFound" }));
     });
 
     it("should convert a stream to text", async () => {

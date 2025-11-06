@@ -100,7 +100,7 @@ const downloadBlob = (
       )
     ),
     TE.mapLeft(error =>
-      error.message === "The specified blob does not exist."
+      error.message.startsWith("The specified blob does not exist.")
         ? toNotFoundError()
         : toInternalError(
             `Unable to download assertion blob: ${error.message}`,
