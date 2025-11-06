@@ -124,7 +124,7 @@ describe("AssertionWriter", () => {
 
   it("should write the assertion when the blob does not exist", async () => {
     vi.mocked(blobUtils.blobExists).mockReturnValue(TE.right(false));
-    vi.mocked(blobUtils.uploadBlobFromText).mockReturnValue(TE.right(undefined));
+    vi.mocked(blobUtils.upsertBlobFromText).mockReturnValue(TE.right(undefined));
 
     const result = await writer(assertionFileName, assertion)();
 
@@ -134,7 +134,7 @@ describe("AssertionWriter", () => {
       containerName,
       assertionFileName
     );
-    expect(blobUtils.uploadBlobFromText).toHaveBeenCalledWith(
+    expect(blobUtils.upsertBlobFromText).toHaveBeenCalledWith(
       mockBlobServiceClient,
       containerName,
       assertionFileName,
@@ -150,7 +150,7 @@ describe("AssertionWriter", () => {
     expect(E.isLeft(result)).toBe(true);
     expect(result).toMatchObject(E.left(toInternalError("Assertion already exists")));
 
-    expect(blobUtils.uploadBlobFromText).not.toHaveBeenCalled();
+    expect(blobUtils.upsertBlobFromText).not.toHaveBeenCalled();
   });
 
   it("it should fail if blobExists returns an InternalError", async () => {
@@ -160,13 +160,13 @@ describe("AssertionWriter", () => {
     const result = await writer(assertionFileName, assertion)();
 
     expect(result).toEqual(E.left({kind: "Internal", message: err.message, detail: err.detail}));
-    expect(blobUtils.uploadBlobFromText).not.toHaveBeenCalled();
+    expect(blobUtils.upsertBlobFromText).not.toHaveBeenCalled();
   });
 
   it("it should fail if upsertBlobFromText fails", async () => {
     vi.mocked(blobUtils.blobExists).mockReturnValue(TE.right(false));
     const err = toInternalError("upload failed");
-    vi.mocked(blobUtils.uploadBlobFromText).mockReturnValue(TE.left(err));
+    vi.mocked(blobUtils.upsertBlobFromText).mockReturnValue(TE.left(err));
 
     const result = await writer(assertionFileName, assertion)();
 

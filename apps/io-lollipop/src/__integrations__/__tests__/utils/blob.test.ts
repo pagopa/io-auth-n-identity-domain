@@ -7,7 +7,7 @@ import {
     blobExists,
     getBlobAsText,
     streamToText,
-    uploadBlobFromText
+    upsertBlobFromText
 } from "../../../utils/blob";
 import { QueueStorageConnection } from "../../env";
 
@@ -15,7 +15,7 @@ import { QueueStorageConnection } from "../../env";
 const blobServiceClient = BlobServiceClient.fromConnectionString(QueueStorageConnection);
 const containerName = "test-container";
 const blobName = "example.txt";
-const blobContent = "Hello from Azurite!";
+const blobContent = "Blob content for testing.";
 
 beforeAll(async () => {
     const container = blobServiceClient.getContainerClient(containerName);
@@ -25,7 +25,7 @@ beforeAll(async () => {
 describe("blobUtils integration", () => {
     it("should upload and read a blob successfully", async () => {
         // Upload blob
-        const uploadResult = await uploadBlobFromText(
+        const uploadResult = await upsertBlobFromText(
             blobServiceClient,
             containerName,
             blobName,
@@ -79,7 +79,7 @@ describe("blobUtils integration", () => {
     });
 
     it("should handle upload error when using invalid container", async () => {
-        const result = await uploadBlobFromText(
+        const result = await upsertBlobFromText(
             blobServiceClient,
             "nonexistent-container",
             "blob.txt",
@@ -89,5 +89,35 @@ describe("blobUtils integration", () => {
         expect(E.isLeft(result)).toBe(true);
         expect(result).toMatchObject(E.left({
             kind: "Internal", message: expect.stringContaining("The specified container does not exist.")}));
+    });
+
+    it("should replace the content when upserting on an already existing blob", async () => {
+        // First upload
+        const firstUpload = await upsertBlobFromText(
+            blobServiceClient,
+            containerName,
+            blobName,
+            "First content"
+        )();
+        expect(E.isRight(firstUpload)).toBe(true);
+
+        // Second upload to the same blob
+        const secondUpload = await upsertBlobFromText(
+            blobServiceClient,
+            containerName,
+            blobName,
+            "Second content"
+        )();
+        expect(E.isRight(secondUpload)).toBe(true);
+
+        // Download to verify content
+        const downloadResult = await getBlobAsText(
+            blobServiceClient,
+            containerName,
+            blobName
+        )();
+
+        expect(E.isRight(downloadResult)).toBe(true);
+        expect(downloadResult).toMatchObject(E.right("Second content"));
     });
 });

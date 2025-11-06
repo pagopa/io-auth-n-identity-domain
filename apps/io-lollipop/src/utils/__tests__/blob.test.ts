@@ -5,7 +5,7 @@ import {
     blobExists,
     getBlobAsText,
     streamToText,
-    uploadBlobFromText
+    upsertBlobFromText
 } from "../blob";
 import { toInternalError, toNotFoundError } from "../errors";
 
@@ -130,7 +130,7 @@ describe("blobUtils", () => {
         it("should upload text successfully", async () => {
             mockBlockBlobClient.uploadData.mockResolvedValue({});
 
-            const result = await uploadBlobFromText(
+            const result = await upsertBlobFromText(
                 mockBlobServiceClient,
                 "container",
                 "blob",
@@ -144,7 +144,7 @@ describe("blobUtils", () => {
         it("should map upload errors to InternalError", async () => {
             mockBlockBlobClient.uploadData.mockRejectedValue(new Error("upload failed"));
 
-            const result = await uploadBlobFromText(
+            const result = await upsertBlobFromText(
                 mockBlobServiceClient,
                 "container",
                 "blob",

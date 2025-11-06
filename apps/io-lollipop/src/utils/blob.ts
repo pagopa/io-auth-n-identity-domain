@@ -130,6 +130,7 @@ export const getBlobAsText = (
 
 /**
  * Uploads a text content as a blob to the specified Azure Blob Storage container.
+ * If the blob already exists, it will be overwritten.
  *
  * @param blobServiceClient - The Azure BlobServiceClient instance used to interact with Blob Storage.
  * @param containerName - The name of the container where the blob will be uploaded.
@@ -137,7 +138,7 @@ export const getBlobAsText = (
  * @param content - The string content to be uploaded as the blob.
  * @returns A TaskEither that resolves to void on success, or an InternalError on failure.
  */
-export const uploadBlobFromText = (
+export const upsertBlobFromText = (
   blobServiceClient: BlobServiceClient,
   containerName: string,
   blobName: string,
@@ -155,9 +156,8 @@ export const uploadBlobFromText = (
           }),
       E.toError
     ),
-    // If successful, map to void
-    // TODO: check if status code should be checked
-    TE.map(_response => undefined),
+    // When successful, map to void
+    TE.map(_response => void 0),
     // Map any error to InternalError
     TE.mapLeft((error: Error) =>
       toInternalError(
