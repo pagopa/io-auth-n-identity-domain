@@ -106,19 +106,17 @@ describe("AssertionReader", () => {
   });
 
   it("it should return the blob content when not empty", async () => {
-    vi.mocked(blobUtils.getBlobAsText).mockReturnValue(
-      vi.fn().mockReturnValue(TE.right(assertion))
-    );
-    
+    const innerMock = vi.fn().mockReturnValue(TE.right(assertion))
+    vi.mocked(blobUtils.getBlobAsText).mockReturnValue(innerMock);
 
     const result = await reader(assertionFileName)();
 
     expect(result).toEqual(E.right(assertion));
     expect(blobUtils.getBlobAsText).toHaveBeenCalledWith(
       mockBlobServiceClient,
-      containerName,
-      assertionFileName
+      containerName
     );
+    expect(innerMock).toHaveBeenCalledWith(assertionFileName);
   });
 
   it("it should fail if the blob content is empty", async () => {

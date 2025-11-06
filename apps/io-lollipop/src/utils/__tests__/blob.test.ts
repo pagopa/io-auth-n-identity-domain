@@ -8,6 +8,7 @@ import {
     upsertBlobFromText
 } from "../blob";
 import { toInternalError, toNotFoundError } from "../errors";
+import { pipe } from "fp-ts/lib/function";
 
 describe("blobUtils", () => {
     const mockBlobServiceClient = {
@@ -96,7 +97,9 @@ describe("blobUtils", () => {
                 readableStreamBody: mockStream
             });
 
-            const result = await getBlobAsText(mockBlobServiceClient, "container", "blob")();
+            const result = await pipe(
+                getBlobAsText(mockBlobServiceClient, "container")("blob")
+            )();
 
             expect(E.isRight(result)).toBe(true);
             expect(result).toMatchObject(E.right("blob content"));
@@ -106,8 +109,10 @@ describe("blobUtils", () => {
             const error = new Error("The specified blob does not exist.");
             mockBlobClient.download.mockRejectedValue(error);
 
-            const result = await getBlobAsText(mockBlobServiceClient, "container", "blob")();
-
+            const result = await pipe(
+                getBlobAsText(mockBlobServiceClient, "container")("blob")
+            )();
+            
             expect(E.isLeft(result)).toBe(true);
             expect(result).toMatchObject(E.left(toNotFoundError()));
         });
@@ -115,7 +120,9 @@ describe("blobUtils", () => {
         it("should handle null readableStreamBody (InternalError)", async () => {
             mockBlobClient.download.mockResolvedValue({ readableStreamBody: null });
 
-            const result = await getBlobAsText(mockBlobServiceClient, "container", "blob")();
+            const result = await pipe(
+                getBlobAsText(mockBlobServiceClient, "container")("blob")
+            )();
 
             expect(E.isLeft(result)).toBe(true);
             expect(result).toMatchObject(E.left(toInternalError(
