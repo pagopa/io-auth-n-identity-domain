@@ -53,7 +53,6 @@ import {
 } from "../../__mocks__/lollipopPubKey.mock";
 import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
 import { ulid } from "ulid";
-import { ClientRequest } from "http";
 
 const MAX_ATTEMPT = 50;
 const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
