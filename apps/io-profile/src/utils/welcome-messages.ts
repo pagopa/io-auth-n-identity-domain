@@ -6,16 +6,16 @@ export const welcomeMessageContent = {
 
 Ti diamo il benvenuto su IO, l’app che ti avvicina ai servizi pubblici in modo semplice, sicuro e trasparente.
 
-**Con IO puoi:**
+# Con IO puoi:
 
 * **Ricevere comunicazioni che ti riguardano**, anche a valore legale, inviate dagli enti direttamente in app
 * **Aggiungere i tuoi documenti personali e i certificati** in versione digitale e averli sempre a portata di mano
 * **Pagare gli avvisi pagoPA** in pochi passaggi e con il metodo che preferisci, anche a rate
 * **Consultare le ricevute** dei pagamenti pagoPA e scaricare i PDF
 * **Richiedere e utilizzare bonus e iniziative**
-* **Accedere da un unico spazio ai servizi** che gli enti, nazionali e locali, ti offrono su IO
+* **Accedere da un unico spazio ai servizi** che gli enti, nazionali e locali, ti offrono su IO.
 
-**Iniziamo?**
+# Iniziamo?
 
 Per prima cosa controlla di avere le **notifiche push attive**: così saprai subito quando ricevi un nuovo messaggio in app.
 
