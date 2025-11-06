@@ -270,7 +270,6 @@ describe("activatePubKey |> Success Results", () => {
         resultBody.assertion_ref
       ])();
 
-      console.log("### sha256Document:", sha256Document);
       expect(sha256Document).toEqual(
         E.right(
           O.some(
