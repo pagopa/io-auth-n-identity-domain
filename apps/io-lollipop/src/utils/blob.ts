@@ -78,7 +78,8 @@ export const blobExists = (
  */
 const downloadBlob = (
   blobServiceClient: BlobServiceClient,
-  containerName: string,
+  containerName: string
+) => (
   blobName: string
 ): TE.TaskEither<NotFoundError | InternalError, NodeJS.ReadableStream> =>
   pipe(
@@ -120,11 +121,10 @@ const downloadBlob = (
  */
 export const getBlobAsText = (
   blobServiceClient: BlobServiceClient,
-  containerName: string,
-  blobName: string
-): TE.TaskEither<NotFoundError | InternalError, string> =>
+  containerName: string
+) => (blobName: string): TE.TaskEither<NotFoundError | InternalError, string> =>
   pipe(
-    downloadBlob(blobServiceClient, containerName, blobName),
+    downloadBlob(blobServiceClient, containerName)(blobName),
     TE.chainW(streamToText)
   );
 

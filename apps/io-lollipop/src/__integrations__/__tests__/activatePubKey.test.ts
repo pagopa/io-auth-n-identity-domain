@@ -36,7 +36,6 @@ import {
   aValidSha256AssertionRef,
   toEncodedJwk
 } from "../../__mocks__/lollipopPubKey.mock";
-import { getBlobAsTextWithError } from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 import { ActivatePubKeyPayload } from "../../generated/definitions/internal/ActivatePubKeyPayload";
 import { AssertionTypeEnum } from "../../generated/definitions/internal/AssertionType";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
@@ -256,10 +255,10 @@ describe("activatePubKey |> Success Results", () => {
 
       // Check values on storages
 
-      const blob = await getBlobAsText(
+      const blob = await pipe(getBlobAsText(
         blobService,
         LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME,
-        anAssertionFileNameForSha256
+      )(anAssertionFileNameForSha256)
       )();
       expect(blob).toEqual(
         E.right(validActivatePubKeyPayload.assertion)
@@ -351,10 +350,11 @@ describe("activatePubKey |> Success Results", () => {
 
       // Check values on storages
 
-      const assertionBlob = await getBlobAsText(
-        blobService,
-        LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME,
-        randomAssertionFileName
+      const assertionBlob = await pipe(
+        getBlobAsText(
+          blobService,
+          LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME,
+        )(randomAssertionFileName)
       )();
 
       expect(assertionBlob).toEqual(

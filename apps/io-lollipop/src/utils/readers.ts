@@ -71,7 +71,7 @@ export const getAssertionReader = (
   assertionFileName: AssertionFileName
 ): ReturnType<AssertionReader> =>
   pipe(
-    getBlobAsText(blobService, assertionContainerName, assertionFileName),
+    getBlobAsText(blobService, assertionContainerName)(assertionFileName),
     TE.filterOrElseW(NonEmptyString.is, () =>
       toInternalError(`Assertion is empty`)
     )

@@ -47,9 +47,8 @@ describe("blobUtils integration", () => {
         // Download blob content
         const downloadResult = await getBlobAsText(
             blobServiceClient,
-            containerName,
-            blobName
-        )();
+            containerName
+        )(blobName)();
 
         expect(E.isRight(downloadResult)).toBe(true);
         expect(downloadResult).toMatchObject(E.right(blobContent));
@@ -59,9 +58,8 @@ describe("blobUtils integration", () => {
         // Attempt to download a non-existing blob
         const result = await getBlobAsText(
             blobServiceClient,
-            containerName,
-            "missing-blob.txt"
-        )();
+            containerName
+        )("missing-blob.txt")();
 
         expect(E.isLeft(result)).toBe(true);
         expect(result).toMatchObject(E.left({ kind: "NotFound" }));
@@ -113,9 +111,8 @@ describe("blobUtils integration", () => {
         // Download to verify content
         const downloadResult = await getBlobAsText(
             blobServiceClient,
-            containerName,
-            blobName
-        )();
+            containerName
+        )(blobName)();
 
         expect(E.isRight(downloadResult)).toBe(true);
         expect(downloadResult).toMatchObject(E.right("Second content"));
