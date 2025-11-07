@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.29.0
+
+### Minor Changes
+
+- 9769442: Update Welcome messages
+
 ## 5.28.0
 
 ### Minor Changes
