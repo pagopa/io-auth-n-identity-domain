@@ -34,9 +34,6 @@ export const BaseRejectedLoginEventContent = t.intersection([
     // Timestamp of the rejected login event
     ts: DateFromTimestamp,
 
-    // Date of the SPID request / response in YYYY-MM-DD format
-    createdAtDay: PatternString("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"),
-
     // IP of the client that made a SPID login action
     ip: t.string.pipe(IPString),
   }),
