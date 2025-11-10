@@ -1,53 +1,61 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`welcome messages > should match snapshot 1`] = `
-"Ciao! IO consente agli enti pubblici di portare progressivamente i propri servizi di comunicazione, pagamento, welfare o documentazione in un'unica app, e ai cittadini italiani di avere dei servizi pubblici nuovi, moderni e centrati sulle proprie esigenze e di interagire con le Pubbliche Amministrazioni in modo sicuro e sempre a portata di mano. 
+"Ciao! 
 
-#### Le funzioni di IO
-Ecco come potrai usare IO attraverso le diverse funzioni disponibili oggi nell’app:   
+Ti diamo il benvenuto su IO, l’app che ti avvicina ai servizi pubblici in modo semplice, sicuro e trasparente.
 
-#### I messaggi
-IO ti consente di ricevere comunicazioni da tutte le Pubbliche Amministrazioni italiane, locali e nazionali, di tenere sotto controllo ogni scadenza e, all’occorrenza, effettuare dei pagamenti. 
-All’arrivo di ogni nuovo messaggio, a seconda delle tue preferenze, IO può informarti attraverso una notifica e inoltrarti il messaggio sulla tua casella di posta: nel dettaglio dei servizi, o nelle preferenze presenti nel Profilo, puoi decidere come ricevere comunicazioni da ciascun servizio. 
+# Con IO puoi:
 
-#### I pagamenti
-IO integra [pagoPA](https://www.pagopa.gov.it/) per effettuare pagamenti sicuri verso la Pubblica Amministrazione. Dalla sezione Portafoglio puoi aggiungere i tuoi metodi di pagamento preferiti, procedere al pagamento di un avviso pagoPA (tramite scansione del codice QR o inserimento manuale del codice avviso) e tenere traccia di tutte le operazioni svolte. Se hai già usato pagoPA con SPID in passato, nella sezione Portafoglio potrai vedere lo storico delle transazioni effettuate e i tuoi metodi di pagamento salvati. 
+* **Ricevere comunicazioni che ti riguardano**, anche a valore legale, inviate dagli enti direttamente in app
+* **Aggiungere i tuoi documenti personali e i certificati** in versione digitale e averli sempre a portata di mano
+* **Pagare gli avvisi pagoPA** in pochi passaggi e con il metodo che preferisci, anche a rate
+* **Consultare le ricevute** dei pagamenti pagoPA e scaricare i PDF
+* **Richiedere e utilizzare bonus e iniziative**
+* **Accedere da un unico spazio ai servizi** che gli enti, nazionali e locali, ti offrono su IO.
 
-#### I servizi
-Al primo accesso in IO, IO ti chiede di impostare una configurazione generale per la comunicazione dei servizi. Nella sezione Servizi puoi vedere la lista di tutti i servizi locali e nazionali disponibili all’interno dell’app, e decidere da quali ricevere comunicazioni e come. 
+# Iniziamo?
 
-#### Serve aiuto?
-Se qualcosa non ti è chiaro durante l’utilizzo dell’app, usa il punto di domanda in alto a destra per leggere approfondimenti e indicazioni utili relative alla schermata in cui ti trovi.
-Ricorda che i messaggi che IO ti recapita sono inviati direttamente dagli enti pubblici: se i tuoi dubbi riguardano il contenuto di un messaggio, segnalalo direttamente all’ente che ti ha scritto; trovi i contatti nel corpo del messaggio o nella scheda del servizio. 
-Se hai un problema e non trovi risposte utili nella pagina di aiuto, contatta il team di IO utilizzando il pulsante con la coccinella “Scrivi al team di IO”.
+Per prima cosa controlla di avere le **notifiche push attive**: così saprai subito quando ricevi un nuovo messaggio in app.
 
-#### Come partecipare al progetto
-IO è un progetto che cresce e migliora giorno dopo giorno grazie al contributo degli utenti. Per questo ti chiediamo, se vorrai, di segnalarci eventuali feedback, richieste di migliorie o di nuove funzionalità. 
-IO è un progetto open source. Se ti occupi di design o sviluppo, puoi contribuire direttamente: visita il sito [io.italia.it](https://io.italia.it) per maggiori informazioni.
+[Leggi come fare](https://assistenza.ioapp.it/hc/it/articles/39312288127377-Come-attivare-le-notifiche-push-su-IO)
 
-Grazie di far parte del progetto IO!
+Per conoscere meglio tutto ciò che puoi fare con IO, vai su [ioapp.it](https://ioapp.it/).
 "
 `;
 
-exports[`welcome messages > should match snapshot 2`] = `"Ti diamo il benvenuto in IO"`;
+exports[`welcome messages > should match snapshot 2`] = `"Ti diamo il benvenuto su IO"`;
 
 exports[`welcome messages > should match snapshot 3`] = `
-"L’app IO nasce per offrirti un unico punto di accesso, comodo, semplice e sicuro, verso tutti i servizi della Pubblica Amministrazione.
+"---
+it:
+    cta_1:
+        text: "Attiva SEND su IO"
+        action: "ioit://services/service-detail?serviceId=01G40DWQGKY5GRWSNM4303VNRP&activate=true"
+en:
+    cta_1:
+        text: "Enable SEND on IO"
+        action: "ioit://services/service-detail?serviceId=01G40DWQGKY5GRWSNM4303VNRP&activate=true"
+---
+Ciao!
 
-Oltre 13.000 tra enti nazionali e locali hanno già portato a bordo i loro servizi – relativi, ad esempio, ad anagrafe, scuola, tributi, mobilità, attività produttive, edilizia e sanità – e molti se ne aggiungeranno in futuro: visualizza l’elenco completo di quelli disponibili nella sezione **[Servizi](ioit://SERVICES_HOME)**.
+Conosci SEND? Ti permette di ricevere le **comunicazioni a valore legale** - come esiti di pratiche, rimborsi o multe - in formato digitale.
 
-Se non vedi gli enti del tuo territorio tra quelli elencati, è perché i loro servizi sono in corso di integrazione o arriveranno prossimamente.
-Puoi decidere tu quali servizi possono contattarti, ma ti consigliamo di lasciare la comunicazione sempre accesa (impostando la configurazione rapida nelle preferenze) perché un servizio ti scriverà solo quando avrà qualcosa di importante da dire proprio a te!  Ad esempio: per la scadenza di un documento, il promemoria per un pagamento o l’aggiornamento su una pratica in corso.
+Attiva il servizio su IO per riceverle direttamente in app e risparmiare!
 
-Utilizzando la configurazione manuale dovrai attivare uno a uno i servizi che ti interessano. Nelle preferenze potrai anche decidere di attivare la funzione di inoltro dei messaggi che riceverai su IO, anche al tuo indirizzo e-mail. 
+# Come funziona?
 
-Infine, è importante sapere che per ora i messaggi inviati dagli enti tramite IO non hanno valore legale.
+Se attivi SEND su IO, ricevi in app le comunicazioni a valore legale che ti inviano gli enti pubblici. Puoi leggerle in tempo reale sul tuo dispositivo e pagare facilmente eventuali avvisi di pagamento allegati alle comunicazioni.
 
-Per maggiori informazioni sull’avanzamento del progetto, visita il sito [io.italia.it](https://io.italia.it).
+# Risparmia sui costi della raccomandata
+
+Se accedi alle comunicazioni a valore legale su IO entro i tempi previsti, eviterai le raccomandate cartacee e i relativi costi. 
+
+Premendo Attiva il servizio dichiari di aver letto l’[Informativa Privacy](https://cittadini.notifichedigitali.it/informativa-privacy) e di accettare i [Termini e Condizioni d’uso](https://cittadini.notifichedigitali.it/termini-di-servizio).
 "
 `;
 
-exports[`welcome messages > should match snapshot 4`] = `"Quali servizi trovi su IO?"`;
+exports[`welcome messages > should match snapshot 4`] = `"Ricevi su IO le comunicazioni a valore legale e risparmia"`;
 
 exports[`welcome messages > should match snapshot 5`] = `
 "---
