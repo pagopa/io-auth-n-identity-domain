@@ -31,3 +31,12 @@ TIMEOUT_MULTIPLIER = 3600 / HOURLY_BACHES
 ```
 
 With this in mind, we would call the script with `--singleBatchCount=... --timeoutMultiplier=...` according to the calculations made above.
+
+### Table importer
+
+This script copies the entities from a storage account table to another one.
+To run it launch from the monorepo root
+
+`yarn workspace utilities build && yarn workspace utilities table:import <PARAMETERS>`
+
+When `--help` is passed, an help message will greet the user with description for all parameters.
