@@ -75,7 +75,6 @@ export const IConfig = t.intersection([
   t.type({
     APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
 
-    AZURE_STORAGE_CONNECTION_STRING: NonEmptyString,
     AZURE_STORAGE_CONNECTION_STRING_ITN: NonEmptyString,
 
     // Old general CosmosDB
@@ -96,10 +95,10 @@ export const IConfig = t.intersection([
     MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING: NonEmptyString,
     MIGRATE_SERVICES_PREFERENCES_PROFILE_QUEUE_NAME: NonEmptyString,
 
-    ON_PROFILE_UPDATE_LEASES_PREFIX: NonEmptyString,
-    // TODO: cleanup after ITN migration
-    PROFILE_EMAIL_STORAGE_TABLE_NAME: NonEmptyString,
+    // OnProfileUpdate Config
+    ON_PROFILE_UPDATE_ITN_LEASES_PREFIX: NonEmptyString,
     PROFILE_EMAIL_STORAGE_TABLE_NAME_ITN: NonEmptyString,
+
     // StoreSpidLogs Config
     IOPSTLOGS_STORAGE_CONNECTION_STRING: NonEmptyString,
     SPID_LOGS_PUBLIC_KEY: NonEmptyString,
