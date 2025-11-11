@@ -28,6 +28,10 @@ import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import {
+  RejectedLoginCauseEnum,
+  RejectedLoginEvent,
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
+import {
   mockTrackEvent,
   mockedAppinsightsTelemetryClient,
 } from "../../__mocks__/appinsights.mocks";
@@ -110,10 +114,6 @@ import {
   acs,
   acsTest,
 } from "../authentication";
-import {
-  RejectedLoginCauseEnum,
-  RejectedLoginEvent,
-} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 
 const dependencies: AcsDependencies = {
   redisClientSelector: mockRedisClientSelector,
@@ -393,6 +393,49 @@ describe("AuthenticationController#acs", () => {
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
 
     expect(res.json).toHaveBeenCalledWith(badRequestErrorResponse);
+    expect(mockSet).not.toHaveBeenCalled();
+  });
+
+  test("should fail if request ip is invalid", async () => {
+    const invalidIPreq = mockReq();
+    // eslint-disable-next-line functional/immutable-data
+    invalidIPreq.ip = "anInvalidIpAddress";
+    const invalidIpUserPayload = {
+      ...validUserPayload,
+      getAcsOriginalRequest: () => invalidIPreq,
+    };
+
+    const response = await acs(dependencies)(invalidIpUserPayload);
+    response.apply(res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+
+    expect(res.json).toHaveBeenCalledWith({
+      ...anErrorResponse,
+      detail: "Error reading user IP",
+    });
+    expect(mockSet).not.toHaveBeenCalled();
+  });
+
+  test("should fail if request lack of ip", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { ip, ...ipLackingRequest } = req;
+    const invalidIpUserPayload = {
+      ...validUserPayload,
+      getAcsOriginalRequest: () => ipLackingRequest,
+    };
+
+    const response = await acs(dependencies)(invalidIpUserPayload);
+    response.apply(res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+
+    expect(res.json).toHaveBeenCalledWith({
+      ...anErrorResponse,
+      detail: "Error reading user IP",
+    });
     expect(mockSet).not.toHaveBeenCalled();
   });
 
