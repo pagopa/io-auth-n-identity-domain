@@ -225,10 +225,9 @@ export const acs: (
     const currentUserFiscalCodeOption = currentUserValidationResult.right;
 
     if (
-      O.isSome(currentUserFiscalCodeOption) &&
       isDifferentUserTryingToLogin(
         spidUser.fiscalNumber,
-        currentUserFiscalCodeOption.value,
+        currentUserFiscalCodeOption,
       )
     ) {
       // In Case of provided currentUser, we check if it match the spidUser.fiscalNumber in SAMLResponse
@@ -935,8 +934,10 @@ export const acs: (
 
 const isDifferentUserTryingToLogin = (
   spidUserFiscalCode: FiscalCode,
-  currentUserFiscalCode: string,
-): boolean => currentUserFiscalCode !== sha256(spidUserFiscalCode);
+  currentUserFiscalCodeOption: O.Option<string>,
+): currentUserFiscalCodeOption is O.Some<string> =>
+  O.isSome(currentUserFiscalCodeOption) &&
+  currentUserFiscalCodeOption.value !== sha256(spidUserFiscalCode);
 
 // If not provided currentUser is valid
 const validateCurrentUser = (
