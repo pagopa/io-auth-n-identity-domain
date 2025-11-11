@@ -197,6 +197,15 @@ export const acs: (
 
     const spidUser = errorOrSpidUser.right;
 
+    const req = spidUser.getAcsOriginalRequest();
+    // Retrieve user IP from request
+    const errorOrUserIp = IPString.decode(req?.ip);
+
+    if (E.isLeft(errorOrUserIp)) {
+      return validationCookieClearanceErrorInternal("Error reading user IP");
+    }
+    const requestIp = errorOrUserIp.right;
+
     // Validates AdditionalLoginProps.currentUser if provided
     const currentUserValidationResult = validateCurrentUser(additionalProps);
 
@@ -242,7 +251,7 @@ export const acs: (
       });
 
       const rejectedLoginEvent: RejectedLoginEvent = {
-        ...buildBaseRejectedLoginEvent(spidUser),
+        ...buildBaseRejectedLoginEvent(spidUser, requestIp),
         rejectionCause: RejectedLoginCauseEnum.CF_MISMATCH,
         currentFiscalCode: currentUserFiscalCodeOption.value,
       };
@@ -297,7 +306,7 @@ export const acs: (
       });
 
       const rejectedLoginEvent: RejectedLoginEvent = {
-        ...buildBaseRejectedLoginEvent(spidUser),
+        ...buildBaseRejectedLoginEvent(spidUser, requestIp),
         rejectionCause: RejectedLoginCauseEnum.AGE_BLOCK,
         minimumAge: AGE_LIMIT,
       };
@@ -333,14 +342,6 @@ export const acs: (
         : [deps.standardTokenDurationSecs, deps.standardTokenDurationSecs];
 
     const userSessionExpiration = addSeconds(new Date(), lollipopKeyTTL);
-
-    const req = spidUser.getAcsOriginalRequest();
-    // Retrieve user IP from request
-    const errorOrUserIp = IPString.decode(req?.ip);
-
-    if (isUserElegibleForFastLoginResult && E.isLeft(errorOrUserIp)) {
-      return validationCookieClearanceErrorInternal("Error reading user IP");
-    }
 
     //
     // create a new user object
@@ -399,7 +400,7 @@ export const acs: (
     const isBlockedUser = errorOrIsBlockedUser.right;
     if (isBlockedUser) {
       const rejectedLoginEvent: RejectedLoginEvent = {
-        ...buildBaseRejectedLoginEvent(spidUser),
+        ...buildBaseRejectedLoginEvent(spidUser, requestIp),
         rejectionCause: RejectedLoginCauseEnum.ONGOING_USER_DELETION,
       };
 
@@ -427,7 +428,7 @@ export const acs: (
         );
 
         const rejectedLoginEvent: RejectedLoginEvent = {
-          ...buildBaseRejectedLoginEvent(spidUser),
+          ...buildBaseRejectedLoginEvent(spidUser, requestIp),
           rejectionCause: RejectedLoginCauseEnum.AUTH_LOCK,
         };
 
@@ -835,11 +836,7 @@ export const acs: (
             E.chainW(E.fromNullable(null)),
             E.getOrElse(() => "Sconosciuto"),
           ),
-          ip_address: pipe(
-            errorOrUserIp,
-            // we've already checked errorOrUserIp, this will never happen
-            E.getOrElse(() => ""),
-          ),
+          ip_address: requestIp,
           is_email_validated: userHasEmailValidated,
           name: user.name,
         },
@@ -972,14 +969,14 @@ const extractLoginIdFromResponse = (
 
 export const buildBaseRejectedLoginEvent = (
   spidUser: SpidUser,
-): BaseRejectedLoginEventContent =>
-  pipe(spidUser.getAcsOriginalRequest(), ({ ip }) => ({
-    eventType: EventTypeEnum.REJECTED_LOGIN,
-    fiscalCode: spidUser.fiscalNumber,
-    ts: new Date(),
-    ip,
-    loginId: pipe(extractLoginIdFromResponse(spidUser), O.toUndefined),
-  }));
+  requestIp: IPString,
+): BaseRejectedLoginEventContent => ({
+  eventType: EventTypeEnum.REJECTED_LOGIN,
+  fiscalCode: spidUser.fiscalNumber,
+  ts: new Date(),
+  ip: requestIp,
+  loginId: O.toUndefined(extractLoginIdFromResponse(spidUser)),
+});
 
 // emit event on RejectionLogin
 // on Faliure write a customEvent
