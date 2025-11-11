@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
 import {
   LoginEvent,
@@ -17,7 +18,7 @@ import {
   ResponseErrorValidation,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
-import { FiscalCode, IPString } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { addDays, addMonths, addSeconds, format, subYears } from "date-fns";
@@ -246,6 +247,16 @@ beforeEach(() => {
 });
 
 describe("AuthenticationController#acs", () => {
+  const frozenDate = new Date("2025-10-01T00:00:00Z");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
   test("redirects to the correct url if userPayload is a valid User and a profile not exists", async () => {
     /* const expectedNewProfile: NewProfile = {
       email: validUserPayload.email,
@@ -407,6 +418,57 @@ describe("AuthenticationController#acs", () => {
 
     expect(res.status).toHaveBeenCalledWith(403);
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledExactlyOnceWith({
+      eventType: EventTypeEnum.REJECTED_LOGIN,
+      rejectionCause: RejectedLoginCauseEnum.ONGOING_USER_DELETION,
+      fiscalCode: validUserPayload.fiscalNumber,
+      ip: aRequestIpAddress,
+      ts: frozenDate,
+    } as RejectedLoginEvent);
+  });
+
+  test("should write a customEvent when rejection_login event emission fails", async () => {
+    mockIsBlockedUser.mockReturnValueOnce(TE.right(true));
+
+    const anErrorMessage = "Error emitting rejection login event";
+
+    mockEmitSessionEvent.mockImplementationOnce(
+      () => () =>
+        TE.left(new Error(anErrorMessage)) as TE.TaskEither<Error, void>,
+    );
+
+    const expectedRejectionEvent = {
+      eventType: EventTypeEnum.REJECTED_LOGIN,
+      rejectionCause: RejectedLoginCauseEnum.ONGOING_USER_DELETION,
+      fiscalCode: validUserPayload.fiscalNumber,
+      ip: aRequestIpAddress,
+      ts: frozenDate,
+    } as RejectedLoginEvent;
+
+    const response = await acs(dependencies)(validUserPayload);
+    response.apply(res);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledExactlyOnceWith(
+      expectedRejectionEvent,
+    );
+
+    expect(mockedAppinsightsTelemetryClient.trackEvent).toBeCalledWith(
+      expect.objectContaining({
+        name: "acs.error.rejected_login_event.emit_failed",
+        properties: {
+          message: anErrorMessage,
+          stack: expect.any(String),
+          ...expectedRejectionEvent,
+        },
+        tagOverrides: {
+          samplingEnabled: "false",
+        },
+      }),
+    );
   });
 
   test("should fail if Redis Client returns an error while getting info on user blocked", async () => {
