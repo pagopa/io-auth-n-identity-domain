@@ -3,7 +3,6 @@ import {
   FiscalCode,
   IPString,
   NonEmptyString,
-  PatternString,
 } from "@pagopa/ts-commons/lib/strings";
 import { enumType } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
