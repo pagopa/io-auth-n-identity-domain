@@ -17,7 +17,7 @@ import {
   ResponseErrorValidation,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode, IPString } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { addDays, addMonths, addSeconds, format, subYears } from "date-fns";
@@ -109,6 +109,10 @@ import {
   acs,
   acsTest,
 } from "../authentication";
+import {
+  RejectedLoginCauseEnum,
+  RejectedLoginEvent,
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 
 const dependencies: AcsDependencies = {
   redisClientSelector: mockRedisClientSelector,
@@ -132,9 +136,10 @@ const dependencies: AcsDependencies = {
   authSessionsTopicSender: mockServiceBusSender,
 };
 
+const aRequestIpAddress = "127.0.0.2";
 const req = mockReq();
 // eslint-disable-next-line functional/immutable-data
-req.ip = "127.0.0.2";
+req.ip = aRequestIpAddress;
 const aValidEntityID = Object.keys(SPID_IDP_IDENTIFIERS)[0] as Issuer;
 
 // validUser has all every field correctly set.
@@ -224,7 +229,7 @@ const expectedUserLoginData = {
   fiscal_code: mockedInitializedProfile.fiscal_code,
   identity_provider: expectedIdPName,
   // TODO change
-  ip_address: "127.0.0.2",
+  ip_address: aRequestIpAddress,
   name: mockedInitializedProfile.name,
   is_email_validated: mockedInitializedProfile.is_email_validated,
 };
@@ -434,6 +439,16 @@ describe("AuthenticationController#acs", () => {
 });
 
 describe("AuthenticationController#acs Active Session Test", () => {
+  const frozenDate = new Date("2025-10-01T00:00:00Z");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
   test("should redirects to the correct url when the fiscalCode on userPayload match the one received from the APP(stored in additionalProps)", async () => {
     const additionalProps = {
       currentUser: sha256(validUserPayload.fiscalNumber),
@@ -497,6 +512,16 @@ describe("AuthenticationController#acs Active Session Test", () => {
         `/error.html?errorCode=${DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE}`,
       ),
     );
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledExactlyOnceWith({
+      eventType: EventTypeEnum.REJECTED_LOGIN,
+      rejectionCause: RejectedLoginCauseEnum.CF_MISMATCH,
+      fiscalCode: validUserPayload.fiscalNumber,
+      ip: aRequestIpAddress,
+      ts: frozenDate,
+      currentFiscalCode: aDifferentUserFiscalCodeHash,
+    } as RejectedLoginEvent);
+
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 
@@ -517,6 +542,17 @@ describe("AuthenticationController#acs Active Session Test", () => {
 });
 
 describe("AuthenticationController#acs Age Limit", () => {
+  const frozenDate = new Date("2025-10-01T00:00:00Z");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   test(`should return unauthorized if the user is younger than ${AGE_LIMIT} yo`, async () => {
     const aYoungUserPayload: SpidUser = {
       ...validUserPayload,
@@ -542,6 +578,16 @@ describe("AuthenticationController#acs Age Limit", () => {
       301,
       expect.stringContaining(`/error.html?errorCode=${AGE_LIMIT_ERROR_CODE}`),
     );
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledExactlyOnceWith({
+      eventType: EventTypeEnum.REJECTED_LOGIN,
+      rejectionCause: RejectedLoginCauseEnum.AGE_BLOCK,
+      fiscalCode: aYoungUserPayload.fiscalNumber,
+      ip: aRequestIpAddress,
+      ts: frozenDate,
+      minimumAge: AGE_LIMIT,
+    } as RejectedLoginEvent);
+
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 
@@ -1180,6 +1226,15 @@ describe("AuthenticationController#acs LV", () => {
         `/error.html?errorCode=${AUTHENTICATION_LOCKED_ERROR}`,
       ),
     );
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledExactlyOnceWith({
+      eventType: EventTypeEnum.REJECTED_LOGIN,
+      rejectionCause: RejectedLoginCauseEnum.AUTH_LOCK,
+      fiscalCode: validUserPayload.fiscalNumber,
+      ip: aRequestIpAddress,
+      ts: frozenDate,
+    } as RejectedLoginEvent);
+
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 });
