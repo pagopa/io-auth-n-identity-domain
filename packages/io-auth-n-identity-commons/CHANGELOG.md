@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-commons
 
+## 0.2.1
+
+### Patch Changes
+
+- 5b66dd1: Cleanup RejectedLogin event
+
 ## 0.2.0
 
 ### Minor Changes
