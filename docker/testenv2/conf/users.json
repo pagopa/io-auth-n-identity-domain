@@ -26,5 +26,19 @@
       "mobilePhone": "333333334"
     },
     "pwd": "test"
+  },
+  "filippo.verdi": {
+    "sp": null,
+    "attrs": {
+      "fiscalNumber": "TSTERD19T12Y874F",
+      "name": "Mario",
+      "gender": "M",
+      "familyName": "Bianchi",
+      "dateOfBirth": "2019-12-12",
+      "email": "info@agid.gov.it",
+      "spidCode": "45c77984-035b-4774-b544-63bf45d405e2",
+      "mobilePhone": "333333335"
+    },
+    "pwd": "test"
   }
 }
