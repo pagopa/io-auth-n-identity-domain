@@ -659,12 +659,13 @@ describe("AuthenticationController#acs Age Limit", () => {
   });
 
   test(`should return unauthorized if the user is younger than ${AGE_LIMIT} yo`, async () => {
+    const aYoungDateOfBirth = format(
+      addDays(subYears(new Date(), AGE_LIMIT), 1),
+      "YYYY-MM-DD",
+    );
     const aYoungUserPayload: SpidUser = {
       ...validUserPayload,
-      dateOfBirth: format(
-        addDays(subYears(new Date(), AGE_LIMIT), 1),
-        "YYYY-MM-DD",
-      ),
+      dateOfBirth: aYoungDateOfBirth,
     };
     const response = await acs(dependencies)(aYoungUserPayload);
     response.apply(res);
@@ -691,6 +692,7 @@ describe("AuthenticationController#acs Age Limit", () => {
       ip: aRequestIpAddress,
       ts: frozenDate,
       minimumAge: AGE_LIMIT,
+      dateOfBirth: aYoungDateOfBirth,
     } as RejectedLoginEvent);
 
     expect(res.clearCookie).toHaveBeenCalledTimes(1);

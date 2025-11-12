@@ -308,6 +308,7 @@ export const acs: (
         ...buildBaseRejectedLoginEvent(spidUser, requestIp),
         rejectionCause: RejectedLoginCauseEnum.AGE_BLOCK,
         minimumAge: AGE_LIMIT,
+        dateOfBirth: spidUser.dateOfBirth,
       };
 
       // emit event for Audit Logs (Failsafe in case of error emit custom event) fire and forget
