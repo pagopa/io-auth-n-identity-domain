@@ -94,7 +94,7 @@ resource "azurerm_storage_management_policy" "delete_after_2yrs" {
     }
     filters {
       blob_types   = ["blockBlob"]
-      prefix_match = ["rejected-login-logs-01/"]
+      prefix_match = ["rejected-login-logs-01"]
     }
   }
 }
