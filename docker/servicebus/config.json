@@ -32,6 +32,27 @@
                     }
                   }
                 ]
+              },
+              {
+                "Name": "emulator-rejected-no-session-sub",
+                "Properties": {
+                  "DeadLetteringOnMessageExpiration": false,
+                  "DefaultMessageTimeToLive": "PT1H",
+                  "LockDuration": "PT1M",
+                  "MaxDeliveryCount": 10,
+                  "RequiresSession": false
+                },
+                "Rules": [
+                  {
+                    "Name": "emulator-rejected-login-events-filter",
+                    "Properties": {
+                      "FilterType": "Sql",
+                      "SqlFilter": {
+                        "SqlExpression": "eventType = 'rejected_login'"
+                      }
+                    }
+                  }
+                ]
               }
             ]
           }
