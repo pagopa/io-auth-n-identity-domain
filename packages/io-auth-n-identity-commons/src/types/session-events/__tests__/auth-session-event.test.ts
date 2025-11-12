@@ -80,6 +80,7 @@ describe("AuthSessionEvent decode tests", () => {
     const aValidRejectedLoginEvent = {
       rejectionCause: "age_block",
       minimumAge: 14,
+      dateOfBirth: "2009-08-15",
       ...aBaseRejectedLoginEvent,
     };
     const decodeResult = AuthSessionEvent.decode(aValidRejectedLoginEvent);

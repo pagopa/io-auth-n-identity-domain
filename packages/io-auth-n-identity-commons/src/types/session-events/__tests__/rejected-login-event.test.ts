@@ -18,6 +18,7 @@ describe("RejectedLoginEvent decode tests", () => {
     const aValidRejectedLoginEvent = {
       rejectionCause: "age_block",
       minimumAge: 14,
+      dateOfBirth: "2009-08-15",
       ...aBaseRejectedLoginEvent,
     };
     const decodeResult = RejectedLoginEvent.decode(aValidRejectedLoginEvent);
@@ -83,9 +84,10 @@ describe("RejectedLoginEvent decode tests", () => {
     const { loginId, ...withoutLoginId } = aBaseRejectedLoginEvent;
 
     const aValidRejectedLoginEvent = {
+      ...withoutLoginId,
       rejectionCause: "age_block",
       minimumAge: 14,
-      ...withoutLoginId,
+      dateOfBirth: "2009-08-15",
     };
     const decodeResult = RejectedLoginEvent.decode(aValidRejectedLoginEvent);
 
