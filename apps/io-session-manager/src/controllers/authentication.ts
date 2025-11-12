@@ -252,7 +252,7 @@ export const acs: (
       const rejectedLoginEvent: RejectedLoginEvent = {
         ...buildBaseRejectedLoginEvent(spidUser, requestIp),
         rejectionCause: RejectedLoginCauseEnum.CF_MISMATCH,
-        currentFiscalCode: currentUserFiscalCodeOption.value,
+        currentFiscalCodeHash: currentUserFiscalCodeOption.value,
       };
 
       // emit event for Audit Logs (Failsafe in case of error emit custom event) fire and forget

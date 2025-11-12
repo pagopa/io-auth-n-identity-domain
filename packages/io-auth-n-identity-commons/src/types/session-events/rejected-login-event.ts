@@ -67,7 +67,7 @@ export const UserMismatchRejectedLogin = t.intersection([
   t.type({
     rejectionCause: t.literal(RejectedLoginCauseEnum.CF_MISMATCH),
     // The fiscal code of the currently authenticated user in the app.
-    currentFiscalCode: Sha256HexString,
+    currentFiscalCodeHash: Sha256HexString,
   }),
   BaseRejectedLoginEventContent,
 ]);

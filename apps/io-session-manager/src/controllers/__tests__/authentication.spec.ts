@@ -624,7 +624,7 @@ describe("AuthenticationController#acs Active Session Test", () => {
       fiscalCode: validUserPayload.fiscalNumber,
       ip: aRequestIpAddress,
       ts: frozenDate,
-      currentFiscalCode: aDifferentUserFiscalCodeHash,
+      currentFiscalCodeHash: aDifferentUserFiscalCodeHash,
     } as RejectedLoginEvent);
 
     expect(res.clearCookie).toHaveBeenCalledTimes(1);

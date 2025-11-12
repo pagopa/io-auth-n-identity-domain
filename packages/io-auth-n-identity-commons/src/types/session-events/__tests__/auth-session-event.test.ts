@@ -126,7 +126,7 @@ describe("AuthSessionEvent decode tests", () => {
   it("should decode a valid RejectedLogin (User Mismatch) event", () => {
     const aValidRejectedLoginEvent = {
       rejectionCause: "cf_mismatch",
-      currentFiscalCode:
+      currentFiscalCodeHash:
         "438cb21f4edc118a51ae28dc4125f4cf59c29e252f30e4e77746b24c6d39fae6", // sha256 of "BBBBBB89S20I111Y",
       ...aBaseRejectedLoginEvent,
     };
