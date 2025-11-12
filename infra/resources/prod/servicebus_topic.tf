@@ -25,6 +25,22 @@ resource "azurerm_servicebus_subscription_rule" "session_events_filter" {
   sql_filter = "eventType IN ('login','logout')"
 }
 
+resource "azurerm_servicebus_subscription" "io_auth_rejected_login_audit_logs_sub" {
+  name               = "io-auth-rejected-login-audit-logs-sub"
+  topic_id           = azurerm_servicebus_topic.io_auth_sessions_topic.id
+  max_delivery_count = local.io_session_notifications_sub_max_delivery_count
+  requires_session   = false
+}
+
+resource "azurerm_servicebus_subscription_rule" "rejected_login_audit_logs_filter" {
+  name            = "io-auth-rejected-login-audit-logs-filter"
+  subscription_id = azurerm_servicebus_subscription.io_auth_rejected_login_audit_logs_sub.id
+
+  filter_type = "SqlFilter"
+  # this filter requires an "eventType" property on the topic message
+  sql_filter = "eventType = 'rejected_login'"
+}
+
 /////////////////////////
 //         IAM         //
 /////////////////////////
@@ -110,6 +126,13 @@ module "pub_session_manager_internal" {
       role                = "writer"
       description         = "This role allows managing the given topic"
       topic_names         = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
+    },
+    {
+      namespace_name      = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
+      resource_group_name = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
+      role                = "reader"
+      description         = "This role allows receiving messages from the subscription"
+      topic_names         = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
     }
   ]
 }
@@ -126,6 +149,13 @@ module "pub_session_manager_internal_staging" {
       resource_group_name = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
       role                = "writer"
       description         = "This role allows managing the given topic"
+      topic_names         = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
+    },
+    {
+      namespace_name      = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
+      resource_group_name = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
+      role                = "reader"
+      description         = "This role allows receiving messages from the subscription"
       topic_names         = [azurerm_servicebus_topic.io_auth_sessions_topic.name]
     }
   ]
