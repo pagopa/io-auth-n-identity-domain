@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
 import {
   LoginEvent,
@@ -26,6 +27,10 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  RejectedLoginCauseEnum,
+  RejectedLoginEvent,
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import {
   mockTrackEvent,
   mockedAppinsightsTelemetryClient,
@@ -132,9 +137,10 @@ const dependencies: AcsDependencies = {
   authSessionsTopicSender: mockServiceBusSender,
 };
 
+const aRequestIpAddress = "127.0.0.2";
 const req = mockReq();
 // eslint-disable-next-line functional/immutable-data
-req.ip = "127.0.0.2";
+req.ip = aRequestIpAddress;
 const aValidEntityID = Object.keys(SPID_IDP_IDENTIFIERS)[0] as Issuer;
 
 // validUser has all every field correctly set.
@@ -224,7 +230,7 @@ const expectedUserLoginData = {
   fiscal_code: mockedInitializedProfile.fiscal_code,
   identity_provider: expectedIdPName,
   // TODO change
-  ip_address: "127.0.0.2",
+  ip_address: aRequestIpAddress,
   name: mockedInitializedProfile.name,
   is_email_validated: mockedInitializedProfile.is_email_validated,
 };
@@ -241,6 +247,16 @@ beforeEach(() => {
 });
 
 describe("AuthenticationController#acs", () => {
+  const frozenDate = new Date("2025-10-01T00:00:00Z");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
   test("redirects to the correct url if userPayload is a valid User and a profile not exists", async () => {
     /* const expectedNewProfile: NewProfile = {
       email: validUserPayload.email,
@@ -380,6 +396,49 @@ describe("AuthenticationController#acs", () => {
     expect(mockSet).not.toHaveBeenCalled();
   });
 
+  test("should fail if request ip is invalid", async () => {
+    const invalidIPreq = mockReq();
+    // eslint-disable-next-line functional/immutable-data
+    invalidIPreq.ip = "anInvalidIpAddress";
+    const invalidIpUserPayload = {
+      ...validUserPayload,
+      getAcsOriginalRequest: () => invalidIPreq,
+    };
+
+    const response = await acs(dependencies)(invalidIpUserPayload);
+    response.apply(res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+
+    expect(res.json).toHaveBeenCalledWith({
+      ...anErrorResponse,
+      detail: "Error reading user IP",
+    });
+    expect(mockSet).not.toHaveBeenCalled();
+  });
+
+  test("should fail if request lack of ip", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { ip, ...ipLackingRequest } = req;
+    const invalidIpUserPayload = {
+      ...validUserPayload,
+      getAcsOriginalRequest: () => ipLackingRequest,
+    };
+
+    const response = await acs(dependencies)(invalidIpUserPayload);
+    response.apply(res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+
+    expect(res.json).toHaveBeenCalledWith({
+      ...anErrorResponse,
+      detail: "Error reading user IP",
+    });
+    expect(mockSet).not.toHaveBeenCalled();
+  });
+
   test("should fail if the session can not be saved", async () => {
     mockSet.mockReturnValueOnce(() => TE.of(false));
 
@@ -402,6 +461,57 @@ describe("AuthenticationController#acs", () => {
 
     expect(res.status).toHaveBeenCalledWith(403);
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledExactlyOnceWith({
+      eventType: EventTypeEnum.REJECTED_LOGIN,
+      rejectionCause: RejectedLoginCauseEnum.ONGOING_USER_DELETION,
+      fiscalCode: validUserPayload.fiscalNumber,
+      ip: aRequestIpAddress,
+      ts: frozenDate,
+    } as RejectedLoginEvent);
+  });
+
+  test("should write a customEvent when rejection_login event emission fails", async () => {
+    mockIsBlockedUser.mockReturnValueOnce(TE.right(true));
+
+    const anErrorMessage = "Error emitting rejection login event";
+
+    mockEmitSessionEvent.mockImplementationOnce(
+      () => () =>
+        TE.left(new Error(anErrorMessage)) as TE.TaskEither<Error, void>,
+    );
+
+    const expectedRejectionEvent = {
+      eventType: EventTypeEnum.REJECTED_LOGIN,
+      rejectionCause: RejectedLoginCauseEnum.ONGOING_USER_DELETION,
+      fiscalCode: validUserPayload.fiscalNumber,
+      ip: aRequestIpAddress,
+      ts: frozenDate,
+    } as RejectedLoginEvent;
+
+    const response = await acs(dependencies)(validUserPayload);
+    response.apply(res);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.clearCookie).toHaveBeenCalledTimes(1);
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledExactlyOnceWith(
+      expectedRejectionEvent,
+    );
+
+    expect(mockedAppinsightsTelemetryClient.trackEvent).toBeCalledWith(
+      expect.objectContaining({
+        name: "acs.error.rejected_login_event.emit_failed",
+        properties: {
+          message: anErrorMessage,
+          stack: expect.any(String),
+          ...expectedRejectionEvent,
+        },
+        tagOverrides: {
+          samplingEnabled: "false",
+        },
+      }),
+    );
   });
 
   test("should fail if Redis Client returns an error while getting info on user blocked", async () => {
@@ -434,6 +544,16 @@ describe("AuthenticationController#acs", () => {
 });
 
 describe("AuthenticationController#acs Active Session Test", () => {
+  const frozenDate = new Date("2025-10-01T00:00:00Z");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
   test("should redirects to the correct url when the fiscalCode on userPayload match the one received from the APP(stored in additionalProps)", async () => {
     const additionalProps = {
       currentUser: sha256(validUserPayload.fiscalNumber),
@@ -497,6 +617,16 @@ describe("AuthenticationController#acs Active Session Test", () => {
         `/error.html?errorCode=${DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE}`,
       ),
     );
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledExactlyOnceWith({
+      eventType: EventTypeEnum.REJECTED_LOGIN,
+      rejectionCause: RejectedLoginCauseEnum.CF_MISMATCH,
+      fiscalCode: validUserPayload.fiscalNumber,
+      ip: aRequestIpAddress,
+      ts: frozenDate,
+      currentFiscalCodeHash: aDifferentUserFiscalCodeHash,
+    } as RejectedLoginEvent);
+
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 
@@ -517,13 +647,25 @@ describe("AuthenticationController#acs Active Session Test", () => {
 });
 
 describe("AuthenticationController#acs Age Limit", () => {
+  const frozenDate = new Date("2025-10-01T00:00:00Z");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ now: frozenDate });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   test(`should return unauthorized if the user is younger than ${AGE_LIMIT} yo`, async () => {
+    const aYoungDateOfBirth = format(
+      addDays(subYears(new Date(), AGE_LIMIT), 1),
+      "YYYY-MM-DD",
+    );
     const aYoungUserPayload: SpidUser = {
       ...validUserPayload,
-      dateOfBirth: format(
-        addDays(subYears(new Date(), AGE_LIMIT), 1),
-        "YYYY-MM-DD",
-      ),
+      dateOfBirth: aYoungDateOfBirth,
     };
     const response = await acs(dependencies)(aYoungUserPayload);
     response.apply(res);
@@ -542,6 +684,17 @@ describe("AuthenticationController#acs Age Limit", () => {
       301,
       expect.stringContaining(`/error.html?errorCode=${AGE_LIMIT_ERROR_CODE}`),
     );
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledExactlyOnceWith({
+      eventType: EventTypeEnum.REJECTED_LOGIN,
+      rejectionCause: RejectedLoginCauseEnum.AGE_BLOCK,
+      fiscalCode: aYoungUserPayload.fiscalNumber,
+      ip: aRequestIpAddress,
+      ts: frozenDate,
+      minimumAge: AGE_LIMIT,
+      dateOfBirth: aYoungDateOfBirth,
+    } as RejectedLoginEvent);
+
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 
@@ -1180,6 +1333,15 @@ describe("AuthenticationController#acs LV", () => {
         `/error.html?errorCode=${AUTHENTICATION_LOCKED_ERROR}`,
       ),
     );
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledExactlyOnceWith({
+      eventType: EventTypeEnum.REJECTED_LOGIN,
+      rejectionCause: RejectedLoginCauseEnum.AUTH_LOCK,
+      fiscalCode: validUserPayload.fiscalNumber,
+      ip: aRequestIpAddress,
+      ts: frozenDate,
+    } as RejectedLoginEvent);
+
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
 });
