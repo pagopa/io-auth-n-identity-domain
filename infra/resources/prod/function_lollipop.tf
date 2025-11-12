@@ -129,19 +129,6 @@ module "function_lollipop_autoscale" {
   }
 
   scheduler = {
-    high_load = {
-      name    = "evening"
-      minimum = 10
-      default = 10
-      start = {
-        hour    = 19
-        minutes = 30
-      }
-      end = {
-        hour    = 22
-        minutes = 59
-      }
-    },
     normal_load = {
       minimum = 15
       default = 15
