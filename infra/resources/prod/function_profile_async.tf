@@ -203,7 +203,7 @@ module "function_profile_async_autoscale" {
 
   scheduler = {
     normal_load = {
-      minimum = 3
+      minimum = 5
       default = 10
     },
     maximum = 30
