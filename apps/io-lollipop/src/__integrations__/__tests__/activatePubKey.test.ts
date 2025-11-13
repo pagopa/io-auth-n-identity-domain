@@ -36,17 +36,17 @@ import {
   aValidSha256AssertionRef,
   toEncodedJwk
 } from "../../__mocks__/lollipopPubKey.mock";
-import { getBlobAsTextWithError } from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 import { ActivatePubKeyPayload } from "../../generated/definitions/internal/ActivatePubKeyPayload";
 import { AssertionTypeEnum } from "../../generated/definitions/internal/AssertionType";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { fetchActivatePubKey, fetchReservePubKey } from "../utils/client";
 import { JwkPubKeyHashAlgorithmEnum } from "../../generated/definitions/internal/JwkPubKeyHashAlgorithm";
 import { MASTER_HASH_ALGO } from "../../utils/lollipopKeys";
-import { createBlobService } from "azure-storage";
+import { BlobServiceClient } from "@azure/storage-blob";
 import { AssertionFileName } from "../../generated/definitions/internal/AssertionFileName";
 import { CosmosClient } from "@azure/cosmos";
 import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
+import { getBlobAsText } from "../../utils/blob";
 
 const MAX_ATTEMPT = 50;
 const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
@@ -59,7 +59,7 @@ const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "assertions";
 // Setup dbs
 // ----------------
 
-const blobService = createBlobService(QueueStorageConnection);
+const blobService = BlobServiceClient.fromConnectionString(QueueStorageConnection);
 
 const cosmosClient = new CosmosClient({
   endpoint: COSMOSDB_URI,
@@ -255,15 +255,14 @@ describe("activatePubKey |> Success Results", () => {
 
       // Check values on storages
 
-      const assertionBlob = await pipe(
-        getBlobAsTextWithError(
+      const blob = await pipe(
+        getBlobAsText(
           blobService,
           LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
         )(anAssertionFileNameForSha256)
       )();
-
-      expect(assertionBlob).toEqual(
-        E.right(O.some(validActivatePubKeyPayload.assertion))
+      expect(blob).toEqual(
+        E.right(validActivatePubKeyPayload.assertion)
       );
 
       // Check used key
@@ -353,14 +352,14 @@ describe("activatePubKey |> Success Results", () => {
       // Check values on storages
 
       const assertionBlob = await pipe(
-        getBlobAsTextWithError(
+        getBlobAsText(
           blobService,
           LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
         )(randomAssertionFileName)
       )();
 
       expect(assertionBlob).toEqual(
-        E.right(O.some(validActivatePubKeyPayload.assertion))
+        E.right(validActivatePubKeyPayload.assertion)
       );
 
       // Check master document(the only one present)
