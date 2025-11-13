@@ -1,5 +1,16 @@
 # io-session-manager
 
+## 1.16.0
+
+### Minor Changes
+
+- 5b66dd1: Emit new serviceBus Event on Login Rejected
+
+### Patch Changes
+
+- Updated dependencies [5b66dd1]
+  - @pagopa/io-auth-n-identity-commons@0.2.1
+
 ## 1.15.1
 
 ### Patch Changes
