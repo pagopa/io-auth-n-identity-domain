@@ -76,4 +76,25 @@ resource "azurerm_storage_management_policy" "delete_after_2yrs" {
       prefix_match = ["ioweb-auditlogs-01/auditlogs"]
     }
   }
+
+
+  rule {
+    enabled = true
+    name    = "rejected-login-logs-01-deleteafter2yrs"
+    actions {
+      version {
+        delete_after_days_since_creation = 731
+      }
+      base_blob {
+        delete_after_days_since_creation_greater_than = 731
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 731
+      }
+    }
+    filters {
+      blob_types   = ["blockBlob"]
+      prefix_match = ["rejected-login-logs-01"]
+    }
+  }
 }

@@ -40,6 +40,14 @@ resource "azurerm_storage_encryption_scope" "ioweb_audit_logs" {
   key_vault_key_id = azurerm_key_vault_key.ioweb_audit_logs_01.versionless_id
 }
 
+resource "azurerm_storage_encryption_scope" "rejected_logins_logs" {
+  name               = "rejectedloginslogs01"
+  storage_account_id = module.storage_accounts.audit.id
+  source             = "Microsoft.KeyVault"
+
+  key_vault_key_id = module.key_vaults.rejected_logins_01.versionless_id
+}
+
 module "storage_account_services" {
   source = "../modules/storage_account_services"
 
@@ -81,17 +89,20 @@ module "storage_account_audit_services" {
 
   containers = [
     local.lv_audit_logs_container_name,
-    local.immutable_audit_logs_container_name
+    local.immutable_audit_logs_container_name,
+    local.rejected_login_logs_container_name
   ]
 
   immutability_policies = {
     (local.lv_audit_logs_container_name)        = "731"
     (local.immutable_audit_logs_container_name) = "738"
+    (local.rejected_login_logs_container_name)  = "731"
   }
 
   encryption_scopes = {
     (local.lv_audit_logs_container_name)        = azurerm_storage_encryption_scope.lvlogs.name
     (local.immutable_audit_logs_container_name) = azurerm_storage_encryption_scope.ioweb_audit_logs.name
+    (local.rejected_login_logs_container_name)  = azurerm_storage_encryption_scope.rejected_logins_logs.name
   }
 
   tags = local.tags

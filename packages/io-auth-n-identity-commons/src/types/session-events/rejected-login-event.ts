@@ -3,7 +3,6 @@ import {
   FiscalCode,
   IPString,
   NonEmptyString,
-  PatternString,
 } from "@pagopa/ts-commons/lib/strings";
 import { enumType } from "@pagopa/ts-commons/lib/types";
 import * as t from "io-ts";
@@ -34,9 +33,6 @@ export const BaseRejectedLoginEventContent = t.intersection([
     // Timestamp of the rejected login event
     ts: DateFromTimestamp,
 
-    // Date of the SPID request / response in YYYY-MM-DD format
-    createdAtDay: PatternString("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"),
-
     // IP of the client that made a SPID login action
     ip: t.string.pipe(IPString),
   }),
@@ -53,6 +49,7 @@ export const AgeBlockRejectedLogin = t.intersection([
   t.type({
     rejectionCause: t.literal(RejectedLoginCauseEnum.AGE_BLOCK),
     minimumAge: t.number,
+    dateOfBirth: t.string,
   }),
   BaseRejectedLoginEventContent,
 ]);
@@ -70,7 +67,7 @@ export const UserMismatchRejectedLogin = t.intersection([
   t.type({
     rejectionCause: t.literal(RejectedLoginCauseEnum.CF_MISMATCH),
     // The fiscal code of the currently authenticated user in the app.
-    currentFiscalCode: Sha256HexString,
+    currentFiscalCodeHash: Sha256HexString,
   }),
   BaseRejectedLoginEventContent,
 ]);

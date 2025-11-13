@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.17.0
+
+### Minor Changes
+
+- abaa7d7: Remove old WEU `OnProfileUpdate` trigger
+
 ## 1.16.2
 
 ### Patch Changes

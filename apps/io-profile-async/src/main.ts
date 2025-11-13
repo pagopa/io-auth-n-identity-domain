@@ -77,11 +77,6 @@ const HTML_TO_TEXT_OPTIONS: HtmlToTextOptions = {
   tables: true
 };
 
-const profileEmailTableClient = TableClient.fromConnectionString(
-  config.AZURE_STORAGE_CONNECTION_STRING,
-  config.PROFILE_EMAIL_STORAGE_TABLE_NAME
-);
-
 const itnProfileEmailTableClient = TableClient.fromConnectionString(
   config.AZURE_STORAGE_CONNECTION_STRING_ITN,
   config.PROFILE_EMAIL_STORAGE_TABLE_NAME_ITN
@@ -89,11 +84,6 @@ const itnProfileEmailTableClient = TableClient.fromConnectionString(
 
 const profileModel = new ProfileModel(
   cosmosApiDatabase.container(PROFILE_COLLECTION_NAME)
-);
-
-// TODO: cleanup after ITN migration
-const dataTableProfileEmailsRepository = new DataTableProfileEmailsRepository(
-  profileEmailTableClient
 );
 
 const itnDataTableProfileEmailsRepository = new DataTableProfileEmailsRepository(
@@ -105,7 +95,7 @@ const sessionNotificationsModel = new SessionNotificationsModel(
 );
 
 export const Info = InfoFunction({
-  connectionString: config.AZURE_STORAGE_CONNECTION_STRING,
+  connectionString: config.AZURE_STORAGE_CONNECTION_STRING_ITN,
   cosmosApiDb: cosmosApiDatabase,
   citizenAuthDb: citizenAuthDatabase
 });
@@ -134,16 +124,6 @@ export const MigrateServicePreferenceFromLegacy = MigrateServicePreferenceFromLe
     telemetryClient
   }
 );
-
-export const OnProfileUpdate = OnProfileUpdateFunction({
-  ProfileRepository,
-  ProfileEmailRepository,
-  TrackerRepository: tracker,
-  profileModel,
-  dataTableProfileEmailsRepository,
-  telemetryClient,
-  inputDecoder: OnProfileUpdateFunctionInput
-});
 
 export const OnProfileUpdateItn = OnProfileUpdateFunction({
   ProfileRepository,

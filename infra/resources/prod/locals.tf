@@ -41,6 +41,8 @@ locals {
 
   validation_tokens_table_name = "validationtokens01"
 
+  rejected_login_logs_container_name = "rejected-login-logs-01"
+
   tags = {
     CreatedBy      = "Terraform"
     Environment    = "Prod"

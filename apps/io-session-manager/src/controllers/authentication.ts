@@ -7,6 +7,11 @@ import {
   LoginTypeEnum as ServiceBusLoginTypeEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/login-event";
 
+import {
+  BaseRejectedLoginEventContent,
+  RejectedLoginCauseEnum,
+  RejectedLoginEvent,
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
 import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
@@ -37,6 +42,8 @@ import * as B from "fp-ts/lib/boolean";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as RR from "fp-ts/lib/ReadonlyRecord";
 import * as O from "fp-ts/Option";
+import * as RT from "fp-ts/ReaderTask";
+import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import {
   ClientErrorRedirectionUrlParams,
@@ -79,6 +86,7 @@ import {
   WalletToken,
   ZendeskToken,
 } from "../types/token";
+import { SpidUser } from "../types/user";
 import { AppInsightsDeps } from "../utils/appinsights";
 import {
   getIsUserElegibleForCIETestEnv,
@@ -189,6 +197,15 @@ export const acs: (
 
     const spidUser = errorOrSpidUser.right;
 
+    const req = spidUser.getAcsOriginalRequest();
+    // Retrieve user IP from request
+    const errorOrUserIp = IPString.decode(req?.ip);
+
+    if (E.isLeft(errorOrUserIp)) {
+      return validationCookieClearanceErrorInternal("Error reading user IP");
+    }
+    const requestIp = errorOrUserIp.right;
+
     // Validates AdditionalLoginProps.currentUser if provided
     const currentUserValidationResult = validateCurrentUser(additionalProps);
 
@@ -205,7 +222,14 @@ export const acs: (
       );
     }
 
-    if (isDifferentUserTryingToLogin(spidUser.fiscalNumber, additionalProps)) {
+    const currentUserFiscalCodeOption = currentUserValidationResult.right;
+
+    if (
+      isDifferentUserTryingToLogin(
+        spidUser.fiscalNumber,
+        currentUserFiscalCodeOption,
+      )
+    ) {
       // In Case of provided currentUser, we check if it match the spidUser.fiscalNumber in SAMLResponse
       // In case not we will block the login cause a different user is attempting an "active session login"
       const redirectionUrl = deps.getClientErrorRedirectionUrl({
@@ -224,6 +248,15 @@ export const acs: (
           samplingEnabled: "false",
         },
       });
+
+      const rejectedLoginEvent: RejectedLoginEvent = {
+        ...buildBaseRejectedLoginEvent(spidUser, requestIp),
+        rejectionCause: RejectedLoginCauseEnum.CF_MISMATCH,
+        currentFiscalCodeHash: currentUserFiscalCodeOption.value,
+      };
+
+      // emit event for Audit Logs (Failsafe in case of error emit custom event) fire and forget
+      await emitRejectedLoginEventWithTelemetry(rejectedLoginEvent)(deps)();
 
       return pipe(
         deps.isUserElegibleForIoLoginUrlScheme(spidUser.fiscalNumber),
@@ -271,6 +304,16 @@ export const acs: (
         },
       });
 
+      const rejectedLoginEvent: RejectedLoginEvent = {
+        ...buildBaseRejectedLoginEvent(spidUser, requestIp),
+        rejectionCause: RejectedLoginCauseEnum.AGE_BLOCK,
+        minimumAge: AGE_LIMIT,
+        dateOfBirth: spidUser.dateOfBirth,
+      };
+
+      // emit event for Audit Logs (Failsafe in case of error emit custom event) fire and forget
+      await emitRejectedLoginEventWithTelemetry(rejectedLoginEvent)(deps)();
+
       return pipe(
         deps.isUserElegibleForIoLoginUrlScheme(spidUser.fiscalNumber),
         B.fold(
@@ -299,14 +342,6 @@ export const acs: (
         : [deps.standardTokenDurationSecs, deps.standardTokenDurationSecs];
 
     const userSessionExpiration = addSeconds(new Date(), lollipopKeyTTL);
-
-    const req = spidUser.getAcsOriginalRequest();
-    // Retrieve user IP from request
-    const errorOrUserIp = IPString.decode(req?.ip);
-
-    if (isUserElegibleForFastLoginResult && E.isLeft(errorOrUserIp)) {
-      return validationCookieClearanceErrorInternal("Error reading user IP");
-    }
 
     //
     // create a new user object
@@ -364,6 +399,14 @@ export const acs: (
 
     const isBlockedUser = errorOrIsBlockedUser.right;
     if (isBlockedUser) {
+      const rejectedLoginEvent: RejectedLoginEvent = {
+        ...buildBaseRejectedLoginEvent(spidUser, requestIp),
+        rejectionCause: RejectedLoginCauseEnum.ONGOING_USER_DELETION,
+      };
+
+      // emit event for Audit Logs (Failsafe in case of error emit custom event) fire and forget
+      await emitRejectedLoginEventWithTelemetry(rejectedLoginEvent)(deps)();
+
       return validationCookieClearanceErrorForbidden;
     }
 
@@ -383,6 +426,15 @@ export const acs: (
         log.error(
           `acs: ${sha256(spidUser.fiscalNumber)} - The user profile is locked.`,
         );
+
+        const rejectedLoginEvent: RejectedLoginEvent = {
+          ...buildBaseRejectedLoginEvent(spidUser, requestIp),
+          rejectionCause: RejectedLoginCauseEnum.AUTH_LOCK,
+        };
+
+        // emit event for Audit Logs (Failsafe in case of error emit custom event) fire and forget
+        await emitRejectedLoginEventWithTelemetry(rejectedLoginEvent)(deps)();
+
         return pipe(
           deps.isUserElegibleForIoLoginUrlScheme(spidUser.fiscalNumber),
           B.fold(
@@ -784,11 +836,7 @@ export const acs: (
             E.chainW(E.fromNullable(null)),
             E.getOrElse(() => "Sconosciuto"),
           ),
-          ip_address: pipe(
-            errorOrUserIp,
-            // we've already checked errorOrUserIp, this will never happen
-            E.getOrElse(() => ""),
-          ),
+          ip_address: requestIp,
           is_email_validated: userHasEmailValidated,
           name: user.name,
         },
@@ -887,20 +935,17 @@ export const acs: (
 
 const isDifferentUserTryingToLogin = (
   spidUserFiscalCode: FiscalCode,
-  additionalProps?: AdditionalLoginPropsT,
-): boolean =>
-  pipe(
-    additionalProps?.currentUser,
-    O.fromNullable,
-    O.exists((c) => c !== sha256(spidUserFiscalCode)),
-  );
+  currentUserFiscalCodeOption: O.Option<string>,
+): currentUserFiscalCodeOption is O.Some<string> =>
+  O.isSome(currentUserFiscalCodeOption) &&
+  currentUserFiscalCodeOption.value !== sha256(spidUserFiscalCode);
 
 // If not provided currentUser is valid
 const validateCurrentUser = (
   additionalProps?: AdditionalLoginPropsT,
-): E.Either<string, void> => {
+): E.Either<string, O.Option<Sha256HexString>> => {
   if (!additionalProps?.currentUser) {
-    return E.right(void 0);
+    return E.right(O.none);
   }
 
   return pipe(
@@ -910,9 +955,52 @@ const validateCurrentUser = (
       (errs) =>
         `Invalid currentUser: not a valid sha256HexString (${errorsToReadableMessages(errs).join(" / ")})`,
     ),
-    E.map(() => void 0),
+    E.map(O.some),
   );
 };
+
+const extractLoginIdFromResponse = (
+  spidUser: SpidUser,
+): O.Option<NonEmptyString> =>
+  pipe(
+    safeXMLParseFromString(spidUser.getSamlResponseXml()),
+    O.chain(
+      flow(getRequestIDFromResponse, NonEmptyString.decode, O.fromEither),
+    ),
+  );
+
+export const buildBaseRejectedLoginEvent = (
+  spidUser: SpidUser,
+  requestIp: IPString,
+): BaseRejectedLoginEventContent => ({
+  eventType: EventTypeEnum.REJECTED_LOGIN,
+  fiscalCode: spidUser.fiscalNumber,
+  ts: new Date(),
+  ip: requestIp,
+  loginId: O.toUndefined(extractLoginIdFromResponse(spidUser)),
+});
+
+// emit event on RejectionLogin
+// on Faliure write a customEvent
+const emitRejectedLoginEventWithTelemetry =
+  (event: RejectedLoginEvent): RT.ReaderTask<AcsDependencies, void> =>
+  (deps) =>
+    pipe(
+      AuthSessionEventsRepo.emitAuthSessionEvent(event)(deps),
+      TE.getOrElseW((err) => {
+        deps.appInsightsTelemetryClient?.trackEvent({
+          name: "acs.error.rejected_login_event.emit_failed",
+          properties: {
+            message: err.message,
+            stack: err.stack ?? "",
+            ...event,
+          },
+          tagOverrides: { samplingEnabled: "false" },
+        });
+        return T.of(void 0);
+      }),
+    );
+
 export const acsTest: (
   userPayload: unknown,
 ) => (

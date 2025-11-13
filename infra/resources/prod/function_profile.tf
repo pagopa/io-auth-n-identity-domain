@@ -168,22 +168,9 @@ module "function_profile_autoscale" {
   }
 
   scheduler = {
-    high_load = {
-      name    = "evening"
-      minimum = 10
-      default = 10
-      start = {
-        hour    = 19
-        minutes = 30
-      }
-      end = {
-        hour    = 22
-        minutes = 59
-      }
-    },
     normal_load = {
-      minimum = 15
-      default = 15
+      minimum = 20
+      default = 20
     },
     maximum = 30
   }

@@ -52,3 +52,22 @@ resource "azurerm_key_vault_key" "lv_logs_01" {
 
   tags = var.tags
 }
+
+
+resource "azurerm_key_vault_key" "rejected_logins_01" {
+  name         = "rejected-logins-logs-storage-01"
+  key_vault_id = azurerm_key_vault.auth.id
+  key_type     = "RSA"
+  key_size     = 4096
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey"
+  ]
+
+  tags = var.tags
+}
