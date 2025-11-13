@@ -354,7 +354,7 @@ describe("activatePubKey |> Success Results", () => {
       const assertionBlob = await pipe(
         getBlobAsText(
           blobService,
-          LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME,
+          LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
         )(randomAssertionFileName)
       )();
 

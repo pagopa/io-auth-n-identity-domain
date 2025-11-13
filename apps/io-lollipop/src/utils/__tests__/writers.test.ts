@@ -158,7 +158,7 @@ describe("AssertionWriter", () => {
 
     const result = await writer(assertionFileName, assertion)();
 
-    expect(result).toEqual(E.left({kind: "Internal", message: err.message, detail: err.detail}));
+    expect(result).toEqual(E.left({ kind: "Internal", message: err.message, detail: err.detail }));
     expect(blobUtils.upsertBlobFromText).not.toHaveBeenCalled();
   });
 
@@ -169,6 +169,6 @@ describe("AssertionWriter", () => {
 
     const result = await writer(assertionFileName, assertion)();
 
-    expect(result).toMatchObject(E.left({kind: "Internal", message: err.message, detail: err.detail}));
+    expect(result).toMatchObject(E.left({ kind: "Internal", message: err.message, detail: err.detail }));
   });
 });
