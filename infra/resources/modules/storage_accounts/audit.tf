@@ -53,7 +53,7 @@ resource "azurerm_storage_management_policy" "delete_after_2yrs" {
     }
     filters {
       blob_types   = ["blockBlob"]
-      prefix_match = ["lv-logs-01/logs"]
+      prefix_match = ["lv-logs-01/"]
     }
   }
 
@@ -73,7 +73,7 @@ resource "azurerm_storage_management_policy" "delete_after_2yrs" {
     }
     filters {
       blob_types   = ["blockBlob"]
-      prefix_match = ["ioweb-auditlogs-01/auditlogs"]
+      prefix_match = ["ioweb-auditlogs-01/"]
     }
   }
 
@@ -94,7 +94,7 @@ resource "azurerm_storage_management_policy" "delete_after_2yrs" {
     }
     filters {
       blob_types   = ["blockBlob"]
-      prefix_match = ["rejected-login-logs-01"]
+      prefix_match = ["rejected-login-logs-01/"]
     }
   }
 }
