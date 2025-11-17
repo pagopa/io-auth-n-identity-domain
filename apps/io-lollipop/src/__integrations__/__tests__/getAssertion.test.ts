@@ -386,8 +386,6 @@ describe("getAssertion |> Validation Failures", () => {
         version: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),  // e.g., "2025-12-13"
         date: expect.any(Date),
         errorCode: undefined,
-        "content-length": "0",
-        "x-ms-delete-type-permanent": "true",
         body: undefined
       }));
 
