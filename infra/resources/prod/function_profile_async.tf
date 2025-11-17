@@ -213,7 +213,7 @@ module "function_profile_async_autoscale" {
     requests = {
       statistic_increase        = "Max"
       time_window_increase      = 1
-      time_aggregation          = "Maximum"
+      time_aggregation_increase = "Average"
       upper_threshold           = 2500
       increase_by               = 2
       cooldown_increase         = 1
@@ -231,11 +231,11 @@ module "function_profile_async_autoscale" {
       decrease_by               = 1
       cooldown_increase         = 1
       cooldown_decrease         = 20
-      statistic_increase        = "Max"
+      statistic_increase        = "Average"
       statistic_decrease        = "Average"
-      time_aggregation_increase = "Maximum"
+      time_aggregation_increase = "Average"
       time_aggregation_decrease = "Average"
-      time_window_increase      = 1
+      time_window_increase      = 5
       time_window_decrease      = 5
     }
     memory = null
