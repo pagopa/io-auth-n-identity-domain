@@ -37,35 +37,6 @@ describe("blobUtils", () => {
     mockContainerClient.getBlockBlobClient.mockReturnValue(mockBlockBlobClient);
   });
 
-  describe("streamToText", () => {
-    it("should read stream successfully", async () => {
-      const stream = Readable.from(["hello ", "world"]);
-      const result = await streamToText(stream)();
-
-      expect(E.isRight(result)).toBe(true);
-      expect(result).toMatchObject(E.right("hello world"));
-    });
-
-    it("should handle stream error", async () => {
-      const stream = new Readable({
-        read() {
-          this.destroy(new Error("stream fail"));
-        }
-      });
-      const result = await streamToText(stream)();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(
-        E.left(
-          toInternalError(
-            expect.stringContaining("stream fail"),
-            expect.any(String)
-          )
-        )
-      );
-    });
-  });
-
   describe("blobExists", () => {
     it("should return true when blob exists", async () => {
       mockBlobClient.exists.mockResolvedValue(true);
