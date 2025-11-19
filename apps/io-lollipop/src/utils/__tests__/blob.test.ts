@@ -5,7 +5,7 @@ import {
   blobExists,
   getBlobAsText,
   upsertBlobFromText
-} from "../storage-blob";
+} from "../blob";
 import { toInternalError, toNotFoundError } from "../errors";
 import { pipe } from "fp-ts/lib/function";
 

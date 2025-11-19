@@ -9,7 +9,7 @@ import {
 } from "../model/lollipop_keys";
 import { AssertionFileName } from "../generated/definitions/internal/AssertionFileName";
 import { cosmosErrorsToString, InternalError, toInternalError } from "./errors";
-import { blobExists, upsertBlobFromText } from "./storage-blob";
+import { blobExists, upsertBlobFromText } from "./blob";
 
 export type PopDocumentWriter = (
   item: NewLolliPopPubKeys
