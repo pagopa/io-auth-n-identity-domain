@@ -11,7 +11,7 @@ import {
   RetrievedLolliPopPubKeys
 } from "../model/lollipop_keys";
 import { AssertionFileName } from "../generated/definitions/internal/AssertionFileName";
-import { getBlobAsText } from "./blob";
+import { getBlobAsText } from "./storage-blob";
 import {
   cosmosErrorsToString,
   toInternalError,

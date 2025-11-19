@@ -82,33 +82,33 @@ const downloadBlob = (
 ) => (
   blobName: string
 ): TE.TaskEither<NotFoundError | InternalError, NodeJS.ReadableStream> =>
-  pipe(
-    TE.tryCatch(
-      () =>
-        blobServiceClient
-          .getContainerClient(containerName)
-          .getBlobClient(blobName)
-          .download(),
-      E.toError
-    ),
-    TE.chainW(response =>
-      TE.fromEither(
-        pipe(
-          response.readableStreamBody,
-          O.fromNullable,
-          E.fromOption(() => Error("Blob stream is null or undefined"))
+    pipe(
+      TE.tryCatch(
+        () =>
+          blobServiceClient
+            .getContainerClient(containerName)
+            .getBlobClient(blobName)
+            .download(),
+        E.toError
+      ),
+      TE.chainW(response =>
+        TE.fromEither(
+          pipe(
+            response.readableStreamBody,
+            O.fromNullable,
+            E.fromOption(() => Error("Blob stream is null or undefined"))
+          )
         )
-      )
-    ),
-    TE.mapLeft(error =>
-      error.message.startsWith("The specified blob does not exist.")
-        ? toNotFoundError()
-        : toInternalError(
+      ),
+      TE.mapLeft(error =>
+        error.message.startsWith("The specified blob does not exist.")
+          ? toNotFoundError()
+          : toInternalError(
             `Unable to download assertion blob: ${error.message}`,
             `Unable to download assertion blob`
           )
-    )
-  );
+      )
+    );
 
 /**
  * Downloads a blob from the specified Azure Blob Storage container and returns its content as text.
@@ -123,10 +123,10 @@ export const getBlobAsText = (
   blobServiceClient: BlobServiceClient,
   containerName: string
 ) => (blobName: string): TE.TaskEither<NotFoundError | InternalError, string> =>
-  pipe(
-    downloadBlob(blobServiceClient, containerName)(blobName),
-    TE.chainW(streamToText)
-  );
+    pipe(
+      downloadBlob(blobServiceClient, containerName)(blobName),
+      TE.chainW(streamToText)
+    );
 
 /**
  * Uploads a text content as a blob to the specified Azure Blob Storage container.

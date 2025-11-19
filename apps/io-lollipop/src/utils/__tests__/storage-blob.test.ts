@@ -4,9 +4,8 @@ import { Readable } from "stream";
 import {
   blobExists,
   getBlobAsText,
-  streamToText,
   upsertBlobFromText
-} from "../blob";
+} from "../storage-blob";
 import { toInternalError, toNotFoundError } from "../errors";
 import { pipe } from "fp-ts/lib/function";
 
