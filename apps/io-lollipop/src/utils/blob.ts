@@ -31,8 +31,8 @@ export const getBlobAsText = (
       error.message.startsWith("The specified blob does not exist.")
         ? toNotFoundError()
         : toInternalError(
-            `Unable to download assertion blob: ${error.message}`,
-            `Unable to download assertion blob`
+            `Unable to get assertion blob as text: ${error.message}`,
+            `Unable to get assertion blob as text`
           )
     )
   );
