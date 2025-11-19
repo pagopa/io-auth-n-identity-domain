@@ -8,6 +8,7 @@ import {
 } from "../blob";
 import { toInternalError, toNotFoundError } from "../errors";
 import { pipe } from "fp-ts/lib/function";
+import { RestError } from "@azure/cosmos";
 
 describe("blobUtils", () => {
   const mockBlobServiceClient = {
@@ -25,7 +26,7 @@ describe("blobUtils", () => {
   } as any;
 
   const mockBlockBlobClient = {
-    uploadData: vi.fn()
+    upload: vi.fn()
   } as any;
 
   beforeEach(() => {
@@ -88,7 +89,10 @@ describe("blobUtils", () => {
     });
 
     it("should handle missing blob (NotFoundError)", async () => {
-      const error = new Error("The specified blob does not exist.");
+      const error = new RestError("The specified blob does not exist.", {
+        statusCode: 404,
+        code: "BlobNotFound"
+      });
       mockBlobClient.download.mockRejectedValue(error);
 
       const result = await pipe(
@@ -120,7 +124,7 @@ describe("blobUtils", () => {
 
   describe("upsertBlobFromText", () => {
     it("should upload text successfully", async () => {
-      mockBlockBlobClient.uploadData.mockResolvedValue({});
+      mockBlockBlobClient.upload.mockResolvedValue({});
 
       const result = await upsertBlobFromText(
         mockBlobServiceClient,
@@ -134,7 +138,7 @@ describe("blobUtils", () => {
     });
 
     it("should map upload errors to InternalError", async () => {
-      mockBlockBlobClient.uploadData.mockRejectedValue(
+      mockBlockBlobClient.upload.mockRejectedValue(
         new Error("upload failed")
       );
 

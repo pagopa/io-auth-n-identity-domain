@@ -13,7 +13,7 @@ export const uploadBlobMock = vi.fn(async () => ({ etag: "anEtag" }));
 export const blockBlobClientMock = {
   exists: doesBlobExistMock,
   download: readBlobMock,
-  uploadData: uploadBlobMock,
+  upload: uploadBlobMock,
 };
 
 export const blobServiceMock = ({
