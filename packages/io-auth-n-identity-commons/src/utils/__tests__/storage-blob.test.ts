@@ -33,7 +33,7 @@ describe("BlobUtil", () => {
   } as unknown as Mocked<BlobClient>;
 
   const mockBlockBlobClient = {
-    uploadData: vi.fn(),
+    upload: vi.fn(),
   } as unknown as Mocked<BlockBlobClient>;
 
   beforeEach(() => {
