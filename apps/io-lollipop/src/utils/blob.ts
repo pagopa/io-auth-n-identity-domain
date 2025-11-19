@@ -2,6 +2,7 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { BlobUtil } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
+import { RestError } from "@azure/cosmos";
 import {
   InternalError,
   NotFoundError,
@@ -28,7 +29,7 @@ export const getBlobAsText = (
   pipe(
     BlobUtil.getBlobAsText(blobServiceClient, containerName)(blobName),
     TE.mapLeft(error =>
-      error.message.startsWith("The specified blob does not exist.")
+      error instanceof RestError && error.statusCode === 404
         ? toNotFoundError()
         : toInternalError(
             `Unable to get assertion blob as text: ${error.message}`,
