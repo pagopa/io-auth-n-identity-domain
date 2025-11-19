@@ -10,12 +10,7 @@ import {
   BlockBlobClient,
   ContainerClient,
 } from "@azure/storage-blob";
-import {
-  blobExists,
-  getBlobAsText,
-  streamToText,
-  upsertBlobFromText,
-} from "../storage-blob";
+import { blobExists, getBlobAsText, upsertBlobFromText } from "../storage-blob";
 
 describe("BlobUtil", () => {
   const mockBlobServiceClient = {
@@ -43,28 +38,6 @@ describe("BlobUtil", () => {
     );
     mockContainerClient.getBlobClient.mockReturnValue(mockBlobClient);
     mockContainerClient.getBlockBlobClient.mockReturnValue(mockBlockBlobClient);
-  });
-
-  describe("streamToText", () => {
-    it("should read stream successfully", async () => {
-      const stream = Readable.from(["blob ", "content"]);
-      const result = await streamToText(stream)();
-
-      expect(E.isRight(result)).toBe(true);
-      expect(result).toMatchObject(E.right("blob content"));
-    });
-
-    it("should handle stream error", async () => {
-      const stream = new Readable({
-        read() {
-          this.destroy(new Error("stream fail"));
-        },
-      });
-      const result = await streamToText(stream)();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(E.left(Error("stream fail")));
-    });
   });
 
   describe("blobExists", () => {
