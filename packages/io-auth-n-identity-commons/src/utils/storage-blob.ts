@@ -20,7 +20,7 @@ export const streamToText = (
 
       // eslint-disable-next-line functional/no-let
       let result = "";
-      for await (const chunk of readable as AsyncIterable<string | Buffer>) {
+      for await (const chunk of readable) {
         result += chunk.toString();
       }
       return result;
