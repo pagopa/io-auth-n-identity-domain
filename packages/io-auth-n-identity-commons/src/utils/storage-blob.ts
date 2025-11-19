@@ -124,9 +124,7 @@ export const upsertBlobFromText = (
         blobServiceClient
           .getContainerClient(containerName)
           .getBlockBlobClient(blobName)
-          .uploadData(Buffer.from(content), {
-            blobHTTPHeaders: { blobContentType: "text/plain" },
-          }),
+          .upload(content, content.length),
       E.toError,
     ),
     // When successful, map to void
