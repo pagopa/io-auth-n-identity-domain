@@ -97,7 +97,7 @@ describe("BlobUtil", () => {
 
   describe("getBlobAsText", () => {
     it("should download and read blob successfully", async () => {
-      const mockStream = Readable.from(["blob ", "content"]);
+      const mockStream = Readable.from(["blob", " ", "content"]);
       mockBlobClient.download.mockResolvedValue({
         readableStreamBody: mockStream,
       } as unknown as BlobDownloadResponseParsed);
