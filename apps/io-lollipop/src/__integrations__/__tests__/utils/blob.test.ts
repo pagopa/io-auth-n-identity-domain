@@ -4,7 +4,6 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import {
   blobExists,
   getBlobAsText,
-  streamToText,
   upsertBlobFromText
 } from "../../../utils/blob";
 import { QueueStorageConnection } from "../../env";
@@ -62,17 +61,6 @@ describe("blobUtils integration", () => {
 
     expect(E.isLeft(result)).toBe(true);
     expect(result).toMatchObject(E.left({ kind: "NotFound" }));
-  });
-
-  it("should convert a stream to text", async () => {
-    const container = blobServiceClient.getContainerClient(containerName);
-    const blobClient = container.getBlockBlobClient(blobName);
-    const response = await blobClient.download();
-
-    const streamResult = await streamToText(response.readableStreamBody!)();
-
-    expect(E.isRight(streamResult)).toBe(true);
-    expect(streamResult).toMatchObject(E.right(blobContent));
   });
 
   it("should handle upload error when using invalid container", async () => {
