@@ -21,9 +21,21 @@ import {
   upsertBlobFromText,
 } from "../storage-blob";
 
+// ===============================
+// CONSTANTS AND TEST DATA
+// ===============================
 const CONTAINER_NAME = "test-container";
 const BLOB_NAME = "test-blob.txt";
 
+const CHUNKS = ["This ", "is ", "a ", "test ", "blob."];
+const CONTENT = CHUNKS.join("");
+
+const SHOULD_RETURN_NOT_FOUND_REST_ERROR =
+  "should return a RestError on missing blob";
+
+// ===============================
+// ERROR DEFINITIONS
+// ===============================
 const BLOB_NOT_FOUND_REST_ERROR = new RestError(
   "The specified blob does not exist.",
   {
@@ -31,355 +43,379 @@ const BLOB_NOT_FOUND_REST_ERROR = new RestError(
     code: "BlobNotFound",
   },
 );
-const SHOULD_RETURN_NOT_FOUND_REST_ERROR = "should return a RestError on missing blob";
 
 const GENERIC_ERROR = new Error("Generic error");
 
-const CHUNKS = ["This ", "is ", "a ", "test ", "blob."];
-const CONTENT = CHUNKS.join("");
-
-const blobClientMock = vi.mocked({
+// ===============================
+// MOCKED AZURE CLIENTS
+// ===============================
+const blobClientMock = vi.mocked<BlobClient>({
   exists: vi.fn(),
   download: vi.fn(),
   downloadToBuffer: vi.fn(),
 } as unknown as BlobClient);
 
-const blockBlobClientMock = vi.mocked({
+const blockBlobClientMock = vi.mocked<BlockBlobClient>({
   upload: vi.fn(),
 } as unknown as BlockBlobClient);
 
-const containerClientMock = vi.mocked({
+const containerClientMock = vi.mocked<ContainerClient>({
   getBlobClient: vi.fn(() => blobClientMock),
   getBlockBlobClient: vi.fn(() => blockBlobClientMock),
 } as unknown as ContainerClient);
 
-const blobServiceClientMock = vi.mocked({
+const blobServiceClientMock = vi.mocked<BlobServiceClient>({
   getContainerClient: vi.fn(() => containerClientMock),
 } as unknown as BlobServiceClient);
 
-// eslint-disable-next-line max-lines-per-function
-describe("BlobUtil", () => {
+// ===============================
+// TEST SUITES
+// ===============================
+
+describe("streamToText", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe("streamToText", () => {
-    const STREAM_FAILURE_MESSAGE = "stream fail";
+  const STREAM_FAILURE_MESSAGE = "stream fail";
 
-    it("should read stream successfully", async () => {
-      const stream = Readable.from(CHUNKS);
-      const result = await streamToText(stream)();
+  it("should read stream successfully", async () => {
+    const stream = Readable.from(CHUNKS);
+    const result = await streamToText(stream)();
 
-      expect(E.isRight(result)).toBe(true);
-      expect(result).toMatchObject(E.right(CONTENT));
-    });
-
-    it("should handle async generator stream error", async () => {
-      const stream = Readable.from(
-        // eslint-disable-next-line require-yield
-        (async function* () {
-          throw new Error(STREAM_FAILURE_MESSAGE);
-        })(),
-      );
-      const result = await streamToText(stream)();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(E.left(Error(STREAM_FAILURE_MESSAGE)));
-    });
-
-    it("should handle Readable.destroy error", async () => {
-      const stream = new Readable({
-        read() {
-          this.destroy(new Error(STREAM_FAILURE_MESSAGE));
-        },
-      });
-      const result = await streamToText(stream)();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(E.left(Error(STREAM_FAILURE_MESSAGE)));
-    });
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(CONTENT));
   });
 
-  describe("blobExists", () => {
-    it("should return true when blob exists", async () => {
-      blobClientMock.exists.mockResolvedValue(true);
+  it("should handle async generator stream error", async () => {
+    const stream = Readable.from(
+      // eslint-disable-next-line require-yield
+      (async function* () {
+        throw new Error(STREAM_FAILURE_MESSAGE);
+      })(),
+    );
+    const result = await streamToText(stream)();
 
-      const result = await blobExists(
-        blobServiceClientMock,
-        CONTAINER_NAME,
-        BLOB_NAME,
-      )();
-
-      expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
-        CONTAINER_NAME,
-      );
-      expect(containerClientMock.getBlobClient).toHaveBeenCalledWith(BLOB_NAME);
-      expect(blobClientMock.exists).toHaveBeenCalledOnce();
-
-      expect(E.isRight(result)).toBe(true);
-      expect(result).toMatchObject(E.right(true));
-    });
-
-    it("should return false when blob does not exist", async () => {
-      blobClientMock.exists.mockResolvedValue(false);
-
-      const result = await blobExists(
-        blobServiceClientMock,
-        CONTAINER_NAME,
-        BLOB_NAME,
-      )();
-
-      expect(E.isRight(result)).toBe(true);
-      expect(result).toMatchObject(E.right(false));
-    });
-
-    it("should return an Error on failure", async () => {
-      const error = new Error("Network down");
-      blobClientMock.exists.mockRejectedValue(error);
-
-      const result = await blobExists(
-        blobServiceClientMock,
-        CONTAINER_NAME,
-        BLOB_NAME,
-      )();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(E.left(error));
-    });
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(E.left(Error(STREAM_FAILURE_MESSAGE)));
   });
 
-  describe("downloadBlobToBuffer", () => {
-    it("should download blob to buffer successfully", async () => {
-      const mockBuffer = Buffer.from(CONTENT);
-      blobClientMock.downloadToBuffer.mockResolvedValue(mockBuffer);
-
-      const result = await pipe(
-        downloadBlobToBuffer(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-      )();
-
-      expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
-        CONTAINER_NAME,
-      );
-      expect(containerClientMock.getBlobClient).toHaveBeenCalledWith(BLOB_NAME);
-      expect(blobClientMock.downloadToBuffer).toHaveBeenCalledOnce();
-      expect(blobClientMock.download).not.toHaveBeenCalled();
-
-      expect(E.isRight(result)).toBe(true);
-      expect(result).toMatchObject(E.right(mockBuffer));
+  it("should handle Readable.destroy error", async () => {
+    const stream = new Readable({
+      read() {
+        this.destroy(new Error(STREAM_FAILURE_MESSAGE));
+      },
     });
+    const result = await streamToText(stream)();
 
-    it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
-      blobClientMock.downloadToBuffer.mockRejectedValue(
-        BLOB_NOT_FOUND_REST_ERROR,
-      );
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(E.left(Error(STREAM_FAILURE_MESSAGE)));
+  });
+});
 
-      const result = await pipe(
-        downloadBlobToBuffer(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-      )();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(E.left(BLOB_NOT_FOUND_REST_ERROR));
-    });
+describe("blobExists", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  describe("downloadBlob", () => {
-    it("should download blob successfully", async () => {
-      const readable = Readable.from(CHUNKS);
-      blobClientMock.download.mockResolvedValue({
-        readableStreamBody: readable,
-      } as unknown as BlobDownloadResponseParsed);
+  it("should return true when blob exists", async () => {
+    blobClientMock.exists.mockResolvedValue(true);
 
-      const result = await pipe(
-        downloadBlob(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-      )();
+    const result = await blobExists(
+      blobServiceClientMock,
+      CONTAINER_NAME,
+      BLOB_NAME,
+    )();
 
-      expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
-        CONTAINER_NAME,
-      );
-      expect(containerClientMock.getBlobClient).toHaveBeenCalledWith(BLOB_NAME);
-      expect(blobClientMock.download).toHaveBeenCalledOnce();
-      expect(blobClientMock.downloadToBuffer).not.toHaveBeenCalled();
+    expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
+      CONTAINER_NAME,
+    );
+    expect(containerClientMock.getBlobClient).toHaveBeenCalledWith(BLOB_NAME);
+    expect(blobClientMock.exists).toHaveBeenCalledOnce();
 
-      expect(E.isRight(result)).toBe(true);
-      expect(result).toMatchObject(E.right(readable));
-    });
-
-    it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
-      blobClientMock.download.mockRejectedValue(BLOB_NOT_FOUND_REST_ERROR);
-
-      const result = await pipe(
-        downloadBlob(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-      )();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(E.left(BLOB_NOT_FOUND_REST_ERROR));
-    });
-
-    it("should return an Error with specific message on undefined ReadableStream", async () => {
-      blobClientMock.download.mockResolvedValue({
-        readableStreamBody: undefined,
-      } as unknown as BlobDownloadResponseParsed);
-
-      const result = await pipe(
-        downloadBlob(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-      )();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(
-        E.left(Error("Blob stream is null or undefined")),
-      );
-    });
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(true));
   });
 
-  describe("getBlobToBufferAsText", () => {
-    it("should download blob to buffer as text successfully", async () => {
-      const mockBuffer = Buffer.from(CONTENT);
-      blobClientMock.downloadToBuffer.mockResolvedValue(mockBuffer);
+  it("should return false when blob does not exist", async () => {
+    blobClientMock.exists.mockResolvedValue(false);
 
-      const result = await pipe(
-        getBlobToBufferAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-      )();
+    const result = await blobExists(
+      blobServiceClientMock,
+      CONTAINER_NAME,
+      BLOB_NAME,
+    )();
 
-      expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
-        CONTAINER_NAME,
-      );
-      expect(containerClientMock.getBlobClient).toHaveBeenCalledWith(BLOB_NAME);
-      expect(blobClientMock.downloadToBuffer).toHaveBeenCalledOnce();
-      expect(blobClientMock.download).not.toHaveBeenCalled();
-
-      expect(E.isRight(result)).toBe(true);
-      expect(result).toMatchObject(E.right(CONTENT));
-    });
-
-    it("should return an Error on failure", async () => {
-      blobClientMock.downloadToBuffer.mockRejectedValue(GENERIC_ERROR);
-
-      const result = await pipe(
-        getBlobToBufferAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-      )();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(E.left(GENERIC_ERROR));
-    });
-
-    it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
-      blobClientMock.downloadToBuffer.mockRejectedValue(
-        BLOB_NOT_FOUND_REST_ERROR,
-      );
-
-      const result = await pipe(
-        getBlobToBufferAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-      )();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(E.left(BLOB_NOT_FOUND_REST_ERROR));
-    });
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(false));
   });
 
-  describe("getBlobAsText", () => {
-    it("should download and read blob successfully", async () => {
-      const mockStream = Readable.from(CHUNKS);
-      blobClientMock.download.mockResolvedValue({
-        readableStreamBody: mockStream,
-      } as unknown as BlobDownloadResponseParsed);
+  it("should return an Error on failure", async () => {
+    const error = new Error("Network down");
+    blobClientMock.exists.mockRejectedValue(error);
 
-      const result = await pipe(
-        getBlobAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-      )();
+    const result = await blobExists(
+      blobServiceClientMock,
+      CONTAINER_NAME,
+      BLOB_NAME,
+    )();
 
-      expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
-        CONTAINER_NAME,
-      );
-      expect(containerClientMock.getBlobClient).toHaveBeenCalledWith(BLOB_NAME);
-      expect(blobClientMock.download).toHaveBeenCalledOnce();
-      expect(blobClientMock.downloadToBuffer).not.toHaveBeenCalled();
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(E.left(error));
+  });
+});
 
-      expect(E.isRight(result)).toBe(true);
-      expect(result).toMatchObject(E.right(CONTENT));
-    });
-
-    it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
-      blobClientMock.download.mockRejectedValue(BLOB_NOT_FOUND_REST_ERROR);
-
-      const result = await pipe(
-        getBlobAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-      )();
-      expect(blobClientMock.download).toHaveBeenCalledOnce();
-      expect(blobClientMock.downloadToBuffer).not.toHaveBeenCalled();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(E.left(BLOB_NOT_FOUND_REST_ERROR));
-    });
-
-    it("should return an Error on failures", async () => {
-      const error = new Error("Something went wrong");
-      blobClientMock.download.mockRejectedValue(error);
-
-      const result = await pipe(
-        getBlobAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-      )();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(E.left(Error("Something went wrong")));
-    });
-
-    it("should return an error on undefined readableStreamBody", async () => {
-      blobClientMock.download.mockResolvedValue({
-        readableStreamBody: undefined,
-        _response: {} as unknown,
-      } as unknown as BlobDownloadResponseParsed);
-
-      const result = await pipe(
-        getBlobAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-      )();
-
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(
-        E.left(Error("Blob stream is null or undefined")),
-      );
-    });
+describe("downloadBlobToBuffer", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  describe("upsertBlobFromText", () => {
-    it("should upload text successfully", async () => {
-      blockBlobClientMock.upload.mockResolvedValue(
-        {} as unknown as BlockBlobUploadResponse,
-      );
+  it("should download blob to buffer successfully", async () => {
+    const mockBuffer = Buffer.from(CONTENT);
+    blobClientMock.downloadToBuffer.mockResolvedValue(mockBuffer);
 
-      const result = await upsertBlobFromText(
-        blobServiceClientMock,
-        CONTAINER_NAME,
-        BLOB_NAME,
-        "content",
-      )();
+    const result = await pipe(
+      downloadBlobToBuffer(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
+    )();
 
-      expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
-        CONTAINER_NAME,
-      );
-      expect(containerClientMock.getBlockBlobClient).toHaveBeenCalledWith(
-        BLOB_NAME,
-      );
-      expect(blockBlobClientMock.upload).toHaveBeenCalledWith(
-        "content",
-        "content".length,
-      );
+    expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
+      CONTAINER_NAME,
+    );
+    expect(containerClientMock.getBlobClient).toHaveBeenCalledWith(BLOB_NAME);
+    expect(blobClientMock.downloadToBuffer).toHaveBeenCalledOnce();
+    expect(blobClientMock.download).not.toHaveBeenCalled();
 
-      expect(E.isRight(result)).toBe(true);
-      expect(result).toMatchObject(E.right(undefined));
-    });
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(mockBuffer));
+  });
 
-    it("should return an error on upload failure", async () => {
-      blockBlobClientMock.upload.mockRejectedValue(new Error("upload failed"));
+  it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
+    blobClientMock.downloadToBuffer.mockRejectedValue(
+      BLOB_NOT_FOUND_REST_ERROR,
+    );
 
-      const result = await upsertBlobFromText(
-        blobServiceClientMock,
-        CONTAINER_NAME,
-        BLOB_NAME,
-        "content",
-      )();
+    const result = await pipe(
+      downloadBlobToBuffer(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
+    )();
 
-      expect(E.isLeft(result)).toBe(true);
-      expect(result).toMatchObject(E.left(Error("upload failed")));
-    });
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(E.left(BLOB_NOT_FOUND_REST_ERROR));
+  });
+});
+
+describe("downloadBlob", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should download blob successfully", async () => {
+    const readable = Readable.from(CHUNKS);
+    blobClientMock.download.mockResolvedValue({
+      readableStreamBody: readable,
+    } as unknown as BlobDownloadResponseParsed);
+
+    const result = await pipe(
+      downloadBlob(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
+    )();
+
+    expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
+      CONTAINER_NAME,
+    );
+    expect(containerClientMock.getBlobClient).toHaveBeenCalledWith(BLOB_NAME);
+    expect(blobClientMock.download).toHaveBeenCalledOnce();
+    expect(blobClientMock.downloadToBuffer).not.toHaveBeenCalled();
+
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(readable));
+  });
+
+  it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
+    blobClientMock.download.mockRejectedValue(BLOB_NOT_FOUND_REST_ERROR);
+
+    const result = await pipe(
+      downloadBlob(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
+    )();
+
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(E.left(BLOB_NOT_FOUND_REST_ERROR));
+  });
+
+  it("should return an Error with specific message on undefined ReadableStream", async () => {
+    blobClientMock.download.mockResolvedValue({
+      readableStreamBody: undefined,
+    } as unknown as BlobDownloadResponseParsed);
+
+    const result = await pipe(
+      downloadBlob(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
+    )();
+
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(
+      E.left(Error("Blob stream is null or undefined")),
+    );
+  });
+});
+
+describe("getBlobToBufferAsText", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should download blob to buffer as text successfully", async () => {
+    const mockBuffer = Buffer.from(CONTENT);
+    blobClientMock.downloadToBuffer.mockResolvedValue(mockBuffer);
+
+    const result = await pipe(
+      getBlobToBufferAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
+    )();
+
+    expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
+      CONTAINER_NAME,
+    );
+    expect(containerClientMock.getBlobClient).toHaveBeenCalledWith(BLOB_NAME);
+    expect(blobClientMock.downloadToBuffer).toHaveBeenCalledOnce();
+    expect(blobClientMock.download).not.toHaveBeenCalled();
+
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(CONTENT));
+  });
+
+  it("should return an Error on failure", async () => {
+    blobClientMock.downloadToBuffer.mockRejectedValue(GENERIC_ERROR);
+
+    const result = await pipe(
+      getBlobToBufferAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
+    )();
+
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(E.left(GENERIC_ERROR));
+  });
+
+  it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
+    blobClientMock.downloadToBuffer.mockRejectedValue(
+      BLOB_NOT_FOUND_REST_ERROR,
+    );
+
+    const result = await pipe(
+      getBlobToBufferAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
+    )();
+
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(E.left(BLOB_NOT_FOUND_REST_ERROR));
+  });
+});
+
+describe("getBlobAsText", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should download and read blob successfully", async () => {
+    const mockStream = Readable.from(CHUNKS);
+    blobClientMock.download.mockResolvedValue({
+      readableStreamBody: mockStream,
+    } as unknown as BlobDownloadResponseParsed);
+
+    const result = await pipe(
+      getBlobAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
+    )();
+
+    expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
+      CONTAINER_NAME,
+    );
+    expect(containerClientMock.getBlobClient).toHaveBeenCalledWith(BLOB_NAME);
+    expect(blobClientMock.download).toHaveBeenCalledOnce();
+    expect(blobClientMock.downloadToBuffer).not.toHaveBeenCalled();
+
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(CONTENT));
+  });
+
+  it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
+    blobClientMock.download.mockRejectedValue(BLOB_NOT_FOUND_REST_ERROR);
+
+    const result = await pipe(
+      getBlobAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
+    )();
+    expect(blobClientMock.download).toHaveBeenCalledOnce();
+    expect(blobClientMock.downloadToBuffer).not.toHaveBeenCalled();
+
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(E.left(BLOB_NOT_FOUND_REST_ERROR));
+  });
+
+  it("should return an Error on failures", async () => {
+    const error = new Error("Something went wrong");
+    blobClientMock.download.mockRejectedValue(error);
+
+    const result = await pipe(
+      getBlobAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
+    )();
+
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(E.left(Error("Something went wrong")));
+  });
+
+  it("should return an error on undefined readableStreamBody", async () => {
+    blobClientMock.download.mockResolvedValue({
+      readableStreamBody: undefined,
+      _response: {} as unknown,
+    } as unknown as BlobDownloadResponseParsed);
+
+    const result = await pipe(
+      getBlobAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
+    )();
+
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(
+      E.left(Error("Blob stream is null or undefined")),
+    );
+  });
+});
+
+describe("upsertBlobFromText", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should upload text successfully", async () => {
+    blockBlobClientMock.upload.mockResolvedValue(
+      {} as unknown as BlockBlobUploadResponse,
+    );
+
+    const result = await upsertBlobFromText(
+      blobServiceClientMock,
+      CONTAINER_NAME,
+      BLOB_NAME,
+      "content",
+    )();
+
+    expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
+      CONTAINER_NAME,
+    );
+    expect(containerClientMock.getBlockBlobClient).toHaveBeenCalledWith(
+      BLOB_NAME,
+    );
+    expect(blockBlobClientMock.upload).toHaveBeenCalledWith(
+      "content",
+      "content".length,
+    );
+
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(undefined));
+  });
+
+  it("should return an error on upload failure", async () => {
+    blockBlobClientMock.upload.mockRejectedValue(new Error("upload failed"));
+
+    const result = await upsertBlobFromText(
+      blobServiceClientMock,
+      CONTAINER_NAME,
+      BLOB_NAME,
+      "content",
+    )();
+
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toMatchObject(E.left(Error("upload failed")));
   });
 });
