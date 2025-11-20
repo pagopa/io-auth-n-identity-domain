@@ -3,10 +3,10 @@ import * as E from "fp-ts/Either";
 import { BlobServiceClient } from "@azure/storage-blob";
 import {
   blobExists,
-  getBlobAsText,
+  getBlobToBufferAsText,
   upsertBlobFromText
-} from "../../../utils/blob";
-import { QueueStorageConnection } from "../../env";
+} from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
+import { QueueStorageConnection } from "../env";
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(
   QueueStorageConnection
@@ -43,7 +43,7 @@ describe("blobUtils integration", () => {
     expect(existsResult).toMatchObject(E.right(true));
 
     // Download blob content
-    const downloadResult = await getBlobAsText(
+    const downloadResult = await getBlobToBufferAsText(
       blobServiceClient,
       containerName
     )(blobName)();
@@ -54,7 +54,7 @@ describe("blobUtils integration", () => {
 
   it("should return NotFoundError when blob does not exist", async () => {
     // Attempt to download a non-existing blob
-    const result = await getBlobAsText(
+    const result = await getBlobToBufferAsText(
       blobServiceClient,
       containerName
     )("missing-blob.txt")();
@@ -102,7 +102,7 @@ describe("blobUtils integration", () => {
     expect(E.isRight(secondUpload)).toBe(true);
 
     // Download to verify content
-    const downloadResult = await getBlobAsText(
+    const downloadResult = await getBlobToBufferAsText(
       blobServiceClient,
       containerName
     )(blobName)();
