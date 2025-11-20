@@ -1,16 +1,48 @@
 import { BlobServiceClient } from "@azure/storage-blob";
 import { pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 
 /**
- * Checks if a blob exists in the specified Azure Blob Storage container.
+ * Converts a Node.js Readable stream into a UTF-8 string.
  *
- * @param blobServiceClient - The Azure BlobServiceClient instance used to interact with Blob Storage.
- * @param containerName - The name of the container where the blob is stored.
- * @param blobName - The name of the blob to check for existence.
- * @returns A TaskEither that resolves to true if the blob exists, false otherwise,
- *          or an Error on failure.
+ * This helper consumes the stream chunk-by-chunk using `for await`, respecting
+ * backpressure and avoiding large temporary buffers.
+ *
+ * @param readable - The ReadableStream to consume.
+ *
+ * @returns A `TaskEither<Error, string>` which:
+ *   - resolves with the entire UTF-8 decoded text, or
+ *   - rejects with an `Error` if streaming fails (I/O error, aborted stream, etc.).
+ */
+export const streamToText = (
+  readable: NodeJS.ReadableStream,
+): TE.TaskEither<Error, string> =>
+  pipe(
+    TE.tryCatch(async () => {
+      readable.setEncoding("utf8");
+
+      // eslint-disable-next-line functional/no-let
+      let result = "";
+      for await (const chunk of readable) {
+        result += chunk.toString();
+      }
+      return result;
+    }, E.toError),
+  );
+
+/**
+ * Checks whether a blob exists in a given Azure Blob Storage container.
+ *
+ * @param blobServiceClient - A `BlobServiceClient` used to access the storage account.
+ * @param containerName - Name of the container to inspect.
+ * @param blobName - Name of the blob to test for existence.
+ *
+ * @returns A `TaskEither<Error, boolean>` which:
+ *   - resolves to `true` if the blob exists,
+ *   - resolves to `false` if it does not exist,
+ *   - rejects with an `Error` if the existence check fails.
  */
 export const blobExists = (
   blobServiceClient: BlobServiceClient,
@@ -29,15 +61,26 @@ export const blobExists = (
   );
 
 /**
- * Downloads a blob from the specified Azure Blob Storage container and returns its content as a Buffer.
+ * Downloads a blob into memory and returns its full contents as a `Buffer`.
  *
- * @param blobServiceClient - The Azure BlobServiceClient instance used to interact with Blob Storage.
- * @param containerName - The name of the container where the blob is stored.
- * @param blobName - The name of the blob to be downloaded.
- * @returns A TaskEither that resolves to the blob content as a Buffer on success,
- *          or an Error if the blob does not exist or on other failures.
+ * @param blobServiceClient - A `BlobServiceClient` used to access the storage account.
+ * @param containerName - Name of the container containing the blob.
+ *
+ * @returns A function that takes a `blobName` and produces a
+ *   `TaskEither<Error, Buffer>` which:
+ *     - resolves with the full blob content as a Buffer,
+ *     - rejects if the blob does not exist,
+ *     - rejects on network, authentication, or I/O errors.
+ *
+ * @remarks
+ * This performs a **full in-memory download** via `downloadToBuffer()`.
+ *
+ * Prefer this only for **small/medium-sized blobs**, because the entire blob
+ * is allocated on the Node.js heap. Large blobs can exhaust memory or trigger
+ * heavy garbage collection pauses. For large files, use streaming via
+ * `downloadBlob()` instead.
  */
-const downloadBlob =
+export const downloadBlobToBuffer =
   (blobServiceClient: BlobServiceClient, containerName: string) =>
   (blobName: string): TE.TaskEither<Error, Buffer> =>
     pipe(
@@ -52,31 +95,122 @@ const downloadBlob =
     );
 
 /**
- * Downloads a blob from the specified Azure Blob Storage container and returns its content as text.
+ * Downloads a blob and returns its content as a Node.js Readable stream.
  *
- * @param blobServiceClient - The Azure BlobServiceClient instance used to interact with Blob Storage.
- * @param containerName - The name of the container where the blob is stored.
- * @param blobName - The name of the blob to be downloaded.
- * @returns A TaskEither that resolves to the blob content as a string on success,
- *          or an Error if the blob does not exist or on other failures.
+ * @param blobServiceClient - A `BlobServiceClient` used to access the storage account.
+ * @param containerName - Name of the container containing the blob.
+ *
+ * @returns A function that takes a `blobName` and produces a
+ *   `TaskEither<Error, NodeJS.ReadableStream>` which:
+ *     - resolves with a readable stream of the blob contents,
+ *     - rejects if the blob does not exist,
+ *     - rejects if the service returns a response without a stream,
+ *     - rejects on network or service errors.
+ *
+ * @remarks
+ * This uses the `download()` API, which returns a streaming response.
+ * Streaming is recommended for **large blobs**, because:
+ *
+ *   - the data is processed incrementally,
+ *   - memory consumption is constant and low,
+ *   - backpressure is respected automatically,
+ *   - you can pipe directly to files, HTTP responses, or parsers.
+ */
+export const downloadBlob =
+  (blobServiceClient: BlobServiceClient, containerName: string) =>
+  (blobName: string): TE.TaskEither<Error, NodeJS.ReadableStream> =>
+    pipe(
+      TE.tryCatch(
+        () =>
+          blobServiceClient
+            .getContainerClient(containerName)
+            .getBlobClient(blobName)
+            .download(),
+        E.toError,
+      ),
+      TE.chainW((response) =>
+        TE.fromEither(
+          pipe(
+            // Extract the readable stream from the response.
+            // This should always be defined for successful downloads,
+            // but we guard against null/undefined just in case.
+            response.readableStreamBody,
+            O.fromNullable,
+            E.fromOption(() => Error("Blob stream is null or undefined")),
+          ),
+        ),
+      ),
+    );
+
+/**
+ * Downloads a blob fully into memory and returns its UTF-8 text content.
+ *
+ * @param blobServiceClient - A `BlobServiceClient` used to access the storage account.
+ * @param containerName - Name of the container containing the blob.
+ *
+ * @returns A function that takes a `blobName` and produces a
+ *   `TaskEither<Error, string>` which:
+ *     - resolves with the blob content decoded as UTF-8 text,
+ *     - rejects if the blob does not exist,
+ *     - rejects on network or download errors.
+ *
+ * @remarks
+ * This is a convenience wrapper around:
+ *   1. `downloadBlobToBuffer`
+ *   2. `buffer.toString("utf-8")`
+ *
+ * Use this only for reasonably small blobs, as the entire file must fit
+ * into memory. For large blobs, prefer `getBlobAsText` which streams the
+ * content instead.
+ */
+export const getBlobToBufferAsText =
+  (blobServiceClient: BlobServiceClient, containerName: string) =>
+  (blobName: string): TE.TaskEither<Error, string> =>
+    pipe(
+      downloadBlobToBuffer(blobServiceClient, containerName)(blobName),
+      TE.map((buffer) => buffer.toString("utf-8")),
+    );
+
+/**
+ * Streams a blob from Azure Blob Storage and returns its content as UTF-8 text.
+ *
+ * @param blobServiceClient - A `BlobServiceClient` used to access the storage account.
+ * @param containerName - Name of the container containing the blob.
+ *
+ * @returns A function that takes a `blobName` and produces a
+ *   `TaskEither<Error, string>` which:
+ *     - resolves with the blob’s text content,
+ *     - rejects if the blob does not exist,
+ *     - rejects on streaming/network/service errors.
+ *
+ * @remarks
+ * This function:
+ *   1. downloads the blob via streaming (`download()`),
+ *   2. converts the stream incrementally to text using `streamToText`.
+ *
+ * This approach is more memory-efficient than `getBlobToBufferAsText`, making it
+ * more appropriate for **large blobs** or high-concurrency workloads.
  */
 export const getBlobAsText =
   (blobServiceClient: BlobServiceClient, containerName: string) =>
   (blobName: string): TE.TaskEither<Error, string> =>
     pipe(
       downloadBlob(blobServiceClient, containerName)(blobName),
-      TE.map((buffer) => buffer.toString("utf-8")),
+      TE.chainW(streamToText),
     );
 
 /**
- * Uploads a text content as a blob to the specified Azure Blob Storage container.
- * If the blob already exists, it will be overwritten.
+ * Uploads a UTF-8 string as a blob to Azure Blob Storage, overwriting any
+ * existing blob with the same name.
  *
- * @param blobServiceClient - The Azure BlobServiceClient instance used to interact with Blob Storage.
- * @param containerName - The name of the container where the blob will be uploaded.
- * @param blobName - The name to assign to the uploaded blob.
- * @param content - The string content to be uploaded as the blob.
- * @returns A TaskEither that resolves to void on success, or an Error on failure.
+ * @param blobServiceClient - A `BlobServiceClient` used to access the storage account.
+ * @param containerName - Name of the container where the blob will be written.
+ * @param blobName - Name of the blob to create or overwrite.
+ * @param content - The string to upload.
+ *
+ * @returns A `TaskEither<Error, void>` which:
+ *   - resolves on successful upload,
+ *   - rejects on network, authentication, or service errors.
  */
 export const upsertBlobFromText = (
   blobServiceClient: BlobServiceClient,
@@ -100,7 +234,11 @@ export const upsertBlobFromText = (
 
 export type BlobUtil = typeof BlobUtil;
 export const BlobUtil = {
+  streamToText,
   blobExists,
+  downloadBlobToBuffer,
+  downloadBlob,
   getBlobAsText,
+  getBlobToBufferAsText,
   upsertBlobFromText,
 };
