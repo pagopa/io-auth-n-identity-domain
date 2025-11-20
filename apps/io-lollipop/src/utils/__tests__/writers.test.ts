@@ -28,15 +28,16 @@ import {
   toEncodedJwk
 } from "../../__mocks__/lollipopPubKey.mock";
 
-import * as blobUtils from "../blob";
+import * as BlobUtils from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import { AssertionFileName } from "../../generated/definitions/internal/AssertionFileName";
-import { blobServiceMock } from "../../__mocks__/blobService.mock";
+import { blobServiceClientMock } from "../../__mocks__/blobService.mock";
 import { toInternalError } from "../errors";
+import { RestError } from "@azure/storage-blob";
 
 // --------------------------
 // Mocks
 // --------------------------
-vi.mock("../blob", async () => ({
+vi.mock("@pagopa/io-auth-n-identity-commons/utils/storage-blob", async () => ({
   blobExists: vi.fn(),
   upsertBlobFromText: vi.fn()
 }));
@@ -109,7 +110,7 @@ describe("PopDocumentWriter", () => {
 });
 
 describe("AssertionWriter", () => {
-  const mockBlobServiceClient = blobServiceMock;
+  const mockBlobServiceClient = blobServiceClientMock;
   const containerName = "container-name" as NonEmptyString;
   const assertionFileName = "assertion1.txt" as AssertionFileName;
   const assertion = "some assertion text" as NonEmptyString;
@@ -122,18 +123,18 @@ describe("AssertionWriter", () => {
 
 
   it("should write the assertion when the blob does not exist", async () => {
-    vi.mocked(blobUtils.blobExists).mockReturnValue(TE.right(false));
-    vi.mocked(blobUtils.upsertBlobFromText).mockReturnValue(TE.right(undefined));
+    vi.mocked(BlobUtils.blobExists).mockReturnValue(TE.right(false));
+    vi.mocked(BlobUtils.upsertBlobFromText).mockReturnValue(TE.right(undefined));
 
     const result = await writer(assertionFileName, assertion)();
 
     expect(result).toEqual(E.right(true));
-    expect(blobUtils.blobExists).toHaveBeenCalledWith(
+    expect(BlobUtils.blobExists).toHaveBeenCalledWith(
       mockBlobServiceClient,
       containerName,
       assertionFileName
     );
-    expect(blobUtils.upsertBlobFromText).toHaveBeenCalledWith(
+    expect(BlobUtils.upsertBlobFromText).toHaveBeenCalledWith(
       mockBlobServiceClient,
       containerName,
       assertionFileName,
@@ -142,33 +143,33 @@ describe("AssertionWriter", () => {
   });
 
   it("should fail if the blob already exists", async () => {
-    vi.mocked(blobUtils.blobExists).mockReturnValue(TE.right(true));
+    vi.mocked(BlobUtils.blobExists).mockReturnValue(TE.right(true));
 
     const result = await writer(assertionFileName, assertion)();
 
     expect(E.isLeft(result)).toBe(true);
     expect(result).toMatchObject(E.left(toInternalError("Assertion already exists")));
 
-    expect(blobUtils.upsertBlobFromText).not.toHaveBeenCalled();
+    expect(BlobUtils.upsertBlobFromText).not.toHaveBeenCalled();
   });
 
-  it("it should fail if blobExists returns an InternalError", async () => {
-    const err = toInternalError("cannot check blob");
-    vi.mocked(blobUtils.blobExists).mockReturnValue(TE.left(err));
+  it("it should fail if blobExists fails", async () => {
+    const err = new RestError("Blob not found");
+    vi.mocked(BlobUtils.blobExists).mockReturnValue(TE.left(err));
 
     const result = await writer(assertionFileName, assertion)();
 
-    expect(result).toEqual(E.left({ kind: "Internal", message: err.message, detail: err.detail }));
-    expect(blobUtils.upsertBlobFromText).not.toHaveBeenCalled();
+    expect(result).toEqual(E.left({ kind: "Internal", message: err.message, detail: "Error checking assertion file existence" }));
+    expect(BlobUtils.upsertBlobFromText).not.toHaveBeenCalled();
   });
 
   it("it should fail if upsertBlobFromText fails", async () => {
-    vi.mocked(blobUtils.blobExists).mockReturnValue(TE.right(false));
-    const err = toInternalError("upload failed");
-    vi.mocked(blobUtils.upsertBlobFromText).mockReturnValue(TE.left(err));
+    vi.mocked(BlobUtils.blobExists).mockReturnValue(TE.right(false));
+    const err = new RestError("Upload failed");
+    vi.mocked(BlobUtils.upsertBlobFromText).mockReturnValue(TE.left(err));
 
     const result = await writer(assertionFileName, assertion)();
 
-    expect(result).toMatchObject(E.left({ kind: "Internal", message: err.message, detail: err.detail }));
+    expect(result).toMatchObject(E.left({ kind: "Internal", message: err.message, detail: "Error saving assertion file on blob storage" }));
   });
 });

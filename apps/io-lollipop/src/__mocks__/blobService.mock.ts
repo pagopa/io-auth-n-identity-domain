@@ -1,23 +1,23 @@
-import { vi } from "vitest";
-import { BlobServiceClient } from "@azure/storage-blob";
-import { Readable } from "stream";
+import { vi, Mocked } from "vitest";
+import { BlobClient, BlobServiceClient, BlockBlobClient, ContainerClient } from "@azure/storage-blob";
 
-export const doesBlobExistMock = vi.fn(async () => true);
 
-export const readBlobMock = vi.fn(async () => ({
-  readableStreamBody: Readable.from(["mocked blob content"])
-}));
+export const blobClientMock = vi.mocked<BlobClient>({
+  exists: vi.fn(),
+  download: vi.fn()
+} as unknown as BlobClient);
 
-export const uploadBlobMock = vi.fn(async () => ({ etag: "anEtag" }));
+export const blockBlobClientMock = vi.mocked<BlockBlobClient>({
+  exists: vi.fn(),
+  download: vi.fn(),
+  upload: vi.fn(),
+} as unknown as BlockBlobClient);
 
-export const blockBlobClientMock = {
-  exists: doesBlobExistMock,
-  download: readBlobMock,
-  upload: uploadBlobMock,
-};
+export const containerClientMock = vi.mocked<ContainerClient>({
+  getBlobClient: () => blobClientMock,
+  getBlockBlobClient: () => blockBlobClientMock
+} as unknown as ContainerClient);
 
-export const blobServiceMock = ({
-  getContainerClient: () => ({
-    getBlockBlobClient: () => blockBlobClientMock
-  })
-}) as unknown as BlobServiceClient;
+export const blobServiceClientMock = vi.mocked<BlobServiceClient>({
+  getContainerClient: () => containerClientMock
+} as unknown as BlobServiceClient);

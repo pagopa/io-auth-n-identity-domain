@@ -3,13 +3,16 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import {
+  blobExists,
+  upsertBlobFromText
+} from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
+import {
   LolliPOPKeysModel,
   NewLolliPopPubKeys,
   RetrievedLolliPopPubKeys
 } from "../model/lollipop_keys";
 import { AssertionFileName } from "../generated/definitions/internal/AssertionFileName";
 import { cosmosErrorsToString, InternalError, toInternalError } from "./errors";
-import { blobExists, upsertBlobFromText } from "./blob";
 
 export type PopDocumentWriter = (
   item: NewLolliPopPubKeys
@@ -47,16 +50,27 @@ export const getAssertionWriter = (
       lollipopAssertionStorageContainerName,
       assertionFileName
     ),
+    TE.mapLeft(error =>
+      toInternalError(error.message, "Error checking assertion file existence")
+    ),
     TE.filterOrElse(
       fileExists => !fileExists,
       () => toInternalError("Assertion already exists")
     ),
     TE.chainW(() =>
-      upsertBlobFromText(
-        assertionBlobService,
-        lollipopAssertionStorageContainerName,
-        assertionFileName,
-        assertion
+      pipe(
+        upsertBlobFromText(
+          assertionBlobService,
+          lollipopAssertionStorageContainerName,
+          assertionFileName,
+          assertion
+        ),
+        TE.mapLeft(error =>
+          toInternalError(
+            error.message,
+            "Error saving assertion file on blob storage"
+          )
+        )
       )
     ),
     TE.map(_ => true)
