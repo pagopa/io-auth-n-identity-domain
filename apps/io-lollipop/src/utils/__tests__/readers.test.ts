@@ -24,7 +24,7 @@ import { RestError } from "@azure/storage-blob";
 // Mocks
 // --------------------------
 vi.mock("@pagopa/io-auth-n-identity-commons/utils/storage-blob", async () => ({
-  getBlobAsText: vi.fn()
+  getBlobToBufferAsText: vi.fn()
 }));
 
 const findLastVersionByModelIdMock = vi
@@ -106,12 +106,12 @@ describe("AssertionReader", () => {
 
   it("it should return the blob content when not empty", async () => {
     const innerMock = vi.fn().mockReturnValue(TE.right(assertion))
-    vi.mocked(BlobUtils.getBlobAsText).mockReturnValue(innerMock);
+    vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(innerMock);
 
     const result = await reader(assertionFileName)();
 
     expect(result).toEqual(E.right(assertion));
-    expect(BlobUtils.getBlobAsText).toHaveBeenCalledWith(
+    expect(BlobUtils.getBlobToBufferAsText).toHaveBeenCalledWith(
       mockBlobServiceClient,
       containerName
     );
@@ -119,7 +119,7 @@ describe("AssertionReader", () => {
   });
 
   it("it should fail if the blob content is empty", async () => {
-    vi.mocked(BlobUtils.getBlobAsText).mockReturnValue(
+    vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(
       vi.fn().mockReturnValue(TE.right("" as NonEmptyString))
     );
 
@@ -129,9 +129,9 @@ describe("AssertionReader", () => {
     expect(result).toEqual(E.left(toInternalError("Assertion is empty")));
   });
 
-  it("it should fail if getBlobAsText returns a Not Found error", async () => {
+  it("it should fail if getBlobToBufferAsText returns a Not Found error", async () => {
     const err = new RestError("Blob not found", { statusCode: 404 });
-    vi.mocked(BlobUtils.getBlobAsText).mockReturnValue(
+    vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(
       vi.fn().mockReturnValue(TE.left(err))
     );
 
@@ -140,9 +140,9 @@ describe("AssertionReader", () => {
     expect(result).toEqual(E.left(toNotFoundError()));
   });
 
-  it("it should fail if getBlobAsText fails", async () => {
+  it("it should fail if getBlobToBufferAsText fails", async () => {
     const err = new Error("Generic error");
-    vi.mocked(BlobUtils.getBlobAsText).mockReturnValue(
+    vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(
       vi.fn().mockReturnValue(TE.left(err))
     );
 
