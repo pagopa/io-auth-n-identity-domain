@@ -128,16 +128,12 @@ export const downloadBlob =
             .download(),
         E.toError,
       ),
-      TE.chainW((response) =>
-        TE.fromEither(
-          pipe(
-            // Extract the readable stream from the response.
-            // This should always be defined for successful downloads,
-            // but we guard against null/undefined just in case.
-            response.readableStreamBody,
-            O.fromNullable,
-            E.fromOption(() => Error("Blob stream is null or undefined")),
-          ),
+      TE.chain(({ readableStreamBody }) =>
+        // Extract the readable stream from the response.
+        // This should always be defined for successful downloads,
+        // but we guard against null/undefined just in case.
+        TE.fromNullable(Error("Blob stream is null or undefined"))(
+          readableStreamBody,
         ),
       ),
     );
