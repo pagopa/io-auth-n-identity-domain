@@ -1,6 +1,7 @@
-import { BlobServiceClient } from "@azure/storage-blob";
+import { BlobServiceClient, RestError } from "@azure/storage-blob";
 import { pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 
 /**
@@ -60,16 +61,15 @@ export const blobExists = (
   );
 
 /**
- * Downloads a blob into memory and returns its full contents as a `Buffer`.
+ * Downloads a blob into memory and returns its full contents as an `Option<Buffer>`.
  *
  * @param blobServiceClient - A `BlobServiceClient` used to access the storage account.
  * @param containerName - Name of the container containing the blob.
  *
- * @returns A function that takes a `blobName` and produces a
- *   `TaskEither<Error, Buffer>` which:
- *     - resolves with the full blob content as a Buffer,
- *     - rejects if the blob does not exist,
- *     - rejects on network, authentication, or I/O errors.
+ *   `TaskEither<Error, Option<Buffer>>` which:
+ *     - resolves with `Some(buffer)` when the blob exists,
+ *     - resolves with `None` when the blob does not exist (HTTP 404),
+ *     - rejects (`Left`) on network, authentication, or other non-404 errors.
  *
  * @remarks
  * This performs a **full in-memory download** via `downloadToBuffer()`.
@@ -81,7 +81,7 @@ export const blobExists = (
  */
 export const downloadBlobToBuffer =
   (blobServiceClient: BlobServiceClient, containerName: string) =>
-  (blobName: string): TE.TaskEither<Error, Buffer> =>
+  (blobName: string): TE.TaskEither<Error, O.Option<Buffer>> =>
     pipe(
       TE.tryCatch(
         () =>
@@ -90,6 +90,12 @@ export const downloadBlobToBuffer =
             .getBlobClient(blobName)
             .downloadToBuffer(),
         E.toError,
+      ),
+      TE.map(O.some),
+      TE.orElse((error) =>
+        error instanceof RestError && error.statusCode === 404
+          ? TE.of(O.none)
+          : TE.left(error),
       ),
     );
 
@@ -117,7 +123,7 @@ export const downloadBlobToBuffer =
  */
 export const downloadBlob =
   (blobServiceClient: BlobServiceClient, containerName: string) =>
-  (blobName: string): TE.TaskEither<Error, NodeJS.ReadableStream> =>
+  (blobName: string): TE.TaskEither<Error, O.Option<NodeJS.ReadableStream>> =>
     pipe(
       TE.tryCatch(
         () =>
@@ -134,6 +140,12 @@ export const downloadBlob =
         TE.fromNullable(Error("Blob stream is null or undefined"))(
           readableStreamBody,
         ),
+      ),
+      TE.map((stream) => O.some(stream)),
+      TE.orElse((error) =>
+        error instanceof RestError && error.statusCode === 404
+          ? TE.right(O.none)
+          : TE.left(error),
       ),
     );
 
@@ -160,10 +172,10 @@ export const downloadBlob =
  */
 export const getBlobToBufferAsText =
   (blobServiceClient: BlobServiceClient, containerName: string) =>
-  (blobName: string): TE.TaskEither<Error, string> =>
+  (blobName: string): TE.TaskEither<Error, O.Option<string>> =>
     pipe(
       downloadBlobToBuffer(blobServiceClient, containerName)(blobName),
-      TE.map((buffer) => buffer.toString("utf-8")),
+      TE.map(O.map((buffer) => buffer.toString("utf-8"))),
     );
 
 /**
@@ -188,10 +200,17 @@ export const getBlobToBufferAsText =
  */
 export const getBlobAsText =
   (blobServiceClient: BlobServiceClient, containerName: string) =>
-  (blobName: string): TE.TaskEither<Error, string> =>
+  (blobName: string): TE.TaskEither<Error, O.Option<string>> =>
     pipe(
       downloadBlob(blobServiceClient, containerName)(blobName),
-      TE.chainW(streamToText),
+      TE.chain(
+        // If O.none → return TE.right(O.none)
+        // If O.some(stream) → convert to text and wrap back into Some
+        O.fold(
+          () => TE.right(O.none),
+          (stream) => pipe(streamToText(stream), TE.map(O.some)),
+        ),
+      ),
     );
 
 /**

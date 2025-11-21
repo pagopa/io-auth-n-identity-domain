@@ -1,6 +1,7 @@
 import { Readable } from "stream";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";
 import {
   BlobClient,
@@ -186,7 +187,7 @@ describe("downloadBlobToBuffer", () => {
     expect(blobClientMock.download).not.toHaveBeenCalled();
 
     expect(E.isRight(result)).toBe(true);
-    expect(result).toMatchObject(E.right(mockBuffer));
+    expect(result).toMatchObject(E.right(O.some(mockBuffer)));
   });
 
   it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
@@ -198,8 +199,8 @@ describe("downloadBlobToBuffer", () => {
       downloadBlobToBuffer(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
     )();
 
-    expect(E.isLeft(result)).toBe(true);
-    expect(result).toMatchObject(E.left(BLOB_NOT_FOUND_REST_ERROR));
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(O.none));
   });
 });
 
@@ -226,7 +227,7 @@ describe("downloadBlob", () => {
     expect(blobClientMock.downloadToBuffer).not.toHaveBeenCalled();
 
     expect(E.isRight(result)).toBe(true);
-    expect(result).toMatchObject(E.right(readable));
+    expect(result).toMatchObject(E.right(O.some(readable)));
   });
 
   it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
@@ -236,8 +237,8 @@ describe("downloadBlob", () => {
       downloadBlob(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
     )();
 
-    expect(E.isLeft(result)).toBe(true);
-    expect(result).toMatchObject(E.left(BLOB_NOT_FOUND_REST_ERROR));
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(O.none));
   });
 
   it("should return an Error with specific message on undefined ReadableStream", async () => {
@@ -277,7 +278,7 @@ describe("getBlobToBufferAsText", () => {
     expect(blobClientMock.download).not.toHaveBeenCalled();
 
     expect(E.isRight(result)).toBe(true);
-    expect(result).toMatchObject(E.right(CONTENT));
+    expect(result).toMatchObject(E.right(O.some(CONTENT)));
   });
 
   it("should return an Error on failure", async () => {
@@ -300,8 +301,8 @@ describe("getBlobToBufferAsText", () => {
       getBlobToBufferAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
     )();
 
-    expect(E.isLeft(result)).toBe(true);
-    expect(result).toMatchObject(E.left(BLOB_NOT_FOUND_REST_ERROR));
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(O.none));
   });
 });
 
@@ -328,7 +329,7 @@ describe("getBlobAsText", () => {
     expect(blobClientMock.downloadToBuffer).not.toHaveBeenCalled();
 
     expect(E.isRight(result)).toBe(true);
-    expect(result).toMatchObject(E.right(CONTENT));
+    expect(result).toMatchObject(E.right(O.some(CONTENT)));
   });
 
   it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
@@ -340,8 +341,8 @@ describe("getBlobAsText", () => {
     expect(blobClientMock.download).toHaveBeenCalledOnce();
     expect(blobClientMock.downloadToBuffer).not.toHaveBeenCalled();
 
-    expect(E.isLeft(result)).toBe(true);
-    expect(result).toMatchObject(E.left(BLOB_NOT_FOUND_REST_ERROR));
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(O.none));
   });
 
   it("should return an Error on failures", async () => {
