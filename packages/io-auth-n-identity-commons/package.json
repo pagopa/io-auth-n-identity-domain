@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@azure/service-bus": "^7.9.5",
+    "@azure/storage-blob": "^12.17.0",
     "@pagopa/ts-commons": "^13.1.2",
     "fp-ts": "^2.16.9",
     "io-ts": "^2.2.22"

@@ -1,12 +1,11 @@
-import { BlobService } from "azure-storage";
+import { BlobServiceClient } from "@azure/storage-blob";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
-import * as E from "fp-ts/Either";
-import { identity, pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { getBlobAsText } from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 
+import { getBlobToBufferAsText } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
 import {
   LolliPOPKeysModel,
@@ -16,9 +15,9 @@ import { AssertionFileName } from "../generated/definitions/internal/AssertionFi
 import {
   cosmosErrorsToString,
   toInternalError,
-  toNotFoundError,
   DomainError,
-  ErrorKind
+  ErrorKind,
+  toNotFoundError
 } from "./errors";
 
 export type PublicKeyDocumentReader = RTE.ReaderTaskEither<
@@ -67,22 +66,20 @@ export const getPublicKeyDocumentReader = (
  * @returns The AssertionReader
  */
 export const getAssertionReader = (
-  blobService: BlobService,
+  blobService: BlobServiceClient,
   assertionContainerName: NonEmptyString
 ): AssertionReader => (
   assertionFileName: AssertionFileName
 ): ReturnType<AssertionReader> =>
   pipe(
-    TE.tryCatch(
-      () =>
-        getBlobAsText(blobService, assertionContainerName, assertionFileName),
-      E.toError
-    ),
-    TE.chainEitherK(identity),
+    getBlobToBufferAsText(
+      blobService,
+      assertionContainerName
+    )(assertionFileName),
     TE.mapLeft(error =>
       toInternalError(
-        `Unable to retrieve assertion from blob storage: ${error.message}`,
-        `Unable to retrieve assertion`
+        `Unable to get assertion blob as text: ${error.message}`,
+        `Unable to get assertion blob as text`
       )
     ),
     TE.chainW(TE.fromOption(() => toNotFoundError())),

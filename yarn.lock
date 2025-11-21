@@ -3339,6 +3339,7 @@ __metadata:
   resolution: "@pagopa/io-auth-n-identity-commons@workspace:packages/io-auth-n-identity-commons"
   dependencies:
     "@azure/service-bus": "npm:^7.9.5"
+    "@azure/storage-blob": "npm:^12.17.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/ts-commons": "npm:^13.1.2"
     "@pagopa/typescript-config-node": "npm:*"
@@ -10858,9 +10859,11 @@ __metadata:
   dependencies:
     "@azure/cosmos": "npm:^3.17.2"
     "@azure/functions": "npm:^3.2.0"
+    "@azure/storage-blob": "npm:^12.17.0"
     "@mattrglobal/http-signatures": "npm:^4.0.1"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/express-azure-functions": "npm:^2.0.0"
+    "@pagopa/io-auth-n-identity-commons": "npm:*"
     "@pagopa/io-functions-commons": "npm:28.1.0"
     "@pagopa/openapi-codegen-ts": "npm:^12.2.0"
     "@pagopa/ts-commons": "npm:^11.0.0"
@@ -10875,7 +10878,6 @@ __metadata:
     "@vitest/coverage-v8": "npm:~3.2.4"
     "@xmldom/xmldom": "npm:^0.8.10"
     applicationinsights: "npm:1.8.10"
-    azure-storage: "npm:^2.10.3"
     date-fns: "npm:^2.29.3"
     dependency-check: "npm:^4.1.0"
     dotenv-cli: "npm:^3.1.0"
