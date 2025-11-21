@@ -58,18 +58,15 @@ describe("blobUtils integration", () => {
     expect(downloadResult).toMatchObject(E.right(O.some(blobContent)));
   });
 
-  it("should return a RestError NotFound when blob does not exist", async () => {
+  it("should return a None when blob does not exist", async () => {
     // Attempt to download a non-existing blob
     const result = await getBlobToBufferAsText(
       blobServiceClient,
       containerName
     )("missing-blob.txt")();
 
-    expect(E.isLeft(result)).toBe(true);
-    expect(result).toMatchObject(E.left({
-      name: "RestError",
-      statusCode: 404,
-    }));
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(O.none));
   });
 
   it("should handle upload error when using invalid container", async () => {

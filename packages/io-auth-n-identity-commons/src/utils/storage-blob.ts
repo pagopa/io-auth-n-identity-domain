@@ -93,7 +93,7 @@ export const downloadBlobToBuffer =
       ),
       TE.map(O.some),
       TE.orElse((error) =>
-        error instanceof RestError && error.statusCode === 404
+        "statusCode" in error && error.statusCode === 404
           ? TE.right(O.none)
           : TE.left(error),
       ),

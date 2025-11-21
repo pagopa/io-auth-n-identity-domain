@@ -31,8 +31,8 @@ const BLOB_NAME = "test-blob.txt";
 const CHUNKS = ["This ", "is ", "a ", "test ", "blob."];
 const CONTENT = CHUNKS.join("");
 
-const SHOULD_RETURN_NOT_FOUND_REST_ERROR =
-  "should return a RestError on missing blob";
+const SHOULD_RETURN_O_NONE_ON_NOT_FOUND_REST_ERROR =
+  "should return a None on missing blob";
 
 // ===============================
 // ERROR DEFINITIONS
@@ -190,7 +190,7 @@ describe("downloadBlobToBuffer", () => {
     expect(result).toMatchObject(E.right(O.some(mockBuffer)));
   });
 
-  it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
+  it(SHOULD_RETURN_O_NONE_ON_NOT_FOUND_REST_ERROR, async () => {
     blobClientMock.downloadToBuffer.mockRejectedValue(
       BLOB_NOT_FOUND_REST_ERROR,
     );
@@ -230,7 +230,7 @@ describe("downloadBlob", () => {
     expect(result).toMatchObject(E.right(O.some(readable)));
   });
 
-  it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
+  it(SHOULD_RETURN_O_NONE_ON_NOT_FOUND_REST_ERROR, async () => {
     blobClientMock.download.mockRejectedValue(BLOB_NOT_FOUND_REST_ERROR);
 
     const result = await pipe(
@@ -292,7 +292,7 @@ describe("getBlobToBufferAsText", () => {
     expect(result).toMatchObject(E.left(GENERIC_ERROR));
   });
 
-  it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
+  it(SHOULD_RETURN_O_NONE_ON_NOT_FOUND_REST_ERROR, async () => {
     blobClientMock.downloadToBuffer.mockRejectedValue(
       BLOB_NOT_FOUND_REST_ERROR,
     );
@@ -332,7 +332,7 @@ describe("getBlobAsText", () => {
     expect(result).toMatchObject(E.right(O.some(CONTENT)));
   });
 
-  it(SHOULD_RETURN_NOT_FOUND_REST_ERROR, async () => {
+  it(SHOULD_RETURN_O_NONE_ON_NOT_FOUND_REST_ERROR, async () => {
     blobClientMock.download.mockRejectedValue(BLOB_NOT_FOUND_REST_ERROR);
 
     const result = await pipe(
