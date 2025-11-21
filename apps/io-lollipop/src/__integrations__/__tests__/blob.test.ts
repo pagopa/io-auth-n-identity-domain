@@ -7,6 +7,7 @@ import {
   upsertBlobFromText
 } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import { QueueStorageConnection } from "../env";
+import { RestError } from "@azure/cosmos";
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(
   QueueStorageConnection
@@ -52,7 +53,7 @@ describe("blobUtils integration", () => {
     expect(downloadResult).toMatchObject(E.right(blobContent));
   });
 
-  it("should return NotFoundError when blob does not exist", async () => {
+  it("should return a RestError NotFound when blob does not exist", async () => {
     // Attempt to download a non-existing blob
     const result = await getBlobToBufferAsText(
       blobServiceClient,
@@ -60,7 +61,7 @@ describe("blobUtils integration", () => {
     )("missing-blob.txt")();
 
     expect(E.isLeft(result)).toBe(true);
-    expect(result).toMatchObject(E.left({ kind: "NotFound" }));
+    expect(result).toMatchObject(E.left(new RestError("Blob not found", { statusCode: 404 })));
   });
 
   it("should handle upload error when using invalid container", async () => {
@@ -73,12 +74,7 @@ describe("blobUtils integration", () => {
 
     expect(E.isLeft(result)).toBe(true);
     expect(result).toMatchObject(
-      E.left({
-        kind: "Internal",
-        message: expect.stringContaining(
-          "The specified container does not exist."
-        )
-      })
+      E.left(new RestError("The specified container does not exist.", { statusCode: 404 }))
     );
   });
 
