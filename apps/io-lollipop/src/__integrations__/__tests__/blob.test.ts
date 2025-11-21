@@ -1,5 +1,11 @@
+// TODO: remove this test file
+// This refers to the library utils/storage-blob.ts from
+// io-auth-n-identity-commons package. Once we have a better way to share
+// integration tests across packages, we should move this file to the
+// io-auth-n-identity-commons package.
 import { beforeAll, describe, it, expect } from "vitest";
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import { BlobServiceClient } from "@azure/storage-blob";
 import {
   blobExists,
@@ -7,7 +13,6 @@ import {
   upsertBlobFromText
 } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import { QueueStorageConnection } from "../env";
-import { RestError } from "@azure/cosmos";
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(
   QueueStorageConnection
@@ -50,7 +55,7 @@ describe("blobUtils integration", () => {
     )(blobName)();
 
     expect(E.isRight(downloadResult)).toBe(true);
-    expect(downloadResult).toMatchObject(E.right(blobContent));
+    expect(downloadResult).toMatchObject(E.right(O.some(blobContent)));
   });
 
   it("should return a RestError NotFound when blob does not exist", async () => {
@@ -61,7 +66,10 @@ describe("blobUtils integration", () => {
     )("missing-blob.txt")();
 
     expect(E.isLeft(result)).toBe(true);
-    expect(result).toMatchObject(E.left(new RestError("Blob not found", { statusCode: 404 })));
+    expect(result).toMatchObject(E.left({
+      name: "RestError",
+      statusCode: 404,
+    }));
   });
 
   it("should handle upload error when using invalid container", async () => {
@@ -74,7 +82,11 @@ describe("blobUtils integration", () => {
 
     expect(E.isLeft(result)).toBe(true);
     expect(result).toMatchObject(
-      E.left(new RestError("The specified container does not exist.", { statusCode: 404 }))
+      E.left({
+        name: "RestError",
+        code: "ContainerNotFound",
+        statusCode: 404,
+      })
     );
   });
 
@@ -104,6 +116,6 @@ describe("blobUtils integration", () => {
     )(blobName)();
 
     expect(E.isRight(downloadResult)).toBe(true);
-    expect(downloadResult).toMatchObject(E.right("Second content"));
+    expect(downloadResult).toMatchObject(E.right(O.some("Second content")));
   });
 });

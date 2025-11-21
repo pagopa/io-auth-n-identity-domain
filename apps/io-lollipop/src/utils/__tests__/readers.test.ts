@@ -105,7 +105,7 @@ describe("AssertionReader", () => {
   });
 
   it("it should return the blob content when not empty", async () => {
-    const innerMock = vi.fn().mockReturnValue(TE.right(assertion))
+    const innerMock = vi.fn().mockReturnValue(TE.right(O.some(assertion)));
     vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(innerMock);
 
     const result = await reader(assertionFileName)();
@@ -120,7 +120,7 @@ describe("AssertionReader", () => {
 
   it("it should fail if the blob content is empty", async () => {
     vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(
-      vi.fn().mockReturnValue(TE.right("" as NonEmptyString))
+      vi.fn().mockReturnValue(TE.right(O.some("")))
     );
 
     const result = await reader(assertionFileName)();
@@ -129,10 +129,9 @@ describe("AssertionReader", () => {
     expect(result).toEqual(E.left(toInternalError("Assertion is empty")));
   });
 
-  it("it should fail if getBlobToBufferAsText returns a Not Found error", async () => {
-    const err = new RestError("Blob not found", { statusCode: 404 });
+  it("it should fail if getBlobToBufferAsText returns an Option.none", async () => {
     vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(
-      vi.fn().mockReturnValue(TE.left(err))
+      vi.fn().mockReturnValue(TE.right(O.none))
     );
 
     const result = await reader(assertionFileName)();

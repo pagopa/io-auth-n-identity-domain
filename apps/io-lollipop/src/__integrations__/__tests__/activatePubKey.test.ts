@@ -262,7 +262,7 @@ describe("activatePubKey |> Success Results", () => {
         )(anAssertionFileNameForSha256)
       )();
       expect(blob).toEqual(
-        E.right(validActivatePubKeyPayload.assertion)
+        E.right(O.some(validActivatePubKeyPayload.assertion))
       );
 
       // Check used key
@@ -359,7 +359,7 @@ describe("activatePubKey |> Success Results", () => {
       )();
 
       expect(assertionBlob).toEqual(
-        E.right(validActivatePubKeyPayload.assertion)
+        E.right(O.some(validActivatePubKeyPayload.assertion))
       );
 
       // Check master document(the only one present)

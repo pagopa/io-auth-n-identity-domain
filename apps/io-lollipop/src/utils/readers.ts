@@ -1,4 +1,4 @@
-import { BlobServiceClient, RestError } from "@azure/storage-blob";
+import { BlobServiceClient } from "@azure/storage-blob";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
@@ -77,13 +77,12 @@ export const getAssertionReader = (
       assertionContainerName
     )(assertionFileName),
     TE.mapLeft(error =>
-      error instanceof RestError && error.statusCode === 404
-        ? toNotFoundError()
-        : toInternalError(
-            `Unable to get assertion blob as text: ${error.message}`,
-            `Unable to get assertion blob as text`
-          )
+      toInternalError(
+        `Unable to get assertion blob as text: ${error.message}`,
+        `Unable to get assertion blob as text`
+      )
     ),
+    TE.chainW(TE.fromOption(() => toNotFoundError())),
     TE.filterOrElseW(NonEmptyString.is, () =>
       toInternalError(`Assertion is empty`)
     )
