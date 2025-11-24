@@ -408,12 +408,13 @@ describe("upsertBlobFromText", () => {
     expect(result).toMatchObject(E.right(undefined));
   });
 
-  it("should return an error on upload failure", async () => {
-    blockBlobClientMock.upload.mockRejectedValue(new Error("upload failed"));
-
-    const options = {
+  it("should upload text successfully with the provided options", async () => {
+    blockBlobClientMock.upload.mockResolvedValue(
+      {} as unknown as BlockBlobUploadResponse,
+    );
+    const options: BlockBlobUploadOptions = {
       metadata: { author: "tester" },
-    } as BlockBlobUploadOptions;
+    };
 
     const result = await upsertBlobFromText(
       blobServiceClientMock,
@@ -423,10 +424,36 @@ describe("upsertBlobFromText", () => {
       options,
     )();
 
+    expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
+      CONTAINER_NAME,
+    );
+    expect(containerClientMock.getBlockBlobClient).toHaveBeenCalledWith(
+      BLOB_NAME,
+    );
     expect(blockBlobClientMock.upload).toHaveBeenCalledWith(
       "content",
       "content".length,
       options,
+    );
+
+    expect(E.isRight(result)).toBe(true);
+    expect(result).toMatchObject(E.right(undefined));
+  });
+
+  it("should return an error on upload failure", async () => {
+    blockBlobClientMock.upload.mockRejectedValue(new Error("upload failed"));
+
+    const result = await upsertBlobFromText(
+      blobServiceClientMock,
+      CONTAINER_NAME,
+      BLOB_NAME,
+      "content",
+    )();
+
+    expect(blockBlobClientMock.upload).toHaveBeenCalledWith(
+      "content",
+      "content".length,
+      undefined,
     );
 
     expect(E.isLeft(result)).toBe(true);
