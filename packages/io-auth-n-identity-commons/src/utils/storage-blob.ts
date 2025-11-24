@@ -231,6 +231,7 @@ export const getBlobAsText =
  * @param containerName - Name of the container where the blob will be written.
  * @param blobName - Name of the blob to create or overwrite.
  * @param content - The string to upload.
+ * @param options - Optional `BlockBlobUploadOptions` to the Block Blob Upload operation.
  *
  * @returns A `TaskEither<Error, void>` which:
  *   - resolves on successful upload,
