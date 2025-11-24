@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-commons
 
+## 0.3.0
+
+### Minor Changes
+
+- 6faa51e: Add Azure Storage Blob utilities
+
 ## 0.2.1
 
 ### Patch Changes

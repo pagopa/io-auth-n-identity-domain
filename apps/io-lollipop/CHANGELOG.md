@@ -1,5 +1,16 @@
 # io-lollipop
 
+## 1.15.0
+
+### Minor Changes
+
+- 6faa51e: Update to `@azure/storage-blob`
+
+### Patch Changes
+
+- Updated dependencies [6faa51e]
+  - @pagopa/io-auth-n-identity-commons@0.3.0
+
 ## 1.14.0
 
 ### Minor Changes
