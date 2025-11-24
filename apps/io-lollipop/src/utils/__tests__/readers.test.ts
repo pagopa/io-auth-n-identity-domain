@@ -92,12 +92,11 @@ describe("PublicKeyDocumentReader", () => {
 });
 
 describe("AssertionReader", () => {
-  const mockBlobServiceClient = blobServiceClientMock;
   const containerName = "container-name" as NonEmptyString;
   const assertionFileName = "assertion1.txt" as AssertionFileName;
   const assertion = "some assertion text" as NonEmptyString;
 
-  const reader = getAssertionReader(mockBlobServiceClient, containerName);
+  const reader = getAssertionReader(blobServiceClientMock, containerName);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -111,7 +110,7 @@ describe("AssertionReader", () => {
 
     expect(result).toEqual(E.right(assertion));
     expect(BlobUtils.getBlobToBufferAsText).toHaveBeenCalledWith(
-      mockBlobServiceClient,
+      blobServiceClientMock,
       containerName
     );
     expect(innerMock).toHaveBeenCalledWith(assertionFileName);

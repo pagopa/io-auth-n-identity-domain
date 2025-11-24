@@ -110,12 +110,11 @@ describe("PopDocumentWriter", () => {
 });
 
 describe("AssertionWriter", () => {
-  const mockBlobServiceClient = blobServiceClientMock;
   const containerName = "container-name" as NonEmptyString;
   const assertionFileName = "assertion1.txt" as AssertionFileName;
   const assertion = "some assertion text" as NonEmptyString;
 
-  const writer = getAssertionWriter(mockBlobServiceClient, containerName);
+  const writer = getAssertionWriter(blobServiceClientMock, containerName);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -130,12 +129,12 @@ describe("AssertionWriter", () => {
 
     expect(result).toEqual(E.right(true));
     expect(BlobUtils.blobExists).toHaveBeenCalledWith(
-      mockBlobServiceClient,
+      blobServiceClientMock,
       containerName,
       assertionFileName
     );
     expect(BlobUtils.upsertBlobFromText).toHaveBeenCalledWith(
-      mockBlobServiceClient,
+      blobServiceClientMock,
       containerName,
       assertionFileName,
       assertion
