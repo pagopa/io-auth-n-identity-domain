@@ -4,6 +4,9 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 
+const isNotFoundRestError = (error: Error): error is RestError =>
+  error.name === RestError.name && (error as RestError).statusCode === 404;
+
 /**
  * Converts a Node.js Readable stream into a UTF-8 string.
  *
@@ -93,9 +96,7 @@ export const downloadBlobToBuffer =
       ),
       TE.map(O.some),
       TE.orElse((error) =>
-        error instanceof RestError && error.statusCode === 404
-          ? TE.right(O.none)
-          : TE.left(error),
+        isNotFoundRestError(error) ? TE.right(O.none) : TE.left(error),
       ),
     );
 
@@ -143,9 +144,7 @@ export const downloadBlob =
       ),
       TE.map((stream) => O.some(stream)),
       TE.orElse((error) =>
-        error instanceof RestError && error.statusCode === 404
-          ? TE.right(O.none)
-          : TE.left(error),
+        isNotFoundRestError(error) ? TE.right(O.none) : TE.left(error),
       ),
     );
 
