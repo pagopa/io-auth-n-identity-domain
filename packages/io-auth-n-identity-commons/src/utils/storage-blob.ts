@@ -1,4 +1,8 @@
-import { BlobServiceClient, RestError } from "@azure/storage-blob";
+import {
+  BlobServiceClient,
+  BlockBlobUploadOptions,
+  RestError,
+} from "@azure/storage-blob";
 import { pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
@@ -237,6 +241,7 @@ export const upsertBlobFromText = (
   containerName: string,
   blobName: string,
   content: string,
+  options?: BlockBlobUploadOptions,
 ): TE.TaskEither<Error, void> =>
   pipe(
     // Try to upload the blob
@@ -245,7 +250,7 @@ export const upsertBlobFromText = (
         blobServiceClient
           .getContainerClient(containerName)
           .getBlockBlobClient(blobName)
-          .upload(content, content.length),
+          .upload(content, content.length, options),
       E.toError,
     ),
     // When successful, map to void
