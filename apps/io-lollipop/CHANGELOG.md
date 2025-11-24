@@ -1,5 +1,11 @@
 # io-lollipop
 
+## 1.15.1
+
+### Patch Changes
+
+- e2b45ae: Update reader method to get blob
+
 ## 1.15.0
 
 ### Minor Changes
