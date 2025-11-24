@@ -23,7 +23,7 @@ import * as BlobUtils from "@pagopa/io-auth-n-identity-commons/utils/storage-blo
 // Mocks
 // --------------------------
 vi.mock("@pagopa/io-auth-n-identity-commons/utils/storage-blob", async () => ({
-  getBlobToBufferAsText: vi.fn()
+  getBlobAsText: vi.fn()
 }));
 
 const findLastVersionByModelIdMock = vi
@@ -104,12 +104,12 @@ describe("AssertionReader", () => {
 
   it("it should return the blob content when not empty", async () => {
     const innerMock = vi.fn().mockReturnValue(TE.right(O.some(assertion)));
-    vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(innerMock);
+    vi.mocked(BlobUtils.getBlobAsText).mockReturnValue(innerMock);
 
     const result = await reader(assertionFileName)();
 
     expect(result).toEqual(E.right(assertion));
-    expect(BlobUtils.getBlobToBufferAsText).toHaveBeenCalledWith(
+    expect(BlobUtils.getBlobAsText).toHaveBeenCalledWith(
       blobServiceClientMock,
       containerName
     );
@@ -117,7 +117,7 @@ describe("AssertionReader", () => {
   });
 
   it("it should fail if the blob content is empty", async () => {
-    vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(
+    vi.mocked(BlobUtils.getBlobAsText).mockReturnValue(
       vi.fn().mockReturnValue(TE.right(O.some("")))
     );
 
@@ -127,8 +127,8 @@ describe("AssertionReader", () => {
     expect(result).toEqual(E.left(toInternalError("Assertion is empty")));
   });
 
-  it("it should fail if getBlobToBufferAsText returns an Option.none", async () => {
-    vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(
+  it("it should fail if getBlobAsText returns an Option.none", async () => {
+    vi.mocked(BlobUtils.getBlobAsText).mockReturnValue(
       vi.fn().mockReturnValue(TE.right(O.none))
     );
 
@@ -137,9 +137,9 @@ describe("AssertionReader", () => {
     expect(result).toEqual(E.left(toNotFoundError()));
   });
 
-  it("it should fail if getBlobToBufferAsText fails", async () => {
+  it("it should fail if getBlobAsText fails", async () => {
     const err = new Error("Generic error");
-    vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(
+    vi.mocked(BlobUtils.getBlobAsText).mockReturnValue(
       vi.fn().mockReturnValue(TE.left(err))
     );
 
