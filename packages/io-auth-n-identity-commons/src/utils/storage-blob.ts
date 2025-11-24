@@ -89,11 +89,11 @@ export const downloadBlobToBuffer =
             .getContainerClient(containerName)
             .getBlobClient(blobName)
             .downloadToBuffer(),
-        E.toError,
+        (err) => (err instanceof RestError ? err : E.toError(err)),
       ),
       TE.map(O.some),
       TE.orElse((error) =>
-        "statusCode" in error && error.statusCode === 404
+        error instanceof RestError && error.statusCode === 404
           ? TE.right(O.none)
           : TE.left(error),
       ),
