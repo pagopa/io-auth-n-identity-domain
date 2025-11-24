@@ -18,7 +18,6 @@ import { blobServiceClientMock } from "../../__mocks__/blobService.mock";
 import { AssertionFileName } from "../../generated/definitions/internal/AssertionFileName";
 import { toInternalError, toNotFoundError } from "../errors";
 import * as BlobUtils from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
-import { RestError } from "@azure/storage-blob";
 
 // --------------------------
 // Mocks
