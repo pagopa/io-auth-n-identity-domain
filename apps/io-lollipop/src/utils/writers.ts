@@ -1,9 +1,11 @@
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import * as E from "fp-ts/lib/Either";
-import { upsertBlobFromText } from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
-import { BlobService } from "azure-storage";
+import { BlobServiceClient } from "@azure/storage-blob";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import {
+  blobExists,
+  upsertBlobFromText
+} from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import {
   LolliPOPKeysModel,
   NewLolliPopPubKeys,
@@ -36,49 +38,38 @@ export const getPopDocumentWriter = (
   );
 
 export const getAssertionWriter = (
-  assertionBlobService: BlobService,
+  assertionBlobService: BlobServiceClient,
   lollipopAssertionStorageContainerName: NonEmptyString
 ): AssertionWriter => (
   assertionFileName,
   assertion
 ): ReturnType<AssertionWriter> =>
   pipe(
-    TE.taskify<Error, BlobService.BlobResult>(cb =>
-      assertionBlobService.doesBlobExist(
-        lollipopAssertionStorageContainerName,
-        assertionFileName,
-        cb
-      )
-    )(),
-    TE.mapLeft(error =>
-      toInternalError(error.message, "Error checking assertion file existance")
+    blobExists(
+      assertionBlobService,
+      lollipopAssertionStorageContainerName,
+      assertionFileName
     ),
-    TE.map(blobResult => blobResult.exists ?? false),
+    TE.mapLeft(error =>
+      toInternalError(error.message, "Error checking assertion file existence")
+    ),
     TE.filterOrElse(
-      fileEsists => !fileEsists,
-      () => toInternalError(`Assertion already exists`)
+      fileExists => !fileExists,
+      () => toInternalError("Assertion already exists")
     ),
     TE.chainW(() =>
       pipe(
-        TE.tryCatch(
-          () =>
-            upsertBlobFromText(
-              assertionBlobService,
-              lollipopAssertionStorageContainerName,
-              assertionFileName,
-              assertion
-            ),
-          E.toError
+        upsertBlobFromText(
+          assertionBlobService,
+          lollipopAssertionStorageContainerName,
+          assertionFileName,
+          assertion
         ),
-        TE.chainW(TE.fromEither),
-        TE.mapLeft((error: Error) =>
+        TE.mapLeft(error =>
           toInternalError(
             error.message,
             "Error saving assertion file on blob storage"
           )
-        ),
-        TE.chainW(
-          TE.fromOption(() => toInternalError("Can not upload blob to storage"))
         )
       )
     ),

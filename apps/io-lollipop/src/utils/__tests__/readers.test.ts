@@ -1,13 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorResponse } from "@azure/cosmos";
-import { StorageError } from "azure-storage";
 
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import * as fn_commons from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 
 import { LolliPOPKeysModel } from "../../model/lollipop_keys";
 import { getAssertionReader, getPublicKeyDocumentReader } from "../readers";
@@ -16,13 +14,17 @@ import {
   aRetrievedPendingLollipopPubKeySha256,
   aValidSha256AssertionRef
 } from "../../__mocks__/lollipopPubKey.mock";
-import { anAssertionFileName } from "../../__mocks__/lollipopkeysMock";
-import { blobServiceMock } from "../../__mocks__/blobService.mock";
-import { anAssertionContent } from "../../__mocks__/readers.mock";
+import { blobServiceClientMock } from "../../__mocks__/blobService.mock";
+import { AssertionFileName } from "../../generated/definitions/internal/AssertionFileName";
+import { toInternalError, toNotFoundError } from "../errors";
+import * as BlobUtils from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 
 // --------------------------
 // Mocks
 // --------------------------
+vi.mock("@pagopa/io-auth-n-identity-commons/utils/storage-blob", async () => ({
+  getBlobToBufferAsText: vi.fn()
+}));
 
 const findLastVersionByModelIdMock = vi
   .fn()
@@ -36,12 +38,6 @@ const lollipopPubKeysModelMock = ({
   findLastVersionByModelId: findLastVersionByModelIdMock,
   upsert: upsertMock
 } as unknown) as LolliPOPKeysModel;
-
-const getBlobAsTextMock = vi.spyOn(fn_commons, "getBlobAsText");
-getBlobAsTextMock.mockImplementation(
-  async (blobService, containerName, assertionName) =>
-    E.right(O.some(anAssertionContent))
-);
 
 // --------------------------
 // Tests
@@ -96,80 +92,59 @@ describe("PublicKeyDocumentReader", () => {
 });
 
 describe("AssertionReader", () => {
-  beforeEach(() => vi.clearAllMocks());
+  const containerName = "container-name" as NonEmptyString;
+  const assertionFileName = "assertion1.txt" as AssertionFileName;
+  const assertion = "some assertion text" as NonEmptyString;
 
-  it("should return the existing assertion", async () => {
-    const assertionReader = getAssertionReader(
-      blobServiceMock,
-      "aContainerName" as NonEmptyString
-    );
+  const reader = getAssertionReader(blobServiceClientMock, containerName);
 
-    const result = await assertionReader(anAssertionFileName)();
-
-    expect(getBlobAsTextMock).toHaveBeenCalledWith(
-      expect.any(Object),
-      "aContainerName",
-      anAssertionFileName
-    );
-    expect(result).toEqual(E.right(anAssertionContent));
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it("should return an internal error when an error occurred retrieving the assertion from blob storage", async () => {
-    getBlobAsTextMock.mockImplementationOnce(
-      async (blobService, containerName, assertionName) =>
-        E.left(({ message: "an Error" } as unknown) as StorageError)
-    );
+  it("it should return the blob content when not empty", async () => {
+    const innerMock = vi.fn().mockReturnValue(TE.right(O.some(assertion)));
+    vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(innerMock);
 
-    const assertionReader = getAssertionReader(
-      blobServiceMock,
-      "aContainerName" as NonEmptyString
-    );
+    const result = await reader(assertionFileName)();
 
-    const result = await assertionReader(anAssertionFileName)();
-    expect(result).toEqual(
-      E.left({
-        kind: "Internal",
-        detail: "Unable to retrieve assertion",
-        message: `Unable to retrieve assertion from blob storage: an Error`
-      })
+    expect(result).toEqual(E.right(assertion));
+    expect(BlobUtils.getBlobToBufferAsText).toHaveBeenCalledWith(
+      blobServiceClientMock,
+      containerName
     );
+    expect(innerMock).toHaveBeenCalledWith(assertionFileName);
   });
 
-  it("should return an internal error when the assertion content is empty", async () => {
-    getBlobAsTextMock.mockImplementationOnce(
-      async (blobService, containerName, assertionName) => E.right(O.some(""))
+  it("it should fail if the blob content is empty", async () => {
+    vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(
+      vi.fn().mockReturnValue(TE.right(O.some("")))
     );
 
-    const assertionReader = getAssertionReader(
-      blobServiceMock,
-      "aContainerName" as NonEmptyString
-    );
+    const result = await reader(assertionFileName)();
 
-    const result = await assertionReader(anAssertionFileName)();
-    expect(result).toEqual(
-      E.left({
-        kind: "Internal",
-        detail: `Assertion is empty`,
-        message: "Assertion is empty"
-      })
-    );
+    expect(E.isLeft(result)).toBe(true);
+    expect(result).toEqual(E.left(toInternalError("Assertion is empty")));
   });
 
-  it("should return a not found error when there no assertion was found in blob storage for a given assertion file name", async () => {
-    getBlobAsTextMock.mockImplementationOnce(
-      async (blobService, containerName, assertionName) => E.right(O.none)
+  it("it should fail if getBlobToBufferAsText returns an Option.none", async () => {
+    vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(
+      vi.fn().mockReturnValue(TE.right(O.none))
     );
 
-    const assertionReader = getAssertionReader(
-      blobServiceMock,
-      "aContainerName" as NonEmptyString
+    const result = await reader(assertionFileName)();
+
+    expect(result).toEqual(E.left(toNotFoundError()));
+  });
+
+  it("it should fail if getBlobToBufferAsText fails", async () => {
+    const err = new Error("Generic error");
+    vi.mocked(BlobUtils.getBlobToBufferAsText).mockReturnValue(
+      vi.fn().mockReturnValue(TE.left(err))
     );
 
-    const result = await assertionReader(anAssertionFileName)();
-    expect(result).toEqual(
-      E.left({
-        kind: "NotFound"
-      })
-    );
+    const result = await reader(assertionFileName)();
+
+    expect(result).toEqual(E.left(toInternalError(`Unable to get assertion blob as text: ${err.message}`, "Unable to get assertion blob as text")));
   });
 });
