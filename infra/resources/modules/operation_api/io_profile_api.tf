@@ -99,7 +99,7 @@ resource "azurerm_api_management_api_operation_policy" "get_profile_operation" {
 }
 
 resource "azurerm_api_management_api_operation_policy" "get_profile_service_preferences_operation" {
-  api_name            = "io-profile-service-preferences-operation-api"
+  api_name            = "io-profile-operation-api"
   api_management_name = var.apim_name
   resource_group_name = var.apim_resource_group_name
   operation_id        = "getProfileServicePreferences"
