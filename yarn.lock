@@ -1701,7 +1701,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/storage-blob@npm:^12.24.0":
+"@azure/storage-blob@npm:^12.24.0, @azure/storage-blob@npm:^12.29.1":
   version: 12.29.1
   resolution: "@azure/storage-blob@npm:12.29.1"
   dependencies:
@@ -11025,7 +11025,7 @@ __metadata:
   dependencies:
     "@azure/cosmos": "npm:^3.17.2"
     "@azure/functions": "npm:^3.2.0"
-    "@azure/storage-blob": "npm:^12.17.0"
+    "@azure/storage-blob": "npm:^12.29.1"
     "@mattrglobal/http-signatures": "npm:^4.0.1"
     "@pagopa/azure-storage-migration-kit": "npm:^0.0.1"
     "@pagopa/eslint-config": "npm:^3.0.0"
