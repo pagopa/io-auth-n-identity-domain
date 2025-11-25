@@ -3483,7 +3483,7 @@ __metadata:
   resolution: "@pagopa/io-auth-n-identity-commons@workspace:packages/io-auth-n-identity-commons"
   dependencies:
     "@azure/service-bus": "npm:^7.9.5"
-    "@azure/storage-blob": "npm:^12.17.0"
+    "@azure/storage-blob": "npm:^12.29.1"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/ts-commons": "npm:^13.1.2"
     "@pagopa/typescript-config-node": "npm:*"
