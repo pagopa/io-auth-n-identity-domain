@@ -40,6 +40,10 @@ const assertionBlobService = BlobServiceClient.fromConnectionString(
   config.LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING
 );
 
+const assertionBlobServiceFallback = BlobServiceClient.fromConnectionString(
+  config.LOLLIPOP_ASSERTION_STORAGE_FALLBACK_CONNECTION_STRING
+);
+
 // eslint-disable-next-line functional/no-let
 let logger: Context["log"];
 const azureContextTransport = (new AzureContextTransport(
@@ -69,7 +73,9 @@ app.get(
     getPublicKeyDocumentReader(lollipopKeysModel),
     getAssertionReader(
       assertionBlobService,
-      config.LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
+      config.LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME,
+      assertionBlobServiceFallback,
+      config.LOLLIPOP_ASSERTION_STORAGE_FALLBACK_CONTAINER_NAME
     )
   )
 );
