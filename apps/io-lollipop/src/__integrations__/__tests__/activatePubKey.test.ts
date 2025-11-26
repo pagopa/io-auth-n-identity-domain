@@ -53,7 +53,7 @@ const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
 
 const myFetch = getNodeFetch();
 
-const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "assertions";
+const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "lollipop-assertions";
 
 // ----------------
 // Setup dbs

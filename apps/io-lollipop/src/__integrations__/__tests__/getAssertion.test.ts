@@ -71,7 +71,7 @@ const customHeaders = {
 const baseUrl = BASE_URL;
 const myFetch = (getNodeFetch(customHeaders) as unknown) as typeof fetch;
 
-const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "assertions";
+const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "lollipop-assertions";
 
 // ----------------
 // Setup dbs
@@ -503,6 +503,7 @@ async function setupTestAndGenerateLcParams() {
     (myFetch as unknown) as typeof fetch
   );
 
+  console.log("Response Activate:", responseActivate);
   expect(responseActivate.status).toEqual(200);
 
   const resultGenerateLcParams = await fetchGenerateLcParams(
