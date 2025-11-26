@@ -98,6 +98,15 @@ resource "azurerm_api_management_api_operation_policy" "get_profile_operation" {
   depends_on  = [module.api_v2_profile_operation]
 }
 
+resource "azurerm_api_management_api_operation_policy" "get_profile_service_preferences_operation" {
+  api_name            = "io-profile-operation-api"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  operation_id        = "getServicePreferences"
+
+  xml_content = file("./${path.module}/api/io_profile_api/v1/get_profile_service_preferences_policy/policy.xml")
+  depends_on  = [module.api_v2_profile_operation]
+}
 
 resource "azurerm_api_management_api_operation_policy" "sanitize_profile_email_operation" {
   api_name            = "io-profile-operation-api"
