@@ -503,7 +503,6 @@ async function setupTestAndGenerateLcParams() {
     (myFetch as unknown) as typeof fetch
   );
 
-  console.log("Response Activate:", responseActivate);
   expect(responseActivate.status).toEqual(200);
 
   const resultGenerateLcParams = await fetchGenerateLcParams(
