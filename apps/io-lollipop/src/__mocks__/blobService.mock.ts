@@ -14,10 +14,10 @@ export const blockBlobClientMock = vi.mocked<BlockBlobClient>({
 } as unknown as BlockBlobClient);
 
 export const containerClientMock = vi.mocked<ContainerClient>({
-  getBlobClient: () => blobClientMock,
-  getBlockBlobClient: () => blockBlobClientMock
+  getBlobClient: vi.fn(() => blobClientMock),
+  getBlockBlobClient: vi.fn(() => blockBlobClientMock)
 } as unknown as ContainerClient);
 
 export const blobServiceClientMock = vi.mocked<BlobServiceClient>({
-  getContainerClient: () => containerClientMock
+  getContainerClient: vi.fn(() => containerClientMock)
 } as unknown as BlobServiceClient);
