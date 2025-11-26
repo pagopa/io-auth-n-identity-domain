@@ -4,7 +4,7 @@ import { withDefault } from "@pagopa/ts-commons/lib/types";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import { BooleanFromString } from "io-ts-types";
+import { BooleanFromString, NumberFromString } from "io-ts-types";
 
 const ApplicationInsightsConfig = t.intersection([
   t.type({
@@ -34,6 +34,8 @@ const ServiceBusConfig = t.intersection([
     SERVICE_BUS_NAMESPACE: NonEmptyString,
     AUTH_SESSIONS_TOPIC_NAME: NonEmptyString,
     REJECTED_LOGIN_TOPIC_SUBSCRIPTION_NAME: NonEmptyString,
+    SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT:
+      NumberFromString,
   }),
   t.partial({
     SERVICE_BUS_CONNECTION: NonEmptyString,
