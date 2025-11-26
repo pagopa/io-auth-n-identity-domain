@@ -33,12 +33,12 @@ export const streamToText = (
     TE.tryCatch(async () => {
       readable.setEncoding("utf8");
 
-      // eslint-disable-next-line functional/no-let
-      let result = "";
+      const result = [];
       for await (const chunk of readable) {
-        result += chunk.toString();
+        // eslint-disable-next-line functional/immutable-data
+        result.push(chunk);
       }
-      return result;
+      return result.join("");
     }, E.toError),
   );
 

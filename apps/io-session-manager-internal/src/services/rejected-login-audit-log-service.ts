@@ -40,25 +40,18 @@ const generateBlobContent = ({
   ...auditContent
 }: RejectedLoginEvent): string => JSON.stringify(auditContent);
 
-const generateBlobTags = (eventData: RejectedLoginEvent) => {
-  const baseTags = {
-    dateTime: eventData.ts.toISOString(),
-    fiscalCode: sha256(eventData.fiscalCode),
-    ip: eventData.ip,
-    rejectionCause: eventData.rejectionCause,
-    ...(eventData.loginId ? { loginId: eventData.loginId } : {}),
-  };
-
-  // Specific tags for events, in future if we need to add more cases we can switch to a full switch statement
-  if (eventData.rejectionCause === RejectedLoginCauseEnum.CF_MISMATCH) {
-    return {
-      ...baseTags,
-      currentFiscalCodeHash: eventData.currentFiscalCodeHash,
-    };
-  } else {
-    return baseTags;
-  }
-};
+const generateBlobTags = (
+  eventData: RejectedLoginEvent,
+): Record<string, string> => ({
+  dateTime: eventData.ts.toISOString(),
+  fiscalCode: sha256(eventData.fiscalCode),
+  ip: eventData.ip,
+  rejectionCause: eventData.rejectionCause,
+  ...(eventData.loginId ? { loginId: eventData.loginId } : {}),
+  ...(eventData.rejectionCause === RejectedLoginCauseEnum.CF_MISMATCH
+    ? { currentFiscalCodeHash: eventData.currentFiscalCodeHash }
+    : {}),
+});
 
 /**
  * Saves a rejected login event to the audit log blob storage.

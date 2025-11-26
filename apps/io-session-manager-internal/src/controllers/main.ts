@@ -29,6 +29,7 @@ import {
   ReleaseAuthLockFunction,
 } from "./auth-lock";
 import { RejectedLoginEventProcessorFunction } from "./rejected-login-event-processor";
+import { RejectedLoginEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 
 const v1BasePath = "api/v1";
 const config = getConfigOrThrow();
@@ -193,6 +194,7 @@ app.serviceBusTopic("RejectedLoginEventProcessor", {
   topicName: config.AUTH_SESSIONS_TOPIC_NAME,
   subscriptionName: config.REJECTED_LOGIN_TOPIC_SUBSCRIPTION_NAME,
   handler: RejectedLoginEventProcessorFunction({
+    inputDecoder: RejectedLoginEvent,
     rejectedLoginAuditLogService: RejectedLoginAuditLogService,
     auditBlobServiceClient,
     auditLogConfig: config,
