@@ -1,11 +1,11 @@
 openapi: 3.0.1
 info:
   version: 5.19.0
-  title: IO Profile Function API
+  title: IO PROFILE OPERATION API
   x-logo:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
   description: |
-    Documentation of the IO Profile Function API here.
+    Documentation of the IO PROFILE OPERATION API here.
 servers:
   - url: https://${host}/${basePath}
 security:
@@ -54,7 +54,7 @@ paths:
   /profiles/{fiscal_code}/services/{service_id}/preferences:
     get:
       operationId: getServicePreferences
-      summary: getServicePreferences
+      summary: GetServicePreferences
       description: Retrieve the User's preferences for a given Service Id
       tags:
         - restricted
