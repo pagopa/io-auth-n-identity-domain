@@ -11,7 +11,7 @@ import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { pipe } from "fp-ts/lib/function";
 import { AssertionFileName } from "../generated/definitions/internal/AssertionFileName";
 import { InternalError, toInternalError } from "./errors";
-import { buildBlobClientWithFallback } from "./migration-kit";
+import { buildBlobClientWithFallback } from "./migration_kit";
 
 const exists = (
   storageBlobClientWithFallback: StorageBlobClientWithFallback<
