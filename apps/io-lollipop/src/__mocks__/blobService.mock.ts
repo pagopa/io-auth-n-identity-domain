@@ -1,4 +1,4 @@
-import { vi, Mocked } from "vitest";
+import { vi } from "vitest";
 import { BlobClient, BlobServiceClient, BlockBlobClient, ContainerClient } from "@azure/storage-blob";
 
 
