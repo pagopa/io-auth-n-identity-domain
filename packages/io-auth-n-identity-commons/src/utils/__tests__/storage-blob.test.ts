@@ -16,9 +16,7 @@ import {
 import {
   blobExists,
   downloadBlob,
-  downloadBlobToBuffer,
   getBlobAsText,
-  getBlobToBufferAsText,
   streamToText,
   upsertBlobFromText,
 } from "../storage-blob";
@@ -45,8 +43,6 @@ const BLOB_NOT_FOUND_REST_ERROR = new RestError(
     code: "BlobNotFound",
   },
 );
-
-const GENERIC_ERROR = new Error("Generic error");
 
 // ===============================
 // MOCKED AZURE CLIENTS
@@ -167,44 +163,6 @@ describe("blobExists", () => {
   });
 });
 
-describe("downloadBlobToBuffer", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should download blob to buffer successfully", async () => {
-    const mockBuffer = Buffer.from(CONTENT);
-    blobClientMock.downloadToBuffer.mockResolvedValue(mockBuffer);
-
-    const result = await pipe(
-      downloadBlobToBuffer(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-    )();
-
-    expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
-      CONTAINER_NAME,
-    );
-    expect(containerClientMock.getBlobClient).toHaveBeenCalledWith(BLOB_NAME);
-    expect(blobClientMock.downloadToBuffer).toHaveBeenCalledOnce();
-    expect(blobClientMock.download).not.toHaveBeenCalled();
-
-    expect(E.isRight(result)).toBe(true);
-    expect(result).toMatchObject(E.right(O.some(mockBuffer)));
-  });
-
-  it(SHOULD_RETURN_O_NONE_ON_NOT_FOUND_REST_ERROR, async () => {
-    blobClientMock.downloadToBuffer.mockRejectedValue(
-      BLOB_NOT_FOUND_REST_ERROR,
-    );
-
-    const result = await pipe(
-      downloadBlobToBuffer(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-    )();
-
-    expect(E.isRight(result)).toBe(true);
-    expect(result).toMatchObject(E.right(O.none));
-  });
-});
-
 describe("downloadBlob", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -255,55 +213,6 @@ describe("downloadBlob", () => {
     expect(result).toMatchObject(
       E.left(Error("Blob stream is null or undefined")),
     );
-  });
-});
-
-describe("getBlobToBufferAsText", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should download blob to buffer as text successfully", async () => {
-    const mockBuffer = Buffer.from(CONTENT);
-    blobClientMock.downloadToBuffer.mockResolvedValue(mockBuffer);
-
-    const result = await pipe(
-      getBlobToBufferAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-    )();
-
-    expect(blobServiceClientMock.getContainerClient).toHaveBeenCalledWith(
-      CONTAINER_NAME,
-    );
-    expect(containerClientMock.getBlobClient).toHaveBeenCalledWith(BLOB_NAME);
-    expect(blobClientMock.downloadToBuffer).toHaveBeenCalledOnce();
-    expect(blobClientMock.download).not.toHaveBeenCalled();
-
-    expect(E.isRight(result)).toBe(true);
-    expect(result).toMatchObject(E.right(O.some(CONTENT)));
-  });
-
-  it("should return an Error on failure", async () => {
-    blobClientMock.downloadToBuffer.mockRejectedValue(GENERIC_ERROR);
-
-    const result = await pipe(
-      getBlobToBufferAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-    )();
-
-    expect(E.isLeft(result)).toBe(true);
-    expect(result).toMatchObject(E.left(GENERIC_ERROR));
-  });
-
-  it(SHOULD_RETURN_O_NONE_ON_NOT_FOUND_REST_ERROR, async () => {
-    blobClientMock.downloadToBuffer.mockRejectedValue(
-      BLOB_NOT_FOUND_REST_ERROR,
-    );
-
-    const result = await pipe(
-      getBlobToBufferAsText(blobServiceClientMock, CONTAINER_NAME)(BLOB_NAME),
-    )();
-
-    expect(E.isRight(result)).toBe(true);
-    expect(result).toMatchObject(E.right(O.none));
   });
 });
 
