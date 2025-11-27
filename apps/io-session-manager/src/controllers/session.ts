@@ -72,7 +72,12 @@ const getZendeskToken: RTE.ReaderTaskEither<
     profileWithEmailValidatedOrError(deps),
     TE.map(
       // we take 8 chars from the hash hex string
-      (p) => sha256(p.email).substring(0, 8),
+      (p) =>
+        crypto
+          .createHash("sha256")
+          .update(p.email)
+          .digest("hex")
+          .substring(0, 8),
     ),
     TE.orElse((_) =>
       // or we generate 4 bytes and convert them to hex string for a length of 8 chars
