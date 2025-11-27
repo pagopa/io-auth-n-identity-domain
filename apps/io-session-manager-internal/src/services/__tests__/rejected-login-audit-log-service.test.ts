@@ -5,7 +5,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { mockBlobUtils } from "../../__mocks__/repositories/blob-utils.mock";
+import { mockBlobUtils } from "../../__mocks__/blob-utils.mock";
 import {
   aFiscalCodeHash,
   anAgeBlockRejectedLoginEvent,
@@ -19,6 +19,7 @@ import {
   RejectedLoginAuditLogService,
   RejectedLoginAuditLogServiceDeps,
 } from "../rejected-login-audit-log-service";
+import { mockRejectedLoginAuditLogRepository } from "../../__mocks__/repositories/rejected-login-audit-log.mock";
 
 // Mock randomBytes to return a fixed value for deterministic tests
 const fixedRandomBytesPaddingString = "aabbcc";
@@ -36,9 +37,10 @@ const deps = {
   blobUtil: mockBlobUtils,
   auditLogConfig: mockAuditLogConfig,
   auditBlobServiceClient: {}, // no need to mock the full client for these tests
+  rejectedLoginAuditLogRepository: mockRejectedLoginAuditLogRepository,
 } as unknown as RejectedLoginAuditLogServiceDeps;
 
-describe("RejectedLoginAuditLog service getPackageInfo", () => {
+describe("RejectedLoginAuditLog service saveRejectedLoginEvent", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -53,10 +55,7 @@ describe("RejectedLoginAuditLog service getPackageInfo", () => {
   `(
     `should process and write an $EventDescription to the audit log blob container successfully`,
     async ({ eventData }) => {
-      const { eventType, ...auditLogContent } = eventData;
-
       // Expected Values
-      const expectedBlobContent = JSON.stringify(auditLogContent);
       const expectedBlobName = `${aFiscalCodeHash}-${eventData.rejectionCause}-${eventData.ts.toISOString()}-${fixedRandomBytesPaddingString}`;
       const expectedBlobTags = {
         dateTime: eventData.ts.toISOString(),
@@ -72,14 +71,12 @@ describe("RejectedLoginAuditLog service getPackageInfo", () => {
           deps,
         )();
 
-      expect(mockBlobUtils.upsertBlobFromText).toHaveBeenCalledExactlyOnceWith(
-        deps.auditBlobServiceClient,
-        mockAuditLogConfig.AUDIT_LOG_REJECTED_LOGIN_CONTAINER_NAME,
+      expect(
+        mockRejectedLoginAuditLogRepository.saveAuditLog,
+      ).toHaveBeenCalledExactlyOnceWith(
         expectedBlobName,
-        expectedBlobContent,
-        {
-          tags: expectedBlobTags,
-        },
+        eventData,
+        expectedBlobTags,
       );
 
       expect(result).toEqual(E.right(void 0));
@@ -87,14 +84,35 @@ describe("RejectedLoginAuditLog service getPackageInfo", () => {
   );
 
   it("should return an error if the blob upsert fails", async () => {
-    // Arrange
     const blobError = new Error("Blob upsert failed");
 
-    mockBlobUtils.upsertBlobFromText.mockReturnValueOnce(TE.left(blobError));
+    // Expected Values
+    const expectedBlobName = `${aFiscalCodeHash}-${anUserMismatchRejectedLoginEvent.rejectionCause}-${anUserMismatchRejectedLoginEvent.ts.toISOString()}-${fixedRandomBytesPaddingString}`;
+    const expectedBlobTags = {
+      dateTime: anUserMismatchRejectedLoginEvent.ts.toISOString(),
+      fiscalCode: aFiscalCodeHash,
+      ip: anUserMismatchRejectedLoginEvent.ip,
+      rejectionCause: anUserMismatchRejectedLoginEvent.rejectionCause,
+      loginId: anUserMismatchRejectedLoginEvent.loginId,
+      currentFiscalCodeHash:
+        anUserMismatchRejectedLoginEvent.currentFiscalCodeHash,
+    };
+
+    mockRejectedLoginAuditLogRepository.saveAuditLog.mockReturnValueOnce(() =>
+      TE.left(blobError),
+    );
 
     const result = await RejectedLoginAuditLogService.saveRejectedLoginEvent(
       anUserMismatchRejectedLoginEvent,
     )(deps)();
+
+    expect(
+      mockRejectedLoginAuditLogRepository.saveAuditLog,
+    ).toHaveBeenCalledExactlyOnceWith(
+      expectedBlobName,
+      anUserMismatchRejectedLoginEvent,
+      expectedBlobTags,
+    );
 
     expect(result).toEqual(E.left(blobError));
   });

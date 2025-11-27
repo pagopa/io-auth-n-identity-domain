@@ -1,19 +1,18 @@
 import { randomBytes } from "crypto";
-import { BlobServiceClient } from "@azure/storage-blob";
 import {
   RejectedLoginCauseEnum,
   RejectedLoginEvent,
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
-import { BlobUtil } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import * as RTE from "fp-ts/ReaderTaskEither";
-import { AuditLogConfig } from "../utils/config";
+import {
+  RejectedLoginAuditLogRepository,
+  RejectedLoginAuditLogRepositoryDeps,
+} from "../repositories/rejected-login-audit-log-repository";
 
 export type RejectedLoginAuditLogServiceDeps = {
-  auditBlobServiceClient: BlobServiceClient;
-  auditLogConfig: AuditLogConfig;
-  blobUtil: BlobUtil;
-};
+  rejectedLoginAuditLogRepository: RejectedLoginAuditLogRepository;
+} & RejectedLoginAuditLogRepositoryDeps;
 
 /**
  * File name pattern "${hash(CF)}-${RejectedLogin}-${EventUTCDateTime}-${randomBytes(3)}".
@@ -33,13 +32,11 @@ const generateBlobName = ({
   return `${fiscalCodeSha256}-${rejectionCause}-${EventUTCDateTime}-${randomBytesPart}`;
 };
 
-// Removing eventType as not required in the audit log
-const generateBlobContent = ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  eventType,
-  ...auditContent
-}: RejectedLoginEvent): string => JSON.stringify(auditContent);
-
+/**
+ * Generates blob tags for the rejected login event.
+ * @param eventData The rejected login event data
+ * @returns A record of blob tags key-value pairs [ dateTime, fiscalCode, ip, rejectionCause, loginId?, currentFiscalCodeHash? ]
+ */
 const generateBlobTags = (
   eventData: RejectedLoginEvent,
 ): Record<string, string> => ({
@@ -63,15 +60,11 @@ const saveRejectedLoginEvent: (
   rejectedLoginEvent: RejectedLoginEvent,
 ) => RTE.ReaderTaskEither<RejectedLoginAuditLogServiceDeps, Error, void> =
   (rejectedLoginEvent) => (deps) =>
-    deps.blobUtil.upsertBlobFromText(
-      deps.auditBlobServiceClient,
-      deps.auditLogConfig.AUDIT_LOG_REJECTED_LOGIN_CONTAINER_NAME,
+    deps.rejectedLoginAuditLogRepository.saveAuditLog(
       generateBlobName(rejectedLoginEvent),
-      generateBlobContent(rejectedLoginEvent),
-      {
-        tags: generateBlobTags(rejectedLoginEvent),
-      },
-    );
+      rejectedLoginEvent,
+      generateBlobTags(rejectedLoginEvent),
+    )(deps);
 export type RejectedLoginAuditLogService = typeof RejectedLoginAuditLogService;
 export const RejectedLoginAuditLogService = {
   saveRejectedLoginEvent,
