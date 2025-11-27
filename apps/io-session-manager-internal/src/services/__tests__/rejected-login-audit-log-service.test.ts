@@ -57,7 +57,7 @@ describe("RejectedLoginAuditLog service getPackageInfo", () => {
 
       // Expected Values
       const expectedBlobContent = JSON.stringify(auditLogContent);
-      const expectedBlobName = `${aFiscalCodeHash}-${eventData.ts.toISOString()}-${eventData.rejectionCause}-${fixedRandomBytesPaddingString}`;
+      const expectedBlobName = `${aFiscalCodeHash}-${eventData.rejectionCause}-${eventData.ts.toISOString()}-${fixedRandomBytesPaddingString}`;
       const expectedBlobTags = {
         dateTime: eventData.ts.toISOString(),
         fiscalCode: aFiscalCodeHash,

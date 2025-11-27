@@ -30,7 +30,7 @@ const generateBlobName = ({
   const EventUTCDateTime = ts.toISOString();
   const randomBytesPart = randomBytes(3).toString("hex");
   const fiscalCodeSha256 = sha256(fiscalCode);
-  return `${fiscalCodeSha256}-${EventUTCDateTime}-${rejectionCause}-${randomBytesPart}`;
+  return `${fiscalCodeSha256}-${rejectionCause}-${EventUTCDateTime}-${randomBytesPart}`;
 };
 
 // Removing eventType as not required in the audit log
