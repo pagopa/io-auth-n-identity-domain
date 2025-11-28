@@ -3283,16 +3283,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/handler-kit-azure-func@npm:^2.0.7":
-  version: 2.0.7
-  resolution: "@pagopa/handler-kit-azure-func@npm:2.0.7"
+"@pagopa/handler-kit-azure-func@npm:^2.0.8":
+  version: 2.0.8
+  resolution: "@pagopa/handler-kit-azure-func@npm:2.0.8"
   dependencies:
     "@azure/functions": "npm:^4.0.1"
-    "@pagopa/handler-kit": "npm:^1.0.1"
+    "@pagopa/handler-kit": "npm:^1.1.1"
     "@pagopa/logger": "npm:^1.0.1"
     fp-ts: "npm:^2.13.1"
     io-ts: "npm:^2.2.20"
-  checksum: 10c0/0f1a2f193b2d108d02a46707561ddf8106b901062baef68f36851279848d0c4a82d2d2e17eb2b15683c8312c7bdbbf240420eb36f2014de89b25522f8932fa8e
+  peerDependencies:
+    fp-ts: ^2.13.1
+    io-ts: ^2.2.20
+  checksum: 10c0/986bcdbe65db706710df00221bed705148c3a51d2b8fdfcd1bcdf8597b28c79eede1116690f1d4e1fd10062ddd98d852651dc589c4aecca12bcc6cd29c68ba8b
   languageName: node
   linkType: hard
 
@@ -3307,6 +3310,23 @@ __metadata:
     parse-multipart: "npm:^1.0.4"
     tsup: "npm:^6.6.3"
   checksum: 10c0/9f5ea182aea23403ece1eb4dbf49558e0c837f0269cf06d7db56dd2e1514258f08864511bb6a4ae5a3ce97218bba16ee80caed894392f1aa724ef1316e6f24b8
+  languageName: node
+  linkType: hard
+
+"@pagopa/handler-kit@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@pagopa/handler-kit@npm:1.1.1"
+  dependencies:
+    "@pagopa/logger": "npm:^1.0.1"
+    "@types/parse-multipart": "npm:^1.0.0"
+    fp-ts: "npm:^2.13.1"
+    io-ts: "npm:^2.2.20"
+    parse-multipart: "npm:^1.0.4"
+    tsup: "npm:^6.6.3"
+  peerDependencies:
+    fp-ts: ^2.13.1
+    io-ts: ^2.2.20
+  checksum: 10c0/392f6edb9675caf8c516caf4bc4b3a2c7025cd8b1595ba46aed8e3e68e7651f69ac72b52ebb5ea8cb6dba82e17351eb654cc40e91326a00150e672a835fa1398
   languageName: node
   linkType: hard
 
@@ -10791,8 +10811,8 @@ __metadata:
   dependencies:
     "@azure/functions": "npm:^4.7.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
-    "@pagopa/handler-kit": "npm:^1.1.0"
-    "@pagopa/handler-kit-azure-func": "npm:^2.0.7"
+    "@pagopa/handler-kit": "npm:^1.1.1"
+    "@pagopa/handler-kit-azure-func": "npm:^2.0.8"
     "@pagopa/io-functions-commons": "npm:^29.1.0"
     "@pagopa/openapi-codegen-ts": "npm:^13.2.0"
     "@pagopa/ts-commons": "npm:^13.1.1"
@@ -11043,10 +11063,11 @@ __metadata:
     "@azure/functions": "npm:^4.7.0"
     "@azure/identity": "npm:^4.10.0"
     "@azure/service-bus": "npm:^7.9.5"
+    "@azure/storage-blob": "npm:^12.17.0"
     "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
-    "@pagopa/handler-kit": "npm:^1.1.0"
-    "@pagopa/handler-kit-azure-func": "npm:^2.0.7"
+    "@pagopa/handler-kit": "npm:^1.1.1"
+    "@pagopa/handler-kit-azure-func": "npm:^2.0.8"
     "@pagopa/io-auth-n-identity-commons": "npm:*"
     "@pagopa/io-functions-commons": "npm:^29.1.0"
     "@pagopa/openapi-codegen-ts": "npm:^13.2.0"

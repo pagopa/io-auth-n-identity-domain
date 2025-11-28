@@ -23,8 +23,8 @@
   },
   "dependencies": {
     "@azure/functions": "^4.7.0",
-    "@pagopa/handler-kit": "^1.1.0",
-    "@pagopa/handler-kit-azure-func": "^2.0.7",
+    "@pagopa/handler-kit": "^1.1.1",
+    "@pagopa/handler-kit-azure-func": "^2.0.8",
     "@pagopa/io-functions-commons": "^29.1.0",
     "@pagopa/ts-commons": "^13.1.1",
     "applicationinsights": "^2.9.5",
