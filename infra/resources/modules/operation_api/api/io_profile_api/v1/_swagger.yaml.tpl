@@ -1,11 +1,11 @@
 openapi: 3.0.1
 info:
   version: 5.19.0
-  title: IO Profile Function API
+  title: IO PROFILE OPERATION API
   x-logo:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
   description: |
-    Documentation of the IO Profile Function API here.
+    Documentation of the IO PROFILE OPERATION API here.
 servers:
   - url: https://${host}/${basePath}
 security:
@@ -39,6 +39,55 @@ paths:
           description: Forbidden
         "404":
           description: No message found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "429":
+          description: Too many requests
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+  /profiles/{fiscal_code}/services/{service_id}/preferences:
+    get:
+      operationId: getServicePreferences
+      summary: GetServicePreferences
+      description: Retrieve the User's preferences for a given Service Id
+      tags:
+        - restricted
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/ServiceId"
+      responses:
+        "200":
+          description: The User's Service Preference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicePreference"
+        "400":
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Unauthorized
+        "404":
+          description: No message found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "409":
+          description: >-
+            Conflict. Either the provided preference setting version is not
+            consistent with the current version stored in the Profile
+
+            or the Profile is not in the correct preference mode.
           content:
             application/json:
               schema:
@@ -103,6 +152,14 @@ components:
         pattern: >-
           [A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]
         x-example: SPNDNL80R13C555X
+    ServiceId:
+      name: service_id
+      in: path
+      required: true
+      description: The ID of an existing Service.
+      schema:
+        type: string
+        minLength: 1
   schemas:
     ExtendedProfile:
       description: |-
@@ -329,3 +386,37 @@ components:
             problem.
 
             It may or may not yield further information if dereferenced.
+    BasicServicePreference:
+      description: >-
+        Define a set of required preferences of a Citizen for a given Service.
+
+        It's needed by Citizens to express how they want Services to get in touch
+        with them.
+      type: object
+      properties:
+        is_email_enabled:
+          type: boolean
+        is_inbox_enabled:
+          type: boolean
+        is_webhook_enabled:
+          type: boolean
+        settings_version:
+          type: integer
+          minimum: 0
+      required:
+        - is_email_enabled
+        - is_inbox_enabled
+        - is_webhook_enabled
+        - settings_version
+    ServicePreference:
+      description: |-
+        Return the set of preferences of a Citizen for a given Service.
+        It's needed by Citizens to read previoulsy expressed preferences.
+      allOf:
+        - $ref: '#/components/schemas/BasicServicePreference'
+        - type: object
+          properties:
+            can_access_message_read_status:
+              type: boolean
+          required:
+            - can_access_message_read_status
