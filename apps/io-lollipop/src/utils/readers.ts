@@ -5,13 +5,13 @@ import { pipe } from "fp-ts/lib/function";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
-import { getBlobAsText } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
 import {
   LolliPOPKeysModel,
   RetrievedLolliPopPubKeys
 } from "../model/lollipop_keys";
 import { AssertionFileName } from "../generated/definitions/internal/AssertionFileName";
+import { getBlobAsText } from "./blob";
 import {
   cosmosErrorsToString,
   toInternalError,
@@ -67,12 +67,19 @@ export const getPublicKeyDocumentReader = (
  */
 export const getAssertionReader = (
   blobService: BlobServiceClient,
-  assertionContainerName: NonEmptyString
+  assertionContainerName: NonEmptyString,
+  blobServiceFallback: BlobServiceClient,
+  assertionContainerNameFallback: NonEmptyString
 ): AssertionReader => (
   assertionFileName: AssertionFileName
 ): ReturnType<AssertionReader> =>
   pipe(
-    getBlobAsText(blobService, assertionContainerName)(assertionFileName),
+    getBlobAsText(
+      blobService,
+      assertionContainerName,
+      blobServiceFallback,
+      assertionContainerNameFallback
+    )(assertionFileName),
     TE.mapLeft(error =>
       toInternalError(
         `Unable to get assertion blob as text: ${error.message}`,
