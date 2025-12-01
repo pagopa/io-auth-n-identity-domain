@@ -7,7 +7,7 @@ import {
   RejectedLoginAuditLogServiceDeps,
 } from "../services/rejected-login-audit-log-service";
 
-type FunctionDependencies = {
+export type FunctionDependencies = {
   rejectedLoginAuditLogService: RejectedLoginAuditLogService;
 } & RejectedLoginAuditLogServiceDeps;
 
@@ -16,8 +16,8 @@ export const RejectedLoginEventProcessorHandler: H.Handler<
   void,
   FunctionDependencies
 > = H.of(
-  (documents) => (deps) =>
-    deps.rejectedLoginAuditLogService.saveRejectedLoginEvent(documents)(deps),
+  (document) => (deps) =>
+    deps.rejectedLoginAuditLogService.saveRejectedLoginEvent(document)(deps),
 );
 
 export const RejectedLoginEventProcessorFunction = azureFunction(
