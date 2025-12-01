@@ -1,11 +1,11 @@
 openapi: 3.0.1
 info:
   version: 5.19.0
-  title: IO Profile Function API
+  title: IO PROFILE INTERNAL API
   x-logo:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
   description: |
-    Documentation of the IO Profile Function API here.
+    Documentation of the IO PROFILE INTERNAL API here.
 servers:
   - url: https://${host}/${basePath}
 security:

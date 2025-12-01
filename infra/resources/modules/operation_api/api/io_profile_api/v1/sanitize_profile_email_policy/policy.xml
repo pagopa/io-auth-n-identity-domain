@@ -7,7 +7,7 @@
             <value>{{io-fn-admin-master-key}}</value>
         </set-header>
         <choose>
-            <when condition="@(!context.User.Groups.Select(g => g.Name).Contains("{{api-profile-operation-write-group-name}}"))">
+            <when condition="@(!context.User.Groups.Any(g => g.Name == "{{api-profile-operation-write-group-name}}"))">
                 <return-response>
                     <set-status code="403" reason="Unauthorized, the subscription used doesn&apos;t have the required permission" />
                 </return-response>
