@@ -4,7 +4,7 @@ import { withDefault } from "@pagopa/ts-commons/lib/types";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import { BooleanFromString, NumberFromString } from "io-ts-types";
+import { BooleanFromString } from "io-ts-types";
 
 const ApplicationInsightsConfig = t.intersection([
   t.type({

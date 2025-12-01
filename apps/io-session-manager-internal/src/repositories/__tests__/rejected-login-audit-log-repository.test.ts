@@ -36,9 +36,7 @@ describe("RejectedLoginAuditLog repository saveAuditLog", () => {
   };
   const aFileName = "aFileName";
 
-  it("should return an error if the blob upsert fails", async () => {
-    // Expected Values
-
+  it("should succed if the blob upsert succeeds", async () => {
     const result = await RejectedLoginAuditLogRepository.saveAuditLog(
       aFileName,
       anUserMismatchRejectedLoginEvent,
@@ -57,7 +55,6 @@ describe("RejectedLoginAuditLog repository saveAuditLog", () => {
   });
 
   it("should return an error if the blob upsert fails", async () => {
-    // Arrange
     const blobError = new Error("Blob upsert failed");
 
     mockBlobUtils.upsertBlobFromText.mockReturnValueOnce(TE.left(blobError));

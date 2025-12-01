@@ -16,8 +16,10 @@ export const RejectedLoginEventProcessorHandler: H.Handler<
   void,
   FunctionDependencies
 > = H.of(
-  (document) => (deps) =>
-    deps.rejectedLoginAuditLogService.saveRejectedLoginEvent(document)(deps),
+  (rejectedLoginEvent) => (deps) =>
+    deps.rejectedLoginAuditLogService.saveRejectedLoginEvent(
+      rejectedLoginEvent,
+    )(deps),
 );
 
 export const RejectedLoginEventProcessorFunction = azureFunction(
