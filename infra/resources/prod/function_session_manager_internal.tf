@@ -33,8 +33,15 @@ locals {
       PUSH_NOTIFICATIONS_QUEUE_NAME                = "push-notifications"
 
       // Service Bus Config
-      SERVICE_BUS_NAMESPACE    = "${data.azurerm_servicebus_namespace.platform_service_bus_namespace.name}.servicebus.windows.net"
-      AUTH_SESSIONS_TOPIC_NAME = azurerm_servicebus_topic.io_auth_sessions_topic.name
+      SERVICE_BUS_CONNECTION__fullyQualifiedNamespace = "${data.azurerm_servicebus_namespace.platform_service_bus_namespace.name}.servicebus.windows.net"
+      SERVICE_BUS_NAMESPACE                           = "${data.azurerm_servicebus_namespace.platform_service_bus_namespace.name}.servicebus.windows.net"
+      AUTH_SESSIONS_TOPIC_NAME                        = azurerm_servicebus_topic.io_auth_sessions_topic.name
+      REJECTED_LOGIN_TOPIC_SUBSCRIPTION_NAME          = resource.azurerm_servicebus_subscription.io_auth_rejected_login_audit_logs_sub.name
+
+      // Audit Log Config
+      AUDIT_LOG_STORAGE_CONNECTION_STRING     = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.audit_st_connection_string.versionless_id})"
+      AUDIT_LOG_REJECTED_LOGIN_CONTAINER_NAME = local.rejected_login_logs_container_name
+
     }
   }
 }
@@ -70,8 +77,22 @@ module "function_session_manager_internal" {
     resource_group_name = data.azurerm_virtual_network.weu_common.resource_group_name
   }
 
-  app_settings      = local.function_session_manager_internal.app_settings
-  slot_app_settings = local.function_session_manager_internal.app_settings
+  app_settings = merge(
+    local.function_session_manager_internal.app_settings,
+    {
+      "AzureWebJobs.RejectedLoginEventProcessor.Disabled" = "0"
+    }
+  )
+  slot_app_settings = merge(
+    local.function_session_manager_internal.app_settings,
+    {
+      "AzureWebJobs.RejectedLoginEventProcessor.Disabled" = "1"
+    }
+  )
+
+  sticky_app_setting_names = [
+    "AzureWebJobs.RejectedLoginEventProcessor.Disabled"
+  ]
 
   subnet_service_endpoints = {
     web = true

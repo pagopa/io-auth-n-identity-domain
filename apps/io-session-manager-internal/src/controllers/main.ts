@@ -4,6 +4,9 @@ import { DefaultAzureCredential } from "@azure/identity";
 import { QueueClient } from "@azure/storage-queue";
 import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import { ServiceBusClient } from "@azure/service-bus";
+import { BlobServiceClient } from "@azure/storage-blob";
+import { BlobUtil } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
+import { RejectedLoginEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import { CreateRedisClientSingleton } from "../utils/redis-client";
 import { initTelemetryClient } from "../utils/appinsights";
 import { getConfigOrThrow } from "../utils/config";
@@ -16,6 +19,8 @@ import { BlockedUsersRedisRepository } from "../repositories/blocked-users-redis
 import { InfoService } from "../services/info";
 import { SessionService } from "../services/session-service";
 import { BlockedUsersService } from "../services/blocked-users-service";
+import { RejectedLoginAuditLogService } from "../services/rejected-login-audit-log-service";
+import { RejectedLoginAuditLogRepository } from "../repositories/rejected-login-audit-log-repository";
 import { InfoFunction } from "./info";
 import { GetSessionFunction, GetSessionStateFunction } from "./get-session";
 import { UnlockUserSessionFunction } from "./unlock-user-session";
@@ -25,6 +30,7 @@ import {
   DeleteUserSessionFunction,
   ReleaseAuthLockFunction,
 } from "./auth-lock";
+import { RejectedLoginEventProcessorFunction } from "./rejected-login-event-processor";
 
 const v1BasePath = "api/v1";
 const config = getConfigOrThrow();
@@ -59,8 +65,8 @@ const NotificationQueueClient = new QueueClient(
   config.PUSH_NOTIFICATIONS_QUEUE_NAME,
 );
 
-const serviceBusClient = config.DEV_SERVICE_BUS_CONNECTION_STRING
-  ? new ServiceBusClient(config.DEV_SERVICE_BUS_CONNECTION_STRING) // Use the development connection string if provided, otherwise use the DefaultAzureCredential
+const serviceBusClient = config.SERVICE_BUS_CONNECTION
+  ? new ServiceBusClient(config.SERVICE_BUS_CONNECTION) // Use the development connection string if provided, otherwise use the DefaultAzureCredential
   : new ServiceBusClient(
       config.SERVICE_BUS_NAMESPACE,
       new DefaultAzureCredential(),
@@ -68,6 +74,10 @@ const serviceBusClient = config.DEV_SERVICE_BUS_CONNECTION_STRING
 
 const authSessionsTopicServiceBusSender = serviceBusClient.createSender(
   config.AUTH_SESSIONS_TOPIC_NAME,
+);
+
+const auditBlobServiceClient = BlobServiceClient.fromConnectionString(
+  config.AUDIT_LOG_STORAGE_CONNECTION_STRING,
 );
 
 app.http("Info", {
@@ -179,4 +189,18 @@ app.http("UnlockUserSession", {
   handler: UnlockUserSessionFunction(blockedUserServiceDeps),
   methods: ["DELETE"],
   route: `${v1BasePath}/sessions/{fiscalCode}/lock`,
+});
+
+app.serviceBusTopic("RejectedLoginEventProcessor", {
+  topicName: config.AUTH_SESSIONS_TOPIC_NAME,
+  subscriptionName: config.REJECTED_LOGIN_TOPIC_SUBSCRIPTION_NAME,
+  handler: RejectedLoginEventProcessorFunction({
+    inputDecoder: RejectedLoginEvent,
+    auditBlobServiceClient,
+    auditLogConfig: config,
+    blobUtil: BlobUtil,
+    rejectedLoginAuditLogRepository: RejectedLoginAuditLogRepository,
+    rejectedLoginAuditLogService: RejectedLoginAuditLogService,
+  }),
+  connection: "SERVICE_BUS_CONNECTION",
 });
