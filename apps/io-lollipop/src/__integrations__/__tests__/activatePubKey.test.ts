@@ -46,7 +46,7 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { AssertionFileName } from "../../generated/definitions/internal/AssertionFileName";
 import { CosmosClient } from "@azure/cosmos";
 import { generateAssertionRefForTest, generateJwkForTest } from "../utils/jwk";
-import { getBlobToBufferAsText } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
+import { getBlobAsText } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 
 const MAX_ATTEMPT = 50;
 const TIMEOUT = WAIT_MS * MAX_ATTEMPT;
@@ -255,11 +255,12 @@ describe("activatePubKey |> Success Results", () => {
 
       // Check values on storages
 
-      const blob = await 
-        getBlobToBufferAsText(
+      const blob = (await pipe(
+        getBlobAsText(
           blobService,
           LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
-        )(anAssertionFileNameForSha256)();
+        )(anAssertionFileNameForSha256)
+      )());
       expect(blob).toEqual(
         E.right(O.some(validActivatePubKeyPayload.assertion))
       );
@@ -350,7 +351,7 @@ describe("activatePubKey |> Success Results", () => {
 
       // Check values on storages
 
-      const assertionBlob = await getBlobToBufferAsText(
+      const assertionBlob = await getBlobAsText(
           blobService,
           LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
         )(randomAssertionFileName)();
