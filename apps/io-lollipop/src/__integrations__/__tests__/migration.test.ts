@@ -68,7 +68,7 @@ const customHeaders = {
 const baseUrl = BASE_URL;
 const myFetch = (getNodeFetch(customHeaders) as unknown) as typeof fetch;
 
-const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "lollipop-assertions" as NonEmptyString;
+const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "lollipop-assertions-01" as NonEmptyString;
 const LOLLIPOP_ASSERTION_STORAGE_FALLBACK_CONTAINER_NAME = "assertions" as NonEmptyString;
 const SOME_OTHER_CONTAINER_NAME = "some-other-container" as NonEmptyString;
 const CONTAINERS = [

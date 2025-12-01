@@ -71,7 +71,7 @@ const customHeaders = {
 const baseUrl = BASE_URL;
 const myFetch = (getNodeFetch(customHeaders) as unknown) as typeof fetch;
 
-const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "lollipop-assertions";
+const LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME = "lollipop-assertions-01";
 
 // ----------------
 // Setup dbs
