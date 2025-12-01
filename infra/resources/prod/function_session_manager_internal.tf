@@ -80,7 +80,7 @@ module "function_session_manager_internal" {
   app_settings = merge(
     local.function_session_manager_internal.app_settings,
     {
-      "AzureWebJobs.RejectedLoginEventProcessor.Disabled" = "1"
+      "AzureWebJobs.RejectedLoginEventProcessor.Disabled" = "0"
     }
   )
   slot_app_settings = merge(
