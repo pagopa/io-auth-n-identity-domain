@@ -5,6 +5,10 @@ import {
   LoginScenarioEnum,
   LoginTypeEnum as ServiceBusLoginTypeEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/login-event";
+import {
+  RejectedLoginCauseEnum,
+  RejectedLoginEvent,
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import {
   CIE_IDP_IDENTIFIERS,
@@ -28,10 +32,6 @@ import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import {
-  RejectedLoginCauseEnum,
-  RejectedLoginEvent,
-} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
-import {
   mockTrackEvent,
   mockedAppinsightsTelemetryClient,
 } from "../../__mocks__/appinsights.mocks";
@@ -50,6 +50,7 @@ import { mockedTableClient } from "../../__mocks__/repositories/table-client-moc
 import mockReq from "../../__mocks__/request.mocks";
 import mockRes, { resetMock } from "../../__mocks__/response.mocks";
 import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
+import { getASAMLResponse } from "../../__mocks__/spid.mocks";
 import {
   aFiscalCode,
   aSessionTrackingId,
@@ -113,6 +114,7 @@ import {
   DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
   acs,
   acsTest,
+  extractLoginIdFromResponse,
 } from "../authentication";
 
 const dependencies: AcsDependencies = {
@@ -468,6 +470,7 @@ describe("AuthenticationController#acs", () => {
       fiscalCode: validUserPayload.fiscalNumber,
       ip: aRequestIpAddress,
       ts: frozenDate,
+      loginId: anotherAssertionRef,
     } as RejectedLoginEvent);
   });
 
@@ -487,6 +490,7 @@ describe("AuthenticationController#acs", () => {
       fiscalCode: validUserPayload.fiscalNumber,
       ip: aRequestIpAddress,
       ts: frozenDate,
+      loginId: anotherAssertionRef,
     } as RejectedLoginEvent;
 
     const response = await acs(dependencies)(validUserPayload);
@@ -625,6 +629,7 @@ describe("AuthenticationController#acs Active Session Test", () => {
       ip: aRequestIpAddress,
       ts: frozenDate,
       currentFiscalCodeHash: aDifferentUserFiscalCodeHash,
+      loginId: anotherAssertionRef,
     } as RejectedLoginEvent);
 
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
@@ -693,6 +698,7 @@ describe("AuthenticationController#acs Age Limit", () => {
       ts: frozenDate,
       minimumAge: AGE_LIMIT,
       dateOfBirth: aYoungDateOfBirth,
+      loginId: anotherAssertionRef,
     } as RejectedLoginEvent);
 
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
@@ -1340,6 +1346,7 @@ describe("AuthenticationController#acs LV", () => {
       fiscalCode: validUserPayload.fiscalNumber,
       ip: aRequestIpAddress,
       ts: frozenDate,
+      loginId: anotherAssertionRef,
     } as RejectedLoginEvent);
 
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
