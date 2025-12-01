@@ -1,3 +1,6 @@
+// TODO: remove this file after the migration is complete
+// This file contains tests for the getBlobAsText function
+// which also verify the behavior of the blob migration kit
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
