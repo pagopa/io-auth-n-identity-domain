@@ -33,10 +33,9 @@ locals {
       PUSH_NOTIFICATIONS_QUEUE_NAME                = "push-notifications"
 
       // Service Bus Config
-      SERVICE_BUS_NAMESPACE                                = "${data.azurerm_servicebus_namespace.platform_service_bus_namespace.name}.servicebus.windows.net"
-      AUTH_SESSIONS_TOPIC_NAME                             = azurerm_servicebus_topic.io_auth_sessions_topic.name
-      REJECTED_LOGIN_TOPIC_SUBSCRIPTION_NAME               = resource.azurerm_servicebus_subscription.io_auth_rejected_login_audit_logs_sub.name
-      REJECTED_LOGIN_TOPIC_SUBSCRIPTION_MAX_DELIVERY_COUNT = local.io_session_notifications_sub_max_delivery_count
+      SERVICE_BUS_NAMESPACE                  = "${data.azurerm_servicebus_namespace.platform_service_bus_namespace.name}.servicebus.windows.net"
+      AUTH_SESSIONS_TOPIC_NAME               = azurerm_servicebus_topic.io_auth_sessions_topic.name
+      REJECTED_LOGIN_TOPIC_SUBSCRIPTION_NAME = resource.azurerm_servicebus_subscription.io_auth_rejected_login_audit_logs_sub.name
 
       // Audit Log Config
       AUDIT_LOG_STORAGE_CONNECTION_STRING     = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.audit_st_connection_string.versionless_id})"

@@ -34,7 +34,6 @@ const ServiceBusConfig = t.intersection([
     SERVICE_BUS_NAMESPACE: NonEmptyString,
     AUTH_SESSIONS_TOPIC_NAME: NonEmptyString,
     REJECTED_LOGIN_TOPIC_SUBSCRIPTION_NAME: NonEmptyString,
-    REJECTED_LOGIN_TOPIC_SUBSCRIPTION_MAX_DELIVERY_COUNT: NumberFromString,
   }),
   t.partial({
     SERVICE_BUS_CONNECTION: NonEmptyString,
