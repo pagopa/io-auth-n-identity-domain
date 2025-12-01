@@ -4,27 +4,30 @@ import { DefaultAzureCredential } from "@azure/identity";
 import { QueueClient } from "@azure/storage-queue";
 import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import { ServiceBusClient } from "@azure/service-bus";
-import { CreateRedisClientSingleton } from "../utils/redis-client";
-import { initTelemetryClient } from "../utils/appinsights";
-import { getConfigOrThrow } from "../utils/config";
-import { AuthLockRepository } from "../repositories/auth-lock";
-import { InstallationRepository } from "../repositories/installation";
-import { LollipopRepository } from "../repositories/lollipop";
-import { Package } from "../repositories/package";
-import { RedisRepository } from "../repositories/redis";
-import { BlockedUsersRedisRepository } from "../repositories/blocked-users-redis";
-import { InfoService } from "../services/info";
-import { SessionService } from "../services/session-service";
-import { BlockedUsersService } from "../services/blocked-users-service";
-import { InfoFunction } from "./info";
-import { GetSessionFunction, GetSessionStateFunction } from "./get-session";
-import { UnlockUserSessionFunction } from "./unlock-user-session";
-import { LockUserSessionFunction } from "./lock-user-session";
+import { CreateRedisClientSingleton } from "./utils/redis-client";
+import { initTelemetryClient } from "./utils/appinsights";
+import { getConfigOrThrow } from "./utils/config";
+import { AuthLockRepository } from "./repositories/auth-lock";
+import { InstallationRepository } from "./repositories/installation";
+import { LollipopRepository } from "./repositories/lollipop";
+import { Package } from "./repositories/package";
+import { RedisRepository } from "./repositories/redis";
+import { BlockedUsersRedisRepository } from "./repositories/blocked-users-redis";
+import { InfoService } from "./services/info";
+import { SessionService } from "./services/session-service";
+import { BlockedUsersService } from "./services/blocked-users-service";
+import { InfoFunction } from "./controllers/info";
+import {
+  GetSessionFunction,
+  GetSessionStateFunction,
+} from "./controllers/get-session";
+import { UnlockUserSessionFunction } from "./controllers/unlock-user-session";
+import { LockUserSessionFunction } from "./controllers/lock-user-session";
 import {
   AuthLockFunction,
   DeleteUserSessionFunction,
   ReleaseAuthLockFunction,
-} from "./auth-lock";
+} from "./controllers/auth-lock";
 
 const v1BasePath = "api/v1";
 const config = getConfigOrThrow();

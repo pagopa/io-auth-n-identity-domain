@@ -3341,23 +3341,23 @@ __metadata:
     "@azure/service-bus": "npm:^7.9.5"
     "@azure/storage-blob": "npm:^12.17.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
-    "@pagopa/ts-commons": "npm:^13.1.2"
+    "@pagopa/ts-commons": "npm:^13.1.1"
     "@pagopa/typescript-config-node": "npm:*"
     "@types/node": "npm:^20.12.2"
     "@vitest/coverage-v8": "npm:~3.2.4"
     eslint: "npm:^8.57.0"
     eslint-config-monorepo: "npm:*"
     eslint-plugin-prettier: "npm:^5.1.3"
-    fp-ts: "npm:^2.16.9"
-    io-ts: "npm:^2.2.22"
+    fp-ts: "npm:^2.16.5"
+    io-ts: "npm:^2.2.21"
     prettier: "npm:^3.2.5"
     shx: "npm:^0.4.0"
     typescript: "npm:^5.4.5"
     vitest: "npm:~3.2.4"
   peerDependencies:
-    "@pagopa/ts-commons": ^13.1.2
-    fp-ts: ^2.16.9
-    io-ts: ^2.2.22
+    "@pagopa/ts-commons": ^13.1.1
+    fp-ts: ^2.16.5
+    io-ts: ^2.2.21
   languageName: unknown
   linkType: soft
 
