@@ -6,6 +6,7 @@ import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/
 import { ServiceBusClient } from "@azure/service-bus";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { BlobUtil } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
+import { RejectedLoginEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import { CreateRedisClientSingleton } from "../utils/redis-client";
 import { initTelemetryClient } from "../utils/appinsights";
 import { getConfigOrThrow } from "../utils/config";
@@ -19,6 +20,7 @@ import { InfoService } from "../services/info";
 import { SessionService } from "../services/session-service";
 import { BlockedUsersService } from "../services/blocked-users-service";
 import { RejectedLoginAuditLogService } from "../services/rejected-login-audit-log-service";
+import { RejectedLoginAuditLogRepository } from "../repositories/rejected-login-audit-log-repository";
 import { InfoFunction } from "./info";
 import { GetSessionFunction, GetSessionStateFunction } from "./get-session";
 import { UnlockUserSessionFunction } from "./unlock-user-session";
@@ -29,8 +31,6 @@ import {
   ReleaseAuthLockFunction,
 } from "./auth-lock";
 import { RejectedLoginEventProcessorFunction } from "./rejected-login-event-processor";
-import { RejectedLoginEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
-import { RejectedLoginAuditLogRepository } from "../repositories/rejected-login-audit-log-repository";
 
 const v1BasePath = "api/v1";
 const config = getConfigOrThrow();
