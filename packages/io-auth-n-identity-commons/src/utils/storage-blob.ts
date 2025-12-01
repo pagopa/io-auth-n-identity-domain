@@ -36,10 +36,8 @@ export const streamToText = (
       // eslint-disable-next-line functional/no-let
       let result = "";
       for await (const chunk of readable) {
-        // eslint-disable-next-line functional/immutable-data
         result += chunk.toString();
       }
-
       return result;
     }, E.toError),
   );
