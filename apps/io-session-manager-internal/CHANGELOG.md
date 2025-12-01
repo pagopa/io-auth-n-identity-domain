@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.13.0
+
+### Minor Changes
+
+- ab8846c: Add RejectedLoginEventProcessor functions, this will produce Audit logs on these events occcurrences
+
 ## 0.12.1
 
 ### Patch Changes
