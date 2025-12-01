@@ -45,7 +45,6 @@ import * as O from "fp-ts/Option";
 import * as RT from "fp-ts/ReaderTask";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
-import { AuthenticationController } from ".";
 import {
   ClientErrorRedirectionUrlParams,
   getClientErrorRedirectionUrl,
@@ -109,6 +108,7 @@ import {
 import { getRequestIDFromResponse } from "../utils/spid";
 import { toAppUser, validateSpidUser } from "../utils/user";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
+import { AuthenticationController } from ".";
 
 // Minimum user age allowed to login if the Age limit is enabled
 export const AGE_LIMIT = 14;
@@ -965,12 +965,8 @@ export const extractLoginIdFromResponse = (
   pipe(
     spidUser.getSamlResponseXml(),
     safeXMLParseFromString,
-    O.chain(
-      flow(
-        getRequestIDFromResponse,
-        O.chain(flow(NonEmptyString.decode, O.fromEither)),
-      ),
-    ),
+    O.chain(getRequestIDFromResponse),
+    O.chainEitherK(NonEmptyString.decode),
   );
 
 export const buildBaseRejectedLoginEvent = (
