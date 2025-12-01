@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { UserMismatchRejectedLogin } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
+import {
+  AgeBlockRejectedLogin,
+  AuthLockRejectedLogin,
+  OngoingUserDeletionRejectedLogin,
+  UserMismatchRejectedLogin,
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 
 export const aFiscalCode = "AAAAAA89S20I111X";
 export const aFiscalCodeHash =
@@ -28,17 +33,17 @@ export const anAgeBlockRejectedLoginEvent = {
   minimumAge: 18,
   dateOfBirth: "2008-05-20",
   ...aBaseRejectedLoginServiceBusEvent,
-} as unknown as UserMismatchRejectedLogin;
+} as unknown as AgeBlockRejectedLogin;
 
 export const anAuthLockRejectedLoginEvent = {
   rejectionCause: "auth_lock",
   ...aBaseRejectedLoginServiceBusEvent,
-} as unknown as UserMismatchRejectedLogin;
+} as unknown as AuthLockRejectedLogin;
 
 export const anOngoingUserDeletionRejectedLoginEvent = {
   rejectionCause: "ongoing_user_deletion",
   ...aBaseRejectedLoginServiceBusEvent,
-} as unknown as UserMismatchRejectedLogin;
+} as unknown as OngoingUserDeletionRejectedLogin;
 
 const { loginId, ...withoutLoginId } = anOngoingUserDeletionRejectedLoginEvent;
 export const anEventWithoutLoginId = withoutLoginId;
