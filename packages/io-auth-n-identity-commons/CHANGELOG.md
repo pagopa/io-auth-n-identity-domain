@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-commons
 
+## 0.3.1
+
+### Patch Changes
+
+- ddf8c6c: Performance optimization for blob operations
+
 ## 0.3.0
 
 ### Minor Changes
