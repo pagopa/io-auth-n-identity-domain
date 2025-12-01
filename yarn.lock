@@ -11204,7 +11204,7 @@ __metadata:
     "@azure/functions": "npm:^4.7.0"
     "@azure/identity": "npm:^4.10.0"
     "@azure/service-bus": "npm:^7.9.5"
-    "@azure/storage-blob": "npm:^12.17.0"
+    "@azure/storage-blob": "npm:^12.29.1"
     "@azure/storage-queue": "npm:^12.16.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/handler-kit": "npm:^1.1.1"
