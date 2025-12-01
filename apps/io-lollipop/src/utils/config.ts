@@ -84,7 +84,7 @@ export const IConfig = t.intersection([
     LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING: NonEmptyString,
     LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME: withDefault(
       NonEmptyString,
-      "lollipop-assertions" as NonEmptyString
+      "lollipop-assertions-01" as NonEmptyString
     ),
     LOLLIPOP_ASSERTION_STORAGE_FALLBACK_CONNECTION_STRING: NonEmptyString,
     LOLLIPOP_ASSERTION_STORAGE_FALLBACK_CONTAINER_NAME: withDefault(
