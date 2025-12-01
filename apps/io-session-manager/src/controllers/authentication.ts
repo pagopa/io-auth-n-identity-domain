@@ -959,7 +959,7 @@ const validateCurrentUser = (
   );
 };
 
-export const extractLoginIdFromResponse = (
+const extractLoginIdFromResponse = (
   spidUser: SpidUser,
 ): O.Option<NonEmptyString> =>
   pipe(
