@@ -1298,6 +1298,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@azure/cosmos@npm:4.2.0, @azure/cosmos@npm:^4.0.0, @azure/cosmos@npm:^4.1.1":
+  version: 4.2.0
+  resolution: "@azure/cosmos@npm:4.2.0"
+  dependencies:
+    "@azure/abort-controller": "npm:^2.0.0"
+    "@azure/core-auth": "npm:^1.7.1"
+    "@azure/core-rest-pipeline": "npm:^1.15.1"
+    "@azure/core-tracing": "npm:^1.1.1"
+    "@azure/core-util": "npm:^1.8.1"
+    fast-json-stable-stringify: "npm:^2.1.0"
+    jsbi: "npm:^4.3.0"
+    priorityqueuejs: "npm:^2.0.0"
+    semaphore: "npm:^1.1.0"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/0210538b0204fe9b27db356e1049f47e8d2a52bc99f9eca1905940161d6b05b67475ab00d304fd45b108a28240094e0016297a5ea5d0cf8d800c2c7f688ead65
+  languageName: node
+  linkType: hard
+
 "@azure/cosmos@npm:^3.11.5, @azure/cosmos@npm:^3.17.1, @azure/cosmos@npm:^3.17.2":
   version: 3.17.3
   resolution: "@azure/cosmos@npm:3.17.3"
@@ -1316,24 +1334,6 @@ __metadata:
     universal-user-agent: "npm:^6.0.0"
     uuid: "npm:^8.3.0"
   checksum: 10c0/1afd2a8643553b7fd87a7c8e9da8f8650f3a5221acd9d06247ff7f45927a3e836484aa17fcc7daaba31c297b1822dbc63e7b1680c7b815f88c821e9243fe4c29
-  languageName: node
-  linkType: hard
-
-"@azure/cosmos@npm:^4.0.0, @azure/cosmos@npm:^4.1.1":
-  version: 4.2.0
-  resolution: "@azure/cosmos@npm:4.2.0"
-  dependencies:
-    "@azure/abort-controller": "npm:^2.0.0"
-    "@azure/core-auth": "npm:^1.7.1"
-    "@azure/core-rest-pipeline": "npm:^1.15.1"
-    "@azure/core-tracing": "npm:^1.1.1"
-    "@azure/core-util": "npm:^1.8.1"
-    fast-json-stable-stringify: "npm:^2.1.0"
-    jsbi: "npm:^4.3.0"
-    priorityqueuejs: "npm:^2.0.0"
-    semaphore: "npm:^1.1.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/0210538b0204fe9b27db356e1049f47e8d2a52bc99f9eca1905940161d6b05b67475ab00d304fd45b108a28240094e0016297a5ea5d0cf8d800c2c7f688ead65
   languageName: node
   linkType: hard
 
@@ -3361,6 +3361,33 @@ __metadata:
     "@azure/service-bus": "npm:^7.9.5"
     "@azure/storage-blob": "npm:^12.17.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
+    "@pagopa/ts-commons": "npm:^13.1.2"
+    "@pagopa/typescript-config-node": "npm:*"
+    "@types/node": "npm:^20.12.2"
+    "@vitest/coverage-v8": "npm:~3.2.4"
+    eslint: "npm:^8.57.0"
+    eslint-config-monorepo: "npm:*"
+    eslint-plugin-prettier: "npm:^5.1.3"
+    fp-ts: "npm:^2.16.9"
+    io-ts: "npm:^2.2.22"
+    prettier: "npm:^3.2.5"
+    shx: "npm:^0.4.0"
+    typescript: "npm:^5.4.5"
+    vitest: "npm:~3.2.4"
+  peerDependencies:
+    "@pagopa/ts-commons": ^13.1.2
+    fp-ts: ^2.16.9
+    io-ts: ^2.2.22
+  languageName: unknown
+  linkType: soft
+
+"@pagopa/io-auth-n-identity-db-models@workspace:packages/io-auth-n-identity-db-models":
+  version: 0.0.0-use.local
+  resolution: "@pagopa/io-auth-n-identity-db-models@workspace:packages/io-auth-n-identity-db-models"
+  dependencies:
+    "@azure/cosmos": "npm:4.2.0"
+    "@pagopa/eslint-config": "npm:^3.0.0"
+    "@pagopa/openapi-codegen-ts": "npm:^14.0.1"
     "@pagopa/ts-commons": "npm:^13.1.2"
     "@pagopa/typescript-config-node": "npm:*"
     "@types/node": "npm:^20.12.2"
