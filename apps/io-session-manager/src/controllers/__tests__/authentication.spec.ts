@@ -5,6 +5,10 @@ import {
   LoginScenarioEnum,
   LoginTypeEnum as ServiceBusLoginTypeEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/login-event";
+import {
+  RejectedLoginCauseEnum,
+  RejectedLoginEvent,
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import {
   CIE_IDP_IDENTIFIERS,
@@ -18,7 +22,7 @@ import {
   ResponseErrorValidation,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode, IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { addDays, addMonths, addSeconds, format, subYears } from "date-fns";
@@ -27,10 +31,6 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
-import {
-  RejectedLoginCauseEnum,
-  RejectedLoginEvent,
-} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import {
   mockTrackEvent,
   mockedAppinsightsTelemetryClient,
@@ -468,7 +468,8 @@ describe("AuthenticationController#acs", () => {
       fiscalCode: validUserPayload.fiscalNumber,
       ip: aRequestIpAddress,
       ts: frozenDate,
-    } as RejectedLoginEvent);
+      loginId: anotherAssertionRef,
+    });
   });
 
   test("should write a customEvent when rejection_login event emission fails", async () => {
@@ -487,7 +488,8 @@ describe("AuthenticationController#acs", () => {
       fiscalCode: validUserPayload.fiscalNumber,
       ip: aRequestIpAddress,
       ts: frozenDate,
-    } as RejectedLoginEvent;
+      loginId: anotherAssertionRef,
+    };
 
     const response = await acs(dependencies)(validUserPayload);
     response.apply(res);
@@ -625,7 +627,8 @@ describe("AuthenticationController#acs Active Session Test", () => {
       ip: aRequestIpAddress,
       ts: frozenDate,
       currentFiscalCodeHash: aDifferentUserFiscalCodeHash,
-    } as RejectedLoginEvent);
+      loginId: anotherAssertionRef,
+    });
 
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
@@ -693,7 +696,8 @@ describe("AuthenticationController#acs Age Limit", () => {
       ts: frozenDate,
       minimumAge: AGE_LIMIT,
       dateOfBirth: aYoungDateOfBirth,
-    } as RejectedLoginEvent);
+      loginId: anotherAssertionRef,
+    });
 
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
@@ -1340,7 +1344,8 @@ describe("AuthenticationController#acs LV", () => {
       fiscalCode: validUserPayload.fiscalNumber,
       ip: aRequestIpAddress,
       ts: frozenDate,
-    } as RejectedLoginEvent);
+      loginId: anotherAssertionRef,
+    });
 
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
