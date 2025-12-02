@@ -82,9 +82,8 @@ export const getBlobAsText = (
       blobServiceClient,
       containerName,
       blobServiceClientFallback,
-      containerNameFallback,
-      blobName
-    ),
+      containerNameFallback
+    )(blobName),
     TE.chain(blobClient =>
       getBlobToBufferAsTextIfExistsOrNone(blobClient, blobName)
     )

@@ -62,7 +62,8 @@ export const buildBlobClientWithFallback = (
   blobServiceClient: BlobServiceClient,
   containerName: NonEmptyString,
   blobServiceClientFallback: BlobServiceClient,
-  containerNameFallback: NonEmptyString,
+  containerNameFallback: NonEmptyString
+) => (
   blobName: AssertionFileName
 ): TE.TaskEither<InternalError, BlobClientWithFallback> =>
   buildClientWithFallback(
@@ -79,7 +80,8 @@ export const buildBlockBlobClientWithFallback = (
   blobServiceClient: BlobServiceClient,
   containerName: NonEmptyString,
   blobServiceClientFallback: BlobServiceClient,
-  containerNameFallback: NonEmptyString,
+  containerNameFallback: NonEmptyString
+) => (
   blobName: AssertionFileName
 ): TE.TaskEither<InternalError, BlockBlobClientWithFallback> =>
   buildClientWithFallback(
