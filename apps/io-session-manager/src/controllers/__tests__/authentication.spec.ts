@@ -112,7 +112,7 @@ import {
   AcsDependencies,
   DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
   acs,
-  acsTest
+  acsTest,
 } from "../authentication";
 
 const dependencies: AcsDependencies = {
