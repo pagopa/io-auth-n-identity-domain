@@ -22,7 +22,7 @@ import {
   ResponseErrorValidation,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode, IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { addDays, addMonths, addSeconds, format, subYears } from "date-fns";
@@ -469,7 +469,7 @@ describe("AuthenticationController#acs", () => {
       ip: aRequestIpAddress,
       ts: frozenDate,
       loginId: anotherAssertionRef,
-    } as RejectedLoginEvent);
+    });
   });
 
   test("should write a customEvent when rejection_login event emission fails", async () => {
@@ -489,7 +489,7 @@ describe("AuthenticationController#acs", () => {
       ip: aRequestIpAddress,
       ts: frozenDate,
       loginId: anotherAssertionRef,
-    } as RejectedLoginEvent;
+    };
 
     const response = await acs(dependencies)(validUserPayload);
     response.apply(res);
@@ -628,7 +628,7 @@ describe("AuthenticationController#acs Active Session Test", () => {
       ts: frozenDate,
       currentFiscalCodeHash: aDifferentUserFiscalCodeHash,
       loginId: anotherAssertionRef,
-    } as RejectedLoginEvent);
+    });
 
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
@@ -697,7 +697,7 @@ describe("AuthenticationController#acs Age Limit", () => {
       minimumAge: AGE_LIMIT,
       dateOfBirth: aYoungDateOfBirth,
       loginId: anotherAssertionRef,
-    } as RejectedLoginEvent);
+    });
 
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
@@ -1345,7 +1345,7 @@ describe("AuthenticationController#acs LV", () => {
       ip: aRequestIpAddress,
       ts: frozenDate,
       loginId: anotherAssertionRef,
-    } as RejectedLoginEvent);
+    });
 
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
   });
