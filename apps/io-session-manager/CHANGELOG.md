@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.16.1
+
+### Patch Changes
+
+- 88ab6fc: fix loginId valorization in rejected_login event emission
+
 ## 1.16.0
 
 ### Minor Changes
