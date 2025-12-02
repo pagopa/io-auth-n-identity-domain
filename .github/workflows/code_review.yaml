@@ -145,6 +145,15 @@ jobs:
         with:
           projectBaseDir: packages/io-auth-n-identity-commons/
 
+      - name: SonarCloud io-auth-n-identity-db-models scan
+        if: steps.sonarcloud_filter.outputs.io-auth-n-identity-db-models == 'true'
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: packages/io-auth-n-identity-db-models/
+
   e2e:
     runs-on: ubuntu-latest
     steps:
