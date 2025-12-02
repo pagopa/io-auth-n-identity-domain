@@ -50,7 +50,6 @@ import { mockedTableClient } from "../../__mocks__/repositories/table-client-moc
 import mockReq from "../../__mocks__/request.mocks";
 import mockRes, { resetMock } from "../../__mocks__/response.mocks";
 import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
-import { getASAMLResponse } from "../../__mocks__/spid.mocks";
 import {
   aFiscalCode,
   aSessionTrackingId,
@@ -113,8 +112,7 @@ import {
   AcsDependencies,
   DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
   acs,
-  acsTest,
-  extractLoginIdFromResponse,
+  acsTest
 } from "../authentication";
 
 const dependencies: AcsDependencies = {
