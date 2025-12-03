@@ -5,6 +5,7 @@ import { pipe } from "fp-ts/lib/function";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
+import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
 import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
 import {
   LolliPOPKeysModel,
@@ -74,12 +75,22 @@ export const getAssertionReader = (
   assertionFileName: AssertionFileName
 ): ReturnType<AssertionReader> =>
   pipe(
-    getBlobAsText(
-      blobService,
-      assertionContainerName,
-      blobServiceFallback,
-      assertionContainerNameFallback
-    )(assertionFileName),
+    NonEmptyString.decode(assertionFileName),
+    TE.fromEither,
+    TE.mapLeft(validationErrors =>
+      toInternalError(
+        `${assertionFileName} is not a valid 'NonEmptyString'`,
+        errorsToReadableMessages(validationErrors).join("/")
+      )
+    ),
+    TE.chainW(decodedAssertionFileName =>
+      getBlobAsText(
+        blobService,
+        assertionContainerName,
+        blobServiceFallback,
+        assertionContainerNameFallback
+      )(decodedAssertionFileName)
+    ),
     TE.mapLeft(error =>
       toInternalError(
         `Unable to get assertion blob as text: ${error.message}`,
