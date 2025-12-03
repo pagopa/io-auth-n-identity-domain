@@ -8,17 +8,9 @@ import {
 } from "@azure/storage-blob";
 import { StorageBlobClientWithFallback } from "@pagopa/azure-storage-migration-kit";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { isRestError } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import { pipe } from "fp-ts/lib/function";
-import { AssertionFileName } from "../generated/definitions/internal/AssertionFileName";
-import { InternalError, toInternalError } from "./errors";
-import { buildBlobClientWithFallback } from "./migration_kit";
-
-const exists = (
-  storageBlobClientWithFallback: StorageBlobClientWithFallback<
-    BlobClient | BlockBlobClient
-  >
-): TE.TaskEither<Error, boolean> =>
-  TE.tryCatch(() => storageBlobClientWithFallback.exists(), E.toError);
+import { buildBlobClientWithFallback } from "./blob_client";
 
 const getBlobToBufferAsText = (
   storageBlobClientWithFallback: StorageBlobClientWithFallback<
@@ -34,38 +26,15 @@ const getBlobToBufferAsText = (
   );
 
 const getBlobToBufferAsTextIfExistsOrNone = (
-  blobClient: StorageBlobClientWithFallback<BlobClient | BlockBlobClient>,
-  blobName: AssertionFileName
-): TE.TaskEither<InternalError, O.Option<string>> =>
+  blobClient: StorageBlobClientWithFallback<BlobClient | BlockBlobClient>
+): TE.TaskEither<Error, O.Option<string>> =>
   pipe(
     getBlobToBufferAsText(blobClient),
-    TE.map(O.some),
-    TE.orElse(downloadError =>
-      pipe(
-        // Check if the blob exists to distinguish between download errors and not founds
-        exists(blobClient),
-        TE.mapLeft(existenceCheckError =>
-          toInternalError(
-            `Error checking existence of blob ${blobName}: ${String(
-              existenceCheckError
-            )}`,
-            "Blob existence check failed"
-          )
-        ),
-        // If the blob exists, return the download error, else return None
-        TE.chain(blobExists =>
-          blobExists
-            ? TE.left(
-                toInternalError(
-                  `Error downloading blob ${blobName}: ${String(
-                    downloadError
-                  )}`,
-                  "Blob download failed"
-                )
-              )
-            : TE.right(O.none)
-        )
-      )
+    TE.map(text => O.some(text)),
+    TE.orElse(err =>
+      isRestError(err) && err.statusCode === 404
+        ? TE.right(O.none)
+        : TE.left(err)
     )
   );
 
@@ -74,17 +43,17 @@ export const getBlobAsText = (
   containerName: NonEmptyString,
   blobServiceClientFallback: BlobServiceClient,
   containerNameFallback: NonEmptyString
-) => (
-  blobName: AssertionFileName
-): TE.TaskEither<InternalError, O.Option<string>> =>
+) => (blobName: NonEmptyString): TE.TaskEither<Error, O.Option<string>> =>
   pipe(
     buildBlobClientWithFallback(
-      blobServiceClient,
-      containerName,
-      blobServiceClientFallback,
-      containerNameFallback
+      {
+        containerName,
+        service: blobServiceClient
+      },
+      {
+        containerName: containerNameFallback,
+        service: blobServiceClientFallback
+      }
     )(blobName),
-    TE.chain(blobClient =>
-      getBlobToBufferAsTextIfExistsOrNone(blobClient, blobName)
-    )
+    getBlobToBufferAsTextIfExistsOrNone
   );
