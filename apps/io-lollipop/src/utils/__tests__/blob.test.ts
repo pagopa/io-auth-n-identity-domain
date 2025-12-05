@@ -47,7 +47,7 @@ describe("getBlobAsText", () => {
         expect(result).toEqual(E.right(O.some("hello")));
     });
 
-    it("should return O.none on 404", async () => {
+    it("should return O.none on RestError 404", async () => {
         downloadToBufferMock.mockRejectedValue(new RestError("Blob not found", { statusCode: 404 }));
 
         const reader = getBlobAsText(
@@ -60,6 +60,21 @@ describe("getBlobAsText", () => {
         const result = await reader(blobName)();
 
         expect(result).toEqual(E.right(O.none));
+    });
+
+    it("should return left on a RestError different from 404", async () => {
+        downloadToBufferMock.mockRejectedValue(new RestError("Unauthorized", { statusCode: 401 }));
+
+        const reader = getBlobAsText(
+            blobService,
+            container,
+            blobServiceFallback,
+            containerFallback
+        );
+
+        const result = await reader(blobName)();
+
+        expect(result).toEqual(E.left(new RestError("Unauthorized", { statusCode: 401})));
     });
 
     it("should return left on generic error", async () => {
