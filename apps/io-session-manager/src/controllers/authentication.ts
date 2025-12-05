@@ -963,10 +963,10 @@ const extractLoginIdFromResponse = (
   spidUser: SpidUser,
 ): O.Option<NonEmptyString> =>
   pipe(
-    safeXMLParseFromString(spidUser.getSamlResponseXml()),
-    O.chain(
-      flow(getRequestIDFromResponse, NonEmptyString.decode, O.fromEither),
-    ),
+    spidUser.getSamlResponseXml(),
+    safeXMLParseFromString,
+    O.chain(getRequestIDFromResponse),
+    O.chainEitherK(NonEmptyString.decode),
   );
 
 export const buildBaseRejectedLoginEvent = (
