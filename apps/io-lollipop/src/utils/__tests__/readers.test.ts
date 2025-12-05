@@ -44,7 +44,7 @@ const lollipopPubKeysModelMock = ({
 describe("PublicKeyDocumentReader", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("should return the existing pubKey document", async () => {
+  it("should return the existing popDocument", async () => {
     const publicKeyDocumentReader = getPublicKeyDocumentReader(
       lollipopPubKeysModelMock
     );
