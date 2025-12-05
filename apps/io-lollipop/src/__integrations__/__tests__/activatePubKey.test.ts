@@ -255,10 +255,12 @@ describe("activatePubKey |> Success Results", () => {
 
       // Check values on storages
 
-      const blob = await getBlobAsText(
+      const blob = await pipe(
+        getBlobAsText(
           blobService,
           LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
-        )(anAssertionFileNameForSha256)();
+        )(anAssertionFileNameForSha256)
+      )();
       expect(blob).toEqual(
         E.right(O.some(validActivatePubKeyPayload.assertion))
       );
@@ -349,10 +351,12 @@ describe("activatePubKey |> Success Results", () => {
 
       // Check values on storages
 
-      const assertionBlob = await getBlobAsText(
+      const assertionBlob = await pipe(
+        getBlobAsText(
           blobService,
           LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME
-        )(randomAssertionFileName)();
+        )(randomAssertionFileName)
+      )();
 
       expect(assertionBlob).toEqual(
         E.right(O.some(validActivatePubKeyPayload.assertion))
