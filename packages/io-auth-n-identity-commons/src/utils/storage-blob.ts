@@ -8,7 +8,7 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 
-const isRestError: (u: unknown) => u is RestError = (u): u is RestError =>
+export const isRestError: (u: unknown) => u is RestError = (u): u is RestError =>
   typeof u === "object" &&
   u !== null &&
   u !== undefined &&
