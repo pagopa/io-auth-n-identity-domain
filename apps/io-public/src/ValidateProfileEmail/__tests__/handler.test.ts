@@ -8,7 +8,7 @@ import * as TE from "fp-ts/TaskEither";
 import * as O from "fp-ts/Option";
 import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
-import { aFiscalCode, aRetrievedProfile, anEmail } from "../__mocks__/profile";
+import { aFiscalCode, aRetrievedProfile, anEmail } from "../../__mocks__/profile";
 import { ValidateProfileEmailHandler } from "../handler";
 import { FlowTypeEnum, TokenQueryParam } from "../../utils/middleware";
 import {

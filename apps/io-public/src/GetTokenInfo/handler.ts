@@ -1,0 +1,199 @@
+import * as crypto from "crypto";
+
+import * as express from "express";
+
+import { isLeft } from "fp-ts/lib/Either";
+import { isNone } from "fp-ts/lib/Option";
+
+import { TableClient } from "@azure/data-tables";
+import { Context } from "@azure/functions";
+
+import { ValidationTokenEntityAzureDataTables } from "@pagopa/io-functions-commons/dist/src/entities/validation_token";
+import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
+import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
+import {
+  withRequestMiddlewares,
+  wrapRequestHandler
+} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+import {
+  IProfileEmailReader,
+  isEmailAlreadyTaken
+} from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
+import { readableReport } from "@pagopa/ts-commons/lib/reporters";
+import {
+  IResponseErrorInternal,
+  IResponseErrorUnauthorized,
+  IResponseErrorValidation,
+  IResponseSuccessJson,
+  ResponseErrorInternal,
+  ResponseErrorUnauthorized,
+  ResponseErrorValidation,
+  ResponseSuccessJson
+} from "@pagopa/ts-commons/lib/responses";
+import {
+  GetTokenInfoResponse,
+  StatusEnum
+} from "../generated/definitions/external/GetTokenInfoResponse";
+import { retrieveTableEntity } from "../utils/azure_storage";
+import {
+  TokenQueryParam,
+  TokenQueryParamMiddleware
+} from "../utils/middleware";
+import { ValidationErrors } from "../utils/validation_errors";
+
+type IValidateProfileEmailHandler = (
+  context: Context,
+  token: TokenQueryParam
+) => Promise<
+  | IResponseErrorInternal
+  | IResponseErrorValidation
+  | IResponseErrorUnauthorized
+  | IResponseSuccessJson<GetTokenInfoResponse>
+>;
+export const GetTokenInfoHandler = (
+  tableClient: TableClient,
+  profileModel: ProfileModel,
+  profileEmails: IProfileEmailReader
+): IValidateProfileEmailHandler => async (
+  context,
+  token
+): Promise<
+  | IResponseErrorInternal
+  | IResponseErrorValidation
+  | IResponseErrorUnauthorized
+  | IResponseSuccessJson<GetTokenInfoResponse>
+> => {
+  const logPrefix = `ValidateProfileEmail|TOKEN=${token}`;
+
+  // STEP 1: Find and verify validation token
+
+  // A token is in the following format:
+  // [tokenId ULID] + ":" + [validatorHash crypto.randomBytes(12)]
+  // Split the token to get tokenId and validatorHash
+  const [tokenId, validator] = token.split(":");
+  const validatorHash = crypto
+    .createHash("sha256")
+    .update(validator)
+    .digest("hex");
+
+  // Retrieve the entity from the table storage
+  const errorOrMaybeTableEntity = await retrieveTableEntity(
+    tableClient,
+    tokenId,
+    validatorHash
+  );
+
+  if (isLeft(errorOrMaybeTableEntity)) {
+    context.log.error(
+      `${logPrefix}|Error searching validation token|ERROR=${errorOrMaybeTableEntity.left.message}`
+    );
+    return ResponseErrorInternal(ValidationErrors.GENERIC_ERROR);
+  }
+
+  const maybeTokenEntity = errorOrMaybeTableEntity.right;
+
+  if (isNone(maybeTokenEntity)) {
+    context.log.error(`${logPrefix}|Validation token not found`);
+    return ResponseErrorUnauthorized(ValidationErrors.INVALID_TOKEN);
+  }
+
+  // Check if the entity is a ValidationTokenEntity
+  const errorOrValidationTokenEntity = ValidationTokenEntityAzureDataTables.decode(
+    maybeTokenEntity.value
+  );
+
+  if (isLeft(errorOrValidationTokenEntity)) {
+    context.log.error(
+      `${logPrefix}|Validation token can't be decoded|ERROR=${readableReport(
+        errorOrValidationTokenEntity.left
+      )}`
+    );
+    return ResponseErrorInternal(ValidationErrors.GENERIC_ERROR);
+  }
+
+  const validationTokenEntity = errorOrValidationTokenEntity.right;
+  const {
+    Email: email,
+    InvalidAfter: invalidAfter,
+    FiscalCode: fiscalCode
+  } = validationTokenEntity;
+
+  // Check if the token is expired
+  if (Date.now() > invalidAfter.getTime()) {
+    context.log.error(`${logPrefix}|Token expired|EXPIRED_AT=${invalidAfter}`);
+
+    return ResponseErrorValidation(
+      ValidationErrors.TOKEN_EXPIRED,
+      "Provided Token Expired"
+    );
+  }
+
+  // STEP 2: Find the profile
+  const errorOrMaybeExistingProfile = await profileModel.findLastVersionByModelId(
+    [fiscalCode]
+  )();
+
+  if (isLeft(errorOrMaybeExistingProfile)) {
+    context.log.error(
+      `${logPrefix}|Error searching the profile|ERROR=`,
+      errorOrMaybeExistingProfile.left
+    );
+    return ResponseErrorInternal(ValidationErrors.GENERIC_ERROR);
+  }
+
+  const maybeExistingProfile = errorOrMaybeExistingProfile.right;
+  if (isNone(maybeExistingProfile)) {
+    context.log.error(`${logPrefix}|Profile not found`);
+    return ResponseErrorInternal(ValidationErrors.GENERIC_ERROR);
+  }
+
+  const existingProfile = maybeExistingProfile.value;
+
+  // Check if the email in the profile is the same of the one in the validation token
+  if (existingProfile.email !== email) {
+    context.log.error(`${logPrefix}|Email mismatch`);
+    return ResponseErrorValidation(
+      ValidationErrors.TOKEN_EXPIRED,
+      "Provided Token Expired"
+    );
+  }
+
+  // Check if the e-mail is already taken
+  try {
+    const isEmailTaken = await isEmailAlreadyTaken(email)({
+      profileEmails
+    });
+    if (isEmailTaken) {
+      return ResponseErrorValidation(
+        ValidationErrors.EMAIL_ALREADY_TAKEN,
+        "Email Already Taken"
+      );
+    }
+  } catch {
+    context.log.error(`${logPrefix}| Check for e-mail uniqueness failed`);
+    return ResponseErrorInternal(ValidationErrors.GENERIC_ERROR);
+  }
+
+  return ResponseSuccessJson({
+    status: StatusEnum.SUCCESS,
+    profile_email: email
+  });
+};
+
+/**
+ * Wraps a ValidateProfileEmail handler inside an Express request handler.
+ */
+
+export const GetTokenInfo = (
+  tableClient: TableClient,
+  profileModel: ProfileModel,
+  profileEmails: IProfileEmailReader
+): express.RequestHandler => {
+  const handler = GetTokenInfoHandler(tableClient, profileModel, profileEmails);
+
+  const middlewaresWrap = withRequestMiddlewares(
+    ContextMiddleware(),
+    TokenQueryParamMiddleware
+  );
+  return wrapRequestHandler(middlewaresWrap(handler));
+};
