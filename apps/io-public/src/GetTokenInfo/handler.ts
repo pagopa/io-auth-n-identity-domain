@@ -38,15 +38,12 @@ import {
   StatusEnum as ValidationErrorsStatusEnum
 } from "../generated/definitions/external/ValidationErrorsObject";
 import { retrieveTableEntity } from "../utils/azure_storage";
-import {
-  TokenQueryParam,
-  TokenQueryParamMiddleware
-} from "../utils/middleware";
+import { TokenHeaderParamMiddleware, TokenParam } from "../utils/middleware";
 import { ValidationErrors } from "../utils/validation_errors";
 
 type IGetTokenInfoHandler = (
   context: Context,
-  token: TokenQueryParam
+  token: TokenParam
 ) => Promise<
   | IResponseErrorInternal
   | IResponseErrorUnauthorized
@@ -201,7 +198,7 @@ export const GetTokenInfo = (
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
-    TokenQueryParamMiddleware
+    TokenHeaderParamMiddleware
   );
   return wrapRequestHandler(middlewaresWrap(handler));
 };

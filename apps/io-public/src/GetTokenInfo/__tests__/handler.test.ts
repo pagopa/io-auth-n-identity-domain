@@ -13,10 +13,10 @@ import {
   anEmail
 } from "../../__mocks__/profile";
 import { StatusEnum } from "../../generated/definitions/external/GetTokenInfoResponse";
-import { TokenQueryParam } from "../../utils/middleware";
+import { TokenParam } from "../../utils/middleware";
 import { GetTokenInfoHandler } from "../handler";
 
-const VALIDATION_TOKEN = "01DPT9QAZ6N0FJX21A86FRCWB3:8c652f8566ba53bd8cf0b1b9" as TokenQueryParam;
+const VALIDATION_TOKEN = "01DPT9QAZ6N0FJX21A86FRCWB3:8c652f8566ba53bd8cf0b1b9" as TokenParam;
 
 const mockFindLastVersionByModelId = vi
   .fn()
