@@ -31,14 +31,14 @@ describe("Test redirect to HTTPS", async () => {
   // test case: ping. Cannot fail.
   test("should 200 and ok if heathcheck API is called", async () => {
     await request(app)
-      .get("/healthcheck")
+      .get("/api/auth/v1/healthcheck")
       .expect(200, JSON.stringify({ version: getCurrentBackendVersion() }));
   });
 
   // test case: https forced. Already set: it trust the proxy and accept the header: X-Forwarded-Proto.
   test("should respond 200 if forwarded from an HTTPS connection", async () => {
     await request(app)
-      .get("/healthcheck")
+      .get("/api/auth/v1/healthcheck")
       .set(X_FORWARDED_PROTO_HEADER, "https")
       .expect(200);
   });
