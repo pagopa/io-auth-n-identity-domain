@@ -4,10 +4,10 @@ import * as E from "fp-ts/lib/Either";
 import { none, Option, some } from "fp-ts/lib/Option";
 
 export type StorageError = Error & {
-  readonly code?: string;
+  readonly statusCode?: number;
 };
 
-const ResourceNotFoundCode = "ResourceNotFound";
+const ResourceNotFoundStatusCode = 404;
 
 /**
  * Retrieve an entity from table storage
@@ -26,8 +26,18 @@ export const retrieveTableEntity = async (
   tableClient.getEntity(partitionKey, rowKey, options).then(
     result => E.right(some(result)),
     err => {
+      console.error(
+        "TTTTTTTTTTTT Error retrieving table entity",
+        JSON.stringify(err)
+      );
       const errorAsStorageError = err as StorageError;
-      if (errorAsStorageError.code === ResourceNotFoundCode) {
+
+      console.error(
+        "TTTTTTTTTTTT errorAsStorageError?.statusCode",
+        errorAsStorageError?.statusCode
+      );
+
+      if (errorAsStorageError?.statusCode === ResourceNotFoundStatusCode) {
         return E.right(none);
       }
       return E.left(errorAsStorageError);
