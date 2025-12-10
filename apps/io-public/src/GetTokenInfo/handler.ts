@@ -1,5 +1,3 @@
-import * as crypto from "crypto";
-
 import * as express from "express";
 
 import { isLeft } from "fp-ts/lib/Either";
@@ -8,7 +6,6 @@ import { isNone } from "fp-ts/lib/Option";
 import { TableClient } from "@azure/data-tables";
 import { Context } from "@azure/functions";
 
-import { ValidationTokenEntityAzureDataTables } from "@pagopa/io-functions-commons/dist/src/entities/validation_token";
 import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import {
@@ -19,7 +16,6 @@ import {
   IProfileEmailReader,
   isEmailAlreadyTaken
 } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
-import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import {
   IResponseErrorInternal,
   IResponseErrorUnauthorized,
@@ -34,11 +30,11 @@ import {
 } from "../generated/definitions/external/GetTokenInfoResponse";
 import {
   ValidationErrorsObject,
-  ReasonEnum as ValidationErrorsReasonEnum,
-  StatusEnum as ValidationErrorsStatusEnum
+  ReasonEnum as ValidationErrorsReasonEnum
 } from "../generated/definitions/external/ValidationErrorsObject";
-import { retrieveTableEntity } from "../utils/azure_storage";
 import { TokenHeaderParamMiddleware, TokenParam } from "../utils/middleware";
+import { buildValidationErrorsObjectsResponse } from "../utils/responses";
+import { retrieveValidationTokenEntity } from "../utils/validation-token";
 import { ValidationErrors } from "../utils/validation_errors";
 
 type IGetTokenInfoHandler = (
@@ -49,14 +45,6 @@ type IGetTokenInfoHandler = (
   | IResponseErrorUnauthorized
   | IResponseSuccessJson<GetTokenInfoResponse | ValidationErrorsObject>
 >;
-
-const buildValidationErrorsObjects = (
-  reason: ValidationErrorsReasonEnum
-): IResponseSuccessJson<ValidationErrorsObject> =>
-  ResponseSuccessJson({
-    status: ValidationErrorsStatusEnum.FAILURE,
-    reason
-  });
 
 export const GetTokenInfoHandler = (
   tableClient: TableClient,
@@ -70,29 +58,20 @@ export const GetTokenInfoHandler = (
   | IResponseErrorUnauthorized
   | IResponseSuccessJson<GetTokenInfoResponse | ValidationErrorsObject>
 > => {
-  const logPrefix = `ValidateProfileEmail|TOKEN=${token}`;
+  const logPrefix = `GetTokenInfo|TOKEN=${token}`;
 
   // STEP 1: Find and verify validation token
 
-  // A token is in the following format:
-  // [tokenId ULID] + ":" + [validatorHash crypto.randomBytes(12)]
-  // Split the token to get tokenId and validatorHash
-  const [tokenId, validator] = token.split(":");
-  const validatorHash = crypto
-    .createHash("sha256")
-    .update(validator)
-    .digest("hex");
-
-  // Retrieve the entity from the table storage
-  const errorOrMaybeTableEntity = await retrieveTableEntity(
+  // 1.1 Retrieve the entity from the table storage
+  const errorOrMaybeTableEntity = await retrieveValidationTokenEntity(
     tableClient,
-    tokenId,
-    validatorHash
-  );
+    token
+  )();
 
   if (isLeft(errorOrMaybeTableEntity)) {
     context.log.error(
-      `${logPrefix}|Error searching validation token|ERROR=${errorOrMaybeTableEntity.left.message}`
+      `${logPrefix}|Error searching validation token|ERROR=`,
+      errorOrMaybeTableEntity.left
     );
     return ResponseErrorInternal(ValidationErrors.GENERIC_ERROR);
   }
@@ -104,37 +83,24 @@ export const GetTokenInfoHandler = (
     return ResponseErrorUnauthorized(ValidationErrors.INVALID_TOKEN);
   }
 
-  // Check if the entity is a ValidationTokenEntity
-  const errorOrValidationTokenEntity = ValidationTokenEntityAzureDataTables.decode(
-    maybeTokenEntity.value
-  );
-
-  if (isLeft(errorOrValidationTokenEntity)) {
-    context.log.error(
-      `${logPrefix}|Validation token can't be decoded|ERROR=${readableReport(
-        errorOrValidationTokenEntity.left
-      )}`
-    );
-    return ResponseErrorInternal(ValidationErrors.GENERIC_ERROR);
-  }
-
-  const validationTokenEntity = errorOrValidationTokenEntity.right;
   const {
     Email: email,
     InvalidAfter: invalidAfter,
     FiscalCode: fiscalCode
-  } = validationTokenEntity;
+  } = maybeTokenEntity.value;
 
-  // Check if the token is expired
+  // 1.2 Check if the token is expired
   if (Date.now() > invalidAfter.getTime()) {
     context.log.error(`${logPrefix}|Token expired|EXPIRED_AT=${invalidAfter}`);
 
-    return buildValidationErrorsObjects(
+    return buildValidationErrorsObjectsResponse(
       ValidationErrorsReasonEnum.TOKEN_EXPIRED
     );
   }
 
   // STEP 2: Find the profile
+
+  // 2.1 Search for the profile associated to the fiscal code in the token
   const errorOrMaybeExistingProfile = await profileModel.findLastVersionByModelId(
     [fiscalCode]
   )();
@@ -155,22 +121,22 @@ export const GetTokenInfoHandler = (
 
   const existingProfile = maybeExistingProfile.value;
 
-  // Check if the email in the profile is the same of the one in the validation token
+  // 2.2 Check if the email in the profile is the same of the one in the validation token
   if (existingProfile.email !== email) {
     context.log.error(`${logPrefix}|Email mismatch`);
 
-    return buildValidationErrorsObjects(
+    return buildValidationErrorsObjectsResponse(
       ValidationErrorsReasonEnum.TOKEN_EXPIRED
     );
   }
 
-  // Check if the e-mail is already taken
+  // 2.3 Check if the e-mail is already taken
   try {
     const isEmailTaken = await isEmailAlreadyTaken(email)({
       profileEmails
     });
     if (isEmailTaken) {
-      return buildValidationErrorsObjects(
+      return buildValidationErrorsObjectsResponse(
         ValidationErrorsReasonEnum.EMAIL_ALREADY_TAKEN
       );
     }
