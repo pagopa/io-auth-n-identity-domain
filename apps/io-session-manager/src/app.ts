@@ -160,9 +160,6 @@ export const newApp: (
 
   const authMiddlewares = setupAuthenticationMiddlewares();
 
-  const API_BASE_PATH = getRequiredENVVar("API_BASE_PATH");
-  const ZENDESK_BASE_PATH = getRequiredENVVar("ZENDESK_BASE_PATH");
-
   // Setup paths
 
   const acsDependencies: AcsDependencies = {
@@ -184,75 +181,60 @@ export const newApp: (
     authSessionsTopicSender: authSessionsTopicServiceBusSender,
   };
 
-  [API_BASE_PATH, PROXY_BASE_PATH].forEach((basePath) => {
-    setupExternalEndpoints(
-      app,
-      basePath,
-      APIClients,
-      storageDependencies,
-      LoginConfig,
-      FastLoginConfig,
-      authMiddlewares,
-      REDIS_CLIENT_SELECTOR,
-      acsDependencies,
-      appInsightsClient,
-      basePath !== PROXY_BASE_PATH,
-    );
-
-    setupInternalEndpoints(
-      app,
-      basePath,
-      authMiddlewares,
-      REDIS_CLIENT_SELECTOR,
-    );
-  });
-
-  [BPDConfig.BPD_BASE_PATH, toProxySSOBasePath("bpd")].forEach((basePath) => {
-    setupBPDEndpoints(
-      app,
-      basePath,
-      BPDConfig,
-      APIClients.fnAppAPIClient,
-      authMiddlewares,
-    );
-  });
-
-  [PagoPAConfig.PAGOPA_BASE_PATH, toProxySSOBasePath("pagopa")].forEach(
-    (basePath) => {
-      setupPagoPAEndpoints(
-        app,
-        basePath,
-        PagoPAConfig,
-        APIClients.fnAppAPIClient,
-        REDIS_CLIENT_SELECTOR,
-        authMiddlewares,
-      );
-    },
+  setupExternalEndpoints(
+    app,
+    PROXY_BASE_PATH,
+    APIClients,
+    storageDependencies,
+    LoginConfig,
+    FastLoginConfig,
+    authMiddlewares,
+    REDIS_CLIENT_SELECTOR,
+    acsDependencies,
+    appInsightsClient,
   );
 
-  [ZENDESK_BASE_PATH, toProxySSOBasePath("zendesk")].forEach((basePath) => {
-    setupZendeskEndpoints(
-      app,
-      basePath,
-      ZendeskConfig,
-      APIClients.fnAppAPIClient,
-      authMiddlewares,
-    );
-  });
+  setupInternalEndpoints(
+    app,
+    PROXY_BASE_PATH,
+    authMiddlewares,
+    REDIS_CLIENT_SELECTOR,
+  );
 
-  [FimsConfig.FIMS_BASE_PATH, toProxySSOBasePath("fims")].forEach(
-    (basePath) => {
-      setupFIMSEndpoints(
-        app,
-        basePath,
-        FimsConfig.ALLOW_FIMS_IP_SOURCE_RANGE,
-        authMiddlewares,
-        REDIS_CLIENT_SELECTOR,
-        APIClients.fnAppAPIClient,
-        APIClients.fnLollipopAPIClient,
-        appInsightsClient,
-      );
-    },
+  setupBPDEndpoints(
+    app,
+    toProxySSOBasePath("bpd"),
+    BPDConfig,
+    APIClients.fnAppAPIClient,
+    authMiddlewares,
+  );
+
+  setupPagoPAEndpoints(
+    app,
+    toProxySSOBasePath("pagopa"),
+    PagoPAConfig,
+    APIClients.fnAppAPIClient,
+    REDIS_CLIENT_SELECTOR,
+    authMiddlewares,
+  );
+
+  setupZendeskEndpoints(
+    app,
+    toProxySSOBasePath("zendesk"),
+    ZendeskConfig,
+    APIClients.fnAppAPIClient,
+    authMiddlewares,
+  );
+
+  setupFIMSEndpoints(
+    app,
+    toProxySSOBasePath("fims"),
+    FimsConfig.ALLOW_FIMS_IP_SOURCE_RANGE,
+    authMiddlewares,
+    REDIS_CLIENT_SELECTOR,
+    APIClients.fnAppAPIClient,
+    APIClients.fnLollipopAPIClient,
+    appInsightsClient,
   );
 
   const TIMER = TimeTracer();
@@ -415,10 +397,6 @@ function setupExternalEndpoints(
   redisClientSelector: RedisClientSelectorType,
   acsDependencies: AcsDependencies,
   appInsightsClient?: appInsights.TelemetryClient,
-  // TODO: this parameter needs to be used
-  // during rollout of new routing system. the previous basePath
-  // argument can be set as mandatory after rollout
-  isLegacyRootPath: boolean = true,
 ) {
   pipe(
     loginConfig.TEST_LOGIN_PASSWORD,
@@ -433,28 +411,25 @@ function setupExternalEndpoints(
         ),
       );
 
-      app.post(
-        `${isLegacyRootPath ? "" : basePath}/test-login`,
-        authMiddlewares.local,
-        (req, res) =>
-          pipe(
-            toExpressHandler({
-              ...acsDependencies,
-              clientProfileRedirectionUrl,
-            })(
-              AuthenticationController.acsTest({
-                ...req.user,
-                getAcsOriginalRequest: () => req,
-              }),
-            ),
-            (handler) => handler(req, res),
+      app.post(`${basePath}/test-login`, authMiddlewares.local, (req, res) =>
+        pipe(
+          toExpressHandler({
+            ...acsDependencies,
+            clientProfileRedirectionUrl,
+          })(
+            AuthenticationController.acsTest({
+              ...req.user,
+              getAcsOriginalRequest: () => req,
+            }),
           ),
+          (handler) => handler(req, res),
+        ),
       );
     }),
   );
 
   app.get(
-    `${isLegacyRootPath ? "" : basePath}/healthcheck`,
+    `${basePath}/healthcheck`,
     pipe(
       toExpressHandler({
         redisClientSelector,
@@ -464,7 +439,7 @@ function setupExternalEndpoints(
   );
 
   app.post(
-    `${isLegacyRootPath ? "" : basePath}/logout`,
+    `${basePath}/logout`,
     authMiddlewares.bearerSession,
     pipe(
       toExpressHandler({

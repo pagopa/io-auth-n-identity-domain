@@ -3,11 +3,8 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { pipe } from "fp-ts/function";
-import { getRequiredENVVar } from "../utils/environment";
 import { log } from "../utils/logger";
 import { decodeCIDRs } from "../utils/network";
-
-export const PAGOPA_BASE_PATH = getRequiredENVVar("PAGOPA_BASE_PATH");
 
 // IP(s) or CIDR(s) allowed for payment manager endpoint
 export const ALLOW_PAGOPA_IP_SOURCE_RANGE = pipe(
