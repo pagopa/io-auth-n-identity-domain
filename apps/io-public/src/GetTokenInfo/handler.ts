@@ -27,13 +27,17 @@ import {
   IResponseSuccessJson,
   ResponseErrorInternal,
   ResponseErrorUnauthorized,
-  ResponseErrorValidation,
   ResponseSuccessJson
 } from "@pagopa/ts-commons/lib/responses";
 import {
   GetTokenInfoResponse,
-  StatusEnum
+  StatusEnum as GetTokenInfoStatusEnum
 } from "../generated/definitions/external/GetTokenInfoResponse";
+import {
+  ValidationErrorsObject,
+  ReasonEnum as ValidationErrorsReasonEnum,
+  StatusEnum as ValidationErrorsStatusEnum
+} from "../generated/definitions/external/ValidationErrorsObject";
 import { retrieveTableEntity } from "../utils/azure_storage";
 import {
   TokenQueryParam,
@@ -48,8 +52,17 @@ type IValidateProfileEmailHandler = (
   | IResponseErrorInternal
   | IResponseErrorValidation
   | IResponseErrorUnauthorized
-  | IResponseSuccessJson<GetTokenInfoResponse>
+  | IResponseSuccessJson<GetTokenInfoResponse | ValidationErrorsObject>
 >;
+
+const buildValidationErrorResponse = (
+  reason: ValidationErrorsReasonEnum
+): IResponseSuccessJson<ValidationErrorsObject> =>
+  ResponseSuccessJson({
+    status: ValidationErrorsStatusEnum.FAILURE,
+    reason
+  });
+
 export const GetTokenInfoHandler = (
   tableClient: TableClient,
   profileModel: ProfileModel,
@@ -61,7 +74,7 @@ export const GetTokenInfoHandler = (
   | IResponseErrorInternal
   | IResponseErrorValidation
   | IResponseErrorUnauthorized
-  | IResponseSuccessJson<GetTokenInfoResponse>
+  | IResponseSuccessJson<GetTokenInfoResponse | ValidationErrorsObject>
 > => {
   const logPrefix = `ValidateProfileEmail|TOKEN=${token}`;
 
@@ -122,9 +135,8 @@ export const GetTokenInfoHandler = (
   if (Date.now() > invalidAfter.getTime()) {
     context.log.error(`${logPrefix}|Token expired|EXPIRED_AT=${invalidAfter}`);
 
-    return ResponseErrorValidation(
-      ValidationErrors.TOKEN_EXPIRED,
-      "Provided Token Expired"
+    return buildValidationErrorResponse(
+      ValidationErrorsReasonEnum.TOKEN_EXPIRED
     );
   }
 
@@ -152,9 +164,9 @@ export const GetTokenInfoHandler = (
   // Check if the email in the profile is the same of the one in the validation token
   if (existingProfile.email !== email) {
     context.log.error(`${logPrefix}|Email mismatch`);
-    return ResponseErrorValidation(
-      ValidationErrors.TOKEN_EXPIRED,
-      "Provided Token Expired"
+
+    return buildValidationErrorResponse(
+      ValidationErrorsReasonEnum.TOKEN_EXPIRED
     );
   }
 
@@ -164,9 +176,8 @@ export const GetTokenInfoHandler = (
       profileEmails
     });
     if (isEmailTaken) {
-      return ResponseErrorValidation(
-        ValidationErrors.EMAIL_ALREADY_TAKEN,
-        "Email Already Taken"
+      return buildValidationErrorResponse(
+        ValidationErrorsReasonEnum.EMAIL_ALREADY_TAKEN
       );
     }
   } catch {
@@ -175,7 +186,7 @@ export const GetTokenInfoHandler = (
   }
 
   return ResponseSuccessJson({
-    status: StatusEnum.SUCCESS,
+    status: GetTokenInfoStatusEnum.SUCCESS,
     profile_email: email
   });
 };
