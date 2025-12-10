@@ -23,7 +23,6 @@ import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import {
   IResponseErrorInternal,
   IResponseErrorUnauthorized,
-  IResponseErrorValidation,
   IResponseSuccessJson,
   ResponseErrorInternal,
   ResponseErrorUnauthorized,
@@ -45,17 +44,16 @@ import {
 } from "../utils/middleware";
 import { ValidationErrors } from "../utils/validation_errors";
 
-type IValidateProfileEmailHandler = (
+type IGetTokenInfoHandler = (
   context: Context,
   token: TokenQueryParam
 ) => Promise<
   | IResponseErrorInternal
-  | IResponseErrorValidation
   | IResponseErrorUnauthorized
   | IResponseSuccessJson<GetTokenInfoResponse | ValidationErrorsObject>
 >;
 
-const buildValidationErrorResponse = (
+const buildValidationErrorsObjects = (
   reason: ValidationErrorsReasonEnum
 ): IResponseSuccessJson<ValidationErrorsObject> =>
   ResponseSuccessJson({
@@ -67,12 +65,11 @@ export const GetTokenInfoHandler = (
   tableClient: TableClient,
   profileModel: ProfileModel,
   profileEmails: IProfileEmailReader
-): IValidateProfileEmailHandler => async (
+): IGetTokenInfoHandler => async (
   context,
   token
 ): Promise<
   | IResponseErrorInternal
-  | IResponseErrorValidation
   | IResponseErrorUnauthorized
   | IResponseSuccessJson<GetTokenInfoResponse | ValidationErrorsObject>
 > => {
@@ -135,7 +132,7 @@ export const GetTokenInfoHandler = (
   if (Date.now() > invalidAfter.getTime()) {
     context.log.error(`${logPrefix}|Token expired|EXPIRED_AT=${invalidAfter}`);
 
-    return buildValidationErrorResponse(
+    return buildValidationErrorsObjects(
       ValidationErrorsReasonEnum.TOKEN_EXPIRED
     );
   }
@@ -165,7 +162,7 @@ export const GetTokenInfoHandler = (
   if (existingProfile.email !== email) {
     context.log.error(`${logPrefix}|Email mismatch`);
 
-    return buildValidationErrorResponse(
+    return buildValidationErrorsObjects(
       ValidationErrorsReasonEnum.TOKEN_EXPIRED
     );
   }
@@ -176,7 +173,7 @@ export const GetTokenInfoHandler = (
       profileEmails
     });
     if (isEmailTaken) {
-      return buildValidationErrorResponse(
+      return buildValidationErrorsObjects(
         ValidationErrorsReasonEnum.EMAIL_ALREADY_TAKEN
       );
     }
@@ -192,7 +189,7 @@ export const GetTokenInfoHandler = (
 };
 
 /**
- * Wraps a ValidateProfileEmail handler inside an Express request handler.
+ * Wraps a GetTokenInfo handler inside an Express request handler.
  */
 
 export const GetTokenInfo = (
