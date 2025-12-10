@@ -26,17 +26,7 @@ export const retrieveTableEntity = async (
   tableClient.getEntity(partitionKey, rowKey, options).then(
     result => E.right(some(result)),
     err => {
-      console.error(
-        "TTTTTTTTTTTT Error retrieving table entity",
-        JSON.stringify(err)
-      );
       const errorAsStorageError = err as StorageError;
-
-      console.error(
-        "TTTTTTTTTTTT errorAsStorageError?.statusCode",
-        errorAsStorageError?.statusCode
-      );
-
       if (errorAsStorageError?.statusCode === ResourceNotFoundStatusCode) {
         return E.right(none);
       }

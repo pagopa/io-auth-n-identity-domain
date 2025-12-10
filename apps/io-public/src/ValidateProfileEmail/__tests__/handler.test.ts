@@ -105,10 +105,10 @@ describe.each`
   });
 
   it.each`
-    scenario                                                             | expectedError      | retrieveResult                    | isApiError
-    ${"GENERIC_ERROR in case the query versus the table storage fails"}  | ${"GENERIC_ERROR"} | ${new Error()}                    | ${true}
-    ${"INVALID_TOKEN error in case the token if not found in the table"} | ${"INVALID_TOKEN"} | ${{ code: ResourceNotFoundCode }} | ${true}
-    ${"TOKEN_EXPIRED error in case the token is expired"}                | ${"TOKEN_EXPIRED"} | ${expiredTokenEntity}             | ${false}
+    scenario                                                             | expectedError      | retrieveResult         | isApiError
+    ${"GENERIC_ERROR in case the query versus the table storage fails"}  | ${"GENERIC_ERROR"} | ${new Error()}         | ${true}
+    ${"INVALID_TOKEN error in case the token if not found in the table"} | ${"INVALID_TOKEN"} | ${{ statusCode: 404 }} | ${true}
+    ${"TOKEN_EXPIRED error in case the token is expired"}                | ${"TOKEN_EXPIRED"} | ${expiredTokenEntity}  | ${false}
   `(
     "should return a redirect with a $scenario",
     async ({ retrieveResult, expectedError, isApiError }) => {
