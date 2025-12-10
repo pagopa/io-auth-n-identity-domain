@@ -131,9 +131,9 @@ export const STARTUP_IDPS_METADATA: Record<string, string> | undefined = pipe(
 
 export const appConfig: IApplicationConfig = {
   // NOTE: the endpoint is exposed as `api/auth/v1/assertionConsumerService`
-  // but due issues with metadata changes the metadata exposes
+  // but due to issues with metadata changes the metadata exposes
   // only `assertionConsumerService`. Therefore to spid-commons we pass the
-  // entire URL to be exposed but the SAML_CALLBACK_URL type of variabiles still
+  // entire URL to be exposed but the SAML_CALLBACK_URL type of variables still
   // maps without `api/auth/v1` base path.
   assertionConsumerServicePath: `${SPID_API_BASE_PATH}/assertionConsumerService`,
   clientErrorRedirectionUrl: CLIENT_ERROR_REDIRECTION_URL,
