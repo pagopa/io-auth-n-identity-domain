@@ -130,10 +130,10 @@ export const STARTUP_IDPS_METADATA: Record<string, string> | undefined = pipe(
 );
 
 export const appConfig: IApplicationConfig = {
-  // NOTE: the endpoint is exposed as `api/auth/v1/assertionConsumerService`
+  // NOTE: the SPID endpoints are exposed with `api/auth/v1/` base path
   // but due to issues with metadata changes the metadata exposes
   // only `assertionConsumerService`. Therefore to spid-commons we pass the
-  // entire URL to be exposed but the SAML_CALLBACK_URL type of variables still
+  // entire URL to be exposed but the SAML_CALLBACK type of variables still
   // maps without `api/auth/v1` base path.
   assertionConsumerServicePath: `${SPID_API_BASE_PATH}/assertionConsumerService`,
   clientErrorRedirectionUrl: CLIENT_ERROR_REDIRECTION_URL,
@@ -221,6 +221,11 @@ export const samlConfig: SamlConfig = {
   attributeConsumingServiceIndex: SAML_ATTRIBUTE_CONSUMING_SERVICE_INDEX,
   // this value is dynamic and taken from query string
   authnContext: "https://www.spid.gov.it/SpidL1",
+  // NOTE: the SPID endpoints are exposed with `api/auth/v1/` base path
+  // but due to issues with metadata changes the metadata exposes
+  // only `assertionConsumerService`. Therefore to spid-commons we pass the
+  // entire URL to be exposed but the SAML_CALLBACK type of variables still
+  // maps without `api/auth/v1` base path.
   callbackUrl: SAML_CALLBACK_URL,
   identifierFormat: "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
   issuer: SAML_ISSUER,
