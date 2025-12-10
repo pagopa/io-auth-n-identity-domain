@@ -29,11 +29,11 @@ The `io-app` application will authenticate to the backend in two steps:
 
 ### User authentication
 
-When a client (the mobile app or a browser) wants to login with the backend it will call the `/login` endpoint with the
+When a client (the mobile app or a browser) wants to login with the backend it will call the `/api/auth/v1/login` endpoint with the
 IDP entityID as parameter in the query string. The backend will then builds an authorization URL and performs a redirect
 to the chosen IDP. The authentication process will continue to the IDP website. If the authentication process ends with
 success the IDP will redirect the client to an HTML page with a form that will auto-post itself to the
-`/assertionConsumerService` endpoint with a SAMLResponse as an hidden field. The backend will parse and validate the
+`/assertionConsumerService` (mapped internally to `api/auth/v1/assertionConsumerService`) endpoint with a SAMLResponse as an hidden field. The backend will parse and validate the
 SAMLResponse to extract all the user attributes (fiscal code, first name, last name, email and birthdate), then it will generates an
 unique alphanumeric string as token and saves an User object to the `RedisSessionStorage` service using the token as key.
 Finally the backend will redirect the client to the value of the environment variable `CLIENT_REDIRECTION_URL` with the
