@@ -153,7 +153,8 @@ export const ValidateProfileEmailHandler = (
     context.log.error(`${logPrefix}|Token expired|EXPIRED_AT=${invalidAfter}`);
 
     return buildValidationErrorsObjectsResponse(
-      ValidationErrorsReasonEnum.TOKEN_EXPIRED
+      ValidationErrorsReasonEnum.TOKEN_EXPIRED,
+      email
     );
   }
 
@@ -185,7 +186,8 @@ export const ValidateProfileEmailHandler = (
     context.log.error(`${logPrefix}|Email mismatch`);
 
     return buildValidationErrorsObjectsResponse(
-      ValidationErrorsReasonEnum.TOKEN_EXPIRED
+      ValidationErrorsReasonEnum.TOKEN_EXPIRED,
+      email
     );
   }
 
@@ -196,7 +198,8 @@ export const ValidateProfileEmailHandler = (
     });
     if (isEmailTaken) {
       return buildValidationErrorsObjectsResponse(
-        ValidationErrorsReasonEnum.EMAIL_ALREADY_TAKEN
+        ValidationErrorsReasonEnum.EMAIL_ALREADY_TAKEN,
+        email
       );
     }
   } catch {
