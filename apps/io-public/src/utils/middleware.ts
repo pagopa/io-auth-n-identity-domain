@@ -2,6 +2,7 @@ import { Request } from "express";
 import * as t from "io-ts";
 
 import { RequiredQueryParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_query_param";
+import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
 import {
   IResponse,
   ResponseErrorFromValidationErrors
@@ -10,6 +11,7 @@ import { PatternString } from "@pagopa/ts-commons/lib/strings";
 import { enumType, withDefault } from "@pagopa/ts-commons/lib/types";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
+import { ValidateProfileEmailPayload } from "../generated/definitions/external/ValidateProfileEmailPayload";
 
 export const TOKEN_QUERY_PARAM_NAME = "token";
 export const FLOW_QUERY_PARAM_NAME = "flow";
@@ -35,6 +37,10 @@ export const TokenHeaderParamMiddleware = async (
     TokenParam.decode,
     E.mapLeft(ResponseErrorFromValidationErrors(TokenParam))
   );
+
+export const ValidateProfileEmailBodyMiddleware = RequiredBodyPayloadMiddleware(
+  ValidateProfileEmailPayload
+);
 
 // CONFIRM -> verify token and on success redirect to confirm page
 // VALIDATE -> verify token and on success update the user data and redirect to result page
