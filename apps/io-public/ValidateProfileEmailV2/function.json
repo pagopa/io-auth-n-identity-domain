@@ -5,9 +5,10 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "route": "/api/v2/validate-profile-email",
+      "route": "api/v2/validate-profile-email",
       "methods": [
-        "get"
+        "get",
+        "post"
       ]
     },
     {
@@ -16,5 +17,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/GetTokenInfo/index.js"
+  "scriptFile": "../dist/ValidateProfileEmailV2/index.js"
 }

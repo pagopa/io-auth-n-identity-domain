@@ -19,7 +19,7 @@ import { DataTableProfileEmailsRepository } from "@pagopa/io-functions-commons/d
 import Transport from "winston-transport";
 import { getConfigOrThrow } from "../utils/config";
 import { profileEmailTableClient } from "../utils/unique_email_enforcement";
-import { GetTokenInfo } from "./handler";
+import { GetTokenInfo, ValidateProfileEmail } from "./handler";
 
 const config = getConfigOrThrow();
 
@@ -50,6 +50,11 @@ const profileEmailsReader = new DataTableProfileEmailsRepository(
 app.get(
   "/api/v2/validate-profile-email",
   GetTokenInfo(tableClient, profileModel, profileEmailsReader)
+);
+
+app.post(
+  "/api/v2/validate-profile-email",
+  ValidateProfileEmail(tableClient, profileModel, profileEmailsReader)
 );
 
 const azureFunctionHandler = createAzureFunctionHandler(app);

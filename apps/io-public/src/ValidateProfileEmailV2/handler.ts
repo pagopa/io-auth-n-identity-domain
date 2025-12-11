@@ -1,12 +1,16 @@
 import * as express from "express";
 
-import { isLeft } from "fp-ts/lib/Either";
-import { isNone } from "fp-ts/lib/Option";
+import * as E from "fp-ts/lib/Either";
+import * as O from "fp-ts/lib/Option";
+import * as TE from "fp-ts/lib/TaskEither";
 
 import { TableClient } from "@azure/data-tables";
 import { Context } from "@azure/functions";
 
-import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
+import {
+  ProfileModel,
+  RetrievedProfile
+} from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import {
   withRequestMiddlewares,
@@ -16,6 +20,7 @@ import {
   IProfileEmailReader,
   isEmailAlreadyTaken
 } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
+import { hashFiscalCode } from "@pagopa/ts-commons/lib/hash";
 import {
   IResponseErrorInternal,
   IResponseErrorUnauthorized,
@@ -24,15 +29,24 @@ import {
   ResponseErrorUnauthorized,
   ResponseSuccessJson
 } from "@pagopa/ts-commons/lib/responses";
+import { pipe } from "fp-ts/lib/function";
 import {
   GetTokenInfoResponse,
   StatusEnum as GetTokenInfoStatusEnum
 } from "../generated/definitions/external/GetTokenInfoResponse";
+import { ValidateProfileStatusReport } from "../generated/definitions/external/ValidateProfileStatusReport";
 import {
   ValidationErrorsObject,
   ReasonEnum as ValidationErrorsReasonEnum
 } from "../generated/definitions/external/ValidationErrorsObject";
-import { TokenHeaderParamMiddleware, TokenParam } from "../utils/middleware";
+import { trackEvent } from "../utils/appinsights";
+import {
+  FlowType,
+  FlowTypeEnum,
+  TokenHeaderParamMiddleware,
+  TokenParam,
+  ValidateProfileEmailBodyMiddleware
+} from "../utils/middleware";
 import { buildValidationErrorsObjectsResponse } from "../utils/responses";
 import { retrieveValidationTokenEntity } from "../utils/validation-token";
 import { ValidationErrors } from "../utils/validation_errors";
@@ -43,20 +57,65 @@ type IGetTokenInfoHandler = (
 ) => Promise<
   | IResponseErrorInternal
   | IResponseErrorUnauthorized
-  | IResponseSuccessJson<GetTokenInfoResponse | ValidationErrorsObject>
+  | IResponseSuccessJson<
+      | GetTokenInfoResponse
+      | ValidateProfileStatusReport
+      | ValidationErrorsObject
+    >
 >;
 
-export const GetTokenInfoHandler = (
+const updateProfileAndMarkEmailAsValidated = (
+  profileModel: ProfileModel,
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  existingProfile: RetrievedProfile,
+  context: Context,
+  logPrefix: string
+): TE.TaskEither<
+  IResponseErrorInternal,
+  IResponseSuccessJson<ValidateProfileStatusReport>
+> =>
+  pipe(
+    profileModel.update({
+      ...existingProfile,
+      isEmailValidated: true
+    }),
+    TE.mapLeft(error => {
+      context.log.error(`${logPrefix}|Error updating profile|ERROR=`, error);
+      return ResponseErrorInternal(ValidationErrors.GENERIC_ERROR);
+    }),
+    TE.map(() => {
+      trackEvent({
+        name: "io.citizen-auth.validate_email",
+        tagOverrides: {
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          "ai.user.id": hashFiscalCode(existingProfile.fiscalCode),
+          samplingEnabled: "false"
+        }
+      });
+
+      context.log.verbose(`${logPrefix}|The profile has been updated`);
+      return ResponseSuccessJson({
+        status: GetTokenInfoStatusEnum.SUCCESS
+      });
+    })
+  );
+
+export const ValidateProfileEmailHandler = (
   tableClient: TableClient,
   profileModel: ProfileModel,
-  profileEmails: IProfileEmailReader
+  profileEmails: IProfileEmailReader,
+  flow: FlowType
 ): IGetTokenInfoHandler => async (
   context,
   token
 ): Promise<
   | IResponseErrorInternal
   | IResponseErrorUnauthorized
-  | IResponseSuccessJson<GetTokenInfoResponse | ValidationErrorsObject>
+  | IResponseSuccessJson<
+      | GetTokenInfoResponse
+      | ValidateProfileStatusReport
+      | ValidationErrorsObject
+    >
 > => {
   const logPrefix = `GetTokenInfo|TOKEN=${token}`;
 
@@ -68,7 +127,7 @@ export const GetTokenInfoHandler = (
     token
   )();
 
-  if (isLeft(errorOrMaybeTableEntity)) {
+  if (E.isLeft(errorOrMaybeTableEntity)) {
     context.log.error(
       `${logPrefix}|Error searching validation token|ERROR=`,
       errorOrMaybeTableEntity.left
@@ -78,7 +137,7 @@ export const GetTokenInfoHandler = (
 
   const maybeTokenEntity = errorOrMaybeTableEntity.right;
 
-  if (isNone(maybeTokenEntity)) {
+  if (O.isNone(maybeTokenEntity)) {
     context.log.error(`${logPrefix}|Validation token not found`);
     return ResponseErrorUnauthorized(ValidationErrors.INVALID_TOKEN);
   }
@@ -105,7 +164,7 @@ export const GetTokenInfoHandler = (
     [fiscalCode]
   )();
 
-  if (isLeft(errorOrMaybeExistingProfile)) {
+  if (E.isLeft(errorOrMaybeExistingProfile)) {
     context.log.error(
       `${logPrefix}|Error searching the profile|ERROR=`,
       errorOrMaybeExistingProfile.left
@@ -114,7 +173,7 @@ export const GetTokenInfoHandler = (
   }
 
   const maybeExistingProfile = errorOrMaybeExistingProfile.right;
-  if (isNone(maybeExistingProfile)) {
+  if (O.isNone(maybeExistingProfile)) {
     context.log.error(`${logPrefix}|Profile not found`);
     return ResponseErrorInternal(ValidationErrors.GENERIC_ERROR);
   }
@@ -145,14 +204,28 @@ export const GetTokenInfoHandler = (
     return ResponseErrorInternal(ValidationErrors.GENERIC_ERROR);
   }
 
-  return ResponseSuccessJson({
-    status: GetTokenInfoStatusEnum.SUCCESS,
-    profile_email: email
-  });
+  if (flow === FlowTypeEnum.VALIDATE) {
+    // On Validate Flow(GetTokenInfo) we just return the success response according to the spec
+    return ResponseSuccessJson({
+      status: GetTokenInfoStatusEnum.SUCCESS,
+      profile_email: email
+    });
+  } else {
+    // On Confirm Flow we will update the profile
+    return pipe(
+      updateProfileAndMarkEmailAsValidated(
+        profileModel,
+        existingProfile,
+        context,
+        logPrefix
+      ),
+      TE.toUnion
+    )();
+  }
 };
 
 /**
- * Wraps a GetTokenInfo handler inside an Express request handler.
+ * Wraps the handler inside an Express request handler (GetTokenInfo operation).
  */
 
 export const GetTokenInfo = (
@@ -160,11 +233,41 @@ export const GetTokenInfo = (
   profileModel: ProfileModel,
   profileEmails: IProfileEmailReader
 ): express.RequestHandler => {
-  const handler = GetTokenInfoHandler(tableClient, profileModel, profileEmails);
+  const handler = ValidateProfileEmailHandler(
+    tableClient,
+    profileModel,
+    profileEmails,
+    FlowTypeEnum.VALIDATE
+  );
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
     TokenHeaderParamMiddleware
   );
   return wrapRequestHandler(middlewaresWrap(handler));
+};
+
+/**
+ * Wraps the handler inside an Express request handler (ValidateProfileEmail operation).
+ */
+
+export const ValidateProfileEmail = (
+  tableClient: TableClient,
+  profileModel: ProfileModel,
+  profileEmails: IProfileEmailReader
+): express.RequestHandler => {
+  const handler = ValidateProfileEmailHandler(
+    tableClient,
+    profileModel,
+    profileEmails,
+    FlowTypeEnum.CONFIRM
+  );
+
+  const middlewaresWrap = withRequestMiddlewares(
+    ContextMiddleware(),
+    ValidateProfileEmailBodyMiddleware
+  );
+  return wrapRequestHandler(
+    middlewaresWrap((context, body) => handler(context, body.token))
+  );
 };
