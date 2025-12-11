@@ -35,7 +35,6 @@ const main = async () => {
 
   const client = createClient({
     baseUrl: "http://localhost:8081",
-    basePath: "",
     fetchApi: nodeFetch as unknown as typeof fetch,
   });
 
