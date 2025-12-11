@@ -164,9 +164,12 @@ components:
           enum:
             - TOKEN_EXPIRED
             - EMAIL_ALREADY_TAKEN
+        profile_email:
+              $ref: "#/components/schemas/ProfileEmail"
       required:
         - status
         - reason
+        - profile_email
     ProfileEmail:
       type: string
       format: email

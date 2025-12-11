@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { EmailString } from "@pagopa/ts-commons/lib/strings";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import base64url from "base64url";
-import { TokenQueryParam } from "../middleware";
+import { TokenParam } from "../middleware";
 import {
   confirmChoicePageUrl,
   validationFailureUrl,
@@ -18,7 +18,7 @@ const confirmValidationUrl = {
   href: "https://localhost/confirm-choice"
 } as ValidUrl;
 
-const aToken = "sample_token" as TokenQueryParam;
+const aToken = "sample_token" as TokenParam;
 const anEmail = "example@example.com" as EmailString;
 
 describe("Redirect utilities testing", () => {

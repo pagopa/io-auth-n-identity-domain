@@ -162,6 +162,12 @@ services:
     depends_on:
       - storage
       - cosmosdb
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.io-public.rule=PathPrefix(`/public`)"
+      - "traefik.http.routers.io-public.entrypoints=web"
+      - "traefik.http.services.io-public.loadBalancer.server.port=7071"
+      - "traefik.http.routers.io-public.middlewares=io-public-stripprefix"
 
   io-fast-login:
     image: io-fast-login
@@ -244,6 +250,7 @@ services:
       # define middleware to be used in some functions services
       - "traefik.http.middlewares.io-session-manager-stripprefix.stripprefix.prefixes=/sm"
       - "traefik.http.middlewares.io-lollipop-stripprefix.stripprefix.prefixes=//lollipop"
+      - "traefik.http.middlewares.io-public-stripprefix.stripprefix.prefixes=/public"
       - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-id=unused"
       - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-subscription-id=unused"
       - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-groups=${REQ_USER_GROUPS}"
