@@ -181,11 +181,7 @@ export const ValidateProfileEmailHandler = (
   // 2.2 Check if the email in the profile is the same of the one in the validation token
   if (existingProfile.email !== email) {
     context.log.error(`${logPrefix}|Email mismatch`);
-
-    return buildValidationErrorsObjectsResponse(
-      ValidationErrorsReasonEnum.TOKEN_EXPIRED,
-      email
-    );
+    return ResponseErrorUnauthorized(ValidationErrors.INVALID_TOKEN);
   }
 
   // 2.3 Check if the e-mail is already taken

@@ -1,7 +1,7 @@
 import { GetTableEntityOptions, TableClient } from "@azure/data-tables";
 import * as E from "fp-ts/lib/Either";
 import { Either } from "fp-ts/lib/Either";
-import { none, Option, some } from "fp-ts/lib/Option";
+import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as t from "io-ts";
 
@@ -27,13 +27,13 @@ export const retrieveTableEntity = async (
   partitionKey: string,
   rowKey: string,
   options?: GetTableEntityOptions
-): Promise<Either<StorageError, Option<unknown>>> =>
+): Promise<Either<StorageError, O.Option<unknown>>> =>
   tableClient.getEntity(partitionKey, rowKey, options).then(
-    result => E.right(some(result)),
+    result => E.right(O.some(result)),
     err => {
       const errorAsStorageError = err as StorageError;
       if (errorAsStorageError?.statusCode === ResourceNotFoundStatusCode) {
-        return E.right(none);
+        return E.right(O.none);
       }
       return E.left(errorAsStorageError);
     }
@@ -53,23 +53,23 @@ export const retrieveTableEntityDecoded = <T, S>(
   rowKey: string,
   type: t.Type<T, S, unknown>,
   options?: GetTableEntityOptions
-): TE.TaskEither<StorageError | Error, Option<T>> =>
+): TE.TaskEither<StorageError | Error, O.Option<T>> =>
   pipe(
     TE.tryCatch(
       () => tableClient.getEntity(partitionKey, rowKey, options),
       identity
     ),
-    TE.orElseW(err => {
-      const errorAsStorageError = err as StorageError;
-      if (errorAsStorageError?.statusCode === ResourceNotFoundStatusCode) {
-        return TE.right(none);
-      }
-      return TE.left(errorAsStorageError);
-    }),
     TE.chainEitherKW(
       flow(
         type.decode,
-        E.bimap(err => new Error(readableReportSimplified(err)), some)
+        E.bimap(err => new Error(readableReportSimplified(err)), O.some)
       )
-    )
+    ),
+    TE.orElseW(err => {
+      const errorAsStorageError = err as StorageError;
+      if (errorAsStorageError?.statusCode === ResourceNotFoundStatusCode) {
+        return TE.right(O.none);
+      }
+      return TE.left(errorAsStorageError);
+    })
   );

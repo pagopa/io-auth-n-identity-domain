@@ -22,6 +22,7 @@ const TOKEN_VALIDATOR_HASH =
   "026c47ead971b9af13353f5d5e563982ebca542f8df3246bdaf1f86e16075072";
 const VALIDATION_TOKEN = `${TOKEN_ID}:${TOKEN_VALIDATOR}` as TokenParam;
 const GENRIC_ERROR_DETAIL = "Internal server error: GENERIC_ERROR";
+const INVALID_TOKEN_ERROR_DETAIL = "Unauthorized: INVALID_TOKEN";
 
 const mockFindLastVersionByModelId = vi
   .fn()
@@ -43,13 +44,15 @@ const contextMock = ({
   }
 } as unknown) as FunctionContext;
 
-const mockRetrieveEntity = vi.fn().mockResolvedValue({
+const aRetrievedEntity = {
   Email: anEmail,
   FiscalCode: aFiscalCode,
   InvalidAfter: new Date(Date.now() + 1000 * 1000).toISOString(),
   partitionKey: "01DPT9QAZ6N0FJX21A86FRCWB3",
   rowKey: "026c47ead971b9af13353f5d5e563982ebca542f8df3246bdaf1f86e16075072"
-});
+};
+
+const mockRetrieveEntity = vi.fn().mockResolvedValue(aRetrievedEntity);
 
 const tableClientMock = ({
   getEntity: mockRetrieveEntity
@@ -96,19 +99,14 @@ describe.each`
   });
 
   it.each`
-    scenario                                                                                 | expectedResponseType        | expectedContent                                                                      | retrieveResult                   | isApiError
-    ${"GENERIC_ERROR in case the query versus the table storage fails"}                      | ${"IResponseErrorInternal"} | ${{ detail: GENRIC_ERROR_DETAIL }}                                                   | ${new Error("error Retrieving")} | ${true}
-    ${"GENERIC_ERROR in case the entity retrieved does not comply with the expected format"} | ${"IResponseErrorInternal"} | ${{ detail: GENRIC_ERROR_DETAIL }}                                                   | ${{ bad: "prop" }}               | ${false}
-    ${"INVALID_TOKEN error in case the token if not found in the table"}                     | ${"IResponseErrorInternal"} | ${{ detail: GENRIC_ERROR_DETAIL }}                                                   | ${{ statusCode: 404 }}           | ${true}
-    ${"TOKEN_EXPIRED error in case the token is expired"}                                    | ${"IResponseSuccessJson"}   | ${{ value: { profile_email: anEmail, reason: "TOKEN_EXPIRED", status: "FAILURE" } }} | ${expiredTokenEntity}            | ${false}
+    scenario                                                                                 | expectedResponse                                                                                                   | retrieveResult                   | isApiError
+    ${"GENERIC_ERROR in case the query versus the table storage fails"}                      | ${{ kind: "IResponseErrorInternal", detail: GENRIC_ERROR_DETAIL }}                                                 | ${new Error("error Retrieving")} | ${true}
+    ${"GENERIC_ERROR in case the entity retrieved does not comply with the expected format"} | ${{ kind: "IResponseErrorInternal", detail: GENRIC_ERROR_DETAIL }}                                                 | ${{ bad: "prop" }}               | ${false}
+    ${"INVALID_TOKEN error in case the token if not found in the table"}                     | ${{ kind: "IResponseErrorUnauthorized", detail: INVALID_TOKEN_ERROR_DETAIL }}                                      | ${{ statusCode: 404 }}           | ${true}
+    ${"TOKEN_EXPIRED error in case the token is expired"}                                    | ${{ kind: "IResponseSuccessJson", value: { profile_email: anEmail, reason: "TOKEN_EXPIRED", status: "FAILURE" } }} | ${expiredTokenEntity}            | ${false}
   `(
     "should return a redirect with a $scenario",
-    async ({
-      retrieveResult,
-      expectedResponseType,
-      expectedContent,
-      isApiError
-    }) => {
+    async ({ retrieveResult, expectedResponse, isApiError }) => {
       if (isApiError) {
         mockRetrieveEntity.mockRejectedValueOnce(retrieveResult);
       } else {
@@ -129,8 +127,7 @@ describe.each`
 
       expect(response).toEqual(
         expect.objectContaining({
-          kind: expectedResponseType,
-          ...expectedContent
+          ...expectedResponse
         })
       );
       expect(mockRetrieveEntity).toBeCalledWith(
@@ -181,6 +178,42 @@ describe.each`
       expect(mockUpdate).not.toBeCalled();
     }
   );
+
+  it("should return ResponseErrorUnauthorized if the Email differs between token and profile", async () => {
+    mockRetrieveEntity.mockResolvedValueOnce({
+      ...aRetrievedEntity,
+      Email: "different@email.test" as EmailString
+    });
+
+    const verifyProfileEmailHandler = ValidateProfileEmailHandler(
+      tableClientMock,
+      mockProfileModel,
+      profileEmailReader,
+      isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
+    );
+
+    const response = await verifyProfileEmailHandler(
+      contextMock,
+      VALIDATION_TOKEN
+    );
+
+    expect(response).toEqual(
+      expect.objectContaining({
+        kind: "IResponseErrorUnauthorized",
+        detail: INVALID_TOKEN_ERROR_DETAIL
+      })
+    );
+
+    expect(mockRetrieveEntity).toHaveBeenCalledExactlyOnceWith(
+      TOKEN_ID,
+      TOKEN_VALIDATOR_HASH,
+      undefined
+    );
+    expect(mockFindLastVersionByModelId).toHaveBeenCalledExactlyOnceWith([
+      aFiscalCode
+    ]);
+    expect(mockUpdate).not.toBeCalled();
+  });
 });
 
 describe("ValidateProfileEmailHandler#Happy path", () => {
