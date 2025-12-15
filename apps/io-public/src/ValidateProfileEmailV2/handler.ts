@@ -64,16 +64,13 @@ type IGetTokenInfoHandler = (
     >
 >;
 
-const updateProfileAndMarkEmailAsValidated = (
+const updateProfile = (
   profileModel: ProfileModel,
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   existingProfile: RetrievedProfile,
   context: Context,
   logPrefix: string
-): TE.TaskEither<
-  IResponseErrorInternal,
-  IResponseSuccessJson<ValidateProfileStatusReport>
-> =>
+): TE.TaskEither<IResponseErrorInternal, void> =>
   pipe(
     profileModel.update({
       ...existingProfile,
@@ -94,9 +91,7 @@ const updateProfileAndMarkEmailAsValidated = (
       });
 
       context.log.verbose(`${logPrefix}|The profile has been updated`);
-      return ResponseSuccessJson({
-        status: GetTokenInfoStatusEnum.SUCCESS
-      });
+      return void 0;
     })
   );
 
@@ -122,6 +117,7 @@ export const ValidateProfileEmailHandler = (
   // STEP 1: Find and verify validation token
 
   // 1.1 Retrieve the entity from the table storage
+  // TODO: move to a dedicated function
   const errorOrMaybeTableEntity = await retrieveValidationTokenEntity(
     tableClient,
     token
@@ -161,6 +157,7 @@ export const ValidateProfileEmailHandler = (
   // STEP 2: Find the profile
 
   // 2.1 Search for the profile associated to the fiscal code in the token
+  // TODO: move to a dedicated function
   const errorOrMaybeExistingProfile = await profileModel.findLastVersionByModelId(
     [fiscalCode]
   )();
@@ -192,6 +189,7 @@ export const ValidateProfileEmailHandler = (
   }
 
   // 2.3 Check if the e-mail is already taken
+  // TODO: move in a separate function
   try {
     const isEmailTaken = await isEmailAlreadyTaken(email)({
       profileEmails
@@ -216,11 +214,11 @@ export const ValidateProfileEmailHandler = (
   } else {
     // On Confirm Flow we will update the profile
     return pipe(
-      updateProfileAndMarkEmailAsValidated(
-        profileModel,
-        existingProfile,
-        context,
-        logPrefix
+      updateProfile(profileModel, existingProfile, context, logPrefix),
+      TE.map(() =>
+        ResponseSuccessJson({
+          status: GetTokenInfoStatusEnum.SUCCESS
+        })
       ),
       TE.toUnion
     )();
