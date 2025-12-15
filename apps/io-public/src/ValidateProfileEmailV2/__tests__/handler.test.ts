@@ -115,12 +115,12 @@ describe("ValidateProfileEmailHandler Tests", () => {
           mockRetrieveEntity.mockResolvedValueOnce(retrieveResult);
         }
 
-        const verifyProfileEmailHandler = ValidateProfileEmailHandler(
-          tableClientMock,
-          mockProfileModel,
-          profileEmailReader,
-          isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
-        );
+        const verifyProfileEmailHandler = ValidateProfileEmailHandler({
+          tableClient: tableClientMock,
+          profileModel: mockProfileModel,
+          profileEmails: profileEmailReader,
+          flow: isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
+        });
 
         const response = await verifyProfileEmailHandler(
           contextMock,
@@ -160,14 +160,14 @@ describe("ValidateProfileEmailHandler Tests", () => {
         ${"EMAIL_ALREADY_TAKEN if the e-mail is already taken"}                    | ${{ kind: "IResponseSuccessJson", value: { profile_email: anEmail, reason: "EMAIL_ALREADY_TAKEN", status: "FAILURE" } }} | ${undefined}
         ${"IResponseErrorInternal WHEN the unique e-mail enforcement check fails"} | ${{ kind: "IResponseErrorInternal", detail: GENRIC_ERROR_DETAIL }}                                                       | ${true}
       `("should return $scenario", async ({ expectedResponse, isThrowing }) => {
-        const verifyProfileEmailHandler = ValidateProfileEmailHandler(
-          tableClientMock,
-          mockProfileModel,
-          {
+        const verifyProfileEmailHandler = ValidateProfileEmailHandler({
+          tableClient: tableClientMock,
+          profileModel: mockProfileModel,
+          profileEmails: {
             list: generateProfileEmails(1, isThrowing)
           },
-          isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
-        );
+          flow: isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
+        });
 
         const response = await verifyProfileEmailHandler(
           contextMock,
@@ -214,12 +214,12 @@ describe("ValidateProfileEmailHandler Tests", () => {
           () => getProfileResult
         );
 
-        const verifyProfileEmailHandler = ValidateProfileEmailHandler(
-          tableClientMock,
-          mockProfileModel,
-          profileEmailReader,
-          isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
-        );
+        const verifyProfileEmailHandler = ValidateProfileEmailHandler({
+          tableClient: tableClientMock,
+          profileModel: mockProfileModel,
+          profileEmails: profileEmailReader,
+          flow: isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
+        });
 
         const response = await verifyProfileEmailHandler(
           contextMock,
@@ -244,13 +244,12 @@ describe("ValidateProfileEmailHandler Tests", () => {
   it("should return IResponseErrorInternal on update profile failure", async () => {
     mockUpdate.mockImplementationOnce(() => TE.left(new Error("update error")));
 
-    const verifyProfileEmailHandler = ValidateProfileEmailHandler(
-      tableClientMock,
-      mockProfileModel,
-      profileEmailReader,
-      FlowTypeEnum.CONFIRM
-    );
-
+    const verifyProfileEmailHandler = ValidateProfileEmailHandler({
+      tableClient: tableClientMock,
+      profileModel: mockProfileModel,
+      profileEmails: profileEmailReader,
+      flow: FlowTypeEnum.CONFIRM
+    });
     const response = await verifyProfileEmailHandler(
       contextMock,
       VALIDATION_TOKEN
@@ -275,12 +274,12 @@ describe("ValidateProfileEmailHandler Tests", () => {
   });
 
   it("should reutrn the email associated with the token we are validating", async () => {
-    const verifyProfileEmailHandler = ValidateProfileEmailHandler(
-      tableClientMock,
-      mockProfileModel,
-      profileEmailReader,
-      FlowTypeEnum.VALIDATE
-    );
+    const verifyProfileEmailHandler = ValidateProfileEmailHandler({
+      tableClient: tableClientMock,
+      profileModel: mockProfileModel,
+      profileEmails: profileEmailReader,
+      flow: FlowTypeEnum.VALIDATE
+    });
 
     const response = await verifyProfileEmailHandler(
       contextMock,
@@ -308,13 +307,12 @@ describe("ValidateProfileEmailHandler Tests", () => {
   });
 
   it("should reutrn the email associated with the token we are confirming", async () => {
-    const verifyProfileEmailHandler = ValidateProfileEmailHandler(
-      tableClientMock,
-      mockProfileModel,
-      profileEmailReader,
-      FlowTypeEnum.CONFIRM
-    );
-
+    const verifyProfileEmailHandler = ValidateProfileEmailHandler({
+      tableClient: tableClientMock,
+      profileModel: mockProfileModel,
+      profileEmails: profileEmailReader,
+      flow: FlowTypeEnum.CONFIRM
+    });
     const response = await verifyProfileEmailHandler(
       contextMock,
       VALIDATION_TOKEN
