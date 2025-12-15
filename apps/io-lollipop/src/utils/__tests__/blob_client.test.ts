@@ -59,6 +59,7 @@ describe("buildClientWithFallback", () => {
             mockServiceClient.getContainerClient(fallbackLocation.containerName),
             blobName
         );
+        expect(client.fallbackTracker).toBe(undefined);
     });
 
     it("should create a BlockBlobClientWithFallback correctly", () => {
@@ -75,6 +76,26 @@ describe("buildClientWithFallback", () => {
             mockServiceClient.getContainerClient(fallbackLocation.containerName),
             blobName
         );
+        expect(client.fallbackTracker).toBe(undefined);
+    });
+
+    it("should create a BlobClientWithFallback with a tracker correctly", () => {
+        const mockGetClient = vi.fn(() => mockBlobClient);
+        const builder = buildClientWithFallback(BlobClientWithFallback, mockGetClient);
+        const tracker = () => { return void 0; };
+
+        const client = builder(primaryLocation, fallbackLocation, tracker)(blobName);
+
+        expect(client).toBeInstanceOf(BlobClientWithFallback);
+        expect(mockGetClient).toHaveBeenCalledWith(
+            mockServiceClient.getContainerClient(primaryLocation.containerName),
+            blobName
+        );
+        expect(mockGetClient).toHaveBeenCalledWith(
+            mockServiceClient.getContainerClient(fallbackLocation.containerName),
+            blobName
+        );
+        expect(client.fallbackTracker).toBe(tracker);
     });
 });
 

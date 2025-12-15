@@ -6,7 +6,10 @@ import {
   BlobServiceClient,
   BlockBlobClient
 } from "@azure/storage-blob";
-import { StorageBlobClientWithFallback } from "@pagopa/azure-storage-migration-kit";
+import {
+  FallbackTracker,
+  StorageBlobClientWithFallback
+} from "@pagopa/azure-storage-migration-kit";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { isRestError } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import { pipe } from "fp-ts/lib/function";
@@ -42,7 +45,8 @@ export const getBlobAsText = (
   blobServiceClient: BlobServiceClient,
   containerName: NonEmptyString,
   blobServiceClientFallback: BlobServiceClient,
-  containerNameFallback: NonEmptyString
+  containerNameFallback: NonEmptyString,
+  tracker?: FallbackTracker
 ) => (blobName: NonEmptyString): TE.TaskEither<Error, O.Option<string>> =>
   pipe(
     buildBlobClientWithFallback(
@@ -53,7 +57,8 @@ export const getBlobAsText = (
       {
         containerName: containerNameFallback,
         service: blobServiceClientFallback
-      }
+      },
+      tracker
     )(blobName),
     getBlobToBufferAsTextIfExistsOrNone
   );

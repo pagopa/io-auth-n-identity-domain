@@ -4,7 +4,7 @@ import * as O from "fp-ts/Option";
 
 import { getBlobAsText } from "../blob";
 import { buildBlobClientWithFallback } from "../blob_client";
-import { BlobClientWithFallback } from "@pagopa/azure-storage-migration-kit";
+import { BlobClientWithFallback, FallbackTracker } from "@pagopa/azure-storage-migration-kit";
 import { RestError } from "@azure/storage-blob";
 
 const downloadToBufferMock = vi.fn();
@@ -29,19 +29,22 @@ describe("getBlobAsText", () => {
 
     it("should return O.some", async () => {
         downloadToBufferMock.mockResolvedValue(Buffer.from("hello"));
+        const tracker = () => { return void 0; };
 
         const reader = getBlobAsText(
             blobService,
             container,
             blobServiceFallback,
-            containerFallback
+            containerFallback,
+            tracker
         );
 
         const result = await reader(blobName)();
 
         expect(buildBlobClientWithFallback).toHaveBeenCalledWith(
             { containerName: container, service: blobService },
-            { containerName: containerFallback, service: blobServiceFallback }
+            { containerName: containerFallback, service: blobServiceFallback },
+            tracker
         );
 
         expect(result).toEqual(E.right(O.some("hello")));
