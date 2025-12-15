@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TableClient } from "@azure/data-tables";
@@ -86,110 +87,168 @@ const expiredTokenEntity = {
   rowKey: "026c47ead971b9af13353f5d5e563982ebca542f8df3246bdaf1f86e16075072"
 };
 
-// Flow types:
-// CONFIRM -> verify token and on success redirect to confirm page
-// VALIDATE -> verify token and on success update the user data and redirect to result page
-describe.each`
-  isConfirmFlow
-  ${true}
-  ${false}
-`("ValidateProfileEmailHandler#Errors", ({ isConfirmFlow }) => {
+describe("ValidateProfileEmailHandler Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it.each`
-    scenario                                                                                 | expectedResponse                                                                                                   | retrieveResult                   | isApiError
-    ${"GENERIC_ERROR in case the query versus the table storage fails"}                      | ${{ kind: "IResponseErrorInternal", detail: GENRIC_ERROR_DETAIL }}                                                 | ${new Error("error Retrieving")} | ${true}
-    ${"GENERIC_ERROR in case the entity retrieved does not comply with the expected format"} | ${{ kind: "IResponseErrorInternal", detail: GENRIC_ERROR_DETAIL }}                                                 | ${{ bad: "prop" }}               | ${false}
-    ${"INVALID_TOKEN error in case the token if not found in the table"}                     | ${{ kind: "IResponseErrorUnauthorized", detail: INVALID_TOKEN_ERROR_DETAIL }}                                      | ${{ statusCode: 404 }}           | ${true}
-    ${"TOKEN_EXPIRED error in case the token is expired"}                                    | ${{ kind: "IResponseSuccessJson", value: { profile_email: anEmail, reason: "TOKEN_EXPIRED", status: "FAILURE" } }} | ${expiredTokenEntity}            | ${false}
-  `(
-    "should return a redirect with a $scenario",
-    async ({ retrieveResult, expectedResponse, isApiError }) => {
-      if (isApiError) {
-        mockRetrieveEntity.mockRejectedValueOnce(retrieveResult);
-      } else {
-        mockRetrieveEntity.mockResolvedValueOnce(retrieveResult);
+  // Flow types:
+  // CONFIRM -> verify token and on success redirect to confirm page
+  // VALIDATE -> verify token and on success update the user data and redirect to result page
+  describe.each`
+    isConfirmFlow
+    ${true}
+    ${false}
+  `("ValidateProfileEmailHandler#TableStorage Errors", ({ isConfirmFlow }) => {
+    it.each`
+      scenario                                                                                 | expectedResponse                                                                                                   | expectedLog                           | retrieveResult                   | isApiError
+      ${"GENERIC_ERROR in case the query versus the table storage fails"}                      | ${{ kind: "IResponseErrorInternal", detail: GENRIC_ERROR_DETAIL }}                                                 | ${"Error searching validation token"} | ${new Error("error Retrieving")} | ${true}
+      ${"GENERIC_ERROR in case the entity retrieved does not comply with the expected format"} | ${{ kind: "IResponseErrorInternal", detail: GENRIC_ERROR_DETAIL }}                                                 | ${"Error searching validation token"} | ${{ bad: "prop" }}               | ${false}
+      ${"INVALID_TOKEN error in case the token if not found in the table"}                     | ${{ kind: "IResponseErrorUnauthorized", detail: INVALID_TOKEN_ERROR_DETAIL }}                                      | ${"Validation token not found"}       | ${{ statusCode: 404 }}           | ${true}
+      ${"TOKEN_EXPIRED error in case the token is expired"}                                    | ${{ kind: "IResponseSuccessJson", value: { profile_email: anEmail, reason: "TOKEN_EXPIRED", status: "FAILURE" } }} | ${"Token expired"}                    | ${expiredTokenEntity}            | ${false}
+    `(
+      "should return a redirect with a $scenario",
+      async ({ retrieveResult, expectedResponse, expectedLog, isApiError }) => {
+        if (isApiError) {
+          mockRetrieveEntity.mockRejectedValueOnce(retrieveResult);
+        } else {
+          mockRetrieveEntity.mockResolvedValueOnce(retrieveResult);
+        }
+
+        const verifyProfileEmailHandler = ValidateProfileEmailHandler(
+          tableClientMock,
+          mockProfileModel,
+          profileEmailReader,
+          isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
+        );
+
+        const response = await verifyProfileEmailHandler(
+          contextMock,
+          VALIDATION_TOKEN
+        );
+
+        expect(response).toEqual(
+          expect.objectContaining({
+            ...expectedResponse
+          })
+        );
+
+        expect(vi.mocked(contextMock.log.error).mock.calls[0][0]).toEqual(
+          expect.stringContaining(expectedLog)
+        );
+
+        expect(mockRetrieveEntity).toBeCalledWith(
+          TOKEN_ID,
+          TOKEN_VALIDATOR_HASH,
+          undefined
+        );
+        expect(mockFindLastVersionByModelId).not.toBeCalled();
+        expect(mockUpdate).not.toBeCalled();
       }
+    );
+  });
 
-      const verifyProfileEmailHandler = ValidateProfileEmailHandler(
-        tableClientMock,
-        mockProfileModel,
-        profileEmailReader,
-        isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
-      );
-
-      const response = await verifyProfileEmailHandler(
-        contextMock,
-        VALIDATION_TOKEN
-      );
-
-      expect(response).toEqual(
-        expect.objectContaining({
-          ...expectedResponse
-        })
-      );
-      expect(mockRetrieveEntity).toBeCalledWith(
-        TOKEN_ID,
-        TOKEN_VALIDATOR_HASH,
-        undefined
-      );
-      expect(mockFindLastVersionByModelId).not.toBeCalled();
-      expect(mockUpdate).not.toBeCalled();
-    }
-  );
-
-  it.each`
-    scenario                                                              | expectedResponse                                                                                                         | isThrowing
-    ${"should return EMAIL_ALREADY_TAKEN if the e-mail is already taken"} | ${{ kind: "IResponseSuccessJson", value: { profile_email: anEmail, reason: "EMAIL_ALREADY_TAKEN", status: "FAILURE" } }} | ${undefined}
-    ${"return 500 WHEN the unique e-mail enforcement check fails"}        | ${{ kind: "IResponseErrorInternal", detail: GENRIC_ERROR_DETAIL }}                                                       | ${true}
+  describe.each`
+    isConfirmFlow
+    ${true}
+    ${false}
   `(
-    "should $scenario",
-    async ({ expectedResponse, isThrowing, isConfirmFlow }) => {
-      const verifyProfileEmailHandler = ValidateProfileEmailHandler(
-        tableClientMock,
-        mockProfileModel,
-        {
-          list: generateProfileEmails(1, isThrowing)
-        },
-        isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
-      );
+    "ValidateProfileEmailHandler#UniqueEmailEnforcement Errors",
+    ({ isConfirmFlow }) => {
+      it.each`
+        scenario                                                                   | expectedResponse                                                                                                         | isThrowing
+        ${"EMAIL_ALREADY_TAKEN if the e-mail is already taken"}                    | ${{ kind: "IResponseSuccessJson", value: { profile_email: anEmail, reason: "EMAIL_ALREADY_TAKEN", status: "FAILURE" } }} | ${undefined}
+        ${"IResponseErrorInternal WHEN the unique e-mail enforcement check fails"} | ${{ kind: "IResponseErrorInternal", detail: GENRIC_ERROR_DETAIL }}                                                       | ${true}
+      `("should return $scenario", async ({ expectedResponse, isThrowing }) => {
+        const verifyProfileEmailHandler = ValidateProfileEmailHandler(
+          tableClientMock,
+          mockProfileModel,
+          {
+            list: generateProfileEmails(1, isThrowing)
+          },
+          isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
+        );
 
-      const response = await verifyProfileEmailHandler(
-        contextMock,
-        VALIDATION_TOKEN
-      );
+        const response = await verifyProfileEmailHandler(
+          contextMock,
+          VALIDATION_TOKEN
+        );
 
-      expect(response).toEqual(
-        expect.objectContaining({
-          ...expectedResponse
-        })
-      );
+        expect(response).toEqual(
+          expect.objectContaining({
+            ...expectedResponse
+          })
+        );
 
-      expect(mockRetrieveEntity).toHaveBeenCalledExactlyOnceWith(
-        TOKEN_ID,
-        TOKEN_VALIDATOR_HASH,
-        undefined
-      );
-      expect(mockFindLastVersionByModelId).toHaveBeenCalledExactlyOnceWith([
-        aFiscalCode
-      ]);
-      expect(mockUpdate).not.toBeCalled();
+        expect(mockRetrieveEntity).toHaveBeenCalledExactlyOnceWith(
+          TOKEN_ID,
+          TOKEN_VALIDATOR_HASH,
+          undefined
+        );
+        expect(mockFindLastVersionByModelId).toHaveBeenCalledExactlyOnceWith([
+          aFiscalCode
+        ]);
+        expect(mockUpdate).not.toBeCalled();
+      });
     }
   );
 
-  it("should return ResponseErrorUnauthorized if the Email differs between token and profile", async () => {
-    mockRetrieveEntity.mockResolvedValueOnce({
-      ...aRetrievedEntity,
-      Email: "different@email.test" as EmailString
+  describe.each`
+    isConfirmFlow
+    ${true}
+    ${false}
+  `("ValidateProfileEmailHandler# Get Profile Errors", ({ isConfirmFlow }) => {
+    beforeEach(() => {
+      vi.clearAllMocks();
     });
+
+    it.each`
+      scenario                                                                       | expectedResponse                                                              | getProfileResult
+      ${"IResponseErrorInternal on error obtaining profile"}                         | ${{ kind: "IResponseErrorInternal", detail: GENRIC_ERROR_DETAIL }}            | ${TE.left(new Error("error obtaining profile"))}
+      ${"IResponseErrorInternal on profile not found"}                               | ${{ kind: "IResponseErrorInternal", detail: GENRIC_ERROR_DETAIL }}            | ${TE.right(O.none)}
+      ${"IResponseErrorUnauthorized if the Email differs between token and profile"} | ${{ kind: "IResponseErrorUnauthorized", detail: INVALID_TOKEN_ERROR_DETAIL }} | ${TE.right(O.some({ ...aRetrievedProfile, email: "different@email.test" }))}
+    `(
+      "should return $scenario",
+      async ({ expectedResponse, getProfileResult }) => {
+        mockFindLastVersionByModelId.mockImplementationOnce(
+          () => getProfileResult
+        );
+
+        const verifyProfileEmailHandler = ValidateProfileEmailHandler(
+          tableClientMock,
+          mockProfileModel,
+          profileEmailReader,
+          isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
+        );
+
+        const response = await verifyProfileEmailHandler(
+          contextMock,
+          VALIDATION_TOKEN
+        );
+
+        expect(response).toEqual(expect.objectContaining(expectedResponse));
+
+        expect(mockRetrieveEntity).toHaveBeenCalledExactlyOnceWith(
+          TOKEN_ID,
+          TOKEN_VALIDATOR_HASH,
+          undefined
+        );
+        expect(mockFindLastVersionByModelId).toHaveBeenCalledExactlyOnceWith([
+          aFiscalCode
+        ]);
+        expect(mockUpdate).not.toBeCalled();
+      }
+    );
+  });
+
+  it("should return IResponseErrorInternal on update profile failure", async () => {
+    mockUpdate.mockImplementationOnce(() => TE.left(new Error("update error")));
 
     const verifyProfileEmailHandler = ValidateProfileEmailHandler(
       tableClientMock,
       mockProfileModel,
       profileEmailReader,
-      isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
+      FlowTypeEnum.CONFIRM
     );
 
     const response = await verifyProfileEmailHandler(
@@ -199,8 +258,8 @@ describe.each`
 
     expect(response).toEqual(
       expect.objectContaining({
-        kind: "IResponseErrorUnauthorized",
-        detail: INVALID_TOKEN_ERROR_DETAIL
+        kind: "IResponseErrorInternal",
+        detail: GENRIC_ERROR_DETAIL
       })
     );
 
@@ -212,13 +271,7 @@ describe.each`
     expect(mockFindLastVersionByModelId).toHaveBeenCalledExactlyOnceWith([
       aFiscalCode
     ]);
-    expect(mockUpdate).not.toBeCalled();
-  });
-});
-
-describe("ValidateProfileEmailHandler#Happy path", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+    expect(mockUpdate).toHaveBeenCalledOnce();
   });
 
   it("should reutrn the email associated with the token we are validating", async () => {
