@@ -1,6 +1,8 @@
 /* eslint-disable max-lines-per-function */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import * as express from "express";
+
 import { TableClient } from "@azure/data-tables";
 import { Context as FunctionContext } from "@azure/functions";
 import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
@@ -15,7 +17,11 @@ import {
 } from "../../__mocks__/profile";
 import { StatusEnum } from "../../generated/definitions/external/GetTokenInfoResponse";
 import { FlowTypeEnum, TokenParam } from "../../utils/middleware";
-import { ValidateProfileEmailHandler } from "../handler";
+import {
+  GetTokenInfo,
+  ValidateProfileEmail,
+  ValidateProfileEmailHandler
+} from "../handler";
 
 const TOKEN_ID = "01DPT9QAZ6N0FJX21A86FRCWB3";
 const TOKEN_VALIDATOR = "8c652f8566ba53bd8cf0b1b9";
@@ -339,4 +345,90 @@ describe("ValidateProfileEmailHandler Tests", () => {
       isEmailValidated: true
     });
   });
+});
+
+describe("Controller Tests", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const createMockResponse = () => {
+    const res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis(),
+      set: vi.fn().mockReturnThis(),
+      send: vi.fn().mockReturnThis()
+    };
+    return (res as unknown) as express.Response;
+  };
+
+  const createMockRequest = (overrides: Partial<express.Request> = {}) =>
+    (({
+      app: {
+        get: vi.fn().mockReturnValue(contextMock)
+      },
+      ...overrides
+    } as unknown) as express.Request);
+
+  it.each`
+    scenario                           | requestHeaders                                                          | expectedResponse                                                                 | expectedResultCode
+    ${"200 on well shaped request"}    | ${{ headers: { "x-pagopa-email-validation-token": VALIDATION_TOKEN } }} | ${{ status: StatusEnum.SUCCESS, profile_email: anEmail }}                        | ${200}
+    ${"400 on missing token header"}   | ${{ headers: {} }}                                                      | ${{ title: expect.stringContaining("Invalid string that matches the pattern") }} | ${400}
+    ${"400 on malformed token header"} | ${{ headers: { "x-pagopa-email-validation-token": "aBadToken" } }}      | ${{ title: expect.stringContaining("Invalid string that matches the pattern") }} | ${400}
+  `(
+    "GetTokenInfo should return $scenario",
+    async ({ requestHeaders, expectedResponse, expectedResultCode }) => {
+      const handler = GetTokenInfo(
+        tableClientMock,
+        mockProfileModel,
+        profileEmailReader
+      );
+
+      const mockReq = createMockRequest({
+        ...requestHeaders
+      });
+
+      const mockRes = createMockResponse();
+
+      const nextFn = vi.fn();
+
+      await handler(mockReq, mockRes, nextFn);
+
+      expect(mockRes.status).toHaveBeenCalledWith(expectedResultCode);
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining(expectedResponse)
+      );
+    }
+  );
+
+  it.each`
+    scenario                           | requestHeaders                           | expectedResponse                                    | expectedResultCode
+    ${"200 on well shaped request"}    | ${{ body: { token: VALIDATION_TOKEN } }} | ${{ status: StatusEnum.SUCCESS }}                   | ${200}
+    ${"400 on missing token header"}   | ${{ body: {} }}                          | ${{ title: "Invalid ValidateProfileEmailPayload" }} | ${400}
+    ${"400 on malformed token header"} | ${{ body: { token: "aBadToken" } }}      | ${{ title: "Invalid ValidateProfileEmailPayload" }} | ${400}
+  `(
+    "ValidateProfileEmail should return $scenario",
+    async ({ requestHeaders, expectedResponse, expectedResultCode }) => {
+      const handler = ValidateProfileEmail(
+        tableClientMock,
+        mockProfileModel,
+        profileEmailReader
+      );
+
+      const mockReq = createMockRequest({
+        ...requestHeaders
+      });
+
+      const mockRes = createMockResponse();
+
+      const nextFn = vi.fn();
+
+      await handler(mockReq, mockRes, nextFn);
+
+      expect(mockRes.status).toHaveBeenCalledWith(expectedResultCode);
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining(expectedResponse)
+      );
+    }
+  );
 });
