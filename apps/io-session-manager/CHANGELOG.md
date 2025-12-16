@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.17.0
+
+### Minor Changes
+
+- 5b14f99: Removed old basepath
+
 ## 1.16.1
 
 ### Patch Changes

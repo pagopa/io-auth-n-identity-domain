@@ -12,12 +12,9 @@ APPINSIGHTS_REDIS_TRACE_ENABLED="true"
 API_URL=http://io-profile:7071
 API_KEY=key
 
-API_BASE_PATH=/api/v1
-
 ################
 # FIMS CONFIG
 ################
-FIMS_BASE_PATH=/fims/api/v1
 ALLOW_FIMS_IP_SOURCE_RANGE="::/0"
 ################
 
@@ -39,8 +36,8 @@ LOLLIPOP_REVOKE_QUEUE_NAME=pubkeys-revoke
 
 BACKEND_HOST=https://localhost
 SPID_TESTENV_URL=https://spid-testenv2:8088
-SAML_CALLBACK_URL=https://localhost:8080/sm/assertionConsumerService
-SAML_LOGOUT_CALLBACK_URL=https://localhost:8080/sm/slo
+SAML_CALLBACK_URL=https://localhost:8080/sm/api/auth/v1/assertionConsumerService
+SAML_LOGOUT_CALLBACK_URL=https://localhost:8080/sm/api/auth/v1/slo
 
 CIE_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/cie/latest
 IDP_METADATA_URL=https://api.is.eng.pagopa.it/idp-keys/spid/latest
@@ -53,14 +50,12 @@ FF_FAST_LOGIN=ALL
 #####################
 # ZENDESK VARIABLES #
 #####################
-ZENDESK_BASE_PATH=/api/backend/zendesk/v1
 JWT_ZENDESK_SUPPORT_TOKEN_SECRET="ASHAREDSECRET123"
 JWT_ZENDESK_SUPPORT_TOKEN_ISSUER=io-backend
 JWT_ZENDESK_SUPPORT_TOKEN_EXPIRATION=1200
 ALLOW_ZENDESK_IP_SOURCE_RANGE="::/0"
 #####################
 
-BPD_BASE_PATH=/bpd/api/v1
 ALLOW_BPD_IP_SOURCE_RANGE="::/0"
 
 # ------------------------------------
@@ -75,7 +70,6 @@ PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING=${STORAGE_CONN_STRING}
 PUSH_NOTIFICATIONS_QUEUE_NAME=push-notifications
 
 ## PAGOPA PROXY CONFIG
-PAGOPA_BASE_PATH=/pagopa/api/v1
 ALLOW_PAGOPA_IP_SOURCE_RANGE="::/0"
 
 ## TEST LOGIN CONFIG
