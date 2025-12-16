@@ -27,10 +27,7 @@ import {
   ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
-import {
-  isEmailAlreadyTaken,
-  IProfileEmailReader,
-} from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
+import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
 
 import {
   IResponseErrorInternal,
@@ -50,6 +47,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
 import * as t from "io-ts";
 import { retrievedProfileToExtendedProfile } from "../utils/profiles";
+import { withIsEmailAlreadyTaken } from "./get-profile";
 
 const ProfilePageResults = t.intersection([
   t.interface({
@@ -83,37 +81,6 @@ type IGetProfileVersionsHandler = (
   maybePageSize: O.Option<NonNegativeInteger>,
 ) => Promise<IGetProfileVersionsHandlerResult>;
 
-export const withIsEmailAlreadyTaken =
-  (profileEmailReader: IProfileEmailReader) =>
-  (
-    profile: ExtendedProfile,
-  ): TE.TaskEither<IResponseErrorInternal, ExtendedProfile> =>
-    pipe(
-      TE.of(profile),
-      // Check if the e-mail address associated with the retrived
-      // profile was validated. If was not validated, continue with
-      // uniqueness checks.
-      TE.chainW(({ is_email_validated, email }) =>
-        !is_email_validated && email
-          ? TE.tryCatch(
-              () =>
-                isEmailAlreadyTaken(email)({
-                  profileEmails: profileEmailReader,
-                }),
-              () =>
-                ResponseErrorInternal(
-                  "Can't check if the new e-mail is already taken",
-                ),
-            )
-          : TE.of(false),
-      ),
-      // Set the value of "is_email_already_taken" property
-      TE.map((is_email_already_taken) => ({
-        ...profile,
-        is_email_already_taken,
-      })),
-    );
-
 /**
  * Return a type safe GetProfileVersions handler.
  */
@@ -128,6 +95,7 @@ export function GetProfileVersionsHandler(
       TE.Do,
       TE.bind("page_size", () => TE.of(O.getOrElse(() => 25)(maybePageSize))),
       TE.bind("page", () => TE.of(O.getOrElse(() => 1)(maybePage))),
+      // eslint-disable-next-line no-console
       TE.chain(({ page, page_size }) =>
         pipe(
           TE.tryCatch(
@@ -139,10 +107,16 @@ export function GetProfileVersionsHandler(
                       name: "@fiscalCode",
                       value: fiscalCode,
                     },
+                    {
+                      name: "@offset",
+                      value: (page - 1) * page_size,
+                    },
+                    {
+                      name: "@limit",
+                      value: page_size,
+                    },
                   ],
-                  query: `SELECT * FROM m WHERE m.fiscalCode = @fiscalCode ORDER BY m._ts DESC OFFSET ${
-                    (page - 1) * page_size
-                  } LIMIT ${page_size}`,
+                  query: `SELECT * FROM p WHERE p.fiscalCode = @fiscalCode ORDER BY p._ts DESC OFFSET @offset LIMIT @limit`,
                 })
                 [Symbol.asyncIterator](),
             (_) => toCosmosErrorResponse(_) as CosmosErrors,
@@ -158,21 +132,22 @@ export function GetProfileVersionsHandler(
           TE.mapLeft((failure) =>
             ResponseErrorQuery("Error while retrieving the profile", failure),
           ),
-          TE.map((values) => values.filter(E.isRight).map((_) => _.right)),
           TE.map((values) =>
-            values.map((_) =>
-              // if profile's timestamp is before email opt out switch limit date we must force isEmailEnabled to false
-              // this map is valid for ever so this check cannot be removed.
-              // Please note that cosmos timestamps are expressed in unix notation (in seconds), so we must transform
-              // it to a common Date representation.
-              // eslint-disable-next-line no-underscore-dangle
-              isBefore(_._ts, optOutEmailSwitchDate)
-                ? { ..._, isEmailEnabled: false }
-                : _,
+            values.filter(E.isRight).map((_) =>
+              pipe(
+                _.right,
+                (p) =>
+                  // if profile's timestamp is before email opt out switch limit date we must force isEmailEnabled to false
+                  // this map is valid for ever so this check cannot be removed.
+                  // Please note that cosmos timestamps are expressed in unix notation (in seconds), so we must transform
+                  // it to a common Date representation (milliseconds).
+                  // eslint-disable-next-line no-underscore-dangle
+                  isBefore(p._ts * 1000, optOutEmailSwitchDate)
+                    ? { ...p, isEmailEnabled: false }
+                    : p,
+                retrievedProfileToExtendedProfile,
+              ),
             ),
-          ),
-          TE.map((_) =>
-            _.map((profile) => retrievedProfileToExtendedProfile(profile)),
           ),
           TE.chainW((profiles) =>
             TE.traverseArray(withIsEmailAlreadyTaken(profileEmailReader))(
