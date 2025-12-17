@@ -93,7 +93,7 @@ u/WOuHTmEnlUT0zRrRMHBj7xs/q01bRirqQSgDP3/HCp
     </KeyDescriptor>
     <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://italia-backend/slo"/>
     <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</NameIDFormat>
-    <AssertionConsumerService index="0" isDefault="true" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://localhost:8080/sm/assertionConsumerService"/>
+    <AssertionConsumerService index="0" isDefault="true" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://localhost:8080/sm/api/auth/v1/assertionConsumerService"/>
     <AttributeConsumingService index="1">
       <ServiceName xml:lang="it">IO - l'app dei servizi pubblici BETA</ServiceName>
       <RequestedAttribute FriendlyName="Email" Name="email" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>

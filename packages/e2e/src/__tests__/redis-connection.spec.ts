@@ -35,7 +35,6 @@ const waitContainerChecks = async (
 describe("Redis Cluster Connection", () => {
   const client = createClient({
     baseUrl: "http://localhost:8081",
-    basePath: "",
     fetchApi: nodeFetch as unknown as typeof fetch,
   });
   test("Should connect with a redis cluster and the healthcheck return success", async () => {

@@ -28,12 +28,7 @@ import { ENV, BACKEND_HOST } from "./index";
 // Redirection urls
 export const CLIENT_ERROR_REDIRECTION_URL = `${BACKEND_HOST}/error.html`;
 
-// TODO: this basepath needs to be optional
-// for the rollout of the new routing. after proper verification
-// this can be set as mandatory.
-// NOTE: this does not work on express.js 5 without a refactor
-// see https://expressjs.com/en/guide/migrating-5.html#path-syntax
-export const SPID_OPTIONAL_API_BASE_PATH = "(/api/auth/v1)?";
+export const SPID_API_BASE_PATH = "/api/auth/v1";
 
 export const clientProfileRedirectionUrl = `${BACKEND_HOST}/profile.html?token={token}`;
 
@@ -135,13 +130,18 @@ export const STARTUP_IDPS_METADATA: Record<string, string> | undefined = pipe(
 );
 
 export const appConfig: IApplicationConfig = {
-  assertionConsumerServicePath: `${SPID_OPTIONAL_API_BASE_PATH}/assertionConsumerService`,
+  // NOTE: the SPID endpoints are exposed with `api/auth/v1/` base path
+  // but due to issues with metadata changes the metadata exposes
+  // only `assertionConsumerService`. Therefore to spid-commons we pass the
+  // entire URL to be exposed but the SAML_CALLBACK type of variables still
+  // maps without `api/auth/v1` base path.
+  assertionConsumerServicePath: `${SPID_API_BASE_PATH}/assertionConsumerService`,
   clientErrorRedirectionUrl: CLIENT_ERROR_REDIRECTION_URL,
   clientLoginRedirectionUrl: CLIENT_REDIRECTION_URL,
   hasClockSkewLoggingEvent,
-  loginPath: `${SPID_OPTIONAL_API_BASE_PATH}/login`,
-  metadataPath: `${SPID_OPTIONAL_API_BASE_PATH}/metadata`,
-  sloPath: `${SPID_OPTIONAL_API_BASE_PATH}/slo`,
+  loginPath: `${SPID_API_BASE_PATH}/login`,
+  metadataPath: `${SPID_API_BASE_PATH}/metadata`,
+  sloPath: `${SPID_API_BASE_PATH}/slo`,
   spidLevelsWhitelist: SPID_LEVEL_WHITELIST,
   startupIdpsMetadata: STARTUP_IDPS_METADATA,
 };
@@ -221,6 +221,11 @@ export const samlConfig: SamlConfig = {
   attributeConsumingServiceIndex: SAML_ATTRIBUTE_CONSUMING_SERVICE_INDEX,
   // this value is dynamic and taken from query string
   authnContext: "https://www.spid.gov.it/SpidL1",
+  // NOTE: the SPID endpoints are exposed with `api/auth/v1/` base path
+  // but due to issues with metadata changes the metadata exposes
+  // only `assertionConsumerService`. Therefore to spid-commons we pass the
+  // entire URL to be exposed but the SAML_CALLBACK type of variables still
+  // maps without `api/auth/v1` base path.
   callbackUrl: SAML_CALLBACK_URL,
   identifierFormat: "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
   issuer: SAML_ISSUER,

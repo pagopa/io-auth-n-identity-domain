@@ -6,12 +6,10 @@ import {
 } from "@pagopa/ts-commons/lib/featureFlag";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
-import * as TE from "fp-ts/TaskEither";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { CommaSeparatedListOf } from "@pagopa/ts-commons/lib/comma-separated-list";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import * as O from "fp-ts/Option";
-import * as A from "fp-ts/Array";
 import { Second } from "@pagopa/ts-commons/lib/units";
 import { getIsUserElegibleForIoLoginUrlScheme } from "../utils/login-uri-scheme";
 
