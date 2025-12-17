@@ -1,6 +1,6 @@
 {
   "name": "io-auth-n-identity-bruno-collections",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "dependencies": {
     "node-jose": "^2.2.0"
   },
