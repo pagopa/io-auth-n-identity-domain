@@ -1,10 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
-    BlobClient,
-    BlockBlobClient,
-    BlobServiceClient
-} from "@azure/storage-blob";
-import {
     BlobClientWithFallback,
     BlockBlobClientWithFallback,
 } from "@pagopa/azure-storage-migration-kit";
