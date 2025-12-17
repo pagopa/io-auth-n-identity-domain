@@ -5,10 +5,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 
 import { TableClient } from "@azure/data-tables";
 import { ValidationTokenEntityAzureDataTables } from "@pagopa/io-functions-commons/dist/src/entities/validation_token";
-import {
-  retrieveTableEntityDecoded,
-  StorageError
-} from "../utils/azure_storage";
+import { retrieveTableEntityDecoded, StorageError } from "./azure_storage";
 import { TokenParam } from "./middleware";
 
 export const retrieveValidationTokenEntity = (
