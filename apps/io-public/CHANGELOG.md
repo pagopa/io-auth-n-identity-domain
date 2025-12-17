@@ -1,5 +1,11 @@
 # io-public
 
+## 2.0.0
+
+### Major Changes
+
+- 15b85dc: New ValidateProfileEmailV2 Endpoint
+
 ## 1.6.0
 
 ### Minor Changes
