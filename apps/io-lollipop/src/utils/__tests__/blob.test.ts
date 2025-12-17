@@ -4,7 +4,7 @@ import * as O from "fp-ts/Option";
 
 import { getBlobAsText } from "../blob";
 import { buildBlobClientWithFallback } from "../blob_client";
-import { BlobClientWithFallback, FallbackTracker } from "@pagopa/azure-storage-migration-kit";
+import { BlobClientWithFallback } from "@pagopa/azure-storage-migration-kit";
 import { RestError } from "@azure/storage-blob";
 
 const downloadToBufferMock = vi.fn();

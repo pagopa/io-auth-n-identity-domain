@@ -2,13 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
     BlobClient,
     BlockBlobClient,
-    ContainerClient,
     BlobServiceClient
 } from "@azure/storage-blob";
 import {
     BlobClientWithFallback,
     BlockBlobClientWithFallback,
-    FallbackTracker
 } from "@pagopa/azure-storage-migration-kit";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { blobClientMock, blobServiceClientMock, blockBlobClientMock } from "../../__mocks__/blobService.mock";
