@@ -64,6 +64,8 @@ export const getPublicKeyDocumentReader = (
  *
  * @param blobService the azure blobService
  * @param assertionContainerName the name of the container where the blob is stored
+ * @param blobServiceFallback the fallback azure blobService
+ * @param assertionContainerNameFallback the fallback container name
  * @returns The AssertionReader
  */
 export const getAssertionReader = (
