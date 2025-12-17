@@ -36,7 +36,7 @@ import {
   ConfirmEmailFlowQueryParamMiddleware,
   FlowType,
   FlowTypeEnum,
-  TokenQueryParam,
+  TokenParam,
   TokenQueryParamMiddleware
 } from "../utils/middleware";
 import {
@@ -48,7 +48,7 @@ import { ValidationErrors } from "../utils/validation_errors";
 
 type IValidateProfileEmailHandler = (
   context: Context,
-  token: TokenQueryParam,
+  token: TokenParam,
   flowChoice: FlowType
 ) => Promise<IResponseSeeOtherRedirect | IResponseErrorValidation>;
 

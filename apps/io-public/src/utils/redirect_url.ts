@@ -1,7 +1,7 @@
 import { EmailString } from "@pagopa/ts-commons/lib/strings";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import base64url from "base64url";
-import { TokenQueryParam } from "./middleware";
+import { TokenParam } from "./middleware";
 import { ValidationErrors } from "./validation_errors";
 
 /**
@@ -9,7 +9,7 @@ import { ValidationErrors } from "./validation_errors";
  */
 export const confirmChoicePageUrl = (
   url: ValidUrl,
-  token: TokenQueryParam,
+  token: TokenParam,
   email: EmailString
 ): ValidUrl =>
   ({
