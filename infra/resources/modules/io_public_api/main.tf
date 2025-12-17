@@ -58,3 +58,33 @@ module "api_v2_public" {
 
   xml_content = file("./${path.module}/api//v1/policy.xml")
 }
+
+
+module "api_v2_public_io_web_profile" {
+  source = "github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.40.3"
+
+  name                = "io-public-api-v2"
+  api_management_name = var.apim_name
+  resource_group_name = var.apim_resource_group_name
+  revision            = "1"
+  display_name        = "IO PUBLIC API V2"
+  description         = "PUBLIC API for IO platform."
+
+  path        = "public"
+  protocols   = ["https"]
+  product_ids = [module.apim_v2_product_public.product_id]
+
+  service_url = null
+
+  subscription_required = false
+
+  content_format = "openapi"
+  content_value = templatefile("./${path.module}/api/v2/_swagger.yaml.tpl",
+    {
+      host     = var.api_host_name
+      basePath = "public"
+    }
+  )
+
+  xml_content = file("./${path.module}/api/v2/policy.xml")
+}
