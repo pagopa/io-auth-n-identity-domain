@@ -21,10 +21,10 @@ import {
 // ===============================
 // Mock helpers
 // ===============================
-const mockBlobClient = blobClientMock as BlobClient;
-const mockBlockBlobClient = blockBlobClientMock as BlockBlobClient;
+const mockBlobClient = blobClientMock;
+const mockBlockBlobClient = blockBlobClientMock;
 
-const mockServiceClient = blobServiceClientMock as BlobServiceClient;
+const mockServiceClient = blobServiceClientMock;
 
 const primaryLocation: IBlobLocation = {
     service: mockServiceClient,
