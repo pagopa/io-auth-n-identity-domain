@@ -276,7 +276,7 @@ export const ValidateProfileEmailHandler = (
   const logPrefix = `ValidateProfileEmailHandler|TOKEN=${token}`;
 
   return pipe(
-    baseHandler(token, context, `ValidateProfileEmailHandler|TOKEN=${token}`),
+    baseHandler(token, context, logPrefix),
     RTE.chainW(({ existingProfile }) =>
       updateProfile(existingProfile, context, logPrefix)
     ),
