@@ -16,9 +16,10 @@ import {
   anEmail
 } from "../../__mocks__/profile";
 import { StatusEnum } from "../../generated/definitions/external/GetTokenInfoResponse";
-import { FlowTypeEnum, TokenParam } from "../../utils/middleware";
+import { TokenParam } from "../../utils/middleware";
 import {
   GetTokenInfo,
+  GetTokenInfoHandler,
   ValidateProfileEmail,
   ValidateProfileEmailHandler
 } from "../handler";
@@ -93,6 +94,12 @@ const expiredTokenEntity = {
   rowKey: "026c47ead971b9af13353f5d5e563982ebca542f8df3246bdaf1f86e16075072"
 };
 
+const handlerDependencies = {
+  tableClient: tableClientMock,
+  profileModel: mockProfileModel,
+  profileEmails: profileEmailReader
+};
+
 describe("ValidateProfileEmailHandler Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -121,17 +128,11 @@ describe("ValidateProfileEmailHandler Tests", () => {
           mockRetrieveEntity.mockResolvedValueOnce(retrieveResult);
         }
 
-        const verifyProfileEmailHandler = ValidateProfileEmailHandler({
-          tableClient: tableClientMock,
-          profileModel: mockProfileModel,
-          profileEmails: profileEmailReader,
-          flow: isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
-        });
+        const handler = isConfirmFlow
+          ? ValidateProfileEmailHandler(handlerDependencies)
+          : GetTokenInfoHandler(handlerDependencies);
 
-        const response = await verifyProfileEmailHandler(
-          contextMock,
-          VALIDATION_TOKEN
-        );
+        const response = await handler(contextMock, VALIDATION_TOKEN);
 
         expect(response).toEqual(
           expect.objectContaining({
@@ -166,19 +167,18 @@ describe("ValidateProfileEmailHandler Tests", () => {
         ${"EMAIL_ALREADY_TAKEN if the e-mail is already taken"}                    | ${{ kind: "IResponseSuccessJson", value: { profile_email: anEmail, reason: "EMAIL_ALREADY_TAKEN", status: "FAILURE" } }} | ${undefined}
         ${"IResponseErrorInternal WHEN the unique e-mail enforcement check fails"} | ${{ kind: "IResponseErrorInternal", detail: GENRIC_ERROR_DETAIL }}                                                       | ${true}
       `("should return $scenario", async ({ expectedResponse, isThrowing }) => {
-        const verifyProfileEmailHandler = ValidateProfileEmailHandler({
-          tableClient: tableClientMock,
-          profileModel: mockProfileModel,
+        const deps = {
+          ...handlerDependencies,
           profileEmails: {
             list: generateProfileEmails(1, isThrowing)
-          },
-          flow: isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
-        });
+          }
+        };
 
-        const response = await verifyProfileEmailHandler(
-          contextMock,
-          VALIDATION_TOKEN
-        );
+        const handler = isConfirmFlow
+          ? ValidateProfileEmailHandler(deps)
+          : GetTokenInfoHandler(deps);
+
+        const response = await handler(contextMock, VALIDATION_TOKEN);
 
         expect(response).toEqual(
           expect.objectContaining({
@@ -220,17 +220,11 @@ describe("ValidateProfileEmailHandler Tests", () => {
           () => getProfileResult
         );
 
-        const verifyProfileEmailHandler = ValidateProfileEmailHandler({
-          tableClient: tableClientMock,
-          profileModel: mockProfileModel,
-          profileEmails: profileEmailReader,
-          flow: isConfirmFlow ? FlowTypeEnum.CONFIRM : FlowTypeEnum.VALIDATE
-        });
+        const handler = isConfirmFlow
+          ? ValidateProfileEmailHandler(handlerDependencies)
+          : GetTokenInfoHandler(handlerDependencies);
 
-        const response = await verifyProfileEmailHandler(
-          contextMock,
-          VALIDATION_TOKEN
-        );
+        const response = await handler(contextMock, VALIDATION_TOKEN);
 
         expect(response).toEqual(expect.objectContaining(expectedResponse));
 
@@ -250,16 +244,13 @@ describe("ValidateProfileEmailHandler Tests", () => {
   it("should return IResponseErrorInternal on update profile failure", async () => {
     mockUpdate.mockImplementationOnce(() => TE.left(new Error("update error")));
 
-    const verifyProfileEmailHandler = ValidateProfileEmailHandler({
+    const handler = ValidateProfileEmailHandler({
       tableClient: tableClientMock,
       profileModel: mockProfileModel,
-      profileEmails: profileEmailReader,
-      flow: FlowTypeEnum.CONFIRM
+      profileEmails: profileEmailReader
     });
-    const response = await verifyProfileEmailHandler(
-      contextMock,
-      VALIDATION_TOKEN
-    );
+
+    const response = await handler(contextMock, VALIDATION_TOKEN);
 
     expect(response).toEqual(
       expect.objectContaining({
@@ -280,17 +271,9 @@ describe("ValidateProfileEmailHandler Tests", () => {
   });
 
   it("should reutrn the email associated with the token we are validating", async () => {
-    const verifyProfileEmailHandler = ValidateProfileEmailHandler({
-      tableClient: tableClientMock,
-      profileModel: mockProfileModel,
-      profileEmails: profileEmailReader,
-      flow: FlowTypeEnum.VALIDATE
-    });
+    const handler = GetTokenInfoHandler(handlerDependencies);
 
-    const response = await verifyProfileEmailHandler(
-      contextMock,
-      VALIDATION_TOKEN
-    );
+    const response = await handler(contextMock, VALIDATION_TOKEN);
 
     expect(response).toEqual(
       expect.objectContaining({
@@ -313,16 +296,8 @@ describe("ValidateProfileEmailHandler Tests", () => {
   });
 
   it("should reutrn the email associated with the token we are confirming", async () => {
-    const verifyProfileEmailHandler = ValidateProfileEmailHandler({
-      tableClient: tableClientMock,
-      profileModel: mockProfileModel,
-      profileEmails: profileEmailReader,
-      flow: FlowTypeEnum.CONFIRM
-    });
-    const response = await verifyProfileEmailHandler(
-      contextMock,
-      VALIDATION_TOKEN
-    );
+    const handler = ValidateProfileEmailHandler(handlerDependencies);
+    const response = await handler(contextMock, VALIDATION_TOKEN);
 
     expect(response).toEqual(
       expect.objectContaining({

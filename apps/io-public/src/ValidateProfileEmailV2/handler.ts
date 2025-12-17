@@ -1,6 +1,5 @@
 import * as express from "express";
 
-import * as B from "fp-ts/lib/boolean";
 import * as E from "fp-ts/lib/Either";
 import * as O from "fp-ts/lib/Option";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
@@ -45,8 +44,6 @@ import {
 } from "../generated/definitions/external/ValidationErrorsObject";
 import { trackEvent } from "../utils/appinsights";
 import {
-  FlowType,
-  FlowTypeEnum,
   TokenHeaderParamMiddleware,
   TokenParam,
   ValidateProfileEmailBodyMiddleware
@@ -72,7 +69,6 @@ type HandlerDependencies = {
   tableClient: TableClient;
   profileModel: ProfileModel;
   profileEmails: IProfileEmailReader;
-  flow: FlowType;
 };
 
 const updateProfile: (
@@ -116,7 +112,7 @@ const resolveValidationToken: (
   { tableClient: TableClient },
   | IResponseErrorInternal
   | IResponseErrorUnauthorized
-  | IResponseSuccessJson<ValidateProfileStatusReport>,
+  | IResponseSuccessJson<ValidationErrorsObject>,
   ValidationTokenEntityAzureDataTables
 > = (token, context, logPrefix) => ({ tableClient }) =>
   pipe(
@@ -208,7 +204,7 @@ const enforceEmailUniqueness: (
   logPrefix: string
 ) => RTE.ReaderTaskEither<
   { profileEmails: IProfileEmailReader },
-  IResponseErrorInternal | IResponseSuccessJson<ValidateProfileStatusReport>,
+  IResponseErrorInternal | IResponseSuccessJson<ValidationErrorsObject>,
   boolean
 > = (email, context, logPrefix) => ({ profileEmails }) =>
   pipe(
@@ -234,23 +230,24 @@ const enforceEmailUniqueness: (
     )
   );
 
-export const ValidateProfileEmailHandler = (
-  deps: HandlerDependencies
-): IGetTokenInfoHandler => async (
-  context,
-  token
-): Promise<
+type ValidateRequestResult = {
+  tokenEntity: ValidationTokenEntityAzureDataTables;
+  existingProfile: RetrievedProfile;
+};
+
+// Base handler shared between GetTokenInfo and ValidateProfileEmail
+const baseHandler: (
+  token: TokenParam,
+  context: Context,
+  logPrefix: string
+) => RTE.ReaderTaskEither<
+  HandlerDependencies,
   | IResponseErrorInternal
   | IResponseErrorUnauthorized
-  | IResponseSuccessJson<
-      | GetTokenInfoResponse
-      | ValidateProfileStatusReport
-      | ValidationErrorsObject
-    >
-> => {
-  const logPrefix = `GetTokenInfo|TOKEN=${token}`;
-
-  return pipe(
+  | IResponseSuccessJson<ValidationErrorsObject>,
+  ValidateRequestResult
+> = (token, context, logPrefix) =>
+  pipe(
     resolveValidationToken(token, context, logPrefix),
     RTE.bindTo("tokenEntity"),
     RTE.bindW("existingProfile", ({ tokenEntity }) =>
@@ -261,28 +258,56 @@ export const ValidateProfileEmailHandler = (
         validateProfile(existingProfile, tokenEntity, context, logPrefix)
       )
     ),
-    RTE.bindW("isEmailUnique", ({ tokenEntity }) =>
+    RTE.chainFirstW(({ tokenEntity }) =>
       enforceEmailUniqueness(tokenEntity.Email, context, logPrefix)
+    )
+  );
+
+export const ValidateProfileEmailHandler = (
+  deps: HandlerDependencies
+): IGetTokenInfoHandler => async (
+  context,
+  token
+): Promise<
+  | IResponseErrorInternal
+  | IResponseErrorUnauthorized
+  | IResponseSuccessJson<ValidateProfileStatusReport | ValidationErrorsObject>
+> => {
+  const logPrefix = `ValidateProfileEmailHandler|TOKEN=${token}`;
+
+  return pipe(
+    baseHandler(token, context, `ValidateProfileEmailHandler|TOKEN=${token}`),
+    RTE.chainW(({ existingProfile }) =>
+      updateProfile(existingProfile, context, logPrefix)
     ),
-    RTE.chainW(({ tokenEntity, existingProfile }) =>
-      B.fold(
-        () =>
-          pipe(
-            updateProfile(existingProfile, context, logPrefix),
-            RTE.map(() =>
-              ResponseSuccessJson({
-                status: GetTokenInfoStatusEnum.SUCCESS
-              })
-            )
-          ),
-        () =>
-          RTE.of(
-            ResponseSuccessJson({
-              status: GetTokenInfoStatusEnum.SUCCESS,
-              profile_email: tokenEntity.Email
-            })
-          )
-      )(deps.flow === FlowTypeEnum.VALIDATE)
+    RTE.map(() =>
+      ResponseSuccessJson({
+        status: GetTokenInfoStatusEnum.SUCCESS
+      })
+    ),
+    RTE.toUnion
+  )(deps)();
+};
+
+export const GetTokenInfoHandler = (
+  deps: HandlerDependencies
+): IGetTokenInfoHandler => async (
+  context,
+  token
+): Promise<
+  | IResponseErrorInternal
+  | IResponseErrorUnauthorized
+  | IResponseSuccessJson<GetTokenInfoResponse | ValidationErrorsObject>
+> => {
+  const logPrefix = `GetTokenInfo|TOKEN=${token}`;
+
+  return pipe(
+    baseHandler(token, context, logPrefix),
+    RTE.map(({ tokenEntity }) =>
+      ResponseSuccessJson({
+        status: GetTokenInfoStatusEnum.SUCCESS,
+        profile_email: tokenEntity.Email
+      })
     ),
     RTE.toUnion
   )(deps)();
@@ -297,11 +322,10 @@ export const GetTokenInfo = (
   profileModel: ProfileModel,
   profileEmails: IProfileEmailReader
 ): express.RequestHandler => {
-  const handler = ValidateProfileEmailHandler({
+  const handler = GetTokenInfoHandler({
     tableClient,
     profileModel,
-    profileEmails,
-    flow: FlowTypeEnum.VALIDATE
+    profileEmails
   });
 
   const middlewaresWrap = withRequestMiddlewares(
@@ -323,8 +347,7 @@ export const ValidateProfileEmail = (
   const handler = ValidateProfileEmailHandler({
     tableClient,
     profileModel,
-    profileEmails,
-    flow: FlowTypeEnum.CONFIRM
+    profileEmails
   });
 
   const middlewaresWrap = withRequestMiddlewares(
