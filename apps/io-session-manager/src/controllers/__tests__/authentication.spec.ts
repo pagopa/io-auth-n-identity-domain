@@ -5,10 +5,7 @@ import {
   LoginScenarioEnum,
   LoginTypeEnum as ServiceBusLoginTypeEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/login-event";
-import {
-  RejectedLoginCauseEnum,
-  RejectedLoginEvent,
-} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
+import { RejectedLoginCauseEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import {
   CIE_IDP_IDENTIFIERS,
