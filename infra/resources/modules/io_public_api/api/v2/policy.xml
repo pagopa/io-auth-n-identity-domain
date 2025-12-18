@@ -1,7 +1,8 @@
 <policies>
     <inbound>
         <base />
-        <set-backend-service base-url="{{io-fn3-public-url}}" />
+        <set-backend-service base-url="{{io-fn3-public-url}}/api/v2" />
+        <rewrite-uri template="/{suffix}" copy-unmatched-params="true" />
         <set-header name="x-functions-key" exists-action="override">
             <value>{{io-fn3-public-key}}</value>
         </set-header>

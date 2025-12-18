@@ -8,7 +8,7 @@ info:
 servers:
   - url: https://${host}/${basePath}
 paths:
-  /api/v2/validate-profile-email:
+  /validate-profile-email:
     get:
       operationId: getTokenInfo
       description: |

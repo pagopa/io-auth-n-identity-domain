@@ -31,6 +31,15 @@ resource "azurerm_api_management_named_value" "io_fn3_public_key_v2" {
   secret              = "true"
 }
 
+# API Version Set
+resource "azurerm_api_management_api_version_set" "public_api_version_set" {
+  name                = "io-public-api-version-set"
+  resource_group_name = var.apim_resource_group_name
+  api_management_name = var.apim_name
+  display_name        = "IO Public API"
+  versioning_scheme   = "Segment"
+}
+
 module "api_v2_public" {
   source = "github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.40.3"
 
@@ -44,6 +53,8 @@ module "api_v2_public" {
   path        = "public"
   protocols   = ["https"]
   product_ids = [module.apim_v2_product_public.product_id]
+
+  version_set_id = azurerm_api_management_api_version_set.public_api_version_set.id
 
   service_url = null
 
@@ -70,9 +81,12 @@ module "api_v2_public_io_web_profile" {
   display_name        = "IO PUBLIC API V2"
   description         = "PUBLIC API for IO platform."
 
-  path        = "public"
+  path        = "public/api"
   protocols   = ["https"]
   product_ids = [module.apim_v2_product_public.product_id]
+
+  version_set_id = azurerm_api_management_api_version_set.public_api_version_set.id
+  api_version    = "v2"
 
   service_url = null
 
@@ -82,7 +96,7 @@ module "api_v2_public_io_web_profile" {
   content_value = templatefile("./${path.module}/api/v2/_swagger.yaml.tpl",
     {
       host     = var.api_host_name
-      basePath = "public"
+      basePath = "public/api/v2"
     }
   )
 
