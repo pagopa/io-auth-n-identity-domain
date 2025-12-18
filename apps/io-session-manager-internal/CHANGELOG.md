@@ -1,5 +1,13 @@
 # io-session-manager-internal
 
+## 0.13.1
+
+### Patch Changes
+
+- 17ce627: Bump dependency `@azure/storage-blob` version
+- Updated dependencies [17ce627]
+  - @pagopa/io-auth-n-identity-commons@0.4.0
+
 ## 0.13.0
 
 ### Minor Changes
