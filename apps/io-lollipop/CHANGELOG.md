@@ -1,5 +1,16 @@
 # io-lollipop
 
+## 1.16.0
+
+### Minor Changes
+
+- 17ce627: Migration SDK integration
+
+### Patch Changes
+
+- Updated dependencies [17ce627]
+  - @pagopa/io-auth-n-identity-commons@0.4.0
+
 ## 1.15.1
 
 ### Patch Changes

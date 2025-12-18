@@ -1,5 +1,13 @@
 # @pagopa/io-auth-n-identity-commons
 
+## 0.4.0
+
+### Minor Changes
+
+- 17ce627: Export `isRestError` function
+
+  Bump dependency `@azure/storage-blob` version
+
 ## 0.3.1
 
 ### Patch Changes
