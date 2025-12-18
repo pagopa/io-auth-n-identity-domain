@@ -36,7 +36,7 @@ resource "azurerm_api_management_api_version_set" "public_api_version_set" {
   name                = "io-public-api-version-set"
   resource_group_name = var.apim_resource_group_name
   api_management_name = var.apim_name
-  display_name        = "IO Public API"
+  display_name        = "IO PUBLIC API"
   versioning_scheme   = "Segment"
 }
 
@@ -74,7 +74,7 @@ module "api_v2_public" {
 module "api_v2_public_io_web_profile" {
   source = "github.com/pagopa/terraform-azurerm-v4//api_management_api?ref=v7.40.3"
 
-  name                = "io-public-api-v2"
+  name                = "io-public-api"
   api_management_name = var.apim_name
   resource_group_name = var.apim_resource_group_name
   revision            = "1"
