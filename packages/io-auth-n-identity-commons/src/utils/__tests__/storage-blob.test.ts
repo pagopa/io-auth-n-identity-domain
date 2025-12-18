@@ -17,6 +17,7 @@ import {
   blobExists,
   downloadBlob,
   getBlobAsText,
+  isRestError,
   streamToText,
   upsertBlobFromText,
 } from "../storage-blob";
@@ -367,5 +368,42 @@ describe("upsertBlobFromText", () => {
 
     expect(E.isLeft(result)).toBe(true);
     expect(result).toMatchObject(E.left(Error("upload failed")));
+  });
+});
+
+describe("isRestError", async () => {
+  it("should return true for a valid RestError", () => {
+    const err = new RestError("Not found", {
+      statusCode: 404,
+      code: "BlobNotFound",
+    });
+
+    expect(isRestError(err)).toBe(true);
+  });
+
+  it("should return true for any Error with name 'RestError'", () => {
+    const err = Object.assign(new Error("Not found"), { name: "RestError" });
+    expect(isRestError(err)).toBe(true);
+  });
+
+  it("should return true for an object that looks like RestError", () => {
+    const fake = { name: "RestError", statusCode: 404 };
+    expect(isRestError(fake)).toBe(true);
+  });
+
+  it("should return false for a plain Error", () => {
+    const err = new Error("test");
+    expect(isRestError(err)).toBe(false);
+  });
+
+  it("should return false for null or undefined", () => {
+    expect(isRestError(null)).toBe(false);
+    expect(isRestError(undefined)).toBe(false);
+  });
+
+  it("should return false for a non-object", () => {
+    expect(isRestError("nope")).toBe(false);
+    expect(isRestError(123)).toBe(false);
+    expect(isRestError(true)).toBe(false);
   });
 });

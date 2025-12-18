@@ -13,16 +13,15 @@ export const httpHandlerInputMocks: H.HandlerEnvironment<H.HttpRequest> = {
   },
 };
 
-
 export const mockServiceBusHandlerInputMocks = <A>(
   decoder: t.Decoder<unknown, A>,
-  input: unknown
+  input: unknown,
 ): H.HandlerEnvironment<A> => ({
   input,
   inputDecoder: decoder,
   logger: {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     log: () => () => {},
-    format: L.format.simple
-  }
+    format: L.format.simple,
+  },
 });

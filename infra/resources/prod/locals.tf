@@ -43,6 +43,8 @@ locals {
 
   rejected_login_logs_container_name = "rejected-login-logs-01"
 
+  lollipop_assertions_container_name = "lollipop-assertions-01"
+
   tags = {
     CreatedBy      = "Terraform"
     Environment    = "Prod"

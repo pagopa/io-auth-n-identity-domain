@@ -5,10 +5,7 @@ import {
   LoginScenarioEnum,
   LoginTypeEnum as ServiceBusLoginTypeEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/login-event";
-import {
-  RejectedLoginCauseEnum,
-  RejectedLoginEvent,
-} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
+import { RejectedLoginCauseEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import {
   CIE_IDP_IDENTIFIERS,
@@ -22,7 +19,7 @@ import {
   ResponseErrorValidation,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
-import { FiscalCode, IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { addDays, addMonths, addSeconds, format, subYears } from "date-fns";
