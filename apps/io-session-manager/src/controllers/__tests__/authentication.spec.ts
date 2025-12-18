@@ -22,11 +22,7 @@ import {
   ResponseErrorValidation,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
-import {
-  FiscalCode,
-  IPString,
-  NonEmptyString,
-} from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { addDays, addMonths, addSeconds, format, subYears } from "date-fns";
