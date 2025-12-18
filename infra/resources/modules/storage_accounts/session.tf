@@ -32,7 +32,7 @@ resource "azurerm_management_lock" "st_session_01" {
   notes      = "This Storage Account can't be deleted"
 }
 
-resource "azurerm_storage_management_policy" "lollipop_assertions_01_delete_after_2yrs" {
+resource "azurerm_storage_management_policy" "st_session_01" {
   storage_account_id = module.st_session_01.id
 
   rule {
