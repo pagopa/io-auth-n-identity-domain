@@ -16,12 +16,14 @@ No requirements.
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_api_v2_public"></a> [api\_v2\_public](#module\_api\_v2\_public) | github.com/pagopa/terraform-azurerm-v4//api_management_api | v7.40.3 |
+| <a name="module_api_v2_public_io_web_profile"></a> [api\_v2\_public\_io\_web\_profile](#module\_api\_v2\_public\_io\_web\_profile) | github.com/pagopa/terraform-azurerm-v4//api_management_api | v7.40.3 |
 | <a name="module_apim_v2_product_public"></a> [apim\_v2\_product\_public](#module\_apim\_v2\_product\_public) | github.com/pagopa/terraform-azurerm-v4//api_management_product | v7.40.3 |
 
 ## Resources
 
 | Name | Type |
 |------|------|
+| [azurerm_api_management_api_version_set.public_api_version_set](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/api_management_api_version_set) | resource |
 | [azurerm_api_management_named_value.io_fn3_public_key_v2](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/api_management_named_value) | resource |
 | [azurerm_api_management_named_value.io_fn3_public_url_v2](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/api_management_named_value) | resource |
 | [azurerm_api_management.apim](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/api_management) | data source |
