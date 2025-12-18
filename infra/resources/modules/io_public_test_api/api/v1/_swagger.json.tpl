@@ -1,12 +1,12 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "IO API Public",
+    "title": "IO API Public Test",
     "version": "1.0",
-    "description": "IO API Public."
+    "description": "IO API Public Test."
   },
   "host": "${host}",
-  "basePath": "/public",
+  "basePath": "/public-test",
   "schemes": ["https"],
   "securityDefinitions": {
     "apiKeyHeader": {
