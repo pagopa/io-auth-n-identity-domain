@@ -57,11 +57,11 @@ module "storage_account_services" {
   }
 
   containers = [
-    "lollipop-assertions-01"
+    local.lollipop_assertions_container_name
   ]
 
   encryption_scopes = {
-    "lollipop-assertions-01" = azurerm_storage_encryption_scope.lollipop_assertions.name
+    (local.lollipop_assertions_container_name) = azurerm_storage_encryption_scope.lollipop_assertions.name
   }
 
   queues = [

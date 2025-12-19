@@ -29,9 +29,12 @@ locals {
       COSMOS_API_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.cosmos_auth_connection_string.versionless_id})"
 
       #TODO: remove in favor of the new storage on itn with connection string 'SESSION_STORAGE_CONNECTION_STRING' when no longer needed
-      LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.lollipop_assertions_st_connection_string.versionless_id})"
-      SESSION_STORAGE_CONNECTION_STRING            = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
-      LOLLIPOP_ASSERTION_REVOKE_QUEUE              = local.pubkeys_revoke_queue_name
+      LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING          = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
+      LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME             = local.lollipop_assertions_container_name
+      LOLLIPOP_ASSERTION_STORAGE_FALLBACK_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.lollipop_assertions_st_connection_string.versionless_id})"
+      LOLLIPOP_ASSERTION_STORAGE_FALLBACK_CONTAINER_NAME    = "assertions"
+      SESSION_STORAGE_CONNECTION_STRING                     = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
+      LOLLIPOP_ASSERTION_REVOKE_QUEUE                       = local.pubkeys_revoke_queue_name
 
       // ------------
       // JWT Config

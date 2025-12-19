@@ -6,11 +6,11 @@ import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 
 import { RejectedLoginEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
+import { ValidationError } from "@pagopa/handler-kit";
 import { mockBlobUtils } from "../../__mocks__/blob-utils.mock";
 import { anAuthLockRejectedLoginEvent } from "../../__mocks__/service-bus-events.mocks";
 import { AuditLogConfig } from "../../utils/config";
 
-import { ValidationError } from "@pagopa/handler-kit";
 import { mockRejectedLoginAuditLogRepository } from "../../__mocks__/repositories/rejected-login-audit-log.mock";
 import { mockRejectedLoginAuditLogService } from "../../__mocks__/services/rejected-login-audit-log-service.mock";
 import { mockServiceBusHandlerInputMocks } from "../__mocks__/handler.mock";

@@ -31,3 +31,27 @@ resource "azurerm_management_lock" "st_session_01" {
   lock_level = "CanNotDelete"
   notes      = "This Storage Account can't be deleted"
 }
+
+resource "azurerm_storage_management_policy" "st_session_01" {
+  storage_account_id = module.st_session_01.id
+
+  rule {
+    enabled = true
+    name    = "lollipop-assertions-01-deleteafter2yrs"
+    actions {
+      version {
+        delete_after_days_since_creation = 730
+      }
+      base_blob {
+        delete_after_days_since_modification_greater_than = 730
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 730
+      }
+    }
+    filters {
+      blob_types   = ["blockBlob"]
+      prefix_match = ["lollipop-assertions-01"]
+    }
+  }
+}

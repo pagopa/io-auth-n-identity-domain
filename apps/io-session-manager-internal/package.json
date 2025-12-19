@@ -1,6 +1,6 @@
 {
   "name": "io-session-manager-internal",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "author": "IO Auth & Identity Team",
   "main": "dist/controllers/main.js",
   "engines": {
@@ -30,7 +30,7 @@
     "@azure/functions": "^4.7.0",
     "@azure/identity": "^4.10.0",
     "@azure/service-bus": "^7.9.5",
-    "@azure/storage-blob": "^12.17.0",
+    "@azure/storage-blob": "^12.29.1",
     "@azure/storage-queue": "^12.16.0",
     "@pagopa/handler-kit": "^1.1.1",
     "@pagopa/handler-kit-azure-func": "^2.0.8",

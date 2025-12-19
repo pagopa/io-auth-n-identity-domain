@@ -1,0 +1,201 @@
+openapi: 3.0.1
+info:
+  version: 2.0.0
+  title: IO API Public
+  x-logo:
+    url: https://io.italia.it/assets/img/io-logo-blue.svg
+  description: |
+servers:
+  - url: https://${host}/${basePath}
+paths:
+  /validate-profile-email:
+    get:
+      operationId: getTokenInfo
+      description: |
+        Validates the token and get email relative to a token.
+      parameters:
+        - in: header
+          name: x-pagopa-email-validation-token
+          required: true
+          schema:
+            $ref: "#/components/schemas/ValidationToken"
+      responses:
+        "200":
+          description: Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetTokenInfoResponse'
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        "401":
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedResponse'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+    post:
+      operationId: validateProfileEmail
+      description: |
+        Validates the token and updates the user profile.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidateProfileEmailPayload"
+      responses:
+        "200":
+          description: Status report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidateProfileStatusReport'
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        "401":
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedResponse'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+components:
+  schemas:
+    GetTokenInfoResponse:
+      oneOf:
+        - type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - SUCCESS
+            profile_email:
+              $ref: "#/components/schemas/ProfileEmail"
+          required:
+            - profile_email
+            - status
+        - $ref: "#/components/schemas/ValidationErrorsObject"
+    UnauthorizedResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - FAILURE
+        reason:
+          type: string
+          enum:
+            - INVALID_TOKEN
+      required:
+        - status
+        - reason
+    ValidateProfileStatusReport:
+      oneOf:
+        - type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - SUCCESS
+          required:
+            - status
+        - $ref: "#/components/schemas/ValidationErrorsObject"
+    ValidationErrorsObject:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - FAILURE
+        reason:
+          type: string
+          enum:
+            - TOKEN_EXPIRED
+            - EMAIL_ALREADY_TAKEN
+        profile_email:
+              $ref: "#/components/schemas/ProfileEmail"
+      required:
+        - status
+        - reason
+        - profile_email
+    ProfileEmail:
+      type: string
+      format: email
+    ValidationToken:
+      type: string
+      pattern: "^[A-Za-z0-9]{26}:[A-Fa-f0-9]{24}$"
+      example: "01DPT9QAZ6N0FJX21A86FRCWB3:8c652f8566ba53bd8cf0b1b9"
+    ValidateProfileEmailPayload:
+      type: object
+      properties:
+        token:
+          $ref: "#/components/schemas/ValidationToken"
+      required:
+        - token
+    ProblemJson:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |-
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type
+            (e.g., using HTML).
+          default: about:blank
+          example: https://example.com/problem/constraint-violation
+        title:
+          type: string
+          description: >-
+            A short, summary of the problem type. Written in english and
+            readable
+
+            for engineers (usually not suited for non technical stakeholders and
+
+            not localized); example: Service Unavailable
+        status:
+          type: integer
+          format: int32
+          description: >-
+            The HTTP status code generated by the origin server for this
+            occurrence
+
+            of the problem.
+          minimum: 100
+          maximum: 600
+          exclusiveMaximum: true
+          example: 200
+        detail:
+          type: string
+          description: |-
+            A human readable explanation specific to this occurrence of the
+            problem.
+          example: There was an error processing the request
+        instance:
+          type: string
+          format: uri
+          description: >-
+            An absolute URI that identifies the specific occurrence of the
+            problem.
+
+            It may or may not yield further information if dereferenced.
