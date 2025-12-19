@@ -51,7 +51,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-                /profiles/{fiscal_code}:
   /profiles/{fiscal_code}/versions:
     get:
       operationId: getProfileVersions
