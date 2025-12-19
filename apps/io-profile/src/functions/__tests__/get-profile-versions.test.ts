@@ -1,7 +1,6 @@
 import { Context } from "@azure/functions";
 import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
 import * as O from "fp-ts/lib/Option";
-import * as E from "fp-ts/lib/Either";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { aFiscalCode, aRetrievedProfileWithEmail } from "../__mocks__/mocks";
 import {
@@ -19,22 +18,24 @@ type ProfileModelMock = {
 const aTimestamp = Math.floor(new Date().valueOf() / 1000);
 const anEmailOptOutEmailSwitchDate = new Date(aTimestamp * 1000);
 
-// Helper per generare profili email mock
-function generateProfileEmails(count: number, shouldThrow: boolean = false) {
-  return () => {
-    if (shouldThrow) {
-      throw new Error("Error checking email uniqueness");
-    }
-    return Promise.resolve(
-      Array.from({ length: count }, (_, i) => ({
-        email: `test${i}@example.com`,
-      })),
-    );
-  };
+// Helper per generare profili email mock come AsyncIterableIterator
+async function* generateProfileEmails(
+  count: number,
+  shouldThrow: boolean = false,
+) {
+  if (shouldThrow) {
+    throw new Error("Error checking email uniqueness");
+  }
+  for (let i = 0; i < count; i++) {
+    yield {
+      email: `test${i}@example.com` as any,
+      fiscalCode: aFiscalCode,
+    };
+  }
 }
 
 const profileEmailReader: IProfileEmailReader = {
-  list: vi.fn(generateProfileEmails(7)),
+  list: vi.fn().mockImplementation(() => generateProfileEmails(7)),
 };
 
 const mockContext = {
@@ -58,7 +59,7 @@ describe("GetProfileVersionsHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Re-mock profileEmailReader.list after clearing
-    profileEmailReader.list = vi.fn(generateProfileEmails(7));
+    profileEmailReader.list = vi.fn().mockImplementation(() => generateProfileEmails(7));
   });
 
   describe("Pagination", () => {
@@ -328,7 +329,7 @@ describe("GetProfileVersionsHandler", () => {
         {
           ...aRetrievedProfileWithEmail,
           isEmailValidated: false,
-          email: TEST_EMAIL,
+          email: "test1@example.com",
         },
         1,
         10,
@@ -340,20 +341,19 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       // Override the mock to return emails including the test email
-      const testProfileEmailReader: IProfileEmailReader = {
-        list: vi.fn(() =>
-          Promise.resolve([{ email: TEST_EMAIL }, { email: "other@example.com" }]),
-        ),
-      };
+      // const testProfileEmailReader: IProfileEmailReader = {
+      //   list: vi.fn(generateProfileEmails(2)),
+      // };
 
       const handler = GetProfileVersionsHandler(
         profileModelMock as never,
         anEmailOptOutEmailSwitchDate,
-        testProfileEmailReader,
+        profileEmailReader,
       );
+      console.log(profileModelMock);
 
       const response = await handler(mockContext, aFiscalCode, O.none, O.none);
-
+      console.log(response);
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
         expect(response.value.items[0].is_email_already_taken).toBeDefined();
@@ -410,7 +410,7 @@ describe("GetProfileVersionsHandler", () => {
 
       const mockListThrow = vi
         .fn()
-        .mockImplementation(generateProfileEmails(7, true));
+        .mockImplementation(() => generateProfileEmails(7, true));
       const profileEmailReaderWithError: IProfileEmailReader = {
         list: mockListThrow,
       };

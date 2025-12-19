@@ -33,8 +33,6 @@ import {
   IResponseErrorInternal,
   IResponseErrorNotFound,
   IResponseSuccessJson,
-  ResponseErrorInternal,
-  ResponseErrorNotFound,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 
@@ -95,7 +93,6 @@ export function GetProfileVersionsHandler(
       TE.Do,
       TE.bind("page_size", () => TE.of(O.getOrElse(() => 25)(maybePageSize))),
       TE.bind("page", () => TE.of(O.getOrElse(() => 1)(maybePage))),
-      // eslint-disable-next-line no-console
       TE.chain(({ page, page_size }) =>
         pipe(
           TE.tryCatch(
