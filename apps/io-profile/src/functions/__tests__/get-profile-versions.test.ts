@@ -41,6 +41,7 @@ describe("GetProfileVersionsHandler", () => {
     vi.clearAllMocks();
   });
 
+  // eslint-disable-next-line max-lines-per-function
   describe("Pagination", () => {
     it("should return paginated profile versions with default page and pageSize", async () => {
       const profileModelMock = createProfileModelMock();
@@ -203,6 +204,89 @@ describe("GetProfileVersionsHandler", () => {
         }),
       );
     });
+
+    it.each([
+      {
+        description: "page to 1 when page is 0",
+        inputPage: 0,
+        inputPageSize: 10,
+        expectedPage: 1,
+        expectedPageSize: 10,
+        expectedOffset: 0,
+        expectedLimit: 10,
+      },
+      {
+        description: "page_size to 25 when page_size is 0",
+        inputPage: 1,
+        inputPageSize: 0,
+        expectedPage: 1,
+        expectedPageSize: 25,
+        expectedOffset: 0,
+        expectedLimit: 25,
+      },
+      {
+        description: "page_size to 25 when page_size is negative",
+        inputPage: 1,
+        inputPageSize: -10,
+        expectedPage: 1,
+        expectedPageSize: 25,
+        expectedOffset: 0,
+        expectedLimit: 25,
+      },
+      {
+        description: "page_size to 25 when page_size is greater than 100",
+        inputPage: 1,
+        inputPageSize: 150,
+        expectedPage: 1,
+        expectedPageSize: 25,
+        expectedOffset: 0,
+        expectedLimit: 25,
+      },
+    ])(
+      "should normalize $description",
+      async ({
+        inputPage,
+        inputPageSize,
+        expectedPage,
+        expectedPageSize,
+        expectedOffset,
+        expectedLimit,
+      }) => {
+        const profileModelMock = createProfileModelMock();
+        const profiles = [
+          createProfileVersion(aRetrievedProfileWithEmail, 1, 10),
+        ];
+
+        const mockIterator = createMockProfileAsyncIterator(profiles);
+        profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
+
+        const handler = GetProfileVersionsHandler(
+          profileModelMock as unknown as ProfileModel,
+          anEmailOptOutEmailSwitchDate,
+          createProfileEmailReaderMock(),
+        );
+
+        const response = await handler(
+          aFiscalCode,
+          O.some(inputPage as NonNegativeInteger),
+          O.some(inputPageSize as NonNegativeInteger),
+        );
+
+        expect(response.kind).toBe("IResponseSuccessJson");
+        if (response.kind === "IResponseSuccessJson") {
+          expect(response.value.page).toBe(expectedPage);
+          expect(response.value.page_size).toBe(expectedPageSize);
+        }
+        expect(profileModelMock.getQueryIterator).toHaveBeenCalledWith(
+          expect.objectContaining({
+            parameters: expect.arrayContaining([
+              { name: "@offset", value: expectedOffset },
+              { name: "@limit", value: expectedLimit },
+            ]),
+          }),
+        );
+      },
+    );
   });
 
   describe("Email Opt-Out Switch Date", () => {
@@ -509,35 +593,6 @@ describe("GetProfileVersionsHandler", () => {
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
         expect(response.value.items).toHaveLength(0);
-        expect(response.value.has_more).toBe(false);
-      }
-    });
-
-    it("should handle very large page size", async () => {
-      const profileModelMock = createProfileModelMock();
-      const profiles = Array.from({ length: 100 }, (_, i) =>
-        createProfileVersion(aRetrievedProfileWithEmail, i + 1, (i + 1) * 10),
-      );
-
-      const mockIterator = createMockProfileAsyncIterator(profiles);
-      profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
-
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
-
-      const response = await handler(
-        aFiscalCode,
-        O.none,
-        O.some(1000 as NonNegativeInteger),
-      );
-
-      expect(response.kind).toBe("IResponseSuccessJson");
-      if (response.kind === "IResponseSuccessJson") {
-        expect(response.value.items).toHaveLength(100);
-        expect(response.value.page_size).toBe(1000);
         expect(response.value.has_more).toBe(false);
       }
     });

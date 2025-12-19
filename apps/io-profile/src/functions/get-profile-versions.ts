@@ -89,6 +89,10 @@ export function GetProfileVersionsHandler(
       TE.Do,
       TE.bind("page_size", () => TE.of(O.getOrElse(() => 25)(maybePageSize))),
       TE.bind("page", () => TE.of(O.getOrElse(() => 1)(maybePage))),
+      TE.map(({ page, page_size }) => ({
+        page: page < 1 ? 1 : page,
+        page_size: page_size < 1 || page_size > 100 ? 25 : page_size,
+      })),
       TE.chain(({ page, page_size }) =>
         pipe(
           TE.tryCatch(

@@ -1,0 +1,28 @@
+meta {
+  name: getProfileVersions
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{IO_PROFILE_BASE_URL}}/profiles/:fiscalCode/versions?page=1&page_size=25
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 1
+  page_size: 25
+}
+
+params:path {
+  fiscalCode: {{FISCAL_CODE}}
+}
+
+script:pre-request {
+  const ioProfileApiKey = bru.getEnvVar("IO_PROFILE_API_KEY")
+  if (ioProfileApiKey != null ) {
+    req.setHeader("x-functions-key", ioProfileApiKey)
+  }
+  
+}
