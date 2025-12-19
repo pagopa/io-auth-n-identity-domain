@@ -1,7 +1,9 @@
-import { Context } from "@azure/functions";
+import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
+import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
+import { EmailString } from "@pagopa/ts-commons/lib/strings";
 import * as O from "fp-ts/lib/Option";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { aFiscalCode, aRetrievedProfileWithEmail } from "../__mocks__/mocks";
 import {
   createMockProfileAsyncIterator,
@@ -9,10 +11,6 @@ import {
   createProfileVersion,
 } from "../__mocks__/mocks.profiles";
 import { GetProfileVersionsHandler } from "../get-profile-versions";
-
-type ProfileModelMock = {
-  getQueryIterator: ReturnType<typeof vi.fn>;
-};
 
 // Date returns a timestamp expressed in milliseconds
 const aTimestamp = Math.floor(new Date().valueOf() / 1000);
@@ -26,40 +24,38 @@ async function* generateProfileEmails(
   if (shouldThrow) {
     throw new Error("Error checking email uniqueness");
   }
-  for (let i = 0; i < count; i++) {
+  for (const i of Array.from({ length: count }, (_, i) => i)) {
     yield {
-      email: `test${i}@example.com` as any,
+      email: `test${i}@example.com` as EmailString,
       fiscalCode: aFiscalCode,
     };
   }
 }
 
-const profileEmailReader: IProfileEmailReader = {
-  list: vi.fn().mockImplementation(() => generateProfileEmails(7)),
-};
-
-const mockContext = {
-  log: {
-    info: vi.fn(),
-    error: vi.fn(),
-    warn: vi.fn(),
-  },
-} as unknown as Context;
+// Helper to create a mocked ProfileEmailReader
+const createProfileEmailReaderMock = (
+  count: number = 7,
+  shouldThrow: boolean = false,
+): IProfileEmailReader => ({
+  list: vi
+    .fn()
+    .mockImplementation(() => generateProfileEmails(count, shouldThrow)),
+});
 
 // Helper to create a properly mocked ProfileModel
-const createProfileModelMock = (): ProfileModelMock => ({
+const createProfileModelMock = (): {
+  getQueryIterator: Mock;
+} => ({
   getQueryIterator: vi.fn(),
 });
 
 // eslint-disable-next-line max-lines-per-function
 describe("GetProfileVersionsHandler", () => {
   const FISCAL_CODE_PARAM = "@fiscalCode";
-  const TEST_EMAIL = "test@example.com";
+  const TEST_EMAIL = "test@example.com" as EmailString;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Re-mock profileEmailReader.list after clearing
-    profileEmailReader.list = vi.fn().mockImplementation(() => generateProfileEmails(7));
   });
 
   describe("Pagination", () => {
@@ -75,12 +71,12 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      const response = await handler(mockContext, aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, O.none, O.none);
 
       expect(profileModelMock.getQueryIterator).toHaveBeenCalledWith({
         parameters: [
@@ -112,16 +108,15 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
       const response = await handler(
-        mockContext,
         aFiscalCode,
-        O.some(2),
-        O.some(2),
+        O.some(2 as NonNegativeInteger),
+        O.some(2 as NonNegativeInteger),
       );
 
       expect(profileModelMock.getQueryIterator).toHaveBeenCalledWith({
@@ -154,16 +149,15 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
       const response = await handler(
-        mockContext,
         aFiscalCode,
-        O.some(1),
-        O.some(3),
+        O.some(1 as NonNegativeInteger),
+        O.some(3 as NonNegativeInteger),
       );
 
       expect(response.kind).toBe("IResponseSuccessJson");
@@ -182,16 +176,15 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
       const response = await handler(
-        mockContext,
         aFiscalCode,
-        O.some(1),
-        O.some(10),
+        O.some(1 as NonNegativeInteger),
+        O.some(10 as NonNegativeInteger),
       );
 
       expect(response.kind).toBe("IResponseSuccessJson");
@@ -210,12 +203,16 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      await handler(mockContext, aFiscalCode, O.some(3), O.some(10));
+      await handler(
+        aFiscalCode,
+        O.some(3 as NonNegativeInteger),
+        O.some(10 as NonNegativeInteger),
+      );
 
       expect(profileModelMock.getQueryIterator).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -241,12 +238,12 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      const response = await handler(mockContext, aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, O.none, O.none);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -269,12 +266,12 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      const response = await handler(mockContext, aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, O.none, O.none);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -306,12 +303,12 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      const response = await handler(mockContext, aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, O.none, O.none);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -329,7 +326,7 @@ describe("GetProfileVersionsHandler", () => {
         {
           ...aRetrievedProfileWithEmail,
           isEmailValidated: false,
-          email: "test1@example.com",
+          email: TEST_EMAIL as EmailString,
         },
         1,
         10,
@@ -341,19 +338,24 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       // Override the mock to return emails including the test email
-      // const testProfileEmailReader: IProfileEmailReader = {
-      //   list: vi.fn(generateProfileEmails(2)),
-      // };
+      const testProfileEmailReader: IProfileEmailReader = {
+        list: vi.fn().mockImplementation(async function* () {
+          yield { email: TEST_EMAIL, fiscalCode: aFiscalCode };
+          yield {
+            email: "other@example.com" as EmailString,
+            fiscalCode: aFiscalCode,
+          };
+        }),
+      };
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        testProfileEmailReader,
       );
-      console.log(profileModelMock);
 
-      const response = await handler(mockContext, aFiscalCode, O.none, O.none);
-      console.log(response);
+      const response = await handler(aFiscalCode, O.none, O.none);
+
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
         expect(response.value.items[0].is_email_already_taken).toBeDefined();
@@ -366,7 +368,7 @@ describe("GetProfileVersionsHandler", () => {
         {
           ...aRetrievedProfileWithEmail,
           isEmailValidated: true,
-          email: TEST_EMAIL,
+          email: TEST_EMAIL as EmailString,
         },
         1,
         10,
@@ -378,12 +380,12 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      const response = await handler(mockContext, aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, O.none, O.none);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -397,7 +399,7 @@ describe("GetProfileVersionsHandler", () => {
         {
           ...aRetrievedProfileWithEmail,
           isEmailValidated: false,
-          email: TEST_EMAIL,
+          email: TEST_EMAIL as EmailString,
         },
         1,
         10,
@@ -416,12 +418,12 @@ describe("GetProfileVersionsHandler", () => {
       };
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
         profileEmailReaderWithError,
       );
 
-      const response = await handler(mockContext, aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, O.none, O.none);
 
       expect(response.kind).toBe("IResponseErrorInternal");
     });
@@ -434,12 +436,12 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      const response = await handler(mockContext, aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, O.none, O.none);
 
       expect(response.kind).toBe("IResponseErrorQuery");
     });
@@ -458,12 +460,12 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      const response = await handler(mockContext, aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, O.none, O.none);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -490,12 +492,12 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      const response = await handler(mockContext, aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, O.none, O.none);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -514,12 +516,12 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      const response = await handler(mockContext, aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, O.none, O.none);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -538,16 +540,15 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
       const response = await handler(
-        mockContext,
         aFiscalCode,
         O.none,
-        O.some(1000),
+        O.some(1000 as NonNegativeInteger),
       );
 
       expect(response.kind).toBe("IResponseSuccessJson");
@@ -573,12 +574,12 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      const response = await handler(mockContext, aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, O.none, O.none);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -599,12 +600,12 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      await handler(mockContext, aFiscalCode, O.none, O.none);
+      await handler(aFiscalCode, O.none, O.none);
 
       expect(profileModelMock.getQueryIterator).toHaveBeenCalledWith({
         parameters: expect.any(Array),
@@ -623,12 +624,12 @@ describe("GetProfileVersionsHandler", () => {
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(
-        profileModelMock as never,
+        profileModelMock as unknown as ProfileModel,
         anEmailOptOutEmailSwitchDate,
-        profileEmailReader,
+        createProfileEmailReaderMock(),
       );
 
-      await handler(mockContext, aFiscalCode, O.none, O.none);
+      await handler(aFiscalCode, O.none, O.none);
 
       const queryCall = profileModelMock.getQueryIterator.mock.calls[0][0];
       const fiscalCodeParam = queryCall.parameters.find(

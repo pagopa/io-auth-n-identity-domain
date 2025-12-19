@@ -1,6 +1,4 @@
 import express from "express";
-import { Context } from "@azure/functions";
-import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import {
   NonNegativeInteger,
   NonNegativeIntegerFromString,
@@ -73,7 +71,6 @@ type IGetProfileVersionsHandlerResult =
  * a Not Found error.
  */
 type IGetProfileVersionsHandler = (
-  context: Context,
   fiscalCode: FiscalCode,
   maybePage: O.Option<NonNegativeInteger>,
   maybePageSize: O.Option<NonNegativeInteger>,
@@ -87,9 +84,8 @@ export function GetProfileVersionsHandler(
   optOutEmailSwitchDate: Date,
   profileEmailReader: IProfileEmailReader,
 ): IGetProfileVersionsHandler {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, arrow-body-style
-  return async (context, fiscalCode, maybePage, maybePageSize) => {
-    return pipe(
+  return async (fiscalCode, maybePage, maybePageSize) =>
+    pipe(
       TE.Do,
       TE.bind("page_size", () => TE.of(O.getOrElse(() => 25)(maybePageSize))),
       TE.bind("page", () => TE.of(O.getOrElse(() => 1)(maybePage))),
@@ -163,11 +159,10 @@ export function GetProfileVersionsHandler(
       ),
       TE.toUnion,
     )();
-  };
 }
 
 /**
- * Wraps a GetProfile handler inside an Express request handler.
+ * Wraps a GetProfileVersions handler inside an Express request handler.
  */
 export function GetProfileVersions(
   profileModel: ProfileModel,
@@ -180,7 +175,6 @@ export function GetProfileVersions(
     profileEmailReader,
   );
   const middlewaresWrap = withRequestMiddlewares(
-    ContextMiddleware(),
     FiscalCodeMiddleware,
     OptionalQueryParamMiddleware("page", NonNegativeIntegerFromString),
     OptionalQueryParamMiddleware("page_size", NonNegativeIntegerFromString),
