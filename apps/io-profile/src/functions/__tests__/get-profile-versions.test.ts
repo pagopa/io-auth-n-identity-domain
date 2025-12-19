@@ -10,36 +10,19 @@ import {
   createMockProfileAsyncIteratorWithErrors,
   createProfileVersion,
 } from "../__mocks__/mocks.profiles";
+import { generateProfileEmails } from "../__mocks__/unique-email-enforcement";
 import { GetProfileVersionsHandler } from "../get-profile-versions";
 
 // Date returns a timestamp expressed in milliseconds
 const aTimestamp = Math.floor(new Date().valueOf() / 1000);
 const anEmailOptOutEmailSwitchDate = new Date(aTimestamp * 1000);
 
-// Helper per generare profili email mock come AsyncIterableIterator
-async function* generateProfileEmails(
-  count: number,
-  shouldThrow: boolean = false,
-) {
-  if (shouldThrow) {
-    throw new Error("Error checking email uniqueness");
-  }
-  for (const i of Array.from({ length: count }, (_, i) => i)) {
-    yield {
-      email: `test${i}@example.com` as EmailString,
-      fiscalCode: aFiscalCode,
-    };
-  }
-}
-
 // Helper to create a mocked ProfileEmailReader
 const createProfileEmailReaderMock = (
   count: number = 7,
   shouldThrow: boolean = false,
 ): IProfileEmailReader => ({
-  list: vi
-    .fn()
-    .mockImplementation(() => generateProfileEmails(count, shouldThrow)),
+  list: vi.fn().mockImplementation(generateProfileEmails(count, shouldThrow)),
 });
 
 // Helper to create a properly mocked ProfileModel
