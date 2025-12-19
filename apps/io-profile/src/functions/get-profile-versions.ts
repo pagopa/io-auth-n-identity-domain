@@ -1,9 +1,4 @@
 import express from "express";
-import {
-  NonNegativeInteger,
-  NonNegativeIntegerFromString,
-} from "@pagopa/ts-commons/lib/numbers";
-import { OptionalQueryParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/optional_query_param";
 import { ExtendedProfile } from "@pagopa/io-functions-commons/dist/generated/definitions/ExtendedProfile";
 import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
@@ -37,12 +32,15 @@ import {
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 
 import { isBefore } from "date-fns";
-import { pipe } from "fp-ts/lib/function";
-import * as O from "fp-ts/lib/Option";
+import { pipe, flow } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import * as E from "fp-ts/lib/Either";
+import * as RA from "fp-ts/lib/ReadonlyArray";
 import * as t from "io-ts";
 import { retrievedProfileToExtendedProfile } from "../utils/profiles";
+import {
+  PageQueryMiddleware,
+  PageSizeQueryMiddleware,
+} from "../utils/middlewares/pagination";
 import { withIsEmailAlreadyTaken } from "./get-profile";
 
 const ProfilePageResults = t.intersection([
@@ -72,97 +70,109 @@ type IGetProfileVersionsHandlerResult =
  */
 type IGetProfileVersionsHandler = (
   fiscalCode: FiscalCode,
-  maybePage: O.Option<NonNegativeInteger>,
-  maybePageSize: O.Option<NonNegativeInteger>,
+  page: number,
+  pageSize: number,
 ) => Promise<IGetProfileVersionsHandlerResult>;
 
 /**
- * Return a type safe GetProfileVersions handler.
+ * Fetch paginated profile versions from the database.
+ * Applies email opt-out logic and checks for duplicate emails.
+ */
+const fetchPaginatedProfileVersions =
+  (
+    profileModel: ProfileModel,
+    optOutEmailSwitchDate: Date,
+    profileEmailReader: IProfileEmailReader,
+  ) =>
+  (
+    fiscalCode: FiscalCode,
+    page: number,
+    pageSize: number,
+  ): TE.TaskEither<
+    IResponseErrorInternal | IResponseErrorNotFound | IResponseErrorQuery,
+    IResponseSuccessJson<ProfilePageResults>
+  > =>
+    pipe(
+      TE.tryCatch(
+        async () =>
+          profileModel
+            .getQueryIterator({
+              parameters: [
+                {
+                  name: "@fiscalCode",
+                  value: fiscalCode,
+                },
+                {
+                  name: "@offset",
+                  value: (page - 1) * pageSize,
+                },
+                {
+                  name: "@limit",
+                  value: pageSize,
+                },
+              ],
+              query: `SELECT * FROM p WHERE p.fiscalCode = @fiscalCode ORDER BY p._ts DESC OFFSET @offset LIMIT @limit`,
+            })
+            [Symbol.asyncIterator](),
+        (_) => toCosmosErrorResponse(_) as CosmosErrors,
+      ),
+      TE.map(flattenAsyncIterator),
+      TE.map(asyncIteratorToArray),
+      TE.chain((i) =>
+        TE.tryCatch(
+          () => i,
+          (_) => toCosmosErrorResponse(_) as CosmosErrors,
+        ),
+      ),
+      TE.mapLeft((failure) =>
+        ResponseErrorQuery("Error while retrieving the profile", failure),
+      ),
+      TE.map(
+        flow(
+          RA.rights,
+          RA.map((p) =>
+            pipe(
+              // if profile's timestamp is before email opt out switch limit date we must force isEmailEnabled to false
+              // this map is valid for ever so this check cannot be removed.
+              // Please note that cosmos timestamps are expressed in unix notation (in seconds), so we must transform
+              // it to a common Date representation (milliseconds).
+              // eslint-disable-next-line no-underscore-dangle
+              isBefore(p._ts * 1000, optOutEmailSwitchDate)
+                ? { ...p, isEmailEnabled: false }
+                : p,
+              retrievedProfileToExtendedProfile,
+            ),
+          ),
+        ),
+      ),
+      TE.chainW((profiles) =>
+        TE.traverseArray(withIsEmailAlreadyTaken(profileEmailReader))(profiles),
+      ),
+      TE.map((a) =>
+        ResponseSuccessJson({
+          items: a,
+          page,
+          page_size: pageSize,
+          has_more: a.length === pageSize,
+        }),
+      ),
+    );
+
+/**
+ * Return a GetProfileVersions handler.
  */
 export function GetProfileVersionsHandler(
   profileModel: ProfileModel,
   optOutEmailSwitchDate: Date,
   profileEmailReader: IProfileEmailReader,
 ): IGetProfileVersionsHandler {
-  return async (fiscalCode, maybePage, maybePageSize) =>
-    pipe(
-      TE.Do,
-      TE.bind("page_size", () => TE.of(O.getOrElse(() => 25)(maybePageSize))),
-      TE.bind("page", () => TE.of(O.getOrElse(() => 1)(maybePage))),
-      TE.map(({ page, page_size }) => ({
-        page: page < 1 ? 1 : page,
-        page_size: page_size < 1 || page_size > 100 ? 25 : page_size,
-      })),
-      TE.chain(({ page, page_size }) =>
-        pipe(
-          TE.tryCatch(
-            async () =>
-              profileModel
-                .getQueryIterator({
-                  parameters: [
-                    {
-                      name: "@fiscalCode",
-                      value: fiscalCode,
-                    },
-                    {
-                      name: "@offset",
-                      value: (page - 1) * page_size,
-                    },
-                    {
-                      name: "@limit",
-                      value: page_size,
-                    },
-                  ],
-                  query: `SELECT * FROM p WHERE p.fiscalCode = @fiscalCode ORDER BY p._ts DESC OFFSET @offset LIMIT @limit`,
-                })
-                [Symbol.asyncIterator](),
-            (_) => toCosmosErrorResponse(_) as CosmosErrors,
-          ),
-          TE.map(flattenAsyncIterator),
-          TE.map(asyncIteratorToArray),
-          TE.chain((i) =>
-            TE.tryCatch(
-              () => i,
-              (_) => toCosmosErrorResponse(_) as CosmosErrors,
-            ),
-          ),
-          TE.mapLeft((failure) =>
-            ResponseErrorQuery("Error while retrieving the profile", failure),
-          ),
-          TE.map((values) =>
-            values.filter(E.isRight).map((_) =>
-              pipe(
-                _.right,
-                (p) =>
-                  // if profile's timestamp is before email opt out switch limit date we must force isEmailEnabled to false
-                  // this map is valid for ever so this check cannot be removed.
-                  // Please note that cosmos timestamps are expressed in unix notation (in seconds), so we must transform
-                  // it to a common Date representation (milliseconds).
-                  // eslint-disable-next-line no-underscore-dangle
-                  isBefore(p._ts * 1000, optOutEmailSwitchDate)
-                    ? { ...p, isEmailEnabled: false }
-                    : p,
-                retrievedProfileToExtendedProfile,
-              ),
-            ),
-          ),
-          TE.chainW((profiles) =>
-            TE.traverseArray(withIsEmailAlreadyTaken(profileEmailReader))(
-              profiles,
-            ),
-          ),
-          TE.map((a) =>
-            ResponseSuccessJson({
-              items: a,
-              page,
-              page_size,
-              has_more: a.length === page_size,
-            }),
-          ),
-        ),
-      ),
-      TE.toUnion,
-    )();
+  const fetchVersions = fetchPaginatedProfileVersions(
+    profileModel,
+    optOutEmailSwitchDate,
+    profileEmailReader,
+  );
+  return async (fiscalCode, page, pageSize) =>
+    pipe(fetchVersions(fiscalCode, page, pageSize), TE.toUnion)();
 }
 
 /**
@@ -180,8 +190,8 @@ export function GetProfileVersions(
   );
   const middlewaresWrap = withRequestMiddlewares(
     FiscalCodeMiddleware,
-    OptionalQueryParamMiddleware("page", NonNegativeIntegerFromString),
-    OptionalQueryParamMiddleware("page_size", NonNegativeIntegerFromString),
+    PageQueryMiddleware,
+    PageSizeQueryMiddleware,
   );
   return wrapRequestHandler(middlewaresWrap(handler));
 }

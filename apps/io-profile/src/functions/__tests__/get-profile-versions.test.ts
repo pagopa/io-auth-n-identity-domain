@@ -1,8 +1,6 @@
 import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
-import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { EmailString } from "@pagopa/ts-commons/lib/strings";
-import * as O from "fp-ts/lib/Option";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { aFiscalCode, aRetrievedProfileWithEmail } from "../__mocks__/mocks";
 import {
@@ -60,7 +58,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, 1, 25);
 
       expect(profileModelMock.getQueryIterator).toHaveBeenCalledWith({
         parameters: [
@@ -97,11 +95,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(
-        aFiscalCode,
-        O.some(2 as NonNegativeInteger),
-        O.some(2 as NonNegativeInteger),
-      );
+      const response = await handler(aFiscalCode, 2, 2);
 
       expect(profileModelMock.getQueryIterator).toHaveBeenCalledWith({
         parameters: [
@@ -138,11 +132,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(
-        aFiscalCode,
-        O.some(1 as NonNegativeInteger),
-        O.some(3 as NonNegativeInteger),
-      );
+      const response = await handler(aFiscalCode, 1, 3);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -165,11 +155,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(
-        aFiscalCode,
-        O.some(1 as NonNegativeInteger),
-        O.some(10 as NonNegativeInteger),
-      );
+      const response = await handler(aFiscalCode, 1, 10);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -192,11 +178,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      await handler(
-        aFiscalCode,
-        O.some(3 as NonNegativeInteger),
-        O.some(10 as NonNegativeInteger),
-      );
+      await handler(aFiscalCode, 3, 10);
 
       expect(profileModelMock.getQueryIterator).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -204,89 +186,6 @@ describe("GetProfileVersionsHandler", () => {
         }),
       );
     });
-
-    it.each([
-      {
-        description: "page to 1 when page is 0",
-        inputPage: 0,
-        inputPageSize: 10,
-        expectedPage: 1,
-        expectedPageSize: 10,
-        expectedOffset: 0,
-        expectedLimit: 10,
-      },
-      {
-        description: "page_size to 25 when page_size is 0",
-        inputPage: 1,
-        inputPageSize: 0,
-        expectedPage: 1,
-        expectedPageSize: 25,
-        expectedOffset: 0,
-        expectedLimit: 25,
-      },
-      {
-        description: "page_size to 25 when page_size is negative",
-        inputPage: 1,
-        inputPageSize: -10,
-        expectedPage: 1,
-        expectedPageSize: 25,
-        expectedOffset: 0,
-        expectedLimit: 25,
-      },
-      {
-        description: "page_size to 25 when page_size is greater than 100",
-        inputPage: 1,
-        inputPageSize: 150,
-        expectedPage: 1,
-        expectedPageSize: 25,
-        expectedOffset: 0,
-        expectedLimit: 25,
-      },
-    ])(
-      "should normalize $description",
-      async ({
-        inputPage,
-        inputPageSize,
-        expectedPage,
-        expectedPageSize,
-        expectedOffset,
-        expectedLimit,
-      }) => {
-        const profileModelMock = createProfileModelMock();
-        const profiles = [
-          createProfileVersion(aRetrievedProfileWithEmail, 1, 10),
-        ];
-
-        const mockIterator = createMockProfileAsyncIterator(profiles);
-        profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
-
-        const handler = GetProfileVersionsHandler(
-          profileModelMock as unknown as ProfileModel,
-          anEmailOptOutEmailSwitchDate,
-          createProfileEmailReaderMock(),
-        );
-
-        const response = await handler(
-          aFiscalCode,
-          O.some(inputPage as NonNegativeInteger),
-          O.some(inputPageSize as NonNegativeInteger),
-        );
-
-        expect(response.kind).toBe("IResponseSuccessJson");
-        if (response.kind === "IResponseSuccessJson") {
-          expect(response.value.page).toBe(expectedPage);
-          expect(response.value.page_size).toBe(expectedPageSize);
-        }
-        expect(profileModelMock.getQueryIterator).toHaveBeenCalledWith(
-          expect.objectContaining({
-            parameters: expect.arrayContaining([
-              { name: "@offset", value: expectedOffset },
-              { name: "@limit", value: expectedLimit },
-            ]),
-          }),
-        );
-      },
-    );
   });
 
   describe("Email Opt-Out Switch Date", () => {
@@ -310,7 +209,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, 1, 25);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -338,7 +237,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, 1, 25);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -375,7 +274,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, 1, 25);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -421,7 +320,7 @@ describe("GetProfileVersionsHandler", () => {
         testProfileEmailReader,
       );
 
-      const response = await handler(aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, 1, 25);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -452,7 +351,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, 1, 25);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -490,7 +389,7 @@ describe("GetProfileVersionsHandler", () => {
         profileEmailReaderWithError,
       );
 
-      const response = await handler(aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, 1, 25);
 
       expect(response.kind).toBe("IResponseErrorInternal");
     });
@@ -508,7 +407,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, 1, 25);
 
       expect(response.kind).toBe("IResponseErrorQuery");
     });
@@ -532,7 +431,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, 1, 25);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -564,7 +463,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, 1, 25);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -588,7 +487,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, 1, 25);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -617,7 +516,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      const response = await handler(aFiscalCode, O.none, O.none);
+      const response = await handler(aFiscalCode, 1, 25);
 
       expect(response.kind).toBe("IResponseSuccessJson");
       if (response.kind === "IResponseSuccessJson") {
@@ -643,7 +542,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      await handler(aFiscalCode, O.none, O.none);
+      await handler(aFiscalCode, 1, 25);
 
       expect(profileModelMock.getQueryIterator).toHaveBeenCalledWith({
         parameters: expect.any(Array),
@@ -667,7 +566,7 @@ describe("GetProfileVersionsHandler", () => {
         createProfileEmailReaderMock(),
       );
 
-      await handler(aFiscalCode, O.none, O.none);
+      await handler(aFiscalCode, 1, 25);
 
       const queryCall = profileModelMock.getQueryIterator.mock.calls[0][0];
       const fiscalCodeParam = queryCall.parameters.find(
