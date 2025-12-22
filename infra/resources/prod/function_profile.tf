@@ -164,8 +164,8 @@ module "function_profile_autoscale" {
 
   scheduler = {
     normal_load = {
-      minimum = 20
-      default = 20
+      minimum = 10
+      default = 10
     },
     maximum = 30
   }
