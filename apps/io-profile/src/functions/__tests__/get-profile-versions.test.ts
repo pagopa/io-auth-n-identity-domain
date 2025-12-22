@@ -52,12 +52,11 @@ describe("GetProfileVersionsHandler", () => {
       const mockIterator = createMockProfileAsyncIterator(profiles);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
-
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
       const response = await handler(aFiscalCode, 1, 25);
 
       expect(profileModelMock.getQueryIterator).toHaveBeenCalledWith({
@@ -89,12 +88,11 @@ describe("GetProfileVersionsHandler", () => {
       const mockIterator = createMockProfileAsyncIterator(profiles);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
-
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
       const response = await handler(aFiscalCode, 2, 2);
 
       expect(profileModelMock.getQueryIterator).toHaveBeenCalledWith({
@@ -126,12 +124,11 @@ describe("GetProfileVersionsHandler", () => {
       const mockIterator = createMockProfileAsyncIterator(profiles);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
-
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
       const response = await handler(aFiscalCode, 1, 3);
 
       expect(response.kind).toBe("IResponseSuccessJson");
@@ -149,11 +146,11 @@ describe("GetProfileVersionsHandler", () => {
       const mockIterator = createMockProfileAsyncIterator(profiles);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
 
       const response = await handler(aFiscalCode, 1, 10);
 
@@ -172,11 +169,11 @@ describe("GetProfileVersionsHandler", () => {
       const mockIterator = createMockProfileAsyncIterator(profiles);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
 
       await handler(aFiscalCode, 3, 10);
 
@@ -203,11 +200,11 @@ describe("GetProfileVersionsHandler", () => {
       const mockIterator = createMockProfileAsyncIterator([profileBeforeLimit]);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
 
       const response = await handler(aFiscalCode, 1, 25);
 
@@ -231,11 +228,11 @@ describe("GetProfileVersionsHandler", () => {
       const mockIterator = createMockProfileAsyncIterator([profileAfterLimit]);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
 
       const response = await handler(aFiscalCode, 1, 25);
 
@@ -268,11 +265,11 @@ describe("GetProfileVersionsHandler", () => {
       const mockIterator = createMockProfileAsyncIterator(profiles);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
 
       const response = await handler(aFiscalCode, 1, 25);
 
@@ -314,11 +311,11 @@ describe("GetProfileVersionsHandler", () => {
         }),
       };
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        testProfileEmailReader,
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: testProfileEmailReader,
+      });
 
       const response = await handler(aFiscalCode, 1, 25);
 
@@ -345,11 +342,11 @@ describe("GetProfileVersionsHandler", () => {
       ]);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
 
       const response = await handler(aFiscalCode, 1, 25);
 
@@ -383,11 +380,11 @@ describe("GetProfileVersionsHandler", () => {
         list: mockListThrow,
       };
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        profileEmailReaderWithError,
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: profileEmailReaderWithError,
+      });
 
       const response = await handler(aFiscalCode, 1, 25);
 
@@ -401,11 +398,11 @@ describe("GetProfileVersionsHandler", () => {
       const mockIterator = createMockProfileAsyncIterator([], true);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
 
       const response = await handler(aFiscalCode, 1, 25);
 
@@ -426,11 +423,11 @@ describe("GetProfileVersionsHandler", () => {
       );
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
 
       const response = await handler(aFiscalCode, 1, 25);
 
@@ -449,11 +446,11 @@ describe("GetProfileVersionsHandler", () => {
       const mockIterator = createMockProfileAsyncIterator([]);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
 
       const response = await handler(aFiscalCode, 1, 25);
 
@@ -475,11 +472,11 @@ describe("GetProfileVersionsHandler", () => {
       const mockIterator = createMockProfileAsyncIterator(profiles);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
 
       await handler(aFiscalCode, 1, 25);
 
@@ -499,11 +496,11 @@ describe("GetProfileVersionsHandler", () => {
       const mockIterator = createMockProfileAsyncIterator(profiles);
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
+      const handler = GetProfileVersionsHandler({
+        profileModel: profileModelMock as unknown as ProfileModel,
+        optOutEmailSwitchDate: anEmailOptOutEmailSwitchDate,
+        profileEmailReader: createProfileEmailReaderMock(),
+      });
 
       await handler(aFiscalCode, 1, 25);
 
