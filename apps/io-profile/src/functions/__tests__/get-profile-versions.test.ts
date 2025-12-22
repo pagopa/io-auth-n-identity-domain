@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { aFiscalCode, aRetrievedProfileWithEmail } from "../__mocks__/mocks";
 import {
   createMockProfileAsyncIterator,
-  createMockProfileAsyncIteratorWithErrors,
+  createMockProfileAsyncIteratorWithValidationErrors,
   createProfileVersion,
 } from "../__mocks__/mocks.profiles";
 import { generateProfileEmails } from "../__mocks__/unique-email-enforcement";
@@ -412,7 +412,7 @@ describe("GetProfileVersionsHandler", () => {
       expect(response.kind).toBe("IResponseErrorQuery");
     });
 
-    it("should filter out Left values when O.some profile conversions fail", async () => {
+    it("should return ErrorInternal when profile decoding fails", async () => {
       const profileModelMock = createProfileModelMock();
       const profiles = [
         createProfileVersion(aRetrievedProfileWithEmail, 3, 30),
@@ -420,40 +420,9 @@ describe("GetProfileVersionsHandler", () => {
         createProfileVersion(aRetrievedProfileWithEmail, 1, 10),
       ];
 
-      const mockIterator = createMockProfileAsyncIteratorWithErrors(profiles, [
-        1,
-      ]);
-      profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
-
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
-
-      const response = await handler(aFiscalCode, 1, 25);
-
-      expect(response.kind).toBe("IResponseSuccessJson");
-      if (response.kind === "IResponseSuccessJson") {
-        expect(response.value.items).toHaveLength(2);
-        expect(response.value.items[0].version).toBe(3);
-        expect(response.value.items[1].version).toBe(1);
-      }
-    });
-
-    it("should handle multiple Left values correctly", async () => {
-      const profileModelMock = createProfileModelMock();
-      const profiles = [
-        createProfileVersion(aRetrievedProfileWithEmail, 5, 50),
-        createProfileVersion(aRetrievedProfileWithEmail, 4, 40),
-        createProfileVersion(aRetrievedProfileWithEmail, 3, 30),
-        createProfileVersion(aRetrievedProfileWithEmail, 2, 20),
-        createProfileVersion(aRetrievedProfileWithEmail, 1, 10),
-      ];
-
-      const mockIterator = createMockProfileAsyncIteratorWithErrors(
+      const mockIterator = createMockProfileAsyncIteratorWithValidationErrors(
         profiles,
-        [1, 3],
+        [1],
       );
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
@@ -465,12 +434,11 @@ describe("GetProfileVersionsHandler", () => {
 
       const response = await handler(aFiscalCode, 1, 25);
 
-      expect(response.kind).toBe("IResponseSuccessJson");
-      if (response.kind === "IResponseSuccessJson") {
-        expect(response.value.items).toHaveLength(3);
-        expect(response.value.items[0].version).toBe(5);
-        expect(response.value.items[1].version).toBe(3);
-        expect(response.value.items[2].version).toBe(1);
+      expect(response.kind).toBe("IResponseErrorInternal");
+      if (response.kind === "IResponseErrorInternal") {
+        expect(response.detail).toContain(
+          "Error decoding retrieved profile versions",
+        );
       }
     });
   });
@@ -479,35 +447,6 @@ describe("GetProfileVersionsHandler", () => {
     it("should return empty items array when no profiles match", async () => {
       const profileModelMock = createProfileModelMock();
       const mockIterator = createMockProfileAsyncIterator([]);
-      profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
-
-      const handler = GetProfileVersionsHandler(
-        profileModelMock as unknown as ProfileModel,
-        anEmailOptOutEmailSwitchDate,
-        createProfileEmailReaderMock(),
-      );
-
-      const response = await handler(aFiscalCode, 1, 25);
-
-      expect(response.kind).toBe("IResponseSuccessJson");
-      if (response.kind === "IResponseSuccessJson") {
-        expect(response.value.items).toHaveLength(0);
-        expect(response.value.has_more).toBe(false);
-      }
-    });
-
-    it("should return correct results when all profiles fail conversion", async () => {
-      const profileModelMock = createProfileModelMock();
-      const profiles = [
-        createProfileVersion(aRetrievedProfileWithEmail, 3, 30),
-        createProfileVersion(aRetrievedProfileWithEmail, 2, 20),
-        createProfileVersion(aRetrievedProfileWithEmail, 1, 10),
-      ];
-
-      const mockIterator = createMockProfileAsyncIteratorWithErrors(
-        profiles,
-        [0, 1, 2],
-      );
       profileModelMock.getQueryIterator.mockReturnValue(mockIterator);
 
       const handler = GetProfileVersionsHandler(

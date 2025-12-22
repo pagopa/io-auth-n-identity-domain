@@ -1,4 +1,5 @@
 import * as E from "fp-ts/Either";
+import * as t from "io-ts";
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 
@@ -58,24 +59,7 @@ export const createMockProfileAsyncIteratorWithErrors = (
       : E.right(r),
   );
 
-  return {
-    [Symbol.asyncIterator]() {
-      // eslint-disable-next-line functional/no-let
-      let done = false;
-      return {
-        async next() {
-          if (!done) {
-            done = true;
-            return {
-              value: results,
-              done: false,
-            };
-          }
-          return { done: true, value: undefined };
-        },
-      };
-    },
-  };
+  return createAsyncIterator(results);
 };
 
 /**
@@ -97,4 +81,30 @@ export const createProfileVersion = (
     version: version as NonNegativeInteger,
     _ts: currentTimestamp + tsOffsetSeconds,
   };
+};
+
+/**
+ * Creates a mock async iterator with validation errors.
+ *
+ * @param resources - Array of RetrievedProfile items
+ * @param validationErrorIndices - Array of indices where validation errors should be injected
+ * @returns An async iterable with t.Validation results (io-ts validation errors)
+ */
+export const createMockProfileAsyncIteratorWithValidationErrors = (
+  resources: ReadonlyArray<RetrievedProfile>,
+  validationErrorIndices: ReadonlyArray<number> = [],
+) => {
+  const results = resources.map((r, index) =>
+    validationErrorIndices.includes(index)
+      ? E.left([
+          {
+            value: r,
+            context: [{ key: "version", type: t.number }],
+            message: `Invalid profile at index ${index}`,
+          },
+        ] as t.Errors)
+      : E.right(r),
+  );
+
+  return createAsyncIterator(results);
 };

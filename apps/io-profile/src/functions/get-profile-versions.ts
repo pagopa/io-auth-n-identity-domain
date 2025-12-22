@@ -1,6 +1,8 @@
 import express from "express";
-import { ExtendedProfile } from "@pagopa/io-functions-commons/dist/generated/definitions/ExtendedProfile";
-import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
+import {
+  ProfileModel,
+  RetrievedProfile,
+} from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
 import {
   asyncIteratorToArray,
@@ -26,6 +28,7 @@ import {
   IResponseErrorInternal,
   IResponseErrorNotFound,
   IResponseSuccessJson,
+  ResponseErrorInternal,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 
@@ -35,26 +38,17 @@ import { isBefore } from "date-fns";
 import { pipe, flow } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as RA from "fp-ts/lib/ReadonlyArray";
+import * as E from "fp-ts/lib/Either";
 import * as t from "io-ts";
+import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { retrievedProfileToExtendedProfile } from "../utils/profiles";
 import {
   PageQueryMiddleware,
   PageSizeQueryMiddleware,
 } from "../utils/middlewares/pagination";
+import { ProfilePageResults } from "../generated/definitions/internal/ProfilePageResults";
+import { ExtendedProfile } from "../generated/definitions/internal/ExtendedProfile";
 import { withIsEmailAlreadyTaken } from "./get-profile";
-
-const ProfilePageResults = t.intersection([
-  t.interface({
-    items: t.readonlyArray(ExtendedProfile),
-  }),
-  t.partial({
-    page: t.number,
-    page_size: t.number,
-    has_more: t.boolean,
-  }),
-]);
-
-type ProfilePageResults = t.TypeOf<typeof ProfilePageResults>;
 
 type IGetProfileVersionsHandlerResult =
   | IResponseSuccessJson<ProfilePageResults>
@@ -65,8 +59,7 @@ type IGetProfileVersionsHandlerResult =
 /**
  * Type of a GetProfileVersions handler.
  *
- * GetProfileVersions expects a FiscalCode as input and returns a Profile or
- * a Not Found error.
+ * GetProfileVersions expects a FiscalCode as input and returns a Profile or a Not Found error.
  */
 type IGetProfileVersionsHandler = (
   fiscalCode: FiscalCode,
@@ -75,22 +68,35 @@ type IGetProfileVersionsHandler = (
 ) => Promise<IGetProfileVersionsHandlerResult>;
 
 /**
- * Fetch paginated profile versions from the database.
- * Applies email opt-out logic and checks for duplicate emails.
+ * Validates and processes retrieved profile items from Cosmos DB.
+ * Converts io-ts validation results into a TaskEither, transforming validation errors into readable error messages.
+ *
+ * @param items - Array of validation results for retrieved profiles
+ * @returns TaskEither with error or array of valid retrieved profiles
  */
-const fetchPaginatedProfileVersions =
-  (
-    profileModel: ProfileModel,
-    optOutEmailSwitchDate: Date,
-    profileEmailReader: IProfileEmailReader,
-  ) =>
+const processedItems = (
+  items: ReadonlyArray<t.Validation<RetrievedProfile>>,
+): TE.TaskEither<Error, ReadonlyArray<RetrievedProfile>> =>
+  pipe(
+    items,
+    E.sequenceArray,
+    E.mapLeft(flow(readableReportSimplified, E.toError)),
+    TE.fromEither,
+  );
+
+/**
+ * Query the database for paginated profile versions.
+ * Returns raw profile data from Cosmos DB.
+ */
+const queryProfileVersionsFromDatabase =
+  (profileModel: ProfileModel) =>
   (
     fiscalCode: FiscalCode,
     page: number,
     pageSize: number,
   ): TE.TaskEither<
-    IResponseErrorInternal | IResponseErrorNotFound | IResponseErrorQuery,
-    IResponseSuccessJson<ProfilePageResults>
+    IResponseErrorQuery,
+    ReadonlyArray<t.Validation<RetrievedProfile>>
   > =>
     pipe(
       TE.tryCatch(
@@ -127,9 +133,44 @@ const fetchPaginatedProfileVersions =
       TE.mapLeft((failure) =>
         ResponseErrorQuery("Error while retrieving the profile", failure),
       ),
+    );
+
+/**
+ * Fetch paginated profile versions from the database.
+ * Applies email opt-out logic and checks for duplicate emails.
+ */
+const fetchPaginatedProfileVersions =
+  (
+    profileModel: ProfileModel,
+    optOutEmailSwitchDate: Date,
+    profileEmailReader: IProfileEmailReader,
+  ) =>
+  (
+    fiscalCode: FiscalCode,
+    page: number,
+    pageSize: number,
+  ): TE.TaskEither<
+    IResponseErrorInternal | IResponseErrorNotFound | IResponseErrorQuery,
+    IResponseSuccessJson<ProfilePageResults>
+  > =>
+    pipe(
+      queryProfileVersionsFromDatabase(profileModel)(
+        fiscalCode,
+        page,
+        pageSize,
+      ),
+      TE.chainW(
+        flow(
+          processedItems,
+          TE.mapLeft((_) =>
+            ResponseErrorInternal("Error decoding retrieved profile versions"),
+          ),
+        ),
+      ),
       TE.map(
         flow(
-          RA.rights,
+          (a) => a,
+          // RA.rights,
           RA.map((p) =>
             pipe(
               // if profile's timestamp is before email opt out switch limit date we must force isEmailEnabled to false
@@ -150,7 +191,7 @@ const fetchPaginatedProfileVersions =
       ),
       TE.map((a) =>
         ResponseSuccessJson({
-          items: a,
+          items: a as ReadonlyArray<ExtendedProfile>,
           page,
           page_size: pageSize,
           has_more: a.length === pageSize,
