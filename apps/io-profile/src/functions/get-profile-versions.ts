@@ -165,19 +165,17 @@ const fetchPaginatedProfileVersions: (
       ),
     ),
     TE.map(
-      flow(
-        RA.map((p) =>
-          pipe(
-            // if profile's timestamp is before email opt out switch limit date we must force isEmailEnabled to false
-            // this map is valid for ever so this check cannot be removed.
-            // Please note that cosmos timestamps are expressed in unix notation (in seconds), so we must transform
-            // it to a common Date representation (milliseconds).
-            // eslint-disable-next-line no-underscore-dangle
-            isBefore(p._ts * 1000, deps.optOutEmailSwitchDate)
-              ? { ...p, isEmailEnabled: false }
-              : p,
-            retrievedProfileToExtendedProfile,
-          ),
+      RA.map((p) =>
+        pipe(
+          // if profile's timestamp is before email opt out switch limit date we must force isEmailEnabled to false
+          // this map is valid for ever so this check cannot be removed.
+          // Please note that cosmos timestamps are expressed in unix notation (in seconds), so we must transform
+          // it to a common Date representation (milliseconds).
+          // eslint-disable-next-line no-underscore-dangle
+          isBefore(p._ts * 1000, deps.optOutEmailSwitchDate)
+            ? { ...p, isEmailEnabled: false }
+            : p,
+          retrievedProfileToExtendedProfile,
         ),
       ),
     ),
@@ -186,12 +184,12 @@ const fetchPaginatedProfileVersions: (
         profiles,
       ),
     ),
-    TE.map((a) =>
+    TE.map((items) =>
       ResponseSuccessJson({
-        items: a,
+        items,
         page,
         page_size: pageSize,
-        has_more: a.length === pageSize,
+        has_more: items.length === pageSize,
       }),
     ),
   );
