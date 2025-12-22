@@ -97,11 +97,11 @@ export const createWebServer = ({
 
   app.get(
     profileVersionsPath,
-    GetProfileVersions(
+    GetProfileVersions({
       profileModel,
-      config.OPT_OUT_EMAIL_SWITCH_DATE,
+      optOutEmailSwitchDate: config.OPT_OUT_EMAIL_SWITCH_DATE,
       profileEmailReader,
-    ),
+    }),
   );
 
   app.put(
