@@ -120,8 +120,8 @@ module "function_lv_autoscale" {
 
   scheduler = {
     normal_load = {
-      minimum = 15
-      default = 15
+      minimum = 8
+      default = 8
     },
     maximum = 30
   }
