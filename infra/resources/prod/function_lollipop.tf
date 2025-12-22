@@ -133,8 +133,8 @@ module "function_lollipop_autoscale" {
 
   scheduler = {
     normal_load = {
-      minimum = 15
-      default = 15
+      minimum = 8
+      default = 10
     },
     maximum = 30
   }
