@@ -17,33 +17,40 @@ export const createMockProfileAsyncIterator = (
 ) => {
   const results = resources.map((r) => E.right(r));
 
-  return {
-    [Symbol.asyncIterator]() {
-      // eslint-disable-next-line functional/no-let
-      let done = false;
-      return {
-        async next() {
-          if (shouldThrow) {
-            throw new Error("Cosmos DB query error");
-          }
-
-          if (!done) {
-            done = true;
-            return {
-              value: results,
-              done: false,
-            };
-          }
-          return { done: true, value: undefined };
-        },
-      };
-    },
-  };
+  return createAsyncIterator(results, shouldThrow);
 };
 
 /**
+ * Helper function to create an async iterator with given results.
+ */
+const createAsyncIterator = <T>(
+  results: ReadonlyArray<T>,
+  shouldThrow: boolean = false,
+) => ({
+  [Symbol.asyncIterator]() {
+    // eslint-disable-next-line functional/no-let
+    let done = false;
+    return {
+      async next() {
+        if (shouldThrow) {
+          throw new Error("Cosmos DB query error");
+        }
+
+        if (!done) {
+          done = true;
+          return {
+            value: results,
+            done: false,
+          };
+        }
+        return { done: true, value: undefined };
+      },
+    };
+  },
+});
+
+/**
  * Creates a mock async iterator with mixed results (both successes and failures).
- * Useful for testing error handling in partial query failures.
  *
  * @param resources - Array of RetrievedProfile items (will be wrapped in E.right)
  * @param errorIndices - Array of indices where E.left errors should be injected

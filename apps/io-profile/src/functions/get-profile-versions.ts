@@ -46,8 +46,8 @@ import {
   PageQueryMiddleware,
   PageSizeQueryMiddleware,
 } from "../utils/middlewares/pagination";
-import { ProfilePageResults } from "../generated/definitions/internal/ProfilePageResults";
-import { ExtendedProfile } from "../generated/definitions/internal/ExtendedProfile";
+import { ProfilePageResults } from "../generated/definitions/internal-support/ProfilePageResults";
+import { ExtendedProfile } from "../generated/definitions/internal-support/ExtendedProfile";
 import { withIsEmailAlreadyTaken } from "./get-profile";
 
 type IGetProfileVersionsHandlerResult =
