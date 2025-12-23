@@ -1,3 +1,4 @@
+import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { IProfileEmailReader } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement";
 import * as E from "fp-ts/Either";
 import { none, some } from "fp-ts/lib/Option";
@@ -8,9 +9,8 @@ import {
   aFiscalCode,
   aRetrievedProfileWithEmail,
 } from "../__mocks__/mocks";
-import { GetProfileHandler, withIsEmailAlreadyTaken } from "../get-profile";
-
 import { generateProfileEmails } from "../__mocks__/unique-email-enforcement";
+import { GetProfileHandler, withIsEmailAlreadyTaken } from "../get-profile";
 
 // Date returns a timestamp expressed in milliseconds
 const aTimestamp = Math.floor(new Date().valueOf() / 1000);
@@ -45,6 +45,7 @@ describe("withIsEmailAlreadyTaken", () => {
     )();
     expect(profile).toMatchObject(E.of({ is_email_already_taken: false }));
   });
+
   it("returns true if there are profile email entries", async () => {
     const profile = await withIsEmailAlreadyTaken(profileEmailReader)({
       ...aExtendedProfileWithEmail,
@@ -52,6 +53,7 @@ describe("withIsEmailAlreadyTaken", () => {
     })();
     expect(profile).toMatchObject(E.of({ is_email_already_taken: true }));
   });
+
   it("returns TE.left(ResponseErrorInternal) on errors retrieving the profile emails", async () => {
     const profile = await withIsEmailAlreadyTaken({
       list: generateProfileEmails(2, true),
@@ -75,7 +77,7 @@ describe("GetProfileHandler", () => {
     };
 
     const getProfileHandler = GetProfileHandler(
-      profileModelMock as any,
+      profileModelMock as unknown as ProfileModel,
       anEmailOptOutEmailSwitchDate,
       profileEmailReader,
     );
@@ -99,7 +101,7 @@ describe("GetProfileHandler", () => {
     };
 
     const getProfileHandler = GetProfileHandler(
-      profileModelMock as any,
+      profileModelMock as unknown as ProfileModel,
       anEmailOptOutEmailSwitchDate,
       profileEmailReader,
     );
@@ -124,7 +126,7 @@ describe("GetProfileHandler", () => {
     };
 
     const getProfileHandler = GetProfileHandler(
-      profileModelMock as any,
+      profileModelMock as unknown as ProfileModel,
       anEmailOptOutEmailSwitchDate,
       profileEmailReader,
     );
@@ -142,7 +144,7 @@ describe("GetProfileHandler", () => {
     };
 
     const getProfileHandler = GetProfileHandler(
-      profileModelMock as any,
+      profileModelMock as unknown as ProfileModel,
       anEmailOptOutEmailSwitchDate,
       profileEmailReader,
     );
@@ -167,7 +169,7 @@ describe("GetProfileHandler", () => {
     mockList.mockImplementationOnce(generateProfileEmails(2, true));
 
     const getProfileHandler = GetProfileHandler(
-      profileModelMock as any,
+      profileModelMock as unknown as ProfileModel,
       anEmailOptOutEmailSwitchDate,
       profileEmailReader,
     );

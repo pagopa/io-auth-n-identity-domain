@@ -51,6 +51,48 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
+  /profiles/{fiscal_code}/versions:
+    get:
+      operationId: getProfileVersions
+      summary: GetProfileVersions
+      description: Retrieve paginated user profile versions history
+      tags:
+        - restricted
+      parameters:
+        - $ref: "#/components/parameters/FiscalCode"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Profile versions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfilePageResults"
+        "400":
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: No message found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "429":
+          description: Too many requests
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
   /profiles/{fiscal_code}/services/{service_id}/preferences:
     get:
       operationId: getServicePreferences
@@ -160,7 +202,51 @@ components:
       schema:
         type: string
         minLength: 1
+    Page:
+      name: page
+      in: query
+      required: false
+      description: The page number for pagination. Values < 1 are normalized to 1. Default is 1.
+      schema:
+        type: integer
+        default: 1
+    PageSize:
+      name: page_size
+      in: query
+      required: false
+      description: The number of items per page for pagination. Values < 1 or > 100 are normalized to 25. Default is 25.
+      schema:
+        type: integer
+        default: 25
+        minimum: 1
+        maximum: 100
   schemas:
+    ProfilePageResults:
+      description: Paginated results of profile versions
+      type: object
+      required:
+        - items
+        - page
+        - page_size
+        - has_more
+      properties:
+        items:
+          type: array
+          description: Array of profile versions for the current page
+          items:
+            $ref: "#/components/schemas/ExtendedProfile"
+        page:
+          type: integer
+          description: Current page number
+          example: 1
+        page_size:
+          type: integer
+          description: Number of items per page
+          example: 25
+        has_more:
+          type: boolean
+          description: Indicates if there are more pages available
+          example: false
     ExtendedProfile:
       description: |-
         Describes the citizen's profile, mostly interesting for preferences

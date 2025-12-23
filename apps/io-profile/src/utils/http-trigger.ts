@@ -18,6 +18,7 @@ import { AbortUserDataProcessing } from "../functions/abort-user-data-processing
 import { CreateProfile } from "../functions/create-profile";
 import { IConfig } from "../config";
 import { GetProfile } from "../functions/get-profile";
+import { GetProfileVersions } from "../functions/get-profile-versions";
 import { GetServicePreferences } from "../functions/get-service-preferences";
 import { GetUserDataProcessing } from "../functions/get-user-data-processing";
 import { Info } from "../functions/info";
@@ -78,6 +79,7 @@ export const createWebServer = ({
   );
 
   const profilePath = "/api/v1/profiles/:fiscalcode";
+  const profileVersionsPath = "/api/v1/profiles/:fiscalcode/versions";
 
   app.post(
     profilePath,
@@ -91,6 +93,15 @@ export const createWebServer = ({
       config.OPT_OUT_EMAIL_SWITCH_DATE,
       profileEmailReader,
     ),
+  );
+
+  app.get(
+    profileVersionsPath,
+    GetProfileVersions({
+      profileModel,
+      optOutEmailSwitchDate: config.OPT_OUT_EMAIL_SWITCH_DATE,
+      profileEmailReader,
+    }),
   );
 
   app.put(

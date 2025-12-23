@@ -8,6 +8,7 @@
       "Function.GetMessage": "Warning",
       "Function.GetMessages": "Warning",
       "Function.GetProfile": "Warning",
+      "Function.GetProfileVersions": "Warning",
       "Function.GetService": "Warning",
       "Function.GetUserDataProcessing": "Warning"
     },
