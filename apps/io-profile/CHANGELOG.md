@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.30.0
+
+### Minor Changes
+
+- 3bff7cd: Added endpoint to retrieve profile versions
+
 ## 5.29.0
 
 ### Minor Changes
