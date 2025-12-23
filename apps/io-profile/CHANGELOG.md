@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.30.1
+
+### Patch Changes
+
+- ca04198: Fix PageSizeQueryMiddleware and PageQueryMiddleware behaviour
+
 ## 5.30.0
 
 ### Minor Changes
