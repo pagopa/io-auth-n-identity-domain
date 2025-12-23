@@ -12,7 +12,9 @@ import * as t from "io-ts";
 export const PositiveIntegerFromString = tag<IPositiveIntegerTag>()(
   t.refinement(IntegerFromString, (i) => i >= 1, "PositiveIntegerFromString"),
 );
-export type PositiveIntegerFromString = t.TypeOf<typeof PositiveIntegerFromString>;
+export type PositiveIntegerFromString = t.TypeOf<
+  typeof PositiveIntegerFromString
+>;
 
 export const PageSize = WithinRangeInteger(1, 101);
 export type PageSize = t.TypeOf<typeof PageSize>;
