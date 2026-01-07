@@ -43,6 +43,11 @@ variable "resource_group_name" {
   description = "Resource group name for the Function App services"
 }
 
+variable "error_action_group" {
+  type        = string
+  description = "Error action group ID to be used for alerts"
+}
+
 ################
 #  Networking  #
 ################
