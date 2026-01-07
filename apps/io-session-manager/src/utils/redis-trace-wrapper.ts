@@ -1,5 +1,6 @@
 import * as redis from "redis";
 import appInsights from "applicationinsights";
+import type { RedisClusterType } from "redis"; // Adjust this import to your actual redis client package
 
 import commands from "@redis/client/dist/lib/cluster/commands";
 
@@ -78,7 +79,7 @@ export function createWrappedRedisClusterClient(
   clientName: string,
   enableDependencyTrace: boolean = false,
   appInsightsClient?: appInsights.TelemetryClient,
-) {
+): RedisClusterType {
   const cluster = redis.createCluster(options);
   return enableDependencyTrace && appInsightsClient
     ? wrapRedisClusterClient(cluster, clientName, appInsightsClient)
