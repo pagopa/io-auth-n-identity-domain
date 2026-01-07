@@ -16,6 +16,7 @@ import { EmailString } from "@pagopa/ts-commons/lib/strings";
 import { sendMail } from "@pagopa/io-functions-commons/dist/src/mailer";
 import { pipe } from "fp-ts/lib/function";
 import * as mailvalidation from "@pagopa/io-app-email-templates/MailValidation/index";
+import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { createTracker } from "../utils/tracking";
 import { EmailDefaults } from "../types/email";
 
@@ -54,6 +55,8 @@ export const getSendValidationEmailActivityHandler =
     mailerTransporter: NodeMailer.Transporter,
     emailDefaults: EmailDefaults,
     functionsPublicUrl: string,
+    ioWebBaseUrl: ValidUrl,
+    ffEnableIoWebEmailActions: boolean,
   ) =>
   async (context: Context, input: unknown): Promise<unknown> => {
     const logPrefix = "SendTemplatedValidationEmailActivity";
@@ -78,11 +81,11 @@ export const getSendValidationEmailActivityHandler =
     // Generate the email html from the template
     const { from, title, htmlToTextOptions } = emailDefaults;
 
-    const emailHtml = mailvalidation.apply(
-      title,
-      `${functionsPublicUrl}/validate-profile-email?token=${token}`,
-      name,
-    );
+    const activationUrl = ffEnableIoWebEmailActions
+      ? `${ioWebBaseUrl.href}it/conferma-email/?token=${token}`
+      : `${functionsPublicUrl}/validate-profile-email?token=${token}`;
+
+    const emailHtml = mailvalidation.apply(title, activationUrl, name);
 
     // converts the HTML to pure text to generate the text version of the message
     const emailText = HtmlToText.htmlToText(emailHtml, htmlToTextOptions);

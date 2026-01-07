@@ -82,7 +82,9 @@ export const IConfig = t.intersection([
 
     FUNCTIONS_PUBLIC_URL: NonEmptyString,
 
-    // url mentioned in the fallback login email
+    // IO Web application baseURL, used in:
+    // 1. fallback login email (when magic link service is down)
+    // 2. email validation link (new profile email validation flow through IO WEB)
     IOWEB_ACCESS_REF: UrlFromString,
 
     MAGIC_LINK_SERVICE_API_KEY: NonEmptyString,
@@ -113,6 +115,8 @@ export const IConfig = t.intersection([
     PROFILE_EMAIL_STORAGE_TABLE_NAME: NonEmptyString,
 
     SERVICE_CACHE_TTL_SECONDS: withFallback(NumberFromString, 60),
+
+    FF_ENABLE_IOWEB_EMAIL_ACTIONS: withDefault(t.boolean, false),
 
     isProduction: t.boolean,
   }),
