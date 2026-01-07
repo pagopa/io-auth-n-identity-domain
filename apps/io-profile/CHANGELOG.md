@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.30.2
+
+### Patch Changes
+
+- 8a8a7b9: IO WEB validation URL on validation Email
+
 ## 5.30.1
 
 ### Patch Changes
