@@ -13,5 +13,7 @@ module "eventhub" {
   peps_snet_id                         = data.azurerm_subnet.private_endpoints_subnet.id
   private_dns_zone_resource_group_name = "io-p-evt-rg"
 
+  error_action_group = azurerm_monitor_action_group.error_action_group.id
+
   tags = local.tags
 }
