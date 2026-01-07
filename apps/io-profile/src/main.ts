@@ -222,6 +222,8 @@ export const SendTemplatedValidationEmailActivity =
     validationEmailMailerTransporter,
     validationEmailDefaults,
     config.FUNCTIONS_PUBLIC_URL,
+    config.IOWEB_ACCESS_REF,
+    config.FF_ENABLE_IOWEB_EMAIL_ACTIONS,
   );
 
 export const SendWelcomeMessagesActivity =
