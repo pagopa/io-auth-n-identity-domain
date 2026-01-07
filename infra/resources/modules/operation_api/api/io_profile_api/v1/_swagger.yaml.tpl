@@ -5,7 +5,7 @@ info:
   x-logo:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
   description: |
-    Documentation of the IO PROFILE OPERATION API here.
+    Operation Auth&Identity Profile API.
 servers:
   - url: https://${host}/${basePath}
 security:
