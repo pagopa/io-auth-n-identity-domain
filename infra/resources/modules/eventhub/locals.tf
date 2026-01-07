@@ -73,7 +73,7 @@ locals {
         metric_name = "ThrottledRequests"
         description = "Too Many Throttled Requests"
         operator    = "GreaterThan"
-        threshold   = 20 #TODO: FINE TUNING NEEDED
+        threshold   = 500 #TODO: FINE TUNING NEEDED
         frequency   = "PT5M"
         window_size = "PT15M"
       },
