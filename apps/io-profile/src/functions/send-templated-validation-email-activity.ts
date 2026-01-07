@@ -16,9 +16,9 @@ import { EmailString } from "@pagopa/ts-commons/lib/strings";
 import { sendMail } from "@pagopa/io-functions-commons/dist/src/mailer";
 import { pipe } from "fp-ts/lib/function";
 import * as mailvalidation from "@pagopa/io-app-email-templates/MailValidation/index";
+import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { createTracker } from "../utils/tracking";
 import { EmailDefaults } from "../types/email";
-import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 
 // Activity input
 export const ActivityInput = t.intersection([
