@@ -14,9 +14,9 @@ In order to run the `io-web-profile` locally you need the following tool install
 
 - `Azure functions core tools`
 - `Node.js`
-- `yarn`
+- `pnpm`
 
-The preferred way to set up the local environment is using nodenv to manage Node.js installation and corepack (included with Node.js) to manage the installation of yarn.
+The preferred way to set up the local environment is using nodenv to manage Node.js installation and corepack (included with Node.js) to manage the installation of pnpm.
 
 ## Structure
 

@@ -27,7 +27,7 @@ services:
     ports:
       - 8081:3000
       - 5859:5859
-    command: ["yarn", "start:debug"]
+    command: ["pnpm", "start:debug"]
     depends_on:
       cluster-builder:
         condition: service_started
