@@ -84,7 +84,7 @@ export const IConfig = t.intersection([
 
     // IO Web application baseURL, used in:
     // 1. fallback login email (when magic link service is down)
-    // 2. email validation email link (new profile email validation flow)
+    // 2. email validation link (new profile email validation flow through IO WEB)
     IOWEB_ACCESS_REF: UrlFromString,
 
     MAGIC_LINK_SERVICE_API_KEY: NonEmptyString,
