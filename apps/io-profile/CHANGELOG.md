@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.30.3
+
+### Patch Changes
+
+- 2a606cc: FF_ENABLE_IOWEB_EMAIL_ACTIONS fix io-ts-type
+
 ## 5.30.2
 
 ### Patch Changes
