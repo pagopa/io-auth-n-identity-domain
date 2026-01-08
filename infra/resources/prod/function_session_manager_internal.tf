@@ -81,17 +81,20 @@ module "function_session_manager_internal" {
     local.function_session_manager_internal.app_settings,
     {
       "AzureWebJobs.RejectedLoginEventProcessor.Disabled" = "0"
+      "AzureWebJobs.ReleaseAuthLock.Disabled"             = "1"
     }
   )
   slot_app_settings = merge(
     local.function_session_manager_internal.app_settings,
     {
       "AzureWebJobs.RejectedLoginEventProcessor.Disabled" = "1"
+      "AzureWebJobs.ReleaseAuthLock.Disabled"             = "1"
     }
   )
 
   sticky_app_setting_names = [
-    "AzureWebJobs.RejectedLoginEventProcessor.Disabled"
+    "AzureWebJobs.RejectedLoginEventProcessor.Disabled",
+    "AzureWebJobs.ReleaseAuthLock.Disabled"
   ]
 
   subnet_service_endpoints = {
