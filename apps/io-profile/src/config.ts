@@ -19,7 +19,7 @@ import * as E from "fp-ts/lib/Either";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
-import { withFallback } from "io-ts-types";
+import { BooleanFromString, withFallback } from "io-ts-types";
 
 // exclude a specific value from a type
 // as strict equality is performed, allowed input types are constrained to be values not references (object, arrays, etc)
@@ -116,7 +116,7 @@ export const IConfig = t.intersection([
 
     SERVICE_CACHE_TTL_SECONDS: withFallback(NumberFromString, 60),
 
-    FF_ENABLE_IOWEB_EMAIL_ACTIONS: withDefault(t.boolean, false),
+    FF_ENABLE_IOWEB_EMAIL_ACTIONS: withFallback(BooleanFromString, false),
 
     isProduction: t.boolean,
   }),
