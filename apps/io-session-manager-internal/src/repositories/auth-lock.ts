@@ -1,4 +1,4 @@
-import { TableClient, TransactionAction, odata } from "@azure/data-tables";
+import { TransactionAction, odata } from "@azure/data-tables";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { flow, identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -8,11 +8,12 @@ import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import * as t from "io-ts";
 import * as ROA from "fp-ts/lib/ReadonlyArray";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
+import { CustomTableClient } from "@pagopa/azure-storage-data-table-migration-kit";
 import * as AI from "../utils/async-iterable";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
 
 type Dependencies = {
-  AuthenticationLockTableClient: TableClient;
+  AuthenticationLockTableClient: CustomTableClient;
 };
 
 export type NotReleasedAuthenticationLockData = t.TypeOf<
