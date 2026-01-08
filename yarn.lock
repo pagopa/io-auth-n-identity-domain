@@ -1410,7 +1410,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/data-tables@npm:^13.3.1":
+"@azure/data-tables@npm:^13.3.1, @azure/data-tables@npm:^13.3.2":
   version: 13.3.2
   resolution: "@azure/data-tables@npm:13.3.2"
   dependencies:
@@ -11210,7 +11210,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "io-session-manager-internal@workspace:apps/io-session-manager-internal"
   dependencies:
-    "@azure/data-tables": "npm:^13.3.0"
+    "@azure/data-tables": "npm:^13.3.2"
     "@azure/functions": "npm:^4.7.0"
     "@azure/identity": "npm:^4.10.0"
     "@azure/service-bus": "npm:^7.9.5"

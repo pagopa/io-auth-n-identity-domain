@@ -62,6 +62,10 @@ export const IConfig = t.intersection([
       LOCKED_PROFILES_STORAGE_CONNECTION_STRING: NonEmptyString,
       LOCKED_PROFILES_TABLE_NAME: NonEmptyString,
 
+      // Locked profiles config (Region ITN)
+      LOCKED_PROFILES_STORAGE_CONNECTION_STRING_ITN: NonEmptyString,
+      LOCKED_PROFILES_TABLE_NAME_ITN: NonEmptyString,
+
       // Push notifications queue config
       PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING: NonEmptyString,
       PUSH_NOTIFICATIONS_QUEUE_NAME: NonEmptyString,
