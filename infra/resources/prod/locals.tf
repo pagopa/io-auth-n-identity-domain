@@ -45,6 +45,8 @@ locals {
 
   lollipop_assertions_container_name = "lollipop-assertions-01"
 
+  locked_profiles_table_name = "lockedprofiles01"
+
   tags = {
     CreatedBy      = "Terraform"
     Environment    = "Prod"
