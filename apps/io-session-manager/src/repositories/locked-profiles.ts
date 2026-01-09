@@ -25,55 +25,6 @@ const NotReleasedAuthenticationLockData = t.type({
   CreatedAt: DateFromString,
 });
 
-export const lockUserAuthentication: (
-  fiscalCode: FiscalCode,
-  unlockCode: UnlockCode,
-) => RTE.ReaderTaskEither<LockUserAuthenticationDeps, Error, true> =
-  (fiscalCode, unlockCode) => (deps) =>
-    pipe(
-      TE.tryCatch(
-        () =>
-          deps.lockUserTableClient.createEntity({
-            partitionKey: fiscalCode,
-            rowKey: unlockCode,
-            CreatedAt: new Date(),
-          }),
-        (_) => new Error("Something went wrong creating the record"),
-      ),
-      TE.map((_) => true as const),
-    );
-
-export const unlockUserAuthentication: (
-  fiscalCode: FiscalCode,
-  unlockCodes: ReadonlyArray<UnlockCode>,
-) => RTE.ReaderTaskEither<LockUserAuthenticationDeps, Error, true> =
-  (fiscalCode, unlockCodes) => (deps) =>
-    pipe(
-      unlockCodes,
-      ROA.map(
-        (unlockCode) =>
-          [
-            "update",
-            {
-              partitionKey: fiscalCode,
-              rowKey: unlockCode,
-              Released: true,
-            },
-          ] as TransactionAction,
-      ),
-      (actions) =>
-        TE.tryCatch(
-          () => deps.lockUserTableClient.submitTransaction(Array.from(actions)),
-          identity,
-        ),
-      TE.filterOrElseW(
-        (response) => response.status === 202,
-        () => void 0,
-      ),
-      TE.mapLeft(() => new Error("Something went wrong updating the record")),
-      TE.map(() => true as const),
-    );
-
 export const getUserAuthenticationLocks: (
   fiscalCode: FiscalCode,
 ) => RTE.ReaderTaskEither<
