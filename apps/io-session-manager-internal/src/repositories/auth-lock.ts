@@ -1,4 +1,4 @@
-import { TransactionAction, odata } from "@azure/data-tables";
+import { TableClient, TransactionAction, odata } from "@azure/data-tables";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { flow, identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -14,6 +14,12 @@ import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
 
 type Dependencies = {
   AuthenticationLockTableClient: CustomTableClient;
+};
+
+// We want to use TableClient when creating authentication locks since
+// the creation should go to the new storage account only.
+type LockDependencies = {
+  AuthenticationLockTableClientItn: TableClient;
 };
 
 export type NotReleasedAuthenticationLockData = t.TypeOf<
@@ -62,12 +68,12 @@ const isUserAuthenticationLocked =
 const lockUserAuthentication: (
   fiscalCode: FiscalCode,
   unlockCode: UnlockCode,
-) => RTE.ReaderTaskEither<Dependencies, Error, true> =
+) => RTE.ReaderTaskEither<LockDependencies, Error, true> =
   (fiscalCode, unlockCode) => (deps) =>
     pipe(
       TE.tryCatch(
         () =>
-          deps.AuthenticationLockTableClient.createEntity({
+          deps.AuthenticationLockTableClientItn.createEntity({
             partitionKey: fiscalCode,
             rowKey: unlockCode,
 

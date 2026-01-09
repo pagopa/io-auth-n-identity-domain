@@ -22,6 +22,7 @@ import {
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
 
 import { CustomTableClient } from "@pagopa/azure-storage-data-table-migration-kit";
+import { TableClient } from "@azure/data-tables";
 import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
 import { SessionState } from "../generated/definitions/internal/SessionState";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
@@ -208,6 +209,7 @@ const clearInstallation: (
 export type LockUserAuthenticationDeps = RedisDeps & {
   AuthLockRepository: AuthLockRepository;
   AuthenticationLockTableClient: CustomTableClient;
+  AuthenticationLockTableClientItn: TableClient;
   LollipopRepository: LollipopRepository;
   RevokeAssertionRefQueueClient: QueueClient;
   InstallationRepository: InstallationRepository;

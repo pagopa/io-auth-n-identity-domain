@@ -139,6 +139,7 @@ app.http("AuthLock", {
     LollipopRepository,
     NotificationQueueClient,
     AuthenticationLockTableClient: AuthenticationLockTableClientMigrationKit,
+    AuthenticationLockTableClientItn,
     RevokeAssertionRefQueueClient,
     AuthSessionsTopicRepository,
     authSessionsTopicSender: authSessionsTopicServiceBusSender,

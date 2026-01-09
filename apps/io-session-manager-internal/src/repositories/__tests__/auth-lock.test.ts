@@ -19,6 +19,7 @@ import {
   mockListEntities,
   mockSubmitTransaction,
   mockTableClient,
+  mockTableClientMigrationKit,
 } from "../../__mocks__/table-client.mock";
 import {
   aFiscalCode,
@@ -31,7 +32,10 @@ import {
 } from "../auth-lock";
 import { UnlockCode } from "../../generated/definitions/internal/UnlockCode";
 
-const mockedDependencies = { AuthenticationLockTableClient: mockTableClient };
+const mockedDependencies = {
+  AuthenticationLockTableClient: mockTableClientMigrationKit,
+  AuthenticationLockTableClientItn: mockTableClient,
+};
 describe("Session lock repository#isUserAuthenticationLocked", () => {
   beforeEach(() => {
     vi.clearAllMocks();
