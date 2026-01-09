@@ -1,8 +1,11 @@
 import { TableClient } from "@azure/data-tables";
 import { QueueClient } from "@azure/storage-queue";
+import { CustomTableClient } from "@pagopa/azure-storage-data-table-migration-kit";
 import {
   LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
+  LOCKED_PROFILES_STORAGE_CONNECTION_STRING_ITN,
   LOCKED_PROFILES_TABLE_NAME,
+  LOCKED_PROFILES_TABLE_NAME_ITN,
 } from "../config/lock-profile";
 import {
   LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING,
@@ -19,6 +22,18 @@ export const initStorageDependencies = () => {
     LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
     LOCKED_PROFILES_TABLE_NAME,
     { allowInsecureConnection: isDevEnv },
+  );
+
+  const lockUserTableClientItn = TableClient.fromConnectionString(
+    LOCKED_PROFILES_STORAGE_CONNECTION_STRING_ITN,
+    LOCKED_PROFILES_TABLE_NAME_ITN,
+    { allowInsecureConnection: isDevEnv },
+  );
+
+  const lockUserTableClientMigrationKit = new CustomTableClient(
+    () => void 0,
+    lockUserTableClient,
+    lockUserTableClientItn,
   );
 
   const lollipopRevokeQueueClient = new QueueClient(

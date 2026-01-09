@@ -37,10 +37,11 @@
     "generate:proxy:introspection": "shx rm -rf src/generated/introspection  && gen-api-models --api-spec api/internal.yaml --out-dir src/generated/introspection"
   },
   "dependencies": {
-    "@azure/data-tables": "^13.2.2",
+    "@azure/data-tables": "^13.3.2",
     "@azure/identity": "^4.10.1",
     "@azure/service-bus": "^7.9.5",
     "@azure/storage-queue": "^12.16.0",
+    "@pagopa/azure-storage-data-table-migration-kit": "^0.1.0",
     "@pagopa/io-auth-n-identity-commons": "*",
     "@pagopa/io-functions-commons": "^29.1.0",
     "@pagopa/io-spid-commons": "^14.0.1",
