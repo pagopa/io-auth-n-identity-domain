@@ -1,0 +1,17 @@
+<policies>
+    <inbound>
+        <base />
+        <set-backend-service id="apim-pool-app-backend"
+            backend-id="pool-app-backend" />
+        <rewrite-uri template='@(context.Request.Url.Path)' />
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>
