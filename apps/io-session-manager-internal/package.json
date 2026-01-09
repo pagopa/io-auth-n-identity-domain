@@ -32,7 +32,6 @@
     "@azure/service-bus": "^7.9.5",
     "@azure/storage-blob": "^12.29.1",
     "@azure/storage-queue": "^12.16.0",
-    "@pagopa/azure-storage-data-table-migration-kit": "^0.1.0",
     "@pagopa/handler-kit": "^1.1.1",
     "@pagopa/handler-kit-azure-func": "^2.0.8",
     "@pagopa/io-auth-n-identity-commons": "*",
