@@ -18,7 +18,7 @@ import {
 import { SpidLogConfig, isDevEnv } from "../config";
 
 export const initStorageDependencies = () => {
-  const lockUserTableClient = TableClient.fromConnectionString(
+  const lockUserTableClientOld = TableClient.fromConnectionString(
     LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
     LOCKED_PROFILES_TABLE_NAME,
     { allowInsecureConnection: isDevEnv },
@@ -30,9 +30,9 @@ export const initStorageDependencies = () => {
     { allowInsecureConnection: isDevEnv },
   );
 
-  const lockUserTableClientMigrationKit = new CustomTableClient(
+  const lockUserTableClient = new CustomTableClient(
     () => void 0,
-    lockUserTableClient,
+    lockUserTableClientOld,
     lockUserTableClientItn,
   );
 
