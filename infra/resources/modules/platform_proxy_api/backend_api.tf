@@ -2,7 +2,7 @@ resource "azurerm_api_management_api_version_set" "identity_v1" {
   name                = "identity_v1"
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
-  display_name        = "Auth & Identity AppBackend v1"
+  display_name        = "Auth-n-Identity AppBackend v1"
   versioning_scheme   = "Segment"
 }
 
@@ -16,8 +16,8 @@ resource "azurerm_api_management_api" "identity" {
   version        = "v1"
   revision       = 1
 
-  description  = "IO Auth & Identity AppBackend API"
-  display_name = "Auth & Identity AppBackend"
+  description  = "IO Auth-n-Identity AppBackend API"
+  display_name = "Auth-n-Identity AppBackend"
   path         = "api/identity"
   protocols    = ["https"]
 
