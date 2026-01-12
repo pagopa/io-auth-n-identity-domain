@@ -77,6 +77,8 @@ locals {
       REDIS_URL      = module.redis_common_itn.hostname
       REDIS_PORT     = module.redis_common_itn.ssl_port
       REDIS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.redis_access_key_itn.versionless_id})"
+
+      FF_ENABLE_IOWEB_EMAIL_ACTIONS = true
     }
   }
 }
