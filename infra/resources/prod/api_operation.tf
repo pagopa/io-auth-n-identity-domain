@@ -7,7 +7,7 @@ module "io_profile_apim_api_itn" {
   key_vault_common_id = data.azurerm_key_vault.common_kv.id
 
   function_profile_url = "https://${module.function_profile.function_app.function_app.default_hostname}"
-  function_admin_url   = "https://io-p-admin-fn.azurewebsites.net"
+  function_admin_url   = "https://io-p-itn-admin-func-01.azurewebsites.net"
 
   api_host_name = "api.io.pagopa.it"
 }
