@@ -8,43 +8,11 @@ servers:
 security:
   - Bearer: []
 paths:
-  /user-identity:
+  changeme:
     get:
-      summary: Session token introspection
-      description: Introspect the session token and returns the related user identity
-      operationId: getUserIdentity
       responses:
         "200":
-          description: Found.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserIdentityWithTtl"
-              example:
-                family_name: Rossi
-                fiscal_code: TMMEXQ60A10Y526X
-                name: Mario
-                spid_email: preferred@example.com
-                spid_level: https://www.spid.gov.it/SpidL2
-                date_of_birth: "2007-07-21"
-                created_at: "2017-07-21T17:32:28Z"
-                token_remaining_ttl: 35
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProblemJson"
-        "401":
-          description: Bearer token null or expired.
-          content: {}
-        "500":
-          description: There was an error retrieving user's identity.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProblemJson"
-    x-swagger-router-controller: AuthenticationController
+          description: Replace me with internal endpoints
 components:
   schemas:
     HttpStatusCode:
@@ -89,83 +57,6 @@ components:
           description: |-
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
-    FiscalCode:
-      type: string
-      description: User's fiscal code.
-      format: FiscalCode
-      x-import: "@pagopa/ts-commons/lib/strings"
-      example: SPNDNL80R13C555X
-    EmailAddress:
-      type: string
-      format: email
-      example: foobar@example.com
-    SpidLevel:
-      type: string
-      description: A SPID level.
-      enum:
-        - https://www.spid.gov.it/SpidL1
-        - https://www.spid.gov.it/SpidL2
-        - https://www.spid.gov.it/SpidL3
-    SessionTTL:
-      type: object
-      properties:
-        created_at:
-          type: number
-        token_remaining_ttl:
-          type: number
-          format: integer
-      required:
-        - created_at
-        - token_remaining_ttl
-    AssertionRefSha256:
-      type: string
-      pattern: ^(sha256-[A-Za-z0-9-_=]{1,44})$
-    AssertionRefSha384:
-      type: string
-      pattern: ^(sha384-[A-Za-z0-9-_=]{1,66})$
-    AssertionRefSha512:
-      type: string
-      pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
-    AssertionRef:
-      oneOf:
-        - $ref: "#/components/schemas/AssertionRefSha512"
-        - $ref: "#/components/schemas/AssertionRefSha384"
-        - $ref: "#/components/schemas/AssertionRefSha256"
-    UserIdentity:
-      title: CIE or SPID User Identity
-      type: object
-      description: Describes the user's identity while it's authenticated.
-      properties:
-        family_name:
-          type: string
-        fiscal_code:
-          $ref: "#/components/schemas/FiscalCode"
-        # assertion_ref here is optional.
-        # An user may not have initialized a lollipop session
-        assertion_ref:
-          $ref: "#/components/schemas/AssertionRef"
-        name:
-          type: string
-        date_of_birth:
-          type: string
-        spid_email:
-          $ref: "#/components/schemas/EmailAddress"
-        spid_level:
-          $ref: "#/components/schemas/SpidLevel"
-        spid_idp:
-          type: string
-        session_tracking_id:
-          type: string
-      required:
-        - date_of_birth
-        - family_name
-        - fiscal_code
-        - name
-        - spid_level
-    UserIdentityWithTtl:
-      allOf:
-        - $ref: "#/components/schemas/UserIdentity"
-        - $ref: "#/components/schemas/SessionTTL"
   securitySchemes:
     Bearer:
       type: apiKey
