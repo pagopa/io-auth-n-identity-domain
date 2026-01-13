@@ -135,7 +135,7 @@ module "external_api_session_manager" {
   subscription_required = false
 
   content_format = "openapi-link"
-  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.9.2/apps/io-session-manager/api/external.yaml"
+  content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/refs/tags/io-session-manager%401.18.0/apps/io-session-manager/api/external.yaml"
 
   xml_content = local.session_manager_base_policy_pool
 }
