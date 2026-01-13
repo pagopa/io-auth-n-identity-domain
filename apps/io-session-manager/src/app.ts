@@ -194,13 +194,6 @@ export const newApp: (
     appInsightsClient,
   );
 
-  setupInternalEndpoints(
-    app,
-    PROXY_BASE_PATH,
-    authMiddlewares,
-    REDIS_CLIENT_SELECTOR,
-  );
-
   setupBPDEndpoints(
     app,
     toProxySSOBasePath("bpd"),
@@ -471,6 +464,17 @@ function setupExternalEndpoints(
     ),
   );
 
+  app.get(
+    `${basePath}/user-identity`,
+    authMiddlewares.bearerSession,
+    pipe(
+      toExpressHandler({
+        redisClientSelector,
+      }),
+      ap(withUserFromRequest(SessionController.getUserIdentity)),
+    ),
+  );
+
   app.post(
     `${basePath}/fast-login/nonce/generate`,
     pipe(
@@ -495,26 +499,6 @@ function setupExternalEndpoints(
         sessionTTL: fastLoginConfig.lvTokenDurationSecs,
       }),
       ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
-    ),
-  );
-}
-
-function setupInternalEndpoints(
-  app: express.Application,
-  basePath: string,
-  authMiddlewares: {
-    bearerSession: express.RequestHandler;
-  },
-  redisClientSelector: RedisClientSelectorType,
-) {
-  app.get(
-    `${basePath}/user-identity`,
-    authMiddlewares.bearerSession,
-    pipe(
-      toExpressHandler({
-        redisClientSelector,
-      }),
-      ap(withUserFromRequest(SessionController.getUserIdentity)),
     ),
   );
 }

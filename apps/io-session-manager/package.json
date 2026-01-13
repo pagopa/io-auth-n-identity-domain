@@ -22,7 +22,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "generate": "yarn generate:proxy:api-models && yarn generate:proxy:fast-login && yarn generate:proxy:io-profile && yarn generate:proxy:lollipop && yarn generate:test-certs && yarn generate:lollipop-definitions && yarn generate:proxy:fims-models && yarn generate:proxy:zendesk-models && yarn generate:proxy:bpd-models && yarn generate:proxy:pagopa-models && yarn generate:proxy:public-models && yarn generate:proxy:introspection",
+    "generate": "yarn generate:proxy:api-models && yarn generate:proxy:fast-login && yarn generate:proxy:io-profile && yarn generate:proxy:lollipop && yarn generate:test-certs && yarn generate:lollipop-definitions && yarn generate:proxy:fims-models && yarn generate:proxy:zendesk-models && yarn generate:proxy:bpd-models && yarn generate:proxy:pagopa-models && yarn generate:proxy:public-models",
     "generate:test-certs": "./scripts/generate-test-certs.sh certs",
     "generate:proxy:api-models": "shx rm -rf src/generated/backend && gen-api-models --api-spec api/external.yaml --out-dir src/generated/backend",
     "generate:proxy:fast-login": "shx rm -rf src/generated/fast-login-api && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/477ca0f612c4ecbeddc1b35bbdde88c4fb702d5c/apps/io-fast-login/api/internal.yaml --out-dir src/generated/fast-login-api --no-strict --request-types --response-decoders --client",
@@ -33,8 +33,7 @@
     "generate:proxy:zendesk-models": "shx rm -rf src/generated/zendesk && gen-api-models --api-spec api/sso/zendesk.yaml --out-dir src/generated/zendesk",
     "generate:proxy:bpd-models": "shx rm -rf src/generated/bpd && gen-api-models --api-spec api/sso/bpd.yaml --out-dir src/generated/bpd",
     "generate:proxy:pagopa-models": "shx rm -rf src/generated/pagopa && gen-api-models --api-spec api/sso/pagopa.yaml --out-dir src/generated/pagopa",
-    "generate:proxy:public-models": "shx rm -rf src/generated/public  && gen-api-models --api-spec api/external.yaml --out-dir src/generated/public",
-    "generate:proxy:introspection": "shx rm -rf src/generated/introspection  && gen-api-models --api-spec api/internal.yaml --out-dir src/generated/introspection"
+    "generate:proxy:public-models": "shx rm -rf src/generated/public  && gen-api-models --api-spec api/external.yaml --out-dir src/generated/public"
   },
   "dependencies": {
     "@azure/data-tables": "^13.2.2",
