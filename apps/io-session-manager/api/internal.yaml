@@ -8,7 +8,7 @@ servers:
 security:
   - Bearer: []
 paths:
-  changeme:
+  /changeme:
     get:
       responses:
         "200":
