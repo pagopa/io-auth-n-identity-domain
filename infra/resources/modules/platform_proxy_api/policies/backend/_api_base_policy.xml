@@ -5,7 +5,7 @@
         <set-backend-service id="apim-pool-app-backend"
             backend-id="pool-app-backend" />
         <set-header name="x-app-backend-key" exists-action="override">
-            <value>{{app-backend-key}}</value>
+            <value>{{io-auth-app-backend-key}}</value>
         </set-header>
         <rewrite-uri template='@(context.Request.Url.Path)' />
     </inbound>
