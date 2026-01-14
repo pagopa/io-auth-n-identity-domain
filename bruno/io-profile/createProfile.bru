@@ -1,17 +1,25 @@
 meta {
-  name: getProfile
+  name: createProfile
   type: http
-  seq: 2
+  seq: 1
 }
 
-get {
+post {
   url: {{IO_PROFILE_BASE_URL}}/profiles/:fiscalCode
-  body: none
+  body: json
   auth: inherit
 }
 
 params:path {
   fiscalCode: {{FISCAL_CODE}}
+}
+
+body:json {
+  {
+    "email": "email@test.it",
+    "is_email_validated": false,
+    "is_test_profile": false
+  }
 }
 
 script:pre-request {
