@@ -1,5 +1,11 @@
 # io-lollipop
 
+## 1.16.1
+
+### Patch Changes
+
+- 3d12c0d: Bump dependency `@pagopa/azure-storage-migration-kit` to version `0.0.2`
+
 ## 1.16.0
 
 ### Minor Changes
