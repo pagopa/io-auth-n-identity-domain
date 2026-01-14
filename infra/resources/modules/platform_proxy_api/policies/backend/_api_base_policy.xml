@@ -1,8 +1,12 @@
 <policies>
     <inbound>
         <base />
+        <include-fragment fragment-id="ioapp-authenticated" />
         <set-backend-service id="apim-pool-app-backend"
             backend-id="pool-app-backend" />
+        <set-header name="x-app-backend-key" exists-action="override">
+            <value>{{app-backend-key}}</value>
+        </set-header>
         <rewrite-uri template='@(context.Request.Url.Path)' />
     </inbound>
     <backend>
