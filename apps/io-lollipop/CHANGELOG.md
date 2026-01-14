@@ -1,5 +1,11 @@
 # io-lollipop
 
+## 1.17.0
+
+### Minor Changes
+
+- 7bdfe66: Download Assertions as Readable Stream objects
+
 ## 1.16.1
 
 ### Patch Changes
