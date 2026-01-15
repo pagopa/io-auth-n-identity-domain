@@ -1,6 +1,5 @@
 import { GetTableEntityOptions, TableClient } from "@azure/data-tables";
 import * as E from "fp-ts/lib/Either";
-import { Either } from "fp-ts/lib/Either";
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as t from "io-ts";
@@ -14,30 +13,6 @@ export type StorageError = Error & {
 
 const ResourceNotFoundStatusCode = 404;
 
-/**
- * Retrieve an entity from table storage
- *
- * @param tableClient the Azure TableClient
- * @param partitionKey
- * @param rowKey
- * @param options
- */
-export const retrieveTableEntity = async (
-  tableClient: TableClient,
-  partitionKey: string,
-  rowKey: string,
-  options?: GetTableEntityOptions
-): Promise<Either<StorageError, O.Option<unknown>>> =>
-  tableClient.getEntity(partitionKey, rowKey, options).then(
-    result => E.right(O.some(result)),
-    err => {
-      const errorAsStorageError = err as StorageError;
-      if (errorAsStorageError?.statusCode === ResourceNotFoundStatusCode) {
-        return E.right(O.none);
-      }
-      return E.left(errorAsStorageError);
-    }
-  );
 /**
  * Retrieve an entity from table storage Decoded into the given io-ts type
  *
