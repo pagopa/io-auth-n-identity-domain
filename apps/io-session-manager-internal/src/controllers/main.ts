@@ -51,8 +51,8 @@ const safeRedisClientTask = CreateRedisClientSingleton(
 );
 
 const AuthenticationLockTableClient = TableClient.fromConnectionString(
-  config.LOCKED_PROFILES_STORAGE_CONNECTION_STRING_ITN,
-  config.LOCKED_PROFILES_TABLE_NAME_ITN,
+  config.LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
+  config.LOCKED_PROFILES_TABLE_NAME,
 );
 
 const RevokeAssertionRefQueueClient = new QueueClient(
