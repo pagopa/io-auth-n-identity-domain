@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.14.0
+
+### Minor Changes
+
+- e14753b: Integrate Migration Kit for locked profiles table
+
 ## 0.13.1
 
 ### Patch Changes
