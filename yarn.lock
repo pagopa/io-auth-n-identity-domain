@@ -3366,9 +3366,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/azure-storage-migration-kit@npm:^0.0.1":
-  version: 0.0.1
-  resolution: "@pagopa/azure-storage-migration-kit@npm:0.0.1"
+"@pagopa/azure-storage-migration-kit@npm:^0.0.2":
+  version: 0.0.2
+  resolution: "@pagopa/azure-storage-migration-kit@npm:0.0.2"
   dependencies:
     "@azure/core-auth": "npm:^1.7.2"
     "@azure/storage-blob": "npm:^12.24.0"
