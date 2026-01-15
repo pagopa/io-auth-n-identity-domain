@@ -21,6 +21,7 @@ import {
   LogoutScenarioEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
 
+import { CustomTableClient } from "@pagopa/azure-storage-data-table-migration-kit";
 import { TableClient } from "@azure/data-tables";
 import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
 import { SessionState } from "../generated/definitions/internal/SessionState";
@@ -80,7 +81,7 @@ export type GetUserSessionStateDeps = Pick<
   "SafeRedisClientTask" | "RedisRepository"
 > & {
   AuthLockRepository: AuthLockRepository;
-  AuthenticationLockTableClient: TableClient;
+  AuthenticationLockTableClient: CustomTableClient;
 };
 const getUserSessionState: (
   fiscalCode: FiscalCode,
@@ -207,7 +208,8 @@ const clearInstallation: (
 
 export type LockUserAuthenticationDeps = RedisDeps & {
   AuthLockRepository: AuthLockRepository;
-  AuthenticationLockTableClient: TableClient;
+  AuthenticationLockTableClient: CustomTableClient;
+  AuthenticationLockTableClientItn: TableClient;
   LollipopRepository: LollipopRepository;
   RevokeAssertionRefQueueClient: QueueClient;
   InstallationRepository: InstallationRepository;
@@ -317,7 +319,7 @@ const unlockuserAuthenticationLockData: (
 
 export type UnlockUserAuthenticationDeps = {
   AuthLockRepository: AuthLockRepository;
-  AuthenticationLockTableClient: TableClient;
+  AuthenticationLockTableClient: CustomTableClient;
 };
 const unlockUserAuthentication: (
   fiscalCode: FiscalCode,

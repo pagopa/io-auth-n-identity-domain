@@ -19,6 +19,7 @@ import {
   mockListEntities,
   mockSubmitTransaction,
   mockTableClient,
+  mockTableClientMigrationKit,
 } from "../../__mocks__/table-client.mock";
 import {
   aFiscalCode,
@@ -32,7 +33,7 @@ import {
 import { UnlockCode } from "../../generated/definitions/internal/UnlockCode";
 
 const mockedDependencies = {
-  AuthenticationLockTableClient: mockTableClient,
+  AuthenticationLockTableClient: mockTableClientMigrationKit,
   AuthenticationLockTableClientItn: mockTableClient,
 };
 describe("Session lock repository#isUserAuthenticationLocked", () => {
