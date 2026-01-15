@@ -1,5 +1,17 @@
 # io-session-manager
 
+## 1.19.0
+
+### Minor Changes
+
+- fdaa8bd: Migration Kit integration
+
+## 1.18.0
+
+### Minor Changes
+
+- 678efc7: getUserIdentity moved to external api spec
+
 ## 1.17.0
 
 ### Minor Changes
