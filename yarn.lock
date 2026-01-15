@@ -11210,12 +11210,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "io-session-manager-internal@workspace:apps/io-session-manager-internal"
   dependencies:
-    "@azure/data-tables": "npm:^13.3.0"
+    "@azure/data-tables": "npm:^13.3.2"
     "@azure/functions": "npm:^4.7.0"
     "@azure/identity": "npm:^4.10.0"
     "@azure/service-bus": "npm:^7.9.5"
     "@azure/storage-blob": "npm:^12.29.1"
     "@azure/storage-queue": "npm:^12.16.0"
+    "@pagopa/azure-storage-data-table-migration-kit": "npm:^0.1.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/handler-kit": "npm:^1.1.1"
     "@pagopa/handler-kit-azure-func": "npm:^2.0.8"

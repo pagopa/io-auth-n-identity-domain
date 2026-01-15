@@ -7,6 +7,7 @@ import { ServiceBusClient } from "@azure/service-bus";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { BlobUtil } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import { RejectedLoginEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
+import { CustomTableClient } from "@pagopa/azure-storage-data-table-migration-kit";
 import { CreateRedisClientSingleton } from "../utils/redis-client";
 import { initTelemetryClient } from "../utils/appinsights";
 import { getConfigOrThrow } from "../utils/config";
@@ -53,6 +54,17 @@ const safeRedisClientTask = CreateRedisClientSingleton(
 const AuthenticationLockTableClient = TableClient.fromConnectionString(
   config.LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
   config.LOCKED_PROFILES_TABLE_NAME,
+);
+
+const AuthenticationLockTableClientItn = TableClient.fromConnectionString(
+  config.LOCKED_PROFILES_STORAGE_CONNECTION_STRING_ITN,
+  config.LOCKED_PROFILES_TABLE_NAME_ITN,
+);
+
+const AuthenticationLockTableClientMigrationKit = new CustomTableClient(
+  () => void 0,
+  AuthenticationLockTableClient,
+  AuthenticationLockTableClientItn,
 );
 
 const RevokeAssertionRefQueueClient = new QueueClient(
@@ -109,7 +121,7 @@ app.http("GetUserSessionState", {
     SessionService,
     RedisRepository,
     AuthLockRepository,
-    AuthenticationLockTableClient,
+    AuthenticationLockTableClient: AuthenticationLockTableClientMigrationKit,
   }),
   methods: ["GET"],
   route: `${v1BasePath}/sessions/{fiscalCode}/state`,
@@ -126,7 +138,8 @@ app.http("AuthLock", {
     InstallationRepository,
     LollipopRepository,
     NotificationQueueClient,
-    AuthenticationLockTableClient,
+    AuthenticationLockTableClient: AuthenticationLockTableClientMigrationKit,
+    AuthenticationLockTableClientItn,
     RevokeAssertionRefQueueClient,
     AuthSessionsTopicRepository,
     authSessionsTopicSender: authSessionsTopicServiceBusSender,
@@ -140,7 +153,7 @@ app.http("ReleaseAuthLock", {
   handler: ReleaseAuthLockFunction({
     SessionService,
     AuthLockRepository,
-    AuthenticationLockTableClient,
+    AuthenticationLockTableClient: AuthenticationLockTableClientMigrationKit,
   }),
   methods: ["POST"],
   route: `${v1BasePath}/auth/{fiscalCode}/release-lock`,
