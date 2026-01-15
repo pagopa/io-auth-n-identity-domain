@@ -35,7 +35,6 @@ export const FeatureFlagFromString = withFallback(
 export const IConfig = t.type({
   APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
 
-  CONFIRM_CHOICE_PAGE_URL: UrlFromString,
   COSMOSDB_KEY: NonEmptyString,
   COSMOSDB_NAME: NonEmptyString,
   COSMOSDB_URI: NonEmptyString,
