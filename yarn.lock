@@ -11216,7 +11216,6 @@ __metadata:
     "@azure/service-bus": "npm:^7.9.5"
     "@azure/storage-blob": "npm:^12.29.1"
     "@azure/storage-queue": "npm:^12.16.0"
-    "@pagopa/azure-storage-data-table-migration-kit": "npm:^0.1.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/handler-kit": "npm:^1.1.1"
     "@pagopa/handler-kit-azure-func": "npm:^2.0.8"

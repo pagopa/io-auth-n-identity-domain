@@ -5,17 +5,12 @@ import {
 } from "@azure/data-tables";
 import { vi } from "vitest";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { CustomTableClient } from "@pagopa/azure-storage-data-table-migration-kit";
 import { NotReleasedAuthenticationLockData } from "../repositories/auth-lock";
 import { aFiscalCode, anUnlockCode } from "./user.mock";
 
 export const mockListEntities = vi
   .fn()
   .mockImplementation(noProfileLockedRecordIterator);
-
-export const mockCreateEntityMigrationKit = vi
-  .fn()
-  .mockRejectedValue(new Error("Should not be called"));
 
 export const mockCreateEntity = vi
   .fn()
@@ -26,14 +21,10 @@ export const mockSubmitTransaction = vi.fn(
 );
 
 export const mockTableClient = {
-  createEntity: mockCreateEntity,
-} as unknown as TableClient;
-
-export const mockTableClientMigrationKit = {
   listEntities: mockListEntities,
-  createEntity: mockCreateEntityMigrationKit,
+  createEntity: mockCreateEntity,
   submitTransaction: mockSubmitTransaction,
-} as unknown as CustomTableClient;
+} as unknown as TableClient;
 
 export const getLockedProfileIterator = (
   expectedResults: NotReleasedAuthenticationLockData[],
