@@ -10,7 +10,7 @@ resource "azurerm_api_management_named_value" "app_backend_key" {
   name                = "io-auth-app-backend-key"
   api_management_name = var.platform_apim_name
   resource_group_name = var.platform_apim_resource_group_name
-  display_name        = "app-backend-key"
+  display_name        = "io-auth-app-backend-key"
   value               = data.azurerm_key_vault_secret.app_backend_api_key_secret.value
   secret              = true
 }
