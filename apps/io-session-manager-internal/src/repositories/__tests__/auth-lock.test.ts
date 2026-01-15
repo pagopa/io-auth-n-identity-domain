@@ -19,7 +19,6 @@ import {
   mockListEntities,
   mockSubmitTransaction,
   mockTableClient,
-  mockTableClientMigrationKit,
 } from "../../__mocks__/table-client.mock";
 import {
   aFiscalCode,
