@@ -8,18 +8,11 @@ import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import * as t from "io-ts";
 import * as ROA from "fp-ts/lib/ReadonlyArray";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
-import { CustomTableClient } from "@pagopa/azure-storage-data-table-migration-kit";
 import * as AI from "../utils/async-iterable";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
 
 type Dependencies = {
-  AuthenticationLockTableClient: CustomTableClient;
-};
-
-// We want to use TableClient when creating authentication locks since
-// the creation should go to the new storage account only.
-type LockDependencies = {
-  AuthenticationLockTableClientItn: TableClient;
+  AuthenticationLockTableClient: TableClient;
 };
 
 export type NotReleasedAuthenticationLockData = t.TypeOf<
@@ -68,12 +61,12 @@ const isUserAuthenticationLocked =
 const lockUserAuthentication: (
   fiscalCode: FiscalCode,
   unlockCode: UnlockCode,
-) => RTE.ReaderTaskEither<LockDependencies, Error, true> =
+) => RTE.ReaderTaskEither<Dependencies, Error, true> =
   (fiscalCode, unlockCode) => (deps) =>
     pipe(
       TE.tryCatch(
         () =>
-          deps.AuthenticationLockTableClientItn.createEntity({
+          deps.AuthenticationLockTableClient.createEntity({
             partitionKey: fiscalCode,
             rowKey: unlockCode,
 

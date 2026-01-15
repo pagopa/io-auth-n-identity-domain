@@ -33,8 +33,7 @@ import {
 import { UnlockCode } from "../../generated/definitions/internal/UnlockCode";
 
 const mockedDependencies = {
-  AuthenticationLockTableClient: mockTableClientMigrationKit,
-  AuthenticationLockTableClientItn: mockTableClient,
+  AuthenticationLockTableClient: mockTableClient,
 };
 describe("Session lock repository#isUserAuthenticationLocked", () => {
   beforeEach(() => {
