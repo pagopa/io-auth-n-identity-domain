@@ -25,8 +25,8 @@ locals {
       LOLLIPOP_REVOKE_QUEUE_NAME                = local.pubkeys_revoke_queue_name
 
       // User authenticaiton locks table config
-      LOCKED_PROFILES_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.locked_profiles_storage.primary_connection_string
-      LOCKED_PROFILES_TABLE_NAME                = "lockedprofiles"
+      LOCKED_PROFILES_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
+      LOCKED_PROFILES_TABLE_NAME                = local.locked_profiles_table_name
 
       // User authentication locks table config (ITN region)
       LOCKED_PROFILES_STORAGE_CONNECTION_STRING_ITN = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
