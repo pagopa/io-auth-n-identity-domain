@@ -1410,7 +1410,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/data-tables@npm:^13.3.1, @azure/data-tables@npm:^13.3.2":
+"@azure/data-tables@npm:^13.3.2":
   version: 13.3.2
   resolution: "@azure/data-tables@npm:13.3.2"
   dependencies:
@@ -3350,19 +3350,6 @@ __metadata:
   version: 1.24.1
   resolution: "@opentelemetry/semantic-conventions@npm:1.24.1"
   checksum: 10c0/5a3707860b70df8430745ef4ef99810a6d61d770942c217ac25ef8d6840a6b17b943c1ebe4da4a118dee0e3b1e71da3c16e2790f3c3a7e7e6b171e8d1944f73e
-  languageName: node
-  linkType: hard
-
-"@pagopa/azure-storage-data-table-migration-kit@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@pagopa/azure-storage-data-table-migration-kit@npm:0.1.0"
-  dependencies:
-    "@azure/core-client": "npm:^1.10.1"
-    "@azure/core-paging": "npm:^1.6.2"
-    "@azure/data-tables": "npm:^13.3.1"
-    fp-ts: "npm:^2.13.1"
-    ts-pattern: "npm:^5.8.0"
-  checksum: 10c0/3fd771cb75bfd58c8106565af2f59803a88ca19eeaf62e0cf65cd33dd7c0780ade9f0b77db34507872e783537d21ca94fd311de46e31ad48aa529363394c84f0
   languageName: node
   linkType: hard
 
@@ -11256,7 +11243,6 @@ __metadata:
     "@azure/identity": "npm:^4.10.1"
     "@azure/service-bus": "npm:^7.9.5"
     "@azure/storage-queue": "npm:^12.16.0"
-    "@pagopa/azure-storage-data-table-migration-kit": "npm:^0.1.0"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/io-auth-n-identity-commons": "npm:*"
     "@pagopa/io-functions-commons": "npm:^29.1.0"
@@ -16728,13 +16714,6 @@ __metadata:
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
   checksum: 10c0/5f29938489f96982a25ba650b64218e83a3357d76f7bede80195c65ab44ad279c8357264639b7abdd5d7e75fc269a83daa0e9c62fd8637a3def67254ecc9ddc2
-  languageName: node
-  linkType: hard
-
-"ts-pattern@npm:^5.8.0":
-  version: 5.9.0
-  resolution: "ts-pattern@npm:5.9.0"
-  checksum: 10c0/7640db25c39d29b287471b2b82d4f7b4674a02098c6ba4d10fed180adfb07d0e0c71930d9e59dc0d90654145e02fd320af63cf0df3c41e100d4154658a612a0a
   languageName: node
   linkType: hard
 

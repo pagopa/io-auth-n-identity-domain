@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.20.0
+
+### Minor Changes
+
+- 4bd9422: Migration Kit removal
+
 ## 1.19.0
 
 ### Minor Changes
