@@ -2,9 +2,12 @@
     <inbound>
         <base />
         <set-backend-service base-url="{{io-fn3-public-url}}" />
-        <set-header name="x-functions-key" exists-action="override">
-            <value>{{io-fn3-public-key}}</value>
-        </set-header>
+        <return-response>
+            <set-status code="303" reason="See Other" />
+            <set-header name="Location" exists-action="override">
+                <value>@("https://account.ioapp.it/it/conferma-email/" + context.Request.OriginalUrl.QueryString)</value>
+            </set-header>
+        </return-response>
     </inbound>
     <outbound>
         <base />

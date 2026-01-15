@@ -43,7 +43,7 @@ import { SuccessResponse } from "../generated/backend/SuccessResponse";
 import { log } from "../utils/logger";
 import { Concat, Union2Tuple, parseFilter } from "../utils/fields-filter";
 import { AssertionRef } from "../generated/lollipop-api/AssertionRef";
-import { UserIdentityWithTtl } from "../generated/introspection/UserIdentityWithTtl";
+import { UserIdentityWithTtl } from "../generated/backend/UserIdentityWithTtl";
 
 // how many random bytes to generate for each session token
 export const SESSION_TOKEN_LENGTH_BYTES = 48;

@@ -35,7 +35,7 @@ import {
   mockedUser,
 } from "../../__mocks__/user.mocks";
 import { toExpectedResponse } from "../../__tests__/utils";
-import { UserIdentityWithTtl } from "../../generated/introspection/UserIdentityWithTtl";
+import { UserIdentityWithTtl } from "../../generated/backend/UserIdentityWithTtl";
 import { mockAuthSessionsTopicRepository } from "../../repositories/__mocks__/auth-session-topic-repository.mocks";
 import { FnAppAPIClient } from "../../repositories/fn-app-api";
 import { LollipopApiClient } from "../../repositories/lollipop-api";

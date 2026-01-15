@@ -46,3 +46,7 @@ variable "zendesk_api_base_path" {
   type        = string
   description = "Base path for API"
 }
+variable "key_vault_common_id" {
+  type        = string
+  description = "Key Vault common ID"
+}
