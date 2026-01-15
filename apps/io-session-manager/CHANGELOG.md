@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.19.0
+
+### Minor Changes
+
+- fdaa8bd: Migration Kit integration
+
 ## 1.18.0
 
 ### Minor Changes
