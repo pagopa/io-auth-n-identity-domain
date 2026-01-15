@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.15.0
+
+### Minor Changes
+
+- a3c2600: Migration Kit Removal
+
 ## 0.14.0
 
 ### Minor Changes
