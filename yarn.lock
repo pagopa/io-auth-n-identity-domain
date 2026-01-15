@@ -3336,16 +3336,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pagopa/azure-storage-migration-kit@npm:^0.0.1":
-  version: 0.0.1
-  resolution: "@pagopa/azure-storage-migration-kit@npm:0.0.1"
+"@pagopa/azure-storage-migration-kit@npm:^0.0.2":
+  version: 0.0.2
+  resolution: "@pagopa/azure-storage-migration-kit@npm:0.0.2"
   dependencies:
     "@azure/core-auth": "npm:^1.7.2"
     "@azure/storage-blob": "npm:^12.24.0"
     fp-ts: "npm:^2.13.1"
     io-ts: "npm:^2.2.20"
     tsup: "npm:^6.6.3"
-  checksum: 10c0/9d56caf95aaf547be3d7e1791a25d0df136319eb012d3d2c533abd0d21fe762d5753a5155af8bc744b3b102d7ef19f4e5af30df4f0d4834c64c21523ce1b9a12
+  checksum: 10c0/56b734fbfa826f175193be690c18a9d6e13281d15477716e5f2f150dbeb4711153ce29abd7bb0373d0f58c640096550596ef34e65f436d6badbd92df01268b7f
   languageName: node
   linkType: hard
 
@@ -11001,7 +11001,7 @@ __metadata:
     "@azure/functions": "npm:^3.2.0"
     "@azure/storage-blob": "npm:^12.29.1"
     "@mattrglobal/http-signatures": "npm:^4.0.1"
-    "@pagopa/azure-storage-migration-kit": "npm:^0.0.1"
+    "@pagopa/azure-storage-migration-kit": "npm:^0.0.2"
     "@pagopa/eslint-config": "npm:^3.0.0"
     "@pagopa/express-azure-functions": "npm:^2.0.0"
     "@pagopa/io-auth-n-identity-commons": "npm:*"
