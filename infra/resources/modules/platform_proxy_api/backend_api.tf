@@ -32,8 +32,7 @@ resource "azurerm_api_management_api" "identity" {
 
   import {
     content_format = "openapi-link"
-    # The commit id refers to the last commit of io-backend IOPLT-1467 branch.
-    content_value = "https://raw.githubusercontent.com/pagopa/io-backend/ae846fb22834f931555b3c27a4592cba41380f38/openapi/generated/api_identity.yaml"
+    content_value  = "https://raw.githubusercontent.com/pagopa/io-backend/51857746745d5400b2edb1385f8f2b2654c01ed4/openapi/generated/api_identity.yaml"
   }
 }
 
