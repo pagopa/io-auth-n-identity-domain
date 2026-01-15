@@ -28,10 +28,6 @@ locals {
       LOCKED_PROFILES_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
       LOCKED_PROFILES_TABLE_NAME                = local.locked_profiles_table_name
 
-      // User authentication locks table config (ITN region)
-      LOCKED_PROFILES_STORAGE_CONNECTION_STRING_ITN = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
-      LOCKED_PROFILES_TABLE_NAME_ITN                = local.locked_profiles_table_name
-
       // Clear installation queue config
       PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING = data.azurerm_storage_account.push_notifications_storage.primary_connection_string
       PUSH_NOTIFICATIONS_QUEUE_NAME                = "push-notifications"
