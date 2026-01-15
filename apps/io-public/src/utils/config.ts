@@ -46,8 +46,6 @@ export const IConfig = t.type({
   MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING: NonEmptyString,
   VALIDATION_TOKENS_TABLE_NAME: NonEmptyString,
 
-  VALIDATION_CALLBACK_URL: NonEmptyString,
-
   isProduction: t.boolean
 });
 

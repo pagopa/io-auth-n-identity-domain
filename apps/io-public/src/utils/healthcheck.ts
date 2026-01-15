@@ -1,14 +1,13 @@
 import { CosmosClient } from "@azure/cosmos";
 import { GetPropertiesResponse, TableServiceClient } from "@azure/data-tables";
-import { toError } from "fp-ts/lib/Either";
-import { TaskEither } from "fp-ts/lib/TaskEither";
-import fetch from "node-fetch";
-import { pipe } from "fp-ts/lib/function";
-import * as TE from "fp-ts/lib/TaskEither";
-import * as T from "fp-ts/lib/Task";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { apply } from "fp-ts";
+import { toError } from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
 import * as RA from "fp-ts/lib/ReadonlyArray";
+import * as T from "fp-ts/lib/Task";
+import * as TE from "fp-ts/lib/TaskEither";
+import { TaskEither } from "fp-ts/lib/TaskEither";
 import { getConfig, IConfig } from "./config";
 
 type ProblemSource = "AzureCosmosDB" | "AzureStorage" | "Config" | "Url";
@@ -116,19 +115,6 @@ export const checkAzureStorageHealth = (
   );
 
 /**
- * Check a url is reachable
- *
- * @param url url to connect with
- *
- * @returns either true or an array of error messages
- */
-export const checkUrlHealth = (url: string): HealthCheck<"Url", true> =>
-  pipe(
-    TE.tryCatch(() => fetch(url, { method: "HEAD" }), toHealthProblems("Url")),
-    TE.map(_ => true)
-  );
-
-/**
  * Execute all the health checks for the application
  *
  * @returns either true or an array of error messages
@@ -136,18 +122,20 @@ export const checkUrlHealth = (url: string): HealthCheck<"Url", true> =>
 export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> =>
   pipe(
     checkConfigHealth(),
-    TE.chainW(config =>
-      apply.sequenceT(TE.ApplySeq)<
-        ReadonlyArray<HealthProblem<ProblemSource>>,
-        // eslint-disable-next-line functional/prefer-readonly-type
-        Array<TaskEither<ReadonlyArray<HealthProblem<ProblemSource>>, true>>
-      >(
-        checkAzureCosmosDbHealth(config.COSMOSDB_URI, config.COSMOSDB_KEY),
-        checkAzureStorageHealth(
-          config.MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING
-        ),
-        checkUrlHealth(config.VALIDATION_CALLBACK_URL)
-      )
+    TE.chainW(
+      ({
+        COSMOSDB_URI,
+        COSMOSDB_KEY,
+        MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING
+      }) =>
+        apply.sequenceT(TE.ApplySeq)<
+          ReadonlyArray<HealthProblem<ProblemSource>>,
+          // eslint-disable-next-line functional/prefer-readonly-type
+          Array<TaskEither<ReadonlyArray<HealthProblem<ProblemSource>>, true>>
+        >(
+          checkAzureCosmosDbHealth(COSMOSDB_URI, COSMOSDB_KEY),
+          checkAzureStorageHealth(MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING)
+        )
     ),
     TE.map(_ => true)
   );
