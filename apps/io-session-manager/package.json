@@ -1,6 +1,6 @@
 {
   "name": "io-session-manager",
-  "version": "1.18.0",
+  "version": "1.19.0",
   "author": "IO Auth & Identity Team",
   "description": "API for IO session",
   "engines": {
@@ -36,10 +36,11 @@
     "generate:proxy:public-models": "shx rm -rf src/generated/public  && gen-api-models --api-spec api/external.yaml --out-dir src/generated/public"
   },
   "dependencies": {
-    "@azure/data-tables": "^13.2.2",
+    "@azure/data-tables": "^13.3.2",
     "@azure/identity": "^4.10.1",
     "@azure/service-bus": "^7.9.5",
     "@azure/storage-queue": "^12.16.0",
+    "@pagopa/azure-storage-data-table-migration-kit": "^0.1.0",
     "@pagopa/io-auth-n-identity-commons": "*",
     "@pagopa/io-functions-commons": "^29.1.0",
     "@pagopa/io-spid-commons": "^14.0.1",

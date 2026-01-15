@@ -3,11 +3,11 @@
         <base />
         <include-fragment fragment-id="ioapp-authenticated" />
         <set-backend-service id="apim-pool-app-backend"
-            backend-id="pool-app-backend" />
-        <set-header name="x-app-backend-key" exists-action="override">
+            backend-id="app-backend-pool" />
+        <set-header name="x-appbackend-api-key" exists-action="override">
             <value>{{io-auth-app-backend-key}}</value>
         </set-header>
-        <rewrite-uri template='@(context.Request.Url.Path)' />
+        <rewrite-uri template="@(context.Request.OriginalUrl.Path)" />
     </inbound>
     <backend>
         <base />
