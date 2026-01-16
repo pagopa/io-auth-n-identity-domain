@@ -22,9 +22,6 @@ locals {
       COSMOSDB_KEY  = data.azurerm_cosmosdb_account.cosmos_api.primary_key
       COSMOSDB_NAME = "db"
 
-      VALIDATION_CALLBACK_URL = "https://api-app.io.pagopa.it/email_verification.html"
-      CONFIRM_CHOICE_PAGE_URL = "https://api-app.io.pagopa.it/email_confirm.html"
-
       MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.maintenance_st_connection_string.versionless_id})"
       VALIDATION_TOKENS_TABLE_NAME                  = local.validation_tokens_table_name
     }

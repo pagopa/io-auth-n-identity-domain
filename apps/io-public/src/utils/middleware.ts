@@ -1,14 +1,12 @@
 import { Request } from "express";
 import * as t from "io-ts";
 
-import { RequiredQueryParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_query_param";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
 import {
   IResponse,
   ResponseErrorFromValidationErrors
 } from "@pagopa/ts-commons/lib/responses";
 import { PatternString } from "@pagopa/ts-commons/lib/strings";
-import { enumType, withDefault } from "@pagopa/ts-commons/lib/types";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import { ValidateProfileEmailPayload } from "../generated/definitions/external/ValidateProfileEmailPayload";
@@ -24,11 +22,6 @@ export const TOKEN_HEADER_NAME = "x-pagopa-email-validation-token";
 export const TokenParam = PatternString("^[A-Za-z0-9]{26}:[A-Fa-f0-9]{24}$");
 export type TokenParam = t.TypeOf<typeof TokenParam>;
 
-export const TokenQueryParamMiddleware = RequiredQueryParamMiddleware(
-  TOKEN_QUERY_PARAM_NAME,
-  TokenParam
-);
-
 export const TokenHeaderParamMiddleware = async (
   request: Request
 ): Promise<E.Either<IResponse<"IResponseErrorValidation">, TokenParam>> =>
@@ -40,20 +33,4 @@ export const TokenHeaderParamMiddleware = async (
 
 export const ValidateProfileEmailBodyMiddleware = RequiredBodyPayloadMiddleware(
   ValidateProfileEmailPayload
-);
-
-// CONFIRM -> verify token and on success redirect to confirm page
-// VALIDATE -> verify token and on success update the user data and redirect to result page
-export enum FlowTypeEnum {
-  "CONFIRM" = "CONFIRM",
-  "VALIDATE" = "VALIDATE"
-}
-export const FlowType = enumType<FlowTypeEnum>(FlowTypeEnum, "FlowChoice");
-export type FlowType = t.TypeOf<typeof FlowType>;
-
-// even if the query param is optional the withDefault type is covering the absence
-// of the value on the URL
-export const ConfirmEmailFlowQueryParamMiddleware = RequiredQueryParamMiddleware(
-  FLOW_QUERY_PARAM_NAME,
-  withDefault(FlowType, FlowTypeEnum.CONFIRM)
 );
