@@ -15,6 +15,8 @@ module "io_platform_apim_api_itn" {
   fims_api_base_path     = "api/sso/fims"
   pagopa_api_base_path   = "api/sso/pagopa"
   zendesk_api_base_path  = "api/sso/zendesk"
+
+  key_vault_common_id = data.azurerm_key_vault.common_kv.id
 }
 
 
