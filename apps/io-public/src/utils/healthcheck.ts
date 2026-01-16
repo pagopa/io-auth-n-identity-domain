@@ -122,20 +122,17 @@ export const checkAzureStorageHealth = (
 export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> =>
   pipe(
     checkConfigHealth(),
-    TE.chainW(
-      ({
-        COSMOSDB_URI,
-        COSMOSDB_KEY,
-        MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING
-      }) =>
-        apply.sequenceT(TE.ApplySeq)<
-          ReadonlyArray<HealthProblem<ProblemSource>>,
-          // eslint-disable-next-line functional/prefer-readonly-type
-          Array<TaskEither<ReadonlyArray<HealthProblem<ProblemSource>>, true>>
-        >(
-          checkAzureCosmosDbHealth(COSMOSDB_URI, COSMOSDB_KEY),
-          checkAzureStorageHealth(MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING)
+    TE.chainW(config =>
+      apply.sequenceT(TE.ApplySeq)<
+        ReadonlyArray<HealthProblem<ProblemSource>>,
+        // eslint-disable-next-line functional/prefer-readonly-type
+        Array<TaskEither<ReadonlyArray<HealthProblem<ProblemSource>>, true>>
+      >(
+        checkAzureCosmosDbHealth(config.COSMOSDB_URI, config.COSMOSDB_KEY),
+        checkAzureStorageHealth(
+          config.MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING
         )
+      )
     ),
     TE.map(_ => true)
   );
