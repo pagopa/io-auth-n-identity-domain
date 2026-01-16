@@ -7,17 +7,16 @@
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
-import { withFallback, JsonFromString } from "io-ts-types";
+import { JsonFromString, withFallback } from "io-ts-types";
 
 import {
   FeatureFlag,
   FeatureFlagEnum
 } from "@pagopa/ts-commons/lib/featureFlag";
 
+import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import * as E from "fp-ts/lib/Either";
-import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 
 export const BetaUsers = t.readonlyArray(FiscalCode);
 export type BetaUsers = t.TypeOf<typeof BetaUsers>;
@@ -35,7 +34,6 @@ export const FeatureFlagFromString = withFallback(
 export const IConfig = t.type({
   APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
 
-  CONFIRM_CHOICE_PAGE_URL: UrlFromString,
   COSMOSDB_KEY: NonEmptyString,
   COSMOSDB_NAME: NonEmptyString,
   COSMOSDB_URI: NonEmptyString,
@@ -45,8 +43,6 @@ export const IConfig = t.type({
 
   MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING: NonEmptyString,
   VALIDATION_TOKENS_TABLE_NAME: NonEmptyString,
-
-  VALIDATION_CALLBACK_URL: NonEmptyString,
 
   isProduction: t.boolean
 });
