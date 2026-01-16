@@ -1,14 +1,12 @@
 import { Request } from "express";
 import * as t from "io-ts";
 
-import { RequiredQueryParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_query_param";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
 import {
   IResponse,
   ResponseErrorFromValidationErrors
 } from "@pagopa/ts-commons/lib/responses";
 import { PatternString } from "@pagopa/ts-commons/lib/strings";
-import { enumType, withDefault } from "@pagopa/ts-commons/lib/types";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import { ValidateProfileEmailPayload } from "../generated/definitions/external/ValidateProfileEmailPayload";
