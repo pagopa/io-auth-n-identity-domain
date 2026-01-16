@@ -1,5 +1,29 @@
 # io-session-manager-internal
 
+## 0.15.2
+
+### Patch Changes
+
+- 5841379: Cleanup configuration
+
+## 0.15.1
+
+### Patch Changes
+
+- 9c71ce2: Update Locked Profile table settings used
+
+## 0.15.0
+
+### Minor Changes
+
+- a3c2600: Migration Kit Removal
+
+## 0.14.0
+
+### Minor Changes
+
+- e14753b: Integrate Migration Kit for locked profiles table
+
 ## 0.13.1
 
 ### Patch Changes

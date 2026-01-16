@@ -1,6 +1,6 @@
 {
   "name": "io-session-manager-internal",
-  "version": "0.13.1",
+  "version": "0.15.2",
   "author": "IO Auth & Identity Team",
   "main": "dist/controllers/main.js",
   "engines": {
@@ -26,7 +26,7 @@
     "generate:definitions-types": "shx rm -rf ./src/generated/definitions/types && shx mkdir -p ./src/generated/definitions/types && gen-api-models --api-spec ./api/definitions.yaml --no-strict --out-dir ./src/generated/definitions/types"
   },
   "dependencies": {
-    "@azure/data-tables": "^13.3.0",
+    "@azure/data-tables": "^13.3.2",
     "@azure/functions": "^4.7.0",
     "@azure/identity": "^4.10.0",
     "@azure/service-bus": "^7.9.5",
