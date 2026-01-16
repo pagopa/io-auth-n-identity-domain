@@ -7,17 +7,16 @@
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
-import { withFallback, JsonFromString } from "io-ts-types";
+import { JsonFromString, withFallback } from "io-ts-types";
 
 import {
   FeatureFlag,
   FeatureFlagEnum
 } from "@pagopa/ts-commons/lib/featureFlag";
 
+import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import * as E from "fp-ts/lib/Either";
-import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 
 export const BetaUsers = t.readonlyArray(FiscalCode);
 export type BetaUsers = t.TypeOf<typeof BetaUsers>;
