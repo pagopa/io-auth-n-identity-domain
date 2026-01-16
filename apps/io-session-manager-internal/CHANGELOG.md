@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.15.2
+
+### Patch Changes
+
+- 5841379: Cleanup configuration
+
 ## 0.15.1
 
 ### Patch Changes
