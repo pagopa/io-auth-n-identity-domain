@@ -1,5 +1,11 @@
 # io-public
 
+## 2.1.0
+
+### Minor Changes
+
+- 86fb88c: Remove no longer needed ValidateProfileEmail Function
+
 ## 2.0.0
 
 ### Major Changes

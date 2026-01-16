@@ -11,7 +11,10 @@ import {
   StorageBlobClientWithFallback
 } from "@pagopa/azure-storage-migration-kit";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { isRestError } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
+import {
+  isRestError,
+  streamToText
+} from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import { pipe } from "fp-ts/lib/function";
 import { buildBlobClientWithFallback } from "./blob_client";
 
@@ -21,11 +24,12 @@ const getBlobToBufferAsText = (
   >
 ): TE.TaskEither<Error, string> =>
   pipe(
-    TE.tryCatch(
-      () => storageBlobClientWithFallback.downloadToBuffer(),
-      E.toError
-    ),
-    TE.map(buffer => buffer.toString("utf-8"))
+    TE.tryCatch(() => storageBlobClientWithFallback.download(), E.toError),
+    TE.chain(response =>
+      response.readableStreamBody
+        ? streamToText(response.readableStreamBody)
+        : TE.left(new Error("Blob stream is null or undefined"))
+    )
   );
 
 const getBlobToBufferAsTextIfExistsOrNone = (

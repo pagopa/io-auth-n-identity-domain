@@ -1241,7 +1241,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/core-rest-pipeline@npm:^1.19.1, @azure/core-rest-pipeline@npm:^1.20.0":
+"@azure/core-rest-pipeline@npm:^1.19.0, @azure/core-rest-pipeline@npm:^1.19.1, @azure/core-rest-pipeline@npm:^1.20.0":
   version: 1.22.2
   resolution: "@azure/core-rest-pipeline@npm:1.22.2"
   dependencies:
@@ -1344,7 +1344,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/core-xml@npm:^1.4.5":
+"@azure/core-xml@npm:^1.4.4, @azure/core-xml@npm:^1.4.5":
   version: 1.5.0
   resolution: "@azure/core-xml@npm:1.5.0"
   dependencies:
@@ -1407,6 +1407,23 @@ __metadata:
     "@azure/logger": "npm:^1.0.0"
     tslib: "npm:^2.2.0"
   checksum: 10c0/560d101e78a876b9173fa26874fdf996267427b96e274f293b3a35139b7cadb6b9a8520120af1e15427f93648a4668176e7022765868d3bdca1590a96a59f833
+  languageName: node
+  linkType: hard
+
+"@azure/data-tables@npm:^13.3.2":
+  version: 13.3.2
+  resolution: "@azure/data-tables@npm:13.3.2"
+  dependencies:
+    "@azure/core-auth": "npm:^1.9.0"
+    "@azure/core-client": "npm:^1.9.2"
+    "@azure/core-paging": "npm:^1.6.2"
+    "@azure/core-rest-pipeline": "npm:^1.19.0"
+    "@azure/core-tracing": "npm:^1.2.0"
+    "@azure/core-util": "npm:^1.11.0"
+    "@azure/core-xml": "npm:^1.4.4"
+    "@azure/logger": "npm:^1.1.4"
+    tslib: "npm:^2.8.1"
+  checksum: 10c0/1521047061c7983a69aedf2d3e41fc7ead58ba7fd7f667c98c99270f2b907207ea4b92532a5612ab18d565cf335ec7dea8662ee85c0d6c1757983087acebe7ac
   languageName: node
   linkType: hard
 
@@ -11180,7 +11197,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "io-session-manager-internal@workspace:apps/io-session-manager-internal"
   dependencies:
-    "@azure/data-tables": "npm:^13.3.0"
+    "@azure/data-tables": "npm:^13.3.2"
     "@azure/functions": "npm:^4.7.0"
     "@azure/identity": "npm:^4.10.0"
     "@azure/service-bus": "npm:^7.9.5"
@@ -11222,7 +11239,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "io-session-manager@workspace:apps/io-session-manager"
   dependencies:
-    "@azure/data-tables": "npm:^13.2.2"
+    "@azure/data-tables": "npm:^13.3.2"
     "@azure/identity": "npm:^4.10.1"
     "@azure/service-bus": "npm:^7.9.5"
     "@azure/storage-queue": "npm:^12.16.0"
