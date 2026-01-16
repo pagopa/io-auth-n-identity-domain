@@ -1,17 +1,16 @@
 import { CosmosClient } from "@azure/cosmos";
 import { GetPropertiesResponse, TableServiceClient } from "@azure/data-tables";
-import { toError } from "fp-ts/lib/Either";
-import { TaskEither } from "fp-ts/lib/TaskEither";
-import fetch from "node-fetch";
-import { pipe } from "fp-ts/lib/function";
-import * as TE from "fp-ts/lib/TaskEither";
-import * as T from "fp-ts/lib/Task";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { apply } from "fp-ts";
+import { toError } from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
 import * as RA from "fp-ts/lib/ReadonlyArray";
+import * as T from "fp-ts/lib/Task";
+import * as TE from "fp-ts/lib/TaskEither";
+import { TaskEither } from "fp-ts/lib/TaskEither";
 import { getConfig, IConfig } from "./config";
 
-type ProblemSource = "AzureCosmosDB" | "AzureStorage" | "Config" | "Url";
+type ProblemSource = "AzureCosmosDB" | "AzureStorage" | "Config";
 // eslint-disable-next-line functional/prefer-readonly-type, @typescript-eslint/naming-convention
 export type HealthProblem<S extends ProblemSource> = string & { __source: S };
 export type HealthCheck<
@@ -116,19 +115,6 @@ export const checkAzureStorageHealth = (
   );
 
 /**
- * Check a url is reachable
- *
- * @param url url to connect with
- *
- * @returns either true or an array of error messages
- */
-export const checkUrlHealth = (url: string): HealthCheck<"Url", true> =>
-  pipe(
-    TE.tryCatch(() => fetch(url, { method: "HEAD" }), toHealthProblems("Url")),
-    TE.map(_ => true)
-  );
-
-/**
  * Execute all the health checks for the application
  *
  * @returns either true or an array of error messages
@@ -145,8 +131,7 @@ export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> =>
         checkAzureCosmosDbHealth(config.COSMOSDB_URI, config.COSMOSDB_KEY),
         checkAzureStorageHealth(
           config.MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING
-        ),
-        checkUrlHealth(config.VALIDATION_CALLBACK_URL)
+        )
       )
     ),
     TE.map(_ => true)

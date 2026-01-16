@@ -1,4 +1,3 @@
-import { TableClient } from "@azure/data-tables";
 import { QueueClient } from "@azure/storage-queue";
 import {
   AuthSessionsTopicRepository,
@@ -22,6 +21,7 @@ import {
   LogoutScenarioEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
 
+import { TableClient } from "@azure/data-tables";
 import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
 import { SessionState } from "../generated/definitions/internal/SessionState";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
