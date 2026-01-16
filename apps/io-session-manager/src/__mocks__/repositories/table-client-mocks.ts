@@ -6,6 +6,7 @@ import {
 import { Mock, vi } from "vitest";
 import { PagedAsyncIterableIterator } from "@azure/data-tables/dist/index";
 import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { CustomTableClient } from "@pagopa/azure-storage-data-table-migration-kit";
 import { NotReleasedAuthenticationLockData } from "../../repositories/locked-profiles";
 import { aFiscalCode } from "../user.mocks";
 import { UnlockCode } from "../../generated/fast-login-api/UnlockCode";
@@ -33,7 +34,7 @@ export const mockedTableClient = {
   createEntity: mockCreateEntity,
   submitTransaction: mockSubmitTransaction,
   listEntities: mockListEntities,
-} as unknown as TableClient;
+} as unknown as CustomTableClient;
 
 // --------------------------------
 // Data mocks for LockedProfile table storage

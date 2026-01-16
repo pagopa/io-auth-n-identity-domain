@@ -1,3 +1,4 @@
+import { Readable } from 'stream';
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
@@ -7,10 +8,11 @@ import { buildBlobClientWithFallback } from "../blob_client";
 import { BlobClientWithFallback } from "@pagopa/azure-storage-migration-kit";
 import { RestError } from "@azure/storage-blob";
 
-const downloadToBufferMock = vi.fn();
+
+const downloadMock = vi.fn();
 
 const blobClientWithFallbackMock = () => ({
-    downloadToBuffer: downloadToBufferMock
+    download: downloadMock
 }) as unknown as BlobClientWithFallback;
 
 vi.mock("../blob_client", () => ({
@@ -28,7 +30,9 @@ describe("getBlobAsText", () => {
     beforeEach(() => vi.clearAllMocks());
 
     it("should return O.some", async () => {
-        downloadToBufferMock.mockResolvedValue(Buffer.from("hello"));
+        downloadMock.mockResolvedValue({
+            readableStreamBody: Readable.from(["hello"])
+        });
         const tracker = () => { return void 0; };
 
         const reader = getBlobAsText(
@@ -51,7 +55,7 @@ describe("getBlobAsText", () => {
     });
 
     it("should return O.none on RestError 404", async () => {
-        downloadToBufferMock.mockRejectedValue(new RestError("Blob not found", { statusCode: 404 }));
+        downloadMock.mockRejectedValue(new RestError("Blob not found", { statusCode: 404 }));
 
         const reader = getBlobAsText(
             blobService,
@@ -67,7 +71,7 @@ describe("getBlobAsText", () => {
 
     it("should return left on a RestError different from 404", async () => {
         const unauthorizedError = new RestError("Unauthorized", { statusCode: 401 });
-        downloadToBufferMock.mockRejectedValue(unauthorizedError);
+        downloadMock.mockRejectedValue(unauthorizedError);
 
         const reader = getBlobAsText(
             blobService,
@@ -83,7 +87,7 @@ describe("getBlobAsText", () => {
 
     it("should return left on generic error", async () => {
         const genericError = new Error("Something went wrong");
-        downloadToBufferMock.mockRejectedValue(genericError);
+        downloadMock.mockRejectedValue(genericError);
 
         const reader = getBlobAsText(
             blobService,
