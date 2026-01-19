@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.15.3
+
+### Patch Changes
+
+- dfa2058: Update libs
+
 ## 0.15.2
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # io-public
 
+## 2.1.1
+
+### Patch Changes
+
+- 236e185: Update libs
+
 ## 2.1.0
 
 ### Minor Changes

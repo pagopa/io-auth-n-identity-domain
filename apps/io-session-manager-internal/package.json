@@ -1,6 +1,6 @@
 {
   "name": "io-session-manager-internal",
-  "version": "0.15.2",
+  "version": "0.15.3",
   "author": "IO Auth & Identity Team",
   "main": "dist/controllers/main.js",
   "engines": {
@@ -35,7 +35,7 @@
     "@pagopa/handler-kit": "^1.1.1",
     "@pagopa/handler-kit-azure-func": "^2.0.8",
     "@pagopa/io-auth-n-identity-commons": "*",
-    "@pagopa/io-functions-commons": "^29.1.0",
+    "@pagopa/io-functions-commons": "^29.3.0",
     "@pagopa/ts-commons": "^13.1.2",
     "@redis/client": "1.6.1",
     "applicationinsights": "^2.9.5",

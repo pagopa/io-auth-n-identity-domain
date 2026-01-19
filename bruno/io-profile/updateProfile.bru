@@ -1,0 +1,41 @@
+meta {
+  name: updateProfile
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{IO_PROFILE_BASE_URL}}/profiles/:fiscalCode
+  body: json
+  auth: inherit
+}
+
+params:path {
+  fiscalCode: {{FISCAL_CODE}}
+}
+
+body:json {
+  {
+    "email": "email+1@test.it",
+    "is_email_already_taken": false,
+    "is_email_enabled": false,
+    "is_email_validated": false,
+    "is_inbox_enabled": false,
+    "is_test_profile": false,
+    "is_webhook_enabled": false,
+    "service_preferences_settings": {
+      "mode": "LEGACY",
+      "version": -1
+    },
+    "version": 0,
+    "name": ""
+  }
+}
+
+script:pre-request {
+  const ioProfileApiKey = bru.getEnvVar("IO_PROFILE_API_KEY")
+  if (ioProfileApiKey != null ) {
+    req.setHeader("x-functions-key", ioProfileApiKey)
+  }
+  
+}
