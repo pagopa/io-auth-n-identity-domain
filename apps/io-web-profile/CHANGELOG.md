@@ -1,5 +1,11 @@
 # io-web-profile
 
+## 1.9.1
+
+### Patch Changes
+
+- bfa4ee5: Update libs
+
 ## 1.9.0
 
 ### Minor Changes

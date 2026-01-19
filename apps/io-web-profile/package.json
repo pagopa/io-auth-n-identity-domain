@@ -2,7 +2,7 @@
   "name": "io-web-profile",
   "description": "",
   "author": "IO Auth & Identity Team",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "license": "MIT",
   "scripts": {
     "clean": "shx rm -rf dist",
