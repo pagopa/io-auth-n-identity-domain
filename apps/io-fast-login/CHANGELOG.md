@@ -1,5 +1,11 @@
 # io-fast-login
 
+## 4.3.1
+
+### Patch Changes
+
+- 482aefa: Updated libraries fp-ts, io-ts
+
 ## 4.3.0
 
 ### Minor Changes
