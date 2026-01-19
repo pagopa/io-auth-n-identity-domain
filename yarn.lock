@@ -10999,8 +10999,8 @@ __metadata:
     eslint: "npm:^8.57.0"
     eslint-config-monorepo: "npm:*"
     eslint-plugin-prettier: "npm:^4.0.0"
-    fp-ts: "npm:^2.13.1"
-    io-ts: "npm:^2.2.19"
+    fp-ts: "npm:^2.16.9"
+    io-ts: "npm:^2.2.22"
     jose: "npm:^4.14.4"
     prettier: "npm:^1.18.2"
     redis: "npm:^4.6.10"
@@ -11315,7 +11315,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"io-ts@npm:^2.2.16, io-ts@npm:^2.2.19, io-ts@npm:^2.2.20, io-ts@npm:^2.2.21":
+"io-ts@npm:^2.2.16, io-ts@npm:^2.2.20, io-ts@npm:^2.2.21":
   version: 2.2.21
   resolution: "io-ts@npm:2.2.21"
   peerDependencies:
