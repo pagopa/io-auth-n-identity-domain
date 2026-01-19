@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.20.1
+
+### Patch Changes
+
+- 8bcb20c: Updated libs
+
 ## 1.20.0
 
 ### Minor Changes
