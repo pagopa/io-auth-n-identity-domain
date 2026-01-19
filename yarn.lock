@@ -11207,7 +11207,7 @@ __metadata:
     "@pagopa/handler-kit": "npm:^1.1.1"
     "@pagopa/handler-kit-azure-func": "npm:^2.0.8"
     "@pagopa/io-auth-n-identity-commons": "npm:*"
-    "@pagopa/io-functions-commons": "npm:^29.1.0"
+    "@pagopa/io-functions-commons": "npm:^29.3.0"
     "@pagopa/openapi-codegen-ts": "npm:^13.2.0"
     "@pagopa/ts-commons": "npm:^13.1.2"
     "@pagopa/typescript-config-node": "npm:*"
