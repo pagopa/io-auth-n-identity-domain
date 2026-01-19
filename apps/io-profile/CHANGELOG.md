@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.30.4
+
+### Patch Changes
+
+- 6cdaf61: Update libs
+
 ## 5.30.3
 
 ### Patch Changes
