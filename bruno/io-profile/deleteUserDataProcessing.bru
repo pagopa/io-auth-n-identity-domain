@@ -1,17 +1,19 @@
 meta {
-  name: getProfile
+  name: deleteUserDataProcessing
   type: http
-  seq: 2
+  seq: 11
 }
 
-get {
-  url: {{IO_PROFILE_BASE_URL}}/profiles/:fiscalCode
+delete {
+  url: {{IO_PROFILE_BASE_URL}}/user-data-processing/{{FISCAL_CODE}}/DELETE
   body: none
   auth: inherit
 }
 
-params:path {
-  fiscalCode: {{FISCAL_CODE}}
+body:json {
+  {
+    "choice": "DOWNLOAD"
+  }
 }
 
 script:pre-request {

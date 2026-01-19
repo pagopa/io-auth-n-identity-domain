@@ -5,14 +5,14 @@ meta {
 }
 
 get {
-  url: {{IO_PROFILE_BASE_URL}}/profiles/:fiscalCode/versions?page=1&page_size=25
+  url: {{IO_PROFILE_BASE_URL}}/profiles/:fiscalCode/versions?page=1&page_size=1
   body: none
   auth: inherit
 }
 
 params:query {
   page: 1
-  page_size: 25
+  page_size: 1
 }
 
 params:path {

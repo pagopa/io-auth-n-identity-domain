@@ -1,0 +1,32 @@
+meta {
+  name: notifyLogin
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{IO_PROFILE_BASE_URL}}/notify-login
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "fiscal_code": "{{FISCAL_CODE}}",
+    "name": "Nome",
+    "family_name": "Cognome",
+    "email": "email@test.it",
+    "identity_provider": "PosteID",
+    "ip_address": "127.0.0.1",
+    "device_name": "Device",
+    "is_email_validated": true
+  }
+}
+
+script:pre-request {
+  const ioProfileApiKey = bru.getEnvVar("IO_PROFILE_API_KEY")
+  if (ioProfileApiKey != null ) {
+    req.setHeader("x-functions-key", ioProfileApiKey)
+  }
+  
+}

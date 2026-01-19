@@ -1,17 +1,19 @@
 meta {
-  name: getProfile
+  name: getUserDataProcessing
   type: http
-  seq: 2
+  seq: 10
 }
 
 get {
-  url: {{IO_PROFILE_BASE_URL}}/profiles/:fiscalCode
+  url: {{IO_PROFILE_BASE_URL}}/user-data-processing/{{FISCAL_CODE}}/DOWNLOAD
   body: none
   auth: inherit
 }
 
-params:path {
-  fiscalCode: {{FISCAL_CODE}}
+body:json {
+  {
+    "choice": "DOWNLOAD"
+  }
 }
 
 script:pre-request {
