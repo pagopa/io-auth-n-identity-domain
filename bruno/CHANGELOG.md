@@ -1,5 +1,11 @@
 # io-auth-n-identity-bruno-collections
 
+## 0.3.0
+
+### Minor Changes
+
+- 6cdaf61: Enrich io-profile collection
+
 ## 0.2.1
 
 ### Patch Changes
