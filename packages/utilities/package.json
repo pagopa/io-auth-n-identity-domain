@@ -6,7 +6,7 @@
     "build:watch": "tsc -w",
     "session:expire:insert": "node ./dist/session-expire-queue-insert/index.js",
     "typecheck": "tsc --noemit",
-    "lint": "yarn lint:check --fix",
+    "lint": "pnpm lint:check --fix",
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
