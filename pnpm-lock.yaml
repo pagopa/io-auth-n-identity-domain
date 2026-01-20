@@ -396,8 +396,8 @@ importers:
         specifier: ^4.0.1
         version: 4.0.1(express@4.21.1)
       '@pagopa/io-app-email-templates':
-        specifier: ^0.1.6
-        version: 0.1.6
+        specifier: ^0.8.0
+        version: 0.8.0
       '@pagopa/io-functions-commons':
         specifier: ^28.22.0
         version: 28.22.0(@azure/functions@3.5.1)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
@@ -532,8 +532,8 @@ importers:
         specifier: ^1.2.1
         version: 1.2.1(postcss@8.5.6)(ts-node@10.9.2(@types/node@20.19.30)(typescript@5.8.3))(typescript@5.8.3)
       '@pagopa/io-app-email-templates':
-        specifier: ^0.4.0
-        version: 0.4.0
+        specifier: ^0.8.0
+        version: 0.8.0
       '@pagopa/io-auth-n-identity-commons':
         specifier: workspace:^
         version: link:../../packages/io-auth-n-identity-commons
@@ -2641,11 +2641,8 @@ packages:
       fp-ts: ^2.13.1
       io-ts: ^2.2.20
 
-  '@pagopa/io-app-email-templates@0.1.6':
-    resolution: {integrity: sha512-DbPELQT0iWxzGLsFgH32xziu/YWqo8MZMjmory3415pmkt9NapDs9mDQB/AGbG5RF/g7NUVTRQjonqhTwxoYqg==}
-
-  '@pagopa/io-app-email-templates@0.4.0':
-    resolution: {integrity: sha512-p6EDRKcEBvkj4XuzkP3ufLE/uj5ntGYzVkejkdjugvtoJw36wfrb9/JqzXSPxJG68Hz7fnLWQQt4rRNAgFfo5g==}
+  '@pagopa/io-app-email-templates@0.8.0':
+    resolution: {integrity: sha512-FmmdVsyMSeeTFgHWm6+Fe9dKFnofKH9SEoRsAwQbewKMer3KHP4I6M3l/1GNM5qz5SwsCn5ldX5+jR9SbK3KaQ==}
 
   '@pagopa/io-functions-commons@28.1.0':
     resolution: {integrity: sha512-YP89Z75wrl5ICOqYzJwBy6oI05bfiaPEd93FR3PrfdHcFMNDiZENoyidZkJk4t1qKb6P3DqiKN3W9SRN0zEL5Q==}
@@ -6420,6 +6417,11 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
 
+  prettier@3.0.0:
+    resolution: {integrity: sha512-zBf5eHpwHOGPC47h0zrPyNn+eAEIdEzfywMoYn2XPi0P44Zp0tSq64rq0xAREh4auw2cJZHo9QUob+NqCQky4g==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   prettier@3.1.1:
     resolution: {integrity: sha512-22UbSzg8luF4UuZtzgiUOfcGM8s4tjBv6dJRT7j275NXsy2jb4aJa4NNveul5x4eqlF1wuhuR2RElK71RvmVaw==}
     engines: {node: '>=14'}
@@ -9804,23 +9806,13 @@ snapshots:
       - ts-node
       - typescript
 
-  '@pagopa/io-app-email-templates@0.1.6':
+  '@pagopa/io-app-email-templates@0.8.0':
     dependencies:
       '@pagopa/ts-commons': 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       fp-ts: 2.16.9
       io-ts: 2.2.22(fp-ts@2.16.9)
       moment-timezone: 0.5.47
-    transitivePeerDependencies:
-      - applicationinsights-native-metrics
-      - encoding
-      - supports-color
-
-  '@pagopa/io-app-email-templates@0.4.0':
-    dependencies:
-      '@pagopa/ts-commons': 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
-      fp-ts: 2.16.9
-      io-ts: 2.2.22(fp-ts@2.16.9)
-      moment-timezone: 0.5.47
+      prettier: 3.0.0
     transitivePeerDependencies:
       - applicationinsights-native-metrics
       - encoding
@@ -14488,6 +14480,8 @@ snapshots:
   prettier@1.19.1: {}
 
   prettier@2.8.8: {}
+
+  prettier@3.0.0: {}
 
   prettier@3.1.1: {}
 
