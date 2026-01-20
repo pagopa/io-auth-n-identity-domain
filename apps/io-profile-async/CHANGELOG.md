@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.17.1
+
+### Patch Changes
+
+- 1362e61: Bump dependency @pagopa/io-app-email-templates -> 0.8.0, this version updates the `ExpiredSessionUserReEngagement` E-Mail template.
+
 ## 1.17.0
 
 ### Minor Changes
