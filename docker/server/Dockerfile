@@ -21,6 +21,7 @@ RUN pnpm exec turbo run build
 
 FROM node:20.19.5-alpine AS runner
 ARG SERVER_NAME
+RUN corepack enable pnpm
 WORKDIR /usr/src/app/apps/${SERVER_NAME}
 COPY --from=installer --chown=node:node /usr/src/app /usr/src/app
 
