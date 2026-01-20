@@ -209,7 +209,7 @@ importers:
         specifier: ^4.17.12
         version: 4.17.21
       '@types/node':
-        specifier: ~20.12.2
+        specifier: ~20.19.5
         version: 20.12.14
       '@vitest/coverage-v8':
         specifier: ~3.2.4
@@ -466,7 +466,7 @@ importers:
         specifier: ^3.1.1
         version: 3.1.1
       '@types/node':
-        specifier: ~20.12.2
+        specifier: ~20.19.5
         version: 20.12.14
       '@types/node-fetch':
         specifier: ^2.5.7
@@ -1332,7 +1332,7 @@ importers:
         specifier: workspace:^
         version: link:../typescript-config-node
       '@types/node':
-        specifier: ^20.12.2
+        specifier: ^20.19.5
         version: 20.17.57
       '@vitest/coverage-v8':
         specifier: ~3.2.4

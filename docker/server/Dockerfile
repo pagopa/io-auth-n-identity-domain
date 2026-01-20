@@ -1,6 +1,6 @@
 ARG SERVER_NAME
 
-FROM node:20.12.2-alpine3.19 AS base
+FROM node:20.19.5-alpine3.19 AS base
 COPY . /usr/src/app
 
 
@@ -10,21 +10,21 @@ WORKDIR /usr/src/app
 RUN pnpm dlx turbo@^2.5.5 prune ${SERVER_NAME} --docker
 
 
-FROM node:20.12.2-alpine3.19 AS installer
+FROM node:20.19.5-alpine3.19 AS installer
 WORKDIR /usr/src/app
 RUN apk add openssl
 COPY --from=builder /usr/src/app/out/json/ .
-RUN pnpm install --frozen-lockfile
+RUN npm install --frozen-lockfile
 COPY --from=builder /usr/src/app/out/full/ .
-RUN pnpm turbo run build
+RUN npm turbo run build
 
 
-FROM node:20.12.2-alpine AS runner
+FROM node:20.19.5-alpine AS runner
 ARG SERVER_NAME
 WORKDIR /usr/src/app/apps/${SERVER_NAME}
 COPY --from=installer --chown=node:node /usr/src/app /usr/src/app
 
-# bug: pnpm logs requires write permission for tmp folder
+# bug: npm logs requires write permission for tmp folder
 RUN chown -R node:node /tmp
 
 USER node

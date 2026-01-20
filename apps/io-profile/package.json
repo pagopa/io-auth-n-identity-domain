@@ -34,7 +34,7 @@
     "@types/express": "^4.17.11",
     "@types/html-to-text": "^9.0.4",
     "@types/lolex": "^3.1.1",
-    "@types/node": "~20.12.2",
+    "@types/node": "~20.19.5",
     "@types/node-fetch": "^2.5.7",
     "@types/nodemailer": "^6.4.16",
     "@vitest/coverage-v8": "~3.2.4",
