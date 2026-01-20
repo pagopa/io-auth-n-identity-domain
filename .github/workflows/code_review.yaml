@@ -212,11 +212,11 @@ jobs:
         run: >-
           pnpm docker:start:build traefik io-lollipop &&
           pnpm test:integrations:io-lollipop &&
-          pnpm --filter io-auth-n-identity-bruno-collections \
+          pnpm --filter io-auth-n-identity-bruno-collections exec \
             bru run \
               io-lollipop \
               --env Development
 
       - name: "E2E Tests"
         if: steps.test_filter.outputs.io-session-manager == 'true'
-        run: pnpm -r e2e start
+        run: pnpm --filter e2e start
