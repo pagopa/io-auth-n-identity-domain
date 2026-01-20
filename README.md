@@ -193,7 +193,7 @@ This project include a simple tool to import existing repositories as workspace 
 
 The command that start the interactive procedure is:
 
-```shpnpm installpnpm build
+```sh pnpm install pnpm build
 pnpm --filter repo-importer import
 ```
 
@@ -205,6 +205,6 @@ We also include a tool to facilitate testing of Lollipop features.
 
 The command to start the tool is:
 
-```shpnpm installpnpm build
+```sh pnpm install pnpm build
 pnpm --filter lollipop-cli start
 ```
