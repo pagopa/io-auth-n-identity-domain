@@ -38,21 +38,12 @@ jobs:
         run: corepack enable
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@e33196f7422957bea03ed53f6fbb155025ffc7b8 # v3.7.0
-        with:
-          node-version-file: ".node-version"
-          cache: "pnpm"
+        uses: pagopa/dx/.github/actions/node-setup@main
+        env:
+          TURBO_CACHE_DIR: .turbo
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Cache turbo build setup
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
-        with:
-          path: node_modules/.cache/turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
 
       - name: Build
         run: pnpm build
