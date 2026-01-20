@@ -30,6 +30,6 @@ ENV AzureWebJobsScriptRoot=/usr/src/app \
 WORKDIR /usr/src/app/apps/${FUNCTION_NAME}
 COPY --from=installer /usr/src/app /usr/src/app
 
-RUN npm run extensions:install
+RUN corepack enable pnpm && pnpm run extensions:install
 
 CMD ["func", "start", "--javascript"]
