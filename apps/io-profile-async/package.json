@@ -1,6 +1,6 @@
 {
   "name": "io-profile-async",
-  "version": "1.17.0",
+  "version": "1.17.1",
   "license": "MIT",
   "scripts": {
     "clean": "shx rm -rf dist",
@@ -52,7 +52,7 @@
     "@azure/storage-queue": "^12.16.0",
     "@pagopa/handler-kit": "^1.1.0",
     "@pagopa/handler-kit-azure-func": "^1.2.1",
-    "@pagopa/io-app-email-templates": "^0.4.0",
+    "@pagopa/io-app-email-templates": "^0.8.0",
     "@pagopa/io-auth-n-identity-commons": "workspace:^",
     "@pagopa/io-functions-commons": "^29.3.0",
     "@pagopa/logger": "^1.0.1",
