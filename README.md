@@ -17,7 +17,7 @@ This project requires specific versions of the following tools. To make sure you
   node --version
   ```
 
-- **Yarn**
+- **Pnpm**
 
  pnpm must be installed using [Corepack](https://pnpm.io/getting-started/install), included by default in `Node.js`.
 
@@ -62,7 +62,7 @@ Defined tasks are _lint_, _test_, and _typecheck_.
 ## Dependencies
 
 > [!IMPORTANT]
-> This project usespnpm Plug'n'Play as installation strategy for dependencies. [Check out](https://yarnpkg.com/features/pnp) the officialpnpm documentation to lean about pnp and its difference from the classic `node_modules` approach.
+> This project uses pnpm Plug'n'Play as installation strategy for dependencies. [Check out](https://pnpm.io/) the official pnpm documentation to lean about pnp and its difference from the classic `node_modules` approach.
 
 ```sh
 # install all dependencies for the projectpnpm
@@ -83,11 +83,6 @@ To add a dependency to a local workspace, manually edit the target workspace's `
     "my-dependency-workspace": "workspace:*"
 }
 ```
-
-###pnpm SDKS (.yarn/sdks)
-
-Smart IDEs (such as VSCode or IntelliJ) require special configuration for TypeScript to work when using Plug'n'Play installs. That configuration is generated automatically by `yarn` (via `yarn dlx @yarnpkg/sdks vscode vim [other-editor...]`) and commited to `.yarn/sdks`.
-
 ## Folder structure
 
 ### `/apps`
