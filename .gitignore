@@ -150,3 +150,6 @@ azure-functions-core-tools
 # scripts default artifacts
 **/users.txt
 **/errors.txt
+
+# PNPM
+.pnpm-store

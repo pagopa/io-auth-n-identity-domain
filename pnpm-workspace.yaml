@@ -1,0 +1,7 @@
+cleanupUnusedCatalogs: true
+linkWorkspacePackages: true
+packageImportMethod: clone-or-copy
+packages:
+  - apps/*
+  - bruno
+  - packages/*

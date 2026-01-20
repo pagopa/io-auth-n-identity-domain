@@ -11,10 +11,10 @@
     "build": "turbo run build",
     "generate": "turbo run generate",
     "typecheck": "turbo run typecheck",
-    "version": "changeset version && yarn generate",
+    "version": "changeset version &&pnpm generate",
     "release": "changeset tag",
     "docker:pregenerate:env": "shx rm -rf docker/generated && shx mkdir docker/generated && ./docker/env-sync.sh",
-    "docker:generate:env": "yarn run docker:pregenerate:env && yarn run docker:generate:env:cosmosdb && yarn run docker:generate:env:io-session-manager && yarn run docker:generate:env:io-lollipop && yarn run docker:generate:env:io-web-profile && yarn run docker:generate:env:io-public && yarn run docker:generate:env:io-profile-async && yarn run docker:generate:env:io-fast-login && yarn run docker:generate:env:io-profile && yarn run docker:generate:env:io-session-manager-internal && yarn run docker:generate:env:servicebus",
+    "docker:generate:env": "yarn run docker:pregenerate:env &&pnpm run docker:generate:env:cosmosdb &&pnpm run docker:generate:env:io-session-manager &&pnpm run docker:generate:env:io-lollipop &&pnpm run docker:generate:env:io-web-profile &&pnpm run docker:generate:env:io-public &&pnpm run docker:generate:env:io-profile-async &&pnpm run docker:generate:env:io-fast-login &&pnpm run docker:generate:env:io-profile &&pnpm run docker:generate:env:io-session-manager-internal &&pnpm run docker:generate:env:servicebus",
     "docker:generate:env:cosmosdb": "dotenv -e docker/.env.common envsub docker/cosmosdb/env-dev docker/generated/.env.cosmosdb",
     "docker:generate:env:io-session-manager": "dotenv -e docker/.env.common envsub docker/io-session-manager/env-dev docker/generated/.env.io-session-manager",
     "docker:generate:env:io-lollipop": "dotenv -e docker/.env.common envsub docker/io-lollipop/env-dev docker/generated/.env.io-lollipop",
@@ -33,11 +33,11 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
-    "@pagopa/typescript-config-node": "*",
+    "@pagopa/typescript-config-node": "workspace:^",
     "dotenv-cli": "^3.2.0",
     "envsub": "^4.0.7",
     "eslint": "^8.57.0",
-    "eslint-config-monorepo": "*",
+    "eslint-config-monorepo": "workspace:^",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-only-warn": "^1.1.0",
@@ -51,16 +51,11 @@
   "engines": {
     "node": ">=20"
   },
-  "packageManager": "yarn@4.1.1",
-  "workspaces": [
-    "apps/*",
-    "bruno",
-    "packages/*"
-  ],
   "resolutions": {
     "@azure/core-client": "1.9.0",
     "@azure/core-http-compat": "2.3.0",
     "@azure/storage-common": "12.1.0",
     "xml-crypto": "2.1.6"
-  }
+  },
+  "packageManager": "pnpm@10.28.1+sha512.7d7dbbca9e99447b7c3bf7a73286afaaf6be99251eb9498baefa7d406892f67b879adb3a1d7e687fc4ccc1a388c7175fbaae567a26ab44d1067b54fcb0d6a316"
 }

@@ -82,5 +82,5 @@ The setup procedure adds some test users to the test IDP server, the full list c
 The backend implements a SAML Service Provider - for authenticating the clients it needs a certificate that you can generate with the following command (you need to have `openssl` available in your path):
 
 ```
-$ yarn workspace @pagopa/io-session-manager generate:test-certs
+$ pnpm --filter @pagopa/io-session-manager generate:test-certs
 ```
