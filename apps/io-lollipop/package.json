@@ -75,6 +75,7 @@
     "node-fetch": "^2.6.0",
     "ulid": "^2.3.0",
     "winston": "^3.2.1",
+    "winston-transport": "^4.9.0",
     "xml-crypto": "^2.1.5"
   },
   "resolutions": {

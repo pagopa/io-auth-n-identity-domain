@@ -48,6 +48,7 @@
     "@pagopa/handler-kit": "^1.1.0",
     "@pagopa/handler-kit-azure-func": "^1.2.0",
     "@pagopa/io-functions-commons": "^29.3.0",
+    "@pagopa/logger": "^1.0.1",
     "@pagopa/openapi-codegen-ts": "^13.1.0",
     "@pagopa/ts-commons": "^13.1.2",
     "@xmldom/xmldom": "^0.8.8",
@@ -57,6 +58,8 @@
     "fp-ts": "^2.16.9",
     "io-ts": "^2.2.22",
     "jose": "^4.14.4",
-    "redis": "^4.6.10"
+    "neverthrow": "^4.3.0",
+    "redis": "^4.6.10",
+    "winston-transport": "^4.9.0"
   }
 }

@@ -74,6 +74,9 @@ importers:
       '@pagopa/io-functions-commons':
         specifier: ^29.1.0
         version: 29.3.0(@azure/functions@4.7.0)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
+      '@pagopa/logger':
+        specifier: ^1.0.1
+        version: 1.0.1
       '@pagopa/ts-commons':
         specifier: ^13.1.1
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
@@ -159,6 +162,9 @@ importers:
       '@pagopa/io-functions-commons':
         specifier: ^29.3.0
         version: 29.3.0(@azure/functions@3.5.1)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
+      '@pagopa/logger':
+        specifier: ^1.0.1
+        version: 1.0.1
       '@pagopa/openapi-codegen-ts':
         specifier: ^13.1.0
         version: 13.2.0(chokidar@3.6.0)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
@@ -186,9 +192,15 @@ importers:
       jose:
         specifier: ^4.14.4
         version: 4.15.9
+      neverthrow:
+        specifier: ^4.3.0
+        version: 4.3.0
       redis:
         specifier: ^4.6.10
         version: 4.7.1
+      winston-transport:
+        specifier: ^4.9.0
+        version: 4.9.0
     devDependencies:
       '@pagopa/eslint-config':
         specifier: ^3.0.0
@@ -298,6 +310,9 @@ importers:
       winston:
         specifier: ^3.2.1
         version: 3.17.0
+      winston-transport:
+        specifier: ^4.9.0
+        version: 4.9.0
       xml-crypto:
         specifier: 2.1.6
         version: 2.1.6
@@ -664,6 +679,9 @@ importers:
       winston:
         specifier: ^3.3.3
         version: 3.17.0
+      winston-transport:
+        specifier: ^4.9.0
+        version: 4.9.0
     devDependencies:
       '@azure/functions':
         specifier: ^3.5.0
@@ -815,6 +833,9 @@ importers:
       winston:
         specifier: ^3.13.0
         version: 3.17.0
+      winston-transport:
+        specifier: ^4.9.0
+        version: 4.9.0
     devDependencies:
       '@pagopa/eslint-config':
         specifier: ^3.0.0
@@ -930,6 +951,9 @@ importers:
       '@pagopa/io-functions-commons':
         specifier: ^29.3.0
         version: 29.3.0(@azure/functions@4.7.0)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
+      '@pagopa/logger':
+        specifier: ^1.0.1
+        version: 1.0.1
       '@pagopa/ts-commons':
         specifier: ^13.1.2
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
@@ -960,6 +984,9 @@ importers:
       redis:
         specifier: 4.7.1
         version: 4.7.1
+      winston-transport:
+        specifier: ^4.9.0
+        version: 4.9.0
     devDependencies:
       '@pagopa/eslint-config':
         specifier: ^3.0.0
@@ -1075,6 +1102,9 @@ importers:
       winston:
         specifier: ^3.2.1
         version: 3.17.0
+      winston-transport:
+        specifier: ^4.9.0
+        version: 4.9.0
     devDependencies:
       '@azure/functions':
         specifier: ^3.2.0
@@ -10934,7 +10964,7 @@ snapshots:
       '@usebruno/lang': 0.27.0
       '@usebruno/requests': 0.7.0(debug@4.4.1)
       '@usebruno/vm2': 3.9.19
-      aws4-axios: 3.4.0(axios@1.11.0)
+      aws4-axios: 3.4.0(axios@1.11.0(debug@4.4.1))
       axios: 1.11.0(debug@4.4.1)
       axios-ntlm: 1.4.4(debug@4.4.1)
       chai: 4.5.0
@@ -11417,7 +11447,7 @@ snapshots:
 
   aws-sign2@0.7.0: {}
 
-  aws4-axios@3.4.0(axios@1.11.0):
+  aws4-axios@3.4.0(axios@1.11.0(debug@4.4.1)):
     dependencies:
       '@aws-sdk/client-sts': 3.862.0
       aws4: 1.13.2
