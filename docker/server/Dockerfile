@@ -1,22 +1,22 @@
 ARG SERVER_NAME
 
-FROM node:20.19.5-alpine3.19 AS base
+FROM node:20.19.5-alpine AS base
 COPY . /usr/src/app
 
 
 FROM base AS builder
 ARG SERVER_NAME
 WORKDIR /usr/src/app
-RUN pnpm dlx turbo@^2.5.5 prune ${SERVER_NAME} --docker
+RUN corepack enable pnpm && pnpm dlx turbo@^2.5.5 prune ${SERVER_NAME} --docker
 
 
-FROM node:20.19.5-alpine3.19 AS installer
+FROM node:20.19.5-alpine AS installer
 WORKDIR /usr/src/app
 RUN apk add openssl
 COPY --from=builder /usr/src/app/out/json/ .
-RUN npm install --frozen-lockfile
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
 COPY --from=builder /usr/src/app/out/full/ .
-RUN npm turbo run build
+RUN pnpm exec turbo run build
 
 
 FROM node:20.19.5-alpine AS runner

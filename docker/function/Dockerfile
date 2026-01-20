@@ -7,15 +7,15 @@ COPY . /usr/src/app
 FROM base AS builder
 ARG FUNCTION_NAME
 WORKDIR /usr/src/app
-RUN npm dlx turbo@^2.5.5 prune ${FUNCTION_NAME} --docker
+RUN corepack enable pnpm && pnpm dlx turbo@^2.5.5 prune ${FUNCTION_NAME} --docker
 
 
 FROM node:20.19.5 AS installer
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/out/json/ .
-RUN npm install --frozen-lockfile
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
 COPY --from=builder /usr/src/app/out/full/ .
-RUN npm turbo run build
+RUN pnpm exec turbo run build
 
 
 FROM node:20.19.5 AS functions-node-20
