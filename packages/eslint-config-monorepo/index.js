@@ -31,10 +31,13 @@ module.exports = {
     },
   },
   ignorePatterns: [
-    // Ignore dotfiles
-    ".*.js",
-    "node_modules/",
-    "dist/",
+    "node_modules",
+    "generated",
+    "**/__tests__/*",
+    "**/__mocks__/*",
+    "**/__integrations__/*",
+    "*.d.ts",
+    "*.js"
   ],
   overrides: [
     {

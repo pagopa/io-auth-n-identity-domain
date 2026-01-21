@@ -49,7 +49,6 @@ import {
 import { OrchestratorInput as EmailValidationWithTemplateProcessOrchestratorInput } from "./email-validation-orchestrator";
 
 type ReturnTypes =
-  // eslint-disable-next-line @typescript-eslint/ban-types
   | IResponseSuccessJson<{}>
   | IResponseErrorValidation
   | IResponseErrorQuery

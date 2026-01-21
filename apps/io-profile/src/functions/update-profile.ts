@@ -119,7 +119,8 @@ export function UpdateProfileHandler(
   tracker: ReturnType<typeof createTracker>,
   profileEmails: IProfileEmailReader,
 ): IUpdateProfileHandler {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-lines-per-function, complexity, sonarjs/cognitive-complexity
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-lines-per-function, complexity
+  // sonarjs/cognitive-complexity
   return async (context, fiscalCode, profilePayload, profileNamePayload) => {
     const logPrefix = `UpdateProfileHandler|FISCAL_CODE=${toHash(fiscalCode)}`;
 
@@ -152,7 +153,6 @@ export function UpdateProfileHandler(
       );
     }
 
-    // eslint-disable-next-line functional/no-let
     let emailTaken: boolean | undefined;
 
     // Check if the email has been changed

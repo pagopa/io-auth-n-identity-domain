@@ -45,7 +45,7 @@ export function sessionIdPreprocessor(
           USER_TRACKING_ID_KEY,
         );
       if (userTrackingId !== undefined) {
-        // eslint-disable-next-line functional/immutable-data
+      
         envelope.tags[appInsights.defaultClient.context.keys.userId] =
           userTrackingId;
       }
@@ -54,7 +54,7 @@ export function sessionIdPreprocessor(
           SESSION_TRACKING_ID_KEY,
         );
       if (sessionTrackingId !== undefined) {
-        // eslint-disable-next-line functional/immutable-data
+      
         envelope.tags[appInsights.defaultClient.context.keys.sessionId] =
           sessionTrackingId;
       }

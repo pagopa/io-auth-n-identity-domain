@@ -35,7 +35,6 @@ export const streamToText = (
     TE.tryCatch(async () => {
       readable.setEncoding("utf8");
 
-      // eslint-disable-next-line functional/no-let
       let result = "";
       for await (const chunk of readable) {
         result += chunk.toString();

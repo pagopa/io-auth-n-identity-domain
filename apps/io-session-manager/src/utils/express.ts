@@ -74,7 +74,7 @@ export function toExpressMiddleware<T, P>(
         ),
       ),
       TE.mapLeft((response) => {
-        // eslint-disable-next-line functional/immutable-data
+      
         res.locals.detail = response.detail;
         response.apply(res);
       }),

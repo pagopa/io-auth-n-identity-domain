@@ -49,9 +49,8 @@ export const makeRandomContainerName = (): NonEmptyString => {
   const result: string[] = [];
   const characters = "abcdefghijklmnopqrstuvwxyz";
   const charactersLength = characters.length;
-  // eslint-disable-next-line functional/no-let
+
   for (let i = 0; i < 12; i++) {
-    // eslint-disable-next-line functional/immutable-data
     result.push(
       characters.charAt(Math.floor(Math.random() * charactersLength))
     );

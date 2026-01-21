@@ -28,7 +28,6 @@ const createAsyncIterator = <T>(
   shouldThrow: boolean = false,
 ) => ({
   [Symbol.asyncIterator]() {
-    // eslint-disable-next-line functional/no-let
     let done = false;
     return {
       async next() {

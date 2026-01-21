@@ -59,7 +59,7 @@ app.post(
 
 const azureFunctionHandler = createAzureFunctionHandler(app);
 
-// eslint-disable-next-line functional/no-let
+
 let logger: Context["log"] | undefined;
 const contextTransport = (new AzureContextTransport(() => logger, {
   level: "debug"

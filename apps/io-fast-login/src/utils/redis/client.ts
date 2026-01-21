@@ -79,7 +79,6 @@ export const CreateRedisClientTask: (
     })
   );
 
-// eslint-disable-next-line functional/no-let
 let REDIS_CLIENT: redis.RedisClientType;
 
 /**

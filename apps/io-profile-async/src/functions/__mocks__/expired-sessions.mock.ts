@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/no-duplicate-string */
+/* sonarjs/no-duplicate-string */
 export const aValidationError = [
   {
     value: "AAAAAA89S20I111Y_",

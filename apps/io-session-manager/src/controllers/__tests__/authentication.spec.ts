@@ -395,7 +395,7 @@ describe("AuthenticationController#acs", () => {
 
   test("should fail if request ip is invalid", async () => {
     const invalidIPreq = mockReq();
-    // eslint-disable-next-line functional/immutable-data
+  
     invalidIPreq.ip = "anInvalidIpAddress";
     const invalidIpUserPayload = {
       ...validUserPayload,

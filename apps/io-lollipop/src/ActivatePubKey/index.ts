@@ -38,7 +38,7 @@ const telemetryClient = initTelemetryClient(
   config.APPLICATIONINSIGHTS_CONNECTION_STRING
 );
 
-// eslint-disable-next-line functional/no-let
+
 let logger: Context["log"];
 const azureContextTransport = (new AzureContextTransport(
   () => logger,

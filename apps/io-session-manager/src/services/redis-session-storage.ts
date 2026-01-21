@@ -459,7 +459,6 @@ const clearExpiredSetValues =
       ),
       TE.mapLeft((err) => {
         log.error("Error reading set members: %s", err);
-        // eslint-disable-next-line functional/prefer-readonly-type
         return [] as string[];
       }),
       TE.toUnion,
@@ -766,7 +765,6 @@ export const set =
     );
 
     // If is a session update, the session info key doesn't must be updated.
-    // eslint-disable-next-line functional/no-let
     let saveSessionInfoPromise: TE.TaskEither<Error, boolean> = TE.right(true);
     if (!isUserSessionUpdate) {
       const sessionInfo: SessionInfo = {

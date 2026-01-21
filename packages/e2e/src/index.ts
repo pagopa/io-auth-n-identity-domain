@@ -13,7 +13,7 @@ const PROJECT_BASE_PATH = resolvePath(`${process.cwd()}/../../`);
 const main = async () => {
   const results: ProcessResult[] = [];
 
-  // eslint-disable-next-line functional/immutable-data
+
   results.push(
     await promisifyProcess(
       runProcess(
@@ -24,7 +24,7 @@ const main = async () => {
 
   await new Promise((ok) => setTimeout(ok, 20000));
 
-  // eslint-disable-next-line functional/immutable-data
+
   results.push(
     await promisifyProcess(
       runProcess(
@@ -51,7 +51,7 @@ const main = async () => {
     ),
   );
 
-  // eslint-disable-next-line functional/immutable-data
+
   const awaiterResult = await awaiter(
     healthcheckTask,
     { status: 200 },
@@ -66,10 +66,10 @@ const main = async () => {
       "The session manager doesn't become healty within the timeout.",
     );
   }
-  // eslint-disable-next-line functional/immutable-data
+
   results.push(await promisifyProcess(runProcess(`yarn test:e2e`)));
 
-  // eslint-disable-next-line functional/immutable-data
+
   results.push(
     await promisifyProcess(
       runProcess(

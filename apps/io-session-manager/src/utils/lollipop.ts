@@ -520,7 +520,7 @@ export const expressLollipopMiddleware: (
                   appInsightsTelemetryClient,
                 }),
                 TE.map((lollipopLocals) => {
-                  // eslint-disable-next-line functional/immutable-data
+                
                   res.locals = { ...res.locals, ...lollipopLocals };
                 }),
                 TE.toUnion,

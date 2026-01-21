@@ -54,12 +54,13 @@ export type OrchestratorInput = t.TypeOf<typeof OrchestratorInput>;
 export const getUpsertedProfileOrchestratorHandler = (params: {
   readonly sendCashbackMessage: boolean;
 }) =>
-  // eslint-disable-next-line max-lines-per-function, complexity, sonarjs/cognitive-complexity
+  // eslint-disable-next-line max-lines-per-function, complexity
+  // sonarjs/cognitive-complexity
   function* (context: IOrchestrationFunctionContext): Generator<unknown> {
     const logPrefix = `UpsertedProfileOrchestrator`;
 
     const retryOptions = new df.RetryOptions(5000, 10);
-    // eslint-disable-next-line functional/immutable-data
+  
     retryOptions.backoffCoefficient = 1.5;
 
     // Get and decode orchestrator input

@@ -20,7 +20,7 @@ import {
 } from "../__mocks__/mocks";
 import { UpsertUserDataProcessingHandler } from "../upsert-user-data-processing";
 
-// eslint-disable-next-line functional/no-let
+
 let clock: any;
 const spyGetClient = vi.spyOn(df, "getClient");
 spyGetClient.mockImplementation(mockGetClient);

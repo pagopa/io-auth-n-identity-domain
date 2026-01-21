@@ -15,7 +15,6 @@ vi.hoisted(() => {
     version: mockPackageVersion,
   };
 
-  // eslint-disable-next-line functional/immutable-data
   require.cache[packageJsonPath] = {
     id: packageJsonPath,
     filename: packageJsonPath,
@@ -59,10 +58,10 @@ describe("Package getCurrentBackendVersion", () => {
   });
 
   it("should return 'UNKNOWN' if the version does not exist", () => {
-    // eslint-disable-next-line functional/immutable-data
+  
     delete pkg.version;
     expect(Package.getCurrentBackendVersion()).toBe("UNKNOWN");
-    // eslint-disable-next-line functional/immutable-data
+  
     pkg.version = mockPackageVersion; // Restore the version for other tests
   });
 });
