@@ -65,6 +65,7 @@ const extractPubKeysToRevoke = (
         O.fromNullable,
         O.fold(
           () => TE.of([notPendingLollipopPubKeys]),
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           _ =>
             pipe(
               lollipopKeysModel.findLastVersionByModelId([master]),

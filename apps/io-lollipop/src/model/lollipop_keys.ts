@@ -132,6 +132,7 @@ export class LolliPOPKeysModel extends CosmosdbModelVersionedTTL<
                 this.getTtlValue(lolliPopPubKeys), // super.create never returns 409 error but a generic CosmosErrorResponse with io-functions-commons v26.8.1
                 ttl => super.create({ ...lolliPopPubKeys, ttl }, option)
               ),
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             _ =>
               TE.left({
                 kind: "COSMOS_CONFLICT_RESPONSE"
@@ -162,6 +163,7 @@ export class LolliPOPKeysModel extends CosmosdbModelVersionedTTL<
    * @deprecated
    * */
   public update(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _: RetrievedLolliPopPubKeys
   ): TE.TaskEither<CosmosErrors, never> {
     return TE.left(

@@ -73,5 +73,6 @@ export const getAssertionWriter = (
         )
       )
     ),
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     TE.map(_ => true)
   );

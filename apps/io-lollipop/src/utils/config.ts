@@ -69,7 +69,6 @@ export const JWTConfig = t.intersection([
 // Global app configuration
 // ----------------------------
 export type IConfig = t.TypeOf<typeof IConfig>;
-// eslint-disable-next-line @typescript-eslint/ban-types
 export const IConfig = t.intersection([
   t.interface({
     APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
