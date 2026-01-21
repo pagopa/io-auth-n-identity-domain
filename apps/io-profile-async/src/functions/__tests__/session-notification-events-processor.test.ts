@@ -294,7 +294,6 @@ describe("Expired Sessions Discoverer ServiceBusTrigger Tests", () => {
     });
 
     it("should process the event succesfully whitout removing previous cosmosDB records when not present", async () => {
-      // eslint-disable-next-line sonarjs/no-identical-functions
       SessionNotificationsRepo.findByFiscalCodeAsyncIterable.mockReturnValueOnce(
         () => anEmptyAsyncIterable()
       );

@@ -120,7 +120,6 @@ export function UpdateProfileHandler(
   profileEmails: IProfileEmailReader,
 ): IUpdateProfileHandler {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-lines-per-function, complexity
-  // sonarjs/cognitive-complexity
   return async (context, fiscalCode, profilePayload, profileNamePayload) => {
     const logPrefix = `UpdateProfileHandler|FISCAL_CODE=${toHash(fiscalCode)}`;
 

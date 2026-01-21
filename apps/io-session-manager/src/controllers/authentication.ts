@@ -177,7 +177,6 @@ export const acs: (
 ) => AssertionConsumerServiceT<any> =
   (deps) =>
   // eslint-disable-next-line max-lines-per-function, complexity
-  // sonarjs/cognitive-complexity
   async (userPayload: unknown, additionalProps?: AdditionalLoginPropsT) => {
     //
     // decode the SPID assertion into a SPID user

@@ -56,7 +56,6 @@ describe("MagicLink", () => {
       }
     });
   });
-  // eslint-disable-next-line sonarjs/no-identical-functions
   it(`SHOULD generate a valid magic link token 
       and send a status code 500 if the audit log operation fails`, async () => {
     const mockAuditLog = vi
