@@ -61,6 +61,9 @@
     "@azure/core-client": "1.9.0",
     "@azure/core-http-compat": "2.3.0",
     "@azure/storage-common": "12.1.0",
-    "xml-crypto": "2.1.6"
+    "xml-crypto": "2.1.6",
+    "@typescript-eslint/typescript-estree": "8.53.1",
+    "@typescript-eslint/parser": "8.53.1",
+    "@typescript-eslint/eslint-plugin": "8.53.1"
   }
 }
