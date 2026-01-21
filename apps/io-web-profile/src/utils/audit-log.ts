@@ -111,7 +111,6 @@ export function storeAuditLog(
   auditLogDoc: AuditActionDoc,
   tags: ActionTag
 ): TE.TaskEither<RestError, BlockBlobUploadResponse>;
-// eslint-disable-next-line 
 export function storeAuditLog(
   containerClient: ContainerClient,
   auditLogDoc: AuditExchangeDoc | AuditActionDoc | AuditIssuingDoc,
