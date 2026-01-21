@@ -123,7 +123,7 @@ describe("MigrateServicePreferenceFromLegacy", () => {
       accessReadMessageStatus: AccessReadMessageStatusEnum.UNKNOWN,
       fiscalCode: autoProfile.fiscalCode,
       id: makeServicesPreferencesDocumentId(
-        autoProfile.fiscalCode as FiscalCode,
+        autoProfile.fiscalCode,
         "MyServiceId" as ServiceId,
         0 as NonNegativeInteger
       ),
@@ -138,7 +138,7 @@ describe("MigrateServicePreferenceFromLegacy", () => {
       accessReadMessageStatus: AccessReadMessageStatusEnum.UNKNOWN,
       fiscalCode: autoProfile.fiscalCode,
       id: makeServicesPreferencesDocumentId(
-        autoProfile.fiscalCode as FiscalCode,
+        autoProfile.fiscalCode,
         "MyServiceId2" as ServiceId,
         0 as NonNegativeInteger
       ),

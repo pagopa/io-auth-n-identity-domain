@@ -476,7 +476,7 @@ describe("AuthenticationController#acs", () => {
 
     mockEmitSessionEvent.mockImplementationOnce(
       () => () =>
-        TE.left(new Error(anErrorMessage)) as TE.TaskEither<Error, void>,
+        TE.left(new Error(anErrorMessage)),
     );
 
     const expectedRejectionEvent = {
@@ -1258,7 +1258,7 @@ describe("AuthenticationController#acs LV", () => {
       const { getExpirePubKeyFn } = mockActivateLolliPoPKey.mock.calls[0][0];
 
       const now = new Date(); // frozenDate "2025-10-01T00:00:00Z"
-      const exp = getExpirePubKeyFn() as Date;
+      const exp = getExpirePubKeyFn();
       const diff = Math.floor((exp.getTime() - now.getTime()) / 1000); // (1790812800000 - 1759276800000) / 1000 = 31536000000 / 1000 = 31536000
 
       expect(diff).toEqual(expectedLongSessionDuration);

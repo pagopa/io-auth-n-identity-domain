@@ -39,7 +39,7 @@ describe("Profile repository", () => {
 
   it("should succeed finding a profile and return a correct document", async () => {
     const result = await ProfileRepository.onProfileUpdateFindDocument(
-      mockProfiles[0].fiscalCode as FiscalCode,
+      mockProfiles[0].fiscalCode,
       0 as NonNegativeInteger
     )({
       profileModel: profileModelMock
@@ -52,7 +52,7 @@ describe("Profile repository", () => {
     findMock.mockReturnValueOnce(TE.right(O.none));
 
     const result = await ProfileRepository.onProfileUpdateFindDocument(
-      mockProfiles[0].fiscalCode as FiscalCode,
+      mockProfiles[0].fiscalCode,
       0 as NonNegativeInteger
     )({
       profileModel: profileModelMock
@@ -66,7 +66,7 @@ describe("Profile repository", () => {
     findMock.mockReturnValueOnce(TE.left(expectedError));
 
     const result = await ProfileRepository.onProfileUpdateFindDocument(
-      mockProfiles[0].fiscalCode as FiscalCode,
+      mockProfiles[0].fiscalCode,
       0 as NonNegativeInteger
     )({
       profileModel: profileModelMock
@@ -79,7 +79,7 @@ describe("Profile repository", () => {
     findMock.mockReturnValueOnce(TE.right(O.some({ foo: "bar" })));
 
     const result = await ProfileRepository.onProfileUpdateFindDocument(
-      mockProfiles[0].fiscalCode as FiscalCode,
+      mockProfiles[0].fiscalCode,
       0 as NonNegativeInteger
     )({
       profileModel: profileModelMock

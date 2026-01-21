@@ -28,7 +28,7 @@ export const healthcheck: RTE.ReaderTaskEither<
         setTimeout(() => {
           reject(new Error("The redis command take too much time"));
         }, 5000);
-      }) as typeof redisCommand;
+      });
     }, E.toError),
     TE.chain(
       TE.fromPredicate(

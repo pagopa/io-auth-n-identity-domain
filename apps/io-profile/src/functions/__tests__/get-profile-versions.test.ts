@@ -289,7 +289,7 @@ describe("GetProfileVersionsHandler", () => {
         {
           ...aRetrievedProfileWithEmail,
           isEmailValidated: false,
-          email: TEST_EMAIL as EmailString,
+          email: TEST_EMAIL,
         },
         1,
         10,
@@ -331,7 +331,7 @@ describe("GetProfileVersionsHandler", () => {
         {
           ...aRetrievedProfileWithEmail,
           isEmailValidated: true,
-          email: TEST_EMAIL as EmailString,
+          email: TEST_EMAIL,
         },
         1,
         10,
@@ -362,7 +362,7 @@ describe("GetProfileVersionsHandler", () => {
         {
           ...aRetrievedProfileWithEmail,
           isEmailValidated: false,
-          email: TEST_EMAIL as EmailString,
+          email: TEST_EMAIL,
         },
         1,
         10,

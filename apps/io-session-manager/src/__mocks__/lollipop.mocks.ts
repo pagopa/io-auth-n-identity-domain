@@ -32,7 +32,7 @@ export const aValidLCParamsResult: LcParams = {
   assertion_file_name: `${aFiscalCode}-${anAssertionRef}` as AssertionFileName,
   assertion_type: AssertionTypeEnum.SAML,
   expired_at: new Date(),
-  lc_authentication_bearer: aBearerToken as NonEmptyString,
+  lc_authentication_bearer: aBearerToken,
   assertion_ref: anAssertionRef,
   pub_key: aPubKey,
   status: PubKeyStatusEnum.VALID,
