@@ -147,7 +147,6 @@ export const GetAssertionHandler = (
 /**
  * Wraps a GetAssertion handler inside an Express request handler.
  */
-// eslint-disable-next-line 
 export function GetAssertion(
   jwtConfig: JWTConfig,
   publicKeyDocumentReader: PublicKeyDocumentReader,

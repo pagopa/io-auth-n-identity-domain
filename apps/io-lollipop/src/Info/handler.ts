@@ -36,7 +36,6 @@ export const InfoHandler = (
   pipe(
     envConfig,
     checkApplicationHealth,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     TE.map(_ =>
       ResponseSuccessJson({
         name: getValueFromPackageJson("name"),

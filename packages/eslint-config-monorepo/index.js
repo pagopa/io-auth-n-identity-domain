@@ -46,7 +46,7 @@ module.exports = {
   ],
   rules: {
     "@typescript-eslint/no-unused-expressions": "error",
-    "@typescript-eslint/no-unused-vars": ["error", { args: "after-used" }],
+    "@typescript-eslint/no-unused-vars": ["error", { args: "after-used", argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
     "arrow-body-style": "error",
     "complexity": "error",
     "eqeqeq": ["error", "smart"],

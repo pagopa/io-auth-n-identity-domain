@@ -96,7 +96,6 @@ export const verifyJWTMiddleware = (
         requestUrl: req.url
       }
     ]),
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     E.mapLeft(_ =>
       getResponseErrorForbiddenNotAuthorized(
         `Invalid or missing JWT in header ${jwtConfig.BEARER_AUTH_HEADER}`
@@ -117,7 +116,6 @@ export const verifyJWTMiddleware = (
             requestUrl: req.url
           }
         ]),
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         TE.mapLeft(_ =>
           getResponseErrorForbiddenNotAuthorized("Invalid or expired JWT")
         )

@@ -83,7 +83,6 @@ app.get(
 const azureFunctionHandler = createAzureFunctionHandler(app);
 
 // Binds the express app to an Azure Function handler
-// eslint-disable-next-line 
 function httpStart(context: Context): void {
   logger = context.log;
   setAppContext(app, context);
