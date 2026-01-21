@@ -171,7 +171,6 @@ export const signedMessageHandler = (
       TE.tryCatch(
         () =>
           assertionClient.getAssertion({
-            // eslint-disable-next-line sonarjs/no-duplicate-string
             assertion_ref: lollipopHeaders["x-pagopa-lollipop-assertion-ref"],
             ["x-pagopa-lollipop-auth"]: `Bearer ${lollipopHeaders["x-pagopa-lollipop-auth-jwt"]}` as LollipopAuthBearer
           }),

@@ -4,7 +4,7 @@ import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 
 export type ProblemSource = "AzureCosmosDB" | "AzureStorage" | "Config" | "Url";
-// eslint-disable-next-line functional/prefer-readonly-type, @typescript-eslint/naming-convention
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export type HealthProblem<S extends ProblemSource> = string & { __source: S };
 export type HealthCheck<
   S extends ProblemSource = ProblemSource,

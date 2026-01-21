@@ -269,7 +269,7 @@ describe("lollipopMiddleware", () => {
     }) as unknown as Request;
     const res = mockRes() as unknown as Response;
     // Delete the default user value
-    // eslint-disable-next-line functional/immutable-data
+  
     req.user = undefined;
     const middleware = expressLollipopMiddleware(
       mockLollipopClient,

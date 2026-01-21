@@ -1,4 +1,5 @@
 module.exports = {
+    root: true,
     env: {
         es2021: true,
         node: true
@@ -12,10 +13,10 @@ module.exports = {
         project: "./tsconfig.eslint.json",
         tsconfigRootDir: __dirname,
       },
-    "extends": [
+    extends: [
         "eslint-config-monorepo/index.js",
     ],
-    "rules": {
+    rules: {
         "@typescript-eslint/consistent-type-definitions": ["error", "type"]
     }
 }

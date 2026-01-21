@@ -16,7 +16,7 @@ import { getLogoutHandler } from "./handler";
 const config = getConfigOrThrow();
 initTelemetryClient();
 
-// eslint-disable-next-line functional/no-let
+
 let logger: Context["log"];
 const azureContextTransport = (new AzureContextTransport(
   () => logger,

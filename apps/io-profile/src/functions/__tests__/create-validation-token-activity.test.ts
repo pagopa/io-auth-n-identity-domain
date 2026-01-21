@@ -20,7 +20,7 @@ import { envConfig } from "../__mocks__/env-config.mock";
 
 const VALIDATION_TOKEN_TABLE_NAME = envConfig.VALIDATION_TOKENS_TABLE_NAME;
 
-// eslint-disable-next-line functional/no-let
+
 let clock: any;
 beforeEach(() => {
   // We need to mock time to test token expiration.

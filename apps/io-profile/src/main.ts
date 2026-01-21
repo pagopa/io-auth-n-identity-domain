@@ -183,7 +183,7 @@ export const EmitEventActivity = async (
   context: Context,
   input: unknown,
 ): Promise<void> => {
-  // eslint-disable-next-line functional/immutable-data
+
   context.bindings.apievents =
     typeof input === "string" ? input : JSON.stringify(input);
 };

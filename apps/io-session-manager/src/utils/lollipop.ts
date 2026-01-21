@@ -230,7 +230,6 @@ const getNonceOrUlid = (
   lollipopSignatureInput: LollipopSignatureInput,
 ): NonEmptyString => {
   // The nonce value must be the first regex group
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, nonce, ...__] = NONCE_REGEX.exec(lollipopSignatureInput) ?? [
     null,
     ulid(),
@@ -258,7 +257,6 @@ const getAlgoFromAssertionRef = (
 const getKeyThumbprintFromSignature = (
   lollipopSignatureInput: LollipopSignatureInput,
 ): E.Either<Errors, Thumbprint> => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, thumbprint, ...__] = KEY_ID_REGEX.exec(lollipopSignatureInput) ?? [
     null,
     null,
@@ -520,7 +518,7 @@ export const expressLollipopMiddleware: (
                   appInsightsTelemetryClient,
                 }),
                 TE.map((lollipopLocals) => {
-                  // eslint-disable-next-line functional/immutable-data
+                
                   res.locals = { ...res.locals, ...lollipopLocals };
                 }),
                 TE.toUnion,

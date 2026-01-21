@@ -104,7 +104,6 @@ export const run = <A>(fa: AsyncIterableTask<A>): T.Task<void> =>
     fa,
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     T.chain((asyncIterable) => async () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for await (const _ of asyncIterable) {
         // nothing to do: this is done to resolve the async iterator
       }

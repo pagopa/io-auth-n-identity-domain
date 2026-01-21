@@ -20,7 +20,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "@pagopa/eslint-config": "^3.0.0",
+    "@pagopa/eslint-config": "^4.0.6",
     "@pagopa/ts-commons": "^13.1.2",
     "@pagopa/typescript-config-node": "*",
     "@types/node": "^20.12.2",

@@ -91,7 +91,7 @@ export const localStrategy = (
         };
 
         // Setting req.cookies for test-login endpoint
-        // eslint-disable-next-line functional/immutable-data
+      
         req.cookies = { [VALIDATION_COOKIE_NAME]: inResponseTo };
 
         return {

@@ -80,7 +80,7 @@ export const createTracker = (
     } as EventTelemetry);
   };
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/ban-types
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const traceEmailValidationSend = (messageInfo: object) => {
     telemetryClient?.trackEvent({
       name: `SendValidationEmailActivity.success`,

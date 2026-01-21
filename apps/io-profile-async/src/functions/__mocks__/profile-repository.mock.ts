@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-duplicate-string */
 import { vi } from "vitest";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as O from "fp-ts/lib/Option";
@@ -191,12 +190,12 @@ export const mockProfiles = [
 ].map(item => ({
   ...item,
   id: generateId(
-    item.fiscalCode as FiscalCode,
-    item.version as NonNegativeInteger
+    item.fiscalCode,
+    item.version
   )
 }));
 
-export const onProfileUpdateFindDocumentMock = vi.fn((fc, version) => _args =>
+export const onProfileUpdateFindDocumentMock = vi.fn((fc, version) => (_args: any) =>
   pipe(
     mockProfiles.find(
       profile =>

@@ -61,7 +61,7 @@ function wrapRedisClusterClient(
   const clientAsObject = client as Record<any, any>;
   for (const functionName of Object.keys(commands)) {
     if (typeof clientAsObject[functionName] === "function") {
-      // eslint-disable-next-line functional/immutable-data
+    
       clientAsObject[functionName] = wrapAsyncFunctionWithAppInsights(
         client,
         clientAsObject[functionName],
@@ -178,9 +178,9 @@ const CreateRedisClientTask = (
     }),
   );
 
-// eslint-disable-next-line functional/no-let
+
 let SAFE_REDIS_CLIENT: redis.RedisClusterType;
-// eslint-disable-next-line functional/no-let
+
 let FAST_REDIS_CLIENT: redis.RedisClusterType;
 
 /**

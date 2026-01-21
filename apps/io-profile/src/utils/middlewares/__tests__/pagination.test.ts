@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-duplicate-string */
 import { Request } from "express";
 import * as E from "fp-ts/lib/Either";
 import { describe, expect, it } from "vitest";

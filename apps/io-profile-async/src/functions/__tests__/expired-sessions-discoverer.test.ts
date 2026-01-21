@@ -1,5 +1,4 @@
 /* eslint-disable max-lines-per-function */
-/* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 import { Context } from "@azure/functions";
 import { QueueClient } from "@azure/storage-queue";
@@ -405,7 +404,6 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
           sessionNotificationsRepositoryConfigMock.SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE
         );
         // expect the timeout to be the multiplier * index
-        // eslint-disable-next-line functional/no-let
         for (let i = 0; i < right.length; i++) {
           // check the timeout for each item in the chunk
           for (const item of right[i]) {

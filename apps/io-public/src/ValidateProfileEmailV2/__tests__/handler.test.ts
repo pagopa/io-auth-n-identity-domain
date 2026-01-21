@@ -75,7 +75,6 @@ function generateProfileEmails(
     if (throws) {
       throw new Error("error retriving profile emails");
     }
-    // eslint-disable-next-line functional/no-let
     for (let i = 0; i < count; i++) {
       yield { email, fiscalCode };
     }

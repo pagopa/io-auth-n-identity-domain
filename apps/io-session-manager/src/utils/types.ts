@@ -9,7 +9,7 @@ export const omit = <Data extends object, Keys extends keyof Data>(
       Object.prototype.hasOwnProperty.call(data, key) &&
       !keys.includes(key as Extract<Data, string | number | symbol>)
     ) {
-      // eslint-disable-next-line functional/immutable-data
+    
       result[key as Extract<Data, string | number | symbol>] =
         data[key as Extract<Data, string | number | symbol>];
     }

@@ -392,7 +392,6 @@ const delay = (ms: number): Promise<void> =>
 
 const waitFunctionToSetup = async (): Promise<void> => {
   log("ENV: ", COSMOSDB_URI, WAIT_MS, SHOW_LOGS);
-  // eslint-disable-next-line functional/no-let
   let i = 0;
   while (i < MAX_ATTEMPT) {
     log("Waiting the function to setup..");

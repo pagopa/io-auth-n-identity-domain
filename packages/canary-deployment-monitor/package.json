@@ -9,7 +9,7 @@
         "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache"
     },
     "devDependencies": {
-        "@pagopa/eslint-config": "^3.0.0",
+        "@pagopa/eslint-config": "^4.0.6",
         "@pagopa/typescript-config-node": "*",
         "@types/prompts": "^2",
         "@types/winston": "^2.4.4",

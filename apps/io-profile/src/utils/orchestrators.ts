@@ -37,7 +37,6 @@ export const isOrchestratorRunning = (
 ): TE.TaskEither<
   Error,
   PromiseType<ReturnType<(typeof client)["getStatus"]>> & {
-    // eslint-disable-next-line functional/prefer-readonly-type
     isRunning: boolean;
   }
 > =>

@@ -174,7 +174,7 @@ describe("handler function", () => {
       mockProfiles
     );
 
-    // eslint-disable-next-line functional/immutable-data
+  
     mockDocuments.push(
       ...take(
         generateId("VSFNVG14A39Y596X" as FiscalCode, 1 as NonNegativeInteger),

@@ -148,7 +148,6 @@ export const GenerateLCParamsHandler = (
 /**
  * Wraps a GenerateLCParamsHandler handler inside an Express request handler.
  */
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function GenerateLCParams(
   publicKeyDocumentReader: PublicKeyDocumentReader,
   expireGracePeriodInDays: NonNegativeInteger,

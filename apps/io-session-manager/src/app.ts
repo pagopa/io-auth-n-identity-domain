@@ -131,7 +131,7 @@ export const newApp: (
   app.use(
     bodyParser.json({
       verify: (_req, res: express.Response, buf, _encoding: BufferEncoding) => {
-        // eslint-disable-next-line functional/immutable-data
+      
         res.locals.body = buf;
       },
     }),

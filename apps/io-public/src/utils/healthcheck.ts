@@ -11,7 +11,7 @@ import { TaskEither } from "fp-ts/lib/TaskEither";
 import { getConfig, IConfig } from "./config";
 
 type ProblemSource = "AzureCosmosDB" | "AzureStorage" | "Config";
-// eslint-disable-next-line functional/prefer-readonly-type, @typescript-eslint/naming-convention
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export type HealthProblem<S extends ProblemSource> = string & { __source: S };
 export type HealthCheck<
   S extends ProblemSource = ProblemSource,
@@ -125,7 +125,6 @@ export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> =>
     TE.chainW(config =>
       apply.sequenceT(TE.ApplySeq)<
         ReadonlyArray<HealthProblem<ProblemSource>>,
-        // eslint-disable-next-line functional/prefer-readonly-type
         Array<TaskEither<ReadonlyArray<HealthProblem<ProblemSource>>, true>>
       >(
         checkAzureCosmosDbHealth(config.COSMOSDB_URI, config.COSMOSDB_KEY),

@@ -27,7 +27,7 @@ export const awaiter: <K>(
   },
 ) =>
   new Promise((resolve, reject) => {
-    // eslint-disable-next-line functional/no-let, prefer-const, one-var
+    // eslint-disable-next-line prefer-const, one-var
     let timer: NodeJS.Timeout, timerTask: NodeJS.Timeout;
     const start = Date.now();
     if (options.timeout > 0) {

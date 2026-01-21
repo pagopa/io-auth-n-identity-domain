@@ -68,9 +68,9 @@ export const getNoticeLoginEmailOrchestratorHandler = function* (
 
   // Total time ~2h30min
   const retryOptions = new df.RetryOptions(5000, 20);
-  // eslint-disable-next-line functional/immutable-data
+
   retryOptions.backoffCoefficient = 1.5;
-  // eslint-disable-next-line functional/immutable-data
+
   retryOptions.maxRetryIntervalInMilliseconds = 20 * 60 * 1000; // do not exceed 20 min interval between retries
 
   context.log.verbose(`${logPrefix}|Notice login email process started`);
@@ -124,7 +124,7 @@ export const getNoticeLoginEmailOrchestratorHandler = function* (
       ip_address,
     });
 
-    // eslint-disable-next-line functional/no-let, @typescript-eslint/naming-convention
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     let geo_location: NonEmptyString | undefined;
     try {
       const geoLocationActivityResult = yield context.df.callActivityWithRetry(
@@ -157,7 +157,7 @@ export const getNoticeLoginEmailOrchestratorHandler = function* (
     // 1. the user doesn't have a validated email
     // 2. the user does have a validated email but the magic_link couldn't be retrieved
     //
-    // eslint-disable-next-line functional/no-let, @typescript-eslint/naming-convention
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     let magic_link: NonEmptyString | undefined;
     if (is_email_validated) {
       context.log.verbose(`${logPrefix}|Starting GetMagicCodeActivity`);

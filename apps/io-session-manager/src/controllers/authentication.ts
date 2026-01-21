@@ -176,7 +176,7 @@ export const acs: (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ) => AssertionConsumerServiceT<any> =
   (deps) =>
-  // eslint-disable-next-line max-lines-per-function, complexity, sonarjs/cognitive-complexity
+  // eslint-disable-next-line max-lines-per-function, complexity
   async (userPayload: unknown, additionalProps?: AdditionalLoginPropsT) => {
     //
     // decode the SPID assertion into a SPID user
@@ -740,11 +740,8 @@ export const acs: (
       );
     }
 
-    // eslint-disable-next-line functional/no-let
     let userEmail: EmailString | undefined;
-    // eslint-disable-next-line functional/no-let
     let userHasEmailValidated: boolean | undefined;
-    // eslint-disable-next-line functional/no-let
     let loginScenario: LoginScenarioEnum | undefined;
 
     if (getProfileResponse.kind === "IResponseErrorNotFound") {

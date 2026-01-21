@@ -337,7 +337,7 @@ export const GetUpsertServicePreferencesHandler = (
       TE.map((resultsWithSubFeedInfo) => {
         // if it's a new subscription, emit relative event
         if (resultsWithSubFeedInfo.isSubscribing) {
-          // eslint-disable-next-line functional/immutable-data
+        
           context.bindings.apievents = pipe(
             makeServiceSubscribedEvent(
               resultsWithSubFeedInfo.serviceId,

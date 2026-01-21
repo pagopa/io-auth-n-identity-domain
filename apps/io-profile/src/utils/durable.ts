@@ -16,7 +16,6 @@ import * as t from "io-ts";
 export const consumeGenerator = <TReturn = unknown>(
   gen: Generator<unknown, TReturn, unknown>,
 ): TReturn => {
-  // eslint-disable-next-line functional/no-let
   let prevValue: unknown;
   // eslint-disable-next-line no-constant-condition
   while (true) {

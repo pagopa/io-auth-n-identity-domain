@@ -54,7 +54,7 @@ export const EmailValidationOrchestratorHandler = function* (
   const logPrefix = `EmailValidationWithTemplateProcessOrchestrator`;
 
   const retryOptions = new df.RetryOptions(5000, 10);
-  // eslint-disable-next-line functional/immutable-data
+
   retryOptions.backoffCoefficient = 1.5;
 
   context.log.verbose(`${logPrefix}|Email validation process started`);
