@@ -1,9 +1,10 @@
 module.exports = {
-  "env": {
-    "es6": true,
-    "node": true
+  root: true,
+  env: {
+    es2021: true,
+    node: true
   },
-  "ignorePatterns": [
+  ignorePatterns: [
     "node_modules",
     "generated",
     "**/__tests__/*",
@@ -12,13 +13,10 @@ module.exports = {
     "*.d.ts",
     "*.js"
   ],
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "project": "./tsconfig.json",
-    "sourceType": "module"
+  parserOptions: {
+    project: "./tsconfig.eslint.json",
+    tsconfigRootDir: __dirname,
   },
-  "extends": [
-    "@pagopa/eslint-config/strong",
-  ],
-  "rules": {}
+  extends: ["eslint-config-monorepo/index.js"],
+  rules: {}
 };

@@ -28,7 +28,7 @@
     "generate:client-sm-internal": "shx rm -rf ./src/generated/definitions/sm-internal && shx mkdir -p ./src/generated/definitions/sm-internal && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/af528a5e26abe5cab0a3ec2bbce51bd8fd0d6fba/apps/io-session-manager-internal/api/internal.yaml --no-strict --out-dir ./src/generated/definitions/sm-internal --request-types --response-decoders --client"
   },
   "devDependencies": {
-    "@pagopa/eslint-config": "^3.0.0",
+    "@pagopa/eslint-config": "^4.0.6",
     "@types/express": "^4.17.12",
     "@types/node": "~20.12.2",
     "@vitest/coverage-v8": "~3.2.4",

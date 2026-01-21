@@ -2,7 +2,7 @@ import * as E from "fp-ts/lib/Either";
 import * as t from "io-ts";
 import { pipe } from "fp-ts/lib/function";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const packageJson = require("../../package.json");
 
 /**

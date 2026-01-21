@@ -35,7 +35,7 @@
     "newtype-ts": "^0.3.5"
   },
   "devDependencies": {
-    "@pagopa/eslint-config": "^3.0.0",
+    "@pagopa/eslint-config": "^4.0.6",
     "@pagopa/openapi-codegen-ts": "^13.2.0",
     "@pagopa/typescript-config-node": "*",
     "@types/node": "~20.12.0",
