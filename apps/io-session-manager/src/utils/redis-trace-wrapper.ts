@@ -78,7 +78,7 @@ export function createWrappedRedisClusterClient(
   clientName: string,
   enableDependencyTrace: boolean = false,
   appInsightsClient?: appInsights.TelemetryClient,
-) {
+): redis.RedisClusterType {
   const cluster = redis.createCluster(options);
   return enableDependencyTrace && appInsightsClient
     ? wrapRedisClusterClient(cluster, clientName, appInsightsClient)

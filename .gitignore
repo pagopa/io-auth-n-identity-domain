@@ -49,6 +49,7 @@ node_modules
 !**/.yarn/releases
 !**/.yarn/sdks
 !**/.yarn/versions
+.pnpm-store
 
 # Local env files
 .env

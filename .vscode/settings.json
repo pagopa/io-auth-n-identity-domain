@@ -1,6 +1,6 @@
 {
   "search.exclude": {
-    "**/.yarn": true,
+    "**/.pnpm-store": true,
     "**/.pnp.*": true
   },
   // EsLint

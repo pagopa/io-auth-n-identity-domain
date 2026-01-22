@@ -14,7 +14,7 @@ declare module "passport-http-custom-bearer" {
   }
   interface IVerifyOptions {
     message?: string | undefined;
-    scope: string | string[];
+    scope?: string | string[];
   }
 
   type VerifyFunction = (

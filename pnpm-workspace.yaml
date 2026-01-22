@@ -1,0 +1,9 @@
+cleanupUnusedCatalogs: false
+linkWorkspacePackages: true
+packageImportMethod: clone-or-copy
+# minimumReleaseAge: 172800
+
+packages:
+  - "apps/*"
+  - "bruno"
+  - "packages/*"

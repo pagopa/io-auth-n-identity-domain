@@ -39,6 +39,13 @@ const maybeAppInsightsClient = pipe(
   O.toUndefined,
 );
 
+type AppWithOnServerStop = Express.Application & {
+  on: (
+    event: "mount" | "server:stop",
+    listener: () => void,
+  ) => Express.Application;
+};
+
 /**
  * Utility method used to start the server using a Express Application.
  * This is usefull to mocktesting the startup process whidout creating a real
@@ -51,7 +58,7 @@ export const serverStarter = (
 ) =>
   appTask.then(({ app, startIdpMetadataRefreshTimer, redisClientSelector }) => {
     // Initialize the handler for the graceful shutdown
-    app.on("server:stop", () => {
+    (app as AppWithOnServerStop).on("server:stop", () => {
       // Clear refresher interval
       clearInterval(startIdpMetadataRefreshTimer);
       // Graceful redis connection shutdown.

@@ -17,13 +17,13 @@ This project requires specific versions of the following tools. To make sure you
   node --version
   ```
 
-- **Yarn**
+- **pnpm**
 
-  Yarn must be installed using [Corepack](https://yarnpkg.com/getting-started/install), included by default in `Node.js`.
+  pnpm must be installed using [Corepack](https://pnpm.io/installation#using-corepack), included by default in `Node.js`.
 
   ```sh
   corepack enable
-  yarn --version
+  pnpm --version
   ```
 
 - **Terraform**
@@ -48,7 +48,7 @@ This project requires specific versions of the following tools. To make sure you
 Tasks are defined in the `turbo.json` and `package.json` files. To execute a task, just run the command at the project root:
 
 ```sh
-yarn <cmd>
+pnpm <cmd>
 ```
 
 `Turborepo` will execute the task for all the workspaces that declare the same command in their `package.json` file; it also applies caching policies to the command according to the rules defined in `turbo.json`.
@@ -62,21 +62,18 @@ Defined tasks are _lint_, _test_, and _typecheck_.
 
 ## Dependencies
 
-> [!IMPORTANT]
-> This project uses Yarn Plug'n'Play as installation strategy for dependencies. [Check out](https://yarnpkg.com/features/pnp) the official Yarn documentation to lean about pnp and its difference from the classic `node_modules` approach.
-
 ```sh
 # install all dependencies for the project
-yarn
+pnpm install
 
 # install a dependency to a workspace
 #   (workspace name is the name in the package.json file)
-yarn workspace <workspace name> add <package name>
-yarn workspace <workspace name> add -D <package name>
+pnpm --filter <workspace name> add <package name>
+pnpm --filter <workspace name> add -D <package name>
 
 # install a dependency for the monorepo
 #   (ideally a shared dev dependency)
-yarn add -D <package name>
+pnpm add -D -w <package name>
 ```
 
 To add a dependency to a local workspace, manually edit the target workspace's `package.json` file adding the dependency as
@@ -86,10 +83,6 @@ To add a dependency to a local workspace, manually edit the target workspace's `
     "my-dependency-workspace": "workspace:*"
 }
 ```
-
-### Yarn SDKS (.yarn/sdks)
-
-Smart IDEs (such as VSCode or IntelliJ) require special configuration for TypeScript to work when using Plug'n'Play installs. That configuration is generated automatically by `yarn` (via `yarn dlx @yarnpkg/sdks vscode vim [other-editor...]`) and commited to `.yarn/sdks`.
 
 ## Folder structure
 

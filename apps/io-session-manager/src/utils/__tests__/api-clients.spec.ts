@@ -10,10 +10,11 @@ import { JwkPubKeyHashAlgorithmEnum } from "../../generated/lollipop-api/JwkPubK
 import { aJwkPubKey } from "../../__mocks__/lollipop.mocks";
 
 const PORT = 9000;
+const HOST = "127.0.0.1";
 vi.mock("../../repositories/fn-app-api", () => ({
   FnAppAPIClient: (_, __, fetchApi) =>
     FnAppClient({
-      baseUrl: `http://localhost:${PORT}`,
+      baseUrl: `http://${HOST}:${PORT}`,
       fetchApi,
     }),
 }));
@@ -21,7 +22,7 @@ vi.mock("../../repositories/fn-app-api", () => ({
 vi.mock("../../repositories/fast-login-api", () => ({
   getFnFastLoginAPIClient: (_, __, basePath, fetchApi) =>
     FastLoginClient({
-      baseUrl: `http://localhost:${PORT}`,
+      baseUrl: `http://${HOST}:${PORT}`,
       basePath,
       fetchApi,
     }),
@@ -30,7 +31,7 @@ vi.mock("../../repositories/fast-login-api", () => ({
 vi.mock("../../repositories/lollipop-api", () => ({
   getLollipopApiClient: (_, __, basePath, fetchApi) =>
     LollipopClient({
-      baseUrl: `http://localhost:${PORT}`,
+      baseUrl: `http://${HOST}:${PORT}`,
       basePath,
       fetchApi,
     }),
@@ -39,43 +40,46 @@ vi.mock("../../repositories/lollipop-api", () => ({
 import { initAPIClientsDependencies } from "../api-clients";
 
 describe("initAPIClientsDependencies", () => {
-  const server = new ServerMock({ host: "localhost", port: PORT }, undefined);
-  server.on({
-    method: "GET",
-    path: `/api/v1/profiles/${aFiscalCode}`,
-    reply: {
-      status: 200,
-      body: JSON.stringify({ foo: "bar" }),
-    },
-    delay: DEFAULT_REQUEST_TIMEOUT_MS + 100,
-  });
-  server.on({
-    method: "POST",
-    path: `/api/v1/nonce/generate`,
-    reply: {
-      status: 200,
-      body: JSON.stringify({ foo: "bar" }),
-    },
-    delay: DEFAULT_REQUEST_TIMEOUT_MS + 100,
-  });
-  server.on({
-    method: "POST",
-    path: `/api/v1/pubkeys`,
-    reply: {
-      status: 200,
-      body: JSON.stringify({ foo: "bar" }),
-    },
-    delay: DEFAULT_REQUEST_TIMEOUT_MS + 100,
-  });
+  const server = new ServerMock({ host: HOST, port: PORT }, undefined);
   const expectedAbortError = new AbortError("The user aborted a request.");
 
-  beforeAll(async () => new Promise((resolve) => server.start(resolve)));
+  beforeAll(async () => {
+    await new Promise((resolve) => server.start(resolve));
+    
+    server.on({
+      method: "GET",
+      path: `/api/v1/profiles/${aFiscalCode}`,
+      reply: {
+        status: 200,
+        body: JSON.stringify({ foo: "bar" }),
+      },
+      delay: DEFAULT_REQUEST_TIMEOUT_MS + 100,
+    });
+    server.on({
+      method: "POST",
+      path: `/api/v1/nonce/generate`,
+      reply: {
+        status: 200,
+        body: JSON.stringify({ foo: "bar" }),
+      },
+      delay: DEFAULT_REQUEST_TIMEOUT_MS + 100,
+    });
+    server.on({
+      method: "POST",
+      path: `/api/v1/pubkeys`,
+      reply: {
+        status: 200,
+        body: JSON.stringify({ foo: "bar" }),
+      },
+      delay: DEFAULT_REQUEST_TIMEOUT_MS + 100,
+    });
+  });
 
   afterAll(async () => new Promise((resolve) => server.stop(resolve)));
 
   test(
     "The FnAppAPIClient should abort the request if the server responde slowly",
-    { timeout: DEFAULT_REQUEST_TIMEOUT_MS + 500, concurrent: true },
+    { timeout: DEFAULT_REQUEST_TIMEOUT_MS + 500 },
     async () => {
       const { fnAppAPIClient } = initAPIClientsDependencies();
 
@@ -89,7 +93,7 @@ describe("initAPIClientsDependencies", () => {
 
   test(
     "The FnFastLoginAPIClient should abort the request if the server responde slowly",
-    { timeout: DEFAULT_REQUEST_TIMEOUT_MS + 500, concurrent: true },
+    { timeout: DEFAULT_REQUEST_TIMEOUT_MS + 500 },
     async () => {
       const { fnFastLoginAPIClient } = initAPIClientsDependencies();
 
@@ -101,7 +105,7 @@ describe("initAPIClientsDependencies", () => {
 
   test(
     "The FnFastLoginAPIClient should abort the request if the server responde slowly",
-    { timeout: DEFAULT_REQUEST_TIMEOUT_MS + 500, concurrent: true },
+    { timeout: DEFAULT_REQUEST_TIMEOUT_MS + 500 },
     async () => {
       const { fnLollipopAPIClient } = initAPIClientsDependencies();
 

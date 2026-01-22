@@ -6,7 +6,7 @@
     "build:watch": "tsc -w",
     "typecheck": "tsc --noemit",
     "import": "node ./dist/app.js",
-    "lint": "yarn lint:check --fix",
+    "lint": "pnpm lint:check --fix",
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache"
   },
   "devDependencies": {

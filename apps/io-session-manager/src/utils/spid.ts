@@ -101,7 +101,7 @@ export const makeProxyUserFromSAMLResponse = (
     spid_idp: pipe(getIssuerFromSAMLResponse(doc), O.toUndefined),
     spid_level: pipe(
       getSpidLevelFromSAMLResponse(doc),
-      O.getOrElse(() => SpidLevelEnum["https://www.spid.gov.it/SpidL2"]),
+      O.getOrElse(() => SpidLevelEnum["https://www.spid.gov.it/SpidL2"] as SpidLevelEnum),
     ),
   };
   return pipe(proxyUserProperties, UserWithoutTokens.decode);
