@@ -204,7 +204,7 @@
 
 > 22 December 2022
 
-- removed unused script and removed npm in favour of yarn [`#62`](https://github.com/pagopa/io-functions-public/pull/62)
+- removed unused script and removed pnpm in favour of pnpm [`#62`](https://github.com/pagopa/io-functions-public/pull/62)
 - Bump version to 0.4.8 [skip ci] [`9a9f2f8`](https://github.com/pagopa/io-functions-public/commit/9a9f2f8d628ee5fda0423db34dfdd8d91c9d8d2c)
 
 ## 0.4.7

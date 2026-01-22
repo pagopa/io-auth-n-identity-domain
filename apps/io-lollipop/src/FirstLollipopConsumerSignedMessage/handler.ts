@@ -138,6 +138,7 @@ export const getAssertionUserIdVsCfVerifier = (
   );
 
 export const getAssertionSignatureVerifier = (
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _firstLcAssertionClientConfig: FirstLcAssertionClientConfig
 ): Verifier => (): ReturnType<Verifier> => TE.of(true);
 
@@ -152,6 +153,7 @@ export const signedMessageHandler = (
 ): ISignedMessageHandler => async (
   pubKey,
   lollipopHeaders,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _inputSignedMessage
 ): ReturnType<ISignedMessageHandler> =>
   pipe(
@@ -256,6 +258,7 @@ export const getSignedMessageHandler = (
     HttpMessageSignatureMiddleware()
   );
   return wrapRequestHandler(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     middlewaresWrap((_, pubKey, lollipopHeaders, inputSignedMessage, __) =>
       handler(pubKey, lollipopHeaders, inputSignedMessage)
     )

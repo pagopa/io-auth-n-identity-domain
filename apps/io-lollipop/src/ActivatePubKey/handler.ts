@@ -116,6 +116,7 @@ export const ActivatePubKeyHandler = (
             name: FN_LOG_NAME
           }
         ]),
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _ => ResponseErrorForbiddenNotAuthorized
       )
     ),
@@ -125,6 +126,7 @@ export const ActivatePubKeyHandler = (
         `${body.fiscal_code}-${assertion_ref}`,
         AssertionFileName.decode,
         TE.fromEither,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         eventLog.taskEither.errorLeft(_ => [
           // we do not log decoding errors for AssertionFilename
           // because we can leak fiscal code to logs
@@ -134,6 +136,7 @@ export const ActivatePubKeyHandler = (
             name: FN_LOG_NAME
           }
         ]),
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         TE.mapLeft(_ =>
           ResponseErrorInternal(`Could not decode assertionFileName`)
         ),
