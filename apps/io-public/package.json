@@ -57,8 +57,5 @@
     "node-fetch": "catalog:",
     "winston": "^3.3.3",
     "winston-transport": "catalog:"
-  },
-  "resolutions": {
-    "io-ts": "^2.2.21"
   }
 }

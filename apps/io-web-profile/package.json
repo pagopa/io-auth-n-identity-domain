@@ -78,8 +78,5 @@
     "ulid": "catalog:",
     "winston": "^3.2.1",
     "winston-transport": "catalog:"
-  },
-  "resolutions": {
-    "handlebars": "~4.5.3"
   }
 }

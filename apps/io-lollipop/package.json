@@ -77,9 +77,6 @@
     "ulid": "catalog:",
     "winston": "^3.2.1",
     "winston-transport": "catalog:",
-    "xml-crypto": "^2.1.5"
-  },
-  "resolutions": {
-    "handlebars": "~4.7.0"
+    "xml-crypto": "catalog:"
   }
 }

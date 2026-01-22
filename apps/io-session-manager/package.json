@@ -100,8 +100,5 @@
     "swagger-cli": "catalog:",
     "typescript": "^5.4.3",
     "vitest": "catalog:"
-  },
-  "resolutions": {
-    "xml-crypto": "catalog:"
   }
 }
