@@ -6,27 +6,201 @@ settings:
 
 catalogs:
   default:
+    '@azure/cosmos':
+      specifier: ^4.1.1
+      version: 4.2.0
+    '@azure/data-tables':
+      specifier: ^13.3.2
+      version: 13.3.2
+    '@azure/functions':
+      specifier: ^4.7.0
+      version: 4.7.0
+    '@azure/identity':
+      specifier: ^4.10.1
+      version: 4.10.1
     '@azure/service-bus':
       specifier: ^7.9.5
       version: 7.9.5
+    '@azure/storage-blob':
+      specifier: ^12.29.1
+      version: 12.29.1
+    '@azure/storage-queue':
+      specifier: ^12.22.0
+      version: 12.25.0
+    '@mattrglobal/http-signatures':
+      specifier: ^4.1.0
+      version: 4.1.1
+    '@pagopa/azure-storage-migration-kit':
+      specifier: ^0.0.2
+      version: 0.0.2
     '@pagopa/eslint-config':
       specifier: ^4.0.6
       version: 4.0.6
+    '@pagopa/express-azure-functions':
+      specifier: ^4.0.1
+      version: 4.0.1
+    '@pagopa/handler-kit':
+      specifier: ^1.1.1
+      version: 1.1.1
+    '@pagopa/handler-kit-azure-func':
+      specifier: ^2.0.8
+      version: 2.0.8
+    '@pagopa/io-app-email-templates':
+      specifier: ^0.8.0
+      version: 0.8.0
+    '@pagopa/io-functions-commons':
+      specifier: ^29.3.0
+      version: 29.3.0
+    '@pagopa/io-spid-commons':
+      specifier: ^14.0.1
+      version: 14.0.1
     '@pagopa/logger':
       specifier: ^1.0.1
       version: 1.0.1
+    '@pagopa/openapi-codegen-ts':
+      specifier: ^14.0.1
+      version: 14.0.1
+    '@pagopa/ts-commons':
+      specifier: ^13.1.2
+      version: 13.1.2
+    '@pagopa/winston-ts':
+      specifier: ^2.2.0
+      version: 2.2.0
+    '@redis/client':
+      specifier: 1.6.1
+      version: 1.6.1
+    '@types/body-parser':
+      specifier: ^1.0.0
+      version: 1.19.5
+    '@types/cookie-parser':
+      specifier: ^1.4.8
+      version: 1.4.8
+    '@types/express':
+      specifier: ^4.17.21
+      version: 4.17.21
+    '@types/html-to-text':
+      specifier: ^9.0.4
+      version: 9.0.4
+    '@types/jsonwebtoken':
+      specifier: ^9.0.2
+      version: 9.0.7
+    '@types/jwk-to-pem':
+      specifier: ^2.0.1
+      version: 2.0.3
+    '@types/lolex':
+      specifier: ^3.1.1
+      version: 3.1.1
+    '@types/node':
+      specifier: ^20.19.5
+      version: 20.19.30
+    '@types/node-fetch':
+      specifier: ^2.6.11
+      version: 2.6.12
+    '@types/nodemailer':
+      specifier: ^6.4.17
+      version: 6.4.17
+    '@types/passport':
+      specifier: ^1.0.3
+      version: 1.0.16
+    '@types/passport-http-bearer':
+      specifier: ^1.0.34
+      version: 1.0.41
+    '@types/passport-local':
+      specifier: ^1.0.38
+      version: 1.0.38
+    '@types/supertest':
+      specifier: ^6.0.2
+      version: 6.0.2
+    '@types/vfile-message':
+      specifier: ^2.0.0
+      version: 2.0.0
+    '@types/xml-crypto':
+      specifier: ^1.4.2
+      version: 1.4.6
     '@vitest/coverage-v8':
-      specifier: ~3.2.4
+      specifier: ^3.2.4
       version: 3.2.4
+    '@xmldom/xmldom':
+      specifier: ^0.8.10
+      version: 0.8.10
+    applicationinsights:
+      specifier: ^2.9.5
+      version: 2.9.6
+    azure-storage:
+      specifier: ^2.10.7
+      version: 2.10.7
+    base64url:
+      specifier: ^3.0.1
+      version: 3.0.1
+    body-parser:
+      specifier: ^1.20.2
+      version: 1.20.3
+    cookie-parser:
+      specifier: ^1.4.7
+      version: 1.4.7
+    date-fns:
+      specifier: ^2.30.0
+      version: 2.30.0
     dependency-check:
       specifier: ^4.1.0
       version: 4.1.0
+    dotenv:
+      specifier: ^16.4.5
+      version: 16.4.7
+    dotenv-cli:
+      specifier: ^7.4.1
+      version: 7.4.4
+    durable-functions:
+      specifier: ^2.1.4
+      version: 2.1.4
     eslint:
       specifier: ^8.57.0
       version: 8.57.0
     eslint-plugin-prettier:
       specifier: ^5.1.3
       version: 5.1.3
+    express:
+      specifier: ^4.19.2
+      version: 4.21.1
+    fast-check:
+      specifier: ^1.16.0
+      version: 1.26.0
+    fp-ts:
+      specifier: ^2.16.9
+      version: 2.16.9
+    helmet:
+      specifier: ^7.1.0
+      version: 7.1.0
+    html-to-text:
+      specifier: ^9.0.5
+      version: 9.0.5
+    http-graceful-shutdown:
+      specifier: ^3.1.13
+      version: 3.1.13
+    io-ts:
+      specifier: ^2.2.22
+      version: 2.2.22
+    io-ts-types:
+      specifier: ^0.5.19
+      version: 0.5.19
+    jose:
+      specifier: ^5.3.0
+      version: 5.9.4
+    jsonwebtoken:
+      specifier: ^9.0.2
+      version: 9.0.2
+    jwk-to-pem:
+      specifier: ^2.0.5
+      version: 2.0.7
+    logform:
+      specifier: ^2.6.0
+      version: 2.7.0
+    lolex:
+      specifier: ^5.1.1
+      version: 5.1.2
+    mock-http-server:
+      specifier: ^1.4.5
+      version: 1.4.5
     modclean:
       specifier: ^3.0.0-beta.1
       version: 3.0.0-beta.1
@@ -36,18 +210,63 @@ catalogs:
     newtype-ts:
       specifier: ^0.3.5
       version: 0.3.5
+    node-fetch:
+      specifier: ^2.6.9
+      version: 2.7.0
+    nodemailer:
+      specifier: ^6.10.0
+      version: 6.10.0
+    oval:
+      specifier: ^1.0.0
+      version: 1.0.0
+    passport:
+      specifier: ^0.6.0
+      version: 0.6.0
+    passport-http-bearer:
+      specifier: ^1.0.1
+      version: 1.0.1
+    passport-http-custom-bearer:
+      specifier: ^1.0.15
+      version: 1.0.15
+    passport-local:
+      specifier: ^1.0.0
+      version: 1.0.0
+    passport-strategy:
+      specifier: ^1.0.0
+      version: 1.0.0
     prettier:
       specifier: ^3.2.5
       version: 3.2.5
+    range_check:
+      specifier: ^2.0.4
+      version: 2.0.4
+    redis:
+      specifier: 4.7.1
+      version: 4.7.1
+    shx:
+      specifier: ^0.4.0
+      version: 0.4.0
+    supertest:
+      specifier: ^7.0.0
+      version: 7.0.0
     swagger-cli:
       specifier: ^4.0.4
       version: 4.0.4
+    timekeeper:
+      specifier: ^2.2.0
+      version: 2.3.1
+    typescript:
+      specifier: ^5.4.5
+      version: 5.8.3
     ulid:
       specifier: ^2.3.0
       version: 2.3.0
     vitest:
-      specifier: ~3.2.4
+      specifier: ^3.2.4
       version: 3.2.4
+    winston:
+      specifier: ^3.14.2
+      version: 3.17.0
     winston-transport:
       specifier: ^4.9.0
       version: 4.9.0
@@ -105,7 +324,7 @@ importers:
         specifier: ^2.5.5
         version: 2.5.5
       typescript:
-        specifier: ^5.4.5
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -114,34 +333,34 @@ importers:
   apps/io-auth-template-func:
     dependencies:
       '@azure/functions':
-        specifier: ^4.7.0
+        specifier: 'catalog:'
         version: 4.7.0
       '@pagopa/handler-kit':
-        specifier: ^1.1.1
+        specifier: 'catalog:'
         version: 1.1.1(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(postcss@8.5.6)(ts-node@10.9.2(@types/node@20.19.30)(typescript@5.8.3))(typescript@5.8.3)
       '@pagopa/handler-kit-azure-func':
-        specifier: ^2.0.8
+        specifier: 'catalog:'
         version: 2.0.8(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(postcss@8.5.6)(ts-node@10.9.2(@types/node@20.19.30)(typescript@5.8.3))(typescript@5.8.3)
       '@pagopa/io-functions-commons':
-        specifier: ^29.1.0
+        specifier: 'catalog:'
         version: 29.3.0(@azure/functions@4.7.0)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/logger':
         specifier: 'catalog:'
         version: 1.0.1
       '@pagopa/ts-commons':
-        specifier: ^13.1.1
+        specifier: 'catalog:'
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       applicationinsights:
-        specifier: ^2.9.5
+        specifier: 'catalog:'
         version: 2.9.6
       fp-ts:
-        specifier: ^2.16.9
+        specifier: 'catalog:'
         version: 2.16.9
       io-ts:
-        specifier: ^2.2.22
+        specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
       io-ts-types:
-        specifier: ^0.5.16
+        specifier: 'catalog:'
         version: 0.5.19(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(monocle-ts@2.3.13(fp-ts@2.16.9))(newtype-ts@0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9)))
       monocle-ts:
         specifier: 'catalog:'
@@ -154,13 +373,13 @@ importers:
         specifier: 'catalog:'
         version: 4.0.6(@typescript-eslint/eslint-plugin@8.53.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(prettier@3.2.5)(vitest@3.2.4(@types/node@20.19.30))
       '@pagopa/openapi-codegen-ts':
-        specifier: ^13.2.0
-        version: 13.2.0(chokidar@3.6.0)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
+        specifier: 'catalog:'
+        version: 14.0.1(chokidar@3.6.0)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/typescript-config-node':
         specifier: workspace:^
         version: link:../../packages/typescript-config-node
       '@types/node':
-        specifier: ~20.19.5
+        specifier: 'catalog:'
         version: 20.19.30
       '@vitest/coverage-v8':
         specifier: 'catalog:'
@@ -169,10 +388,10 @@ importers:
         specifier: 'catalog:'
         version: 4.1.0
       dotenv:
-        specifier: ^16.4.5
+        specifier: 'catalog:'
         version: 16.4.7
       dotenv-cli:
-        specifier: ^7.4.1
+        specifier: 'catalog:'
         version: 7.4.4
       eslint:
         specifier: 'catalog:'
@@ -187,10 +406,10 @@ importers:
         specifier: 'catalog:'
         version: 3.2.5
       shx:
-        specifier: ^0.3.2
-        version: 0.3.4
+        specifier: 'catalog:'
+        version: 0.4.0
       typescript:
-        specifier: ^5.4.3
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -211,7 +430,7 @@ importers:
         specifier: ^1.2.0
         version: 1.2.1(postcss@8.5.6)(ts-node@10.9.2(@types/node@20.19.30)(typescript@5.8.3))(typescript@5.8.3)
       '@pagopa/io-functions-commons':
-        specifier: ^29.3.0
+        specifier: 'catalog:'
         version: 29.3.0(@azure/functions@3.5.1)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/logger':
         specifier: 'catalog:'
@@ -220,25 +439,25 @@ importers:
         specifier: ^13.1.0
         version: 13.2.0(chokidar@3.6.0)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/ts-commons':
-        specifier: ^13.1.2
+        specifier: 'catalog:'
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@xmldom/xmldom':
         specifier: ^0.8.8
         version: 0.8.10
       applicationinsights:
-        specifier: ^2.9.5
+        specifier: 'catalog:'
         version: 2.9.6
       azure-storage:
-        specifier: ^2.10.7
+        specifier: 'catalog:'
         version: 2.10.7
       date-fns:
-        specifier: ^2.30.0
+        specifier: 'catalog:'
         version: 2.30.0
       fp-ts:
-        specifier: ^2.16.9
+        specifier: 'catalog:'
         version: 2.16.9
       io-ts:
-        specifier: ^2.2.22
+        specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
       jose:
         specifier: ^4.14.4
@@ -260,7 +479,7 @@ importers:
         specifier: ^4.17.12
         version: 4.17.21
       '@types/node':
-        specifier: ~20.19.5
+        specifier: 'catalog:'
         version: 20.19.30
       '@vitest/coverage-v8':
         specifier: 'catalog:'
@@ -287,7 +506,7 @@ importers:
         specifier: ^0.3.2
         version: 0.3.4
       typescript:
-        specifier: ^5.4.5
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -299,13 +518,13 @@ importers:
         specifier: ^3.17.2
         version: 3.17.3
       '@azure/storage-blob':
-        specifier: ^12.29.1
+        specifier: 'catalog:'
         version: 12.29.1
       '@mattrglobal/http-signatures':
         specifier: ^4.0.1
         version: 4.1.1
       '@pagopa/azure-storage-migration-kit':
-        specifier: ^0.0.2
+        specifier: 'catalog:'
         version: 0.0.2(postcss@8.5.6)(ts-node@10.9.2(@types/node@20.19.30)(typescript@5.8.3))(typescript@5.8.3)
       '@pagopa/express-azure-functions':
         specifier: ^2.0.0
@@ -323,10 +542,10 @@ importers:
         specifier: ^11.0.0
         version: 11.0.0
       '@pagopa/winston-ts':
-        specifier: ^2.2.0
+        specifier: 'catalog:'
         version: 2.2.0
       '@xmldom/xmldom':
-        specifier: ^0.8.10
+        specifier: 'catalog:'
         version: 0.8.10
       applicationinsights:
         specifier: 1.8.10
@@ -350,7 +569,7 @@ importers:
         specifier: ^9.0.0
         version: 9.0.2
       jwk-to-pem:
-        specifier: ^2.0.5
+        specifier: 'catalog:'
         version: 2.0.7
       node-fetch:
         specifier: ^2.6.0
@@ -384,16 +603,16 @@ importers:
         specifier: ^9.0.1
         version: 9.0.7
       '@types/jwk-to-pem':
-        specifier: ^2.0.1
+        specifier: 'catalog:'
         version: 2.0.3
       '@types/node-fetch':
         specifier: ^2.5.7
         version: 2.6.12
       '@types/vfile-message':
-        specifier: ^2.0.0
+        specifier: 'catalog:'
         version: 2.0.0
       '@types/xml-crypto':
-        specifier: ^1.4.2
+        specifier: 'catalog:'
         version: 1.4.6
       '@vitest/coverage-v8':
         specifier: 'catalog:'
@@ -426,10 +645,10 @@ importers:
         specifier: 'catalog:'
         version: 4.0.4(openapi-types@10.0.0)
       timekeeper:
-        specifier: ^2.2.0
+        specifier: 'catalog:'
         version: 2.3.1
       typescript:
-        specifier: ^5.4.5
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -447,10 +666,10 @@ importers:
         specifier: ^12.4.0
         version: 12.25.0
       '@pagopa/express-azure-functions':
-        specifier: ^4.0.1
+        specifier: 'catalog:'
         version: 4.0.1(express@4.21.1)
       '@pagopa/io-app-email-templates':
-        specifier: ^0.8.0
+        specifier: 'catalog:'
         version: 0.8.0
       '@pagopa/io-functions-commons':
         specifier: ^28.22.0
@@ -468,22 +687,22 @@ importers:
         specifier: ^2.16.1
         version: 2.30.0
       durable-functions:
-        specifier: ^2.1.4
+        specifier: 'catalog:'
         version: 2.1.4
       express:
         specifier: ^4.15.3
         version: 4.21.1
       fp-ts:
-        specifier: ^2.16.9
+        specifier: 'catalog:'
         version: 2.16.9
       html-to-text:
-        specifier: ^9.0.5
+        specifier: 'catalog:'
         version: 9.0.5
       io-ts:
-        specifier: ^2.2.22
+        specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
       io-ts-types:
-        specifier: ^0.5.19
+        specifier: 'catalog:'
         version: 0.5.19(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(monocle-ts@2.3.13(fp-ts@2.16.9))(newtype-ts@0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9)))
       monocle-ts:
         specifier: 'catalog:'
@@ -498,7 +717,7 @@ importers:
         specifier: ^6.4.16
         version: 6.10.0
       redis:
-        specifier: 4.7.1
+        specifier: 'catalog:'
         version: 4.7.1
     devDependencies:
       '@azure/functions':
@@ -514,13 +733,13 @@ importers:
         specifier: ^4.17.11
         version: 4.17.21
       '@types/html-to-text':
-        specifier: ^9.0.4
+        specifier: 'catalog:'
         version: 9.0.4
       '@types/lolex':
-        specifier: ^3.1.1
+        specifier: 'catalog:'
         version: 3.1.1
       '@types/node':
-        specifier: ~20.19.5
+        specifier: 'catalog:'
         version: 20.19.30
       '@types/node-fetch':
         specifier: ^2.5.7
@@ -550,7 +769,7 @@ importers:
         specifier: 'catalog:'
         version: 5.1.3(eslint-config-prettier@9.1.0(eslint@8.57.0))(eslint@8.57.0)(prettier@3.2.5)
       lolex:
-        specifier: ^5.1.1
+        specifier: 'catalog:'
         version: 5.1.2
       prettier:
         specifier: 'catalog:'
@@ -559,7 +778,7 @@ importers:
         specifier: ^0.3.2
         version: 0.3.4
       typescript:
-        specifier: ^5.4.5
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -568,7 +787,7 @@ importers:
   apps/io-profile-async:
     dependencies:
       '@azure/cosmos':
-        specifier: ^4.1.1
+        specifier: 'catalog:'
         version: 4.2.0
       '@azure/data-tables':
         specifier: ^13.3.0
@@ -586,13 +805,13 @@ importers:
         specifier: ^1.2.1
         version: 1.2.1(postcss@8.5.6)(ts-node@10.9.2(@types/node@20.19.30)(typescript@5.8.3))(typescript@5.8.3)
       '@pagopa/io-app-email-templates':
-        specifier: ^0.8.0
+        specifier: 'catalog:'
         version: 0.8.0
       '@pagopa/io-auth-n-identity-commons':
         specifier: workspace:^
         version: link:../../packages/io-auth-n-identity-commons
       '@pagopa/io-functions-commons':
-        specifier: ^29.3.0
+        specifier: 'catalog:'
         version: 29.3.0(@azure/functions@3.5.1)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/logger':
         specifier: 'catalog:'
@@ -607,13 +826,13 @@ importers:
         specifier: ^2.16.1
         version: 2.16.9
       html-to-text:
-        specifier: ^9.0.5
+        specifier: 'catalog:'
         version: 9.0.5
       io-ts:
         specifier: ^2.2.21
         version: 2.2.22(fp-ts@2.16.9)
       io-ts-types:
-        specifier: ^0.5.19
+        specifier: 'catalog:'
         version: 0.5.19(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(monocle-ts@2.3.13(fp-ts@2.16.9))(newtype-ts@0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9)))
       monocle-ts:
         specifier: 'catalog:'
@@ -622,10 +841,10 @@ importers:
         specifier: 'catalog:'
         version: 0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9))
       node-fetch:
-        specifier: ^2.6.9
+        specifier: 'catalog:'
         version: 2.7.0
       nodemailer:
-        specifier: ^6.10.0
+        specifier: 'catalog:'
         version: 6.10.0
     devDependencies:
       '@azure/functions':
@@ -644,13 +863,13 @@ importers:
         specifier: ^2.6.2
         version: 2.6.12
       '@types/nodemailer':
-        specifier: ^6.4.17
+        specifier: 'catalog:'
         version: 6.4.17
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 3.2.4(vitest@3.2.4(@types/node@20.19.30))
       date-fns:
-        specifier: ^2.30.0
+        specifier: 'catalog:'
         version: 2.30.0
       dependency-check:
         specifier: 'catalog:'
@@ -668,7 +887,7 @@ importers:
         specifier: 'catalog:'
         version: 5.1.3(eslint-config-prettier@9.1.0(eslint@8.57.0))(eslint@8.57.0)(prettier@3.2.5)
       fast-check:
-        specifier: ^1.16.0
+        specifier: 'catalog:'
         version: 1.26.0
       modclean:
         specifier: 'catalog:'
@@ -680,7 +899,7 @@ importers:
         specifier: ^0.3.2
         version: 0.3.4
       typescript:
-        specifier: ^5.4.5
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -689,37 +908,37 @@ importers:
   apps/io-public:
     dependencies:
       '@azure/cosmos':
-        specifier: ^4.1.1
+        specifier: 'catalog:'
         version: 4.2.0
       '@azure/data-tables':
         specifier: ^13.2.2
         version: 13.3.2
       '@pagopa/express-azure-functions':
-        specifier: ^4.0.1
+        specifier: 'catalog:'
         version: 4.0.1(express@4.21.1)
       '@pagopa/io-functions-commons':
-        specifier: ^29.3.0
+        specifier: 'catalog:'
         version: 29.3.0(@azure/functions@3.5.1)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/ts-commons':
-        specifier: ^13.1.2
+        specifier: 'catalog:'
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       applicationinsights:
         specifier: ^2.9.2
         version: 2.9.6
       base64url:
-        specifier: ^3.0.1
+        specifier: 'catalog:'
         version: 3.0.1
       express:
         specifier: ^4.15.3
         version: 4.21.1
       fp-ts:
-        specifier: ^2.16.9
+        specifier: 'catalog:'
         version: 2.16.9
       io-ts:
-        specifier: ^2.2.22
+        specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
       io-ts-types:
-        specifier: ^0.5.19
+        specifier: 'catalog:'
         version: 0.5.19(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(monocle-ts@2.3.13(fp-ts@2.16.9))(newtype-ts@0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9)))
       monocle-ts:
         specifier: 'catalog:'
@@ -728,7 +947,7 @@ importers:
         specifier: 'catalog:'
         version: 0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9))
       node-fetch:
-        specifier: ^2.6.9
+        specifier: 'catalog:'
         version: 2.7.0
       winston:
         specifier: ^3.3.3
@@ -765,7 +984,7 @@ importers:
         specifier: 'catalog:'
         version: 5.1.3(eslint-config-prettier@9.1.0(eslint@8.57.0))(eslint@8.57.0)(prettier@3.2.5)
       fast-check:
-        specifier: ^1.16.0
+        specifier: 'catalog:'
         version: 1.26.0
       modclean:
         specifier: 'catalog:'
@@ -777,7 +996,7 @@ importers:
         specifier: ^0.3.2
         version: 0.3.4
       typescript:
-        specifier: ^5.4.5
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -786,10 +1005,10 @@ importers:
   apps/io-session-manager:
     dependencies:
       '@azure/data-tables':
-        specifier: ^13.3.2
+        specifier: 'catalog:'
         version: 13.3.2
       '@azure/identity':
-        specifier: ^4.10.1
+        specifier: 'catalog:'
         version: 4.10.1
       '@azure/service-bus':
         specifier: 'catalog:'
@@ -801,55 +1020,55 @@ importers:
         specifier: workspace:^
         version: link:../../packages/io-auth-n-identity-commons
       '@pagopa/io-functions-commons':
-        specifier: ^29.3.0
+        specifier: 'catalog:'
         version: 29.3.0(@azure/functions@4.7.0)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/io-spid-commons':
-        specifier: ^14.0.1
+        specifier: 'catalog:'
         version: 14.0.1(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(monocle-ts@2.3.13(fp-ts@2.16.9))(newtype-ts@0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9)))(redis@4.7.1)
       '@pagopa/ts-commons':
-        specifier: ^13.1.2
+        specifier: 'catalog:'
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@redis/client':
-        specifier: 1.6.1
+        specifier: 'catalog:'
         version: 1.6.1
       applicationinsights:
-        specifier: ^2.9.5
+        specifier: 'catalog:'
         version: 2.9.6
       body-parser:
-        specifier: ^1.20.2
+        specifier: 'catalog:'
         version: 1.20.3
       cookie-parser:
-        specifier: ^1.4.7
+        specifier: 'catalog:'
         version: 1.4.7
       date-fns:
         specifier: ^1.30.1
         version: 1.30.1
       express:
-        specifier: ^4.19.2
+        specifier: 'catalog:'
         version: 4.21.1
       fp-ts:
-        specifier: ^2.16.9
+        specifier: 'catalog:'
         version: 2.16.9
       helmet:
-        specifier: ^7.1.0
+        specifier: 'catalog:'
         version: 7.1.0
       http-graceful-shutdown:
-        specifier: ^3.1.13
+        specifier: 'catalog:'
         version: 3.1.13
       io-ts:
-        specifier: ^2.2.22
+        specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
       io-ts-types:
         specifier: ^0.5.16
         version: 0.5.19(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(monocle-ts@2.3.13(fp-ts@2.16.9))(newtype-ts@0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9)))
       jose:
-        specifier: ^5.3.0
+        specifier: 'catalog:'
         version: 5.9.4
       jsonwebtoken:
-        specifier: ^9.0.2
+        specifier: 'catalog:'
         version: 9.0.2
       logform:
-        specifier: ^2.6.0
+        specifier: 'catalog:'
         version: 2.7.0
       monocle-ts:
         specifier: 'catalog:'
@@ -861,25 +1080,25 @@ importers:
         specifier: ^2.6.1
         version: 2.7.0
       passport:
-        specifier: ^0.6.0
+        specifier: 'catalog:'
         version: 0.6.0
       passport-http-bearer:
-        specifier: ^1.0.1
+        specifier: 'catalog:'
         version: 1.0.1
       passport-http-custom-bearer:
-        specifier: ^1.0.15
+        specifier: 'catalog:'
         version: 1.0.15
       passport-local:
-        specifier: ^1.0.0
+        specifier: 'catalog:'
         version: 1.0.0
       passport-strategy:
-        specifier: ^1.0.0
+        specifier: 'catalog:'
         version: 1.0.0
       range_check:
-        specifier: ^2.0.4
+        specifier: 'catalog:'
         version: 2.0.4
       redis:
-        specifier: 4.7.1
+        specifier: 'catalog:'
         version: 4.7.1
       ulid:
         specifier: 'catalog:'
@@ -895,40 +1114,40 @@ importers:
         specifier: 'catalog:'
         version: 4.0.6(@typescript-eslint/eslint-plugin@8.53.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(prettier@3.2.5)(vitest@3.2.4(@types/node@20.19.30))
       '@pagopa/openapi-codegen-ts':
-        specifier: ^14.0.1
+        specifier: 'catalog:'
         version: 14.0.1(chokidar@3.6.0)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/typescript-config-node':
         specifier: workspace:^
         version: link:../../packages/typescript-config-node
       '@types/body-parser':
-        specifier: ^1
+        specifier: 'catalog:'
         version: 1.19.5
       '@types/cookie-parser':
-        specifier: ^1.4.8
+        specifier: 'catalog:'
         version: 1.4.8(@types/express@4.17.21)
       '@types/express':
-        specifier: ^4.17.21
+        specifier: 'catalog:'
         version: 4.17.21
       '@types/jsonwebtoken':
-        specifier: ^9
+        specifier: 'catalog:'
         version: 9.0.7
       '@types/node':
-        specifier: ~20.19.5
+        specifier: 'catalog:'
         version: 20.19.30
       '@types/node-fetch':
         specifier: ^2.1.2
         version: 2.6.12
       '@types/passport':
-        specifier: ^1.0.3
+        specifier: 'catalog:'
         version: 1.0.16
       '@types/passport-http-bearer':
-        specifier: ^1.0.34
+        specifier: 'catalog:'
         version: 1.0.41
       '@types/passport-local':
-        specifier: ^1.0.38
+        specifier: 'catalog:'
         version: 1.0.38
       '@types/supertest':
-        specifier: ^6.0.2
+        specifier: 'catalog:'
         version: 6.0.2
       '@vitest/coverage-v8':
         specifier: 'catalog:'
@@ -937,10 +1156,10 @@ importers:
         specifier: 'catalog:'
         version: 4.1.0
       dotenv:
-        specifier: ^16.4.5
+        specifier: 'catalog:'
         version: 16.4.7
       dotenv-cli:
-        specifier: ^7.4.1
+        specifier: 'catalog:'
         version: 7.4.4
       eslint:
         specifier: 'catalog:'
@@ -952,7 +1171,7 @@ importers:
         specifier: 'catalog:'
         version: 5.1.3(eslint-config-prettier@9.1.0(eslint@8.57.0))(eslint@8.57.0)(prettier@3.2.5)
       mock-http-server:
-        specifier: ^1.4.5
+        specifier: 'catalog:'
         version: 1.4.5
       prettier:
         specifier: 'catalog:'
@@ -961,7 +1180,7 @@ importers:
         specifier: ^0.3.2
         version: 0.3.4
       supertest:
-        specifier: ^7.0.0
+        specifier: 'catalog:'
         version: 7.0.0
       swagger-cli:
         specifier: 'catalog:'
@@ -976,10 +1195,10 @@ importers:
   apps/io-session-manager-internal:
     dependencies:
       '@azure/data-tables':
-        specifier: ^13.3.2
+        specifier: 'catalog:'
         version: 13.3.2
       '@azure/functions':
-        specifier: ^4.7.0
+        specifier: 'catalog:'
         version: 4.7.0
       '@azure/identity':
         specifier: ^4.10.0
@@ -988,43 +1207,43 @@ importers:
         specifier: 'catalog:'
         version: 7.9.5
       '@azure/storage-blob':
-        specifier: ^12.29.1
+        specifier: 'catalog:'
         version: 12.29.1
       '@azure/storage-queue':
         specifier: ^12.16.0
         version: 12.25.0
       '@pagopa/handler-kit':
-        specifier: ^1.1.1
+        specifier: 'catalog:'
         version: 1.1.1(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(postcss@8.5.6)(ts-node@10.9.2(@types/node@20.19.30)(typescript@5.8.3))(typescript@5.8.3)
       '@pagopa/handler-kit-azure-func':
-        specifier: ^2.0.8
+        specifier: 'catalog:'
         version: 2.0.8(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(postcss@8.5.6)(ts-node@10.9.2(@types/node@20.19.30)(typescript@5.8.3))(typescript@5.8.3)
       '@pagopa/io-auth-n-identity-commons':
         specifier: workspace:^
         version: link:../../packages/io-auth-n-identity-commons
       '@pagopa/io-functions-commons':
-        specifier: ^29.3.0
+        specifier: 'catalog:'
         version: 29.3.0(@azure/functions@4.7.0)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/logger':
         specifier: 'catalog:'
         version: 1.0.1
       '@pagopa/ts-commons':
-        specifier: ^13.1.2
+        specifier: 'catalog:'
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@redis/client':
-        specifier: 1.6.1
+        specifier: 'catalog:'
         version: 1.6.1
       applicationinsights:
-        specifier: ^2.9.5
+        specifier: 'catalog:'
         version: 2.9.6
       date-fns:
         specifier: ^1.30.1
         version: 1.30.1
       fp-ts:
-        specifier: ^2.16.9
+        specifier: 'catalog:'
         version: 2.16.9
       io-ts:
-        specifier: ^2.2.22
+        specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
       io-ts-types:
         specifier: ^0.5.16
@@ -1036,7 +1255,7 @@ importers:
         specifier: 'catalog:'
         version: 0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9))
       redis:
-        specifier: 4.7.1
+        specifier: 'catalog:'
         version: 4.7.1
       winston-transport:
         specifier: 'catalog:'
@@ -1052,7 +1271,7 @@ importers:
         specifier: workspace:^
         version: link:../../packages/typescript-config-node
       '@types/node':
-        specifier: ~20.19.5
+        specifier: 'catalog:'
         version: 20.19.30
       '@vitest/coverage-v8':
         specifier: 'catalog:'
@@ -1061,10 +1280,10 @@ importers:
         specifier: 'catalog:'
         version: 4.1.0
       dotenv:
-        specifier: ^16.4.5
+        specifier: 'catalog:'
         version: 16.4.7
       dotenv-cli:
-        specifier: ^7.4.1
+        specifier: 'catalog:'
         version: 7.4.4
       eslint:
         specifier: 'catalog:'
@@ -1097,7 +1316,7 @@ importers:
         specifier: ^12.17.0
         version: 12.29.1
       '@pagopa/express-azure-functions':
-        specifier: ^4.0.1
+        specifier: 'catalog:'
         version: 4.0.1(express@4.21.1)
       '@pagopa/io-functions-commons':
         specifier: ^28.0.0
@@ -1106,13 +1325,13 @@ importers:
         specifier: ^12.1.2
         version: 12.2.1(chokidar@3.6.0)
       '@pagopa/ts-commons':
-        specifier: ^13.1.2
+        specifier: 'catalog:'
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/winston-ts':
-        specifier: ^2.2.0
+        specifier: 'catalog:'
         version: 2.2.0
       applicationinsights:
-        specifier: ^2.9.5
+        specifier: 'catalog:'
         version: 2.9.6
       azure-storage:
         specifier: ^2.10.3
@@ -1121,19 +1340,19 @@ importers:
         specifier: workspace:^
         version: link:../../packages/canary-deployment-monitor
       date-fns:
-        specifier: ^2.30.0
+        specifier: 'catalog:'
         version: 2.30.0
       express:
         specifier: ^4.15.3
         version: 4.21.1
       fp-ts:
-        specifier: ^2.16.9
+        specifier: 'catalog:'
         version: 2.16.9
       io-ts:
-        specifier: ^2.2.22
+        specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
       io-ts-types:
-        specifier: ^0.5.19
+        specifier: 'catalog:'
         version: 0.5.19(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(monocle-ts@2.3.13(fp-ts@2.16.9))(newtype-ts@0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9)))
       jose:
         specifier: ^4.14.6
@@ -1170,13 +1389,13 @@ importers:
         specifier: ^4.17.12
         version: 4.17.21
       '@types/jsonwebtoken':
-        specifier: ^9.0.2
+        specifier: 'catalog:'
         version: 9.0.7
       '@types/node-fetch':
         specifier: ^2.5.7
         version: 2.6.12
       '@types/vfile-message':
-        specifier: ^2.0.0
+        specifier: 'catalog:'
         version: 2.0.0
       '@vitest/coverage-v8':
         specifier: 'catalog:'
@@ -1197,7 +1416,7 @@ importers:
         specifier: 'catalog:'
         version: 3.0.0-beta.1
       oval:
-        specifier: ^1.0.0
+        specifier: 'catalog:'
         version: 1.0.0
       prettier:
         specifier: 'catalog:'
@@ -1209,7 +1428,7 @@ importers:
         specifier: 'catalog:'
         version: 4.0.4(openapi-types@10.0.0)
       typescript:
-        specifier: ^5.4.5
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -1239,7 +1458,7 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       base64url:
-        specifier: ^3.0.1
+        specifier: 'catalog:'
         version: 3.0.1
       lodash:
         specifier: ^4.17.21
@@ -1291,7 +1510,7 @@ importers:
         specifier: ^2.2.16
         version: 2.2.22(fp-ts@2.16.9)
       winston:
-        specifier: ^3.14.2
+        specifier: 'catalog:'
         version: 3.17.0
     devDependencies:
       '@pagopa/eslint-config':
@@ -1331,7 +1550,7 @@ importers:
         specifier: 'catalog:'
         version: 4.0.6(@typescript-eslint/eslint-plugin@8.53.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(prettier@3.2.5)(vitest@3.2.4(@types/node@20.19.30))
       '@pagopa/openapi-codegen-ts':
-        specifier: ^14.0.1
+        specifier: 'catalog:'
         version: 14.0.1(chokidar@3.6.0)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/ts-commons':
         specifier: ^13.1.1
@@ -1340,7 +1559,7 @@ importers:
         specifier: workspace:^
         version: link:../typescript-config-node
       '@types/node-fetch':
-        specifier: ^2.6.11
+        specifier: 'catalog:'
         version: 2.6.12
       eslint:
         specifier: 'catalog:'
@@ -1412,13 +1631,13 @@ importers:
         specifier: 'catalog:'
         version: 7.9.5
       '@azure/storage-blob':
-        specifier: ^12.29.1
+        specifier: 'catalog:'
         version: 12.29.1
       '@pagopa/ts-commons':
-        specifier: ^13.1.2
+        specifier: 'catalog:'
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       fp-ts:
-        specifier: ^2.16.9
+        specifier: 'catalog:'
         version: 2.16.9
       io-ts:
         specifier: ^2.2.22
@@ -1449,10 +1668,10 @@ importers:
         specifier: 'catalog:'
         version: 3.2.5
       shx:
-        specifier: ^0.4.0
+        specifier: 'catalog:'
         version: 0.4.0
       typescript:
-        specifier: ^5.4.5
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -1461,7 +1680,7 @@ importers:
   packages/lollipop-cli:
     dependencies:
       '@mattrglobal/http-signatures':
-        specifier: ^4.1.0
+        specifier: 'catalog:'
         version: 4.1.1
       '@pagopa/ts-commons':
         specifier: ^13.1.1
@@ -1513,7 +1732,7 @@ importers:
         specifier: ^2.4.2
         version: 2.4.2
       winston:
-        specifier: ^3.14.2
+        specifier: 'catalog:'
         version: 3.17.0
     devDependencies:
       '@pagopa/eslint-config':
@@ -1551,19 +1770,19 @@ importers:
   packages/utilities:
     dependencies:
       '@azure/storage-queue':
-        specifier: ^12.22.0
+        specifier: 'catalog:'
         version: 12.25.0
       '@pagopa/ts-commons':
-        specifier: ^13.1.2
+        specifier: 'catalog:'
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       applicationinsights:
-        specifier: ^2.9.5
+        specifier: 'catalog:'
         version: 2.9.6
       fp-ts:
-        specifier: ^2.16.9
+        specifier: 'catalog:'
         version: 2.16.9
       io-ts:
-        specifier: ^2.2.22
+        specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
       yargs:
         specifier: ^17.7.2
@@ -9534,7 +9753,7 @@ snapshots:
       '@oclif/help': 1.0.15
       '@oclif/parser': 3.8.17
       debug: 4.4.3
-      semver: 7.6.1
+      semver: 7.7.3
     transitivePeerDependencies:
       - supports-color
 
@@ -9892,7 +10111,7 @@ snapshots:
       passport: 0.6.0
       passport-saml: 1.3.5
       redis: 4.7.1
-      semver: 7.6.1
+      semver: 7.7.3
       winston: 3.17.0
       xml-crypto: 2.1.6
       xml2js: 0.4.23
@@ -12897,7 +13116,7 @@ snapshots:
 
   http-graceful-shutdown@3.1.13:
     dependencies:
-      debug: 4.4.1
+      debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
 
@@ -14826,7 +15045,7 @@ snapshots:
     dependencies:
       component-emitter: 1.3.1
       cookiejar: 2.1.4
-      debug: 4.4.1
+      debug: 4.4.3
       fast-safe-stringify: 2.1.1
       form-data: 4.0.4
       formidable: 3.5.1

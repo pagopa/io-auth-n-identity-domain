@@ -9,7 +9,7 @@
     "@stablelib/sha512": "^1.0.1",
     "@stablelib/utf8": "^1.0.1",
     "@stablelib/wipe": "^1.0.1",
-    "base64url": "^3.0.1",
+    "base64url": "catalog:",
     "lodash": "^4.17.21",
     "long": "^5.2.3",
     "neverthrow": "^6.2.2",

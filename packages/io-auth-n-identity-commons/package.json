@@ -21,30 +21,30 @@
   },
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
-    "@pagopa/ts-commons": "^13.1.2",
+    "@pagopa/ts-commons": "catalog:",
     "@pagopa/typescript-config-node": "workspace:^",
     "@types/node": "^20.19.5",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",
     "eslint-plugin-prettier": "catalog:",
-    "fp-ts": "^2.16.9",
-    "io-ts": "^2.2.22",
+    "fp-ts": "catalog:",
+    "io-ts": "catalog:",
     "prettier": "catalog:",
-    "shx": "^0.4.0",
-    "typescript": "^5.4.5",
+    "shx": "catalog:",
+    "typescript": "catalog:",
     "vitest": "catalog:"
   },
   "dependencies": {
     "@azure/service-bus": "catalog:",
-    "@azure/storage-blob": "^12.29.1",
-    "@pagopa/ts-commons": "^13.1.2",
-    "fp-ts": "^2.16.9",
+    "@azure/storage-blob": "catalog:",
+    "@pagopa/ts-commons": "catalog:",
+    "fp-ts": "catalog:",
     "io-ts": "^2.2.22"
   },
   "peerDependencies": {
-    "@pagopa/ts-commons": "^13.1.2",
-    "fp-ts": "^2.16.9",
+    "@pagopa/ts-commons": "catalog:",
+    "fp-ts": "catalog:",
     "io-ts": "^2.2.22"
   }
 }

@@ -45,7 +45,7 @@
     "prettier": "catalog:",
     "shx": "^0.3.4",
     "turbo": "^2.5.5",
-    "typescript": "^5.4.5",
+    "typescript": "catalog:",
     "vitest": "catalog:"
   },
   "engines": {
@@ -55,7 +55,7 @@
     "@azure/core-client": "1.9.0",
     "@azure/core-http-compat": "2.3.0",
     "@azure/storage-common": "12.1.0",
-    "xml-crypto": "2.1.6",
+    "xml-crypto": "catalog:",
     "@typescript-eslint/typescript-estree": "8.53.1",
     "@typescript-eslint/parser": "8.53.1",
     "@typescript-eslint/eslint-plugin": "8.53.1"

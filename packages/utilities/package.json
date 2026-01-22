@@ -12,11 +12,11 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@azure/storage-queue": "^12.22.0",
-    "@pagopa/ts-commons": "^13.1.2",
-    "applicationinsights": "^2.9.5",
-    "fp-ts": "^2.16.9",
-    "io-ts": "^2.2.22",
+    "@azure/storage-queue": "catalog:",
+    "@pagopa/ts-commons": "catalog:",
+    "applicationinsights": "catalog:",
+    "fp-ts": "catalog:",
+    "io-ts": "catalog:",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

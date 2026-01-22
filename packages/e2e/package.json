@@ -16,10 +16,10 @@
   },
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
-    "@pagopa/openapi-codegen-ts": "^14.0.1",
+    "@pagopa/openapi-codegen-ts": "catalog:",
     "@pagopa/ts-commons": "^13.1.1",
     "@pagopa/typescript-config-node": "workspace:^",
-    "@types/node-fetch": "^2.6.11",
+    "@types/node-fetch": "catalog:",
     "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",
     "eslint-plugin-prettier": "catalog:",
