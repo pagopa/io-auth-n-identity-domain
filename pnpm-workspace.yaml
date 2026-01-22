@@ -1,4 +1,4 @@
-cleanupUnusedCatalogs: true
+cleanupUnusedCatalogs: false
 linkWorkspacePackages: true
 packageImportMethod: clone-or-copy
 packages:
