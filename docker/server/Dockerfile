@@ -1,6 +1,6 @@
 ARG SERVER_NAME
 
-FROM node:20.19.5-alpine3.19 AS base
+FROM node:20.19.5-alpine AS base
 COPY . /usr/src/app
 
 
@@ -10,7 +10,7 @@ WORKDIR /usr/src/app
 RUN yarn dlx turbo@^2.5.5 prune ${SERVER_NAME} --docker
 
 
-FROM node:20.19.5-alpine3.19 AS installer
+FROM node:20.19.5-alpine AS installer
 WORKDIR /usr/src/app
 RUN apk add openssl
 COPY --from=builder /usr/src/app/out/json/ .
