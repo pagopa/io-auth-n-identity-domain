@@ -36,17 +36,17 @@
     "@pagopa/typescript-config-node": "workspace:^",
     "dotenv-cli": "^3.2.0",
     "envsub": "^4.0.7",
-    "eslint": "^8.57.0",
+    "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-only-warn": "^1.1.0",
     "eslint-plugin-turbo": "^2.5.5",
-    "prettier": "^3.2.5",
+    "prettier": "catalog:",
     "shx": "^0.3.4",
     "turbo": "^2.5.5",
     "typescript": "^5.4.5",
-    "vitest": "~3.2.4"
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=20"

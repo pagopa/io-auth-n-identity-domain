@@ -10,14 +10,14 @@
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache"
   },
   "devDependencies": {
-    "@pagopa/eslint-config": "^4.0.6",
+    "@pagopa/eslint-config": "catalog:",
     "@pagopa/typescript-config-node": "workspace:^",
     "@types/prompts": "^2",
     "@types/winston": "^2.4.4",
-    "eslint": "^8.57.0",
+    "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",
-    "eslint-plugin-prettier": "^5.1.3",
-    "prettier": "^3.2.5",
+    "eslint-plugin-prettier": "catalog:",
+    "prettier": "catalog:",
     "typescript": "^5.4.3"
   },
   "dependencies": {
