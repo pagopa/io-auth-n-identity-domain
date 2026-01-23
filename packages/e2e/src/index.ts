@@ -13,7 +13,6 @@ const PROJECT_BASE_PATH = resolvePath(`${process.cwd()}/../../`);
 const main = async () => {
   const results: ProcessResult[] = [];
 
-
   results.push(
     await promisifyProcess(
       runProcess(
@@ -23,7 +22,6 @@ const main = async () => {
   );
 
   await new Promise((ok) => setTimeout(ok, 20000));
-
 
   results.push(
     await promisifyProcess(
@@ -51,7 +49,6 @@ const main = async () => {
     ),
   );
 
-
   const awaiterResult = await awaiter(
     healthcheckTask,
     { status: 200 },
@@ -68,7 +65,6 @@ const main = async () => {
   }
 
   results.push(await promisifyProcess(runProcess(`pnpm test:e2e`)));
-
 
   results.push(
     await promisifyProcess(
