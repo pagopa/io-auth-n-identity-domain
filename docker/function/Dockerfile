@@ -1,6 +1,6 @@
 ARG FUNCTION_NAME
 
-FROM node:20.19.5 AS base
+FROM node:20.19.5@sha256:ba36e9b2705008e63e354214f0e3011c528af9df2ca13ac2bd2c0114650302e6 AS base
 COPY . /usr/src/app
 
 
@@ -10,7 +10,7 @@ WORKDIR /usr/src/app
 RUN yarn dlx turbo@^2.5.5 prune ${FUNCTION_NAME} --docker
 
 
-FROM node:20.19.5 AS installer
+FROM node:20.19.5@sha256:ba36e9b2705008e63e354214f0e3011c528af9df2ca13ac2bd2c0114650302e6 AS installer
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/out/json/ .
 RUN yarn install --immutable
@@ -18,7 +18,7 @@ COPY --from=builder /usr/src/app/out/full/ .
 RUN yarn turbo run build
 
 
-FROM node:20.19.5 AS functions-node-20
+FROM node:20.19.5@sha256:ba36e9b2705008e63e354214f0e3011c528af9df2ca13ac2bd2c0114650302e6 AS functions-node-20
 RUN npm i -g azure-functions-core-tools@4 --unsafe-perm true
 
 
