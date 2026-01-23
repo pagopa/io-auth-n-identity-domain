@@ -269,7 +269,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-          ipv4_address: 172.18.0.100
+        ipv4_address: 172.18.0.100
     ports:
       - 6380:6380
     volumes:
@@ -281,7 +281,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-          ipv4_address: 172.18.0.101
+        ipv4_address: 172.18.0.101
     ports:
       - 6381:6381
     volumes:
@@ -289,12 +289,11 @@ services:
       - redis-node-1-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
-  
   redis-node-2:
     image: redis:7.0-alpine
     networks:
       io-fn:
-          ipv4_address: 172.18.0.102
+        ipv4_address: 172.18.0.102
     ports:
       - 6382:6382
     volumes:
@@ -306,19 +305,19 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-          ipv4_address: 172.18.0.103
+        ipv4_address: 172.18.0.103
     ports:
       - 6383:6383
     volumes:
       - ./docker/redis/6383/redis.conf:/usr/local/etc/redis/redis.conf
       - redis-node-3-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
-  
+
   redis-node-4:
     image: redis:7.0-alpine
     networks:
       io-fn:
-          ipv4_address: 172.18.0.104
+        ipv4_address: 172.18.0.104
     ports:
       - 6384:6384
     volumes:
@@ -341,7 +340,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-          ipv4_address: 172.18.0.99
+        ipv4_address: 172.18.0.99
     ports:
       - 6379:6379
     volumes:
@@ -388,7 +387,6 @@ services:
       - redis-node-3
       - redis-node-4
       - redis-node-5
-
 
   # Redis standalone (used by `io-fast-login`)
   redis-standalone:
