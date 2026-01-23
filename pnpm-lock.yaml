@@ -13,7 +13,6 @@ overrides:
   '@typescript-eslint/eslint-plugin': 8.53.1
   handlebars: ~4.7.0
   io-ts: ^2.2.21
-  '@rollup/rollup-linux-x64-gnu': 4.55.0
 
 importers:
 
@@ -45,7 +44,7 @@ importers:
         version: 3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1)
       eslint-plugin-import:
         specifier: ^2.29.1
-        version: 2.32.0(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1))(eslint@8.57.1)
+        version: 2.32.0(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
       eslint-plugin-only-warn:
         specifier: ^1.1.0
         version: 1.1.0
@@ -1277,7 +1276,7 @@ importers:
         version: 2.7.5(eslint@8.57.1)(turbo@2.7.5)
       eslint-plugin-import:
         specifier: ^2.29.1
-        version: 2.32.0(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1))(eslint@8.57.1)
+        version: 2.32.0(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
       eslint-plugin-only-warn:
         specifier: ^1.1.0
         version: 1.1.0
@@ -2979,6 +2978,11 @@ packages:
   '@rollup/rollup-linux-s390x-gnu@4.56.0':
     resolution: {integrity: sha512-zhLLJx9nQPu7wezbxt2ut+CI4YlXi68ndEve16tPc/iwoylWS9B3FxpLS2PkmfYgDQtosah07Mj9E0khc3Y+vQ==}
     cpu: [s390x]
+    os: [linux]
+
+  '@rollup/rollup-linux-x64-gnu@4.56.0':
+    resolution: {integrity: sha512-MVC6UDp16ZSH7x4rtuJPAEoE1RwS8N4oK9DLHy3FTEdFoUTCFVzMfJl/BVJ330C+hx8FfprA5Wqx4FhZXkj2Kw==}
+    cpu: [x64]
     os: [linux]
 
   '@rollup/rollup-linux-x64-musl@4.56.0':
@@ -10448,6 +10452,9 @@ snapshots:
   '@rollup/rollup-linux-s390x-gnu@4.56.0':
     optional: true
 
+  '@rollup/rollup-linux-x64-gnu@4.56.0':
+    optional: true
+
   '@rollup/rollup-linux-x64-musl@4.56.0':
     optional: true
 
@@ -11048,7 +11055,7 @@ snapshots:
   '@typescript-eslint/eslint-plugin@8.53.1(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.8.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
-      '@typescript-eslint/parser': 8.53.1(eslint@8.57.1)(typescript@5.9.3)
+      '@typescript-eslint/parser': 8.53.1(eslint@8.57.1)(typescript@5.8.3)
       '@typescript-eslint/scope-manager': 8.53.1
       '@typescript-eslint/type-utils': 8.53.1(eslint@8.57.1)(typescript@5.8.3)
       '@typescript-eslint/utils': 8.53.1(eslint@8.57.1)(typescript@5.8.3)
@@ -12636,11 +12643,11 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1))(eslint@8.57.1)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1))(eslint@8.57.1):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
@@ -12651,7 +12658,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1))(eslint@8.57.1):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -12662,7 +12669,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1))(eslint@8.57.1)
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.53.1(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -14126,7 +14133,9 @@ snapshots:
 
   neverthrow@4.3.0: {}
 
-  neverthrow@8.2.0: {}
+  neverthrow@8.2.0:
+    optionalDependencies:
+      '@rollup/rollup-linux-x64-gnu': 4.56.0
 
   newtype-ts@0.3.5(fp-ts@2.16.11)(monocle-ts@2.3.13(fp-ts@2.16.11)):
     dependencies:
@@ -14847,6 +14856,7 @@ snapshots:
       '@rollup/rollup-linux-riscv64-gnu': 4.56.0
       '@rollup/rollup-linux-riscv64-musl': 4.56.0
       '@rollup/rollup-linux-s390x-gnu': 4.56.0
+      '@rollup/rollup-linux-x64-gnu': 4.56.0
       '@rollup/rollup-linux-x64-musl': 4.56.0
       '@rollup/rollup-openbsd-x64': 4.56.0
       '@rollup/rollup-openharmony-arm64': 4.56.0
