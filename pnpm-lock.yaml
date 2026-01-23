@@ -1143,6 +1143,9 @@ importers:
 
   bruno:
     dependencies:
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.23
       node-jose:
         specifier: ^2.2.0
         version: 2.2.0
