@@ -1143,6 +1143,15 @@ importers:
 
   bruno:
     dependencies:
+      '@stablelib/base64':
+        specifier: ^1.0.1
+        version: 1.0.1
+      '@stablelib/sha256':
+        specifier: ^1.0.1
+        version: 1.0.1
+      '@stablelib/sha512':
+        specifier: ^1.0.1
+        version: 1.0.1
       base64url:
         specifier: ^3.0.1
         version: 3.0.1
