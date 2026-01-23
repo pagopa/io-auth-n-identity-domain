@@ -1146,10 +1146,22 @@ importers:
       '@stablelib/base64':
         specifier: ^1.0.1
         version: 1.0.1
+      '@stablelib/binary':
+        specifier: ^1.0.1
+        version: 1.0.1
+      '@stablelib/hash':
+        specifier: ^1.0.1
+        version: 1.0.1
+      '@stablelib/int':
+        specifier: ^1.0.1
+        version: 1.0.1
       '@stablelib/sha256':
         specifier: ^1.0.1
         version: 1.0.1
       '@stablelib/sha512':
+        specifier: ^1.0.1
+        version: 1.0.1
+      '@stablelib/wipe':
         specifier: ^1.0.1
         version: 1.0.1
       base64url:
