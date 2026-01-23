@@ -42,6 +42,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
+          version: 10.28.1
           run_install: false
 
       - name: Get pnpm store directory
@@ -80,6 +81,7 @@ jobs:
         id: sonarcloud_filter
         with:
           filters: ./.github/ci_filters.yaml
+          base: ${{ github.event.pull_request.base.ref || github.event.repository.default_branch || 'main' }}
 
   e2e:
     runs-on: ubuntu-latest
@@ -97,6 +99,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
+          version: 10.28.1
           run_install: false
 
       - name: Get pnpm store directory
@@ -133,19 +136,21 @@ jobs:
         id: test_filter
         with:
           filters: ./.github/ci_filters.yaml
+          base: ${{ github.event.pull_request.base.ref || github.event.repository.default_branch || 'main' }}
 
       - name: Free up some space before proceeding
         if: >-
           steps.test_filter.outputs.io-lollipop == 'true' ||
           steps.test_filter.outputs.bruno-io-lollipop == 'true' ||
           steps.test_filter.outputs.io-session-manager == 'true'
+        continue-on-error: true
         run: |
           echo "::warning ::Disk usage before clean up:"
           echo "::warning ::$(df -h)"
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /usr/share/dotnet || true
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf "/usr/local/share/boost" || true
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY" || true
           echo "::warning::Disk usage after clean up:"
           echo "::warning::$(df -h)"
 
