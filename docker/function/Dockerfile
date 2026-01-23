@@ -25,6 +25,7 @@ RUN npm i -g azure-functions-core-tools@4 --unsafe-perm true
 
 
 FROM functions-node-20 AS runner
+RUN corepack enable && corepack prepare pnpm@10.28.1 --activate
 ARG FUNCTION_NAME
 ENV AzureWebJobsScriptRoot=/usr/src/app \
   AzureFunctionsJobHost__Logging__Console__IsEnabled=true

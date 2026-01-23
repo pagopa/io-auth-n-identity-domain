@@ -29,7 +29,7 @@
     "docker:start": "docker compose --env-file docker/.env.common up -d",
     "docker:start:build": "docker compose --env-file docker/.env.common up --build -d",
     "test:integrations": "pnpm run test:integrations:io-lollipop",
-    "test:integrations:io-lollipop": "docker compose --env-file docker/.env.common exec io-lollipop /bin/bash -c 'pnpm run vitest run src/__integrations__/__tests__ -c src/__integrations__/vite.config.mts'"
+    "test:integrations:io-lollipop": "docker compose --env-file docker/.env.common exec io-lollipop /bin/bash -c 'pnpm vitest run src/__integrations__/__tests__ -c src/__integrations__/vite.config.mts'"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
