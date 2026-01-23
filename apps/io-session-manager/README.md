@@ -15,17 +15,16 @@
     - [SPID user management](#spid-user-management)
     - [Generate SAML (SPID) certs (development)](#generate-saml-spid-certs-development)
 
-<!-- TOC end -->
----
+## <!-- TOC end -->
 
 ## Authentication process
 
 The `io-app` application will authenticate to the backend in two steps:
 
-  1. an initial user initiated SPID authentication process (SAML2 based)
-     that identifies the user and, on success, triggers the creation of a new
-     authentication session (associated to a session token)
-  2. subsequent requests to the backend will be authenticated via a bearer session token
+1. an initial user initiated SPID authentication process (SAML2 based)
+   that identifies the user and, on success, triggers the creation of a new
+   authentication session (associated to a session token)
+2. subsequent requests to the backend will be authenticated via a bearer session token
 
 ### User authentication
 
@@ -54,7 +53,7 @@ The code that manage this flow are in the `src/strategies/session-token-strategy
 
 ### Dependencies
 
-* [Docker](https://www.docker.com/) and [Docker Compose](https://github.com/docker/compose)
+- [Docker](https://www.docker.com/) and [Docker Compose](https://github.com/docker/compose)
 
 To fully simulate the SPID authentication process we use the images provided by the
 [spid-testenv2](https://github.com/italia/spid-testenv2) project.
@@ -71,7 +70,6 @@ A Linux/macOS environment is required at the moment.
 6. run `docker-compose up -d` again to restart the containers
 7. point your browser to [http://localhost:8081/login](http://localhost:8081/login?entityID=xx_testenv2&authLevel=SpidL2) to execute a test login
 
-
 ### SPID user management
 
 The setup procedure adds some test users to the test IDP server, the full list could be retrieved in
@@ -82,5 +80,5 @@ The setup procedure adds some test users to the test IDP server, the full list c
 The backend implements a SAML Service Provider - for authenticating the clients it needs a certificate that you can generate with the following command (you need to have `openssl` available in your path):
 
 ```
-$ yarn workspace @pagopa/io-session-manager generate:test-certs
+$ pnpm --filter @pagopa/io-session-manager generate:test-certs
 ```

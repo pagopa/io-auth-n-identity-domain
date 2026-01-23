@@ -14,9 +14,9 @@ In order to run the `io-web-profile` locally you need the following tool install
 
 - `Azure functions core tools`
 - `Node.js`
-- `yarn`
+- `pnpm`
 
-The preferred way to set up the local environment is using nodenv to manage Node.js installation and corepack (included with Node.js) to manage the installation of yarn.
+The preferred way to set up the local environment is using nodenv to manage Node.js installation and corepack (included with Node.js) to manage the installation of pnpm.
 
 ## Structure
 
@@ -53,7 +53,6 @@ io-web-profile
 - `Function_01/function.json, Function_02/function.json, etc.`: Configuration file specific to Azure Functions. It defines the function's bindings, triggers, and other settings.
 
 - `src` : Contains the project source
-
   - `Function_01, Function_02, etc.`: These folders represent different functions, they contain the following files:
     - `__ test __`: This folder contain test files.
     - `handler.ts`: File that contains the main logic for the function's execution.

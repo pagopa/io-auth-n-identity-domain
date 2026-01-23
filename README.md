@@ -195,9 +195,9 @@ This project include a simple tool to import existing repositories as workspace 
 The command that start the interactive procedure is:
 
 ```sh
-yarn install
-yarn build
-yarn workspace repo-importer import
+pnpm install
+pnpm build
+pnpm --filter repo-importer import
 ```
 
 The imported repo has is history commit. Maybe a code refactory is needed after the import to make the workspace compatible with the monorepo configuration.
@@ -209,7 +209,7 @@ We also include a tool to facilitate testing of Lollipop features.
 The command to start the tool is:
 
 ```sh
-yarn install
-yarn build
-yarn workspace lollipop-cli start
+pnpm install
+pnpm build
+pnpm --filter lollipop-cli start
 ```
