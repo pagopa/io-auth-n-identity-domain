@@ -7,15 +7,15 @@ COPY . /usr/src/app
 FROM base AS builder
 ARG FUNCTION_NAME
 WORKDIR /usr/src/app
-RUN yarn dlx turbo@^2.5.5 prune ${FUNCTION_NAME} --docker
+RUN corepack enable pnpm && pnpm dlx turbo@^2.5.5 prune ${FUNCTION_NAME} --docker
 
 
 FROM node:20.19.5 AS installer
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/out/json/ .
-RUN yarn install --immutable
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
 COPY --from=builder /usr/src/app/out/full/ .
-RUN yarn turbo run build
+RUN pnpm exec turbo run build
 
 
 FROM node:20.19.5 AS functions-node-20
@@ -30,6 +30,6 @@ ENV AzureWebJobsScriptRoot=/usr/src/app \
 WORKDIR /usr/src/app/apps/${FUNCTION_NAME}
 COPY --from=installer /usr/src/app /usr/src/app
 
-RUN npm run extensions:install
+RUN corepack enable pnpm && pnpm run extensions:install
 
 CMD ["func", "start", "--javascript"]

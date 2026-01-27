@@ -11,10 +11,10 @@
     "build": "turbo run build",
     "generate": "turbo run generate",
     "typecheck": "turbo run typecheck",
-    "version": "changeset version && yarn generate",
+    "version": "changeset version && pnpm generate",
     "release": "changeset tag",
     "docker:pregenerate:env": "shx rm -rf docker/generated && shx mkdir docker/generated && ./docker/env-sync.sh",
-    "docker:generate:env": "yarn run docker:pregenerate:env && yarn run docker:generate:env:cosmosdb && yarn run docker:generate:env:io-session-manager && yarn run docker:generate:env:io-lollipop && yarn run docker:generate:env:io-web-profile && yarn run docker:generate:env:io-public && yarn run docker:generate:env:io-profile-async && yarn run docker:generate:env:io-fast-login && yarn run docker:generate:env:io-profile && yarn run docker:generate:env:io-session-manager-internal && yarn run docker:generate:env:servicebus",
+    "docker:generate:env": "pnpm run docker:pregenerate:env && pnpm run docker:generate:env:cosmosdb && pnpm run docker:generate:env:io-session-manager && pnpm run docker:generate:env:io-lollipop && pnpm run docker:generate:env:io-web-profile && pnpm run docker:generate:env:io-public && pnpm run docker:generate:env:io-profile-async && pnpm run docker:generate:env:io-fast-login && pnpm run docker:generate:env:io-profile && pnpm run docker:generate:env:io-session-manager-internal && pnpm run docker:generate:env:servicebus",
     "docker:generate:env:cosmosdb": "dotenv -e docker/.env.common envsub docker/cosmosdb/env-dev docker/generated/.env.cosmosdb",
     "docker:generate:env:io-session-manager": "dotenv -e docker/.env.common envsub docker/io-session-manager/env-dev docker/generated/.env.io-session-manager",
     "docker:generate:env:io-lollipop": "dotenv -e docker/.env.common envsub docker/io-lollipop/env-dev docker/generated/.env.io-lollipop",
@@ -28,42 +28,37 @@
     "docker:build": "docker compose --env-file docker/.env.common build",
     "docker:start": "docker compose --env-file docker/.env.common up -d",
     "docker:start:build": "docker compose --env-file docker/.env.common up --build -d",
-    "test:integrations": "yarn run test:integrations:io-lollipop",
-    "test:integrations:io-lollipop": "docker compose --env-file docker/.env.common exec io-lollipop /bin/bash -c 'yarn run vitest run src/__integrations__/__tests__ -c src/__integrations__/vite.config.mts'"
+    "test:integrations": "pnpm run test:integrations:io-lollipop",
+    "test:integrations:io-lollipop": "docker compose --env-file docker/.env.common exec io-lollipop /bin/bash -c 'pnpm vitest run src/__integrations__/__tests__ -c src/__integrations__/vite.config.mts'"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
-    "@pagopa/typescript-config-node": "*",
+    "@pagopa/typescript-config-node": "workspace:^",
     "dotenv-cli": "^3.2.0",
     "envsub": "^4.0.7",
-    "eslint": "^8.57.0",
-    "eslint-config-monorepo": "*",
+    "eslint": "catalog:",
+    "eslint-config-monorepo": "workspace:^",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-only-warn": "^1.1.0",
     "eslint-plugin-turbo": "^2.5.5",
-    "prettier": "^3.2.5",
+    "prettier": "catalog:",
     "shx": "^0.3.4",
     "turbo": "^2.5.5",
-    "typescript": "^5.4.5",
-    "vitest": "~3.2.4"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=20"
   },
-  "packageManager": "yarn@4.1.1",
-  "workspaces": [
-    "apps/*",
-    "bruno",
-    "packages/*"
-  ],
   "resolutions": {
     "@azure/core-client": "1.9.0",
     "@azure/core-http-compat": "2.3.0",
     "@azure/storage-common": "12.1.0",
-    "xml-crypto": "2.1.6",
+    "xml-crypto": "catalog:",
     "@typescript-eslint/typescript-estree": "8.53.1",
     "@typescript-eslint/parser": "8.53.1",
     "@typescript-eslint/eslint-plugin": "8.53.1"
-  }
+  },
+  "packageManager": "pnpm@10.28.1+sha512.7d7dbbca9e99447b7c3bf7a73286afaaf6be99251eb9498baefa7d406892f67b879adb3a1d7e687fc4ccc1a388c7175fbaae567a26ab44d1067b54fcb0d6a316"
 }
