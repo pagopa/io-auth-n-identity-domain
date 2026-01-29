@@ -72,7 +72,6 @@ import {
   ALLOWED_CIE_TEST_FISCAL_CODES,
   getClientErrorRedirectionUrl,
   getClientProfileRedirectionUrl,
-  clientProfileRedirectionUrl,
 } from "./config/spid";
 import {
   isUserElegibleForIoLoginUrlScheme,
@@ -131,7 +130,6 @@ export const newApp: (
   app.use(
     bodyParser.json({
       verify: (_req, res: express.Response, buf, _encoding: BufferEncoding) => {
-      
         res.locals.body = buf;
       },
     }),
@@ -408,7 +406,6 @@ function setupExternalEndpoints(
         pipe(
           toExpressHandler({
             ...acsDependencies,
-            clientProfileRedirectionUrl,
           })(
             AuthenticationController.acsTest({
               ...req.user,
