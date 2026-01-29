@@ -235,7 +235,7 @@ const expectedUserLoginData = {
 const res = mockRes() as unknown as Response;
 
 const getProfileUrlWithToken = (token: string) =>
-  "/profile.html?token=" + token;
+  `/profile.html?token=${token}#token=${token}`;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -395,7 +395,7 @@ describe("AuthenticationController#acs", () => {
 
   test("should fail if request ip is invalid", async () => {
     const invalidIPreq = mockReq();
-  
+
     invalidIPreq.ip = "anInvalidIpAddress";
     const invalidIpUserPayload = {
       ...validUserPayload,
@@ -475,8 +475,7 @@ describe("AuthenticationController#acs", () => {
     const anErrorMessage = "Error emitting rejection login event";
 
     mockEmitSessionEvent.mockImplementationOnce(
-      () => () =>
-        TE.left(new Error(anErrorMessage)),
+      () => () => TE.left(new Error(anErrorMessage)),
     );
 
     const expectedRejectionEvent = {
@@ -1088,8 +1087,7 @@ describe("AuthenticationController#acs urischeme", () => {
 
       expect(res.redirect).toHaveBeenCalledWith(
         301,
-        `${expectedUriScheme}//localhost/profile.html?token=` +
-          mockSessionToken,
+        `${expectedUriScheme}//localhost${getProfileUrlWithToken(mockSessionToken)}`,
       );
       expect(res.clearCookie).toHaveBeenCalledTimes(1);
     },
@@ -1136,7 +1134,7 @@ describe("AuthenticationController#acs CIE", () => {
 
       expect(res.redirect).toHaveBeenCalledWith(
         301,
-        "https://localhost/profile.html?token=" + mockSessionToken,
+        `https://localhost${getProfileUrlWithToken(mockSessionToken)}`,
       );
       expect(res.clearCookie).toHaveBeenCalledTimes(1);
     },
@@ -1471,7 +1469,7 @@ describe("AuthenticationController#acs cookie validation", () => {
 
     expect(res.redirect).toHaveBeenCalledWith(
       301,
-      expect.stringContaining(`?token=${mockSessionToken}`),
+      expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
@@ -1501,7 +1499,7 @@ describe("AuthenticationController#acs cookie validation", () => {
 
     expect(res.redirect).toHaveBeenCalledWith(
       301,
-      expect.stringContaining(`?token=${mockSessionToken}`),
+      expect.stringContaining(getProfileUrlWithToken(mockSessionToken)),
     );
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
     expect(res.clearCookie).toHaveBeenCalledTimes(1);
