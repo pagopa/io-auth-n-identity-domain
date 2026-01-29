@@ -71,7 +71,6 @@ import {
 } from "../../config/fast-login";
 import { standardTokenDurationSecs } from "../../config/login";
 import {
-  clientProfileRedirectionUrl,
   getClientErrorRedirectionUrl,
   getClientProfileRedirectionUrl,
 } from "../../config/spid";
@@ -1708,7 +1707,6 @@ describe("AuthenticationController#acsTest", () => {
     );
     const response = await acsTest(validUserPayload)({
       ...dependencies,
-      clientProfileRedirectionUrl,
     })();
     expect(response).toEqual(
       E.right(
@@ -1725,7 +1723,6 @@ describe("AuthenticationController#acsTest", () => {
     acsSpyOn.mockReturnValueOnce(async (_: unknown) => expectedResponse);
     const response = await acsTest(validUserPayload)({
       ...dependencies,
-      clientProfileRedirectionUrl,
     })();
 
     expect(response).toEqual(E.right(toExpectedResponse(expectedResponse)));
@@ -1743,7 +1740,6 @@ describe("AuthenticationController#acsTest", () => {
     );
     const response = await acsTest(validUserPayload)({
       ...dependencies,
-      clientProfileRedirectionUrl,
     })();
 
     expect(response).toEqual(
@@ -1763,7 +1759,6 @@ describe("AuthenticationController#acsTest", () => {
     );
     const response = await acsTest(validUserPayload)({
       ...dependencies,
-      clientProfileRedirectionUrl,
     })();
     expect(response).toEqual(
       E.right(

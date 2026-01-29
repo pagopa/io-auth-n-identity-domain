@@ -1001,7 +1001,7 @@ const emitRejectedLoginEventWithTelemetry =
 export const acsTest: (
   userPayload: unknown,
 ) => (
-  dependencies: AcsDependencies & { clientProfileRedirectionUrl: string },
+  dependencies: AcsDependencies,
 ) => TE.TaskEither<
   Error,
   | IResponseErrorInternal
