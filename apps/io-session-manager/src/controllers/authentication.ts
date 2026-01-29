@@ -1026,21 +1026,22 @@ export const acsTest: (
     // of a ResponseSuccessJson (200)
     // Ref: https://www.pivotaltracker.com/story/show/173847889
     if (acsResponse.kind === "IResponsePermanentRedirect") {
-      const REDIRECT_URL = deps.clientProfileRedirectionUrl.replace(
-        "{token}",
-        "",
-      );
       return pipe(
         acsResponse.detail,
         E.fromNullable(
           new Error("Missing detail in ResponsePermanentRedirect"),
         ),
-        E.chain((_) => {
-          if (_.includes(REDIRECT_URL)) {
-            return E.right(_.replace(REDIRECT_URL, ""));
-          }
-          return E.left(new Error("Unexpected redirection url"));
-        }),
+        E.chain((url) =>
+          pipe(
+            url.split("token="),
+            E.fromPredicate(
+              (arr) => arr.length > 1,
+              () => new Error("Unexpected redirection url"),
+            ),
+            E.map((arr) => arr.pop()),
+            E.chain(E.fromNullable(new Error("Unexpected redirection url"))),
+          ),
+        ),
         E.chain((token) =>
           pipe(
             token,
