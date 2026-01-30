@@ -6,13 +6,17 @@ on:
 jobs:
   deploy_to_azure:
     name: Deploy to Azure Function App
-    uses: pagopa/dx/.github/workflows/function_app_deploy.yaml@86ef40ee9f04895853c191b9d2ea894dade1a972
+    uses: pagopa/dx/.github/workflows/release-azure-appsvc-v1.yaml@5d6a57f0ed4c7246ce16644123a31c9370ca8cb2
     with:
       # '-cd' suffix added inside the pipeline
       environment: app-prod
       resource_group_name: "io-p-itn-auth-main-rg-01"
       workspace_name: "io-session-manager-internal"
-      function_app_name: "io-p-weu-auth-sm-int-func-01"
-      use_staging_slot: true
+      web_app_name: "io-p-weu-auth-sm-int-func-01"
       use_private_agent: true
+      disable_auto_staging_deploy: true
     secrets: inherit
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write

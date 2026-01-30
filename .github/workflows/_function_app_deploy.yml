@@ -74,11 +74,14 @@ jobs:
           uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
           with:
             node-version-file: ".node-version"
-            cache: "yarn"
-            cache-dependency-path: "./out/yarn.lock"
+            cache: "pnpm"
+            cache-dependency-path: "./out/pnpm-lock.yaml"
+  
+        - name: Enable corepack
+          run: corepack enable
   
         - name: Install dependencies
-          run: yarn install --immutable
+          run: pnpm install --frozen-lockfile
           working-directory: ./out
   
         - name: Restore turbo cache
@@ -90,7 +93,7 @@ jobs:
               ${{ runner.os }}-turbo
   
         - name: Build
-          run: yarn build
+          run: pnpm build
           working-directory: ./out
   
         - name: Build the Function App Artifact

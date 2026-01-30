@@ -1,7 +1,7 @@
 {
   "search.exclude": {
-    "**/.yarn": true,
-    "**/.pnp.*": true
+    "**/.pnpm-store": true,
+    "**/node_modules": true
   },
   // EsLint
   "eslint.workingDirectories": [

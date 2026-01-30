@@ -1189,8 +1189,8 @@
 
 - chore(deps): bump highlight.js from 10.0.3 to 10.4.1 [`#126`](https://github.com/pagopa/io-functions-app/pull/126)
 - fix: upgrade durable-functions from 1.4.1 to 1.4.3 [`#105`](https://github.com/pagopa/io-functions-app/pull/105)
-- [#176591026] Added new stage for deploying client SDK to NPM [`#142`](https://github.com/pagopa/io-functions-app/pull/142)
-- [#176591026] Added new stage for deploying client SDK to NPM (#142) [`#176591026`](https://www.pivotaltracker.com/story/show/176591026) [`#221686427`](https://www.pivotaltracker.com/story/show/221686427) [`#176591026`](https://www.pivotaltracker.com/story/show/176591026)
+- [#176591026] Added new stage for deploying client SDK to pnpm [`#142`](https://github.com/pagopa/io-functions-app/pull/142)
+- [#176591026] Added new stage for deploying client SDK to pnpm (#142) [`#176591026`](https://www.pivotaltracker.com/story/show/176591026) [`#221686427`](https://www.pivotaltracker.com/story/show/221686427) [`#176591026`](https://www.pivotaltracker.com/story/show/176591026)
 - Bump version to 1.40.1 [skip ci] [`84e9c46`](https://github.com/pagopa/io-functions-app/commit/84e9c467c098f8d78d04dea3b8c218ace3504b64)
 
 ## 1.40.0

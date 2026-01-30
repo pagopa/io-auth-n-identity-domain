@@ -6,13 +6,17 @@ on:
 jobs:
   deploy_to_azure_1:
     name: Deploy to Azure App Service SM1
-    uses: pagopa/dx/.github/workflows/web_app_deploy.yaml@a08a2c9d95678902fd74382804693d33c8169e55
+    uses: pagopa/dx/.github/workflows/release-azure-appsvc-v1.yaml@5d6a57f0ed4c7246ce16644123a31c9370ca8cb2
     with:
       # '-cd' suffix added inside the pipeline
       environment: app-prod
       resource_group_name: "io-p-weu-session-manager-rg-01"
       workspace_name: "io-session-manager"
       web_app_name: "io-p-weu-session-manager-app-03"
-      use_staging_slot: true
       use_private_agent: true
+      disable_auto_staging_deploy: true
     secrets: inherit
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write

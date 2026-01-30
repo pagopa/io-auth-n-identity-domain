@@ -11,10 +11,10 @@
     "build": "turbo run build",
     "generate": "turbo run generate",
     "typecheck": "turbo run typecheck",
-    "version": "changeset version && yarn generate",
+    "version": "changeset version && pnpm generate",
     "release": "changeset tag",
     "docker:pregenerate:env": "shx rm -rf docker/generated && shx mkdir docker/generated && ./docker/env-sync.sh",
-    "docker:generate:env": "yarn run docker:pregenerate:env && yarn run docker:generate:env:cosmosdb && yarn run docker:generate:env:io-session-manager && yarn run docker:generate:env:io-lollipop && yarn run docker:generate:env:io-web-profile && yarn run docker:generate:env:io-public && yarn run docker:generate:env:io-profile-async && yarn run docker:generate:env:io-fast-login && yarn run docker:generate:env:io-profile && yarn run docker:generate:env:io-session-manager-internal && yarn run docker:generate:env:servicebus",
+    "docker:generate:env": "pnpm run docker:pregenerate:env && pnpm run docker:generate:env:cosmosdb && pnpm run docker:generate:env:io-session-manager && pnpm run docker:generate:env:io-lollipop && pnpm run docker:generate:env:io-web-profile && pnpm run docker:generate:env:io-public && pnpm run docker:generate:env:io-profile-async && pnpm run docker:generate:env:io-fast-login && pnpm run docker:generate:env:io-profile && pnpm run docker:generate:env:io-session-manager-internal && pnpm run docker:generate:env:servicebus",
     "docker:generate:env:cosmosdb": "dotenv -e docker/.env.common envsub docker/cosmosdb/env-dev docker/generated/.env.cosmosdb",
     "docker:generate:env:io-session-manager": "dotenv -e docker/.env.common envsub docker/io-session-manager/env-dev docker/generated/.env.io-session-manager",
     "docker:generate:env:io-lollipop": "dotenv -e docker/.env.common envsub docker/io-lollipop/env-dev docker/generated/.env.io-lollipop",
@@ -28,16 +28,16 @@
     "docker:build": "docker compose --env-file docker/.env.common build",
     "docker:start": "docker compose --env-file docker/.env.common up -d",
     "docker:start:build": "docker compose --env-file docker/.env.common up --build -d",
-    "test:integrations": "yarn run test:integrations:io-lollipop",
-    "test:integrations:io-lollipop": "docker compose --env-file docker/.env.common exec io-lollipop /bin/bash -c 'yarn run vitest run src/__integrations__/__tests__ -c src/__integrations__/vite.config.mts'"
+    "test:integrations": "pnpm run test:integrations:io-lollipop",
+    "test:integrations:io-lollipop": "docker compose --env-file docker/.env.common exec io-lollipop /bin/bash -c 'pnpm run vitest run src/__integrations__/__tests__ -c src/__integrations__/vite.config.mts'"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
-    "@pagopa/typescript-config-node": "*",
+    "@pagopa/typescript-config-node": "workspace:^",
     "dotenv-cli": "^3.2.0",
     "envsub": "^4.0.7",
     "eslint": "^8.57.0",
-    "eslint-config-monorepo": "*",
+    "eslint-config-monorepo": "workspace:^",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-only-warn": "^1.1.0",
@@ -51,16 +51,13 @@
   "engines": {
     "node": ">=20"
   },
-  "packageManager": "yarn@4.1.1",
-  "workspaces": [
-    "apps/*",
-    "bruno",
-    "packages/*"
-  ],
   "resolutions": {
     "@azure/core-client": "1.9.0",
     "@azure/core-http-compat": "2.3.0",
     "@azure/storage-common": "12.1.0",
-    "xml-crypto": "2.1.6"
-  }
+    "xml-crypto": "2.1.6",
+    "handlebars": "~4.7.0",
+    "io-ts": "^2.2.21"
+  },
+  "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264"
 }

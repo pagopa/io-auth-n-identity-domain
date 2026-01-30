@@ -17,7 +17,7 @@ Install the [Azure Functions Core Tools](https://github.com/Azure/azure-function
 Install the dependencies:
 
 ```bash
-$ yarn install --frozen-lockfile
+$ pnpm install --frozen-lockfile
 ```
 
 Create a file `local.settings.json` in your cloned repo, with the
@@ -43,7 +43,7 @@ following contents:
 ### Starting the functions runtime
 
 ```
-$ yarn start
+$ pnpm start
 ```
 
 The server should reload automatically when the code changes.

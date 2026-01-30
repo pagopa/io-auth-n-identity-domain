@@ -38,10 +38,13 @@ jobs:
         uses: actions/setup-node@e33196f7422957bea03ed53f6fbb155025ffc7b8 # v3.7.0
         with:
           node-version-file: ".node-version"
-          cache: "yarn"
+          cache: "pnpm"
+
+      - name: Enable corepack
+        run: corepack enable
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: pnpm install --frozen-lockfile
 
       - name: Cache turbo build setup
         uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
@@ -52,10 +55,10 @@ jobs:
             ${{ runner.os }}-turbo-
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: "Code review"
-        run: yarn code-review
+        run: pnpm code-review
 
       # this step uses a set of filters to prevent
       # additional work not needed
@@ -157,10 +160,13 @@ jobs:
         uses: actions/setup-node@e33196f7422957bea03ed53f6fbb155025ffc7b8 # v3.7.0
         with:
           node-version-file: ".node-version"
-          cache: "yarn"
+          cache: "pnpm"
+
+      - name: Enable corepack
+        run: corepack enable
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: pnpm install --frozen-lockfile
 
       - name: Cache turbo build setup
         uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
@@ -171,10 +177,10 @@ jobs:
             ${{ runner.os }}-turbo-
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Generate Environment
-        run: yarn docker:generate:env
+        run: pnpm docker:generate:env
 
       - uses: dorny/paths-filter@v3.0.2
         id: test_filter
@@ -204,13 +210,13 @@ jobs:
           steps.test_filter.outputs.io-lollipop == 'true' ||
           steps.test_filter.outputs.bruno-io-lollipop == 'true'
         run: >-
-          yarn docker:start:build traefik io-lollipop &&
-          yarn test:integrations:io-lollipop &&
-          yarn workspace io-auth-n-identity-bruno-collections \
+          pnpm docker:start:build traefik io-lollipop &&
+          pnpm test:integrations:io-lollipop &&
+          pnpm workspace io-auth-n-identity-bruno-collections \
             bru run \
               io-lollipop \
               --env Development
 
       - name: "E2E Tests"
         if: steps.test_filter.outputs.io-session-manager == 'true'
-        run: yarn workspace e2e start
+        run: pnpm workspace e2e start
