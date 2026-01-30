@@ -150,7 +150,7 @@ services:
     image: io-public
     build:
       context: ./
-      dockerfile: ./docker/function/Dockerfile
+      dockerfile: ./docker/function-node22/Dockerfile
       args:
         FUNCTION_NAME: "io-public"
     env_file:
