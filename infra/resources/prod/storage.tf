@@ -37,8 +37,3 @@ data "azurerm_storage_account" "push_notifications_storage" {
   name                = replace(format("%s-com-st-01", local.project), "-", "")
   resource_group_name = format("%s-com-rg-01", local.project)
 }
-
-data "azurerm_storage_account" "locked_profiles_storage" {
-  name                = replace(format("%s-locked-profiles-st", local.common_project), "-", "")
-  resource_group_name = format("%s-rg-internal", local.common_project)
-}
