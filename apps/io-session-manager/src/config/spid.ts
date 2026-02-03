@@ -30,11 +30,11 @@ export const CLIENT_ERROR_REDIRECTION_URL = `${BACKEND_HOST}/error.html`;
 
 export const SPID_API_BASE_PATH = "/api/auth/v1";
 
-export const clientProfileRedirectionUrl = `${BACKEND_HOST}/profile.html?token={token}`;
+export const clientProfileRedirectionUrlTemplate = `${BACKEND_HOST}/profile.html?token={token}#token={token}`;
 
 export const getClientProfileRedirectionUrl = (token: string): UrlFromString =>
   pipe(
-    clientProfileRedirectionUrl.replace("{token}", token),
+    clientProfileRedirectionUrlTemplate.replaceAll("{token}", token),
     UrlFromString.decode,
     E.getOrElseW(() => {
       throw new Error("Invalid url");
