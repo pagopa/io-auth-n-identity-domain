@@ -1,6 +1,10 @@
 ARG FUNCTION_NAME
+# BuildKit performs static validation before args injection,
+# so we need to set a default value to avoid build failures.
+# We use a value that is unlikely to be used in practice in order to catch missing args.
+ARG NODE_VERSION=__unset__
 
-FROM node:20.19.5 AS base
+FROM node:${NODE_VERSION} AS base
 COPY . /usr/src/app
 
 
@@ -10,7 +14,7 @@ WORKDIR /usr/src/app
 RUN yarn dlx turbo@^2.5.5 prune ${FUNCTION_NAME} --docker
 
 
-FROM node:20.19.5 AS installer
+FROM node:${NODE_VERSION} AS installer
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/out/json/ .
 RUN yarn install --immutable
@@ -18,11 +22,11 @@ COPY --from=builder /usr/src/app/out/full/ .
 RUN yarn turbo run build
 
 
-FROM node:20.19.5 AS functions-node-20
+FROM node:${NODE_VERSION} AS functions-node
 RUN npm i -g azure-functions-core-tools@4 --unsafe-perm true
 
 
-FROM functions-node-20 AS runner
+FROM functions-node AS runner
 ARG FUNCTION_NAME
 ENV AzureWebJobsScriptRoot=/usr/src/app \
   AzureFunctionsJobHost__Logging__Console__IsEnabled=true
