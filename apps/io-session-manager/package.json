@@ -1,6 +1,6 @@
 {
   "name": "io-session-manager",
-  "version": "1.20.1",
+  "version": "1.21.0",
   "author": "IO Auth & Identity Team",
   "description": "API for IO session",
   "engines": {
