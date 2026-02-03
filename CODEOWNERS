@@ -1,4 +1,4 @@
 # see https://help.github.com/en/articles/about-code-owners#example-of-a-codeowners-file
 
-* @pagopa/io-auth-n-identity-backend
-/infra/bootstrapper/ @pagopa/io-auth-n-identity-backend @pagopa/engineering-team-devex
+* @pagopa/io-auth-n-identity-backend @pagopa/io-foundation-identity-n-access-backend
+/infra/bootstrapper/ @pagopa/io-auth-n-identity-backend @pagopa/io-foundation-identity-n-access-backend @pagopa/engineering-team-devex
