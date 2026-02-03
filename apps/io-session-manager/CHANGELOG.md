@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.21.0
+
+### Minor Changes
+
+- d2116f3: Added fragment in redirection URL
+
 ## 1.20.1
 
 ### Patch Changes
