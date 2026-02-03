@@ -1,5 +1,11 @@
 # io-public
 
+## 2.2.0
+
+### Minor Changes
+
+- d8f91a4: Update to Node.js 22.22.0
+
 ## 2.1.1
 
 ### Patch Changes
