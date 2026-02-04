@@ -1,9 +1,9 @@
 {
   "azure-service-bus-alerts": {
-    "hash": "efac94ed437985e9f078d0a12219b004a2c9851cfd51337f2f4f60c7b2ebe7cf",
-    "version": "0.1.4",
+    "hash": "361071f87112281657be97c99a38a9cde2174cbec7f2a23526eaaf5f2ab62075",
+    "version": "0.2.0",
     "name": "azure_service_bus_alerts",
-    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-service-bus-alerts/azurerm/0.1.4"
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-service-bus-alerts/azurerm/0.2.0"
   },
   "eventhub.eventhub": {
     "hash": "dbe7be54650ef9e344642733ae5e6b9ce385e97a7e40af2278cdb44581d59146",
