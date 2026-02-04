@@ -240,6 +240,7 @@ module "azure-service-bus-alerts" {
     instance_number = "01"
   }
 
-  action_group_ids = [azurerm_monitor_action_group.error_action_group.id]
-  tags             = local.tags
+  resource_group_name = data.azurerm_resource_group.main_resource_group.name
+  action_group_ids    = [azurerm_monitor_action_group.error_action_group.id]
+  tags                = local.tags
 }
