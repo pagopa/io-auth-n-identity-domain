@@ -228,7 +228,7 @@ services:
 
   spid-testenv2:
     container_name: spid-testenv2
-    image: italia/spid-testenv2
+    image: italia/spid-testenv2@sha256:196c9121f6e50d197e251704518ec487c24579f2e3e9c88e7094d9c2ea7c4ded
     ports:
       - "8088:8088"
     volumes:
@@ -237,7 +237,7 @@ services:
       - io-fn
 
   traefik:
-    image: traefik:v2.8
+    image: traefik:v2.8@sha256:72164cb63797a902ba7c33dcb75349644bbf762323a0fed961ae25f54635ac93
     command: |-
       --entrypoints.web.address=:80
       --entrypoints.web.forwardedHeaders.insecure=true
@@ -273,7 +273,7 @@ services:
   #
   #
   redis-node-0:
-    image: redis:7.0-alpine
+    image: redis:7.0-alpine@sha256:c9d92d840fd011c908f040592857c724ae6d877f2aba5c40ad963276507386b2
     networks:
       io-fn:
           ipv4_address: 172.18.0.100
@@ -285,7 +285,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-1:
-    image: redis:7.0-alpine
+    image: redis:7.0-alpine@sha256:c9d92d840fd011c908f040592857c724ae6d877f2aba5c40ad963276507386b2
     networks:
       io-fn:
           ipv4_address: 172.18.0.101
@@ -298,7 +298,7 @@ services:
 
   
   redis-node-2:
-    image: redis:7.0-alpine
+    image: redis:7.0-alpine@sha256:c9d92d840fd011c908f040592857c724ae6d877f2aba5c40ad963276507386b2
     networks:
       io-fn:
           ipv4_address: 172.18.0.102
@@ -310,7 +310,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-3:
-    image: redis:7.0-alpine
+    image: redis:7.0-alpine@sha256:c9d92d840fd011c908f040592857c724ae6d877f2aba5c40ad963276507386b2
     networks:
       io-fn:
           ipv4_address: 172.18.0.103
@@ -322,7 +322,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
   
   redis-node-4:
-    image: redis:7.0-alpine
+    image: redis:7.0-alpine@sha256:c9d92d840fd011c908f040592857c724ae6d877f2aba5c40ad963276507386b2
     networks:
       io-fn:
           ipv4_address: 172.18.0.104
@@ -334,7 +334,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-node-5:
-    image: redis:7.0-alpine
+    image: redis:7.0-alpine@sha256:c9d92d840fd011c908f040592857c724ae6d877f2aba5c40ad963276507386b2
     networks:
       - io-fn
     ports:
@@ -345,7 +345,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-cluster:
-    image: redis:7.0-alpine
+    image: redis:7.0-alpine@sha256:c9d92d840fd011c908f040592857c724ae6d877f2aba5c40ad963276507386b2
     networks:
       io-fn:
           ipv4_address: 172.18.0.99
@@ -368,7 +368,7 @@ services:
       - redis-node-5
 
   cluster-builder:
-    image: redis:7.0-alpine
+    image: redis:7.0-alpine@sha256:c9d92d840fd011c908f040592857c724ae6d877f2aba5c40ad963276507386b2
     ports:
       - 6999:6999
     networks:
@@ -399,7 +399,7 @@ services:
 
   # Redis standalone (used by `io-fast-login`)
   redis-standalone:
-    image: redis:6.0-alpine
+    image: redis:6.0-alpine@sha256:2b35fc7d2908e25aa6aa197f97882c8a67829d3b106ad5ea5c8028f816f26aa8
     ports:
       - "${REDIS_STANDALONE_PORT}:6379"
     command: >
@@ -408,7 +408,7 @@ services:
       - io-fn
 
   storage:
-    image: mcr.microsoft.com/azure-storage/azurite
+    image: mcr.microsoft.com/azure-storage/azurite@sha256:647c63a91102a9d8e8000aab803436e1fc85fbb285e7ce830a82ee5d6661cf37
     container_name: storage
     hostname: azurite
     restart: always
@@ -421,7 +421,7 @@ services:
       - io-fn
 
   mailhog:
-    image: mailhog/mailhog
+    image: mailhog/mailhog@sha256:8d76a3d4ffa32a3661311944007a415332c4bb855657f4f6c57996405c009bea
     ports:
       - 1025:1025 # smtp server
       - 8025:8025 # web ui
@@ -429,7 +429,7 @@ services:
       - io-fn
 
   servicebus:
-    image: mcr.microsoft.com/azure-messaging/servicebus-emulator
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator@sha256:a00c9626c8960f6b9be6178aa91a7ac8f1a102c0d9deda7603a1ba0ac9d9ab51
     container_name: servicebus
     hostname: servicebus
     restart: always
@@ -446,7 +446,7 @@ services:
       - io-fn
 
   sqledge:
-    image: mcr.microsoft.com/azure-sql-edge
+    image: mcr.microsoft.com/azure-sql-edge@sha256:902628a8be89e35dfb7895ca31d602974c7bafde4d583a0d0873844feb1c42cf
     container_name: sqledge
     hostname: sqledge
     restart: always
