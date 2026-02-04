@@ -2,6 +2,7 @@ import * as redis from "redis";
 import appInsights from "applicationinsights";
 
 import commands from "@redis/client/dist/lib/cluster/commands";
+import { RedisClusterType } from "redis";
 
 function wrapAsyncFunctionWithAppInsights<
   K extends keyof redis.RedisClusterType,
@@ -78,7 +79,7 @@ export function createWrappedRedisClusterClient(
   clientName: string,
   enableDependencyTrace: boolean = false,
   appInsightsClient?: appInsights.TelemetryClient,
-) {
+): RedisClusterType {
   const cluster = redis.createCluster(options);
   return enableDependencyTrace && appInsightsClient
     ? wrapRedisClusterClient(cluster, clientName, appInsightsClient)

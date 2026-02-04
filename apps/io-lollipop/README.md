@@ -6,8 +6,7 @@
 
 To test models [@zeit/cosmosdb-server](https://www.npmjs.com/package/@zeit/cosmosdb-server) is needed, it can be installed globally by running
 
-```bash
-yarn global add @zeit/cosmosdb-server
+```bash pnpm global add @zeit/cosmosdb-server
 ```
 It can be ran with
 
@@ -26,8 +25,8 @@ Finally you can run your integration test with
 COSMOSDB_URI=https://localhost:3000/ \
 COSMOSDB_KEY="dummy key" \
 COSMOSDB_NAME=integration-tests \
-LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;" \
-yarn test:integration:model
+LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;" \ 
+pnpm test:integration:model
 ```
 
 > [!WARNING]  
