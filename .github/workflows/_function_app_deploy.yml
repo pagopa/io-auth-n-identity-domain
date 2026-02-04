@@ -143,14 +143,14 @@ jobs:
             name: ${{ env.BUNDLE_NAME }}
   
         - name: Azure Login
-          uses: azure/login@v2 # v2.0.0
+          uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
           with:
             client-id: ${{ env.ARM_CLIENT_ID }}
             tenant-id: ${{ env.ARM_TENANT_ID }}
             subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
   
         - name: Deploy
-          uses: azure/webapps-deploy@v2
+          uses: azure/webapps-deploy@122b7ec46017e53a3f71e3a027d67550a1641f5e # v2
           if: ${{ env.USE_STAGING_SLOT == 'false' }}
           with:
             resource-group-name: ${{ env.RESOURCE_GROUP_NAME }}
@@ -158,7 +158,7 @@ jobs:
             package: ${{ env.BUNDLE_NAME }}.zip
   
         - name: Deploy to Staging Slot
-          uses: azure/webapps-deploy@v2
+          uses: azure/webapps-deploy@122b7ec46017e53a3f71e3a027d67550a1641f5e # v2
           if: ${{ env.USE_STAGING_SLOT == 'true' }}
           with:
             resource-group-name: ${{ env.RESOURCE_GROUP_NAME }}
