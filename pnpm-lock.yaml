@@ -1507,7 +1507,7 @@ importers:
         specifier: ^2.10.5
         version: 2.16.9
       io-ts:
-        specifier: ^2.2.16
+        specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
       winston:
         specifier: 'catalog:'
