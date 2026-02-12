@@ -17,7 +17,7 @@
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
     "@pagopa/openapi-codegen-ts": "catalog:",
-    "@pagopa/ts-commons": "^13.1.1",
+    "@pagopa/ts-commons": "catalog:",
     "@pagopa/typescript-config-node": "workspace:^",
     "@types/node-fetch": "catalog:",
     "eslint": "catalog:",
