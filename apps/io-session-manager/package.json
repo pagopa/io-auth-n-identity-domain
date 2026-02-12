@@ -54,7 +54,7 @@
     "helmet": "catalog:",
     "http-graceful-shutdown": "catalog:",
     "io-ts": "catalog:",
-    "io-ts-types": "^0.5.16",
+    "io-ts-types": "catalog:",
     "jose": "catalog:",
     "jsonwebtoken": "catalog:",
     "logform": "catalog:",
