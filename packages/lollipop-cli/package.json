@@ -25,7 +25,7 @@
   "dependencies": {
     "@mattrglobal/http-signatures": "catalog:",
     "@pagopa/ts-commons": "catalog:",
-    "fp-ts": "^2.16.1",
+    "fp-ts": "catalog:",
     "io-ts": "catalog:",
     "jose": "^5.1.0",
     "prompts": "^2.4.2",
