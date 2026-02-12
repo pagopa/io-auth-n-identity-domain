@@ -43,7 +43,7 @@
     "date-fns": "^1.30.1",
     "fp-ts": "catalog:",
     "io-ts": "catalog:",
-    "io-ts-types": "^0.5.16",
+    "io-ts-types": "catalog:",
     "monocle-ts": "catalog:",
     "newtype-ts": "catalog:",
     "redis": "catalog:",
