@@ -23,7 +23,7 @@
     "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",
     "eslint-plugin-prettier": "catalog:",
-    "fp-ts": "^2.16.6",
+    "fp-ts": "catalog:",
     "io-ts": "catalog:",
     "node-fetch": "^2.6.1",
     "prettier": "catalog:",
