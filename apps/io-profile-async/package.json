@@ -56,7 +56,7 @@
     "@pagopa/io-auth-n-identity-commons": "workspace:^",
     "@pagopa/io-functions-commons": "catalog:",
     "@pagopa/logger": "catalog:",
-    "@pagopa/ts-commons": "^13.1.1",
+    "@pagopa/ts-commons": "catalog:",
     "applicationinsights": "^2.9.2",
     "fp-ts": "^2.16.1",
     "html-to-text": "catalog:",
