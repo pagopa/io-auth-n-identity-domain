@@ -823,7 +823,7 @@ importers:
         specifier: ^2.9.2
         version: 2.9.6
       fp-ts:
-        specifier: ^2.16.1
+        specifier: 'catalog:'
         version: 2.16.9
       html-to-text:
         specifier: 'catalog:'
