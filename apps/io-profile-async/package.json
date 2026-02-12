@@ -60,7 +60,7 @@
     "applicationinsights": "^2.9.2",
     "fp-ts": "^2.16.1",
     "html-to-text": "catalog:",
-    "io-ts": "^2.2.21",
+    "io-ts": "catalog:",
     "io-ts-types": "catalog:",
     "monocle-ts": "catalog:",
     "newtype-ts": "catalog:",
