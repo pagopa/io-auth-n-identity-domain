@@ -557,7 +557,7 @@ importers:
         specifier: ^4.15.3
         version: 4.21.1
       fp-ts:
-        specifier: ^2.10.5
+        specifier: 'catalog:'
         version: 2.16.9
       io-ts:
         specifier: 'catalog:'

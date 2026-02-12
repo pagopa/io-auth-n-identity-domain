@@ -68,7 +68,7 @@
     "applicationinsights": "1.8.10",
     "date-fns": "^2.29.3",
     "express": "^4.15.3",
-    "fp-ts": "^2.10.5",
+    "fp-ts": "catalog:",
     "io-ts": "catalog:",
     "jose": "^4.13.0",
     "jsonwebtoken": "^9.0.0",
