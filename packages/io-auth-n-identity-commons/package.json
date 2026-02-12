@@ -40,11 +40,11 @@
     "@azure/storage-blob": "catalog:",
     "@pagopa/ts-commons": "catalog:",
     "fp-ts": "catalog:",
-    "io-ts": "^2.2.22"
+    "io-ts": "catalog:"
   },
   "peerDependencies": {
     "@pagopa/ts-commons": "catalog:",
     "fp-ts": "catalog:",
-    "io-ts": "^2.2.22"
+    "io-ts": "catalog:"
   }
 }

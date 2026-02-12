@@ -1640,7 +1640,7 @@ importers:
         specifier: 'catalog:'
         version: 2.16.9
       io-ts:
-        specifier: ^2.2.22
+        specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
     devDependencies:
       '@pagopa/eslint-config':
