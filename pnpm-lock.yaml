@@ -1689,7 +1689,7 @@ importers:
         specifier: ^2.16.1
         version: 2.16.9
       io-ts:
-        specifier: ^2.2.20
+        specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
       jose:
         specifier: ^5.1.0
