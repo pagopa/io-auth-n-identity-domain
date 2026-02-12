@@ -24,7 +24,7 @@
     "@azure/identity": "^4.5.0",
     "@azure/monitor-query": "^1.3.1",
     "@pagopa/ts-commons": "^12.5.0",
-    "fp-ts": "^2.10.5",
+    "fp-ts": "catalog:",
     "io-ts": "catalog:",
     "winston": "catalog:"
   }

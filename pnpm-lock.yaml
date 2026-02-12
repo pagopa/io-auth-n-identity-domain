@@ -1504,7 +1504,7 @@ importers:
         specifier: ^12.5.0
         version: 12.6.0(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       fp-ts:
-        specifier: ^2.10.5
+        specifier: 'catalog:'
         version: 2.16.9
       io-ts:
         specifier: 'catalog:'
