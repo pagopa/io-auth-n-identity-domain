@@ -20,7 +20,7 @@
     "structured-headers": "^1.0.1"
   },
   "devDependencies": {
-    "@mattrglobal/http-signatures": "^4.0.1",
+    "@mattrglobal/http-signatures": "catalog:",
     "@usebruno/cli": "^2.9.0"
   }
 }
