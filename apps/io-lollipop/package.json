@@ -34,7 +34,7 @@
     "@pagopa/eslint-config": "catalog:",
     "@pagopa/typescript-config-node": "workspace:^",
     "@types/express": "catalog:",
-    "@types/jsonwebtoken": "^9.0.1",
+    "@types/jsonwebtoken": "catalog:",
     "@types/jwk-to-pem": "catalog:",
     "@types/node-fetch": "^2.5.7",
     "@types/vfile-message": "catalog:",
