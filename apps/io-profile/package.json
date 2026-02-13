@@ -36,7 +36,7 @@
     "@types/lolex": "catalog:",
     "@types/node": "catalog:",
     "@types/node-fetch": "catalog:",
-    "@types/nodemailer": "^6.4.16",
+    "@types/nodemailer": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "dependency-check": "catalog:",
     "dotenv": "^16.3.1",

@@ -745,7 +745,7 @@ importers:
         specifier: 'catalog:'
         version: 2.6.12
       '@types/nodemailer':
-        specifier: ^6.4.16
+        specifier: 'catalog:'
         version: 6.4.17
       '@vitest/coverage-v8':
         specifier: 'catalog:'
