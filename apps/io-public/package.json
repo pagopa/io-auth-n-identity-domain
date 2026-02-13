@@ -28,7 +28,7 @@
     "@pagopa/eslint-config": "catalog:",
     "@pagopa/openapi-codegen-ts": "^13.2.0",
     "@types/express": "catalog:",
-    "@types/node-fetch": "^2.6.2",
+    "@types/node-fetch": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "dependency-check": "catalog:",
     "eslint-config-monorepo": "workspace:^",

@@ -35,7 +35,7 @@
     "@types/html-to-text": "catalog:",
     "@types/lolex": "catalog:",
     "@types/node": "catalog:",
-    "@types/node-fetch": "^2.5.7",
+    "@types/node-fetch": "catalog:",
     "@types/nodemailer": "^6.4.16",
     "@vitest/coverage-v8": "catalog:",
     "dependency-check": "catalog:",

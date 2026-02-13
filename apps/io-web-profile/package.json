@@ -39,7 +39,7 @@
     "@pagopa/eslint-config": "catalog:",
     "@types/express": "catalog:",
     "@types/jsonwebtoken": "catalog:",
-    "@types/node-fetch": "^2.5.7",
+    "@types/node-fetch": "catalog:",
     "@types/vfile-message": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "dependency-check": "catalog:",

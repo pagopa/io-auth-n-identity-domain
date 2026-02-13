@@ -606,7 +606,7 @@ importers:
         specifier: 'catalog:'
         version: 2.0.3
       '@types/node-fetch':
-        specifier: ^2.5.7
+        specifier: 'catalog:'
         version: 2.6.12
       '@types/vfile-message':
         specifier: 'catalog:'
@@ -742,7 +742,7 @@ importers:
         specifier: 'catalog:'
         version: 20.19.30
       '@types/node-fetch':
-        specifier: ^2.5.7
+        specifier: 'catalog:'
         version: 2.6.12
       '@types/nodemailer':
         specifier: ^6.4.16
@@ -860,7 +860,7 @@ importers:
         specifier: 'catalog:'
         version: 9.0.4
       '@types/node-fetch':
-        specifier: ^2.6.2
+        specifier: 'catalog:'
         version: 2.6.12
       '@types/nodemailer':
         specifier: 'catalog:'
@@ -969,7 +969,7 @@ importers:
         specifier: 'catalog:'
         version: 4.17.21
       '@types/node-fetch':
-        specifier: ^2.6.2
+        specifier: 'catalog:'
         version: 2.6.12
       '@vitest/coverage-v8':
         specifier: 'catalog:'
@@ -1135,7 +1135,7 @@ importers:
         specifier: 'catalog:'
         version: 20.19.30
       '@types/node-fetch':
-        specifier: ^2.1.2
+        specifier: 'catalog:'
         version: 2.6.12
       '@types/passport':
         specifier: 'catalog:'
@@ -1392,7 +1392,7 @@ importers:
         specifier: 'catalog:'
         version: 9.0.7
       '@types/node-fetch':
-        specifier: ^2.5.7
+        specifier: 'catalog:'
         version: 2.6.12
       '@types/vfile-message':
         specifier: 'catalog:'

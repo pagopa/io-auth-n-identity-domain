@@ -81,7 +81,7 @@
     "@types/express": "catalog:",
     "@types/jsonwebtoken": "catalog:",
     "@types/node": "catalog:",
-    "@types/node-fetch": "^2.1.2",
+    "@types/node-fetch": "catalog:",
     "@types/passport": "catalog:",
     "@types/passport-http-bearer": "catalog:",
     "@types/passport-local": "catalog:",

@@ -36,7 +36,7 @@
     "@types/express": "catalog:",
     "@types/jsonwebtoken": "catalog:",
     "@types/jwk-to-pem": "catalog:",
-    "@types/node-fetch": "^2.5.7",
+    "@types/node-fetch": "catalog:",
     "@types/vfile-message": "catalog:",
     "@types/xml-crypto": "catalog:",
     "@vitest/coverage-v8": "catalog:",
