@@ -911,7 +911,7 @@ importers:
         specifier: 'catalog:'
         version: 4.2.0
       '@azure/data-tables':
-        specifier: ^13.2.2
+        specifier: 'catalog:'
         version: 13.3.2
       '@pagopa/express-azure-functions':
         specifier: 'catalog:'

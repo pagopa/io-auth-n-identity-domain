@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@azure/cosmos": "catalog:",
-    "@azure/data-tables": "^13.2.2",
+    "@azure/data-tables": "catalog:",
     "@pagopa/express-azure-functions": "catalog:",
     "@pagopa/io-functions-commons": "catalog:",
     "@pagopa/ts-commons": "catalog:",
