@@ -31,7 +31,7 @@
     "@azure/identity": "^4.10.0",
     "@azure/service-bus": "catalog:",
     "@azure/storage-blob": "catalog:",
-    "@azure/storage-queue": "^12.16.0",
+    "@azure/storage-queue": "catalog:",
     "@pagopa/handler-kit": "catalog:",
     "@pagopa/handler-kit-azure-func": "catalog:",
     "@pagopa/io-auth-n-identity-commons": "workspace:^",
