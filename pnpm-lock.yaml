@@ -660,7 +660,7 @@ importers:
         specifier: ^3.17.1
         version: 3.17.3
       '@azure/data-tables':
-        specifier: ^13.2.2
+        specifier: 'catalog:'
         version: 13.3.2
       '@azure/storage-queue':
         specifier: ^12.4.0
