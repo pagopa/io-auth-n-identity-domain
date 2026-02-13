@@ -53,7 +53,7 @@
   "dependencies": {
     "@azure/cosmos": "^3.17.1",
     "@azure/data-tables": "catalog:",
-    "@azure/storage-queue": "^12.4.0",
+    "@azure/storage-queue": "catalog:",
     "@pagopa/express-azure-functions": "catalog:",
     "@pagopa/io-app-email-templates": "catalog:",
     "@pagopa/io-functions-commons": "^28.22.0",
