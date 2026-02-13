@@ -71,7 +71,7 @@
     "io-ts": "catalog:",
     "io-ts-types": "catalog:",
     "jose": "^4.14.6",
-    "jsonwebtoken": "^9.0.1",
+    "jsonwebtoken": "catalog:",
     "monocle-ts": "catalog:",
     "newtype-ts": "catalog:",
     "node-fetch": "^2.6.0",

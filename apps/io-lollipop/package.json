@@ -71,7 +71,7 @@
     "fp-ts": "catalog:",
     "io-ts": "catalog:",
     "jose": "^4.13.0",
-    "jsonwebtoken": "^9.0.0",
+    "jsonwebtoken": "catalog:",
     "jwk-to-pem": "catalog:",
     "node-fetch": "^2.6.0",
     "ulid": "catalog:",

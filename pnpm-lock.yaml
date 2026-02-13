@@ -566,7 +566,7 @@ importers:
         specifier: ^4.13.0
         version: 4.15.9
       jsonwebtoken:
-        specifier: ^9.0.0
+        specifier: 'catalog:'
         version: 9.0.2
       jwk-to-pem:
         specifier: 'catalog:'
@@ -1358,7 +1358,7 @@ importers:
         specifier: ^4.14.6
         version: 4.15.9
       jsonwebtoken:
-        specifier: ^9.0.1
+        specifier: 'catalog:'
         version: 9.0.2
       monocle-ts:
         specifier: 'catalog:'
