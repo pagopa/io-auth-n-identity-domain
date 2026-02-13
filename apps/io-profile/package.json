@@ -62,7 +62,7 @@
     "azure-storage": "catalog:",
     "date-fns": "catalog:",
     "durable-functions": "catalog:",
-    "express": "^4.15.3",
+    "express": "catalog:",
     "fp-ts": "catalog:",
     "html-to-text": "catalog:",
     "io-ts": "catalog:",

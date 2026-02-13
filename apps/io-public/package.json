@@ -48,7 +48,7 @@
     "@pagopa/ts-commons": "catalog:",
     "applicationinsights": "catalog:",
     "base64url": "catalog:",
-    "express": "^4.15.3",
+    "express": "catalog:",
     "fp-ts": "catalog:",
     "io-ts": "catalog:",
     "io-ts-types": "catalog:",

@@ -67,7 +67,7 @@
     "@xmldom/xmldom": "catalog:",
     "applicationinsights": "1.8.10",
     "date-fns": "catalog:",
-    "express": "^4.15.3",
+    "express": "catalog:",
     "fp-ts": "catalog:",
     "io-ts": "catalog:",
     "jose": "^4.13.0",
