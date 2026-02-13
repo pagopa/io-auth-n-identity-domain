@@ -9,26 +9,26 @@
   "scripts": {
     "clean": "shx rm -rf dist",
     "build": "tsc",
-    "generate": "yarn generate:session-manager",
+    "generate": "pnpm generate:session-manager",
     "generate:session-manager": "shx rm -rf src/generated/session-manager && gen-api-models --api-spec ../../apps/io-session-manager/api/external.yaml --out-dir src/generated/session-mananger --no-strict --request-types --response-decoders --client",
     "start": "node ./dist/index.js",
     "test:e2e": "vitest run"
   },
   "devDependencies": {
-    "@pagopa/eslint-config": "^4.0.6",
-    "@pagopa/openapi-codegen-ts": "^14.0.1",
-    "@pagopa/ts-commons": "^13.1.1",
-    "@pagopa/typescript-config-node": "*",
-    "@types/node-fetch": "^2.6.11",
-    "eslint": "^8.57.0",
-    "eslint-config-monorepo": "*",
-    "eslint-plugin-prettier": "^5.1.3",
-    "fp-ts": "^2.16.6",
-    "io-ts": "^2.2.21",
-    "node-fetch": "^2.6.1",
-    "prettier": "^3.2.5",
+    "@pagopa/eslint-config": "catalog:",
+    "@pagopa/openapi-codegen-ts": "catalog:",
+    "@pagopa/ts-commons": "catalog:",
+    "@pagopa/typescript-config-node": "workspace:^",
+    "@types/node-fetch": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-monorepo": "workspace:^",
+    "eslint-plugin-prettier": "catalog:",
+    "fp-ts": "catalog:",
+    "io-ts": "catalog:",
+    "node-fetch": "catalog:",
+    "prettier": "catalog:",
     "shx": "^0.3.4",
-    "typescript": "^5.4.3",
-    "vitest": "~3.2.4"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

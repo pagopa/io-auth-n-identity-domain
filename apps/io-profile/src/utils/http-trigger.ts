@@ -58,7 +58,7 @@ export const createWebServer = ({
   subscriptionFeedTableService,
   redisClientTask,
   serviceCacheTTL,
-}: WebServerDependencies) => {
+}: WebServerDependencies): Express => {
   // configure app
   const app = express();
   secureExpressApp(app);

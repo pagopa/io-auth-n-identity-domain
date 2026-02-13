@@ -6,15 +6,15 @@
     "index.js"
   ],
   "devDependencies": {
-    "@pagopa/eslint-config": "^4.0.6",
+    "@pagopa/eslint-config": "catalog:",
     "@typescript-eslint/eslint-plugin": "^8.53.1",
     "@typescript-eslint/parser": "^8.53.1",
-    "eslint": "^8.57.0",
+    "eslint": "catalog:",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-turbo": "^2.5.5",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-only-warn": "^1.1.0",
     "eslint-plugin-turbo": "^2.5.5",
-    "typescript": "^5.3.3"
+    "typescript": "catalog:"
   }
 }

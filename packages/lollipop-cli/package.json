@@ -13,21 +13,21 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@pagopa/openapi-codegen-ts": "^14.0.0",
+    "@pagopa/openapi-codegen-ts": "catalog:",
     "@types/node": "^20",
     "@types/prompts": "^2.4.7",
     "@types/yargs": "^17.0.33",
     "shx": "^0.3.4",
     "ts-node": "^10.9.1",
-    "typescript": "^5.2.2",
-    "vitest": "~3.2.4"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
-    "@mattrglobal/http-signatures": "^4.1.0",
-    "@pagopa/ts-commons": "^13.1.1",
-    "fp-ts": "^2.16.1",
-    "io-ts": "^2.2.20",
-    "jose": "^5.1.0",
+    "@mattrglobal/http-signatures": "catalog:",
+    "@pagopa/ts-commons": "catalog:",
+    "fp-ts": "catalog:",
+    "io-ts": "catalog:",
+    "jose": "catalog:",
     "prompts": "^2.4.2",
     "yargs": "^17.7.2"
   }

@@ -20,22 +20,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        run: corepack enable
+
       - name: Setup Node.js environment
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: '.node-version'
-          cache: 'yarn'
-          cache-dependency-path: "yarn.lock"
+        uses: pagopa/dx/.github/actions/node-setup@0fd2b15f5b61751fa433be93682e4a48779b600b
+        env:
+          TURBO_CACHE_DIR: .turbo
 
       - name: Install Dependencies
-        run: yarn
+        run: pnpm install --frozen-lockfile
 
       - name: Create Release Pull Request or Tag
         id: changesets
         uses: changesets/action@v1
         with:
-          version: yarn run version
-          publish: yarn run release
+          version: pnpm run version
+          publish: pnpm run release
           commit: 'ci(changesets): version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
