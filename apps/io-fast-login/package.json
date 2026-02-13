@@ -51,7 +51,7 @@
     "@pagopa/logger": "catalog:",
     "@pagopa/openapi-codegen-ts": "^13.1.0",
     "@pagopa/ts-commons": "catalog:",
-    "@xmldom/xmldom": "^0.8.8",
+    "@xmldom/xmldom": "catalog:",
     "applicationinsights": "catalog:",
     "azure-storage": "catalog:",
     "date-fns": "catalog:",
