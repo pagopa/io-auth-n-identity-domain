@@ -69,7 +69,7 @@
     "io-ts-types": "catalog:",
     "monocle-ts": "catalog:",
     "newtype-ts": "catalog:",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "catalog:",
     "nodemailer": "^6.4.16",
     "redis": "catalog:"
   }

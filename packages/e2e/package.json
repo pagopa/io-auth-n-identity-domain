@@ -25,7 +25,7 @@
     "eslint-plugin-prettier": "catalog:",
     "fp-ts": "catalog:",
     "io-ts": "catalog:",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "catalog:",
     "prettier": "catalog:",
     "shx": "^0.3.4",
     "typescript": "^5.4.3",

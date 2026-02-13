@@ -572,7 +572,7 @@ importers:
         specifier: 'catalog:'
         version: 2.0.7
       node-fetch:
-        specifier: ^2.6.0
+        specifier: 'catalog:'
         version: 2.7.0
       ulid:
         specifier: 'catalog:'
@@ -711,7 +711,7 @@ importers:
         specifier: 'catalog:'
         version: 0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9))
       node-fetch:
-        specifier: ^2.6.1
+        specifier: 'catalog:'
         version: 2.7.0
       nodemailer:
         specifier: ^6.4.16
@@ -1077,7 +1077,7 @@ importers:
         specifier: 'catalog:'
         version: 0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9))
       node-fetch:
-        specifier: ^2.6.1
+        specifier: 'catalog:'
         version: 2.7.0
       passport:
         specifier: 'catalog:'
@@ -1367,7 +1367,7 @@ importers:
         specifier: 'catalog:'
         version: 0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9))
       node-fetch:
-        specifier: ^2.6.0
+        specifier: 'catalog:'
         version: 2.7.0
       ulid:
         specifier: 'catalog:'
@@ -1577,7 +1577,7 @@ importers:
         specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
       node-fetch:
-        specifier: ^2.6.1
+        specifier: 'catalog:'
         version: 2.7.0
       prettier:
         specifier: 'catalog:'

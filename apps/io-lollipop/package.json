@@ -73,7 +73,7 @@
     "jose": "^4.13.0",
     "jsonwebtoken": "catalog:",
     "jwk-to-pem": "catalog:",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "catalog:",
     "ulid": "catalog:",
     "winston": "^3.2.1",
     "winston-transport": "catalog:",

@@ -60,7 +60,7 @@
     "logform": "catalog:",
     "monocle-ts": "catalog:",
     "newtype-ts": "catalog:",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "catalog:",
     "passport": "catalog:",
     "passport-http-bearer": "catalog:",
     "passport-http-custom-bearer": "catalog:",

@@ -74,7 +74,7 @@
     "jsonwebtoken": "catalog:",
     "monocle-ts": "catalog:",
     "newtype-ts": "catalog:",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "catalog:",
     "ulid": "catalog:",
     "winston": "^3.2.1",
     "winston-transport": "catalog:"
