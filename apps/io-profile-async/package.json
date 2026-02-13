@@ -57,7 +57,7 @@
     "@pagopa/io-functions-commons": "catalog:",
     "@pagopa/logger": "catalog:",
     "@pagopa/ts-commons": "catalog:",
-    "applicationinsights": "^2.9.2",
+    "applicationinsights": "catalog:",
     "fp-ts": "catalog:",
     "html-to-text": "catalog:",
     "io-ts": "catalog:",
