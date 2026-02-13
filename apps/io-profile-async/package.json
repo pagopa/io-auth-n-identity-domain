@@ -27,7 +27,7 @@
   "devDependencies": {
     "@azure/functions": "^3.5.0",
     "@pagopa/eslint-config": "catalog:",
-    "@pagopa/openapi-codegen-ts": "^14.0.0",
+    "@pagopa/openapi-codegen-ts": "catalog:",
     "@types/html-to-text": "^9.0.4",
     "@types/node-fetch": "^2.6.2",
     "@types/nodemailer": "catalog:",
