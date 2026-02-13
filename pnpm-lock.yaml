@@ -857,7 +857,7 @@ importers:
         specifier: 'catalog:'
         version: 14.0.1(chokidar@3.6.0)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@types/html-to-text':
-        specifier: ^9.0.4
+        specifier: 'catalog:'
         version: 9.0.4
       '@types/node-fetch':
         specifier: ^2.6.2
