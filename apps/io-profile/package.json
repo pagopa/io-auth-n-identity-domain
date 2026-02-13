@@ -70,7 +70,7 @@
     "monocle-ts": "catalog:",
     "newtype-ts": "catalog:",
     "node-fetch": "catalog:",
-    "nodemailer": "^6.4.16",
+    "nodemailer": "catalog:",
     "redis": "catalog:"
   }
 }
