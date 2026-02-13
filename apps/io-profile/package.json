@@ -59,7 +59,7 @@
     "@pagopa/io-functions-commons": "^28.22.0",
     "@pagopa/ts-commons": "^12.6.0",
     "applicationinsights": "^1.8.10",
-    "azure-storage": "^2.10.3",
+    "azure-storage": "catalog:",
     "date-fns": "^2.16.1",
     "durable-functions": "catalog:",
     "express": "^4.15.3",

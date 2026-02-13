@@ -63,7 +63,7 @@
     "@pagopa/ts-commons": "catalog:",
     "@pagopa/winston-ts": "catalog:",
     "applicationinsights": "catalog:",
-    "azure-storage": "^2.10.3",
+    "azure-storage": "catalog:",
     "canary-deployment-monitor": "workspace:^",
     "date-fns": "catalog:",
     "express": "^4.15.3",
