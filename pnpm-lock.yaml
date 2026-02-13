@@ -466,7 +466,7 @@ importers:
         specifier: ^4.3.0
         version: 4.3.0
       redis:
-        specifier: ^4.6.10
+        specifier: 'catalog:'
         version: 4.7.1
       winston-transport:
         specifier: 'catalog:'

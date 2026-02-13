@@ -59,7 +59,7 @@
     "io-ts": "catalog:",
     "jose": "^4.14.4",
     "neverthrow": "^4.3.0",
-    "redis": "^4.6.10",
+    "redis": "catalog:",
     "winston-transport": "catalog:"
   }
 }
