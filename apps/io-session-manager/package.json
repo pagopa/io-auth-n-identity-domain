@@ -39,7 +39,7 @@
     "@azure/data-tables": "catalog:",
     "@azure/identity": "catalog:",
     "@azure/service-bus": "catalog:",
-    "@azure/storage-queue": "^12.16.0",
+    "@azure/storage-queue": "catalog:",
     "@pagopa/io-auth-n-identity-commons": "workspace:^",
     "@pagopa/io-functions-commons": "catalog:",
     "@pagopa/io-spid-commons": "catalog:",

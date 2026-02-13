@@ -1014,7 +1014,7 @@ importers:
         specifier: 'catalog:'
         version: 7.9.5
       '@azure/storage-queue':
-        specifier: ^12.16.0
+        specifier: 'catalog:'
         version: 12.25.0
       '@pagopa/io-auth-n-identity-commons':
         specifier: workspace:^
