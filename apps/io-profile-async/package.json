@@ -50,7 +50,7 @@
     "@azure/data-tables": "catalog:",
     "@azure/storage-blob": "12.17.0",
     "@azure/storage-queue": "catalog:",
-    "@pagopa/handler-kit": "^1.1.0",
+    "@pagopa/handler-kit": "catalog:",
     "@pagopa/handler-kit-azure-func": "^1.2.1",
     "@pagopa/io-app-email-templates": "catalog:",
     "@pagopa/io-auth-n-identity-commons": "workspace:^",

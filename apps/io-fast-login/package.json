@@ -45,7 +45,7 @@
   "dependencies": {
     "@azure/functions": "^3.5.1",
     "@mattrglobal/http-signatures": "catalog:",
-    "@pagopa/handler-kit": "^1.1.0",
+    "@pagopa/handler-kit": "catalog:",
     "@pagopa/handler-kit-azure-func": "^1.2.0",
     "@pagopa/io-functions-commons": "catalog:",
     "@pagopa/logger": "catalog:",
