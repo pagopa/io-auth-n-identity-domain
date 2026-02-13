@@ -40,7 +40,7 @@
     "@vitest/coverage-v8": "catalog:",
     "dependency-check": "catalog:",
     "dotenv": "catalog:",
-    "dotenv-cli": "^7.3.0",
+    "dotenv-cli": "catalog:",
     "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",
     "eslint-plugin-prettier": "catalog:",
