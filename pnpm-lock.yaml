@@ -476,7 +476,7 @@ importers:
         specifier: 'catalog:'
         version: 4.0.6(@typescript-eslint/eslint-plugin@8.53.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(prettier@3.2.5)(vitest@3.2.4(@types/node@20.19.30))
       '@types/express':
-        specifier: ^4.17.12
+        specifier: 'catalog:'
         version: 4.17.21
       '@types/node':
         specifier: 'catalog:'
@@ -597,7 +597,7 @@ importers:
         specifier: workspace:^
         version: link:../../packages/typescript-config-node
       '@types/express':
-        specifier: ^4.17.12
+        specifier: 'catalog:'
         version: 4.17.21
       '@types/jsonwebtoken':
         specifier: ^9.0.1
@@ -730,7 +730,7 @@ importers:
         specifier: ^13.2.0
         version: 13.2.0(chokidar@3.6.0)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@types/express':
-        specifier: ^4.17.11
+        specifier: 'catalog:'
         version: 4.17.21
       '@types/html-to-text':
         specifier: 'catalog:'
@@ -966,7 +966,7 @@ importers:
         specifier: ^13.2.0
         version: 13.2.0(chokidar@3.6.0)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@types/express':
-        specifier: ^4.16.0
+        specifier: 'catalog:'
         version: 4.17.21
       '@types/node-fetch':
         specifier: ^2.6.2
@@ -1386,7 +1386,7 @@ importers:
         specifier: 'catalog:'
         version: 4.0.6(@typescript-eslint/eslint-plugin@8.53.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(prettier@3.2.5)(vitest@3.2.4(@types/node@20.19.30))
       '@types/express':
-        specifier: ^4.17.12
+        specifier: 'catalog:'
         version: 4.17.21
       '@types/jsonwebtoken':
         specifier: 'catalog:'

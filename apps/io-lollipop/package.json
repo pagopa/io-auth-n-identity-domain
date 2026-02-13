@@ -33,7 +33,7 @@
     "@azure/functions": "^3.2.0",
     "@pagopa/eslint-config": "catalog:",
     "@pagopa/typescript-config-node": "workspace:^",
-    "@types/express": "^4.17.12",
+    "@types/express": "catalog:",
     "@types/jsonwebtoken": "^9.0.1",
     "@types/jwk-to-pem": "catalog:",
     "@types/node-fetch": "^2.5.7",

@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
-    "@types/express": "^4.17.12",
+    "@types/express": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "dependency-check": "catalog:",
