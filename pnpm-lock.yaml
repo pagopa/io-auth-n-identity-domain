@@ -796,7 +796,7 @@ importers:
         specifier: 12.17.0
         version: 12.17.0
       '@azure/storage-queue':
-        specifier: ^12.16.0
+        specifier: 'catalog:'
         version: 12.25.0
       '@pagopa/handler-kit':
         specifier: ^1.1.0
