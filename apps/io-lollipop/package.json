@@ -75,7 +75,7 @@
     "jwk-to-pem": "catalog:",
     "node-fetch": "catalog:",
     "ulid": "catalog:",
-    "winston": "^3.2.1",
+    "winston": "catalog:",
     "winston-transport": "catalog:",
     "xml-crypto": "catalog:"
   }

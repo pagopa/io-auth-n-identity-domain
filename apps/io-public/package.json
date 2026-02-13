@@ -55,7 +55,7 @@
     "monocle-ts": "catalog:",
     "newtype-ts": "catalog:",
     "node-fetch": "catalog:",
-    "winston": "^3.3.3",
+    "winston": "catalog:",
     "winston-transport": "catalog:"
   }
 }

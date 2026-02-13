@@ -578,7 +578,7 @@ importers:
         specifier: 'catalog:'
         version: 2.3.0
       winston:
-        specifier: ^3.2.1
+        specifier: 'catalog:'
         version: 3.17.0
       winston-transport:
         specifier: 'catalog:'
@@ -950,7 +950,7 @@ importers:
         specifier: 'catalog:'
         version: 2.7.0
       winston:
-        specifier: ^3.3.3
+        specifier: 'catalog:'
         version: 3.17.0
       winston-transport:
         specifier: 'catalog:'
@@ -1104,7 +1104,7 @@ importers:
         specifier: 'catalog:'
         version: 2.3.0
       winston:
-        specifier: ^3.13.0
+        specifier: 'catalog:'
         version: 3.17.0
       winston-transport:
         specifier: 'catalog:'
@@ -1373,7 +1373,7 @@ importers:
         specifier: 'catalog:'
         version: 2.3.0
       winston:
-        specifier: ^3.2.1
+        specifier: 'catalog:'
         version: 3.17.0
       winston-transport:
         specifier: 'catalog:'
