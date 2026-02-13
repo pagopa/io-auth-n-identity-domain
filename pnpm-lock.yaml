@@ -1692,7 +1692,7 @@ importers:
         specifier: 'catalog:'
         version: 2.2.22(fp-ts@2.16.9)
       jose:
-        specifier: ^5.1.0
+        specifier: 'catalog:'
         version: 5.9.4
       prompts:
         specifier: ^2.4.2

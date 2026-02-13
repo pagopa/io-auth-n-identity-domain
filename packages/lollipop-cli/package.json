@@ -27,7 +27,7 @@
     "@pagopa/ts-commons": "catalog:",
     "fp-ts": "catalog:",
     "io-ts": "catalog:",
-    "jose": "^5.1.0",
+    "jose": "catalog:",
     "prompts": "^2.4.2",
     "yargs": "^17.7.2"
   }
