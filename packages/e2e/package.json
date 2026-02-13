@@ -28,7 +28,7 @@
     "node-fetch": "catalog:",
     "prettier": "catalog:",
     "shx": "^0.3.4",
-    "typescript": "^5.4.3",
+    "typescript": "catalog:",
     "vitest": "catalog:"
   }
 }

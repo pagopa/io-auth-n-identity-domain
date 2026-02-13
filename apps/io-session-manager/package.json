@@ -98,7 +98,7 @@
     "shx": "^0.3.2",
     "supertest": "catalog:",
     "swagger-cli": "catalog:",
-    "typescript": "^5.4.3",
+    "typescript": "catalog:",
     "vitest": "catalog:"
   }
 }

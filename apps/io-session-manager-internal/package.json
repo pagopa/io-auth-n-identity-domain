@@ -63,7 +63,7 @@
     "eslint-plugin-prettier": "catalog:",
     "prettier": "catalog:",
     "shx": "^0.3.2",
-    "typescript": "^5.4.3",
+    "typescript": "catalog:",
     "vitest": "catalog:"
   }
 }

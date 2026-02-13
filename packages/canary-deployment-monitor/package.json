@@ -18,7 +18,7 @@
     "eslint-config-monorepo": "workspace:^",
     "eslint-plugin-prettier": "catalog:",
     "prettier": "catalog:",
-    "typescript": "^5.4.3"
+    "typescript": "catalog:"
   },
   "dependencies": {
     "@azure/identity": "^4.5.0",

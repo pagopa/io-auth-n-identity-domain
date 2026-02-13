@@ -1186,7 +1186,7 @@ importers:
         specifier: 'catalog:'
         version: 4.0.4(openapi-types@10.0.0)
       typescript:
-        specifier: ^5.4.3
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -1301,7 +1301,7 @@ importers:
         specifier: ^0.3.2
         version: 0.3.4
       typescript:
-        specifier: ^5.4.3
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -1541,7 +1541,7 @@ importers:
         specifier: 'catalog:'
         version: 3.2.5
       typescript:
-        specifier: ^5.4.3
+        specifier: 'catalog:'
         version: 5.8.3
 
   packages/e2e:
@@ -1586,7 +1586,7 @@ importers:
         specifier: ^0.3.4
         version: 0.3.4
       typescript:
-        specifier: ^5.4.3
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -1622,7 +1622,7 @@ importers:
         specifier: ^2.5.5
         version: 2.5.5(eslint@8.57.0)(turbo@2.5.5)
       typescript:
-        specifier: ^5.3.3
+        specifier: 'catalog:'
         version: 5.8.3
 
   packages/io-auth-n-identity-commons:
@@ -1720,7 +1720,7 @@ importers:
         specifier: ^10.9.1
         version: 10.9.2(@types/node@20.17.57)(typescript@5.8.3)
       typescript:
-        specifier: ^5.2.2
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
@@ -1760,7 +1760,7 @@ importers:
         specifier: 'catalog:'
         version: 3.2.5
       typescript:
-        specifier: ^5.4.3
+        specifier: 'catalog:'
         version: 5.8.3
 
   packages/typescript-config-node: {}
@@ -1816,7 +1816,7 @@ importers:
         specifier: 'catalog:'
         version: 3.2.5
       typescript:
-        specifier: ^5.4.3
+        specifier: 'catalog:'
         version: 5.8.3
       vitest:
         specifier: 'catalog:'
