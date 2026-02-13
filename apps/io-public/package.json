@@ -46,7 +46,7 @@
     "@pagopa/express-azure-functions": "catalog:",
     "@pagopa/io-functions-commons": "catalog:",
     "@pagopa/ts-commons": "catalog:",
-    "applicationinsights": "^2.9.2",
+    "applicationinsights": "catalog:",
     "base64url": "catalog:",
     "express": "^4.15.3",
     "fp-ts": "catalog:",
