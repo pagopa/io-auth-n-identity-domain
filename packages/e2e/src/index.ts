@@ -67,7 +67,7 @@ const main = async () => {
     );
   }
 
-  results.push(await promisifyProcess(runProcess(`yarn test:e2e`)));
+  results.push(await promisifyProcess(runProcess(`pnpm test:e2e`)));
 
 
   results.push(

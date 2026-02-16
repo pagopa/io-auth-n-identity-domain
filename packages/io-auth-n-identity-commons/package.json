@@ -14,37 +14,37 @@
     "build": "tsc",
     "build:watch": "tsc -w",
     "typecheck": "tsc --noemit",
-    "lint": "yarn lint:check --fix",
+    "lint": "pnpm lint:check --fix",
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "@pagopa/eslint-config": "^4.0.6",
-    "@pagopa/ts-commons": "^13.1.2",
-    "@pagopa/typescript-config-node": "*",
+    "@pagopa/eslint-config": "catalog:",
+    "@pagopa/ts-commons": "catalog:",
+    "@pagopa/typescript-config-node": "workspace:^",
     "@types/node": "^20.19.5",
-    "@vitest/coverage-v8": "~3.2.4",
-    "eslint": "^8.57.0",
-    "eslint-config-monorepo": "*",
-    "eslint-plugin-prettier": "^5.1.3",
-    "fp-ts": "^2.16.9",
-    "io-ts": "^2.2.22",
-    "prettier": "^3.2.5",
-    "shx": "^0.4.0",
-    "typescript": "^5.4.5",
-    "vitest": "~3.2.4"
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-monorepo": "workspace:^",
+    "eslint-plugin-prettier": "catalog:",
+    "fp-ts": "catalog:",
+    "io-ts": "catalog:",
+    "prettier": "catalog:",
+    "shx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
-    "@azure/service-bus": "^7.9.5",
-    "@azure/storage-blob": "^12.29.1",
-    "@pagopa/ts-commons": "^13.1.2",
-    "fp-ts": "^2.16.9",
-    "io-ts": "^2.2.22"
+    "@azure/service-bus": "catalog:",
+    "@azure/storage-blob": "catalog:",
+    "@pagopa/ts-commons": "catalog:",
+    "fp-ts": "catalog:",
+    "io-ts": "catalog:"
   },
   "peerDependencies": {
-    "@pagopa/ts-commons": "^13.1.2",
-    "fp-ts": "^2.16.9",
-    "io-ts": "^2.2.22"
+    "@pagopa/ts-commons": "catalog:",
+    "fp-ts": "catalog:",
+    "io-ts": "catalog:"
   }
 }

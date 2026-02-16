@@ -6,14 +6,14 @@ some types of operations.
 ### How to run a script
 
 From the root of the monorepo simply run
-`yarn workspace utilities <SCRIPT_NAME> <...ARGUMENTS>`
+`pnpm --filter utilities <SCRIPT_NAME> <...ARGUMENTS>`
 
 ### Session expire queue insert script
 
 This script inserts batch of items into a queue.
 To run it launch from the monorepo root
 
-`yarn workspace utilities build && yarn workspace utilities session:expire:insert <PARAMETERS>`
+`pnpm --filter utilities build && pnpm --filter utilities session:expire:insert <PARAMETERS>`
 
 When `--help` is passed, an help message will greet the user with description for all parameters.
 
