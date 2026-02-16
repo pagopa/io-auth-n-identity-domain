@@ -237,7 +237,7 @@ services:
       - io-fn
 
   traefik:
-    image: traefik:v2.8
+    image: traefik:v2.11.37
     command: |-
       --entrypoints.web.address=:80
       --entrypoints.web.forwardedHeaders.insecure=true
