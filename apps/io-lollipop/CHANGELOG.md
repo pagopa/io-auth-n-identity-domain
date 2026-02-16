@@ -1,5 +1,11 @@
 # io-lollipop
 
+## 1.18.0
+
+### Minor Changes
+
+- dbb180f: Update various dependencies
+
 ## 1.17.0
 
 ### Minor Changes

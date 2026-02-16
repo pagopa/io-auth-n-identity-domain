@@ -1,5 +1,11 @@
 # io-web-profile
 
+## 1.10.0
+
+### Minor Changes
+
+- dbb180f: Update various dependencies
+
 ## 1.9.1
 
 ### Patch Changes
