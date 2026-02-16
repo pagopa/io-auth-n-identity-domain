@@ -50,7 +50,6 @@ services:
     networks:
       - io-fn
     labels:
-      - "traefik.enable=true"
       - "traefik.http.routers.io-session-manager.rule=PathPrefix(`/sm`)"
       - "traefik.http.routers.io-session-manager.entrypoints=websecure"
       # leveraging TLS termination, traefik will take https external request,
@@ -84,7 +83,6 @@ services:
       - cosmosdb
       - storage
     labels:
-      - "traefik.enable=true"
       # BUG HERE WITH DOUBLE FORWARD SLASH
       - "traefik.http.routers.io-lollipop.rule=PathPrefix(`//lollipop`)"
       - "traefik.http.routers.io-lollipop.entrypoints=web"
@@ -168,7 +166,6 @@ services:
       - storage
       - cosmosdb
     labels:
-      - "traefik.enable=true"
       - "traefik.http.routers.io-public.rule=PathPrefix(`/public`)"
       - "traefik.http.routers.io-public.entrypoints=web"
       - "traefik.http.services.io-public.loadBalancer.server.port=7071"
@@ -238,32 +235,26 @@ services:
 
   traefik:
     image: traefik:v2.8
+    container_name: traefik
     command: |-
       --entrypoints.web.address=:80
       --entrypoints.web.forwardedHeaders.insecure=true
       --entrypoints.websecure.address=:8080
       --entrypoints.websecure.forwardedHeaders.insecure=true
-      --providers.docker=true
-      --providers.docker.network=io-fn
+
+      --providers.file.directory=/etc/traefik/dynamic
+      --providers.file.watch=true
+
       --log.level=ERROR
+      --api.dashboard=true
+      --api.insecure=true
     ports:
-      - ${API_GATEWAY_PORT:-80}:${API_GATEWAY_PORT:-80}
+      - ${API_GATEWAY_PORT:-80}:80
       - 8080:8080
     networks:
       - io-fn
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    labels:
-      # define middleware to be used in some functions services
-      - "traefik.http.middlewares.io-session-manager-stripprefix.stripprefix.prefixes=/sm"
-      - "traefik.http.middlewares.io-lollipop-stripprefix.stripprefix.prefixes=//lollipop"
-      - "traefik.http.middlewares.io-public-stripprefix.stripprefix.prefixes=/public"
-      - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-id=unused"
-      - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-subscription-id=unused"
-      - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-groups=${REQ_USER_GROUPS}"
-      - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-email=unused@example.com"
-      - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-note=unused"
-      - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-functions-key=unused"
+      - ./docker/traefik/dynamic:/etc/traefik/dynamic:ro
 
   #
   #                   __ __            __             __

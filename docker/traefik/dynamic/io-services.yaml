@@ -1,0 +1,75 @@
+http:
+
+  routers:
+
+    io-session-manager:
+      entryPoints:
+        - websecure
+      rule: PathPrefix(`/sm`)
+      service: io-session-manager
+      middlewares:
+        - io-session-manager-stripprefix
+      tls: {}
+
+    io-lollipop:
+      entryPoints:
+        - web
+      rule: PathPrefix(`/lollipop`)
+      service: io-lollipop
+      middlewares:
+        - io-lollipop-stripprefix
+        - setHeader
+
+    io-public:
+      entryPoints:
+        - web
+      rule: PathPrefix(`/public`)
+      service: io-public
+      middlewares:
+        - io-public-stripprefix
+
+
+  services:
+
+    io-session-manager:
+      loadBalancer:
+        servers:
+          - url: http://io-session-manager:3000
+
+    io-lollipop:
+      loadBalancer:
+        servers:
+          - url: http://io-lollipop:7071
+
+    io-public:
+      loadBalancer:
+        servers:
+          - url: http://io-public:7071
+
+
+  middlewares:
+
+    io-session-manager-stripprefix:
+      stripPrefix:
+        prefixes:
+          - /sm
+
+    io-lollipop-stripprefix:
+      stripPrefix:
+        prefixes:
+          - /lollipop
+
+    io-public-stripprefix:
+      stripPrefix:
+        prefixes:
+          - /public
+
+    setHeader:
+      headers:
+        customRequestHeaders:
+          x-user-id: unused
+          x-subscription-id: unused
+          x-user-groups: "local-dev"
+          x-user-email: unused@example.com
+          x-user-note: unused
+          x-functions-key: unused
