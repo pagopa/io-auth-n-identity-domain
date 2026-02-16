@@ -243,6 +243,7 @@ services:
       --entrypoints.web.forwardedHeaders.insecure=true
       --entrypoints.websecure.address=:8080
       --entrypoints.websecure.forwardedHeaders.insecure=true
+      --tls.options.default.minversion=VersionTLS10
       --providers.docker=true
       --providers.docker.network=io-fn
       --log.level=DEBUG
