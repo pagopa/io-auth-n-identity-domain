@@ -13,7 +13,7 @@ jobs:
       resource_group_name: "io-p-itn-auth-public-rg-01"
       workspace_name: "io-public"
       web_app_name: "io-p-itn-auth-public-func-02"
-      disable_auto_staging_deploy: false
+      disable_auto_staging_deploy: true
       use_private_agent: true
     secrets: inherit
     permissions:
