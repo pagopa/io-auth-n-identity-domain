@@ -206,7 +206,7 @@ jobs:
           pnpm --filter io-auth-n-identity-bruno-collections exec \
             bru run \
               io-lollipop \
-              --env Development
+              --env Development && docker compose logs traefik
 
       - name: "E2E Tests"
         if: steps.test_filter.outputs.io-session-manager == 'true'
