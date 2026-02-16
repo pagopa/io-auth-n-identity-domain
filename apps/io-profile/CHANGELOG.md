@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.31.0
+
+### Minor Changes
+
+- dbb180f: Update various dependencies
+
 ## 5.30.5
 
 ### Patch Changes

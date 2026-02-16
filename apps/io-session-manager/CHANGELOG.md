@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.22.0
+
+### Minor Changes
+
+- dbb180f: Update various dependencies
+
 ## 1.21.0
 
 ### Minor Changes

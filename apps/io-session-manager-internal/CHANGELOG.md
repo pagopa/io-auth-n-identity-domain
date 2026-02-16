@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.16.0
+
+### Minor Changes
+
+- dbb180f: Update various dependencies
+
 ## 0.15.3
 
 ### Patch Changes

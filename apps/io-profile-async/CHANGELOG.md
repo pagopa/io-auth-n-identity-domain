@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.18.0
+
+### Minor Changes
+
+- dbb180f: Update various dependencies
+
 ## 1.17.1
 
 ### Patch Changes

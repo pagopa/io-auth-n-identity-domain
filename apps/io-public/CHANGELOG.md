@@ -1,5 +1,11 @@
 # io-public
 
+## 2.3.0
+
+### Minor Changes
+
+- dbb180f: Update various dependencies
+
 ## 2.2.0
 
 ### Minor Changes

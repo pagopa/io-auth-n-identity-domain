@@ -1,5 +1,11 @@
 # io-fast-login
 
+## 4.4.0
+
+### Minor Changes
+
+- dbb180f: Update various dependencies
+
 ## 4.3.1
 
 ### Patch Changes
