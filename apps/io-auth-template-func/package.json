@@ -3,6 +3,11 @@
   "version": "0.0.2",
   "author": "IO Auth & Identity Team",
   "main": "dist/controllers/main.js",
+  "files": [
+    "dist/*",
+    "host.json",
+    "**/function.json"
+  ],
   "engines": {
     "node": ">= 20.0.0"
   },

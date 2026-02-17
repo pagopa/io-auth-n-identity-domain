@@ -4,6 +4,12 @@
   "author": "IO Auth & Identity Team",
   "version": "1.10.0",
   "license": "MIT",
+  "files": [
+    "dist/*",
+    "extensions.csproj",
+    "host.json",
+    "**/function.json"
+  ],
   "scripts": {
     "clean": "shx rm -rf dist",
     "clean:generated": "shx rm -rf ./src/generated",

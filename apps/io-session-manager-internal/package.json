@@ -6,6 +6,11 @@
   "engines": {
     "node": ">= 20.0.0"
   },
+  "files": [
+    "dist/*",
+    "host.json",
+    "**/function.json"
+  ],
   "scripts": {
     "clean": "shx rm -rf dist",
     "clean:generated": "shx rm -rf ./src/generated",
