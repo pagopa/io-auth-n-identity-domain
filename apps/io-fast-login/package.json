@@ -5,6 +5,12 @@
   "description": "Fast Login functions",
   "main": "./dist/main.js",
   "license": "MIT",
+  "files": [
+    "dist/*",
+    "extensions.csproj",
+    "host.json",
+    "**/function.json"
+  ],
   "scripts": {
     "clean": "shx rm -rf dist",
     "clean:generated": "shx rm -rf ./src/generated",
