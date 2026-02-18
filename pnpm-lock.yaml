@@ -913,12 +913,12 @@ importers:
       '@azure/data-tables':
         specifier: 'catalog:'
         version: 13.3.2
-      '@pagopa/express-azure-functions':
-        specifier: 'catalog:'
-        version: 4.0.1(express@4.21.1)
+      '@azure/functions':
+        specifier: ^4.0.0
+        version: 4.7.0
       '@pagopa/io-functions-commons':
-        specifier: 'catalog:'
-        version: 29.3.0(@azure/functions@3.5.1)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
+        specifier: ^30.0.0
+        version: 30.0.0(@azure/functions@4.7.0)(@pagopa/ts-commons@13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9)))(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/ts-commons':
         specifier: 'catalog:'
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
@@ -928,9 +928,6 @@ importers:
       base64url:
         specifier: 'catalog:'
         version: 3.0.1
-      express:
-        specifier: 'catalog:'
-        version: 4.21.1
       fp-ts:
         specifier: 'catalog:'
         version: 2.16.9
@@ -949,25 +946,13 @@ importers:
       node-fetch:
         specifier: 'catalog:'
         version: 2.7.0
-      winston:
-        specifier: 'catalog:'
-        version: 3.17.0
-      winston-transport:
-        specifier: 'catalog:'
-        version: 4.9.0
     devDependencies:
-      '@azure/functions':
-        specifier: ^3.5.0
-        version: 3.5.1
       '@pagopa/eslint-config':
         specifier: 'catalog:'
         version: 4.0.6(@typescript-eslint/eslint-plugin@8.53.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(prettier@3.2.5)(vitest@3.2.4(@types/node@20.19.30))
       '@pagopa/openapi-codegen-ts':
         specifier: ^13.2.0
         version: 13.2.0(chokidar@3.6.0)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
-      '@types/express':
-        specifier: 'catalog:'
-        version: 4.17.21
       '@types/node-fetch':
         specifier: 'catalog:'
         version: 2.6.12
@@ -2982,6 +2967,15 @@ packages:
     resolution: {integrity: sha512-CLVPjQ72gTkJTfPFskciWDReeXNq+DKUj5Ya3I5hh8Qi10U4FRaZcdrh9UkpxFOWmNblD/9ZBQN4otszLKNpew==}
     peerDependencies:
       '@azure/functions': ^3.2.0
+      express: ^4.15.3
+      fp-ts: ^2.16.5
+      io-ts: ^2.2.21
+
+  '@pagopa/io-functions-commons@30.0.0':
+    resolution: {integrity: sha512-7MVfQpi74TuQo+iFDZQ/l8/0uQtXT1JUrEBbGWUfGRkemYZhjib/4FHqfcAoa8heF5fCw+YPKu4MOROhOxYMJA==}
+    peerDependencies:
+      '@azure/functions': ^4.11.2
+      '@pagopa/ts-commons': ^13.1.1
       express: ^4.15.3
       fp-ts: ^2.16.5
       io-ts: ^2.2.21
@@ -10067,6 +10061,37 @@ snapshots:
       - supports-color
 
   '@pagopa/io-functions-commons@29.3.0(@azure/functions@4.7.0)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))':
+    dependencies:
+      '@azure/cosmos': 4.2.0
+      '@azure/data-tables': 13.3.2
+      '@azure/functions': 4.7.0
+      '@pagopa/ts-commons': 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
+      applicationinsights: 2.9.6
+      azure-storage: 2.10.7
+      cidr-matcher: 2.1.1
+      express: 4.21.1
+      fp-ts: 2.16.9
+      helmet: 4.6.0
+      helmet-csp: 2.10.0
+      io-ts: 2.2.22(fp-ts@2.16.9)
+      node-fetch: 2.7.0
+      nodemailer: 6.10.0
+      nodemailer-sendgrid: 1.0.3
+      referrer-policy: 1.2.0
+      rehype-stringify: 3.0.0
+      remark-frontmatter: 2.0.0
+      remark-parse: 5.0.0
+      remark-rehype: 3.0.2
+      request-ip: 3.3.0
+      ulid: 2.3.0
+      unified: 9.2.2
+      winston: 3.17.0
+    transitivePeerDependencies:
+      - applicationinsights-native-metrics
+      - encoding
+      - supports-color
+
+  '@pagopa/io-functions-commons@30.0.0(@azure/functions@4.7.0)(@pagopa/ts-commons@13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9)))(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))':
     dependencies:
       '@azure/cosmos': 4.2.0
       '@azure/data-tables': 13.3.2
