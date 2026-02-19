@@ -409,6 +409,7 @@ describe("getAssertion |> Validation Failures", () => {
     const lcParams = await setupTestAndGenerateLcParams();
 
     await delay(5500);
+    await delay(10500);
 
     const response = await fetchGetAssertion(
       lcParams.assertion_ref,
