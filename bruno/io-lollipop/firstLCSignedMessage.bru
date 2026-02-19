@@ -109,6 +109,7 @@ script:pre-request {
 
 tests {
   test("should have expected response", function() {
+    console.debug("DEBUG: FirstLCSignedMessage Response", res.getBody())
     expect(res.getStatus()).to.equal(200);
     const data = res.getBody();
     expect(data.response).to.equal(bru.getVar("lollipopAssertionRef"));
