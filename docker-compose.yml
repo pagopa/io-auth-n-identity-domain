@@ -246,6 +246,7 @@ services:
       --providers.docker=true
       --providers.docker.network=io-fn
       --log.level=DEBUG
+      --entrypoints.web.http.sanitizepath=false
     ports:
       - ${API_GATEWAY_PORT:-80}:${API_GATEWAY_PORT:-80}
       - 8080:8080
@@ -256,6 +257,8 @@ services:
     labels:
       # define middleware to be used in some functions services
       - "traefik.http.middlewares.io-session-manager-stripprefix.stripprefix.prefixes=/sm"
+      # BUG HERE: client calls service with double slash (similar bug to IOPID-3654).
+      #  NOTE: Also remove --entrypoints.web.http.sanitizepath=false CLI option
       - "traefik.http.middlewares.io-lollipop-stripprefix.stripprefix.prefixes=//lollipop"
       - "traefik.http.middlewares.io-public-stripprefix.stripprefix.prefixes=/public"
       - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-id=unused"
@@ -276,7 +279,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-          ipv4_address: 172.18.0.100
+        ipv4_address: 172.18.0.100
     ports:
       - 6380:6380
     volumes:
@@ -288,7 +291,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-          ipv4_address: 172.18.0.101
+        ipv4_address: 172.18.0.101
     ports:
       - 6381:6381
     volumes:
@@ -296,12 +299,11 @@ services:
       - redis-node-1-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
-  
   redis-node-2:
     image: redis:7.0-alpine
     networks:
       io-fn:
-          ipv4_address: 172.18.0.102
+        ipv4_address: 172.18.0.102
     ports:
       - 6382:6382
     volumes:
@@ -313,19 +315,19 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-          ipv4_address: 172.18.0.103
+        ipv4_address: 172.18.0.103
     ports:
       - 6383:6383
     volumes:
       - ./docker/redis/6383/redis.conf:/usr/local/etc/redis/redis.conf
       - redis-node-3-data:/data
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
-  
+
   redis-node-4:
     image: redis:7.0-alpine
     networks:
       io-fn:
-          ipv4_address: 172.18.0.104
+        ipv4_address: 172.18.0.104
     ports:
       - 6384:6384
     volumes:
@@ -348,7 +350,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-          ipv4_address: 172.18.0.99
+        ipv4_address: 172.18.0.99
     ports:
       - 6379:6379
     volumes:
@@ -395,7 +397,6 @@ services:
       - redis-node-3
       - redis-node-4
       - redis-node-5
-
 
   # Redis standalone (used by `io-fast-login`)
   redis-standalone:
