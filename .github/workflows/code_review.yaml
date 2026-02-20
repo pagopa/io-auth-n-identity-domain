@@ -208,11 +208,6 @@ jobs:
               io-lollipop \
               --env Development
 
-      - name: Debug Traefik Logs
-        if: always()
-        run: |
-          docker compose logs traefik
-
       - name: "E2E Tests"
         if: steps.test_filter.outputs.io-session-manager == 'true'
         run: pnpm --filter e2e start
