@@ -3,7 +3,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { vi } from "vitest";
 import * as redisLib from "redis";
 import { RedisRepository } from "../../repositories/redis";
-import { anAssertionRef } from "../user.mock";
+import { anAssertionRef, mockSessionToken } from "../user.mock";
 import { LoginTypeEnum } from "../../types/fast-login";
 
 export const mockUserHasActiveSessionsOrLV = vi
@@ -20,6 +20,9 @@ export const mockGetLollipopAssertionRefForUser = vi
 export const mockGetSessionRemainingTTL = vi
   .fn()
   .mockReturnValue(TE.right(O.some({ ttl: 123, type: LoginTypeEnum.LV })));
+export const mockReadSessionInfoKeys = vi
+  .fn()
+  .mockReturnValue(TE.right([mockSessionToken]));
 
 export const RedisRepositoryMock: RedisRepository = {
   userHasActiveSessionsOrLV: mockUserHasActiveSessionsOrLV,
@@ -27,6 +30,7 @@ export const RedisRepositoryMock: RedisRepository = {
   delUserAllSessions: mockDelUserAllSessions,
   getLollipopAssertionRefForUser: mockGetLollipopAssertionRefForUser,
   getSessionRemainingTTL: mockGetSessionRemainingTTL,
+  readSessionInfoKeys: mockReadSessionInfoKeys,
 };
 
 export const mockGet = vi.fn();

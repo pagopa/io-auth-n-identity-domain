@@ -56,6 +56,8 @@ import {
   ServiceBusSenderMock,
   mockEmitSessionEvent,
 } from "../../__mocks__/repositories/auth-sessions-topic.mock";
+import { PlatformInternalRepositoryMock } from "../../__mocks__/repositories/platform-internal.mock";
+import { PlatformInternalProxyServiceDependency } from "../../../../io-session-manager/dist/services";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 
@@ -115,6 +117,9 @@ describe("Session Service#lockUserAuthentication", () => {
     NotificationQueueClient: {} as QueueClient,
     AuthSessionsTopicRepository: AuthSessionsTopicRepositoryMock,
     authSessionsTopicSender: ServiceBusSenderMock,
+    PlatformInternalRepository: PlatformInternalRepositoryMock,
+    platformInternalApiClient:
+      {} as PlatformInternalProxyServiceDependency["platformInternalApiClient"],
   };
 
   it("should succeed to lock an user authentication and raise an event, when user is eligible", async () => {
@@ -468,6 +473,9 @@ describe("Session Service#deleteUserSession", () => {
     RevokeAssertionRefQueueClient: {} as QueueClient,
     AuthSessionsTopicRepository: AuthSessionsTopicRepositoryMock,
     authSessionsTopicSender: ServiceBusSenderMock,
+    PlatformInternalRepository: PlatformInternalRepositoryMock,
+    platformInternalApiClient:
+      {} as PlatformInternalProxyServiceDependency["platformInternalApiClient"],
   };
   it("should succeed deleting an user session", async () => {
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
