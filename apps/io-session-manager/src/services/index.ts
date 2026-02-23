@@ -1,4 +1,9 @@
-import { FnAppRepo, FnLollipopRepo, RedisRepo } from "../repositories";
+import {
+  FnAppRepo,
+  FnLollipopRepo,
+  RedisRepo,
+  PlatformInternalRepo,
+} from "../repositories";
 
 import * as ProfileService from "./profile";
 import * as RedisSessionStorageService from "./redis-session-storage";
@@ -6,6 +11,7 @@ import * as TokenService from "./token";
 import * as LollipopService from "./lollipop";
 import * as LoginService from "./login";
 import * as AuthenticationLockService from "./authentication-lock";
+import * as PlatformInternalProxyService from "./platform-internal-proxy";
 
 export {
   AuthenticationLockService,
@@ -14,6 +20,7 @@ export {
   TokenService,
   LollipopService,
   LoginService,
+  PlatformInternalProxyService,
 };
 
 // Exported Services Dependencies
@@ -29,3 +36,7 @@ export type ProfileServiceDepencency = {
 export type LollipopServiceDepencency = {
   lollipopService: typeof LollipopService;
 } & FnLollipopRepo.LollipopApiDeps;
+
+export type PlatformInternalProxyServiceDependency = {
+  platformInternalApiService: typeof PlatformInternalProxyService;
+} & PlatformInternalRepo.PlatformInternalApiDeps;
