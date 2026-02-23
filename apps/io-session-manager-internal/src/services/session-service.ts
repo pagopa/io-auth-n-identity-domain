@@ -170,17 +170,14 @@ const invalidateUserSession: (fiscalCode: FiscalCode) => RTE.ReaderTaskEither<
       fastClient: deps.FastRedisClient,
       fiscalCode,
     }),
-    TE.chainW((sessionTokens) =>
-      pipe(
-        sessionTokens,
+    TE.chain(
+      flow(
         TE.traverseSeqArray((token) =>
           deps.PlatformInternalRepository.cacheDelSessionToken({
             ...deps,
             sessionToken: token.replace(sessionKeyPrefix, ""),
           }),
         ),
-        // if it fails, go ahead anyway
-        TE.orElse(() => TE.right([] as ReadonlyArray<true>)),
       ),
     ),
     TE.chain((_) =>
