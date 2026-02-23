@@ -487,4 +487,5 @@ export const RedisRepository = {
   delLollipopDataForUser,
   delUserAllSessions,
   getSessionRemainingTTL,
+  readSessionInfoKeys,
 };
