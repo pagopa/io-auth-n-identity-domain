@@ -18,10 +18,10 @@ import {
   BlockedUsersServiceMock,
   mockLockUserSession,
 } from "../../__mocks__/services/blocked-users-service.mock";
-import { PlatformInternalRepo } from "../../../../io-session-manager/dist/repositories";
 import { PlatformInternalRepository } from "../../repositories/platform-internal";
 import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import { ServiceBusSender } from "@azure/service-bus";
+import { PlatformInternalApiClient } from "../../utils/platform-internal-client";
 
 const aFiscalCode = "SPNDNL80R13C555X";
 
@@ -37,8 +37,7 @@ const dependenciesMock = {
   fastRedisClientTask: TE.of({} as RedisClusterType),
   safeRedisClientTask: TE.of({} as RedisClusterType),
   PlatformInternalRepository: {} as PlatformInternalRepository,
-  platformInternalApiClient:
-    {} as PlatformInternalRepo.PlatformInternalApiDeps["platformInternalApiClient"],
+  platformInternalApiClient: {} as PlatformInternalApiClient,
   AuthSessionsTopicRepository: {} as AuthSessionsTopicRepository,
   authSessionsTopicSender: {} as ServiceBusSender,
 };
