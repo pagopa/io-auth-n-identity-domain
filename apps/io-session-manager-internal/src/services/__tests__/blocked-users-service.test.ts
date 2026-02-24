@@ -31,6 +31,8 @@ import {
   SessionServiceMock,
 } from "../../__mocks__/services/session-service.mock";
 import { aFiscalCode } from "../../repositories/__tests__/blocked-users-redis.test";
+import { PlatformInternalRepositoryMock } from "../../__mocks__/repositories/platform-internal.mock";
+import { mockPlatformInternalClient } from "../../__mocks__/platform-internal-client.mock";
 
 const deps = {
   fastRedisClientTask: RedisClientTaskMock,
@@ -42,6 +44,8 @@ const deps = {
   RevokeAssertionRefQueueClient: mockQueueClient,
   AuthSessionsTopicRepository: AuthSessionsTopicRepositoryMock,
   authSessionsTopicSender: ServiceBusSenderMock,
+  PlatformInternalRepository: PlatformInternalRepositoryMock,
+  platformInternalApiClient: mockPlatformInternalClient,
 };
 
 const trackEventMock = vi.spyOn(appinsights, "trackEvent");

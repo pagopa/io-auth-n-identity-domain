@@ -21,6 +21,7 @@ import {
   mockDelUserAllSessions,
   mockGetLollipopAssertionRefForUser,
   mockGetSessionRemainingTTL,
+  mockReadSessionInfoKeys,
   mockUserHasActiveSessionsOrLV,
 } from "../../__mocks__/repositories/redis.mock";
 import { SessionService } from "../session-service";
@@ -56,8 +57,11 @@ import {
   ServiceBusSenderMock,
   mockEmitSessionEvent,
 } from "../../__mocks__/repositories/auth-sessions-topic.mock";
-import { PlatformInternalRepositoryMock } from "../../__mocks__/repositories/platform-internal.mock";
-import { PlatformInternalProxyServiceDependency } from "../../../../io-session-manager/dist/services";
+import {
+  mockCacheDelSessionToken,
+  PlatformInternalRepositoryMock,
+} from "../../__mocks__/repositories/platform-internal.mock";
+import { PlatformInternalApiClient } from "../../utils/platform-internal-client";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 
@@ -118,8 +122,7 @@ describe("Session Service#lockUserAuthentication", () => {
     AuthSessionsTopicRepository: AuthSessionsTopicRepositoryMock,
     authSessionsTopicSender: ServiceBusSenderMock,
     PlatformInternalRepository: PlatformInternalRepositoryMock,
-    platformInternalApiClient:
-      {} as PlatformInternalProxyServiceDependency["platformInternalApiClient"],
+    platformInternalApiClient: {} as PlatformInternalApiClient,
   };
 
   it("should succeed to lock an user authentication and raise an event, when user is eligible", async () => {
@@ -129,6 +132,8 @@ describe("Session Service#lockUserAuthentication", () => {
     )(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
@@ -164,6 +169,8 @@ describe("Session Service#lockUserAuthentication", () => {
     )(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
@@ -191,6 +198,8 @@ describe("Session Service#lockUserAuthentication", () => {
     )(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
     expect(mockfireAndForgetRevokeAssertionRef).not.toHaveBeenCalled();
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
@@ -316,6 +325,36 @@ describe("Session Service#lockUserAuthentication", () => {
     const anError = Error("ERROR");
     const expectedError = toGenericError(anError.message);
     mockLockUserAuthentication.mockReturnValueOnce(RTE.left(anError));
+
+    const result = await SessionService.lockUserAuthentication(
+      aFiscalCode,
+      anUnlockCode,
+    )(deps)();
+
+    expect(mockLockUserAuthentication).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return generic error when read of session info keys fails", async () => {
+    const anError = Error("ERROR");
+    const expectedError = toGenericError(anError.message);
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.left(anError));
+
+    const result = await SessionService.lockUserAuthentication(
+      aFiscalCode,
+      anUnlockCode,
+    )(deps)();
+
+    expect(mockLockUserAuthentication).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return generic error when token cache del fails", async () => {
+    const anError = Error("ERROR");
+    const expectedError = toGenericError(anError.message);
+    mockCacheDelSessionToken.mockReturnValueOnce(TE.left(anError));
 
     const result = await SessionService.lockUserAuthentication(
       aFiscalCode,
