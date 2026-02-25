@@ -22,7 +22,7 @@ export const mockGetSessionRemainingTTL = vi
   .mockReturnValue(TE.right(O.some({ ttl: 123, type: LoginTypeEnum.LV })));
 export const mockReadSessionInfoKeys = vi
   .fn()
-  .mockReturnValue(TE.right([mockSessionToken]));
+  .mockReturnValue(TE.right([`SESSIONINFO-${mockSessionToken}`]));
 
 export const RedisRepositoryMock: RedisRepository = {
   userHasActiveSessionsOrLV: mockUserHasActiveSessionsOrLV,

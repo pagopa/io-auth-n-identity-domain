@@ -59,7 +59,7 @@ type PlatformProxyDeps = {
 const ERROR_CHECK_USER_AUTH_LOCK =
   "Something went wrong while checking the user authentication lock";
 
-const sessionKeyPrefix = "SESSION-";
+const sessionInfoKeyPrefix = "SESSIONINFO-";
 
 export type GetUserSessionDeps = RedisDeps;
 const getUserSession: (
@@ -175,7 +175,7 @@ const invalidateUserSession: (fiscalCode: FiscalCode) => RTE.ReaderTaskEither<
         TE.traverseSeqArray((token) =>
           deps.PlatformInternalRepository.cacheDelSessionToken({
             ...deps,
-            sessionToken: token.replace(sessionKeyPrefix, ""),
+            sessionToken: token.replace(sessionInfoKeyPrefix, ""),
           }),
         ),
       ),
