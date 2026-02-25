@@ -44,6 +44,7 @@ import {
   anUnlockCode,
   anUnlockedUserSessionState,
   anotherUnlockCode,
+  mockSessionToken,
 } from "../../__mocks__/user.mock";
 import {
   forbiddenError,
@@ -134,6 +135,11 @@ describe("Session Service#lockUserAuthentication", () => {
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
     expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
     expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionToken: mockSessionToken,
+      }),
+    );
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
@@ -171,6 +177,11 @@ describe("Session Service#lockUserAuthentication", () => {
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
     expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
     expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionToken: mockSessionToken,
+      }),
+    );
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
@@ -200,6 +211,11 @@ describe("Session Service#lockUserAuthentication", () => {
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
     expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
     expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionToken: mockSessionToken,
+      }),
+    );
     expect(mockfireAndForgetRevokeAssertionRef).not.toHaveBeenCalled();
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
@@ -513,13 +529,19 @@ describe("Session Service#deleteUserSession", () => {
     AuthSessionsTopicRepository: AuthSessionsTopicRepositoryMock,
     authSessionsTopicSender: ServiceBusSenderMock,
     PlatformInternalRepository: PlatformInternalRepositoryMock,
-    platformInternalApiClient:
-      {} as PlatformInternalProxyServiceDependency["platformInternalApiClient"],
+    platformInternalApiClient: {} as PlatformInternalApiClient,
   };
   it("should succeed deleting an user session", async () => {
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionToken: mockSessionToken,
+      }),
+    );
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
