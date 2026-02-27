@@ -12,6 +12,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@azure/identity": "catalog:",
+    "@azure/service-bus": "catalog:",
     "@azure/storage-queue": "catalog:",
     "@pagopa/ts-commons": "catalog:",
     "applicationinsights": "catalog:",
