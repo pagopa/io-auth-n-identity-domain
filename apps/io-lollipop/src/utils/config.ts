@@ -73,7 +73,7 @@ export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
     APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
-    APPINSIGHTS_EXCLUDED_DOMAINS: CommaSeparatedListOf(t.string).pipe(
+    APPLICATIONINSIGHTS_EXCLUDED_DOMAINS: CommaSeparatedListOf(t.string).pipe(
       t.array(NonEmptyString)
     ),
 

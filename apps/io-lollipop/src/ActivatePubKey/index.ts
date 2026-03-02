@@ -36,7 +36,7 @@ const assertionBlobService = BlobServiceClient.fromConnectionString(
 
 const telemetryClient = initTelemetryClient(
   config.APPLICATIONINSIGHTS_CONNECTION_STRING,
-  config.APPINSIGHTS_EXCLUDED_DOMAINS || []
+  config.APPLICATIONINSIGHTS_EXCLUDED_DOMAINS || []
 );
 
 
