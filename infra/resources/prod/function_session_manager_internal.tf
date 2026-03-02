@@ -42,6 +42,8 @@ locals {
       AUDIT_LOG_STORAGE_CONNECTION_STRING     = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.audit_st_connection_string.versionless_id})"
       AUDIT_LOG_REJECTED_LOGIN_CONTAINER_NAME = local.rejected_login_logs_container_name
 
+      // PLATFORM INTERNAL API
+      PLATFORM_PROXY_API_URL = data.azurerm_api_management.platform_apim.gateway_url
     }
   }
 }
