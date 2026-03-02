@@ -10,7 +10,11 @@ import {
   mockSrem,
   mockTtl,
 } from "../../__mocks__/repositories/redis.mock";
-import { RedisRepository, userHasActiveSessionsLegacy } from "../redis";
+import {
+  RedisRepository,
+  sessionNotFoundError,
+  userHasActiveSessionsLegacy,
+} from "../redis";
 import { LoginTypeEnum } from "../../types/fast-login";
 import { AssertionRefSha256 } from "../../generated/internal/AssertionRefSha256";
 import {
@@ -548,6 +552,77 @@ describe("Redis repository#getRemainingSessionTTL", () => {
     expect(mockTtl).toHaveBeenCalledTimes(1);
     expect(mockTtl).toBeCalledWith(`KEYS-${aFiscalCode}`);
     expect(mockGet).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.left(expectedError));
+  });
+});
+
+describe("Redis repository#readSessionInfoKeys", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should return entire sessioninfo keys Array", async () => {
+    const expectedArray = [
+      `SESSIONINFO-${mockSessionToken}`,
+      "SESSIONINFO-sample-session",
+    ];
+    mockSmembers.mockResolvedValueOnce(expectedArray);
+    const result = await RedisRepository.readSessionInfoKeys({
+      ...deps,
+      fiscalCode: aFiscalCode,
+      isNormalized: false,
+    })();
+
+    expect(mockSmembers).toHaveBeenCalledTimes(1);
+    expect(mockSmembers).toHaveBeenCalledWith(`USERSESSIONS-${aFiscalCode}`);
+    expect(result).toEqual(E.right(expectedArray));
+  });
+
+  it("should return normalized sessioninfo keys Array", async () => {
+    const returnedArray = [
+      `SESSIONINFO-${mockSessionToken}`,
+      "SESSIONINFO-sample-session",
+    ];
+    const expectedArray = returnedArray.map((s) =>
+      s.replace("SESSIONINFO-", ""),
+    );
+    mockSmembers.mockResolvedValueOnce(returnedArray);
+    const result = await RedisRepository.readSessionInfoKeys({
+      ...deps,
+      fiscalCode: aFiscalCode,
+      isNormalized: true,
+    })();
+
+    expect(mockSmembers).toHaveBeenCalledTimes(1);
+    expect(mockSmembers).toHaveBeenCalledWith(`USERSESSIONS-${aFiscalCode}`);
+    expect(result).toEqual(E.right(expectedArray));
+  });
+
+  it("should return session not found error if array is empty", async () => {
+    const returnedArray: Array<string> = [];
+    mockSmembers.mockResolvedValueOnce(returnedArray);
+    const result = await RedisRepository.readSessionInfoKeys({
+      ...deps,
+      fiscalCode: aFiscalCode,
+      isNormalized: false,
+    })();
+
+    expect(mockSmembers).toHaveBeenCalledTimes(1);
+    expect(mockSmembers).toHaveBeenCalledWith(`USERSESSIONS-${aFiscalCode}`);
+    expect(result).toEqual(E.left(sessionNotFoundError));
+  });
+
+  it("should return error on smembers reject", async () => {
+    const expectedError = new Error("error");
+    mockSmembers.mockRejectedValueOnce(expectedError);
+    const result = await RedisRepository.readSessionInfoKeys({
+      ...deps,
+      fiscalCode: aFiscalCode,
+      isNormalized: false,
+    })();
+
+    expect(mockSmembers).toHaveBeenCalledTimes(1);
+    expect(mockSmembers).toHaveBeenCalledWith(`USERSESSIONS-${aFiscalCode}`);
     expect(result).toEqual(E.left(expectedError));
   });
 });

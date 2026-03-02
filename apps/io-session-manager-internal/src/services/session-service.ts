@@ -59,8 +59,6 @@ type PlatformProxyDeps = {
 const ERROR_CHECK_USER_AUTH_LOCK =
   "Something went wrong while checking the user authentication lock";
 
-const sessionInfoKeyPrefix = "SESSIONINFO-";
-
 export type GetUserSessionDeps = RedisDeps;
 const getUserSession: (
   fiscalCode: FiscalCode,
@@ -169,13 +167,14 @@ const invalidateUserSession: (fiscalCode: FiscalCode) => RTE.ReaderTaskEither<
     deps.RedisRepository.readSessionInfoKeys({
       fastClient: deps.FastRedisClient,
       fiscalCode,
+      isNormalized: true,
     }),
     TE.chain(
       flow(
         TE.traverseSeqArray((token) =>
           deps.PlatformInternalRepository.cacheDelSessionToken({
             ...deps,
-            sessionToken: token.replace(sessionInfoKeyPrefix, ""),
+            sessionToken: token,
           }),
         ),
       ),

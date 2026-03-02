@@ -202,7 +202,10 @@ const userHasActiveSessionsOrLV: RTE.ReaderTaskEither<
   );
 
 const readSessionInfoKeys: RTE.ReaderTaskEither<
-  FastRedisClientDependency & { fiscalCode: FiscalCode },
+  FastRedisClientDependency & {
+    fiscalCode: FiscalCode;
+    isNormalized?: boolean;
+  },
   Error,
   ReadonlyArray<string>
 > = (deps) =>
@@ -219,6 +222,15 @@ const readSessionInfoKeys: RTE.ReaderTaskEither<
         (res): res is NonEmptyArray<string> =>
           Array.isArray(res) && res.length > 0,
         () => sessionNotFoundError,
+      ),
+    ),
+    TE.map(
+      flow((arr) =>
+        deps.isNormalized
+          ? arr.map((sessionInfoToken) =>
+              sessionInfoToken.replace(sessionInfoKeyPrefix, ""),
+            )
+          : arr,
       ),
     ),
   );
