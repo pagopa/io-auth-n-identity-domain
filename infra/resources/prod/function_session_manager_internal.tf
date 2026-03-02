@@ -43,7 +43,7 @@ locals {
       AUDIT_LOG_REJECTED_LOGIN_CONTAINER_NAME = local.rejected_login_logs_container_name
 
       // PLATFORM INTERNAL API
-      PLATFORM_PROXY_API_URL = data.azurerm_api_management.platform_apim.gateway_url
+      PLATFORM_PROXY_API_URL = "https://proxy.internal.io.pagopa.it"
     }
   }
 }
