@@ -6,7 +6,7 @@ import nodeFetch from "node-fetch";
 
 export function getPlatformInternalApiClient(
   baseUrl: string,
-  basePath: string,
+  basePath?: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fetchApi: typeof fetch = nodeFetch as any as typeof fetch,
 ): Client<"_____"> {

@@ -39,4 +39,3 @@ AUDIT_LOG_REJECTED_LOGIN_CONTAINER_NAME=rejected-login-logs-01
 
 ## PLATFORM INTERNAL API
 PLATFORM_PROXY_API_URL=http://host.docker.internal:3009
-PLATFORM_PROXY_API_BASE_PATH=/api/platform-internal/v1

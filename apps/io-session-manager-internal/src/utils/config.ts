@@ -72,7 +72,6 @@ export const IConfig = t.intersection([
 
       // Platform Proxy internal API config
       PLATFORM_PROXY_API_URL: NonEmptyString,
-      PLATFORM_PROXY_API_BASE_PATH: NonEmptyString,
     }),
   ]),
   AuditLogConfig,

@@ -84,7 +84,6 @@ const auditBlobServiceClient = BlobServiceClient.fromConnectionString(
 
 const platformInternalApiClient = getPlatformInternalApiClient(
   config.PLATFORM_PROXY_API_URL,
-  config.PLATFORM_PROXY_API_BASE_PATH,
 );
 
 app.http("Info", {
