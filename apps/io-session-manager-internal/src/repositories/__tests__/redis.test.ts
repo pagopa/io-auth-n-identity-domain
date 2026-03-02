@@ -570,7 +570,7 @@ describe("Redis repository#readSessionInfoKeys", () => {
     const result = await RedisRepository.readSessionInfoKeys({
       ...deps,
       fiscalCode: aFiscalCode,
-      isNormalized: false,
+      toNormalize: false,
     })();
 
     expect(mockSmembers).toHaveBeenCalledTimes(1);
@@ -590,7 +590,7 @@ describe("Redis repository#readSessionInfoKeys", () => {
     const result = await RedisRepository.readSessionInfoKeys({
       ...deps,
       fiscalCode: aFiscalCode,
-      isNormalized: true,
+      toNormalize: true,
     })();
 
     expect(mockSmembers).toHaveBeenCalledTimes(1);
@@ -604,7 +604,7 @@ describe("Redis repository#readSessionInfoKeys", () => {
     const result = await RedisRepository.readSessionInfoKeys({
       ...deps,
       fiscalCode: aFiscalCode,
-      isNormalized: false,
+      toNormalize: false,
     })();
 
     expect(mockSmembers).toHaveBeenCalledTimes(1);
@@ -618,7 +618,7 @@ describe("Redis repository#readSessionInfoKeys", () => {
     const result = await RedisRepository.readSessionInfoKeys({
       ...deps,
       fiscalCode: aFiscalCode,
-      isNormalized: false,
+      toNormalize: false,
     })();
 
     expect(mockSmembers).toHaveBeenCalledTimes(1);

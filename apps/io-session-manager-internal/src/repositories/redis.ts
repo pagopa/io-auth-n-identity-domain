@@ -204,7 +204,7 @@ const userHasActiveSessionsOrLV: RTE.ReaderTaskEither<
 const readSessionInfoKeys: RTE.ReaderTaskEither<
   FastRedisClientDependency & {
     fiscalCode: FiscalCode;
-    isNormalized?: boolean;
+    toNormalize?: boolean;
   },
   Error,
   ReadonlyArray<string>
@@ -226,7 +226,7 @@ const readSessionInfoKeys: RTE.ReaderTaskEither<
     ),
     TE.map(
       flow((arr) =>
-        deps.isNormalized
+        deps.toNormalize
           ? arr.map((sessionInfoToken) =>
               sessionInfoToken.replace(sessionInfoKeyPrefix, ""),
             )

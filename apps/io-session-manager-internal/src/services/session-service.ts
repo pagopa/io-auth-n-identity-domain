@@ -167,7 +167,7 @@ const invalidateUserSession: (fiscalCode: FiscalCode) => RTE.ReaderTaskEither<
     deps.RedisRepository.readSessionInfoKeys({
       fastClient: deps.FastRedisClient,
       fiscalCode,
-      isNormalized: true,
+      toNormalize: true,
     }),
     TE.chain(
       flow(
