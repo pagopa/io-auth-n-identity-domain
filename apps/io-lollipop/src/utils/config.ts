@@ -11,7 +11,6 @@ import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 
 import * as reporters from "@pagopa/ts-commons/lib/reporters";
-import { CommaSeparatedListOf } from "@pagopa/ts-commons/lib/comma-separated-list";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import {
   NonNegativeInteger,
@@ -73,9 +72,6 @@ export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
     APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
-    APPINSIGHTS_EXCLUDED_DOMAINS: CommaSeparatedListOf(t.string).pipe(
-      t.array(NonEmptyString)
-    ),
 
     COSMOSDB_KEY: NonEmptyString,
     COSMOSDB_NAME: NonEmptyString,

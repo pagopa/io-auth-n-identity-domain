@@ -18,22 +18,17 @@ const DEFAULT_SAMPLING_PERCENTAGE = 5;
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const initTelemetryClient = (
   connectionString: NonEmptyString,
-  excludeDomains: ReadonlyArray<string>,
   env = process.env
 ) =>
   ai.defaultClient
     ? ai.defaultClient
-    : (() => {
-      const telemetryClient = initAppInsights(connectionString, {
+    : initAppInsights(connectionString, {
         disableAppInsights: env.APPINSIGHTS_DISABLE === "true",
         samplingPercentage: pipe(
           IntegerFromString.decode(env.APPINSIGHTS_SAMPLING_PERCENTAGE),
           E.getOrElse(() => DEFAULT_SAMPLING_PERCENTAGE)
         )
       });
-      telemetryClient.config.correlationHeaderExcludedDomains = [...(excludeDomains || [])];
-      return telemetryClient;
-    })();
 
 export type TelemetryClient = ReturnType<typeof initTelemetryClient>;
 
