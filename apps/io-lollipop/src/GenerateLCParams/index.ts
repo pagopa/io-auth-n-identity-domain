@@ -28,7 +28,7 @@ const config = getConfigOrThrow();
 
 const telemetryClient = initTelemetryClient(
   config.APPLICATIONINSIGHTS_CONNECTION_STRING,
-  config.APPLICATIONINSIGHTS_EXCLUDED_DOMAINS || []
+  config.APPINSIGHTS_EXCLUDED_DOMAINS || []
 );
 
 
