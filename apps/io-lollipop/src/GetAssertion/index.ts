@@ -29,7 +29,8 @@ import { GetAssertion } from "./handler";
 const config = getConfigOrThrow();
 
 const telemetryClient = initTelemetryClient(
-  config.APPLICATIONINSIGHTS_CONNECTION_STRING
+  config.APPLICATIONINSIGHTS_CONNECTION_STRING,
+  config.APPINSIGHTS_EXCLUDED_DOMAINS || []
 );
 
 const lollipopKeysModel = new LolliPOPKeysModel(
