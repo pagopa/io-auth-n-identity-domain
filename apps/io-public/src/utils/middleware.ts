@@ -1,14 +1,8 @@
-import { Request } from "express";
 import * as t from "io-ts";
 
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
-import {
-  IResponse,
-  ResponseErrorFromValidationErrors
-} from "@pagopa/ts-commons/lib/responses";
+import { RequiredHeaderMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_header";
 import { PatternString } from "@pagopa/ts-commons/lib/strings";
-import * as E from "fp-ts/lib/Either";
-import { pipe } from "fp-ts/lib/function";
 import { ValidateProfileEmailPayload } from "../generated/definitions/external/ValidateProfileEmailPayload";
 
 export const TOKEN_QUERY_PARAM_NAME = "token";
@@ -22,15 +16,11 @@ export const TOKEN_HEADER_NAME = "x-pagopa-email-validation-token";
 export const TokenParam = PatternString("^[A-Za-z0-9]{26}:[A-Fa-f0-9]{24}$");
 export type TokenParam = t.TypeOf<typeof TokenParam>;
 
-export const TokenHeaderParamMiddleware = async (
-  request: Request
-): Promise<E.Either<IResponse<"IResponseErrorValidation">, TokenParam>> =>
-  pipe(
-    request.headers[TOKEN_HEADER_NAME],
-    TokenParam.decode,
-    E.mapLeft(ResponseErrorFromValidationErrors(TokenParam))
-  );
+export const TokenHeaderParamMiddleware = RequiredHeaderMiddleware(
+  TOKEN_HEADER_NAME,
+  TokenParam,
+);
 
 export const ValidateProfileEmailBodyMiddleware = RequiredBodyPayloadMiddleware(
-  ValidateProfileEmailPayload
+  ValidateProfileEmailPayload,
 );
