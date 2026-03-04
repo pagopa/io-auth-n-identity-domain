@@ -1,6 +1,6 @@
 {
   "name": "io-public",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "license": "MIT",
   "files": [
     "dist/*",
@@ -8,6 +8,7 @@
     "host.json",
     "**/function.json"
   ],
+  "main": "dist/main.js",
   "scripts": {
     "clean": "shx rm -rf dist",
     "build": "tsc && pnpm postbuild",
@@ -30,10 +31,8 @@
   },
   "description": "",
   "devDependencies": {
-    "@azure/functions": "^3.5.0",
     "@pagopa/eslint-config": "catalog:",
     "@pagopa/openapi-codegen-ts": "^13.2.0",
-    "@types/express": "catalog:",
     "@types/node-fetch": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "dependency-check": "catalog:",
@@ -49,19 +48,16 @@
   "dependencies": {
     "@azure/cosmos": "catalog:",
     "@azure/data-tables": "catalog:",
-    "@pagopa/express-azure-functions": "catalog:",
-    "@pagopa/io-functions-commons": "catalog:",
+    "@azure/functions": "^4.0.0",
+    "@pagopa/io-functions-commons": "^30.0.0",
     "@pagopa/ts-commons": "catalog:",
     "applicationinsights": "catalog:",
     "base64url": "catalog:",
-    "express": "catalog:",
     "fp-ts": "catalog:",
     "io-ts": "catalog:",
     "io-ts-types": "catalog:",
     "monocle-ts": "catalog:",
     "newtype-ts": "catalog:",
-    "node-fetch": "catalog:",
-    "winston": "catalog:",
-    "winston-transport": "catalog:"
+    "node-fetch": "catalog:"
   }
 }
