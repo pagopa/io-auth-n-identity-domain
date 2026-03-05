@@ -1,28 +1,3 @@
-data "azurerm_key_vault_secret" "io_com_mailup_username" {
-  name         = "mailup-username"
-  key_vault_id = module.key_vaults.auth.id
-}
-
-data "azurerm_key_vault_secret" "io_com_mailup_secret" {
-  name         = "mailup-secret"
-  key_vault_id = module.key_vaults.auth.id
-}
-
-data "azurerm_key_vault_secret" "function_profile_key" {
-  name         = "profile-async-function-profile-key"
-  key_vault_id = module.key_vaults.auth.id
-}
-
-data "azurerm_key_vault_secret" "fn_app_SPID_LOGS_PUBLIC_KEY" {
-  name         = "funcapp-spid-logs-public-key"
-  key_vault_id = module.key_vaults.auth.id
-}
-
-data "azurerm_key_vault_secret" "profile_async_session_manager_internal_api_key" {
-  name         = "profile-async-session-manager-internal-key"
-  key_vault_id = module.key_vaults.auth.id
-}
-
 locals {
   function_profile_async = {
     name = "profas"
@@ -38,19 +13,19 @@ locals {
       FETCH_KEEPALIVE_TIMEOUT             = "60000"
 
       // Mailup setup
-      MAILUP_USERNAME = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.io_com_mailup_username.versionless_id})"
-      MAILUP_SECRET   = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.io_com_mailup_secret.versionless_id})"
+      MAILUP_USERNAME = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.mailup_common_username.versionless_id})"
+      MAILUP_SECRET   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.mailup_common_secret.versionless_id})"
 
       // Mail
       MAIL_FROM = "IO - l'app dei servizi pubblici <no-reply@io.italia.it>"
 
       // Session Manager Internal
       SESSION_MANAGER_INTERNAL_BASE_URL = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
-      SESSION_MANAGER_INTERNAL_API_KEY  = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.profile_async_session_manager_internal_api_key.versionless_id})"
+      SESSION_MANAGER_INTERNAL_API_KEY  = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.profas_session_manager_internal_api_key.versionless_id})"
 
       // Function Profile
       FUNCTION_PROFILE_BASE_URL = "https://${module.function_profile.function_app.function_app.default_hostname}"
-      FUNCTION_PROFILE_API_KEY  = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.function_profile_key.versionless_id})"
+      FUNCTION_PROFILE_API_KEY  = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.profas_profile_api_key.versionless_id})"
 
       // Expired Session Mail prop
       EXPIRED_SESSION_CTA_URL = "https://continua.io.pagopa.it?utm_source=email&utm_medium=email&utm_campaign=session_expired&pt=121080668&ct=email_session_expired&mt=8"
@@ -77,7 +52,7 @@ locals {
 
       //StoreSpidLogs Config
       IOPSTLOGS_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.iopstlogs_connection_string.versionless_id})"
-      SPID_LOGS_PUBLIC_KEY                = trimspace(data.azurerm_key_vault_secret.fn_app_SPID_LOGS_PUBLIC_KEY.value)
+      SPID_LOGS_PUBLIC_KEY                = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.profas_spidlogs_public_key.versionless_id})"
 
       //Domain cosmos account config
       CITIZEN_AUTH_COSMOSDB_NAME              = "citizen-auth"
