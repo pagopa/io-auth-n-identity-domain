@@ -32,7 +32,7 @@ import {
 } from "../repositories/auth-lock";
 import { InstallationRepository } from "../repositories/installation";
 import { LollipopRepository } from "../repositories/lollipop";
-import { RedisRepository } from "../repositories/redis";
+import { RedisRepository, sessionNotFoundError } from "../repositories/redis";
 import { trackEvent } from "../utils/appinsights";
 import {
   ConflictError,
@@ -163,12 +163,18 @@ const invalidateUserSession: (fiscalCode: FiscalCode) => RTE.ReaderTaskEither<
   true
 > = (fiscalCode) => (deps) =>
   pipe(
-    // try to delete cached value inside platform proxy
     deps.RedisRepository.readSessionInfoKeys({
       fastClient: deps.FastRedisClient,
       fiscalCode,
       toNormalize: true,
     }),
+    TE.orElse((error) =>
+      // cachedel is not called when read session results in sessionNotFoundError
+      // this behaviour keeps idempotency for this invalidate operation when:
+      // 1. session has naturally expired
+      // 2. error follows later in the operation chain and action is retried
+      error === sessionNotFoundError ? TE.right([]) : TE.left(error),
+    ),
     TE.chain(
       flow(
         TE.traverseSeqArray((token) =>

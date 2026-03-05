@@ -63,6 +63,7 @@ import {
   PlatformInternalRepositoryMock,
 } from "../../__mocks__/repositories/platform-internal.mock";
 import { PlatformInternalApiClient } from "../../utils/platform-internal-client";
+import { sessionNotFoundError } from "../../repositories/redis";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 
@@ -140,6 +141,31 @@ describe("Session Service#lockUserAuthentication", () => {
         sessionToken: mockSessionToken,
       }),
     );
+    expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      fiscalCode: aFiscalCode,
+      eventType: EventTypeEnum.LOGOUT,
+      scenario: LogoutScenarioEnum.AUTH_LOCK,
+      ts: frozenDate,
+    });
+    expect(trackEventMock).not.toHaveBeenCalled();
+    expect(result).toEqual(E.right(null));
+  });
+
+  it("should succeed to lock an user authentication when no user session is found", async () => {
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.left(sessionNotFoundError));
+    const result = await SessionService.lockUserAuthentication(
+      aFiscalCode,
+      anUnlockCode,
+    )(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    // cachedel is not called when read session results in sessionNotFoundError
+    expect(mockCacheDelSessionToken).not.toHaveBeenCalled();
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
@@ -542,6 +568,28 @@ describe("Session Service#deleteUserSession", () => {
         sessionToken: mockSessionToken,
       }),
     );
+    expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      fiscalCode: aFiscalCode,
+      eventType: EventTypeEnum.LOGOUT,
+      scenario: LogoutScenarioEnum.WEB,
+      ts: frozenDate,
+    });
+    expect(trackEventMock).not.toHaveBeenCalled();
+    expect(result).toEqual(E.right(null));
+  });
+
+  it("should succeed deleting an user session even if no user session was found", async () => {
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.left(sessionNotFoundError));
+    const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    // cachedel is not called when read session results in sessionNotFoundError
+    expect(mockCacheDelSessionToken).not.toHaveBeenCalled();
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
