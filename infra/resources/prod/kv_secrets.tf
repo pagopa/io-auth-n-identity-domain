@@ -287,3 +287,93 @@ resource "azurerm_key_vault_secret" "profas_spidlogs_public_key" {
 
   tags = local.tags
 }
+
+resource "azurerm_key_vault_secret" "webprof_magic_link_public_key" {
+  name         = "webprof-magic-link-public-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_magic_link_private_key" {
+  name         = "webprof-magic-link-private-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_exchange_public_key" {
+  name         = "webprof-exchange-public-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_exchange_private_key" {
+  name         = "webprof-exchange-private-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_spid_login_api_key" {
+  name         = "webprof-spid-login-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_spid_login_jwt_public_key" {
+  name         = "webprof-spid-login-jwt-public-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_profile_api_key" {
+  name         = "webprof-profile-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_fast_login_api_key" {
+  name         = "webprof-fast-login-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_api_beta_testers" {
+  name         = "webprof-api-beta-testers"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
