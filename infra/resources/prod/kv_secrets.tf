@@ -187,3 +187,43 @@ resource "azurerm_key_vault_secret" "lollipop_first_consumer_api_key" {
 
   tags = local.tags
 }
+
+resource "azurerm_key_vault_secret" "mailup_transactional_username" {
+  name         = "mailup-transactional-username"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "mailup_transactional_secret" {
+  name         = "mailup-transactional-secret"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "io_api_key" {
+  name         = "io-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "profile_magic_link_api_key" {
+  name         = "profile-magic-link-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
