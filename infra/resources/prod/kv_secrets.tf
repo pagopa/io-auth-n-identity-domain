@@ -42,6 +42,8 @@ resource "azurerm_key_vault_access_policy" "kv_common_func_profas_staging" {
   ]
 }
 
+# Connection strings
+
 data "azurerm_key_vault_secret" "cosmos_api_connection_string" {
   name         = "cosmos-api-connection-string"
   key_vault_id = data.azurerm_key_vault.common_kv.id
@@ -95,14 +97,6 @@ resource "azurerm_key_vault_secret" "iopstlogs_connection_string" {
   tags = local.tags
 }
 
-resource "azurerm_key_vault_secret" "redis_access_key_itn" {
-  name         = "redis-access-key-itn"
-  key_vault_id = module.key_vaults.auth.id
-  value        = module.redis_common_itn.primary_access_key
-
-  tags = local.tags
-}
-
 resource "azurerm_key_vault_secret" "session_st_connection_string" {
   name         = "session-st-connection-string"
   key_vault_id = module.key_vaults.auth.id
@@ -143,3 +137,243 @@ resource "azurerm_key_vault_secret" "common_kv_session_st_connection_string" {
   tags = local.tags
 }
 
+# Secrets
+
+# TODO: Remove
+resource "azurerm_key_vault_secret" "redis_access_key_itn" {
+  name         = "redis-access-key-itn"
+  key_vault_id = module.key_vaults.auth.id
+  value        = module.redis_common_itn.primary_access_key
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "common_redis_access_key" {
+  name         = "redis-access-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "common_weu_redis_access_key" {
+  name         = "redis-weu-access-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "fast_login_session_manager_internal_api_key" {
+  name         = "fast-login-session-manager-internal-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "fast_login_lollipop_api_key" {
+  name         = "fast-login-lollipop-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "lollipop_first_consumer_api_key" {
+  name         = "lollipop-first-consumer-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "mailup_transactional_username" {
+  name         = "mailup-transactional-username"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "mailup_transactional_secret" {
+  name         = "mailup-transactional-secret"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "mailup_common_username" {
+  name         = "mailup-common-username"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "mailup_common_secret" {
+  name         = "mailup-common-secret"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "io_api_key" {
+  name         = "io-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "profile_magic_link_api_key" {
+  name         = "profile-magic-link-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "profas_session_manager_internal_api_key" {
+  name         = "profas-session-manager-internal-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "profas_profile_api_key" {
+  name         = "profas-profile-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "profas_spidlogs_public_key" {
+  name         = "profas-spidlogs-public-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_magic_link_public_key" {
+  name         = "webprof-magic-link-public-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_magic_link_private_key" {
+  name         = "webprof-magic-link-private-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_exchange_public_key" {
+  name         = "webprof-exchange-public-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_exchange_private_key" {
+  name         = "webprof-exchange-private-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_spid_login_api_key" {
+  name         = "webprof-spid-login-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_spid_login_jwt_public_key" {
+  name         = "webprof-spid-login-jwt-public-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_profile_api_key" {
+  name         = "webprof-profile-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_fast_login_api_key" {
+  name         = "webprof-fast-login-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "webprof_api_beta_testers" {
+  name         = "webprof-api-beta-testers"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}

@@ -27,6 +27,9 @@ module "iam_kv" {
 
     "${module.function_public.function_app.function_app.name}"    = module.function_public.function_app.function_app.principal_id
     "${module.function_public.function_app.function_app.name}-st" = module.function_public.function_app.function_app.slot.principal_id
+
+    "${module.function_web_profile.function_app.function_app.name}"    = module.function_web_profile.function_app.function_app.principal_id
+    "${module.function_web_profile.function_app.function_app.name}-st" = module.function_web_profile.function_app.function_app.slot.principal_id
   }
 
   storage_account_principal_ids = {
