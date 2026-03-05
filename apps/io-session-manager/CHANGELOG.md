@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.23.0
+
+### Minor Changes
+
+- c9e271b: Remove token from redirect query params
+
 ## 1.22.0
 
 ### Minor Changes
