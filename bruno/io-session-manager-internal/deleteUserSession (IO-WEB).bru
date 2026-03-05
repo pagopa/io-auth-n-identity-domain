@@ -1,0 +1,24 @@
+meta {
+  name: deleteUserSession (IO-WEB)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{IO_SM_INT_BASE_URL}}/api/v1/sessions/{{FISCAL_CODE}}/logout
+  body: none
+  auth: inherit
+}
+
+script:pre-request {
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioSmIntApiKey = bru.getEnvVar("IO_SM_INT_API_KEY");
+  if (ioSmIntApiKey != null ) {
+    req.setHeader("x-functions-key", ioSmIntApiKey);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

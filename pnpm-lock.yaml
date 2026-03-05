@@ -94,7 +94,7 @@ catalogs:
       specifier: ^20.19.5
       version: 20.19.30
     '@types/node-fetch':
-      specifier: ^2.6.11
+      specifier: ^2.6.12
       version: 2.6.12
     '@types/nodemailer':
       specifier: ^6.4.17
@@ -1239,6 +1239,9 @@ importers:
       newtype-ts:
         specifier: 'catalog:'
         version: 0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9))
+      node-fetch:
+        specifier: 'catalog:'
+        version: 2.7.0
       redis:
         specifier: 'catalog:'
         version: 4.7.1
@@ -1258,6 +1261,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.30
+      '@types/node-fetch':
+        specifier: 'catalog:'
+        version: 2.6.12
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 3.2.4(vitest@3.2.4(@types/node@20.19.30))

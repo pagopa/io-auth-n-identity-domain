@@ -26,6 +26,8 @@ import {
 import { RedisRepository } from "../repositories/redis";
 import { trackEvent } from "../utils/appinsights";
 import { SessionService } from "./session-service";
+import { PlatformInternalRepository } from "../repositories/platform-internal";
+import { PlatformInternalApiClient } from "../utils/platform-internal-client";
 
 export type BlockedUsersServiceDeps = {
   fastRedisClientTask: TE.TaskEither<Error, redisLib.RedisClusterType>;
@@ -35,6 +37,8 @@ export type BlockedUsersServiceDeps = {
   redisRepository: RedisRepository;
   lollipopRepository: LollipopRepository;
   AuthSessionsTopicRepository: AuthSessionsTopicRepository;
+  PlatformInternalRepository: PlatformInternalRepository;
+  platformInternalApiClient: PlatformInternalApiClient;
 } & AuthSessionsTopicRepositoryDeps &
   LollipopRepoDependencies;
 
@@ -54,6 +58,7 @@ const lockUserSession: (
             redisClients,
           ),
           deps.sessionService.invalidateUserSession(fiscalCode)({
+            ...deps,
             FastRedisClient: redisClients.fastClient,
             SafeRedisClient: redisClients.safeClient,
             LollipopRepository: deps.lollipopRepository,

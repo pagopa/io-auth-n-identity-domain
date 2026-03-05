@@ -31,6 +31,8 @@ import {
   ReleaseAuthLockFunction,
 } from "./auth-lock";
 import { RejectedLoginEventProcessorFunction } from "./rejected-login-event-processor";
+import { PlatformInternalRepository } from "../repositories/platform-internal";
+import { getPlatformInternalApiClient } from "../utils/platform-internal-client";
 
 const v1BasePath = "api/v1";
 const config = getConfigOrThrow();
@@ -78,6 +80,10 @@ const authSessionsTopicServiceBusSender = serviceBusClient.createSender(
 
 const auditBlobServiceClient = BlobServiceClient.fromConnectionString(
   config.AUDIT_LOG_STORAGE_CONNECTION_STRING,
+);
+
+const platformInternalApiClient = getPlatformInternalApiClient(
+  config.PLATFORM_PROXY_API_URL,
 );
 
 app.http("Info", {
@@ -130,6 +136,8 @@ app.http("AuthLock", {
     RevokeAssertionRefQueueClient,
     AuthSessionsTopicRepository,
     authSessionsTopicSender: authSessionsTopicServiceBusSender,
+    PlatformInternalRepository,
+    platformInternalApiClient,
   }),
   methods: ["POST"],
   route: `${v1BasePath}/auth/{fiscalCode}/lock`,
@@ -157,6 +165,8 @@ app.http("DeleteUserSession", {
     RevokeAssertionRefQueueClient,
     AuthSessionsTopicRepository,
     authSessionsTopicSender: authSessionsTopicServiceBusSender,
+    PlatformInternalRepository,
+    platformInternalApiClient,
   }),
   methods: ["POST"],
   route: `${v1BasePath}/sessions/{fiscalCode}/logout`,
@@ -175,6 +185,8 @@ const blockedUserServiceDeps = {
   RevokeAssertionRefQueueClient,
   AuthSessionsTopicRepository,
   authSessionsTopicSender: authSessionsTopicServiceBusSender,
+  PlatformInternalRepository,
+  platformInternalApiClient,
 };
 
 app.http("LockUserSession", {

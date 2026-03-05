@@ -69,6 +69,9 @@ export const IConfig = t.intersection([
       // Lollipop revoke queue config
       LOLLIPOP_REVOKE_STORAGE_CONNECTION_STRING: NonEmptyString,
       LOLLIPOP_REVOKE_QUEUE_NAME: NonEmptyString,
+
+      // Platform Proxy internal API config
+      PLATFORM_PROXY_API_URL: NonEmptyString,
     }),
   ]),
   AuditLogConfig,
