@@ -208,6 +208,26 @@ resource "azurerm_key_vault_secret" "mailup_transactional_secret" {
   tags = local.tags
 }
 
+resource "azurerm_key_vault_secret" "mailup_common_username" {
+  name         = "mailup-common-username"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "mailup_common_secret" {
+  name         = "mailup-common-secret"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
 resource "azurerm_key_vault_secret" "io_api_key" {
   name         = "io-api-key"
   key_vault_id = module.key_vaults.auth.id
@@ -220,6 +240,36 @@ resource "azurerm_key_vault_secret" "io_api_key" {
 
 resource "azurerm_key_vault_secret" "profile_magic_link_api_key" {
   name         = "profile-magic-link-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "profas_session_manager_internal_api_key" {
+  name         = "profas-session-manager-internal-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "profas_profile_api_key" {
+  name         = "profas-profile-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "profas_spidlogs_public_key" {
+  name         = "profas-spidlogs-public-key"
   key_vault_id = module.key_vaults.auth.id
 
   value_wo         = ""
