@@ -42,6 +42,8 @@ resource "azurerm_key_vault_access_policy" "kv_common_func_profas_staging" {
   ]
 }
 
+# Connection strings
+
 data "azurerm_key_vault_secret" "cosmos_api_connection_string" {
   name         = "cosmos-api-connection-string"
   key_vault_id = data.azurerm_key_vault.common_kv.id
@@ -95,14 +97,6 @@ resource "azurerm_key_vault_secret" "iopstlogs_connection_string" {
   tags = local.tags
 }
 
-resource "azurerm_key_vault_secret" "redis_access_key_itn" {
-  name         = "redis-access-key-itn"
-  key_vault_id = module.key_vaults.auth.id
-  value        = module.redis_common_itn.primary_access_key
-
-  tags = local.tags
-}
-
 resource "azurerm_key_vault_secret" "session_st_connection_string" {
   name         = "session-st-connection-string"
   key_vault_id = module.key_vaults.auth.id
@@ -143,3 +137,23 @@ resource "azurerm_key_vault_secret" "common_kv_session_st_connection_string" {
   tags = local.tags
 }
 
+# Secrets
+
+# TODO: Remove
+resource "azurerm_key_vault_secret" "redis_access_key_itn" {
+  name         = "redis-access-key-itn"
+  key_vault_id = module.key_vaults.auth.id
+  value        = module.redis_common_itn.primary_access_key
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "common_redis_access_key" {
+  name         = "redis-access-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
