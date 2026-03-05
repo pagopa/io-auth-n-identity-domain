@@ -1,8 +1,3 @@
-data "azurerm_key_vault_secret" "first_lollipop_consumer_subscription_key" {
-  name         = "first-lollipop-consumer-pagopa-subscription-key"
-  key_vault_id = module.key_vaults.auth.id
-}
-
 data "azurerm_key_vault_certificate_data" "lollipop_certificate_v1" {
   name         = "lollipop-certificate-v1"
   key_vault_id = module.key_vaults.auth.id
@@ -51,7 +46,7 @@ locals {
       // First LolliPoP Consumer
       // -------------------------
       FIRST_LC_ASSERTION_CLIENT_BASE_URL         = "https://api.io.pagopa.it"
-      FIRST_LC_ASSERTION_CLIENT_SUBSCRIPTION_KEY = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.first_lollipop_consumer_subscription_key.versionless_id})"
+      FIRST_LC_ASSERTION_CLIENT_SUBSCRIPTION_KEY = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.lollipop_first_consumer_api_key.versionless_id})"
     }
 
     prod_slot_sampling_percentage = 5
