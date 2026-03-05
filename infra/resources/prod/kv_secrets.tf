@@ -177,3 +177,13 @@ resource "azurerm_key_vault_secret" "fast_login_lollipop_api_key" {
 
   tags = local.tags
 }
+
+resource "azurerm_key_vault_secret" "lollipop_first_consumer_api_key" {
+  name         = "lollipop-first-consumer-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
