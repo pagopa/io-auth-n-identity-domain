@@ -157,3 +157,23 @@ resource "azurerm_key_vault_secret" "common_redis_access_key" {
 
   tags = local.tags
 }
+
+resource "azurerm_key_vault_secret" "fast_login_session_manager_internal_api_key" {
+  name         = "fast-login-session-manager-internal-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
+
+resource "azurerm_key_vault_secret" "fast_login_lollipop_api_key" {
+  name         = "fast-login-lollipop-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
