@@ -13,7 +13,27 @@ import {
   LogoutEvent,
   LogoutScenarioEnum,
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import {
+  RejectedLoginCauseEnum,
+  RejectedLoginEvent,
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
+import { FiscalCode, IPString } from "@pagopa/ts-commons/lib/strings";
+
+// All concrete event types supported by this tool, plus the "mixed" sentinel.
+const EVENT_TYPE_CHOICES = [
+  "login",
+  "logout",
+  "rejected_login",
+  "mixed",
+] as const;
+type EventTypeChoice = (typeof EVENT_TYPE_CHOICES)[number];
+
+// All concrete EventTypeEnum values — extend this array when adding new event types.
+const ALL_EVENT_TYPES: EventTypeEnum[] = [
+  EventTypeEnum.LOGIN,
+  EventTypeEnum.LOGOUT,
+  EventTypeEnum.REJECTED_LOGIN,
+];
 
 const argv = yargs(hideBin(process.argv))
   .options({
@@ -27,7 +47,7 @@ const argv = yargs(hideBin(process.argv))
       type: "string",
       alias: "type",
       demandOption: true,
-      choices: ["login", "logout", "mixed"],
+      choices: EVENT_TYPE_CHOICES as unknown as string[],
       describe: "Type of event",
     },
     fqdn: {
@@ -61,24 +81,20 @@ const argv = yargs(hideBin(process.argv))
   .parseSync();
 
 const numberOfMessages = argv.n;
-const desiredEventType = argv.t as EventTypeEnum | "mixed";
+const desiredEventType = argv.t as EventTypeChoice;
 const fullyQualifiedNamespace = argv.fqdn;
 const topicName = argv.topic;
 const fiscalCode = argv.fc;
 const desiredLoginType = argv.lt as LoginTypeEnum | undefined;
+const clientIp = "127.0.0.1";
 
-const generateEventType = (): EventTypeEnum =>
-  Math.random() > 0.5 ? EventTypeEnum.LOGIN : EventTypeEnum.LOGOUT;
+const pickRandom = <T>(arr: T[]): T =>
+  arr[Math.floor(Math.random() * arr.length)];
+
+const generateEventType = (): EventTypeEnum => pickRandom(ALL_EVENT_TYPES);
 
 const generateLoginType = (): LoginTypeEnum =>
-  Math.random() > 0.5 ? LoginTypeEnum.LV : LoginTypeEnum.LEGACY;
-
-const generateLogoutBody = (fiscalCode: FiscalCode): LogoutEvent => ({
-  eventType: EventTypeEnum.LOGOUT,
-  fiscalCode,
-  scenario: LogoutScenarioEnum.WEB,
-  ts: new Date(),
-});
+  pickRandom([LoginTypeEnum.LV, LoginTypeEnum.LEGACY]);
 
 const generateLoginBody = (
   fiscalCode: FiscalCode,
@@ -93,20 +109,50 @@ const generateLoginBody = (
   ts: new Date(),
 });
 
-const generateMessage = (
-  fiscalCode: string,
+const generateLogoutBody = (fiscalCode: FiscalCode): LogoutEvent => ({
+  eventType: EventTypeEnum.LOGOUT,
+  fiscalCode,
+  scenario: LogoutScenarioEnum.WEB,
+  ts: new Date(),
+});
+
+const generateRejectedLoginBody = (
+  fc: FiscalCode,
+  ip: IPString,
+): RejectedLoginEvent => ({
+  eventType: EventTypeEnum.REJECTED_LOGIN,
+  fiscalCode: fc,
+  ip,
+  rejectionCause: RejectedLoginCauseEnum.AUTH_LOCK,
+  ts: new Date(),
+});
+
+const generateBody = (
+  fc: FiscalCode,
   eventType: EventTypeEnum,
   loginType: LoginTypeEnum,
+  ip: IPString,
+): LoginEvent | LogoutEvent | RejectedLoginEvent => {
+  switch (eventType) {
+    case EventTypeEnum.LOGIN:
+      return generateLoginBody(fc, loginType);
+    case EventTypeEnum.LOGOUT:
+      return generateLogoutBody(fc);
+    case EventTypeEnum.REJECTED_LOGIN:
+      return generateRejectedLoginBody(fc, ip);
+  }
+};
+
+const generateMessage = (
+  fc: string,
+  eventType: EventTypeEnum,
+  loginType: LoginTypeEnum,
+  ip: IPString,
 ) => ({
-  body:
-    eventType === EventTypeEnum.LOGIN
-      ? generateLoginBody(fiscalCode as FiscalCode, loginType)
-      : generateLogoutBody(fiscalCode as FiscalCode),
+  body: generateBody(fc as FiscalCode, eventType, loginType, ip),
   contentType: "application/json",
-  applicationProperties: {
-    eventType,
-  },
-  sessionId: fiscalCode,
+  applicationProperties: { eventType },
+  sessionId: fc,
 });
 
 async function main(): Promise<void> {
@@ -121,33 +167,44 @@ async function main(): Promise<void> {
   });
   const sender = client.createSender(topicName);
 
-  console.log(
-    `📤 Sending ${numberOfMessages} message(s) to topic '${topicName}', eventType ${desiredEventType}, cf ${fiscalCode}, fqdn ${fullyQualifiedNamespace}`,
-  );
-
-  for (let i = 0; i < numberOfMessages; i++) {
-    const eventType =
-      desiredEventType === "mixed" ? generateEventType() : desiredEventType;
-
-    const loginType: LoginTypeEnum =
-      desiredEventType === "mixed" ? generateLoginType() : desiredLoginType!;
-
-    const message = generateMessage(fiscalCode, eventType, loginType);
-
-    await sender.sendMessages(message);
-
-    console.info(
-      `✅ Message ${i + 1} sent => (${JSON.stringify(message.body)})`,
+  try {
+    console.log(
+      `📤 Sending ${numberOfMessages} message(s) to topic '${topicName}', eventType ${desiredEventType}, cf ${fiscalCode}, fqdn ${fullyQualifiedNamespace}`,
     );
-  }
 
-  if (sender.isClosed) {
-    console.info("ServiceBus sender is closed =>", sender.isClosed);
-  } else {
-    console.info("ServiceBus sender is state =>", sender.isClosed);
-    await sender.close();
-    await client.close();
-    console.info("🚪 Connection closed.");
+    for (let i = 0; i < numberOfMessages; i++) {
+      const eventType: EventTypeEnum =
+        desiredEventType === "mixed"
+          ? generateEventType()
+          : (desiredEventType as EventTypeEnum);
+
+      const loginType =
+        desiredEventType === "mixed" ? generateLoginType() : desiredLoginType;
+
+      const message = generateMessage(
+        fiscalCode,
+        eventType,
+        loginType as LoginTypeEnum,
+        clientIp as IPString,
+      );
+
+      await sender.sendMessages(message);
+
+      console.info(
+        `✅ Message ${i + 1} sent => (${JSON.stringify(message.body)})`,
+      );
+    }
+  } finally {
+    try {
+      await sender.close();
+    } catch (closeSenderError) {
+      console.error("Error closing ServiceBus sender:", closeSenderError);
+    }
+    try {
+      await client.close();
+    } catch (closeClientError) {
+      console.error("Error closing ServiceBus client:", closeClientError);
+    }
   }
 }
 
