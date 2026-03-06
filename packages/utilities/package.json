@@ -4,6 +4,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
+    "service:bus:sender": "node ./dist/service-bus-sender/index.js",
     "session:expire:insert": "node ./dist/session-expire-queue-insert/index.js",
     "typecheck": "tsc --noemit",
     "lint": "pnpm lint:check --fix",

@@ -31,3 +31,38 @@ TIMEOUT_MULTIPLIER = 3600 / HOURLY_BACHES
 ```
 
 With this in mind, we would call the script with `--singleBatchCount=... --timeoutMultiplier=...` according to the calculations made above.
+
+### Using Service Bus Sender script
+
+We include a tool to send test messages to an Azure Service Bus topic.
+
+The tool uses `DefaultAzureCredential` for authentication, so you need to be logged in with an Azure account that has the appropriate permissions on the target Service Bus namespace.
+
+```sh
+pnpm build
+pnpm --filter utilities service:bus:sender -- \
+  --fqdn <service-bus-fqdn> \
+  --topic <topic-name> \
+  --fc <fiscal-code> \
+  --type <login|logout|mixed> \
+  [--number <n>]
+```
+
+#### Examples
+
+```sh
+# Send a single login event
+pnpm --filter utilities service:bus:sender -- \
+  --fqdn my-namespace.servicebus.windows.net \
+  --topic my-topic \
+  --fc ISPXNB32R82Y766D \
+  --type login
+
+# Send 5 mixed events
+pnpm --filter utilities service:bus:sender -- \
+  --fqdn my-namespace.servicebus.windows.net \
+  --topic my-topic \
+  --fc ISPXNB32R82Y766D \
+  --type mixed \
+  --number 5
+```
