@@ -45,20 +45,30 @@ pnpm --filter utilities service:bus:sender -- \
   --topic <topic-name> \
   --fc <fiscal-code> \
   --type <login|logout|mixed> \
+  [--loginType <LV|LEGACY>] \
   [--number <n>]
 ```
 
 #### Examples
 
 ```sh
-# Send a single login event
+# Send a single login event with loginType=LV
 pnpm --filter utilities service:bus:sender -- \
   --fqdn my-namespace.servicebus.windows.net \
   --topic my-topic \
   --fc ISPXNB32R82Y766D \
-  --type login
+  --type login \
+  --loginType LV
 
-# Send 5 mixed events
+# Send a single login event with loginType=LEGACY
+pnpm --filter utilities service:bus:sender -- \
+  --fqdn my-namespace.servicebus.windows.net \
+  --topic my-topic \
+  --fc ISPXNB32R82Y766D \
+  --type login \
+  --loginType LEGACY
+
+# Send 5 mixed events (loginType chosen randomly for each login event)
 pnpm --filter utilities service:bus:sender -- \
   --fqdn my-namespace.servicebus.windows.net \
   --topic my-topic \
