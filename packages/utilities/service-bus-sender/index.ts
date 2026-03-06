@@ -3,9 +3,17 @@ import { DefaultAzureCredential } from "@azure/identity";
 import { ServiceBusClient } from "@azure/service-bus";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-
-type EventType = "login" | "logout" | "mixed";
-type LoginType = "LV" | "LEGACY";
+import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
+import {
+  LoginEvent,
+  LoginScenarioEnum,
+  LoginTypeEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/login-event";
+import {
+  LogoutEvent,
+  LogoutScenarioEnum,
+} from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 
 const argv = yargs(hideBin(process.argv))
   .options({
@@ -37,9 +45,9 @@ const argv = yargs(hideBin(process.argv))
     lt: {
       type: "string",
       alias: "loginType",
-      choices: ["LV", "LEGACY"],
+      choices: ["lv", "legacy"],
       describe:
-        'Login type (required when --type=login, random when --type=mixed): "LV" or "LEGACY"',
+        'Login type (required when --type=login, random when --type=mixed): "lv" or "legacy"',
     },
   })
   .check((args) => {
@@ -53,43 +61,47 @@ const argv = yargs(hideBin(process.argv))
   .parseSync();
 
 const numberOfMessages = argv.n;
-const desiredEventType = argv.t as EventType;
+const desiredEventType = argv.t as EventTypeEnum | "mixed";
 const fullyQualifiedNamespace = argv.fqdn;
 const topicName = argv.topic;
 const fiscalCode = argv.fc;
-const desiredLoginType = argv.lt as LoginType | undefined;
+const desiredLoginType = argv.lt as LoginTypeEnum | undefined;
 
-const generateEventType = (): "login" | "logout" =>
-  Math.random() > 0.5 ? "login" : "logout";
+const generateEventType = (): EventTypeEnum =>
+  Math.random() > 0.5 ? EventTypeEnum.LOGIN : EventTypeEnum.LOGOUT;
 
-const generateLoginType = (): LoginType =>
-  Math.random() > 0.5 ? "LV" : "LEGACY";
+const generateLoginType = (): LoginTypeEnum =>
+  Math.random() > 0.5 ? LoginTypeEnum.LV : LoginTypeEnum.LEGACY;
 
-const generateLogoutBody = (fiscalCode: string) => ({
-  eventType: "logout",
+const generateLogoutBody = (fiscalCode: FiscalCode): LogoutEvent => ({
+  eventType: EventTypeEnum.LOGOUT,
   fiscalCode,
-  scenario: "web",
-  ts: Date.now(),
+  scenario: LogoutScenarioEnum.WEB,
+  ts: new Date(),
 });
 
-const generateLoginBody = (fiscalCode: string, loginType: LoginType) => ({
-  eventType: "login",
+const generateLoginBody = (
+  fiscalCode: FiscalCode,
+  loginType: LoginTypeEnum,
+): LoginEvent => ({
+  eventType: EventTypeEnum.LOGIN,
   fiscalCode,
-  expiredAt: Date.now(),
+  expiredAt: new Date(),
   loginType,
+  scenario: LoginScenarioEnum.STANDARD,
   idp: "xx_servizicie",
-  ts: Date.now(),
+  ts: new Date(),
 });
 
 const generateMessage = (
   fiscalCode: string,
-  eventType: "login" | "logout",
-  loginType: LoginType,
+  eventType: EventTypeEnum,
+  loginType: LoginTypeEnum,
 ) => ({
   body:
-    eventType === "login"
-      ? generateLoginBody(fiscalCode, loginType)
-      : generateLogoutBody(fiscalCode),
+    eventType === EventTypeEnum.LOGIN
+      ? generateLoginBody(fiscalCode as FiscalCode, loginType)
+      : generateLogoutBody(fiscalCode as FiscalCode),
   contentType: "application/json",
   applicationProperties: {
     eventType,
@@ -117,7 +129,7 @@ async function main(): Promise<void> {
     const eventType =
       desiredEventType === "mixed" ? generateEventType() : desiredEventType;
 
-    const loginType: LoginType =
+    const loginType: LoginTypeEnum =
       desiredEventType === "mixed" ? generateLoginType() : desiredLoginType!;
 
     const message = generateMessage(fiscalCode, eventType, loginType);
