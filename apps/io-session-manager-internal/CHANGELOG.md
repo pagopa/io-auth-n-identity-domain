@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.17.1
+
+### Patch Changes
+
+- 0a529ba: Fix: invalidateUserSession idempotency
+
 ## 0.17.0
 
 ### Minor Changes
