@@ -1,42 +1,75 @@
+/* eslint-disable no-console */
 import { DefaultAzureCredential } from "@azure/identity";
 import { ServiceBusClient } from "@azure/service-bus";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 
-// 🔧 Parsing CLI args
-const args = process.argv;
+type EventType = "login" | "logout" | "mixed";
 
-const getArgValue = (flags: string[]): string | undefined => {
-  const index = args.findIndex((arg) => flags.includes(arg));
-  return index !== -1 ? args[index + 1] : undefined;
-};
+const argv = yargs(hideBin(process.argv))
+  .options({
+    n: {
+      type: "number",
+      alias: "number",
+      default: 1,
+      describe: "Number of messages to send",
+    },
+    t: {
+      type: "string",
+      alias: "type",
+      demandOption: true,
+      choices: ["login", "logout", "mixed"],
+      describe: "Type of event",
+    },
+    fqdn: {
+      type: "string",
+      demandOption: true,
+      describe: "Fully qualified domain name of service bus",
+    },
+    topic: { type: "string", demandOption: true, describe: "Topic name" },
+    fc: {
+      type: "string",
+      alias: "fiscalCode",
+      demandOption: true,
+      describe: "Fiscal code",
+    },
+  })
+  .strict()
+  .help()
+  .parseSync();
 
-const validateString = (s: string | undefined): string => {
-  if (s == undefined || s == "") {
-    throw Error();
-  }
-  return s;
-};
+const numberOfMessages = argv.n;
+const desiredEventType = argv.t as EventType;
+const fullyQualifiedNamespace = argv.fqdn;
+const topicName = argv.topic;
+const fiscalCode = argv.fc;
 
-const numberOfMessages = parseInt(getArgValue(["-n", "--number"]) ?? "1", 10);
-const desiredEventType = validateString(getArgValue(["-t", "--type"]));
-const fullyQualifiedNamespace = validateString(
-  getArgValue(["-fqdn", "--fqdn"]),
-);
-const topicName = validateString(getArgValue(["-topic", "--topic"]));
-const fiscalCode = validateString(getArgValue(["-fc", "--fiscalCode"]));
+const generateEventType = (): "login" | "logout" =>
+  Math.random() > 0.5 ? "login" : "logout";
 
-if (isNaN(numberOfMessages) || numberOfMessages < 1) {
-  console.error("❌ Invalid number of messages. Use -n <number>.");
-  process.exit(1);
-}
+const generateLogoutBody = (fiscalCode: string) => ({
+  eventType: "logout",
+  fiscalCode,
+  scenario: "web",
+  ts: Date.now(),
+});
 
-if (!["login", "logout", "mixed"].includes(desiredEventType)) {
-  console.error("❌ Invalid type of messages. Use -t <login/logout/mixed>.");
-  process.exit(1);
-}
+const generateLoginBody = (fiscalCode: string) => ({
+  eventType: "login",
+  fiscalCode,
+  expiredAt: Date.now(),
+  // NOTE: edit this as you need
+  // TODO: edit this part (IOPID-3777)
+  _loginType: "legacy",
+  _badProp: "standard",
+  idp: "xx_servizicie",
+  ts: Date.now(),
+});
 
-const generateEventType = () => (Math.random() > 0.5 ? "login" : "logout");
-
-const generateMessage = (fiscalCode: string, eventType: string) => ({
+const generateMessage = (
+  fiscalCode: string,
+  eventType: "login" | "logout",
+) => ({
   body:
     eventType === "login"
       ? generateLoginBody(fiscalCode)
@@ -48,68 +81,46 @@ const generateMessage = (fiscalCode: string, eventType: string) => ({
   sessionId: fiscalCode,
 });
 
-const generateLogoutBody = (fiscalCode: string) => ({
-  eventType: "logout",
-  fiscalCode,
-  scenario: "web",
-  ts: new Date().getTime(),
-});
+async function main(): Promise<void> {
+  const credential = new DefaultAzureCredential();
+  const client = new ServiceBusClient(fullyQualifiedNamespace, credential, {
+    retryOptions: {
+      maxRetries: 3,
+      retryDelayInMs: 100,
+      maxRetryDelayInMs: 0,
+      timeoutInMs: 5000,
+    },
+  });
+  const sender = client.createSender(topicName);
 
-const generateLoginBody = (fiscalCode: string) => ({
-  eventType: "login",
-  fiscalCode,
-  expiredAt: new Date().getTime(),
-  // NOTE: edit this as you need
-  // TODO: edit this part (IOPID-3777)
-  _loginType: "legacy",
-  _badProp: "standard",
-  idp: "xx_servizicie",
-  ts: new Date().getTime(),
-});
+  console.log(
+    `📤 Sending ${numberOfMessages} message(s) to topic '${topicName}', eventType ${desiredEventType}, cf ${fiscalCode}, fqdn ${fullyQualifiedNamespace}`,
+  );
 
-async function main() {
-  try {
-    const credential = new DefaultAzureCredential();
-    const client = new ServiceBusClient(fullyQualifiedNamespace, credential, {
-      retryOptions: {
-        maxRetries: 0,
-        retryDelayInMs: 0,
-        maxRetryDelayInMs: 0,
-        timeoutInMs: 5000,
-      },
-    });
-    const sender = client.createSender(topicName);
+  for (let i = 0; i < numberOfMessages; i++) {
+    const eventType =
+      desiredEventType === "mixed" ? generateEventType() : desiredEventType;
 
-    console.log(
-      `📤 Sending ${numberOfMessages} message(s) to topic '${topicName}', eventType ${desiredEventType}, cf ${fiscalCode}, fqdn ${fullyQualifiedNamespace}`,
+    const message = generateMessage(fiscalCode, eventType);
+
+    await sender.sendMessages(message);
+
+    console.info(
+      `✅ Message ${i + 1} sent => (${JSON.stringify(message.body)})`,
     );
+  }
 
-    for (let i = 0; i < numberOfMessages; i++) {
-      const eventType =
-        desiredEventType === "mixed" ? generateEventType() : desiredEventType;
-
-      const message = generateMessage(fiscalCode, eventType);
-
-      await sender.sendMessages(message);
-
-      console.info(
-        `✅ Message ${i + 1} sent => (${JSON.stringify(message.body)})`,
-      );
-    }
-
-    // wai
-
-    if (sender.isClosed) {
-      console.info("ServiceBus sender is closed =>", sender.isClosed);
-    } else {
-      console.info("ServiceBus sender is state =>", sender.isClosed);
-      await sender.close();
-      await client.close();
-      console.info("🚪 Connection closed.");
-    }
-  } catch (err) {
-    console.error("❌ Error sending messages:", err);
+  if (sender.isClosed) {
+    console.info("ServiceBus sender is closed =>", sender.isClosed);
+  } else {
+    console.info("ServiceBus sender is state =>", sender.isClosed);
+    await sender.close();
+    await client.close();
+    console.info("🚪 Connection closed.");
   }
 }
 
-main();
+main().catch((err) => {
+  console.error("❌ Error sending messages:", err);
+  process.exit(1);
+});
