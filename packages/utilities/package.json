@@ -16,6 +16,7 @@
     "@azure/identity": "catalog:",
     "@azure/service-bus": "catalog:",
     "@azure/storage-queue": "catalog:",
+    "@pagopa/io-auth-n-identity-commons": "workspace:^",
     "@pagopa/ts-commons": "catalog:",
     "applicationinsights": "catalog:",
     "fp-ts": "catalog:",
