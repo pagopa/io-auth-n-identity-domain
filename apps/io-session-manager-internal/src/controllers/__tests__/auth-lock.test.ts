@@ -28,6 +28,10 @@ import {
   toConflictError,
   toGenericError,
 } from "../../utils/errors";
+import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
+import { ServiceBusSender } from "@azure/service-bus";
+import { PlatformInternalApiClient } from "../../utils/platform-internal-client";
+import { PlatformInternalRepository } from "../../repositories/platform-internal";
 
 const aFiscalCode = "SPNDNL80R13C555X";
 
@@ -43,6 +47,10 @@ const mockedDependencies = {
   RevokeAssertionRefQueueClient: mockQueueClient,
   InstallationRepository: {} as InstallationRepository,
   NotificationQueueClient: mockQueueClient,
+  platformInternalApiClient: {} as PlatformInternalApiClient,
+  PlatformInternalRepository: {} as PlatformInternalRepository,
+  AuthSessionsTopicRepository: {} as AuthSessionsTopicRepository,
+  authSessionsTopicSender: {} as ServiceBusSender,
 };
 describe("Auth Lock Handler", () => {
   beforeEach(() => {

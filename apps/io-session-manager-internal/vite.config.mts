@@ -11,6 +11,7 @@ export default defineConfig({
         "**/generated",
         "src/controllers/main.ts",
         "src/utils/config.ts",
+        "vite.config.mts",
       ],
       reporter: ["lcov", "text"],
     },

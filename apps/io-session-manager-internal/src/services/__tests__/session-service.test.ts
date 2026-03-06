@@ -21,6 +21,7 @@ import {
   mockDelUserAllSessions,
   mockGetLollipopAssertionRefForUser,
   mockGetSessionRemainingTTL,
+  mockReadSessionInfoKeys,
   mockUserHasActiveSessionsOrLV,
 } from "../../__mocks__/repositories/redis.mock";
 import { SessionService } from "../session-service";
@@ -43,6 +44,7 @@ import {
   anUnlockCode,
   anUnlockedUserSessionState,
   anotherUnlockCode,
+  mockSessionToken,
 } from "../../__mocks__/user.mock";
 import {
   forbiddenError,
@@ -56,6 +58,12 @@ import {
   ServiceBusSenderMock,
   mockEmitSessionEvent,
 } from "../../__mocks__/repositories/auth-sessions-topic.mock";
+import {
+  mockCacheDelSessionToken,
+  PlatformInternalRepositoryMock,
+} from "../../__mocks__/repositories/platform-internal.mock";
+import { PlatformInternalApiClient } from "../../utils/platform-internal-client";
+import { sessionNotFoundError } from "../../repositories/redis";
 
 const aFiscalCode = "SPNDNL80R13C555X" as FiscalCode;
 
@@ -115,6 +123,8 @@ describe("Session Service#lockUserAuthentication", () => {
     NotificationQueueClient: {} as QueueClient,
     AuthSessionsTopicRepository: AuthSessionsTopicRepositoryMock,
     authSessionsTopicSender: ServiceBusSenderMock,
+    PlatformInternalRepository: PlatformInternalRepositoryMock,
+    platformInternalApiClient: {} as PlatformInternalApiClient,
   };
 
   it("should succeed to lock an user authentication and raise an event, when user is eligible", async () => {
@@ -124,6 +134,38 @@ describe("Session Service#lockUserAuthentication", () => {
     )(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionToken: mockSessionToken,
+      }),
+    );
+    expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      fiscalCode: aFiscalCode,
+      eventType: EventTypeEnum.LOGOUT,
+      scenario: LogoutScenarioEnum.AUTH_LOCK,
+      ts: frozenDate,
+    });
+    expect(trackEventMock).not.toHaveBeenCalled();
+    expect(result).toEqual(E.right(null));
+  });
+
+  it("should succeed to lock an user authentication when no user session is found", async () => {
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.left(sessionNotFoundError));
+    const result = await SessionService.lockUserAuthentication(
+      aFiscalCode,
+      anUnlockCode,
+    )(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    // cachedel is not called when read session results in sessionNotFoundError
+    expect(mockCacheDelSessionToken).not.toHaveBeenCalled();
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
@@ -159,6 +201,13 @@ describe("Session Service#lockUserAuthentication", () => {
     )(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionToken: mockSessionToken,
+      }),
+    );
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
@@ -186,6 +235,13 @@ describe("Session Service#lockUserAuthentication", () => {
     )(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionToken: mockSessionToken,
+      }),
+    );
     expect(mockfireAndForgetRevokeAssertionRef).not.toHaveBeenCalled();
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
@@ -311,6 +367,36 @@ describe("Session Service#lockUserAuthentication", () => {
     const anError = Error("ERROR");
     const expectedError = toGenericError(anError.message);
     mockLockUserAuthentication.mockReturnValueOnce(RTE.left(anError));
+
+    const result = await SessionService.lockUserAuthentication(
+      aFiscalCode,
+      anUnlockCode,
+    )(deps)();
+
+    expect(mockLockUserAuthentication).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return generic error when read of session info keys fails", async () => {
+    const anError = Error("ERROR");
+    const expectedError = toGenericError(anError.message);
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.left(anError));
+
+    const result = await SessionService.lockUserAuthentication(
+      aFiscalCode,
+      anUnlockCode,
+    )(deps)();
+
+    expect(mockLockUserAuthentication).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return generic error when token cache del fails", async () => {
+    const anError = Error("ERROR");
+    const expectedError = toGenericError(anError.message);
+    mockCacheDelSessionToken.mockReturnValueOnce(TE.left(anError));
 
     const result = await SessionService.lockUserAuthentication(
       aFiscalCode,
@@ -468,11 +554,42 @@ describe("Session Service#deleteUserSession", () => {
     RevokeAssertionRefQueueClient: {} as QueueClient,
     AuthSessionsTopicRepository: AuthSessionsTopicRepositoryMock,
     authSessionsTopicSender: ServiceBusSenderMock,
+    PlatformInternalRepository: PlatformInternalRepositoryMock,
+    platformInternalApiClient: {} as PlatformInternalApiClient,
   };
   it("should succeed deleting an user session", async () => {
     const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
 
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionToken: mockSessionToken,
+      }),
+    );
+    expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      fiscalCode: aFiscalCode,
+      eventType: EventTypeEnum.LOGOUT,
+      scenario: LogoutScenarioEnum.WEB,
+      ts: frozenDate,
+    });
+    expect(trackEventMock).not.toHaveBeenCalled();
+    expect(result).toEqual(E.right(null));
+  });
+
+  it("should succeed deleting an user session even if no user session was found", async () => {
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.left(sessionNotFoundError));
+    const result = await SessionService.deleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    // cachedel is not called when read session results in sessionNotFoundError
+    expect(mockCacheDelSessionToken).not.toHaveBeenCalled();
     expect(mockfireAndForgetRevokeAssertionRef).toHaveBeenCalledTimes(1);
     expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
     expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);

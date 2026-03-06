@@ -1,53 +1,8 @@
 ###
 ### SECRETS
 ###
-data "azurerm_key_vault_secret" "api_beta_testers" {
-  name         = "ioweb-profile-api-beta-testers"
-  key_vault_id = data.azurerm_key_vault.ioweb.id
-}
-
-data "azurerm_key_vault_secret" "functions_fast_login_api_key" {
-  name         = "ioweb-profile-functions-fast-login-api-key"
-  key_vault_id = data.azurerm_key_vault.ioweb.id
-}
-
 data "azurerm_key_vault_secret" "immutable_spid_logs_storage" {
   name         = "spid-logs-st-connection-string"
-  key_vault_id = data.azurerm_key_vault.ioweb.id
-}
-
-data "azurerm_key_vault_secret" "functions_app_api_key" {
-  name         = "ioweb-profile-functions-app-api-key"
-  key_vault_id = data.azurerm_key_vault.ioweb.id
-}
-
-data "azurerm_key_vault_secret" "spid_login_jwt_pub_key" {
-  name         = "spid-login-jwt-pub-key"
-  key_vault_id = data.azurerm_key_vault.ioweb.id
-}
-
-data "azurerm_key_vault_secret" "spid_login_api_key" {
-  name         = "ioweb-profile-spid-login-api-key"
-  key_vault_id = data.azurerm_key_vault.ioweb.id
-}
-
-data "azurerm_key_vault_secret" "exchange_jwt_pub_key" {
-  name         = "ioweb-profile-exchange-jwt-pub-key"
-  key_vault_id = data.azurerm_key_vault.ioweb.id
-}
-
-data "azurerm_key_vault_secret" "exchange_jwt_private_key" {
-  name         = "ioweb-profile-exchange-jwt-private-key"
-  key_vault_id = data.azurerm_key_vault.ioweb.id
-}
-
-data "azurerm_key_vault_secret" "magic_link_jwe_pub_key" {
-  name         = "ioweb-profile-magic-link-jwe-pub-key"
-  key_vault_id = data.azurerm_key_vault.ioweb.id
-}
-
-data "azurerm_key_vault_secret" "magic_link_jwe_private_key" {
-  name         = "ioweb-profile-magic-link-jwe-private-key"
   key_vault_id = data.azurerm_key_vault.ioweb.id
 }
 ###
@@ -71,43 +26,43 @@ locals {
       // FF AND TESTERS
       // --------------
       FF_API_ENABLED = "ALL"
-      BETA_TESTERS   = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.api_beta_testers.versionless_id})"
+      BETA_TESTERS   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.webprof_api_beta_testers.versionless_id})"
 
       // ------------
       // JWT Config
       // ------------
       BEARER_AUTH_HEADER               = "authorization"
       EXCHANGE_JWT_ISSUER              = local.function_JWT_issuer
-      EXCHANGE_JWT_PRIMARY_PUB_KEY     = trimspace(data.azurerm_key_vault_secret.exchange_jwt_pub_key.value)
-      EXCHANGE_JWT_PRIMARY_PRIVATE_KEY = trimspace(data.azurerm_key_vault_secret.exchange_jwt_private_key.value)
+      EXCHANGE_JWT_PRIMARY_PUB_KEY     = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.webprof_exchange_public_key.versionless_id})"
+      EXCHANGE_JWT_PRIMARY_PRIVATE_KEY = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.webprof_exchange_private_key.versionless_id})"
       // 1 hour
       EXCHANGE_JWT_TTL                   = "3600"
-      MAGIC_LINK_JWE_PRIMARY_PRIVATE_KEY = trimspace(data.azurerm_key_vault_secret.magic_link_jwe_private_key.value)
-      MAGIC_LINK_JWE_PRIMARY_PUB_KEY     = trimspace(data.azurerm_key_vault_secret.magic_link_jwe_pub_key.value)
+      MAGIC_LINK_JWE_PRIMARY_PRIVATE_KEY = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.webprof_magic_link_private_key.versionless_id})"
+      MAGIC_LINK_JWE_PRIMARY_PUB_KEY     = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.webprof_magic_link_public_key.versionless_id})"
       MAGIC_LINK_JWE_ISSUER              = local.function_JWT_issuer
       MAGIC_LINK_BASE_URL                = "https://account.ioapp.it/it/blocco-accesso/magic-link/"
       // TBD: more/less than 1 week?
       MAGIC_LINK_JWE_TTL = "604800"
 
       HUB_SPID_LOGIN_JWT_ISSUER  = "api-web.io.pagopa.it/ioweb/auth"
-      HUB_SPID_LOGIN_JWT_PUB_KEY = trimspace(data.azurerm_key_vault_secret.spid_login_jwt_pub_key.value)
+      HUB_SPID_LOGIN_JWT_PUB_KEY = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.webprof_spid_login_jwt_public_key.versionless_id})"
 
       // -------------------------
       // Fast Login config
       // -------------------------
-      FAST_LOGIN_API_KEY         = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.functions_fast_login_api_key.versionless_id})"
+      FAST_LOGIN_API_KEY         = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.webprof_fast_login_api_key.versionless_id})"
       FAST_LOGIN_CLIENT_BASE_URL = "https://io-p-itn-auth-lv-func-02.azurewebsites.net"
 
       // -------------------------
       // Functions App config
       // -------------------------
-      FUNCTIONS_APP_API_KEY         = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.functions_app_api_key.versionless_id})"
+      FUNCTIONS_APP_API_KEY         = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.webprof_profile_api_key.versionless_id})"
       FUNCTIONS_APP_CLIENT_BASE_URL = "https://io-p-itn-auth-profile-func-02.azurewebsites.net"
 
       // -------------------------
       // Hub Spid Login for ioweb config
       // -------------------------
-      HUB_SPID_LOGIN_API_KEY         = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.spid_login_api_key.versionless_id})"
+      HUB_SPID_LOGIN_API_KEY         = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.webprof_spid_login_api_key.versionless_id})"
       HUB_SPID_LOGIN_CLIENT_BASE_URL = "https://io-p-weu-ioweb-spid-login.azurewebsites.net"
 
       // -------------------------
