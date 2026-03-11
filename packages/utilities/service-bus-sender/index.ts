@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { DefaultAzureCredential } from "@azure/identity";
-import { ServiceBusClient } from "@azure/service-bus";
+import { ServiceBusClient, ServiceBusMessage } from "@azure/service-bus";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
@@ -18,6 +18,7 @@ import {
   RejectedLoginEvent,
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import { FiscalCode, IPString } from "@pagopa/ts-commons/lib/strings";
+import * as t from "io-ts";
 
 // All concrete event types supported by this tool, plus the "mixed" sentinel.
 const EVENT_TYPE_CHOICES = [
@@ -132,14 +133,17 @@ const generateBody = (
   eventType: EventTypeEnum,
   loginType: LoginTypeEnum,
   ip: IPString,
-): LoginEvent | LogoutEvent | RejectedLoginEvent => {
+):
+  | t.OutputOf<typeof LoginEvent>
+  | t.OutputOf<typeof LogoutEvent>
+  | t.OutputOf<typeof RejectedLoginEvent> => {
   switch (eventType) {
     case EventTypeEnum.LOGIN:
-      return generateLoginBody(fc, loginType);
+      return LoginEvent.encode(generateLoginBody(fc, loginType));
     case EventTypeEnum.LOGOUT:
-      return generateLogoutBody(fc);
+      return LogoutEvent.encode(generateLogoutBody(fc));
     case EventTypeEnum.REJECTED_LOGIN:
-      return generateRejectedLoginBody(fc, ip);
+      return RejectedLoginEvent.encode(generateRejectedLoginBody(fc, ip));
   }
 };
 
@@ -148,7 +152,7 @@ const generateMessage = (
   eventType: EventTypeEnum,
   loginType: LoginTypeEnum,
   ip: IPString,
-) => ({
+): ServiceBusMessage => ({
   body: generateBody(fc as FiscalCode, eventType, loginType, ip),
   contentType: "application/json",
   applicationProperties: { eventType },
