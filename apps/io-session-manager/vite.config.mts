@@ -5,7 +5,15 @@ export default defineConfig({
   test: {
     coverage: {
       reporter: ["lcov", "text"],
-      exclude: ["**/__mocks__/**", "*.js", "src/generated/**"],
+      exclude: [
+        "dist",
+        "/node_modules",
+        "*.js",
+        "src/generated/**",
+        "src/**/index.ts",
+        "**/__mocks__",
+        "vite.config.mts",
+      ],
     },
     env: {
       ...config({ path: "env.example" }).parsed,
