@@ -43,6 +43,8 @@ import { RedisSessionStorageService, TokenService } from "../../services";
 import * as profileService from "../../services/profile";
 import { RedisClientSelectorType } from "../../types/redis";
 import { getSessionState, getUserIdentity, logout } from "../session";
+import { PlatformInternalAPIClient } from "../../repositories/platform-internal-client";
+import { mockPlatformInternalAPIService } from "../../__mocks__/platform-internal.mocks";
 
 const frozenDate = new Date(2025, 0, 1);
 vi.setSystemTime(frozenDate);
@@ -524,6 +526,7 @@ describe("logout", () => {
     // Repositories are not used, since we mocked the service layer
     lollipopApiClient: {} as LollipopApiClient,
     redisClientSelector: {} as RedisClientSelectorType,
+    platformInternalAPIClient: {} as PlatformInternalAPIClient,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lollipopRevokeQueueClient: {} as any,
     // Services
@@ -533,6 +536,8 @@ describe("logout", () => {
     AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
     authSessionsTopicSender: mockServiceBusSender,
     appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
+
+    platformInternalAPIService: mockPlatformInternalAPIService,
 
     user: mockedUser,
     req,
