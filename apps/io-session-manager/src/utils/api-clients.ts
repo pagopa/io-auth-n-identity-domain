@@ -41,7 +41,6 @@ export const initAPIClientsDependencies: () => FnAppRepo.FnAppAPIRepositoryDeps 
   const platformInternalAPIClient =
     PlatformInternalClientRepo.getPlatformInternalAPIClient(
       PlatformProxyConfig.PLATFORM_PROXY_API_URL,
-      PlatformProxyConfig.PLATFORM_PROXY_API_BASE_PATH,
       httpOrHttpsApiFetch,
     );
 
