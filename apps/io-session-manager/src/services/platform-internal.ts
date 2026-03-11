@@ -2,7 +2,7 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
 import { SessionToken } from "../types/token";
-import { PlatformInternalApiDeps } from "../repositories/platform-internal-api";
+import { PlatformInternalClientDeps } from "../repositories/platform-internal-client";
 import { pipe } from "fp-ts/function";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { AppInsightsDeps } from "../utils/appinsights";
@@ -14,7 +14,7 @@ export const cacheDelSessionToken =
   (
     sessionToken: SessionToken,
   ): RTE.ReaderTaskEither<
-    PlatformInternalApiDeps & AppInsightsDeps,
+    PlatformInternalClientDeps & AppInsightsDeps,
     Error,
     true
   > =>
@@ -22,7 +22,7 @@ export const cacheDelSessionToken =
     pipe(
       TE.tryCatch(
         () =>
-          deps.platformInternalApiClient.deleteSession({
+          deps.platformInternalAPIClient.deleteSession({
             "X-Session-Token": sessionToken,
           }),
         E.toError,

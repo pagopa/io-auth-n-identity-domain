@@ -1,7 +1,7 @@
 import nodeFetch from "node-fetch";
 import { Client, createClient } from "../generated/platform-internal/client";
 
-export function getPlatformInternalApiClient(
+export function getPlatformInternalAPIClient(
   baseUrl: string,
   basePath: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,10 +14,10 @@ export function getPlatformInternalApiClient(
   });
 }
 
-type PlatformInternalApiClient = ReturnType<
-  typeof getPlatformInternalApiClient
+type PlatformInternalAPIClient = ReturnType<
+  typeof getPlatformInternalAPIClient
 >;
 
-export type PlatformInternalApiDeps = {
-  platformInternalApiClient: PlatformInternalApiClient;
+export type PlatformInternalClientDeps = {
+  platformInternalAPIClient: PlatformInternalAPIClient;
 };

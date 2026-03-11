@@ -8,14 +8,14 @@ import {
   FnAppRepo,
   FnFastLoginRepo,
   FnLollipopRepo,
-  PlatformInternalRepo,
+  PlatformInternalClientRepo,
 } from "../repositories";
 import { httpOrHttpsApiFetch } from "./fetch";
 
 export const initAPIClientsDependencies: () => FnAppRepo.FnAppAPIRepositoryDeps &
   FnFastLoginRepo.FnFastLoginRepositoryDeps &
   FnLollipopRepo.LollipopApiDeps &
-  PlatformInternalRepo.PlatformInternalApiDeps = () => {
+  PlatformInternalClientRepo.PlatformInternalClientDeps = () => {
   // Create the API client for `io-profile`
   const fnAppAPIClient = FnAppRepo.FnAppAPIClient(
     FnAppConfig.FN_APP_API_URL,
@@ -38,8 +38,8 @@ export const initAPIClientsDependencies: () => FnAppRepo.FnAppAPIRepositoryDeps 
   );
 
   // Create the API client for platform proxy
-  const platformInternalApiClient =
-    PlatformInternalRepo.getPlatformInternalApiClient(
+  const platformInternalAPIClient =
+    PlatformInternalClientRepo.getPlatformInternalAPIClient(
       PlatformProxyConfig.PLATFORM_PROXY_API_URL,
       PlatformProxyConfig.PLATFORM_PROXY_API_BASE_PATH,
       httpOrHttpsApiFetch,
@@ -49,6 +49,6 @@ export const initAPIClientsDependencies: () => FnAppRepo.FnAppAPIRepositoryDeps 
     fnAppAPIClient,
     fnFastLoginAPIClient,
     fnLollipopAPIClient,
-    platformInternalApiClient,
+    platformInternalAPIClient,
   };
 };

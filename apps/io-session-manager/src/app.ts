@@ -63,7 +63,7 @@ import {
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
 import {
   LollipopService,
-  PlatformInternalProxyService,
+  PlatformInternalService,
   RedisSessionStorageService,
 } from "./services";
 import { lollipopLoginMiddleware } from "./utils/lollipop";
@@ -445,11 +445,11 @@ function setupExternalEndpoints(
         // Services
         redisSessionStorageService: RedisSessionStorageService,
         lollipopService: LollipopService,
-        platformInternalApiService: PlatformInternalProxyService,
+        platformInternalAPIService: PlatformInternalService,
 
         AuthSessionsTopicRepository,
         authSessionsTopicSender: acsDependencies.authSessionsTopicSender,
-        platformInternalApiClient: APIClients.platformInternalApiClient,
+        platformInternalAPIClient: APIClients.platformInternalAPIClient,
       }),
       ap(withUserFromRequest(SessionController.logout)),
     ),
