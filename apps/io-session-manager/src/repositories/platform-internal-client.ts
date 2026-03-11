@@ -12,7 +12,7 @@ export function getPlatformInternalAPIClient(
   });
 }
 
-type PlatformInternalAPIClient = ReturnType<
+export type PlatformInternalAPIClient = ReturnType<
   typeof getPlatformInternalAPIClient
 >;
 

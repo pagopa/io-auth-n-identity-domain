@@ -263,9 +263,10 @@ export const logout: RTE.ReaderTaskEither<
 > = (deps) =>
   pipe(
     // as first action, delete cached user token inside platform proxy
-    deps.platformInternalAPIService.cacheDelSessionToken(
-      deps.user.session_token,
-    )(deps),
+    deps.platformInternalAPIService.cacheDelSessionToken({
+      ...deps,
+      sessionToken: deps.user.session_token,
+    }),
     // retrieve the assertionRef for the user
     TE.chain((_) =>
       deps.redisSessionStorageService.getLollipopAssertionRefForUser({

@@ -10,51 +10,47 @@ import { log } from "../utils/logger";
 
 export const CACHEDEL_PROXY_ERROR_EVENT_NAME = "session.cachedel.error";
 
-export const cacheDelSessionToken =
-  (
-    sessionToken: SessionToken,
-  ): RTE.ReaderTaskEither<
-    PlatformInternalClientDeps & AppInsightsDeps,
-    Error,
-    true
-  > =>
-  (deps) =>
-    pipe(
-      TE.tryCatch(
-        () =>
-          deps.platformInternalAPIClient.deleteSession({
-            "X-Session-Token": sessionToken,
-          }),
-        E.toError,
+export const cacheDelSessionToken: RTE.ReaderTaskEither<
+  PlatformInternalClientDeps & AppInsightsDeps & { sessionToken: SessionToken },
+  Error,
+  true
+> = (deps) =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        deps.platformInternalAPIClient.deleteSession({
+          "X-Session-Token": deps.sessionToken,
+        }),
+      E.toError,
+    ),
+    TE.chainEitherKW(
+      E.mapLeft(
+        (errors) =>
+          new Error(
+            `Error while decoding deleteSession response: ${readableReportSimplified(
+              errors,
+            )}`,
+          ),
       ),
-      TE.chainEitherKW(
-        E.mapLeft(
-          (errors) =>
+    ),
+    TE.chain((response) =>
+      response.status === 204
+        ? TE.right(true as const)
+        : TE.left(
             new Error(
-              `Error while decoding deleteSession response: ${readableReportSimplified(
-                errors,
-              )}`,
+              `Error while calling deleteSession API: status ${response.status}`,
             ),
-        ),
-      ),
-      TE.chain((response) =>
-        response.status === 204
-          ? TE.right(true as const)
-          : TE.left(
-              new Error(
-                `Error while calling deleteSession API: status ${response.status}`,
-              ),
-            ),
-      ),
-      TE.mapLeft((error) => {
-        log.error(error.message);
-        // sending sampled event
-        deps.appInsightsTelemetryClient?.trackEvent({
-          name: CACHEDEL_PROXY_ERROR_EVENT_NAME,
-          properties: {
-            errorMessage: error.message,
-          },
-        });
-        return new Error("Error while calling internal proxy");
-      }),
-    );
+          ),
+    ),
+    TE.mapLeft((error) => {
+      log.error(error.message);
+      // sending sampled event
+      deps.appInsightsTelemetryClient?.trackEvent({
+        name: CACHEDEL_PROXY_ERROR_EVENT_NAME,
+        properties: {
+          errorMessage: error.message,
+        },
+      });
+      return new Error("Error while calling internal proxy");
+    }),
+  );
