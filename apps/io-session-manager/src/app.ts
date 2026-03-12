@@ -61,7 +61,11 @@ import {
   toProxySSOBasePath,
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
-import { LollipopService, RedisSessionStorageService } from "./services";
+import {
+  LollipopService,
+  PlatformInternalService,
+  RedisSessionStorageService,
+} from "./services";
 import { lollipopLoginMiddleware } from "./utils/lollipop";
 import { checkIP, withIPFromRequest } from "./utils/network";
 import { expressLollipopMiddleware } from "./utils/lollipop";
@@ -441,9 +445,11 @@ function setupExternalEndpoints(
         // Services
         redisSessionStorageService: RedisSessionStorageService,
         lollipopService: LollipopService,
+        platformInternalAPIService: PlatformInternalService,
 
         AuthSessionsTopicRepository,
         authSessionsTopicSender: acsDependencies.authSessionsTopicSender,
+        platformInternalAPIClient: APIClients.platformInternalAPIClient,
       }),
       ap(withUserFromRequest(SessionController.logout)),
     ),
