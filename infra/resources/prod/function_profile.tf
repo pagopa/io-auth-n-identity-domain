@@ -1,23 +1,3 @@
-data "azurerm_key_vault_secret" "ioweb_profile_function_api_key" {
-  name         = "ioweb-profile-api-key"
-  key_vault_id = data.azurerm_key_vault.ioweb.id
-}
-
-data "azurerm_key_vault_secret" "common_MAILUP_USERNAME" {
-  name         = "common-MAILUP-AI-USERNAME"
-  key_vault_id = data.azurerm_key_vault.common_kv.id
-}
-
-data "azurerm_key_vault_secret" "common_MAILUP_SECRET" {
-  name         = "common-MAILUP-AI-SECRET"
-  key_vault_id = data.azurerm_key_vault.common_kv.id
-}
-
-data "azurerm_key_vault_secret" "fn_app_PUBLIC_API_KEY" {
-  name         = "apim-IO-SERVICE-KEY"
-  key_vault_id = data.azurerm_key_vault.common_kv.id
-}
-
 locals {
   function_profile = {
     name = "profile"
@@ -59,24 +39,24 @@ locals {
       OPT_OUT_EMAIL_SWITCH_DATE = 1625781600
 
       # Login Email variables
-      MAGIC_LINK_SERVICE_API_KEY    = data.azurerm_key_vault_secret.ioweb_profile_function_api_key.value
+      MAGIC_LINK_SERVICE_API_KEY    = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.profile_magic_link_api_key.versionless_id})"
       MAGIC_LINK_SERVICE_PUBLIC_URL = "https://${module.function_web_profile.function_app.function_app.default_hostname}"
       IOWEB_ACCESS_REF              = "https://account.ioapp.it"
 
       PROFILE_EMAIL_STORAGE_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
       PROFILE_EMAIL_STORAGE_TABLE_NAME        = local.profile_emails_table_name
 
-      MAILUP_USERNAME = data.azurerm_key_vault_secret.common_MAILUP_USERNAME.value
-      MAILUP_SECRET   = data.azurerm_key_vault_secret.common_MAILUP_SECRET.value
+      MAILUP_USERNAME = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.mailup_transactional_username.versionless_id})"
+      MAILUP_SECRET   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.mailup_transactional_secret.versionless_id})"
 
-      PUBLIC_API_KEY = trimspace(data.azurerm_key_vault_secret.fn_app_PUBLIC_API_KEY.value)
+      PUBLIC_API_KEY = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.io_api_key.versionless_id})"
 
       // ------------------\--------
       //  Redis Config
       // --------------------------
       REDIS_URL      = module.redis_common_itn.hostname
       REDIS_PORT     = module.redis_common_itn.ssl_port
-      REDIS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.redis_access_key_itn.versionless_id})"
+      REDIS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.common_redis_access_key.versionless_id})"
 
       FF_ENABLE_IOWEB_EMAIL_ACTIONS = true
     }

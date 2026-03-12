@@ -1,5 +1,11 @@
 # io-public
 
+## 2.4.0
+
+### Minor Changes
+
+- cc4afea: Update to Azure Functions v4
+
 ## 2.3.0
 
 ### Minor Changes

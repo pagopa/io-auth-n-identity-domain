@@ -1,13 +1,3 @@
-data "azurerm_key_vault_secret" "fast_login_subscription_key" {
-  name         = "fast-login-subscription-key"
-  key_vault_id = module.key_vaults.auth.id
-}
-
-data "azurerm_key_vault_secret" "fast_login_session_manager_internal_api_key" {
-  name         = "fast-login-session-manager-internal-key"
-  key_vault_id = module.key_vaults.auth.id
-}
-
 locals {
 
   function_lv = {
@@ -30,13 +20,13 @@ locals {
       // --------------------------
       REDIS_URL      = module.redis_common_itn.hostname
       REDIS_PORT     = module.redis_common_itn.ssl_port
-      REDIS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.redis_access_key_itn.versionless_id})"
+      REDIS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.common_redis_access_key.versionless_id})"
 
       // --------------------------
       //  Config for getAssertion
       // --------------------------
       LOLLIPOP_GET_ASSERTION_BASE_URL = "https://api-internal.io.italia.it"
-      LOLLIPOP_GET_ASSERTION_API_KEY  = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.fast_login_subscription_key.versionless_id})"
+      LOLLIPOP_GET_ASSERTION_API_KEY  = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.fast_login_lollipop_api_key.versionless_id})"
 
       // --------------------------
       //  Fast login audit log storage
@@ -47,8 +37,8 @@ locals {
       // --------------------------
       //  Config for session manager internal connection
       // --------------------------
-      SESSION_MANAGER_INTERNAL_API_KEY  = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.fast_login_session_manager_internal_api_key.versionless_id})"
       SESSION_MANAGER_INTERNAL_BASE_URL = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
+      SESSION_MANAGER_INTERNAL_API_KEY  = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.fast_login_session_manager_internal_api_key.versionless_id})"
     }
 
     prod_slot_sampling_percentage = 5

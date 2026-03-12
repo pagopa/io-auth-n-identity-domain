@@ -234,7 +234,7 @@ const expectedUserLoginData = {
 const res = mockRes() as unknown as Response;
 
 const getProfileUrlWithToken = (token: string) =>
-  `/profile.html?token=${token}#token=${token}`;
+  `/profile.html#token=${token}`;
 
 beforeEach(() => {
   vi.clearAllMocks();

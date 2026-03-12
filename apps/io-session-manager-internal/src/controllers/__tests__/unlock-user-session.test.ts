@@ -18,6 +18,10 @@ import {
   BlockedUsersServiceMock,
   mockUnlockUserSession,
 } from "../../__mocks__/services/blocked-users-service.mock";
+import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
+import { ServiceBusSender } from "@azure/service-bus";
+import { PlatformInternalRepository } from "../../repositories/platform-internal";
+import { PlatformInternalApiClient } from "../../utils/platform-internal-client";
 
 const aFiscalCode = "SPNDNL80R13C555X";
 
@@ -32,6 +36,10 @@ const dependenciesMock = {
   blockedUserRedisRepository: {} as BlockedUsersRedisRepository,
   fastRedisClientTask: TE.of({} as RedisClusterType),
   safeRedisClientTask: TE.of({} as RedisClusterType),
+  PlatformInternalRepository: {} as PlatformInternalRepository,
+  platformInternalApiClient: {} as PlatformInternalApiClient,
+  AuthSessionsTopicRepository: {} as AuthSessionsTopicRepository,
+  authSessionsTopicSender: {} as ServiceBusSender,
 };
 
 const aValidRequest = {

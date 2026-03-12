@@ -1,5 +1,11 @@
 # io-auth-n-identity-bruno-collections
 
+## 0.4.0
+
+### Minor Changes
+
+- bfaaf17: Added bruno calls for session-manager-internal app
+
 ## 0.3.0
 
 ### Minor Changes

@@ -7,7 +7,7 @@ locals {
       # Redis Config
       REDIS_URL         = data.azurerm_redis_cache.redis_common.hostname
       REDIS_PORT        = data.azurerm_redis_cache.redis_common.ssl_port
-      REDIS_PASSWORD    = data.azurerm_redis_cache.redis_common.primary_access_key
+      REDIS_PASSWORD    = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.common_weu_redis_access_key.versionless_id})"
       REDIS_TLS_ENABLED = "true"
 
       APPINSIGHTS_REDIS_TRACE_ENABLED = "true"
@@ -42,6 +42,8 @@ locals {
       AUDIT_LOG_STORAGE_CONNECTION_STRING     = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.audit_st_connection_string.versionless_id})"
       AUDIT_LOG_REJECTED_LOGIN_CONTAINER_NAME = local.rejected_login_logs_container_name
 
+      // PLATFORM INTERNAL API
+      PLATFORM_PROXY_API_URL = "https://proxy.internal.io.pagopa.it"
     }
   }
 }
