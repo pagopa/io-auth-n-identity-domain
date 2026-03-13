@@ -19,6 +19,8 @@ import {
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import { FiscalCode, IPString } from "@pagopa/ts-commons/lib/strings";
 import * as t from "io-ts";
+import * as E from "fp-ts/lib/Either";
+import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 
 // All concrete event types supported by this tool, plus the "mixed" sentinel.
 const EVENT_TYPE_CHOICES = [
@@ -75,6 +77,12 @@ const argv = yargs(hideBin(process.argv))
     if (args.t === "login" && !args.lt) {
       throw new Error('--lt (loginType) is required when --type is "login"');
     }
+    const decodedFiscalCode = FiscalCode.decode(args.fc);
+    if (E.isLeft(decodedFiscalCode)) {
+      throw new Error(
+        `--fc (fiscalCode) input is invalid: ${readableReportSimplified(decodedFiscalCode.left)}`,
+      );
+    }
     return true;
   })
   .strict()
@@ -85,6 +93,7 @@ const numberOfMessages = argv.n;
 const desiredEventType = argv.t as EventTypeChoice;
 const fullyQualifiedNamespace = argv.fqdn;
 const topicName = argv.topic;
+// valid as fiscalCode by yargs check
 const fiscalCode = argv.fc;
 const desiredLoginType = argv.lt as LoginTypeEnum | undefined;
 const clientIp = "127.0.0.1";
@@ -148,12 +157,12 @@ const generateBody = (
 };
 
 const generateMessage = (
-  fc: string,
+  fc: FiscalCode,
   eventType: EventTypeEnum,
   loginType: LoginTypeEnum,
   ip: IPString,
 ): ServiceBusMessage => ({
-  body: generateBody(fc as FiscalCode, eventType, loginType, ip),
+  body: generateBody(fc, eventType, loginType, ip),
   contentType: "application/json",
   applicationProperties: { eventType },
   sessionId: fc,
@@ -186,7 +195,7 @@ async function main(): Promise<void> {
         desiredEventType === "mixed" ? generateLoginType() : desiredLoginType;
 
       const message = generateMessage(
-        fiscalCode,
+        fiscalCode as FiscalCode,
         eventType,
         loginType as LoginTypeEnum,
         clientIp as IPString,
