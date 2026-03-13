@@ -44,7 +44,7 @@ pnpm --filter utilities service:bus:sender -- \
   --fqdn <service-bus-fqdn> \
   --topic <topic-name> \
   --fc <fiscal-code> \
-  --type <login|logout|mixed> \
+  --type <login|logout|rejected_login|mixed> \
   [--loginType <lv|legacy>] \
   [--number <n>]
 ```
