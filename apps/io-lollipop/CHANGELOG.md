@@ -1,5 +1,11 @@
 # io-lollipop
 
+## 1.19.0
+
+### Minor Changes
+
+- 17a0b25: Update dependencies
+
 ## 1.18.0
 
 ### Minor Changes

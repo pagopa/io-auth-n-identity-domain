@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.32.0
+
+### Minor Changes
+
+- 2df579f: Update dependencies
+
 ## 5.31.0
 
 ### Minor Changes
