@@ -214,8 +214,8 @@ catalogs:
       specifier: ^2.6.9
       version: 2.7.0
     nodemailer:
-      specifier: ^6.10.0
-      version: 6.10.0
+      specifier: ^7.0.0
+      version: 7.0.13
     oval:
       specifier: ^1.0.0
       version: 1.0.0
@@ -715,7 +715,7 @@ importers:
         version: 2.7.0
       nodemailer:
         specifier: 'catalog:'
-        version: 6.10.0
+        version: 7.0.13
       redis:
         specifier: 'catalog:'
         version: 4.7.1
@@ -845,7 +845,7 @@ importers:
         version: 2.7.0
       nodemailer:
         specifier: 'catalog:'
-        version: 6.10.0
+        version: 7.0.13
     devDependencies:
       '@azure/functions':
         specifier: ^3.5.0
@@ -5202,11 +5202,12 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   globals@13.24.0:
     resolution: {integrity: sha512-AhO5QUcj8llrbG09iWhPU2B204J1xnPeL8kQmVorSsy+Sjj1sk8gIyh6cUocGmH4L0UuhAJy+hJMRA4mgA4mFQ==}
@@ -6216,6 +6217,10 @@ packages:
 
   nodemailer@6.10.0:
     resolution: {integrity: sha512-SQ3wZCExjeSatLE/HBaXS5vqUOQk6GtBdIIKxiFdmm01mOQZX/POJkO3SUX1wDiYcwUOJwT23scFSC9fY2H8IA==}
+    engines: {node: '>=6.0.0'}
+
+  nodemailer@7.0.13:
+    resolution: {integrity: sha512-PNDFSJdP+KFgdsG3ZzMXCgquO7I6McjY2vlqILjtJd0hy8wEvtugS9xKRF2NWlPNGxvLCXlTNIae4serI7dinw==}
     engines: {node: '>=6.0.0'}
 
   normalize-package-data@2.5.0:
@@ -13923,6 +13928,8 @@ snapshots:
       '@sendgrid/mail': 6.5.5
 
   nodemailer@6.10.0: {}
+
+  nodemailer@7.0.13: {}
 
   normalize-package-data@2.5.0:
     dependencies:
