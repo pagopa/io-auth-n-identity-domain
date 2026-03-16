@@ -1694,6 +1694,43 @@ describe("AuthenticationController#acs service bus login events", () => {
   });
 });
 
+describe("AuthenticationController#acs proxy cache del", () => {
+  const mockTokens = [mockSessionToken];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("should delete proxy cache for the user", async () => {
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.of(mockTokens));
+
+    const response = await acs({ ...dependencies })(validUserPayload);
+    response.apply(res);
+
+    expect(mockPlatformInternalAPIService.cacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockPlatformInternalAPIService.cacheDelSessionToken).toHaveBeenCalledWith(expect.objectContaining({ sessionToken: mockTokens[0] }));
+  });
+
+  test("should not call cacheDelSessionToken if readSessionInfoKeys returns an empty array", async () => {
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.of([]));
+
+    const response = await acs({ ...dependencies })(validUserPayload);
+    response.apply(res);
+
+    expect(mockPlatformInternalAPIService.cacheDelSessionToken).not.toHaveBeenCalled();
+  });
+
+  test("should not call cacheDelSessionToken if readSessionInfoKeys returns an error", async () => {
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.left(new Error("Error")));
+
+    const response = await acs({ ...dependencies })(validUserPayload);
+    response.apply(res);
+
+    expect(mockPlatformInternalAPIService.cacheDelSessionToken).not.toHaveBeenCalled();
+  });
+
+});
+
 describe("AuthenticationController#acsTest", () => {
   const acsSpyOn = vi.spyOn(AuthController, "acs");
   beforeEach(() => {
