@@ -323,6 +323,23 @@ const readSessionInfoKeys =
       arrayStringReplyAsync,
     );
 
+export const retrieveSessionInfoKeys =
+  (redisClientSelector: RedisClientSelectorType) =>
+  async (fiscalCode: FiscalCode): Promise<E.Either<Error, ReadonlyArray<string>>> =>
+    pipe(
+      await readSessionInfoKeys(redisClientSelector)(fiscalCode),
+      E.orElseW((err) =>
+        err === RedisRepo.sessionNotFoundError
+          ? E.right<Error, ReadonlyArray<string>>([])
+          : E.left<Error, ReadonlyArray<string>>(err),
+      ),
+    );
+
+export const removePrefixFromSessionInfoKey = (key: string): string =>
+  key.replace(RedisRepo.sessionInfoKeyPrefix, "");
+
+export const removePrefixFromSessionInfoKeys = (keys: ReadonlyArray<string>): ReadonlyArray<string> =>
+  keys.map(removePrefixFromSessionInfoKey);
 // ---------------------------------
 // User tokens
 // ---------------------------------

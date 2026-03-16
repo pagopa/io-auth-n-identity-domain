@@ -181,6 +181,8 @@ export const newApp: (
     isUserElegibleForValidationCookie,
     AuthSessionsTopicRepository,
     authSessionsTopicSender: authSessionsTopicServiceBusSender,
+    platformInternalAPIService: PlatformInternalService,
+    platformInternalAPIClient: APIClients.platformInternalAPIClient,
   };
 
   setupExternalEndpoints(

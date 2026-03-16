@@ -42,7 +42,9 @@ import * as B from "fp-ts/lib/boolean";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as RR from "fp-ts/lib/ReadonlyRecord";
 import * as O from "fp-ts/Option";
+import * as ROA from "fp-ts/lib/ReadonlyArray";
 import * as RT from "fp-ts/ReaderTask";
+import * as RTE from "fp-ts/ReaderTaskEither";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import {
@@ -70,6 +72,7 @@ import {
   AuthenticationLockService,
   LoginService,
   LollipopService,
+  PlatformInternalServiceDependency,
   ProfileService,
   RedisSessionStorageService,
   TokenService,
@@ -154,7 +157,8 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   CreateNewProfileDependencies &
   NotificationsRepo.NotificationsueueDeps &
   AppInsightsDeps &
-  AuthSessionEventsRepo.AuthSessionEventsDeps & {
+  AuthSessionEventsRepo.AuthSessionEventsDeps & 
+  PlatformInternalServiceDependency & {
     getClientErrorRedirectionUrl: (
       params: ClientErrorRedirectionUrlParams,
     ) => UrlFromString;
@@ -223,6 +227,23 @@ export const acs: (
     }
 
     const currentUserFiscalCodeOption = currentUserValidationResult.right;
+
+    const errorOrSessionInfoKeys = 
+        (await RedisSessionStorageService
+          .retrieveSessionInfoKeys(deps.redisClientSelector)(spidUser.fiscalNumber))
+
+    if (E.isLeft(errorOrSessionInfoKeys)) {
+        log.error(
+          "acs: error reading session info keys from Redis [%s]",
+          errorOrSessionInfoKeys.left,
+        );
+        return validationCookieClearanceErrorInternal(
+          "Error while reading session info keys from Redis",
+        );
+    }
+
+    const sessionInfoKeys = RedisSessionStorageService
+      .removePrefixFromSessionInfoKeys(errorOrSessionInfoKeys.right) as ReadonlyArray<SessionToken>;
 
     if (
       isDifferentUserTryingToLogin(
@@ -929,6 +950,20 @@ export const acs: (
       E.toUnion,
     );
   };
+
+const cacheDelSessionToken = (
+  sessionToken: SessionToken,
+) : RTE.ReaderTaskEither<AcsDependencies, Error, true> => 
+  (deps) =>
+    deps.platformInternalAPIService.cacheDelSessionToken({
+      ...deps,
+      sessionToken: sessionToken,
+    });
+
+export const cacheDelSessionTokens = (
+  sessionTokens: ReadonlyArray<SessionToken>,
+) : RTE.ReaderTaskEither<AcsDependencies, Error, ReadonlyArray<true>>  =>
+  ROA.traverse(RTE.ApplicativePar)(cacheDelSessionToken)(sessionTokens);
 
 const isDifferentUserTryingToLogin = (
   spidUserFiscalCode: FiscalCode,
