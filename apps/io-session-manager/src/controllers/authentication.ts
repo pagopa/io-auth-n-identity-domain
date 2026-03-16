@@ -279,6 +279,8 @@ export const acs: (
       // emit event for Audit Logs (Failsafe in case of error emit custom event) fire and forget
       await emitRejectedLoginEventWithTelemetry(rejectedLoginEvent)(deps)();
 
+      await cacheDelSessionTokens(sessionInfoKeys)(deps)();
+
       return pipe(
         deps.isUserElegibleForIoLoginUrlScheme(spidUser.fiscalNumber),
         B.fold(
@@ -334,6 +336,8 @@ export const acs: (
 
       // emit event for Audit Logs (Failsafe in case of error emit custom event) fire and forget
       await emitRejectedLoginEventWithTelemetry(rejectedLoginEvent)(deps)();
+
+      await cacheDelSessionTokens(sessionInfoKeys)(deps)();
 
       return pipe(
         deps.isUserElegibleForIoLoginUrlScheme(spidUser.fiscalNumber),
@@ -455,6 +459,8 @@ export const acs: (
 
         // emit event for Audit Logs (Failsafe in case of error emit custom event) fire and forget
         await emitRejectedLoginEventWithTelemetry(rejectedLoginEvent)(deps)();
+
+        await cacheDelSessionTokens(sessionInfoKeys)(deps)();
 
         return pipe(
           deps.isUserElegibleForIoLoginUrlScheme(spidUser.fiscalNumber),
@@ -941,6 +947,8 @@ export const acs: (
       return errorOrEventEmitted.left;
     }
 
+    await cacheDelSessionTokens(sessionInfoKeys)(deps)();
+
     return pipe(
       deps.isUserElegibleForIoLoginUrlScheme(user.fiscal_code),
       B.fold(
@@ -960,7 +968,7 @@ const cacheDelSessionToken = (
       sessionToken: sessionToken,
     });
 
-export const cacheDelSessionTokens = (
+const cacheDelSessionTokens = (
   sessionTokens: ReadonlyArray<SessionToken>,
 ) : RTE.ReaderTaskEither<AcsDependencies, Error, ReadonlyArray<true>>  =>
   ROA.traverse(RTE.ApplicativePar)(cacheDelSessionToken)(sessionTokens);
