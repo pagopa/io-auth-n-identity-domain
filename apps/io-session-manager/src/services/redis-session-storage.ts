@@ -330,7 +330,7 @@ export const retrieveSessionInfoKeys =
       await readSessionInfoKeys(redisClientSelector)(fiscalCode),
       E.orElseW((err) =>
         err === RedisRepo.sessionNotFoundError
-          ? E.right<Error, ReadonlyArray<string>>([])
+          ? E.right<Error, ReadonlyArray<string>>(ROA.empty)
           : E.left<Error, ReadonlyArray<string>>(err),
       ),
     );
