@@ -228,23 +228,6 @@ export const acs: (
 
     const currentUserFiscalCodeOption = currentUserValidationResult.right;
 
-    const errorOrSessionInfoKeys = 
-        (await RedisSessionStorageService
-          .retrieveSessionInfoKeys(deps.redisClientSelector)(spidUser.fiscalNumber))
-
-    if (E.isLeft(errorOrSessionInfoKeys)) {
-        log.error(
-          "acs: error reading session info keys from Redis [%s]",
-          errorOrSessionInfoKeys.left,
-        );
-        return validationCookieClearanceErrorInternal(
-          "Error while reading session info keys from Redis",
-        );
-    }
-
-    const sessionInfoKeys = RedisSessionStorageService
-      .removePrefixFromSessionInfoKeys(errorOrSessionInfoKeys.right) as ReadonlyArray<SessionToken>;
-
     if (
       isDifferentUserTryingToLogin(
         spidUser.fiscalNumber,
@@ -715,6 +698,22 @@ export const acs: (
     ) {
       return errorOrActivatedPubKey.left.value;
     }
+
+    const errorOrSessionInfoKeys = await RedisSessionStorageService
+          .retrieveSessionInfoKeys(deps.redisClientSelector)(spidUser.fiscalNumber);
+
+    if (E.isLeft(errorOrSessionInfoKeys)) {
+        log.error(
+          "acs: error reading session info keys from Redis [%s]",
+          errorOrSessionInfoKeys.left,
+        );
+        return validationCookieClearanceErrorInternal(
+          "Error while reading session info keys from Redis",
+        );
+    }
+
+    const sessionInfoKeys = RedisSessionStorageService
+      .removePrefixFromSessionInfoKeys(errorOrSessionInfoKeys.right) as ReadonlyArray<SessionToken>;
 
     // Attempt to create a new session object while we fetch an existing profile
     // for the user
