@@ -714,6 +714,12 @@ export const acs: (
 
     const sessionInfoKeys = RedisSessionStorageService
       .removePrefixFromSessionInfoKeys(errorOrSessionInfoKeys.right) as ReadonlyArray<SessionToken>;
+    const errorOrCacheDelResult = await cacheDelSessionTokens(sessionInfoKeys)(deps)();
+
+    if (E.isLeft(errorOrCacheDelResult)) {
+      log.error(`acs: error clearing cached session tokens [${errorOrCacheDelResult.left.message}]`);
+      return validationCookieClearanceErrorInternal("Error while clearing cached session tokens");
+    }
 
     // Attempt to create a new session object while we fetch an existing profile
     // for the user
@@ -938,12 +944,6 @@ export const acs: (
 
     if (E.isLeft(errorOrEventEmitted)) {
       return errorOrEventEmitted.left;
-    }
-
-    const errorOrCacheDelResult = await cacheDelSessionTokens(sessionInfoKeys)(deps)();
-    if (E.isLeft(errorOrCacheDelResult)) {
-      log.error(`acs: error clearing cached session tokens [${errorOrCacheDelResult.left.message}]`);
-      return validationCookieClearanceErrorInternal("Error while clearing cached session tokens");
     }
 
     return pipe(
