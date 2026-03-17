@@ -335,7 +335,7 @@ export const retrieveSessionInfoKeys =
       ),
     );
 
-export const removePrefixFromSessionInfoKey = (key: string): string =>
+const removePrefixFromSessionInfoKey = (key: string): string =>
   key.replace(RedisRepo.sessionInfoKeyPrefix, "");
 
 export const removePrefixFromSessionInfoKeys = (keys: ReadonlyArray<string>): ReadonlyArray<string> =>
