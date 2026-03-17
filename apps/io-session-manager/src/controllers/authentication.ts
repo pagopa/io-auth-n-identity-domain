@@ -279,12 +279,6 @@ export const acs: (
       // emit event for Audit Logs (Failsafe in case of error emit custom event) fire and forget
       await emitRejectedLoginEventWithTelemetry(rejectedLoginEvent)(deps)();
 
-      const errorOrCacheDelResult = await cacheDelSessionTokens(sessionInfoKeys)(deps)();
-      if (E.isLeft(errorOrCacheDelResult)) {
-        log.error(`acs: error clearing cached session tokens [${errorOrCacheDelResult.left.message}]`);
-        return validationCookieClearanceErrorInternal("Error while clearing cached session tokens");
-      }
-
       return pipe(
         deps.isUserElegibleForIoLoginUrlScheme(spidUser.fiscalNumber),
         B.fold(
