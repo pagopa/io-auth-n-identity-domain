@@ -700,7 +700,7 @@ export const acs: (
     }
 
     const errorOrSessionInfoKeys = await RedisSessionStorageService
-          .retrieveSessionInfoKeys(deps.redisClientSelector)(spidUser.fiscalNumber);
+      .retrieveSessionInfoKeys(deps.redisClientSelector)(spidUser.fiscalNumber);
 
     if (E.isLeft(errorOrSessionInfoKeys)) {
         log.error(
