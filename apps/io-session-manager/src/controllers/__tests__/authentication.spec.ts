@@ -192,7 +192,7 @@ const mockSet = vi
   .mockReturnValue(() => TE.of(true));
 const mockReadSessionInfoKeys = vi
   .spyOn(RedisSessionStorageService, "retrieveSessionInfoKeys")
-  .mockReturnValue(TE.right([]));
+  .mockReturnValue(TE.right([mockSessionToken]));
 const mockGetProfile = vi
   .spyOn(ProfileService, "getProfile")
   .mockReturnValue(

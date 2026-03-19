@@ -88,7 +88,7 @@ const mockSetSession = vi.spyOn(RedisSessionStorageService, "set");
 
 const mockReadSessionInfoKeys = vi
   .spyOn(RedisSessionStorageService, "retrieveSessionInfoKeys")
-  .mockReturnValue(TE.right([]));
+  .mockReturnValue(TE.right([mockSessionToken]));
 
 const sessionTTL = 60 * 15;
 const aClientIP = "10.0.0.2" as IPString;
@@ -154,8 +154,6 @@ describe("fastLoginController#fastLogin", () => {
     const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
     mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
     mockSetSession.mockReturnValue(mockSetUser);
-    // Returning a session token to trigger the cache deletion
-    mockReadSessionInfoKeys.mockReturnValueOnce(TE.right([mockSessionToken]));
 
     const response = await fastLoginEndpoint(fastLoginBaseDeps)();
 
