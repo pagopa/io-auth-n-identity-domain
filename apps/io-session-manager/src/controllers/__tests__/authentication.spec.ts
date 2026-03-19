@@ -190,8 +190,6 @@ vi.spyOn(RedisSessionStorageService, "delLollipopDataForUser").mockReturnValue(
 const mockSet = vi
   .spyOn(RedisSessionStorageService, "set")
   .mockReturnValue(() => TE.of(true));
-// This mock simulates the case where there are no session info keys for the user,
-// which is the scenario treated as default (i.e. no active session for the user) in the acs function.
 const mockReadSessionInfoKeys = vi
   .spyOn(RedisSessionStorageService, "retrieveSessionInfoKeys")
   .mockReturnValue(TE.right([]));

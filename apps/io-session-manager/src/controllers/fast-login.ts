@@ -163,11 +163,10 @@ type FastLoginDeps<T extends ResLocals> =
   FnFastLoginRepo.FnFastLoginRepositoryDeps & {
     sessionTTL: number;
     locals?: T;
-  } & 
+  } & WithIP &
   RedisRepositoryDeps &
   PlatformInternalServiceDependency &
-  AppInsightsDeps & 
-  WithIP;
+  AppInsightsDeps;
 
 type FastLoginHandler = <T extends ResLocals>(
   deps: RedisRepositoryDeps & FastLoginDeps<T>,
