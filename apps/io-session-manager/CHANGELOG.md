@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.23.1
+
+### Patch Changes
+
+- 5190cd0: Update Openapi ref
+
 ## 1.23.0
 
 ### Minor Changes
