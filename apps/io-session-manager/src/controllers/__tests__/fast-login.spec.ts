@@ -121,7 +121,7 @@ const fastLoginBaseDeps = {
   clientIP: aClientIP,
   locals: fastLoginLollipopLocals,
   sessionTTL: FastLoginConfig.lvTokenDurationSecs,
-  platformInternalAPIService: mockPlatformInternalAPIService,
+  platformInternalAPIClient: mockPlatformInternalAPIService,
 };
 
 // eslint-disable-next-line max-lines-per-function

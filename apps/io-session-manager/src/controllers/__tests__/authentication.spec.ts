@@ -111,6 +111,7 @@ import {
   acsTest,
 } from "../authentication";
 import { mockPlatformInternalAPIService } from "../../__mocks__/platform-internal.mocks";
+import { PlatformInternalAPIClient } from "../../../dist/repositories/platform-internal-client";
 
 const dependencies: AcsDependencies = {
   redisClientSelector: mockRedisClientSelector,
@@ -132,6 +133,7 @@ const dependencies: AcsDependencies = {
   isUserElegibleForValidationCookie: () => false,
   AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
   authSessionsTopicSender: mockServiceBusSender,
+  platformInternalAPIClient: {} as PlatformInternalAPIClient,
   platformInternalAPIService: mockPlatformInternalAPIService
 };
 

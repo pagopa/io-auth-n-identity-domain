@@ -43,8 +43,8 @@ import { isUserElegibleForFastLogin } from "../config/fast-login";
 import { FnFastLoginRepo } from "../repositories";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 import { cacheDelSessionTokens } from "../services/platform-internal";
-import { PlatformInternalClientDeps } from "../repositories/platform-internal-client";
 import { AppInsightsDeps } from "../utils/appinsights";
+import { PlatformInternalServiceDependency } from "../services";
 
 const generateSessionTokens = (
   userFiscalCode: FiscalCode,
@@ -166,7 +166,7 @@ type FastLoginDeps<T extends ResLocals> =
     locals?: T;
   } & 
   RedisRepositoryDeps &
-  PlatformInternalClientDeps &
+  PlatformInternalServiceDependency &
   AppInsightsDeps & 
   WithIP;
 
