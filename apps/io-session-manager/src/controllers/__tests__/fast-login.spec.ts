@@ -154,6 +154,8 @@ describe("fastLoginController#fastLogin", () => {
     const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
     mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
     mockSetSession.mockReturnValue(mockSetUser);
+    // Returning a session token to trigger the cache deletion
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.right([mockSessionToken]));
 
     const response = await fastLoginEndpoint(fastLoginBaseDeps)();
 
@@ -169,6 +171,8 @@ describe("fastLoginController#fastLogin", () => {
       redisClientSelector: mockRedisClientSelector,
     });
 
+    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([mockSessionToken]);
+
     expect(mockSetSession).toHaveBeenCalledTimes(1);
     expect(mockSetSession).toHaveBeenCalledWith(
       mockRedisClientSelector,
@@ -178,26 +182,6 @@ describe("fastLoginController#fastLogin", () => {
     expect(mockSetUser).toHaveBeenCalledWith(validUserSetPayload);
 
     expect(mockGetNewToken).toHaveBeenCalledTimes(7);
-
-    expect(response).toEqual(
-      E.right(
-        toExpectedResponse(
-          ResponseSuccessJson(validFastLoginControllerResponse),
-        ),
-      ),
-    );
-  });
-
-    it("should create a valid session and clean proxy cache when session tokens are present", async () => {
-    const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
-    mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
-    mockSetSession.mockReturnValue(mockSetUser);
-    // Returning a session token to trigger the cache deletion
-    mockReadSessionInfoKeys.mockReturnValueOnce(TE.right([mockSessionToken]));
-
-    const response = await fastLoginEndpoint(fastLoginBaseDeps)();
-
-    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([mockSessionToken]);
 
     expect(response).toEqual(
       E.right(
@@ -427,6 +411,21 @@ describe("fastLoginController#fastLogin", () => {
       expect(response).toEqual(
         constructInternalError(`${errorPrefix}${errorMessage}`),
       );
+    });
+
+    it("should NOT call delete session tokens when there are no session tokens", async () => {
+      const errorPrefix = "Error while deleting session tokens: "
+      const errorMessage = "Proxy error";
+
+      const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
+      mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
+      mockSetSession.mockReturnValue(mockSetUser);
+
+      mockReadSessionInfoKeys.mockReturnValueOnce(TE.right([]));
+
+      const response = await fastLoginEndpoint(fastLoginBaseDeps)();
+      
+      expect(mockCacheDelSessionTokens).not.toHaveBeenCalled();
     });
   });
 });
