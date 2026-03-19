@@ -34,7 +34,7 @@ import { ResLocals } from "../utils/express";
 import { withLollipopLocals } from "../utils/lollipop";
 import { FastLoginResponse as LCFastLoginResponse } from "../generated/fast-login-api/FastLoginResponse";
 import { makeProxyUserFromSAMLResponse } from "../utils/spid";
-import { isBlockedUser, set } from "../services/redis-session-storage";
+import { isBlockedUser, removePrefixFromSessionInfoKeys, retrieveSessionInfoKeys, set } from "../services/redis-session-storage";
 import { FastLoginResponse } from "../types/fast-login";
 import { RedisClientSelectorType } from "../types/redis";
 import { RedisRepositoryDeps } from "../repositories/redis";
@@ -42,6 +42,8 @@ import { WithIP } from "../utils/network";
 import { isUserElegibleForFastLogin } from "../config/fast-login";
 import { FnFastLoginRepo } from "../repositories";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
+import { PlatformInternalServiceDependency } from "../services";
+import { cacheDelSessionTokens } from "../services/platform-internal";
 
 const generateSessionTokens = (
   userFiscalCode: FiscalCode,
@@ -161,6 +163,7 @@ type FastLoginDeps<T extends ResLocals> =
   FnFastLoginRepo.FnFastLoginRepositoryDeps & {
     sessionTTL: number;
     locals?: T;
+    platformInternalAPIService: PlatformInternalServiceDependency;
   } & WithIP;
 
 type FastLoginHandler = <T extends ResLocals>(
@@ -175,6 +178,7 @@ type FastLoginHandler = <T extends ResLocals>(
 
 export const fastLoginEndpoint: FastLoginHandler = ({
   redisClientSelector,
+  platformInternalAPIService,
   fnFastLoginAPIClient,
   sessionTTL,
   clientIP,
@@ -247,6 +251,18 @@ export const fastLoginEndpoint: FastLoginHandler = ({
             "Could not parse saml response from Lollipop consumer",
           ),
         ),
+      ),
+    ),
+    TE.chainFirstW(({ userFiscalCode }) => 
+      pipe(
+          TE.tryCatch(
+            () => retrieveSessionInfoKeys(redisClientSelector)(userFiscalCode),
+            () => ResponseErrorInternal("Error while retrieving session info keys"),
+          ),
+          TE.chainEitherKW(identity),
+          TE.map(removePrefixFromSessionInfoKeys),
+          TE.chainW((tokens) => cacheDelSessionTokens(tokens as ReadonlyArray<SessionToken>)(platformInternalAPIService)),
+          TE.mapLeft(() => ResponseErrorInternal("Error while deleting session tokens from internal proxy")),
       ),
     ),
     TE.bindW("tokens", ({ lollipopLocals }) =>
