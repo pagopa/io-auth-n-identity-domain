@@ -39,7 +39,7 @@ import {
   aSignatureInput,
   anAssertionRef,
 } from "../../__mocks__/lollipop.mocks";
-import { aFiscalCode } from "../../__mocks__/user.mocks";
+import { aFiscalCode, mockSessionToken } from "../../__mocks__/user.mocks";
 import { mockRedisClientSelector } from "../../__mocks__/redis.mocks";
 import { RedisSessionStorageService } from "../../services";
 import { BadRequest } from "../../generated/fast-login-api/BadRequest";
@@ -47,7 +47,7 @@ import * as spidUtils from "../../utils/spid";
 import { UserWithoutTokens } from "../../types/user";
 import { FastLoginConfig } from "../../config";
 import { toExpectedResponse } from "../../__tests__/utils";
-import { mockPlatformInternalAPIService } from "../../__mocks__/platform-internal.mocks";
+import { mockCacheDelSessionTokens, mockPlatformInternalAPIService } from "../../__mocks__/platform-internal.mocks";
 import { PlatformInternalAPIClient } from "../../../dist/repositories/platform-internal-client";
 
 const aRandomToken = "RANDOMTOKEN";
@@ -128,28 +128,29 @@ const fastLoginBaseDeps = {
 
 // eslint-disable-next-line max-lines-per-function
 describe("fastLoginController#fastLogin", () => {
+  const validUserSetPayload = {
+    session_token: aRandomToken as SessionToken,
+    bpd_token: aRandomToken as BPDToken,
+    fims_token: aRandomToken as FIMSToken,
+    wallet_token: aRandomToken as WalletToken,
+    zendesk_token: aRandomToken as ZendeskToken,
+    myportal_token: aRandomToken as MyPortalToken,
+    created_at: expect.any(Number),
+    date_of_birth: "1970-01-01",
+    family_name: "AgID",
+    fiscal_code: expect.any(String),
+    name: "SpidValidator",
+    session_tracking_id: aRandomToken,
+    spid_email: "spid.tech@agid.gov.it",
+    spid_idp: "http://localhost:8080",
+    spid_level: SpidLevelEnum["https://www.spid.gov.it/SpidL2"],
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("should create a valid session of 15 minutes given a valid payload", async () => {
-    const validUserSetPayload = {
-      session_token: aRandomToken as SessionToken,
-      bpd_token: aRandomToken as BPDToken,
-      fims_token: aRandomToken as FIMSToken,
-      wallet_token: aRandomToken as WalletToken,
-      zendesk_token: aRandomToken as ZendeskToken,
-      myportal_token: aRandomToken as MyPortalToken,
-      created_at: expect.any(Number),
-      date_of_birth: "1970-01-01",
-      family_name: "AgID",
-      fiscal_code: expect.any(String),
-      name: "SpidValidator",
-      session_tracking_id: aRandomToken,
-      spid_email: "spid.tech@agid.gov.it",
-      spid_idp: "http://localhost:8080",
-      spid_level: SpidLevelEnum["https://www.spid.gov.it/SpidL2"],
-    };
     const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
     mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
     mockSetSession.mockReturnValue(mockSetUser);
@@ -177,6 +178,26 @@ describe("fastLoginController#fastLogin", () => {
     expect(mockSetUser).toHaveBeenCalledWith(validUserSetPayload);
 
     expect(mockGetNewToken).toHaveBeenCalledTimes(7);
+
+    expect(response).toEqual(
+      E.right(
+        toExpectedResponse(
+          ResponseSuccessJson(validFastLoginControllerResponse),
+        ),
+      ),
+    );
+  });
+
+    it("should create a valid session and clean proxy cache when session tokens are present", async () => {
+    const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
+    mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
+    mockSetSession.mockReturnValue(mockSetUser);
+    // Returning a session token to trigger the cache deletion
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.right([mockSessionToken]));
+
+    const response = await fastLoginEndpoint(fastLoginBaseDeps)();
+
+    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([mockSessionToken]);
 
     expect(response).toEqual(
       E.right(
@@ -350,6 +371,63 @@ describe("fastLoginController#fastLogin", () => {
     expect(mockSetUser).toHaveBeenCalledTimes(1);
     expect(mockGetNewToken).toHaveBeenCalledTimes(7);
     expect(response).toEqual(constructInternalError(expectedErrorMessage));
+  });
+
+  describe("fastLoginController#fastLogin - error handling during proxy cache deletion", () => {
+    it("should return 500 when cannot retrieve session info keys due to retrieval error", async () => {
+      const errorPrefix = "Redis error while retrieving session info keys: "
+      const errorMessage = "Redis error";
+
+      const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
+      mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
+      mockSetSession.mockReturnValue(mockSetUser);
+
+      mockReadSessionInfoKeys.mockReturnValueOnce(TE.left(new Error(errorMessage)));
+
+      const response = await fastLoginEndpoint(fastLoginBaseDeps)();
+      
+      expect(mockCacheDelSessionTokens).not.toHaveBeenCalled();
+      expect(response).toEqual(
+        constructInternalError(`${errorPrefix}${errorMessage}`),
+      );
+    });
+
+    it("should return 500 when cannot retrieve session info keys due to Promise rejection", async () => {
+      const errorPrefix = "Error while retrieving session info keys: "
+      const errorMessage = "Generic error";
+
+      const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
+      mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
+      mockSetSession.mockReturnValue(mockSetUser);
+
+      mockReadSessionInfoKeys.mockReturnValueOnce(() => Promise.reject(new Error(errorMessage)));
+
+      const response = await fastLoginEndpoint(fastLoginBaseDeps)();
+      
+      expect(mockCacheDelSessionTokens).not.toHaveBeenCalled();
+      expect(response).toEqual(
+        constructInternalError(`${errorPrefix}${errorMessage}`),
+      );
+    });
+
+    it("should return 500 when cannot delete session tokens", async () => {
+      const errorPrefix = "Error while deleting session tokens: "
+      const errorMessage = "Proxy error";
+
+      const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
+      mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
+      mockSetSession.mockReturnValue(mockSetUser);
+
+      mockReadSessionInfoKeys.mockReturnValueOnce(TE.right([mockSessionToken]));
+      mockCacheDelSessionTokens.mockImplementationOnce(() => () => TE.left(new Error(errorMessage)));
+
+      const response = await fastLoginEndpoint(fastLoginBaseDeps)();
+      
+      expect(mockCacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([mockSessionToken]);
+      expect(response).toEqual(
+        constructInternalError(`${errorPrefix}${errorMessage}`),
+      );
+    });
   });
 });
 

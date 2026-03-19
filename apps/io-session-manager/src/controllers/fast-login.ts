@@ -42,7 +42,6 @@ import { WithIP } from "../utils/network";
 import { isUserElegibleForFastLogin } from "../config/fast-login";
 import { FnFastLoginRepo } from "../repositories";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
-import { cacheDelSessionTokens } from "../services/platform-internal";
 import { AppInsightsDeps } from "../utils/appinsights";
 import { PlatformInternalServiceDependency } from "../services";
 
@@ -187,6 +186,7 @@ export const fastLoginEndpoint: FastLoginHandler = ({
   clientIP,
   locals,
   platformInternalAPIClient,
+  platformInternalAPIService,
   appInsightsTelemetryClient,
 }) =>
   pipe(
@@ -258,20 +258,33 @@ export const fastLoginEndpoint: FastLoginHandler = ({
         ),
       ),
     ),
-    TE.chainFirstW(({ userFiscalCode }) => 
+    TE.bindW("existing_session_tokens", ({ userFiscalCode }) =>
       pipe(
-          TE.tryCatch(
-            () => retrieveSessionInfoKeys(redisClientSelector)(userFiscalCode),
-            () => ResponseErrorInternal("Error while retrieving session info keys"),
-          ),
-          TE.chainEitherKW(identity),
-          TE.map(removePrefixFromSessionInfoKeys),
-          TE.chainW((tokens) => cacheDelSessionTokens(tokens as ReadonlyArray<SessionToken>)({
-              platformInternalAPIClient,
-              appInsightsTelemetryClient
-          })),
-          TE.mapLeft(() => ResponseErrorInternal("Error while deleting session tokens from internal proxy")),
-      ),
+        TE.tryCatch(
+          () => retrieveSessionInfoKeys(redisClientSelector)(userFiscalCode),
+          (err) => ResponseErrorInternal(
+            `Error while retrieving session info keys: ${err instanceof Error ? err.message : String(err)}`
+          )
+        ),
+        TE.chainEitherKW(
+          E.mapLeft(err => ResponseErrorInternal(
+            `Redis error while retrieving session info keys: ${err.message}`)
+          )
+        ),
+        TE.map(removePrefixFromSessionInfoKeys)
+      )
+    ),
+    TE.chainFirstW(({ existing_session_tokens }) =>
+      existing_session_tokens.length === 0
+        ? TE.right(void 0)
+        : pipe(
+            platformInternalAPIService.cacheDelSessionTokens(
+              existing_session_tokens as ReadonlyArray<SessionToken>
+            )({ platformInternalAPIClient, appInsightsTelemetryClient }),
+            TE.mapLeft((err) =>
+              ResponseErrorInternal(`Error while deleting session tokens: ${err instanceof Error ? err.message : String(err)}`)
+            )
+          )
     ),
     TE.bindW("tokens", ({ lollipopLocals }) =>
       generateSessionTokens(
