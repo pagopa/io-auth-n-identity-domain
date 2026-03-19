@@ -42,7 +42,6 @@ import { WithIP } from "../utils/network";
 import { isUserElegibleForFastLogin } from "../config/fast-login";
 import { FnFastLoginRepo } from "../repositories";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
-import { PlatformInternalServiceDependency } from "../services";
 import { cacheDelSessionTokens } from "../services/platform-internal";
 import { PlatformInternalClientDeps } from "../repositories/platform-internal-client";
 import { AppInsightsDeps } from "../utils/appinsights";
@@ -168,7 +167,8 @@ type FastLoginDeps<T extends ResLocals> =
   } & 
   RedisRepositoryDeps &
   PlatformInternalClientDeps &
-  AppInsightsDeps & WithIP;
+  AppInsightsDeps & 
+  WithIP;
 
 type FastLoginHandler = <T extends ResLocals>(
   deps: RedisRepositoryDeps & FastLoginDeps<T>,
