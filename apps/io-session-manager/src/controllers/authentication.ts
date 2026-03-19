@@ -112,7 +112,6 @@ import { getRequestIDFromResponse } from "../utils/spid";
 import { toAppUser, validateSpidUser } from "../utils/user";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 import { AuthenticationController } from ".";
-import { cacheDelSessionTokens } from "../services/platform-internal";
 
 // Minimum user age allowed to login if the Age limit is enabled
 export const AGE_LIMIT = 14;
@@ -715,7 +714,7 @@ export const acs: (
 
     const sessionInfoKeys = RedisSessionStorageService
       .removePrefixFromSessionInfoKeys(errorOrSessionInfoKeys.right) as ReadonlyArray<SessionToken>;
-    const errorOrCacheDelResult = await cacheDelSessionTokens(sessionInfoKeys)(deps)();
+    const errorOrCacheDelResult = await deps.platformInternalAPIService.cacheDelSessionTokens(sessionInfoKeys)(deps)();
 
     if (E.isLeft(errorOrCacheDelResult)) {
       log.error(`acs: error clearing cached session tokens [${errorOrCacheDelResult.left.message}]`);

@@ -192,7 +192,7 @@ const mockSet = vi
 // which is the scenario treated as default (i.e. no active session for the user) in the acs function.
 const mockReadSessionInfoKeys = vi
   .spyOn(RedisSessionStorageService, "retrieveSessionInfoKeys")
-  .mockReturnValue(TE.of([]));
+  .mockReturnValue(TE.right([]));
 const mockGetProfile = vi
   .spyOn(ProfileService, "getProfile")
   .mockReturnValue(
@@ -1702,31 +1702,32 @@ describe("AuthenticationController#acs proxy cache del", () => {
   });
 
   test("should delete proxy cache for the user", async () => {
-    mockReadSessionInfoKeys.mockReturnValueOnce(TE.of(mockTokens));
-
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.right(mockTokens));
+    console.log("### mockReadSessionInfoKeys return value", mockReadSessionInfoKeys.mock.results);
     const response = await acs({ ...dependencies })(validUserPayload);
     response.apply(res);
 
-    expect(mockPlatformInternalAPIService.cacheDelSessionToken).toHaveBeenCalledTimes(1);
-    expect(mockPlatformInternalAPIService.cacheDelSessionToken).toHaveBeenCalledWith(expect.objectContaining({ sessionToken: mockTokens[0] }));
+    expect(dependencies.platformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledTimes(1);
+    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledWith(mockTokens);
   });
 
-  test("should not call cacheDelSessionToken if readSessionInfoKeys returns an empty array", async () => {
+  test("should call cacheDelSessionTokens with an empty array when readSessionInfoKeys returns an empty array", async () => {
     mockReadSessionInfoKeys.mockReturnValueOnce(TE.of([]));
 
     const response = await acs({ ...dependencies })(validUserPayload);
     response.apply(res);
 
-    expect(mockPlatformInternalAPIService.cacheDelSessionToken).not.toHaveBeenCalled();
+    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledTimes(1);
+    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledWith([]);
   });
 
-  test("should not call cacheDelSessionToken if readSessionInfoKeys returns an error", async () => {
+  test("should not call cacheDelSessionTokens if readSessionInfoKeys returns an error", async () => {
     mockReadSessionInfoKeys.mockReturnValueOnce(TE.left(new Error("Error")));
 
     const response = await acs({ ...dependencies })(validUserPayload);
     response.apply(res);
 
-    expect(mockPlatformInternalAPIService.cacheDelSessionToken).not.toHaveBeenCalled();
+    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).not.toHaveBeenCalled();
   });
 
 });
