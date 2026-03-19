@@ -44,6 +44,8 @@ import { FnFastLoginRepo } from "../repositories";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 import { PlatformInternalServiceDependency } from "../services";
 import { cacheDelSessionTokens } from "../services/platform-internal";
+import { PlatformInternalClientDeps } from "../repositories/platform-internal-client";
+import { AppInsightsDeps } from "../utils/appinsights";
 
 const generateSessionTokens = (
   userFiscalCode: FiscalCode,
@@ -163,8 +165,10 @@ type FastLoginDeps<T extends ResLocals> =
   FnFastLoginRepo.FnFastLoginRepositoryDeps & {
     sessionTTL: number;
     locals?: T;
-    platformInternalAPIService: PlatformInternalServiceDependency;
-  } & WithIP;
+  } & 
+  RedisRepositoryDeps &
+  PlatformInternalClientDeps &
+  AppInsightsDeps & WithIP;
 
 type FastLoginHandler = <T extends ResLocals>(
   deps: RedisRepositoryDeps & FastLoginDeps<T>,
@@ -178,11 +182,12 @@ type FastLoginHandler = <T extends ResLocals>(
 
 export const fastLoginEndpoint: FastLoginHandler = ({
   redisClientSelector,
-  platformInternalAPIService,
   fnFastLoginAPIClient,
   sessionTTL,
   clientIP,
   locals,
+  platformInternalAPIClient,
+  appInsightsTelemetryClient,
 }) =>
   pipe(
     locals,
@@ -261,7 +266,10 @@ export const fastLoginEndpoint: FastLoginHandler = ({
           ),
           TE.chainEitherKW(identity),
           TE.map(removePrefixFromSessionInfoKeys),
-          TE.chainW((tokens) => cacheDelSessionTokens(tokens as ReadonlyArray<SessionToken>)(platformInternalAPIService)),
+          TE.chainW((tokens) => cacheDelSessionTokens(tokens as ReadonlyArray<SessionToken>)({
+              platformInternalAPIClient,
+              appInsightsTelemetryClient
+          })),
           TE.mapLeft(() => ResponseErrorInternal("Error while deleting session tokens from internal proxy")),
       ),
     ),

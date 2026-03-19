@@ -88,6 +88,7 @@ import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { isUserElegibleForValidationCookie } from "./config/validation-cookie";
+import { platform } from "os";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -502,6 +503,8 @@ function setupExternalEndpoints(
         redisClientSelector,
         fnFastLoginAPIClient: APIClients.fnFastLoginAPIClient,
         sessionTTL: fastLoginConfig.lvTokenDurationSecs,
+        platformInternalAPIService: PlatformInternalService,
+        platformInternalAPIClient: APIClients.platformInternalAPIClient,
       }),
       ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
     ),
