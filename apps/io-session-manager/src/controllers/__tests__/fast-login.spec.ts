@@ -47,6 +47,7 @@ import * as spidUtils from "../../utils/spid";
 import { UserWithoutTokens } from "../../types/user";
 import { FastLoginConfig } from "../../config";
 import { toExpectedResponse } from "../../__tests__/utils";
+import { mockPlatformInternalAPIService } from "../../__mocks__/platform-internal.mocks";
 
 const aRandomToken = "RANDOMTOKEN";
 const validFastLoginControllerResponse = {
@@ -84,6 +85,10 @@ const mockIsBlockedUser = vi.spyOn(RedisSessionStorageService, "isBlockedUser");
 
 const mockSetSession = vi.spyOn(RedisSessionStorageService, "set");
 
+const mockReadSessionInfoKeys = vi
+  .spyOn(RedisSessionStorageService, "retrieveSessionInfoKeys")
+  .mockReturnValue(TE.right([]));
+
 const sessionTTL = 60 * 15;
 const aClientIP = "10.0.0.2" as IPString;
 
@@ -116,6 +121,7 @@ const fastLoginBaseDeps = {
   clientIP: aClientIP,
   locals: fastLoginLollipopLocals,
   sessionTTL: FastLoginConfig.lvTokenDurationSecs,
+  platformInternalAPIService: mockPlatformInternalAPIService,
 };
 
 // eslint-disable-next-line max-lines-per-function
