@@ -48,6 +48,7 @@ import { UserWithoutTokens } from "../../types/user";
 import { FastLoginConfig } from "../../config";
 import { toExpectedResponse } from "../../__tests__/utils";
 import { mockPlatformInternalAPIService } from "../../__mocks__/platform-internal.mocks";
+import { PlatformInternalAPIClient } from "../../../dist/repositories/platform-internal-client";
 
 const aRandomToken = "RANDOMTOKEN";
 const validFastLoginControllerResponse = {
@@ -121,7 +122,8 @@ const fastLoginBaseDeps = {
   clientIP: aClientIP,
   locals: fastLoginLollipopLocals,
   sessionTTL: FastLoginConfig.lvTokenDurationSecs,
-  platformInternalAPIClient: mockPlatformInternalAPIService,
+  platformInternalAPIClient: {} as PlatformInternalAPIClient,
+  platformInternalAPIService: mockPlatformInternalAPIService,
 };
 
 // eslint-disable-next-line max-lines-per-function
