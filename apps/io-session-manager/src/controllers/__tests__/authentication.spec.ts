@@ -110,7 +110,7 @@ import {
   acs,
   acsTest,
 } from "../authentication";
-import { mockPlatformInternalAPIService } from "../../__mocks__/platform-internal.mocks";
+import { mockCacheDelSessionTokens, mockPlatformInternalAPIService } from "../../__mocks__/platform-internal.mocks";
 import { PlatformInternalAPIClient } from "../../../dist/repositories/platform-internal-client";
 
 const dependencies: AcsDependencies = {
@@ -1732,6 +1732,20 @@ describe("AuthenticationController#acs proxy cache del", () => {
       });
   });
 
+  test("should return ResponseErrorInternal if cacheDelSessionTokens returns an error", async () => {
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.right(mockTokens));
+    mockCacheDelSessionTokens.mockImplementationOnce(() => () => TE.left(new Error("Redis error")));
+
+    const response = await acs({ ...dependencies })(validUserPayload);
+    response.apply(res);
+
+    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([mockSessionToken]);
+    expect(response).toEqual({
+        apply: expect.any(Function),
+        detail: "Internal server error: Error while clearing cached session tokens",
+        kind: "IResponseErrorInternal",
+    });
+  });
 });
 
 describe("AuthenticationController#acsTest", () => {
