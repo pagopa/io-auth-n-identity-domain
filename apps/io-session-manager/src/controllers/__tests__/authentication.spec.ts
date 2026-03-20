@@ -1725,6 +1725,11 @@ describe("AuthenticationController#acs proxy cache del", () => {
     response.apply(res);
 
     expect(mockPlatformInternalAPIService.cacheDelSessionTokens).not.toHaveBeenCalled();
+    expect(response).toEqual({
+        apply: expect.any(Function),
+        detail: "Internal server error: Error while reading session info keys from Redis",
+        kind: "IResponseErrorInternal",
+      });
   });
 
 });
