@@ -56,18 +56,17 @@ export const cacheDelSessionToken: RTE.ReaderTaskEither<
     }),
   );
 
-const callCacheDelSessionToken = (
-  sessionToken: SessionToken,
-) : RTE.ReaderTaskEither<PlatformInternalClientDeps & AppInsightsDeps, Error, true> => 
-  (deps) =>
-    cacheDelSessionToken({
-      ...deps,
-      sessionToken: sessionToken,
-    });
-
 export const cacheDelSessionTokens = (
-    sessionTokens: ReadonlyArray<SessionToken>,
-) : RTE.ReaderTaskEither<PlatformInternalClientDeps & AppInsightsDeps, Error, ReadonlyArray<true>>  =>
-  ROA.traverse(RTE.ApplicativePar)(
-    (sessionToken: SessionToken) => callCacheDelSessionToken(sessionToken)
+  sessionTokens: ReadonlyArray<SessionToken>,
+): RTE.ReaderTaskEither<
+  PlatformInternalClientDeps & AppInsightsDeps,
+  Error,
+  ReadonlyArray<true>
+> =>
+  ROA.traverse(RTE.ApplicativePar)((sessionToken: SessionToken) =>
+    (deps: PlatformInternalClientDeps & AppInsightsDeps) =>
+      cacheDelSessionToken({
+        ...deps,
+        sessionToken,
+      })
   )(sessionTokens);
