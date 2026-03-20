@@ -323,6 +323,15 @@ const readSessionInfoKeys =
       arrayStringReplyAsync,
     );
 
+/**
+ * Retrieves the session info keys related to a user fiscal code.
+ * If there are no session info keys, it returns an empty array,
+ * in order to trigger the normal flow for the case of no active session for the user.
+ * 
+ * Otherwise it returns the error.
+ * @param fiscalCode the fiscal code of the user
+ * @returns an array of session info keys, possibly empty, or an error
+ */
 export const retrieveSessionInfoKeys =
   (redisClientSelector: RedisClientSelectorType) =>
   async (fiscalCode: FiscalCode): Promise<E.Either<Error, ReadonlyArray<string>>> =>
