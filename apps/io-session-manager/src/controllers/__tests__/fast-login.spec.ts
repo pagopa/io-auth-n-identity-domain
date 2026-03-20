@@ -357,7 +357,7 @@ describe("fastLoginController#fastLogin", () => {
 
   describe("fastLoginController#fastLogin - error handling during proxy cache deletion", () => {
     it("should return 500 when cannot retrieve session info keys due to retrieval error", async () => {
-      const errorPrefix = "Redis error while retrieving session info keys: "
+      const errorPrefix = "Error while reading session info keys from Redis: "
       const errorMessage = "Redis error";
 
       const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
@@ -393,7 +393,7 @@ describe("fastLoginController#fastLogin", () => {
     });
 
     it("should return 500 when cannot delete session tokens", async () => {
-      const errorPrefix = "Error while deleting session tokens: "
+      const errorPrefix = "Error while deleting session tokens from cache: "
       const errorMessage = "Proxy error";
 
       const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
@@ -412,9 +412,6 @@ describe("fastLoginController#fastLogin", () => {
     });
 
     it("should NOT call delete session tokens when there are no session tokens", async () => {
-      const errorPrefix = "Error while deleting session tokens: "
-      const errorMessage = "Proxy error";
-
       const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
       mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
       mockSetSession.mockReturnValue(mockSetUser);

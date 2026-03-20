@@ -94,27 +94,88 @@ const generateSessionTokens = (
   );
 };
 
+
+const deleteCachedSessionTokens = (
+  user: User,
+  redisClientSelector: RedisClientSelectorType,
+  platformInternalServiceDependency: PlatformInternalServiceDependency,
+  appInsightsDeps: AppInsightsDeps,
+): TE.TaskEither<IResponseErrorInternal, true> =>
+  pipe(
+    TE.tryCatch(
+      () => retrieveSessionInfoKeys(redisClientSelector)(user.fiscal_code),
+      (err) =>
+        ResponseErrorInternal(
+          `Error while retrieving session info keys: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+        ),
+    ),
+    TE.chainEitherKW(
+      E.mapLeft((err) =>
+        ResponseErrorInternal(
+          `Error while reading session info keys from Redis: ${err.message}`,
+        ),
+      ),
+    ),
+    TE.map(removePrefixFromSessionInfoKeys),
+    TE.chainFirstW((existing_session_tokens) =>
+      existing_session_tokens.length === 0
+        ? TE.right(void 0)
+        : pipe(
+            platformInternalServiceDependency.platformInternalAPIService.cacheDelSessionTokens(
+              existing_session_tokens as ReadonlyArray<SessionToken>,
+            )({ ...platformInternalServiceDependency, ...appInsightsDeps }),
+            TE.mapLeft((err) =>
+              ResponseErrorInternal(
+                `Error while deleting session tokens from cache: ${
+                  err instanceof Error ? err.message : String(err)
+                }`,
+              ),
+            ),
+          )
+    ),
+    TE.map(() => true),
+  );
+
+
 const createSessionForUser = (
   user: User,
   redisClientSelector: RedisClientSelectorType,
   sessionTTL: number,
+  platformInternalServiceDependency: PlatformInternalServiceDependency,
+  appInsightsDeps: AppInsightsDeps,
 ): TE.TaskEither<IResponseErrorInternal, true> =>
   pipe(
+    // Delete cached session tokens on proxy if present.
+    // In case this fails, the entire operation should fail since 
+    // we don't want to create a new session if we can't invalidate the old one.
+    deleteCachedSessionTokens(
+      user,
+      redisClientSelector,
+      platformInternalServiceDependency,
+      appInsightsDeps,
+    ),
+
     // create a new session and delete the old one if present
-    set(redisClientSelector, sessionTTL)(user),
-    TE.mapLeft((err) =>
-      ResponseErrorInternal(
-        `Could not create user using session storage: ${err.message}`,
-      ),
-    ),
-    TE.chain(
-      TE.fromPredicate(identity, (value) =>
-        ResponseErrorInternal(
-          `Could not create user: session storage returned ${value} `,
+    TE.chainW(() =>
+      pipe(
+        set(redisClientSelector, sessionTTL)(user),
+        TE.mapLeft((err) =>
+          ResponseErrorInternal(
+            `Could not create user using session storage: ${err.message}`,
+          ),
         ),
+        TE.chain(
+          TE.fromPredicate(identity, (value) =>
+            ResponseErrorInternal(
+              `Could not create user: session storage returned ${value} `,
+            ),
+          ),
+        ),
+      TE.map(() => true),
       ),
     ),
-    TE.map(() => true),
   );
 
 // TODO: this is NOT NEEDED for the first release of fast-login, however
@@ -257,34 +318,6 @@ export const fastLoginEndpoint: FastLoginHandler = ({
         ),
       ),
     ),
-    TE.bindW("existing_session_tokens", ({ userFiscalCode }) =>
-      pipe(
-        TE.tryCatch(
-          () => retrieveSessionInfoKeys(redisClientSelector)(userFiscalCode),
-          (err) => ResponseErrorInternal(
-            `Error while retrieving session info keys: ${err instanceof Error ? err.message : String(err)}`
-          )
-        ),
-        TE.chainEitherKW(
-          E.mapLeft(err => ResponseErrorInternal(
-            `Redis error while retrieving session info keys: ${err.message}`)
-          )
-        ),
-        TE.map(removePrefixFromSessionInfoKeys)
-      )
-    ),
-    TE.chainFirstW(({ existing_session_tokens }) =>
-      existing_session_tokens.length === 0
-        ? TE.right(void 0)
-        : pipe(
-            platformInternalAPIService.cacheDelSessionTokens(
-              existing_session_tokens as ReadonlyArray<SessionToken>
-            )({ platformInternalAPIClient, appInsightsTelemetryClient }),
-            TE.mapLeft((err) =>
-              ResponseErrorInternal(`Error while deleting session tokens: ${err instanceof Error ? err.message : String(err)}`)
-            )
-          )
-    ),
     TE.bindW("tokens", ({ lollipopLocals }) =>
       generateSessionTokens(
         lollipopLocals["x-pagopa-lollipop-user-id"],
@@ -307,6 +340,8 @@ export const fastLoginEndpoint: FastLoginHandler = ({
         },
         redisClientSelector,
         sessionTTL,
+        { platformInternalAPIClient, platformInternalAPIService },
+        { appInsightsTelemetryClient },
       ),
     ),
     TE.chainFirstW(callLcSetSession),
