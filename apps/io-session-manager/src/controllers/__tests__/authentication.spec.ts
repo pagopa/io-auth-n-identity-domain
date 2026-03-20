@@ -1729,7 +1729,7 @@ describe("AuthenticationController#acs proxy cache del", () => {
         apply: expect.any(Function),
         detail: "Internal server error: Error while reading session info keys from Redis",
         kind: "IResponseErrorInternal",
-      });
+    });
   });
 
   test("should return ResponseErrorInternal if cacheDelSessionTokens returns an error", async () => {
