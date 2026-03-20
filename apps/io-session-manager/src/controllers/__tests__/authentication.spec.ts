@@ -192,7 +192,7 @@ const mockSet = vi
   .mockReturnValue(() => TE.of(true));
 const mockReadSessionInfoKeys = vi
   .spyOn(RedisSessionStorageService, "retrieveSessionInfoKeys")
-  .mockReturnValue(TE.right([mockSessionToken]));
+  .mockReturnValue(TE.right([`SESSIONINFO-${mockSessionToken}`]));
 const mockGetProfile = vi
   .spyOn(ProfileService, "getProfile")
   .mockReturnValue(
@@ -1695,7 +1695,7 @@ describe("AuthenticationController#acs service bus login events", () => {
 });
 
 describe("AuthenticationController#acs proxy cache del", () => {
-  const mockTokens = [mockSessionToken];
+  const mockTokens = [`SESSIONINFO-${mockSessionToken}`];
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -1706,8 +1706,7 @@ describe("AuthenticationController#acs proxy cache del", () => {
     const response = await acs({ ...dependencies })(validUserPayload);
     response.apply(res);
 
-    expect(dependencies.platformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledTimes(1);
-    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledWith(mockTokens);
+    expect(dependencies.platformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([mockSessionToken]);
   });
 
   test("should call cacheDelSessionTokens with an empty array when readSessionInfoKeys returns an empty array", async () => {
@@ -1716,8 +1715,7 @@ describe("AuthenticationController#acs proxy cache del", () => {
     const response = await acs({ ...dependencies })(validUserPayload);
     response.apply(res);
 
-    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledTimes(1);
-    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledWith([]);
+    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([]);
   });
 
   test("should not call cacheDelSessionTokens if readSessionInfoKeys returns an error", async () => {
