@@ -1703,7 +1703,6 @@ describe("AuthenticationController#acs proxy cache del", () => {
 
   test("should delete proxy cache for the user", async () => {
     mockReadSessionInfoKeys.mockReturnValueOnce(TE.right(mockTokens));
-    console.log("### mockReadSessionInfoKeys return value", mockReadSessionInfoKeys.mock.results);
     const response = await acs({ ...dependencies })(validUserPayload);
     response.apply(res);
 
