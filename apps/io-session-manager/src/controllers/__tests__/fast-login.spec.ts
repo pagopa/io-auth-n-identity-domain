@@ -88,7 +88,7 @@ const mockSetSession = vi.spyOn(RedisSessionStorageService, "set");
 
 const mockReadSessionInfoKeys = vi
   .spyOn(RedisSessionStorageService, "retrieveSessionInfoKeys")
-  .mockReturnValue(TE.right([mockSessionToken]));
+  .mockReturnValue(TE.right([`SESSIONINFO-${mockSessionToken}`]));
 
 const sessionTTL = 60 * 15;
 const aClientIP = "10.0.0.2" as IPString;
