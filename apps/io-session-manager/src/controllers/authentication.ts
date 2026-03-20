@@ -42,9 +42,7 @@ import * as B from "fp-ts/lib/boolean";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as RR from "fp-ts/lib/ReadonlyRecord";
 import * as O from "fp-ts/Option";
-import * as ROA from "fp-ts/lib/ReadonlyArray";
 import * as RT from "fp-ts/ReaderTask";
-import * as RTE from "fp-ts/ReaderTaskEither";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import {
