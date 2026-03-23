@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.24.0
+
+### Minor Changes
+
+- 101b9dd: Session-manager: cachedel integration on logout flow
+
 ## 1.23.1
 
 ### Patch Changes
