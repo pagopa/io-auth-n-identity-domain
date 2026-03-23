@@ -33,6 +33,7 @@ import {
 import {
   mockedInitializedProfile,
   mockedUser,
+  mockSessionToken,
 } from "../../__mocks__/user.mocks";
 import { toExpectedResponse } from "../../__tests__/utils";
 import { UserIdentityWithTtl } from "../../generated/backend/UserIdentityWithTtl";
@@ -43,6 +44,11 @@ import { RedisSessionStorageService, TokenService } from "../../services";
 import * as profileService from "../../services/profile";
 import { RedisClientSelectorType } from "../../types/redis";
 import { getSessionState, getUserIdentity, logout } from "../session";
+import { PlatformInternalAPIClient } from "../../repositories/platform-internal-client";
+import {
+  mockCacheDelSessionToken,
+  mockPlatformInternalAPIService,
+} from "../../__mocks__/platform-internal.mocks";
 
 const frozenDate = new Date(2025, 0, 1);
 vi.setSystemTime(frozenDate);
@@ -524,6 +530,7 @@ describe("logout", () => {
     // Repositories are not used, since we mocked the service layer
     lollipopApiClient: {} as LollipopApiClient,
     redisClientSelector: {} as RedisClientSelectorType,
+    platformInternalAPIClient: {} as PlatformInternalAPIClient,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lollipopRevokeQueueClient: {} as any,
     // Services
@@ -533,6 +540,8 @@ describe("logout", () => {
     AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
     authSessionsTopicSender: mockServiceBusSender,
     appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
+
+    platformInternalAPIService: mockPlatformInternalAPIService,
 
     user: mockedUser,
     req,
@@ -548,6 +557,10 @@ describe("logout", () => {
       E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
     );
 
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionToken: mockSessionToken }),
+    );
     expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledWith({
       ...mockedDependencies,
       fiscalCode: mockedUser.fiscal_code,
@@ -577,6 +590,10 @@ describe("logout", () => {
       E.right(toExpectedResponse(ResponseSuccessJson({ message: "ok" }))),
     );
 
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionToken: mockSessionToken }),
+    );
     expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
     expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
     expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedLogoutEvent);
@@ -597,6 +614,10 @@ describe("logout", () => {
       E.left(Error("getLollipopAssertionRefForUser Error")),
     );
 
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionToken: mockSessionToken }),
+    );
     expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
     expect(mockDeleteUser).not.toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
@@ -615,6 +636,10 @@ describe("logout", () => {
 
     expect(result).toEqual(E.left(Error("Error revoking the AssertionRef")));
 
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionToken: mockSessionToken }),
+    );
     expect(mockDeleteUser).not.toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
@@ -634,6 +659,10 @@ describe("logout", () => {
       E.left(Error("revokeAssertionRefAssociation Error")),
     );
 
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionToken: mockSessionToken }),
+    );
     expect(mockDeleteUser).not.toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
@@ -651,6 +680,10 @@ describe("logout", () => {
 
     expect(result).toEqual(E.left(Error("Error destroying the user session")));
 
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionToken: mockSessionToken }),
+    );
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
@@ -668,6 +701,10 @@ describe("logout", () => {
 
     expect(result).toEqual(E.left(Error("deleteUser error")));
 
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionToken: mockSessionToken }),
+    );
     expect(mockRevokeAssertionRefAssociation).toHaveBeenCalled();
     expect(mockEmitSessionEvent).not.toHaveBeenCalled();
     expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
@@ -689,6 +726,10 @@ describe("logout", () => {
 
     expect(result).toEqual(E.left(simulatedError));
 
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionToken: mockSessionToken }),
+    );
     expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
     expect(mockDeleteUser).toHaveBeenCalledWith(mockedUser);
     expect(mockEmitSessionEvent).toHaveBeenCalledWith(expectedLogoutEvent);
@@ -703,6 +744,27 @@ describe("logout", () => {
         samplingEnabled: "false",
       },
     });
+  });
+
+  test(`
+    GIVEN a valid request
+    WHEN a failure occurs while calling cachedel
+    THEN it should respond with an error`, async () => {
+    const anError = Error("an error");
+    mockCacheDelSessionToken.mockReturnValueOnce(TE.left(anError));
+    const result = await logout(mockedDependencies)();
+
+    expect(result).toEqual(E.left(anError));
+
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionToken: mockSessionToken }),
+    );
+    expect(mockGetLollipopAssertionRefForUser).not.toHaveBeenCalled();
+    expect(mockRevokeAssertionRefAssociation).not.toHaveBeenCalled();
+    expect(mockDeleteUser).not.toHaveBeenCalled();
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(mockedAppinsightsTelemetryClient.trackEvent).not.toHaveBeenCalled();
   });
 });
 
