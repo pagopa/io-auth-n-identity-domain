@@ -108,7 +108,6 @@ const deleteCachedSessionTokens = (
         err instanceof Error ? err.message : String(err)
       }`,
     )),
-    x => x,
     TE.map(removePrefixFromSessionInfoKeys),
     TE.chainFirstW((existing_session_tokens) =>
       existing_session_tokens.length === 0
