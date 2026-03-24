@@ -102,22 +102,13 @@ const deleteCachedSessionTokens = (
   appInsightsDeps: AppInsightsDeps,
 ): TE.TaskEither<IResponseErrorInternal, true> =>
   pipe(
-    TE.tryCatch(
-      () => retrieveSessionInfoKeys(redisClientSelector)(user.fiscal_code),
-      (err) =>
-        ResponseErrorInternal(
-          `Error while retrieving session info keys: ${
-            err instanceof Error ? err.message : String(err)
-          }`,
-        ),
-    ),
-    TE.chainEitherKW(
-      E.mapLeft((err) =>
-        ResponseErrorInternal(
-          `Error while reading session info keys from Redis: ${err.message}`,
-        ),
-      ),
-    ),
+    retrieveSessionInfoKeys(redisClientSelector)(user.fiscal_code),
+    TE.mapLeft(err => ResponseErrorInternal(
+      `Error while retrieving session info keys from Redis: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    )),
+    x => x,
     TE.map(removePrefixFromSessionInfoKeys),
     TE.chainFirstW((existing_session_tokens) =>
       existing_session_tokens.length === 0

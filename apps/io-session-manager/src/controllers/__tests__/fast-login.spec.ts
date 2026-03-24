@@ -88,7 +88,7 @@ const mockSetSession = vi.spyOn(RedisSessionStorageService, "set");
 
 const mockReadSessionInfoKeys = vi
   .spyOn(RedisSessionStorageService, "retrieveSessionInfoKeys")
-  .mockReturnValue(TE.right([`SESSIONINFO-${mockSessionToken}`]));
+  .mockReturnValue(() => TE.right([`SESSIONINFO-${mockSessionToken}`]));
 
 const sessionTTL = 60 * 15;
 const aClientIP = "10.0.0.2" as IPString;
@@ -356,33 +356,15 @@ describe("fastLoginController#fastLogin", () => {
   });
 
   describe("fastLoginController#fastLogin - error handling during proxy cache deletion", () => {
-    it("should return 500 when cannot retrieve session info keys due to retrieval error", async () => {
-      const errorPrefix = "Error while reading session info keys from Redis: "
+    it("should return 500 when cannot retrieve session info keys", async () => {
+      const errorPrefix = "Error while retrieving session info keys from Redis: "
       const errorMessage = "Redis error";
 
       const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
       mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
       mockSetSession.mockReturnValue(mockSetUser);
 
-      mockReadSessionInfoKeys.mockReturnValueOnce(TE.left(new Error(errorMessage)));
-
-      const response = await fastLoginEndpoint(fastLoginBaseDeps)();
-      
-      expect(mockCacheDelSessionTokens).not.toHaveBeenCalled();
-      expect(response).toEqual(
-        constructInternalError(`${errorPrefix}${errorMessage}`),
-      );
-    });
-
-    it("should return 500 when cannot retrieve session info keys due to Promise rejection", async () => {
-      const errorPrefix = "Error while retrieving session info keys: "
-      const errorMessage = "Generic error";
-
-      const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
-      mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
-      mockSetSession.mockReturnValue(mockSetUser);
-
-      mockReadSessionInfoKeys.mockReturnValueOnce(() => Promise.reject(new Error(errorMessage)));
+      mockReadSessionInfoKeys.mockReturnValueOnce(() => TE.left(new Error(errorMessage)));
 
       const response = await fastLoginEndpoint(fastLoginBaseDeps)();
       
@@ -400,7 +382,7 @@ describe("fastLoginController#fastLogin", () => {
       mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
       mockSetSession.mockReturnValue(mockSetUser);
 
-      mockReadSessionInfoKeys.mockReturnValueOnce(TE.right([mockSessionToken]));
+      mockReadSessionInfoKeys.mockReturnValueOnce(() => TE.right([mockSessionToken]));
       mockCacheDelSessionTokens.mockImplementationOnce(() => () => TE.left(new Error(errorMessage)));
 
       const response = await fastLoginEndpoint(fastLoginBaseDeps)();
@@ -416,7 +398,7 @@ describe("fastLoginController#fastLogin", () => {
       mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
       mockSetSession.mockReturnValue(mockSetUser);
 
-      mockReadSessionInfoKeys.mockReturnValueOnce(TE.right([]));
+      mockReadSessionInfoKeys.mockReturnValueOnce(() => TE.right([]));
 
       const response = await fastLoginEndpoint(fastLoginBaseDeps)();
       

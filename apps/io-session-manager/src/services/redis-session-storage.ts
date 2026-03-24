@@ -334,13 +334,15 @@ const readSessionInfoKeys =
  */
 export const retrieveSessionInfoKeys =
   (redisClientSelector: RedisClientSelectorType) =>
-  async (fiscalCode: FiscalCode): Promise<E.Either<Error, ReadonlyArray<string>>> =>
+  (fiscalCode: FiscalCode): TE.TaskEither<Error, ReadonlyArray<string>> =>
     pipe(
-      await readSessionInfoKeys(redisClientSelector)(fiscalCode),
-      E.orElseW((err) =>
-        err === RedisRepo.sessionNotFoundError
-          ? E.right<Error, ReadonlyArray<string>>(ROA.empty)
-          : E.left<Error, ReadonlyArray<string>>(err),
+      TE.fromTask(() => readSessionInfoKeys(redisClientSelector)(fiscalCode)),
+      TE.chainEitherKW(
+        E.orElseW((err) =>
+          err === RedisRepo.sessionNotFoundError
+            ? E.right(ROA.empty)
+            : E.left(err),
+        ),
       ),
     );
 
