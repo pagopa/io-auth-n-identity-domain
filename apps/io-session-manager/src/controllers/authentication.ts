@@ -511,6 +511,28 @@ export const acs: (
       )().catch(() => void 0 as never);
     }
 
+    const errorOrSessionInfoKeys = await RedisSessionStorageService
+      .retrieveSessionInfoKeys(deps.redisClientSelector)(spidUser.fiscalNumber)();
+
+    if (E.isLeft(errorOrSessionInfoKeys)) {
+        log.error(
+          "acs: error reading session info keys from Redis [%s]",
+          errorOrSessionInfoKeys.left,
+        );
+        return validationCookieClearanceErrorInternal(
+          "Error while reading session info keys from Redis",
+        );
+    }
+
+    const sessionInfoKeys = RedisSessionStorageService
+      .removePrefixFromSessionInfoKeys(errorOrSessionInfoKeys.right) as ReadonlyArray<SessionToken>;
+    const errorOrCacheDelResult = await deps.platformInternalAPIService.cacheDelSessionTokens(sessionInfoKeys)(deps)();
+
+    if (E.isLeft(errorOrCacheDelResult)) {
+      log.error(`acs: error clearing cached session tokens [${errorOrCacheDelResult.left.message}]`);
+      return validationCookieClearanceErrorInternal("Error while clearing cached session tokens");
+    }
+
     const errorOrActivatedPubKey = await pipe(
       // Delete the reference to CF and assertionRef for lollipop.
       // This operation must be performed even if the lollipop FF is disabled
@@ -695,28 +717,6 @@ export const acs: (
       )
     ) {
       return errorOrActivatedPubKey.left.value;
-    }
-
-    const errorOrSessionInfoKeys = await RedisSessionStorageService
-      .retrieveSessionInfoKeys(deps.redisClientSelector)(spidUser.fiscalNumber)();
-
-    if (E.isLeft(errorOrSessionInfoKeys)) {
-        log.error(
-          "acs: error reading session info keys from Redis [%s]",
-          errorOrSessionInfoKeys.left,
-        );
-        return validationCookieClearanceErrorInternal(
-          "Error while reading session info keys from Redis",
-        );
-    }
-
-    const sessionInfoKeys = RedisSessionStorageService
-      .removePrefixFromSessionInfoKeys(errorOrSessionInfoKeys.right) as ReadonlyArray<SessionToken>;
-    const errorOrCacheDelResult = await deps.platformInternalAPIService.cacheDelSessionTokens(sessionInfoKeys)(deps)();
-
-    if (E.isLeft(errorOrCacheDelResult)) {
-      log.error(`acs: error clearing cached session tokens [${errorOrCacheDelResult.left.message}]`);
-      return validationCookieClearanceErrorInternal("Error while clearing cached session tokens");
     }
 
     // Attempt to create a new session object while we fetch an existing profile
