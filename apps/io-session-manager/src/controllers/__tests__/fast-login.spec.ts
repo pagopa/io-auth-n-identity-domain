@@ -355,55 +355,53 @@ describe("fastLoginController#fastLogin", () => {
     expect(response).toEqual(constructInternalError(expectedErrorMessage));
   });
 
-  describe("fastLoginController#fastLogin - error handling during proxy cache deletion", () => {
-    it("should return 500 when cannot retrieve session info keys", async () => {
-      const errorPrefix = "Error while retrieving session info keys from Redis: "
-      const errorMessage = "Redis error";
+  it("should return 500 when cannot retrieve session info keys", async () => {
+    const errorPrefix = "Error while retrieving session info keys from Redis: "
+    const errorMessage = "Redis error";
 
-      const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
-      mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
-      mockSetSession.mockReturnValue(mockSetUser);
+    const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
+    mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
+    mockSetSession.mockReturnValue(mockSetUser);
 
-      mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.left(new Error(errorMessage)));
+    mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.left(new Error(errorMessage)));
 
-      const response = await fastLoginEndpoint(fastLoginBaseDeps)();
-      
-      expect(mockCacheDelSessionTokens).not.toHaveBeenCalled();
-      expect(response).toEqual(
-        constructInternalError(`${errorPrefix}${errorMessage}`),
-      );
-    });
+    const response = await fastLoginEndpoint(fastLoginBaseDeps)();
+    
+    expect(mockCacheDelSessionTokens).not.toHaveBeenCalled();
+    expect(response).toEqual(
+      constructInternalError(`${errorPrefix}${errorMessage}`),
+    );
+  });
 
-    it("should return 500 when cannot delete session tokens", async () => {
-      const errorPrefix = "Error while deleting session tokens from cache: "
-      const errorMessage = "Proxy error";
+  it("should return 500 when cannot delete session tokens", async () => {
+    const errorPrefix = "Error while deleting session tokens from cache: "
+    const errorMessage = "Proxy error";
 
-      const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
-      mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
-      mockSetSession.mockReturnValue(mockSetUser);
+    const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
+    mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
+    mockSetSession.mockReturnValue(mockSetUser);
 
-      mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.right([mockSessionToken]));
-      mockCacheDelSessionTokens.mockReturnValueOnce(() => TE.left(new Error(errorMessage)));
+    mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.right([mockSessionToken]));
+    mockCacheDelSessionTokens.mockReturnValueOnce(() => TE.left(new Error(errorMessage)));
 
-      const response = await fastLoginEndpoint(fastLoginBaseDeps)();
-      
-      expect(mockCacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([mockSessionToken]);
-      expect(response).toEqual(
-        constructInternalError(`${errorPrefix}${errorMessage}`),
-      );
-    });
+    const response = await fastLoginEndpoint(fastLoginBaseDeps)();
+    
+    expect(mockCacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([mockSessionToken]);
+    expect(response).toEqual(
+      constructInternalError(`${errorPrefix}${errorMessage}`),
+    );
+  });
 
-    it("should call delete session tokens with an empty array when there are no session tokens", async () => {
-      const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
-      mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
-      mockSetSession.mockReturnValue(mockSetUser);
+  it("should call delete session tokens with an empty array when there are no session tokens", async () => {
+    const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
+    mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
+    mockSetSession.mockReturnValue(mockSetUser);
 
-      mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.right([]));
+    mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.right([]));
 
-      const response = await fastLoginEndpoint(fastLoginBaseDeps)();
-      
-      expect(mockCacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([]);
-    });
+    const response = await fastLoginEndpoint(fastLoginBaseDeps)();
+    
+    expect(mockCacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([]);
   });
 });
 
