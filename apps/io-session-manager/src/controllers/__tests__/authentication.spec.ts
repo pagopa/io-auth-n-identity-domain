@@ -1734,7 +1734,7 @@ describe("AuthenticationController#acs proxy cache del", () => {
 
   test("should return ResponseErrorInternal if cacheDelSessionTokens returns an error", async () => {
     mockReadSessionInfoKeys.mockReturnValueOnce(() => TE.right(mockTokens));
-    mockCacheDelSessionTokens.mockImplementationOnce(() => () => TE.left(new Error("Redis error")));
+    mockCacheDelSessionTokens.mockReturnValueOnce(() => TE.left(new Error("Redis error")));
 
     const response = await acs({ ...dependencies })(validUserPayload);
     response.apply(res);

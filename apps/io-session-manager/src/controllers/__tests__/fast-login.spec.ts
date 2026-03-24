@@ -383,7 +383,7 @@ describe("fastLoginController#fastLogin", () => {
       mockSetSession.mockReturnValue(mockSetUser);
 
       mockReadSessionInfoKeys.mockReturnValueOnce(() => TE.right([mockSessionToken]));
-      mockCacheDelSessionTokens.mockImplementationOnce(() => () => TE.left(new Error(errorMessage)));
+      mockCacheDelSessionTokens.mockReturnValueOnce(() => TE.left(new Error(errorMessage)));
 
       const response = await fastLoginEndpoint(fastLoginBaseDeps)();
       
