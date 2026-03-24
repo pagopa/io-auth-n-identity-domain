@@ -218,7 +218,7 @@ type FastLoginDeps<T extends ResLocals> =
   AppInsightsDeps;
 
 type FastLoginHandler = <T extends ResLocals>(
-  deps: RedisRepositoryDeps & FastLoginDeps<T>,
+  deps: FastLoginDeps<T>,
 ) => TE.TaskEither<
   Error,
   | IResponseErrorUnauthorized
