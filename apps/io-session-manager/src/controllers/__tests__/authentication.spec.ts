@@ -190,7 +190,7 @@ vi.spyOn(RedisSessionStorageService, "delLollipopDataForUser").mockReturnValue(
 const mockSet = vi
   .spyOn(RedisSessionStorageService, "set")
   .mockReturnValue(() => TE.of(true));
-const mockReadSessionInfoKeys = vi
+const mockRetrieveSessionInfoKeys = vi
   .spyOn(RedisSessionStorageService, "retrieveSessionInfoKeys")
   .mockReturnValue(() => TE.right([`SESSIONINFO-${mockSessionToken}`]));
 const mockGetProfile = vi
@@ -1702,7 +1702,7 @@ describe("AuthenticationController#acs proxy cache del", () => {
   });
 
   test("should delete proxy cache for the user", async () => {
-    mockReadSessionInfoKeys.mockReturnValueOnce(() => TE.right(mockTokens));
+    mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.right(mockTokens));
     const response = await acs({ ...dependencies })(validUserPayload);
     response.apply(res);
 
@@ -1710,7 +1710,7 @@ describe("AuthenticationController#acs proxy cache del", () => {
   });
 
   test("should call cacheDelSessionTokens with an empty array when readSessionInfoKeys returns an empty array", async () => {
-    mockReadSessionInfoKeys.mockReturnValueOnce(() => TE.right([]));
+    mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.right([]));
 
     const response = await acs({ ...dependencies })(validUserPayload);
     response.apply(res);
@@ -1719,7 +1719,7 @@ describe("AuthenticationController#acs proxy cache del", () => {
   });
 
   test("should not call cacheDelSessionTokens if readSessionInfoKeys returns an error", async () => {
-    mockReadSessionInfoKeys.mockReturnValueOnce(() => TE.left(new Error("Error")));
+    mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.left(new Error("Error")));
 
     const response = await acs({ ...dependencies })(validUserPayload);
     response.apply(res);
@@ -1733,7 +1733,7 @@ describe("AuthenticationController#acs proxy cache del", () => {
   });
 
   test("should return ResponseErrorInternal if cacheDelSessionTokens returns an error", async () => {
-    mockReadSessionInfoKeys.mockReturnValueOnce(() => TE.right(mockTokens));
+    mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.right(mockTokens));
     mockCacheDelSessionTokens.mockReturnValueOnce(() => TE.left(new Error("Redis error")));
 
     const response = await acs({ ...dependencies })(validUserPayload);

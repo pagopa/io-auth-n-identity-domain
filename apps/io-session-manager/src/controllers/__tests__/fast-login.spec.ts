@@ -86,7 +86,7 @@ const mockIsBlockedUser = vi.spyOn(RedisSessionStorageService, "isBlockedUser");
 
 const mockSetSession = vi.spyOn(RedisSessionStorageService, "set");
 
-const mockReadSessionInfoKeys = vi
+const mockRetrieveSessionInfoKeys = vi
   .spyOn(RedisSessionStorageService, "retrieveSessionInfoKeys")
   .mockReturnValue(() => TE.right([`SESSIONINFO-${mockSessionToken}`]));
 
@@ -364,7 +364,7 @@ describe("fastLoginController#fastLogin", () => {
       mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
       mockSetSession.mockReturnValue(mockSetUser);
 
-      mockReadSessionInfoKeys.mockReturnValueOnce(() => TE.left(new Error(errorMessage)));
+      mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.left(new Error(errorMessage)));
 
       const response = await fastLoginEndpoint(fastLoginBaseDeps)();
       
@@ -382,7 +382,7 @@ describe("fastLoginController#fastLogin", () => {
       mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
       mockSetSession.mockReturnValue(mockSetUser);
 
-      mockReadSessionInfoKeys.mockReturnValueOnce(() => TE.right([mockSessionToken]));
+      mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.right([mockSessionToken]));
       mockCacheDelSessionTokens.mockReturnValueOnce(() => TE.left(new Error(errorMessage)));
 
       const response = await fastLoginEndpoint(fastLoginBaseDeps)();
@@ -393,16 +393,16 @@ describe("fastLoginController#fastLogin", () => {
       );
     });
 
-    it("should NOT call delete session tokens when there are no session tokens", async () => {
+    it("should call delete session tokens with an empty array when there are no session tokens", async () => {
       const mockSetUser = vi.fn().mockReturnValue(TE.right(true));
       mockIsBlockedUser.mockReturnValueOnce(TE.right(false));
       mockSetSession.mockReturnValue(mockSetUser);
 
-      mockReadSessionInfoKeys.mockReturnValueOnce(() => TE.right([]));
+      mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.right([]));
 
       const response = await fastLoginEndpoint(fastLoginBaseDeps)();
       
-      expect(mockCacheDelSessionTokens).not.toHaveBeenCalled();
+      expect(mockCacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([]);
     });
   });
 });
