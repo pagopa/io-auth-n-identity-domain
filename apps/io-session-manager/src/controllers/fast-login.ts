@@ -110,20 +110,18 @@ const deleteCachedSessionTokens = (
     )),
     TE.map(removePrefixFromSessionInfoKeys),
     TE.chainFirstW((existing_session_tokens) =>
-      existing_session_tokens.length === 0
-        ? TE.right(void 0)
-        : pipe(
-            platformInternalServiceDependency.platformInternalAPIService.cacheDelSessionTokens(
-              existing_session_tokens as ReadonlyArray<SessionToken>,
-            )({ ...platformInternalServiceDependency, ...appInsightsDeps }),
-            TE.mapLeft((err) =>
-              ResponseErrorInternal(
-                `Error while deleting session tokens from cache: ${
-                  err instanceof Error ? err.message : String(err)
-                }`,
-              ),
-            ),
-          )
+      pipe(
+        platformInternalServiceDependency.platformInternalAPIService.cacheDelSessionTokens(
+          existing_session_tokens as ReadonlyArray<SessionToken>,
+        )({ ...platformInternalServiceDependency, ...appInsightsDeps }),
+        TE.mapLeft((err) =>
+          ResponseErrorInternal(
+            `Error while deleting session tokens from cache: ${
+              err instanceof Error ? err.message : String(err)
+            }`,
+          ),
+        ),
+      )
     ),
     TE.map(() => true),
   );
