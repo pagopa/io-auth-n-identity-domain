@@ -110,6 +110,8 @@ import {
   acs,
   acsTest,
 } from "../authentication";
+import { mockCacheDelSessionTokens, mockPlatformInternalAPIService } from "../../__mocks__/platform-internal.mocks";
+import { PlatformInternalAPIClient } from "../../../dist/repositories/platform-internal-client";
 
 const dependencies: AcsDependencies = {
   redisClientSelector: mockRedisClientSelector,
@@ -131,6 +133,8 @@ const dependencies: AcsDependencies = {
   isUserElegibleForValidationCookie: () => false,
   AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
   authSessionsTopicSender: mockServiceBusSender,
+  platformInternalAPIClient: {} as PlatformInternalAPIClient,
+  platformInternalAPIService: mockPlatformInternalAPIService
 };
 
 const aRequestIpAddress = "127.0.0.2";
@@ -186,6 +190,9 @@ vi.spyOn(RedisSessionStorageService, "delLollipopDataForUser").mockReturnValue(
 const mockSet = vi
   .spyOn(RedisSessionStorageService, "set")
   .mockReturnValue(() => TE.of(true));
+const mockRetrieveSessionInfoKeys = vi
+  .spyOn(RedisSessionStorageService, "retrieveSessionInfoKeys")
+  .mockReturnValue(() => TE.right([`SESSIONINFO-${mockSessionToken}`]));
 const mockGetProfile = vi
   .spyOn(ProfileService, "getProfile")
   .mockReturnValue(
@@ -1684,6 +1691,60 @@ describe("AuthenticationController#acs service bus login events", () => {
       ts: frozenDate,
       idp: validUserPayload.issuer,
     } as LoginEvent);
+  });
+});
+
+describe("AuthenticationController#acs proxy cache del", () => {
+  const mockTokens = [`SESSIONINFO-${mockSessionToken}`];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("should delete proxy cache for the user", async () => {
+    mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.right(mockTokens));
+    const response = await acs({ ...dependencies })(validUserPayload);
+    response.apply(res);
+
+    expect(dependencies.platformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([mockSessionToken]);
+  });
+
+  test("should call cacheDelSessionTokens with an empty array when readSessionInfoKeys returns an empty array", async () => {
+    mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.right([]));
+
+    const response = await acs({ ...dependencies })(validUserPayload);
+    response.apply(res);
+
+    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([]);
+  });
+
+  test("should not call cacheDelSessionTokens if readSessionInfoKeys returns an error", async () => {
+    mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.left(new Error("Error")));
+
+    const response = await acs({ ...dependencies })(validUserPayload);
+    response.apply(res);
+
+    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).not.toHaveBeenCalled();
+    expect(response).toEqual({
+        apply: expect.any(Function),
+        detail: "Internal server error: Error while reading session info keys from Redis",
+        kind: "IResponseErrorInternal",
+    });
+  });
+
+  test("should return ResponseErrorInternal if cacheDelSessionTokens returns an error", async () => {
+    mockRetrieveSessionInfoKeys.mockReturnValueOnce(() => TE.right(mockTokens));
+    mockCacheDelSessionTokens.mockReturnValueOnce(() => TE.left(new Error("Proxy error")));
+
+    const response = await acs({ ...dependencies })(validUserPayload);
+    response.apply(res);
+
+    expect(mockPlatformInternalAPIService.cacheDelSessionTokens).toHaveBeenCalledExactlyOnceWith([mockSessionToken]);
+    expect(response).toEqual({
+        apply: expect.any(Function),
+        detail: "Internal server error: Error while clearing cached session tokens",
+        kind: "IResponseErrorInternal",
+    });
   });
 });
 
