@@ -12,6 +12,13 @@
   "extensions": {
     "http": {
       "routePrefix": ""
+    },
+    "queues": {
+      "maxDequeueCount": 10,
+      "maxPollingInterval": "00:00:02",
+      "visibilityTimeout": "00:00:30",
+      "batchSize": 16,
+      "newBatchThreshold": 8
     }
   },
   "extensionBundle": {
