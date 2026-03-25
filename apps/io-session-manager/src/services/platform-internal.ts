@@ -1,3 +1,4 @@
+import * as ROA from "fp-ts/lib/ReadonlyArray";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
@@ -54,3 +55,18 @@ export const cacheDelSessionToken: RTE.ReaderTaskEither<
       return new Error("Error while calling internal proxy");
     }),
   );
+
+export const cacheDelSessionTokens = (
+  sessionTokens: ReadonlyArray<SessionToken>,
+): RTE.ReaderTaskEither<
+  PlatformInternalClientDeps & AppInsightsDeps,
+  Error,
+  ReadonlyArray<true>
+> =>
+  ROA.traverse(RTE.ApplicativePar)((sessionToken: SessionToken) =>
+    (deps: PlatformInternalClientDeps & AppInsightsDeps) =>
+      cacheDelSessionToken({
+        ...deps,
+        sessionToken,
+      })
+  )(sessionTokens);

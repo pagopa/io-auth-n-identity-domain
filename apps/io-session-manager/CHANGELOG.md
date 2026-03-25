@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.25.0
+
+### Minor Changes
+
+- 90daa12: Proxy cache delete on acs and fast-login
+
 ## 1.24.0
 
 ### Minor Changes

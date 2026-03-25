@@ -181,6 +181,8 @@ export const newApp: (
     isUserElegibleForValidationCookie,
     AuthSessionsTopicRepository,
     authSessionsTopicSender: authSessionsTopicServiceBusSender,
+    platformInternalAPIService: PlatformInternalService,
+    platformInternalAPIClient: APIClients.platformInternalAPIClient,
   };
 
   setupExternalEndpoints(
@@ -500,6 +502,8 @@ function setupExternalEndpoints(
         redisClientSelector,
         fnFastLoginAPIClient: APIClients.fnFastLoginAPIClient,
         sessionTTL: fastLoginConfig.lvTokenDurationSecs,
+        platformInternalAPIService: PlatformInternalService,
+        platformInternalAPIClient: APIClients.platformInternalAPIClient,
       }),
       ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
     ),
