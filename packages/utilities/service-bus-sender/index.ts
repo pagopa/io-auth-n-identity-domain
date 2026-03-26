@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { DefaultAzureCredential } from "@azure/identity";
 import { ServiceBusClient, ServiceBusMessage } from "@azure/service-bus";
-import yargs, { alias } from "yargs";
+import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
 import {
