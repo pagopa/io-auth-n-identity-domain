@@ -1,5 +1,23 @@
 # io-session-manager
 
+## 1.25.0
+
+### Minor Changes
+
+- 90daa12: Proxy cache delete on acs and fast-login
+
+## 1.24.0
+
+### Minor Changes
+
+- 101b9dd: Session-manager: cachedel integration on logout flow
+
+## 1.23.1
+
+### Patch Changes
+
+- 5190cd0: Update Openapi ref
+
 ## 1.23.0
 
 ### Minor Changes

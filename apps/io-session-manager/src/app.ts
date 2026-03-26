@@ -61,7 +61,11 @@ import {
   toProxySSOBasePath,
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
-import { LollipopService, RedisSessionStorageService } from "./services";
+import {
+  LollipopService,
+  PlatformInternalService,
+  RedisSessionStorageService,
+} from "./services";
 import { lollipopLoginMiddleware } from "./utils/lollipop";
 import { checkIP, withIPFromRequest } from "./utils/network";
 import { expressLollipopMiddleware } from "./utils/lollipop";
@@ -177,6 +181,8 @@ export const newApp: (
     isUserElegibleForValidationCookie,
     AuthSessionsTopicRepository,
     authSessionsTopicSender: authSessionsTopicServiceBusSender,
+    platformInternalAPIService: PlatformInternalService,
+    platformInternalAPIClient: APIClients.platformInternalAPIClient,
   };
 
   setupExternalEndpoints(
@@ -441,9 +447,11 @@ function setupExternalEndpoints(
         // Services
         redisSessionStorageService: RedisSessionStorageService,
         lollipopService: LollipopService,
+        platformInternalAPIService: PlatformInternalService,
 
         AuthSessionsTopicRepository,
         authSessionsTopicSender: acsDependencies.authSessionsTopicSender,
+        platformInternalAPIClient: APIClients.platformInternalAPIClient,
       }),
       ap(withUserFromRequest(SessionController.logout)),
     ),
@@ -494,6 +502,8 @@ function setupExternalEndpoints(
         redisClientSelector,
         fnFastLoginAPIClient: APIClients.fnFastLoginAPIClient,
         sessionTTL: fastLoginConfig.lvTokenDurationSecs,
+        platformInternalAPIService: PlatformInternalService,
+        platformInternalAPIClient: APIClients.platformInternalAPIClient,
       }),
       ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
     ),

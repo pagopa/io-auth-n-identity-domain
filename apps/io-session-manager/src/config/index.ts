@@ -22,6 +22,7 @@ import * as PagoPAConfig from "./pagopa";
 import * as AppInsightsConfig from "./appinsights";
 import * as FimsConfig from "./fims";
 import * as ServiceBusConfig from "./service-bus";
+import * as PlatformProxyConfig from "./platform-proxy";
 
 export const ENV = getNodeEnvironmentFromProcessEnv(process.env);
 
@@ -58,4 +59,5 @@ export {
   AppInsightsConfig,
   FimsConfig,
   ServiceBusConfig,
+  PlatformProxyConfig,
 };

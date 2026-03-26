@@ -34,7 +34,7 @@ import { ResLocals } from "../utils/express";
 import { withLollipopLocals } from "../utils/lollipop";
 import { FastLoginResponse as LCFastLoginResponse } from "../generated/fast-login-api/FastLoginResponse";
 import { makeProxyUserFromSAMLResponse } from "../utils/spid";
-import { isBlockedUser, set } from "../services/redis-session-storage";
+import { isBlockedUser, removePrefixFromSessionInfoKeys, retrieveSessionInfoKeys, set } from "../services/redis-session-storage";
 import { FastLoginResponse } from "../types/fast-login";
 import { RedisClientSelectorType } from "../types/redis";
 import { RedisRepositoryDeps } from "../repositories/redis";
@@ -42,6 +42,8 @@ import { WithIP } from "../utils/network";
 import { isUserElegibleForFastLogin } from "../config/fast-login";
 import { FnFastLoginRepo } from "../repositories";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
+import { AppInsightsDeps } from "../utils/appinsights";
+import { PlatformInternalServiceDependency } from "../services";
 
 const generateSessionTokens = (
   userFiscalCode: FiscalCode,
@@ -92,27 +94,76 @@ const generateSessionTokens = (
   );
 };
 
+
+const deleteCachedSessionTokens = (
+  user: User,
+  redisClientSelector: RedisClientSelectorType,
+  platformInternalServiceDependency: PlatformInternalServiceDependency,
+  appInsightsDeps: AppInsightsDeps,
+): TE.TaskEither<IResponseErrorInternal, true> =>
+  pipe(
+    retrieveSessionInfoKeys(redisClientSelector)(user.fiscal_code),
+    TE.mapLeft(err => ResponseErrorInternal(
+      `Error while retrieving session info keys from Redis: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    )),
+    TE.map(removePrefixFromSessionInfoKeys),
+    TE.chainFirstW((existing_session_tokens) =>
+      pipe(
+        platformInternalServiceDependency.platformInternalAPIService.cacheDelSessionTokens(
+          existing_session_tokens as ReadonlyArray<SessionToken>,
+        )({ ...platformInternalServiceDependency, ...appInsightsDeps }),
+        TE.mapLeft((err) =>
+          ResponseErrorInternal(
+            `Error while deleting session tokens from cache: ${
+              err instanceof Error ? err.message : String(err)
+            }`,
+          ),
+        ),
+      )
+    ),
+    TE.map(() => true),
+  );
+
+
 const createSessionForUser = (
   user: User,
   redisClientSelector: RedisClientSelectorType,
   sessionTTL: number,
+  platformInternalServiceDependency: PlatformInternalServiceDependency,
+  appInsightsDeps: AppInsightsDeps,
 ): TE.TaskEither<IResponseErrorInternal, true> =>
   pipe(
+    // Delete cached session tokens on proxy if present.
+    // In case this fails, the entire operation should fail since 
+    // we don't want to create a new session if we can't invalidate the old one.
+    deleteCachedSessionTokens(
+      user,
+      redisClientSelector,
+      platformInternalServiceDependency,
+      appInsightsDeps,
+    ),
+
     // create a new session and delete the old one if present
-    set(redisClientSelector, sessionTTL)(user),
-    TE.mapLeft((err) =>
-      ResponseErrorInternal(
-        `Could not create user using session storage: ${err.message}`,
-      ),
-    ),
-    TE.chain(
-      TE.fromPredicate(identity, (value) =>
-        ResponseErrorInternal(
-          `Could not create user: session storage returned ${value} `,
+    TE.chainW(() =>
+      pipe(
+        set(redisClientSelector, sessionTTL)(user),
+        TE.mapLeft((err) =>
+          ResponseErrorInternal(
+            `Could not create user using session storage: ${err.message}`,
+          ),
         ),
+        TE.chain(
+          TE.fromPredicate(identity, (value) =>
+            ResponseErrorInternal(
+              `Could not create user: session storage returned ${value} `,
+            ),
+          ),
+        ),
+      TE.map(() => true),
       ),
     ),
-    TE.map(() => true),
   );
 
 // TODO: this is NOT NEEDED for the first release of fast-login, however
@@ -161,10 +212,13 @@ type FastLoginDeps<T extends ResLocals> =
   FnFastLoginRepo.FnFastLoginRepositoryDeps & {
     sessionTTL: number;
     locals?: T;
-  } & WithIP;
+  } & WithIP &
+  RedisRepositoryDeps &
+  PlatformInternalServiceDependency &
+  AppInsightsDeps;
 
 type FastLoginHandler = <T extends ResLocals>(
-  deps: RedisRepositoryDeps & FastLoginDeps<T>,
+  deps: FastLoginDeps<T>,
 ) => TE.TaskEither<
   Error,
   | IResponseErrorUnauthorized
@@ -179,6 +233,9 @@ export const fastLoginEndpoint: FastLoginHandler = ({
   sessionTTL,
   clientIP,
   locals,
+  platformInternalAPIClient,
+  platformInternalAPIService,
+  appInsightsTelemetryClient,
 }) =>
   pipe(
     locals,
@@ -271,6 +328,8 @@ export const fastLoginEndpoint: FastLoginHandler = ({
         },
         redisClientSelector,
         sessionTTL,
+        { platformInternalAPIClient, platformInternalAPIService },
+        { appInsightsTelemetryClient },
       ),
     ),
     TE.chainFirstW(callLcSetSession),

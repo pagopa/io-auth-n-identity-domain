@@ -29,6 +29,7 @@ import {
 import { RedisRepo, FnAppRepo, AuthSessionEventsRepo } from "../repositories";
 import {
   LollipopService,
+  PlatformInternalServiceDependency,
   RedisSessionStorageService,
   RedisSessionStorageServiceDepencency,
   TokenService,
@@ -250,6 +251,7 @@ export type LogoutDependencies = {
   ReturnType<typeof LollipopService.deleteAssertionRefAssociation>
 > &
   RedisSessionStorageServiceDepencency &
+  PlatformInternalServiceDependency &
   WithUser &
   WithExpressRequest &
   AuthSessionEventsRepo.AuthSessionEventsDeps;
@@ -260,11 +262,18 @@ export const logout: RTE.ReaderTaskEither<
   IResponseSuccessJson<SuccessResponse>
 > = (deps) =>
   pipe(
-    // retrieve the assertionRef for the user
-    deps.redisSessionStorageService.getLollipopAssertionRefForUser({
+    // as first action, delete cached user token inside platform proxy
+    deps.platformInternalAPIService.cacheDelSessionToken({
       ...deps,
-      fiscalCode: deps.user.fiscal_code,
+      sessionToken: deps.user.session_token,
     }),
+    // retrieve the assertionRef for the user
+    TE.chain((_) =>
+      deps.redisSessionStorageService.getLollipopAssertionRefForUser({
+        ...deps,
+        fiscalCode: deps.user.fiscal_code,
+      }),
+    ),
     TE.chain(
       flow(
         O.map((assertionRef) =>
