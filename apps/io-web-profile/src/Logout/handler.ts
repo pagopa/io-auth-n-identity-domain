@@ -1,4 +1,3 @@
-import express from "express";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { flow, pipe } from "fp-ts/lib/function";
@@ -6,10 +5,7 @@ import * as O from "fp-ts/Option";
 
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { SequenceMiddleware } from "@pagopa/ts-commons/lib/sequence_middleware";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import {
   IResponseErrorBadGateway,
   IResponseErrorGatewayTimeout,
@@ -138,9 +134,9 @@ export const getLogoutHandler = (
   client: LogoutClient,
   config: IConfig,
   containerClient: ContainerClient
-): express.RequestHandler => {
+) => {
   const handler = logoutHandler(client, containerClient);
-  const middlewaresWrap = withRequestMiddlewares(
+  const middlewares = [
     ContextMiddleware(),
     ClientIpMiddleware,
     verifyUserEligibilityMiddleware(config),
@@ -148,9 +144,10 @@ export const getLogoutHandler = (
       hslJwtValidationMiddleware(config),
       exchangeJwtValidationMiddleware(config)
     )
-  );
+  ] as const;
 
-  return wrapRequestHandler(
-    middlewaresWrap((_, clientIp, __, user) => handler(user, clientIp))
+  return wrapHandlerV4(
+    middlewares,
+    (_, clientIp, __, user) => handler(user, clientIp)
   );
 };

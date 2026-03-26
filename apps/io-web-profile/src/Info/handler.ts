@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import * as healthcheck from "@pagopa/io-functions-commons/dist/src/utils/healthcheck";
-import { wrapRequestHandler } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import {
   IResponseErrorInternal,
   IResponseSuccessJson,
   ResponseErrorInternal,
   ResponseSuccessJson
 } from "@pagopa/ts-commons/lib/responses";
-import express from "express";
 
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -46,8 +45,8 @@ export const InfoHandler = (
     TE.toUnion
   )();
 
-export const Info = (): express.RequestHandler => {
+export const Info = () => {
   const handler = InfoHandler(healthcheck.checkApplicationHealth(IConfig, []));
 
-  return wrapRequestHandler(handler);
+  return wrapHandlerV4([], handler);
 };
