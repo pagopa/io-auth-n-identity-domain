@@ -60,7 +60,7 @@
   },
   "dependencies": {
     "@azure/cosmos": "^3.11.5",
-    "@azure/functions": "^4.0.0",
+    "@azure/functions": "catalog:",
     "@azure/storage-blob": "^12.17.0",
     "@pagopa/io-functions-commons": "^30.0.0",
     "@pagopa/openapi-codegen-ts": "^12.1.2",
