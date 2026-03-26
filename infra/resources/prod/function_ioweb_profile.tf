@@ -94,7 +94,7 @@ module "function_web_profile" {
 
   resource_group_name = data.azurerm_resource_group.function_web_profile_rg.name
   health_check_path   = "/api/v1/info"
-  node_version        = 20
+  node_version        = 22
   app_service_plan_id = data.azurerm_service_plan.shared_plan_itn.id
 
   subnet_cidr   = local.cidr_subnet_fn_web_profile
