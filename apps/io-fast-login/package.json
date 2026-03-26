@@ -8,8 +8,7 @@
   "files": [
     "dist/*",
     "extensions.csproj",
-    "host.json",
-    "**/function.json"
+    "host.json"
   ],
   "scripts": {
     "clean": "shx rm -rf dist",
@@ -35,7 +34,6 @@
   },
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
-    "@types/express": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "dependency-check": "catalog:",
@@ -49,10 +47,10 @@
     "vitest": "catalog:"
   },
   "dependencies": {
-    "@azure/functions": "^3.5.1",
+    "@azure/functions": "catalog:",
     "@mattrglobal/http-signatures": "catalog:",
     "@pagopa/handler-kit": "catalog:",
-    "@pagopa/handler-kit-azure-func": "^1.2.0",
+    "@pagopa/handler-kit-azure-func": "catalog:",
     "@pagopa/io-functions-commons": "catalog:",
     "@pagopa/logger": "catalog:",
     "@pagopa/openapi-codegen-ts": "^13.1.0",
@@ -65,7 +63,6 @@
     "io-ts": "catalog:",
     "jose": "^4.14.4",
     "neverthrow": "^4.3.0",
-    "redis": "catalog:",
-    "winston-transport": "catalog:"
+    "redis": "catalog:"
   }
 }
