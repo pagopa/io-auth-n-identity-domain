@@ -3,7 +3,6 @@ import { asyncIterableToArray } from "@pagopa/io-functions-commons/dist/src/util
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
 import { flow, pipe } from "fp-ts/function";
-import * as O from "fp-ts/Option";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as T from "fp-ts/Task";
@@ -26,7 +25,7 @@ import { getSelfFromModelValidationError } from "../utils/cosmos/errors";
 import { TransientError } from "../utils/errors";
 import { isLastTimerTriggerRetry } from "../utils/function-utils";
 
-type TriggerDependencies = {
+export type TriggerDependencies = {
   SessionNotificationsRepo: SessionNotificationsRepository;
   expiredSessionsDiscovererConf: ExpiredSessionDiscovererConfig;
   ExpiredUserSessionsQueueRepo: ExpiredUserSessionsQueueRepository;
@@ -256,27 +255,9 @@ export const trackTransientErrors = (
 export const ExpiredSessionsDiscovererFunction =
   (deps: TriggerDependencies) =>
   async (_timer: Timer, context: InvocationContext): Promise<void> => {
-    const interval = pipe(
-      E.right(new Date()),
-      E.map(createInterval),
-      E.getOrElseW((error) => {
-        throw error;
-      }),
-    );
+    const interval = createInterval(new Date());
     return pipe(
-      retrieveFromDbInChunks(interval),
-      RTE.chainW(
-        flow(
-          RA.map(processChunk),
-          RA.sequence(
-            RTE.getApplicativeReaderTaskValidation(
-              T.ApplicativeSeq,
-              RA.getSemigroup<TransientError>(),
-            ),
-          ),
-          RTE.map(() => void 0),
-        ),
-      ),
+      runDiscovery(interval),
       RTE.getOrElse((errors) => {
         // Track each TransientError occurred on processing
         trackTransientErrors(interval, errors);
@@ -297,3 +278,26 @@ export const ExpiredSessionsDiscovererFunction =
       }),
     )(deps)();
   };
+
+export const runDiscovery = (
+  interval: Interval,
+): RTE.ReaderTaskEither<
+  TriggerDependencies,
+  ReadonlyArray<TransientError> | TransientError,
+  void
+> =>
+  pipe(
+    retrieveFromDbInChunks(interval),
+    RTE.chainW(
+      flow(
+        RA.map(processChunk),
+        RA.sequence(
+          RTE.getApplicativeReaderTaskValidation(
+            T.ApplicativeSeq,
+            RA.getSemigroup<TransientError>(),
+          ),
+        ),
+        RTE.map(() => void 0),
+      ),
+    ),
+  );

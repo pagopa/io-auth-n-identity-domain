@@ -18,6 +18,7 @@ import { HtmlToTextOptions } from "html-to-text";
 import { getConfigOrThrow } from "./config";
 import { ExpiredSessionAdvisorFunction } from "./functions/expired-session-advisor";
 import { ExpiredSessionsDiscovererFunction } from "./functions/expired-sessions-discoverer";
+import { ExpiredSessionsDiscovererMaintenanceFunction } from "./functions/expired-sessions-discoverer-maintenance";
 import { InfoFunction } from "./functions/info";
 import {
   MigrateServicePreferenceFromLegacyFunction,
@@ -33,6 +34,7 @@ import { repository as servicePreferencesRepository } from "./repositories/servi
 import { SessionNotificationsRepository } from "./repositories/session-notifications";
 import { tracker } from "./repositories/tracker";
 import { ExpiredSessionAdvisorQueueMessage } from "./types/expired-session-advisor-queue-message";
+import { ExpiredSessionsDiscovererQueueMessage } from "./types/expired-sessions-discoverer-queue-message";
 import { OnProfileUpdateFunctionInput } from "./types/on-profile-update-input-document";
 import { StoreSpidLogsQueueMessage } from "./types/store-spid-logs-queue-message";
 import { initTelemetryClient } from "./utils/appinsights";
@@ -186,6 +188,17 @@ const SessionNotificationEventsProcessor =
     sessionNotificationsModel,
   });
 
+const ExpiredSessionsDiscovererMaintenance =
+  ExpiredSessionsDiscovererMaintenanceFunction({
+    inputDecoder: ExpiredSessionsDiscovererQueueMessage,
+    SessionNotificationsRepo: SessionNotificationsRepository,
+    ExpiredUserSessionsQueueRepo: ExpiredUserSessionsQueueRepository,
+    expiredUserSessionsQueueClient,
+    sessionNotificationsModel,
+    expiredSessionsDiscovererConf: config,
+    sessionNotificationsRepositoryConfig: config,
+  });
+
 // -----------------------------------------------------------------
 // REGISTER FUNCTIONS (Azure Functions v4 programming model)
 // -----------------------------------------------------------------
@@ -242,6 +255,12 @@ app.timer("ExpiredSessionsDiscoverer", {
     maxRetryCount: 5,
     delayInterval: { minutes: 15 },
   },
+});
+
+app.storageQueue("ExpiredSessionsDiscovererMaintenance", {
+  queueName: "%EXPIRED_SESSIONS_DISCOVERER_MAINTENANCE_QUEUE%",
+  connection: "MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING",
+  handler: ExpiredSessionsDiscovererMaintenance,
 });
 
 app.serviceBusTopic("SessionNotificationEventsProcessor", {

@@ -27,6 +27,7 @@ MAIL_FROM=sender@example.com
 MAILHOG_HOSTNAME=mailhog
 
 EXPIRED_SESSION_ADVISOR_QUEUE=test-expired-session-trigger-queue
+EXPIRED_SESSIONS_DISCOVERER_MAINTENANCE_QUEUE=test-expired-sessions-discoverer-maintenance-queue
 
 SESSION_NOTIFICATIONS_CONTAINER_NAME=session-notifications
 

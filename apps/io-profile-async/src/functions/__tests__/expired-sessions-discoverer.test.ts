@@ -5,15 +5,7 @@ import { QueueClient } from "@azure/storage-queue";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
-import {
-  afterAll,
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ExpiredSessionDiscovererConfig,
   SessionNotificationsRepositoryConfig,
@@ -28,16 +20,12 @@ import { TransientError } from "../../utils/errors";
 import { aValidationError } from "../__mocks__/expired-sessions.mock";
 import {
   ExpiredSessionsDiscovererFunction,
-  getDate,
   ItemToProcess,
   processChunk,
   processItem,
   retrieveFromDbInChunks,
   trackTransientErrors,
 } from "../expired-sessions-discoverer";
-
-const getDateError =
-  "Invalid date provided in context for expired sessions discoverer timer";
 
 const aSession = {
   id: "AAAAAA89S20I111X",
@@ -595,78 +583,6 @@ describe("Expired Sessions Discoverer TimerTrigger Tests", () => {
           },
         }),
       );
-    });
-
-    it("should throw an invalid date is passed in a manual invocation", async () => {
-      const invalidDate = "invalid-date";
-      const context = {
-        invocationId: "test",
-        triggerMetadata: {
-          expiredSessionsDiscovererTimer: { date: invalidDate },
-        },
-      } as unknown as InvocationContext;
-
-      await expect(
-        ExpiredSessionsDiscovererFunction(baseDeps)({} as Timer, context),
-      ).rejects.toThrow(new Error(getDateError));
-    });
-  });
-
-  describe("extractDate", () => {
-    const frozenDate = new Date("2025-10-01T00:00:00Z");
-
-    beforeEach(() => {
-      vi.clearAllMocks();
-      vi.useFakeTimers({ now: frozenDate });
-    });
-
-    afterAll(() => {
-      vi.useRealTimers();
-    });
-
-    it("should return the current date when no date is provided in context", () => {
-      const context = { triggerMetadata: {} } as InvocationContext;
-      const result = getDate(context);
-      expect(result).toEqual(E.right(frozenDate));
-    });
-
-    it("should return a right with the date passed as argument when a valid date is provided in context", () => {
-      const date = new Date("2025-01-01");
-      const context = {
-        triggerMetadata: { expiredSessionsDiscovererTimer: { date } },
-      } as unknown as InvocationContext;
-      const result = getDate(context);
-      expect(result).toEqual(E.right(date));
-    });
-
-    it("should return the current date when date is null or undefined in context", () => {
-      const contextWithNullDate = {
-        triggerMetadata: { expiredSessionsDiscovererTimer: { date: null } },
-      } as unknown as InvocationContext;
-      const contextWithUndefinedDate = {
-        triggerMetadata: { expiredSessionsDiscovererTimer: {} },
-      } as unknown as InvocationContext;
-
-      expect(getDate(contextWithNullDate)).toEqual(E.right(frozenDate));
-      expect(getDate(contextWithUndefinedDate)).toEqual(E.right(frozenDate));
-    });
-
-    it("should return left when date is an empty string", () => {
-      const context = {
-        triggerMetadata: { expiredSessionsDiscovererTimer: { date: "" } },
-      } as unknown as InvocationContext;
-      const result = getDate(context);
-      expect(result).toEqual(E.left(new Error(getDateError)));
-    });
-
-    it("should return left when date is an invalid date string", () => {
-      const context = {
-        triggerMetadata: {
-          expiredSessionsDiscovererTimer: { date: "invalid-date" },
-        },
-      } as unknown as InvocationContext;
-      const result = getDate(context);
-      expect(result).toEqual(E.left(new Error(getDateError)));
     });
   });
 

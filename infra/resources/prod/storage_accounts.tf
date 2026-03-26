@@ -123,6 +123,8 @@ module "storage_account_maintenance_services" {
   queues = [
     local.profile_migrate_services_preferences_from_legacy_queue_name,
     local.profile_migrate_services_preferences_from_legacy_poison_queue_name,
+    local.expired_user_sessions_discoverer_maintenance_queue_name,
+    local.expired_user_sessions_discoverer_maintenance_poison_queue_name,
     "profiles-to-sanitize-01",
     local.profile_events_queue_name,
   ]
