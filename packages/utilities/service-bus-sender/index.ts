@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { DefaultAzureCredential } from "@azure/identity";
 import { ServiceBusClient, ServiceBusMessage } from "@azure/service-bus";
-import yargs from "yargs";
+import yargs, { alias } from "yargs";
 import { hideBin } from "yargs/helpers";
 import { EventTypeEnum } from "@pagopa/io-auth-n-identity-commons/types/session-events/event-type";
 import {
@@ -71,6 +71,11 @@ const argv = yargs(hideBin(process.argv))
       choices: ["lv", "legacy"],
       describe:
         'Login type (required when --type=login, random when --type=mixed): "lv" or "legacy"',
+    },
+    local: {
+      boolean: true,
+      describe: "Whether to call local emulator on port 5672",
+      alias: "isLocal",
     },
   })
   .check((args) => {
@@ -170,14 +175,20 @@ const generateMessage = (
 
 async function main(): Promise<void> {
   const credential = new DefaultAzureCredential();
-  const client = new ServiceBusClient(fullyQualifiedNamespace, credential, {
+  const clientOptions = {
     retryOptions: {
       maxRetries: 3,
       retryDelayInMs: 100,
       maxRetryDelayInMs: 0,
       timeoutInMs: 5000,
     },
-  });
+  };
+  const client = argv.local
+    ? new ServiceBusClient(
+        `Endpoint=sb://${argv.fqdn};SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;`,
+        clientOptions,
+      )
+    : new ServiceBusClient(fullyQualifiedNamespace, credential, clientOptions);
   const sender = client.createSender(topicName);
 
   try {

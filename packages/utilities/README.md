@@ -37,6 +37,7 @@ With this in mind, we would call the script with `--singleBatchCount=... --timeo
 We include a tool to send test messages to an Azure Service Bus topic.
 
 The tool uses `DefaultAzureCredential` for authentication, so you need to be logged in with an Azure account that has the appropriate permissions on the target Service Bus namespace.
+If you want to use the local emulator, pass the argument `--isLocal`
 
 ```sh
 pnpm build
