@@ -1,0 +1,40 @@
+meta {
+  name: QueueTrigger ExpiredSessionAdvisor
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{IO_PROFAS_BASE_URL}}/admin/functions/ExpiredSessionAdvisor
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "SET_IN_PREREQUEST_SCRIPT":"SET_IN_PREREQUEST_SCRIPT"
+  }
+}
+
+script:pre-request {
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioProfAsApiKey = bru.getEnvVar("IO_PROFAS_API_KEY");
+  if (ioProfAsApiKey != null ) {
+    req.setHeader("x-functions-key", ioProfAsApiKey);
+  }
+  
+  const date=new Date()
+  const input=JSON.stringify({
+    fiscalCode:bru.getEnvVar("FISCAL_CODE"),
+    expiredAt:date.getTime()-10000
+  })
+  
+  req.setBody({
+    input,
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
