@@ -103,7 +103,7 @@ module "function_profile_async" {
     instance_number = "02"
   }
 
-  node_version      = 20
+  node_version      = 22
   health_check_path = "/info"
 
 
