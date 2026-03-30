@@ -1,0 +1,28 @@
+meta {
+  name: info
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{IO_FAST_LOGIN_BASE_URL}}/info
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  baseUrl: 
+}
+
+script:pre-request {
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioFastLoginApiKey = bru.getEnvVar("IO_FAST_LOGIN_API_KEY");
+  if (ioFastLoginApiKey != null ) {
+    req.setHeader("x-functions-key", ioFastLoginApiKey);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

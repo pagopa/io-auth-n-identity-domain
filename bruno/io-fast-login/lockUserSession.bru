@@ -1,0 +1,35 @@
+meta {
+  name: lockUserSession
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{IO_FAST_LOGIN_BASE_URL}}/api/v1/lock-session
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "fiscal_code":"{{FISCAL_CODE}}",
+    "unlock_code":"000000000"
+  }
+}
+
+vars:pre-request {
+  baseUrl: 
+}
+
+script:pre-request {
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioFastLoginApiKey = bru.getEnvVar("IO_FAST_LOGIN_API_KEY");
+  if (ioFastLoginApiKey != null ) {
+    req.setHeader("x-functions-key", ioFastLoginApiKey);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
