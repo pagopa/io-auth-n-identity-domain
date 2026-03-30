@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
-    "@types/node": "catalog:",
+    "@types/node": "^22.13.14",
     "@vitest/coverage-v8": "catalog:",
     "dependency-check": "catalog:",
     "dotenv": "^8.2.0",
