@@ -7,26 +7,23 @@ import { PubKeyStatusEnum } from "../../generated/definitions/internal/PubKeySta
 import {
   LolliPOPKeysModel,
   PendingLolliPopPubKeys,
-  TTL_VALUE_FOR_RESERVATION
+  TTL_VALUE_FOR_RESERVATION,
 } from "../../model/lollipop_keys";
 import { encodeBase64 } from "../../utils/thumbprint";
 import { MASTER_HASH_ALGO } from "../../utils/lollipopKeys";
 import {
   aSha256PubKeyThumbprint,
   aSha512PubKey,
-  aSha512PubKeyThumbprint
+  aSha512PubKeyThumbprint,
 } from "../../__mocks__/jwkMock";
 import {
   aCosmosResourceMetadata,
-  mockContainer
+  mockContainer,
 } from "../../__mocks__/lollipopkeysMock";
 import * as handler from "../handler";
 import { AssertionRef } from "../../generated/definitions/external/AssertionRef";
 import { contextMock } from "../../__mocks__/context.mock";
-import { useWinstonFor } from "@pagopa/winston-ts";
-import { LoggerId } from "@pagopa/winston-ts/dist/types/logging";
-import { withApplicationInsight } from "@pagopa/io-functions-commons/dist/src/utils/transports/application_insight";
-import { AzureContextTransport } from "@pagopa/io-functions-commons/dist/src/utils/logging";
+import { createApplicationInsightsLogger } from "../../utils/logging";
 import { TelemetryClient } from "applicationinsights";
 
 import * as lollipopKeysUtils from "../../utils/lollipopKeys";
@@ -38,41 +35,24 @@ const mockCreatePendingLollipop = (pendingLollipop: PendingLolliPopPubKeys) =>
       ...aCosmosResourceMetadata,
       id: `${pendingLollipop.assertionRef}-${"0".repeat(16)}` as NonEmptyString,
       ttl: TTL_VALUE_FOR_RESERVATION,
-      version: 0 as NonNegativeInteger
-    }
+      version: 0 as NonNegativeInteger,
+    },
   });
 
 const FN_LOG_NAME = "reserve-pubkey";
 
 const loggerMock = {
-  trackEvent: vi.fn(e => {
+  trackEvent: vi.fn((e) => {
     return void 0;
-  })
+  }),
 };
 
-const azureContextTransport = new AzureContextTransport(
-  () => contextMock.log,
-  {}
+const eventLogger = createApplicationInsightsLogger(
+  loggerMock as unknown as TelemetryClient,
+  "lollipop",
 );
-useWinstonFor({
-  loggerId: LoggerId.event,
-  transports: [
-    withApplicationInsight(
-      (loggerMock as unknown) as TelemetryClient,
-      "lollipop"
-    ),
-    azureContextTransport
-  ]
-});
-useWinstonFor({
-  loggerId: LoggerId.default,
-  transports: [azureContextTransport]
-});
 
-const getAllAssertionsRef = vi.spyOn(
-  lollipopKeysUtils,
-  "getAllAssertionsRef"
-);
+const getAllAssertionsRef = vi.spyOn(lollipopKeysUtils, "getAllAssertionsRef");
 
 describe("reserveSingleKey", () => {
   beforeEach(async () => {
@@ -85,15 +65,16 @@ describe("reserveSingleKey", () => {
 
     const model = new LolliPOPKeysModel(mockedContainer.container);
     const pubKey = aSha512PubKey;
-    const assertionRef = `${pubKey.algo}-${aSha512PubKeyThumbprint}` as AssertionRef;
+    const assertionRef =
+      `${pubKey.algo}-${aSha512PubKeyThumbprint}` as AssertionRef;
     const result = await handler.reserveSingleKey(
       model,
-      pubKey.pub_key
+      pubKey.pub_key,
     )(assertionRef)();
     expect(result).toEqual(
       expect.objectContaining({
-        right: expect.objectContaining({ assertionRef })
-      })
+        right: expect.objectContaining({ assertionRef }),
+      }),
     );
     expect(mockedContainer.mock.create).toHaveBeenCalledWith(
       {
@@ -102,9 +83,9 @@ describe("reserveSingleKey", () => {
         status: PubKeyStatusEnum.PENDING,
         id: `${assertionRef}-0000000000000000`,
         ttl: TTL_VALUE_FOR_RESERVATION,
-        version: 0
+        version: 0,
       },
-      expect.anything()
+      expect.anything(),
     );
   });
 
@@ -114,10 +95,11 @@ describe("reserveSingleKey", () => {
 
     const model = new LolliPOPKeysModel(mockedContainer.container);
     const pubKey = aSha512PubKey;
-    const assertionRef = `${pubKey.algo}-${aSha512PubKeyThumbprint}` as AssertionRef;
+    const assertionRef =
+      `${pubKey.algo}-${aSha512PubKeyThumbprint}` as AssertionRef;
     const result = await handler.reserveSingleKey(
       model,
-      pubKey.pub_key
+      pubKey.pub_key,
     )(assertionRef)();
 
     // By raising an event within reserveSingleKey,
@@ -129,9 +111,9 @@ describe("reserveSingleKey", () => {
       expect.objectContaining({
         left: expect.objectContaining({
           kind: "IResponseErrorInternal",
-          detail: expect.stringContaining("COSMOS_ERROR_RESPONSE")
-        })
-      })
+          detail: expect.stringContaining("COSMOS_ERROR_RESPONSE"),
+        }),
+      }),
     );
   });
 });
@@ -146,28 +128,28 @@ describe("reservePubKeys", () => {
     mockedContainer.mock.create.mockImplementation(mockCreatePendingLollipop);
 
     getAllAssertionsRef.mockImplementationOnce(() =>
-      TE.left(Error("an error in getAllAssertionsRef"))
+      TE.left(Error("an error in getAllAssertionsRef")),
     );
 
     const model = new LolliPOPKeysModel(mockedContainer.container);
     const pubKey = aSha512PubKey;
-    const result = await handler.reservePubKeys(model)(pubKey);
+    const result = await handler.reservePubKeys(model, eventLogger)(pubKey);
 
     expect(loggerMock.trackEvent).toHaveBeenCalledTimes(1);
     expect(loggerMock.trackEvent).toHaveBeenCalledWith({
       name: "lollipop.error.reserve-pubkey",
       properties: {
-        message: "Error - an error in getAllAssertionsRef"
+        message: "Error - an error in getAllAssertionsRef",
       },
       tagOverrides: {
-        samplingEnabled: "false"
-      }
+        samplingEnabled: "false",
+      },
     });
 
     expect(result).toEqual(
       expect.objectContaining({
-        kind: "IResponseErrorInternal"
-      })
+        kind: "IResponseErrorInternal",
+      }),
     );
   });
 
@@ -176,7 +158,7 @@ describe("reservePubKeys", () => {
     mockedContainer.mock.create.mockImplementation(mockCreatePendingLollipop);
     const model = new LolliPOPKeysModel(mockedContainer.container);
     const pubKey = aSha512PubKey;
-    const result = await handler.reservePubKeys(model)(pubKey);
+    const result = await handler.reservePubKeys(model, eventLogger)(pubKey);
     const assertionRef = `${pubKey.algo}-${aSha512PubKeyThumbprint}`;
     expect(mockedContainer.mock.create).toHaveBeenCalledTimes(1);
     expect(result).toEqual(
@@ -185,10 +167,10 @@ describe("reservePubKeys", () => {
         detail: `/pubKeys/${assertionRef}`,
         payload: expect.objectContaining({
           assertion_ref: assertionRef,
-          pub_key: encodeBase64(pubKey.pub_key)
+          pub_key: encodeBase64(pubKey.pub_key),
         }),
-        resource: expect.objectContaining({ assertion_ref: assertionRef })
-      })
+        resource: expect.objectContaining({ assertion_ref: assertionRef }),
+      }),
     );
   });
 
@@ -198,19 +180,19 @@ describe("reservePubKeys", () => {
     const model = new LolliPOPKeysModel(mockedContainer.container);
     const pubKey = {
       ...aSha512PubKey,
-      algo: JwkPubKeyHashAlgorithmEnum.sha256
+      algo: JwkPubKeyHashAlgorithmEnum.sha256,
     };
-    const result = await handler.reservePubKeys(model)(pubKey);
+    const result = await handler.reservePubKeys(model, eventLogger)(pubKey);
     const assertionRef = `${pubKey.algo}-${aSha256PubKeyThumbprint}`;
     const masterAssertionRef = `${MASTER_HASH_ALGO}-${aSha512PubKeyThumbprint}`;
     expect(mockedContainer.mock.create).toHaveBeenCalledTimes(2);
     expect(mockedContainer.mock.create).toHaveBeenCalledWith(
       expect.objectContaining({ assertionRef: masterAssertionRef }),
-      expect.anything()
+      expect.anything(),
     );
     expect(mockedContainer.mock.create).toHaveBeenCalledWith(
       expect.objectContaining({ assertionRef }),
-      expect.anything()
+      expect.anything(),
     );
     expect(result).toEqual(
       expect.objectContaining({
@@ -218,10 +200,10 @@ describe("reservePubKeys", () => {
         detail: `/pubKeys/${assertionRef}`,
         payload: expect.objectContaining({
           assertion_ref: assertionRef,
-          pub_key: encodeBase64(pubKey.pub_key)
+          pub_key: encodeBase64(pubKey.pub_key),
         }),
-        resource: expect.objectContaining({ assertion_ref: assertionRef })
-      })
+        resource: expect.objectContaining({ assertion_ref: assertionRef }),
+      }),
     );
   });
 
@@ -230,31 +212,31 @@ describe("reservePubKeys", () => {
     mockedContainer.mock.create.mockImplementation(() => "");
     const model = new LolliPOPKeysModel(mockedContainer.container);
     const pubKey = aSha512PubKey;
-    const result = await handler.reservePubKeys(model)(pubKey);
+    const result = await handler.reservePubKeys(model, eventLogger)(pubKey);
 
     expect(loggerMock.trackEvent).toHaveBeenCalledTimes(1);
     expect(loggerMock.trackEvent).toHaveBeenCalledWith({
       name: "lollipop.error.reserve-pubkey",
       properties: {
         message: `Error reserving keys: Internal server error: ${JSON.stringify(
-          { error: {}, kind: "COSMOS_ERROR_RESPONSE" }
+          { error: {}, kind: "COSMOS_ERROR_RESPONSE" },
         )}`,
         masterKey:
           "sha512-WbgQ6E5Rzdj1HSBkRQbZ_CMI2O9IDReGkb-CcJIuv7dS8GKWrC4EPxy4rWXfQ9F-JWz-67VYfKRjS3m7uc8wBQ",
         usedKey:
-          "sha512-WbgQ6E5Rzdj1HSBkRQbZ_CMI2O9IDReGkb-CcJIuv7dS8GKWrC4EPxy4rWXfQ9F-JWz-67VYfKRjS3m7uc8wBQ"
+          "sha512-WbgQ6E5Rzdj1HSBkRQbZ_CMI2O9IDReGkb-CcJIuv7dS8GKWrC4EPxy4rWXfQ9F-JWz-67VYfKRjS3m7uc8wBQ",
       },
       tagOverrides: {
-        samplingEnabled: "false"
-      }
+        samplingEnabled: "false",
+      },
     });
 
     expect(mockedContainer.mock.create).toHaveBeenCalledTimes(1);
     expect(result).toEqual(
       expect.objectContaining({
         kind: "IResponseErrorInternal",
-        detail: expect.stringContaining("COSMOS_ERROR_RESPONSE")
-      })
+        detail: expect.stringContaining("COSMOS_ERROR_RESPONSE"),
+      }),
     );
   });
 
@@ -264,32 +246,32 @@ describe("reservePubKeys", () => {
     const model = new LolliPOPKeysModel(mockedContainer.container);
     const pubKey = {
       ...aSha512PubKey,
-      algo: JwkPubKeyHashAlgorithmEnum.sha256
+      algo: JwkPubKeyHashAlgorithmEnum.sha256,
     };
-    const result = await handler.reservePubKeys(model)(pubKey);
+    const result = await handler.reservePubKeys(model, eventLogger)(pubKey);
 
     expect(loggerMock.trackEvent).toHaveBeenCalledTimes(1);
     expect(loggerMock.trackEvent).toHaveBeenCalledWith({
       name: "lollipop.error.reserve-pubkey",
       properties: {
         message: `Error reserving keys: Internal server error: ${JSON.stringify(
-          { error: {}, kind: "COSMOS_ERROR_RESPONSE" }
+          { error: {}, kind: "COSMOS_ERROR_RESPONSE" },
         )}`,
         masterKey:
           "sha512-WbgQ6E5Rzdj1HSBkRQbZ_CMI2O9IDReGkb-CcJIuv7dS8GKWrC4EPxy4rWXfQ9F-JWz-67VYfKRjS3m7uc8wBQ",
-        usedKey: "sha256-LWmgzxnrIhywpNW0mctCFWfh2CptjGJJN_H2_FLN2fg"
+        usedKey: "sha256-LWmgzxnrIhywpNW0mctCFWfh2CptjGJJN_H2_FLN2fg",
       },
       tagOverrides: {
-        samplingEnabled: "false"
-      }
+        samplingEnabled: "false",
+      },
     });
 
     expect(mockedContainer.mock.create).toHaveBeenCalledTimes(2);
     expect(result).toEqual(
       expect.objectContaining({
         kind: "IResponseErrorInternal",
-        detail: expect.stringContaining("COSMOS_ERROR_RESPONSE")
-      })
+        detail: expect.stringContaining("COSMOS_ERROR_RESPONSE"),
+      }),
     );
   });
 });

@@ -11,57 +11,47 @@ import { GetAssertionHandler } from "../handler";
 import {
   anAssertionContent,
   assertionReaderMock,
-  publicKeyDocumentReaderMock
+  publicKeyDocumentReaderMock,
 } from "../../__mocks__/readers.mock";
 import { contextMock } from "../../__mocks__/context.mock";
 import {
   aRetrievedValidLollipopPubKeySha256,
   aValidSha256AssertionRef,
-  aValidSha512AssertionRef
+  aValidSha512AssertionRef,
 } from "../../__mocks__/lollipopPubKey.mock";
 import { PubKeyStatusEnum } from "../../generated/definitions/internal/PubKeyStatus";
 import { ErrorKind } from "../../utils/errors";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
-import { useWinstonFor } from "@pagopa/winston-ts";
-import { LoggerId } from "@pagopa/winston-ts/dist/types/logging";
-import { withApplicationInsight } from "@pagopa/io-functions-commons/dist/src/utils/transports/application_insight";
-import { AzureContextTransport } from "@pagopa/io-functions-commons/dist/src/utils/logging";
+import { createApplicationInsightsLogger } from "../../utils/logging";
 import { TelemetryClient } from "applicationinsights";
 import { ResponseErrorForbiddenNotAuthorized } from "@pagopa/ts-commons/lib/responses";
 
 const loggerMock = {
-  trackEvent: vi.fn(e => {
+  trackEvent: vi.fn((e) => {
     return void 0;
-  })
+  }),
 };
 
-const auth = ({
-  subscription_id: "aValidSubscriptionId"
-} as unknown) as IAzureApiAuthorization;
+const auth = {
+  subscription_id: "aValidSubscriptionId",
+} as unknown as IAzureApiAuthorization;
 
 const aValidDecodedAuthJWT = {
   assertionRef: aValidSha256AssertionRef,
-  operationId: "anOperationId" as NonEmptyString
+  operationId: "anOperationId" as NonEmptyString,
 };
 
-const azureContextTransport = new AzureContextTransport(
-  () => contextMock.log,
-  {}
+const defaultLoggerMock = {
+  trackEvent: vi.fn(),
+};
+const defaultLogger = createApplicationInsightsLogger(
+  defaultLoggerMock as unknown as TelemetryClient,
+  "lollipop",
 );
-useWinstonFor({
-  loggerId: LoggerId.event,
-  transports: [
-    withApplicationInsight(
-      (loggerMock as unknown) as TelemetryClient,
-      "lollipop"
-    ),
-    azureContextTransport
-  ]
-});
-useWinstonFor({
-  loggerId: LoggerId.default,
-  transports: [azureContextTransport]
-});
+const eventLogger = createApplicationInsightsLogger(
+  loggerMock as unknown as TelemetryClient,
+  "lollipop",
+);
 
 describe("GetAssertionHandler - Success", () => {
   beforeEach(() => {
@@ -86,32 +76,31 @@ describe("GetAssertionHandler - Success", () => {
             status,
             assertionRef: assertionRef,
             id: `${assertionRef}-000001`,
-            version: 1
-          }) as ReturnType<PublicKeyDocumentReader>
+            version: 1,
+          }) as ReturnType<PublicKeyDocumentReader>,
       );
 
       const handler = GetAssertionHandler(
         publicKeyDocumentReaderMock,
-        assertionReaderMock
+        assertionReaderMock,
+        defaultLogger,
+        eventLogger,
       );
 
       const res = await handler(
         auth,
         aValidSha256AssertionRef,
-        aValidDecodedAuthJWT
+        aValidDecodedAuthJWT,
       );
 
       expect(publicKeyDocumentReaderMock).toHaveBeenCalledWith(
-        aValidSha256AssertionRef
+        aValidSha256AssertionRef,
       );
       expect(assertionReaderMock).toHaveBeenCalledWith(
-        aRetrievedValidLollipopPubKeySha256.assertionFileName
+        aRetrievedValidLollipopPubKeySha256.assertionFileName,
       );
 
-      expect(contextMock.log.error).not.toHaveBeenCalled();
-      expect(contextMock.log.info).toHaveBeenCalledWith(
-        `Assertion ${aValidSha256AssertionRef} returned to service ${auth.subscriptionId}`
-      );
+      expect(defaultLoggerMock.trackEvent).not.toHaveBeenCalled();
       expect(loggerMock.trackEvent).toHaveBeenCalledWith({
         name: "lollipop.info.get-assertion",
         properties: {
@@ -119,18 +108,18 @@ describe("GetAssertionHandler - Success", () => {
           fiscal_code: sha256(aRetrievedValidLollipopPubKeySha256.fiscalCode),
           message: `Assertion ${aValidSha256AssertionRef} returned to service ${auth.subscriptionId}`,
           operation_id: aValidDecodedAuthJWT.operationId,
-          subscription_id: auth.subscriptionId
+          subscription_id: auth.subscriptionId,
         },
         tagOverrides: {
-          samplingEnabled: "false"
-        }
+          samplingEnabled: "false",
+        },
       });
 
       expect(res).toMatchObject({
         kind: "IResponseSuccessJson",
-        value: { response_xml: anAssertionContent }
+        value: { response_xml: anAssertionContent },
       });
-    }
+    },
   );
 });
 
@@ -146,7 +135,9 @@ describe("GetAssertionHandler - Failure", () => {
   `, async () => {
     const handler = GetAssertionHandler(
       publicKeyDocumentReaderMock,
-      assertionReaderMock
+      assertionReaderMock,
+      defaultLogger,
+      eventLogger,
     );
 
     const anotherAssertionRef = aValidSha512AssertionRef;
@@ -162,13 +153,13 @@ describe("GetAssertionHandler - Failure", () => {
         assertion_ref: anotherAssertionRef,
         message: `${ResponseErrorForbiddenNotAuthorized.detail} | jwt assertion_ref does not match the one in path`,
         operation_id: aValidDecodedAuthJWT.operationId,
-        subscription_id: auth.subscriptionId
+        subscription_id: auth.subscriptionId,
       },
-      tagOverrides: { samplingEnabled: "false" }
+      tagOverrides: { samplingEnabled: "false" },
     });
 
     expect(res).toMatchObject({
-      kind: "IResponseErrorForbiddenNotAuthorized"
+      kind: "IResponseErrorForbiddenNotAuthorized",
     });
   });
 
@@ -179,17 +170,19 @@ describe("GetAssertionHandler - Failure", () => {
   `, async () => {
     const handler = GetAssertionHandler(
       publicKeyDocumentReaderMock,
-      assertionReaderMock
+      assertionReaderMock,
+      defaultLogger,
+      eventLogger,
     );
 
     const res = await handler(
       auth,
       aValidSha256AssertionRef,
-      aValidDecodedAuthJWT
+      aValidDecodedAuthJWT,
     );
 
     expect(publicKeyDocumentReaderMock).toHaveBeenCalledWith(
-      aValidSha256AssertionRef
+      aValidSha256AssertionRef,
     );
     expect(assertionReaderMock).not.toHaveBeenCalled();
 
@@ -197,7 +190,7 @@ describe("GetAssertionHandler - Failure", () => {
 
     expect(res).toMatchObject({
       kind: "IResponseErrorInternal",
-      detail: "Internal server error: Unexpected status on pubKey document"
+      detail: "Internal server error: Unexpected status on pubKey document",
     });
   });
 
@@ -210,34 +203,43 @@ describe("GetAssertionHandler - Failure", () => {
       TE.left({
         kind: ErrorKind.Internal,
         detail: "an Error",
-        message: "another Error"
-      })
+        message: "another Error",
+        defaultLogger,
+        eventLogger,
+      }),
     );
 
     const handler = GetAssertionHandler(
       publicKeyDocumentReaderMock,
-      assertionReaderMock
+      assertionReaderMock,
+      defaultLogger,
+      eventLogger,
     );
 
     const res = await handler(
       auth,
       aValidSha256AssertionRef,
-      aValidDecodedAuthJWT
+      aValidDecodedAuthJWT,
     );
 
     expect(publicKeyDocumentReaderMock).toHaveBeenCalledWith(
-      aValidSha256AssertionRef
+      aValidSha256AssertionRef,
     );
     expect(assertionReaderMock).not.toHaveBeenCalled();
 
-    expect(contextMock.log.error).toHaveBeenCalledTimes(1);
-    expect(contextMock.log.error).toHaveBeenCalledWith(
-      "Error while reading pop document:  another Error | an Error"
+    expect(defaultLoggerMock.trackEvent).toHaveBeenCalledTimes(1);
+    expect(defaultLoggerMock.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          message:
+            "Error while reading pop document:  another Error | an Error",
+        }),
+      }),
     );
 
     expect(res).toMatchObject({
       kind: "IResponseErrorInternal",
-      detail: "Internal server error: an Error"
+      detail: "Internal server error: an Error",
     });
   });
 
@@ -247,29 +249,31 @@ describe("GetAssertionHandler - Failure", () => {
   THEN an IResponseErrorGone is returned
   `, async () => {
     publicKeyDocumentReaderMock.mockImplementationOnce(() =>
-      TE.left({ kind: ErrorKind.NotFound })
+      TE.left({ kind: ErrorKind.NotFound }),
     );
 
     const handler = GetAssertionHandler(
       publicKeyDocumentReaderMock,
-      assertionReaderMock
+      assertionReaderMock,
+      defaultLogger,
+      eventLogger,
     );
 
     const res = await handler(
       auth,
       aValidSha256AssertionRef,
-      aValidDecodedAuthJWT
+      aValidDecodedAuthJWT,
     );
 
     expect(publicKeyDocumentReaderMock).toHaveBeenCalledWith(
-      aValidSha256AssertionRef
+      aValidSha256AssertionRef,
     );
     expect(assertionReaderMock).not.toHaveBeenCalled();
 
     expect(loggerMock.trackEvent).not.toHaveBeenCalled();
 
     expect(res).toMatchObject({
-      kind: "IResponseErrorGone"
+      kind: "IResponseErrorGone",
     });
   });
 
@@ -285,46 +289,53 @@ describe("GetAssertionHandler - Failure", () => {
           status: PubKeyStatusEnum.VALID,
           assertionRef: assertionRef,
           id: `${assertionRef}-000001`,
-          version: 1
-        }) as ReturnType<PublicKeyDocumentReader>
+          version: 1,
+        }) as ReturnType<PublicKeyDocumentReader>,
     );
 
     assertionReaderMock.mockImplementationOnce(() =>
       TE.left({
         kind: ErrorKind.Internal,
         detail: "an Error",
-        message: "another Error"
-      })
+        message: "another Error",
+      }),
     );
 
     const handler = GetAssertionHandler(
       publicKeyDocumentReaderMock,
-      assertionReaderMock
+      assertionReaderMock,
+      defaultLogger,
+      eventLogger,
     );
 
     const res = await handler(
       auth,
       aValidSha256AssertionRef,
-      aValidDecodedAuthJWT
+      aValidDecodedAuthJWT,
     );
 
     expect(publicKeyDocumentReaderMock).toHaveBeenCalledWith(
-      aValidSha256AssertionRef
+      aValidSha256AssertionRef,
     );
     expect(assertionReaderMock).toHaveBeenCalledWith(
-      aRetrievedValidLollipopPubKeySha256.assertionFileName
+      aRetrievedValidLollipopPubKeySha256.assertionFileName,
     );
 
     expect(loggerMock.trackEvent).not.toHaveBeenCalled();
 
-    expect(contextMock.log.error).toHaveBeenCalledTimes(1);
-    expect(contextMock.log.error).toHaveBeenCalledWith(
-      "Error while reading assertion from blob storage: another Error | an Error"
+    expect(defaultLoggerMock.trackEvent).toHaveBeenCalledTimes(1);
+    expect(defaultLoggerMock.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          message:
+            "Error while reading assertion from blob storage: another Error | an Error",
+        }),
+      }),
     );
 
     expect(res).toMatchObject({
       kind: "IResponseErrorInternal",
-      detail: "Internal server error: an Error"
+      detail: "Internal server error: an Error",
     });
   });
 
@@ -340,36 +351,38 @@ describe("GetAssertionHandler - Failure", () => {
           status: PubKeyStatusEnum.VALID,
           assertionRef: assertionRef,
           id: `${assertionRef}-000001`,
-          version: 1
-        }) as ReturnType<PublicKeyDocumentReader>
+          version: 1,
+        }) as ReturnType<PublicKeyDocumentReader>,
     );
 
     assertionReaderMock.mockImplementationOnce(() =>
-      TE.left({ kind: ErrorKind.NotFound })
+      TE.left({ kind: ErrorKind.NotFound }),
     );
 
     const handler = GetAssertionHandler(
       publicKeyDocumentReaderMock,
-      assertionReaderMock
+      assertionReaderMock,
+      defaultLogger,
+      eventLogger,
     );
 
     const res = await handler(
       auth,
       aValidSha256AssertionRef,
-      aValidDecodedAuthJWT
+      aValidDecodedAuthJWT,
     );
 
     expect(publicKeyDocumentReaderMock).toHaveBeenCalledWith(
-      aValidSha256AssertionRef
+      aValidSha256AssertionRef,
     );
     expect(assertionReaderMock).toHaveBeenCalledWith(
-      aRetrievedValidLollipopPubKeySha256.assertionFileName
+      aRetrievedValidLollipopPubKeySha256.assertionFileName,
     );
 
     expect(loggerMock.trackEvent).not.toHaveBeenCalled();
 
     expect(res).toMatchObject({
-      kind: "IResponseErrorGone"
+      kind: "IResponseErrorGone",
     });
   });
 });

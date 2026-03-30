@@ -7,7 +7,7 @@ import { AssertionRef } from "../../generated/definitions/internal/AssertionRef"
 import { toCosmosErrorResponse } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import {
   NotPendingLolliPopPubKeys,
-  PendingLolliPopPubKeys
+  PendingLolliPopPubKeys,
 } from "../../model/lollipop_keys";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { PubKeyStatusEnum } from "../../generated/definitions/internal/PubKeyStatus";
@@ -18,37 +18,37 @@ import { JwkPubKeyHashAlgorithmEnum } from "../../generated/definitions/internal
 import { AssertionFileName } from "../../generated/definitions/internal/AssertionFileName";
 
 const contextMock = {
-  log: {
-    error: vi.fn()
-  },
-  executionContext: { retryContext: { retryCount: 1, maxRetryCount: 5 } }
+  error: vi.fn(),
+  triggerMetadata: { dequeueCount: 1 },
 } as any;
 
 const mockAppinsights = {
   trackEvent: vi.fn().mockReturnValue(void 0),
-  trackException: vi.fn().mockReturnValue(void 0)
+  trackException: vi.fn().mockReturnValue(void 0),
 };
 
-const aValidAssertionRef = "sha256-9f86d081884c7d659a2feaa0c55ad015a3bf4f1234" as AssertionRef;
-const aValidSha512AssertionRef = "sha512-9f86d081884c7d659a2feaa0c55ad015a3bf4f1234abcdaacabac8734623984f" as AssertionRef;
+const aValidAssertionRef =
+  "sha256-9f86d081884c7d659a2feaa0c55ad015a3bf4f1234" as AssertionRef;
+const aValidSha512AssertionRef =
+  "sha512-9f86d081884c7d659a2feaa0c55ad015a3bf4f1234abcdaacabac8734623984f" as AssertionRef;
 
 const aFiscalCode = "AAAAAA89S20I111X" as FiscalCode;
 const aValidRevokeInput: RevokeAssertionRefInfo = {
-  assertion_ref: aValidAssertionRef
+  assertion_ref: aValidAssertionRef,
 };
 
 const aValidJwk: JwkPublicKey = {
   kty: "EC",
   crv: "P-256",
   x: "SVqB4JcUD6lsfvqMr-OKUNUphdNn64Eay60978ZlL74",
-  y: "lf0u0pMj4lGAzZix5u4Cm5CMQIgMNpkwy163wtKYVKI"
+  y: "lf0u0pMj4lGAzZix5u4Cm5CMQIgMNpkwy163wtKYVKI",
 };
 
 const anInvalidJwk: JwkPublicKey = {
   alg: "",
   e: "e",
   kty: "RSA",
-  n: ""
+  n: "",
 };
 const toEncodedJwk = (jwk: JwkPublicKey) =>
   jose.base64url.encode(JSON.stringify(jwk)) as NonEmptyString;
@@ -56,16 +56,17 @@ const toEncodedJwk = (jwk: JwkPublicKey) =>
 const aPendingLollipopPubKey: PendingLolliPopPubKeys = {
   assertionRef: aValidAssertionRef,
   pubKey: toEncodedJwk(aValidJwk),
-  status: PubKeyStatusEnum.PENDING
+  status: PubKeyStatusEnum.PENDING,
 };
 
 const aNotPendingLollipopPubKey: NotPendingLolliPopPubKeys = {
   ...aPendingLollipopPubKey,
-  assertionFileName: `${aFiscalCode}-${aValidAssertionRef}` as AssertionFileName,
+  assertionFileName:
+    `${aFiscalCode}-${aValidAssertionRef}` as AssertionFileName,
   assertionType: AssertionTypeEnum.SAML,
   fiscalCode: aFiscalCode,
   expiredAt: new Date(),
-  status: PubKeyStatusEnum.VALID
+  status: PubKeyStatusEnum.VALID,
 };
 
 const findLastVersionByModelIdMock = vi
@@ -75,10 +76,11 @@ const findLastVersionByModelIdMock = vi
 const upsertMock = vi.fn().mockImplementation(() => TE.of({}));
 const lollipopKeysModelMock = {
   findLastVersionByModelId: findLastVersionByModelIdMock,
-  upsert: upsertMock
+  upsert: upsertMock,
 } as any;
 
 const masterAlgo = JwkPubKeyHashAlgorithmEnum.sha512;
+const TEST_MAX_DEQUEUE_COUNT = 5;
 
 describe("handleRevoke", () => {
   beforeEach(() => {
@@ -91,7 +93,8 @@ describe("handleRevoke", () => {
       mockAppinsights as any,
       lollipopKeysModelMock,
       masterAlgo,
-      "wrong input"
+      TEST_MAX_DEQUEUE_COUNT,
+      "wrong input",
     );
 
     expect(mockAppinsights.trackException).toHaveBeenCalled();
@@ -103,20 +106,20 @@ describe("handleRevoke", () => {
           assertionRef: "unknown",
           name: "lollipop.pubKeys.revoke.failure",
           retryCount: "1",
-          maxRetryCount: "5"
-        })
-      })
+          maxRetryCount: String(TEST_MAX_DEQUEUE_COUNT),
+        }),
+      }),
     );
     expect(result).toEqual(
       expect.objectContaining({
-        kind: "PERMANENT"
-      })
+        kind: "PERMANENT",
+      }),
     );
   });
 
   it("GIVEN a valid revoke message WHEN findLastVersion fails THEN it should throw with a transient failure", async () => {
     findLastVersionByModelIdMock.mockImplementationOnce(() =>
-      TE.left(toCosmosErrorResponse("Cannot reach cosmosDB"))
+      TE.left(toCosmosErrorResponse("Cannot reach cosmosDB")),
     );
     await expect(
       handleRevoke(
@@ -124,8 +127,9 @@ describe("handleRevoke", () => {
         mockAppinsights as any,
         lollipopKeysModelMock,
         masterAlgo,
-        aValidRevokeInput
-      )
+        TEST_MAX_DEQUEUE_COUNT,
+        aValidRevokeInput,
+      ),
     ).rejects.toBeDefined();
 
     expect(mockAppinsights.trackException).toHaveBeenCalled();
@@ -140,33 +144,32 @@ describe("handleRevoke", () => {
           assertionRef: aValidAssertionRef,
           name: "lollipop.pubKeys.revoke.failure",
           retryCount: "1",
-          maxRetryCount: "5"
-        })
-      })
+          maxRetryCount: String(TEST_MAX_DEQUEUE_COUNT),
+        }),
+      }),
     );
     expect(findLastVersionByModelIdMock).toHaveBeenCalledTimes(1);
     expect(findLastVersionByModelIdMock).toHaveBeenCalledWith([
-      aValidRevokeInput.assertion_ref
+      aValidRevokeInput.assertion_ref,
     ]);
   });
 
   it("GIVEN a valid revoke message WHEN findLastVersion fails the last retry THEN it should throw with a transient failure without sampling", async () => {
     findLastVersionByModelIdMock.mockImplementationOnce(() =>
-      TE.left(toCosmosErrorResponse("Cannot reach cosmosDB"))
+      TE.left(toCosmosErrorResponse("Cannot reach cosmosDB")),
     );
     await expect(
       handleRevoke(
         {
           ...contextMock,
-          executionContext: {
-            retryContext: { retryCount: 4, maxRetryCount: 5 }
-          }
+          triggerMetadata: { dequeueCount: TEST_MAX_DEQUEUE_COUNT },
         },
         mockAppinsights as any,
         lollipopKeysModelMock,
         masterAlgo,
-        aValidRevokeInput
-      )
+        TEST_MAX_DEQUEUE_COUNT,
+        aValidRevokeInput,
+      ),
     ).rejects.toBeDefined();
 
     expect(mockAppinsights.trackException).toHaveBeenCalled();
@@ -180,14 +183,14 @@ describe("handleRevoke", () => {
           modelId: "",
           assertionRef: aValidAssertionRef,
           name: "lollipop.pubKeys.revoke.failure",
-          retryCount: "4",
-          maxRetryCount: "5"
-        })
-      })
+          retryCount: String(TEST_MAX_DEQUEUE_COUNT),
+          maxRetryCount: String(TEST_MAX_DEQUEUE_COUNT),
+        }),
+      }),
     );
     expect(findLastVersionByModelIdMock).toHaveBeenCalledTimes(1);
     expect(findLastVersionByModelIdMock).toHaveBeenCalledWith([
-      aValidRevokeInput.assertion_ref
+      aValidRevokeInput.assertion_ref,
     ]);
   });
 
@@ -198,13 +201,14 @@ describe("handleRevoke", () => {
       mockAppinsights as any,
       lollipopKeysModelMock,
       masterAlgo,
-      aValidRevokeInput
+      TEST_MAX_DEQUEUE_COUNT,
+      aValidRevokeInput,
     );
 
     expect(mockAppinsights.trackException).not.toHaveBeenCalled();
     expect(findLastVersionByModelIdMock).toHaveBeenCalledTimes(1);
     expect(findLastVersionByModelIdMock).toHaveBeenCalledWith([
-      aValidRevokeInput.assertion_ref
+      aValidRevokeInput.assertion_ref,
     ]);
     expect(upsertMock).not.toHaveBeenCalled();
     expect(result).toBeUndefined();
@@ -212,20 +216,21 @@ describe("handleRevoke", () => {
 
   it("GIVEN a valid revoke message WHEN findLastVersion returns a PENDING lollipop pub key THEN it should success without perform any upsert", async () => {
     findLastVersionByModelIdMock.mockImplementationOnce(() =>
-      TE.right(O.some(aPendingLollipopPubKey))
+      TE.right(O.some(aPendingLollipopPubKey)),
     );
     const result = await handleRevoke(
       contextMock,
       mockAppinsights as any,
       lollipopKeysModelMock,
       masterAlgo,
-      aValidRevokeInput
+      TEST_MAX_DEQUEUE_COUNT,
+      aValidRevokeInput,
     );
 
     expect(mockAppinsights.trackException).not.toHaveBeenCalled();
     expect(findLastVersionByModelIdMock).toHaveBeenCalledTimes(1);
     expect(findLastVersionByModelIdMock).toHaveBeenCalledWith([
-      aValidRevokeInput.assertion_ref
+      aValidRevokeInput.assertion_ref,
     ]);
     expect(upsertMock).not.toHaveBeenCalled();
     expect(result).toBeUndefined();
@@ -236,9 +241,9 @@ describe("handleRevoke", () => {
       TE.right(
         O.some({
           ...aNotPendingLollipopPubKey,
-          assertionRef: aValidSha512AssertionRef
-        })
-      )
+          assertionRef: aValidSha512AssertionRef,
+        }),
+      ),
     );
 
     const result = await handleRevoke(
@@ -246,19 +251,20 @@ describe("handleRevoke", () => {
       mockAppinsights as any,
       lollipopKeysModelMock,
       masterAlgo,
-      { assertion_ref: aValidSha512AssertionRef }
+      TEST_MAX_DEQUEUE_COUNT,
+      { assertion_ref: aValidSha512AssertionRef },
     );
 
     expect(mockAppinsights.trackException).not.toHaveBeenCalled();
     expect(findLastVersionByModelIdMock).toHaveBeenCalledTimes(1);
     expect(findLastVersionByModelIdMock).toHaveBeenCalledWith([
-      aValidSha512AssertionRef
+      aValidSha512AssertionRef,
     ]);
     expect(upsertMock).toHaveBeenCalledTimes(1);
     expect(upsertMock).toHaveBeenCalledWith({
       ...aNotPendingLollipopPubKey,
       assertionRef: aValidSha512AssertionRef,
-      status: PubKeyStatusEnum.REVOKED
+      status: PubKeyStatusEnum.REVOKED,
     });
     expect(result).toBeUndefined();
   });
@@ -268,9 +274,9 @@ describe("handleRevoke", () => {
       TE.right(
         O.some({
           ...aNotPendingLollipopPubKey,
-          pubKey: "anInvalidPubKey" as NonEmptyString
-        })
-      )
+          pubKey: "anInvalidPubKey" as NonEmptyString,
+        }),
+      ),
     );
 
     const result = await handleRevoke(
@@ -278,12 +284,13 @@ describe("handleRevoke", () => {
       mockAppinsights as any,
       lollipopKeysModelMock,
       masterAlgo,
-      aValidRevokeInput
+      TEST_MAX_DEQUEUE_COUNT,
+      aValidRevokeInput,
     );
 
     expect(findLastVersionByModelIdMock).toHaveBeenCalledTimes(1);
     expect(findLastVersionByModelIdMock).toHaveBeenCalledWith([
-      aValidAssertionRef
+      aValidAssertionRef,
     ]);
     expect(upsertMock).not.toHaveBeenCalled();
     expect(mockAppinsights.trackException).toHaveBeenCalled();
@@ -295,15 +302,15 @@ describe("handleRevoke", () => {
           assertionRef: aValidAssertionRef,
           name: "lollipop.pubKeys.revoke.failure",
           retryCount: "1",
-          maxRetryCount: "5"
-        })
-      })
+          maxRetryCount: String(TEST_MAX_DEQUEUE_COUNT),
+        }),
+      }),
     );
     expect(result).toEqual(
       expect.objectContaining({
         kind: "PERMANENT",
-        reason: expect.stringContaining("Cannot decode used jwk")
-      })
+        reason: expect.stringContaining("Cannot decode used jwk"),
+      }),
     );
   });
 
@@ -312,9 +319,9 @@ describe("handleRevoke", () => {
       TE.right(
         O.some({
           ...aNotPendingLollipopPubKey,
-          pubKey: toEncodedJwk(anInvalidJwk)
-        })
-      )
+          pubKey: toEncodedJwk(anInvalidJwk),
+        }),
+      ),
     );
 
     const result = await handleRevoke(
@@ -322,12 +329,13 @@ describe("handleRevoke", () => {
       mockAppinsights as any,
       lollipopKeysModelMock,
       masterAlgo,
-      aValidRevokeInput
+      TEST_MAX_DEQUEUE_COUNT,
+      aValidRevokeInput,
     );
 
     expect(findLastVersionByModelIdMock).toHaveBeenCalledTimes(1);
     expect(findLastVersionByModelIdMock).toHaveBeenCalledWith([
-      aValidAssertionRef
+      aValidAssertionRef,
     ]);
     expect(upsertMock).not.toHaveBeenCalled();
     expect(mockAppinsights.trackException).toHaveBeenCalled();
@@ -339,15 +347,15 @@ describe("handleRevoke", () => {
           assertionRef: aValidAssertionRef,
           name: "lollipop.pubKeys.revoke.failure",
           retryCount: "1",
-          maxRetryCount: "5"
-        })
-      })
+          maxRetryCount: String(TEST_MAX_DEQUEUE_COUNT),
+        }),
+      }),
     );
     expect(result).toEqual(
       expect.objectContaining({
         kind: "PERMANENT",
-        reason: expect.stringContaining("Can not calculate JwkThumbprint ")
-      })
+        reason: expect.stringContaining("Can not calculate JwkThumbprint "),
+      }),
     );
   });
 
@@ -362,20 +370,21 @@ describe("handleRevoke", () => {
         mockAppinsights as any,
         lollipopKeysModelMock,
         masterAlgo,
-        aValidRevokeInput
-      )
+        TEST_MAX_DEQUEUE_COUNT,
+        aValidRevokeInput,
+      ),
     ).rejects.toBeDefined();
 
     expect(findLastVersionByModelIdMock).toHaveBeenCalledTimes(2);
     expect(findLastVersionByModelIdMock).toHaveBeenNthCalledWith(1, [
-      aValidAssertionRef
+      aValidAssertionRef,
     ]);
     const expectedThumbprint = await jose.calculateJwkThumbprint(
       aValidJwk,
-      masterAlgo
+      masterAlgo,
     );
     expect(findLastVersionByModelIdMock).toHaveBeenNthCalledWith(2, [
-      `${masterAlgo}-${expectedThumbprint}`
+      `${masterAlgo}-${expectedThumbprint}`,
     ]);
     expect(upsertMock).not.toHaveBeenCalled();
     expect(mockAppinsights.trackException).toHaveBeenCalled();
@@ -387,9 +396,9 @@ describe("handleRevoke", () => {
           assertionRef: aValidAssertionRef,
           name: "lollipop.pubKeys.revoke.failure",
           retryCount: "1",
-          maxRetryCount: "5"
-        })
-      })
+          maxRetryCount: String(TEST_MAX_DEQUEUE_COUNT),
+        }),
+      }),
     );
   });
 
@@ -404,20 +413,21 @@ describe("handleRevoke", () => {
         mockAppinsights as any,
         lollipopKeysModelMock,
         masterAlgo,
-        aValidRevokeInput
-      )
+        TEST_MAX_DEQUEUE_COUNT,
+        aValidRevokeInput,
+      ),
     ).rejects.toBeDefined();
 
     expect(findLastVersionByModelIdMock).toHaveBeenCalledTimes(2);
     expect(findLastVersionByModelIdMock).toHaveBeenNthCalledWith(1, [
-      aValidAssertionRef
+      aValidAssertionRef,
     ]);
     const expectedThumbprint = await jose.calculateJwkThumbprint(
       aValidJwk,
-      masterAlgo
+      masterAlgo,
     );
     expect(findLastVersionByModelIdMock).toHaveBeenNthCalledWith(2, [
-      `${masterAlgo}-${expectedThumbprint}`
+      `${masterAlgo}-${expectedThumbprint}`,
     ]);
     expect(upsertMock).not.toHaveBeenCalled();
     expect(mockAppinsights.trackException).toHaveBeenCalled();
@@ -429,12 +439,12 @@ describe("handleRevoke", () => {
           name: "lollipop.pubKeys.revoke.failure",
           retryCount: "1",
           assertionRef: aValidAssertionRef,
-          maxRetryCount: "5",
+          maxRetryCount: String(TEST_MAX_DEQUEUE_COUNT),
           errorMessage: expect.stringContaining(
-            "Cannot find a master lollipopPubKey"
-          )
-        })
-      })
+            "Cannot find a master lollipopPubKey",
+          ),
+        }),
+      }),
     );
   });
 
@@ -449,20 +459,21 @@ describe("handleRevoke", () => {
         mockAppinsights as any,
         lollipopKeysModelMock,
         masterAlgo,
-        aValidRevokeInput
-      )
+        TEST_MAX_DEQUEUE_COUNT,
+        aValidRevokeInput,
+      ),
     ).rejects.toBeDefined();
 
     expect(findLastVersionByModelIdMock).toHaveBeenCalledTimes(2);
     expect(findLastVersionByModelIdMock).toHaveBeenNthCalledWith(1, [
-      aValidAssertionRef
+      aValidAssertionRef,
     ]);
     const expectedThumbprint = await jose.calculateJwkThumbprint(
       aValidJwk,
-      masterAlgo
+      masterAlgo,
     );
     expect(findLastVersionByModelIdMock).toHaveBeenNthCalledWith(2, [
-      `${masterAlgo}-${expectedThumbprint}`
+      `${masterAlgo}-${expectedThumbprint}`,
     ]);
     expect(upsertMock).not.toHaveBeenCalled();
     expect(mockAppinsights.trackException).toHaveBeenCalled();
@@ -473,13 +484,13 @@ describe("handleRevoke", () => {
           detail: "TRANSIENT",
           assertionRef: aValidAssertionRef,
           errorMessage: expect.stringContaining(
-            "Cannot decode a VALID master lollipopPubKey"
+            "Cannot decode a VALID master lollipopPubKey",
           ),
           name: "lollipop.pubKeys.revoke.failure",
           retryCount: "1",
-          maxRetryCount: "5"
-        })
-      })
+          maxRetryCount: String(TEST_MAX_DEQUEUE_COUNT),
+        }),
+      }),
     );
   });
 
@@ -490,9 +501,9 @@ describe("handleRevoke", () => {
         TE.right(
           O.some({
             ...aNotPendingLollipopPubKey,
-            assertionRef: aValidSha512AssertionRef
-          })
-        )
+            assertionRef: aValidSha512AssertionRef,
+          }),
+        ),
       );
 
     const result = await handleRevoke(
@@ -500,29 +511,30 @@ describe("handleRevoke", () => {
       mockAppinsights as any,
       lollipopKeysModelMock,
       masterAlgo,
-      aValidRevokeInput
+      TEST_MAX_DEQUEUE_COUNT,
+      aValidRevokeInput,
     );
 
     expect(findLastVersionByModelIdMock).toHaveBeenCalledTimes(2);
     expect(findLastVersionByModelIdMock).toHaveBeenNthCalledWith(1, [
-      aValidAssertionRef
+      aValidAssertionRef,
     ]);
     const expectedThumbprint = await jose.calculateJwkThumbprint(
       aValidJwk,
-      masterAlgo
+      masterAlgo,
     );
     expect(findLastVersionByModelIdMock).toHaveBeenNthCalledWith(2, [
-      `${masterAlgo}-${expectedThumbprint}`
+      `${masterAlgo}-${expectedThumbprint}`,
     ]);
     expect(upsertMock).toHaveBeenCalledTimes(2);
     expect(upsertMock).toHaveBeenNthCalledWith(1, {
       ...aNotPendingLollipopPubKey,
       assertionRef: aValidSha512AssertionRef,
-      status: PubKeyStatusEnum.REVOKED
+      status: PubKeyStatusEnum.REVOKED,
     });
     expect(upsertMock).toHaveBeenNthCalledWith(2, {
       ...aNotPendingLollipopPubKey,
-      status: PubKeyStatusEnum.REVOKED
+      status: PubKeyStatusEnum.REVOKED,
     });
     expect(mockAppinsights.trackException).not.toHaveBeenCalled();
     expect(result).toBeUndefined();
