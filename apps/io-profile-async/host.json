@@ -16,7 +16,7 @@
     "queues": {
       "maxDequeueCount": 10,
       "maxPollingInterval": "00:00:02",
-      "visibilityTimeout": "00:00:30",
+      "visibilityTimeout": "00:02:00",
       "batchSize": 16,
     }
   },
