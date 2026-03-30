@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable max-params */
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import { constVoid, flow, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
@@ -16,18 +16,18 @@ import {
   PermanentFailure,
   toPermanentFailure,
   toTransientFailure,
-  TransientFailure
+  TransientFailure,
 } from "../utils/errors";
 import {
   LolliPOPKeysModel,
   NotPendingLolliPopPubKeys,
-  RetrievedLolliPopPubKeys
+  RetrievedLolliPopPubKeys,
 } from "../model/lollipop_keys";
 import { PubKeyStatusEnum } from "../generated/definitions/internal/PubKeyStatus";
 import { JwkPubKeyHashAlgorithm } from "../generated/definitions/internal/JwkPubKeyHashAlgorithm";
 import {
   getAlgoFromAssertionRef,
-  getAllAssertionsRef
+  getAllAssertionsRef,
 } from "../utils/lollipopKeys";
 
 /**
@@ -38,106 +38,110 @@ import {
  * @returns an array containing master and optionally used lollipopPubKeys to be revoked
  *
  */
-const extractPubKeysToRevoke = (
-  lollipopKeysModel: LolliPOPKeysModel,
-  masterAlgo: JwkPubKeyHashAlgorithm
-) => (
-  notPendingLollipopPubKeys: NotPendingLolliPopPubKeys
-): TE.TaskEither<Failure, ReadonlyArray<NotPendingLolliPopPubKeys>> =>
-  pipe(
-    notPendingLollipopPubKeys.pubKey,
-    JwkPublicKeyFromToken.decode,
-    TE.fromEither,
-    TE.mapLeft(() => toPermanentFailure(Error("Cannot decode used jwk"))()),
-    TE.chain(decodedJwk =>
-      pipe(
-        getAllAssertionsRef(
-          masterAlgo,
-          getAlgoFromAssertionRef(notPendingLollipopPubKeys.assertionRef),
-          decodedJwk
+const extractPubKeysToRevoke =
+  (lollipopKeysModel: LolliPOPKeysModel, masterAlgo: JwkPubKeyHashAlgorithm) =>
+  (
+    notPendingLollipopPubKeys: NotPendingLolliPopPubKeys,
+  ): TE.TaskEither<Failure, ReadonlyArray<NotPendingLolliPopPubKeys>> =>
+    pipe(
+      notPendingLollipopPubKeys.pubKey,
+      JwkPublicKeyFromToken.decode,
+      TE.fromEither,
+      TE.mapLeft(() => toPermanentFailure(Error("Cannot decode used jwk"))()),
+      TE.chain((decodedJwk) =>
+        pipe(
+          getAllAssertionsRef(
+            masterAlgo,
+            getAlgoFromAssertionRef(notPendingLollipopPubKeys.assertionRef),
+            decodedJwk,
+          ),
+          TE.mapLeft((e) => toPermanentFailure(e)()),
         ),
-        TE.mapLeft(e => toPermanentFailure(e)())
-      )
-    ),
-    TE.chain(({ master, used }) =>
-      pipe(
-        used,
-        O.fromNullable,
-        O.fold(
-          () => TE.of([notPendingLollipopPubKeys]),
-          _ =>
-            pipe(
-              lollipopKeysModel.findLastVersionByModelId([master]),
-              TE.mapLeft(() =>
-                toTransientFailure(
-                  Error("Cannot perform find masterKey on CosmosDB")
-                )()
-              ),
-              TE.chain(
-                TE.fromOption(() =>
+      ),
+      TE.chain(({ master, used }) =>
+        pipe(
+          used,
+          O.fromNullable,
+          O.fold(
+            () => TE.of([notPendingLollipopPubKeys]),
+            (_) =>
+              pipe(
+                lollipopKeysModel.findLastVersionByModelId([master]),
+                TE.mapLeft(() =>
                   toTransientFailure(
-                    Error("Cannot find a master lollipopPubKey")
-                  )()
-                )
-              ),
-              TE.chainEitherK(
-                flow(
-                  NotPendingLolliPopPubKeys.decode,
-                  E.mapLeft(() =>
+                    Error("Cannot perform find masterKey on CosmosDB"),
+                  )(),
+                ),
+                TE.chain(
+                  TE.fromOption(() =>
                     toTransientFailure(
-                      Error("Cannot decode a VALID master lollipopPubKey")
-                    )()
-                  )
-                )
+                      Error("Cannot find a master lollipopPubKey"),
+                    )(),
+                  ),
+                ),
+                TE.chainEitherK(
+                  flow(
+                    NotPendingLolliPopPubKeys.decode,
+                    E.mapLeft(() =>
+                      toTransientFailure(
+                        Error("Cannot decode a VALID master lollipopPubKey"),
+                      )(),
+                    ),
+                  ),
+                ),
+                TE.map((validMasterLollipopPubKeys) => [
+                  validMasterLollipopPubKeys,
+                  notPendingLollipopPubKeys,
+                ]),
               ),
-              TE.map(validMasterLollipopPubKeys => [
-                validMasterLollipopPubKeys,
-                notPendingLollipopPubKeys
-              ])
-            )
-        )
-      )
-    )
-  );
+          ),
+        ),
+      ),
+    );
 
-/**
- *
- * @param context The function context
- * @returns `true` if retryCount >= maxRetryCount-1, `false` otherwise
- */
-const isLastRetry = (context: Context): boolean =>
-  (context.executionContext.retryContext?.retryCount ?? 0) >=
-  (context.executionContext.retryContext?.maxRetryCount ?? 0) - 1;
+// Migrated from function.json exponentialBackoff retry to host.json extensions.queues.
+// With binding-level retry, retryContext is not populated; use triggerMetadata.dequeueCount.
+const isLastRetry = (
+  context: InvocationContext,
+  maxDequeueCount: number,
+): boolean => {
+  // context.triggerMetadata?.dequeueCount is 1-based
+  const dequeueCount = (context.triggerMetadata?.dequeueCount as number) ?? 1;
+  return dequeueCount >= maxDequeueCount;
+};
 
-const revokePubKey = (lollipopKeysModel: LolliPOPKeysModel) => (
-  notPendingLollipopPubKey: NotPendingLolliPopPubKeys
-): TE.TaskEither<CosmosErrors, RetrievedLolliPopPubKeys> =>
-  lollipopKeysModel.upsert({
-    ...notPendingLollipopPubKey,
-    status: PubKeyStatusEnum.REVOKED
-  });
+const revokePubKey =
+  (lollipopKeysModel: LolliPOPKeysModel) =>
+  (
+    notPendingLollipopPubKey: NotPendingLolliPopPubKeys,
+  ): TE.TaskEither<CosmosErrors, RetrievedLolliPopPubKeys> =>
+    lollipopKeysModel.upsert({
+      ...notPendingLollipopPubKey,
+      status: PubKeyStatusEnum.REVOKED,
+    });
 
 export const handleRevoke = (
-  context: Context,
+  context: InvocationContext,
   telemetryClient: TelemetryClient,
   lollipopKeysModel: LolliPOPKeysModel,
   masterAlgo: JwkPubKeyHashAlgorithm,
-  rawRevokeMessage: unknown
+  maxDequeueCount: number,
+  rawRevokeMessage: unknown,
 ): Promise<Failure | void> =>
   pipe(
     rawRevokeMessage,
     RevokeAssertionRefInfo.decode,
     TE.fromEither,
-    TE.mapLeft(flow(errorsToError, e => toPermanentFailure(e)())),
-    TE.chain(revokeAssertionRefInfo =>
+    TE.mapLeft(flow(errorsToError, (e) => toPermanentFailure(e)())),
+    TE.chain((revokeAssertionRefInfo) =>
       pipe(
         lollipopKeysModel.findLastVersionByModelId([
-          revokeAssertionRefInfo.assertion_ref
+          revokeAssertionRefInfo.assertion_ref,
         ]),
-        TE.mapLeft(err =>
+        TE.mapLeft((err) =>
           toTransientFailure(
-            Error(`Cannot perform find on CosmosDB: ${JSON.stringify(err)}`)
-          )()
+            Error(`Cannot perform find on CosmosDB: ${JSON.stringify(err)}`),
+          )(),
         ),
         TE.map(O.chainEitherK(NotPendingLolliPopPubKeys.decode)),
         TE.chain(
@@ -149,21 +153,21 @@ export const handleRevoke = (
                 flow(
                   RA.map(revokePubKey(lollipopKeysModel)),
                   RA.sequence(TE.ApplicativePar),
-                  TE.mapLeft(err =>
+                  TE.mapLeft((err) =>
                     toTransientFailure(
                       Error(
-                        `Cannot perform upsert CosmosDB: ${JSON.stringify(err)}`
-                      )
-                    )()
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
+                        `Cannot perform upsert CosmosDB: ${JSON.stringify(err)}`,
+                      ),
+                    )(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     ),
-    TE.mapLeft(err => {
+    TE.mapLeft((err) => {
       const isTransient = TransientFailure.is(err);
       const error = isTransient
         ? `HandlePubKeyRevoke|TRANSIENT_ERROR=${err.reason}`
@@ -176,28 +180,28 @@ export const handleRevoke = (
           assertionRef: pipe(
             rawRevokeMessage,
             RevokeAssertionRefInfo.decode,
-            E.map(message => message.assertion_ref),
-            E.getOrElse(() => "unknown")
+            E.map((message) => message.assertion_ref),
+            E.getOrElse(() => "unknown"),
           ),
           detail: err.kind,
           errorMessage: error,
           fatal: PermanentFailure.is(err).toString(),
           isSuccess: "false",
-          maxRetryCount: String(
-            context.executionContext.retryContext?.maxRetryCount ?? "undefined"
-          ),
+          maxRetryCount: String(maxDequeueCount),
           modelId: err.modelId ?? "",
           name: "lollipop.pubKeys.revoke.failure",
           retryCount: String(
-            context.executionContext.retryContext?.retryCount ?? "undefined"
-          )
+            (context.triggerMetadata?.dequeueCount as number) ?? "undefined",
+          ),
         },
         tagOverrides: {
           samplingEnabled:
-            !isTransient || isLastRetry(context) ? "false" : "true"
-        }
+            !isTransient || isLastRetry(context, maxDequeueCount)
+              ? "false"
+              : "true",
+        },
       });
-      context.log.error(error);
+      context.error(error);
       if (isTransient) {
         // Trigger a retry in case of temporary failures
         throw new Error(error);
@@ -205,5 +209,5 @@ export const handleRevoke = (
       return err;
     }),
     TE.map(constVoid),
-    TE.toUnion
+    TE.toUnion,
   )();
