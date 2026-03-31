@@ -14,7 +14,7 @@ import * as reporters from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import {
   NonNegativeInteger,
-  NonNegativeIntegerFromString
+  NonNegativeIntegerFromString,
 } from "@pagopa/ts-commons/lib/numbers";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
 
@@ -27,11 +27,17 @@ const DEFAULT_KEYS_EXPIRE_GRACE_PERIODS_IN_DAYS = 0 as NonNegativeInteger;
 // Assertion Client Configuration (itself)
 export const FirstLcAssertionClientConfig = t.type({
   EXPECTED_FIRST_LC_ORIGINAL_METHOD: withDefault(t.string, "POST").pipe(
-    LollipopMethod
+    LollipopMethod,
   ),
   EXPECTED_FIRST_LC_ORIGINAL_URL: withDefault(
     t.string,
-    "https://api-app.io.pagopa.it/first-lollipop/sign"
+    "https://api-app.io.pagopa.it/api/identity/v1/first-lollipop/sign",
+  ).pipe(UrlFromString),
+
+  // TODO: remove this after minimum app version has been bumped
+  FIRST_LC_ORIGINAL_URL_FALLBACK: withDefault(
+    t.string,
+    "https://api-app.io.pagopa.it/first-lollipop/sign",
   ).pipe(UrlFromString),
 
   FIRST_LC_ASSERTION_CLIENT_BASE_URL: NonEmptyString,
@@ -39,8 +45,8 @@ export const FirstLcAssertionClientConfig = t.type({
 
   IDP_KEYS_BASE_URL: withDefault(
     t.string,
-    "https://api.is.eng.pagopa.it/idp-keys"
-  ).pipe(UrlFromString)
+    "https://api.is.eng.pagopa.it/idp-keys",
+  ).pipe(UrlFromString),
 });
 export type FirstLcAssertionClientConfig = t.TypeOf<
   typeof FirstLcAssertionClientConfig
@@ -58,11 +64,11 @@ export const JWTConfig = t.intersection([
     JWT_TTL: withDefault(t.string, "900").pipe(NumberFromString),
 
     PRIMARY_PRIVATE_KEY: NonEmptyString,
-    PRIMARY_PUBLIC_KEY: NonEmptyString
+    PRIMARY_PUBLIC_KEY: NonEmptyString,
   }),
   t.partial({
-    SECONDARY_PUBLIC_KEY: NonEmptyString
-  })
+    SECONDARY_PUBLIC_KEY: NonEmptyString,
+  }),
 ]);
 
 // ----------------------------
@@ -78,29 +84,29 @@ export const IConfig = t.intersection([
     COSMOSDB_URI: NonEmptyString,
     KEYS_EXPIRE_GRACE_PERIODS_IN_DAYS: withDefault(
       t.string,
-      `${DEFAULT_KEYS_EXPIRE_GRACE_PERIODS_IN_DAYS}`
+      `${DEFAULT_KEYS_EXPIRE_GRACE_PERIODS_IN_DAYS}`,
     ).pipe(NonNegativeIntegerFromString),
     LOLLIPOP_ASSERTION_STORAGE_CONNECTION_STRING: NonEmptyString,
     LOLLIPOP_ASSERTION_STORAGE_CONTAINER_NAME: withDefault(
       NonEmptyString,
-      "lollipop-assertions-01" as NonEmptyString
+      "lollipop-assertions-01" as NonEmptyString,
     ),
     LOLLIPOP_ASSERTION_STORAGE_FALLBACK_CONNECTION_STRING: NonEmptyString,
     LOLLIPOP_ASSERTION_STORAGE_FALLBACK_CONTAINER_NAME: withDefault(
       NonEmptyString,
-      "assertions" as NonEmptyString
+      "assertions" as NonEmptyString,
     ),
 
-    isProduction: t.boolean
+    isProduction: t.boolean,
   }),
   JWTConfig,
-  FirstLcAssertionClientConfig
+  FirstLcAssertionClientConfig,
 ]);
 
 export const envConfig = {
   ...process.env,
   BEARER_AUTH_HEADER: "x-pagopa-lollipop-auth",
-  isProduction: process.env.NODE_ENV === "production"
+  isProduction: process.env.NODE_ENV === "production",
 };
 
 // No need to re-evaluate this object for each call
@@ -126,7 +132,7 @@ export const getConfigOrThrow = (): IConfig =>
     errorOrConfig,
     E.getOrElseW((errors: ReadonlyArray<t.ValidationError>) => {
       throw new Error(
-        `Invalid configuration: ${reporters.readableReportSimplified(errors)}`
+        `Invalid configuration: ${reporters.readableReportSimplified(errors)}`,
       );
-    })
+    }),
   );
