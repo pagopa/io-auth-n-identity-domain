@@ -1,3 +1,4 @@
+import { app } from "@azure/functions";
 import {
   AbortableFetch,
   setFetchTimeout,
@@ -20,9 +21,15 @@ import { GenerateNonceFunction } from "./functions/generate-nonce";
 import { CreateRedisClientSingleton } from "./utils/redis/client";
 import { initTelemetryClient } from "./utils/appinsights";
 
+// ---------------------------------------------------------------------------
+// CONFIG SETUP
+// ---------------------------------------------------------------------------
 const config = getConfigOrThrow();
 initTelemetryClient();
 
+// ---------------------------------------------------------------------------
+// DEPENDENCY INITIALISATION
+// ---------------------------------------------------------------------------
 const httpApiFetch = agent.getFetch(process.env);
 const abortableFetch = AbortableFetch(httpApiFetch);
 
@@ -60,21 +67,59 @@ const sessionManagerInternalClient = sessionManagerInternalCreateClient<
 
 const redisClientTask = CreateRedisClientSingleton(config);
 
-export const Info = InfoFunction({ redisClientTask });
-export const FastLogin = FastLoginFunction({
-  blobService,
-  containerName: config.FAST_LOGIN_AUDIT_CONTAINER_NAME,
-  fnLollipopClient,
-  redisClientTask
+// ---------------------------------------------------------------------------
+// HTTP TRIGGERS
+// ---------------------------------------------------------------------------
+app.http("Info", {
+  methods: ["GET"],
+  authLevel: "anonymous",
+  route: "info",
+  handler: InfoFunction({ redisClientTask })
 });
-export const Logout = LogoutFunction({ sessionManagerInternalClient });
-export const LockSession = LockSessionFunction({
-  sessionManagerInternalClient
+
+app.http("FastLogin", {
+  methods: ["POST"],
+  authLevel: "function",
+  route: "api/v1/fast-login",
+  handler: FastLoginFunction({
+    blobService,
+    containerName: config.FAST_LOGIN_AUDIT_CONTAINER_NAME,
+    fnLollipopClient,
+    redisClientTask
+  })
 });
-export const SessionState = SessionStateFunction({
-  sessionManagerInternalClient
+
+app.http("GenerateNonce", {
+  methods: ["POST"],
+  authLevel: "function",
+  route: "api/v1/nonce/generate",
+  handler: GenerateNonceFunction({ redisClientTask })
 });
-export const UnlockSession = UnlockSessionFunction({
-  sessionManagerInternalClient
+
+app.http("Logout", {
+  methods: ["POST"],
+  authLevel: "function",
+  route: "api/v1/logout",
+  handler: LogoutFunction({ sessionManagerInternalClient })
 });
-export const GenerateNonce = GenerateNonceFunction({ redisClientTask });
+
+app.http("LockSession", {
+  methods: ["POST"],
+  authLevel: "function",
+  route: "api/v1/lock-session",
+  handler: LockSessionFunction({ sessionManagerInternalClient })
+});
+
+app.http("SessionState", {
+  methods: ["POST"],
+  authLevel: "function",
+  route: "api/v1/session-state",
+  handler: SessionStateFunction({ sessionManagerInternalClient })
+});
+
+app.http("UnlockSession", {
+  methods: ["POST"],
+  authLevel: "function",
+  route: "api/v1/unlock-session",
+  handler: UnlockSessionFunction({ sessionManagerInternalClient })
+});
