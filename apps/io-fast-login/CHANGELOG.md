@@ -1,5 +1,11 @@
 # io-fast-login
 
+## 4.5.0
+
+### Minor Changes
+
+- a172b55: Upgrade to @azure/functions v4 and Node.js v22
+
 ## 4.4.0
 
 ### Minor Changes
