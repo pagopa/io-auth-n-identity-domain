@@ -1,14 +1,10 @@
-import express from "express";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { flow, pipe } from "fp-ts/lib/function";
 
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { SequenceMiddleware } from "@pagopa/ts-commons/lib/sequence_middleware";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import {
   IResponseErrorInternal,
   IResponseErrorNotFound,
@@ -93,16 +89,16 @@ export const profileHandler = (client: ProfileClient): ProfileHandlerT => (
 export const getProfileHandler = (
   client: ProfileClient,
   config: IConfig
-): express.RequestHandler => {
+) => {
   const handler = profileHandler(client);
-  const middlewaresWrap = withRequestMiddlewares(
+  const middlewares = [
     ContextMiddleware(),
     verifyUserEligibilityMiddleware(config),
     SequenceMiddleware(ResponseErrorForbiddenNotAuthorized)(
       hslJwtValidationMiddleware(config),
       exchangeJwtValidationMiddleware(config)
     )
-  );
+  ] as const;
 
-  return wrapRequestHandler(middlewaresWrap((_, __, user) => handler(user)));
+  return wrapHandlerV4(middlewares, (_, __, user) => handler(user));
 };

@@ -1,14 +1,10 @@
 import * as crypto from "crypto";
-import express from "express";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import {
   IResponseErrorInternal,
   IResponseSuccessJson,
@@ -87,7 +83,7 @@ export const getMagicLinkHandler = (
   magicLinkBaseUrl: NonEmptyString,
   containerClient: ContainerClient
   // eslint-disable-next-line max-params
-): express.RequestHandler => {
+) => {
   const handler = magicLinkHandler(
     issuer,
     publicKey,
@@ -95,10 +91,10 @@ export const getMagicLinkHandler = (
     magicLinkBaseUrl,
     containerClient
   );
-  const middlewaresWrap = withRequestMiddlewares(
+  const middlewares = [
     ContextMiddleware(),
     RequiredBodyPayloadMiddleware(MagicLinkData)
-  );
+  ] as const;
 
-  return wrapRequestHandler(middlewaresWrap((_, payload) => handler(payload)));
+  return wrapHandlerV4(middlewares, (_, payload) => handler(payload));
 };

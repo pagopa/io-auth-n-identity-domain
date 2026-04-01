@@ -1,4 +1,4 @@
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import {
   BlobServiceClient,
   BlockBlobUploadResponse,
@@ -26,10 +26,15 @@ const aValidUser: MagicLinkPayload = {
   iat: 123456789
 };
 // #endregion
-let context: Context;
+let context: InvocationContext;
 
 beforeEach(() => {
-  context = ({ log: vi.fn() } as unknown) as Context;
+  context = ({
+    debug: vi.fn(),
+    error: vi.fn(),
+    log: vi.fn(),
+    warn: vi.fn()
+  } as unknown) as InvocationContext;
 });
 
 const containerClient = BlobServiceClient.fromConnectionString(
