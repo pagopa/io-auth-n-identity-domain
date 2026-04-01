@@ -100,7 +100,7 @@ services:
       dockerfile: ./docker/function/Dockerfile
       args:
         FUNCTION_NAME: "io-web-profile"
-        NODE_VERSION: "20.19.5"
+        NODE_VERSION: "22"
     env_file:
       - ./docker/generated/.env.io-web-profile
     ports:

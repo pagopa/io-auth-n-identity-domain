@@ -1,9 +1,6 @@
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 
 import {
   IResponseErrorBadGateway,
@@ -17,7 +14,6 @@ import {
   ResponseSuccessNoContent,
   getResponseErrorForbiddenNotAuthorized
 } from "@pagopa/ts-commons/lib/responses";
-import express from "express";
 
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
@@ -187,19 +183,18 @@ export const getUnlockSessionHandler = (
   client: UnlockSessionClient,
   config: IConfig,
   containerClient: ContainerClient
-): express.RequestHandler => {
+) => {
   const handler = unlockSessionHandler(client, containerClient);
-  const middlewaresWrap = withRequestMiddlewares(
+  const middlewares = [
     ContextMiddleware(),
     ClientIpMiddleware,
     verifyUserEligibilityMiddleware(config),
     hslJwtValidationMiddleware(config),
     RequiredBodyPayloadMiddleware(UnlockSessionData)
-  );
+  ] as const;
 
-  return wrapRequestHandler(
-    middlewaresWrap((_, clientIp, __, user, payload) =>
-      handler(user, payload, clientIp)
-    )
+  return wrapHandlerV4(
+    middlewares,
+    (_, clientIp, __, user, payload) => handler(user, payload, clientIp)
   );
 };

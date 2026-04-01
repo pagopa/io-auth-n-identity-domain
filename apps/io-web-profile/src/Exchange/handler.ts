@@ -1,4 +1,3 @@
-import express from "express";
 import * as TE from "fp-ts/TaskEither";
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";
@@ -8,10 +7,7 @@ import {
   ClientIpMiddleware
 } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/client_ip_middleware";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import {
   IResponseErrorInternal,
   IResponseSuccessJson,
@@ -21,7 +17,7 @@ import {
 import { defaultLog } from "@pagopa/winston-ts";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import { ContainerClient } from "@azure/storage-blob";
 import { hashFiscalCode } from "@pagopa/ts-commons/lib/hash";
 import { IConfig } from "../utils/config";
@@ -49,7 +45,7 @@ export const decodeToken = (
 
 type ExchangeHandlerT = (
   user: MagicLinkPayload,
-  context: Context,
+  context: InvocationContext,
   maybeClientIp: ClientIp
 ) => Promise<IResponseErrorInternal | IResponseSuccessJson<ExchangeToken>>;
 
@@ -110,9 +106,9 @@ export const exchangeHandler = (
 export const getExchangeHandler = (
   config: IConfig,
   containerClient: ContainerClient
-): express.RequestHandler => {
+) => {
   const handler = exchangeHandler(config, containerClient);
-  const middlewaresWrap = withRequestMiddlewares(
+  const middlewares = [
     ContextMiddleware(),
     // extracts the client IP from the request
     ClientIpMiddleware,
@@ -123,11 +119,10 @@ export const getExchangeHandler = (
       config.MAGIC_LINK_JWE_PRIMARY_PRIVATE_KEY,
       config.MAGIC_LINK_JWE_SECONDARY_PRIVATE_KEY
     )
-  );
+  ] as const;
 
-  return wrapRequestHandler(
-    middlewaresWrap((context, clientIp, user) =>
-      handler(user, context, clientIp)
-    )
+  return wrapHandlerV4(
+    middlewares,
+    (context, clientIp, user) => handler(user, context, clientIp)
   );
 };
