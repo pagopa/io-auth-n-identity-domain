@@ -1,5 +1,11 @@
 # io-lollipop
 
+## 1.20.0
+
+### Minor Changes
+
+- 9628d2a: io-lollipop FirstLC: added fallback original URL
+
 ## 1.19.0
 
 ### Minor Changes

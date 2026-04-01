@@ -5,7 +5,7 @@ import * as E from "fp-ts/Either";
 import { Client } from "../../generated/definitions/external/client";
 import {
   aValidJwk,
-  aValidSha256AssertionRef
+  aValidSha256AssertionRef,
 } from "../../__mocks__/lollipopPubKey.mock";
 
 import { signedMessageHandler } from "../handler";
@@ -13,12 +13,11 @@ import { aSAMLResponse } from "../../__mocks__/assertion.mock";
 import {
   aValidPayload,
   firstLcAssertionClientConfig,
-  validLollipopLCParamsHeaders
+  validLollipopLCParamsHeaders,
 } from "../../__mocks__/lollipopSignature.mock";
 import { LollipopOriginalURL } from "../../generated/definitions/lollipop-first-consumer/LollipopOriginalURL";
 import { LollipopSignature } from "../../generated/definitions/lollipop-first-consumer/LollipopSignature";
 import { LollipopSignatureInput } from "../../generated/definitions/lollipop-first-consumer/LollipopSignatureInput";
-import { AssertionRef } from "../../generated/definitions/internal/AssertionRef";
 
 // -----------------
 // mocks
@@ -27,12 +26,12 @@ import { AssertionRef } from "../../generated/definitions/internal/AssertionRef"
 const getAssertionMock = vi.fn(async () =>
   E.right({
     status: 200,
-    value: { response_xml: aSAMLResponse }
-  })
+    value: { response_xml: aSAMLResponse },
+  }),
 );
-const assertionClientMock = ({
-  getAssertion: getAssertionMock
-} as unknown) as Client<"ApiKeyAuth">;
+const assertionClientMock = {
+  getAssertion: getAssertionMock,
+} as unknown as Client<"ApiKeyAuth">;
 
 // -----------------
 // tests
@@ -44,7 +43,7 @@ describe("FirstLollipopConsumerSignedMessage", () => {
         THEN the assertion ref is returned`, async () => {
     const handler = signedMessageHandler(
       assertionClientMock,
-      firstLcAssertionClientConfig
+      firstLcAssertionClientConfig,
     );
 
     const res = await handler(
@@ -58,15 +57,17 @@ describe("FirstLollipopConsumerSignedMessage", () => {
           firstLcAssertionClientConfig.EXPECTED_FIRST_LC_ORIGINAL_METHOD,
         ["x-pagopa-lollipop-original-url"]: firstLcAssertionClientConfig
           .EXPECTED_FIRST_LC_ORIGINAL_URL.href as LollipopOriginalURL,
-        ["signature-input"]: `sig1=("content-digest" "x-pagopa-lollipop-original-method" "x-pagopa-lollipop-original-url");created=1678293988;nonce="aNonce";alg="ecdsa-p256-sha256";keyid="a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg"` as LollipopSignatureInput,
-        ["signature"]: "sig1=:lTuoRytp53GuUMOB4Rz1z97Y96gfSeEOm/xVpO39d3HR6lLAy4KYiGq+1hZ7nmRFBt2bASWEpen7ov5O4wU3kQ==:" as LollipopSignature
+        ["signature-input"]:
+          `sig1=("content-digest" "x-pagopa-lollipop-original-method" "x-pagopa-lollipop-original-url");created=1678293988;nonce="aNonce";alg="ecdsa-p256-sha256";keyid="a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg"` as LollipopSignatureInput,
+        ["signature"]:
+          "sig1=:lTuoRytp53GuUMOB4Rz1z97Y96gfSeEOm/xVpO39d3HR6lLAy4KYiGq+1hZ7nmRFBt2bASWEpen7ov5O4wU3kQ==:" as LollipopSignature,
       },
-      aValidPayload
+      aValidPayload,
     );
 
     expect(res).toMatchObject({
       kind: "IResponseSuccessJson",
-      value: { response: aValidSha256AssertionRef }
+      value: { response: aValidSha256AssertionRef },
     });
   });
 });
