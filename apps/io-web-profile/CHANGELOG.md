@@ -1,5 +1,11 @@
 # io-web-profile
 
+## 1.11.0
+
+### Minor Changes
+
+- a0ead4c: Upgrade to @azure/functions v4 and Node.js v22
+
 ## 1.10.0
 
 ### Minor Changes
