@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.20.0
+
+### Minor Changes
+
+- 2ee09f9: Revert timer trigger expression change
+
 ## 1.19.0
 
 ### Minor Changes
