@@ -248,7 +248,7 @@ app.cosmosDB("OnProfileUpdateItn", {
 });
 
 app.timer("ExpiredSessionsDiscoverer", {
-  schedule: "0 0 10 * * *",
+  schedule: "0 0 8 * * *",
   handler: ExpiredSessionsDiscoverer,
   retry: {
     strategy: "fixedDelay",
