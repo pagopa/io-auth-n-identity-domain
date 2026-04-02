@@ -1,0 +1,39 @@
+meta {
+  name: QueueTrigger ExpiredSessionDiscovererMaintenance
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{IO_PROFAS_BASE_URL}}/admin/functions/ExpiredSessionsDiscovererMaintenance
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "SET_IN_PRESCRIPT":"SET_IN_PRESCRIPT"
+  }
+}
+
+script:pre-request {
+  // Set header 'x-functions-key' if the necessary key is found in the Environment
+  const ioProfAsApiKey = bru.getEnvVar("IO_PROFAS_API_KEY");
+  if (ioProfAsApiKey != null ) {
+    req.setHeader("x-functions-key", ioProfAsApiKey);
+  }
+  
+  const date=new Date()
+  const input=JSON.stringify({
+    date:`${date.toISOString().split("T")[0]}`
+  })
+  
+  req.setBody({
+    input,
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -32,6 +32,8 @@ locals {
   expired_user_sessions_poison_queue_name                            = "expired-user-sessions-01-poison"
   profile_migrate_services_preferences_from_legacy_queue_name        = "profile-migrate-services-preferences-from-legacy-01"
   profile_migrate_services_preferences_from_legacy_poison_queue_name = "profile-migrate-services-preferences-from-legacy-01-poison"
+  expired_user_sessions_discoverer_maintenance_queue_name            = "expired-user-sessions-discoverer-maintenance-01"
+  expired_user_sessions_discoverer_maintenance_poison_queue_name     = "expired-user-sessions-discoverer-maintenance-01-poison"
 
   profile_events_queue_name = "profile-events-01"
 

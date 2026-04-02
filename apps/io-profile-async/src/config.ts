@@ -16,7 +16,7 @@ import { BooleanFromString, NumberFromString, withFallback } from "io-ts-types";
 
 export const SessionManagerInternalConfig = t.type({
   SESSION_MANAGER_INTERNAL_BASE_URL: UrlFromString,
-  SESSION_MANAGER_INTERNAL_API_KEY: NonEmptyString
+  SESSION_MANAGER_INTERNAL_API_KEY: NonEmptyString,
 });
 
 export type SessionManagerInternalConfig = t.TypeOf<
@@ -25,13 +25,13 @@ export type SessionManagerInternalConfig = t.TypeOf<
 
 export const FunctionProfileConfig = t.type({
   FUNCTION_PROFILE_BASE_URL: UrlFromString,
-  FUNCTION_PROFILE_API_KEY: NonEmptyString
+  FUNCTION_PROFILE_API_KEY: NonEmptyString,
 });
 
 export type FunctionProfileConfig = t.TypeOf<typeof FunctionProfileConfig>;
 
 export const DryRunFeatureFlag = t.type({
-  FF_DRY_RUN: withFallback(BooleanFromString, false)
+  FF_DRY_RUN: withFallback(BooleanFromString, false),
 });
 
 export type DryRunFeatureFlag = t.TypeOf<typeof DryRunFeatureFlag>;
@@ -39,7 +39,8 @@ export type DryRunFeatureFlag = t.TypeOf<typeof DryRunFeatureFlag>;
 export const ExpiredSessionDiscovererConfig = t.type({
   EXPIRED_SESSION_ADVISOR_QUEUE: NonEmptyString,
   EXPIRED_SESSION_SCANNER_TIMEOUT_MULTIPLIER: withFallback(NumberFromString, 7),
-  SESSION_NOTIFICATIONS_CONTAINER_NAME: NonEmptyString
+  EXPIRED_SESSIONS_DISCOVERER_MAINTENANCE_QUEUE: NonEmptyString,
+  SESSION_NOTIFICATIONS_CONTAINER_NAME: NonEmptyString,
 });
 
 export type ExpiredSessionDiscovererConfig = t.TypeOf<
@@ -49,12 +50,12 @@ export type ExpiredSessionDiscovererConfig = t.TypeOf<
 export const SessionNotificationsRepositoryConfig = t.type({
   SESSION_NOTIFICATION_EVENTS_TTL_OFFSET: withFallback(
     NumberFromString,
-    432000 // 5 days in seconds
+    432000, // 5 days in seconds
   ),
   SESSION_NOTIFICATION_EVENTS_FETCH_CHUNK_SIZE: withFallback(
     NumberFromString,
-    100
-  )
+    100,
+  ),
 });
 
 export type SessionNotificationsRepositoryConfig = t.TypeOf<
@@ -62,7 +63,8 @@ export type SessionNotificationsRepositoryConfig = t.TypeOf<
 >;
 
 export const SessionNotificationEventsProcessorConfig = t.type({
-  SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT: NumberFromString
+  SERVICEBUS_NOTIFICATION_EVENT_SUBSCRIPTION_MAX_DELIVERY_COUNT:
+    NumberFromString,
 });
 
 export type SessionNotificationEventsProcessorConfig = t.TypeOf<
@@ -103,23 +105,23 @@ export const IConfig = t.intersection([
     IOPSTLOGS_STORAGE_CONNECTION_STRING: NonEmptyString,
     SPID_LOGS_PUBLIC_KEY: NonEmptyString,
 
-    isProduction: t.boolean
+    isProduction: t.boolean,
   }),
   t.intersection([
     SessionManagerInternalConfig,
     FunctionProfileConfig,
     MailerConfig,
     DryRunFeatureFlag,
-    ExpiredSessionDiscovererConfig
+    ExpiredSessionDiscovererConfig,
   ]),
   SessionNotificationEventsProcessorConfig,
-  SessionNotificationsRepositoryConfig
+  SessionNotificationsRepositoryConfig,
 ]);
 
 // No need to re-evaluate this object for each call
 const errorOrConfig: t.Validation<IConfig> = IConfig.decode({
   ...process.env,
-  isProduction: process.env.NODE_ENV === "production"
+  isProduction: process.env.NODE_ENV === "production",
 });
 
 /**
@@ -140,7 +142,7 @@ export const getConfig = (): t.Validation<IConfig> => errorOrConfig;
 export const getConfigOrThrow = (): IConfig =>
   pipe(
     errorOrConfig,
-    E.getOrElseW(errors => {
+    E.getOrElseW((errors) => {
       throw new Error(`Invalid configuration: ${readableReport(errors)}`);
-    })
+    }),
   );

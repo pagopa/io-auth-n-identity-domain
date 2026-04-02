@@ -35,7 +35,8 @@ locals {
       COSMOSDB_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.cosmos_api_connection_string.versionless_id})"
 
       //Queue
-      EXPIRED_SESSION_ADVISOR_QUEUE = local.expired_user_sessions_queue_name
+      EXPIRED_SESSION_ADVISOR_QUEUE                 = local.expired_user_sessions_queue_name
+      EXPIRED_SESSIONS_DISCOVERER_MAINTENANCE_QUEUE = local.expired_user_sessions_discoverer_maintenance_queue_name
 
       // Storage
       AZURE_STORAGE_CONNECTION_STRING_ITN             = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_st_connection_string.versionless_id})"
@@ -102,7 +103,7 @@ module "function_profile_async" {
     instance_number = "02"
   }
 
-  node_version      = 20
+  node_version      = 22
   health_check_path = "/info"
 
 

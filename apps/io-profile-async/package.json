@@ -1,12 +1,12 @@
 {
   "name": "io-profile-async",
   "version": "1.18.0",
+  "main": "dist/main.js",
   "license": "MIT",
   "files": [
     "dist/*",
     "extensions.csproj",
-    "host.json",
-    "**/function.json"
+    "host.json"
   ],
   "scripts": {
     "clean": "shx rm -rf dist",
@@ -31,7 +31,6 @@
   },
   "description": "",
   "devDependencies": {
-    "@azure/functions": "^3.5.0",
     "@pagopa/eslint-config": "catalog:",
     "@pagopa/openapi-codegen-ts": "catalog:",
     "@types/html-to-text": "catalog:",
@@ -54,10 +53,11 @@
   "dependencies": {
     "@azure/cosmos": "catalog:",
     "@azure/data-tables": "catalog:",
+    "@azure/functions": "catalog:",
     "@azure/storage-blob": "12.17.0",
     "@azure/storage-queue": "catalog:",
     "@pagopa/handler-kit": "catalog:",
-    "@pagopa/handler-kit-azure-func": "^1.2.1",
+    "@pagopa/handler-kit-azure-func": "catalog:",
     "@pagopa/io-app-email-templates": "catalog:",
     "@pagopa/io-auth-n-identity-commons": "workspace:^",
     "@pagopa/io-functions-commons": "catalog:",
