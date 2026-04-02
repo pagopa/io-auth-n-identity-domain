@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.19.0
+
+### Minor Changes
+
+- a6f2b51: Upgrade to @azure/functions v4
+
 ## 1.18.0
 
 ### Minor Changes
