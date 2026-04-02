@@ -122,25 +122,25 @@ module "function_profile_async" {
   app_settings = merge(
     local.function_profile_async.app_settings,
     {
-      "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"            = "0"
+      "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"            = "0",
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                = "0",
       "AzureWebJobs.ExpiredSessionsDiscovererMaintenance.Disabled" = "0",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"   = "0",
       "AzureWebJobs.OnProfileUpdateItn.Disabled"                   = "0",
       "AzureWebJobs.StoreSpidLogs.Disabled"                        = "0",
-      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"   = "0"
+      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"   = "0",
     }
   )
   slot_app_settings = merge(
     local.function_profile_async.app_settings,
     {
-      "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"            = "1"
+      "AzureWebJobs.ExpiredSessionsDiscoverer.Disabled"            = "1",
       "AzureWebJobs.ExpiredSessionAdvisor.Disabled"                = "1",
       "AzureWebJobs.ExpiredSessionsDiscovererMaintenance.Disabled" = "1",
       "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled"   = "1",
       "AzureWebJobs.OnProfileUpdateItn.Disabled"                   = "1",
       "AzureWebJobs.StoreSpidLogs.Disabled"                        = "1",
-      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"   = "1"
+      "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"   = "1",
     }
   )
 
@@ -151,7 +151,7 @@ module "function_profile_async" {
     "AzureWebJobs.MigrateServicePreferenceFromLegacy.Disabled",
     "AzureWebJobs.OnProfileUpdateItn.Disabled",
     "AzureWebJobs.StoreSpidLogs.Disabled",
-    "AzureWebJobs.SessionNotificationEventsProcessor.Disabled"
+    "AzureWebJobs.SessionNotificationEventsProcessor.Disabled",
   ]
 
   subnet_service_endpoints = {
