@@ -8,9 +8,11 @@ import {
 import { cosmosdbInstance } from "./utils/cosmosdb";
 import { getConfigOrThrow } from "./utils/config";
 import { initTelemetryClient } from "./utils/appinsights";
-import { getPublicKeyDocumentReader } from "./utils/readers";
+import {
+  getPublicKeyDocumentReader,
+  getAssertionReader,
+} from "./utils/readers";
 import { getAssertionWriter, getPopDocumentWriter } from "./utils/writers";
-import { getAssertionReader } from "./utils/readers";
 import { getGenerateAuthJWT } from "./utils/auth_jwt";
 import { MASTER_HASH_ALGO } from "./utils/lollipopKeys";
 import { createApplicationInsightsLogger } from "./utils/logging";
@@ -39,14 +41,12 @@ const telemetryClient = initTelemetryClient(
   config.APPLICATIONINSIGHTS_CONNECTION_STRING,
 );
 
-const defaultLogger = createApplicationInsightsLogger(
-  telemetryClient,
-  "lollipop",
-);
 const eventLogger = createApplicationInsightsLogger(
   telemetryClient,
   "lollipop",
 );
+// Change the default logger if needed (e.g. with a InvocationContext logger)
+const defaultLogger = eventLogger;
 
 // ---------------------------------------------------------------------------
 // DEPENDENCY INITIALISATION
