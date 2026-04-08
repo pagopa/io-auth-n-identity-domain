@@ -511,6 +511,9 @@ importers:
       '@azure/cosmos':
         specifier: 'catalog:'
         version: 4.2.0
+      '@azure/functions':
+        specifier: 'catalog:'
+        version: 4.7.0
       '@azure/storage-blob':
         specifier: 'catalog:'
         version: 12.29.1
@@ -520,24 +523,18 @@ importers:
       '@pagopa/azure-storage-migration-kit':
         specifier: 'catalog:'
         version: 0.0.2(postcss@8.5.6)(ts-node@10.9.2(@types/node@20.19.30)(typescript@5.8.3))(typescript@5.8.3)
-      '@pagopa/express-azure-functions':
-        specifier: ^2.0.0
-        version: 2.1.1(express@4.21.1)
       '@pagopa/io-auth-n-identity-commons':
         specifier: workspace:^
         version: link:../../packages/io-auth-n-identity-commons
       '@pagopa/io-functions-commons':
-        specifier: 'catalog:'
-        version: 29.3.0(@azure/functions@3.5.1)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
+        specifier: ^30.0.0
+        version: 30.0.0(@azure/functions@4.7.0)(@pagopa/ts-commons@13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9)))(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/openapi-codegen-ts':
         specifier: ^12.2.0
         version: 12.2.1(chokidar@3.6.0)
       '@pagopa/ts-commons':
         specifier: 'catalog:'
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
-      '@pagopa/winston-ts':
-        specifier: 'catalog:'
-        version: 2.2.0
       '@xmldom/xmldom':
         specifier: 'catalog:'
         version: 0.8.10
@@ -547,9 +544,6 @@ importers:
       date-fns:
         specifier: 'catalog:'
         version: 2.30.0
-      express:
-        specifier: 'catalog:'
-        version: 4.21.1
       fp-ts:
         specifier: 'catalog:'
         version: 2.16.9
@@ -571,19 +565,10 @@ importers:
       ulid:
         specifier: 'catalog:'
         version: 2.3.0
-      winston:
-        specifier: 'catalog:'
-        version: 3.17.0
-      winston-transport:
-        specifier: 'catalog:'
-        version: 4.9.0
       xml-crypto:
         specifier: 2.1.6
         version: 2.1.6
     devDependencies:
-      '@azure/functions':
-        specifier: ^3.2.0
-        version: 3.5.1
       '@pagopa/eslint-config':
         specifier: 'catalog:'
         version: 4.0.6(@typescript-eslint/eslint-plugin@8.53.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(prettier@3.2.5)(vitest@3.2.4(@types/node@20.19.30))
@@ -2905,11 +2890,6 @@ packages:
     resolution: {integrity: sha512-2X32BElb8+K/7l58kLLWqwiLnOTaOq7deHCi0kjoedlwrGnRbLGj0lA4Eh/jC7eiAIGZhL6iudx2adbZ8Gfgvg==}
     peerDependencies:
       eslint: ^8.57.0
-
-  '@pagopa/express-azure-functions@2.1.1':
-    resolution: {integrity: sha512-x2kBGS6JKYqVp7PS9QiBc2AWIOPBObHwlaheJmxZJacnxmLdXHobomTzN2UJMxu55fxMd7xIxqM8VGMQxSzqiw==}
-    peerDependencies:
-      express: ^4.17.2
 
   '@pagopa/express-azure-functions@4.0.1':
     resolution: {integrity: sha512-2gSMQ6nCz5z5RdSgE0P5uoVBoxQqUeZr8bUUVyXjEqA/Z1PVDofbDbYJG6aPnDhfHO8aEXLDJOG8eUqjYB4Qsg==}
@@ -9874,10 +9854,6 @@ snapshots:
       - svelte-eslint-parser
       - vitest
       - vue-eslint-parser
-
-  '@pagopa/express-azure-functions@2.1.1(express@4.21.1)':
-    dependencies:
-      express: 4.21.1
 
   '@pagopa/express-azure-functions@4.0.1(express@4.21.1)':
     dependencies:

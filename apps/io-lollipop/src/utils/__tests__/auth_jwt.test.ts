@@ -1,15 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import * as jwt from "jsonwebtoken";
 import express from "express";
 import * as E from "fp-ts/Either";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { TelemetryClient } from "applicationinsights";
+import { createApplicationInsightsLogger } from "../logging";
 
 import {
   AuthJWT,
   getGenerateAuthJWT,
   getValidateAuthJWT,
-  verifyJWTMiddleware
+  verifyJWTMiddleware,
 } from "../auth_jwt";
 
 import { JWTConfig } from "../config";
@@ -19,12 +21,20 @@ import { getGenerateJWT } from "../jwt_with_key_rotation";
 import { Second } from "@pagopa/ts-commons/lib/units";
 import { pipe } from "fp-ts/lib/function";
 
+const eventLoggerMock = {
+  trackEvent: vi.fn(),
+};
+const eventLogger = createApplicationInsightsLogger(
+  eventLoggerMock as unknown as TelemetryClient,
+  "lollipop",
+);
+
 const issuer = "test-issuer" as NonEmptyString;
 const standardJWTTTL = 900 as Second;
 
 const aPayload = {
   assertionRef: "sha256-p1NY7sl1d4lGvcTyYS535aZR_iJCleEIHFRE2lCHt-c",
-  operationId: "anOperationId"
+  operationId: "anOperationId",
 } as AuthJWT;
 
 const aConfigWithPrimaryKey = pipe(
@@ -32,16 +42,16 @@ const aConfigWithPrimaryKey = pipe(
     ISSUER: issuer,
     PRIMARY_PRIVATE_KEY: aPrimaryKey.privateKey,
     PRIMARY_PUBLIC_KEY: aPrimaryKey.publicKey,
-    BEARER_AUTH_HEADER: "x-pagopa-lollipop-auth"
+    BEARER_AUTH_HEADER: "x-pagopa-lollipop-auth",
   }),
-  E.getOrElseW(_ => {
+  E.getOrElseW((_) => {
     throw Error("Cannot decode IConfig " + JSON.stringify(_));
-  })
+  }),
 );
 
 const aConfigWithTwoPrimaryKeys = {
   ...aConfigWithPrimaryKey,
-  SECONDARY_PUBLIC_KEY: aSecondaryKey.publicKey
+  SECONDARY_PUBLIC_KEY: aSecondaryKey.publicKey,
 };
 
 describe("getGenerateJWT", () => {
@@ -51,7 +61,7 @@ describe("getGenerateJWT", () => {
     const res = await generateJWT(aPayload)();
 
     expect(res).toMatchObject(
-      E.right(expect.stringMatching(`[A-Za-z0-9-_]{1,520}`))
+      E.right(expect.stringMatching(`[A-Za-z0-9-_]{1,520}`)),
     );
   });
 });
@@ -66,7 +76,7 @@ describe("getValidateJWT - Success", () => {
     if (E.isRight(token)) {
       // Test
       const result = await getValidateAuthJWT(aConfigWithPrimaryKey)(
-        token.right
+        token.right,
       )();
       checkDecodedToken(result);
     }
@@ -78,7 +88,7 @@ describe("getValidateJWT - Failures", () => {
     // Setup
     const generateJWT = getGenerateJWT(
       aConfigWithPrimaryKey.ISSUER,
-      aConfigWithPrimaryKey.PRIMARY_PRIVATE_KEY
+      aConfigWithPrimaryKey.PRIMARY_PRIVATE_KEY,
     );
     const token = await generateJWT({ a: "a", b: 1 }, standardJWTTTL)();
 
@@ -86,11 +96,11 @@ describe("getValidateJWT - Failures", () => {
     if (E.isRight(token)) {
       // Test
       const result = await getValidateAuthJWT(aConfigWithPrimaryKey)(
-        token.right
+        token.right,
       )();
 
       expect(result).toMatchObject(
-        E.left(E.toError("Invalid AuthJWT payload"))
+        E.left(E.toError("Invalid AuthJWT payload")),
       );
     }
   });
@@ -107,23 +117,24 @@ describe("VerifyJWTMiddleware", () => {
 
     const middleware = verifyJWTMiddleware(
       aConfigWithTwoPrimaryKeys,
-      "function-Name"
+      "function-Name",
+      eventLogger,
     );
 
     if (E.isRight(authJwt)) {
-      const mockReq = ({
+      const mockReq = {
         headers: {
-          "x-pagopa-lollipop-auth": `Bearer ${authJwt.right}`
-        }
-      } as unknown) as express.Request;
+          "x-pagopa-lollipop-auth": `Bearer ${authJwt.right}`,
+        },
+      } as unknown as express.Request;
 
       await expect(middleware(mockReq)).resolves.toMatchObject({
         _tag: "Right",
         right: expect.objectContaining({
           assertionRef: aPayload.assertionRef,
           operationId: aPayload.operationId,
-          iss: aConfigWithTwoPrimaryKeys.ISSUER
-        })
+          iss: aConfigWithTwoPrimaryKeys.ISSUER,
+        }),
       });
     }
   });
@@ -135,23 +146,24 @@ describe("VerifyJWTMiddleware", () => {
     ", async () => {
     const middleware = verifyJWTMiddleware(
       aConfigWithTwoPrimaryKeys,
-      "function-Name"
+      "function-Name",
+      eventLogger,
     );
 
-    const mockReq = ({
+    const mockReq = {
       headers: {
-        "x-pagopa-lollipop-auth": ""
-      }
-    } as unknown) as express.Request;
+        "x-pagopa-lollipop-auth": "",
+      },
+    } as unknown as express.Request;
 
     await expect(middleware(mockReq)).resolves.toMatchObject({
       _tag: "Left",
       left: expect.objectContaining({
         kind: "IResponseErrorForbiddenNotAuthorized",
         detail: expect.stringContaining(
-          `Invalid or missing JWT in header ${aConfigWithTwoPrimaryKeys.BEARER_AUTH_HEADER}`
-        )
-      })
+          `Invalid or missing JWT in header ${aConfigWithTwoPrimaryKeys.BEARER_AUTH_HEADER}`,
+        ),
+      }),
     });
   });
 
@@ -164,23 +176,24 @@ describe("VerifyJWTMiddleware", () => {
 
     const middleware = verifyJWTMiddleware(
       aConfigWithTwoPrimaryKeys,
-      "function-Name"
+      "function-Name",
+      eventLogger,
     );
 
-    const mockReq = ({
+    const mockReq = {
       headers: {
-        "x-pagopa-lollipop-auth": invalidAuth
-      }
-    } as unknown) as express.Request;
+        "x-pagopa-lollipop-auth": invalidAuth,
+      },
+    } as unknown as express.Request;
 
     await expect(middleware(mockReq)).resolves.toMatchObject({
       _tag: "Left",
       left: expect.objectContaining({
         kind: "IResponseErrorForbiddenNotAuthorized",
         detail: expect.stringContaining(
-          `Invalid or missing JWT in header ${aConfigWithTwoPrimaryKeys.BEARER_AUTH_HEADER}`
-        )
-      })
+          `Invalid or missing JWT in header ${aConfigWithTwoPrimaryKeys.BEARER_AUTH_HEADER}`,
+        ),
+      }),
     });
   });
 
@@ -193,21 +206,22 @@ describe("VerifyJWTMiddleware", () => {
 
     const middleware = verifyJWTMiddleware(
       aConfigWithTwoPrimaryKeys,
-      "function-Name"
+      "function-Name",
+      eventLogger,
     );
 
-    const mockReq = ({
+    const mockReq = {
       headers: {
-        "x-pagopa-lollipop-auth": invalidAuth
-      }
-    } as unknown) as express.Request;
+        "x-pagopa-lollipop-auth": invalidAuth,
+      },
+    } as unknown as express.Request;
 
     await expect(middleware(mockReq)).resolves.toMatchObject({
       _tag: "Left",
       left: expect.objectContaining({
         kind: "IResponseErrorForbiddenNotAuthorized",
-        detail: expect.stringContaining("Invalid or expired JWT")
-      })
+        detail: expect.stringContaining("Invalid or expired JWT"),
+      }),
     });
   });
 });
@@ -224,9 +238,9 @@ const checkDecodedToken = async (result: E.Either<Error, AuthJWT>) => {
         iss: issuer,
         iat: expect.any(Number),
         exp: expect.any(Number),
-        jti: expect.any(String)
-      })
-    )
+        jti: expect.any(String),
+      }),
+    ),
   );
 
   const decoded = (result as E.Right<jwt.JwtPayload>).right;

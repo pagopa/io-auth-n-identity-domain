@@ -1,18 +1,13 @@
-import express from "express";
-
 import * as TE from "fp-ts/lib/TaskEither";
 import { flow, pipe } from "fp-ts/lib/function";
 
 import {
   AzureApiAuthMiddleware,
   IAzureApiAuthorization,
-  UserGroup
+  UserGroup,
 } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/azure_api_auth";
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 
 import {
   IResponseErrorForbiddenNotAuthorized,
@@ -23,10 +18,10 @@ import {
   ResponseErrorForbiddenNotAuthorized,
   ResponseErrorGone,
   ResponseErrorInternal,
-  ResponseSuccessJson
+  ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 
-import { eventLog, defaultLog } from "@pagopa/winston-ts";
+import { Logger } from "../utils/logging";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
 import { LCUserInfo } from "../generated/definitions/external/LCUserInfo";
@@ -41,7 +36,7 @@ import { JWTConfig } from "../utils/config";
 const FN_LOG_NAME = "get-assertion";
 
 const domainErrorToResponseError = (
-  error: DomainError
+  error: DomainError,
 ): IResponseErrorGone | IResponseErrorInternal =>
   error.kind === ErrorKind.NotFound
     ? ResponseErrorGone("Resource gone")
@@ -54,7 +49,7 @@ const domainErrorToResponseError = (
 type IGetAssertionHandler = (
   auth: IAzureApiAuthorization,
   assertionRef: AssertionRef,
-  authJwtPayload: AuthJWT
+  authJwtPayload: AuthJWT,
 ) => Promise<
   | IResponseSuccessJson<LCUserInfo>
   | IResponseErrorValidation
@@ -65,84 +60,88 @@ type IGetAssertionHandler = (
 /**
  * Handles requests for retrieve a SPID/OIDC Assertion.
  */
-export const GetAssertionHandler = (
-  publicKeyDocumentReader: PublicKeyDocumentReader,
-  assertionReader: AssertionReader
-): IGetAssertionHandler => async (
-  apiAuth,
-  assertionRef,
-  authJwtPayload
-): ReturnType<IGetAssertionHandler> =>
-  pipe(
+export const GetAssertionHandler =
+  (
+    publicKeyDocumentReader: PublicKeyDocumentReader,
+    assertionReader: AssertionReader,
+    defaultLogger: Logger,
+    eventLogger: Logger,
+  ): IGetAssertionHandler =>
+  async (
+    apiAuth,
     assertionRef,
-    TE.fromPredicate(
-      ar => ar === authJwtPayload.assertionRef,
-      () => ResponseErrorForbiddenNotAuthorized
-    ),
-    eventLog.taskEither.errorLeft(errorResponse => [
-      `${errorResponse.detail} | jwt assertion_ref does not match the one in path`,
-      {
-        assertion_ref: assertionRef,
-        name: FN_LOG_NAME,
-        operation_id: authJwtPayload.operationId,
-        subscription_id: apiAuth.subscriptionId
-      }
-    ]),
-    TE.chainW(
-      flow(
-        publicKeyDocumentReader,
-        defaultLog.taskEither.errorLeft(
-          error =>
-            `Error while reading pop document: ${
-              error.kind === ErrorKind.Internal
-                ? ` ${error.message} | ${error.detail}`
-                : error.kind
-            }`
+    authJwtPayload,
+  ): ReturnType<IGetAssertionHandler> =>
+    pipe(
+      assertionRef,
+      TE.fromPredicate(
+        (ar) => ar === authJwtPayload.assertionRef,
+        () => ResponseErrorForbiddenNotAuthorized,
+      ),
+      eventLogger.taskEither.errorLeft((errorResponse) => [
+        `${errorResponse.detail} | jwt assertion_ref does not match the one in path`,
+        {
+          assertion_ref: assertionRef,
+          name: FN_LOG_NAME,
+          operation_id: authJwtPayload.operationId,
+          subscription_id: apiAuth.subscriptionId,
+        },
+      ]),
+      TE.chainW(
+        flow(
+          publicKeyDocumentReader,
+          defaultLogger.taskEither.errorLeft(
+            (error) =>
+              `Error while reading pop document: ${
+                error.kind === ErrorKind.Internal
+                  ? ` ${error.message} | ${error.detail}`
+                  : error.kind
+              }`,
+          ),
+          TE.mapLeft(domainErrorToResponseError),
+          TE.filterOrElseW(isNotPendingLollipopPubKey, () =>
+            pipe(
+              ResponseErrorInternal("Unexpected status on pubKey document"),
+              defaultLogger.peek.error(
+                `Unexpected ${PubKeyStatusEnum.PENDING} status on pubKey document`,
+              ),
+            ),
+          ),
         ),
-        TE.mapLeft(domainErrorToResponseError),
-        TE.filterOrElseW(isNotPendingLollipopPubKey, () =>
-          pipe(
-            ResponseErrorInternal("Unexpected status on pubKey document"),
-            defaultLog.peek.error(
-              `Unexpected ${PubKeyStatusEnum.PENDING} status on pubKey document`
-            )
-          )
-        )
-      )
-    ),
-    TE.chainW(({ assertionFileName, fiscalCode }) =>
-      pipe(
-        assertionReader(assertionFileName),
-        defaultLog.taskEither.errorLeft(
-          error =>
-            `Error while reading assertion from blob storage: ${
-              error.kind === ErrorKind.Internal
-                ? `${error.message} | ${error.detail}`
-                : error.kind
-            }`
-        ),
-        TE.mapLeft(domainErrorToResponseError),
-        // TODO: add OIDC assertion type management
-        TE.map(assertion =>
-          ResponseSuccessJson({
-            response_xml: assertion
-          })
-        ),
+      ),
+      TE.chainW(({ assertionFileName, fiscalCode }) =>
+        pipe(
+          assertionReader(assertionFileName),
+          defaultLogger.taskEither.errorLeft(
+            (error) =>
+              `Error while reading assertion from blob storage: ${
+                error.kind === ErrorKind.Internal
+                  ? `${error.message} | ${error.detail}`
+                  : error.kind
+              }`,
+          ),
+          TE.mapLeft(domainErrorToResponseError),
+          // TODO: add OIDC assertion type management
+          TE.map((assertion) =>
+            ResponseSuccessJson({
+              response_xml: assertion,
+            }),
+          ),
 
-        eventLog.taskEither.info(() => [
-          `Assertion ${assertionRef} returned to service ${apiAuth.subscriptionId}`,
-          {
-            assertion_ref: assertionRef,
-            fiscal_code: sha256(fiscalCode),
-            name: FN_LOG_NAME,
-            operation_id: authJwtPayload.operationId,
-            subscription_id: apiAuth.subscriptionId
-          }
-        ])
-      )
-    ),
-    TE.toUnion
-  )();
+          eventLogger.taskEither.info(() => [
+            `Assertion ${assertionRef} returned to service ${apiAuth.subscriptionId}`,
+            {
+              assertion_ref: assertionRef,
+              fiscal_code: sha256(fiscalCode),
+              name: FN_LOG_NAME,
+              operation_id: authJwtPayload.operationId,
+              subscription_id: apiAuth.subscriptionId,
+            },
+          ]),
+        ),
+      ),
+      TE.toUnion,
+    )();
 
 /**
  * Wraps a GetAssertion handler inside an Express request handler.
@@ -150,13 +149,20 @@ export const GetAssertionHandler = (
 export function GetAssertion(
   jwtConfig: JWTConfig,
   publicKeyDocumentReader: PublicKeyDocumentReader,
-  assertionReader: AssertionReader
-): express.RequestHandler {
-  const handler = GetAssertionHandler(publicKeyDocumentReader, assertionReader);
-  const middlewaresWrap = withRequestMiddlewares(
+  assertionReader: AssertionReader,
+  defaultLogger: Logger,
+  eventLogger: Logger,
+) {
+  const handler = GetAssertionHandler(
+    publicKeyDocumentReader,
+    assertionReader,
+    defaultLogger,
+    eventLogger,
+  );
+  const middlewares = [
     AzureApiAuthMiddleware(new Set([UserGroup.ApiLollipopAssertionRead])),
     RequiredParamMiddleware("assertion_ref", AssertionRef),
-    verifyJWTMiddleware(jwtConfig, FN_LOG_NAME)
-  );
-  return wrapRequestHandler(middlewaresWrap(handler));
+    verifyJWTMiddleware(jwtConfig, FN_LOG_NAME, eventLogger),
+  ] as const;
+  return wrapHandlerV4(middlewares, handler);
 }

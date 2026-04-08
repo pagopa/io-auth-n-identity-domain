@@ -1,8 +1,5 @@
-import express from "express";
-import { withRequestMiddlewares } from "@pagopa/ts-commons/lib/request_middleware";
-import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
-import { wrapRequestHandler } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import {
   IResponseErrorInternal,
   IResponseErrorValidation,
@@ -245,13 +242,12 @@ export const signedMessageHandler =
 export const getSignedMessageHandler = (
   assertionClient: AssertionClient,
   firstLcAssertionClientConfig: FirstLcAssertionClientConfig,
-): express.RequestHandler => {
+) => {
   const handler = signedMessageHandler(
     assertionClient,
     firstLcAssertionClientConfig,
   );
-  const middlewaresWrap = withRequestMiddlewares(
-    ContextMiddleware(),
+  const middlewares = [
     RequiredHeaderMiddleware(
       "x-pagopa-lollipop-public-key",
       JwkPublicKeyFromToken,
@@ -259,10 +255,10 @@ export const getSignedMessageHandler = (
     RequiredHeadersMiddleware(LollipopHeaders),
     RequiredBodyPayloadMiddleware(SignMessagePayload),
     HttpMessageSignatureMiddleware(),
-  );
-  return wrapRequestHandler(
-    middlewaresWrap((_, pubKey, lollipopHeaders, inputSignedMessage, __) =>
+  ] as const;
+  return wrapHandlerV4(
+    middlewares,
+    (pubKey, lollipopHeaders, inputSignedMessage) =>
       handler(pubKey, lollipopHeaders, inputSignedMessage),
-    ),
   );
 };
