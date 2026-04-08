@@ -5,6 +5,16 @@ import { makeInfoHandler } from "../info";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import { mockRedisClientTask, mockPing } from "../__mocks__/redis";
 
+const name = "io-fast-login";
+const version = "0.0.1";
+
+vi.mock("../../utils/package", () => {
+  return {
+    getValueFromPackageJson: vi.fn().mockImplementation((_) => name),
+    getCurrentBackendVersion: vi.fn().mockImplementation(() => version)
+  };
+});
+
 describe("Info handler", () => {
   it("should return an error if Redis PING command fail", async () => {
     mockPing.mockRejectedValueOnce("db error");
@@ -26,7 +36,7 @@ describe("Info handler", () => {
     expect(result).toMatchObject(
       E.right({
         statusCode: 200,
-        body: { message: "it works!" },
+        body: { name, version },
         headers: expect.any(Object)
       })
     );
