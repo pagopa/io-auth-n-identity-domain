@@ -72,7 +72,7 @@ module "function_lollipop" {
 
   resource_group_name = data.azurerm_resource_group.function_lollipop_rg.name
   health_check_path   = "/info"
-  node_version        = 20
+  node_version        = 22
   # P3mv3 SKU and 10 Worker process count
   tier = "xxl"
 

@@ -1,5 +1,11 @@
 # io-lollipop
 
+## 1.21.0
+
+### Minor Changes
+
+- 9d0d103: Programming model v4 migration
+
 ## 1.20.0
 
 ### Minor Changes

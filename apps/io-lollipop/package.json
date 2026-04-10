@@ -2,13 +2,13 @@
   "name": "io-lollipop",
   "description": "",
   "author": "IO Auth & Identity Team",
-  "version": "1.20.0",
+  "version": "1.21.0",
   "license": "MIT",
+  "main": "dist/main.js",
   "files": [
     "dist/*",
     "extensions.csproj",
-    "host.json",
-    "**/function.json"
+    "host.json"
   ],
   "scripts": {
     "clean": "shx rm -rf dist",
@@ -36,7 +36,6 @@
     "predeploy": "pnpm build && pnpm dist:modules"
   },
   "devDependencies": {
-    "@azure/functions": "^3.2.0",
     "@pagopa/eslint-config": "catalog:",
     "@pagopa/typescript-config-node": "workspace:^",
     "@types/express": "catalog:",
@@ -61,19 +60,17 @@
   },
   "dependencies": {
     "@azure/cosmos": "catalog:",
+    "@azure/functions": "catalog:",
     "@azure/storage-blob": "catalog:",
     "@mattrglobal/http-signatures": "catalog:",
     "@pagopa/azure-storage-migration-kit": "catalog:",
-    "@pagopa/express-azure-functions": "^2.0.0",
     "@pagopa/io-auth-n-identity-commons": "workspace:^",
-    "@pagopa/io-functions-commons": "catalog:",
+    "@pagopa/io-functions-commons": "^30.0.0",
     "@pagopa/openapi-codegen-ts": "^12.2.0",
     "@pagopa/ts-commons": "catalog:",
-    "@pagopa/winston-ts": "catalog:",
     "@xmldom/xmldom": "catalog:",
     "applicationinsights": "catalog:",
     "date-fns": "catalog:",
-    "express": "catalog:",
     "fp-ts": "catalog:",
     "io-ts": "catalog:",
     "jose": "^4.13.0",
@@ -81,8 +78,6 @@
     "jwk-to-pem": "catalog:",
     "node-fetch": "catalog:",
     "ulid": "catalog:",
-    "winston": "catalog:",
-    "winston-transport": "catalog:",
     "xml-crypto": "catalog:"
   }
 }
