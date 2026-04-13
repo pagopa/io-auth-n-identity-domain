@@ -96,7 +96,7 @@ module "function_profile" {
     instance_number = "02"
   }
 
-  node_version          = 20
+  node_version          = 22
   health_check_path     = "/api/v1/info"
   has_durable_functions = "true"
 
