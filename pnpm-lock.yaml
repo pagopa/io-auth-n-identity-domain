@@ -52,8 +52,8 @@ catalogs:
       specifier: ^29.3.0
       version: 29.3.0
     '@pagopa/io-spid-commons':
-      specifier: ^14.0.1
-      version: 14.0.1
+      specifier: ^15.0.0
+      version: 15.0.0
     '@pagopa/logger':
       specifier: ^1.0.1
       version: 1.0.1
@@ -988,7 +988,7 @@ importers:
         version: 29.3.0(@azure/functions@4.7.0)(express@4.21.1)(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@pagopa/io-spid-commons':
         specifier: 'catalog:'
-        version: 14.0.1(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(monocle-ts@2.3.13(fp-ts@2.16.9))(newtype-ts@0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9)))(redis@4.7.1)
+        version: 15.0.0(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(monocle-ts@2.3.13(fp-ts@2.16.9))(newtype-ts@0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9)))(redis@4.7.1)
       '@pagopa/ts-commons':
         specifier: 'catalog:'
         version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
@@ -2896,9 +2896,6 @@ packages:
     peerDependencies:
       express: ^4.17.2
 
-  '@pagopa/handler-kit-azure-func@1.2.1':
-    resolution: {integrity: sha512-/pOT3rwy4I1gl9aOKlShiAQVI/kJV84U9qShnbfVHFZBeDSaOrIZ5sxuaz/VFAEJ0Rdmp3EYao0MClJgO5O74g==}
-
   '@pagopa/handler-kit-azure-func@2.0.8':
     resolution: {integrity: sha512-Y5iwgWt+dXg/uts8+zd7gnnj3lzL+kzU0jGSS4XeJkuqBPDFjvz3lG7QkqKNxdgSIp4S5pGx50qOya/g4BCHhA==}
     peerDependencies:
@@ -2931,8 +2928,8 @@ packages:
       fp-ts: ^2.16.5
       io-ts: ^2.2.21
 
-  '@pagopa/io-spid-commons@14.0.1':
-    resolution: {integrity: sha512-7pY7gtFQ9b3yLnbtvDMVvD8gM7Z2MVHrnwgUe7Q7TcjdoiatoafhD72W3m4QshTrz8BMpY1Do2uRxap/iL1aDQ==}
+  '@pagopa/io-spid-commons@15.0.0':
+    resolution: {integrity: sha512-/96yyzNaBezvdBgYxpGYB2mEiFNy5EVy1q9lukXQtUmqYwSiE36ijMdFcJMXrUfGNKum+t2gdnQSxs7ai7wupg==}
     hasBin: true
     peerDependencies:
       fp-ts: ^2.16.5
@@ -9859,19 +9856,6 @@ snapshots:
     dependencies:
       express: 4.21.1
 
-  '@pagopa/handler-kit-azure-func@1.2.1(postcss@8.5.6)(ts-node@10.9.2(@types/node@20.19.30)(typescript@5.8.3))(typescript@5.8.3)':
-    dependencies:
-      '@pagopa/handler-kit': 1.1.1(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(postcss@8.5.6)(ts-node@10.9.2(@types/node@20.19.30)(typescript@5.8.3))(typescript@5.8.3)
-      '@pagopa/logger': 1.0.1
-      fp-ts: 2.16.9
-      io-ts: 2.2.22(fp-ts@2.16.9)
-    transitivePeerDependencies:
-      - '@swc/core'
-      - postcss
-      - supports-color
-      - ts-node
-      - typescript
-
   '@pagopa/handler-kit-azure-func@2.0.8(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(postcss@8.5.6)(ts-node@10.9.2(@types/node@20.19.30)(typescript@5.8.3))(typescript@5.8.3)':
     dependencies:
       '@azure/functions': 4.7.0
@@ -10006,7 +9990,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@pagopa/io-spid-commons@14.0.1(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(monocle-ts@2.3.13(fp-ts@2.16.9))(newtype-ts@0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9)))(redis@4.7.1)':
+  '@pagopa/io-spid-commons@15.0.0(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))(monocle-ts@2.3.13(fp-ts@2.16.9))(newtype-ts@0.3.5(fp-ts@2.16.9)(monocle-ts@2.3.13(fp-ts@2.16.9)))(redis@4.7.1)':
     dependencies:
       '@pagopa/ts-commons': 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@xmldom/xmldom': 0.8.10
