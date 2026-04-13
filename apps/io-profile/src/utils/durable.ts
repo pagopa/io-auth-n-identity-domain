@@ -25,6 +25,13 @@ export const consumeGenerator = <TReturn = unknown>(
   }
 };
 
+/**
+ * In `durable-functions` v3 the method **throws** when the Durable Task
+ * extension replies with HTTP 404 (instance not found), whereas in v2 it
+ * silently returned a `DurableOrchestrationStatus` object.  We detect this
+ * specific error by inspecting the error message for the well-known
+ * substring emitted by the library.
+ */
 const isInstanceNotFoundError = (error: Error): boolean =>
   error.message?.includes("HTTP 404");
 
@@ -39,17 +46,27 @@ export const isOrchestratorRunning = (
 > =>
   pipe(
     TE.tryCatch(() => client.getStatus(orchestratorId), E.toError),
-    TE.orElse((error: Error) =>
-      isInstanceNotFoundError(error)
-        ? TE.of({ ...({} as df.DurableOrchestrationStatus), runtimeStatus: df.OrchestrationRuntimeStatus.Terminated, isRunning: false as const })
-        : TE.left(error)
-    ),
     TE.map((status) => ({
       ...status,
       isRunning:
         status.runtimeStatus === df.OrchestrationRuntimeStatus.Running ||
         status.runtimeStatus === df.OrchestrationRuntimeStatus.Pending,
     })),
+    TE.orElse((error) =>
+      isInstanceNotFoundError(error)
+        ? TE.of({
+            createdTime: new Date(0),
+            input: null,
+            instanceId: orchestratorId,
+            isRunning: false as const,
+            lastUpdatedTime: new Date(0),
+            name: orchestratorId,
+            output: null,
+            runtimeStatus:
+              "Unknown" as unknown as df.OrchestrationRuntimeStatus,
+          } as df.DurableOrchestrationStatus & { readonly isRunning: false })
+        : TE.left(error),
+    ),
   );
 
 /**
@@ -80,10 +97,10 @@ export const startOrchestrator = <OInput>(
             TE.chain((encodedInput) =>
               TE.tryCatch(
                 () =>
-                  dfClient.startNew(
-                    orchestratorName,
-                    { instanceId: orchestratorId, input: encodedInput },
-                  ),
+                  dfClient.startNew(orchestratorName, {
+                    instanceId: orchestratorId,
+                    input: encodedInput,
+                  }),
                 E.toError,
               ),
             ),
