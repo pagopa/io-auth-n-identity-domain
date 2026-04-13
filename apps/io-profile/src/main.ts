@@ -190,6 +190,12 @@ const validationEmailMailerTransporter = pipe(
   getMailerTransporter,
 );
 
+// ---- OUTPUT BINDINGS ----
+const eventsQueueOutput = output.storageQueue({
+  connection: "EventsQueueStorageConnection",
+  queueName: config.EventsQueueName,
+});
+
 // ---- ACTIVITIES ----
 df.app.activity(CreateValidationTokenActivityName, {
   handler: getCreateValidationTokenActivityHandler(
@@ -203,10 +209,8 @@ df.app.activity(CreateValidationTokenActivityName, {
 });
 
 df.app.activity(EmitEventActivityName, {
-  handler: getEmitEventActivityHandler(
-    eventsQueueServiceClient,
-    config.EventsQueueName,
-  ),
+  extraOutputs: [eventsQueueOutput],
+  handler: getEmitEventActivityHandler(eventsQueueOutput),
 });
 
 df.app.activity(EnqueueProfileCreationEventActivityName, {
@@ -289,11 +293,6 @@ df.app.orchestration(
 );
 
 // ---- HTTP FUNCTIONS ----
-const eventsQueueOutput = output.storageQueue({
-  connection: "EventsQueueStorageConnection",
-  queueName: config.EventsQueueName,
-});
-
 app.http("Info", {
   methods: ["GET"],
   authLevel: "anonymous",

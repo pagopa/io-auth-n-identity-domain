@@ -1,17 +1,10 @@
-import { InvocationContext } from "@azure/functions";
-import { QueueServiceClient } from "@azure/storage-queue";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { InvocationContext, output } from "@azure/functions";
 
 export const ActivityName = "EmitEventActivity";
 
 export const getEmitEventActivityHandler =
-  (
-    eventsQueueServiceClient: QueueServiceClient,
-    eventsQueueName: NonEmptyString,
-  ) =>
-  async (input: unknown, _context: InvocationContext): Promise<void> => {
+  (eventsQueueOutput: ReturnType<typeof output.storageQueue>) =>
+  async (input: unknown, context: InvocationContext): Promise<void> => {
     const message = typeof input === "string" ? input : JSON.stringify(input);
-    await eventsQueueServiceClient
-      .getQueueClient(eventsQueueName)
-      .sendMessage(Buffer.from(message).toString("base64"));
+    context.extraOutputs.set(eventsQueueOutput, message);
   };
