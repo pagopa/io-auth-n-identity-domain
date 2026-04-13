@@ -62,9 +62,8 @@ export const ActivityResult = t.union([
 
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
-const logPrefix = "GetMagicCodeActivity";
-
 export const ActivityName = "GetMagicCodeActivity";
+const logPrefix = ActivityName;
 
 export const getMagicCodeActivityHandler =
   (magicLinkService: MagicLinkServiceClient) =>

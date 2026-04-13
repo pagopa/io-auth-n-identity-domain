@@ -57,7 +57,7 @@ export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
 export const ActivityName = "SendTemplatedLoginEmailActivity";
 
-const logPrefix = "SendTemplatedLoginEmailActivity";
+const logPrefix = ActivityName;
 
 export const getSendLoginEmailActivityHandler =
   (

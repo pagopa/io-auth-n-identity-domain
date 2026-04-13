@@ -57,6 +57,7 @@ export const ActivityResult = t.union([
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
 export const ActivityName = "CreateValidationTokenActivity";
+const logPrefix = ActivityName;
 
 export const getCreateValidationTokenActivityHandler =
   (
@@ -69,8 +70,6 @@ export const getCreateValidationTokenActivityHandler =
     // eslint-disable-next-line max-params
   ) =>
   async (input: unknown, context: InvocationContext): Promise<unknown> => {
-    const logPrefix = `CreateValidationTokenActivity`;
-
     const errorOrCreateValidationTokenActivityInput =
       ActivityInput.decode(input);
 

@@ -51,6 +51,7 @@ export const ActivityResult = t.union([
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
 export const ActivityName = "SendTemplatedValidationEmailActivity";
+const logPrefix = ActivityName;
 
 export const getSendValidationEmailActivityHandler =
   (
@@ -61,8 +62,6 @@ export const getSendValidationEmailActivityHandler =
     ffEnableIoWebEmailActions: boolean,
   ) =>
   async (input: unknown, context: InvocationContext): Promise<unknown> => {
-    const logPrefix = "SendTemplatedValidationEmailActivity";
-
     const errorOrActivityInput = ActivityInput.decode(input);
 
     if (isLeft(errorOrActivityInput)) {

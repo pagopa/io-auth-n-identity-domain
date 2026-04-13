@@ -47,9 +47,8 @@ export const ActivityResult = t.union([
 
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
-const logPrefix = "GetGeoLocationDataActivity";
-
 export const ActivityName = "GetGeoLocationDataActivity";
+const logPrefix = ActivityName;
 
 export const getGeoLocationHandler =
   (_geoLocationService: GeoLocationServiceClient) =>

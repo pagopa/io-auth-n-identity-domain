@@ -19,6 +19,7 @@ import {
 
 export const OrchestratorName =
   "EmailValidationWithTemplateProcessOrchestrator";
+const logPrefix = OrchestratorName;
 
 // Input
 export const OrchestratorInput = t.intersection([
@@ -54,8 +55,6 @@ export type OrchestratorResult = t.TypeOf<typeof OrchestratorResult>;
 export const EmailValidationOrchestratorHandler = function* (
   context: OrchestrationContext,
 ): Generator<Task> {
-  const logPrefix = `EmailValidationWithTemplateProcessOrchestrator`;
-
   const retryOptions = new df.RetryOptions(5000, 10);
 
   retryOptions.backoffCoefficient = 1.5;
