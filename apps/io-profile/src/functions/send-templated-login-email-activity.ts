@@ -1,4 +1,4 @@
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import {
   EmailString,
   IPString,
@@ -55,6 +55,8 @@ export const ActivityResult = t.union([
 
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
+export const ActivityName = "SendTemplatedLoginEmailActivity";
+
 const logPrefix = "SendTemplatedLoginEmailActivity";
 
 export const getSendLoginEmailActivityHandler =
@@ -64,12 +66,12 @@ export const getSendLoginEmailActivityHandler =
     accessRefUrl: ValidUrl,
     telemetryClient?: ai.TelemetryClient,
   ) =>
-  async (context: Context, input: unknown): Promise<ActivityResult> =>
+  async (input: unknown, context: InvocationContext): Promise<ActivityResult> =>
     pipe(
       input,
       ActivityInput.decode,
       E.mapLeft((errors) => {
-        context.log.error(
+        context.error(
           `${logPrefix}|Error while decoding input|ERROR=${readableReportSimplified(
             errors,
           )}`,
@@ -130,7 +132,7 @@ export const getSendLoginEmailActivityHandler =
             const formattedError = Error(
               `${logPrefix}|Error sending validation email|ERROR=${error.message}`,
             );
-            context.log.error(formattedError.message);
+            context.error(formattedError.message);
             // we want to start a retry
             throw formattedError;
           }),

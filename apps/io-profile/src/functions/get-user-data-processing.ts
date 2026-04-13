@@ -1,16 +1,13 @@
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 
 import {
   IResponseErrorQuery,
   ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler,
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import { UserDataProcessing as UserDataProcessingApi } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessing";
 import { UserDataProcessingChoice } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessingChoice";
@@ -20,7 +17,6 @@ import {
 } from "@pagopa/io-functions-commons/dist/src/models/user_data_processing";
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
 
-import express from "express";
 
 import { isLeft } from "fp-ts/lib/Either";
 import { isSome } from "fp-ts/lib/Option";
@@ -38,7 +34,7 @@ import { toUserDataProcessingApi } from "../utils/user-data-processings";
  * Type of a GetUserDataProcessing handler.
  */
 type IGetUserDataProcessingHandler = (
-  context: Context,
+  context: InvocationContext,
   fiscalCode: FiscalCode,
   userDataProcessingChoice: UserDataProcessingChoice,
 ) => Promise<
@@ -62,7 +58,7 @@ export function GetUserDataProcessingHandler(
     if (isLeft(maybeResultOrError)) {
       const failure = maybeResultOrError.left;
 
-      context.log.error(`${logPrefix}|ERROR=${failure.kind}`);
+      context.error(`${logPrefix}|ERROR=${failure.kind}`);
       if (
         failure.kind === "COSMOS_ERROR_RESPONSE" &&
         failure.error.code === 404
@@ -92,18 +88,12 @@ export function GetUserDataProcessingHandler(
   };
 }
 
-/**
- * Wraps a GetUserDataProcessing handler inside an Express request handler.
- */
-export function GetUserDataProcessing(
-  userDataProcessingModel: UserDataProcessingModel,
-): express.RequestHandler {
+export function GetUserDataProcessing(userDataProcessingModel: UserDataProcessingModel) {
   const handler = GetUserDataProcessingHandler(userDataProcessingModel);
-
-  const middlewaresWrap = withRequestMiddlewares(
+  const middlewares = [
     ContextMiddleware(),
     FiscalCodeMiddleware,
     RequiredParamMiddleware("choice", UserDataProcessingChoice),
-  );
-  return wrapRequestHandler(middlewaresWrap(handler));
+  ] as const;
+  return wrapHandlerV4(middlewares, handler);
 }

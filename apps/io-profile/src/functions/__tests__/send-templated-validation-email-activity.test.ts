@@ -65,7 +65,7 @@ describe("SendTemplatedValidationEmailActivityHandler", () => {
       name: aName,
     });
 
-    await handler(contextMock as any, input);
+    await handler(input, contextMock as any);
 
     expect(apply).toBeCalledWith(
       emailDefaults.title,
@@ -112,7 +112,7 @@ describe("SendTemplatedValidationEmailActivityHandler", () => {
       name: aName,
     });
 
-    await handler(contextMock as any, input);
+    await handler(input, contextMock as any);
 
     // ValidUrl.href includes the trailing slash
     expect(apply).toBeCalledWith(

@@ -3,12 +3,12 @@
   "description": "",
   "author": "IO Auth & Identity Team",
   "version": "5.32.0",
+  "main": "dist/main.js",
   "license": "MIT",
   "files": [
     "dist/*",
     "extensions.csproj",
-    "host.json",
-    "**/function.json"
+    "host.json"
   ],
   "scripts": {
     "clean": "shx rm -rf dist",
@@ -34,10 +34,8 @@
     "bump:api": "bundle-api-spec -i api/index.yaml -o api/index.yaml -V $npm_package_version && git add api/index.yaml"
   },
   "devDependencies": {
-    "@azure/functions": "^3.2.0",
     "@pagopa/eslint-config": "catalog:",
     "@pagopa/openapi-codegen-ts": "^13.2.0",
-    "@types/express": "catalog:",
     "@types/html-to-text": "catalog:",
     "@types/lolex": "catalog:",
     "@types/node": "catalog:",
@@ -59,16 +57,15 @@
   "dependencies": {
     "@azure/cosmos": "catalog:",
     "@azure/data-tables": "catalog:",
+    "@azure/functions": "catalog:",
     "@azure/storage-queue": "catalog:",
-    "@pagopa/express-azure-functions": "catalog:",
     "@pagopa/io-app-email-templates": "catalog:",
-    "@pagopa/io-functions-commons": "catalog:",
+    "@pagopa/io-functions-commons": "^30.0.0",
     "@pagopa/ts-commons": "catalog:",
     "applicationinsights": "catalog:",
     "azure-storage": "catalog:",
     "date-fns": "catalog:",
-    "durable-functions": "catalog:",
-    "express": "catalog:",
+    "durable-functions": "^3.0.0",
     "fp-ts": "catalog:",
     "html-to-text": "catalog:",
     "io-ts": "catalog:",

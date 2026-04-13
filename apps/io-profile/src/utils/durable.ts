@@ -1,5 +1,3 @@
-import { PromiseType } from "@pagopa/ts-commons/lib/types";
-import { DurableOrchestrationClient } from "durable-functions/lib/src/durableorchestrationclient";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/function";
@@ -27,17 +25,25 @@ export const consumeGenerator = <TReturn = unknown>(
   }
 };
 
+const isInstanceNotFoundError = (error: Error): boolean =>
+  error.message?.includes("HTTP 404");
+
 export const isOrchestratorRunning = (
-  client: DurableOrchestrationClient,
+  client: df.DurableClient,
   orchestratorId: string,
 ): TE.TaskEither<
   Error,
-  PromiseType<ReturnType<(typeof client)["getStatus"]>> & {
+  df.DurableOrchestrationStatus & {
     readonly isRunning: boolean;
   }
 > =>
   pipe(
     TE.tryCatch(() => client.getStatus(orchestratorId), E.toError),
+    TE.orElse((error: Error) =>
+      isInstanceNotFoundError(error)
+        ? TE.of({ ...({} as df.DurableOrchestrationStatus), runtimeStatus: df.OrchestrationRuntimeStatus.Terminated, isRunning: false as const })
+        : TE.left(error)
+    ),
     TE.map((status) => ({
       ...status,
       isRunning:
@@ -49,14 +55,14 @@ export const isOrchestratorRunning = (
 /**
  * Check if the orchestrator is not running or pending, running it otherwise
  *
- * @param {DurableOrchestrationClient} dfClient
+ * @param {df.DurableClient} dfClient
  * @param {string} orchestratorName
  * @param {string} orchestratorId
  * @param {unknown} orchestratorInput
  * @returns a TaskEither with a startup Error or instanceId
  * */
 export const startOrchestrator = <OInput>(
-  dfClient: DurableOrchestrationClient,
+  dfClient: df.DurableClient,
   orchestratorName: string,
   orchestratorId: string,
   orchestratorInput: OInput,
@@ -76,8 +82,7 @@ export const startOrchestrator = <OInput>(
                 () =>
                   dfClient.startNew(
                     orchestratorName,
-                    orchestratorId,
-                    encodedInput,
+                    { instanceId: orchestratorId, input: encodedInput },
                   ),
                 E.toError,
               ),

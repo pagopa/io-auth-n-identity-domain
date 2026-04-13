@@ -3,7 +3,7 @@ import * as t from "io-ts";
 import { isLeft } from "fp-ts/lib/Either";
 
 import * as df from "durable-functions";
-import { IOrchestrationFunctionContext } from "durable-functions/lib/src/classes";
+import { OrchestrationContext, Task } from "durable-functions";
 
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { EmailString, FiscalCode } from "@pagopa/ts-commons/lib/strings";
@@ -16,6 +16,9 @@ import {
   ActivityInput as SendValidationEmailActivityInput,
   ActivityResult as SendValidationEmailActivityResult,
 } from "./send-templated-validation-email-activity";
+
+export const OrchestratorName =
+  "EmailValidationWithTemplateProcessOrchestrator";
 
 // Input
 export const OrchestratorInput = t.intersection([
@@ -49,15 +52,17 @@ export type OrchestratorResult = t.TypeOf<typeof OrchestratorResult>;
  * An orchestrator to handle the email validation process.
  */
 export const EmailValidationOrchestratorHandler = function* (
-  context: IOrchestrationFunctionContext,
-): Generator<unknown> {
+  context: OrchestrationContext,
+): Generator<Task> {
   const logPrefix = `EmailValidationWithTemplateProcessOrchestrator`;
 
   const retryOptions = new df.RetryOptions(5000, 10);
 
   retryOptions.backoffCoefficient = 1.5;
 
-  context.log.verbose(`${logPrefix}|Email validation process started`);
+  if (!context.df.isReplaying) {
+    context.trace(`${logPrefix}|Email validation process started`);
+  }
 
   // Decode the input
   const input = context.df.getInput();
@@ -68,7 +73,9 @@ export const EmailValidationOrchestratorHandler = function* (
         errorOrOrchestratorInput.left,
       )}`,
     );
-    context.log.error(error.message);
+    if (!context.df.isReplaying) {
+      context.error(error.message);
+    }
     return OrchestratorFailureResult.encode({
       kind: "FAILURE",
       reason: error.message,
@@ -80,13 +87,15 @@ export const EmailValidationOrchestratorHandler = function* (
   const { fiscalCode, email, name } = orchestratorInput;
 
   // Log the input
-  context.log.verbose(
-    `${logPrefix}|INPUT=${JSON.stringify(orchestratorInput)}`,
-  );
+  if (!context.df.isReplaying) {
+    context.trace(`${logPrefix}|INPUT=${JSON.stringify(orchestratorInput)}`);
+  }
 
   try {
     // STEP 1: Create new validation token
-    context.log.verbose(`${logPrefix}|Starting CreateValidationTokenActivity`);
+    if (!context.df.isReplaying) {
+      context.trace(`${logPrefix}|Starting CreateValidationTokenActivity`);
+    }
 
     // Prepare the input
     const createValidationTokenActivityInput =
@@ -115,7 +124,9 @@ export const EmailValidationOrchestratorHandler = function* (
           errorOrCreateValidationTokenActivityResult.left,
         )}`,
       );
-      context.log.error(error.message);
+      if (!context.df.isReplaying) {
+        context.error(error.message);
+      }
       // Throw an error so the whole process is retried
       throw error;
     }
@@ -127,21 +138,27 @@ export const EmailValidationOrchestratorHandler = function* (
       const error = Error(
         `${logPrefix}|Activity error|ERROR=${createValidationTokenActivityResult.reason}`,
       );
-      context.log.error(error.message);
+      if (!context.df.isReplaying) {
+        context.error(error.message);
+      }
       // Throw an error so the whole process is retried
       throw error;
     }
 
     const { validator, validationTokenEntity } =
       createValidationTokenActivityResult.value;
-    context.log.verbose(
-      `${logPrefix}|ValidationToken created successfully|TOKEN_ID=${validationTokenEntity.PartitionKey}|TOKEN_VALIDATOR=${validator}`,
-    );
+    if (!context.df.isReplaying) {
+      context.trace(
+        `${logPrefix}|ValidationToken created successfully|TOKEN_ID=${validationTokenEntity.PartitionKey}|TOKEN_VALIDATOR=${validator}`,
+      );
+    }
 
     // STEP 2: Send an email with the validation link
-    context.log.verbose(
-      `${logPrefix}|Starting SendTemplatedValidationEmailActivity`,
-    );
+    if (!context.df.isReplaying) {
+      context.trace(
+        `${logPrefix}|Starting SendTemplatedValidationEmailActivity`,
+      );
+    }
 
     // Prepare the input
     const sendValidationEmailActivityInput =
@@ -171,7 +188,9 @@ export const EmailValidationOrchestratorHandler = function* (
           errorOrSendValidationEmailActivityResult.left,
         )}`,
       );
-      context.log.error(error.message);
+      if (!context.df.isReplaying) {
+        context.error(error.message);
+      }
       // Throw an error so the whole process is retried
       throw error;
     }
@@ -183,19 +202,25 @@ export const EmailValidationOrchestratorHandler = function* (
       const error = Error(
         `${logPrefix}|Activity error|ERROR=${sendValidationEmailActivityResult.reason}`,
       );
-      context.log.error(error.message);
+      if (!context.df.isReplaying) {
+        context.error(error.message);
+      }
       // Throw an error so the whole process is retried
       throw error;
     }
 
-    context.log.verbose(`${logPrefix}|Validation email sent successfully`);
+    if (!context.df.isReplaying) {
+      context.trace(`${logPrefix}|Validation email sent successfully`);
+    }
 
     return OrchestratorSuccessResult.encode({
       kind: "SUCCESS",
     });
   } catch (e) {
     const error = Error(`${logPrefix}|Max retry exceeded|ERROR=${e}`);
-    context.log.error(error.message);
+    if (!context.df.isReplaying) {
+      context.error(error.message);
+    }
     // Throw an error so the whole process is retried
     throw error;
   }

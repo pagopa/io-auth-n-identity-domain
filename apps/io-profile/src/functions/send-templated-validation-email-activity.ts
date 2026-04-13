@@ -6,7 +6,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as HtmlToText from "html-to-text";
 import * as NodeMailer from "nodemailer";
 
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 
 import * as ai from "applicationinsights";
 
@@ -50,6 +50,8 @@ export const ActivityResult = t.union([
 
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
+export const ActivityName = "SendTemplatedValidationEmailActivity";
+
 export const getSendValidationEmailActivityHandler =
   (
     mailerTransporter: NodeMailer.Transporter,
@@ -58,13 +60,13 @@ export const getSendValidationEmailActivityHandler =
     ioWebBaseUrl: ValidUrl,
     ffEnableIoWebEmailActions: boolean,
   ) =>
-  async (context: Context, input: unknown): Promise<unknown> => {
+  async (input: unknown, context: InvocationContext): Promise<unknown> => {
     const logPrefix = "SendTemplatedValidationEmailActivity";
 
     const errorOrActivityInput = ActivityInput.decode(input);
 
     if (isLeft(errorOrActivityInput)) {
-      context.log.error(
+      context.error(
         `${logPrefix}|Error decoding input|ERROR=${readableReport(
           errorOrActivityInput.left,
         )}`,
@@ -104,7 +106,7 @@ export const getSendValidationEmailActivityHandler =
           const error = Error(
             `${logPrefix}|Error sending validation email|ERROR=${e.message}`,
           );
-          context.log.error(error.message);
+          context.error(error.message);
           throw error;
         },
         (result) => {

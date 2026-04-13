@@ -1,4 +1,4 @@
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import { IPString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as t from "io-ts";
 import * as E from "fp-ts/lib/Either";
@@ -49,14 +49,16 @@ export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
 const logPrefix = "GetGeoLocationDataActivity";
 
+export const ActivityName = "GetGeoLocationDataActivity";
+
 export const getGeoLocationHandler =
   (_geoLocationService: GeoLocationServiceClient) =>
-  async (context: Context, input: unknown): Promise<ActivityResult> =>
+  async (input: unknown, context: InvocationContext): Promise<ActivityResult> =>
     pipe(
       input,
       ActivityInput.decode,
       E.mapLeft((errors) => {
-        context.log.error(
+        context.error(
           `${logPrefix}|Error while decoding input|ERROR=${readableReportSimplified(
             errors,
           )}`,
