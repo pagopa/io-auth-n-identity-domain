@@ -293,6 +293,8 @@ df.app.orchestration(
 );
 
 // ---- HTTP FUNCTIONS ----
+const eventTracker = createTracker(telemetryClient);
+
 app.http("Info", {
   methods: ["GET"],
   authLevel: "anonymous",
@@ -334,7 +336,7 @@ app.http("UpdateProfile", {
   handler: UpdateProfile(
     profileModel,
     migrateServicePreferencesQueueClient,
-    createTracker(telemetryClient),
+    eventTracker,
     profileEmailReader,
   ),
 });
@@ -409,7 +411,7 @@ app.http("NoticeLoginEmail", {
   authLevel: "function",
   route: "v1/notify-login",
   extraInputs: [df.input.durableClient()],
-  handler: NoticeLoginEmail(createTracker(telemetryClient)),
+  handler: NoticeLoginEmail(eventTracker),
 });
 
 app.http("StartEmailValidationProcess", {
