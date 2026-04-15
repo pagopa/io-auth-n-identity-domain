@@ -13,7 +13,6 @@ export default defineConfig({
         "src/config.ts",
         "src/main.ts",
         "src/types/*.ts",
-        ".eslintrc.js",
         "vite.config.mts",
       ],
       reporter: ["lcov", "text"],
