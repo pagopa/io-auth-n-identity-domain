@@ -4,7 +4,6 @@ import {
   NonEmptyString,
 } from "@pagopa/ts-commons/lib/strings";
 import * as df from "durable-functions";
-import { Task } from "durable-functions/lib/src/classes";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { context as contextMock } from "../__mocks__/durable-functions";
 import { aFiscalCode } from "../__mocks__/mocks";
@@ -40,7 +39,7 @@ const contextMockWithDf = {
   ...contextMock,
   df: {
     Task: {
-      all: (tasks: ReadonlyArray<Task>) => tasks,
+      all: (tasks: ReadonlyArray<unknown>) => tasks,
     },
     callActivityWithRetry: mockCallActivityFunction,
     getInput: mockGetInput,

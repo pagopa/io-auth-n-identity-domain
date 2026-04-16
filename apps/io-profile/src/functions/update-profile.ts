@@ -1,6 +1,4 @@
-import express from "express";
-
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import * as df from "durable-functions";
 
 import * as E from "fp-ts/lib/Either";
@@ -36,12 +34,9 @@ import {
   ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler,
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import { QueueClient, QueueSendMessageResponse } from "@azure/storage-queue";
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicesPreferencesMode";
@@ -75,7 +70,7 @@ export type MigrateServicesPreferencesQueueMessage = t.TypeOf<
  * Type of an UpdateProfile handler.
  */
 type IUpdateProfileHandler = (
-  context: Context,
+  context: InvocationContext,
   fiscalCode: FiscalCode,
   profilePayload: ApiProfile,
   profileNamePayload: EmailValidationProcessParams,
@@ -144,7 +139,7 @@ export function UpdateProfileHandler(
 
     // Verify that the client asked to update the latest version
     if (profilePayload.version !== existingProfile.version) {
-      context.log.warn(
+      context.warn(
         `${logPrefix}|CURRENT_VERSION=${existingProfile.version}|PREV_VERSION=${profilePayload.version}|RESULT=CONFLICT`,
       );
       return ResponseErrorConflict(
@@ -181,7 +176,7 @@ export function UpdateProfileHandler(
         }
       } catch {
         // Logs an opaque message without errors details to avoid PII leaks
-        context.log.error(`${logPrefix}| Check for e-mail uniqueness failed`);
+        context.error(`${logPrefix}| Check for e-mail uniqueness failed`);
         return ResponseErrorInternal(
           "Can't check if the new e-mail is already taken",
         );
@@ -206,7 +201,7 @@ export function UpdateProfileHandler(
       requestedServicePreferencesSettingsMode ===
         ServicesPreferencesModeEnum.LEGACY
     ) {
-      context.log.warn(
+      context.warn(
         `${logPrefix}|REQUESTED_MODE=${requestedServicePreferencesSettingsMode}|CURRENT_MODE=${existingProfile.servicePreferencesSettings.mode}|RESULT=CONFLICT`,
       );
       return ResponseErrorConflict(
@@ -264,7 +259,7 @@ export function UpdateProfileHandler(
     })();
 
     if (E.isLeft(errorOrMaybeUpdatedProfile)) {
-      context.log.error(
+      context.error(
         `${logPrefix}|ERROR=${errorOrMaybeUpdatedProfile.left.kind}`,
       );
       return ResponseErrorQuery(
@@ -310,8 +305,7 @@ export function UpdateProfileHandler(
       });
     await dfClient.startNew(
       "UpsertedProfileOrchestrator",
-      undefined,
-      upsertedProfileOrchestratorInput,
+      { input: upsertedProfileOrchestratorInput },
     );
 
     // Queue services preferences migration
@@ -330,7 +324,7 @@ export function UpdateProfileHandler(
       await pipe(
         migratePreferences(queueClient, existingProfile, updateProfile),
         TE.mapLeft((err) =>
-          context.log.error(
+          context.error(
             `${logPrefix}|Cannot send a message to the queue ${
               queueClient.name
             } |ERROR=${JSON.stringify(err)}`,
@@ -344,27 +338,18 @@ export function UpdateProfileHandler(
   };
 }
 
-/**
- * Wraps an UpdateProfile handler inside an Express request handler.
- */
 export function UpdateProfile(
   profileModel: ProfileModel,
   queueClient: QueueClient,
   tracker: ReturnType<typeof createTracker>,
   profileEmailReader: IProfileEmailReader,
-): express.RequestHandler {
-  const handler = UpdateProfileHandler(
-    profileModel,
-    queueClient,
-    tracker,
-    profileEmailReader,
-  );
-
-  const middlewaresWrap = withRequestMiddlewares(
+) {
+  const handler = UpdateProfileHandler(profileModel, queueClient, tracker, profileEmailReader);
+  const middlewares = [
     ContextMiddleware(),
     FiscalCodeMiddleware,
     ProfileMiddleware,
     RequiredBodyPayloadMiddleware(EmailValidationProcessParams),
-  );
-  return wrapRequestHandler(middlewaresWrap(handler));
+  ] as const;
+  return wrapHandlerV4(middlewares, handler);
 }

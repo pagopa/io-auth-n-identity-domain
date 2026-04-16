@@ -1,4 +1,4 @@
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import { QueueServiceClient } from "@azure/storage-queue";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 
@@ -17,9 +17,11 @@ export type EnqueueProfileCreationEventActivityInput = t.TypeOf<
   typeof EnqueueProfileCreationEventActivityInput
 >;
 
+export const ActivityName = "EnqueueProfileCreationEventActivity";
+
 type IEnqueueProfileCreationEventActivityHandler = (
   queueService: QueueServiceClient,
-) => (context: Context, rawInput: unknown) => Promise<string>;
+) => (rawInput: unknown, context: InvocationContext) => Promise<string>;
 
 export const NewProfileInput = t.type({
   fiscal_code: FiscalCode,
@@ -29,11 +31,11 @@ export type NewProfileInput = t.TypeOf<typeof NewProfileInput>;
 export const GetEnqueueProfileCreationEventActivityHandler: IEnqueueProfileCreationEventActivityHandler =
 
     (queueService: QueueServiceClient) =>
-    async (context: Context, rawInput: unknown): Promise<string> => {
+    async (rawInput: unknown, context: InvocationContext): Promise<string> => {
       const decodedInputOrError =
         EnqueueProfileCreationEventActivityInput.decode(rawInput);
       if (E.isLeft(decodedInputOrError)) {
-        context.log.error(
+        context.error(
           `EnqueueProfileCreationEventActivity|Cannot parse input|ERROR=${readableReport(
             decodedInputOrError.left,
           )}`,
@@ -55,7 +57,7 @@ export const GetEnqueueProfileCreationEventActivityHandler: IEnqueueProfileCreat
                 ),
               ),
           (err) => {
-            context.log.error(
+            context.error(
               `EnqueueProfileCreationEventActivity|Cannot send a message to the queue ${
                 decodedInputOrError.right.queueName
               }|ERROR=${JSON.stringify(err)}`,

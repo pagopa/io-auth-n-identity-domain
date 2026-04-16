@@ -56,7 +56,7 @@ describe("CreateValidationTokenActivityHandler", () => {
       fiscalCode: aFiscalCode,
     });
 
-    await handler(contextMock as any, input);
+    await handler(input, contextMock as any);
 
     expect(tableServiceMock.insertEntity).toHaveBeenCalledWith(
       VALIDATION_TOKEN_TABLE_NAME,

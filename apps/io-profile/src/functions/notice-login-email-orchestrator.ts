@@ -4,9 +4,10 @@ import {
   IPString,
   NonEmptyString,
 } from "@pagopa/ts-commons/lib/strings";
-import { IOrchestrationFunctionContext } from "durable-functions/lib/src/iorchestrationfunctioncontext";
-import * as t from "io-ts";
+import { OrchestrationContext, Task } from "durable-functions";
 import * as df from "durable-functions";
+import * as t from "io-ts";
+
 import * as E from "fp-ts/lib/Either";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
@@ -24,6 +25,9 @@ import {
   ActivityInput as SendTemplatedLoginEmailActivityInput,
   ActivityResultSuccess as SendTemplatedLoginEmailActivityResultSuccess,
 } from "./send-templated-login-email-activity";
+
+export const OrchestratorName = "NoticeLoginEmailOrchestrator";
+const logPrefix = OrchestratorName;
 
 // Input
 export const OrchestratorInput = t.intersection([
@@ -62,10 +66,8 @@ export const OrchestratorResult = t.union([
 export type OrchestratorResult = t.TypeOf<typeof OrchestratorResult>;
 
 export const getNoticeLoginEmailOrchestratorHandler = function* (
-  context: IOrchestrationFunctionContext,
-): Generator<unknown> {
-  const logPrefix = "NoticeLoginEmailOrchestrator";
-
+  context: OrchestrationContext,
+): Generator<Task> {
   // Total time ~2h30min
   const retryOptions = new df.RetryOptions(5000, 20);
 
@@ -73,7 +75,9 @@ export const getNoticeLoginEmailOrchestratorHandler = function* (
 
   retryOptions.maxRetryIntervalInMilliseconds = 20 * 60 * 1000; // do not exceed 20 min interval between retries
 
-  context.log.verbose(`${logPrefix}|Notice login email process started`);
+  if (!context.df.isReplaying) {
+    context.trace(`${logPrefix}|Notice login email process started`);
+  }
 
   // Decode input
   const input = context.df.getInput();
@@ -84,7 +88,9 @@ export const getNoticeLoginEmailOrchestratorHandler = function* (
         errorOrOrchestratorInput.left,
       )}`,
     );
-    context.log.error(error.message);
+    if (!context.df.isReplaying) {
+      context.error(error.message);
+    }
     return OrchestratorFailureResult.encode({
       kind: "FAILURE",
       reason: error.message,
@@ -108,18 +114,22 @@ export const getNoticeLoginEmailOrchestratorHandler = function* (
   /* eslint-enable @typescript-eslint/naming-convention */
 
   // Log the input
-  context.log.verbose(
-    `${logPrefix}|INPUT=${JSON.stringify({
-      ...orchestratorInput,
-      email: toHash(orchestratorInput.email),
-      family_name: toHash(orchestratorInput.family_name),
-      fiscal_code: toHash(orchestratorInput.fiscal_code),
-      name: toHash(orchestratorInput.name),
-    })}`,
-  );
+  if (!context.df.isReplaying) {
+    context.trace(
+      `${logPrefix}|INPUT=${JSON.stringify({
+        ...orchestratorInput,
+        email: toHash(orchestratorInput.email),
+        family_name: toHash(orchestratorInput.family_name),
+        fiscal_code: toHash(orchestratorInput.fiscal_code),
+        name: toHash(orchestratorInput.name),
+      })}`,
+    );
+  }
 
   try {
-    context.log.verbose(`${logPrefix}|Starting GetGeoLocationDataActivity`);
+    if (!context.df.isReplaying) {
+      context.trace(`${logPrefix}|Starting GetGeoLocationDataActivity`);
+    }
     const geoLocationActivityInput = GetGeoLocationActivityInput.encode({
       ip_address,
     });
@@ -140,17 +150,21 @@ export const getNoticeLoginEmailOrchestratorHandler = function* (
           geo_location =
             errorOrGeoLocationServiceResponse.right.value.geo_location;
         } else {
-          context.log.error(
-            `${logPrefix}|GetGeoLocationDataActivity failed with ${errorOrGeoLocationServiceResponse.right.reason}`,
-          );
+          if (!context.df.isReplaying) {
+            context.error(
+              `${logPrefix}|GetGeoLocationDataActivity failed with ${errorOrGeoLocationServiceResponse.right.reason}`,
+            );
+          }
         }
       }
     } catch (_) {
       // log activity max retry reached
       // we let geo_location be undefined
-      context.log.error(
-        `${logPrefix}|GetGeoLocationDataActivity max retry reached`,
-      );
+      if (!context.df.isReplaying) {
+        context.error(
+          `${logPrefix}|GetGeoLocationDataActivity max retry reached`,
+        );
+      }
     }
 
     // the base template will be sent if:
@@ -160,7 +174,9 @@ export const getNoticeLoginEmailOrchestratorHandler = function* (
     // eslint-disable-next-line @typescript-eslint/naming-convention
     let magic_link: NonEmptyString | undefined;
     if (is_email_validated) {
-      context.log.verbose(`${logPrefix}|Starting GetMagicCodeActivity`);
+      if (!context.df.isReplaying) {
+        context.trace(`${logPrefix}|Starting GetMagicCodeActivity`);
+      }
       const magicCodeActivityInput = GetMagicCodeActivityInput.encode({
         family_name,
         fiscal_code,
@@ -181,25 +197,31 @@ export const getNoticeLoginEmailOrchestratorHandler = function* (
           if (errorOrMagicLinkServiceResponse.right.kind === "SUCCESS") {
             magic_link = errorOrMagicLinkServiceResponse.right.value.magic_link;
           } else {
-            context.log.error(
-              `${logPrefix}|GetMagicCodeActivity failed with ${errorOrMagicLinkServiceResponse.right.reason}`,
-            );
+            if (!context.df.isReplaying) {
+              context.error(
+                `${logPrefix}|GetMagicCodeActivity failed with ${errorOrMagicLinkServiceResponse.right.reason}`,
+              );
+            }
           }
         }
       } catch (_) {
         // log activity max retry reached
         // we let magic_code be undefined and continue to send the base login email template
-        context.log.error(
-          `${logPrefix}|GetMagicCodeActivity max retry reached`,
-        );
+        if (!context.df.isReplaying) {
+          context.error(`${logPrefix}|GetMagicCodeActivity max retry reached`);
+        }
       }
     } else {
-      context.log.verbose(
-        `${logPrefix}|Ignoring GetMagicCodeActivity. The user doesn't have a validated email`,
-      );
+      if (!context.df.isReplaying) {
+        context.trace(
+          `${logPrefix}|Ignoring GetMagicCodeActivity. The user doesn't have a validated email`,
+        );
+      }
     }
 
-    context.log.verbose(`${logPrefix}|Starting SendLoginEmailActivity`);
+    if (!context.df.isReplaying) {
+      context.trace(`${logPrefix}|Starting SendLoginEmailActivity`);
+    }
     const loginEmailActivityInput = SendTemplatedLoginEmailActivityInput.encode(
       {
         date_time,
@@ -234,7 +256,9 @@ export const getNoticeLoginEmailOrchestratorHandler = function* (
     return OrchestratorSuccessResult.encode({ kind: "SUCCESS" });
   } catch (e) {
     const error = Error(`${logPrefix}|Max retry exceeded|ERROR=${e}`);
-    context.log.error(error.message);
+    if (!context.df.isReplaying) {
+      context.error(error.message);
+    }
     // Throw an error so the whole process is retried
     throw error;
   }

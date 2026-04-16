@@ -1,4 +1,4 @@
-import express from "express";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 
 import * as t from "io-ts";
 
@@ -13,10 +13,6 @@ import { ServiceId } from "@pagopa/io-functions-commons/dist/generated/definitio
 import { ServicePreference } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicePreference";
 import { UpsertServicePreference } from "@pagopa/io-functions-commons/dist/generated/definitions/UpsertServicePreference";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler,
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import {
   IResponseErrorQuery,
@@ -43,7 +39,7 @@ import {
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 
-import { Context } from "@azure/functions";
+import { InvocationContext, output } from "@azure/functions";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { enumType } from "@pagopa/ts-commons/lib/types";
@@ -94,7 +90,7 @@ type IUpsertServicePreferencesHandlerResult =
  * a Not Found error.
  */
 type IUpsertServicePreferencesHandler = (
-  context: Context,
+  context: InvocationContext,
   fiscalCode: FiscalCode,
   serviceId: ServiceId,
   servicePreference: UpsertServicePreference,
@@ -200,6 +196,7 @@ const getFeedOperation = (
  * Return a type safe GetServicePreferences handler.
  */
 export const GetUpsertServicePreferencesHandler = (
+  eventsQueueOutput: ReturnType<typeof output.storageQueue>,
   telemetryClient: ReturnType<typeof initAppInsights> | undefined,
   profileModels: ProfileModel,
   serviceModels: ServiceModel,
@@ -337,14 +334,13 @@ export const GetUpsertServicePreferencesHandler = (
       TE.map((resultsWithSubFeedInfo) => {
         // if it's a new subscription, emit relative event
         if (resultsWithSubFeedInfo.isSubscribing) {
-        
-          context.bindings.apievents = pipe(
+          context.extraOutputs.set(eventsQueueOutput, pipe(
             makeServiceSubscribedEvent(
               resultsWithSubFeedInfo.serviceId,
               resultsWithSubFeedInfo.fiscalCode,
             ),
             JSON.stringify,
-          );
+          ));
         }
         return resultsWithSubFeedInfo;
       }),
@@ -381,11 +377,9 @@ export const GetUpsertServicePreferencesHandler = (
     )();
 };
 
-/**
- * Wraps a UpsertServicePreferences handler inside an Express request handler.
- */
 // eslint-disable-next-line max-params
 export function UpsertServicePreferences(
+  eventsQueueOutput: ReturnType<typeof output.storageQueue>,
   telemetryClient: ReturnType<typeof initAppInsights> | undefined,
   profileModels: ProfileModel,
   serviceModels: ServiceModel,
@@ -395,8 +389,9 @@ export function UpsertServicePreferences(
   subscriptionFeedTableName: NonEmptyString,
   redisClientTask: TE.TaskEither<Error, RedisClientType>,
   serviceCacheTTL: number,
-): express.RequestHandler {
+) {
   const handler = GetUpsertServicePreferencesHandler(
+    eventsQueueOutput,
     telemetryClient,
     profileModels,
     serviceModels,
@@ -407,12 +402,11 @@ export function UpsertServicePreferences(
     redisClientTask,
     serviceCacheTTL,
   );
-
-  const middlewaresWrap = withRequestMiddlewares(
+  const middlewares = [
     ContextMiddleware(),
     FiscalCodeMiddleware,
     RequiredParamMiddleware("serviceId", ServiceId),
     RequiredBodyPayloadMiddleware(UpsertServicePreference),
-  );
-  return wrapRequestHandler(middlewaresWrap(handler));
+  ] as const;
+  return wrapHandlerV4(middlewares, handler);
 }

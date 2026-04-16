@@ -1,4 +1,4 @@
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import {
   ServicePreference,
   ServicesPreferencesModel,
@@ -46,12 +46,14 @@ export const ActivityResult = t.union([
 ]);
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
+export const ActivityName = "GetServicesPreferencesActivity";
+
 export const GetServicesPreferencesActivityHandler =
   (
     servicePreferences: ServicesPreferencesModel,
     // eslint-disable-next-line arrow-body-style
   ) =>
-  async (context: Context, input: unknown): Promise<ActivityResult> =>
+  async (input: unknown, context: InvocationContext): Promise<ActivityResult> =>
     pipe(
       ActivityInput.decode(input),
       TE.fromEither,
@@ -89,12 +91,12 @@ export const GetServicesPreferencesActivityHandler =
       TE.bimap(
         (err) => {
           if (err.kind === "INVALID_INPUT") {
-            context.log.error(
+            context.error(
               `GetServicesPreferencesActivityHandler|ERROR|Invalid activity input [${err}]`,
             );
             return err;
           }
-          context.log.error(
+          context.error(
             `GetServicesPreferencesActivityHandler|ERROR|Cosmos error [${
               err.kind === "COSMOS_DECODING_ERROR"
                 ? readableReport(err.error)

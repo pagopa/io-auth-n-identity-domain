@@ -175,8 +175,7 @@ describe("CreateProfileHandler", () => {
     expect(spyGetClient).toHaveBeenCalledTimes(1);
     expect(mockStartNew).toHaveBeenCalledWith(
       "UpsertedProfileOrchestrator",
-      undefined,
-      upsertedProfileOrchestratorInput,
+      { input: upsertedProfileOrchestratorInput },
     );
   });
 });

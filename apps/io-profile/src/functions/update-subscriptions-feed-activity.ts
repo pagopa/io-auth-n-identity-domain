@@ -1,4 +1,4 @@
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import { ServiceId } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceId";
 import { ServicePreference } from "@pagopa/io-functions-commons/dist/src/models/service_preference";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
@@ -60,17 +60,19 @@ const Input = t.union([ProfileInput, ServiceInput]);
 
 export type Input = t.TypeOf<typeof Input>;
 
+export const ActivityName = "UpdateSubscriptionFeedActivity";
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const updateSubscriptionFeed = async (
-  context: Context,
   rawInput: unknown,
+  context: InvocationContext,
   tableService: TableService,
   subscriptionFeedTableName: NonEmptyString,
   logPrefix: string = "UpdateServiceSubscriptionFeedActivity",
 ) => {
   const decodedInputOrError = Input.decode(rawInput);
   if (E.isLeft(decodedInputOrError)) {
-    context.log.error(
+    context.error(
       `${logPrefix}|Cannot parse input|ERROR=${readableReport(
         decodedInputOrError.left,
       )}`,

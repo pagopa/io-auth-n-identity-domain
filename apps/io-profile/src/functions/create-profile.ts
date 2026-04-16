@@ -1,6 +1,4 @@
-import express from "express";
-
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import * as df from "durable-functions";
 
 import { isLeft } from "fp-ts/lib/Either";
@@ -21,12 +19,10 @@ import {
   ProfileModel,
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { CosmosDecodingError } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler,
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+
 import {
   IResponseErrorQuery,
   ResponseErrorQuery,
@@ -43,7 +39,7 @@ import { OrchestratorInput as UpsertedProfileOrchestratorInput } from "./upserte
  * Type of an CreateProfile handler.
  */
 type ICreateProfileHandler = (
-  context: Context,
+  context: InvocationContext,
   fiscalCode: FiscalCode,
   NewProfile: NewProfile,
 ) => Promise<
@@ -81,7 +77,7 @@ export function CreateProfileHandler(
     if (isLeft(errorOrCreatedProfile)) {
       const failure = errorOrCreatedProfile.left;
 
-      context.log.error(`${logPrefix}|ERROR=${failure.kind}`);
+      context.error(`${logPrefix}|ERROR=${failure.kind}`);
 
       // Conflict, resource already exists
       if (
@@ -108,8 +104,7 @@ export function CreateProfileHandler(
     const dfClient = df.getClient(context);
     await dfClient.startNew(
       "UpsertedProfileOrchestrator",
-      undefined,
-      upsertedProfileOrchestratorInput,
+      { input: upsertedProfileOrchestratorInput },
     );
 
     return ResponseSuccessJson(
@@ -118,19 +113,15 @@ export function CreateProfileHandler(
   };
 }
 
-/**
- * Wraps an CreateProfile handler inside an Express request handler.
- */
 export function CreateProfile(
   profileModel: ProfileModel,
   optOutEmailSwitchDate: Date,
-): express.RequestHandler {
+) {
   const handler = CreateProfileHandler(profileModel, optOutEmailSwitchDate);
-
-  const middlewaresWrap = withRequestMiddlewares(
+  const middlewares = [
     ContextMiddleware(),
     FiscalCodeMiddleware,
     NewProfileMiddleware,
-  );
-  return wrapRequestHandler(middlewaresWrap(handler));
+  ] as const;
+  return wrapHandlerV4(middlewares, handler);
 }

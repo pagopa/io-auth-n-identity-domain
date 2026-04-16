@@ -12,15 +12,15 @@ const mockGeoLocationService = {
 describe("GetGeoLocationDataActivity", () => {
   it("should return a NOT_YET_IMPLEMENTED failure", async () => {
     const result = await getGeoLocationHandler(mockGeoLocationService)(
-      context as any,
       aValidPayload,
+      context as any,
     );
     expect(TransientNotImplementedFailure.is(result)).toEqual(true);
   });
   it("should return a FAILURE when the input is not valid", async () => {
     const result = await getGeoLocationHandler(mockGeoLocationService)(
-      context as any,
       {},
+      context as any,
     );
 
     expect(result).toMatchObject({

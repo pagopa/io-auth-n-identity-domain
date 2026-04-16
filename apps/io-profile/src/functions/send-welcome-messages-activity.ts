@@ -1,4 +1,4 @@
-import { AzureFunction, Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
@@ -110,16 +110,18 @@ export const ActivityInput = t.type({
 });
 export type ActivityInput = t.TypeOf<typeof ActivityInput>;
 
+export const ActivityName = "SendWelcomeMessagesActivity";
+
 export const getSendWelcomeMessagesActivityFunction =
   (
     publicApiUrl: NonEmptyString,
     publicApiKey: NonEmptyString,
     timeoutFetch: typeof fetch,
-  ): AzureFunction =>
-  async (context: Context, input: ActivityInput): Promise<ActivityResult> => {
+  ) =>
+  async (input: ActivityInput, context: InvocationContext): Promise<ActivityResult> => {
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const failure = (reason: string) => {
-      context.log.error(reason);
+      context.error(reason);
       return ActivityResultFailure.encode({
         kind: "FAILURE",
         reason,
@@ -143,7 +145,7 @@ export const getSendWelcomeMessagesActivityFunction =
           ),
         async ({ profile, messageKind }) => {
           const logPrefix = `SendWelcomeMessagesActivity|PROFILE=${profile.fiscalCode}|VERSION=${profile.version}`;
-          context.log.verbose(`${logPrefix}|Sending welcome message`);
+          context.debug(`${logPrefix}|Sending welcome message`);
 
           try {
             const status = await sendMessage(
@@ -161,7 +163,7 @@ export const getSendWelcomeMessagesActivityFunction =
               }
             }
           } catch (e) {
-            context.log.error(
+            context.error(
               `${logPrefix}|ERROR=${JSON.stringify(e)}|ID=${profile.fiscalCode.substr(
                 0,
                 5,

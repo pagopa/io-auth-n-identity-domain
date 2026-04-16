@@ -1,4 +1,4 @@
-import express from "express";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import {
   ProfileModel,
   RetrievedProfile,
@@ -12,10 +12,6 @@ import {
   CosmosErrors,
   toCosmosErrorResponse,
 } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler,
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import {
   IResponseErrorQuery,
@@ -207,15 +203,12 @@ export function GetProfileVersionsHandler(
     )(deps)();
 }
 
-/**
- * Wraps a GetProfileVersions handler inside an Express request handler.
- */
-export function GetProfileVersions(deps: Dependencies): express.RequestHandler {
+export function GetProfileVersions(deps: Dependencies) {
   const handler = GetProfileVersionsHandler(deps);
-  const middlewaresWrap = withRequestMiddlewares(
+  const middlewares = [
     FiscalCodeMiddleware,
     PageQueryMiddleware,
     PageSizeQueryMiddleware,
-  );
-  return wrapRequestHandler(middlewaresWrap(handler));
+  ] as const;
+  return wrapHandlerV4(middlewares, handler);
 }

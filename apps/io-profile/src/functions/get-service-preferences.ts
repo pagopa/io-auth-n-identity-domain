@@ -1,4 +1,4 @@
-import express from "express";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -8,10 +8,6 @@ import { FiscalCode } from "@pagopa/io-functions-commons/dist/generated/definiti
 import { ServiceId } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceId";
 import { ServicePreference } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicePreference";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler,
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import {
   IResponseErrorQuery,
@@ -226,9 +222,6 @@ export const GetServicePreferencesHandler = (
     )();
 };
 
-/**
- * Wraps a GetServicePreferences handler inside an Express request handler.
- */
 export function GetServicePreferences(
   profileModel: ProfileModel,
   serviceModel: ServiceModel,
@@ -236,20 +229,11 @@ export function GetServicePreferences(
   activationModel: ActivationModel,
   redisClientTask: TE.TaskEither<Error, RedisClientType>,
   serviceCacheTTL: number,
-): express.RequestHandler {
-  const handler = GetServicePreferencesHandler(
-    profileModel,
-    serviceModel,
-    servicePreferencesModel,
-    activationModel,
-    redisClientTask,
-    serviceCacheTTL,
-  );
-
-  const middlewaresWrap = withRequestMiddlewares(
-    // ContextMiddleware(),
+) {
+  const handler = GetServicePreferencesHandler(profileModel, serviceModel, servicePreferencesModel, activationModel, redisClientTask, serviceCacheTTL);
+  const middlewares = [
     FiscalCodeMiddleware,
     RequiredParamMiddleware("serviceId", ServiceId),
-  );
-  return wrapRequestHandler(middlewaresWrap(handler));
+  ] as const;
+  return wrapHandlerV4(middlewares, handler);
 }

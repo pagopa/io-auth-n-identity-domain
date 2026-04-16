@@ -1,7 +1,6 @@
-import express from "express";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
+import { InvocationContext } from "@azure/functions";
 import * as t from "io-ts";
-
-import { Context } from "@azure/functions";
 
 import {
   UserDataProcessingChoice,
@@ -17,10 +16,7 @@ import {
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler,
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+
 import {
   IResponseErrorQuery,
   ResponseErrorQuery,
@@ -70,7 +66,7 @@ type IAbortUserDataProcessingHandlerResult =
  * Type of an AbortUserDataProcessing handler.
  */
 type IAbortUserDataProcessingHandler = (
-  context: Context,
+  _: InvocationContext,
   fiscalCode: FiscalCode,
   choice: UserDataProcessingChoice,
 ) => Promise<IAbortUserDataProcessingHandlerResult>;
@@ -134,18 +130,12 @@ export function AbortUserDataProcessingHandler(
   };
 }
 
-/**
- * Wraps an AbortUserDataProcessingDelete handler inside an Express request handler.
- */
-export function AbortUserDataProcessing(
-  userDataProcessingModel: UserDataProcessingModel,
-): express.RequestHandler {
+export function AbortUserDataProcessing(userDataProcessingModel: UserDataProcessingModel) {
   const handler = AbortUserDataProcessingHandler(userDataProcessingModel);
-
-  const middlewaresWrap = withRequestMiddlewares(
+  const middlewares = [
     ContextMiddleware(),
     FiscalCodeMiddleware,
     RequiredParamMiddleware("choice", UserDataProcessingChoice),
-  );
-  return wrapRequestHandler(middlewaresWrap(handler));
+  ] as const;
+  return wrapHandlerV4(middlewares, handler);
 }

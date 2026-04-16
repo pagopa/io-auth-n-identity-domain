@@ -67,7 +67,7 @@ describe("SendTemplatedLoginEmailActivity", () => {
       mockTracker,
     );
 
-    const result = await handler(context as any, payload);
+    const result = await handler(payload, context as any);
 
     expect(result.kind).toEqual("SUCCESS");
     expect(templateFunction).toHaveBeenCalledTimes(payload.magic_link ? 1 : 0);
@@ -96,10 +96,10 @@ describe("SendTemplatedLoginEmailActivity", () => {
       mockTracker,
     );
 
-    const result = await handler(context as any, {
+    const result = await handler({
       ...aValidPayload,
       email: "wrong!",
-    });
+    }, context as any);
 
     expect(result.kind).toEqual("FAILURE");
     expect(mockMailerTransporter.sendMail).not.toHaveBeenCalled();

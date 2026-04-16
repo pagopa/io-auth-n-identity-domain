@@ -1,13 +1,9 @@
-import express from "express";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 
 import { ExtendedProfile } from "@pagopa/io-functions-commons/dist/generated/definitions/ExtendedProfile";
 import { ProfileModel } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
 
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler,
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import {
   IResponseErrorQuery,
@@ -127,19 +123,12 @@ export function GetProfileHandler(
   };
 }
 
-/**
- * Wraps a GetProfile handler inside an Express request handler.
- */
 export function GetProfile(
   profileModel: ProfileModel,
   optOutEmailSwitchDate: Date,
   profileEmailReader: IProfileEmailReader,
-): express.RequestHandler {
-  const handler = GetProfileHandler(
-    profileModel,
-    optOutEmailSwitchDate,
-    profileEmailReader,
-  );
-  const middlewaresWrap = withRequestMiddlewares(FiscalCodeMiddleware);
-  return wrapRequestHandler(middlewaresWrap(handler));
+) {
+  const handler = GetProfileHandler(profileModel, optOutEmailSwitchDate, profileEmailReader);
+  const middlewares = [FiscalCodeMiddleware] as const;
+  return wrapHandlerV4(middlewares, handler);
 }

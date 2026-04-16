@@ -1,10 +1,7 @@
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler,
-} from "@pagopa/ts-commons/lib/request_middleware";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import {
   IResponseErrorInternal,
   IResponseSuccessAccepted,
@@ -12,7 +9,6 @@ import {
   ResponseSuccessAccepted,
 } from "@pagopa/ts-commons/lib/responses";
 import * as df from "durable-functions";
-import express from "express";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import { createTracker } from "../utils/tracking";
@@ -24,7 +20,7 @@ import { OrchestratorInput } from "./notice-login-email-orchestrator";
  * Type of the handler.
  */
 type INoticeLoginEmailHandler = (
-  context: Context,
+  context: InvocationContext,
   triggerPayload: UserLoginParams,
 ) => Promise<IResponseSuccessAccepted<undefined> | IResponseErrorInternal>;
 
@@ -63,15 +59,11 @@ export const NoticeLoginEmailHandler =
 
 export const NoticeLoginEmail = (
   telemetryClient?: ReturnType<typeof createTracker>,
-): express.RequestHandler => {
+) => {
   const handler = NoticeLoginEmailHandler(telemetryClient);
-
-  const middlewaresWrap = withRequestMiddlewares(
-    // Extract Azure Functions bindings
+  const middlewares = [
     ContextMiddleware(),
-    // Extract the body payload from the request
     RequiredBodyPayloadMiddleware(UserLoginParams),
-  );
-
-  return wrapRequestHandler(middlewaresWrap(handler));
+  ] as const;
+  return wrapHandlerV4(middlewares, handler);
 };
