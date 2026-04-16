@@ -62,7 +62,7 @@ module "function_session_manager_internal" {
     instance_number = "01"
   }
 
-  node_version      = 20
+  node_version      = 22
   health_check_path = "/api/v1/info"
 
   tier = "l"
