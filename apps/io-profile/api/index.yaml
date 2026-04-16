@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 5.32.0
+  version: 5.33.0
   title: IO API for App
   contact:
     name: Digital Transformation Team
@@ -1097,6 +1097,10 @@ definitions:
       token_name:
         type: string
         minLength: 1
+        description: >-
+          This field is deprecated and it will be removed soon. See
+          https://developer.pagopa.it/app-io/guides/io-guida-tecnica/funzionalita/pubblicare-un-servizio/dati-obbligatori/service-metadata#token_name
+          for more details on the removal date
       support_url:
         type: string
         minLength: 1

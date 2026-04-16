@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.33.0
+
+### Minor Changes
+
+- e9be97f: Azure Function PMv4 migration, Node22 upgrade
+
 ## 5.32.0
 
 ### Minor Changes
