@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.26.0
+
+### Minor Changes
+
+- 1ea3324: Update `@pagopa/io-spid-commons` to version `15.x`
+
 ## 1.25.0
 
 ### Minor Changes
