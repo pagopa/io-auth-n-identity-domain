@@ -32,7 +32,7 @@ catalog:
   '@types/jsonwebtoken': ^9.0.2
   '@types/jwk-to-pem': ^2.0.1
   '@types/lolex': ^3.1.1
-  '@types/node': ^20.19.5
+  '@types/node': ^22.19.17
   '@types/node-fetch': ^2.6.12
   '@types/nodemailer': ^6.4.17
   '@types/passport': ^1.0.3

@@ -22,7 +22,7 @@
   "devDependencies": {
     "@pagopa/eslint-config": "catalog:",
     "@pagopa/typescript-config-node": "workspace:^",
-    "@types/node": "^20.14.10",
+    "@types/node": "catalog:",
     "@types/yargs": "^17.0.33",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
