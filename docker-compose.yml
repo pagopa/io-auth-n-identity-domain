@@ -68,7 +68,7 @@ services:
       dockerfile: ./docker/function/Dockerfile
       args:
         FUNCTION_NAME: "io-lollipop"
-        NODE_VERSION: "22.22.2"
+        NODE_VERSION: "22"
       additional_contexts:
         cosmosdb: service:cosmosdb
     env_file:
@@ -136,7 +136,7 @@ services:
       dockerfile: ./docker/function/Dockerfile
       args:
         FUNCTION_NAME: "io-profile"
-        NODE_VERSION: "22.22.2"
+        NODE_VERSION: "22"
       additional_contexts:
         cosmosdb: service:cosmosdb
     env_file:
@@ -157,7 +157,7 @@ services:
       dockerfile: ./docker/function/Dockerfile
       args:
         FUNCTION_NAME: "io-public"
-        NODE_VERSION: "22.22.0"
+        NODE_VERSION: "22"
     env_file:
       - ./docker/generated/.env.io-public
     ports:
