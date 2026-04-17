@@ -21,7 +21,7 @@ FUNCTIONS_PUBLIC_URL=http://io-public:7071
 PUBLIC_API_URL=http://host.docker.internal:80/functions-services
 PUBLIC_API_KEY=api_key
 DPO_EMAIL_ADDRESS=dpo@example.com
-SLOT_TASK_HUBNAME=IoFunctionApp
+SLOT_TASK_HUBNAME=${TASK_HUB_PREFIX}IoProfile
 MAILHOG_HOSTNAME=mailhog
 
 AZURE_ENABLE_STRICT_SSL=false

@@ -10,7 +10,7 @@ import {
 import { aRetrievedProfile } from "../__mocks__/mocks";
 import { EmailValidationProcessParams } from "../../generated/definitions/internal/EmailValidationProcessParams";
 import { StartEmailValidationProcessHandler } from "../start-email-validation-process";
-import * as orchUtil from "../../utils/orchestrators";
+import * as durableUtil from "../../utils/durable";
 
 const getClientMock = {
   startNew: mockStartNew,
@@ -25,7 +25,7 @@ const isOrchestratorRunningMock = vi.fn(() =>
 const aValidPayload: EmailValidationProcessParams = { name: "EXAMPLE_NAME" };
 
 vi.spyOn(durableFunction, "getClient").mockImplementation((_) => getClientMock);
-vi.spyOn(orchUtil, "isOrchestratorRunning").mockImplementation(
+vi.spyOn(durableUtil, "isOrchestratorRunning").mockImplementation(
   isOrchestratorRunningMock as any,
 );
 describe("StartEmailValidationProcessHandler", () => {

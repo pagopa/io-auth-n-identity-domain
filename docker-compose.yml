@@ -117,7 +117,7 @@ services:
       dockerfile: ./docker/function/Dockerfile
       args:
         FUNCTION_NAME: "io-profile-async"
-        NODE_VERSION: "20.19.5"
+        NODE_VERSION: "22"
     env_file:
       - ./docker/generated/.env.io-profile-async
     ports:
@@ -136,7 +136,7 @@ services:
       dockerfile: ./docker/function/Dockerfile
       args:
         FUNCTION_NAME: "io-profile"
-        NODE_VERSION: "20.19.5"
+        NODE_VERSION: "22.22.2"
       additional_contexts:
         cosmosdb: service:cosmosdb
     env_file:
@@ -202,7 +202,7 @@ services:
       dockerfile: ./docker/function/Dockerfile
       args:
         FUNCTION_NAME: "io-session-manager-internal"
-        NODE_VERSION: "20.19.5"
+        NODE_VERSION: "22"
     env_file:
       - ./docker/generated/.env.io-session-manager-internal
     ports:

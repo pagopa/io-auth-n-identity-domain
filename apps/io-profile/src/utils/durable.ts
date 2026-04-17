@@ -1,5 +1,3 @@
-import { PromiseType } from "@pagopa/ts-commons/lib/types";
-import { DurableOrchestrationClient } from "durable-functions/lib/src/durableorchestrationclient";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/function";
@@ -27,12 +25,22 @@ export const consumeGenerator = <TReturn = unknown>(
   }
 };
 
+/**
+ * In `durable-functions` v3 the method **throws** when the Durable Task
+ * extension replies with HTTP 404 (instance not found), whereas in v2 it
+ * silently returned a `DurableOrchestrationStatus` object.  We detect this
+ * specific error by inspecting the error message for the well-known
+ * substring emitted by the library.
+ */
+const isInstanceNotFoundError = (error: Error): boolean =>
+  error.message?.includes("HTTP 404");
+
 export const isOrchestratorRunning = (
-  client: DurableOrchestrationClient,
+  client: df.DurableClient,
   orchestratorId: string,
 ): TE.TaskEither<
   Error,
-  PromiseType<ReturnType<(typeof client)["getStatus"]>> & {
+  df.DurableOrchestrationStatus & {
     readonly isRunning: boolean;
   }
 > =>
@@ -44,19 +52,34 @@ export const isOrchestratorRunning = (
         status.runtimeStatus === df.OrchestrationRuntimeStatus.Running ||
         status.runtimeStatus === df.OrchestrationRuntimeStatus.Pending,
     })),
+    TE.orElse((error) =>
+      isInstanceNotFoundError(error)
+        ? TE.of({
+            createdTime: new Date(0),
+            input: null,
+            instanceId: orchestratorId,
+            isRunning: false as const,
+            lastUpdatedTime: new Date(0),
+            name: orchestratorId,
+            output: null,
+            runtimeStatus:
+              "Unknown" as unknown as df.OrchestrationRuntimeStatus,
+          } as df.DurableOrchestrationStatus & { readonly isRunning: false })
+        : TE.left(error),
+    ),
   );
 
 /**
  * Check if the orchestrator is not running or pending, running it otherwise
  *
- * @param {DurableOrchestrationClient} dfClient
+ * @param {df.DurableClient} dfClient
  * @param {string} orchestratorName
  * @param {string} orchestratorId
  * @param {unknown} orchestratorInput
  * @returns a TaskEither with a startup Error or instanceId
  * */
 export const startOrchestrator = <OInput>(
-  dfClient: DurableOrchestrationClient,
+  dfClient: df.DurableClient,
   orchestratorName: string,
   orchestratorId: string,
   orchestratorInput: OInput,
@@ -74,11 +97,10 @@ export const startOrchestrator = <OInput>(
             TE.chain((encodedInput) =>
               TE.tryCatch(
                 () =>
-                  dfClient.startNew(
-                    orchestratorName,
-                    orchestratorId,
-                    encodedInput,
-                  ),
+                  dfClient.startNew(orchestratorName, {
+                    instanceId: orchestratorId,
+                    input: encodedInput,
+                  }),
                 E.toError,
               ),
             ),

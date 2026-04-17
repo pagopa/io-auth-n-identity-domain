@@ -1,4 +1,4 @@
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import { TableService, TableUtilities } from "azure-storage";
 
 import * as A from "fp-ts/lib/Array";
@@ -50,7 +50,7 @@ export type SubscriptionFeedEntitySelector = t.TypeOf<
 export const updateSubscriptionStatus =
   (tableService: TableService, tableName: NonEmptyString) =>
   async (
-    context: Context,
+    context: InvocationContext,
     logPrefix: string,
     version: number,
     deleteEntity: SubscriptionFeedEntitySelector,
@@ -70,7 +70,7 @@ export const updateSubscriptionStatus =
             async () => {
               // First we try to delete a previous (un)subscriptions operation
               // from the subscription feed entries for the current day
-              context.log.verbose(
+              context.debug(
                 `${logPrefix}|KEY=${_.rowKey}|Deleting entity`,
               );
               const { e1: maybeError2, e2: uResponse2 } =
@@ -114,13 +114,13 @@ export const updateSubscriptionStatus =
           .map((_) => _.value.message)
           .join("|"),
       );
-      context.log.error(`${logPrefix}|ERROR=${errors.message}}`);
+      context.error(`${logPrefix}|ERROR=${errors.message}}`);
       throw errors;
     }
 
     // If deleteEntity has not found any entry or insert is required,
     // we insert the new (un)subscription entry into the feed
-    context.log.verbose(
+    context.debug(
       `${logPrefix}|KEY=${insertEntity.rowKey}|Inserting entity`,
     );
     const { e1: resultOrError, e2: sResponse } = await insertEntityHandler({
@@ -131,7 +131,7 @@ export const updateSubscriptionStatus =
     // sResponse could be null
     if (E.isLeft(resultOrError) && sResponse && sResponse.statusCode !== 409) {
       // retry
-      context.log.error(`${logPrefix}|ERROR=${resultOrError.left.message}`);
+      context.error(`${logPrefix}|ERROR=${resultOrError.left.message}`);
       throw resultOrError.left;
     }
 
@@ -154,7 +154,7 @@ export type UpdateSubscriptionFeedInput = t.TypeOf<
 export const updateSubscriptionFeedTask = (
   tableService: TableService,
   subscriptionFeedTable: NonEmptyString,
-  context: Context,
+  context: InvocationContext,
   input: UpdateSubscriptionFeedInput,
   logPrefix: string,
   tracker: ReturnType<typeof createTracker>,
@@ -164,8 +164,8 @@ export const updateSubscriptionFeedTask = (
     TE.tryCatch(
       () =>
         updateSubscriptionFeed(
-          context,
           input,
+          context,
           tableService,
           subscriptionFeedTable,
         ),
@@ -173,7 +173,7 @@ export const updateSubscriptionFeedTask = (
     ),
     TE.fold(
       (err) => {
-        context.log.verbose(
+        context.debug(
           `${logPrefix}| Error while trying to update subscriptionFeed|ERROR=${err.message}`,
         );
         tracker.subscriptionFeed.trackSubscriptionFeedFailure(
@@ -185,7 +185,7 @@ export const updateSubscriptionFeedTask = (
       (result) => {
         const isSuccess = result === "SUCCESS";
         if (!isSuccess) {
-          context.log.verbose(
+          context.debug(
             `${logPrefix}| Error while trying to update subscriptionFeed|ERROR=${"FAILURE"}`,
           );
           tracker.subscriptionFeed.trackSubscriptionFeedFailure(

@@ -1,6 +1,4 @@
-import express from "express";
-
-import { wrapRequestHandler } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import {
   IResponseErrorInternal,
   IResponseSuccessJson,
@@ -42,8 +40,7 @@ export function InfoHandler(healthCheck: HealthCheck): InfoHandler {
     )();
 }
 
-export function Info(): express.RequestHandler {
+export function Info() {
   const handler = InfoHandler(checkApplicationHealth());
-
-  return wrapRequestHandler(handler);
+  return wrapHandlerV4([], handler);
 }

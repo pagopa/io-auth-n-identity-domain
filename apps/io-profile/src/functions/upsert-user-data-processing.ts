@@ -1,6 +1,4 @@
-import express from "express";
-
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
@@ -21,12 +19,9 @@ import {
   ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler,
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import { UserDataProcessing as UserDataProcessingApi } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessing";
 import { UserDataProcessingChoiceRequest } from "@pagopa/io-functions-commons/dist/generated/definitions/UserDataProcessingChoiceRequest";
@@ -45,7 +40,7 @@ import { toUserDataProcessingApi } from "../utils/user-data-processings";
  * Type of an UpsertUserDataProcessing handler.
  */
 type IUpsertUserDataProcessingHandler = (
-  context: Context,
+  context: InvocationContext,
   fiscalCode: FiscalCode,
 
   userDataProcessingChoiceRequest: UserDataProcessingChoiceRequest,
@@ -124,7 +119,7 @@ export function UpsertUserDataProcessingHandler(
           if (E.isLeft(errorOrUpsertedUserDataProcessing)) {
             const failure = errorOrUpsertedUserDataProcessing.left;
 
-            context.log.error(`${logPrefix}|ERROR=${failure.kind}`);
+            context.error(`${logPrefix}|ERROR=${failure.kind}`);
 
             return ResponseErrorQuery(
               "Error while creating a new user data processing",
@@ -144,18 +139,12 @@ export function UpsertUserDataProcessingHandler(
   };
 }
 
-/**
- * Wraps an UpsertUserDataProcessing handler inside an Express request handler.
- */
-export function UpsertUserDataProcessing(
-  userDataProcessingModel: UserDataProcessingModel,
-): express.RequestHandler {
+export function UpsertUserDataProcessing(userDataProcessingModel: UserDataProcessingModel) {
   const handler = UpsertUserDataProcessingHandler(userDataProcessingModel);
-
-  const middlewaresWrap = withRequestMiddlewares(
+  const middlewares = [
     ContextMiddleware(),
     FiscalCodeMiddleware,
     RequiredBodyPayloadMiddleware(UserDataProcessingChoiceRequest),
-  );
-  return wrapRequestHandler(middlewaresWrap(handler));
+  ] as const;
+  return wrapHandlerV4(middlewares, handler);
 }

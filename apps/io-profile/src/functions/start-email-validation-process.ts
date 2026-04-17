@@ -4,9 +4,7 @@
  *
  * A new verification token is only sent if the profile email need to be validated.
  */
-import express from "express";
-
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import * as df from "durable-functions";
 
 import { isLeft, toError } from "fp-ts/lib/Either";
@@ -32,20 +30,15 @@ import {
   ResponseErrorQuery,
 } from "@pagopa/io-functions-commons/dist/src/utils/response";
 
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { FiscalCodeMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/fiscalcode";
-import {
-  withRequestMiddlewares,
-  wrapRequestHandler,
-} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 
 import { pipe } from "fp-ts/lib/function";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
 import { EmailValidationProcessParams } from "../generated/definitions/internal/EmailValidationProcessParams";
-import {
-  isOrchestratorRunning,
-  makeStartEmailValidationProcessOrchestratorId,
-} from "../utils/orchestrators";
+import { makeStartEmailValidationProcessOrchestratorId } from "../utils/orchestrators";
+import { isOrchestratorRunning } from "../utils/durable";
 import { OrchestratorInput as EmailValidationWithTemplateProcessOrchestratorInput } from "./email-validation-orchestrator";
 
 type ReturnTypes =
@@ -60,7 +53,7 @@ type ReturnTypes =
  * Type of an StartEmailValidationProcess handler.
  */
 type IStartEmailValidationProcessHandler = (
-  context: Context,
+  context: InvocationContext,
   fiscalCode: FiscalCode,
   payload: EmailValidationProcessParams,
 ) => Promise<ReturnTypes>;
@@ -111,7 +104,7 @@ export function StartEmailValidationProcessHandler(
     }
 
     // Start a orchestrator that handles the email validation process.
-    context.log.verbose(
+    context.debug(
       `${logPrefix}|Starting the email validation with template process`,
     );
     const emailValidationWithTemplateProcessOrchestartorInput =
@@ -139,8 +132,7 @@ export function StartEmailValidationProcessHandler(
                 () =>
                   dfClient.startNew(
                     "EmailValidationWithTemplateProcessOrchestrator",
-                    orchId,
-                    emailValidationWithTemplateProcessOrchestartorInput,
+                    { instanceId: orchId, input: emailValidationWithTemplateProcessOrchestartorInput },
                   ),
                 toError,
               ),
@@ -157,18 +149,12 @@ export function StartEmailValidationProcessHandler(
   };
 }
 
-/**
- * Wraps an StartEmailValidationProcess handler inside an Express request handler.
- */
-export function StartEmailValidationProcess(
-  profileModel: ProfileModel,
-): express.RequestHandler {
+export function StartEmailValidationProcess(profileModel: ProfileModel) {
   const handler = StartEmailValidationProcessHandler(profileModel);
-
-  const middlewaresWrap = withRequestMiddlewares(
+  const middlewares = [
     ContextMiddleware(),
     FiscalCodeMiddleware,
     RequiredBodyPayloadMiddleware(EmailValidationProcessParams),
-  );
-  return wrapRequestHandler(middlewaresWrap(handler));
+  ] as const;
+  return wrapHandlerV4(middlewares, handler);
 }

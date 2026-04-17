@@ -2,7 +2,6 @@
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import * as df from "durable-functions";
-import { IOrchestrationFunctionContext } from "durable-functions/lib/src/classes";
 import { assert, beforeEach, describe, expect, it, vi } from "vitest";
 import { BlockedInboxOrChannelEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/BlockedInboxOrChannel";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
@@ -11,7 +10,6 @@ import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/g
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
-import { Task } from "durable-functions/lib/src/task";
 import {
   OrchestratorInput as EmailValidationProcessOrchestratorInput,
   OrchestratorResult as EmailValidationProcessOrchestratorResult,
@@ -64,7 +62,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: ReadonlyArray<Task>) => tasks,
+          all: (tasks: ReadonlyArray<unknown>) => tasks,
         },
         callSubOrchestratorWithRetry: vi.fn(() => undefined),
         getInput: vi.fn(() => upsertedProfileOrchestratorInput),
@@ -121,7 +119,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: ReadonlyArray<Task>) => tasks,
+          all: (tasks: ReadonlyArray<unknown>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
@@ -232,7 +230,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: ReadonlyArray<Task>) => tasks,
+          all: (tasks: ReadonlyArray<unknown>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
@@ -348,7 +346,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: ReadonlyArray<Task>) => tasks,
+          all: (tasks: ReadonlyArray<unknown>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
@@ -463,7 +461,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: ReadonlyArray<Task>) => tasks,
+          all: (tasks: ReadonlyArray<unknown>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
@@ -585,7 +583,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: ReadonlyArray<Task>) => tasks,
+          all: (tasks: ReadonlyArray<unknown>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
@@ -735,7 +733,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: ReadonlyArray<Task>) => tasks,
+          all: (tasks: ReadonlyArray<unknown>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
@@ -888,7 +886,7 @@ describe("UpsertedProfileOrchestratorV2", () => {
       ...contextMock,
       df: {
         Task: {
-          all: (tasks: ReadonlyArray<Task>) => tasks,
+          all: (tasks: ReadonlyArray<unknown>) => tasks,
         },
         callActivityWithRetry: vi
           .fn()
@@ -1106,7 +1104,7 @@ describe("UpsertedProfileOrchestrator |> emitted events", () => {
         ...contextMock,
         df: {
           Task: {
-            all: (tasks: ReadonlyArray<Task>) => tasks,
+            all: (tasks: ReadonlyArray<unknown>) => tasks,
           },
           callActivityWithRetry: vi
             .fn()

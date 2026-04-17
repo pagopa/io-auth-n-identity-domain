@@ -42,7 +42,7 @@ describe("GetMagicCodeActivity", () => {
   it("should return a success with a valid input", async () => {
     const result = await getMagicCodeActivityHandler(
       mockMagicLinkServiceClient,
-    )(context as any, aValidPayloadWithIPAddress);
+    )(aValidPayloadWithIPAddress, context as any);
 
     expect(getMagicLinkTokenMock).toHaveBeenCalledTimes(1);
     expect(getMagicLinkTokenMock).toHaveBeenCalledWith({
@@ -59,7 +59,7 @@ describe("GetMagicCodeActivity", () => {
   it("should return a success with a valid input even without IP", async () => {
     const result = await getMagicCodeActivityHandler(
       mockMagicLinkServiceClient,
-    )(context as any, aValidPayload);
+    )(aValidPayload, context as any);
 
     expect(getMagicLinkTokenMock).toHaveBeenCalledTimes(1);
     expect(getMagicLinkTokenMock).toHaveBeenCalledWith({
@@ -79,7 +79,7 @@ describe("GetMagicCodeActivity", () => {
 
     const result = await getMagicCodeActivityHandler(
       mockMagicLinkServiceClient,
-    )(context as any, aValidPayload);
+    )(aValidPayload, context as any);
 
     expect(ActivityResultSuccess.is(result)).toEqual(false);
     expect(result).toMatchObject({
@@ -93,7 +93,7 @@ describe("GetMagicCodeActivity", () => {
 
     const result = await getMagicCodeActivityHandler(
       mockMagicLinkServiceClient,
-    )(context as any, aValidPayload);
+    )(aValidPayload, context as any);
 
     expect(ActivityResultSuccess.is(result)).toEqual(false);
     expect(result).toMatchObject({
@@ -109,7 +109,7 @@ describe("GetMagicCodeActivity", () => {
 
     const result = await getMagicCodeActivityHandler(
       mockMagicLinkServiceClient,
-    )(context as any, aValidPayload);
+    )(aValidPayload, context as any);
 
     expect(ActivityResultSuccess.is(result)).toEqual(false);
     expect(result).toMatchObject({
@@ -121,7 +121,7 @@ describe("GetMagicCodeActivity", () => {
   it("should return a FAILURE when the input is not valid", async () => {
     const result = await getMagicCodeActivityHandler(
       mockMagicLinkServiceClient,
-    )(context as any, {});
+    )({}, context as any);
 
     expect(ActivityResultSuccess.is(result)).toEqual(false);
     expect(result).toMatchObject({

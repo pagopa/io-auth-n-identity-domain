@@ -1,5 +1,5 @@
+import { app, output } from "@azure/functions";
 import { CosmosClient } from "@azure/cosmos";
-import { Context } from "@azure/functions";
 import { QueueServiceClient } from "@azure/storage-queue";
 import { getMailerTransporter } from "@pagopa/io-functions-commons/dist/src/mailer";
 import {
@@ -30,31 +30,80 @@ import { createTableService } from "azure-storage";
 import * as df from "durable-functions";
 import { pipe } from "fp-ts/lib/function";
 import { getConfigOrThrow, getValidationEmailMailerConfig } from "./config";
-import { getCreateValidationTokenActivityHandler } from "./functions/create-validation-token-activity";
-import { EmailValidationOrchestratorHandler } from "./functions/email-validation-orchestrator";
-import { GetEnqueueProfileCreationEventActivityHandler } from "./functions/enqueue-profile-creation-event-activity";
-import { getGeoLocationHandler } from "./functions/get-geo-location-data-activity";
-import { getMagicCodeActivityHandler } from "./functions/get-magic-code-activity";
-import { GetServicesPreferencesActivityHandler } from "./functions/get-services-preferences-activity";
-import { getNoticeLoginEmailOrchestratorHandler } from "./functions/notice-login-email-orchestrator";
-import { getSendLoginEmailActivityHandler } from "./functions/send-templated-login-email-activity";
-import { getSendValidationEmailActivityHandler } from "./functions/send-templated-validation-email-activity";
-import getSendWelcomeMessagesActivityFunction from "./functions/send-welcome-messages-activity";
-import { updateSubscriptionFeed } from "./functions/update-subscriptions-feed-activity";
-import { getUpsertedProfileOrchestratorHandler } from "./functions/upserted-profile-orchestrator";
+import {
+  ActivityName as CreateValidationTokenActivityName,
+  getCreateValidationTokenActivityHandler,
+} from "./functions/create-validation-token-activity";
+import {
+  OrchestratorName as EmailValidationOrchestratorName,
+  EmailValidationOrchestratorHandler,
+} from "./functions/email-validation-orchestrator";
+import {
+  ActivityName as EmitEventActivityName,
+  getEmitEventActivityHandler,
+} from "./functions/emit-event-activity";
+import {
+  ActivityName as EnqueueProfileCreationEventActivityName,
+  GetEnqueueProfileCreationEventActivityHandler,
+} from "./functions/enqueue-profile-creation-event-activity";
+import {
+  ActivityName as GetGeoLocationDataActivityName,
+  getGeoLocationHandler,
+} from "./functions/get-geo-location-data-activity";
+import {
+  ActivityName as GetMagicCodeActivityName,
+  getMagicCodeActivityHandler,
+} from "./functions/get-magic-code-activity";
+import {
+  ActivityName as GetServicesPreferencesActivityName,
+  GetServicesPreferencesActivityHandler,
+} from "./functions/get-services-preferences-activity";
+import {
+  OrchestratorName as NoticeLoginEmailOrchestratorName,
+  getNoticeLoginEmailOrchestratorHandler,
+} from "./functions/notice-login-email-orchestrator";
+import {
+  ActivityName as SendTemplatedLoginEmailActivityName,
+  getSendLoginEmailActivityHandler,
+} from "./functions/send-templated-login-email-activity";
+import {
+  ActivityName as SendTemplatedValidationEmailActivityName,
+  getSendValidationEmailActivityHandler,
+} from "./functions/send-templated-validation-email-activity";
+import {
+  ActivityName as SendWelcomeMessagesActivityName,
+  getSendWelcomeMessagesActivityFunction,
+} from "./functions/send-welcome-messages-activity";
+import {
+  ActivityName as UpdateSubscriptionFeedActivityName,
+  updateSubscriptionFeed,
+} from "./functions/update-subscriptions-feed-activity";
+import {
+  OrchestratorName as UpsertedProfileOrchestratorName,
+  getUpsertedProfileOrchestratorHandler,
+} from "./functions/upserted-profile-orchestrator";
+import { Info } from "./functions/info";
+import { Ping } from "./functions/ping";
+import { CreateProfile } from "./functions/create-profile";
+import { GetProfile } from "./functions/get-profile";
+import { UpdateProfile } from "./functions/update-profile";
+import { GetProfileVersions } from "./functions/get-profile-versions";
+import { GetServicePreferences } from "./functions/get-service-preferences";
+import { UpsertServicePreferences } from "./functions/upsert-service-preferences";
+import { GetUserDataProcessing } from "./functions/get-user-data-processing";
+import { AbortUserDataProcessing } from "./functions/abort-user-data-processing";
+import { UpsertUserDataProcessing } from "./functions/upsert-user-data-processing";
+import { NoticeLoginEmail } from "./functions/notice-login-email";
+import { StartEmailValidationProcess } from "./functions/start-email-validation-process";
 import { initTelemetryClient } from "./utils/appinsights";
 import { randomBytes, toHash } from "./utils/crypto";
 import { HTML_TO_TEXT_OPTIONS } from "./utils/email";
 import { getTimeoutFetch } from "./utils/fetch";
 import { geoLocationServiceClient } from "./utils/geo-location";
-import {
-  WebServerDependencies,
-  createWebServer,
-  expressToAzureFunction,
-} from "./utils/http-trigger";
 import { getMagicLinkServiceClient } from "./utils/magic-code";
 import { getProfileEmailTableClient } from "./utils/unique-email-enforcement";
 import { CreateRedisClientSingleton } from "./utils/redis";
+import { createTracker } from "./utils/tracking";
 
 // HTTP external requests timeout in milliseconds
 const REQUEST_TIMEOUT_MS = 5000;
@@ -141,111 +190,234 @@ const validationEmailMailerTransporter = pipe(
   getMailerTransporter,
 );
 
-const httpTriggerDependencies: WebServerDependencies = {
-  userDataProcessingModel,
-  config,
-  profileModel,
-  profileEmailReader,
-  serviceModel,
-  servicePreferencesModel,
-  activationModel,
-  telemetryClient,
-  migrateServicePreferencesQueueClient,
-  subscriptionFeedTableService: tableService,
-  redisClientTask,
-  serviceCacheTTL: config.SERVICE_CACHE_TTL_SECONDS,
-};
+// ---- OUTPUT BINDINGS ----
+const eventsQueueOutput = output.storageQueue({
+  connection: "EventsQueueStorageConnection",
+  queueName: config.EventsQueueName,
+});
 
-export const httpTriggerEntrypoint = pipe(
-  httpTriggerDependencies,
-  createWebServer,
-  expressToAzureFunction,
-);
-
-// //////////////////////////
-// DURABLE FUNCTIONS      //
-// /////////////////////////
-export const CreateValidationTokenActivity =
-  getCreateValidationTokenActivityHandler(
+// ---- ACTIVITIES ----
+df.app.activity(CreateValidationTokenActivityName, {
+  handler: getCreateValidationTokenActivityHandler(
     ulidGenerator,
     maintenanceTableService,
     config.VALIDATION_TOKENS_TABLE_NAME,
     TOKEN_INVALID_AFTER_MS,
     randomBytes,
     toHash,
-  );
-
-export const EmailValidationWithTemplateProcessOrchestrator = df.orchestrator(
-  EmailValidationOrchestratorHandler,
-);
-
-export const EmitEventActivity = async (
-  context: Context,
-  input: unknown,
-): Promise<void> => {
-
-  context.bindings.apievents =
-    typeof input === "string" ? input : JSON.stringify(input);
-};
-
-export const EnqueueProfileCreationEventActivity =
-  GetEnqueueProfileCreationEventActivityHandler(eventsQueueServiceClient);
-
-export const GetGeoLocationDataActivity = getGeoLocationHandler(
-  geoLocationServiceClient,
-);
-
-export const GetMagicCodeActivity = getMagicCodeActivityHandler(
-  getMagicLinkServiceClient(
-    config.MAGIC_LINK_SERVICE_PUBLIC_URL,
-    config.MAGIC_LINK_SERVICE_API_KEY,
-    timeoutFetch,
   ),
-);
+});
 
-export const GetServicesPreferencesActivity =
-  GetServicesPreferencesActivityHandler(servicePreferencesModel);
+df.app.activity(EmitEventActivityName, {
+  extraOutputs: [eventsQueueOutput],
+  handler: getEmitEventActivityHandler(eventsQueueOutput),
+});
 
-export const NoticeLoginEmailOrchestrator = df.orchestrator(
-  getNoticeLoginEmailOrchestratorHandler,
-);
+df.app.activity(EnqueueProfileCreationEventActivityName, {
+  handler: GetEnqueueProfileCreationEventActivityHandler(
+    eventsQueueServiceClient,
+  ),
+});
 
-export const SendTemplatedLoginEmailActivity = getSendLoginEmailActivityHandler(
-  loginEmailMailerTransporter,
-  loginEmailDefaults,
-  config.IOWEB_ACCESS_REF,
-  telemetryClient,
-);
+df.app.activity(GetGeoLocationDataActivityName, {
+  handler: getGeoLocationHandler(geoLocationServiceClient),
+});
 
-export const SendTemplatedValidationEmailActivity =
-  getSendValidationEmailActivityHandler(
+df.app.activity(GetMagicCodeActivityName, {
+  handler: getMagicCodeActivityHandler(
+    getMagicLinkServiceClient(
+      config.MAGIC_LINK_SERVICE_PUBLIC_URL,
+      config.MAGIC_LINK_SERVICE_API_KEY,
+      timeoutFetch,
+    ),
+  ),
+});
+
+df.app.activity(GetServicesPreferencesActivityName, {
+  handler: GetServicesPreferencesActivityHandler(servicePreferencesModel),
+});
+
+df.app.activity(SendTemplatedLoginEmailActivityName, {
+  handler: getSendLoginEmailActivityHandler(
+    loginEmailMailerTransporter,
+    loginEmailDefaults,
+    config.IOWEB_ACCESS_REF,
+    telemetryClient,
+  ),
+});
+
+df.app.activity(SendTemplatedValidationEmailActivityName, {
+  handler: getSendValidationEmailActivityHandler(
     validationEmailMailerTransporter,
     validationEmailDefaults,
     config.FUNCTIONS_PUBLIC_URL,
     config.IOWEB_ACCESS_REF,
     config.FF_ENABLE_IOWEB_EMAIL_ACTIONS,
-  );
+  ),
+});
 
-export const SendWelcomeMessagesActivity =
-  getSendWelcomeMessagesActivityFunction(
+df.app.activity(SendWelcomeMessagesActivityName, {
+  handler: getSendWelcomeMessagesActivityFunction(
     config.PUBLIC_API_URL,
     config.PUBLIC_API_KEY,
     timeoutFetch,
-  );
+  ),
+});
 
-export const UpdateSubscriptionFeedActivity = async (
-  context: Context,
-  rawInput: unknown,
-): Promise<string> =>
-  updateSubscriptionFeed(
-    context,
-    rawInput,
-    tableService,
-    config.SUBSCRIPTIONS_FEED_TABLE,
-  );
+df.app.activity(UpdateSubscriptionFeedActivityName, {
+  handler: async (rawInput: unknown, context) =>
+    updateSubscriptionFeed(
+      rawInput,
+      context,
+      tableService,
+      config.SUBSCRIPTIONS_FEED_TABLE,
+    ),
+});
 
-export const UpsertedProfileOrchestrator = df.orchestrator(
+// ---- ORCHESTRATORS ----
+df.app.orchestration(
+  UpsertedProfileOrchestratorName,
   getUpsertedProfileOrchestratorHandler({
     sendCashbackMessage: config.IS_CASHBACK_ENABLED,
   }),
 );
+
+df.app.orchestration(
+  EmailValidationOrchestratorName,
+  EmailValidationOrchestratorHandler,
+);
+
+df.app.orchestration(
+  NoticeLoginEmailOrchestratorName,
+  getNoticeLoginEmailOrchestratorHandler,
+);
+
+// ---- HTTP FUNCTIONS ----
+const eventTracker = createTracker(telemetryClient);
+
+app.http("Info", {
+  methods: ["GET"],
+  authLevel: "anonymous",
+  route: "v1/info",
+  handler: Info(),
+});
+
+app.http("Ping", {
+  methods: ["GET"],
+  authLevel: "anonymous",
+  route: "v1/ping",
+  handler: Ping(),
+});
+
+app.http("GetProfile", {
+  methods: ["GET"],
+  authLevel: "function",
+  route: "v1/profiles/{fiscalcode}",
+  handler: GetProfile(
+    profileModel,
+    config.OPT_OUT_EMAIL_SWITCH_DATE,
+    profileEmailReader,
+  ),
+});
+
+app.http("CreateProfile", {
+  methods: ["POST"],
+  authLevel: "function",
+  route: "v1/profiles/{fiscalcode}",
+  extraInputs: [df.input.durableClient()],
+  handler: CreateProfile(profileModel, config.OPT_OUT_EMAIL_SWITCH_DATE),
+});
+
+app.http("UpdateProfile", {
+  methods: ["PUT"],
+  authLevel: "function",
+  route: "v1/profiles/{fiscalcode}",
+  extraInputs: [df.input.durableClient()],
+  handler: UpdateProfile(
+    profileModel,
+    migrateServicePreferencesQueueClient,
+    eventTracker,
+    profileEmailReader,
+  ),
+});
+
+app.http("GetProfileVersions", {
+  methods: ["GET"],
+  authLevel: "function",
+  route: "v1/profiles/{fiscalcode}/versions",
+  handler: GetProfileVersions({
+    profileModel,
+    optOutEmailSwitchDate: config.OPT_OUT_EMAIL_SWITCH_DATE,
+    profileEmailReader,
+  }),
+});
+
+app.http("GetServicePreferences", {
+  methods: ["GET"],
+  authLevel: "function",
+  route: "v1/profiles/{fiscalcode}/services/{serviceId}/preferences",
+  handler: GetServicePreferences(
+    profileModel,
+    serviceModel,
+    servicePreferencesModel,
+    activationModel,
+    redisClientTask,
+    config.SERVICE_CACHE_TTL_SECONDS,
+  ),
+});
+
+app.http("UpsertServicePreferences", {
+  methods: ["POST"],
+  authLevel: "function",
+  route: "v1/profiles/{fiscalcode}/services/{serviceId}/preferences",
+  extraOutputs: [eventsQueueOutput],
+  handler: UpsertServicePreferences(
+    eventsQueueOutput,
+    telemetryClient,
+    profileModel,
+    serviceModel,
+    servicePreferencesModel,
+    activationModel,
+    tableService,
+    config.SUBSCRIPTIONS_FEED_TABLE,
+    redisClientTask,
+    config.SERVICE_CACHE_TTL_SECONDS,
+  ),
+});
+
+app.http("GetUserDataProcessing", {
+  methods: ["GET"],
+  authLevel: "function",
+  route: "v1/user-data-processing/{fiscalcode}/{choice}",
+  handler: GetUserDataProcessing(userDataProcessingModel),
+});
+
+app.http("AbortUserDataProcessing", {
+  methods: ["DELETE"],
+  authLevel: "function",
+  route: "v1/user-data-processing/{fiscalcode}/{choice}",
+  handler: AbortUserDataProcessing(userDataProcessingModel),
+});
+
+app.http("UpsertUserDataProcessing", {
+  methods: ["POST"],
+  authLevel: "function",
+  route: "v1/user-data-processing/{fiscalcode}",
+  handler: UpsertUserDataProcessing(userDataProcessingModel),
+});
+
+app.http("NoticeLoginEmail", {
+  methods: ["POST"],
+  authLevel: "function",
+  route: "v1/notify-login",
+  extraInputs: [df.input.durableClient()],
+  handler: NoticeLoginEmail(eventTracker),
+});
+
+app.http("StartEmailValidationProcess", {
+  methods: ["POST"],
+  authLevel: "function",
+  route: "v1/email-validation-process/{fiscalcode}",
+  extraInputs: [df.input.durableClient()],
+  handler: StartEmailValidationProcess(profileModel),
+});

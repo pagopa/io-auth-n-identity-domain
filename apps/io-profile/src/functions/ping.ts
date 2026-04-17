@@ -1,6 +1,4 @@
-import express from "express";
-
-import { wrapRequestHandler } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+import { wrapHandlerV4 } from "@pagopa/io-functions-commons/dist/src/utils/azure-functions-v4-express-adapter";
 import {
   IResponseSuccessJson,
   ResponseSuccessJson,
@@ -26,8 +24,7 @@ export function PingHandler(): PingHandler {
     });
 }
 
-export function Ping(): express.RequestHandler {
+export function Ping() {
   const handler = PingHandler();
-
-  return wrapRequestHandler(handler);
+  return wrapHandlerV4([], handler);
 }

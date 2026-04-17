@@ -1,4 +1,4 @@
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import {
   FiscalCode,
   IPString,
@@ -62,16 +62,17 @@ export const ActivityResult = t.union([
 
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
-const logPrefix = "GetMagicCodeActivity";
+export const ActivityName = "GetMagicCodeActivity";
+const logPrefix = ActivityName;
 
 export const getMagicCodeActivityHandler =
   (magicLinkService: MagicLinkServiceClient) =>
-  async (context: Context, input: unknown): Promise<ActivityResult> =>
+  async (input: unknown, context: InvocationContext): Promise<ActivityResult> =>
     pipe(
       input,
       ActivityInput.decode,
       E.mapLeft((errors) => {
-        context.log.error(
+        context.error(
           `${logPrefix}|Error while decoding input|ERROR=${readableReportSimplified(
             errors,
           )}`,
@@ -99,7 +100,7 @@ export const getMagicCodeActivityHandler =
                 },
               }),
             (error) => {
-              context.log.error(
+              context.error(
                 `${logPrefix}|Error while calling magic link service|ERROR=${error}`,
               );
               return ActivityResultFailure.encode({

@@ -6,7 +6,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 
-import { Context } from "@azure/functions";
 import { ActivationStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ActivationStatus";
 import { ServiceScopeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceScope";
 import { SpecialServiceCategoryEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/SpecialServiceCategory";
@@ -39,7 +38,9 @@ import {
   mockSetEx,
 } from "../__mocks__/redis.mock";
 
-const makeContext = () => ({ ...context, bindings: {} }) as unknown as Context;
+const makeContext = () => ({ ...context, extraOutputs: { set: vi.fn() } }) as unknown as any;
+
+const eventsQueueOutputMock = {} as any;
 
 const updateSubscriptionFeedMock = vi
   .fn()
@@ -107,6 +108,7 @@ const aSpecialRetrievedService: RetrievedService = {
 };
 
 const upsertServicePreferencesHandler = GetUpsertServicePreferencesHandler(
+  eventsQueueOutputMock,
   telemetryClientMock as any,
   profileModelMock as any,
   serviceModelMock as any,
@@ -180,11 +182,11 @@ describe("UpsertServicePreferences", () => {
     expect(servicePreferenceModelMock.upsert).toHaveBeenCalled();
     expect(servicePreferenceModelMock.find).toHaveBeenCalled();
     expect(updateSubscriptionFeedMock).toHaveBeenCalledWith(
-      expect.anything(),
       expect.objectContaining({
         operation: "UNSUBSCRIBED",
         subscriptionKind: "SERVICE",
       }),
+      expect.anything(),
       expect.anything(),
       expect.anything(),
     );
@@ -211,11 +213,11 @@ describe("UpsertServicePreferences", () => {
     expect(servicePreferenceModelMock.upsert).toHaveBeenCalled();
     expect(servicePreferenceModelMock.find).toHaveBeenCalled();
     expect(updateSubscriptionFeedMock).toHaveBeenCalledWith(
-      expect.anything(),
       expect.objectContaining({
         operation: "SUBSCRIBED",
         subscriptionKind: "SERVICE",
       }),
+      expect.anything(),
       expect.anything(),
       expect.anything(),
     );
@@ -245,11 +247,11 @@ describe("UpsertServicePreferences", () => {
     expect(servicePreferenceModelMock.upsert).toHaveBeenCalled();
     expect(servicePreferenceModelMock.find).toHaveBeenCalled();
     expect(updateSubscriptionFeedMock).toHaveBeenCalledWith(
-      expect.anything(),
       expect.objectContaining({
         operation: "SUBSCRIBED",
         subscriptionKind: "SERVICE",
       }),
+      expect.anything(),
       expect.anything(),
       expect.anything(),
     );
@@ -280,11 +282,11 @@ describe("UpsertServicePreferences", () => {
     expect(servicePreferenceModelMock.upsert).toHaveBeenCalled();
     expect(servicePreferenceModelMock.find).toHaveBeenCalled();
     expect(updateSubscriptionFeedMock).toHaveBeenCalledWith(
-      expect.anything(),
       expect.objectContaining({
         operation: "SUBSCRIBED",
         subscriptionKind: "SERVICE",
       }),
+      expect.anything(),
       expect.anything(),
       expect.anything(),
     );
@@ -659,10 +661,12 @@ describe("UpsertServicePreferences", () => {
       );
 
       // we don't car of the event format, we just care relevant informations are there
-      expect(ctx.bindings.apievents).toEqual(
+      expect(ctx.extraOutputs.set).toHaveBeenCalledWith(
+        eventsQueueOutputMock,
         expect.stringContaining(aFiscalCode),
       );
-      expect(ctx.bindings.apievents).toEqual(
+      expect(ctx.extraOutputs.set).toHaveBeenCalledWith(
+        eventsQueueOutputMock,
         expect.stringContaining(aServiceId),
       );
     },
@@ -690,7 +694,7 @@ describe("UpsertServicePreferences", () => {
       );
 
       // we don't car of the event format, we just care relevant informations are there
-      expect(ctx.bindings.apievents).toBe(undefined);
+      expect(ctx.extraOutputs.set).not.toHaveBeenCalled();
     },
   );
 
@@ -771,6 +775,7 @@ describe("UpsertServicePreferences", () => {
     const anError = Error("anError");
 
     const response = await GetUpsertServicePreferencesHandler(
+      eventsQueueOutputMock,
       telemetryClientMock as any,
       profileModelMock as any,
       serviceModelMock as any,

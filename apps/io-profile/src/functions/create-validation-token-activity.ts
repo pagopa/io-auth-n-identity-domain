@@ -16,7 +16,7 @@ import * as t from "io-ts";
 
 import * as E from "fp-ts/lib/Either";
 
-import { Context } from "@azure/functions";
+import { InvocationContext } from "@azure/functions";
 import { TableService } from "azure-storage";
 
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
@@ -56,6 +56,9 @@ export const ActivityResult = t.union([
 
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
+export const ActivityName = "CreateValidationTokenActivity";
+const logPrefix = ActivityName;
+
 export const getCreateValidationTokenActivityHandler =
   (
     ulidGenerator: ObjectIdGenerator,
@@ -66,14 +69,12 @@ export const getCreateValidationTokenActivityHandler =
     hashCreator: (value: string) => string,
     // eslint-disable-next-line max-params
   ) =>
-  async (context: Context, input: unknown): Promise<unknown> => {
-    const logPrefix = `CreateValidationTokenActivity`;
-
+  async (input: unknown, context: InvocationContext): Promise<unknown> => {
     const errorOrCreateValidationTokenActivityInput =
       ActivityInput.decode(input);
 
     if (E.isLeft(errorOrCreateValidationTokenActivityInput)) {
-      context.log.error(
+      context.error(
         `${logPrefix}|Error decoding input|ERROR=${readableReport(
           errorOrCreateValidationTokenActivityInput.left,
         )}`,
@@ -88,7 +89,7 @@ export const getCreateValidationTokenActivityHandler =
       errorOrCreateValidationTokenActivityInput.right;
 
     // Log the input
-    context.log.verbose(
+    context.debug(
       `${logPrefix}|INPUT=${JSON.stringify(createValidationTokenActivityInput)}`,
     );
 
@@ -118,14 +119,14 @@ export const getCreateValidationTokenActivityHandler =
       const error = Error(
         `${logPrefix}|Error creating new validation token|ERROR=${errorOrCreatedValidationTokenEntity.left}`,
       );
-      context.log.error(error.message);
+      context.error(error.message);
       throw error;
     }
 
     const createdValidationTokenEntity =
       errorOrCreatedValidationTokenEntity.right;
 
-    context.log.verbose(
+    context.debug(
       `${logPrefix}|Validation token created|ENTITY=${JSON.stringify(
         createdValidationTokenEntity,
       )}`,
