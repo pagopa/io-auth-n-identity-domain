@@ -23,7 +23,7 @@
     "@pagopa/eslint-config": "catalog:",
     "@pagopa/ts-commons": "catalog:",
     "@pagopa/typescript-config-node": "workspace:^",
-    "@types/node": "^20.19.5",
+    "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",

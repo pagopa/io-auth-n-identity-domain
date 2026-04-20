@@ -4,7 +4,7 @@
   "author": "IO Auth & Identity Team",
   "description": "API for IO session",
   "engines": {
-    "node": ">= 20.0.0"
+    "node": ">= 22"
   },
   "main": "dist/server.js",
   "files": [

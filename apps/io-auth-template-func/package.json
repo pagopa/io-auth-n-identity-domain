@@ -9,7 +9,7 @@
     "**/function.json"
   ],
   "engines": {
-    "node": ">= 20.0.0"
+    "node": ">= 22"
   },
   "scripts": {
     "clean": "shx rm -rf dist",
