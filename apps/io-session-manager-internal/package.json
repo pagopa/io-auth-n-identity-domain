@@ -4,7 +4,7 @@
   "author": "IO Auth & Identity Team",
   "main": "dist/controllers/main.js",
   "engines": {
-    "node": ">= 22.22.2"
+    "node": ">= 22"
   },
   "files": [
     "dist/*",
