@@ -58,6 +58,10 @@ locals {
     resource_group_name = "${local.prefix}-${local.env_short}-rg-common"
   }
 
+  keyvault_common_ids = [
+    data.azurerm_key_vault.common.id
+  ]
+
   repo_secrets = {
     "SONAR_TOKEN"       = data.azurerm_key_vault_secret.sonacloud_token.value
     "SLACK_WEBHOOK_URL" = data.azurerm_key_vault_secret.slack_webhook_url.value

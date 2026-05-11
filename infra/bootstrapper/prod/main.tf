@@ -43,24 +43,9 @@ data "azurerm_container_app_environment" "runner" {
   resource_group_name = local.runner.cae_resource_group_name
 }
 
-data "azurerm_api_management" "apim" {
-  name                = local.apim.name
-  resource_group_name = local.apim.resource_group_name
-}
-
-data "azurerm_servicebus_namespace" "sbns" {
-  name                = local.sbns.name
-  resource_group_name = local.sbns.resource_group_name
-}
-
 data "azurerm_key_vault" "common" {
   name                = local.key_vault.name
   resource_group_name = local.key_vault.resource_group_name
-}
-
-data "azurerm_virtual_network" "common" {
-  name                = local.vnet.name
-  resource_group_name = local.vnet.resource_group_name
 }
 
 data "azurerm_resource_group" "common_weu" {
@@ -89,7 +74,7 @@ data "azuread_group" "externals" {
 
 module "repo" {
   source  = "pagopa-dx/azure-github-environment-bootstrap/azurerm"
-  version = "~> 3.0"
+  version = "~> 4.0"
 
   environment = {
     prefix          = local.prefix
@@ -98,9 +83,6 @@ module "repo" {
     domain          = local.domain
     instance_number = local.instance_number
   }
-
-  subscription_id = data.azurerm_subscription.current.id
-  tenant_id       = data.azurerm_client_config.current.tenant_id
 
   additional_resource_group_ids = [
     azurerm_resource_group.data_weu.id,
@@ -148,15 +130,28 @@ module "repo" {
     memory = "2Gi"
   }
 
-  apim_id                            = data.azurerm_api_management.apim.id
-  sbns_id                            = data.azurerm_servicebus_namespace.sbns.id
-  pep_vnet_id                        = data.azurerm_virtual_network.common.id
   private_dns_zone_resource_group_id = data.azurerm_resource_group.common_weu.id
   opex_resource_group_id             = data.azurerm_resource_group.dashboards.id
-  nat_gateway_resource_group_id      = data.azurerm_resource_group.itn_common_rg_01.id
-  keyvault_common_ids = [
-    data.azurerm_key_vault.common.id
-  ]
 
   tags = local.tags
+}
+
+resource "azurerm_key_vault_access_policy" "infra_cd_kv_common" {
+  for_each = toset(local.keyvault_common_ids)
+
+  key_vault_id = each.key
+  tenant_id    = data.azurerm_subscription.current.tenant_id
+  object_id    = module.repo.identities.infra.cd.principal_id
+
+  secret_permissions = ["Get", "List", "Set"]
+}
+
+resource "azurerm_key_vault_access_policy" "infra_ci_kv_common" {
+  for_each = toset(local.keyvault_common_ids)
+
+  key_vault_id = each.key
+  tenant_id    = data.azurerm_subscription.current.tenant_id
+  object_id    = module.repo.identities.infra.ci.principal_id
+
+  secret_permissions = ["Get", "List"]
 }
