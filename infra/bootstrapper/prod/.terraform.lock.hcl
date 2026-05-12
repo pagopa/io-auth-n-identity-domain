@@ -5,7 +5,10 @@ provider "registry.terraform.io/hashicorp/azuread" {
   version     = "3.8.0"
   constraints = "~> 3.0"
   hashes = [
+    "h1:5nlEb2pLnQmbOIWvHOOsYD3dV6zpw/MbPB6//XPSxP4=",
     "h1:E2YWNE3Qry4bQMlmmZ33X4hLY5hOGrEZrlRg4anI2uw=",
+    "h1:c2POQkoFPDVvySvxV17WxiVPA2gBFdrFza2o/nf752c=",
+    "h1:kIEmiknJFWKe44U9ePG5vXwoloKep0Dbi/mQ8uqCbw0=",
     "zh:0d26cfbf9417acd1c2295ccd5b0052abeac85ad1c3f6422ff09bf6a1ce16f00d",
     "zh:144d4ea92fed541a6376bc76ad65ba4738dfd7bcab4c9d6cc20d35001338d06d",
     "zh:1c3e89cf19118fc07d7b04257251fc9897e722c16e0a0df7b07fcd261f8c12e7",
@@ -25,7 +28,10 @@ provider "registry.terraform.io/hashicorp/azurerm" {
   version     = "4.72.0"
   constraints = ">= 3.110.0, >= 3.114.0, ~> 4.0, < 5.0.0"
   hashes = [
+    "h1:AymDoYag6FI+U2Q89QXJM9oJlHr8c/0d4laM4A/nnk8=",
     "h1:QYnPAHT/PYheOOZz52ucHqw/ZO9PxWyPLtO7UD/jSMg=",
+    "h1:e8H3411GjKGG98Md8cskglLhq6AfPklGmVHMoUI2J6g=",
+    "h1:wMG5mll7zno5x6MizV2bFQhzmLZD0amtgPmJFG2xznI=",
     "zh:073472587c3752e89738522814d2b4eb2fd69eb2cb19c5a5ead3c7d2eabdc279",
     "zh:1950effc0c315b6002c8cb6327b94fe59bda210e699367d9727bc66490d651d2",
     "zh:47c990db75658525de57c8955a05b4752b88f3a900fffac0e7661d4a749e94f2",
@@ -45,6 +51,9 @@ provider "registry.terraform.io/integrations/github" {
   version     = "6.12.1"
   constraints = "~> 6.0"
   hashes = [
+    "h1:HXXTIvXPBVJ4mBs01fcJk7wG8N3jGvR/4HqjnRGp4Wo=",
+    "h1:bGz4LIep/7PVrqy6P8cTYbAJpdxXGrupUJjkCczlzIs=",
+    "h1:ghFGRYa6LdR4BjW0Fe8HXKI0ZmA1bTrwjhXDeZG7+3E=",
     "h1:hHOwf554tYL9pQS2uRPbaAGSXRbbBJ/+HtQAoT9mtuA=",
     "zh:3e1a4081ecb9518fdf0074db83c16ad00dc81ffe8249a6e3cf1894e947e28df6",
     "zh:4cb8224b7f530795b674ac044675f6b22a7c9154f55eb9f76c5af6c7534056a4",
@@ -67,7 +76,10 @@ provider "registry.terraform.io/pagopa-dx/azure" {
   version     = "0.11.0"
   constraints = ">= 0.0.6, >= 0.0.7, < 1.0.0"
   hashes = [
+    "h1:DSpBrthAZ3I2n31aEnMOLy/Kr4UowLYJOY86Z7N8M5o=",
+    "h1:G+nhrYHIcTOvJIXAw1nfQrfsS+qJJGxk7e/x8GI3K3c=",
     "h1:PdpyL6ATgj8J4UHKMT45SkKmTG7RKbGOjNlSmbJbUTU=",
+    "h1:yZyi+/+LD9z3zEhtV2/4Qm8zNRENjXUt4B+PB1yU1WU=",
     "zh:06a01af156867996cd7b47526bf5b72870ecc6bddd4f58097fb2d84eeb212fd7",
     "zh:1895f9daf7f018c55a28d6948c172885d7ac2a91bb279edace4100dcb75f3101",
     "zh:2f3d9eab5fd4a129655c310b3af29364b3a670f1bdd845a2fa284fb609b13857",
