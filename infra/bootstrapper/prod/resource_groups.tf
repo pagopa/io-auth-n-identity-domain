@@ -61,13 +61,6 @@ resource "azurerm_resource_group" "public_itn_01" {
   tags = local.tags
 }
 
-resource "azurerm_resource_group" "auth_itn_01" {
-  name     = "${local.prefix}-${local.env_short}-itn-auth-rg-01"
-  location = local.location
-
-  tags = local.tags
-}
-
 resource "azurerm_resource_group" "webprof_itn_01" {
   name     = "${local.prefix}-${local.env_short}-itn-auth-webprof-rg-01"
   location = local.location
