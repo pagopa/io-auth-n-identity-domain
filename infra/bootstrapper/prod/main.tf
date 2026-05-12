@@ -93,7 +93,6 @@ module "repo" {
     azurerm_resource_group.lv_itn_01.id,
     azurerm_resource_group.main_itn_01.id,
     azurerm_resource_group.public_itn_01.id,
-    azurerm_resource_group.auth_itn_01.id,
     azurerm_resource_group.webprof_itn_01.id,
     azurerm_resource_group.data_itn_01.id,
     azurerm_resource_group.session_manager_weu_01.id,
