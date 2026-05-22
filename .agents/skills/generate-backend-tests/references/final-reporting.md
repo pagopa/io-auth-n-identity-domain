@@ -89,6 +89,7 @@ Highlight the facts that are hard to infer quickly from the code:
 
 - which dependencies are real local emulators versus lightweight SDK-only seams
 - whether the full runtime host is used or intentionally avoided
+- which runtime shape was chosen for the app itself, especially when the repository already ships a credible checked-in runtime container or Dockerfile
 - which scenarios are protected by long-lived integration checks versus characterization cassettes
 - which helpers or setup files are shared across suites
 
@@ -99,5 +100,9 @@ Highlight the facts that are hard to infer quickly from the code:
 - Do not invent coverage that is not present.
 - If you chose a narrower slice instead of the full host, explain why plainly.
 - If you used a fallback instead of the preferred dependency strategy, record the concrete reason plainly.
+- If the repository already shipped a credible runtime container or other checked-in runtime definition and you did not reuse it, explicitly record:
+  - the checked-in runtime you chose not to use
+  - the runtime shape you used instead
+  - whether the user explicitly approved that deviation or the concrete blocker that prevented reuse
 - Keep it compact enough that a later run can reread it cheaply.
 - If the user asked for the report, mention its path in the final response.

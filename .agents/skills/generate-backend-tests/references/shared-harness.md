@@ -62,6 +62,13 @@ Classify each dependency before you code:
 
 If a stronger local strategy is still credible but needs materially more setup, treat that as a user decision, not an implementation shortcut.
 
+This is especially strict when the repository already ships a credible runtime container, Dockerfile, devcontainer task, or other checked-in runtime definition for the target app.
+
+- Treat that checked-in runtime shape as the faithful default candidate, not as optional background context.
+- If you want to use a simpler runtime instead, you must stop and ask the user to choose unless the checked-in runtime is concretely blocked.
+- "Concretely blocked" means you have a specific technical failure or incompatibility you can name. "This other path is faster" or "this needs more setup" is not enough.
+- If the user approves the simpler runtime or the checked-in runtime is concretely blocked, record that decision and the reason in the final report.
+
 - Present the faithful option first when it is viable, even if it needs custom Testcontainers orchestration, reused runtime containers, or extra network wiring.
 - Present the fallback second, with the concrete reason it is simpler and what fidelity it loses.
 - Ask the user to choose before you implement the fallback.
@@ -69,12 +76,14 @@ If a stronger local strategy is still credible but needs materially more setup, 
 
 ## Prefer an existing runtime container when available
 
-If the repository already ships a Dockerfile, devcontainer task, or other containerized runtime that owns env and startup credibly, prefer reusing that runtime shape instead of rebuilding those concerns in the test harness.
+If the repository already ships a Dockerfile, devcontainer task, or other containerized runtime that owns env and startup credibly, reuse that runtime shape by default instead of rebuilding those concerns in the test harness.
 
 - Treat the app runtime as another topology component.
 - Keep env, build, and startup ownership inside that runtime container when it already solves those concerns credibly.
 - Use existing runtime container definitions or Dockerfiles as hints for the reused runtime shape and adjacent dependencies.
 - Keep the test harness focused on readiness checks, driving traffic, and reading side effects.
+- Do not silently replace that runtime with a simpler host boot just because it is easier to wire.
+- If you intentionally choose a different runtime shape, ask the user first unless the checked-in runtime is concretely blocked, and then document the decision plainly in the report.
 
 ## Testcontainers policy
 

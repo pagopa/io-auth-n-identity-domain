@@ -13,9 +13,10 @@ Prefer the real local Functions host or an equivalent containerized Functions ru
 ## Shared Functions bootstrap workflow
 
 1. Start or attach to the real local Functions runtime.
-2. If no credible app container exists, allocate a free local port dynamically, build the app with the repository's real build command, and start `func start --port <dynamic-port>` with the current PATH preserved.
-3. Wait for readiness by calling a real local Functions route or trigger seam, not just by checking that the port is open.
-4. Drive the scenario through the real local Functions boundary.
+2. If the repository already ships a credible Functions container or Dockerfile for this app, treat that runtime shape as the default candidate. Reuse it, or stop and ask the user before switching to a simpler host boot such as local `func start`, unless the checked-in runtime is concretely blocked.
+3. If no credible app container exists, or the user explicitly approved a different runtime shape, allocate a free local port dynamically, build the app with the repository's real build command, and start `func start --port <dynamic-port>` with the current PATH preserved.
+4. Wait for readiness by calling a real local Functions route or trigger seam, not just by checking that the port is open.
+5. Drive the scenario through the real local Functions boundary.
 
 ## When not to force the full host
 
@@ -25,6 +26,7 @@ Sometimes an Azure Functions app constructs cloud clients or validates credentia
 - Otherwise, for integration work only, use a mixed integration suite: call the real wrapper or handler with real Azure SDK request or context objects, keep storage and queue side effects live, and stub only the truly external dependency.
 - This exception does not apply to record-replay characterization. If the user chose `record-replay` and the full host cannot boot honestly, do not import exported functions or wrapper-return values as a fallback; report the path blocked or ask to switch workflows.
 - State plainly which scenarios run through the full host and which use narrower live slices, so the user can see the boundary choice was intentional rather than a silent downgrade.
+- If the repository had a credible checked-in Functions container and you did not reuse it, the report must say whether the user approved that deviation or which concrete blocker prevented reuse.
 
 ## Functions-specific environment checklist
 
