@@ -1,0 +1,6 @@
+{
+  "body": {
+    "saml_response": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<saml2p:Response xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\" xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\">\n  <saml2:Assertion>\n    <saml2:Subject>\n      <saml2:SubjectConfirmation>\n        <saml2:SubjectConfirmationData InResponseTo=\"sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU\" />\n      </saml2:SubjectConfirmation>\n    </saml2:Subject>\n    <saml2:AttributeStatement>\n      <saml2:Attribute Name=\"fiscalNumber\">\n        <saml2:AttributeValue>TINIT-AAAAAA89S20I111X</saml2:AttributeValue>\n      </saml2:Attribute>\n    </saml2:AttributeStatement>\n  </saml2:Assertion>\n</saml2p:Response>"
+  },
+  "status": 200
+}

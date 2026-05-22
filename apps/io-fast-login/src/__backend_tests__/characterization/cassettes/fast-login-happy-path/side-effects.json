@@ -1,0 +1,36 @@
+{
+  "auditBlobs": [
+    {
+      "body": {
+        "assertion_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<saml2p:Response xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\" xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\">\n  <saml2:Assertion>\n    <saml2:Subject>\n      <saml2:SubjectConfirmation>\n        <saml2:SubjectConfirmationData InResponseTo=\"sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU\" />\n      </saml2:SubjectConfirmation>\n    </saml2:Subject>\n    <saml2:AttributeStatement>\n      <saml2:Attribute Name=\"fiscalNumber\">\n        <saml2:AttributeValue>TINIT-AAAAAA89S20I111X</saml2:AttributeValue>\n      </saml2:Attribute>\n    </saml2:AttributeStatement>\n  </saml2:Assertion>\n</saml2p:Response>",
+        "client_ip": "10.0.0.1",
+        "created_at": "<ISO_TIMESTAMP>",
+        "lollipop_request": {
+          "headers": {
+            "signature": "sig1=:GPJHMjxsyAB29V271sW6yozbM6gskQ4Jr0HtJzwmiM7Bsm09i5dRhWc0zIDbuWAU/bJmX4FX/CTeWL9Q5ivCTw==:",
+            "signature-input": "sig1=(\"x-pagopa-lollipop-original-method\" \"x-pagopa-lollipop-original-url\");created=1698315748;nonce=\"195ace7b-1262-4a70-b520-7fbae5305a26\";alg=\"ecdsa-p256-sha256\";keyid=\"iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU\"",
+            "x-pagopa-lollipop-assertion-ref": "sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU",
+            "x-pagopa-lollipop-assertion-type": "SAML",
+            "x-pagopa-lollipop-auth-jwt": "<REDACTED_JWT>",
+            "x-pagopa-lollipop-original-method": "POST",
+            "x-pagopa-lollipop-original-url": "https://api-app.io.pagopa.it/api/v1/fast-login",
+            "x-pagopa-lollipop-public-key": "eyJjcnYiOiJQLTI1NiIsImt0eSI6IkVDIiwieCI6Ik5ZdnVLNUt3ZE1TZWxGSmdQbkwwZnN4aXp3T0t3MFdiUXlBTkI0TzZsMmMiLCJ5IjoicUs5WnlzbzFDQ3dzVWs5ODVobk81V0VQM2VuU3hwdUQxbjVKcXRtWklFRSJ9",
+            "x-pagopa-lollipop-user-id": "AAAAAA89S20I111X"
+          }
+        }
+      },
+      "name": "AAAAAA89S20I111X-<TIMESTAMP>-sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU-<RANDOM_SUFFIX>"
+    }
+  ],
+  "lollipopRequests": [
+    {
+      "headers": {
+        "ocp-apim-subscription-key": "<REDACTED_API_KEY>",
+        "x-pagopa-lollipop-auth": "Bearer <REDACTED_JWT>"
+      },
+      "method": "GET",
+      "path": "//lollipop/api/v1/assertions/sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU"
+    }
+  ],
+  "redisKeysContainingNonce": []
+}

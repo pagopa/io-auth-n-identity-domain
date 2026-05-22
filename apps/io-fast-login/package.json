@@ -23,6 +23,10 @@
     "lint": "pnpm lint:check --fix",
     "lint:check": "eslint . -c .eslintrc.js --ext .ts,.tsx --cache",
     "test": "vitest run",
+    "test:backend:integration": "pnpm build && vitest run -c src/__backend_tests__/vite.integration.config.mts",
+    "test:backend:integration:watch": "pnpm build && vitest -c src/__backend_tests__/vite.integration.config.mts",
+    "test:backend:record": "pnpm build && IO_FAST_LOGIN_CHARACTERIZATION_MODE=record vitest run -c src/__backend_tests__/vite.characterization.config.mts",
+    "test:backend:verify": "pnpm build && IO_FAST_LOGIN_CHARACTERIZATION_MODE=verify vitest run -c src/__backend_tests__/vite.characterization.config.mts",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "api:bundle": "bundle-api-spec -i api/internal.yaml.template -o api/internal.yaml -V $npm_package_version",
@@ -33,6 +37,7 @@
     "generate:client-sm-internal": "shx rm -rf ./src/generated/definitions/sm-internal && shx mkdir -p ./src/generated/definitions/sm-internal && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/af528a5e26abe5cab0a3ec2bbce51bd8fd0d6fba/apps/io-session-manager-internal/api/internal.yaml --no-strict --out-dir ./src/generated/definitions/sm-internal --request-types --response-decoders --client"
   },
   "devDependencies": {
+    "@azure/storage-blob": "catalog:",
     "@pagopa/eslint-config": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
@@ -43,6 +48,7 @@
     "eslint-plugin-prettier": "catalog:",
     "prettier": "catalog:",
     "shx": "^0.3.2",
+    "testcontainers": "^12.0.0",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },

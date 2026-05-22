@@ -1,0 +1,9 @@
+{
+  "auditBlobCreatedAt": "<ISO_TIMESTAMP>",
+  "auditBlobFileNameRandomSuffix": "<RANDOM_SUFFIX>",
+  "auditBlobFileNameTimestamp": "<TIMESTAMP>",
+  "functionBaseUrl": "<FUNCTION_BASE_URL>",
+  "functionKey": "<REDACTED_FUNCTION_KEY>",
+  "lollipopApiKey": "<REDACTED_API_KEY>",
+  "lollipopAuthJwt": "<REDACTED_JWT>"
+}

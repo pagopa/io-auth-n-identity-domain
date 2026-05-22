@@ -1,0 +1,11 @@
+{
+  "auditContainer": "logs",
+  "dependencies": [
+    "redis:testcontainers",
+    "azurite:testcontainers",
+    "lollipop-stub:local-http"
+  ],
+  "functionBaseUrl": "<FUNCTION_BASE_URL>",
+  "functionKeySource": "files-secret-storage",
+  "runtime": "func-start"
+}

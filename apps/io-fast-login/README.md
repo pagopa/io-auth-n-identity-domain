@@ -89,10 +89,12 @@ Then you can start the docker compose to execute the function environment
 docker compose up --build -d
 ```
 
-## Integration test
+## Backend tests
 
-not yet included
+The app now ships an opt-in backend-test harness under `src/__backend_tests__`:
 
-### Testing models
+- `pnpm test:backend:integration` runs the live integration scenarios
+- `pnpm test:backend:record` refreshes the fast-login characterization cassette
+- `pnpm test:backend:verify` verifies the live fast-login behavior against the stored cassette
 
-not yet included
+See [`BACKEND_TESTS.md`](./BACKEND_TESTS.md) for the shared topology, scenario inventory, and re-entry notes.

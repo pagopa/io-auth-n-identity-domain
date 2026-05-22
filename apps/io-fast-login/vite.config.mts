@@ -6,14 +6,17 @@ export default defineConfig({
     coverage: {
       reporter: ["lcov", "text"],
       exclude: [
+        "src/__backend_tests__/**",
         "**/__mocks__/**",
         "*.js",
         "src/generated/**",
         "src/config.ts",
-        "src/main.ts"],
+        "src/main.ts"
+      ]
     },
+    exclude: ["**/dist/**", "**/node_modules/**", "src/__backend_tests__/**"],
     env: {
-      ...config({ path: "env.example" }).parsed,
+      ...config({ path: "env.example" }).parsed
     },
     // typecheck: {
     //  enabled: true,
