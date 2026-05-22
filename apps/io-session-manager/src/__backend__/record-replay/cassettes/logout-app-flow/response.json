@@ -1,9 +1,0 @@
-{
-  "body": {
-    "message": "ok"
-  },
-  "headers": {
-    "content-type": "application/json; charset=utf-8"
-  },
-  "status": 200
-}

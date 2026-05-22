@@ -1,9 +1,0 @@
-{
-  "body": {
-    "token": "<SESSION_TOKEN>"
-  },
-  "headers": {
-    "content-type": "application/json; charset=utf-8"
-  },
-  "status": 200
-}

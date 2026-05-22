@@ -1,8 +1,0 @@
-{
-  "body": {},
-  "headers": {
-    "authorization": "<REDACTED_BEARER_TOKEN>"
-  },
-  "method": "POST",
-  "path": "/api/auth/v1/logout"
-}
