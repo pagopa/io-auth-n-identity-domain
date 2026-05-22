@@ -41,7 +41,8 @@ Produce or update:
    - `references/azure-functions-harness.md` when the target is an Azure Functions app; read it after `references/azure-harness.md`
    - `references/azure-functions-integration.md` for integration work on Azure Functions; read it after `references/azure-functions-harness.md`
    - `references/azure-functions-record-replay.md` for record-replay work on Azure Functions; read it after `references/azure-functions-harness.md`
-10. After implementing the selected path, read `references/final-reporting.md` and add or update a concise Markdown report before finishing. Treat this as required for any non-trivial change made through this skill, including additive passes.
+10. If the preferred faithful dependency strategy is credible but more complex (for example real containerized dependency or reused runtime topology) and you are considering a fallback such as an in-memory fakeo or a narrow stub, stop and ask the user to choose before implementing the fallback.
+11. After implementing the selected path, read `references/final-reporting.md` and add or update a concise Markdown report before finishing. Treat this as required for any non-trivial change made through this skill, including additive passes.
 
 ## Path selection rules
 
@@ -76,6 +77,7 @@ When the user asks to add, extend, or widen coverage on top of a harness that al
 
 - Keep the selected boundary honest.
 - Prefer configured reachable cloud services when `.env.test` is present; otherwise prefer real local hosts, real dependencies, and deterministic local stubs over mocks.
+- If the ideal faithful path is still credible but requires more setup, do not silently downgrade to a fallback. Ask the user whether to proceed with the more complex faithful path or accept the fallback, and summarize the trade-off plainly.
 - Add short orientation comments to support-layer modules when their purpose or place in the topology would not be obvious from the filename alone.
 - Keep assertions at observable contract level.
 - For record-replay verification, treat the stored cassette as the contract oracle. Do not add extra semantic assertions beyond comparing normalized live layers to stored artifacts.

@@ -60,6 +60,13 @@ Classify each dependency before you code:
 | runtime component that already owns env and startup | reuse that runtime shape as the runtime component                                   | the real boundary it exposes                                                                                 |
 | dependency with no credible local path              | documented fallback                                                                 | the closest honest local seam                                                                                |
 
+If a stronger local strategy is still credible but needs materially more setup, treat that as a user decision, not an implementation shortcut.
+
+- Present the faithful option first when it is viable, even if it needs custom Testcontainers orchestration, reused runtime containers, or extra network wiring.
+- Present the fallback second, with the concrete reason it is simpler and what fidelity it loses.
+- Ask the user to choose before you implement the fallback.
+- Only choose the fallback without asking when the stronger path is genuinely blocked, not merely more work.
+
 ## Prefer an existing runtime container when available
 
 If the repository already ships a Dockerfile, devcontainer task, or other containerized runtime that owns env and startup credibly, prefer reusing that runtime shape instead of rebuilding those concerns in the test harness.
@@ -77,6 +84,7 @@ Treat Testcontainers as the only standard orchestration path for containerized d
 - If the workspace lacks `testcontainers` and the dependency can credibly run that way, add it.
 - Do not declare Testcontainers unavailable from a missing local `docker` CLI alone. Check Docker-compatible env/runtime hints and run a tiny real Testcontainers smoke bootstrap before falling back.
 - If that smoke bootstrap fails, surface the concrete failure reason in the notes instead of inferring one from missing tooling.
+- If Testcontainers is viable but requires custom orchestration to stay faithful, treat that as the preferred path candidate and ask the user before replacing it with a fake or in-memory fallback.
 - Read checked-in Dockerfiles, devcontainer tasks, container image definitions, startup scripts, and env docs as topology inputs.
 - Keep orchestration inside Testcontainers helpers and test setup code, not shell-based Docker commands.
 - If the runtime itself is containerized, reuse that runtime shape inside the same harness strategy instead of inventing a second orchestration path.
