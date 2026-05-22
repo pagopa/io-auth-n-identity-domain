@@ -169,6 +169,14 @@ Optimize for reviewability, not file count.
 - Do **not** force the same split on cohesive files whose job is already single-purpose, such as `function-host.ts`, cassette helpers, or small outbound HTTP stubs.
 - Do **not** explode one dependency into many tiny files unless the repository already has that convention or the dependency logic is independently large.
 
+### Orientation comments for support modules
+
+Add one short comment near the top of the file that explains the module's job and where it sits in the local test topology.
+
+- Good targets include shared runtime harnesses, local stub servers, dependency fallbacks, cassette helpers, and topology adapters.
+- Keep the comment brief and architectural. Explain purpose and boundary, not implementation trivia.
+- Do not add repetitive inline comments for straightforward code just to satisfy this rule.
+
 ### Both-paths coexistence
 
 When the user chooses `both`:

@@ -14,7 +14,7 @@ Produce or update:
 - a shared local or hybrid harness for the selected boundary, using reachable configured cloud services when appropriate and Testcontainers for containerized dependencies
 - either integration tests, record-replay tests, or both layered on the same harness
 - path-specific helpers such as shared setup files, fixture builders, stubs, cassette helpers, and `record` / `verify` entrypoints when needed
-- a concise Markdown report that doubles as a re-entry snapshot for future prompts whenever the harness, topology, or scenario inventory would otherwise need to be rediscovered
+- a concise Markdown report that doubles as a re-entry snapshot for future prompts; when this skill adds or changes backend tests, harness topology, cassettes, or scenario inventory, the report is required
 - explicit rerun commands and a short note explaining the chosen boundary, dependencies, and scenario scope
 
 ## Routing workflow
@@ -41,7 +41,7 @@ Produce or update:
    - `references/azure-functions-harness.md` when the target is an Azure Functions app; read it after `references/azure-harness.md`
    - `references/azure-functions-integration.md` for integration work on Azure Functions; read it after `references/azure-functions-harness.md`
    - `references/azure-functions-record-replay.md` for record-replay work on Azure Functions; read it after `references/azure-functions-harness.md`
-10. After implementing the selected path, read `references/final-reporting.md` and decide whether to add or update a concise Markdown report. Default to yes when the user asked for documentation, when the resulting topology, shared harness, or scenario coverage would be hard to reconstruct from the tests alone, or when future incremental additions are likely.
+10. After implementing the selected path, read `references/final-reporting.md` and add or update a concise Markdown report before finishing. Treat this as required for any non-trivial change made through this skill, including additive passes.
 
 ## Path selection rules
 
@@ -76,6 +76,7 @@ When the user asks to add, extend, or widen coverage on top of a harness that al
 
 - Keep the selected boundary honest.
 - Prefer configured reachable cloud services when `.env.test` is present; otherwise prefer real local hosts, real dependencies, and deterministic local stubs over mocks.
+- Add short orientation comments to support-layer modules when their purpose or place in the topology would not be obvious from the filename alone.
 - Keep assertions at observable contract level.
 - For record-replay verification, treat the stored cassette as the contract oracle. Do not add extra semantic assertions beyond comparing normalized live layers to stored artifacts.
 - If a scenario needs durable semantic assertions, route it to `integration` or `both`.

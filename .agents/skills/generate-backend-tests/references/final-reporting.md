@@ -8,7 +8,9 @@ Leave behind a short report that helps the user and future contributors understa
 
 ## When to produce a report
 
-Default to adding or updating a Markdown report when at least one of these is true:
+Add or update a Markdown report for every non-trivial implementation pass that uses this skill. In practice, if you changed tests, harness code, topology, cassettes, or scenario coverage, the report is required.
+
+Common triggers include:
 
 - the user explicitly asked for documentation, a report, or a summary artifact
 - the work adds or changes multiple scenarios
@@ -17,7 +19,7 @@ Default to adding or updating a Markdown report when at least one of these is tr
 - the chosen boundary is intentionally narrower than the full runtime and that choice should be documented
 - future incremental additions are likely, or the repository already has a shared backend-test harness that will probably be extended again
 
-You can skip the report when the change is tiny, obvious from one test file, and the user did not ask for documentation.
+You may skip the report only for a truly tiny follow-up that changes one obvious assertion in an already-documented suite and does not alter the harness, topology, or scenario inventory.
 
 ## Preferred location
 
@@ -96,5 +98,6 @@ Highlight the facts that are hard to infer quickly from the code:
 - Do not restate every assertion line by line.
 - Do not invent coverage that is not present.
 - If you chose a narrower slice instead of the full host, explain why plainly.
+- If you used a fallback instead of the preferred dependency strategy, record the concrete reason plainly.
 - Keep it compact enough that a later run can reread it cheaply.
 - If the user asked for the report, mention its path in the final response.
