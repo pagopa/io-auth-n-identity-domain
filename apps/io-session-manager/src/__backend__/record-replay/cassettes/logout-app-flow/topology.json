@@ -1,0 +1,10 @@
+{
+  "boundary": "express app via supertest",
+  "dependencies": {
+    "lollipopRevokeQueue": "in-memory queue recorder",
+    "platformInternal": "in-memory client recorder",
+    "redis": "in-memory redis cluster fallback",
+    "serviceBus": "in-memory sender recorder"
+  },
+  "workflow": "both/record-replay"
+}

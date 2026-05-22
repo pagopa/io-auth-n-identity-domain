@@ -1,0 +1,9 @@
+{
+  "dynamicFields": [
+    "sideEffects.serviceBus[0].message.body.ts"
+  ],
+  "placeholders": [
+    "<LOGOUT_TIMESTAMP>",
+    "<REDACTED_BEARER_TOKEN>"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "dynamicFields": [
+    "response.body.token",
+    "sideEffects.lollipopGenerateStub[0].body.operation_id",
+    "sideEffects.redis.createdUser.*token",
+    "sideEffects.redis.createdUser.session_tracking_id",
+    "sideEffects.redis.createdUser.created_at",
+    "sideEffects.platformInternal.deleteSession[0].headers.x-session-token"
+  ],
+  "placeholders": [
+    "<BPD_TOKEN>",
+    "<CREATED_AT>",
+    "<FIMS_TOKEN>",
+    "<MYPORTAL_TOKEN>",
+    "<SESSION_TOKEN>",
+    "<SESSION_TRACKING_ID>",
+    "<WALLET_TOKEN>",
+    "<ZENDESK_TOKEN>",
+    "<OPERATION_ID>",
+    "<PREVIOUS_SESSION_TOKEN>"
+  ]
+}

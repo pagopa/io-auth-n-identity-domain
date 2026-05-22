@@ -1,0 +1,67 @@
+{
+  "fastLoginStub": [
+    {
+      "body": {},
+      "headers": {
+        "signature": "sig1=:hNojB+wWw4A7SYF3qK1S01Y4UP5i2JZFYa2WOlMB4Np5iWmJSO0bDe2hrYRbcIWqVAFjuuCBRsB7lYQJkzbb6g==:",
+        "signature-input": "sig1=(\"x-pagopa-lollipop-original-method\" \"x-pagopa-lollipop-original-url\"); created=1618884475; keyid=\"6LvipIvFuhyorHpUqK3HjySC5Y6gshXHFBhU9EJ4DoM=\"",
+        "x-pagopa-lollipop-assertion-ref": "sha256-6LvipIvFuhyorHpUqK3HjySC5Y6gshXHFBhU9EJ4DoM=",
+        "x-pagopa-lollipop-auth-jwt": "a bearer token",
+        "x-pagopa-lollipop-original-method": "POST",
+        "x-pagopa-lollipop-original-url": "https://api.pagopa.it",
+        "x-pagopa-lollipop-public-key": "a pub key",
+        "x-pagopa-lollipop-user-id": "GRBGPP87L04L741X",
+        "x-pagopa-lv-client-ip": "::ffff:127.0.0.1"
+      },
+      "method": "POST",
+      "path": "/api/v1/fast-login"
+    }
+  ],
+  "lollipopGenerateStub": [
+    {
+      "body": {
+        "operation_id": "<OPERATION_ID>"
+      },
+      "headers": {
+        "content-type": "application/json"
+      },
+      "method": "POST",
+      "path": "/pubKeys/sha256-6LvipIvFuhyorHpUqK3HjySC5Y6gshXHFBhU9EJ4DoM=/generate"
+    }
+  ],
+  "platformInternal": {
+    "deleteSession": [
+      {
+        "headers": {
+          "x-session-token": "<PREVIOUS_SESSION_TOKEN>"
+        },
+        "method": "DELETE",
+        "path": "/sessions"
+      }
+    ]
+  },
+  "redis": {
+    "createdSessionInfoTtlSeconds": 900,
+    "createdUser": {
+      "created_at": "<CREATED_AT>",
+      "date_of_birth": "1970-01-01",
+      "family_name": "AgID",
+      "fiscal_code": "GRBGPP87L04L741X",
+      "name": "SpidValidator",
+      "spid_email": "spid.tech@agid.gov.it",
+      "spid_idp": "http://localhost:8080",
+      "spid_level": "https://www.spid.gov.it/SpidL2",
+      "bpd_token": "<BPD_TOKEN>",
+      "fims_token": "<FIMS_TOKEN>",
+      "myportal_token": "<MYPORTAL_TOKEN>",
+      "session_token": "<SESSION_TOKEN>",
+      "session_tracking_id": "<SESSION_TRACKING_ID>",
+      "wallet_token": "<WALLET_TOKEN>",
+      "zendesk_token": "<ZENDESK_TOKEN>"
+    },
+    "currentUserSessions": [
+      "SESSIONINFO-<SESSION_TOKEN>"
+    ],
+    "previousSessionStillExists": false
+  }
+}
