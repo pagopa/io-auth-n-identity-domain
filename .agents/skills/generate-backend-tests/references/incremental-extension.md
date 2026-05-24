@@ -1,77 +1,52 @@
-# Incremental extension of an existing backend-test harness
+# Incremental extension
 
-Use this reference when the user asks to add more tests, extend coverage, or continue work on a harness that already exists in the repository.
+Use when the user asks to add tests, widen coverage, or continue an existing backend-test harness.
 
 ## Goal
 
-Preserve context by starting from the smallest stable artifact set instead of rediscovering the full topology on every pass.
+Preserve context by starting from stable re-entry artifacts instead of rediscovering topology.
 
-## Default re-entry order
+## Re-entry order
 
-Read sources in this order and stop broadening the read set as soon as the next decision becomes clear:
+Read in order and stop broadening once the next decision is clear:
 
-1. an existing backend-test report or coverage report
-2. package or runner scripts that show how the suite is invoked
-3. the shared harness entrypoints such as `global-setup`, `harness`, `support/`, or `record` / `verify` helpers
-4. one representative suite that already uses the harness for the same path
-5. only the nearby fixtures, helpers, and application files needed for the new scenarios
+1. backend-test/coverage report
+2. package or runner scripts
+3. shared harness entrypoints: `global-setup`, `harness`, `support/`, `record` / `verify`
+4. one representative suite for the same path
+5. only nearby fixtures/helpers/app files needed for new scenarios
 
-If those artifacts already explain the boundary, dependency topology, and current scenario inventory, do not reopen a repository-wide discovery pass.
+If these explain boundary, dependencies, and scenario inventory, skip repo-wide discovery.
 
-## What to treat as the source of truth
+## Source of truth
 
-- The existing harness and report define the current path unless the prompt asks to change it.
-- The current scenario table defines what is already covered and where the natural gaps are.
-- The rerun commands and setup files define how the harness is meant to be exercised.
+- Existing harness/report define current path unless the prompt changes it.
+- Scenario table defines current coverage and natural gaps.
+- Rerun commands/setup files define how to exercise the harness.
 
-## Snapshot choice
+Use a concise Markdown report as the default persistent snapshot. Add machine-readable manifests only when the repo already has that pattern or the user asks.
 
-Default to a concise Markdown report as the persistent snapshot because it is cheap to reread, easy for humans to maintain, and already useful to contributors.
+## Scenario proposals
 
-Only introduce a separate machine-readable manifest when:
+For vague additive prompts, propose 2 to 4 gap-filling scenarios from the report's gaps, current boundary, and user prompt. If reading `scenario-selection.md`, use it as methodology only; do not restart broad inspection.
 
-- the repository already has a stable pattern for machine-readable test metadata, or
-- the user explicitly asks for a machine-readable snapshot
+Rules:
 
-Do not invent extra persisted state just because it is possible.
+- If prompt names `integration`, `record-replay`, or `both`, keep it unless impossible/dishonest.
+- If prompt names scenarios, do not reopen selection.
+- If prompt says "add edge cases" or "widen coverage," propose focused gaps from current artifacts.
 
-## Scenario proposal in incremental mode
+## Revisit topology only when
 
-Even incremental prompts often require proposing new scenarios (e.g., "increase coverage", "add edge cases"). The difference from a first run is the source and scope, not the absence of proposals:
+- user asks to switch workflows
+- new scenario crosses a boundary the harness cannot honestly cover
+- dependency strategy now blocks the requested scenario
+- report/harness is too ambiguous to trust
 
-- Draw scenario ideas from the existing report's gap list, the current harness boundary, and the user prompt — not from a fresh repository-wide discovery.
-- Propose 2 to 4 gap-filling scenarios unless the prompt already names them explicitly.
-- If `references/scenario-selection.md` is also read in this pass, treat it as methodology guidance (how to phrase proposals, what makes a scenario worth paying for) rather than as a signal to restart broad inspection.
+Otherwise extend the existing harness.
 
-## User interaction rules
+## Update after changes
 
-- If the prompt already says `integration`, `record-replay`, or `both`, keep that selection unless the existing harness makes it impossible or dishonest.
-- If the prompt already names the new scenarios, do not reopen scenario selection.
-- If the prompt is additive but vague (e.g., "widen coverage", "add more edge cases"), propose 2 to 4 gap-filling scenarios based on the current report and boundary instead of a fresh broad menu.
+Update the report with new scenarios, file locations, helpers/setup files, changed commands, and remaining intentional gaps.
 
-## When to revisit the topology
-
-Revisit path or harness design only when one of these is true:
-
-- the user asks to switch workflows
-- the new scenario crosses a boundary the current harness does not honestly cover
-- a dependency strategy that was previously acceptable is now blocking the requested scenario
-- the existing report or harness is too ambiguous to trust
-
-If none of those is true, extend the existing harness rather than redesigning it.
-
-## What to update after the change
-
-When the incremental pass lands, update the report so the next pass can start there:
-
-- new scenarios and their file locations
-- any new helpers or setup files
-- any changed rerun commands
-- intentional gaps that remain
-
-## Avoid
-
-- rereading the whole repository when the current harness already explains the shape
-- reopening path selection on every additive prompt
-- cloning the harness into a parallel setup just for new scenarios
-- writing long historical summaries when a compact report plus file paths is enough
+Avoid repo-wide rereads, repeated path selection, parallel harnesses, and long historical summaries.

@@ -1,101 +1,44 @@
 # Promoting unit tests into integration tests
 
-Use this reference when the repository already has many unit tests around the feature and the user wants a smaller number of live integration tests.
+Use when many unit tests already cover the feature and the user wants fewer live tests.
 
-## The mindset shift
+## Mindset
 
-Do not translate every unit test into an integration test.
+Do not translate every unit test. Collapse many cheap isolated cases into a few scenarios that prove real seams at the chosen boundary.
 
-Unit tests are cheap because they isolate behavior. Integration tests are expensive because they prove real seams. The right move is usually to collapse many unit cases into a few scenarios that exercise the real contract end to end at the chosen boundary.
+## Mine unit tests for
 
-## What to extract from existing unit tests
+- request/event shapes worth preserving
+- realistic seed data and IDs
+- domain invariants that still matter with real dependencies
+- error branches that map to meaningful integration scenarios
+- caller/downstream-visible side effects
 
-Mine the unit suite for:
+Leave behind mock counts, helper/mapper internals, fake clients, and tiny branches with little value once the real boundary runs.
 
-- request or event shapes worth preserving
-- seed data and identifiers that make scenarios realistic
-- domain invariants that should still hold with real dependencies
-- error classes or branch names that point to meaningful integration scenarios
-- side effects that matter to callers or downstream systems
+## Classification guide
 
-## What not to copy
-
-Usually leave these behind:
-
-- mock call counts
-- assertions on helper or mapper internals
-- fake clients that exist only to keep a unit test alive
-- tiny branches that add little value once the real boundary is exercised
-
-## A simple classification pass
-
-For each nearby unit test, classify its main assertion:
-
-| Unit-test assertion | Keep as integration? | Better integration assertion |
-| --- | --- | --- |
-| "client method called once" | No | Read back the persisted state or observe the outbound stub request |
-| "handler returns 200 when use case mock resolves" | Usually rewrite | Call the real host or real handler slice and assert on response plus side effects |
-| "repository sends the right SQL or SDK input" | Rewrite | Use the real dependency and read back rows, docs, blobs, or messages |
-| "input validation rejects malformed payload" | Sometimes | Keep one or two boundary-level cases if callers really observe them |
-| "pure domain branch returns enum X" | Often stay unit-only | Keep it unit-level unless real adapters or runtime behavior are involved |
+| Unit assertion | Integration move |
+| --- | --- |
+| client method called once | read back state or observe outbound stub request |
+| handler returns 200 when use-case mock resolves | call real host/handler slice; assert response plus side effects |
+| repository sends SQL/SDK input | use real dependency and read back rows/docs/blobs/messages |
+| malformed payload rejection | keep one or two caller-visible boundary cases |
+| pure domain enum/branch | usually stay unit-only |
 
 ## Common migrations
 
-### Mocked Redis adapter tests
+- Mocked Redis adapter -> Redis Testcontainer, disposable key namespace, read back value/TTL/stream/pub-sub.
+- Handler with mocked use case -> real local HTTP/Functions host when credible, or smaller slice with real use case/adapters; assert status/body/headers/side effects.
+- Use case with mocked partner client -> local HTTP stub plus real client adapter; assert stub-observed request and system result.
 
-From:
+## Workflow
 
-- mocked Redis client
-- assertions on `setEx`, `get`, or `xadd`
+1. Cluster nearby unit tests by contract, not file.
+2. Pick scenarios that would worry you in production.
+3. Choose the honest boundary.
+4. Replace mocks with real local dependencies or deterministic stubs.
+5. Keep assertions meaningful under real execution.
+6. Leave pure logic and combinatorial edges in unit tests.
 
-To:
-
-- real Redis in Testcontainers
-- disposable key namespace per test
-- read back value, TTL, stream entry, or pub-sub payload
-
-### Handler tests with mocked use case
-
-From:
-
-- synthetic `HttpRequest`
-- mocked use case or service
-- assertions on mapping only
-
-To:
-
-- real local HTTP host or real Functions host when that boundary is credible
-- or a smaller slice with the real use case plus real adapters if the runtime would be noise
-- assert on status, body, headers, and side effects
-
-### Use case tests with mocked partner client
-
-From:
-
-- mocked client adapter
-- call-count or argument assertions
-
-To:
-
-- deterministic local HTTP stub server
-- real client adapter talking to that stub
-- assert on stub-observed request and the system's result
-
-## A good promotion workflow
-
-1. Read the nearby unit tests and cluster them by contract, not by file.
-2. Pick the few scenarios that would most worry you in production.
-3. Decide which boundary proves those scenarios honestly.
-4. Replace mocked dependencies with real local ones or deterministic local stubs.
-5. Keep only assertions that stay meaningful when the real system runs.
-6. Leave pure logic or combinatorial edge cases in the unit suite when they do not need integration cost.
-
-## Good end state
-
-A healthy result often looks like:
-
-- 1 or 2 runtime-level happy-path tests
-- a few narrower integration slices for dense variation
-- the old unit suite still covering pure logic cheaply
-
-That combination is much stronger than either "unit tests only" or "rewrite everything as slow host-level tests."
+Good end state: 1-2 runtime happy paths, a few narrower integration slices for dense variation, and unit tests still covering pure logic.

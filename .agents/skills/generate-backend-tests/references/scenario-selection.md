@@ -1,88 +1,54 @@
-# Scenario selection for generated backend tests
+# Scenario selection
 
-Use this reference before choosing the workflow path or writing any harness code.
+Read before choosing path or writing harness code.
 
 ## Goal
 
-Turn the user's prompt and the repository into a short list of scenario classes the user can actually choose from.
+Turn the prompt and repository evidence into a compact, decision-friendly scenario menu. Do not jump from "add tests" to broad implementation.
 
-Do not jump straight from "please add tests" to a broad implementation. Start by offering a compact menu of high-value scenarios.
-
-## Where scenario ideas should come from
+## Inputs
 
 Inspect:
 
-- the user's prompt and any explicit contract they mention
-- nearby tests, fixtures, payload samples, or OpenAPI examples
-- runtime boundaries such as HTTP routes, Functions triggers, workers, or adapters
-- regressions, bug references, or side effects the user names directly
+- user-stated contract, regressions, and side effects
+- nearby tests, fixtures, payloads, OpenAPI/examples
+- runtime boundaries: HTTP routes, Functions triggers, workers, adapters
 
 ## What to propose
 
-Propose 3 to 6 scenario classes, not an exhaustive matrix.
+Offer 3 to 6 scenario classes, not an exhaustive matrix. Good options often include:
 
-Good scenario classes often look like:
+- one meaningful runtime happy path
+- one caller-visible error/validation path
+- one side-effect scenario involving storage/cache/queue/broker
+- one named regression branch
+- one smaller slice for dense variation where full runtime repeats framework setup
 
-- one meaningful happy path through the real runtime
-- one error or validation path that callers genuinely observe
-- one side-effect-driven scenario where storage, cache, queue, or broker output matters
-- one specific regression branch the user is worried about
-- one smaller slice for dense variation when the full runtime would mostly repeat framework setup
+For each option, state: scenario name, boundary, fit (`integration`, `record-replay`, or `both`), and why it is worth test cost.
 
-## Keep the list decision-friendly
-
-For each proposed scenario, tell the user:
-
-- the scenario name
-- the boundary it would exercise
-- whether it fits `integration`, `record-replay`, or `both`
-- why it is worth paying test cost for
-
-Keep that explanation short enough that the user can choose quickly.
-
-## Recommended response shape
-
-Use a compact structure such as:
+Recommended response shape:
 
 1. likely path recommendation
 2. 3 to 6 scenario options
-3. a direct ask for:
-   - `integration`, `record-replay`, or `both`
-   - which scenarios to include
+3. direct ask for path and scenarios, only if not already decided
 
-## Do not over-scope
+## Avoid over-scope
 
-- Do not assume that every nearby unit test becomes a new scenario.
-- Do not assume all happy paths and all errors belong in the same suite.
-- Do not force both paths when one is clearly enough.
+- Do not convert every nearby unit test.
+- Do not bundle all happy paths and all errors into one suite.
+- Do not force `both` when one path is enough.
 - Do not propose scenarios whose only value is preserving mock-shaped assertions.
 
-## When the prompt already narrows the work
+If the prompt names a regression/endpoint, anchor on it and add only materially helpful adjacent options. If it strongly implies one path, recommend it first but let the user choose.
 
-If the prompt already names a specific regression or endpoint, keep that as the anchor scenario and add only a few adjacent options if they materially help the user decide.
+## If user chooses `both`
 
-If the prompt already implies one path strongly, recommend that path first, but still let the user choose.
+Keep overlap small:
 
-## When the user chooses `both`
+- integration owns ongoing happy paths and durable contract checks
+- record-replay owns freeze-before-refactor or black-box characterization scenarios
+- only a small set, if any, deserves both
 
-Identify:
+## Blocked scenarios
 
-- which scenarios should live only in integration
-- which scenarios should live only in record-replay
-- which small set, if any, deserves both
-
-Usually that means:
-
-- integration owns the ongoing happy path and durable contract checks
-- record-replay owns the freeze-before-refactor scenarios or black-box characterization set
-
-Keep the overlap small and intentional.
-
-## When one scenario is blocked but the harness is still useful
-
-Sometimes the most interesting candidate for `record-replay` or `both` turns out to depend on one local boundary that cannot be exercised honestly, even though most of the topology is still usable.
-
-- Do not force the blocked scenario through a dishonest fallback just to preserve the original idea.
-- First check whether a nearby scenario can reuse the same harness while avoiding only the blocked dependency.
-- Prefer an adjacent scenario that still protects the same runtime shape, request flow, or persistence side effects over abandoning the whole path.
-- State the swap plainly so the user can see which scenario stayed in integration only and which one became the record-replay candidate.
+If a strong `record-replay`/`both` candidate depends on a boundary that cannot be exercised honestly, do not force it through a dishonest fallback. Prefer an adjacent scenario that reuses the harness while protecting the same runtime shape, flow, or side effect, and state the swap plainly.

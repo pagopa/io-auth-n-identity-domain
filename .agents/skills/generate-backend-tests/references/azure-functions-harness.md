@@ -1,153 +1,82 @@
 # Azure Functions shared runtime harness
 
-> Prerequisites: read `references/azure-harness.md` first. Covers Azure Functions runtime concerns shared by both integration and record-replay.
+Prerequisite: read `azure-harness.md`. This covers Functions runtime concerns shared by integration and record-replay.
 
-## Local Functions boundary
+## Boundary and bootstrap
 
-Prefer the real local Functions host or an equivalent containerized Functions runtime.
+Prefer the real local Functions host or equivalent containerized runtime. Drive the same route or trigger seam a local caller would use; do not import handlers directly when a credible host exists.
 
-- Use the same route or trigger seam a real local caller would use.
-- Keep the harness pointed at the runtime boundary rather than importing handlers directly.
-- Reuse the repository's existing local Functions layout when one already exists.
-
-## Shared Functions bootstrap workflow
+Workflow:
 
 1. Start or attach to the real local Functions runtime.
-2. If the repository already ships a credible Functions container or Dockerfile for this app, treat that runtime shape as the default candidate. Reuse it, or stop and ask the user before switching to a simpler host boot such as local `func start`, unless the checked-in runtime is concretely blocked.
-3. If no credible app container exists, or the user explicitly approved a different runtime shape, allocate a free local port dynamically, build the app with the repository's real build command, and start `func start --port <dynamic-port>` with the current PATH preserved.
-4. Wait for readiness by calling a real local Functions route or trigger seam, not just by checking that the port is open.
-5. Drive the scenario through the real local Functions boundary.
+2. If the repo ships a credible Functions container/Dockerfile, treat it as the default. Reuse it or ask before switching to a simpler host boot unless concretely blocked.
+3. If no credible app container exists, or the user approved another shape, allocate a free local port, build with the repo command, and run `func start --port <dynamic-port>` with PATH preserved.
+4. Wait on a real route/trigger seam, not just an open port.
+5. Drive scenarios through the runtime boundary.
 
-## When not to force the full host
+For readiness, pick the lightest route available. Avoid deep health endpoints that fan out to every dependency. Any HTTP response can prove host liveness; connection errors/timeouts mean not ready.
 
-Sometimes an Azure Functions app constructs cloud clients or validates credentials at import time in ways that do not have a credible local equivalent. In that case, do not bend production code just to make `func start` pass.
+## When not to force full host
 
-- Keep the full host only for scenarios whose contract truly depends on route wiring, middleware, auth, or serialization and can boot honestly.
-- Otherwise, for integration work only, use a mixed integration suite: call the real wrapper or handler with real Azure SDK request or context objects, keep storage and queue side effects live, and stub only the truly external dependency.
-- This exception does not apply to record-replay characterization. If the user chose `record-replay` and the full host cannot boot honestly, do not import exported functions or wrapper-return values as a fallback; report the path blocked or ask to switch workflows.
-- State plainly which scenarios run through the full host and which use narrower live slices, so the user can see the boundary choice was intentional rather than a silent downgrade.
-- If the repository had a credible checked-in Functions container and you did not reuse it, the report must say whether the user approved that deviation or which concrete blocker prevented reuse.
+If import-time client construction or credential validation has no credible local equivalent, do not bend production code only to make `func start` pass.
 
-## Functions-specific environment checklist
+- Keep full host for contracts depending on route wiring, middleware, auth, serialization, triggers, or bindings that can boot honestly.
+- For integration only, a mixed suite may call a real wrapper/handler with real Azure SDK request/context objects, keep storage/queue side effects live, and stub only external dependencies.
+- For record-replay, do not fall back to exported handlers or wrapper return values. Report blocked or ask to switch workflow.
+- State which scenarios use full host vs narrower slices.
+- If a checked-in Functions container was not reused, report user approval or the concrete blocker.
 
-On top of the generic Azure env validation, verify the settings that are specific to the Functions host.
+## Environment checklist
 
-### Host settings
+Verify:
 
 - `FUNCTIONS_WORKER_RUNTIME`
 - `AzureWebJobsStorage`
+- binding connection names declared in `app.http`, `app.storageQueue`, `app.cosmosDB`, `app.serviceBusTopic`, `output.storageBlob`, etc.
+- `%ENV_NAME%` placeholders resolved through harness env; literal binding names kept literal
+- fixed queues, topics, subscriptions, blobs, and containers pre-created exactly where bindings point
 
-### Binding settings
+For queue triggers, create the trigger queue and matching `-poison` queue when local dead-lettering is possible. Pre-create every queue/blob container used by HTTP handlers too, including resources found via `new QueueClient(...)` / `new ContainerClient(...)` in startup paths.
 
-Use the same connection names the app already declares in `app.http`, `app.storageQueue`, `app.cosmosDB`, or equivalent binding configuration.
+## Function auth keys
 
-Treat the binding declarations as the source of truth for entity names too, not just connection setting names.
+For `authLevel: "function"` or `"admin"`:
 
-- Read `app.storageQueue(...)`, `app.serviceBusTopic(...)`, `output.storageBlob(...)`, and similar registrations before inventing test resources.
-- Resolve `%ENV_NAME%` placeholders through the harness env and keep literal names literal.
-- If the app binds to a fixed queue, topic, subscription, blob path, or container, write the test artifact there. Only make resources run-scoped when the binding itself is env-driven or the repository already uses that pattern.
-- For fixed queue triggers, create the trigger queue before publishing and, when the local runtime can move invalid payloads to a poison queue, also create the matching `-poison` queue so decode failures stay observable instead of collapsing into harness noise.
-- **Pre-create every queue and blob container the app uses, not just trigger queues.** HTTP handlers that enqueue messages or write blobs also fail at first call if the resource does not exist. Read `app.storageQueue(...)` registrations for queue names, and scan `new QueueClient(...)` / `new ContainerClient(...)` calls in the app's startup path for the full list. Create them all before starting the Functions host.
+- Preferred: set `AzureWebJobsSecretStorageType=files` and write `Secrets/host.json` with a known master key before startup; add `Secrets/` to `.gitignore`.
+- Fallback: if secret storage cannot be overridden, poll Azurite at `azure-webjobs-secrets/<app-name>/host.json`, then pass the key with `x-functions-key` or `?code=`.
+- Skip key handling for anonymous routes.
 
-Examples:
+`/admin/functions/<name>` is useful for diagnostics, not the default seam for queue/blob/broker/timer scenarios that local topology can drive honestly.
 
-- queue trigger connection name
-- Cosmos trigger connection string setting
-- blob or table storage connection setting
+## Trigger isolation
 
-## Function-level auth keys
+For HTTP-focused flows, disable unrelated queue/blob/timer functions when they would consume the artifact you need to assert or record:
 
-Routes declared with `authLevel: "function"` or `"admin"` reject requests that lack a valid function or host key.
-
-### Preferred: pre-seed a known key before startup
-
-Set `AzureWebJobsSecretStorageType=files` and write `Secrets/host.json` in the app directory before calling `func start`. The host reads the file at boot and uses the key you supplied rather than generating a random one.
-
-```json
-{
-  "masterKey": { "name": "master", "value": "<your-known-key>", "encrypted": false },
-  "functionKeys": []
-}
+```text
+AzureWebJobs.<FunctionName>.Disabled=true
 ```
 
-Advantages over polling: deterministic, no timing window, no Azurite dependency for key storage, works even when Azurite is slow to accept blobs. Add `Secrets/` to `.gitignore` so auto-generated variants are not committed.
+Persist the disabled list in topology/cassette metadata when relevant.
 
-### Fallback: poll Azurite blob storage
+## Queue payload quirks
 
-If `AzureWebJobsSecretStorageType` cannot be overridden (e.g. the app reads it from a sealed config), the host writes its master key into Azurite blob storage under `azure-webjobs-secrets/<app-name>/host.json` shortly after startup. Poll that blob with retry until the file appears, then pass the key as `?code=<key>` or via the `x-functions-key` header.
+Before simplifying fixtures, confirm what the runtime passes to the function:
 
-If the selected scenarios only hit `anonymous` routes, skip this entirely.
+- decoded JSON object
+- text that is itself base64-encoded JSON
+- poison queue behavior when decoding fails
 
-This seam is especially useful for lightweight diagnostics through `/admin/functions/<name>`, but do not treat it as the default trigger seam for queue, blob, broker, or timer scenarios that the local topology can drive honestly.
+If logs show `Message decoding has failed! Check MessageEncoding settings.`, suspect a harness mismatch. Match the real trigger contract even if the test payload is less convenient. For record-replay, keep encoding facts in harness or `topology.json`; do not normalize them away.
 
-## Trigger isolation for HTTP-focused flows
+## Fallback wrapper shape
 
-If the selected scope is one HTTP flow but the app also starts queue, blob, or timer triggers, disable the unrelated functions when they would consume the emitted artifact you want to assert on or record.
+Use only when no stronger repo container/convention exists. A minimal `func start` wrapper should:
 
-- Azure Functions supports this through `AzureWebJobs.<FunctionName>.Disabled=true`.
-- This is especially useful when an HTTP request emits a queue message or storage write that must remain observable.
-
-If the workflow persists topology or cassette metadata, keep the disabled-function list there so the resulting harness explains why the output remained observable.
-
-## Queue-trigger payload quirks
-
-Azure Storage queue triggers are easy to mis-shape in local tests. Before simplifying the fixture, confirm what the runtime actually hands to the function.
-
-- Some functions expect the runtime-decoded JSON object.
-- Some functions expect queue message text that is itself a base64 string containing JSON because the handler does another decode internally.
-- If the host logs `Message decoding has failed! Check MessageEncoding settings.`, treat that as a likely harness mismatch first.
-- Create the fixed poison queue too when the runtime may dead-letter invalid payloads locally; otherwise a decode failure can disappear behind an unrelated `QueueNotFound` error.
-- Match the real trigger contract even if it means publishing a less convenient encoded message.
-- For record-replay, keep encoding details in the local harness or `topology.json` notes rather than normalizing them away.
-
-## Fallback snippet: function host wrapper
-
-Use this only when there is no existing app container or stronger repository convention. This is the smallest useful wrapper around the real local Functions host:
-
-```ts
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-
-export class FunctionHost {
-  private child?: ChildProcessWithoutNullStreams;
-
-  constructor(
-    private readonly cwd: string,
-    private readonly env: NodeJS.ProcessEnv,
-    private readonly port: number,
-  ) {}
-
-  get baseUrl() {
-    return `http://127.0.0.1:${this.port}/api/`;
-  }
-
-  async start() {
-    await run("pnpm", ["build"], this.cwd, this.env);
-    this.child = spawn("func", ["start", "--port", String(this.port)], {
-      cwd: this.cwd,
-      env: this.env,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-    // Use the cheapest route available (e.g. /ping or a known lightweight endpoint).
-    // Avoid /v1/info or similar health-check routes that fan out to all dependencies —
-    // they will hang or timeout until every backing service is fully ready.
-    await waitUntilReady(() => fetch(new URL("v1/ping", this.baseUrl)));
-  }
-
-  async stop() {
-    this.child?.kill("SIGINT");
-  }
-}
-```
-
-The important idea is not the exact code. The important idea is:
-
-- use the real `func start`
-- preserve the current environment and PATH
-- allocate a free port dynamically instead of hardcoding a shared local port
-- capture host logs so failures explain what the runtime actually did
-- wait on a real probe — pick the lightest route available; deep health-check endpoints that contact every dependency will hang until the full topology is up
-- for readiness, treat **any HTTP response** (including 4xx or 5xx) as "the host is alive" — only a connection error or timeout means the host is not yet up; if the app's lightest available route runs a deep dependency check and returns 503, that is still a live host
-- stop the process cleanly
-- keep the harness pointed at the runtime boundary rather than importing it directly
-
-If the selected scenario needs a function or host key, extend this wrapper with a tiny helper that polls `azure-webjobs-secrets/<app-name>/host.json` in Azurite blob storage and passes the retrieved key through `x-functions-key` or `?code=...`.
+- preserve env and PATH
+- build once via the repo command
+- use a dynamic port
+- capture host logs
+- wait on a cheap real probe
+- stop cleanly with `SIGINT`
+- keep tests pointed at the runtime boundary
+- extend with key polling only when scenarios need function/admin auth

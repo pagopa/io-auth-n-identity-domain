@@ -1,108 +1,74 @@
-# Final reporting for generated backend tests
+# Final reporting
 
-Use this reference after implementing the selected test workflow and before you finalize the task.
+Read after implementing and before finishing.
 
 ## Goal
 
-Leave behind a short report that helps the user and future contributors understand what the new test coverage actually protects without reopening every test, harness, or cassette file. The same report should also work as the re-entry snapshot for later prompts that add more scenarios.
+Leave a short report that lets users and future prompts answer: what is covered, through which boundary, on which dependencies, and how to rerun it. The report is also the re-entry snapshot for later scenario additions.
 
-## When to produce a report
+## When required
 
-Add or update a Markdown report for every non-trivial implementation pass that uses this skill. In practice, if you changed tests, harness code, topology, cassettes, or scenario coverage, the report is required.
+Add/update a Markdown report for every non-trivial pass that changes tests, harness code, topology, cassettes, or scenario coverage. Common triggers:
 
-Common triggers include:
+- multiple scenarios
+- shared harness, Testcontainers topology, local stubs, emulator/cloud usage
+- integration and record-replay coexistence
+- intentionally narrower boundary than full runtime
+- likely future incremental additions
 
-- the user explicitly asked for documentation, a report, or a summary artifact
-- the work adds or changes multiple scenarios
-- the work introduces or changes a shared harness, Testcontainers topology, local stubs, or emulator usage
-- integration and record-replay suites now coexist for the same boundary
-- the chosen boundary is intentionally narrower than the full runtime and that choice should be documented
-- future incremental additions are likely, or the repository already has a shared backend-test harness that will probably be extended again
+Skip only for a tiny assertion-only follow-up in an already documented suite.
 
-You may skip the report only for a truly tiny follow-up that changes one obvious assertion in an already-documented suite and does not alter the harness, topology, or scenario inventory.
+## Location
 
-## Preferred location
+Prefer:
 
-Prefer this order:
+1. existing test-coverage/workflow doc
+2. focused root report, e.g. `<app>-test-report.md`, `<service>-integration-report.md`, `<component>-coverage-report.md`
+3. docs folder only if the repo already uses it for engineering notes
 
-1. update an existing test-coverage or workflow document if the repository already has one
-2. create a focused Markdown report in the repository root when there is no better existing location
-3. use a docs folder only when the repository already treats it as the natural home for engineering notes like this
+## Contents
 
-Keep the file name explicit, such as:
-
-- `<app>-test-report.md`
-- `<service>-integration-report.md`
-- `<component>-coverage-report.md`
-
-## What the report should contain
-
-Keep it concise, but include enough detail that someone can answer "what is covered, through which boundary, on which local dependencies, and how do I rerun it?" without reading the whole suite. A later run should be able to read this report plus a few listed entrypoint files instead of re-deriving the whole topology.
-
-Typical sections:
+Keep concise and path-heavy. Typical sections:
 
 - scope
 - suite overview
-- shared infrastructure or harness summary
+- shared harness/infrastructure summary
 - scenario table
 - rerun commands
-- current intentional gaps when they matter
+- current intentional gaps when relevant
 
-## Re-entry snapshot requirements
+The re-entry snapshot must include:
 
-Make sure the report captures the specific facts a later incremental pass would need quickly:
+- workflow path (`integration`, `record-replay`, or `both`)
+- honest boundary
+- primary harness entrypoints/setup files
+- dependency sources: cloud services, local emulators, Testcontainers, stubs
+- scenario inventory and file locations
+- rerun commands, including `record` / `verify` when relevant
 
-- selected workflow path (`integration`, `record-replay`, or `both`)
-- honest boundary under test
-- primary shared harness entrypoints and setup files
-- which dependencies run as cloud services, local emulators, Testcontainers, or stubs
-- current scenario inventory and file locations
-- rerun commands, including `record` / `verify` commands when relevant
+Prefer tables and explicit file paths over narrative.
 
-Prefer explicit file paths and short tables over long narrative prose.
-
-## Scenario table guidance
-
-For each meaningful scenario, prefer columns like:
-
-- scenario name
-- file or suite location
-- honest boundary exercised
-- observable outcome
-- infrastructure actually used
-
-This is usually more useful than long prose paragraphs.
+Scenario table columns: scenario, suite file, boundary, observable outcome, infrastructure used.
 
 ## Diagrams
 
-Add Mermaid diagrams only when they genuinely clarify the flow:
+Add Mermaid only when it clarifies a non-obvious flow such as request->runtime->dependency->side effect, trigger->handler->output binding, or record->cassette->verify. Skip diagrams for flows that fit in one sentence.
 
-- request -> runtime -> dependency -> side effect
-- queue trigger -> handler -> output binding
-- record -> cassette -> verify loops
+## Emphasize
 
-Do not add diagrams just because Mermaid is available. A good rule is: if the boundary or side effects are easy to explain in one sentence, skip the diagram.
+Highlight facts hard to infer quickly:
 
-## What to emphasize
-
-Highlight the facts that are hard to infer quickly from the code:
-
-- which dependencies are real local emulators versus lightweight SDK-only seams
-- whether the full runtime host is used or intentionally avoided
-- which runtime shape was chosen for the app itself, especially when the repository already ships a credible checked-in runtime container or Dockerfile
-- which scenarios are protected by long-lived integration checks versus characterization cassettes
-- which helpers or setup files are shared across suites
+- real emulators vs lightweight SDK-only seams
+- full runtime vs intentionally narrower slice
+- app runtime shape, especially if a checked-in container/Dockerfile was not reused
+- integration vs record-replay scenario ownership
+- shared setup/helper files
 
 ## Guardrails
 
-- Keep the report factual and tied to the tests that were actually added or changed.
-- Do not restate every assertion line by line.
-- Do not invent coverage that is not present.
-- If you chose a narrower slice instead of the full host, explain why plainly.
-- If you used a fallback instead of the preferred dependency strategy, record the concrete reason plainly.
-- If the repository already shipped a credible runtime container or other checked-in runtime definition and you did not reuse it, explicitly record:
-  - the checked-in runtime you chose not to use
-  - the runtime shape you used instead
-  - whether the user explicitly approved that deviation or the concrete blocker that prevented reuse
-- Keep it compact enough that a later run can reread it cheaply.
-- If the user asked for the report, mention its path in the final response.
+- Report only coverage actually added/changed.
+- Do not restate every assertion.
+- Explain narrower slices and fallbacks plainly, with concrete reasons.
+- If a checked-in runtime was not reused, record the skipped runtime, chosen runtime, and user approval or blocker.
+- Keep it compact enough for future cheap rereads.
+- Mention the report path in the final response when relevant.

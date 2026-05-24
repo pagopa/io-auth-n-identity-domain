@@ -1,125 +1,55 @@
-# Azure shared harness starter
+# Azure shared harness
 
-> Prerequisites: read `references/shared-harness.md` for generic rules. Read with the runtime-specific Azure reference (e.g. `azure-functions-harness.md`).
+Prerequisite: read `shared-harness.md`. Use with runtime-specific Azure references such as `azure-functions-harness.md`.
 
-Covers Azure-local harness concerns: choosing and wiring local Azure dependencies, emulator-related flags, Cosmos-specific readiness, and observing side effects in Azure-managed dependencies.
+## Dependency selection
 
-## Dependency selection for Azure-local topologies
+Pick the lightest local topology that proves the contract.
 
-Pick the lightest local topology that still proves the contract.
+| Need                         | Preferred local dependency                                                                                           |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Blob, queue, or table output | Azurite or existing storage emulator, via Testcontainers when containerized                                          |
+| Cosmos read/write path       | Cosmos-compatible emulator or existing local Cosmos path, via Testcontainers when containerized                      |
+| Azure queue/broker publish   | existing local queue/broker path, via Testcontainers when containerized, only when the scenario needs a real publish |
 
-| Need                               | Preferred local dependency                                                                                                                                                           |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Blob, queue, or table output       | Azurite or the repository's existing storage emulator, booted through Testcontainers when it runs in a container                                                                     |
-| Cosmos-backed read or write path   | Cosmos-compatible emulator or the repository's existing local Cosmos path, booted through Testcontainers when it runs in a container                                                 |
-| Azure queue or broker publish path | the repository's existing local queue or broker path, preferably booted through Testcontainers when it runs in a container and only if the scenario truly needs a successful publish |
+If a dependency cannot run locally, document the fallback and capture the closest honest boundary. For brokers, prove both runtime-side and test-side connectivity; one hostname/connection string may not work from both networks.
 
-If a dependency cannot run locally, document the fallback clearly and capture the closest honest local boundary instead of pretending the full side effect ran.
+Use `shared-harness.md` for non-Azure dependencies such as partner HTTP stubs.
 
-For broker emulators, prove connectivity from both sides of the topology:
+## Azure env additions
 
-- the runtime-side connection the app uses inside the container or network
-- the test-side SDK connection the harness uses to seed, publish, or observe side effects from outside that network
+Alongside generic env validation, verify Azure-local settings such as:
 
-Do not assume one connection string or hostname works for both. A broker can be reachable by its in-network alias from the Functions host but require the mapped host and port from the test process.
-
-Use `references/shared-harness.md` for non-Azure dependencies such as partner HTTP stubs or other generic local-runtime wiring.
-
-## Azure-local environment additions
-
-On top of the generic environment validation in `references/shared-harness.md`, verify the Azure-local values the runtime needs to boot and talk to local emulators.
-
-Examples:
-
-- runtime-local settings sources such as `local.settings.json`
-- local storage connection settings
-- TLS or certificate flags required by local emulators
+- `local.settings.json` values
+- storage connection settings
+- TLS/certificate flags required by emulators
 - Cosmos connection settings
-- queue, blob, or table connection settings
+- queue/blob/table connection names
 
-## Lazy outbound Azure clients
+Some Azure SDK clients are lazy: startup can succeed with bad settings and fail only on first send/read. If a scenario needs a broker/Event Hubs/storage side effect, include a real operation in readiness. If no credible local path exists, route to a narrower integration seam with explicit stub/no-op only when honest, or choose another record-replay scenario.
 
-Some Azure SDK clients do not prove their configuration during startup. They construct successfully and fail only on the first real send, publish, or read.
+## Cosmos emulator checks
 
-- Treat a clean host boot with fake or placeholder connection strings as insufficient proof for scenarios that must emit or publish.
-- If the selected scenario needs a real broker or Event Hubs side effect, include one real operation in your readiness thinking for that scenario rather than assuming startup is enough.
-- If no credible local path exists for that dependency, do not keep the scenario in full-host record-replay just because the runtime starts. Route it to integration with an explicit stub or no-op only when that narrower seam is still honest, or choose a different record-replay scenario that stays on a reachable local contract.
+Do not stop at TCP or vendor readiness endpoints. Prove the exact SDK path used by the app:
 
-## Cosmos emulator quirks worth proving
+1. create/open the scenario database/container
+2. write a probe item
+3. point-read it
+4. query it
+5. clean probe data
 
-Use the generic readiness rules from `references/shared-harness.md`, then add these Cosmos-specific checks.
+Important quirks:
 
-- Validate the exact SDK path the app uses, not just TCP reachability.
-- Do not stop at account metadata or a vendor readiness endpoint. Warm the exact database and container path the scenario needs with a real write plus query or readback, then clean the probe data back out.
-- Some preview or Linux emulator builds advertise internal endpoints that make queries fail unless `connectionPolicy.enableEndpointDiscovery = false`.
-- Prove both point-read and query behavior. Some emulators return system properties (`_etag`, `_rid`, `_self`, `_ts`) for direct `item.read()` calls but omit them from query results. If a domain model schema requires these fields, embed them as regular user fields in the document body at seed time. Keep this workaround in test seed data, not in production code.
+- Some Linux/preview emulators require `connectionPolicy.enableEndpointDiscovery = false`.
+- Prove both point-read and query; query results may omit `_etag`, `_rid`, `_self`, `_ts`.
+- If domain schemas need those system fields under emulator queries, add them as regular fields in test seed data only, not production code.
+- If warm-up passes but higher-level helpers fail only because of emulator metadata, keep the workaround in an integration-only seam.
 
-### Minimal Cosmos warm-up snippet
+## Observing Azure side effects
 
-Use a real SDK probe after the emulator says it is ready. The point is not the exact helper names; the point is to prove the same client path your tests will use.
+For queues, blobs, and tables:
 
-```ts
-const container = await new GenericContainer(
-  "mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview",
-)
-  .withExposedPorts(8080, 8081)
-  .withWaitStrategy(Wait.forHttp("/ready", 8080).forStatusCode(200))
-  .start();
-
-const client = new CosmosClient({
-  endpoint: `http://${container.getHost()}:${container.getMappedPort(8081)}`,
-  key: COSMOS_EMULATOR_KEY,
-  connectionPolicy: { enableEndpointDiscovery: false },
-});
-
-const probeDbPrefix = `probe-${Date.now()}`;
-let lastError: unknown;
-let warmed = false;
-
-for (let attempt = 1; attempt <= 10; attempt++) {
-  try {
-    const { database } = await client.databases.createIfNotExists({
-      id: `${probeDbPrefix}-${attempt}`,
-    });
-    const { container: probeContainer } =
-      await database.containers.createIfNotExists({
-        id: "probe",
-        partitionKey: { paths: ["/pk"] },
-      });
-    await probeContainer.items.upsert({
-      id: "probe-item",
-      pk: "probe",
-      ready: true,
-    });
-    await probeContainer.item("probe-item", "probe").read();
-    await probeContainer.items.query("SELECT * FROM c").fetchAll();
-    await database.delete();
-    warmed = true;
-    break;
-  } catch (error) {
-    lastError = error;
-    if (attempt === 10) {
-      throw new Error("Cosmos emulator warm-up failed after 10 attempts", {
-        cause: error,
-      });
-    }
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-  }
-}
-
-if (!warmed) {
-  throw lastError ?? new Error("Cosmos emulator warm-up never succeeded");
-}
-```
-
-If this warm-up passes but a higher-level repository or model helper still fails only because of emulator-specific metadata differences, keep the workaround in an integration-only seam instead of broad production changes.
-
-## Observing Azure-managed side effects
-
-When the system writes to queues, blobs, or tables through Azurite or another emulator:
-
-- read the emitted artifact from the emulator rather than spying on internal helper calls
-- accept the transport encoding the emulator actually uses
-- assert or record the payload that a downstream system would care about
-
-When reading emitted messages from Azurite or another queue emulator, accept both plain JSON and base64-encoded JSON. Compare the emitted payload, not the transport envelope.
+- read emitted artifacts from the emulator instead of spying on helper calls
+- accept the emulator's transport encoding
+- compare the downstream-relevant payload, not the envelope
+- for queues, accept plain JSON or base64-encoded JSON when reading emitted messages

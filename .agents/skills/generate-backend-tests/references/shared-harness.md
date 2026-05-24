@@ -1,220 +1,116 @@
-# Shared harness strategy for backend test generation
+# Shared harness strategy
 
-Use this reference when building the local topology for either integration or record-replay work.
+Use for the common local topology behind integration and record-replay.
 
-## First inspect
+## Inspect first
 
-Before implementing anything, inspect:
+Before coding, identify:
 
-1. the current test runner, config shape, and command conventions
-2. the real inbound surface under test:
-   - HTTP route or service
-   - Azure Functions trigger or host
-   - worker, queue, topic, or scheduled process
-   - adapter or repository seam when a smaller slice is the honest contract
-3. the local startup path for the runtime
-4. each dependency the scenario needs
-5. nearby tests, fixtures, payloads, and known regressions
-6. any existing live-test harness you can reuse
-7. whether a tiny runtime probe can answer the next uncertainty before you read dependency internals
+1. test runner, config, and command conventions
+2. real inbound surface: HTTP runtime, Azure Functions host/trigger, worker/broker, scheduler, or smaller adapter/repository seam
+3. local startup path and any checked-in runtime container, Dockerfile, devcontainer task, startup script, or env docs
+4. dependencies each scenario needs
+5. nearby tests, fixtures, payloads, known regressions, and existing live harnesses
+6. whether a tiny runtime probe can answer the next uncertainty before reading dependency internals
 
-## Prefer cheap probes before dependency source dives
+## Probe and delegate sparingly
 
-When the next blocker is "does this runtime or helper actually behave this way?", prefer a tiny local probe first.
+When behavior is uncertain, prefer a 5-10 line runtime probe using repo examples and loaded references. Read dependency source only if the probe stays ambiguous and would affect boundary, env, or readiness choices.
 
-- Start with the repository's own examples, the loaded skill references, and a 5-10 line runtime script.
-- Use dependency source only when the probe stays ambiguous and that ambiguity would change the chosen boundary, env map, or readiness strategy.
-- If the probe confirms an important quirk, encode that understanding into the harness or reference notes so future runs do not have to rediscover it.
-
-## Delegate only bounded probe work
-
-Use delegation to contain context, not to parallelize the whole workflow.
-
-- Keep boundary choice, workflow routing, scenario selection, and shared harness design in the main thread.
-- If the environment supports subagents and a probe becomes noisy but stays independent, delegate only that probe. Good candidates include a tiny Testcontainers smoke bootstrap, host reachability checks, runtime startup quirks, or validating whether an existing runtime container can be reused.
-- Give the subagent one concrete question, the smallest relevant inputs, and a crisp success or failure shape.
-- Ask for a compressed result: conclusion, minimal evidence, relevant files or commands, and the next decision it unlocks. Do not ask for long transcripts.
-- Do not split one shared harness design across multiple subagents. Parallelize only probe work whose result feeds one owner back in the main thread.
+Use subagents only for bounded independent probes, such as a Testcontainers smoke bootstrap, reachability check, runtime startup quirk, or existing container reuse check. Keep routing, scenario selection, and harness design in the main thread. Ask for compressed evidence: conclusion, minimal proof, files/commands, and the decision it unlocks.
 
 ## Boundary choice
 
-Pick the smallest honest boundary for the contract the user wants to protect.
+Pick the smallest honest boundary for the contract.
 
-| Situation                                                               | Preferred boundary                              | Why                                                               | Avoid                                                       |
-| ----------------------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------- |
-| HTTP route, middleware, auth, serialization, headers, or status mapping | full local runtime                              | those behaviors only become real at the host boundary             | importing handlers directly when the server can run locally |
-| Azure Functions trigger, binding, or emitted runtime output             | local Functions host or equivalent runtime      | host wiring is part of the contract                               | direct handler invocation when a credible local host exists |
-| worker or consumer reacting to broker messages                          | real local worker plus local broker or emulator | transport semantics and runtime wiring matter                     | unit tests that only call the handler with mocks            |
-| repository, storage adapter, cache adapter, or client adapter           | smaller integration slice plus real dependency  | the contract is between the adapter and the real dependency       | booting the full HTTP host just to test CRUD or mapping     |
-| one happy path needs host proof but the variation matrix is large       | mixed boundaries intentionally                  | one runtime proof plus narrower slices usually gives better value | forcing every branch through the host                       |
+| Situation                                                    | Preferred boundary                             | Avoid                                           |
+| ------------------------------------------------------------ | ---------------------------------------------- | ----------------------------------------------- |
+| HTTP route, middleware, auth, serialization, headers, status | full local runtime                             | direct handler import when the server can run   |
+| Azure Functions trigger, binding, or runtime output          | local Functions host/equivalent runtime        | direct handler call when a credible host exists |
+| worker or consumer on broker messages                        | real local worker plus broker/emulator         | mocks that only call the handler                |
+| repository/storage/cache/client adapter                      | smaller integration slice plus real dependency | full host just for CRUD/mapping                 |
+| one host proof plus many variations                          | mixed boundaries                               | forcing every branch through the host           |
 
-## Dependency classification
+## Dependency strategy
 
-Classify each dependency before you code:
+Classify each dependency before implementing.
 
-| Dependency type                                     | Preferred technique                                                                 | Observe results through                                                                                      |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| cloud service with connection string in `.env.test` | pre-deployed cloud service when probe passes, Testcontainers fallback when it fails | read-back helpers that query the real cloud or local dependency (see `references/cloud-services-harness.md`) |
-| partner HTTP service                                | deterministic local stub, fake, or proxy                                            | the request the stub received and the system response it triggered                                           |
-| storage, document DB, cache, queue, or broker       | Testcontainers-managed dependency or credible emulator                              | read-back helpers that query the real local dependency                                                       |
-| runtime component that already owns env and startup | reuse that runtime shape as the runtime component                                   | the real boundary it exposes                                                                                 |
-| dependency with no credible local path              | documented fallback                                                                 | the closest honest local seam                                                                                |
+| Dependency                                    | Preferred technique                                       | Observe through                           |
+| --------------------------------------------- | --------------------------------------------------------- | ----------------------------------------- |
+| `.env.test` cloud connection                  | cloud service when probe passes; local fallback otherwise | cloud/local read-back helper              |
+| partner HTTP service                          | deterministic local stub/fake/proxy                       | stub-observed request and system response |
+| storage, DB, cache, queue, broker             | Testcontainers dependency or credible emulator            | real local read-back                      |
+| runtime component with checked-in env/startup | reuse that runtime shape                                  | exposed real boundary                     |
+| no credible local path                        | documented fallback                                       | closest honest local seam                 |
 
-If a stronger local strategy is still credible but needs materially more setup, treat that as a user decision, not an implementation shortcut.
+If the faithful strategy is viable but materially harder, ask before using a fallback. This is strict when the repo ships a credible runtime container or startup definition:
 
-This is especially strict when the repository already ships a credible runtime container, Dockerfile, devcontainer task, or other checked-in runtime definition for the target app.
+- treat it as the default candidate
+- "faster/easier" is not a blocker; name a concrete technical failure or ask the user
+- present the faithful option first, fallback second, and document the decision
+- only fall back without asking when the stronger path is concretely blocked
 
-- Treat that checked-in runtime shape as the faithful default candidate, not as optional background context.
-- If you want to use a simpler runtime instead, you must stop and ask the user to choose unless the checked-in runtime is concretely blocked.
-- "Concretely blocked" means you have a specific technical failure or incompatibility you can name. "This other path is faster" or "this needs more setup" is not enough.
-- If the user approves the simpler runtime or the checked-in runtime is concretely blocked, record that decision and the reason in the final report.
+## Runtime containers
 
-- Present the faithful option first when it is viable, even if it needs custom Testcontainers orchestration, reused runtime containers, or extra network wiring.
-- Present the fallback second, with the concrete reason it is simpler and what fidelity it loses.
-- Ask the user to choose before you implement the fallback.
-- Only choose the fallback without asking when the stronger path is genuinely blocked, not merely more work.
-
-## Prefer an existing runtime container when available
-
-If the repository already ships a Dockerfile, devcontainer task, or other containerized runtime that owns env and startup credibly, reuse that runtime shape by default instead of rebuilding those concerns in the test harness.
-
-- Treat the app runtime as another topology component.
-- Keep env, build, and startup ownership inside that runtime container when it already solves those concerns credibly.
-- Use existing runtime container definitions or Dockerfiles as hints for the reused runtime shape and adjacent dependencies.
-- Keep the test harness focused on readiness checks, driving traffic, and reading side effects.
-- Do not silently replace that runtime with a simpler host boot just because it is easier to wire.
-- If you intentionally choose a different runtime shape, ask the user first unless the checked-in runtime is concretely blocked, and then document the decision plainly in the report.
+When a checked-in Dockerfile/container/devcontainer task credibly owns app env and startup, reuse that runtime shape rather than rebuilding startup in tests. Treat the app runtime as another topology component; keep the harness focused on readiness, traffic, and side-effect reads. If you choose a different runtime, ask unless blocked and record why.
 
 ## Testcontainers policy
 
-Treat Testcontainers as the only standard orchestration path for containerized dependencies.
+Testcontainers is the standard orchestration path for containerized dependencies.
 
-- Prefer official Testcontainers modules when they exist.
-- If the workspace lacks `testcontainers` and the dependency can credibly run that way, add it.
-- Do not declare Testcontainers unavailable from a missing local `docker` CLI alone. Check Docker-compatible env/runtime hints and run a tiny real Testcontainers smoke bootstrap before falling back.
-- If that smoke bootstrap fails, surface the concrete failure reason in the notes instead of inferring one from missing tooling.
-- If Testcontainers is viable but requires custom orchestration to stay faithful, treat that as the preferred path candidate and ask the user before replacing it with a fake or in-memory fallback.
-- Read checked-in Dockerfiles, devcontainer tasks, container image definitions, startup scripts, and env docs as topology inputs.
-- Keep orchestration inside Testcontainers helpers and test setup code, not shell-based Docker commands.
-- If the runtime itself is containerized, reuse that runtime shape inside the same harness strategy instead of inventing a second orchestration path.
-- Before forcing a platform like `linux/amd64`, inspect the image manifest and host architecture. Prefer a native image when one exists.
+- Prefer official modules.
+- Add `testcontainers` when absent and the dependency can credibly run that way.
+- Do not infer unavailability from a missing local `docker` CLI; run a tiny real bootstrap and surface the exact failure.
+- Keep orchestration in Testcontainers helpers/setup, not shell-driven Docker commands.
+- Read Dockerfiles, image definitions, scripts, and env docs as topology inputs.
+- Reuse containerized app runtimes in the same harness strategy.
+- Before forcing `linux/amd64`, inspect the image manifest and host architecture; prefer native images.
 
-## Network reachability in devcontainers
+## Devcontainer reachability
 
-When the harness runs inside a devcontainer, Codespace, or other shared workspace container, do not assume Docker-published dependency ports are reachable through `127.0.0.1`.
+Do not assume published ports are reachable at `127.0.0.1` from Codespaces/devcontainers.
 
-- Probe a small candidate set from the test process itself, such as `127.0.0.1`, `host.docker.internal`, the Docker bridge gateway, and an explicit override env.
-- Keep the chosen host path explicit in the setup code and, when relevant, in persisted topology metadata.
-- Treat "container port is published" and "the harness can actually reach it" as separate checks.
-- If published ports remain unreliable, attach the workspace container to the same Docker network as the dependency containers and talk to them through network aliases when that is the most stable path.
-- If Testcontainers inherits a Docker config that points at an unavailable credential helper, set `DOCKER_CONFIG` to a minimal writable directory **before** the Node or Vitest process starts. Do not leave this fix to `globalSetup`; some auth paths read Docker config during module import.
+- Probe from the test process: `127.0.0.1`, `host.docker.internal`, Docker bridge gateway, and explicit override env.
+- Persist or expose the chosen host path.
+- Treat "port published" and "harness can reach it" separately.
+- If published ports are unreliable, attach the workspace container to the dependency network and use aliases.
+- If inherited Docker config points at a missing credential helper, set `DOCKER_CONFIG` to a minimal writable directory before Node/Vitest imports anything; `globalSetup` may be too late.
 
-## Environment validation before startup
+## Environment and object construction
 
-Many systems fail before your scenario runs because required environment values are evaluated during startup or import-time config loading.
+Validate env before startup/import-time config:
 
-- Treat checked-in example env files, runtime-local settings files, and README snippets as hints, not as a guaranteed source of truth.
-- Compare those hints against the real startup config module and infrastructure defaults.
-- If they are stale or incomplete, inject a complete env map explicitly from the harness or reused runtime container.
+- compare example env files, local settings, READMEs, config modules, and infrastructure defaults
+- inject a complete env map explicitly when hints are stale
+- use syntactically valid local URLs, IDs, connection strings, flags, container/db/broker names, and service identifiers even when the scenario does not use each dependency
 
-Validate categories like:
+For JS/TS harness classes, avoid eager class-field initialization for SDK clients or handles that depend on later fields. Use constructor assignment, setup methods, or lazy getters.
 
-- runtime bootstrap settings
-- dependency connection settings
-- application config values that the app validates during startup
+## Readiness and assertions
 
-Even if the chosen scenario does not use every dependency at runtime, startup may still require valid values for URLs, service identifiers, feature flags, container names, database names, or broker names.
+Prove readiness at the level the scenario needs:
 
-Prefer syntactically valid local values, not just non-empty placeholders. Startup config often validates URLs, IDs, and connection strings at import time, so obviously fake values can still prevent the app from loading.
+- good: real endpoint response, warmup write/readback on the exact storage path, stub responding on the exact route
+- weak: open port, "container started", account-level probe for container-level scenarios
 
-## Harness object construction
+Assert observable behavior:
 
-When the harness is a TypeScript or JavaScript class, avoid eager class-field initialization for resources that depend on other fields.
-
-- Class fields run in declaration order during construction.
-- A field like `queueClient = queueServiceClient.getQueueClient(queueName)` will fail if `queueServiceClient` or `queueName` is declared later.
-- Prefer constructor assignment, explicit setup methods, or lazy getters for derived SDK clients, container handles, queue handles, and similar read-back helpers.
-
-## Readiness rules
-
-Prove readiness at the level the scenario actually needs.
-
-Good readiness signals:
-
-- a real endpoint returning a valid response
-- a warmup write plus readback against the exact storage path the scenario needs
-- a local stub responding on the exact route the runtime will call
-
-Weak readiness signals:
-
-- only waiting for a port to open
-- assuming "container started" means "dependency is usable"
-- account-level metadata probes when the scenario needs container-level reads or writes
-
-## Assertion rules
-
-Assert on observable behavior, not helper calls.
-
-Prefer:
-
-- HTTP status, headers, and body
-- outbound requests observed by a local stub
-- rows, documents, blobs, keys, or messages read back from the real dependency
-- meaningful failure modes at the chosen boundary
-
-Avoid:
-
-- mock call counts
-- spy assertions on dependencies you claim to be integrating with
-- implementation-shaped assertions that disappear when the real boundary runs
+- prefer status/headers/body, outbound requests captured by stubs, real rows/docs/blobs/keys/messages, and meaningful boundary failures
+- avoid mock counts, spy assertions, and implementation-shaped expectations
 
 ## Cross-cutting rules
 
-These rules apply to every path (integration, record-replay, or both). Other references defer here instead of restating them.
-
-### Reuse before inventing
-
-If the workspace already has a live-test harness, shared container setup, or stronger local convention for the same boundary, reuse it. Do not create a parallel harness.
-
-### Selective support-layer modularity
-
-Optimize for reviewability, not file count.
-
-- If one support file would otherwise own startup, readiness, connection metadata, and fixture helpers for **two or more** stateful dependencies or emulators, split that logic into one module per dependency family and keep the top-level `global-setup.ts`, `harness.ts`, or equivalent as a thin orchestrator.
-- Good candidates are modules such as `cosmos.ts`, `azurite.ts`, `redis.ts`, or `postgres.ts` that each own one dependency's Testcontainers bootstrap, readiness proof, and dependency-specific helpers.
-- Keep the orchestrator focused on composition: start modules, wire connection info together, expose shared metadata, and tear modules down in reverse order.
-- Do **not** force the same split on cohesive files whose job is already single-purpose, such as `function-host.ts`, cassette helpers, or small outbound HTTP stubs.
-- Do **not** explode one dependency into many tiny files unless the repository already has that convention or the dependency logic is independently large.
-
-### Orientation comments for support modules
-
-Add one short comment near the top of the file that explains the module's job and where it sits in the local test topology.
-
-- Good targets include shared runtime harnesses, local stub servers, dependency fallbacks, cassette helpers, and topology adapters.
-- Keep the comment brief and architectural. Explain purpose and boundary, not implementation trivia.
-- Do not add repetitive inline comments for straightforward code just to satisfy this rule.
-
-### Both-paths coexistence
-
-When the user chooses `both`:
-
-- keep one shared container startup path and one source of connection metadata
-- let the shared harness own Testcontainers startup, connection metadata, and generic fixtures
-- let integration own long-lived live assertions
-- let record-replay own cassettes, normalization, `record` / `verify`, and characterization-only helpers
-- split suites or Vitest projects only when include patterns or lifecycle rules truly differ
-- do not clone container startup code across suites
-
-### Testcontainers as the only orchestration path
-
-Treat Testcontainers as the only standard orchestration path for containerized dependencies. Do not switch to shell-driven container orchestration as a normal fallback. If Testcontainers appears blocked, prove it with a tiny real bootstrap before declaring it unavailable.
+- Reuse an existing live harness/shared setup for the same boundary; do not create a parallel one.
+- Split support modules by dependency family only when one file would own startup, readiness, connection metadata, and fixtures for two or more stateful dependencies. Keep orchestrators thin; do not explode cohesive single-purpose helpers.
+- Add one brief architectural comment near non-obvious topology modules such as runtime harnesses, stubs, dependency fallbacks, cassette helpers, or adapters. Avoid repetitive inline comments.
+- When using both integration and record-replay, share container startup and connection metadata. Let integration own durable live assertions; let record-replay own cassettes, normalization, `record` / `verify`, and characterization helpers. Split suites/projects only when lifecycle or include patterns differ.
 
 ## Final decision check
 
-Before you proceed, confirm that:
+Proceed only when:
 
-1. the chosen boundary matches the contract the user cares about
-2. each dependency has an explicit local strategy
+1. the boundary matches the protected contract
+2. each dependency has an explicit strategy
 3. containerized dependencies use Testcontainers
-4. the side effects can be observed through the real local seam
-5. the new work reuses an existing harness when one already covers the same boundary
+4. side effects are observable through the real local seam
+5. existing harnesses are reused when they already cover the boundary

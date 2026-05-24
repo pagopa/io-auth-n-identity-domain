@@ -1,16 +1,15 @@
-# Azure Functions live integration additions
+# Azure Functions integration additions
 
-> Prerequisites: read `references/azure-harness.md` and `references/azure-functions-harness.md` first. This file adds integration-specific guidance on top of the shared Azure Functions harness.
+Prerequisites: read `azure-harness.md` and `azure-functions-harness.md`. This adds integration-only guidance.
 
-## Recommended layout
+## Layout
 
-Keep the integration folder close to the target app and separate runtime helpers from scenario assertions.
+Keep the integration folder near the target app and separate helpers from assertions. Reuse repo conventions when stronger.
 
 ```text
 src/
   integration/
-    live/
-      <scenario>.test.ts
+    live/<scenario>.test.ts
     support/
       function-host.ts
       harness.ts
@@ -18,63 +17,42 @@ src/
       cleanup.ts
 ```
 
-If the repo already has an `integration/` or equivalent test folder, keep that naming. The important part is the separation:
-
-- `*.test.ts` drives the real scenario
-- `function-host.ts` or `app-runtime.ts` owns starting or attaching to the real Functions runtime
-- `harness.ts` owns Testcontainers-managed dependencies, seed data, and read-back helpers
+- tests drive real scenarios
+- `function-host.ts`/`app-runtime.ts` starts or attaches to the Functions runtime
+- `harness.ts` owns Testcontainers dependencies, seed data, and read-back helpers
 - `stubs.ts` owns outbound partner HTTP stubs
 
-For Vitest-based suites, see `references/shared-vitest-lifecycle.md` for the shared-container lifecycle layout.
+For Vitest, apply `shared-vitest-lifecycle.md`.
 
-## Integration-specific workflow
+## Workflow
 
-On top of the shared Azure and Azure Functions harness:
+On top of the shared Azure/Functions harness:
 
-1. Seed and read dependencies through raw SDK or protocol calls owned by the integration folder, not through mock helpers.
-2. Assert on the live response and the side effects that matter to the contract.
-3. Keep the suite focused on durable contract behavior rather than helper-call mechanics.
+1. Seed/read dependencies through raw SDK or protocol calls owned by integration support, not mock helpers.
+2. Assert live response and contract-relevant side effects.
+3. Keep focus on durable contract behavior, not helper calls.
+4. Prefer one-time build in the explicit integration command rather than inside test bodies.
 
-If the harness is test-runner-driven, prefer doing the one-time `build` in the explicit integration test command rather than inside every test body.
+## Non-HTTP triggers
 
-## Prefer the real trigger transport for non-HTTP flows
+For queue, blob, timer, or broker triggers, prefer the real local trigger transport when honest.
 
-When the scenario is queue-, blob-, timer-, or broker-triggered, prefer driving it through the real local trigger transport whenever the topology can do that honestly.
+- Use `/admin/functions/<name>` only as a diagnostic seam.
+- A working admin invocation plus broken real trigger is a harness bug, not proof the narrower seam is good enough.
+- See `azure-functions-harness.md` for queue encoding, poison queues, and binding quirks.
 
-- Use `/admin/functions/<name>` as a diagnostic seam to surface runtime failures quickly, not as the default seam for ongoing trigger coverage.
-- If the real queue or blob trigger is available locally, keep the integration test at that boundary even when admin invocation looks easier.
-- Treat a working admin invocation plus a broken real trigger as a harness bug still worth fixing, not as evidence that the narrower seam is "good enough."
+## Binding-output slice
 
-For queue-trigger payload quirks (base64, poison queues, encoding), see `references/azure-functions-harness.md`.
-
-## Binding-output slice snippet
-
-When the contract is "this Function emits the correct queue, blob, or table output" and booting the full host would mostly repeat framework setup, assert through a real `InvocationContext` instead of spies.
+When the contract is only "this Function emits the correct queue/blob/table output" and the full host adds noise, a real `InvocationContext` slice can be honest:
 
 ```ts
-const queueOutput = output.storageQueue({
-  connection: "AzureWebJobsStorage",
-  queueName: "example-queue",
-});
 const context = new InvocationContext();
-
 await handler(input, context);
-
 expect(context.extraOutputs.get(queueOutput)).toEqual(expectedPayload);
 ```
 
-Use this style only when the emitted binding payload is the contract you care about and the full host would add noise rather than confidence.
-
-For general assertion style, follow `references/integration-workflow.md`; this file only adds Azure Functions-specific layout and harness guidance.
+Use this only for binding payload contracts; otherwise follow `integration-workflow.md`.
 
 ## Good final shape
 
-A good Azure Functions live integration suite usually has:
-
-- one explicit way to boot the host
-- shared emulator containers when Vitest is available
-- per-test disposable resources
-- local partner HTTP stubs where needed
-- assertions on the real response and real side effects
-
-That gives you integration confidence without turning the suite into a record-replay harness by accident.
+A healthy suite has one explicit host boot path, shared emulator containers where useful, per-test disposable resources, local partner stubs as needed, and assertions on real responses/side effects without becoming a record-replay harness.
