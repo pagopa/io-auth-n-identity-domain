@@ -46,6 +46,15 @@ For `authLevel: "function"` or `"admin"`:
 - Fallback: if secret storage cannot be overridden, poll Azurite at `azure-webjobs-secrets/<app-name>/host.json`, then pass the key with `x-functions-key` or `?code=`.
 - Skip key handling for anonymous routes.
 
+Minimal `Secrets/host.json` shape:
+
+```json
+{
+  "masterKey": { "name": "master", "value": "<known-test-key>", "encrypted": false },
+  "functionKeys": []
+}
+```
+
 `/admin/functions/<name>` is useful for diagnostics, not the default seam for queue/blob/broker/timer scenarios that local topology can drive honestly.
 
 ## Trigger isolation

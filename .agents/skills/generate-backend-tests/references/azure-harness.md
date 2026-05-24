@@ -45,6 +45,19 @@ Important quirks:
 - If domain schemas need those system fields under emulator queries, add them as regular fields in test seed data only, not production code.
 - If warm-up passes but higher-level helpers fail only because of emulator metadata, keep the workaround in an integration-only seam.
 
+Warm-up lines example:
+
+```ts
+const client = new CosmosClient({
+  endpoint: `http://${host}:${mappedPort}`,
+  key: COSMOS_EMULATOR_KEY,
+  connectionPolicy: { enableEndpointDiscovery: false },
+});
+
+await probeContainer.item("probe-item", "probe").read();
+await probeContainer.items.query("SELECT * FROM c").fetchAll();
+```
+
 ## Observing Azure side effects
 
 For queues, blobs, and tables:
