@@ -95,12 +95,6 @@ export const firstLcAssertionClientConfig: FirstLcAssertionClientConfig = {
       throw new Error("Error decoding url");
     }),
   ),
-  FIRST_LC_ORIGINAL_URL_FALLBACK: pipe(
-    UrlFromString.decode("https://api-app.io.pagopa.it/first-lollipop/sign"),
-    E.getOrElseW(() => {
-      throw new Error("Error decoding url");
-    }),
-  ),
   FIRST_LC_ASSERTION_CLIENT_BASE_URL:
     "assertionClientBaseUrl" as NonEmptyString,
   FIRST_LC_ASSERTION_CLIENT_SUBSCRIPTION_KEY:

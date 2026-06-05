@@ -34,12 +34,6 @@ export const FirstLcAssertionClientConfig = t.type({
     "https://api-app.io.pagopa.it/api/identity/v1/first-lollipop/sign",
   ).pipe(UrlFromString),
 
-  // TODO: remove this after minimum app version has been bumped
-  FIRST_LC_ORIGINAL_URL_FALLBACK: withDefault(
-    t.string,
-    "https://api-app.io.pagopa.it/first-lollipop/sign",
-  ).pipe(UrlFromString),
-
   FIRST_LC_ASSERTION_CLIENT_BASE_URL: NonEmptyString,
   FIRST_LC_ASSERTION_CLIENT_SUBSCRIPTION_KEY: NonEmptyString,
 

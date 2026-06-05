@@ -160,9 +160,7 @@ export const signedMessageHandler =
           headers["x-pagopa-lollipop-original-method"] ===
             firstLcAssertionClientConfig.EXPECTED_FIRST_LC_ORIGINAL_METHOD &&
           (headers["x-pagopa-lollipop-original-url"] ===
-            firstLcAssertionClientConfig.EXPECTED_FIRST_LC_ORIGINAL_URL.href ||
-            headers["x-pagopa-lollipop-original-url"] ===
-              firstLcAssertionClientConfig.FIRST_LC_ORIGINAL_URL_FALLBACK.href),
+            firstLcAssertionClientConfig.EXPECTED_FIRST_LC_ORIGINAL_URL.href),
         (headers) =>
           ResponseErrorInternal(
             `Unexpected original method and/or original url: ${headers["x-pagopa-lollipop-original-method"]}, ${headers["x-pagopa-lollipop-original-url"]}`,
