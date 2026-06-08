@@ -1,5 +1,11 @@
 # io-lollipop
 
+## 1.21.1
+
+### Patch Changes
+
+- df0fc32: Remove `FIRST_LC_ORIGINAL_URL_FALLBACK`
+
 ## 1.21.0
 
 ### Minor Changes
