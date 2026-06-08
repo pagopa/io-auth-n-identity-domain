@@ -2,7 +2,7 @@
   "name": "io-lollipop",
   "description": "",
   "author": "IO Auth & Identity Team",
-  "version": "1.21.0",
+  "version": "1.21.1",
   "license": "MIT",
   "main": "dist/main.js",
   "files": [
