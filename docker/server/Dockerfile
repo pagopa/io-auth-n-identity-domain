@@ -1,6 +1,6 @@
 ARG SERVER_NAME
 
-FROM node:22-alpine AS base
+FROM node:22-alpine@sha256:9385cd9f3001dfc3431e8ead12c43e9e1f87cc1b9b5c6cfd0f73865d405b27c4 AS base
 COPY . /usr/src/app
 
 
@@ -10,7 +10,7 @@ WORKDIR /usr/src/app
 RUN corepack enable pnpm && pnpm dlx turbo@^2.5.5 prune ${SERVER_NAME} --docker
 
 
-FROM node:22-alpine AS installer
+FROM node:22-alpine@sha256:9385cd9f3001dfc3431e8ead12c43e9e1f87cc1b9b5c6cfd0f73865d405b27c4 AS installer
 WORKDIR /usr/src/app
 RUN apk add openssl
 COPY --from=builder /usr/src/app/out/json/ .
@@ -19,7 +19,7 @@ COPY --from=builder /usr/src/app/out/full/ .
 RUN pnpm exec turbo run build
 
 
-FROM node:22-alpine AS runner
+FROM node:22-alpine@sha256:9385cd9f3001dfc3431e8ead12c43e9e1f87cc1b9b5c6cfd0f73865d405b27c4 AS runner
 ARG SERVER_NAME
 RUN corepack enable pnpm
 WORKDIR /usr/src/app/apps/${SERVER_NAME}
