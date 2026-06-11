@@ -153,3 +153,7 @@ azure-functions-core-tools
 
 # PNPM
 .pnpm-store
+
+# Local AI Agents
+.agents
+skills-lock.json
