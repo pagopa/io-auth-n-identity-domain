@@ -20,16 +20,25 @@ import {
   makeProfileCompletedEvent,
   makeServicePreferencesChangedEvent,
 } from "../utils/emitted-events";
-import { ActivityInput as SendWelcomeMessageActivityInput } from "./send-welcome-messages-activity";
-import { Input as UpdateServiceSubscriptionFeedActivityInput } from "./update-subscriptions-feed-activity";
 import {
+  ActivityName as SendWelcomeMessagesActivityName,
+  ActivityInput as SendWelcomeMessageActivityInput,
+} from "./send-welcome-messages-activity";
+import {
+  ActivityName as UpdateSubscriptionFeedActivityName,
+  Input as UpdateServiceSubscriptionFeedActivityInput,
+} from "./update-subscriptions-feed-activity";
+import {
+  OrchestratorName as EmailValidationWithTemplateProcessOrchestratorName,
   OrchestratorInput as EmailValidationWithTemplateProcessOrchestratorInput,
   OrchestratorResult as EmailValidationWithTemplateProcessOrchestratorResult,
 } from "./email-validation-orchestrator";
 import {
+  ActivityName as GetServicesPreferencesActivityName,
   ActivityResult,
   ActivityResultSuccess,
 } from "./get-services-preferences-activity";
+import { ActivityName as EmitEventActivityName } from "./emit-event-activity";
 
 /**
  * Carries information about created or updated profile.
@@ -132,7 +141,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
 
         const emailValidationProcessOrchestartorResultJson =
           yield context.df.callSubOrchestratorWithRetry(
-            "EmailValidationWithTemplateProcessOrchestrator",
+            EmailValidationWithTemplateProcessOrchestratorName,
             retryOptions,
             emailValidationProcessOrchestartorInput,
           );
@@ -196,7 +205,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
 
     if (hasJustEnabledInbox) {
       yield context.df.callActivityWithRetry(
-        "SendWelcomeMessagesActivity",
+        SendWelcomeMessagesActivityName,
         retryOptions,
         {
           messageKind: "WELCOME",
@@ -204,7 +213,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
         } as SendWelcomeMessageActivityInput,
       );
       yield context.df.callActivityWithRetry(
-        "SendWelcomeMessagesActivity",
+        SendWelcomeMessagesActivityName,
         retryOptions,
         {
           messageKind: "HOWTO",
@@ -213,7 +222,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
       );
       if (params.sendCashbackMessage) {
         yield context.df.callActivityWithRetry(
-          "SendWelcomeMessagesActivity",
+          SendWelcomeMessagesActivityName,
           retryOptions,
           {
             messageKind: "CASHBACK",
@@ -228,11 +237,11 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
       // When a profile get created we add an entry to the profile subscriptions
       if (!context.df.isReplaying) {
         context.trace(
-          `${logPrefix}|Calling UpdateSubscriptionsFeedActivity|OPERATION=SUBSCRIBED`,
+          `${logPrefix}|Calling ${UpdateSubscriptionFeedActivityName}|OPERATION=SUBSCRIBED`,
         );
       }
       yield context.df.callActivityWithRetry(
-        "UpdateSubscriptionsFeedActivity",
+        UpdateSubscriptionFeedActivityName,
         retryOptions,
         {
           fiscalCode: newProfile.fiscalCode,
@@ -263,11 +272,11 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
         for (const s of subscribedServices) {
           if (!context.df.isReplaying) {
             context.trace(
-              `${logPrefix}|Calling UpdateSubscriptionsFeedActivity|OPERATION=SUBSCRIBED|SERVICE_ID=${s}`,
+              `${logPrefix}|Calling ${UpdateSubscriptionFeedActivityName}|OPERATION=SUBSCRIBED|SERVICE_ID=${s}`,
             );
           }
           yield context.df.callActivityWithRetry(
-            "UpdateSubscriptionsFeedActivity",
+            UpdateSubscriptionFeedActivityName,
             retryOptions,
             {
               fiscalCode: newProfile.fiscalCode,
@@ -283,11 +292,11 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
         for (const s of unsubscribedServices) {
           if (!context.df.isReplaying) {
             context.trace(
-              `${logPrefix}|Calling UpdateSubscriptionsFeedActivity|OPERATION=UNSUBSCRIBED|SERVICE_ID=${s}`,
+              `${logPrefix}|Calling ${UpdateSubscriptionFeedActivityName}|OPERATION=UNSUBSCRIBED|SERVICE_ID=${s}`,
             );
           }
           yield context.df.callActivityWithRetry(
-            "UpdateSubscriptionsFeedActivity",
+            UpdateSubscriptionFeedActivityName,
             retryOptions,
             {
               fiscalCode: newProfile.fiscalCode,
@@ -321,7 +330,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
             : "SUBSCRIBED";
         if (!context.df.isReplaying) {
           context.trace(
-            `${logPrefix}|Calling UpdateSubscriptionsFeedActivity|OPERATION=${feedOperation}`,
+            `${logPrefix}|Calling ${UpdateSubscriptionFeedActivityName}|OPERATION=${feedOperation}`,
           );
         }
 
@@ -332,7 +341,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
         ) {
           // Execute a new version of the orchestrator
           const activityResult = yield context.df.callActivityWithRetry(
-            "GetServicesPreferencesActivity",
+            GetServicesPreferencesActivityName,
             retryOptions,
             {
               fiscalCode: profileOperation.oldProfile.fiscalCode,
@@ -364,7 +373,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
             ),
           );
           yield context.df.callActivityWithRetry(
-            "UpdateSubscriptionsFeedActivity",
+            UpdateSubscriptionFeedActivityName,
             retryOptions,
             {
               fiscalCode: newProfile.fiscalCode,
@@ -377,7 +386,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
           );
         } else {
           yield context.df.callActivityWithRetry(
-            "UpdateSubscriptionsFeedActivity",
+            UpdateSubscriptionFeedActivityName,
             retryOptions,
             {
               fiscalCode: newProfile.fiscalCode,
@@ -425,7 +434,7 @@ export const getUpsertedProfileOrchestratorHandler = (params: {
       yield context.df.Task.all(
         emittedEvents.map((e) =>
           context.df.callActivityWithRetry(
-            "EmitEventActivity",
+            EmitEventActivityName,
             retryOptions,
             e,
           ),
