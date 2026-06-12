@@ -1,5 +1,5 @@
 {
-  "image": "mcr.microsoft.com/devcontainers/base:debian@sha256:da67c59f82e057e0ccb81ec7d13fb50464c26f477638018e6de1b2623a008a3a",
+  "image": "mcr.microsoft.com/devcontainers/base:debian@sha256:a07f1804d8e665ff64bf6adcd60f4d9b9223dc52ee18a1f1a7a8e1ee1a134d34",
   "features": {
     "ghcr.io/devcontainers-extra/features/pre-commit:2": {},
     "ghcr.io/devcontainers/features/azure-cli:1": {},
@@ -13,18 +13,27 @@
     "ghcr.io/pagopa/devcontainer-features/trivy:1": {},
     "ghcr.io/pagopa/devcontainer-features/plantuml:1": {},
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "20",
+      "version": "22.22.2",
       "installYarnUsingApt": false,
       "pnpmVersion": "none",
       "nvmInstallPath": "/opt/nvm"
-    }
+    },
+    "ghcr.io/devcontainers/features/copilot-cli:1": {}
   },
   "postStartCommand": {
-    "set-workspace-as-safe-dir": "git config --global --add safe.directory ${containerWorkspaceFolder}"
+    "set-workspace-as-safe-dir": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+    // Use interactive bash (-i) to load NVM and the correct PATH
+    "install-deps": "/bin/bash -i -c 'corepack enable && pnpm install'",
+    // Do the same for pre-commit for safety
+    "install-pre-commit": "/bin/bash -i -c 'pre-commit install --install-hooks'"
   },
   "containerEnv": {
     "COREPACK_ENABLE_DOWNLOAD_PROMPT": "0"
   },
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": [
+    7071 // Azure Functions Core Tools default port
+  ],
   "customizations": {
     "vscode": {
       "extensions": [
@@ -33,6 +42,7 @@
         "-ms-azuretools.vscode-azureterraform",
         "ms-azuretools.vscode-azure-github-copilot",
         "ms-vscode.vscode-websearchforcopilot",
+        "azurite.azurite",
         "ms-azuretools.vscode-azureterraform",
         "github.vscode-github-actions",
         "github.vscode-pull-request-github",
@@ -43,8 +53,36 @@
         "redhat.vscode-yaml",
         "dbaeumer.vscode-eslint",
         "github.copilot",
-        "github.copilot-chat"
-      ]
+        "github.copilot-chat",
+        "ms-vsliveshare.vsliveshare",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit",
+          "source.organizeImports": "explicit"
+        },
+        "eslint.enable": true,
+        "eslint.probe": ["typescript"],
+        "eslint.workingDirectories": [{ "mode": "auto" }],
+        "[terraform]": {
+          "editor.defaultFormatter": "hashicorp.terraform"
+        }
+      },
+      "mcp": {
+        "servers": {
+          "dx-mcp-server": {
+            "type": "http",
+            "url": "https://api.dx.pagopa.it/mcp"
+          },
+          "azure-learn-mcp-server": {
+            "type": "http",
+            "url": "https://learn.microsoft.com/api/mcp"
+          }
+        }
+      }
     }
   }
 }
