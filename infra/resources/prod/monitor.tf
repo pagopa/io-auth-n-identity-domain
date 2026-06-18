@@ -9,8 +9,8 @@ data "azurerm_key_vault_secret" "alert_error_notification_slack" {
   key_vault_id = module.key_vaults.auth.id
 }
 
-data "azurerm_key_vault_secret" "alert_error_notification_opsgenie" {
-  name         = "alert-error-notification-opsgenie"
+data "azurerm_key_vault_secret" "incident_mgmt_service_uri" {
+  name         = "incident-mgmt-service-uri"
   key_vault_id = module.key_vaults.auth.id
 }
 
@@ -42,8 +42,8 @@ resource "azurerm_monitor_action_group" "error_action_group" {
   }
 
   webhook_receiver {
-    name                    = "sendtoopsgenie"
-    service_uri             = data.azurerm_key_vault_secret.alert_error_notification_opsgenie.value
+    name                    = "sendToIncidentManagementService"
+    service_uri             = data.azurerm_key_vault_secret.incident_mgmt_service_uri.value
     use_common_alert_schema = true
   }
 

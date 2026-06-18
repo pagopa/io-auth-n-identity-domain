@@ -6,6 +6,7 @@ provider "registry.terraform.io/azure/azapi" {
   constraints = "~> 2.4.0"
   hashes = [
     "h1:IhVB0JJzdPUXK8Ju67+ACAv4zU8SZ4POCFWmyQ6GBTw=",
+    "h1:ewWtDs83gE9Cf2kh3Y5SwTgWbzBCjME0N8/ZPtVmYoQ=",
     "h1:sTy8k+GWhDDzQ3lJN9nzP3NlgbAO5o+22OSoW3Ot+zA=",
     "zh:2183c410d912c936578f74ff0bac0d86467a9a082535fbd682a6e702b60bfd20",
     "zh:52398d75bd235f4666ac72ce0bfb3eb24fde83bd4e177254e10dd9781f855b18",
@@ -97,6 +98,7 @@ provider "registry.terraform.io/pagopa-dx/azure" {
   constraints = ">= 0.0.6, ~> 0.3, < 1.0.0"
   hashes = [
     "h1:FOVSbh9ZaybAFewuwyqAAxeNwA+DkvxhK1AALU9hFo4=",
+    "h1:T0TG+Hi2CJqDH7ITaIjSfwVe9mn+vvdIt7RgfyN8w3M=",
     "h1:ki1Y085qSubkykHlXtVB7E1XxJIyrUhG9/84W9wvWY0=",
     "zh:0fc5a279792512b9b427f6eeba135c4e10a25d01b7bed54d4663c4e511269009",
     "zh:19dbfbe9da18634c310d85fc9a5ca922882ddaaba6d19ab2ecda0e8a7b00cd53",
