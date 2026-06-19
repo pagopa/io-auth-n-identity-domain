@@ -1,0 +1,9 @@
+{
+  "name": "@pagopa/io-platform-typescript-config-node",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "devDependencies": {
+    "@tsconfig/node22": "catalog:"
+  }
+}
