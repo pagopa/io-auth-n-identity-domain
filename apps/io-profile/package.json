@@ -2,7 +2,7 @@
   "name": "io-profile",
   "description": "",
   "author": "IO Auth & Identity Team",
-  "version": "5.33.0",
+  "version": "5.33.1",
   "main": "dist/main.js",
   "license": "MIT",
   "files": [
