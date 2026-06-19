@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.33.1
+
+### Patch Changes
+
+- 63df28d: Fix missing execution UpdateSubscriptionFeedActivity for wrong activity name
+
 ## 5.33.0
 
 ### Minor Changes
