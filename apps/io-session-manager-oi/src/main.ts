@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createConfigLoader } from "./adapters/outbound/config-loader.js";
 import { createApp } from "./app.js";
 
@@ -17,6 +18,9 @@ const start = async () => {
   try {
     await server.listen({ port: config.PORT });
     console.log(`Server listening on http://localhost:${config.PORT}`);
+    console.log(
+      `Info: http://localhost:${config.PORT}/api/info`,
+    );
   } catch (err) {
     server.log.error(err);
     process.exit(1);

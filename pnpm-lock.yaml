@@ -1297,6 +1297,9 @@ importers:
       '@pagopa/io-env-config':
         specifier: workspace:^
         version: link:../../packages/io-env-config
+      dotenv:
+        specifier: 'catalog:'
+        version: 16.4.7
       fastify:
         specifier: 'catalog:'
         version: 5.8.5
