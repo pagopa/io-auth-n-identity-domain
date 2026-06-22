@@ -80,4 +80,12 @@ export default defineWorkspace([
       environment: "node",
     },
   },
+  {
+    extends: "packages/io-env-config/vite.config.mts",
+    test: {
+      name: "io-env-config",
+      include: ["packages/io-env-config/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
 ]);
