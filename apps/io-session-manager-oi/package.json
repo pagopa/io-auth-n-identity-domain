@@ -17,10 +17,13 @@
     "lint:check": "eslint .",
     "start": "node dist/main.js",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "generate:openapi": "tsx ./scripts/generate-openapi.ts",
+    "generate:openapi:check": "tsx ./scripts/generate-openapi.ts --check"
   },
   "dependencies": {
     "@pagopa/io-core-adapter-fastify": "workspace:^",
+    "@pagopa/io-env-config": "workspace:^",
     "@pagopa/io-core-domain": "workspace:^",
     "@pagopa/io-core-openapi": "workspace:^",
     "fastify": "catalog:",
@@ -33,6 +36,7 @@
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "shx": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
