@@ -29,4 +29,4 @@ COPY --from=installer --chown=node:node /usr/src/app /usr/src/app
 RUN chown -R node:node /tmp
 
 USER node
-CMD ["node", "dist/server.js"]
+CMD ["pnpm", "run", "start"]

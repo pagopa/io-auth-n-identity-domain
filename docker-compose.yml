@@ -7,6 +7,18 @@
 name: io-mock
 
 services:
+  io-session-manager-oi:
+    image: io-session-manager-oi
+    build:
+      context: ./
+      dockerfile: ./docker/server/Dockerfile
+      args:
+        SERVER_NAME: "io-session-manager-oi"
+    env_file:
+      - ./docker/generated/.env.io-session-manager-oi
+    ports:
+      - ${IO_SESSION_MANAGER_OI_PORT}:${IO_SESSION_MANAGER_OI_PORT}
+      
   io-session-manager:
     image: io-session-manager
     build:
