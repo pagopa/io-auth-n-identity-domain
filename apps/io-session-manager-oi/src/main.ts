@@ -16,11 +16,9 @@ const start = async () => {
   const { server } = createApp(config);
 
   try {
-    await server.listen({ port: config.PORT });
-    console.log(`Server listening on http://localhost:${config.PORT}`);
-    console.log(
-      `Info: http://localhost:${config.PORT}/api/info`,
-    );
+    await server.listen({ host: config.HOST, port: config.PORT });
+    console.log(`Server listening on: http://${config.HOST}:${config.PORT}`);
+    console.log(`Info: http://${config.HOST}:${config.PORT}/api/info`);
   } catch (err) {
     server.log.error(err);
     process.exit(1);
