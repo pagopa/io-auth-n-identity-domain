@@ -29,6 +29,7 @@
     "dotenv": "catalog:",
     "fastify": "catalog:",
     "neverthrow": "catalog:",
+    "range_check": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

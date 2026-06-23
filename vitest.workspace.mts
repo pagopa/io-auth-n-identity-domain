@@ -88,4 +88,12 @@ export default defineWorkspace([
       environment: "node",
     },
   },
+  {
+    extends: "apps/io-session-manager-oi/vite.config.mts",
+    test: {
+      name: "io-session-manager-oi",
+      include: ["apps/io-session-manager-oi/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
 ]);

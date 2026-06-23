@@ -12,7 +12,9 @@ export const createApp = (
   registry: RouteRegistry;
   server: FastifyInstance;
 } => {
-  const server = fastify();
+  const server = fastify({
+    trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
+  });
   const registry = new RouteRegistry();
 
   // --- Dependency wiring ---
