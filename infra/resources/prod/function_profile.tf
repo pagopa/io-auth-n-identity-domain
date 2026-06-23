@@ -100,8 +100,8 @@ module "function_profile" {
   health_check_path     = "/api/v1/info"
   has_durable_functions = "true"
 
-  # P3mv3 SKU and 10 Worker process count
-  tier = "xxl"
+  # P2mv3 SKU and 8 Worker process count
+  tier = "xl"
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
 

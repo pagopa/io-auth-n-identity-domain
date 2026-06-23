@@ -73,8 +73,8 @@ module "function_lollipop" {
   resource_group_name = data.azurerm_resource_group.function_lollipop_rg.name
   health_check_path   = "/info"
   node_version        = 22
-  # P3mv3 SKU and 10 Worker process count
-  tier = "xxl"
+  # P2mv3 SKU and 8 Worker process count
+  tier = "xl"
 
   subnet_cidr   = local.cidr_subnet_fn_lollipop
   subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
