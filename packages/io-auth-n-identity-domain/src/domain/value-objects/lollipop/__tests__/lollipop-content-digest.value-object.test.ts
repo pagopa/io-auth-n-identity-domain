@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { LollipopContentDigestSchema } from "../lollipop-content-digest.value-object.js";
-import { computeContentDigest } from "../../../entities/__tests__/lollipop-required-headers.entity.test.js";
+import { computeContentDigest } from "../../../__mocks__/lollipop.mock.js";
 
 describe("LollipopContentDigestSchema", () => {
   it.each(["sha-256", "sha-384", "sha-512"] as const)(

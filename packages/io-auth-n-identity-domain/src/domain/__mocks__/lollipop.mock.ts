@@ -1,3 +1,19 @@
+import { createHash } from "node:crypto";
+
+/**
+ * Computes a `content-digest` header value for the given algorithm and body,
+ * using the format defined in RFC 9530: `<algorithm>=:<base64-encoded-digest>:`
+ */
+export const computeContentDigest = (
+  algorithm: "sha-256" | "sha-384" | "sha-512",
+  body: string,
+): string => {
+  const digest = createHash(algorithm.replace(/-/g, ""))
+    .update(body)
+    .digest("base64");
+  return `${algorithm}=:${digest}:`;
+};
+
 export const anAssertionRef =
   "sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU";
 

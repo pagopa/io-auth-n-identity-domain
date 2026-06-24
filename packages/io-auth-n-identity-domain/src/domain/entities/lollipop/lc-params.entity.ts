@@ -3,7 +3,7 @@ import { z } from "zod";
 import { FiscalCodeSchema } from "@pagopa/io-core-domain";
 
 import {
-  AssertionType,
+  AssertionTypeSchema,
   LollipopAssertionRefSchema,
   LollipopPublicKeySchema,
 } from "../../value-objects/index.js";
@@ -15,7 +15,7 @@ import {
 export const LcParamsSchema = z.object({
   assertion_ref: LollipopAssertionRefSchema,
 
-  assertion_type: AssertionType,
+  assertion_type: AssertionTypeSchema,
 
   lc_authentication_bearer: z.string().min(1),
 

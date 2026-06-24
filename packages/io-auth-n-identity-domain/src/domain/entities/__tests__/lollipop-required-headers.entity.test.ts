@@ -1,27 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { createHash } from "node:crypto";
-
 import { LollipopRequiredHeadersSchema } from "../index.js";
 
-import { validHeaders } from "../../__mocks__/lollipop.mock.js";
-
-/**
- * Computes a `content-digest` header value for the given algorithm and body,
- * using the format defined in RFC 9530:
- *   `<algorithm>=:<base64-encoded-digest>:`
- */
-export const computeContentDigest = (
-  algorithm: "sha-256" | "sha-384" | "sha-512",
-  body: string,
-): string => {
-  // The content-digest header format uses hyphens: sha-256, sha-384, sha-512
-  // but the Node.js crypto module uses the same names without hyphens: sha256, sha384, sha512
-  const digest = createHash(algorithm.replace(/-/g, ""))
-    .update(body)
-    .digest("base64");
-  return `${algorithm}=:${digest}:`;
-};
+import {
+  computeContentDigest,
+  validHeaders,
+} from "../../__mocks__/lollipop.mock.js";
 
 describe("LollipopRequiredHeadersSchema", () => {
   it("accepts valid required headers", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { LollipopPublicKeySchema } from "../lollipop-public-key.js";
+import { LollipopPublicKeySchema } from "../lollipop-public-key.value-object.js";
 
 const toBase64Url = (value: unknown): string =>
   Buffer.from(JSON.stringify(value)).toString("base64url");
