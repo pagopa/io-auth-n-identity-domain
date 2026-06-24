@@ -6,6 +6,6 @@ import { z } from "zod";
 export const LollipopMethodSchema = z
   .enum(["GET", "POST", "PUT", "PATCH", "DELETE"])
   .describe("Lollipop HTTP request method verb")
-  .brand<"HttpMethod">();
+  .brand<"LollipopMethod">();
 
-export type HttpMethod = z.infer<typeof LollipopMethodSchema>;
+export type LollipopMethod = z.infer<typeof LollipopMethodSchema>;

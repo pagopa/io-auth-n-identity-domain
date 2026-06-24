@@ -3,11 +3,11 @@ import { z } from "zod";
 /**
  * A well-formed URL that uses the HTTPS scheme.
  */
-export const HttpsUrlSchema = z
+export const LollipopOriginalUrlSchema = z
   .url({
     protocol: /^https$/,
   })
   .describe("A well-formed URL that uses the HTTPS scheme")
-  .brand<"HttpsUrl">();
+  .brand<"LollipopOriginalUrl">();
 
-export type HttpsUrl = z.infer<typeof HttpsUrlSchema>;
+export type LollipopOriginalUrl = z.infer<typeof LollipopOriginalUrlSchema>;

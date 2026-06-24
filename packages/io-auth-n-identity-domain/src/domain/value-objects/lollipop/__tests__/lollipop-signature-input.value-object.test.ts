@@ -3,15 +3,15 @@ import { describe, expect, it } from "vitest";
 import { LollipopSignatureInputSchema } from "../lollipop-signature-input.value-object.js";
 
 import {
-  aValidMultiSignatureInput,
-  aValidSingleSignatureInput,
+  aMultiSignatureInput,
+  aSingleSignatureInput,
 } from "../../../__mocks__/lollipop-signature-input.mock.js";
 
 describe("LollipopSignatureInputSchema", () => {
   it.each`
     scenario                                  | input
-    ${"accepts valid single signature input"} | ${aValidSingleSignatureInput}
-    ${"accepts valid multi signature input"}  | ${aValidMultiSignatureInput}
+    ${"accepts valid single signature input"} | ${aSingleSignatureInput}
+    ${"accepts valid multi signature input"}  | ${aMultiSignatureInput}
   `("$scenario", ({ input }) => {
     expect(LollipopSignatureInputSchema.safeParse(input).success).toBe(true);
   });
@@ -35,6 +35,8 @@ describe("LollipopSignatureInputSchema", () => {
   });
 
   it("should reject an invalid string input", () => {
-    expect(LollipopSignatureInputSchema.safeParse("anInvalidStringInput").success).toBe(false);
+    expect(
+      LollipopSignatureInputSchema.safeParse("anInvalidStringInput").success,
+    ).toBe(false);
   });
 });
