@@ -7,15 +7,14 @@ import {
 
 /**
  * Lollipop public key headers.
- * The public key is always required; the hashing algorithm is optional.
  */
 export const LollipopPublicKeyHeadersSchema = z.object({
   /** Base64url-encoded JWK public key */
   "x-pagopa-lollipop-pub-key": LollipopPublicKeySchema,
 
-  /** Thumbprint hashing algorithm — defaults to sha256 when absent */
+  /** Thumbprint hashing algorithm */
   "x-pagopa-lollipop-pub-key-hash-algo":
-    LollipopPublicKeyHashingAlgorithmSchema.optional(),
+    LollipopPublicKeyHashingAlgorithmSchema,
 });
 
 export type LollipopPublicKeyHeaders = z.infer<
