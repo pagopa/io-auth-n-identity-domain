@@ -11,5 +11,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "exclude": ["dist", "node_modules", "**/__tests__/*", "vite.config.mts"]
+  "exclude": ["dist", "node_modules", "**/__tests__/*", "**/__mocks__/*", "vite.config.mts"]
 }
