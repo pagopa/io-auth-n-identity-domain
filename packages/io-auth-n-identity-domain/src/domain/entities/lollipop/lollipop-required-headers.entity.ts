@@ -4,6 +4,7 @@ import {
   LollipopMethodSchema,
   LollipopOriginalUrlSchema,
   LollipopContentDigestSchema,
+  LollipopContentTypeSchema,
   LollipopSignatureInputSchema,
   LollipopSignatureSchema,
 } from "../../value-objects/index.js";
@@ -30,6 +31,9 @@ export const LollipopRequiredHeadersSchema = z.object({
    * Format: `sha-256=:BASE64:` / `sha-384=:BASE64:` / `sha-512=:BASE64:`
    */
   "content-digest": LollipopContentDigestSchema.optional(),
+
+  /** Content type of the request body (optional; required only when a body is present) */
+  "content-type": LollipopContentTypeSchema.optional(),
 });
 
 export type LollipopRequiredHeaders = z.infer<
