@@ -1285,6 +1285,9 @@ importers:
 
   apps/io-session-manager-oi:
     dependencies:
+      '@pagopa/io-auth-n-identity-domain':
+        specifier: workspace:^
+        version: link:../../packages/io-auth-n-identity-domain
       '@pagopa/io-core-adapter-fastify':
         specifier: workspace:^
         version: link:../../packages/io-core/io-core-adapter-fastify
@@ -1683,6 +1686,37 @@ importers:
       prettier:
         specifier: 'catalog:'
         version: 3.2.5
+      shx:
+        specifier: 'catalog:'
+        version: 0.4.0
+      typescript:
+        specifier: 'catalog:'
+        version: 5.8.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.22.4)(yaml@2.9.0)
+
+  packages/io-auth-n-identity-domain:
+    dependencies:
+      '@pagopa/io-core-domain':
+        specifier: workspace:^
+        version: link:../io-core/io-core-domain
+      neverthrow:
+        specifier: 'catalog:'
+        version: 8.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
+    devDependencies:
+      '@pagopa/io-platform-typescript-config-node':
+        specifier: workspace:^
+        version: link:../io-core/typescript-config-node
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.17
+      '@vitest/coverage-v8':
+        specifier: 'catalog:'
+        version: 3.2.4(vitest@3.2.4(@types/node@22.19.17)(tsx@4.22.4)(yaml@2.9.0))
       shx:
         specifier: 'catalog:'
         version: 0.4.0
