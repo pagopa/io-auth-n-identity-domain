@@ -22,6 +22,7 @@
     "generate:openapi:check": "tsx ./scripts/generate-openapi.ts --check"
   },
   "dependencies": {
+    "@pagopa/io-auth-n-identity-domain": "workspace:^",
     "@pagopa/io-core-adapter-fastify": "workspace:^",
     "@pagopa/io-env-config": "workspace:^",
     "@pagopa/io-core-domain": "workspace:^",

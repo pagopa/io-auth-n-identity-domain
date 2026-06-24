@@ -9,7 +9,7 @@ import type { FiscalCode } from "@pagopa/io-core-domain";
 import type {
   LcParams,
   LollipopRequiredHeaders,
-} from "../entities/lollipop.js";
+} from "@pagopa/io-auth-n-identity-domain";
 
 /**
  * Port for resolving Lollipop Consumer (LC) params from the lollipop service.
