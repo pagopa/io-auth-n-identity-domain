@@ -5,7 +5,7 @@ import { FiscalCodeSchema } from "@pagopa/io-core-domain";
 import {
   AssertionType,
   LollipopAssertionRefSchema,
-  JwkBase64UrlSchema,
+  LollipopPublicKeySchema,
 } from "../../value-objects/index.js";
 
 /**
@@ -19,7 +19,7 @@ export const LcParamsSchema = z.object({
 
   lc_authentication_bearer: z.string().min(1),
 
-  pub_key: JwkBase64UrlSchema,
+  pub_key: LollipopPublicKeySchema,
 
   fiscal_code: FiscalCodeSchema,
 });

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import {
   LollipopMethodSchema,
-  HttpsUrlSchema,
+  LollipopOriginalUrlSchema,
   LollipopContentDigestSchema,
   LollipopSignatureInputSchema,
   LollipopSignatureSchema,
@@ -23,7 +23,7 @@ export const LollipopRequiredHeadersSchema = z.object({
   "x-pagopa-lollipop-original-method": LollipopMethodSchema,
 
   /** Original URL of the signed request — must use HTTPS */
-  "x-pagopa-lollipop-original-url": HttpsUrlSchema,
+  "x-pagopa-lollipop-original-url": LollipopOriginalUrlSchema,
 
   /**
    * SHA digest of the request body (optional; required only when a body is present).

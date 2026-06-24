@@ -3,15 +3,17 @@ import { describe, expect, it } from "vitest";
 import { LollipopSignatureInputSchema } from "../lollipop-signature-input.value-object.js";
 
 import {
+  aLollipopSignatureInput,
   aMultiSignatureInput,
   aSingleSignatureInput,
-} from "../../../__mocks__/lollipop-signature-input.mock.js";
+} from "../../../__mocks__/lollipop.mock.js";
 
 describe("LollipopSignatureInputSchema", () => {
   it.each`
-    scenario                                  | input
-    ${"accepts valid single signature input"} | ${aSingleSignatureInput}
-    ${"accepts valid multi signature input"}  | ${aMultiSignatureInput}
+    scenario                                    | input
+    ${"accepts valid single signature input"}   | ${aSingleSignatureInput}
+    ${"accepts valid multi signature input"}    | ${aMultiSignatureInput}
+    ${"accepts valid lollipop signature input"} | ${aLollipopSignatureInput}
   `("$scenario", ({ input }) => {
     expect(LollipopSignatureInputSchema.safeParse(input).success).toBe(true);
   });

@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { JwkBase64UrlSchema } from "../jwk-base64url.value-object.js";
+import { LollipopPublicKeySchema } from "../lollipop-public-key.js";
 
-const toBase64Url = (obj: unknown): string =>
-  Buffer.from(JSON.stringify(obj)).toString("base64url");
+const toBase64Url = (value: unknown): string =>
+  Buffer.from(JSON.stringify(value)).toString("base64url");
 
-describe("JwkBase64UrlSchema", () => {
+describe("LollipopPublicKeySchema", () => {
   it.each([
     { kty: "EC", crv: "P-256", x: "abc", y: "def" },
     { kty: "RSA", n: "modulus", e: "AQAB" },
   ])('accepts a Base64url-encoded JWK with kty "%s"', (jwk) => {
-    const base64urlJwk = toBase64Url(jwk);
-    expect(JwkBase64UrlSchema.safeParse(base64urlJwk).success).toBe(true);
+    const base64urlJwk = Buffer.from(JSON.stringify(jwk)).toString("base64url");
+    expect(LollipopPublicKeySchema.safeParse(base64urlJwk).success).toBe(true);
   });
 
   it.each`
@@ -23,6 +23,6 @@ describe("JwkBase64UrlSchema", () => {
     ${"Rejects a Base64url string that decodes to JSON with a non-string kty"} | ${toBase64Url({ kty: 42 })}
     ${"Rejects a Base64url string that is not valid JSON"}                     | ${Buffer.from("{invalid}").toString("base64url")}
   `("should return $scenario", ({ input }) => {
-    expect(JwkBase64UrlSchema.safeParse(input).success).toBe(false);
+    expect(LollipopPublicKeySchema.safeParse(input).success).toBe(false);
   });
 });
