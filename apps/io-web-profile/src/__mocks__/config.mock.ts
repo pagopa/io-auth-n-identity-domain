@@ -22,38 +22,35 @@ const iconfig = {
   FF_API_ENABLED: FeatureFlagEnum.ALL,
   isProduction: false,
   AUDIT_LOG_CONNECTION_STRING: auditLogConnectionString as NonEmptyString,
-  AUDIT_LOG_CONTAINER: auditLogContainer as NonEmptyString
+  AUDIT_LOG_CONTAINER: auditLogContainer as NonEmptyString,
+  USE_MANAGED_IDENTITY: false
 };
 
-const {
-  privateKey: hslPrivateKey,
-  publicKey: hslPublicKey
-} = generateKeyPairSync("rsa", {
-  modulusLength: 2048,
-  publicKeyEncoding: {
-    type: "spki",
-    format: "pem"
-  },
-  privateKeyEncoding: {
-    type: "pkcs8",
-    format: "pem"
-  }
-});
+const { privateKey: hslPrivateKey, publicKey: hslPublicKey } =
+  generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+    publicKeyEncoding: {
+      type: "spki",
+      format: "pem"
+    },
+    privateKeyEncoding: {
+      type: "pkcs8",
+      format: "pem"
+    }
+  });
 
-const {
-  privateKey: exchangePrivateKey,
-  publicKey: exchangePublicKey
-} = generateKeyPairSync("rsa", {
-  modulusLength: 2048,
-  publicKeyEncoding: {
-    type: "spki",
-    format: "pem"
-  },
-  privateKeyEncoding: {
-    type: "pkcs8",
-    format: "pem"
-  }
-});
+const { privateKey: exchangePrivateKey, publicKey: exchangePublicKey } =
+  generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+    publicKeyEncoding: {
+      type: "spki",
+      format: "pem"
+    },
+    privateKeyEncoding: {
+      type: "pkcs8",
+      format: "pem"
+    }
+  });
 
 const {
   privateKey: magicLinkPrimaryPrivateKey,
@@ -110,10 +107,13 @@ export const jwtConfig: JWTConfig = {
   EXCHANGE_JWT_SECONDARY_PUB_KEY: exchangePrivateKey as NonEmptyString,
   EXCHANGE_JWT_TTL: 900 as Second,
   MAGIC_LINK_JWE_ISSUER: magicLinkIssuer as NonEmptyString,
-  MAGIC_LINK_JWE_PRIMARY_PRIVATE_KEY: magicLinkPrimaryPrivateKey as NonEmptyString,
-  MAGIC_LINK_JWE_SECONDARY_PRIVATE_KEY: magicLinkSecondaryPrivateKey as NonEmptyString,
+  MAGIC_LINK_JWE_PRIMARY_PRIVATE_KEY:
+    magicLinkPrimaryPrivateKey as NonEmptyString,
+  MAGIC_LINK_JWE_SECONDARY_PRIVATE_KEY:
+    magicLinkSecondaryPrivateKey as NonEmptyString,
   MAGIC_LINK_JWE_PRIMARY_PUB_KEY: magicLinkPrimaryPublicKey as NonEmptyString,
-  MAGIC_LINK_JWE_SECONDARY_PUB_KEY: magicLinkSecondaryPublicKey as NonEmptyString,
+  MAGIC_LINK_JWE_SECONDARY_PUB_KEY:
+    magicLinkSecondaryPublicKey as NonEmptyString,
   MAGIC_LINK_JWE_TTL: 604800 as Second,
   MAGIC_LINK_BASE_URL: "http://localhost:3000/it/magic-link" as NonEmptyString
 };

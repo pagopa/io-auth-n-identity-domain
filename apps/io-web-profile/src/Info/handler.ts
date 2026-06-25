@@ -8,6 +8,7 @@ import {
   ResponseErrorInternal,
   ResponseSuccessJson
 } from "@pagopa/ts-commons/lib/responses";
+import { ContainerClient } from "@azure/storage-blob";
 
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -27,26 +28,43 @@ type HealthChecker = (
   config: unknown
 ) => healthcheck.HealthCheck<"AzureStorage" | "Config", true>;
 
-export const InfoHandler = (
-  checkApplicationHealth: HealthChecker
-): InfoHandler => (): Promise<
-  IResponseSuccessJson<ApplicationInfo> | IResponseErrorInternal
-> =>
-  pipe(
-    envConfig,
-    checkApplicationHealth,
-    TE.map(_ =>
-      ResponseSuccessJson({
-        name: getValueFromPackageJson("name"),
-        version: getCurrentBackendVersion()
-      })
-    ),
-    TE.mapLeft(problems => ResponseErrorInternal(problems.join("\n\n"))),
-    TE.toUnion
-  )();
+export const InfoHandler =
+  (
+    checkApplicationHealth: HealthChecker,
+    checkAuditStorageHealth: healthcheck.HealthCheck<"AuditLogStorage", true>
+  ): InfoHandler =>
+  (): Promise<IResponseSuccessJson<ApplicationInfo> | IResponseErrorInternal> =>
+    pipe(
+      envConfig,
+      checkApplicationHealth,
+      TE.chainW(() => checkAuditStorageHealth),
+      TE.map(_ =>
+        ResponseSuccessJson({
+          name: getValueFromPackageJson("name"),
+          version: getCurrentBackendVersion()
+        })
+      ),
+      TE.mapLeft(problems => ResponseErrorInternal(problems.join("\n\n"))),
+      TE.toUnion
+    )();
 
-export const Info = () => {
-  const handler = InfoHandler(healthcheck.checkApplicationHealth(IConfig, []));
+const makeAuditStorageHealthCheck = (
+  containerClient: ContainerClient
+): healthcheck.HealthCheck<"AuditLogStorage", true> =>
+  pipe(
+    TE.tryCatch(
+      () => containerClient.getProperties(),
+      error => error
+    ),
+    TE.map(() => true as const),
+    TE.mapLeft(healthcheck.toHealthProblems("AuditLogStorage" as const))
+  );
+
+export const Info = (containerClient: ContainerClient) => {
+  const handler = InfoHandler(
+    healthcheck.checkApplicationHealth(IConfig, []),
+    makeAuditStorageHealthCheck(containerClient)
+  );
 
   return wrapHandlerV4([], handler);
 };

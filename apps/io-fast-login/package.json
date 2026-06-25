@@ -48,6 +48,8 @@
   },
   "dependencies": {
     "@azure/functions": "catalog:",
+    "@azure/identity": "catalog:",
+    "@azure/storage-blob": "catalog:",
     "@mattrglobal/http-signatures": "catalog:",
     "@pagopa/handler-kit": "catalog:",
     "@pagopa/handler-kit-azure-func": "catalog:",
@@ -57,7 +59,6 @@
     "@pagopa/ts-commons": "catalog:",
     "@xmldom/xmldom": "catalog:",
     "applicationinsights": "catalog:",
-    "azure-storage": "catalog:",
     "date-fns": "catalog:",
     "fp-ts": "catalog:",
     "io-ts": "catalog:",

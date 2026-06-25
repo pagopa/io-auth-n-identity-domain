@@ -21,7 +21,7 @@ describe("InfoHandler", () => {
       "failure 1" as HealthProblem<"Config">,
       "failure 2" as HealthProblem<"Config">
     ]);
-    const handler = InfoHandler(_ => healthCheck);
+    const handler = InfoHandler(_ => healthCheck, TE.of(true));
 
     const response = await handler();
 
@@ -29,10 +29,9 @@ describe("InfoHandler", () => {
   });
 
   it("should return a success if the application is healthy", async () => {
-    const healthCheck: HealthCheck<"AzureStorage" | "Config", true> = TE.of(
-      true
-    );
-    const handler = InfoHandler(() => healthCheck);
+    const healthCheck: HealthCheck<"AzureStorage" | "Config", true> =
+      TE.of(true);
+    const handler = InfoHandler(() => healthCheck, TE.of(true));
     const response = await handler();
 
     expect(response.kind).toBe("IResponseSuccessJson");

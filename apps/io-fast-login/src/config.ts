@@ -51,7 +51,6 @@ export type RedisClientConfig = t.TypeOf<typeof RedisClientConfig>;
 export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
-    FAST_LOGIN_AUDIT_CONNECTION_STRING: NonEmptyString,
     FAST_LOGIN_AUDIT_CONTAINER_NAME: NonEmptyString,
 
     // Default is 10 sec timeout
@@ -59,7 +58,13 @@ export const IConfig = t.intersection([
 
     APPLICATIONINSIGHTS_CONNECTION_STRING: NonEmptyString,
 
+    USE_MANAGED_IDENTITY: t.boolean,
+
     isProduction: t.boolean
+  }),
+  t.partial({
+    FAST_LOGIN_AUDIT_CONNECTION_STRING: NonEmptyString,
+    FAST_LOGIN_AUDIT_STORAGE__blobServiceUri: NonEmptyString
   }),
   SessionManagerInternalConfig,
   GetAssertionConfig,
@@ -71,6 +76,7 @@ export const envConfig = {
   REDIS_TLS_ENABLED:
     process.env.REDIS_TLS_ENABLED &&
     process.env.REDIS_TLS_ENABLED.toLowerCase() === "true",
+  USE_MANAGED_IDENTITY: process.env.USE_MANAGED_IDENTITY !== "false",
   isProduction: process.env.NODE_ENV === "production"
 };
 

@@ -5,7 +5,8 @@ locals {
     name = "lv"
 
     app_settings = {
-      NODE_ENV = "production"
+      NODE_ENV             = "production"
+      USE_MANAGED_IDENTITY = "true"
 
       // Keepalive fields are all optionals
       FETCH_KEEPALIVE_ENABLED             = "true"

@@ -6,7 +6,8 @@ import {
 } from "@pagopa/ts-commons/lib/fetch";
 import { agent } from "@pagopa/ts-commons";
 import { Millisecond } from "@pagopa/ts-commons/lib/units";
-import { createBlobService } from "azure-storage";
+import { DefaultAzureCredential } from "@azure/identity";
+import { BlobServiceClient } from "@azure/storage-blob";
 import { getConfigOrThrow } from "./config";
 import { InfoFunction } from "./functions/info";
 import { FastLoginFunction } from "./functions/fast-login";
@@ -35,9 +36,9 @@ const abortableFetch = AbortableFetch(httpApiFetch);
 
 const fnLollipopClient: FnLollipopClient = createClient({
   baseUrl: config.LOLLIPOP_GET_ASSERTION_BASE_URL.href,
-  fetchApi: (toFetch(
+  fetchApi: toFetch(
     setFetchTimeout(config.FETCH_TIMEOUT_MS as Millisecond, abortableFetch)
-  ) as unknown) as typeof fetch,
+  ) as unknown as typeof fetch,
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   withDefaults: op => params =>
     op({
@@ -46,24 +47,38 @@ const fnLollipopClient: FnLollipopClient = createClient({
     })
 });
 
-const blobService = createBlobService(
-  config.FAST_LOGIN_AUDIT_CONNECTION_STRING
-);
+const auditLogContainerClient = config.USE_MANAGED_IDENTITY
+  ? new BlobServiceClient(
+      config.FAST_LOGIN_AUDIT_STORAGE__blobServiceUri ??
+        (() => {
+          throw new Error(
+            "Missing FAST_LOGIN_AUDIT_STORAGE__blobServiceUri when USE_MANAGED_IDENTITY is enabled"
+          );
+        })(),
+      new DefaultAzureCredential()
+    ).getContainerClient(config.FAST_LOGIN_AUDIT_CONTAINER_NAME)
+  : BlobServiceClient.fromConnectionString(
+      config.FAST_LOGIN_AUDIT_CONNECTION_STRING ??
+        (() => {
+          throw new Error(
+            "Missing FAST_LOGIN_AUDIT_CONNECTION_STRING when USE_MANAGED_IDENTITY is disabled"
+          );
+        })()
+    ).getContainerClient(config.FAST_LOGIN_AUDIT_CONTAINER_NAME);
 
-const sessionManagerInternalClient = sessionManagerInternalCreateClient<
-  "ApiKeyAuth"
->({
-  baseUrl: config.SESSION_MANAGER_INTERNAL_BASE_URL.href,
-  fetchApi: (toFetch(
-    setFetchTimeout(config.FETCH_TIMEOUT_MS as Millisecond, abortableFetch)
-  ) as unknown) as typeof fetch,
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  withDefaults: op => params =>
-    op({
-      ...params,
-      ApiKeyAuth: config.SESSION_MANAGER_INTERNAL_API_KEY
-    })
-});
+const sessionManagerInternalClient =
+  sessionManagerInternalCreateClient<"ApiKeyAuth">({
+    baseUrl: config.SESSION_MANAGER_INTERNAL_BASE_URL.href,
+    fetchApi: toFetch(
+      setFetchTimeout(config.FETCH_TIMEOUT_MS as Millisecond, abortableFetch)
+    ) as unknown as typeof fetch,
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    withDefaults: op => params =>
+      op({
+        ...params,
+        ApiKeyAuth: config.SESSION_MANAGER_INTERNAL_API_KEY
+      })
+  });
 
 const redisClientTask = CreateRedisClientSingleton(config);
 
@@ -74,7 +89,7 @@ app.http("Info", {
   methods: ["GET"],
   authLevel: "anonymous",
   route: "info",
-  handler: InfoFunction({ redisClientTask })
+  handler: InfoFunction({ auditLogContainerClient, redisClientTask })
 });
 
 app.http("FastLogin", {
@@ -82,8 +97,7 @@ app.http("FastLogin", {
   authLevel: "function",
   route: "api/v1/fast-login",
   handler: FastLoginFunction({
-    blobService,
-    containerName: config.FAST_LOGIN_AUDIT_CONTAINER_NAME,
+    auditLogContainerClient,
     fnLollipopClient,
     redisClientTask
   })
