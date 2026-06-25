@@ -1,2 +1,6 @@
 HOST=0.0.0.0
 PORT=${IO_SESSION_MANAGER_OI_PORT}
+
+LOLLIPOP_API_KEY=your-lollipop-api-key
+LOLLIPOP_API_URL=http://host.docker.internal:${FUNCTION_LOLLIPOP_PORT}
+LOLLIPOP_API_BASE_PATH=/api/v1

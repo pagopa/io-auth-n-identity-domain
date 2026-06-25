@@ -4,14 +4,14 @@ import type {
   GenericError,
 } from "@pagopa/io-core-domain/errors";
 import type {
-  LollipopAssertionRef,
+  LollipopNewPublicKey,
   LollipopPublicKey,
   LollipopPublicKeyHashingAlgorithm,
 } from "@pagopa/io-auth-n-identity-domain";
 
 export interface LollipopOutboundPort {
   reservePubKey(input: {
-    algo: LollipopPublicKeyHashingAlgorithm;
-    pubKey: LollipopPublicKey;
-  }): Promise<Result<LollipopAssertionRef, GenericError | ConflictError>>;
+    algorithm: LollipopPublicKeyHashingAlgorithm;
+    publicKey: LollipopPublicKey;
+  }): Promise<Result<LollipopNewPublicKey, GenericError | ConflictError>>;
 }

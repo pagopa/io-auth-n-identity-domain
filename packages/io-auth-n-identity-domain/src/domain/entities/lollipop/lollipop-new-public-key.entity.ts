@@ -12,3 +12,5 @@ export const LollipopNewPublicKeySchema = z.object({
   status: z.enum(["PENDING", "VALID", "REVOKED"]),
   ttl: z.number().int().nonnegative(),
 });
+
+export type LollipopNewPublicKey = z.infer<typeof LollipopNewPublicKeySchema>;

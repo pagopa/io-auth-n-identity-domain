@@ -17,11 +17,11 @@ export const createLollipopAdapter = (
   config: Config,
 ): LollipopOutboundPort => ({
   reservePubKey: async ({
-    algo,
-    pubKey,
+    algorithm,
+    publicKey,
   }: {
-    algo: LollipopPublicKeyHashingAlgorithm;
-    pubKey: LollipopPublicKey;
+    algorithm: LollipopPublicKeyHashingAlgorithm;
+    publicKey: LollipopPublicKey;
   }) => {
     let response: Response;
 
@@ -29,7 +29,7 @@ export const createLollipopAdapter = (
       response = await fetch(
         `${config.LOLLIPOP_API_URL}${config.LOLLIPOP_API_BASE_PATH}/pubkeys`,
         {
-          body: JSON.stringify({ algo, pub_key: decodeJwk(pubKey) }),
+          body: JSON.stringify({ algo: algorithm, pub_key: decodeJwk(publicKey) }),
           headers: {
             "Content-Type": "application/json",
             "X-Functions-Key": config.LOLLIPOP_API_KEY,
@@ -75,6 +75,6 @@ export const createLollipopAdapter = (
       );
     }
 
-    return ok(parsed.data.assertion_ref);
+    return ok(parsed.data);
   },
 });
