@@ -30,7 +30,6 @@ export const LollipopReservePublicKeyResponseSchema = z
   .object({
     assertion_ref: LollipopAssertionRefSchema,
     pub_key: LollipopJwkSchema,
-    version: z.number().int().nonnegative(),
     status: z.enum(["PENDING", "VALID", "REVOKED"]),
     ttl: z.number().int().nonnegative(),
   })
