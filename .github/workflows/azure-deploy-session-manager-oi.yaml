@@ -10,9 +10,9 @@ jobs:
     with:
       # '-cd' suffix added inside the pipeline
       environment: app-prod
-      resource_group_name: "io-p-int-session-manager-rg-01"
+      resource_group_name: "io-p-itn-session-manager-rg-01"
       workspace_name: "io-session-manager-oi"
-      web_app_name: "io-p-int-session-manager-oi-app-01"
+      web_app_name: "io-p-itn-session-manager-oi-app-01"
       use_private_agent: true
       disable_auto_staging_deploy: true
     secrets: inherit
