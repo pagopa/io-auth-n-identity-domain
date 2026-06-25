@@ -1,12 +1,10 @@
-import type { UseCase } from "@pagopa/io-core-domain";
+import { mountFastifyRoute } from "@pagopa/io-core-adapter-fastify";
 import type { RouteRegistry } from "@pagopa/io-core-openapi";
+import { defineRoute } from "@pagopa/io-core-openapi";
 import type { FastifyInstance } from "fastify";
 
-import { mountFastifyRoute } from "@pagopa/io-core-adapter-fastify";
-import { defineRoute } from "@pagopa/io-core-openapi";
-
-import { InfoOutputSchema } from "./dto/openapi-schemas.js";
 import { getInfoUseCase } from "../../../application/use-cases/info.use-case.js";
+import { InfoOutputSchema } from "../dtos/info.dto.js";
 
 const infoContract = defineRoute({
   description: "Returns the application name, version, and health status.",
