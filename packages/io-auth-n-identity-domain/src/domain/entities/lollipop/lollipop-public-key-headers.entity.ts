@@ -14,7 +14,7 @@ export const LollipopPublicKeyHeadersSchema = z.object({
 
   /** Thumbprint hashing algorithm */
   "x-pagopa-lollipop-pub-key-hash-algo":
-    LollipopPublicKeyHashingAlgorithmSchema,
+    LollipopPublicKeyHashingAlgorithmSchema.optional(),
 });
 
 export type LollipopPublicKeyHeaders = z.infer<
