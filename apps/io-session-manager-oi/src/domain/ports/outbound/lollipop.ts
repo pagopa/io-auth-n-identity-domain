@@ -5,13 +5,11 @@ import type {
 } from "@pagopa/io-core-domain/errors";
 import type {
   LollipopNewPublicKey,
-  LollipopPublicKey,
-  LollipopPublicKeyHashingAlgorithm,
+  LollipopPublicKeyHeaders,
 } from "@pagopa/io-auth-n-identity-domain";
 
 export interface LollipopOutboundPort {
-  reservePubKey(input: {
-    algorithm: LollipopPublicKeyHashingAlgorithm;
-    publicKey: LollipopPublicKey;
-  }): Promise<Result<LollipopNewPublicKey, GenericError | ConflictError>>;
+  reservePubKey(
+    input: LollipopPublicKeyHeaders,
+  ): Promise<Result<LollipopNewPublicKey, GenericError | ConflictError>>;
 }
