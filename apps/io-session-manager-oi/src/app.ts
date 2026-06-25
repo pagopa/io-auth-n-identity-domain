@@ -23,6 +23,9 @@ export const createApp = (
 
   // --- HTTP function registrations ---
   mountInfoHandler(server, getInfoUseCase, registry);
+
+  // TODO: remove this endpoint and the related code
+  // This is an endpoint only used for development and testing purposes, to reserve a lollipop public key for the current login attempt.
   mountReservePubKeyHandler(
     server,
     reserveLollipopPubKeyUseCase(lollipopAdapter),
