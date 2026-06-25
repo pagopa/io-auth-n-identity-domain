@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { ConfigError } from "../config-error.js";
@@ -44,7 +44,6 @@ describe("createEnvConfigLoader", () => {
       process.env.DEBUG = "false";
       process.env.NODE_ENV = "test";
 
-    
       delete process.env.PORT;
 
       const result = createEnvConfigLoader(TestSchema).load();
@@ -56,7 +55,6 @@ describe("createEnvConfigLoader", () => {
       expect(result._unsafeUnwrapErr().message).not.toContain("NODE_ENV");
     });
 
-
     it("error message lists all failing fields when multiple variables are invalid", () => {
       process.env.DEBUG = "false";
 
@@ -66,7 +64,7 @@ describe("createEnvConfigLoader", () => {
       const result = createEnvConfigLoader(TestSchema).load();
 
       const message = result._unsafeUnwrapErr().message;
-      
+
       expect(message).toContain("PORT");
       expect(message).toContain("NODE_ENV");
       expect(message).not.toContain("DEBUG");
