@@ -12,10 +12,9 @@ import {
   JwkPublicKey,
   JwkPublicKeyFromToken
 } from "@pagopa/ts-commons/lib/jwk";
+import { BlobUploadCommonResponse } from "@azure/storage-blob";
 import { DOMParser } from "@xmldom/xmldom";
 import * as E from "fp-ts/Either";
-import { upsertBlobFromObject } from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
-import * as azureStorage from "azure-storage";
 import * as t from "io-ts";
 import {
   RequiredHeaderMiddleware,
@@ -56,30 +55,33 @@ const RetrieveSAMLResponse: (
   FnLollipopClientDependency,
   H.HttpError,
   FastLoginResponse
-> = (lollipopHeaders: LollipopHeaders) => ({ fnLollipopClient }) =>
-  pipe(
-    TE.tryCatch(
-      () =>
-        fnLollipopClient.getAssertion({
-          assertion_ref: lollipopHeaders[ASSERTION_REF_HEADER_NAME],
-          ["x-pagopa-lollipop-auth"]: `Bearer ${lollipopHeaders["x-pagopa-lollipop-auth-jwt"]}` as LollipopAuthBearer
-        }),
-      () => new H.HttpError("Error calling the getAssertion endpoint")
-    ),
-    TE.chainEitherK(
-      E.mapLeft(_ => new H.HttpError("Unexpected response from fn-lollipop"))
-    ),
-    TE.chain(response =>
-      response.status === 200
-        ? TE.right(response.value)
-        : TE.left(new H.HttpError("Error retrieving the SAML Assertion"))
-    ),
-    TE.filterOrElse(
-      isAssertionSaml(lollipopHeaders["x-pagopa-lollipop-assertion-type"]),
-      () => new H.HttpError("OIDC Claims not supported yet.")
-    ),
-    TE.map(assertion => ({ saml_response: assertion.response_xml }))
-  );
+> =
+  (lollipopHeaders: LollipopHeaders) =>
+  ({ fnLollipopClient }) =>
+    pipe(
+      TE.tryCatch(
+        () =>
+          fnLollipopClient.getAssertion({
+            assertion_ref: lollipopHeaders[ASSERTION_REF_HEADER_NAME],
+            ["x-pagopa-lollipop-auth"]:
+              `Bearer ${lollipopHeaders["x-pagopa-lollipop-auth-jwt"]}` as LollipopAuthBearer
+          }),
+        () => new H.HttpError("Error calling the getAssertion endpoint")
+      ),
+      TE.chainEitherK(
+        E.mapLeft(_ => new H.HttpError("Unexpected response from fn-lollipop"))
+      ),
+      TE.chain(response =>
+        response.status === 200
+          ? TE.right(response.value)
+          : TE.left(new H.HttpError("Error retrieving the SAML Assertion"))
+      ),
+      TE.filterOrElse(
+        isAssertionSaml(lollipopHeaders["x-pagopa-lollipop-assertion-type"]),
+        () => new H.HttpError("OIDC Claims not supported yet.")
+      ),
+      TE.map(assertion => ({ saml_response: assertion.response_xml }))
+    );
 
 export const StoreFastLoginAuditLogs: (
   fastLoginAuditLogDoc: FastLoginAuditDoc,
@@ -87,34 +89,23 @@ export const StoreFastLoginAuditLogs: (
 ) => RTE.ReaderTaskEither<
   FnLollipopClientDependency,
   H.HttpError,
-  azureStorage.BlobService.BlobResult
-> = (fastLoginAuditLogDoc: FastLoginAuditDoc, logFileName: string) => ({
-  blobService,
-  containerName
-}) =>
-  pipe(
-    TE.tryCatch(
-      () =>
-        upsertBlobFromObject(
-          blobService,
-          containerName,
-          logFileName,
-          FastLoginAuditDoc.encode(fastLoginAuditLogDoc)
-        ),
-      err => new H.HttpError(`Unexpected error: [${E.toError(err).message}]`)
-    ),
-    TE.chainEitherK(
-      E.mapLeft(
-        err =>
-          new H.HttpError(
-            `An error occurred saving the audit log: [${err.message}]`
-          )
+  BlobUploadCommonResponse
+> =
+  (fastLoginAuditLogDoc: FastLoginAuditDoc, logFileName: string) =>
+  ({ auditLogContainerClient }) =>
+    pipe(
+      TE.tryCatch(
+        () =>
+          auditLogContainerClient
+            .getBlockBlobClient(logFileName)
+            .uploadData(
+              Buffer.from(
+                JSON.stringify(FastLoginAuditDoc.encode(fastLoginAuditLogDoc))
+              )
+            ),
+        err => new H.HttpError(`Unexpected error: [${E.toError(err).message}]`)
       )
-    ),
-    TE.chain(
-      TE.fromOption(() => new H.HttpError("The audit log was not saved"))
-    )
-  );
+    );
 
 type Verifier = (assertion: Document) => TE.TaskEither<H.HttpError, true>;
 
@@ -125,51 +116,50 @@ type Verifier = (assertion: Document) => TE.TaskEither<H.HttpError, true>;
  * @param {AssertionRef} assertionRefFromHeader The assertion ref from the HTTP Request header `x-pagopa-lollipop-assertion-ref`
  * @returns The Verifier function
  */
-export const getAssertionRefVsInRensponseToVerifier = (
-  pubKey: JwkPublicKey,
-  assertionRefFromHeader: AssertionRef
-): Verifier => (assertionDoc): ReturnType<Verifier> =>
-  pipe(
-    assertionDoc,
-    getRequestIDFromSamlResponse,
-    TE.fromOption(
-      () =>
-        new H.HttpError("Missing request id in the retrieved saml assertion.")
-    ),
-    TE.filterOrElse(
-      AssertionRef.is,
-      () =>
-        new H.HttpError(
-          "InResponseTo in the assertion do not contains a valid Assertion Ref."
+export const getAssertionRefVsInRensponseToVerifier =
+  (pubKey: JwkPublicKey, assertionRefFromHeader: AssertionRef): Verifier =>
+  (assertionDoc): ReturnType<Verifier> =>
+    pipe(
+      assertionDoc,
+      getRequestIDFromSamlResponse,
+      TE.fromOption(
+        () =>
+          new H.HttpError("Missing request id in the retrieved saml assertion.")
+      ),
+      TE.filterOrElse(
+        AssertionRef.is,
+        () =>
+          new H.HttpError(
+            "InResponseTo in the assertion do not contains a valid Assertion Ref."
+          )
+      ),
+      TE.bindTo("inResponseTo"),
+      TE.bind("algo", ({ inResponseTo }) =>
+        TE.of(getAlgoFromAssertionRef(inResponseTo))
+      ),
+      TE.chain(({ inResponseTo, algo }) =>
+        pipe(
+          pubKey,
+          calculateAssertionRef(algo),
+          TE.mapLeft(
+            e =>
+              new H.HttpError(
+                `Error calculating the hash of the provided public key: ${e.message}`
+              )
+          ),
+          TE.filterOrElse(
+            calcAssertionRef =>
+              calcAssertionRef === inResponseTo &&
+              assertionRefFromHeader === inResponseTo,
+            calcAssertionRef =>
+              new H.HttpError(
+                `The hash of provided public key do not match the InReponseTo in the assertion: fromSaml=${inResponseTo},fromPublicKey=${calcAssertionRef},fromHeader=${assertionRefFromHeader}`
+              )
+          )
         )
-    ),
-    TE.bindTo("inResponseTo"),
-    TE.bind("algo", ({ inResponseTo }) =>
-      TE.of(getAlgoFromAssertionRef(inResponseTo))
-    ),
-    TE.chain(({ inResponseTo, algo }) =>
-      pipe(
-        pubKey,
-        calculateAssertionRef(algo),
-        TE.mapLeft(
-          e =>
-            new H.HttpError(
-              `Error calculating the hash of the provided public key: ${e.message}`
-            )
-        ),
-        TE.filterOrElse(
-          calcAssertionRef =>
-            calcAssertionRef === inResponseTo &&
-            assertionRefFromHeader === inResponseTo,
-          calcAssertionRef =>
-            new H.HttpError(
-              `The hash of provided public key do not match the InReponseTo in the assertion: fromSaml=${inResponseTo},fromPublicKey=${calcAssertionRef},fromHeader=${assertionRefFromHeader}`
-            )
-        )
-      )
-    ),
-    TE.map(() => true as const)
-  );
+      ),
+      TE.map(() => true as const)
+    );
 
 /**
  * Check if the Fiscal Number included into the SAMLResponse match with the provided parameter.
@@ -177,64 +167,62 @@ export const getAssertionRefVsInRensponseToVerifier = (
  * @param {FiscalCode} fiscalCodeFromHeader The Fiscal Number from the HTTP Request header `x-pagopa-lollipop-user-id`
  * @returns The Verifier function
  */
-export const getAssertionUserIdVsCfVerifier = (
-  fiscalCodeFromHeader: FiscalCode
-): Verifier => (assertionDoc): ReturnType<Verifier> =>
-  pipe(
-    assertionDoc,
-    getFiscalNumberFromSamlResponse,
-    TE.fromOption(
-      () =>
-        new H.HttpError(
-          "Missing or invalid Fiscal Code in the retrieved saml assertion."
-        )
-    ),
-    TE.filterOrElse(
-      fiscalCodeFromAssertion =>
-        fiscalCodeFromAssertion === fiscalCodeFromHeader,
-      fiscalCodeFromAssertion =>
-        new H.HttpError(
-          `The provided user id do not match the fiscalNumber in the assertion: fromSaml=${fiscalCodeFromAssertion},fromHeader=${fiscalCodeFromHeader}`
-        )
-    ),
-    TE.map(() => true as const)
-  );
+export const getAssertionUserIdVsCfVerifier =
+  (fiscalCodeFromHeader: FiscalCode): Verifier =>
+  (assertionDoc): ReturnType<Verifier> =>
+    pipe(
+      assertionDoc,
+      getFiscalNumberFromSamlResponse,
+      TE.fromOption(
+        () =>
+          new H.HttpError(
+            "Missing or invalid Fiscal Code in the retrieved saml assertion."
+          )
+      ),
+      TE.filterOrElse(
+        fiscalCodeFromAssertion =>
+          fiscalCodeFromAssertion === fiscalCodeFromHeader,
+        fiscalCodeFromAssertion =>
+          new H.HttpError(
+            `The provided user id do not match the fiscalNumber in the assertion: fromSaml=${fiscalCodeFromAssertion},fromHeader=${fiscalCodeFromHeader}`
+          )
+      ),
+      TE.map(() => true as const)
+    );
 
 const deleteNonce: (
   lollipopHeaders: LollipopHeaders
-) => RTE.ReaderTaskEither<
-  FnLollipopClientDependency,
-  H.HttpError,
-  true
-> = lollipopHeaders => ({ redisClientTask }) =>
-  pipe(
-    TE.fromEither(
-      getNonceFromSignatureInput(lollipopHeaders["signature-input"])
-    ),
-    TE.mapLeft(
-      error =>
-        new CustomHttpUnauthorizedError(
-          `Invalid or missing nonce in request: [${error.message}]`
-        )
-    ),
-    TE.chain(nonce =>
-      pipe(
-        redisClientTask,
-        TE.mapLeft(errorToHttpError),
-        TE.chainW(
-          flow(
-            invalidate(nonce),
-            TE.mapLeft(
-              error =>
-                new CustomHttpUnauthorizedError(
-                  `Could not delete nonce: [${error.message}]`
-                )
+) => RTE.ReaderTaskEither<FnLollipopClientDependency, H.HttpError, true> =
+  lollipopHeaders =>
+  ({ redisClientTask }) =>
+    pipe(
+      TE.fromEither(
+        getNonceFromSignatureInput(lollipopHeaders["signature-input"])
+      ),
+      TE.mapLeft(
+        error =>
+          new CustomHttpUnauthorizedError(
+            `Invalid or missing nonce in request: [${error.message}]`
+          )
+      ),
+      TE.chain(nonce =>
+        pipe(
+          redisClientTask,
+          TE.mapLeft(errorToHttpError),
+          TE.chainW(
+            flow(
+              invalidate(nonce),
+              TE.mapLeft(
+                error =>
+                  new CustomHttpUnauthorizedError(
+                    `Could not delete nonce: [${error.message}]`
+                  )
+              )
             )
           )
         )
       )
-    )
-  );
+    );
 
 export const makeFastLoginHandler: H.Handler<
   H.HttpRequest,

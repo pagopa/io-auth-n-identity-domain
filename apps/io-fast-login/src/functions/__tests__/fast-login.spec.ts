@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as H from "@pagopa/handler-kit";
 import * as E from "fp-ts/Either";
+import { ContainerClient } from "@azure/storage-blob";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { BlobService } from "azure-storage";
-import * as O from "fp-ts/Option";
-import * as azureStorage from "@pagopa/io-functions-commons/dist/src/utils/azure_storage";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as mattrglobalUtils from "@mattrglobal/http-signatures/lib/verify/verifySignatureHeader";
 import { okAsync, errAsync } from "neverthrow";
@@ -28,19 +26,16 @@ const getAssertionMock = vi.fn(async () =>
     value: { response_xml: aSAMLResponse }
   })
 );
-const mockedFnLollipopClient = ({
+const mockedFnLollipopClient = {
   getAssertion: getAssertionMock
-} as unknown) as FnLollipopClient;
-const mockBlobService = ({} as unknown) as BlobService;
-const mockUpsertBlobFromObject = vi
-  .spyOn(azureStorage, "upsertBlobFromObject")
-  .mockResolvedValue(
-    E.right(
-      O.some({
-        created: true
-      } as any)
-    )
-  );
+} as unknown as FnLollipopClient;
+const mockUploadData = vi.fn(async () => ({ created: true }));
+const mockGetBlockBlobClient = vi.fn(() => ({
+  uploadData: mockUploadData
+}));
+const mockAuditLogContainerClient = {
+  getBlockBlobClient: mockGetBlockBlobClient
+} as unknown as ContainerClient;
 
 const mockValidateSignature = vi
   .spyOn(mattrglobalUtils, "verifySignatureHeader")
@@ -65,22 +60,22 @@ describe("Fast Login handler", () => {
       ...httpHandlerInputMocks,
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
-      blobService: mockBlobService,
-      containerName: "logs" as NonEmptyString,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).toHaveBeenCalled();
     expect(mockDel).toHaveBeenCalled();
     expect(mockDel).toHaveBeenCalledWith(prefixer(aNonce));
     expect(getAssertionMock).toBeCalled();
-    expect(mockUpsertBlobFromObject).toBeCalled();
-    expect(mockUpsertBlobFromObject).toBeCalledWith(
-      {},
-      "logs",
-      // Check that the audit log filename starts with the fiscal code
+    expect(mockGetBlockBlobClient).toBeCalledWith(
       expect.stringMatching(
         new RegExp(`^${validLollipopHeaders["x-pagopa-lollipop-user-id"]}-?`)
-      ),
+      )
+    );
+    expect(mockUploadData).toBeCalled();
+    expect(
+      JSON.parse(mockUploadData.mock.calls[0][0].toString("utf-8"))
+    ).toEqual(
       expect.objectContaining({
         assertion_xml: aSAMLResponse,
         client_ip: validFastLoginAdditionalHeaders["x-pagopa-lv-client-ip"],
@@ -113,14 +108,13 @@ describe("Fast Login handler", () => {
       ...httpHandlerInputMocks,
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
-      blobService: mockBlobService,
-      containerName: "logs" as NonEmptyString,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).not.toHaveBeenCalled();
     expect(mockDel).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toBeCalled();
-    expect(mockUpsertBlobFromObject).not.toBeCalled();
+    expect(mockUploadData).not.toBeCalled();
     expect(result).toMatchObject(
       E.right({
         statusCode: 400,
@@ -143,14 +137,13 @@ describe("Fast Login handler", () => {
       ...httpHandlerInputMocks,
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
-      blobService: mockBlobService,
-      containerName: "logs" as NonEmptyString,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).not.toHaveBeenCalled();
     expect(mockDel).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toBeCalled();
-    expect(mockUpsertBlobFromObject).not.toBeCalled();
+    expect(mockUploadData).not.toBeCalled();
     expect(result).toMatchObject(
       E.right({
         statusCode: 400,
@@ -175,14 +168,13 @@ describe("Fast Login handler", () => {
       ...httpHandlerInputMocks,
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
-      blobService: mockBlobService,
-      containerName: "logs" as NonEmptyString,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).not.toHaveBeenCalled();
     expect(mockDel).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toBeCalled();
-    expect(mockUpsertBlobFromObject).not.toBeCalled();
+    expect(mockUploadData).not.toBeCalled();
     expect(result).toMatchObject(
       E.right({
         statusCode: 400,
@@ -208,15 +200,14 @@ describe("Fast Login handler", () => {
       ...httpHandlerInputMocks,
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
-      blobService: mockBlobService,
-      containerName: "logs" as NonEmptyString,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: mockRedisClientTask
     })();
     expect(E.isRight(result)).toBeTruthy();
     expect(mockValidateSignature).not.toHaveBeenCalled();
     expect(mockDel).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toBeCalled();
-    expect(mockUpsertBlobFromObject).not.toBeCalled();
+    expect(mockUploadData).not.toBeCalled();
     if (E.isRight(result)) {
       expect(result.right).toMatchObject({
         statusCode: 400,
@@ -248,15 +239,14 @@ describe("Fast Login handler", () => {
       ...httpHandlerInputMocks,
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
-      blobService: mockBlobService,
-      containerName: "logs" as NonEmptyString,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: mockRedisClientTask
     })();
     expect(E.isRight(result)).toBeTruthy();
     expect(mockValidateSignature).toHaveBeenCalled();
     expect(mockDel).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toBeCalled();
-    expect(mockUpsertBlobFromObject).not.toBeCalled();
+    expect(mockUploadData).not.toBeCalled();
     expect(result).toMatchObject(
       E.right({
         statusCode: 401,
@@ -282,8 +272,7 @@ describe("Fast Login handler", () => {
       ...httpHandlerInputMocks,
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
-      blobService: mockBlobService,
-      containerName: "logs" as NonEmptyString,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).toHaveBeenCalled();
@@ -323,15 +312,14 @@ describe("Fast Login handler", () => {
         ...httpHandlerInputMocks,
         input: req,
         fnLollipopClient: mockedFnLollipopClient,
-        blobService: mockBlobService,
-        containerName: "logs" as NonEmptyString,
+        auditLogContainerClient: mockAuditLogContainerClient,
         redisClientTask: mockRedisClientTask
       })();
       expect(mockValidateSignature).toHaveBeenCalled();
       expect(mockDel).toHaveBeenCalled();
       expect(mockDel).toHaveBeenCalledWith(prefixer(aNonce));
       expect(getAssertionMock).toBeCalled();
-      expect(mockUpsertBlobFromObject).not.toBeCalled();
+      expect(mockUploadData).not.toBeCalled();
       expect(result).toMatchObject(
         E.right({
           statusCode: 500,
@@ -342,22 +330,15 @@ describe("Fast Login handler", () => {
   );
 
   it.each`
-    WHEN                                      | upsertBlobFromObjectResult                    | expectedErrorMessage                                                 | resolve
-    ${"the blob storage returns no result"}   | ${E.right(O.none)}                            | ${"The audit log was not saved"}                                     | ${true}
-    ${"the blob sorage returns an error"}     | ${E.left(new Error("Storage Error Message"))} | ${"An error occurred saving the audit log: [Storage Error Message]"} | ${true}
-    ${"the blob sorage unexpectedly rejects"} | ${new Error("Unexpected error")}              | ${"Unexpected error: [Unexpected error]"}                            | ${false}
+    WHEN                                      | uploadError                           | expectedErrorMessage
+    ${"the blob storage upload rejects"}      | ${new Error("Storage Error Message")} | ${"Unexpected error: [Storage Error Message]"}
+    ${"the blob sorage unexpectedly rejects"} | ${new Error("Unexpected error")}      | ${"Unexpected error: [Unexpected error]"}
   `(
     `GIVEN a valid LolliPoP request
      WHEN $WHEN
      THEN an Internal Server Error response is returned`,
-    async ({ upsertBlobFromObjectResult, expectedErrorMessage, resolve }) => {
-      resolve
-        ? mockUpsertBlobFromObject.mockResolvedValueOnce(
-            upsertBlobFromObjectResult
-          )
-        : mockUpsertBlobFromObject.mockRejectedValueOnce(
-            upsertBlobFromObjectResult
-          );
+    async ({ uploadError, expectedErrorMessage }) => {
+      mockUploadData.mockRejectedValueOnce(uploadError);
       const req: H.HttpRequest = {
         ...H.request("https://api.test.it/"),
         headers: {
@@ -369,21 +350,22 @@ describe("Fast Login handler", () => {
         ...httpHandlerInputMocks,
         input: req,
         fnLollipopClient: mockedFnLollipopClient,
-        blobService: mockBlobService,
-        containerName: "logs" as NonEmptyString,
+        auditLogContainerClient: mockAuditLogContainerClient,
         redisClientTask: mockRedisClientTask
       })();
       expect(mockValidateSignature).toHaveBeenCalled();
       expect(mockDel).toHaveBeenCalled();
       expect(mockDel).toHaveBeenCalledWith(prefixer(aNonce));
       expect(getAssertionMock).toBeCalled();
-      expect(mockUpsertBlobFromObject).toBeCalled();
-      expect(mockUpsertBlobFromObject).toBeCalledWith(
-        {},
-        "logs",
+      expect(mockGetBlockBlobClient).toBeCalledWith(
         expect.stringMatching(
           new RegExp(`^${validLollipopHeaders["x-pagopa-lollipop-user-id"]}-?`)
-        ),
+        )
+      );
+      expect(mockUploadData).toBeCalled();
+      expect(
+        JSON.parse(mockUploadData.mock.calls[0][0].toString("utf-8"))
+      ).toEqual(
         expect.objectContaining({
           assertion_xml: aSAMLResponse,
           client_ip: validFastLoginAdditionalHeaders["x-pagopa-lv-client-ip"]
@@ -421,15 +403,14 @@ describe("Fast Login handler", () => {
       ...httpHandlerInputMocks,
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
-      blobService: mockBlobService,
-      containerName: "logs" as NonEmptyString,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).toHaveBeenCalled();
     expect(mockDel).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
-    expect(mockUpsertBlobFromObject).not.toHaveBeenCalled();
-    expect(mockUpsertBlobFromObject).not.toHaveBeenCalled();
+    expect(mockUploadData).not.toHaveBeenCalled();
+    expect(mockUploadData).not.toHaveBeenCalled();
     expect(result).toEqual(
       E.right(
         expect.objectContaining({
@@ -462,15 +443,14 @@ describe("Fast Login handler", () => {
       ...httpHandlerInputMocks,
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
-      blobService: mockBlobService,
-      containerName: "logs" as NonEmptyString,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).toHaveBeenCalled();
     expect(mockDel).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
-    expect(mockUpsertBlobFromObject).not.toHaveBeenCalled();
-    expect(mockUpsertBlobFromObject).not.toHaveBeenCalled();
+    expect(mockUploadData).not.toHaveBeenCalled();
+    expect(mockUploadData).not.toHaveBeenCalled();
     expect(result).toEqual(
       E.right(
         expect.objectContaining({
@@ -499,15 +479,14 @@ describe("Fast Login handler", () => {
       ...httpHandlerInputMocks,
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
-      blobService: mockBlobService,
-      containerName: "logs" as NonEmptyString,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: TE.left(new Error(anError))
     })();
     expect(mockValidateSignature).toHaveBeenCalled();
     expect(mockDel).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
-    expect(mockUpsertBlobFromObject).not.toHaveBeenCalled();
-    expect(mockUpsertBlobFromObject).not.toHaveBeenCalled();
+    expect(mockUploadData).not.toHaveBeenCalled();
+    expect(mockUploadData).not.toHaveBeenCalled();
     expect(result).toEqual(
       E.right(
         expect.objectContaining({
@@ -536,15 +515,14 @@ describe("Fast Login handler", () => {
       ...httpHandlerInputMocks,
       input: req,
       fnLollipopClient: mockedFnLollipopClient,
-      blobService: mockBlobService,
-      containerName: "logs" as NonEmptyString,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: mockRedisClientTask
     })();
     expect(mockValidateSignature).toHaveBeenCalled();
     expect(mockDel).toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
-    expect(mockUpsertBlobFromObject).not.toHaveBeenCalled();
-    expect(mockUpsertBlobFromObject).not.toHaveBeenCalled();
+    expect(mockUploadData).not.toHaveBeenCalled();
+    expect(mockUploadData).not.toHaveBeenCalled();
     expect(result).toEqual(
       E.right(
         expect.objectContaining({

@@ -77,13 +77,19 @@ export type FunctionsAppClientConfig = t.TypeOf<
 >;
 
 export const IConfig = t.intersection([
-  t.interface({
-    AUDIT_LOG_CONNECTION_STRING: NonEmptyString,
-    AUDIT_LOG_CONTAINER: NonEmptyString,
-    BETA_TESTERS: CommaSeparatedListOf(FiscalCode),
-    FF_API_ENABLED: withFallback(FeatureFlag, FeatureFlagEnum.NONE),
-    isProduction: t.boolean
-  }),
+  t.intersection([
+    t.interface({
+      AUDIT_LOG_CONTAINER: NonEmptyString,
+      BETA_TESTERS: CommaSeparatedListOf(FiscalCode),
+      FF_API_ENABLED: withFallback(FeatureFlag, FeatureFlagEnum.NONE),
+      USE_MANAGED_IDENTITY: t.boolean,
+      isProduction: t.boolean
+    }),
+    t.partial({
+      AUDIT_LOG_CONNECTION_STRING: NonEmptyString,
+      AUDIT_LOG_STORAGE__blobServiceUri: NonEmptyString
+    })
+  ]),
   JWTConfig,
   FastLoginClientConfig,
   FunctionsAppClientConfig,
@@ -92,6 +98,7 @@ export const IConfig = t.intersection([
 
 export const envConfig = {
   ...process.env,
+  USE_MANAGED_IDENTITY: process.env.USE_MANAGED_IDENTITY !== "false",
   isProduction: process.env.NODE_ENV === "production"
 };
 

@@ -1,15 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
 import * as E from "fp-ts/lib/Either";
 import { HttpError } from "@pagopa/handler-kit";
+import { ContainerClient } from "@azure/storage-blob";
 import { makeInfoHandler } from "../info";
 import { httpHandlerInputMocks } from "../__mocks__/handlerMocks";
 import { mockRedisClientTask, mockPing } from "../__mocks__/redis";
+
+const mockAuditLogContainerClient = {
+  getProperties: vi.fn(async () => ({}))
+} as unknown as ContainerClient;
 
 describe("Info handler", () => {
   it("should return an error if Redis PING command fail", async () => {
     mockPing.mockRejectedValueOnce("db error");
     const result = await makeInfoHandler({
       ...httpHandlerInputMocks,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: mockRedisClientTask
     })();
     expect(result).toMatchObject(
@@ -20,6 +26,7 @@ describe("Info handler", () => {
   it("should succeed if the application is healthy", async () => {
     const result = await makeInfoHandler({
       ...httpHandlerInputMocks,
+      auditLogContainerClient: mockAuditLogContainerClient,
       redisClientTask: mockRedisClientTask
     })();
 
