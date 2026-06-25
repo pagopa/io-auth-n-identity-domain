@@ -3,7 +3,6 @@ import fastify, { type FastifyInstance } from "fastify";
 
 import { mountInfoHandler } from "./adapters/inbound/fastify/info.handler.js";
 import { getInfoUseCase } from "./application/use-cases/info.use-case.js";
-import { reserveLollipopPubKeyUseCase } from "./application/use-cases/reserve-lollipop-pub-key.use-case.js";
 import type { Config } from "./domain/entities/config.js";
 
 export const createApp = (

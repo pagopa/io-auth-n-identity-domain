@@ -1306,9 +1306,6 @@ importers:
       fastify:
         specifier: 'catalog:'
         version: 5.8.5
-      jose:
-        specifier: 'catalog:'
-        version: 5.9.4
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0
