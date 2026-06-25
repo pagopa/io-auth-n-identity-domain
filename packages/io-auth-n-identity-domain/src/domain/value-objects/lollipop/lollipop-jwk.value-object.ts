@@ -8,7 +8,7 @@ const hasKtyField = (json: unknown): boolean => {
   );
 };
 
-export const LollipopPublicKeySchema = z
+export const LollipopJwkSchema = z
   .string()
   .min(1)
   .regex(/^[A-Za-z0-9_-]+=*$/, {
@@ -27,6 +27,6 @@ export const LollipopPublicKeySchema = z
     { message: "Must be a Base64url-encoded JWK with a valid 'kty' field" },
   )
   .describe("Base64url-encoded JWK")
-  .brand<"LollipopPublicKey">();
+  .brand<"LollipopJwk">();
 
-export type LollipopPublicKey = z.infer<typeof LollipopPublicKeySchema>;
+export type LollipopJwk = z.infer<typeof LollipopJwkSchema>;

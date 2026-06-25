@@ -1,3 +1,3 @@
 export * from "./lollipop-assertion-ref.value-object.js";
-export * from "./lollipop-public-key.value-object.js";
-export * from "./lollipop-pub-key-hash-algo.value-object.js";
+export * from "./lollipop-jwk.value-object.js";
+export * from "./lollipop-jwk-hash-algorithm.value-object.js";

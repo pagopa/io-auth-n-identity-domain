@@ -3,13 +3,16 @@ import type {
   ConflictError,
   GenericError,
 } from "@pagopa/io-core-domain/errors";
+
 import type {
-  LollipopNewPublicKey,
-  LollipopPublicKeyHeaders,
+  LollipopJwk,
+  LollipopJwkHashingAlgorithm,
 } from "@pagopa/io-auth-n-identity-domain";
+import type { LollipopPublicKey } from "../../entities/lollipop-public-key.entity.js";
 
 export interface LollipopOutboundPort {
-  reservePubKey(
-    input: LollipopPublicKeyHeaders,
-  ): Promise<Result<LollipopNewPublicKey, GenericError | ConflictError>>;
+  reservePubKey(input: {
+    algorithm: LollipopJwkHashingAlgorithm;
+    publicKey: LollipopJwk;
+  }): Promise<Result<LollipopPublicKey, GenericError | ConflictError>>;
 }

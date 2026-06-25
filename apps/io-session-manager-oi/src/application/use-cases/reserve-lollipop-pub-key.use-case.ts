@@ -1,20 +1,19 @@
-import {
-  LollipopPublicKeyHashingAlgorithmSchema,
-  type LollipopNewPublicKey,
-  type LollipopPublicKey,
-  type LollipopPublicKeyHashingAlgorithm,
-} from "@pagopa/io-auth-n-identity-domain";
 import type { UseCase } from "@pagopa/io-core-domain";
 import { ConflictError, GenericError } from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
 
 import type { LollipopOutboundPort } from "../../domain/ports/outbound/lollipop.js";
+import {
+  LollipopJwk,
+  LollipopJwkHashingAlgorithm,
+  LollipopJwkHashingAlgorithmSchema,
+} from "@pagopa/io-auth-n-identity-domain";
+import { LollipopPublicKey } from "../../domain/entities/lollipop-public-key.entity.js";
 
-const DEFAULT_ALGORITHM =
-  LollipopPublicKeyHashingAlgorithmSchema.parse("sha256");
+const DEFAULT_ALGORITHM = LollipopJwkHashingAlgorithmSchema.parse("sha256");
 interface ReserveLollipopPubKeyInput {
-  readonly algorithm?: LollipopPublicKeyHashingAlgorithm;
-  readonly publicKey: LollipopPublicKey;
+  readonly algorithm?: LollipopJwkHashingAlgorithm;
+  readonly publicKey: LollipopJwk;
 }
 
 export const reserveLollipopPubKeyUseCase =
@@ -22,7 +21,7 @@ export const reserveLollipopPubKeyUseCase =
     lollipopPort: LollipopOutboundPort,
   ): UseCase<
     ReserveLollipopPubKeyInput,
-    LollipopNewPublicKey,
+    LollipopPublicKey,
     GenericError | ConflictError
   > =>
   async ({ algorithm = DEFAULT_ALGORITHM, publicKey }) => {

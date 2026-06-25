@@ -1,35 +1,29 @@
-import {
-  LollipopNewPublicKeySchema,
-  type LollipopPublicKey,
-  type LollipopPublicKeyHashingAlgorithm,
-} from "@pagopa/io-auth-n-identity-domain";
 import { ConflictError, GenericError } from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
 
 import type { Config } from "../../domain/entities/config.js";
 import type { LollipopOutboundPort } from "../../domain/ports/outbound/lollipop.js";
+import { LollipopJwk } from "@pagopa/io-auth-n-identity-domain";
+import { LollipopPublicKeySchema } from "../../domain/entities/lollipop-public-key.entity.js";
 
-const decodeJwk = (encodedPubKey: LollipopPublicKey): unknown => {
+const decodeJwk = (encodedPubKey: LollipopJwk): unknown => {
   return JSON.parse(Buffer.from(encodedPubKey, "base64url").toString("utf-8"));
 };
 
 export const createLollipopAdapter = (
   config: Config,
 ): LollipopOutboundPort => ({
-  reservePubKey: async ({
-    algorithm,
-    publicKey,
-  }: {
-    algorithm: LollipopPublicKeyHashingAlgorithm;
-    publicKey: LollipopPublicKey;
-  }) => {
+  reservePubKey: async ({ algorithm, publicKey }) => {
     let response: Response;
 
     try {
       response = await fetch(
         `${config.LOLLIPOP_API_URL}${config.LOLLIPOP_API_BASE_PATH}/pubkeys`,
         {
-          body: JSON.stringify({ algo: algorithm, pub_key: decodeJwk(publicKey) }),
+          body: JSON.stringify({
+            algo: algorithm,
+            pub_key: decodeJwk(publicKey),
+          }),
           headers: {
             "Content-Type": "application/json",
             "X-Functions-Key": config.LOLLIPOP_API_KEY,
@@ -68,7 +62,7 @@ export const createLollipopAdapter = (
       );
     }
 
-    const parsed = LollipopNewPublicKeySchema.safeParse(body);
+    const parsed = LollipopPublicKeySchema.safeParse(body);
     if (!parsed.success) {
       return err(
         new GenericError("Invalid response from lollipop reserve endpoint"),

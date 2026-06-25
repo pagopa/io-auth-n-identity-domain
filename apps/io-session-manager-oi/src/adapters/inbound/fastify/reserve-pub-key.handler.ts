@@ -1,21 +1,12 @@
 import { mountFastifyRoute } from "@pagopa/io-core-adapter-fastify";
 import type { RouteRegistry } from "@pagopa/io-core-openapi";
 import { defineRoute, ProblemJson } from "@pagopa/io-core-openapi";
-import {
-  LollipopPublicKeyHashingAlgorithmSchema,
-  type LollipopPublicKey,
-  type LollipopPublicKeyHashingAlgorithm,
-} from "@pagopa/io-auth-n-identity-domain";
-import {
-  type ConflictError,
-  type GenericError,
-} from "@pagopa/io-core-domain/errors";
 import type { FastifyInstance } from "fastify";
 
 import type { reserveLollipopPubKeyUseCase } from "../../../application/use-cases/reserve-lollipop-pub-key.use-case.js";
 import {
-  ReservePubKeyHeadersSchema,
-  ReservePubKeyOutputSchema,
+  LollipopReservePublicKeyHeadersSchema,
+  LollipopReservePublicKeyResponseSchema,
 } from "../dtos/reserve-pub-key.dto.js";
 
 const reservePubKeyContract = defineRoute({
@@ -25,12 +16,12 @@ const reservePubKeyContract = defineRoute({
   operationId: "reservePubKey",
   path: "/api/lollipop/pubkeys",
   request: {
-    headers: ReservePubKeyHeadersSchema,
+    headers: LollipopReservePublicKeyHeadersSchema,
   },
   response: {
     201: {
       description: "Public key reserved successfully.",
-      schema: ReservePubKeyOutputSchema,
+      schema: LollipopReservePublicKeyResponseSchema,
     },
     400: ProblemJson,
     409: ProblemJson,

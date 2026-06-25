@@ -1,28 +1,44 @@
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import {
+  LollipopJwkSchema,
+  LollipopJwkHashingAlgorithmSchema,
   LollipopAssertionRefSchema,
-  LollipopPublicKeyHeadersSchema,
 } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
-export const ReservePubKeyHeadersSchema = LollipopPublicKeyHeadersSchema.meta({
-  description: "Headers for reserving a lollipop public key.",
-  id: "ReservePubKeyHeaders",
-});
-
-export type ReservePubKeyHeaders = z.infer<typeof ReservePubKeyHeadersSchema>;
-
-export const ReservePubKeyOutputSchema = z
+export const LollipopReservePublicKeyHeadersSchema = z
   .object({
-    assertion_ref: LollipopAssertionRefSchema.meta({
-      description: "The reserved assertion reference (algo-thumbprint).",
-    }),
+    /** Base64url-encoded JWK public key */
+    "x-pagopa-lollipop-pub-key": LollipopJwkSchema,
+
+    /** Thumbprint hashing algorithm */
+    "x-pagopa-lollipop-pub-key-hash-algo":
+      LollipopJwkHashingAlgorithmSchema.optional(),
   })
   .meta({
-    description: "Successful reservation of the lollipop public key.",
-    id: "ReservePubKeyOutput",
+    description: "Headers for reserving a lollipop public key.",
+    id: "ReservePubKeyHeaders",
   });
 
-export type ReservePubKeyOutput = z.infer<typeof ReservePubKeyOutputSchema>;
+export type LollipopReservePublicKeyHeaders = z.infer<
+  typeof LollipopReservePublicKeyHeadersSchema
+>;
+
+export const LollipopReservePublicKeyResponseSchema = z
+  .object({
+    assertion_ref: LollipopAssertionRefSchema,
+    pub_key: LollipopJwkSchema,
+    version: z.number().int().nonnegative(),
+    status: z.enum(["PENDING", "VALID", "REVOKED"]),
+    ttl: z.number().int().nonnegative(),
+  })
+  .meta({
+    description: "The output of the reserve public key operation.",
+    id: "ReservePubKeyResponse",
+  });
+
+export type LollipopReservePublicKeyResponse = z.infer<
+  typeof LollipopReservePublicKeyResponseSchema
+>;
