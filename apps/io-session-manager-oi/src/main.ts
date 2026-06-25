@@ -17,8 +17,8 @@ const start = async () => {
 
   try {
     await server.listen({
-      host: config.HOST, 
-      port: config.PORT 
+      host: config.HOST,
+      port: config.PORT,
     });
     console.log(`Server listening on: http://${config.HOST}:${config.PORT}`);
     console.log(`Info: http://${config.HOST}:${config.PORT}/api/info`);

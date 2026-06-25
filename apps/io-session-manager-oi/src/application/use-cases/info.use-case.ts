@@ -1,5 +1,4 @@
 import type { UseCase } from "@pagopa/io-core-domain";
-
 import { ok } from "neverthrow";
 
 interface InfoOutput {

@@ -1,10 +1,10 @@
+import { RouteRegistry } from "@pagopa/io-core-openapi";
 import fastify, { type FastifyInstance } from "fastify";
 
-import { RouteRegistry } from "@pagopa/io-core-openapi";
-
-import type { Config } from "./domain/entities/config.js";
 import { mountInfoHandler } from "./adapters/inbound/fastify/info.handler.js";
 import { getInfoUseCase } from "./application/use-cases/info.use-case.js";
+import { reserveLollipopPubKeyUseCase } from "./application/use-cases/reserve-lollipop-pub-key.use-case.js";
+import type { Config } from "./domain/entities/config.js";
 
 export const createApp = (
   config: Config,
@@ -17,10 +17,8 @@ export const createApp = (
   });
   const registry = new RouteRegistry();
 
-  // --- Dependency wiring ---
-
   // --- HTTP function registrations ---
-  mountInfoHandler(server, getInfoUseCase);
+  mountInfoHandler(server, getInfoUseCase, registry);
 
   return { registry, server };
 };
