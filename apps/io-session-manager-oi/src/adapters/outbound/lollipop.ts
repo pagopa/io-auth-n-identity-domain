@@ -2,11 +2,12 @@ import { LollipopJwk } from "@pagopa/io-auth-n-identity-domain";
 import { ConflictError, GenericError } from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
 
-import type { Config } from "../../domain/entities/config.js";
+import type { Config } from "../../domain/entities/config.entity.js";
 import { LollipopPublicKeySchema } from "../../domain/entities/lollipop-public-key.entity.js";
 import type { LollipopOutboundPort } from "../../domain/ports/outbound/lollipop.js";
 
-const decodeJwk = (encodedPubKey: LollipopJwk): unknown => JSON.parse(Buffer.from(encodedPubKey, "base64url").toString("utf-8"));
+const decodeJwk = (encodedPubKey: LollipopJwk): unknown =>
+  JSON.parse(Buffer.from(encodedPubKey, "base64url").toString("utf-8"));
 
 export const createLollipopAdapter = (
   config: Config,

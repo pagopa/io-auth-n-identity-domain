@@ -6,7 +6,7 @@ import { mountReservePubKeyHandler } from "./adapters/inbound/fastify/reserve-pu
 import { createLollipopAdapter } from "./adapters/outbound/lollipop.js";
 import { getInfoUseCase } from "./application/use-cases/info.use-case.js";
 import { reserveLollipopPubKeyUseCase } from "./application/use-cases/reserve-lollipop-pub-key.use-case.js";
-import type { Config } from "./domain/entities/config.js";
+import type { Config } from "./domain/entities/config.entity.js";
 
 export const createApp = (
   config: Config,
