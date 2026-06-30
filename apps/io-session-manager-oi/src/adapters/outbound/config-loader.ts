@@ -3,10 +3,8 @@ import {
   type ConfigLoader,
 } from "@pagopa/io-env-config";
 
-import {
-  ConfigSchema,
-  type Config,
-} from "../../domain/entities/config.entity.js";
+import { type z } from "zod";
 
-export const createConfigLoader = (): ConfigLoader<Config> =>
-  createEnvConfigLoader(ConfigSchema);
+export const createConfigLoader = <TOutput>(
+  configSchema: z.ZodType<TOutput>,
+): ConfigLoader<TOutput> => createEnvConfigLoader(configSchema);

@@ -8,7 +8,7 @@ import { ConflictError, GenericError } from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
 
 import { LollipopPublicKey } from "../../domain/entities/lollipop-public-key.entity.js";
-import type { LollipopOutboundPort } from "../../domain/ports/outbound/lollipop.js";
+import type { LollipopOutboundPort } from "../../domain/ports/outbound/lollipop.outbound-port.js";
 
 const DEFAULT_ALGORITHM = LollipopJwkHashingAlgorithmSchema.parse("sha256");
 interface ReserveLollipopPubKeyInput {

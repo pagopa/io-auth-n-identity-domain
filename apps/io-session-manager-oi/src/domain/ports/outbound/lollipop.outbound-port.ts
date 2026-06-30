@@ -8,10 +8,10 @@ import type {
 } from "@pagopa/io-core-domain/errors";
 import type { Result } from "neverthrow";
 
-
 import type { LollipopPublicKey } from "../../entities/lollipop-public-key.entity.js";
+import { HealthCheckOutboundPort } from "./healthcheck.outbound-port.js";
 
-export interface LollipopOutboundPort {
+export interface LollipopOutboundPort extends HealthCheckOutboundPort {
   reservePubKey(input: {
     algorithm: LollipopJwkHashingAlgorithm;
     publicKey: LollipopJwk;

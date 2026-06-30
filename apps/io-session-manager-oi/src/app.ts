@@ -6,10 +6,14 @@ import { mountReservePubKeyHandler } from "./adapters/inbound/fastify/reserve-pu
 import { createLollipopAdapter } from "./adapters/outbound/lollipop.js";
 import { getInfoUseCase } from "./application/use-cases/info.use-case.js";
 import { reserveLollipopPubKeyUseCase } from "./application/use-cases/reserve-lollipop-pub-key.use-case.js";
-import type { Config } from "./domain/entities/config.entity.js";
+import { ConfigSchema, type Config } from "./domain/entities/config.entity.js";
+import { ConfigError } from "@pagopa/io-env-config";
+import { Result } from "neverthrow";
+import { createPackageInfoAdapter } from "@pagopa/io-package-info";
+import { createConfigLoader } from "./adapters/outbound/config-loader.js";
 
 export const createApp = (
-  config: Config,
+  configResult: Result<Config, ConfigError>,
 ): {
   registry: RouteRegistry;
   server: FastifyInstance;
@@ -19,10 +23,15 @@ export const createApp = (
   });
   const registry = new RouteRegistry();
 
-  const lollipopAdapter = createLollipopAdapter(config);
+  const packageInfoAdapter = createPackageInfoAdapter(
+    new URL("../package.json", import.meta.url).pathname,
+  );
 
-  // --- HTTP function registrations ---
-  mountInfoHandler(server, getInfoUseCase, registry);
+  mountInfoHandler(server, getInfoUseCase, [packageInfoAdapter, []], registry);
+
+  const lollipopAdapter = createLollipopAdapter(
+    createConfigLoader(LollipopConfigSchema).load(),
+  );
 
   // TODO: remove this endpoint and the related code
   // This is an endpoint only used for development and testing purposes, to reserve a lollipop public key for the current login attempt.

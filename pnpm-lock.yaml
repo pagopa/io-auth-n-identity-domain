@@ -1300,6 +1300,9 @@ importers:
       '@pagopa/io-env-config':
         specifier: workspace:^
         version: link:../../packages/io-env-config
+      '@pagopa/io-package-info':
+        specifier: workspace:^
+        version: link:../../packages/io-package-info
       dotenv:
         specifier: 'catalog:'
         version: 16.4.7
@@ -1861,6 +1864,40 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 4.4.3
+    devDependencies:
+      '@pagopa/io-platform-typescript-config-node':
+        specifier: workspace:^
+        version: link:../io-core/typescript-config-node
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.17
+      '@vitest/coverage-v8':
+        specifier: 'catalog:'
+        version: 3.2.4(vitest@3.2.4(@types/node@22.19.17)(tsx@4.22.4)(yaml@2.9.0))
+      eslint:
+        specifier: 'catalog:'
+        version: 8.57.0
+      eslint-config-monorepo:
+        specifier: workspace:^
+        version: link:../eslint-config-monorepo
+      shx:
+        specifier: 'catalog:'
+        version: 0.4.0
+      typescript:
+        specifier: 'catalog:'
+        version: 5.8.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.4(@types/node@22.19.17)(tsx@4.22.4)(yaml@2.9.0)
+
+  packages/io-package-info:
+    dependencies:
+      '@pagopa/io-core-domain':
+        specifier: workspace:^
+        version: link:../io-core/io-core-domain
+      neverthrow:
+        specifier: 'catalog:'
+        version: 8.2.0
     devDependencies:
       '@pagopa/io-platform-typescript-config-node':
         specifier: workspace:^
@@ -3871,9 +3908,6 @@ packages:
   '@types/node@12.20.55':
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
 
-  '@types/node@20.19.30':
-    resolution: {integrity: sha512-WJtwWJu7UdlvzEAUm484QNg5eAoq5QR08KDNx7g45Usrs2NtOPiX8ugDqmKdXkyL03rBqU5dYNYVQetEpBHq2g==}
-
   '@types/node@22.19.17':
     resolution: {integrity: sha512-wGdMcf+vPYM6jikpS/qhg6WiqSV/OhG+jeeHT/KlVqxYfD40iYJf9/AE1uQxVWFvU7MipKRkRv8NSHiCGgPr8Q==}
 
@@ -5634,6 +5668,7 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@7.2.3:
@@ -10691,7 +10726,7 @@ snapshots:
       jose: 4.15.9
       json-set-map: 1.1.2
       node-fetch: 2.7.0
-      semver: 7.6.1
+      semver: 7.7.3
       validator: 13.11.0
     transitivePeerDependencies:
       - encoding
@@ -11239,7 +11274,7 @@ snapshots:
 
   '@types/jsonwebtoken@9.0.7':
     dependencies:
-      '@types/node': 20.19.30
+      '@types/node': 22.19.17
 
   '@types/jwk-to-pem@2.0.3': {}
 
@@ -11274,14 +11309,10 @@ snapshots:
 
   '@types/node-fetch@2.6.12':
     dependencies:
-      '@types/node': 20.19.30
+      '@types/node': 22.19.17
       form-data: 4.0.4
 
   '@types/node@12.20.55': {}
-
-  '@types/node@20.19.30':
-    dependencies:
-      undici-types: 6.21.0
 
   '@types/node@22.19.17':
     dependencies:
@@ -11384,7 +11415,7 @@ snapshots:
 
   '@types/xml-crypto@1.4.6':
     dependencies:
-      '@types/node': 20.19.30
+      '@types/node': 22.19.17
       xpath: 0.0.27
 
   '@types/yargs-parser@21.0.3': {}
@@ -15849,7 +15880,7 @@ snapshots:
       bundle-require: 4.2.1(esbuild@0.17.19)
       cac: 6.7.14
       chokidar: 3.6.0
-      debug: 4.4.1
+      debug: 4.4.3
       esbuild: 0.17.19
       execa: 5.1.1
       globby: 11.1.0

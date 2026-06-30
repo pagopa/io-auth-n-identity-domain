@@ -3,7 +3,7 @@ import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
-export const InfoOutputSchema = z
+export const HealthcheckOutputSchema = z
   .object({
     name: z.string().meta({
       description: "The application name.",
@@ -14,10 +14,10 @@ export const InfoOutputSchema = z
   })
   .meta({
     description: "Application health and version information.",
-    id: "InfoOutput",
+    id: "HealthcheckOutput",
   });
 
-  export const InfoErrorSchema = z
+  export const HealthcheckErrorSchema = z
   .object({
     name: z.string().meta({
       description: "The application name.",

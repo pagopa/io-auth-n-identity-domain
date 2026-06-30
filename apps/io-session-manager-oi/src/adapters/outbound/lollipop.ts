@@ -2,16 +2,42 @@ import { LollipopJwk } from "@pagopa/io-auth-n-identity-domain";
 import { ConflictError, GenericError } from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
 
-import type { Config } from "../../domain/entities/config.entity.js";
+import type { LollipopConfig } from "../../domain/entities/config.entity.js";
 import { LollipopPublicKeySchema } from "../../domain/entities/lollipop-public-key.entity.js";
-import type { LollipopOutboundPort } from "../../domain/ports/outbound/lollipop.js";
+import type { LollipopOutboundPort } from "../../domain/ports/outbound/lollipop.outbound-port.js";
 
 const decodeJwk = (encodedPubKey: LollipopJwk): unknown =>
   JSON.parse(Buffer.from(encodedPubKey, "base64url").toString("utf-8"));
 
 export const createLollipopAdapter = (
-  config: Config,
+  config: LollipopConfig,
 ): LollipopOutboundPort => ({
+  healthcheck: async () => {
+    let response: Response;
+
+    try {
+      response = await fetch(
+        `${config.LOLLIPOP_API_URL}${config.LOLLIPOP_API_BASE_PATH}/api/info`,
+      );
+    } catch (e) {
+      return err(
+        new GenericError(
+          `Failed to reach lollipop healthcheck endpoint: ${e instanceof Error ? e.message : String(e)}`,
+        ),
+      );
+    }
+
+    if (!response.ok) {
+      return err(
+        new GenericError(
+          `Unexpected response from lollipop healthcheck endpoint: ${response.status}`,
+        ),
+      );
+    }
+
+    return ok(undefined);
+  },
+
   reservePubKey: async ({ algorithm, publicKey }) => {
     let response: Response;
 

@@ -27,6 +27,7 @@
     "@pagopa/io-env-config": "workspace:^",
     "@pagopa/io-core-domain": "workspace:^",
     "@pagopa/io-core-openapi": "workspace:^",
+    "@pagopa/io-package-info": "workspace:^",
     "dotenv": "catalog:",
     "fastify": "catalog:",
     "neverthrow": "catalog:",

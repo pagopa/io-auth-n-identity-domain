@@ -1,27 +1,39 @@
 import "dotenv/config";
+
+import {
+  ConfigSchema,
+  ServerConfigSchema,
+} from "./domain/entities/config.entity.js";
 import { createConfigLoader } from "./adapters/outbound/config-loader.js";
 import { createApp } from "./app.js";
 
 const start = async () => {
-  // Load and validate configuration before creating the app.
-  // If invalid, the process exits immediately with a clear error message.
-  const configResult = createConfigLoader().load();
-
-  if (configResult.isErr()) {
-    console.error("Configuration loading failed:", configResult.error.message);
+  // Try loading the server configuration first,
+  // since it is needed to start the server.
+  const serverConfigResult = createConfigLoader(ServerConfigSchema).load();
+  if (serverConfigResult.isErr()) {
+    console.error(
+      "Failed to load server configuration:",
+      serverConfigResult.error,
+    );
     process.exit(1);
   }
 
-  const config = configResult.value;
-  const { server } = createApp(config);
+  const serverConfig = serverConfigResult.value;
+
+  const { server } = createApp(createConfigLoader(ConfigSchema).load());
 
   try {
     await server.listen({
-      host: config.HOST,
-      port: config.PORT,
+      host: serverConfig.HOST,
+      port: serverConfig.PORT,
     });
-    console.log(`Server listening on: http://${config.HOST}:${config.PORT}`);
-    console.log(`Info: http://${config.HOST}:${config.PORT}/api/info`);
+    console.log(
+      `Server listening on: http://${serverConfig.HOST}:${serverConfig.PORT}`,
+    );
+    console.log(
+      `Info: http://${serverConfig.HOST}:${serverConfig.PORT}/api/info`,
+    );
   } catch (err) {
     server.log.error(err);
     process.exit(1);
