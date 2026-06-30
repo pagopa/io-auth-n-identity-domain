@@ -1,5 +1,5 @@
-import { sendErrorResponse } from "@pagopa/io-core-adapter-fastify";
-import { ForbiddenError, ValidationError } from "@pagopa/io-core-domain/errors";
+import { sendErrorResponse } from "@pagopa/hexagonal-fastify";
+import { ForbiddenError, ValidationError } from "@pagopa/hexagonal-core/domain/errors";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import * as rangeCheck from "range_check";
 import { z } from "zod";

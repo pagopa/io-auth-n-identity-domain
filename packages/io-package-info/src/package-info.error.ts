@@ -1,4 +1,4 @@
-import { BaseError } from "@pagopa/io-core-domain/errors";
+import { BaseError } from "@pagopa/hexagonal-core/domain/errors";
 
 export class PackageInfoError extends BaseError {
   override readonly kind = "PackageInfoError" as const;

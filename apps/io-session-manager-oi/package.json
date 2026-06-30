@@ -22,12 +22,12 @@
     "generate:openapi:check": "tsx ./scripts/generate-openapi.ts --check"
   },
   "dependencies": {
+    "@pagopa/hexagonal-core": "catalog:",
+    "@pagopa/hexagonal-fastify": "catalog:",
     "@pagopa/io-auth-n-identity-domain": "workspace:^",
-    "@pagopa/io-core-adapter-fastify": "workspace:^",
     "@pagopa/io-env-config": "workspace:^",
-    "@pagopa/io-core-domain": "workspace:^",
-    "@pagopa/io-core-openapi": "workspace:^",
     "@pagopa/io-package-info": "workspace:^",
+    "@standard-schema/spec": "^1.1.0",
     "dotenv": "catalog:",
     "fastify": "catalog:",
     "neverthrow": "catalog:",

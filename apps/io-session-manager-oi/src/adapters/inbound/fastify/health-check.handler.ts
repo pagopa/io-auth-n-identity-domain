@@ -1,6 +1,5 @@
-import { mountFastifyRoute } from "@pagopa/io-core-adapter-fastify";
-import type { RouteRegistry } from "@pagopa/io-core-openapi";
-import { defineRoute } from "@pagopa/io-core-openapi";
+import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
+import { defineRoute } from "@pagopa/hexagonal-core";
 import type { FastifyInstance } from "fastify";
 
 import { getHealthCheckUseCase } from "../../../application/use-cases/health-check.use-case.js";
@@ -29,12 +28,10 @@ const healthcheckContract = defineRoute({
 export const mountHealthCheckHandler = (
   server: FastifyInstance,
   useCase: ReturnType<typeof getHealthCheckUseCase>,
-  registry?: RouteRegistry,
 ): void => {
   mountFastifyRoute(server, {
     contract: healthcheckContract,
-    registry,
-    transformInput: () => ({}),
+    inputMapper: () => ({}),
     useCase,
   });
 };

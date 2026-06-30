@@ -1,6 +1,7 @@
-import { RouteRegistry } from "@pagopa/io-core-openapi";
+import { type PackageInfo } from "@pagopa/io-package-info";
 import fastify, { type FastifyInstance } from "fastify";
 
+import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { mountReservePubKeyHandler } from "./adapters/inbound/fastify/reserve-pub-key.handler.js";
 import { createLollipopAdapter } from "./adapters/outbound/lollipop.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
@@ -9,21 +10,17 @@ import {
   LollipopConfig,
   type Config,
 } from "./domain/entities/config.entity.js";
-import { ConfigError } from "@pagopa/io-env-config";
-import { type PackageInfo } from "@pagopa/io-package-info";
-import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 
 export const createApp = (
   config: Config,
   packageInfo: PackageInfo,
 ): {
-  registry: RouteRegistry;
   server: FastifyInstance;
 } => {
   const server = fastify({
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
   });
-  const registry = new RouteRegistry();
+  const registry = undefined;
 
   const lollipopAdapter = createLollipopAdapter(
     config satisfies LollipopConfig,
@@ -32,7 +29,6 @@ export const createApp = (
   mountHealthCheckHandler(
     server,
     getHealthCheckUseCase(packageInfo, [lollipopAdapter]),
-    registry,
   );
 
   // TODO: remove this endpoint and the related code
@@ -40,8 +36,7 @@ export const createApp = (
   mountReservePubKeyHandler(
     server,
     reserveLollipopPubKeyUseCase(lollipopAdapter),
-    registry,
   );
 
-  return { registry, server };
+  return { server };
 };

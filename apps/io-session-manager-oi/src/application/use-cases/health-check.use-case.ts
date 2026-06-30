@@ -1,9 +1,10 @@
-import { type UseCase } from "@pagopa/io-core-domain";
-import { ok } from "neverthrow";
-import { HealthCheckOutboundPort } from "../../domain/ports/outbound/health-check.outbound-port.js";
+import { type UseCase } from "@pagopa/hexagonal-core";
 import { type PackageInfo } from "@pagopa/io-package-info";
+import { ok } from "neverthrow";
 import { type z } from "zod";
+
 import { type HealthCheckOutputSchema } from "../../adapters/inbound/dtos/health-check.dto.js";
+import { HealthCheckOutboundPort } from "../../domain/ports/outbound/health-check.outbound-port.js";
 
 type HealthCheckOutput = z.input<typeof HealthCheckOutputSchema>;
 

@@ -1,6 +1,5 @@
-import { mountFastifyRoute } from "@pagopa/io-core-adapter-fastify";
-import type { RouteRegistry } from "@pagopa/io-core-openapi";
-import { defineRoute, ProblemJson } from "@pagopa/io-core-openapi";
+import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
+import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
 import type { FastifyInstance } from "fastify";
 
 import type { reserveLollipopPubKeyUseCase } from "../../../application/use-cases/reserve-lollipop-pub-key.use-case.js";
@@ -34,14 +33,12 @@ const reservePubKeyContract = defineRoute({
 export const mountReservePubKeyHandler = (
   server: FastifyInstance,
   useCase: ReturnType<typeof reserveLollipopPubKeyUseCase>,
-  registry?: RouteRegistry,
 ): void => {
   mountFastifyRoute(server, {
     contract: reservePubKeyContract,
-    registry,
-    transformInput: ({ headers }) => ({
-      algorithm: headers["x-pagopa-lollipop-pub-key-hash-algo"],
-      publicKey: headers["x-pagopa-lollipop-pub-key"],
+    inputMapper: (req) => ({
+      algorithm: req.headers["x-pagopa-lollipop-pub-key-hash-algo"],
+      publicKey: req.headers["x-pagopa-lollipop-pub-key"],
     }),
     useCase,
   });

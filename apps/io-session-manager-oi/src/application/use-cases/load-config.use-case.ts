@@ -1,4 +1,4 @@
-import type { UseCase } from "@pagopa/io-core-domain";
+import type { UseCase } from "@pagopa/hexagonal-core";
 import type { ConfigError, ConfigLoader } from "@pagopa/io-env-config";
 
 import type { Config } from "../../domain/entities/config.entity.js";

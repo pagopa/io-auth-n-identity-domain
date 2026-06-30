@@ -1,12 +1,13 @@
 import "dotenv/config";
 
+import { createPackageInfoAdapter } from "@pagopa/io-package-info";
+
+import { createConfigLoader } from "./adapters/outbound/config-loader.js";
+import { createApp } from "./app.js";
 import {
   ConfigSchema,
   ServerConfigSchema,
 } from "./domain/entities/config.entity.js";
-import { createConfigLoader } from "./adapters/outbound/config-loader.js";
-import { createPackageInfoAdapter } from "@pagopa/io-package-info";
-import { createApp } from "./app.js";
 
 const start = async () => {
   const configResult = createConfigLoader(ConfigSchema).load();

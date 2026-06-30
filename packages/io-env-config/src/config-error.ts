@@ -1,4 +1,4 @@
-import { BaseError } from "@pagopa/io-core-domain/errors";
+import { BaseError } from "@pagopa/hexagonal-core";
 
 /**
  * Generic error for configuration loading failures.
