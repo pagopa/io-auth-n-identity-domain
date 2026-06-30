@@ -20,7 +20,6 @@ export const createApp = (
   const server = fastify({
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
   });
-  const registry = undefined;
 
   const lollipopAdapter = createLollipopAdapter(
     config satisfies LollipopConfig,
