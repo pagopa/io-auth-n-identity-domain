@@ -1,5 +1,5 @@
-import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
+import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { FastifyInstance } from "fastify";
 
 import type { reserveLollipopPubKeyUseCase } from "../../../application/use-cases/reserve-lollipop-pub-key.use-case.js";

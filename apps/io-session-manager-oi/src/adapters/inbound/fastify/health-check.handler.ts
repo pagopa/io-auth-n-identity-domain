@@ -1,5 +1,5 @@
-import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import { defineRoute } from "@pagopa/hexagonal-core";
+import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { FastifyInstance } from "fastify";
 
 import { getHealthCheckUseCase } from "../../../application/use-cases/health-check.use-case.js";

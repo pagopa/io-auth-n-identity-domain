@@ -1,5 +1,5 @@
-import { LollipopJwk } from "@pagopa/io-auth-n-identity-domain";
 import { ConflictError, GenericError } from "@pagopa/hexagonal-core/domain/errors";
+import { LollipopJwk } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok, Result } from "neverthrow";
 
 import type { LollipopConfig } from "../../domain/entities/config.entity.js";

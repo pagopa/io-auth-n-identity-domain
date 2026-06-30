@@ -1,10 +1,10 @@
+import type { UseCase } from "@pagopa/hexagonal-core";
+import { ConflictError, GenericError } from "@pagopa/hexagonal-core/domain/errors";
 import {
   LollipopJwk,
   LollipopJwkHashingAlgorithm,
   LollipopJwkHashingAlgorithmSchema,
 } from "@pagopa/io-auth-n-identity-domain";
-import type { UseCase } from "@pagopa/hexagonal-core";
-import { ConflictError, GenericError } from "@pagopa/hexagonal-core/domain/errors";
 import { err, ok } from "neverthrow";
 
 import { LollipopPublicKey } from "../../domain/entities/lollipop-public-key.entity.js";

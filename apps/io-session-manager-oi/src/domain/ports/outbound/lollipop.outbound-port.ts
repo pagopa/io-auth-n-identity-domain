@@ -1,11 +1,11 @@
 import type {
-  LollipopJwk,
-  LollipopJwkHashingAlgorithm,
-} from "@pagopa/io-auth-n-identity-domain";
-import type {
   ConflictError,
   GenericError,
 } from "@pagopa/hexagonal-core/domain/errors";
+import type {
+  LollipopJwk,
+  LollipopJwkHashingAlgorithm,
+} from "@pagopa/io-auth-n-identity-domain";
 import type { Result } from "neverthrow";
 
 import type { LollipopPublicKey } from "../../entities/lollipop-public-key.entity.js";
