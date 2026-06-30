@@ -1,19 +1,21 @@
 import { RouteRegistry } from "@pagopa/io-core-openapi";
 import fastify, { type FastifyInstance } from "fastify";
 
-import { mountInfoHandler } from "./adapters/inbound/fastify/info.handler.js";
 import { mountReservePubKeyHandler } from "./adapters/inbound/fastify/reserve-pub-key.handler.js";
 import { createLollipopAdapter } from "./adapters/outbound/lollipop.js";
-import { getInfoUseCase } from "./application/use-cases/info.use-case.js";
+import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { reserveLollipopPubKeyUseCase } from "./application/use-cases/reserve-lollipop-pub-key.use-case.js";
-import { ConfigSchema, type Config } from "./domain/entities/config.entity.js";
+import {
+  LollipopConfig,
+  type Config,
+} from "./domain/entities/config.entity.js";
 import { ConfigError } from "@pagopa/io-env-config";
-import { Result } from "neverthrow";
-import { createPackageInfoAdapter } from "@pagopa/io-package-info";
-import { createConfigLoader } from "./adapters/outbound/config-loader.js";
+import { type PackageInfo } from "@pagopa/io-package-info";
+import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 
 export const createApp = (
-  configResult: Result<Config, ConfigError>,
+  config: Config,
+  packageInfo: PackageInfo,
 ): {
   registry: RouteRegistry;
   server: FastifyInstance;
@@ -23,14 +25,14 @@ export const createApp = (
   });
   const registry = new RouteRegistry();
 
-  const packageInfoAdapter = createPackageInfoAdapter(
-    new URL("../package.json", import.meta.url).pathname,
+  const lollipopAdapter = createLollipopAdapter(
+    config satisfies LollipopConfig,
   );
 
-  mountInfoHandler(server, getInfoUseCase, [packageInfoAdapter, []], registry);
-
-  const lollipopAdapter = createLollipopAdapter(
-    createConfigLoader(LollipopConfigSchema).load(),
+  mountHealthCheckHandler(
+    server,
+    getHealthCheckUseCase(packageInfo, [lollipopAdapter]),
+    registry,
   );
 
   // TODO: remove this endpoint and the related code

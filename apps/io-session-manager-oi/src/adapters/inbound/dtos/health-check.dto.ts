@@ -3,7 +3,7 @@ import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
-export const HealthcheckOutputSchema = z
+export const HealthCheckOutputSchema = z
   .object({
     name: z.string().meta({
       description: "The application name.",
@@ -11,13 +11,18 @@ export const HealthcheckOutputSchema = z
     version: z
       .string()
       .meta({ description: "The application version.", example: "0.0.1" }),
+    errors: z
+      .array(z.string())
+      .readonly()
+      .optional()
+      .meta({ description: "Health check errors, present when unhealthy." }),
   })
   .meta({
     description: "Application health and version information.",
-    id: "HealthcheckOutput",
+    id: "HealthCheckOutput",
   });
 
-  export const HealthcheckErrorSchema = z
+export const HealthCheckErrorSchema = z
   .object({
     name: z.string().meta({
       description: "The application name.",
@@ -31,5 +36,5 @@ export const HealthcheckOutputSchema = z
   })
   .meta({
     description: "Application errors and version information.",
-    id: "InfoError",
+    id: "HealthCheckError",
   });

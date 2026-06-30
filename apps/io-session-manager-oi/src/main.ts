@@ -5,35 +5,35 @@ import {
   ServerConfigSchema,
 } from "./domain/entities/config.entity.js";
 import { createConfigLoader } from "./adapters/outbound/config-loader.js";
+import { createPackageInfoAdapter } from "@pagopa/io-package-info";
 import { createApp } from "./app.js";
 
 const start = async () => {
-  // Try loading the server configuration first,
-  // since it is needed to start the server.
-  const serverConfigResult = createConfigLoader(ServerConfigSchema).load();
-  if (serverConfigResult.isErr()) {
-    console.error(
-      "Failed to load server configuration:",
-      serverConfigResult.error,
-    );
+  const configResult = createConfigLoader(ConfigSchema).load();
+  if (configResult.isErr()) {
+    console.error("Failed to load configuration:", configResult.error);
     process.exit(1);
   }
 
-  const serverConfig = serverConfigResult.value;
+  const config = configResult.value;
 
-  const { server } = createApp(createConfigLoader(ConfigSchema).load());
+  const packageInfoResult = createPackageInfoAdapter(
+    new URL("../package.json", import.meta.url).pathname,
+  ).load();
+  if (packageInfoResult.isErr()) {
+    console.error("Failed to load package info:", packageInfoResult.error);
+    process.exit(1);
+  }
+
+  const { server } = createApp(config, packageInfoResult.value);
 
   try {
     await server.listen({
-      host: serverConfig.HOST,
-      port: serverConfig.PORT,
+      host: config.HOST,
+      port: config.PORT,
     });
-    console.log(
-      `Server listening on: http://${serverConfig.HOST}:${serverConfig.PORT}`,
-    );
-    console.log(
-      `Info: http://${serverConfig.HOST}:${serverConfig.PORT}/api/info`,
-    );
+    console.log(`Server listening on: http://${config.HOST}:${config.PORT}`);
+    console.log(`Info: http://${config.HOST}:${config.PORT}/api/healthcheck`);
   } catch (err) {
     server.log.error(err);
     process.exit(1);
