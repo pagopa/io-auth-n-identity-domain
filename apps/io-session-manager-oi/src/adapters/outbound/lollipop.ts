@@ -1,13 +1,20 @@
 import { LollipopJwk } from "@pagopa/io-auth-n-identity-domain";
 import { ConflictError, GenericError } from "@pagopa/io-core-domain/errors";
-import { err, ok } from "neverthrow";
+import { err, ok, Result } from "neverthrow";
 
 import type { LollipopConfig } from "../../domain/entities/config.entity.js";
 import { LollipopPublicKeySchema } from "../../domain/entities/lollipop-public-key.entity.js";
 import type { LollipopOutboundPort } from "../../domain/ports/outbound/lollipop.outbound-port.js";
 
-const decodeJwk = (encodedPubKey: LollipopJwk): unknown =>
-  JSON.parse(Buffer.from(encodedPubKey, "base64url").toString("utf-8"));
+const decodeJwk = (encodedPubKey: LollipopJwk) => {
+  try {
+    return ok(
+      JSON.parse(Buffer.from(encodedPubKey, "base64url").toString("utf-8")),
+    );
+  } catch {
+    return err(new GenericError("Failed to decode JWK"));
+  }
+};
 
 export const createLollipopAdapter = (
   config: LollipopConfig,
