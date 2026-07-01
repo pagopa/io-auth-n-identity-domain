@@ -7,5 +7,5 @@ export const loadConfigUseCase =
   (
     configLoader: ConfigLoader<Config>,
   ): UseCase<Record<string, never>, Config, ConfigError> =>
-  async () =>
-    configLoader.load();
+  () =>
+    Promise.resolve(configLoader.load());
