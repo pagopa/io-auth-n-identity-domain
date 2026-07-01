@@ -2,8 +2,6 @@ packages:
   - apps/*
   - bruno
   - packages/*
-  # TODO: remove the following line when the io-core packages are published to npm and the dependencies are updated to use the published versions
-  - packages/io-core/*
 
 catalog:
   '@asteasolutions/zod-to-openapi': ^8.5.0
