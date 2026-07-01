@@ -38,6 +38,7 @@
     "@pagopa/redis": "workspace:^",
     "dotenv": "catalog:",
     "fastify": "catalog:",
+    "jose": "catalog:",
     "neverthrow": "catalog:",
     "range_check": "catalog:",
     "redis": "^6.1.0",

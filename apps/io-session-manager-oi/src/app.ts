@@ -32,6 +32,10 @@ class AzureCredential {
     return AzureCredential.instance;
   }
 }
+import * as redis from "redis";
+import { makeRedisAusiliarDataAdapter } from "./adapters/outbound/ausiliarDataRedis.js";
+import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
+import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 
 export const createApp = async (
   config: Config,
@@ -155,5 +159,28 @@ export const createApp = async (
     ]),
   );
 
+  const redisClient = await redis
+    .createClient({
+      url: config.REDIS_URL,
+      legacyMode: false,
+      password: config.REDIS_PASSWORD,
+      socket: {
+        tls: false,
+      },
+    })
+    .connect();
+
+  const ausiliarStorageAdapter = makeRedisAusiliarDataAdapter(
+    redisClient as redis.RedisClientType,
+  );
+
+  const reserveUseCase = makeReserveUseCase({
+    ausiliarDataRepository: ausiliarStorageAdapter,
+    lollipopClientRepository: fetchLollipopAdapter,
+  });
+
+  // --- HTTP function registrations ---
+
+  mountReserveHandler(server, reserveUseCase, config);
   return { server };
 };
