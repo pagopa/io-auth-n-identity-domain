@@ -21,20 +21,3 @@ export const HealthCheckOutputSchema = z
     description: "Application health and version information.",
     id: "HealthCheckOutput",
   });
-
-export const HealthCheckErrorSchema = z
-  .object({
-    name: z.string().meta({
-      description: "The application name.",
-    }),
-    version: z
-      .string()
-      .meta({ description: "The application version.", example: "0.0.1" }),
-    errors: z.array(z.string()).meta({
-      description: "List of errors encountered.",
-    }),
-  })
-  .meta({
-    description: "Application errors and version information.",
-    id: "HealthCheckError",
-  });

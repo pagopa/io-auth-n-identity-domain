@@ -1,4 +1,4 @@
-import { defineRoute } from "@pagopa/hexagonal-core";
+import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
 import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { FastifyInstance } from "fastify";
 
@@ -16,6 +16,7 @@ const healthcheckContract = defineRoute({
       description: "Application info returned successfully.",
       schema: HealthCheckOutputSchema,
     },
+    500: ProblemJson,
   },
   summary: "Health check / application info",
   tags: ["Info"],
