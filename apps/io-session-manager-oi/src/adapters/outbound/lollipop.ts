@@ -1,6 +1,9 @@
-import { ConflictError, GenericError } from "@pagopa/hexagonal-core/domain/errors";
+import {
+  ConflictError,
+  GenericError,
+} from "@pagopa/hexagonal-core/domain/errors";
 import { LollipopJwk } from "@pagopa/io-auth-n-identity-domain";
-import { err, ok, Result } from "neverthrow";
+import { err, ok } from "neverthrow";
 
 import type { LollipopConfig } from "../../domain/entities/config.entity.js";
 import { LollipopPublicKeySchema } from "../../domain/entities/lollipop-public-key.entity.js";
@@ -21,15 +24,13 @@ export const createLollipopAdapter = (
 ): LollipopOutboundPort => ({
   healthcheck: async () => {
     let response: Response;
-
+    const url = `${config.LOLLIPOP_API_URL}/info`;
     try {
-      response = await fetch(
-        `${config.LOLLIPOP_API_URL}${config.LOLLIPOP_API_BASE_PATH}/api/info`,
-      );
+      response = await fetch(url);
     } catch (e) {
       return err(
         new GenericError(
-          `Failed to reach lollipop healthcheck endpoint: ${e instanceof Error ? e.message : String(e)}`,
+          `Failed to reach lollipop healthcheck endpoint '${url}': ${e instanceof Error ? e.message : String(e)}`,
         ),
       );
     }
@@ -37,7 +38,7 @@ export const createLollipopAdapter = (
     if (!response.ok) {
       return err(
         new GenericError(
-          `Unexpected response from lollipop healthcheck endpoint: ${response.status}`,
+          `Unexpected response from lollipop healthcheck endpoint '${url}': ${response.status}`,
         ),
       );
     }
@@ -47,11 +48,10 @@ export const createLollipopAdapter = (
 
   reservePubKey: async ({ algorithm, publicKey }) => {
     let response: Response;
+    const url = `${config.LOLLIPOP_API_URL}${config.LOLLIPOP_API_BASE_PATH}/pubkeys`;
 
     try {
-      response = await fetch(
-        `${config.LOLLIPOP_API_URL}${config.LOLLIPOP_API_BASE_PATH}/pubkeys`,
-        {
+      response = await fetch(url, {
           body: JSON.stringify({
             algo: algorithm,
             pub_key: decodeJwk(publicKey),
@@ -66,7 +66,7 @@ export const createLollipopAdapter = (
     } catch (e) {
       return err(
         new GenericError(
-          `Failed to reach lollipop reserve endpoint: ${e instanceof Error ? e.message : String(e)}`,
+          `Failed to reach lollipop reserve endpoint '${url}': ${e instanceof Error ? e.message : String(e)}`,
         ),
       );
     }
@@ -78,7 +78,7 @@ export const createLollipopAdapter = (
     if (!response.ok) {
       return err(
         new GenericError(
-          `Unexpected response from lollipop reserve endpoint: ${response.status}`,
+          `Unexpected response from lollipop reserve endpoint '${url}': Status ${response.status}: ${await response.text()}`,
         ),
       );
     }
@@ -89,7 +89,7 @@ export const createLollipopAdapter = (
     } catch {
       return err(
         new GenericError(
-          "Failed to parse response body from lollipop reserve endpoint",
+          `Failed to parse response body from lollipop reserve endpoint`,
         ),
       );
     }

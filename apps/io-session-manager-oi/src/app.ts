@@ -27,7 +27,9 @@ export const createApp = (
 
   mountHealthCheckHandler(
     server,
-    getHealthCheckUseCase(packageInfo, [lollipopAdapter]),
+    getHealthCheckUseCase(packageInfo, [
+      { name: "Lollipop", port: lollipopAdapter },
+    ]),
   );
 
   // TODO: remove this endpoint and the related code

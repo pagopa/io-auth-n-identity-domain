@@ -8,10 +8,15 @@ import { HealthCheckOutboundPort } from "../../domain/ports/outbound/health-chec
 
 type HealthCheckOutput = z.input<typeof HealthCheckOutputSchema>;
 
+type NamedHealthCheckOutboundPort = {
+  name: string;
+  port: HealthCheckOutboundPort;
+};
+
 export const getHealthCheckUseCase =
   (
     packageInfo: PackageInfo,
-    outboundPorts: ReadonlyArray<HealthCheckOutboundPort>,
+    outboundPorts: ReadonlyArray<NamedHealthCheckOutboundPort>,
   ): UseCase<Record<never, never>, HealthCheckOutput, never> =>
   async () => {
     const errors = await collectErrors(outboundPorts);
@@ -22,15 +27,15 @@ export const getHealthCheckUseCase =
   };
 
 const collectErrors = async (
-  outboundPorts: ReadonlyArray<HealthCheckOutboundPort>,
+  outboundPorts: ReadonlyArray<NamedHealthCheckOutboundPort>,
 ): Promise<ReadonlyArray<string>> => {
   const results = await Promise.all(
-    outboundPorts.map(async (port) => ({
-      port,
+    outboundPorts.map(async ({ name, port }) => ({
+      name,
       result: await port.healthcheck(),
     })),
   );
-  return results.flatMap(({ port, result }) =>
-    result.isErr() ? [`${port.constructor.name}: ${result.error.message}`] : [],
+  return results.flatMap(({ name, result }) =>
+    result.isErr() ? [`${name}: ${result.error.message}`] : [],
   );
 };
