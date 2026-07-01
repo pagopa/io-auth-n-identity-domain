@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import { err, ok } from "neverthrow";
 
 import { PackageInfoError } from "./package-info.error.js";
-
 import type {
   PackageInfo,
   PackageInfoOutboundPort,
