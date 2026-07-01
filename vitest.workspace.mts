@@ -89,6 +89,22 @@ export default defineWorkspace([
     },
   },
   {
+    extends: "packages/io-auth-n-identity-domain/vite.config.mts",
+    test: {
+      name: "io-auth-n-identity-domain",
+      include: ["packages/io-auth-n-identity-domain/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
+  {
+    extends: "packages/io-package-info/vite.config.mts",
+    test: {
+      name: "io-package-info",
+      include: ["packages/io-package-info/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
+  {
     extends: "apps/io-session-manager-oi/vite.config.mts",
     test: {
       name: "io-session-manager-oi",
