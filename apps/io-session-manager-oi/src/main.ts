@@ -23,7 +23,7 @@ const start = async () => {
     process.exit(1);
   }
 
-  const { server } = createApp(config, packageInfoResult.value);
+  const { server } = await createApp(config, packageInfoResult.value);
 
   try {
     await server.listen({

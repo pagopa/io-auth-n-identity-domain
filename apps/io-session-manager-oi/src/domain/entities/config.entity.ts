@@ -1,3 +1,4 @@
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import { z } from "zod";
 
 /**
@@ -21,16 +22,45 @@ export const LollipopConfigSchema = z.object({
   LOLLIPOP_API_BASE_PATH: z.string().min(1),
   LOLLIPOP_API_KEY: z.string().min(1),
 });
+export type LollipopConfigSchema = z.infer<typeof LollipopConfigSchema>;
 
-export type LollipopConfig = z.infer<typeof LollipopConfigSchema>;
-
-/**
- * Application configuration schema.
- * Combines all schemas into a single schema for the entire application configuration.
- */
-export const ConfigSchema = z.object({
-  ...ServerConfigSchema.shape,
-  ...LollipopConfigSchema.shape,
+const AusiliarStorageConfigSchema = z.object({
+  REDIS_URL: NonEmptyStringSchema,
+  REDIS_PASSWORD: NonEmptyStringSchema,
+  REDIS_PORT: z.coerce.number(),
 });
+
+const SessionStorageConfigSchema = z.object({
+  SESSION_COSMOSDB_ENDPOINT: NonEmptyStringSchema,
+  SESSION_COSMOSDB_KEY: NonEmptyStringSchema,
+});
+
+const OneIdConfigSchema = z
+  .object({
+    ONEID_PROD_CLIENT_ID: NonEmptyStringSchema,
+    ONEID_PROD_CLIENT_SECRET: NonEmptyStringSchema,
+    ONEID_PROD_ISSUER: NonEmptyStringSchema,
+    ONEID_PROD_REDIRECT_URI: NonEmptyStringSchema,
+  })
+  .and(
+    z
+      .object({
+        ONEID_UAT_CLIENT_ID: NonEmptyStringSchema,
+        ONEID_UAT_CLIENT_SECRET: NonEmptyStringSchema,
+        ONEID_UAT_ISSUER: NonEmptyStringSchema,
+        ONEID_UAT_REDIRECT_URI: NonEmptyStringSchema,
+      })
+      .partial(),
+  );
+
+export const ConfigSchema = z.intersection(
+  z.object({
+    ...ServerConfigSchema.shape,
+    ...LollipopConfigSchema.shape,
+    ...AusiliarStorageConfigSchema.shape,
+    ...SessionStorageConfigSchema.shape,
+  }),
+  OneIdConfigSchema,
+);
 
 export type Config = z.infer<typeof ConfigSchema>;
