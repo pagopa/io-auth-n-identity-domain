@@ -28,10 +28,14 @@
     "@pagopa/io-env-config": "workspace:^",
     "@pagopa/io-package-info": "workspace:^",
     "@standard-schema/spec": "^1.1.0",
+    "@pagopa/io-env-config": "workspace:^",
     "dotenv": "catalog:",
     "fastify": "catalog:",
+    "jose": "catalog:",
+    "ky": "^2.0.2",
     "neverthrow": "catalog:",
     "range_check": "catalog:",
+    "redis": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

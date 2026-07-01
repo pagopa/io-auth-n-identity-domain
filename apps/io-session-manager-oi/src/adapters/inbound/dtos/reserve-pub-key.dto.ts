@@ -6,6 +6,18 @@ import {
 } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
 
+import {
+  JwkPublicKeyString,
+  LollipopHashAlgorithm,
+} from "../../../domain/entities/lollipop.js";
+import {
+  CurrentUser,
+  LoginType,
+  SpidAuthLevel,
+} from "../../../domain/entities/login.js";
+import { OidcConfigurationEnv } from "../../../domain/entities/oidc.js";
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
+
 extendZodWithOpenApi(z);
 
 export const LollipopReservePublicKeyHeadersSchema = z
@@ -41,3 +53,24 @@ export const LollipopReservePublicKeyResponseSchema = z
 export type LollipopReservePublicKeyResponse = z.infer<
   typeof LollipopReservePublicKeyResponseSchema
 >;
+
+export const ReserveInputSchema = {
+  headers: z.object({
+    "x-pagopa-lollipop-hash-algorithm": LollipopHashAlgorithm,
+    "x-pagopa-lollipop-pub-key": JwkPublicKeyString,
+    "x-pagopa-login-type": LoginType,
+    "x-pagopa-current-user": CurrentUser,
+  }),
+  query: z.object({
+    env: OidcConfigurationEnv,
+    authLevel: SpidAuthLevel,
+  }),
+};
+
+export const ReserveOutputSchema = z.object({
+  clientId: NonEmptyStringSchema,
+  state: NonEmptyStringSchema,
+  nonce: NonEmptyStringSchema,
+  redirectUri: NonEmptyStringSchema,
+  oneIdBaseUrl: NonEmptyStringSchema,
+});
