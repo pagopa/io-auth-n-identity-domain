@@ -11,9 +11,10 @@ import type { LollipopOutboundPort } from "../../domain/ports/outbound/lollipop.
 
 const decodeJwk = (encodedPubKey: LollipopJwk) => {
   try {
-    return ok(
-      JSON.parse(Buffer.from(encodedPubKey, "base64url").toString("utf-8")),
-    );
+    const parsed = JSON.parse(
+      Buffer.from(encodedPubKey, "base64url").toString("utf-8"),
+    ) as Record<string, unknown>;
+    return ok(parsed);
   } catch {
     return err(new GenericError("Failed to decode JWK"));
   }
@@ -47,22 +48,26 @@ export const createLollipopAdapter = (
   },
 
   reservePubKey: async ({ algorithm, publicKey }) => {
+    const decodedJwk = decodeJwk(publicKey);
+    if (decodedJwk.isErr()) {
+      return err(decodedJwk.error);
+    }
+
     let response: Response;
     const url = `${config.LOLLIPOP_API_URL}${config.LOLLIPOP_API_BASE_PATH}/pubkeys`;
 
     try {
       response = await fetch(url, {
-          body: JSON.stringify({
-            algo: algorithm,
-            pub_key: decodeJwk(publicKey),
-          }),
-          headers: {
-            "Content-Type": "application/json",
-            "X-Functions-Key": config.LOLLIPOP_API_KEY,
-          },
-          method: "POST",
+        body: JSON.stringify({
+          algo: algorithm,
+          pub_key: decodedJwk.value,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "X-Functions-Key": config.LOLLIPOP_API_KEY,
         },
-      );
+        method: "POST",
+      });
     } catch (e) {
       return err(
         new GenericError(
@@ -78,7 +83,7 @@ export const createLollipopAdapter = (
     if (!response.ok) {
       return err(
         new GenericError(
-          `Unexpected response from lollipop reserve endpoint '${url}': Status ${response.status}: ${await response.text()}`,
+          `Unexpected response from lollipop reserve endpoint '${url}': Status ${response.status}: ${JSON.stringify(await response.text())}`,
         ),
       );
     }
