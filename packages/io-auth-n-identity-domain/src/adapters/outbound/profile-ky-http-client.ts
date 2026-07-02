@@ -11,14 +11,8 @@ import ky, { HTTPError, SchemaValidationError } from "ky";
 import { ResultAsync } from "neverthrow";
 import z from "zod";
 
-import {
-  ExtendedProfileSchema,
-  NewProfile,
-} from "../../domain/entities/profile.entity.js";
+import { ExtendedProfileSchema } from "../../domain/entities/profile.entity.js";
 import { ProfileClientI } from "../../domain/ports/outbound/profile-client.js";
-
-
-
 
 export const makeProfileKyClientAdapter = (
   kyInstance: typeof ky,
@@ -31,7 +25,7 @@ export const makeProfileKyClientAdapter = (
 
   return {
     getProfile: (fiscalCode: FiscalCode) => {
-      const url = `${baseNormalizedUrl}/${fiscalCode}`;
+      const url = `${baseNormalizedUrl}/profiles/${fiscalCode}`;
 
       return ResultAsync.fromPromise(
         kyInstance
@@ -72,8 +66,8 @@ export const makeProfileKyClientAdapter = (
       );
     },
 
-    createProfile: (payload: NewProfile) => {
-      const url = baseNormalizedUrl;
+    createProfile: (fiscalCode, payload) => {
+      const url = `${baseNormalizedUrl}/profiles/${fiscalCode}`;
 
       return ResultAsync.fromPromise(
         kyInstance
