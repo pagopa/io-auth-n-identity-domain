@@ -1,4 +1,4 @@
-import { err, ResultAsync } from "neverthrow";
+import { ResultAsync } from "neverthrow";
 import ky, { HTTPError, SchemaValidationError } from "ky";
 import { ProfileClientI } from "../../domain/ports/outbound/profile-client.js";
 import {
@@ -13,7 +13,7 @@ import {
 import {
   ExtendedProfileSchema,
   NewProfile,
-} from "../../domain/value-objects/profile/profile.value-object.js";
+} from "../../domain/entities/profile.entity.js";
 import z from "zod";
 
 export const makeProfileKyClientAdapter = (

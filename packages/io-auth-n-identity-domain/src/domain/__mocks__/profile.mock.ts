@@ -11,7 +11,7 @@ import {
   PreferredLanguagesEnum,
   ServicePreferencesSettingsSchema,
   ServicesPreferencesModeEnum,
-} from "../value-objects/profile/index.js";
+} from "../entities/profile.entity.js";
 
 export const aCustomEmailAddress = "custom-email@example.com" as EmailAddress;
 

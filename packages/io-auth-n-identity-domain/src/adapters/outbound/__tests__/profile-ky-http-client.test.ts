@@ -9,7 +9,7 @@ import {
   TooManyRequestsError,
   ValidationError,
 } from "@pagopa/hexagonal-core";
-import { NewProfile } from "../../../domain/value-objects/profile/profile.value-object.js";
+import { NewProfile } from "../../../domain/entities/profile.entity.js";
 import {
   aFiscalCode,
   mockedExtendedProfile,
