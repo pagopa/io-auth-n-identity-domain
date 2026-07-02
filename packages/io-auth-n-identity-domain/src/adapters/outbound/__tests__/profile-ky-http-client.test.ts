@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import ky, { HTTPError, NormalizedOptions } from "ky";
+import ky, { HTTPError, NormalizedOptions, SchemaValidationError } from "ky";
 import { makeProfileKyClientAdapter } from "../profile-ky-http-client.js";
 import {
   AuthenticationError,
@@ -82,6 +82,22 @@ describe("getProfile", () => {
     },
   );
 
+  it("should map decoding errors to GenericError", async () => {
+    vi.mocked(mockKyInstance.get).mockReturnValue({
+      json: vi
+        .fn()
+        .mockRejectedValue(
+          new SchemaValidationError([{ message: "decode error" }]),
+        ),
+    } as any);
+
+    const result = await adapter.getProfile(aFiscalCode);
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+    expect(result._unsafeUnwrapErr().message).toContain("Decoding error");
+  });
+
   it("should map network/unknown errors to GenericError", async () => {
     vi.mocked(mockKyInstance.get).mockReturnValue({
       json: vi.fn().mockRejectedValue(new Error("Network Failure")),
@@ -137,6 +153,22 @@ describe("createProfile", () => {
       expect(result._unsafeUnwrapErr()).toBeInstanceOf(error);
     },
   );
+
+  it("should map decoding errors to GenericError", async () => {
+    vi.mocked(mockKyInstance.post).mockReturnValue({
+      json: vi
+        .fn()
+        .mockRejectedValue(
+          new SchemaValidationError([{ message: "decode error" }]),
+        ),
+    } as any);
+
+    const result = await adapter.createProfile(mockNewProfilePayload);
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+    expect(result._unsafeUnwrapErr().message).toContain("Decoding error");
+  });
 
   it("should map network/unknown errors to GenericError", async () => {
     vi.mocked(mockKyInstance.post).mockReturnValue({

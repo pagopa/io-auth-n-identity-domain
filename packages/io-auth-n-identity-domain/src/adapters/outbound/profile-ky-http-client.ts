@@ -1,5 +1,5 @@
 import { err, ResultAsync } from "neverthrow";
-import ky, { HTTPError } from "ky";
+import ky, { HTTPError, SchemaValidationError } from "ky";
 import { ProfileClientI } from "../../domain/ports/outbound/profile-client.js";
 import {
   AuthenticationError,
@@ -14,6 +14,7 @@ import {
   ExtendedProfileSchema,
   NewProfile,
 } from "../../domain/value-objects/profile/profile.value-object.js";
+import z from "zod";
 
 export const makeProfileKyClientAdapter = (
   kyInstance: typeof ky,
@@ -52,6 +53,10 @@ export const makeProfileKyClientAdapter = (
                   `Failed to get profile. Status: ${error.response.status} ${error.response.statusText}`,
                 );
             }
+          } else if (error instanceof SchemaValidationError) {
+            return new GenericError(
+              `Decoding error from response: ${z.prettifyError(error)}`,
+            );
           }
 
           const errorMessage =
@@ -91,6 +96,10 @@ export const makeProfileKyClientAdapter = (
                   `Failed to create profile. Status: ${error.response.status} ${error.response.statusText}`,
                 );
             }
+          } else if (error instanceof SchemaValidationError) {
+            return new GenericError(
+              `Decoding error from response: ${z.prettifyError(error)}`,
+            );
           }
 
           const errorMessage =
