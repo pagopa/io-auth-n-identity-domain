@@ -4,7 +4,7 @@ import { ok, err } from "neverthrow";
 import { type z } from "zod";
 
 import { type HealthCheckOutputSchema } from "../../adapters/inbound/dtos/health-check.dto.js";
-import { HealthCheckOutboundPort } from "../../domain/ports/outbound/health-check.outbound-port.js";
+import { HealthCheckOutboundPort } from "../../domain/ports/outbound/health-check.port.js";
 
 type HealthCheckOutput = z.input<typeof HealthCheckOutputSchema>;
 
