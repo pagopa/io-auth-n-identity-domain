@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@pagopa/hexagonal-core": "catalog:",
+    "ky": "^2.0.2",
     "neverthrow": "catalog:",
     "zod": "catalog:"
   },

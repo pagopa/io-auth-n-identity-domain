@@ -322,7 +322,7 @@ importers:
         version: 3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0)
       eslint-plugin-import:
         specifier: ^2.29.1
-        version: 2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
+        version: 2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
       eslint-plugin-only-warn:
         specifier: ^1.1.0
         version: 1.1.0
@@ -1636,7 +1636,7 @@ importers:
         version: 2.5.5(eslint@8.57.0)(turbo@2.5.5)
       eslint-plugin-import:
         specifier: ^2.29.1
-        version: 2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
+        version: 2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
       eslint-plugin-only-warn:
         specifier: ^1.1.0
         version: 1.1.0
@@ -1704,6 +1704,9 @@ importers:
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
         version: 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+      ky:
+        specifier: ^2.0.2
+        version: 2.0.2
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0
@@ -6220,6 +6223,10 @@ packages:
 
   kuler@2.0.0:
     resolution: {integrity: sha512-Xq9nH7KlWZmXAtodXDDRE7vs6DU1gTU8zYDHDiWLSip45Egwq3plLHzPn27NgvzL2r1LMPC1vdqh98sQxtqj4A==}
+
+  ky@2.0.2:
+    resolution: {integrity: sha512-/GmXpo9F9W+f8n4Ivr2iH+7h7wL7jLbLKWkMlpflcCRb6kGjBfTlASEXaZ9qUgNTn4VgS0P2pwxxzQ4EM6Ulgg==}
+    engines: {node: '>=22'}
 
   leac@0.6.0:
     resolution: {integrity: sha512-y+SqErxb8h7nE/fiEX07jsbuhrpO9lL8eca7/Y1nuWV2moNlXhyd59iDGcRf6moVyDMbmTNzL40SUyrFU/yDpg==}
@@ -11476,7 +11483,7 @@ snapshots:
       '@usebruno/lang': 0.27.0
       '@usebruno/requests': 0.7.0(debug@4.4.1)
       '@usebruno/vm2': 3.9.19
-      aws4-axios: 3.4.0(axios@1.11.0)
+      aws4-axios: 3.4.0(axios@1.11.0(debug@4.4.1))
       axios: 1.11.0(debug@4.4.1)
       axios-ntlm: 1.4.4(debug@4.4.1)
       chai: 4.5.0
@@ -11888,7 +11895,7 @@ snapshots:
 
   aws-sign2@0.7.0: {}
 
-  aws4-axios@3.4.0(axios@1.11.0):
+  aws4-axios@3.4.0(axios@1.11.0(debug@4.4.1)):
     dependencies:
       '@aws-sdk/client-sts': 3.862.0
       aws4: 1.13.2
@@ -12858,8 +12865,8 @@ snapshots:
       debug: 4.4.1
       enhanced-resolve: 5.16.0
       eslint: 8.57.0
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
       fast-glob: 3.3.3
       get-tsconfig: 4.7.3
       is-core-module: 2.13.1
@@ -12870,7 +12877,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-module-utils@2.8.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0):
+  eslint-module-utils@2.8.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
@@ -12881,7 +12888,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0):
+  eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0):
     dependencies:
       array-includes: 3.1.8
       array.prototype.findlastindex: 1.2.5
@@ -12891,7 +12898,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
       hasown: 2.0.2
       is-core-module: 2.13.1
       is-glob: 4.0.3
@@ -14089,6 +14096,8 @@ snapshots:
   kleur@4.1.5: {}
 
   kuler@2.0.0: {}
+
+  ky@2.0.2: {}
 
   leac@0.6.0: {}
 
