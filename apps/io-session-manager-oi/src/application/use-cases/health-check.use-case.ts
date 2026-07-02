@@ -42,8 +42,6 @@ const collectErrors = async (
     })),
   );
 
-  console.log("Health check results:");
-  console.log(JSON.stringify(results, null, 4));
 
   return results
     .map((result, index) => {
