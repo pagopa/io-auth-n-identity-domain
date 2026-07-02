@@ -11,7 +11,7 @@ import {
 import {
   ExtendedProfileSchema,
   NewProfile,
-} from "../../value-objects/profile/profile.value-object.js";
+} from "../../entities/profile.entity.js";
 
 export interface ProfileClientI {
   readonly getProfile: (
