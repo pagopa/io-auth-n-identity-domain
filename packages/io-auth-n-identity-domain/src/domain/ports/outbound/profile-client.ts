@@ -1,4 +1,3 @@
-import { ResultAsync } from "neverthrow";
 import {
   AuthenticationError,
   ConflictError,
@@ -8,6 +7,8 @@ import {
   TooManyRequestsError,
   ValidationError,
 } from "@pagopa/hexagonal-core";
+import { ResultAsync } from "neverthrow";
+
 import {
   ExtendedProfileSchema,
   NewProfile,

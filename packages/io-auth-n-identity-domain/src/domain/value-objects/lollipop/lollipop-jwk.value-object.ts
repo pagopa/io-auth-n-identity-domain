@@ -1,12 +1,10 @@
 import { z } from "zod";
 
-const hasKtyField = (json: unknown): boolean => {
-  return (
+const hasKtyField = (json: unknown): boolean => (
     typeof json === "object" &&
     json !== null &&
     typeof (json as Record<string, unknown>).kty === "string"
   );
-};
 
 export const LollipopJwkSchema = z
   .string()
