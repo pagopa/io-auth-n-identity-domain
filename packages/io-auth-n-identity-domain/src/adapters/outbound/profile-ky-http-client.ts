@@ -1,6 +1,3 @@
-import { ResultAsync } from "neverthrow";
-import ky, { HTTPError, SchemaValidationError } from "ky";
-import { ProfileClientI } from "../../domain/ports/outbound/profile-client.js";
 import {
   AuthenticationError,
   ConflictError,
@@ -10,11 +7,18 @@ import {
   TooManyRequestsError,
   ValidationError,
 } from "@pagopa/hexagonal-core";
+import ky, { HTTPError, SchemaValidationError } from "ky";
+import { ResultAsync } from "neverthrow";
+import z from "zod";
+
 import {
   ExtendedProfileSchema,
   NewProfile,
 } from "../../domain/entities/profile.entity.js";
-import z from "zod";
+import { ProfileClientI } from "../../domain/ports/outbound/profile-client.js";
+
+
+
 
 export const makeProfileKyClientAdapter = (
   kyInstance: typeof ky,
