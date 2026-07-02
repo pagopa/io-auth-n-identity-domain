@@ -18,7 +18,8 @@ services:
       - ./docker/generated/.env.io-session-manager-oi
     ports:
       - ${IO_SESSION_MANAGER_OI_PORT}:${IO_SESSION_MANAGER_OI_PORT}
-      
+    networks:
+      - io-fn
   io-session-manager:
     image: io-session-manager
     build:
