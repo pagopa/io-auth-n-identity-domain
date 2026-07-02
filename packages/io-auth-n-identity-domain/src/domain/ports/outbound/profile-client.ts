@@ -27,6 +27,7 @@ export interface ProfileClientI {
   >;
 
   readonly createProfile: (
+    fiscalCode: FiscalCode,
     payload: NewProfile,
   ) => ResultAsync<
     ExtendedProfileSchema,

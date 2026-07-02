@@ -56,7 +56,7 @@ describe("getProfile", () => {
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toEqual(mockedExtendedProfile);
     expect(mockKyInstance.get).toHaveBeenCalledWith(
-      `${baseUrl}${basePath}/${aFiscalCode}`,
+      `${baseUrl}${basePath}/profiles/${aFiscalCode}`,
       { headers: { "X-Functions-Key": apiKey } },
     );
   });
@@ -123,14 +123,20 @@ describe("createProfile", () => {
       json: vi.fn().mockResolvedValue(mockedExtendedProfile),
     } as any);
 
-    const result = await adapter.createProfile(mockNewProfilePayload);
+    const result = await adapter.createProfile(
+      aFiscalCode,
+      mockNewProfilePayload,
+    );
 
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toEqual(mockedExtendedProfile);
-    expect(mockKyInstance.post).toHaveBeenCalledWith(`${baseUrl}${basePath}`, {
-      json: mockNewProfilePayload,
-      headers: { "X-Functions-Key": apiKey },
-    });
+    expect(mockKyInstance.post).toHaveBeenCalledWith(
+      `${baseUrl}${basePath}/profiles/${aFiscalCode}`,
+      {
+        json: mockNewProfilePayload,
+        headers: { "X-Functions-Key": apiKey },
+      },
+    );
   });
 
   it.each`
@@ -147,7 +153,10 @@ describe("createProfile", () => {
         json: vi.fn().mockRejectedValue(createHttpError(statusCode, "Error")),
       } as any);
 
-      const result = await adapter.createProfile(mockNewProfilePayload);
+      const result = await adapter.createProfile(
+        aFiscalCode,
+        mockNewProfilePayload,
+      );
 
       expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr()).toBeInstanceOf(error);
@@ -163,7 +172,10 @@ describe("createProfile", () => {
         ),
     } as any);
 
-    const result = await adapter.createProfile(mockNewProfilePayload);
+    const result = await adapter.createProfile(
+      aFiscalCode,
+      mockNewProfilePayload,
+    );
 
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
@@ -175,7 +187,10 @@ describe("createProfile", () => {
       json: vi.fn().mockRejectedValue(new Error("Network Failure")),
     } as any);
 
-    const result = await adapter.createProfile(mockNewProfilePayload);
+    const result = await adapter.createProfile(
+      aFiscalCode,
+      mockNewProfilePayload,
+    );
 
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
