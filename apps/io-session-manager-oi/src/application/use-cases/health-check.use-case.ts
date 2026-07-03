@@ -1,10 +1,10 @@
 import { GenericError, type UseCase } from "@pagopa/hexagonal-core";
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { type PackageInfo } from "@pagopa/io-package-info";
 import { ok, err } from "neverthrow";
 import { type z } from "zod";
 
 import { type HealthCheckOutputSchema } from "../../adapters/inbound/dtos/health-check.dto.js";
-import { HealthCheckOutboundPort } from "../../domain/ports/outbound/health-check.port.js";
 
 type HealthCheckOutput = z.input<typeof HealthCheckOutputSchema>;
 
@@ -41,7 +41,6 @@ const collectErrors = async (
       result: await port.healthcheck(),
     })),
   );
-
 
   return results
     .map((result, index) => {
