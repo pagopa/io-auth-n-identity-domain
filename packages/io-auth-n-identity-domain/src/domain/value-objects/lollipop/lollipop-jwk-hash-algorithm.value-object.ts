@@ -5,6 +5,7 @@ import { z } from "zod";
  */
 export const LollipopJwkHashingAlgorithmSchema = z
   .enum(["sha256", "sha384", "sha512"])
+  .default("sha256")
   .describe("Hashing algorithm for the lollipop public key thumbprint")
   .brand<"LollipopJwkHashAlgo">();
 
