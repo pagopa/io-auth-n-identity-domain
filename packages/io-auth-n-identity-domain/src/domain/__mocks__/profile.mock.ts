@@ -3,15 +3,15 @@ import {
   FiscalCode,
   NonEmptyString,
 } from "@pagopa/hexagonal-core";
+
+import { ExtendedProfileSchema, ServicePreferencesSettingsSchema } from "../entities/profile.entity.js";
 import {
-  ExtendedProfileSchema,
   IsInboxEnabledSchema,
   IsWebhookEnabledSchema,
   PreferredLanguageSchema,
   PreferredLanguagesEnum,
-  ServicePreferencesSettingsSchema,
   ServicesPreferencesModeEnum,
-} from "../entities/profile.entity.js";
+} from "../value-objects/profile/profile.value-object.js";
 
 export const aCustomEmailAddress = "custom-email@example.com" as EmailAddress;
 

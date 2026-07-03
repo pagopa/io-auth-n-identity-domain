@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import ky, { HTTPError, NormalizedOptions, SchemaValidationError } from "ky";
 import { makeProfileKyClientAdapter } from "../profile-ky-http-client.js";
 import {
@@ -25,9 +25,10 @@ const baseUrl = "https://api.example.com";
 const basePath = "/api/v1";
 const apiKey = "test-api-key";
 
+const mockJson = vi.fn();
 const mockKyInstance = {
-  get: vi.fn(),
-  post: vi.fn(),
+  get: vi.fn(() => ({ json: mockJson })),
+  post: vi.fn(() => ({ json: mockJson })),
 } as unknown as typeof ky;
 
 const mockNewProfilePayload: NewProfile = {
@@ -47,9 +48,7 @@ describe("getProfile", () => {
   });
 
   it("should return ExtendedProfileSchema on 200 Success", async () => {
-    vi.mocked(mockKyInstance.get).mockReturnValue({
-      json: vi.fn().mockResolvedValue(mockedExtendedProfile),
-    } as any);
+    mockJson.mockResolvedValueOnce(mockedExtendedProfile);
 
     const result = await adapter.getProfile(aFiscalCode);
 
@@ -71,9 +70,7 @@ describe("getProfile", () => {
   `(
     "should return $error.name when $scenario (status $statusCode)",
     async ({ error, statusCode }) => {
-      vi.mocked(mockKyInstance.get).mockReturnValue({
-        json: vi.fn().mockRejectedValue(createHttpError(statusCode, "Error")),
-      } as any);
+      mockJson.mockRejectedValueOnce(createHttpError(statusCode, "Error"));
 
       const result = await adapter.getProfile(aFiscalCode);
 
@@ -83,13 +80,9 @@ describe("getProfile", () => {
   );
 
   it("should map decoding errors to GenericError", async () => {
-    vi.mocked(mockKyInstance.get).mockReturnValue({
-      json: vi
-        .fn()
-        .mockRejectedValue(
-          new SchemaValidationError([{ message: "decode error" }]),
-        ),
-    } as any);
+    mockJson.mockRejectedValueOnce(
+      new SchemaValidationError([{ message: "decode error" }]),
+    );
 
     const result = await adapter.getProfile(aFiscalCode);
 
@@ -99,9 +92,7 @@ describe("getProfile", () => {
   });
 
   it("should map network/unknown errors to GenericError", async () => {
-    vi.mocked(mockKyInstance.get).mockReturnValue({
-      json: vi.fn().mockRejectedValue(new Error("Network Failure")),
-    } as any);
+    mockJson.mockRejectedValueOnce(new Error("Network Failure"));
 
     const result = await adapter.getProfile(aFiscalCode);
 
@@ -119,9 +110,7 @@ describe("createProfile", () => {
   });
 
   it("should return ExtendedProfileSchema on 201/200 Success", async () => {
-    vi.mocked(mockKyInstance.post).mockReturnValue({
-      json: vi.fn().mockResolvedValue(mockedExtendedProfile),
-    } as any);
+    mockJson.mockResolvedValueOnce(mockedExtendedProfile);
 
     const result = await adapter.createProfile(
       aFiscalCode,
@@ -149,9 +138,7 @@ describe("createProfile", () => {
   `(
     "should return $error.name when $scenario (status $statusCode)",
     async ({ error, statusCode }) => {
-      vi.mocked(mockKyInstance.post).mockReturnValue({
-        json: vi.fn().mockRejectedValue(createHttpError(statusCode, "Error")),
-      } as any);
+      mockJson.mockRejectedValueOnce(createHttpError(statusCode, "Error"));
 
       const result = await adapter.createProfile(
         aFiscalCode,
@@ -164,13 +151,9 @@ describe("createProfile", () => {
   );
 
   it("should map decoding errors to GenericError", async () => {
-    vi.mocked(mockKyInstance.post).mockReturnValue({
-      json: vi
-        .fn()
-        .mockRejectedValue(
-          new SchemaValidationError([{ message: "decode error" }]),
-        ),
-    } as any);
+    mockJson.mockRejectedValueOnce(
+      new SchemaValidationError([{ message: "decode error" }]),
+    );
 
     const result = await adapter.createProfile(
       aFiscalCode,
@@ -183,9 +166,7 @@ describe("createProfile", () => {
   });
 
   it("should map network/unknown errors to GenericError", async () => {
-    vi.mocked(mockKyInstance.post).mockReturnValue({
-      json: vi.fn().mockRejectedValue(new Error("Network Failure")),
-    } as any);
+    mockJson.mockRejectedValueOnce(new Error("Network Failure"));
 
     const result = await adapter.createProfile(
       aFiscalCode,
