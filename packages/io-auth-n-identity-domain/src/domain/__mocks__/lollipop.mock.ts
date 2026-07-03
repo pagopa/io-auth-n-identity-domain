@@ -1,5 +1,8 @@
 import { createHash } from "node:crypto";
 
+import { LollipopAssertionRef } from "../value-objects/lollipop/lollipop-assertion-ref.value-object.js";
+import { LollipopJwk } from "../value-objects/lollipop/lollipop-jwk.value-object.js";
+
 /**
  * Computes a `content-digest` header value for the given algorithm and body,
  * using the format defined in RFC 9530: `<algorithm>=:<base64-encoded-digest>:`
@@ -15,7 +18,7 @@ export const computeContentDigest = (
 };
 
 export const anAssertionRef =
-  "sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU";
+  "sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU" as LollipopAssertionRef;
 
 export const aNonce = "195ace7b-1262-4a70-b520-7fbae5305a26";
 
@@ -34,22 +37,24 @@ export const aLollipopInvalidSignature =
 export const fastLoginUrl = "https://api-app.io.pagopa.it/api/v1/fast-login";
 
 export const aPrivateJwk = {
-  kty: "EC",
+  kty: "EC" as const,
   x: "NYvuK5KwdMSelFJgPnL0fsxizwOKw0WbQyANB4O6l2c",
   y: "qK9Zyso1CCwsUk985hnO5WEP3enSxpuD1n5JqtmZIEE",
-  crv: "P-256",
+  crv: "P-256" as const,
   d: "6l1RECpU4cjYqpBmAN44yUrMt7SWJmOIb9z2nn0mwEg",
+  alg: "alg",
 };
 
 export const aPublicJwk = {
-  kty: "EC",
+  kty: "EC" as const,
   x: "NYvuK5KwdMSelFJgPnL0fsxizwOKw0WbQyANB4O6l2c",
   y: "qK9Zyso1CCwsUk985hnO5WEP3enSxpuD1n5JqtmZIEE",
-  crv: "P-256",
+  crv: "P-256" as const,
+  alg: "alg",
 };
 
-export const toEncodedJwk = (jwk: Record<string, string>) =>
-  Buffer.from(JSON.stringify(jwk)).toString("base64url");
+export const toEncodedJwk = (jwk: Record<string, string>): LollipopJwk =>
+  Buffer.from(JSON.stringify(jwk)).toString("base64url") as LollipopJwk;
 
 export const aJwkBase64Url = toEncodedJwk(aPublicJwk);
 
