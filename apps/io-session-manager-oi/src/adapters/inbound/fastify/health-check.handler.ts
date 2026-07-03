@@ -9,7 +9,7 @@ const healthcheckContract = defineRoute({
   description: "Returns the application name, version, and health status.",
   method: "get",
   operationId: "getHealthcheck",
-  path: "/api/healthcheck",
+  path: "/api/auth/v2/healthcheck",
   request: {},
   response: {
     200: {
