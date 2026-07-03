@@ -31,7 +31,9 @@ const start = async () => {
       port: config.PORT,
     });
     console.log(`Server listening on: http://${config.HOST}:${config.PORT}`);
-    console.log(`Info: http://${config.HOST}:${config.PORT}/api/healthcheck`);
+    console.log(
+      `Info: http://${config.HOST}:${config.PORT}/api/auth/v2/healthcheck`,
+    );
   } catch (err) {
     server.log.error(err);
     process.exit(1);
