@@ -6,7 +6,7 @@ import { PackageInfoError } from "./package-info.error.js";
 import type {
   PackageInfo,
   PackageInfoOutboundPort,
-} from "./package-info.outbound-port.js";
+} from "./package-info.port.js";
 
 export const createPackageInfoAdapter = (
   packageJsonPath: string,
