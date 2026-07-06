@@ -3,7 +3,7 @@ import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { FastifyInstance } from "fastify";
 
 import { getHealthCheckUseCase } from "../../../application/use-cases/health-check.use-case.js";
-import { HealthCheckOutputSchema } from "../dtos/health-check.dto.js";
+import { HealthCheckResponseDto } from "../dtos/health-check.dto.js";
 
 const healthcheckContract = defineRoute({
   description: "Returns the application name, version, and health status.",
@@ -14,7 +14,7 @@ const healthcheckContract = defineRoute({
   response: {
     200: {
       description: "Application info returned successfully.",
-      schema: HealthCheckOutputSchema,
+      schema: HealthCheckResponseDto,
     },
     500: ProblemJson,
   },
