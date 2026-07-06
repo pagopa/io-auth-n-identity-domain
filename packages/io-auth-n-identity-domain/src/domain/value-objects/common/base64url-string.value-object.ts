@@ -26,7 +26,7 @@ export const Base64UrlJsonSchema = Base64UrlStringSchema.transform(
       ) as unknown;
     } catch {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Invalid Base64url-encoded JSON",
       });
       return z.NEVER;
