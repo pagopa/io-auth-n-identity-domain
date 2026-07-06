@@ -2,11 +2,23 @@ import { GenericError, type UseCase } from "@pagopa/hexagonal-core";
 import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { type PackageInfo } from "@pagopa/io-package-info";
 import { ok, err } from "neverthrow";
-import { type z } from "zod";
+import { z } from "zod";
 
-import { type HealthCheckOutputSchema } from "../../adapters/inbound/dtos/health-check.dto.js";
+export const HealthCheckOutputSchema = z
+  .object({
+    name: z.string().meta({
+      description: "The application name.",
+    }),
+    version: z
+      .string()
+      .meta({ description: "The application version.", example: "0.0.1" }),
+  })
+  .meta({
+    description: "Application health and version information.",
+    id: "HealthCheckOutput",
+  });
 
-type HealthCheckOutput = z.input<typeof HealthCheckOutputSchema>;
+export type HealthCheckOutput = z.input<typeof HealthCheckOutputSchema>;
 
 type NamedHealthCheckOutboundPort = {
   name: string;
