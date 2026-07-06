@@ -12,7 +12,7 @@ import { StandardSchemaV1, StandardTypedV1 } from "@standard-schema/spec";
 
 import { NewProfile } from "../../entities/profile.entity.js";
 
-export interface ProfileClient<DomainOutputSchema extends StandardSchemaV1> {
+export interface ProfilePort<DomainOutputSchema extends StandardSchemaV1> {
   readonly getProfile: (
     fiscalCode: FiscalCode,
   ) => ResultAsync<

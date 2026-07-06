@@ -10,7 +10,7 @@ import {
 import ky, { HTTPError, SchemaValidationError } from "ky";
 import { ResultAsync } from "neverthrow";
 import z from "zod";
-import { ProfileClient } from "../../domain/ports/outbound/profile-client.js";
+import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import { StandardSchemaV1 } from "@standard-schema/spec";
 
 export const makeProfileKyClientAdapter = <
@@ -21,7 +21,7 @@ export const makeProfileKyClientAdapter = <
   basePath: string,
   apiKey: string,
   zodschema: DomainSchema,
-): ProfileClient<DomainSchema> => {
+): ProfilePort<DomainSchema> => {
   const cleanBasePath = basePath.replace(/\/$/, "");
   const baseNormalizedUrl = `${baseUrl}${cleanBasePath}`;
 
