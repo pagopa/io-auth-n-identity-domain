@@ -6,16 +6,8 @@ import { z } from "zod";
 
 export const HealthCheckOutputSchema = z
   .object({
-    name: z.string().meta({
-      description: "The application name.",
-    }),
-    version: z
-      .string()
-      .meta({ description: "The application version.", example: "0.0.1" }),
-  })
-  .meta({
-    description: "Application health and version information.",
-    id: "HealthCheckOutput",
+    name: z.string(),
+    version: z.string(),
   });
 
 export type HealthCheckOutput = z.input<typeof HealthCheckOutputSchema>;
