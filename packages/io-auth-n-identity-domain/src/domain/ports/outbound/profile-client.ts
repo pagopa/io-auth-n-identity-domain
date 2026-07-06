@@ -8,17 +8,16 @@ import {
   ValidationError,
 } from "@pagopa/hexagonal-core";
 import { ResultAsync } from "neverthrow";
+import { StandardTypedV1 } from "@standard-schema/spec";
 
-import {
-  ExtendedProfileSchema,
-  NewProfile,
-} from "../../entities/profile.entity.js";
+import { NewProfile } from "../../entities/profile.entity.js";
+import { StandardSchemaV1 } from "ky";
 
-export interface ProfileClientI {
+export interface ProfileClient<DomainOutputSchema extends StandardSchemaV1> {
   readonly getProfile: (
     fiscalCode: FiscalCode,
   ) => ResultAsync<
-    ExtendedProfileSchema,
+    StandardTypedV1.InferOutput<DomainOutputSchema>,
     | GenericError
     | ValidationError
     | AuthenticationError
@@ -30,7 +29,7 @@ export interface ProfileClientI {
     fiscalCode: FiscalCode,
     payload: NewProfile,
   ) => ResultAsync<
-    ExtendedProfileSchema,
+    StandardTypedV1.InferOutput<DomainOutputSchema>,
     | GenericError
     | ValidationError
     | AuthenticationError

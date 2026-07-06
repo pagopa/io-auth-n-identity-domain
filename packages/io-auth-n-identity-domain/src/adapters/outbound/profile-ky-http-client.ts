@@ -10,16 +10,18 @@ import {
 import ky, { HTTPError, SchemaValidationError } from "ky";
 import { ResultAsync } from "neverthrow";
 import z from "zod";
+import { ProfileClient } from "../../domain/ports/outbound/profile-client.js";
+import { StandardSchemaV1 } from "@standard-schema/spec";
 
-import { ExtendedProfileSchema } from "../../domain/entities/profile.entity.js";
-import { ProfileClientI } from "../../domain/ports/outbound/profile-client.js";
-
-export const makeProfileKyClientAdapter = (
+export const makeProfileKyClientAdapter = <
+  DomainSchema extends StandardSchemaV1,
+>(
   kyInstance: typeof ky,
   baseUrl: string,
   basePath: string,
   apiKey: string,
-): ProfileClientI => {
+  zodschema: DomainSchema,
+): ProfileClient<DomainSchema> => {
   const cleanBasePath = basePath.replace(/\/$/, "");
   const baseNormalizedUrl = `${baseUrl}${cleanBasePath}`;
 
@@ -34,7 +36,7 @@ export const makeProfileKyClientAdapter = (
               "X-Functions-Key": apiKey,
             },
           })
-          .json<ExtendedProfileSchema>(),
+          .json(zodschema),
         (error) => {
           if (error instanceof HTTPError) {
             switch (error.response.status) {
@@ -77,7 +79,7 @@ export const makeProfileKyClientAdapter = (
               "X-Functions-Key": apiKey,
             },
           })
-          .json<ExtendedProfileSchema>(),
+          .json(zodschema),
         (error) => {
           if (error instanceof HTTPError) {
             switch (error.response.status) {

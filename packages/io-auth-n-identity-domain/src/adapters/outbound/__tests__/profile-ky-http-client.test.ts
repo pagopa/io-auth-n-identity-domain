@@ -14,6 +14,7 @@ import {
   aFiscalCode,
   mockedExtendedProfile,
 } from "../../../domain/__mocks__/profile.mock.js";
+import z from "zod";
 
 const createHttpError = (status: number, statusText: string): HTTPError => {
   const response = new Response(null, { status, statusText });
@@ -40,6 +41,7 @@ const adapter = makeProfileKyClientAdapter(
   baseUrl,
   basePath,
   apiKey,
+  z.object({ foo: z.string() }),
 );
 
 describe("getProfile", () => {
