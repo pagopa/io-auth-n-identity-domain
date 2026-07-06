@@ -1,12 +1,13 @@
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import { z } from "zod";
 
 /**
  * A non-empty Base64url-encoded string (RFC 4648 §5, unpadded).
  */
-export const Base64UrlStringSchema = z
-  .string()
-  .min(1)
-  .regex(/^[A-Za-z0-9_-]+$/, { message: "Invalid Base64url string" });
+export const Base64UrlStringSchema = NonEmptyStringSchema.regex(
+  /^[A-Za-z0-9_-]+$/,
+  { message: "Invalid Base64url string" },
+);
 
 export type Base64UrlString = z.infer<typeof Base64UrlStringSchema>;
 

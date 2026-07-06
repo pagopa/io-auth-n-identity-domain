@@ -1,3 +1,4 @@
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import { z } from "zod";
 
 /**
@@ -18,8 +19,8 @@ export type ServerConfig = z.infer<typeof ServerConfigSchema>;
  */
 export const LollipopConfigSchema = z.object({
   LOLLIPOP_API_URL: z.url(),
-  LOLLIPOP_API_BASE_PATH: z.string().min(1),
-  LOLLIPOP_API_KEY: z.string().min(1),
+  LOLLIPOP_API_BASE_PATH: NonEmptyStringSchema,
+  LOLLIPOP_API_KEY: NonEmptyStringSchema,
 });
 
 export type LollipopConfig = z.infer<typeof LollipopConfigSchema>;
