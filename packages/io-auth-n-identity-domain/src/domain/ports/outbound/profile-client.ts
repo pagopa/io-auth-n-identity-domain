@@ -8,10 +8,9 @@ import {
   ValidationError,
 } from "@pagopa/hexagonal-core";
 import { ResultAsync } from "neverthrow";
-import { StandardTypedV1 } from "@standard-schema/spec";
+import { StandardSchemaV1, StandardTypedV1 } from "@standard-schema/spec";
 
 import { NewProfile } from "../../entities/profile.entity.js";
-import { StandardSchemaV1 } from "ky";
 
 export interface ProfileClient<DomainOutputSchema extends StandardSchemaV1> {
   readonly getProfile: (
