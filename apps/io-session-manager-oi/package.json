@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@asteasolutions/zod-to-openapi": "catalog:",
-    "@pagopa/io-platform-typescript-config-node": "workspace:^",
+    "@pagopa/typescript-config-node22": "workspace:^",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",

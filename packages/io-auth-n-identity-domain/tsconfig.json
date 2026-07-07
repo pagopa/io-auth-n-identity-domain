@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "@pagopa/io-platform-typescript-config-node/tsconfig.json",
+  "extends": "@pagopa/typescript-config-node22/tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
@@ -11,5 +11,11 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "exclude": ["dist", "node_modules", "**/__tests__/*", "**/__mocks__/*", "vite.config.mts"]
+  "exclude": [
+    "dist",
+    "node_modules",
+    "**/__tests__/*",
+    "**/__mocks__/*",
+    "vite.config.mts"
+  ]
 }
