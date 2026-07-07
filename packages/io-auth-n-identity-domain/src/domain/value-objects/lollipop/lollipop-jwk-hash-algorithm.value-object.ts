@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-declare const BrandLollipopJwkHashAlgo: unique symbol;
+export declare const BrandLollipopJwkHashAlgo: unique symbol;
 /**
  * Hashing algorithm used to compute the JWK thumbprint of the lollipop public key.
  */

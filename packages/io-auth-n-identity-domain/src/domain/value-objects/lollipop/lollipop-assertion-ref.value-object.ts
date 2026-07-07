@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-declare const BrandLollipopAssertionRef: unique symbol;
+export declare const BrandLollipopAssertionRef: unique symbol;
 /**
  * Lollipop assertion reference: a `{algo}-{base64url-thumbprint}` string
  * that uniquely identifies a reserved public key.
