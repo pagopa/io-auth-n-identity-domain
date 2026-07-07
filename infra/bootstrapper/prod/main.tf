@@ -136,7 +136,7 @@ module "repo" {
   tags = local.tags
 }
 
-resource "azurerm_key_vault_access_policy" "infra_cd_kv_common" {
+resource "azurerm_key_vault_access_policy" "infra_cd_kv" {
   for_each = toset(local.keyvault_common_ids)
 
   key_vault_id = each.key
@@ -146,7 +146,7 @@ resource "azurerm_key_vault_access_policy" "infra_cd_kv_common" {
   secret_permissions = ["Get", "List", "Set"]
 }
 
-resource "azurerm_key_vault_access_policy" "infra_ci_kv_common" {
+resource "azurerm_key_vault_access_policy" "infra_ci_kv" {
   for_each = toset(local.keyvault_common_ids)
 
   key_vault_id = each.key
