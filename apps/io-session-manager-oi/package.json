@@ -1,0 +1,45 @@
+{
+  "name": "io-session-manager-oi",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/main.js",
+  "files": [
+    "dist/*"
+  ],
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "typecheck": "tsc --noemit",
+    "lint": "pnpm lint:check --fix",
+    "lint:check": "eslint .",
+    "start": "node dist/main.js",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@pagopa/hexagonal-core": "catalog:",
+    "@pagopa/hexagonal-fastify": "catalog:",
+    "@pagopa/io-auth-n-identity-domain": "workspace:^",
+    "@pagopa/io-env-config": "workspace:^",
+    "@pagopa/io-package-info": "workspace:^",
+    "dotenv": "catalog:",
+    "fastify": "catalog:",
+    "neverthrow": "catalog:",
+    "range_check": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@asteasolutions/zod-to-openapi": "catalog:",
+    "@pagopa/typescript-config-node22": "workspace:^",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-monorepo": "workspace:^",
+    "shx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

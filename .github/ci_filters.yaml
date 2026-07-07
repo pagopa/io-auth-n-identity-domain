@@ -10,6 +10,12 @@ io-session-manager:
   # container edit
   - docker/io-session-manager/*
   - docker/testenv2/*
+io-session-manager-oi:
+  - "apps/io-session-manager-oi/**/*.ts"
+  # package.json, tsconfig.json, ...
+  - "apps/io-session-manager-oi/**/*.json"
+  # container edit
+  - docker/io-session-manager-oi/*
 io-fast-login:
   - "apps/io-fast-login/**/*.ts"
   # package.json, function.json, tsconfig.json, ...
