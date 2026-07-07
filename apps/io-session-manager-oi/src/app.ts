@@ -3,7 +3,7 @@ import fastify, { type FastifyInstance } from "fastify";
 
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
-import { type Config } from "./domain/entities/config.entity.js";
+import { type Config } from "./domain/value-objects/config.vo.js";
 
 export const createApp = (
   config: Config,
