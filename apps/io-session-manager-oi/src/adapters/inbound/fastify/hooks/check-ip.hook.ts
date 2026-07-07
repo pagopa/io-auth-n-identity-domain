@@ -44,7 +44,7 @@ export const createCheckIpHook =
     const ip = extractIP(request);
 
     if (ip === undefined) {
-      request.log.error(
+      request.log.warn(
         `Cannot decode source IP: ip=${request.ip}, x-client-ip=${request.headers["x-client-ip"]}`,
       );
       sendErrorResponse(
@@ -55,7 +55,7 @@ export const createCheckIpHook =
     }
 
     if (!rangeCheck.inRange(ip, Array.from(allowedCIDRs))) {
-      request.log.error(`Blocked source IP ${ip}.`);
+      request.log.warn(`Blocked source IP ${ip}.`);
       sendErrorResponse(reply, new ForbiddenError());
       return;
     }
