@@ -25,7 +25,6 @@
     "@pagopa/io-auth-n-identity-domain": "workspace:^",
     "@pagopa/io-env-config": "workspace:^",
     "@pagopa/io-package-info": "workspace:^",
-    "@standard-schema/spec": "^1.1.0",
     "dotenv": "catalog:",
     "fastify": "catalog:",
     "neverthrow": "catalog:",
@@ -40,7 +39,6 @@
     "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",
     "shx": "catalog:",
-    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
