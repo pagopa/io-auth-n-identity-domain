@@ -12,14 +12,12 @@
     "clean": "shx rm -rf dist",
     "build": "tsc",
     "build:watch": "tsc -w",
-    "typecheck": "tsc -p tsconfig.typecheck.json",
+    "typecheck": "tsc --noemit",
     "lint": "pnpm lint:check --fix",
     "lint:check": "eslint .",
     "start": "node dist/main.js",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "generate:openapi": "tsx ./scripts/generate-openapi.ts",
-    "generate:openapi:check": "tsx ./scripts/generate-openapi.ts --check"
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@pagopa/hexagonal-core": "catalog:",
