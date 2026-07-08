@@ -4,7 +4,7 @@ import { z } from "zod";
 import {
   IsEmailValidatedSchema,
   IsTestProfileSchema,
-} from "../value-objects/profile/profile.value-object.js";
+} from "../value-objects/profile/profile.vo.js";
 
 const NewProfileBase = z.object({
   is_email_validated: IsEmailValidatedSchema,

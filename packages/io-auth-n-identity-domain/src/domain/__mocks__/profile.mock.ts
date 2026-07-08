@@ -20,7 +20,7 @@ import {
   AcceptedTosVersionSchema,
   ReminderStatusSchema,
   AppVersionSchema,
-} from "../value-objects/profile/profile.value-object.js";
+} from "../value-objects/profile/profile.vo.js";
 import { EmailAddressSchema } from "@pagopa/hexagonal-core";
 
 import { z } from "zod";

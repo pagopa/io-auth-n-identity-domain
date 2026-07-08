@@ -1,1 +1,1 @@
-export * from "./profile.value-object.js";
+export * from "./profile.vo.js";
