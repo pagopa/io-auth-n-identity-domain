@@ -10,7 +10,7 @@ import {
 import { ResultAsync } from "neverthrow";
 import { StandardSchemaV1, StandardTypedV1 } from "@standard-schema/spec";
 
-import { NewProfile } from "../../entities/profile.entity.js";
+import { NewProfile } from "../../value-objects/profile/profile.vo.js";
 
 export interface ProfilePort<DomainOutputSchema extends StandardSchemaV1> {
   readonly getProfile: (
