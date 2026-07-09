@@ -26,12 +26,25 @@ export const LollipopConfigSchema = z.object({
 export type LollipopConfig = z.infer<typeof LollipopConfigSchema>;
 
 /**
+ * IO Profile configuration schema.
+ * Consists of the URL, base path, and API key for the IO Profile service.
+ */
+export const IoProfileConfigSchema = z.object({
+  IO_PROFILE_API_URL: z.url(),
+  IO_PROFILE_API_BASE_PATH: NonEmptyStringSchema,
+  IO_PROFILE_API_KEY: NonEmptyStringSchema,
+});
+
+export type IoProfileConfig = z.infer<typeof IoProfileConfigSchema>;
+
+/**
  * Application configuration schema.
  * Combines all schemas into a single schema for the entire application configuration.
  */
 export const ConfigSchema = z.object({
   ...ServerConfigSchema.shape,
   ...LollipopConfigSchema.shape,
+  ...IoProfileConfigSchema.shape,
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

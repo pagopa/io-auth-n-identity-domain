@@ -16,8 +16,11 @@
     "lint": "pnpm lint:check --fix",
     "lint:check": "eslint .",
     "start": "node dist/main.js",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test": "vitest run -c ./vite.config.mts",
+    "test:integration": "vitest run -c ./src/__integrations__/vite.config.mts",
+    "test:coverage": "vitest run --coverage -c ./vite.config.mts",
+    "generate": "pnpm generate:io-profile-client",
+    "generate:io-profile-client": "openapi-ts"
   },
   "dependencies": {
     "@pagopa/hexagonal-core": "catalog:",
@@ -34,6 +37,7 @@
   "devDependencies": {
     "@asteasolutions/zod-to-openapi": "catalog:",
     "@pagopa/typescript-config-node22": "workspace:^",
+    "@hey-api/openapi-ts": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
