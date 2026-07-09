@@ -6,8 +6,8 @@ import {
 } from "@pagopa/hexagonal-core";
 import { err, ok, type Result } from "neverthrow";
 
-import type { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import { type UserProfile } from "../../domain/entities/profile.entity.js";
+import type { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import { createClient } from "../../generated/io-profile/client/index.js";
 import {
   createProfile,
