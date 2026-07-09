@@ -167,7 +167,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
-      start_period: 30s
+      start_period: 2m
 
   io-public:
     image: io-public
