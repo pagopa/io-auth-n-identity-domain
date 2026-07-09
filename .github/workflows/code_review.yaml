@@ -211,3 +211,10 @@ jobs:
       - name: "E2E Tests"
         if: steps.test_filter.outputs.io-session-manager == 'true'
         run: pnpm --filter e2e start
+
+      - name: "io-session-manager-oi integration Tests"
+        if: >-
+          steps.test_filter.outputs.io-session-manager-oi == 'true'
+        run: >-
+          pnpm docker:start:build io-profile &&
+          pnpm run test:integrations:io-sm-oi
