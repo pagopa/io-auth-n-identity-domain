@@ -23,6 +23,7 @@
     "generate:io-profile-client": "openapi-ts"
   },
   "dependencies": {
+    "@azure/cosmos": "catalog:",
     "@pagopa/hexagonal-core": "catalog:",
     "@pagopa/hexagonal-fastify": "catalog:",
     "@pagopa/io-auth-n-identity-domain": "workspace:^",

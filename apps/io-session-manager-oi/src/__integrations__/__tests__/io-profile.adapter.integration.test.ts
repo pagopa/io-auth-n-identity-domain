@@ -3,7 +3,7 @@ import {
   GenericError,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { createGetProfileAdapter } from "../../adapters/outbound/io-profile.adapter.js";
 import {
@@ -11,6 +11,8 @@ import {
   IO_PROFILE_API_KEY,
   IO_PROFILE_BASE_URL,
 } from "../env.js";
+import { seedCosmosDb } from "../fixtures/cosmos-seed.js";
+import { EXISTING_FISCAL_CODE as EXISTING_FISCAL_CODE_FIXTURE } from "../fixtures/profiles.fixture.js";
 
 const adapter = createGetProfileAdapter({
   baseUrl: IO_PROFILE_BASE_URL,
@@ -18,12 +20,21 @@ const adapter = createGetProfileAdapter({
 });
 
 // A fiscal code that exists in the local Docker environment
-const EXISTING_FISCAL_CODE = FiscalCodeSchema.parse("ISPXNB32R82Y766Z");
+const EXISTING_FISCAL_CODE = FiscalCodeSchema.parse(
+  EXISTING_FISCAL_CODE_FIXTURE,
+);
 
 // A fiscal code that does not exist
 const UNKNOWN_FISCAL_CODE = FiscalCodeSchema.parse("ZAAAAA00A00A000Z");
 
 describe("io-profile adapter (integration)", () => {
+  // Create the database, the `profiles` container and seed
+  // `EXISTING_FISCAL_CODE` on the local Cosmos DB emulator before running
+  // any test in this suite.
+  beforeAll(async () => {
+    await seedCosmosDb();
+  });
+
   it("returns ok(UserProfile) for an existing fiscal code", async () => {
     const result = await adapter.getProfile(EXISTING_FISCAL_CODE);
 

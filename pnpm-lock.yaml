@@ -6,30 +6,285 @@ settings:
 
 catalogs:
   default:
+    '@asteasolutions/zod-to-openapi':
+      specifier: ^8.5.0
+      version: 8.5.0
+    '@azure/cosmos':
+      specifier: ^4.1.1
+      version: 4.2.0
+    '@azure/data-tables':
+      specifier: ^13.3.2
+      version: 13.3.2
+    '@azure/functions':
+      specifier: ^4.7.0
+      version: 4.7.0
+    '@azure/identity':
+      specifier: ^4.10.1
+      version: 4.10.1
+    '@azure/service-bus':
+      specifier: ^7.9.5
+      version: 7.9.5
+    '@azure/storage-blob':
+      specifier: ^12.29.1
+      version: 12.29.1
+    '@azure/storage-queue':
+      specifier: ^12.22.0
+      version: 12.25.0
+    '@hey-api/openapi-ts':
+      specifier: ^0.99.0
+      version: 0.99.0
+    '@mattrglobal/http-signatures':
+      specifier: ^4.1.0
+      version: 4.1.1
+    '@pagopa/azure-storage-migration-kit':
+      specifier: ^0.0.2
+      version: 0.0.2
+    '@pagopa/eslint-config':
+      specifier: ^4.0.6
+      version: 4.0.6
+    '@pagopa/handler-kit':
+      specifier: ^1.1.1
+      version: 1.1.1
+    '@pagopa/handler-kit-azure-func':
+      specifier: ^2.0.8
+      version: 2.0.8
     '@pagopa/hexagonal-core':
       specifier: ^0.1.1
       version: 0.1.1
+    '@pagopa/hexagonal-fastify':
+      specifier: ^0.1.0
+      version: 0.1.0
+    '@pagopa/io-app-email-templates':
+      specifier: ^0.8.0
+      version: 0.8.0
+    '@pagopa/io-functions-commons':
+      specifier: ^29.3.0
+      version: 29.3.0
+    '@pagopa/io-spid-commons':
+      specifier: ^15.0.0
+      version: 15.0.0
+    '@pagopa/logger':
+      specifier: ^1.0.1
+      version: 1.0.1
+    '@pagopa/openapi-codegen-ts':
+      specifier: ^14.0.1
+      version: 14.0.1
+    '@pagopa/ts-commons':
+      specifier: ^13.1.2
+      version: 13.1.2
+    '@pagopa/winston-ts':
+      specifier: ^2.2.0
+      version: 2.2.0
+    '@redis/client':
+      specifier: 1.6.1
+      version: 1.6.1
+    '@tsconfig/node22':
+      specifier: ^22.0.5
+      version: 22.0.5
+    '@types/body-parser':
+      specifier: ^1.0.0
+      version: 1.19.5
+    '@types/cookie-parser':
+      specifier: ^1.4.8
+      version: 1.4.8
+    '@types/express':
+      specifier: ^4.17.21
+      version: 4.17.21
+    '@types/html-to-text':
+      specifier: ^9.0.4
+      version: 9.0.4
+    '@types/jsonwebtoken':
+      specifier: ^9.0.2
+      version: 9.0.7
+    '@types/jwk-to-pem':
+      specifier: ^2.0.1
+      version: 2.0.3
+    '@types/lolex':
+      specifier: ^3.1.1
+      version: 3.1.1
     '@types/node':
       specifier: ^22.19.17
       version: 22.19.17
+    '@types/node-fetch':
+      specifier: ^2.6.12
+      version: 2.6.12
+    '@types/nodemailer':
+      specifier: ^6.4.17
+      version: 6.4.17
+    '@types/passport':
+      specifier: ^1.0.3
+      version: 1.0.16
+    '@types/passport-http-bearer':
+      specifier: ^1.0.34
+      version: 1.0.41
+    '@types/passport-local':
+      specifier: ^1.0.38
+      version: 1.0.38
+    '@types/supertest':
+      specifier: ^6.0.2
+      version: 6.0.2
+    '@types/vfile-message':
+      specifier: ^2.0.0
+      version: 2.0.0
+    '@types/xml-crypto':
+      specifier: ^1.4.2
+      version: 1.4.6
     '@vitest/coverage-v8':
       specifier: ^3.2.4
       version: 3.2.4
+    '@xmldom/xmldom':
+      specifier: ^0.8.10
+      version: 0.8.10
+    applicationinsights:
+      specifier: ^2.9.5
+      version: 2.9.6
+    azure-storage:
+      specifier: ^2.10.7
+      version: 2.10.7
+    base64url:
+      specifier: ^3.0.1
+      version: 3.0.1
+    body-parser:
+      specifier: ^1.20.2
+      version: 1.20.3
+    cookie-parser:
+      specifier: ^1.4.7
+      version: 1.4.7
+    date-fns:
+      specifier: ^2.30.0
+      version: 2.30.0
+    dependency-check:
+      specifier: ^4.1.0
+      version: 4.1.0
+    dotenv:
+      specifier: ^16.4.5
+      version: 16.4.7
+    dotenv-cli:
+      specifier: ^7.4.1
+      version: 7.4.4
     eslint:
       specifier: ^8.57.0
       version: 8.57.0
+    eslint-plugin-prettier:
+      specifier: ^5.1.3
+      version: 5.1.3
+    express:
+      specifier: ^4.19.2
+      version: 4.21.1
+    fast-check:
+      specifier: ^1.16.0
+      version: 1.26.0
+    fastify:
+      specifier: ^5.8.4
+      version: 5.8.5
+    fp-ts:
+      specifier: ^2.16.9
+      version: 2.16.9
+    helmet:
+      specifier: ^7.1.0
+      version: 7.1.0
+    html-to-text:
+      specifier: ^9.0.5
+      version: 9.0.5
+    http-graceful-shutdown:
+      specifier: ^3.1.13
+      version: 3.1.13
+    io-ts:
+      specifier: ^2.2.22
+      version: 2.2.22
+    io-ts-types:
+      specifier: ^0.5.19
+      version: 0.5.19
+    jose:
+      specifier: ^5.3.0
+      version: 5.9.4
+    jsonwebtoken:
+      specifier: ^9.0.2
+      version: 9.0.2
+    jwk-to-pem:
+      specifier: ^2.0.5
+      version: 2.0.7
+    logform:
+      specifier: ^2.6.0
+      version: 2.7.0
+    lolex:
+      specifier: ^5.1.1
+      version: 5.1.2
+    mock-http-server:
+      specifier: ^1.4.5
+      version: 1.4.5
+    modclean:
+      specifier: ^3.0.0-beta.1
+      version: 3.0.0-beta.1
+    monocle-ts:
+      specifier: ^2.3.13
+      version: 2.3.13
     neverthrow:
       specifier: ^8.2.0
       version: 8.2.0
+    newtype-ts:
+      specifier: ^0.3.5
+      version: 0.3.5
+    node-fetch:
+      specifier: ^2.6.9
+      version: 2.7.0
+    nodemailer:
+      specifier: ^6.10.0
+      version: 6.10.0
+    oval:
+      specifier: ^1.0.0
+      version: 1.0.0
+    passport:
+      specifier: ^0.6.0
+      version: 0.6.0
+    passport-http-bearer:
+      specifier: ^1.0.1
+      version: 1.0.1
+    passport-http-custom-bearer:
+      specifier: ^1.0.15
+      version: 1.0.15
+    passport-local:
+      specifier: ^1.0.0
+      version: 1.0.0
+    passport-strategy:
+      specifier: ^1.0.0
+      version: 1.0.0
+    prettier:
+      specifier: ^3.2.5
+      version: 3.2.5
+    range_check:
+      specifier: ^2.0.4
+      version: 2.0.4
+    redis:
+      specifier: 4.7.1
+      version: 4.7.1
     shx:
       specifier: ^0.4.0
       version: 0.4.0
+    supertest:
+      specifier: ^7.0.0
+      version: 7.0.0
+    swagger-cli:
+      specifier: ^4.0.4
+      version: 4.0.4
+    timekeeper:
+      specifier: ^2.2.0
+      version: 2.3.1
     typescript:
       specifier: ^5.4.5
       version: 5.8.3
+    ulid:
+      specifier: ^2.3.0
+      version: 2.3.0
     vitest:
       specifier: ^3.2.4
       version: 3.2.4
+    winston:
+      specifier: ^3.14.2
+      version: 3.17.0
+    winston-transport:
+      specifier: ^4.9.0
+      version: 4.9.0
     zod:
       specifier: ^4.0.0
       version: 4.4.3
@@ -70,7 +325,7 @@ importers:
         version: 3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0)
       eslint-plugin-import:
         specifier: ^2.29.1
-        version: 2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
+        version: 2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
       eslint-plugin-only-warn:
         specifier: ^1.1.0
         version: 1.1.0
@@ -1033,6 +1288,9 @@ importers:
 
   apps/io-session-manager-oi:
     dependencies:
+      '@azure/cosmos':
+        specifier: 'catalog:'
+        version: 4.2.0
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
         version: 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
@@ -1387,7 +1645,7 @@ importers:
         version: 2.5.5(eslint@8.57.0)(turbo@2.5.5)
       eslint-plugin-import:
         specifier: ^2.29.1
-        version: 2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
+        version: 2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
       eslint-plugin-only-warn:
         specifier: ^1.1.0
         version: 1.1.0
@@ -3850,11 +4108,12 @@ packages:
   '@xmldom/xmldom@0.7.13':
     resolution: {integrity: sha512-lm2GW5PkosIzccsaZIz7tp8cPADSIlIHWDFTR1N0SzfinhhYgeIQjFMz4rYzanCScr3DqQLeomUDArp6MWKm+g==}
     engines: {node: '>=10.0.0'}
-    deprecated: this version is no longer supported, please update to at least 0.8.*
+    deprecated: this version has critical issues, please update to the latest version
 
   '@xmldom/xmldom@0.8.10':
     resolution: {integrity: sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==}
     engines: {node: '>=10.0.0'}
+    deprecated: this version has critical issues, please update to the latest version
 
   a-sync-waterfall@1.0.1:
     resolution: {integrity: sha512-RYTOHHdWipFUliRFMCS4X2Yn2X8M87V/OpSqWzKKOGhzqyUxzyVmhHDH9sAvG+ZuQf/TAOFsLCpMw09I1ufUnA==}
@@ -7199,11 +7458,6 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  semver@7.7.3:
-    resolution: {integrity: sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==}
-    engines: {node: '>=10'}
-    hasBin: true
-
   semver@7.8.4:
     resolution: {integrity: sha512-rUCObTnP32Q08R2uuIrt7r9PlEonuTmtuXYcW6s5kjdlj3xbnwe+21yXptAUYcMAABLkYYTtnmzb3w3EDZfueA==}
     engines: {node: '>=10'}
@@ -7939,7 +8193,7 @@ packages:
 
   uuid@3.4.0:
     resolution: {integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==}
-    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@8.3.2:
@@ -8303,7 +8557,7 @@ snapshots:
       '@jsdevtools/ono': 7.1.3
       '@types/json-schema': 7.0.15
       call-me-maybe: 1.0.2
-      js-yaml: 4.1.0
+      js-yaml: 4.2.0
 
   '@apidevtools/openapi-schemas@2.1.0': {}
 
@@ -9281,9 +9535,9 @@ snapshots:
     dependencies:
       '@azure/core-tracing': 1.3.1
       '@azure/logger': 1.3.0
-      '@opentelemetry/api': 1.8.0
-      '@opentelemetry/core': 1.24.1(@opentelemetry/api@1.8.0)
-      '@opentelemetry/instrumentation': 0.41.2(@opentelemetry/api@1.8.0)
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 1.24.1(@opentelemetry/api@1.9.1)
+      '@opentelemetry/instrumentation': 0.41.2(@opentelemetry/api@1.9.1)
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
@@ -9636,7 +9890,7 @@ snapshots:
       outdent: 0.5.0
       prettier: 2.8.8
       resolve-from: 5.0.0
-      semver: 7.7.3
+      semver: 7.8.4
 
   '@changesets/assemble-release-plan@6.0.0':
     dependencies:
@@ -9645,7 +9899,7 @@ snapshots:
       '@changesets/get-dependents-graph': 2.0.0
       '@changesets/types': 6.0.0
       '@manypkg/get-packages': 1.1.3
-      semver: 7.7.3
+      semver: 7.8.4
 
   '@changesets/changelog-git@0.2.0':
     dependencies:
@@ -9706,7 +9960,7 @@ snapshots:
       '@manypkg/get-packages': 1.1.3
       chalk: 2.4.2
       fs-extra: 7.0.1
-      semver: 7.7.3
+      semver: 7.8.4
 
   '@changesets/get-release-plan@4.0.0':
     dependencies:
@@ -10224,7 +10478,7 @@ snapshots:
       '@oclif/help': 1.0.15
       '@oclif/parser': 3.8.17
       debug: 4.4.3
-      semver: 7.7.3
+      semver: 7.8.4
     transitivePeerDependencies:
       - supports-color
 
@@ -10299,33 +10553,33 @@ snapshots:
 
   '@opentelemetry/api@1.9.1': {}
 
-  '@opentelemetry/core@1.24.1(@opentelemetry/api@1.8.0)':
+  '@opentelemetry/core@1.24.1(@opentelemetry/api@1.9.1)':
     dependencies:
-      '@opentelemetry/api': 1.8.0
+      '@opentelemetry/api': 1.9.1
       '@opentelemetry/semantic-conventions': 1.24.1
 
-  '@opentelemetry/instrumentation@0.41.2(@opentelemetry/api@1.8.0)':
+  '@opentelemetry/instrumentation@0.41.2(@opentelemetry/api@1.9.1)':
     dependencies:
-      '@opentelemetry/api': 1.8.0
+      '@opentelemetry/api': 1.9.1
       '@types/shimmer': 1.0.5
       import-in-the-middle: 1.4.2
       require-in-the-middle: 7.3.0
-      semver: 7.7.3
+      semver: 7.8.4
       shimmer: 1.2.1
     transitivePeerDependencies:
       - supports-color
 
-  '@opentelemetry/resources@1.24.1(@opentelemetry/api@1.8.0)':
+  '@opentelemetry/resources@1.24.1(@opentelemetry/api@1.9.1)':
     dependencies:
-      '@opentelemetry/api': 1.8.0
-      '@opentelemetry/core': 1.24.1(@opentelemetry/api@1.8.0)
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 1.24.1(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.24.1
 
-  '@opentelemetry/sdk-trace-base@1.24.1(@opentelemetry/api@1.8.0)':
+  '@opentelemetry/sdk-trace-base@1.24.1(@opentelemetry/api@1.9.1)':
     dependencies:
-      '@opentelemetry/api': 1.8.0
-      '@opentelemetry/core': 1.24.1(@opentelemetry/api@1.8.0)
-      '@opentelemetry/resources': 1.24.1(@opentelemetry/api@1.8.0)
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 1.24.1(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 1.24.1(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.24.1
 
   '@opentelemetry/semantic-conventions@1.24.1': {}
@@ -10496,7 +10750,7 @@ snapshots:
       passport: 0.6.0
       passport-saml: 1.3.5
       redis: 4.7.1
-      semver: 7.7.3
+      semver: 7.8.4
       winston: 3.17.0
       xml-crypto: 2.1.6
       xml2js: 0.4.23
@@ -10571,8 +10825,8 @@ snapshots:
       jose: 4.15.9
       json-set-map: 1.1.2
       node-fetch: 2.7.0
-      semver: 7.7.3
-      validator: 13.11.0
+      semver: 7.8.4
+      validator: 13.15.35
     transitivePeerDependencies:
       - encoding
 
@@ -10604,9 +10858,9 @@ snapshots:
       json-set-map: 1.1.2
       jsonwebtoken: 9.0.2
       node-fetch: 2.7.0
-      semver: 7.6.1
+      semver: 7.8.4
       ulid: 2.3.0
-      validator: 13.11.0
+      validator: 13.15.35
     transitivePeerDependencies:
       - applicationinsights-native-metrics
       - encoding
@@ -11344,7 +11598,7 @@ snapshots:
       '@typescript-eslint/visitor-keys': 8.53.1
       debug: 4.4.3
       minimatch: 9.0.5
-      semver: 7.7.3
+      semver: 7.8.4
       tinyglobby: 0.2.15
       ts-api-utils: 2.4.0(typescript@5.8.3)
       typescript: 5.8.3
@@ -11403,7 +11657,7 @@ snapshots:
       '@usebruno/lang': 0.27.0
       '@usebruno/requests': 0.7.0(debug@4.4.1)
       '@usebruno/vm2': 3.9.19
-      aws4-axios: 3.4.0(axios@1.11.0(debug@4.4.1))
+      aws4-axios: 3.4.0(axios@1.11.0)
       axios: 1.11.0(debug@4.4.1)
       axios-ntlm: 1.4.4(debug@4.4.1)
       chai: 4.5.0
@@ -11681,9 +11935,9 @@ snapshots:
       '@azure/core-rest-pipeline': 1.16.3
       '@azure/opentelemetry-instrumentation-azure-sdk': 1.0.0-beta.5
       '@microsoft/applicationinsights-web-snippet': 1.0.1
-      '@opentelemetry/api': 1.8.0
-      '@opentelemetry/core': 1.24.1(@opentelemetry/api@1.8.0)
-      '@opentelemetry/sdk-trace-base': 1.24.1(@opentelemetry/api@1.8.0)
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 1.24.1(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace-base': 1.24.1(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.24.1
       cls-hooked: 4.2.2
       continuation-local-storage: 3.2.1
@@ -11815,7 +12069,7 @@ snapshots:
 
   aws-sign2@0.7.0: {}
 
-  aws4-axios@3.4.0(axios@1.11.0(debug@4.4.1)):
+  aws4-axios@3.4.0(axios@1.11.0):
     dependencies:
       '@aws-sdk/client-sts': 3.862.0
       aws4: 1.13.2
@@ -11861,7 +12115,7 @@ snapshots:
       request: 2.88.2
       underscore: 1.13.6
       uuid: 3.4.0
-      validator: 13.11.0
+      validator: 13.15.35
       xml2js: 0.2.8
       xmlbuilder: 9.0.7
 
@@ -12468,7 +12722,7 @@ snapshots:
 
   diagnostic-channel@1.1.1:
     dependencies:
-      semver: 7.7.3
+      semver: 7.8.4
 
   diff@4.0.2: {}
 
@@ -12823,8 +13077,8 @@ snapshots:
       debug: 4.4.1
       enhanced-resolve: 5.16.0
       eslint: 8.57.0
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
       fast-glob: 3.3.3
       get-tsconfig: 4.7.3
       is-core-module: 2.13.1
@@ -12835,7 +13089,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-module-utils@2.8.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0):
+  eslint-module-utils@2.8.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
@@ -12846,7 +13100,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0):
+  eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0):
     dependencies:
       array-includes: 3.1.8
       array.prototype.findlastindex: 1.2.5
@@ -12856,7 +13110,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
       hasown: 2.0.2
       is-core-module: 2.13.1
       is-glob: 4.0.3
@@ -13138,7 +13392,7 @@ snapshots:
       process-warning: 5.0.0
       rfdc: 1.4.1
       secure-json-parse: 4.1.0
-      semver: 7.7.3
+      semver: 7.8.4
       toad-cache: 3.7.1
 
   fastq@1.17.1:
@@ -14022,7 +14276,7 @@ snapshots:
       lodash.isstring: 4.0.1
       lodash.once: 4.1.1
       ms: 2.1.3
-      semver: 7.6.1
+      semver: 7.8.4
 
   jsprim@1.4.2:
     dependencies:
@@ -14206,7 +14460,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.7.3
+      semver: 7.8.4
 
   make-error@1.3.6: {}
 
@@ -15258,8 +15512,6 @@ snapshots:
 
   semver@7.6.1: {}
 
-  semver@7.7.3: {}
-
   semver@7.8.4: {}
 
   send@0.19.0:
@@ -15613,7 +15865,7 @@ snapshots:
       mime: 2.6.0
       qs: 6.13.1
       readable-stream: 3.6.2
-      semver: 7.7.3
+      semver: 7.8.4
     transitivePeerDependencies:
       - supports-color
 
@@ -16312,7 +16564,7 @@ snapshots:
 
   write-yaml-file@4.2.0:
     dependencies:
-      js-yaml: 4.1.0
+      js-yaml: 4.2.0
       write-file-atomic: 3.0.3
 
   wsl-utils@0.3.1:
@@ -16437,7 +16689,7 @@ snapshots:
     dependencies:
       lodash.get: 4.4.2
       lodash.isequal: 4.5.0
-      validator: 13.11.0
+      validator: 13.15.35
     optionalDependencies:
       commander: 9.5.0
 
