@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "@pagopa/io-platform-typescript-config-node/tsconfig.json",
+  "extends": "@pagopa/typescript-config-node22/tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
