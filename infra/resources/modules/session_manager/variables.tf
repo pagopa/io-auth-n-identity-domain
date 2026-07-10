@@ -100,3 +100,11 @@ variable "lollipop" {
   })
   description = "Configuration for Lollipop service"
 }
+
+variable "io_profile" {
+  type = object({
+    base_url  = string
+    base_path = string
+  })
+  description = "Configuration for IO Profile service"
+}

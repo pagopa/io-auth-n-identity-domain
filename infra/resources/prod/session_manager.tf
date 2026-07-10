@@ -22,4 +22,9 @@ module "session_manager" {
     base_url  = "https://${module.function_lollipop.function_app.function_app.default_hostname}"
     base_path = "/api/v1"
   }
+
+  io_profile = {
+    base_url  = "https://${module.function_profile.function_app.function_app.default_hostname}"
+    base_path = "/api/v1"
+  }
 }

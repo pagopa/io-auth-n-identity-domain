@@ -18,9 +18,14 @@ locals {
     FETCH_KEEPALIVE_FREE_SOCKET_TIMEOUT = "30000"
     FETCH_KEEPALIVE_TIMEOUT             = "60000"
 
-    # Lollipop function
+    # Lollipop service
     LOLLIPOP_API_URL       = var.lollipop.base_url
     LOLLIPOP_API_BASE_PATH = var.lollipop.base_path
     LOLLIPOP_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_lollipop_api_key.versionless_id})"
+
+    # Profile service
+    IO_PROFILE_API_URL       = var.io_profile.base_url
+    IO_PROFILE_API_BASE_PATH = var.io_profile.base_path
+    IO_PROFILE_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_io_profile_api_key.versionless_id})"
   }
 }
