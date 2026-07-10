@@ -4,6 +4,12 @@ variable "function_apps_principal_ids" {
   default     = {}
 }
 
+variable "app_services_principal_ids" {
+  type        = map(string)
+  description = "Map of App Service principal IDs to give secret access as reader"
+  default     = {}
+}
+
 variable "storage_account_principal_ids" {
   type        = map(string)
   description = "Map of Storage Account principal IDs to give crypto access as writer"

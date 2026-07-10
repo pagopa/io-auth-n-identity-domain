@@ -32,6 +32,11 @@ module "iam_kv" {
     "${module.function_web_profile.function_app.function_app.name}-st" = module.function_web_profile.function_app.function_app.slot.principal_id
   }
 
+  app_services_principal_ids = {
+    "${module.app_session_manager_oi.app_service.app_service.name}"    = module.app_session_manager_oi.app_service.app_service.principal_id
+    "${module.app_session_manager_oi.app_service.app_service.name}-st" = module.app_session_manager_oi.app_service.app_service.slot.principal_id
+  }
+
   storage_account_principal_ids = {
     "${module.storage_accounts.session.name}" = module.storage_accounts.session.principal_id
     "${module.storage_accounts.audit.name}"   = module.storage_accounts.audit.principal_id

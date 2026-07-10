@@ -377,3 +377,13 @@ resource "azurerm_key_vault_secret" "webprof_api_beta_testers" {
 
   tags = local.tags
 }
+
+resource "azurerm_key_vault_secret" "session_manager_oi_lollipop_api_key" {
+  name         = "sm-oi-lollipop-api-key"
+  key_vault_id = module.key_vaults.auth.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = local.tags
+}
