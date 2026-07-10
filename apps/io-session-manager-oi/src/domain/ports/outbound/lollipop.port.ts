@@ -7,6 +7,7 @@ import {
 } from "@pagopa/hexagonal-core";
 import { type LollipopAssertionRef } from "@pagopa/io-auth-n-identity-domain";
 import { Result } from "neverthrow";
+
 import {
   ActivatePubKeyPayloadSchema,
   GenerateLcParamsPayloadSchema,
