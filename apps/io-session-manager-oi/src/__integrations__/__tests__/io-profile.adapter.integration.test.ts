@@ -5,7 +5,7 @@ import {
 } from "@pagopa/hexagonal-core";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { createGetProfileAdapter } from "../../adapters/outbound/io-profile.adapter.js";
+import { createIoProfileAdapter } from "../../adapters/outbound/io-profile.adapter.js";
 import {
   ENVIRONMENT,
   IO_PROFILE_API_KEY,
@@ -14,7 +14,7 @@ import {
 import { seedCosmosDb } from "../fixtures/cosmos-seed.js";
 import { EXISTING_FISCAL_CODE as EXISTING_FISCAL_CODE_FIXTURE } from "../fixtures/profiles.fixture.js";
 
-const adapter = createGetProfileAdapter({
+const adapter = createIoProfileAdapter({
   baseUrl: IO_PROFILE_BASE_URL,
   apiKey: IO_PROFILE_API_KEY,
 });
@@ -57,7 +57,7 @@ describe("io-profile adapter (integration)", () => {
     if (ENVIRONMENT == "DEV") {
       return;
     }
-    const adapterWithBadKey = createGetProfileAdapter({
+    const adapterWithBadKey = createIoProfileAdapter({
       baseUrl: IO_PROFILE_BASE_URL,
       apiKey: "invalid-key",
     });

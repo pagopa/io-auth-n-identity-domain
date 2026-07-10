@@ -5,7 +5,7 @@ import {
 } from "@pagopa/hexagonal-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createGetProfileAdapter } from "../io-profile.adapter.js";
+import { createIoProfileAdapter } from "../io-profile.adapter.js";
 import { getProfile } from "../../../generated/io-profile/sdk.gen.js";
 import { ExtendedProfile } from "../../../generated/io-profile/types.gen.js";
 
@@ -21,7 +21,7 @@ vi.mock("../../../generated/io-profile/sdk.gen.js", () => ({
 
 const FISCAL_CODE = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 
-const adapter = createGetProfileAdapter({
+const adapter = createIoProfileAdapter({
   baseUrl: "http://localhost",
   apiKey: "test-key",
 });
@@ -30,7 +30,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("createGetProfileAdapter", () => {
+describe("createIoProfileAdapter", () => {
   describe("200 OK", () => {
     it("returns ok(UserProfile) with email", async () => {
       vi.mocked(getProfile).mockResolvedValue({
