@@ -12,13 +12,13 @@ import {
   LollipopActivation,
   LollipopActivationSchema,
 } from "../../domain/entities/lollipop-activation.entity.js";
-import { ILollipopActivationPort } from "../../domain/ports/outbound/lollipop-activation.port.js";
+import { LollipopActivationPort } from "../../domain/ports/outbound/lollipop-activation.port.js";
 
 import { CosmosBaseAdapter } from "./cosmos-base.adapter.js";
 
 export class LollipopActivationCosmosAdapter
   extends CosmosBaseAdapter
-  implements ILollipopActivationPort
+  implements LollipopActivationPort
 {
   protected readonly lollipopContainer: Container;
 

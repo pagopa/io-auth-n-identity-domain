@@ -18,8 +18,7 @@
     "lint": "pnpm lint:check --fix",
     "lint:check": "eslint . --ext .ts --cache",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:integration": "vitest run --config vitest.integration.config.mts"
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@azure/cosmos": "^4.9.3",

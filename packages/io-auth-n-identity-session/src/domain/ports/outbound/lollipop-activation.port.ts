@@ -11,7 +11,7 @@ import { LollipopActivation } from "../../entities/lollipop-activation.entity.js
 /**
  * Outbound port for handling Lollipop activations.
  */
-export interface ILollipopActivationPort {
+export interface LollipopActivationPort {
   readonly getByFiscalCode: (
     fiscalCode: FiscalCode,
   ) => Promise<Result<LollipopActivation, GenericError | NotFoundError>>;

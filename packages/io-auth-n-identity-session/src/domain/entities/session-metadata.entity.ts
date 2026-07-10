@@ -25,7 +25,7 @@ export const newSessionMetadata = ({
   fiscalCode,
   loginType,
   sessionTrackingId,
-}: Exclude<SessionMetadata, "expirationDate">): SessionMetadata => ({
+}: Omit<SessionMetadata, "expirationDate">): SessionMetadata => ({
   fiscalCode,
   loginType,
   sessionTrackingId,

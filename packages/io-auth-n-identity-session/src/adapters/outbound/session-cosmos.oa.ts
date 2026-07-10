@@ -80,7 +80,7 @@ export class SessionCosmosAdapter
     const result = await this.readItem(
       this.userSessionContainer,
       toCosmosSessionId(hashedSessionToken),
-      sessionTrackingId as any as NonEmptyString,
+      sessionTrackingId as unknown as NonEmptyString,
       "UserSession" as NonEmptyString,
     );
     return result.andThen(fromDbSession);
@@ -92,7 +92,7 @@ export class SessionCosmosAdapter
     const result = await this.readItem(
       this.userSessionContainer,
       toCosmosBpdSessionId(bpdToken.hashedToken),
-      bpdToken.sessionTrackingId as any as NonEmptyString,
+      bpdToken.sessionTrackingId as unknown as NonEmptyString,
       "UserSession" as NonEmptyString,
     );
     return result.andThen(fromDbSession);
@@ -329,7 +329,11 @@ export class SessionCosmosAdapter
 
       return ok(userSessionToCreate);
     } catch (error) {
-      return err(new GenericError(`Error creating user session`));
+      return this.handleCosmosError(
+        error,
+        "UserSession" as NonEmptyString,
+        "createUserSession" as NonEmptyString,
+      );
     }
   }
 
@@ -406,7 +410,13 @@ export class SessionCosmosAdapter
       }
       return ok(undefined);
     } catch (error) {
-      return err(new GenericError(`Error deleting user session`));
+      return this.handleCosmosError(
+        error,
+        "UserSession" as NonEmptyString,
+        "deleteUserSession" as NonEmptyString,
+      ).mapErr((e) =>
+        e instanceof ConflictError ? new GenericError(e.message) : e,
+      );
     }
   }
 
