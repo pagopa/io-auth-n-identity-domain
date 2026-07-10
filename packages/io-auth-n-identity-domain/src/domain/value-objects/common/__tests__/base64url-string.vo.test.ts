@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   Base64UrlJsonSchema,
   Base64UrlStringSchema,
-} from "../base64url-string.value-object.js";
+} from "../base64url-string.vo.js";
 
 const encode = (value: unknown): string =>
   Buffer.from(JSON.stringify(value)).toString("base64url");

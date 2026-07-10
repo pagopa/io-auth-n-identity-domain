@@ -1,1 +1,1 @@
-export * from "./base64url-string.value-object.js";
+export * from "./base64url-string.vo.js";

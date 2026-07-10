@@ -53,7 +53,7 @@ services:
       storage:
         condition: service_started
       io-profile:
-        condition: service_started
+        condition: service_healthy
       io-lollipop:
         condition: service_started
       io-fast-login:
@@ -162,6 +162,12 @@ services:
       - storage
       - cosmosdb
       - mailhog
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7071/api/v1/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 2m
 
   io-public:
     image: io-public

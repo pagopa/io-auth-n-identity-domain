@@ -12,6 +12,7 @@ catalog:
   '@azure/service-bus': ^7.9.5
   '@azure/storage-blob': ^12.29.1
   '@azure/storage-queue': ^12.22.0
+  '@hey-api/openapi-ts': ^0.99.0
   '@mattrglobal/http-signatures': ^4.1.0
   '@pagopa/azure-storage-migration-kit': ^0.0.2
   '@pagopa/eslint-config': ^4.0.6
@@ -28,7 +29,7 @@ catalog:
   '@pagopa/ts-commons': ^13.1.2
   '@pagopa/winston-ts': ^2.2.0
   '@redis/client': 1.6.1
-  "@tsconfig/node22": ^22.0.5
+  '@tsconfig/node22': ^22.0.5
   '@types/body-parser': ^1.0.0
   '@types/cookie-parser': ^1.4.8
   '@types/express': ^4.17.21
@@ -71,6 +72,7 @@ catalog:
   jose: ^5.3.0
   jsonwebtoken: ^9.0.2
   jwk-to-pem: ^2.0.5
+  ky: ^1.14.3
   logform: ^2.6.0
   lolex: ^5.1.1
   mock-http-server: ^1.4.5

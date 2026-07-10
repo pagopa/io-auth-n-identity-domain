@@ -6,6 +6,6 @@ export default defineConfig({
       exclude: ["dist", "node_modules", "**/__mocks__/**", "*.js"],
       reporter: ["lcov", "text"],
     },
-    exclude: ["**/node_modules/**", "**/dist/**"],
+    exclude: ["**/node_modules/**", "**/dist/**", "**/__integrations__/**"],
   },
 });
