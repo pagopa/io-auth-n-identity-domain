@@ -95,6 +95,7 @@ catalog:
   supertest: ^7.0.0
   swagger-cli: ^4.0.4
   timekeeper: ^2.2.0
+  ts-pattern: ^5.7.0
   tsx: ^4.19.2
   typescript: ^5.4.5
   ulid: ^2.3.0
