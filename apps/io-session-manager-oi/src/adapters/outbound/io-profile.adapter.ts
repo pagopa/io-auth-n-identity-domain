@@ -27,7 +27,7 @@ const RestrictedUserProfileSchema = zGetProfileResponse.pick({
   is_email_validated: true,
 });
 
-export const createGetProfileAdapter = (config: {
+export const createIoProfileAdapter = (config: {
   baseUrl: string;
   apiKey: string;
 }): ProfilePort => {
