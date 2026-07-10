@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
-import { LollipopAssertionRef } from "../value-objects/lollipop/lollipop-assertion-ref.value-object.js";
-import { LollipopJwk } from "../value-objects/lollipop/lollipop-jwk.value-object.js";
+import { LollipopAssertionRef } from "../value-objects/lollipop/lollipop-assertion-ref.vo.js";
+import { LollipopJwk } from "../value-objects/lollipop/lollipop-jwk.vo.js";
 
 /**
  * Computes a `content-digest` header value for the given algorithm and body,
