@@ -17,4 +17,9 @@ module "session_manager" {
   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.common_law.id
 
   key_vault = module.key_vaults.auth
+
+  lollipop = {
+    base_url  = "https://${module.function_lollipop.function_app.function_app.default_hostname}"
+    base_path = "/api/v1"
+  }
 }

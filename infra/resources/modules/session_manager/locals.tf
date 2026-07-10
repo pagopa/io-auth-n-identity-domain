@@ -1,13 +1,11 @@
 locals {
-  app_name = "sm"
-  # The Fastify app reads HOST and PORT directly from env, therefore we
-  # explicitly bind on all interfaces on port 8080 (aligned with the
-  # `WEBSITES_PORT` default used by the Linux App Service runtime).
-  listen_port = "8080"
+  app_name    = "sm"
+  listen_port = 8080
 
   app_settings = {
     NODE_ENV = "production"
 
+    # The Fastify app reads HOST and PORT directly from env
     HOST = "0.0.0.0"
     PORT = local.listen_port
 
@@ -21,8 +19,8 @@ locals {
     FETCH_KEEPALIVE_TIMEOUT             = "60000"
 
     # Lollipop function
-    # LOLLIPOP_API_URL       = "https://${module.function_lollipop.function_app.function_app.default_hostname}"
-    # LOLLIPOP_API_BASE_PATH = "/api/v1"
-    # LOLLIPOP_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_manager_oi_lollipop_api_key.versionless_id})"
+    LOLLIPOP_API_URL       = var.lollipop.base_url
+    LOLLIPOP_API_BASE_PATH = var.lollipop.base_path
+    LOLLIPOP_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_lollipop_api_key.versionless_id})"
   }
 }

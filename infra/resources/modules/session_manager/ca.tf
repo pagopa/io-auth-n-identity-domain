@@ -17,13 +17,13 @@ module "sm_ca" {
 
   containers = [
     {
-      image = "ghcr.io/pagopa/io-auth-sm" # FIXME: use a correct image tag
-      name  = "io-sm"
+      image = "ghcr.io/pagopa/io-auth-sm"
+      name  = "${var.prefix}-${var.domain}-${local.app_name}"
 
       app_settings = local.app_settings
 
       liveness_probe = {
-        path = "/api/healthcheck"
+        path = "/api/auth/v2/healthcheck"
       }
     },
   ]

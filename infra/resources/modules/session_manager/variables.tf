@@ -91,3 +91,12 @@ variable "key_vault" {
   })
   description = "Key Vault for storing secrets"
 }
+
+
+variable "lollipop" {
+  type = object({
+    base_url  = string
+    base_path = string
+  })
+  description = "Configuration for Lollipop service"
+}
