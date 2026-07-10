@@ -1,4 +1,5 @@
 import {
+  ConflictError,
   FiscalCodeSchema,
   GenericError,
   NotFoundError,
@@ -12,7 +13,10 @@ import {
   IO_PROFILE_BASE_URL,
 } from "../env.js";
 import { seedCosmosDb } from "../fixtures/cosmos-seed.js";
-import { EXISTING_FISCAL_CODE as EXISTING_FISCAL_CODE_FIXTURE } from "../fixtures/profiles.fixture.js";
+import {
+  EXISTING_FISCAL_CODE as EXISTING_FISCAL_CODE_FIXTURE,
+  NEW_FISCAL_CODE as NEW_FISCAL_CODE_FIXTURE,
+} from "../fixtures/profiles.fixture.js";
 
 const adapter = createIoProfileAdapter({
   baseUrl: IO_PROFILE_BASE_URL,
@@ -26,6 +30,10 @@ const EXISTING_FISCAL_CODE = FiscalCodeSchema.parse(
 
 // A fiscal code that does not exist
 const UNKNOWN_FISCAL_CODE = FiscalCodeSchema.parse("ZAAAAA00A00A000Z");
+
+// A fiscal code that is not seeded on the local Cosmos DB emulator, used to
+// exercise profile creation
+const NEW_FISCAL_CODE = FiscalCodeSchema.parse(NEW_FISCAL_CODE_FIXTURE);
 
 describe("io-profile adapter (integration)", () => {
   // Create the database, the `profiles` container and seed
@@ -66,5 +74,28 @@ describe("io-profile adapter (integration)", () => {
 
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+  });
+
+  it("returns ok(UserProfile) when creating a profile for a new fiscal code", async () => {
+    const result = await adapter.create({
+      fiscalCode: NEW_FISCAL_CODE,
+      isEmailValidated: false,
+    });
+
+    expect(result.isOk()).toBe(true);
+
+    const profile = result._unsafeUnwrap();
+    expect(profile.fiscalCode).toBe(NEW_FISCAL_CODE);
+    expect(typeof profile.isEmailValidated).toBe("boolean");
+  });
+
+  it("returns err(ConflictError) when creating a profile for an existing fiscal code", async () => {
+    const result = await adapter.create({
+      fiscalCode: EXISTING_FISCAL_CODE,
+      isEmailValidated: false,
+    });
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ConflictError);
   });
 });

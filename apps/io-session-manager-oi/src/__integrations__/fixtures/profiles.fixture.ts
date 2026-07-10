@@ -1,5 +1,9 @@
 export const EXISTING_FISCAL_CODE = "ISPXNB32R82Y766Z";
 
+// A fiscal code that is not seeded on the local Cosmos DB emulator, used to
+// exercise profile creation.
+export const NEW_FISCAL_CODE = "SPNDNL80R13C555X";
+
 export const PROFILE_PARTITION_KEY_PATH = "/fiscalCode";
 
 /**
