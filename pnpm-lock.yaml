@@ -1723,9 +1723,6 @@ importers:
       '@pagopa/typescript-config-node22':
         specifier: workspace:^
         version: link:../typescript-config-node22
-      '@standard-schema/spec':
-        specifier: ^1.1.0
-        version: 1.1.0
       '@types/node':
         specifier: 'catalog:'
         version: 22.19.17
@@ -11657,7 +11654,7 @@ snapshots:
       '@usebruno/lang': 0.27.0
       '@usebruno/requests': 0.7.0(debug@4.4.1)
       '@usebruno/vm2': 3.9.19
-      aws4-axios: 3.4.0(axios@1.11.0)
+      aws4-axios: 3.4.0(axios@1.11.0(debug@4.4.1))
       axios: 1.11.0(debug@4.4.1)
       axios-ntlm: 1.4.4(debug@4.4.1)
       chai: 4.5.0
@@ -12069,7 +12066,7 @@ snapshots:
 
   aws-sign2@0.7.0: {}
 
-  aws4-axios@3.4.0(axios@1.11.0):
+  aws4-axios@3.4.0(axios@1.11.0(debug@4.4.1)):
     dependencies:
       '@aws-sdk/client-sts': 3.862.0
       aws4: 1.13.2
