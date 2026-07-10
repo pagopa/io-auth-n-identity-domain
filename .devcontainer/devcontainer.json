@@ -5,7 +5,7 @@
     "ghcr.io/devcontainers/features/azure-cli:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/terraform:1": {
-      "version": "latest",
+      "version": "1.15.6",
       "tflint": "latest",
       "installTFsec": true,
       "installTerraformDocs": true
