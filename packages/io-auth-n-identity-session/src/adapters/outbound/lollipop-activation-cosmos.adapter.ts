@@ -1,5 +1,4 @@
 import { Container, CosmosClient, JSONObject } from "@azure/cosmos";
-import { err, ok, Result } from "neverthrow";
 import {
   ConflictError,
   FiscalCode,
@@ -7,12 +6,14 @@ import {
   NonEmptyString,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
+import { err, ok, Result } from "neverthrow";
 
 import {
   LollipopActivation,
   LollipopActivationSchema,
 } from "../../domain/entities/lollipop-activation.entity.js";
 import { ILollipopActivationPort } from "../../domain/ports/outbound/lollipop-activation.port.js";
+
 import { CosmosBaseAdapter } from "./cosmos-base.adapter.js";
 
 export class LollipopActivationCosmosAdapter

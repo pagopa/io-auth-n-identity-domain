@@ -1,26 +1,13 @@
-import * as crypto from "crypto";
-import { z } from "zod";
-import {
-  HashedSSOTokensSchema,
-  PlainSSOTokensSchema,
-} from "../value-objects/tokens/sso-token.vo.js";
-
 import {
   EmailAddressSchema,
   FiscalCodeSchema,
   NonEmptyStringSchema,
 } from "@pagopa/hexagonal-core";
+import { z } from "zod";
 
-import {
-  HashedSessionTokenWithTrackingIdSchema,
-  newPlainSessionToken,
-  PlainSessionTokenWithTrackingIdSchema,
-  toHashedSessionToken,
-} from "../value-objects/tokens/session-token.vo.js";
-import {
-  toHashedWalletSSOToken,
-  toPlainWalletSSOToken,
-} from "../value-objects/tokens/wallet-sso-token.vo.js";
+import { LoginType } from "../value-objects/login-type.vo.js";
+import { SessionTrackingId } from "../value-objects/session-tracking-id.vo.js";
+import { SpidLevelSchema } from "../value-objects/spid-level.vo.js";
 import {
   toHashedBpdSSOToken,
   toPlainBpdSSOToken,
@@ -30,12 +17,23 @@ import {
   toPlainFimsSSOToken,
 } from "../value-objects/tokens/fims-sso-token.vo.js";
 import {
+  HashedSessionTokenWithTrackingIdSchema,
+  newPlainSessionToken,
+  PlainSessionTokenWithTrackingIdSchema,
+  toHashedSessionToken,
+} from "../value-objects/tokens/session-token.vo.js";
+import {
+  HashedSSOTokensSchema,
+  PlainSSOTokensSchema,
+} from "../value-objects/tokens/sso-token.vo.js";
+import {
+  toHashedWalletSSOToken,
+  toPlainWalletSSOToken,
+} from "../value-objects/tokens/wallet-sso-token.vo.js";
+import {
   toHashedZendeskSSOToken,
   toPlainZendeskSSOToken,
 } from "../value-objects/tokens/zendesk-sso-token.vo.js";
-import { SessionTrackingId } from "../value-objects/session-tracking-id.vo.js";
-import { LoginType } from "../value-objects/login-type.vo.js";
-import { SpidLevelSchema } from "../value-objects/spid-level.vo.js";
 
 const BaseSessionSchema = z.object({
   fiscalCode: FiscalCodeSchema,

@@ -5,13 +5,13 @@ import {
   JSONObject,
   Resource,
 } from "@azure/cosmos";
-import { err, ok, Result } from "neverthrow";
 import {
   ConflictError,
   GenericError,
   NonEmptyString,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
+import { err, ok, Result } from "neverthrow";
 
 export abstract class CosmosBaseAdapter {
   protected readonly client: CosmosClient;

@@ -1,9 +1,11 @@
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core/domain/value-objects";
 import { z } from "zod";
 
-import { SessionTrackingIdSchema } from "../session-tracking-id.vo.js";
-import { NonEmptyStringSchema } from "@pagopa/hexagonal-core/domain/value-objects";
-import { PlainSessionToken } from "./session-token.vo.js";
 import { toSha256 } from "../../../utils/hash.js";
+import { SessionTrackingIdSchema } from "../session-tracking-id.vo.js";
+
+import { PlainSessionToken } from "./session-token.vo.js";
+
 
 // ------------------------------------------------------------------------------
 // Plain Wallet SSO Token Value Object

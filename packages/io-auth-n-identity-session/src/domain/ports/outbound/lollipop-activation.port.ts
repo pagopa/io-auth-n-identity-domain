@@ -5,6 +5,7 @@ import {
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import type { Result } from "neverthrow";
+
 import { LollipopActivation } from "../../entities/lollipop-activation.entity.js";
 
 /**

@@ -1,7 +1,8 @@
 import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
-import { z } from "zod";
-import { LoginType, LoginTypeSchema } from "../value-objects/login-type.vo.js";
 import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
+import { z } from "zod";
+
+import { LoginType, LoginTypeSchema } from "../value-objects/login-type.vo.js";
 
 /**
  * Schema for a LollipopActivation

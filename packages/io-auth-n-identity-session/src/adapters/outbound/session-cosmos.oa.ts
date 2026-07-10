@@ -5,10 +5,6 @@ import {
   JSONObject,
   OperationInput,
 } from "@azure/cosmos";
-import { err, ok, Result } from "neverthrow";
-
-import { CosmosBaseAdapter } from "./cosmos-base.adapter.js";
-
 import {
   ConflictError,
   FiscalCode,
@@ -16,25 +12,28 @@ import {
   NonEmptyString,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
+import { err, ok, Result } from "neverthrow";
 
-import { SessionPort } from "../../domain/ports/outbound/session.port.js";
+import type { SessionMetadata } from "../../domain/entities/session-metadata.entity.js";
+import { SessionMetadataSchema } from "../../domain/entities/session-metadata.entity.js";
+import { SessionSchema } from "../../domain/entities/session.entity.js";
 import type {
   Session,
   SessionWithHashedSSOTokens,
 } from "../../domain/entities/session.entity.js";
-import { SessionSchema } from "../../domain/entities/session.entity.js";
-import type { SessionMetadata } from "../../domain/entities/session-metadata.entity.js";
-import { SessionMetadataSchema } from "../../domain/entities/session-metadata.entity.js";
+import { SessionPort } from "../../domain/ports/outbound/session.port.js";
+import type { HashedBpdSSOTokenWithSessionTrackingId } from "../../domain/value-objects/tokens/bpd-sso-token.vo.js";
+import type { HashedBpdSSOToken } from "../../domain/value-objects/tokens/bpd-sso-token.vo.js";
+import type { HashedFimsSSOToken } from "../../domain/value-objects/tokens/fims-sso-token.vo.js";
 import type {
   HashedSessionToken,
   HashedSessionTokenWithTrackingId,
 } from "../../domain/value-objects/tokens/session-token.vo.js";
 import { HashedSessionTokenWithTrackingIdSchema } from "../../domain/value-objects/tokens/session-token.vo.js";
-import type { HashedBpdSSOTokenWithSessionTrackingId } from "../../domain/value-objects/tokens/bpd-sso-token.vo.js";
-import type { HashedBpdSSOToken } from "../../domain/value-objects/tokens/bpd-sso-token.vo.js";
 import type { HashedWalletSSOToken } from "../../domain/value-objects/tokens/wallet-sso-token.vo.js";
-import type { HashedFimsSSOToken } from "../../domain/value-objects/tokens/fims-sso-token.vo.js";
 import type { HashedZendeskSSOToken } from "../../domain/value-objects/tokens/zendesk-sso-token.vo.js";
+
+import { CosmosBaseAdapter } from "./cosmos-base.adapter.js";
 
 // ---------------------------------------------------------------------------
 // Cosmos DB Document ID Prefixes

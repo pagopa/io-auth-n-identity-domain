@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { toSha256 } from "../../../utils/hash.js";
 
+import { toSha256 } from "../../../utils/hash.js";
 import { SessionTrackingIdSchema } from "../session-tracking-id.vo.js";
+
 import { PlainSessionToken } from "./session-token.vo.js";
 
 // ------------------------------------------------------------------------------

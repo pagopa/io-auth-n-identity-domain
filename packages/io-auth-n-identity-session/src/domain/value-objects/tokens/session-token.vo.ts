@@ -1,8 +1,8 @@
-import { z } from "zod";
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core/domain/value-objects";
+import { z } from "zod";
 
-import { SessionTrackingIdSchema } from "../session-tracking-id.vo.js";
 import { toSha256 } from "../../../utils/hash.js";
+import { SessionTrackingIdSchema } from "../session-tracking-id.vo.js";
 
 // ------------------------------------------------------------------------------
 // Plain Session Token Value Object

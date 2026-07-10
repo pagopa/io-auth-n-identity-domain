@@ -1,8 +1,8 @@
+import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import { z } from "zod";
 
-import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
-import { SessionTrackingIdSchema } from "../value-objects/session-tracking-id.vo.js";
 import { LoginType, LoginTypeSchema } from "../value-objects/login-type.vo.js";
+import { SessionTrackingIdSchema } from "../value-objects/session-tracking-id.vo.js";
 
 /**
  * It represents the metadata of a session, which is used to understand if the user is logged in or not.

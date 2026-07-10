@@ -1,19 +1,19 @@
-import type { Result } from "neverthrow";
-
 import {
   ConflictError,
   FiscalCode,
   GenericError,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
+import type { Result } from "neverthrow";
 
+
+import { SessionMetadata } from "../../entities/session-metadata.entity.js";
 import type {
   Session,
   SessionWithHashedSSOTokens,
 } from "../../entities/session.entity.js";
-import { SessionMetadata } from "../../entities/session-metadata.entity.js";
-import type { HashedSessionTokenWithTrackingId } from "../../value-objects/tokens/session-token.vo.js";
 import { HashedBpdSSOTokenWithSessionTrackingId } from "../../value-objects/tokens/bpd-sso-token.vo.js";
+import type { HashedSessionTokenWithTrackingId } from "../../value-objects/tokens/session-token.vo.js";
 
 /**
  * Outbound port for managing UserSessions
