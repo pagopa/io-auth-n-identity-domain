@@ -1,0 +1,24 @@
+name: Deploy (io-session-manager-ca)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+  attestations: write
+
+jobs:
+  release:
+    uses: pagopa/dx/.github/workflows/release-azure-containerapp-v1.yaml@main
+    name: Deploy
+    secrets: inherit
+    with:
+      dockerfile_path: ./apps/io-session-manager-oi/Dockerfile
+      dockerfile_context: .
+      docker_image_name: pagopa/io-auth-sm
+      docker_image_description: "Microservice that handles the IO Session Manager."
+      container_app: io-p-itn-auth-sm-ca-01
+      resource_group_name: io-p-itn-auth-main-rg-01
+      environment: app-prod

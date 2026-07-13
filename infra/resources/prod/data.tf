@@ -108,3 +108,8 @@ data "azurerm_api_management" "platform_apim" {
   resource_group_name = local.platform_apim_resource_group_name
   name                = local.platform_apim_name
 }
+
+data "azurerm_log_analytics_workspace" "common_law" {
+  name                = "${local.prefix}-${local.env_short}-law-common"
+  resource_group_name = "${local.prefix}-${local.env_short}-rg-common"
+}
