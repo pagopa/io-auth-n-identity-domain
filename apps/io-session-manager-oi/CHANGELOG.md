@@ -1,5 +1,13 @@
 # io-session-manager-oi
 
+## 0.1.1
+
+### Patch Changes
+
+- e80de12: Specify `.js` extension in generated files
+- Updated dependencies [1301a44]
+  - @pagopa/io-auth-n-identity-domain@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes
