@@ -4,7 +4,12 @@ import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 export default defineConfig({
   input:
     "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/6da6a1d6628778db9325c48e9bfdd9968a3369ee/apps/io-profile/api/index.yaml",
-  output: "src/generated/io-profile",
+  output: {
+    path: "src/generated/io-profile",
+    module: {
+      extension: ".js",
+    },
+  },
   plugins: [
     "@hey-api/client-fetch",
     "@hey-api/schemas",
