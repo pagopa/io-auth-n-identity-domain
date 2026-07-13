@@ -23,6 +23,7 @@
     "generate:io-profile-client": "openapi-ts"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "catalog:",
     "@azure/cosmos": "catalog:",
     "@pagopa/hexagonal-core": "catalog:",
     "@pagopa/hexagonal-fastify": "catalog:",
@@ -36,7 +37,6 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@asteasolutions/zod-to-openapi": "catalog:",
     "@pagopa/typescript-config-node22": "workspace:^",
     "@hey-api/openapi-ts": "catalog:",
     "@types/node": "catalog:",

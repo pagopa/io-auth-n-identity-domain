@@ -1288,6 +1288,9 @@ importers:
 
   apps/io-session-manager-oi:
     dependencies:
+      '@asteasolutions/zod-to-openapi':
+        specifier: 'catalog:'
+        version: 8.5.0(zod@4.4.3)
       '@azure/cosmos':
         specifier: 'catalog:'
         version: 4.2.0
@@ -1322,9 +1325,6 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
-      '@asteasolutions/zod-to-openapi':
-        specifier: 'catalog:'
-        version: 8.5.0(zod@4.4.3)
       '@hey-api/openapi-ts':
         specifier: 'catalog:'
         version: 0.99.0(magicast@0.3.5)(typescript@5.8.3)
@@ -11654,7 +11654,7 @@ snapshots:
       '@usebruno/lang': 0.27.0
       '@usebruno/requests': 0.7.0(debug@4.4.1)
       '@usebruno/vm2': 3.9.19
-      aws4-axios: 3.4.0(axios@1.11.0(debug@4.4.1))
+      aws4-axios: 3.4.0(axios@1.11.0)
       axios: 1.11.0(debug@4.4.1)
       axios-ntlm: 1.4.4(debug@4.4.1)
       chai: 4.5.0
@@ -12066,7 +12066,7 @@ snapshots:
 
   aws-sign2@0.7.0: {}
 
-  aws4-axios@3.4.0(axios@1.11.0(debug@4.4.1)):
+  aws4-axios@3.4.0(axios@1.11.0):
     dependencies:
       '@aws-sdk/client-sts': 3.862.0
       aws4: 1.13.2

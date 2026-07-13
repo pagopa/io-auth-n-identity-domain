@@ -18,7 +18,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
   pnpm install --frozen-lockfile
 
 COPY --from=pruner /repo/out/full/ ./
-RUN pnpm --filter io-session-manager-oi... build
+RUN pnpm exec turbo run build --filter io-session-manager-oi 
 
 RUN pnpm --filter io-session-manager-oi --prod deploy --legacy /repo/deploy
 
@@ -32,4 +32,4 @@ COPY --chown=node:node --from=builder /repo/deploy/package.json ./package.json
 USER node
 EXPOSE 8080
 
-CMD ["pnpm", "run", "start"]
+CMD ["node", "dist/main.js"]
