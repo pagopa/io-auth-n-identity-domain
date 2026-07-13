@@ -32,4 +32,4 @@ COPY --chown=node:node --from=builder /repo/deploy/package.json ./package.json
 USER node
 EXPOSE 8080
 
-CMD ["node", "dist/main.js"]
+CMD ["npm", "start"]
