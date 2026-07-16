@@ -79,10 +79,10 @@ const queryProfilesInWindow = async (
         "SELECT * FROM p WHERE p.fiscalCode = @fiscalCode AND p._ts >= @startTimestamp AND p._ts < @endTimestamp ORDER BY p.version ASC",
     })
     [Symbol.asyncIterator]() as AsyncIterator<
-      ReadonlyArray<t.Validation<RetrievedProfile>>,
-      unknown,
-      undefined
-    >;
+    ReadonlyArray<t.Validation<RetrievedProfile>>,
+    unknown,
+    undefined
+  >;
 
   const profilesOrError = E.sequenceArray(
     await asyncIteratorToArray(flattenAsyncIterator(iterator)),
@@ -91,9 +91,7 @@ const queryProfilesInWindow = async (
   return pipe(
     profilesOrError,
     E.getOrElseW((errors) => {
-      throw new Error(
-        `Cannot decode profiles: ${readableReport(errors)}`,
-      );
+      throw new Error(`Cannot decode profiles: ${readableReport(errors)}`);
     }),
   );
 };
@@ -106,39 +104,40 @@ const queryPreviousProfileVersion = async (
   fiscalCode: FiscalCode,
   version: number,
 ): Promise<RetrievedProfile | undefined> => {
-  const iterator = profileModel.getQueryIterator({
-    parameters: [
-      {
-        name: "@fiscalCode",
-        value: fiscalCode,
-      },
-      {
-        name: "@version",
-        value: version,
-      },
-    ],
-    // TOP 1 is used to reduce the query RU consumption
-    query:
-      "SELECT TOP 1 * FROM p WHERE p.fiscalCode = @fiscalCode AND p.version = @version",
-  });
+  const iterator = profileModel
+    .getQueryIterator({
+      parameters: [
+        { name: "@fiscalCode", value: fiscalCode },
+        { name: "@version", value: version },
+      ],
+      query:
+        "SELECT TOP 1 * FROM p WHERE p.fiscalCode = @fiscalCode AND p.version = @version",
+    })
+    [Symbol.asyncIterator]() as AsyncIterator<
+    ReadonlyArray<t.Validation<RetrievedProfile>>,
+    unknown,
+    undefined
+  >;
 
-  for await (const page of iterator) {
-    const firstValidation = page[0];
+  const firstPage = await iterator.next();
 
-    if (firstValidation === undefined) {
-      return undefined;
-    }
-
-    if (E.isRight(firstValidation)) {
-      return firstValidation.right;
-    }
-
-    throw new Error(
-      `Cannot decode profile: ${readableReport(firstValidation.left)}`,
-    );
+  if (firstPage.done) {
+    return undefined;
   }
 
-  return undefined;
+  const firstValidation = firstPage.value[0];
+
+  if (firstValidation === undefined) {
+    return undefined;
+  }
+
+  if (E.isRight(firstValidation)) {
+    return firstValidation.right;
+  }
+
+  throw new Error(
+    `Cannot decode profile: ${readableReport(firstValidation.left)}`,
+  );
 };
 
 /**
@@ -213,9 +212,7 @@ export const getGetProfileVersionsForRecoveryActivityHandler =
         previousMode: previousProfile?.servicePreferencesSettings.mode,
       };
     } catch (error) {
-      context.error(
-        `${ActivityName}|Unexpected error|ERROR=${String(error)}`,
-      );
+      context.error(`${ActivityName}|Unexpected error|ERROR=${String(error)}`);
       return TransientFailure.encode({
         kind: "TRANSIENT_FAILURE",
         reason: "Unexpected activity error",
