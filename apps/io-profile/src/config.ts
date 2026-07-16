@@ -6,7 +6,10 @@
  */
 
 import { MailerConfig } from "@pagopa/io-functions-commons/dist/src/mailer";
-import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
+import {
+  DateFromTimestamp,
+  UTCISODateFromString,
+} from "@pagopa/ts-commons/lib/dates";
 import { NumberFromString } from "@pagopa/ts-commons/lib/numbers";
 import {
   readableReport,
@@ -102,6 +105,14 @@ export const IConfig = t.intersection([
     QueueStorageConnection: NonEmptyString,
 
     SUBSCRIPTIONS_FEED_TABLE: NonEmptyString,
+
+    SUBSCRIPTION_FEED_RECOVERY_START_DATE: UTCISODateFromString,
+    SUBSCRIPTION_FEED_RECOVERY_END_DATE: UTCISODateFromString,
+    SUBSCRIPTION_FEED_RECOVERY_LEASE_CONTAINER_NAME: withFallback(
+      NonEmptyString,
+      "leases" as NonEmptyString,
+    ),
+    SUBSCRIPTION_FEED_RECOVERY_DRY_RUN: withFallback(BooleanFromString, false),
 
     // eslint-disable-next-line sort-keys
     OPT_OUT_EMAIL_SWITCH_DATE: DateFromTimestamp,
@@ -218,5 +229,22 @@ export function getConfigOrThrow(): IConfig {
     E.getOrElseW((errors) => {
       throw new Error(`Invalid configuration: ${readableReport(errors)}`);
     }),
+    (config) => {
+      if (
+        config.SUBSCRIPTION_FEED_RECOVERY_END_DATE.getTime() <=
+        config.SUBSCRIPTION_FEED_RECOVERY_START_DATE.getTime()
+      ) {
+        throw new Error(
+          "SUBSCRIPTION_FEED_RECOVERY_END_DATE must be after SUBSCRIPTION_FEED_RECOVERY_START_DATE",
+        );
+      }
+
+      if (config.SUBSCRIPTION_FEED_RECOVERY_END_DATE.getTime() > Date.now()) {
+        throw new Error(
+          "SUBSCRIPTION_FEED_RECOVERY_END_DATE must not be in the future",
+        );
+      }
+      return config;
+    },
   );
 }

@@ -80,6 +80,30 @@ export const createTracker = (
     } as EventTelemetry);
   };
 
+  /**
+   * Trace a failure during the subscription feed recovery backfill.
+   *
+   * Emits an unsampled custom event keyed by fiscal code hash so we can
+   * quantify residual drift without exposing PII.
+   */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const trackSubscriptionFeedRecoveryFailure = (
+    fiscalCode: FiscalCode,
+    version: NonNegativeInteger,
+    step: "READ_PREVIOUS_VERSION" | "UPDATE_FEED",
+    kind: "EXCEPTION" | "NOT_FOUND",
+  ) =>
+    telemetryClient?.trackEvent({
+      name: "subscriptionFeed.recovery.failure",
+      properties: {
+        fiscalCode: toHash(fiscalCode),
+        kind,
+        step,
+        version: version.toString(),
+      },
+      tagOverrides: { samplingEnabled: "false" },
+    } as EventTelemetry);
+
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const traceEmailValidationSend = (messageInfo: object) => {
     telemetryClient?.trackEvent({
@@ -118,6 +142,7 @@ export const createTracker = (
     },
     subscriptionFeed: {
       trackSubscriptionFeedFailure,
+      trackSubscriptionFeedRecoveryFailure,
     },
   };
 };
