@@ -112,7 +112,15 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
     try {
       const dayStart = new Date(`${day}T00:00:00.000Z`);
       dayStart.setUTCHours(0, 0, 0, 0);
-      const utcDayStartTimestamp = dayStart.getTime() / 1000;
+      const utcDayStartMillis = dayStart.getTime();
+      if (Number.isNaN(utcDayStartMillis)) {
+        if (!context.df.isReplaying) {
+          context.error(`${logPrefix}|Invalid day input|day=${day}`);
+        }
+        trackFailure("EXCEPTION");
+        return false;
+      }
+      const utcDayStartTimestamp = utcDayStartMillis / 1000;
       const dayStartTimestamp = Math.max(
         utcDayStartTimestamp,
         startDate / 1000,
