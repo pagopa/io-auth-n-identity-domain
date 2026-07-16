@@ -40,7 +40,7 @@ export const RecoverSubscriptionsFeed = (deps: Dependencies) =>
     );
 
     const dfClient = df.getClient(context);
-    let processedInstanceIds: ReadonlyArray<string> = [];
+    let processedInstanceIds: ReadonlySet<string> = new Set();
 
     for (const rawProfile of documents) {
       const decodedProfile = RetrievedProfile.decode(rawProfile);
@@ -72,11 +72,11 @@ export const RecoverSubscriptionsFeed = (deps: Dependencies) =>
       const day = new Date(changedAt).toISOString().substring(0, 10);
       const instanceId = `recover-subfeed-${toHash(profile.fiscalCode)}-${day}`;
 
-      if (processedInstanceIds.includes(instanceId)) {
+      if (processedInstanceIds.has(instanceId)) {
         continue;
       }
 
-      processedInstanceIds = [...processedInstanceIds, instanceId];
+      processedInstanceIds = new Set(processedInstanceIds).add(instanceId);
 
       // eslint-disable-next-line no-await-in-loop
       const startResult = await startSingletonOrchestrator(
