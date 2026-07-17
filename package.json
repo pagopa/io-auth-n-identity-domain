@@ -36,7 +36,8 @@
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
     "@pagopa/typescript-config-node": "workspace:^",
-    "dotenv-cli": "^3.2.0",
+    "dotenv": "catalog:",
+    "dotenv-cli": "catalog:",
     "envsub": "^4.0.7",
     "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",
