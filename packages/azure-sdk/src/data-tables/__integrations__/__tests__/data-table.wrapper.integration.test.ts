@@ -51,7 +51,7 @@ const tableClient = TableClient.fromConnectionString(
   { allowInsecureConnection: true },
 );
 
-const wrapper = new TableClientWrapper(tableClient, Row);
+const wrapper: TableClientWrapper<typeof Row> = new TableClientWrapper(tableClient, Row);
 
 // A second TableClient used to create/drop the table without going through
 // the wrapper (which doesn't expose table admin operations).

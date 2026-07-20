@@ -10,6 +10,10 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./data-tables": {
+      "import": "./dist/data-tables/index.js",
+      "types": "./dist/data-tables/index.d.ts"
     }
   },
   "scripts": {
