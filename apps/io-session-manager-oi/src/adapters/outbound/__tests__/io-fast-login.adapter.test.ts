@@ -1,9 +1,9 @@
 import { AuthenticationError, GenericError } from "@pagopa/hexagonal-core";
 import {
   LollipopAssertionRefSchema,
-  LollipopAssertionTypeEnum,
   LollipopJwk,
-  LollipopMethodEnum,
+  LollipopMethodSchema,
+  LollipopAssertionTypeSchema,
 } from "@pagopa/io-auth-n-identity-domain";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -38,11 +38,11 @@ const anAssertionRef = LollipopAssertionRefSchema.parse(
 );
 
 const aFastLoginPayload: FastLoginPayloadDTO = FastLoginPayloadDTO.parse({
-  originalMethod: LollipopMethodEnum.GET,
+  originalMethod: LollipopMethodSchema.enum.POST,
   originalUrl: "https://localhost/api/v1/fast-login",
   authJWT: "an-auth-jwt",
   assertionRef: anAssertionRef,
-  assertionType: LollipopAssertionTypeEnum.SAML,
+  assertionType: LollipopAssertionTypeSchema.enum.SAML,
   userId: "ISPXNB32R82Y766D",
   signature: "sig1=:AAAA:",
   signatureInput: 'sig1=("@method");created=1618884475',

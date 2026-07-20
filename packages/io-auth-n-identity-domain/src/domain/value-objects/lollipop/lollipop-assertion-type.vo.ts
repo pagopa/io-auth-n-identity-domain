@@ -1,4 +1,6 @@
 import { z } from "zod";
 
-export const AssertionTypeSchema = z.enum(["SAML", "OIDC"]);
-export type AssertionTypeSchema = z.infer<typeof AssertionTypeSchema>;
+export const LollipopAssertionTypeSchema = z.enum(["SAML", "OIDC"]);
+export type LollipopAssertionTypeSchema = z.infer<
+  typeof LollipopAssertionTypeSchema
+>;
