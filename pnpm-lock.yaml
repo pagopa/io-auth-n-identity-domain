@@ -1523,6 +1523,49 @@ importers:
         specifier: ^2.9.0
         version: 2.9.0(yup@0.32.11)
 
+  packages/azure-sdk:
+    dependencies:
+      '@pagopa/hexagonal-core':
+        specifier: 'catalog:'
+        version: 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+      neverthrow:
+        specifier: 'catalog:'
+        version: 8.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
+    devDependencies:
+      '@azure/core-client':
+        specifier: 1.9.0
+        version: 1.9.0
+      '@azure/data-tables':
+        specifier: 'catalog:'
+        version: 13.3.2
+      '@pagopa/typescript-config-node22':
+        specifier: workspace:^
+        version: link:../typescript-config-node22
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.17
+      '@vitest/coverage-v8':
+        specifier: 'catalog:'
+        version: 3.2.4(vitest@3.2.4(@types/node@22.19.17)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
+      eslint:
+        specifier: 'catalog:'
+        version: 8.57.0
+      eslint-config-monorepo:
+        specifier: workspace:^
+        version: link:../eslint-config-monorepo
+      shx:
+        specifier: 'catalog:'
+        version: 0.4.0
+      typescript:
+        specifier: 'catalog:'
+        version: 5.8.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.4(@types/node@22.19.17)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)
+
   packages/canary-deployment-monitor:
     dependencies:
       '@azure/identity':
