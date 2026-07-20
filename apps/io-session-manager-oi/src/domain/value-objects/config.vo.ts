@@ -78,7 +78,7 @@ export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
 export const DevelopmentConfigSchema = z.object({
   ...CommonConfigShape,
   NODE_ENV: z.literal("development"),
-  LOCKED_PROFILES_TABLE_CONNECTION_STRING: NonEmptyStringSchema,
+  LOCKED_PROFILES_STORAGE_CONNECTION_STRING: NonEmptyStringSchema,
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;
@@ -88,7 +88,7 @@ export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;
  *
  * Smart parsing: the actual shape is a discriminated union on `NODE_ENV`.
  * When `NODE_ENV=development` the loader requires the development-only fields
- * (e.g. `LOCKED_PROFILES_TABLE_CONNECTION_STRING`); when `NODE_ENV=production`
+ * (e.g. `LOCKED_PROFILES_STORAGE_CONNECTION_STRING`); when `NODE_ENV=production`
  * it requires the production-only fields (e.g. `LOCKED_PROFILES_STORAGE_ACCOUNT_URI`).
  *
  * `NODE_ENV` MUST be set explicitly — the loader fails fast with a clear
