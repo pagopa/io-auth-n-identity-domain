@@ -91,4 +91,29 @@ export default defineConfig([
       },
     ],
   },
+  {
+    input: "../io-fast-login/api/internal.yaml",
+    output: {
+      path: "src/generated/io-fast-login",
+      module: {
+        extension: ".js",
+      },
+    },
+    plugins: [
+      "@hey-api/client-fetch",
+      "@hey-api/schemas",
+      "@hey-api/sdk",
+      {
+        name: "zod",
+        $resolvers: {
+          // Intercept all string nodes
+          string: stringResolver,
+        },
+      },
+      {
+        enums: "javascript",
+        name: "@hey-api/typescript",
+      },
+    ],
+  },
 ] as ReadonlyArray<UserConfig>);
