@@ -1,15 +1,15 @@
 {
   "name": "@pagopa/azure-sdk",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "license": "MIT",
   "type": "module",
   "files": [
     "dist"
   ],
   "exports": {
-    "./data-tables": {
-      "types": "./dist/data-tables/index.d.ts",
-      "import": "./dist/data-tables/index.js"
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "scripts": {

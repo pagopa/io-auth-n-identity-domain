@@ -1,11 +1,17 @@
 import { OperationOptions } from "@azure/core-client";
 import {
   CreateTableEntityResponse,
+  DeleteTableEntityOptions,
+  DeleteTableEntityResponse,
+  GetTableEntityOptions,
   ListTableEntitiesOptions,
   RestError,
   TableClient,
   TableEntity,
   TableEntityResult,
+  UpdateEntityResponse,
+  UpdateTableEntityOptions,
+  UpsertEntityResponse,
 } from "@azure/data-tables";
 import {
   AuthenticationError,
@@ -25,8 +31,6 @@ import {
 import { err, ok, Result } from "neverthrow";
 import { z } from "zod";
 
-import { TableStorageError } from "./errors.js";
-
 /**
  * A `z.object(...)` describing a full Table Storage row: both the identity
  * (`partitionKey`, `rowKey`) and the payload fields, in a single schema.
@@ -45,10 +49,12 @@ import { TableStorageError } from "./errors.js";
  * });
  * ```
  */
-export type TableEntitySchema = z.ZodObject<{
-  partitionKey: z.ZodType<string>;
-  rowKey: z.ZodType<string>;
-}>;
+export type TableEntitySchema = z.ZodObject<
+  {
+    partitionKey: z.ZodType<string>;
+    rowKey: z.ZodType<string>;
+  } & z.core.$ZodLooseShape
+>;
 
 /** The `partitionKey` output type declared by the row schema. */
 export type PartitionKeyOf<S extends TableEntitySchema> =
@@ -90,6 +96,30 @@ export interface TableEntityWithMetadata<T> {
 }
 
 /**
+ * Union of `@pagopa/hexagonal-core` domain errors a Table Storage operation
+ * may surface.
+ *
+ * `RestError`s thrown by the SDK are classified by HTTP `statusCode` into
+ * these variants; anything else (including schema validation failures on
+ * writes and reads) is folded into the same union so a call site has one
+ * error channel to handle.
+ */
+export type TableStorageError =
+  | AuthenticationError
+  | BadGatewayError
+  | ConflictError
+  | ForbiddenError
+  | GatewayTimeoutError
+  | GenericError
+  | GoneError
+  | NotFoundError
+  | PreconditionFailedError
+  | ServiceUnavailableError
+  | TooManyRequestsError
+  | UnprocessableEntityError
+  | ValidationError;
+
+/**
  * Schema-aware, `Result`-returning wrapper around `TableClient`.
  *
  * A single zod `schema` describes the full row (keys + payload). It is used
@@ -117,14 +147,18 @@ export class TableClientWrapper<S extends TableEntitySchema> {
   protected readonly patchSchema: z.ZodObject;
 
   /**
-   * @param client - Underlying Azure `TableClient`.
-   * @param schema - Zod schema for the full row. Enforced at construction
-   *   time to declare both `partitionKey` and `rowKey`. The table name from
-   *   `client.tableName` is used as the `entityName` on `NotFoundError`s.
+   * @param client     - Underlying Azure `TableClient`.
+   * @param schema     - Zod schema for the full row. Enforced at construction
+   *   time to declare both `partitionKey` and `rowKey`.
+   *   {@link NotFoundError} messages (e.g. `"Session"`). Defaults to
+   *   `"TableEntity"`.
    * @throws Error when `schema` does not declare both `partitionKey` and
    *   `rowKey`.
    */
-  constructor(client: TableClient, schema: S) {
+  constructor(
+    client: TableClient,
+    schema: S,
+  ) {
     TableClientWrapper.assertSchemaHasKeys(schema);
     this.client = client;
     this.schema = schema;
@@ -186,6 +220,184 @@ export class TableClientWrapper<S extends TableEntitySchema> {
       return ok(response);
     } catch (error) {
       return err(this.handleError(error, "createEntity"));
+    }
+  }
+
+  /**
+   * Reads a single entity by `partitionKey` / `rowKey` and validates it
+   * against the bound schema.
+   *
+   * On success returns the validated entity and the etag/timestamp system
+   * metadata (see {@link TableEntityWithMetadata}) so the caller can perform
+   * subsequent conditional updates or deletes.
+   *
+   * Fails with:
+   * - `NotFoundError` if the row does not exist (HTTP `404`).
+   * - `ValidationError` if the stored row does not match the schema.
+   * - Other {@link TableStorageError} variants for the remaining SDK errors.
+   *
+   * @param partitionKey - Partition key of the target row, typed via `S`.
+   * @param rowKey       - Row key of the target row, typed via `S`.
+   * @param options      - Optional SDK request options.
+   */
+  public async getEntity(
+    partitionKey: PartitionKeyOf<S>,
+    rowKey: RowKeyOf<S>,
+    options?: GetTableEntityOptions,
+  ): Promise<Result<TableEntityWithMetadata<z.output<S>>, TableStorageError>> {
+    let response: TableEntityResult<Record<string, unknown>>;
+    try {
+      // pk/rk are string subtypes at the type level but TS's index-access
+      // through zod's shape widens to `unknown`; cast to satisfy the SDK.
+      response = await this.client.getEntity(
+        partitionKey as string,
+        rowKey as string,
+        options,
+      );
+    } catch (error) {
+      return err(this.handleError(error, "getEntity"));
+    }
+    return this.parseEntity(response, "getEntity");
+  }
+
+  /**
+   * Replaces an existing row.
+   *
+   * Uses the SDK's `"Replace"` mode: any pre-existing fields not present in
+   * `entity` are removed. For partial updates that preserve other fields,
+   * use {@link TableClientWrapper.patchEntity}.
+   *
+   * Fails with:
+   * - `ValidationError` if the entity does not match the schema.
+   * - `NotFoundError` if the target row does not exist.
+   * - `PreconditionFailedError` if `options.etag` no longer matches.
+   * - Other {@link TableStorageError} variants for the remaining SDK errors.
+   *
+   * @param entity  - Full row; validated against the schema.
+   * @param options - Optional SDK request options, including `etag` for
+   *   conditional updates.
+   */
+  public async updateEntity(
+    entity: z.input<S>,
+    options?: UpdateTableEntityOptions,
+  ): Promise<Result<UpdateEntityResponse, TableStorageError>> {
+    const validated = this.validateEntity(entity);
+    if (validated.isErr()) return err(validated.error);
+
+    try {
+      const response = await this.client.updateEntity(
+        validated.value,
+        "Replace",
+        options,
+      );
+      return ok(response);
+    } catch (error) {
+      return err(this.handleError(error, "updateEntity"));
+    }
+  }
+
+  /**
+   * Partially updates an existing row: fields present in `patch` overwrite
+   * the stored values, fields absent are preserved.
+   *
+   * `patch` must include `partitionKey` and `rowKey` (they identify the
+   * target row); every other schema field is optional and still type-checked
+   * when present.
+   *
+   * Uses the SDK's `"Merge"` mode.
+   *
+   * Fails with:
+   * - `ValidationError` if the patch does not match the schema.
+   * - `NotFoundError` if the target row does not exist.
+   * - `PreconditionFailedError` if `options.etag` no longer matches.
+   * - Other {@link TableStorageError} variants for the remaining SDK errors.
+   *
+   * @param patch   - Keys plus a partial payload; validated against
+   *   `schema.partial().required({ partitionKey, rowKey })`.
+   * @param options - Optional SDK request options, including `etag`.
+   */
+  public async patchEntity(
+    patch: EntityPatchOf<S>,
+    options?: UpdateTableEntityOptions,
+  ): Promise<Result<UpdateEntityResponse, TableStorageError>> {
+    const validated = this.validateEntity(patch, true);
+    if (validated.isErr()) return err(validated.error);
+
+    try {
+      const response = await this.client.updateEntity(
+        validated.value,
+        "Merge",
+        options,
+      );
+      return ok(response);
+    } catch (error) {
+      return err(this.handleError(error, "patchEntity"));
+    }
+  }
+
+  /**
+   * Inserts a row if it does not exist, otherwise replaces it.
+   *
+   * Uses the SDK's `"Replace"` mode. For merge upsert semantics, do a
+   * `getEntity` + `patchEntity` (or use `getTableClient().upsertEntity(...)`
+   * directly with `"Merge"`).
+   *
+   * Fails with:
+   * - `ValidationError` if the entity does not match the schema.
+   * - Other {@link TableStorageError} variants for SDK errors.
+   *
+   * @param entity  - Full row; validated against the schema.
+   * @param options - Optional SDK request options.
+   */
+  public async upsertEntity(
+    entity: z.input<S>,
+    options?: OperationOptions,
+  ): Promise<Result<UpsertEntityResponse, TableStorageError>> {
+    const validated = this.validateEntity(entity);
+    if (validated.isErr()) return err(validated.error);
+
+    try {
+      const response = await this.client.upsertEntity(
+        validated.value,
+        "Replace",
+        options,
+      );
+      return ok(response);
+    } catch (error) {
+      return err(this.handleError(error, "upsertEntity"));
+    }
+  }
+
+  /**
+   * Deletes a single row by `partitionKey` / `rowKey`.
+   *
+   * Pass `options.etag` to make the delete conditional (optimistic
+   * concurrency). Without it, the delete is unconditional (`etag: "*"`).
+   *
+   * Fails with:
+   * - `NotFoundError` if the row does not exist (HTTP `404`).
+   * - `PreconditionFailedError` if `options.etag` no longer matches
+   *   (HTTP `412`).
+   * - Other {@link TableStorageError} variants for the remaining SDK errors.
+   *
+   * @param partitionKey - Partition key of the target row, typed via `S`.
+   * @param rowKey       - Row key of the target row, typed via `S`.
+   * @param options      - Optional SDK request options, including `etag`.
+   */
+  public async deleteEntity(
+    partitionKey: PartitionKeyOf<S>,
+    rowKey: RowKeyOf<S>,
+    options?: DeleteTableEntityOptions,
+  ): Promise<Result<DeleteTableEntityResponse, TableStorageError>> {
+    try {
+      const response = await this.client.deleteEntity(
+        partitionKey as string,
+        rowKey as string,
+        options,
+      );
+      return ok(response);
+    } catch (error) {
+      return err(this.handleError(error, "deleteEntity"));
     }
   }
 
@@ -286,7 +498,6 @@ export class TableClientWrapper<S extends TableEntitySchema> {
    * Non-`RestError` throwables fall through to `GenericError` with the
    * message (and cause, if any) preserved for diagnostics.
    */
-  // eslint-disable-next-line complexity
   private handleError(error: unknown, operation: string): TableStorageError {
     // Duck-type on the SDK's RestError shape rather than `instanceof RestError`.
     // Depending on the package manager and how `@azure/core-rest-pipeline` is
@@ -338,12 +549,9 @@ export class TableClientWrapper<S extends TableEntitySchema> {
       const causeMsg =
         error.cause instanceof Error
           ? error.cause.message
-          : error.cause !== undefined && typeof error.cause === "object"
-            ? JSON.stringify(error.cause)
-            : error.cause !== undefined
-              ? // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                String(error.cause)
-              : "";
+          : error.cause !== undefined
+            ? String(error.cause)
+            : "";
       const cause = causeMsg ? ` Caused by: ${causeMsg}` : "";
       const message = `${operation} failed: ${error.message}${cause}`;
       return new GenericError(message);
