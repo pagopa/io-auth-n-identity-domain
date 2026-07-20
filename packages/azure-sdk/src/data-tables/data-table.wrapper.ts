@@ -31,6 +31,8 @@ import {
 import { err, ok, Result } from "neverthrow";
 import { z } from "zod";
 
+import { TableStorageError } from "./errors.js";
+
 /**
  * A `z.object(...)` describing a full Table Storage row: both the identity
  * (`partitionKey`, `rowKey`) and the payload fields, in a single schema.
@@ -96,30 +98,6 @@ export interface TableEntityWithMetadata<T> {
 }
 
 /**
- * Union of `@pagopa/hexagonal-core` domain errors a Table Storage operation
- * may surface.
- *
- * `RestError`s thrown by the SDK are classified by HTTP `statusCode` into
- * these variants; anything else (including schema validation failures on
- * writes and reads) is folded into the same union so a call site has one
- * error channel to handle.
- */
-export type TableStorageError =
-  | AuthenticationError
-  | BadGatewayError
-  | ConflictError
-  | ForbiddenError
-  | GatewayTimeoutError
-  | GenericError
-  | GoneError
-  | NotFoundError
-  | PreconditionFailedError
-  | ServiceUnavailableError
-  | TooManyRequestsError
-  | UnprocessableEntityError
-  | ValidationError;
-
-/**
  * Schema-aware, `Result`-returning wrapper around `TableClient`.
  *
  * A single zod `schema` describes the full row (keys + payload). It is used
@@ -155,10 +133,7 @@ export class TableClientWrapper<S extends TableEntitySchema> {
    * @throws Error when `schema` does not declare both `partitionKey` and
    *   `rowKey`.
    */
-  constructor(
-    client: TableClient,
-    schema: S,
-  ) {
+  constructor(client: TableClient, schema: S) {
     TableClientWrapper.assertSchemaHasKeys(schema);
     this.client = client;
     this.schema = schema;
@@ -498,6 +473,7 @@ export class TableClientWrapper<S extends TableEntitySchema> {
    * Non-`RestError` throwables fall through to `GenericError` with the
    * message (and cause, if any) preserved for diagnostics.
    */
+  // eslint-disable-next-line complexity
   private handleError(error: unknown, operation: string): TableStorageError {
     // Duck-type on the SDK's RestError shape rather than `instanceof RestError`.
     // Depending on the package manager and how `@azure/core-rest-pipeline` is
@@ -549,9 +525,12 @@ export class TableClientWrapper<S extends TableEntitySchema> {
       const causeMsg =
         error.cause instanceof Error
           ? error.cause.message
-          : error.cause !== undefined
-            ? String(error.cause)
-            : "";
+          : error.cause !== undefined && typeof error.cause === "object"
+            ? JSON.stringify(error.cause)
+            : error.cause !== undefined
+              ? // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                String(error.cause)
+              : "";
       const cause = causeMsg ? ` Caused by: ${causeMsg}` : "";
       const message = `${operation} failed: ${error.message}${cause}`;
       return new GenericError(message);
