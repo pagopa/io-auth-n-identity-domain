@@ -39,7 +39,7 @@ export const createApp = (
           AzureCredential.getInstance(),
         )
       : TableClient.fromConnectionString(
-          config.LOCKED_PROFILES_TABLE_CONNECTION_STRING,
+          config.LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
           config.LOCKED_PROFILES_TABLE_NAME,
         ),
   );
