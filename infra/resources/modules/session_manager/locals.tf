@@ -29,5 +29,11 @@ locals {
     IO_PROFILE_API_BASE_PATH = var.io_profile.base_path
     # IO_PROFILE_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_io_profile_api_key.versionless_id})"
     IO_PROFILE_API_KEY = "TODO"
+
+    # Fast Login service
+    IO_FAST_LOGIN_API_URL       = var.io_fast_login.base_url
+    IO_FAST_LOGIN_API_BASE_PATH = var.io_fast_login.base_path
+    # IO_FAST_LOGIN_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_io_fast_login_api_key.versionless_id})"
+    IO_FAST_LOGIN_API_KEY = "TODO"
   }
 }

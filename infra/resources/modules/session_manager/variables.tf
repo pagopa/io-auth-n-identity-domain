@@ -108,3 +108,11 @@ variable "io_profile" {
   })
   description = "Configuration for IO Profile service"
 }
+
+variable "io_fast_login" {
+  type = object({
+    base_url  = string
+    base_path = string
+  })
+  description = "Configuration for IO Fast Login service"
+}
