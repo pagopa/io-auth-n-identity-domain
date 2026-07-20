@@ -9,15 +9,15 @@ import { type LollipopAssertionRef } from "@pagopa/io-auth-n-identity-domain";
 import { Result } from "neverthrow";
 
 import {
-  ActivatePubKeyPayloadSchema,
-  GenerateLcParamsPayloadSchema,
-  LcParamsSchema,
-  NewPubKeyPayloadSchema,
-} from "../../entities/lollipop.entity.js";
+  ActivatePubKeyPayloadDto,
+  GenerateLcParamsPayloadDto,
+  LcParamsDto,
+  NewPubKeyPayloadDto,
+} from "../../../adapters/outbound/dtos/io-lollipop.dto.js";
 
 export interface LollipopPort {
   readonly reservePubKey: (
-    payload: NewPubKeyPayloadSchema,
+    payload: NewPubKeyPayloadDto,
   ) => Promise<
     Result<
       undefined,
@@ -27,7 +27,7 @@ export interface LollipopPort {
 
   readonly activatePubKey: (
     assertionRef: LollipopAssertionRef,
-    payload: ActivatePubKeyPayloadSchema,
+    payload: ActivatePubKeyPayloadDto,
   ) => Promise<
     Result<
       LollipopAssertionRef,
@@ -37,10 +37,10 @@ export interface LollipopPort {
 
   readonly generateLCParams: (
     assertionRef: LollipopAssertionRef,
-    payload: GenerateLcParamsPayloadSchema,
+    payload: GenerateLcParamsPayloadDto,
   ) => Promise<
     Result<
-      LcParamsSchema,
+      LcParamsDto,
       GenericError | ValidationError | ForbiddenError | NotFoundError
     >
   >;

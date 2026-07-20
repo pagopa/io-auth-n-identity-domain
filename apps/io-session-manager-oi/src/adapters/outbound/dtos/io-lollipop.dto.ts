@@ -10,48 +10,48 @@ import {
 } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
 
-export const NewPubKeyPayloadSchema = z.object({
+export const NewPubKeyPayloadDto = z.object({
   algo: LollipopJwkHashingAlgorithmSchema,
   pub_key: JwkPublicKeySchema,
 });
-export type NewPubKeyPayloadSchema = z.infer<typeof NewPubKeyPayloadSchema>;
+export type NewPubKeyPayloadDto = z.infer<typeof NewPubKeyPayloadDto>;
 
-export const NewPubKeySchema = z.object({
+export const NewPubKeyDto = z.object({
   assertion_ref: LollipopAssertionRefSchema,
   pub_key: LollipopJwkSchema,
   version: z.number().int().min(0),
   status: PubKeyStatusSchema,
   ttl: z.number().int().min(0),
 });
-export type NewPubKeySchema = z.infer<typeof NewPubKeySchema>;
+export type NewPubKeyDto = z.infer<typeof NewPubKeyDto>;
 
-export const ActivatePubKeyPayloadSchema = z.object({
+export const ActivatePubKeyPayloadDto = z.object({
   fiscal_code: FiscalCodeSchema,
   assertion_type: AssertionTypeSchema,
   assertion: NonEmptyStringSchema,
   expired_at: TimestampSchema,
 });
-export type ActivatePubKeyPayloadSchema = z.infer<
-  typeof ActivatePubKeyPayloadSchema
+export type ActivatePubKeyPayloadDto = z.infer<
+  typeof ActivatePubKeyPayloadDto
 >;
 
-export const ActivatedPubKeySchema = NewPubKeySchema.extend({
+export const ActivatedPubKeyDto = NewPubKeyDto.extend({
   fiscal_code: FiscalCodeSchema,
   assertion_file_name: NonEmptyStringSchema,
   assertion_type: AssertionTypeSchema,
   // ISO 8601 formatted date
   expired_at: NonEmptyStringSchema,
 });
-export type ActivatedPubKeySchema = z.infer<typeof ActivatedPubKeySchema>;
+export type ActivatedPubKeyDto = z.infer<typeof ActivatedPubKeyDto>;
 
-export const GenerateLcParamsPayloadSchema = z.object({
+export const GenerateLcParamsPayloadDto = z.object({
   operation_id: NonEmptyStringSchema,
 });
-export type GenerateLcParamsPayloadSchema = z.infer<
-  typeof GenerateLcParamsPayloadSchema
+export type GenerateLcParamsPayloadDto = z.infer<
+  typeof GenerateLcParamsPayloadDto
 >;
 
-export const LcParamsSchema = ActivatedPubKeySchema.extend({
+export const LcParamsDto = ActivatedPubKeyDto.extend({
   lc_authentication_bearer: NonEmptyStringSchema,
 });
-export type LcParamsSchema = z.infer<typeof LcParamsSchema>;
+export type LcParamsDto = z.infer<typeof LcParamsDto>;

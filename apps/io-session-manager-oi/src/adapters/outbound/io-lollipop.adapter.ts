@@ -6,7 +6,6 @@ import {
 } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 
-import { LcParamsSchema } from "../../domain/entities/lollipop.entity.js";
 import { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import { createClient } from "../../generated/io-lollipop/client/index.js";
 import {
@@ -22,6 +21,8 @@ import type {
   ReservePubKeyErrors,
   ReservePubKeyResponses,
 } from "../../generated/io-lollipop/types.gen.js";
+
+import { LcParamsDto } from "./dtos/io-lollipop.dto.js";
 
 export const createIoLollipopAdapter = (config: {
   baseUrl: string;
@@ -114,7 +115,7 @@ export const createIoLollipopAdapter = (config: {
         | keyof GenerateLcParamsErrors;
       switch (status) {
         case 200: {
-          const parsed = LcParamsSchema.safeParse(data);
+          const parsed = LcParamsDto.safeParse(data);
           return parsed.success
             ? ok(parsed.data)
             : err(

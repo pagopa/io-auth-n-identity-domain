@@ -17,11 +17,11 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  type ActivatePubKeyPayloadSchema,
-  type GenerateLcParamsPayloadSchema,
-  type LcParamsSchema,
-  type NewPubKeyPayloadSchema,
-} from "../../../domain/entities/lollipop.entity.js";
+  type ActivatePubKeyPayloadDto,
+  type GenerateLcParamsPayloadDto,
+  type LcParamsDto,
+  type NewPubKeyPayloadDto,
+} from "../dtos/io-lollipop.dto.js";
 import { createIoLollipopAdapter } from "../io-lollipop.adapter.js";
 import {
   activatePubKey,
@@ -69,23 +69,23 @@ const anAssertionRef = LollipopAssertionRefSchema.parse(
 
 const aFiscalCode = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 
-const aNewPubKeyPayload: NewPubKeyPayloadSchema = {
+const aNewPubKeyPayload: NewPubKeyPayloadDto = {
   algo: "sha256" as LollipopJwkHashingAlgorithm,
   pub_key: aPublicJwk,
 };
 
-const anActivatePubKeyPayload: ActivatePubKeyPayloadSchema = {
+const anActivatePubKeyPayload: ActivatePubKeyPayloadDto = {
   fiscal_code: aFiscalCode,
   assertion_type: AssertionTypeEnum.SAML,
   assertion: "a-signed-assertion" as NonEmptyString,
   expired_at: new Date("2026-01-01T22:00:00.000Z"),
 };
 
-const aGenerateLcParamsPayload: GenerateLcParamsPayloadSchema = {
+const aGenerateLcParamsPayload: GenerateLcParamsPayloadDto = {
   operation_id: "an-operation-id" as NonEmptyString,
 };
 
-const aValidLCParamsResult: LcParamsSchema = {
+const aValidLCParamsResult: LcParamsDto = {
   assertion_ref: anAssertionRef,
   assertion_file_name: `${aFiscalCode}-${anAssertionRef}` as NonEmptyString,
   assertion_type: AssertionTypeEnum.SAML,
@@ -187,7 +187,7 @@ describe("createIoLollipopAdapter#activatePubKey", () => {
 });
 
 describe("createIoLollipopAdapter#generateLCParams", () => {
-  it("returns ok(LcParamsSchema) on 200 Success", async () => {
+  it("returns ok(LcParamsDto) on 200 Success", async () => {
     vi.mocked(generateLcParams).mockResolvedValue({
       data: aValidLCParamsResult,
       error: undefined,
