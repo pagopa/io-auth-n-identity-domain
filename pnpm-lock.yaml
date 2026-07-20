@@ -1291,9 +1291,18 @@ importers:
       '@asteasolutions/zod-to-openapi':
         specifier: 'catalog:'
         version: 8.5.0(zod@4.4.3)
+      '@azure/core-client':
+        specifier: 1.9.0
+        version: 1.9.0
       '@azure/cosmos':
         specifier: 'catalog:'
         version: 4.2.0
+      '@azure/data-tables':
+        specifier: 'catalog:'
+        version: 13.3.2
+      '@pagopa/azure-sdk':
+        specifier: workspace:^
+        version: link:../../packages/azure-sdk
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
         version: 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
