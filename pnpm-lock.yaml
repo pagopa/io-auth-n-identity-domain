@@ -1300,6 +1300,9 @@ importers:
       '@azure/data-tables':
         specifier: 'catalog:'
         version: 13.3.2
+      '@azure/identity':
+        specifier: 'catalog:'
+        version: 4.10.1
       '@pagopa/azure-sdk':
         specifier: workspace:^
         version: link:../../packages/azure-sdk

@@ -1,6 +1,5 @@
 import { TableClient } from "@azure/data-tables";
 import { DefaultAzureCredential } from "@azure/identity";
-import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
 import { type PackageInfo } from "@pagopa/io-package-info";
 import fastify, { type FastifyInstance } from "fastify";
 
@@ -32,7 +31,7 @@ export const createApp = (
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
   });
 
-  const lockedProfilesTableClient =
+  const lockedProfilesAdapter = new LockedProfilesDataTableAdapter(
     config.NODE_ENV === "production"
       ? new TableClient(
           config.LOCKED_PROFILES_STORAGE_ACCOUNT_URI,
@@ -40,22 +39,12 @@ export const createApp = (
           AzureCredential.getInstance(),
         )
       : TableClient.fromConnectionString(
-          config.LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
+          config.LOCKED_PROFILES_TABLE_CONNECTION_STRING,
           config.LOCKED_PROFILES_TABLE_NAME,
-        );
-  const lockedProfilesAdapter = new LockedProfilesDataTableAdapter(
-    new TableClientWrapper(
-      lockedProfilesTableClient,
-      LockedProfilesDataTableAdapter.schema,
-    ),
+        ),
   );
 
-  mountHealthCheckHandler("liveness")(
-    server,
-    getHealthCheckUseCase(packageInfo),
-  );
-
-  mountHealthCheckHandler("readiness")(
+  mountHealthCheckHandler(
     server,
     getHealthCheckUseCase(packageInfo, [
       {
