@@ -39,30 +39,6 @@ export const IoProfileConfigSchema = z.object({
 export type IoProfileConfig = z.infer<typeof IoProfileConfigSchema>;
 
 /**
- * IO Session Manager Internal configuration schema.
- * Consists of the URL, base path, and API key for the IO Session Manager Internal service.
- */
-export const IoSmIntConfigSchema = z.object({
-  IO_SM_INT_API_URL: z.url(),
-  IO_SM_INT_API_BASE_PATH: NonEmptyStringSchema,
-  IO_SM_INT_API_KEY: NonEmptyStringSchema,
-});
-
-export type IoSmIntConfig = z.infer<typeof IoSmIntConfigSchema>;
-
-/**
- * IO Fast Login configuration schema.
- * Consists of the URL, base path, and API key for the IO Fast Login service.
- */
-export const IoFastLoginConfigSchema = z.object({
-  IO_FAST_LOGIN_API_URL: z.url(),
-  IO_FAST_LOGIN_API_BASE_PATH: NonEmptyStringSchema,
-  IO_FAST_LOGIN_API_KEY: NonEmptyStringSchema,
-});
-
-export type IoFastLoginConfig = z.infer<typeof IoFastLoginConfigSchema>;
-
-/**
  * Locked Profiles configuration schema.
  * Consists of the name of the Azure Table Storage table used to store locked profiles.
  */
@@ -80,9 +56,7 @@ const CommonConfigShape = {
   ...ServerConfigSchema.shape,
   ...LollipopConfigSchema.shape,
   ...IoProfileConfigSchema.shape,
-  ...IoFastLoginConfigSchema.shape,
   ...LockedProfilesConfigSchema.shape,
-  ...IoSmIntConfigSchema.shape,
 };
 
 /**
@@ -104,7 +78,7 @@ export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
 export const DevelopmentConfigSchema = z.object({
   ...CommonConfigShape,
   NODE_ENV: z.literal("development"),
-  LOCKED_PROFILES_STORAGE_CONNECTION_STRING: NonEmptyStringSchema,
+  LOCKED_PROFILES_TABLE_CONNECTION_STRING: NonEmptyStringSchema,
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;
@@ -114,7 +88,7 @@ export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;
  *
  * Smart parsing: the actual shape is a discriminated union on `NODE_ENV`.
  * When `NODE_ENV=development` the loader requires the development-only fields
- * (e.g. `LOCKED_PROFILES_STORAGE_CONNECTION_STRING`); when `NODE_ENV=production`
+ * (e.g. `LOCKED_PROFILES_TABLE_CONNECTION_STRING`); when `NODE_ENV=production`
  * it requires the production-only fields (e.g. `LOCKED_PROFILES_STORAGE_ACCOUNT_URI`).
  *
  * `NODE_ENV` MUST be set explicitly — the loader fails fast with a clear
