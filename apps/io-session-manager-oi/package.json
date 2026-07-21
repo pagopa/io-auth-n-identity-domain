@@ -1,6 +1,6 @@
 {
   "name": "io-session-manager-oi",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -19,8 +19,7 @@
     "test": "vitest run -c ./vite.config.mts",
     "test:integration": "vitest run -c ./src/__integrations__/vite.config.mts",
     "test:coverage": "vitest run --coverage -c ./vite.config.mts",
-    "generate": "pnpm generate:io-profile-client",
-    "generate:io-profile-client": "openapi-ts"
+    "generate": "openapi-ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "catalog:",
