@@ -154,7 +154,7 @@ describe("TableClientWrapper (integration - Azurite)", () => {
     expect(read.isErr()).toBe(true);
     const error = read._unsafeUnwrapErr();
     expect(error).toBeInstanceOf(NotFoundError);
-    expect((error as NotFoundError).entityName).toBe("TestEntity");
+    expect((error as NotFoundError).entityName).toBe(TABLE_NAME);
   });
 
   it("updateEntity (Replace) drops fields not present in the new payload", async () => {
