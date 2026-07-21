@@ -21,7 +21,7 @@ import { LockedProfilesPort } from "../../domain/ports/outbound/locked-profiles.
 const LockedProfileDataTableSchema = z.object({
   partitionKey: FiscalCodeSchema,
   rowKey: z.string().regex(/^\d{9}$/, "rowKey must be 9 digits"),
-  CreatedAt: z.date(),
+  CreatedAt: z.coerce.date(),
   Released: z.boolean().optional(),
 });
 
@@ -42,23 +42,21 @@ export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
   }
 
   async healthcheck(): Promise<Result<void, GenericError>> {
-    try {
-      // Minimal reachability probe: request a single page with a filter that
-      // matches no entities. This validates network + auth + table existence
-      // without transferring any data.
-      const iterator = this.lockedProfilesTableClientWrapper
-        .getTableClient()
-        .listEntities({ queryOptions: { filter: "PartitionKey eq ''" } })
-        .byPage({ maxPageSize: 1 });
-      await iterator.next();
-      return ok(undefined);
-    } catch (error) {
-      return err(
-        new GenericError(
-          `Health check failed for LockedProfilesDataTableAdapter: ${error instanceof Error ? error.message : String(error)}`,
-        ),
-      );
+    for await (const entity of this.lockedProfilesTableClientWrapper.listEntities(
+      {
+        queryOptions: { filter: "PartitionKey eq ''" },
+      },
+    )) {
+      if (entity.isErr()) {
+        return err(
+          new GenericError(
+            `Health check failed for LockedProfilesDataTableAdapter: ${entity.error.message}`,
+          ),
+        );
+      }
+      break;
     }
+    return ok(undefined);
   }
 
   async isLocked(
@@ -85,6 +83,10 @@ export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
       // If we didn't find any entities that are not released, the profile is not locked
       return ok(false);
     } catch (error) {
+      // Defensive: `listEntities` already converts SDK errors into
+      // `yield err(...)`, so this branch should be unreachable. Kept as a
+      // safety net for unexpected iterator failures (e.g. bugs in the
+      // wrapper or the SDK throwing outside the awaited call).
       return err(
         new GenericError(
           `Error checking if profile is locked: ${error instanceof Error ? error.message : String(error)}`,
