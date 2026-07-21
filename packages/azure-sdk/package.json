@@ -7,10 +7,6 @@
     "dist"
   ],
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
     "./data-tables": {
       "types": "./dist/data-tables/index.d.ts",
       "import": "./dist/data-tables/index.js"
