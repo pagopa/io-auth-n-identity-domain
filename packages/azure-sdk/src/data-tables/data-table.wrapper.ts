@@ -125,11 +125,10 @@ export class TableClientWrapper<S extends TableEntitySchema> {
   protected readonly patchSchema: z.ZodObject;
 
   /**
-   * @param client     - Underlying Azure `TableClient`.
-   * @param schema     - Zod schema for the full row. Enforced at construction
-   *   time to declare both `partitionKey` and `rowKey`.
-   *   {@link NotFoundError} messages (e.g. `"Session"`). Defaults to
-   *   `"TableEntity"`.
+   * @param client - Underlying Azure `TableClient`.
+   * @param schema - Zod schema for the full row. Enforced at construction
+   *   time to declare both `partitionKey` and `rowKey`. The table name from
+   *   `client.tableName` is used as the `entityName` on `NotFoundError`s.
    * @throws Error when `schema` does not declare both `partitionKey` and
    *   `rowKey`.
    */
