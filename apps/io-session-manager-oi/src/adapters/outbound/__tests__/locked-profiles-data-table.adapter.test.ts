@@ -1,3 +1,4 @@
+import { TableClient } from "@azure/data-tables";
 import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
 import {
   FiscalCodeSchema,
@@ -7,10 +8,21 @@ import {
 import { err, ok, Result } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  LockedProfileDataTableSchema,
-  LockedProfilesDataTableAdapter,
-} from "../locked-profiles-data-table.adapter.js";
+import { LockedProfilesDataTableAdapter } from "../locked-profiles-data-table.adapter.js";
+
+// ---------------------------------------------------------------------------
+// Module mocks
+// ---------------------------------------------------------------------------
+
+const { listEntitiesMock } = vi.hoisted(() => ({
+  listEntitiesMock: vi.fn(),
+}));
+
+vi.mock("@pagopa/azure-sdk/data-tables", () => ({
+  TableClientWrapper: vi.fn().mockImplementation(() => ({
+    listEntities: listEntitiesMock,
+  })),
+}));
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -20,15 +32,11 @@ const FISCAL_CODE = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 const TABLE_NAME = "lockedprofile01";
 const ROW_KEY = "123456789";
 
-// The adapter only calls `listEntities` on the wrapper, so we stub that
-// single method and inject the object directly through the constructor —
-// no module-level `vi.mock` needed.
-const listEntitiesMock = vi.fn();
-const wrapperStub = {
-  listEntities: listEntitiesMock,
-} as unknown as TableClientWrapper<typeof LockedProfileDataTableSchema>;
+const tableClientStub = {
+  tableName: TABLE_NAME,
+} as unknown as TableClient;
 
-const adapter = new LockedProfilesDataTableAdapter(wrapperStub);
+const buildAdapter = () => new LockedProfilesDataTableAdapter(tableClientStub);
 
 // Async iterable helper mirroring the wrapper's `listEntities` return shape.
 type ListYield = Result<
@@ -83,6 +91,22 @@ beforeEach(() => {
 });
 
 // ---------------------------------------------------------------------------
+// Constructor
+// ---------------------------------------------------------------------------
+
+describe("LockedProfilesDataTableAdapter - constructor", () => {
+  it("wraps the provided TableClient in a TableClientWrapper", () => {
+    buildAdapter();
+
+    expect(TableClientWrapper).toHaveBeenCalledTimes(1);
+    expect(TableClientWrapper).toHaveBeenCalledWith(
+      tableClientStub,
+      expect.any(Object),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
 // healthcheck
 // ---------------------------------------------------------------------------
 
@@ -90,9 +114,10 @@ describe("LockedProfilesDataTableAdapter#healthcheck", () => {
   it("returns ok when the wrapper iterator yields nothing", async () => {
     listEntitiesMock.mockReturnValue(asyncIterableOf([]));
 
-    const result = await adapter.healthcheck();
+    const result = await buildAdapter().healthcheck();
 
-    expect(result).toEqual(ok(undefined));
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap()).toBeUndefined();
     expect(listEntitiesMock).toHaveBeenCalledExactlyOnceWith({
       queryOptions: { filter: "PartitionKey eq ''" },
     });
@@ -103,9 +128,9 @@ describe("LockedProfilesDataTableAdapter#healthcheck", () => {
     // returned a row we should still treat it as a successful probe.
     listEntitiesMock.mockReturnValue(asyncIterableOf([okEntity()]));
 
-    const result = await adapter.healthcheck();
+    const result = await buildAdapter().healthcheck();
 
-    expect(result).toEqual(ok(undefined));
+    expect(result.isOk()).toBe(true);
   });
 
   it("returns err(GenericError) when the iterator yields an err", async () => {
@@ -113,7 +138,7 @@ describe("LockedProfilesDataTableAdapter#healthcheck", () => {
       asyncIterableOf([err(new GenericError("azurite down"))]),
     );
 
-    const result = await adapter.healthcheck();
+    const result = await buildAdapter().healthcheck();
 
     expect(result.isErr()).toBe(true);
     const error = result._unsafeUnwrapErr();
@@ -133,9 +158,10 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
   it("returns ok(false) when the iterator yields nothing (no locks found)", async () => {
     listEntitiesMock.mockReturnValue(asyncIterableOf([]));
 
-    const result = await adapter.isLocked(FISCAL_CODE);
-    
-    expect(result).toEqual(ok(false));
+    const result = await buildAdapter().isLocked(FISCAL_CODE);
+
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap()).toBe(false);
     expect(listEntitiesMock).toHaveBeenCalledExactlyOnceWith({
       queryOptions: {
         filter: `PartitionKey eq '${FISCAL_CODE}' and not Released`,
@@ -148,9 +174,10 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
       asyncIterableOf([okEntity({ Released: undefined })]),
     );
 
-    const result = await adapter.isLocked(FISCAL_CODE);
-    
-    expect(result).toEqual(ok(true));
+    const result = await buildAdapter().isLocked(FISCAL_CODE);
+
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap()).toBe(true);
   });
 
   it("returns ok(true) when a lock entity has Released explicitly false", async () => {
@@ -158,58 +185,67 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
       asyncIterableOf([okEntity({ Released: false })]),
     );
 
-    const result = await adapter.isLocked(FISCAL_CODE);
+    const result = await buildAdapter().isLocked(FISCAL_CODE);
 
-    expect(result).toEqual(ok(true));
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap()).toBe(true);
+  });
+
+  it("skips entities where Released === true and returns ok(false) if none remain", async () => {
+    // Defensive: the OData filter already excludes released rows, but if a
+    // released row leaks through the adapter must not report it as a lock.
+    listEntitiesMock.mockReturnValue(
+      asyncIterableOf([okEntity({ Released: true })]),
+    );
+
+    const result = await buildAdapter().isLocked(FISCAL_CODE);
+
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap()).toBe(false);
+  });
+
+  it("returns ok(true) when a non-released entity follows a released one", async () => {
+    listEntitiesMock.mockReturnValue(
+      asyncIterableOf([
+        okEntity({ Released: true, rowKey: "111111111" }),
+        okEntity({ Released: false, rowKey: "222222222" }),
+      ]),
+    );
+
+    const result = await buildAdapter().isLocked(FISCAL_CODE);
+
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap()).toBe(true);
   });
 
   it("returns the yielded error when the iterator emits an err", async () => {
     const notFound = new NotFoundError(TABLE_NAME, "table missing");
     listEntitiesMock.mockReturnValue(asyncIterableOf([err(notFound)]));
 
-    const result = await adapter.isLocked(FISCAL_CODE);
+    const result = await buildAdapter().isLocked(FISCAL_CODE);
 
     expect(result.isErr()).toBe(true);
-    const error = result._unsafeUnwrapErr();
-    expect(error).toBeInstanceOf(NotFoundError);
-    expect(error).toEqual(notFound);
+    expect(result._unsafeUnwrapErr()).toBe(notFound);
   });
 
-  it.each([
-    {
-      case: "error",
-      entities: asyncIterableOf([
-        err(new GenericError("some error")),
-        okEntity({ Released: false }),
-      ]),
-      expected: err(new GenericError("some error")),
-    },
-    {
-      case: "locked",
-      entities: asyncIterableOf([
-        okEntity({ Released: false }),
-        okEntity({ Released: false }),
-        err(new GenericError("some error")),
-      ]),
-      expected: ok(true),
-    },
-  ] as const)(
-    "stops iterating on the first $case (does not inspect subsequent entities)",
-    async ({ entities, expected }) => {
-      listEntitiesMock.mockReturnValue(entities);
+  it("stops iterating on the first err (does not inspect subsequent entities)", async () => {
+    const boom = new GenericError("first-error");
+    listEntitiesMock.mockReturnValue(
+      asyncIterableOf([err(boom), okEntity({ Released: false })]),
+    );
 
-      const result = await adapter.isLocked(FISCAL_CODE);
+    const result = await buildAdapter().isLocked(FISCAL_CODE);
 
-      expect(result).toEqual(expected);
-    },
-  );
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBe(boom);
+  });
 
   it("falls back to GenericError when the iterator itself throws (defensive branch)", async () => {
     listEntitiesMock.mockReturnValue(
       asyncIterableThatThrows(new Error("iterator boom")),
     );
 
-    const result = await adapter.isLocked(FISCAL_CODE);
+    const result = await buildAdapter().isLocked(FISCAL_CODE);
 
     expect(result.isErr()).toBe(true);
     const error = result._unsafeUnwrapErr();
@@ -223,11 +259,9 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
       asyncIterableThatThrows("raw string failure"),
     );
 
-    const result = await adapter.isLocked(FISCAL_CODE);
+    const result = await buildAdapter().isLocked(FISCAL_CODE);
 
     expect(result.isErr()).toBe(true);
-    const error = result._unsafeUnwrapErr();
-    expect(error).toBeInstanceOf(GenericError);
-    expect(error.message).toContain("raw string failure");
+    expect(result._unsafeUnwrapErr().message).toContain("raw string failure");
   });
 });

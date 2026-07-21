@@ -1,18 +1,13 @@
 import { odata, TableClient } from "@azure/data-tables";
 import {
-  TableClientWrapper,
-  TableStorageError,
-} from "@pagopa/azure-sdk/data-tables";
-import {
   FiscalCode,
   FiscalCodeSchema,
   GenericError,
 } from "@pagopa/hexagonal-core";
-import { ok, Result } from "neverthrow";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import z from "zod";
 
 import {
+  LockedProfileDataTable,
   LockedProfilesDataTableAdapter,
 } from "../../adapters/outbound/locked-profiles-data-table.adapter.js";
 import { LOCKED_PROFILES_STORAGE_CONNECTION_STRING } from "../env.js";
@@ -23,25 +18,27 @@ import {
   UNKNOWN_FISCAL_CODE,
   uniqueLockedProfilesTableName,
 } from "../fixtures/locked-profiles.fixture.js";
+import z from "zod";
+import { ok, Result } from "neverthrow";
+import { TableStorageError } from "@pagopa/azure-sdk/data-tables";
 
 // ---------------------------------------------------------------------------
 // System under test
 // ---------------------------------------------------------------------------
 
+// Isolated table per run so parallel CI jobs never step on each other and
+// the shared Azurite instance is left in a clean state.
 const TABLE_NAME = uniqueLockedProfilesTableName();
 
+// Build the TableClient with `allowInsecureConnection` so it can talk to the
+// Azurite emulator over plain HTTP.
 const tableClient = TableClient.fromConnectionString(
   LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
   TABLE_NAME,
   { allowInsecureConnection: true },
 );
 
-const wrapper = new TableClientWrapper(
-  tableClient,
-  LockedProfilesDataTableAdapter.schema,
-);
-
-const adapter = new LockedProfilesDataTableAdapter(wrapper);
+const adapter = new LockedProfilesDataTableAdapter(tableClient);
 
 const LOCKED = FiscalCodeSchema.parse(LOCKED_FISCAL_CODE);
 const RELEASED = FiscalCodeSchema.parse(RELEASED_FISCAL_CODE);
@@ -102,13 +99,18 @@ class ExtendedLockedProfilesDataTableAdapter extends LockedProfilesDataTableAdap
     })) {
       if (entity.isOk()) {
         const data = entity.value.entity;
-        return ok(ExtendedLockedProfilesDataTableAdapter.mapper(data));
+        return ok(
+          LockedProfileSchema.parse({
+            fiscalCode: data.partitionKey,
+            unlockCode: data.rowKey,
+          }),
+        );
       }
     }
     return ok(null);
   }
 
-  private static mapper(entity: z.infer<typeof LockedProfilesDataTableAdapter.schema>): LockedProfile {
+  private static mapper(entity: LockedProfileDataTable): LockedProfile {
     return LockedProfileSchema.parse({
       fiscalCode: entity.partitionKey,
       unlockCode: entity.rowKey,
@@ -116,7 +118,7 @@ class ExtendedLockedProfilesDataTableAdapter extends LockedProfilesDataTableAdap
   }
 }
 
-const extendedAdapter = new ExtendedLockedProfilesDataTableAdapter(wrapper);
+const extendedAdapter = new ExtendedLockedProfilesDataTableAdapter(tableClient);
 
 // ---------------------------------------------------------------------------
 // Suite
@@ -144,28 +146,28 @@ describe("locked-profiles adapter (integration - Azurite)", () => {
     const result = await adapter.healthcheck();
 
     expect(result.isOk()).toBe(true);
-    expect(result).toEqual(ok(undefined));
+    expect(result._unsafeUnwrap()).toBeUndefined();
   });
 
   it("isLocked returns ok(true) for a fiscal code with an active lock", async () => {
     const result = await adapter.isLocked(LOCKED);
 
     expect(result.isOk()).toBe(true);
-    expect(result).toEqual(ok(true));
+    expect(result._unsafeUnwrap()).toBe(true);
   });
 
   it("isLocked returns ok(false) for a fiscal code whose lock was released", async () => {
     const result = await adapter.isLocked(RELEASED);
 
     expect(result.isOk()).toBe(true);
-    expect(result).toEqual(ok(false));
+    expect(result._unsafeUnwrap()).toBe(false);
   });
 
   it("isLocked returns ok(false) for a fiscal code with no lock row", async () => {
     const result = await adapter.isLocked(UNKNOWN);
 
     expect(result.isOk()).toBe(true);
-    expect(result).toEqual(ok(false));
+    expect(result._unsafeUnwrap()).toBe(false);
   });
 
   it("healthcheck returns err(GenericError) when the table does not exist", async () => {
@@ -175,11 +177,11 @@ describe("locked-profiles adapter (integration - Azurite)", () => {
       `missing${Date.now()}`,
       { allowInsecureConnection: true },
     );
-    const missingTableAdapter = new LockedProfilesDataTableAdapter(
-      new TableClientWrapper(missingTableClient, LockedProfilesDataTableAdapter.schema),
+    const missingAdapter = new LockedProfilesDataTableAdapter(
+      missingTableClient,
     );
 
-    const result = await missingTableAdapter.healthcheck();
+    const result = await missingAdapter.healthcheck();
 
     expect(result.isErr()).toBe(true);
     const error = result._unsafeUnwrapErr();
