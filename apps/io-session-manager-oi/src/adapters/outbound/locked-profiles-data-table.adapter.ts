@@ -18,7 +18,7 @@ import { LockedProfilesPort } from "../../domain/ports/outbound/locked-profiles.
  * Schema for the LockedProfileDataTable entity.
  * This schema is used to validate the structure of the data stored in the Azure Table Storage.
  */
-const LockedProfileDataTableSchema = z.object({
+export const LockedProfileDataTableSchema = z.object({
   partitionKey: FiscalCodeSchema,
   rowKey: z.string().regex(/^\d{9}$/, "rowKey must be 9 digits"),
   CreatedAt: z.coerce.date(),
@@ -30,16 +30,11 @@ export type LockedProfileDataTable = z.infer<
 >;
 
 export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
-  private readonly lockedProfilesTableClientWrapper: TableClientWrapper<
-    typeof LockedProfileDataTableSchema
-  >;
-
-  constructor(lockedProfilesClient: TableClient) {
-    this.lockedProfilesTableClientWrapper = new TableClientWrapper(
-      lockedProfilesClient,
-      LockedProfileDataTableSchema,
-    );
-  }
+  constructor(
+    private readonly lockedProfilesTableClientWrapper: TableClientWrapper<
+      typeof LockedProfileDataTableSchema
+    >,
+  ) {}
 
   async healthcheck(): Promise<Result<void, GenericError>> {
     for await (const entity of this.lockedProfilesTableClientWrapper.listEntities(
