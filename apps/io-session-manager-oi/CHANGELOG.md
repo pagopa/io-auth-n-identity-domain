@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.2.0
+
+### Minor Changes
+
+- 5ad200f: Added io-lollipop client port and adapter
+
 ## 0.1.1
 
 ### Patch Changes
