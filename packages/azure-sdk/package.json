@@ -8,12 +8,12 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./data-tables": {
-      "import": "./dist/data-tables/index.js",
-      "types": "./dist/data-tables/index.d.ts"
+      "types": "./dist/data-tables/index.d.ts",
+      "import": "./dist/data-tables/index.js"
     }
   },
   "scripts": {
