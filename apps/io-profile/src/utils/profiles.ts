@@ -15,6 +15,75 @@ import {
 import { FiscalCode } from "@pagopa/io-functions-commons/dist/generated/definitions/FiscalCode";
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicesPreferencesMode";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
+
+export type SubscriptionFeedOperation = "SUBSCRIBED" | "UNSUBSCRIBED";
+
+/**
+ * Compute the profile-level subscription feed operation implied by a change in
+ * service preferences mode.
+ *
+ * The rules mirror the logic in the upserted-profile orchestrator:
+ * - no previous mode (profile creation) => SUBSCRIBED
+ * - mode changed to MANUAL (except the LEGACY->AUTO migration) => UNSUBSCRIBED
+ * - mode changed from MANUAL to AUTO => SUBSCRIBED
+ * - LEGACY->AUTO or no effective change => undefined (no feed update)
+ *
+ * @param previousMode - the previous service preferences mode, undefined for v0 profiles
+ * @param currentMode - the current service preferences mode
+ * @returns the feed operation to emit, or undefined when no operation is needed
+ */
+export const computeProfileFeedOperation = (
+  previousMode: ServicesPreferencesModeEnum | undefined,
+  currentMode: ServicesPreferencesModeEnum,
+): SubscriptionFeedOperation | undefined => {
+  // Profile creation: always treat as a subscription event.
+  if (previousMode === undefined) {
+    return "SUBSCRIBED";
+  }
+
+  // Same mode: no feed change.
+  if (previousMode === currentMode) {
+    return undefined;
+  }
+
+  // LEGACY -> AUTO is a migration that does not affect the feed.
+  if (
+    previousMode === ServicesPreferencesModeEnum.LEGACY &&
+    currentMode === ServicesPreferencesModeEnum.AUTO
+  ) {
+    return undefined;
+  }
+
+  // Any other transition to MANUAL unsubscribes the whole profile;
+  // any other transition from MANUAL to AUTO subscribes it back.
+  return currentMode === ServicesPreferencesModeEnum.MANUAL
+    ? "UNSUBSCRIBED"
+    : "SUBSCRIBED";
+};
+
+export const computeDailyProfileFeedOperation = (
+  previousMode: ServicesPreferencesModeEnum | undefined,
+  currentModes: ReadonlyArray<ServicesPreferencesModeEnum>,
+): SubscriptionFeedOperation | undefined =>
+  currentModes.reduce<{
+    readonly lastOperation: SubscriptionFeedOperation | undefined;
+    readonly previousMode: ServicesPreferencesModeEnum;
+  } | undefined>(
+    (state, currentMode) => {
+      const operation = computeProfileFeedOperation(
+        state?.previousMode,
+        currentMode,
+      );
+
+      return {
+        lastOperation: operation ?? state?.lastOperation,
+        previousMode: currentMode,
+      };
+    },
+    previousMode === undefined
+      ? undefined
+      : { lastOperation: undefined, previousMode },
+  )?.lastOperation;
 import {
   IResponseErrorQuery,
   ResponseErrorQuery,

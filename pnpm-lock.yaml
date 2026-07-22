@@ -735,6 +735,12 @@ importers:
       '@types/nodemailer':
         specifier: 'catalog:'
         version: 6.4.17
+      '@typescript-eslint/eslint-plugin':
+        specifier: 8.53.1
+        version: 8.53.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3)
+      '@typescript-eslint/parser':
+        specifier: 8.53.1
+        version: 8.53.1(eslint@8.57.0)(typescript@5.8.3)
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 3.2.4(vitest@3.2.4(@types/node@22.19.17)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))

@@ -110,6 +110,54 @@ export const startOrchestrator = <OInput>(
     ),
   );
 
+/**
+ * Start an orchestrator only when no reusable singleton instance exists.
+ * Completed instances are intentionally kept as deduplication markers.
+ */
+export const startSingletonOrchestrator = <OInput>(
+  dfClient: df.DurableClient,
+  orchestratorName: string,
+  orchestratorId: string,
+  orchestratorInput: OInput,
+  orchestratorInputCodec: t.Type<OInput, unknown, unknown>,
+): TE.TaskEither<Error, string> =>
+  pipe(
+    isOrchestratorRunning(dfClient, orchestratorId),
+    TE.chain((orchestratorStatus) =>
+      orchestratorStatus.isRunning ||
+      orchestratorStatus.runtimeStatus === df.OrchestrationRuntimeStatus.Completed
+        ? TE.of(orchestratorId)
+        : pipe(
+            TE.tryCatch(
+              () => Promise.resolve(orchestratorInputCodec.encode(orchestratorInput)),
+              () => new Error("Encode operation failed"),
+            ),
+            TE.chain((encodedInput) =>
+              TE.tryCatch(
+                () =>
+                  dfClient.startNew(orchestratorName, {
+                    instanceId: orchestratorId,
+                    input: encodedInput,
+                  }),
+                E.toError,
+              ),
+            ),
+          ),
+    ),
+  );
+
+/**
+ * Transient error returned by an activity that represents a deterministic,
+ * non-retryable failure. Because it is returned instead of thrown, the
+ * orchestrator can handle it without re-invoking the activity with the same
+ * input.
+ */
+export const TransientFailure = t.type({
+  kind: t.literal("TRANSIENT_FAILURE"),
+  reason: t.string,
+});
+export type TransientFailure = t.TypeOf<typeof TransientFailure>;
+
 /** Transient error that describes a NOT_YET_IMPLEMENTED , currently used
  * in the activities that retrieve the magic code and geolocation data during
  * a login email sending flow
