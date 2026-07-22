@@ -159,14 +159,9 @@ services:
     networks:
       - io-fn
     depends_on:
-      io-public:
-        condition: service_healthy
-      storage:
-        condition: service_healthy
-      cosmosdb:
-        condition: service_healthy
-      mailhog:
-        condition: service_started
+      - storage
+      - cosmosdb
+      - mailhog
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7071/api/v1/ping"]
       interval: 5s
@@ -193,12 +188,6 @@ services:
         condition: service_healthy
       cosmosdb:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7071/info"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-      start_period: 2m
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.io-public.rule=PathPrefix(`/public`)"
@@ -257,12 +246,6 @@ services:
       - ${COSMOSDB_PORT}:3000
     networks:
       - io-fn
-    healthcheck:
-      test: ["CMD", "nc", "-z", "127.0.0.1", "3000"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-      start_period: 10s
 
   spid-testenv2:
     container_name: spid-testenv2
