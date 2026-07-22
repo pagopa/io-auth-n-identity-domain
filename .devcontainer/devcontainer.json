@@ -1,4 +1,5 @@
 {
+  "name": "io-auth-n-identity",
   "image": "mcr.microsoft.com/devcontainers/base:debian@sha256:a07f1804d8e665ff64bf6adcd60f4d9b9223dc52ee18a1f1a7a8e1ee1a134d34",
   "features": {
     "ghcr.io/devcontainers-extra/features/pre-commit:2": {},
@@ -80,6 +81,10 @@
           "azure-learn-mcp-server": {
             "type": "http",
             "url": "https://learn.microsoft.com/api/mcp"
+          },
+          "atlassian-mcp-server": {
+            "type": "http",
+            "url": "https://mcp.atlassian.com/v1/mcp"
           }
         }
       }
