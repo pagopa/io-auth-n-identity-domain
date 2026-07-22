@@ -51,7 +51,7 @@ data "azurerm_resource_group" "function_lv_rg" {
 
 module "function_lv" {
   source  = "pagopa-dx/azure-function-app/azurerm"
-  version = "~> 1.0"
+  version = "~> 6.0"
 
   environment = {
     prefix          = local.prefix
@@ -66,7 +66,7 @@ module "function_lv" {
   health_check_path   = "/info"
   node_version        = 22
   # P2mv3 SKU and 8 Worker process count
-  tier = "xl"
+  use_case = "high_load"
 
   subnet_cidr   = local.cidr_subnet_fn_lv
   subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
@@ -88,7 +88,7 @@ module "function_lv" {
   application_insights_connection_string   = data.azurerm_application_insights.application_insights.connection_string
   application_insights_sampling_percentage = local.function_lv.prod_slot_sampling_percentage
 
-  action_group_id = azurerm_monitor_action_group.error_action_group.id
+  action_group_ids = [azurerm_monitor_action_group.error_action_group.id]
 
   tags = local.tags
 }
