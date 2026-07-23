@@ -51,12 +51,10 @@ import { TableStorageError } from "./errors.js";
  * });
  * ```
  */
-export type TableEntitySchema = z.ZodObject<
-  {
-    partitionKey: z.ZodType<string>;
-    rowKey: z.ZodType<string>;
-  } & z.core.$ZodLooseShape
->;
+export type TableEntitySchema = z.ZodObject<{
+  partitionKey: z.ZodType<string>;
+  rowKey: z.ZodType<string>;
+}>;
 
 /** The `partitionKey` output type declared by the row schema. */
 export type PartitionKeyOf<S extends TableEntitySchema> =
@@ -224,8 +222,8 @@ export class TableClientWrapper<S extends TableEntitySchema> {
       // pk/rk are string subtypes at the type level but TS's index-access
       // through zod's shape widens to `unknown`; cast to satisfy the SDK.
       response = await this.client.getEntity(
-        partitionKey as string,
-        rowKey as string,
+        partitionKey,
+        rowKey,
         options,
       );
     } catch (error) {
@@ -365,8 +363,8 @@ export class TableClientWrapper<S extends TableEntitySchema> {
   ): Promise<Result<DeleteTableEntityResponse, TableStorageError>> {
     try {
       const response = await this.client.deleteEntity(
-        partitionKey as string,
-        rowKey as string,
+        partitionKey,
+        rowKey,
         options,
       );
       return ok(response);
