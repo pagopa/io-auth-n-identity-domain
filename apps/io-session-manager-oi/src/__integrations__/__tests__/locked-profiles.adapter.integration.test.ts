@@ -13,8 +13,6 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import z from "zod";
 
 import {
-  LockedProfileDataTable,
-  LockedProfileDataTableSchema,
   LockedProfilesDataTableAdapter,
 } from "../../adapters/outbound/locked-profiles-data-table.adapter.js";
 import { LOCKED_PROFILES_STORAGE_CONNECTION_STRING } from "../env.js";
@@ -40,7 +38,7 @@ const tableClient = TableClient.fromConnectionString(
 
 const wrapper = new TableClientWrapper(
   tableClient,
-  LockedProfileDataTableSchema,
+  LockedProfilesDataTableAdapter.schema,
 );
 
 const adapter = new LockedProfilesDataTableAdapter(wrapper);
@@ -110,7 +108,7 @@ class ExtendedLockedProfilesDataTableAdapter extends LockedProfilesDataTableAdap
     return ok(null);
   }
 
-  private static mapper(entity: LockedProfileDataTable): LockedProfile {
+  private static mapper(entity: z.infer<typeof LockedProfilesDataTableAdapter.schema>): LockedProfile {
     return LockedProfileSchema.parse({
       fiscalCode: entity.partitionKey,
       unlockCode: entity.rowKey,
@@ -178,7 +176,7 @@ describe("locked-profiles adapter (integration - Azurite)", () => {
       { allowInsecureConnection: true },
     );
     const missingTableAdapter = new LockedProfilesDataTableAdapter(
-      new TableClientWrapper(missingTableClient, LockedProfileDataTableSchema),
+      new TableClientWrapper(missingTableClient, LockedProfilesDataTableAdapter.schema),
     );
 
     const result = await missingTableAdapter.healthcheck();
