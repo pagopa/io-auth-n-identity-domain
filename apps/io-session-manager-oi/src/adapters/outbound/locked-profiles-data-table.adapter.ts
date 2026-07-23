@@ -1,4 +1,4 @@
-import { odata, TableClient } from "@azure/data-tables";
+import { odata } from "@azure/data-tables";
 import {
   TableClientWrapper,
   TableStorageError,
