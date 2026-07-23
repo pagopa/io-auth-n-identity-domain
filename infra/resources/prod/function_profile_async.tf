@@ -92,7 +92,7 @@ locals {
 
 module "function_profile_async" {
   source  = "pagopa-dx/azure-function-app/azurerm"
-  version = "~> 1.0"
+  version = "~> 6.0"
 
   environment = {
     prefix          = local.prefix
@@ -160,7 +160,7 @@ module "function_profile_async" {
 
   application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
 
-  action_group_id = azurerm_monitor_action_group.error_action_group.id
+  action_group_ids = [azurerm_monitor_action_group.error_action_group.id]
 
   tags = local.tags
 }
