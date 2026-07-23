@@ -50,12 +50,16 @@ const BaseSessionSchema = z.object({
 // ------------------------------------------------------------------------------
 
 /**
- *
+ * An extension of the BaseSessionSchema that includes a plain session token with tracking ID,
+ * representing a unique identifier for the user session.
  */
 export const PlainSessionSchema = BaseSessionSchema.extend({
   plainSessionTokenWithTrackingId: PlainSessionTokenWithTrackingIdSchema,
 });
 
+/**
+ * A session with a plain session token with tracking ID, representing a unique identifier for the user session.
+ */
 export type PlainSession = z.infer<typeof PlainSessionSchema>;
 
 /**
@@ -118,12 +122,18 @@ export const newPlainSession = async ({
 // ------------------------------------------------------------------------------
 
 /**
- *
+ * An extension of the BaseSessionSchema that includes a hashed session token with tracking ID,
+ * representing a unique identifier for the user session.
+ * It is used to store the session in a secure way, without exposing the plain session token.
  */
 export const SessionSchema = BaseSessionSchema.extend({
   hashedSessionTokenWithTrackingId: HashedSessionTokenWithTrackingIdSchema,
 });
 
+/**
+ * A session with a hashed session token with tracking ID, representing a unique identifier for the user session.
+ * It is used to store the session in a secure way, without exposing the plain session token.
+ */
 export type Session = z.infer<typeof SessionSchema>;
 
 /**

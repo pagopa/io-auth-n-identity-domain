@@ -1,6 +1,6 @@
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core/domain/value-objects";
 import { z } from "zod";
 
-import { NonEmptyStringSchema } from "@pagopa/hexagonal-core/domain/value-objects";
 
 import { getRandomBytesHex, toSha256 } from "../../../utils/hash.js";
 import { SessionTrackingIdSchema } from "../session-tracking-id.vo.js";

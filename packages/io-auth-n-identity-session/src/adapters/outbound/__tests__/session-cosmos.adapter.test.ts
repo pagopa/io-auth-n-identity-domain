@@ -8,7 +8,7 @@ import type { FiscalCode } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SessionCosmosAdapter } from "../session-cosmos.oa.js";
+import { SessionCosmosAdapter } from "../session-cosmos.adapter.js";
 import type {
   Session,
   SessionWithHashedSSOTokens,
