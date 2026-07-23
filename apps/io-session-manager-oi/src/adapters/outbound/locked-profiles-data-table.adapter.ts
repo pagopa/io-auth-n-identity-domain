@@ -14,13 +14,17 @@ import z from "zod";
 
 import { LockedProfilesPort } from "../../domain/ports/outbound/locked-profiles.port.js";
 
+const UnlockCodeSchema = z
+  .string()
+  .regex(/^\d{9}$/, "unlockCode must be 9 digits");
+
 /**
  * Schema for the LockedProfileDataTable data.
  * This schema is used to validate the structure of the data stored in the Azure Table Storage.
  */
 const LockedProfileDataTableSchema = z.object({
   partitionKey: FiscalCodeSchema,
-  rowKey: z.string().regex(/^\d{9}$/, "rowKey must be 9 digits"),
+  rowKey: UnlockCodeSchema,
   CreatedAt: z.coerce.date(),
   Released: z.boolean().optional(),
 });
