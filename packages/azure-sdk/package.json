@@ -1,0 +1,45 @@
+{
+  "name": "@pagopa/azure-sdk",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./data-tables": {
+      "types": "./dist/data-tables/index.d.ts",
+      "import": "./dist/data-tables/index.js"
+    }
+  },
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsc",
+    "lint": "pnpm lint:check --fix",
+    "lint:check": "eslint . --ext .ts --cache",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run -c ./src/data-tables/__integrations__/vite.config.mts"
+  },
+  "dependencies": {
+    "@pagopa/hexagonal-core": "catalog:",
+    "neverthrow": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@azure/core-client": "catalog:",
+    "@azure/data-tables": "catalog:",
+    "@pagopa/typescript-config-node22": "workspace:^",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-monorepo": "workspace:^",
+    "shx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "@azure/core-client": "catalog:",
+    "@azure/data-tables": "catalog:"
+  }
+}

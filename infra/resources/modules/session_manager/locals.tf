@@ -35,5 +35,9 @@ locals {
     IO_FAST_LOGIN_API_BASE_PATH = var.io_fast_login.base_path
     # IO_FAST_LOGIN_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_io_fast_login_api_key.versionless_id})"
     IO_FAST_LOGIN_API_KEY = "TODO"
+
+    # Locked Profiles table
+    LOCKED_PROFILES_STORAGE_ACCOUNT_URI = "https://${var.locked_profiles.storage_account.name}.table.core.windows.net"
+    LOCKED_PROFILES_TABLE_NAME          = var.locked_profiles.table_name
   }
 }

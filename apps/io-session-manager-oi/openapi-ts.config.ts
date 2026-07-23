@@ -67,7 +67,7 @@ export default defineConfig([
     ],
   },
   {
-    input: "../io-lollipop/api/internal.yaml",
+    input: "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/71cba5610a1e7b59bb9c60140a26c924c0edf220/apps/io-lollipop/api/internal.yaml",
     output: {
       path: "src/generated/io-lollipop",
       module: {
