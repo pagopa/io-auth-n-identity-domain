@@ -1,5 +1,11 @@
 # io-fast-login
 
+## 4.6.0
+
+### Minor Changes
+
+- 62e82e9: Update Info handler to show package name and version
+
 ## 4.5.0
 
 ### Minor Changes

@@ -65,8 +65,8 @@ module "function_lv" {
   resource_group_name = data.azurerm_resource_group.function_lv_rg.name
   health_check_path   = "/info"
   node_version        = 22
-  # P3mv3 SKU and 10 Worker process count
-  tier = "xxl"
+  # P2mv3 SKU and 8 Worker process count
+  tier = "xl"
 
   subnet_cidr   = local.cidr_subnet_fn_lv
   subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
@@ -110,7 +110,7 @@ module "function_lv_autoscale" {
 
   scheduler = {
     normal_load = {
-      minimum = 8
+      minimum = 3
       default = 10
     },
     maximum = 30
