@@ -86,15 +86,15 @@ export const getSessionTtlMsByLoginType = (loginType: LoginType) => {
   return ttlByLoginType[loginType];
 };
 
-export const newPlainSession = ({
+export const newPlainSession = async ({
   sessionTrackingId,
   loginType,
   ...baseData
 }: Omit<z.infer<typeof BaseSessionSchema>, "expirationDate"> & {
   sessionTrackingId: SessionTrackingId;
   loginType: LoginType;
-}): SessionWithPlainSSOTokens => {
-  const plainSessionToken = newPlainSessionToken();
+}): Promise<SessionWithPlainSSOTokens> => {
+  const plainSessionToken = await newPlainSessionToken();
   return {
     ...baseData,
     expirationDate: new Date(

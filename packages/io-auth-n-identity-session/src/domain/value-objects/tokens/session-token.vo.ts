@@ -1,7 +1,8 @@
-import { NonEmptyStringSchema } from "@pagopa/hexagonal-core/domain/value-objects";
 import { z } from "zod";
 
-import { toSha256 } from "../../../utils/hash.js";
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core/domain/value-objects";
+
+import { getRandomBytesHex, toSha256 } from "../../../utils/hash.js";
 import { SessionTrackingIdSchema } from "../session-tracking-id.vo.js";
 
 // ------------------------------------------------------------------------------
@@ -76,8 +77,11 @@ export type HashedSessionTokenWithTrackingId = z.infer<
 // Helper functions
 // ------------------------------------------------------------------------------
 
-export const newPlainSessionToken = (): PlainSessionToken =>
-  PlainSessionTokenSchema.parse(crypto.randomUUID());
+export const newPlainSessionToken = async (): Promise<PlainSessionToken> => {
+  const randomBytesValue = await getRandomBytesHex(32);
+
+  return PlainSessionTokenSchema.parse(randomBytesValue);
+};
 
 export const toHashedSessionToken = (
   plainToken: PlainSessionToken,
