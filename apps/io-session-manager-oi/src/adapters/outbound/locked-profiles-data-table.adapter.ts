@@ -25,10 +25,6 @@ const LockedProfileDataTableSchema = z.object({
   Released: z.boolean().optional(),
 });
 
-type LockedProfileDataTable = z.infer<
-  typeof LockedProfileDataTableSchema
->;
-
 export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
   static readonly schema = LockedProfileDataTableSchema;
 
