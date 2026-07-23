@@ -1,0 +1,40 @@
+{
+  "name": "@pagopa/io-auth-n-identity-session",
+  "version": "0.0.1",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsc",
+    "lint": "pnpm lint:check --fix",
+    "lint:check": "eslint . --ext .ts --cache",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@azure/cosmos": "^4.9.3",
+    "@pagopa/hexagonal-core": "catalog:",
+    "@pagopa/io-auth-n-identity-domain": "workspace:^",
+    "neverthrow": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@pagopa/typescript-config-node22": "workspace:^",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-monorepo": "workspace:^",
+    "shx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
