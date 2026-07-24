@@ -1,10 +1,8 @@
 import {
   CreateTableEntityResponse,
-  DeleteTableEntityResponse,
   TableClient,
   TableEntityResult,
   UpdateEntityResponse,
-  UpsertEntityResponse,
 } from "@azure/data-tables";
 import {
   AuthenticationError,
@@ -24,7 +22,10 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { TableClientWrapper, TableEntitySchema } from "../data-table.wrapper.js";
+import {
+  TableClientWrapper,
+  TableEntitySchema,
+} from "../data-table.wrapper.js";
 
 // ---------------------------------------------------------------------------
 // Test schema and fixtures
@@ -50,26 +51,23 @@ const RK = "row-1";
 interface MockedClient {
   tableName: string;
   createEntity: ReturnType<typeof vi.fn>;
-  getEntity: ReturnType<typeof vi.fn>;
   updateEntity: ReturnType<typeof vi.fn>;
-  upsertEntity: ReturnType<typeof vi.fn>;
-  deleteEntity: ReturnType<typeof vi.fn>;
   listEntities: ReturnType<typeof vi.fn>;
 }
 
 const buildMockClient = (): MockedClient => ({
   tableName: TABLE_NAME,
   createEntity: vi.fn(),
-  getEntity: vi.fn(),
   updateEntity: vi.fn(),
-  upsertEntity: vi.fn(),
-  deleteEntity: vi.fn(),
   listEntities: vi.fn(),
 });
 
 const buildWrapper = (client: MockedClient = buildMockClient()) => ({
   client,
-  wrapper: new TableClientWrapper(client as unknown as TableClient, TestRowSchema),
+  wrapper: new TableClientWrapper(
+    client as unknown as TableClient,
+    TestRowSchema,
+  ),
 });
 
 // ---------------------------------------------------------------------------
@@ -100,7 +98,7 @@ const buildStoredRow = (
     name: "alpha",
     count: 1,
     active: true,
-    etag: "W/\"etag-1\"",
+    etag: 'W/"etag-1"',
     timestamp: "2024-01-01T00:00:00Z",
     ...overrides,
   }) as unknown as TableEntityResult<Record<string, unknown>>;
@@ -235,118 +233,6 @@ describe("TableClientWrapper - createEntity", () => {
   });
 });
 
-describe("TableClientWrapper - getEntity", () => {
-  beforeEach(() => vi.clearAllMocks());
-
-  it("returns the validated entity together with etag/timestamp metadata", async () => {
-    const { wrapper, client } = buildWrapper();
-    const stored = buildStoredRow();
-    client.getEntity.mockResolvedValue(stored);
-
-    const result = await wrapper.getEntity(PK, RK);
-
-    expect(result.isOk()).toBe(true);
-    const value = result._unsafeUnwrap();
-    expect(value.entity).toEqual({
-      partitionKey: PK,
-      rowKey: RK,
-      name: "alpha",
-      count: 1,
-      active: true,
-    });
-    expect(value.etag).toBe(stored.etag);
-    expect(value.timestamp).toBe(stored.timestamp);
-    expect(client.getEntity).toHaveBeenCalledExactlyOnceWith(
-      PK,
-      RK,
-      undefined,
-    );
-  });
-
-  it("returns a NotFoundError carrying the tableName as entityName on 404", async () => {
-    const { wrapper, client } = buildWrapper();
-    client.getEntity.mockRejectedValue(buildRestError(404, "missing"));
-
-    const result = await wrapper.getEntity(PK, RK);
-
-    expect(result.isErr()).toBe(true);
-    const error = result._unsafeUnwrapErr();
-    expect(error).toBeInstanceOf(NotFoundError);
-    expect((error as NotFoundError).entityName).toBe(TABLE_NAME);
-    expect(error.message).toContain("getEntity failed");
-  });
-
-  it("returns a ValidationError when the stored row does not match the schema", async () => {
-    const { wrapper, client } = buildWrapper();
-    client.getEntity.mockResolvedValue(
-      buildStoredRow({ count: "not-a-number" }),
-    );
-
-    const result = await wrapper.getEntity(PK, RK);
-
-    expect(result.isErr()).toBe(true);
-    const error = result._unsafeUnwrapErr();
-    expect(error).toBeInstanceOf(ValidationError);
-    expect(error.message).toContain("getEntity");
-  });
-});
-
-describe("TableClientWrapper - updateEntity", () => {
-  beforeEach(() => vi.clearAllMocks());
-
-  it("validates the entity and calls the SDK with mode=Replace", async () => {
-    const { wrapper, client } = buildWrapper();
-    const response = {} as UpdateEntityResponse;
-    client.updateEntity.mockResolvedValue(response);
-
-    const result = await wrapper.updateEntity({
-      partitionKey: PK,
-      rowKey: RK,
-      name: "after",
-      count: 2,
-    });
-
-    expect(result.isOk()).toBe(true);
-    expect(client.updateEntity).toHaveBeenCalledExactlyOnceWith(
-      {
-        partitionKey: PK,
-        rowKey: RK,
-        name: "after",
-        count: 2,
-      },
-      "Replace",
-      undefined,
-    );
-  });
-
-  it("returns ValidationError without calling the SDK on invalid input", async () => {
-    const { wrapper, client } = buildWrapper();
-
-    const result = await wrapper.updateEntity({
-      partitionKey: PK,
-      rowKey: RK,
-      count: 2,
-    } as unknown as TestRow);
-
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
-    expect(client.updateEntity).not.toHaveBeenCalled();
-  });
-
-  it("maps a 412 precondition failure into a PreconditionFailedError", async () => {
-    const { wrapper, client } = buildWrapper();
-    client.updateEntity.mockRejectedValue(buildRestError(412, "stale etag"));
-
-    const result = await wrapper.updateEntity(
-      { partitionKey: PK, rowKey: RK, name: "n", count: 1 },
-      { etag: "W/\"stale\"" },
-    );
-
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(PreconditionFailedError);
-  });
-});
-
 describe("TableClientWrapper - patchEntity", () => {
   beforeEach(() => vi.clearAllMocks());
 
@@ -415,105 +301,6 @@ describe("TableClientWrapper - patchEntity", () => {
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
     expect(client.updateEntity).not.toHaveBeenCalled();
-  });
-});
-
-describe("TableClientWrapper - upsertEntity", () => {
-  beforeEach(() => vi.clearAllMocks());
-
-  it("validates the entity and calls the SDK with mode=Replace", async () => {
-    const { wrapper, client } = buildWrapper();
-    const response = {} as UpsertEntityResponse;
-    client.upsertEntity.mockResolvedValue(response);
-
-    const result = await wrapper.upsertEntity({
-      partitionKey: PK,
-      rowKey: RK,
-      name: "insert",
-      count: 1,
-    });
-
-    expect(result.isOk()).toBe(true);
-    expect(client.upsertEntity).toHaveBeenCalledExactlyOnceWith(
-      {
-        partitionKey: PK,
-        rowKey: RK,
-        name: "insert",
-        count: 1,
-      },
-      "Replace",
-      undefined,
-    );
-  });
-
-  it("returns ValidationError without calling the SDK on invalid input", async () => {
-    const { wrapper, client } = buildWrapper();
-
-    const result = await wrapper.upsertEntity({
-      partitionKey: PK,
-      rowKey: RK,
-      name: "insert",
-      // @ts-expect-error deliberately invalid
-      count: "nope",
-    });
-
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
-    expect(client.upsertEntity).not.toHaveBeenCalled();
-  });
-
-  it("maps SDK errors through handleError", async () => {
-    const { wrapper, client } = buildWrapper();
-    client.upsertEntity.mockRejectedValue(buildRestError(503, "down"));
-
-    const result = await wrapper.upsertEntity({
-      partitionKey: PK,
-      rowKey: RK,
-      name: "insert",
-      count: 1,
-    });
-
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ServiceUnavailableError);
-  });
-});
-
-describe("TableClientWrapper - deleteEntity", () => {
-  beforeEach(() => vi.clearAllMocks());
-
-  it("forwards keys and options to the SDK and returns the response", async () => {
-    const { wrapper, client } = buildWrapper();
-    const response = {} as DeleteTableEntityResponse;
-    client.deleteEntity.mockResolvedValue(response);
-    const opts = { etag: "W/\"etag-1\"" };
-
-    const result = await wrapper.deleteEntity(PK, RK, opts);
-
-    expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(response);
-    expect(client.deleteEntity).toHaveBeenCalledExactlyOnceWith(PK, RK, opts);
-  });
-
-  it("maps a 404 into a NotFoundError", async () => {
-    const { wrapper, client } = buildWrapper();
-    client.deleteEntity.mockRejectedValue(buildRestError(404, "missing"));
-
-    const result = await wrapper.deleteEntity(PK, RK);
-
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(NotFoundError);
-  });
-
-  it("maps a 412 into a PreconditionFailedError", async () => {
-    const { wrapper, client } = buildWrapper();
-    client.deleteEntity.mockRejectedValue(buildRestError(412, "stale"));
-
-    const result = await wrapper.deleteEntity(PK, RK, {
-      etag: "W/\"stale\"",
-    });
-
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(PreconditionFailedError);
   });
 });
 
@@ -688,9 +475,7 @@ describe("TableClientWrapper - handleError (RestError mapping)", () => {
     const result = await wrapper.createEntity(validEntity);
 
     expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().message).toContain(
-      "Caused by: raw-cause",
-    );
+    expect(result._unsafeUnwrapErr().message).toContain("Caused by: raw-cause");
   });
 
   it("wraps a non-Error throwable into a GenericError", async () => {
@@ -703,17 +488,5 @@ describe("TableClientWrapper - handleError (RestError mapping)", () => {
     const error = result._unsafeUnwrapErr();
     expect(error).toBeInstanceOf(GenericError);
     expect(error.message).toContain("string failure");
-  });
-
-  it("annotates NotFoundError with the tableName as entityName", async () => {
-    const { wrapper, client } = buildWrapper();
-    client.getEntity.mockRejectedValue(buildRestError(404, "gone"));
-
-    const result = await wrapper.getEntity(PK, RK);
-
-    expect(result.isErr()).toBe(true);
-    expect((result._unsafeUnwrapErr() as NotFoundError).entityName).toBe(
-      TABLE_NAME,
-    );
   });
 });
