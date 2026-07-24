@@ -108,3 +108,14 @@ variable "io_profile" {
   })
   description = "Configuration for IO Profile service"
 }
+
+variable "locked_profiles" {
+  type = object({
+    storage_account = object({
+      name                = string
+      resource_group_name = string
+    })
+    table_name = string
+  })
+  description = "Azure Table Storage backing the locked profiles feature."
+}

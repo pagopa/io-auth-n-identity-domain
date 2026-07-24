@@ -112,4 +112,13 @@ export default defineWorkspace([
       environment: "node",
     },
   },
+  {
+    extends: "packages/azure-sdk/vite.config.mts",
+    test: {
+      name: "azure-sdk",
+      include: ["packages/azure-sdk/**/__tests__/*.test.ts"],
+      exclude: ["**/__integrations__/**"],
+      environment: "node",
+    },
+  },
 ]);
