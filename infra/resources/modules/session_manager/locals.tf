@@ -29,5 +29,11 @@ locals {
     IO_PROFILE_API_BASE_PATH = var.io_profile.base_path
     # IO_PROFILE_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_io_profile_api_key.versionless_id})"
     IO_PROFILE_API_KEY = "TODO"
+
+    # Session Manager Internal service
+    IO_SM_INT_API_URL   = var.io_session_manager_internal.base_url
+    IO_SM_INT_BASE_PATH = var.io_session_manager_internal.base_path
+    # IO_SM_INT_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_io_sm_int_api_key.versionless_id})"
+    IO_SM_INT_API_KEY = "TODO"
   }
 }

@@ -38,6 +38,18 @@ export const IoProfileConfigSchema = z.object({
 export type IoProfileConfig = z.infer<typeof IoProfileConfigSchema>;
 
 /**
+ * IO Session Manager Internal configuration schema.
+ * Consists of the URL, base path, and API key for the IO Session Manager Internal service.
+ */
+export const IoSmIntConfigSchema = z.object({
+  IO_SM_INT_API_URL: z.url(),
+  IO_SM_INT_API_BASE_PATH: NonEmptyStringSchema,
+  IO_SM_INT_API_KEY: NonEmptyStringSchema,
+});
+
+export type IoSmIntConfig = z.infer<typeof IoSmIntConfigSchema>;
+
+/**
  * Application configuration schema.
  * Combines all schemas into a single schema for the entire application configuration.
  */
@@ -45,6 +57,7 @@ export const ConfigSchema = z.object({
   ...ServerConfigSchema.shape,
   ...LollipopConfigSchema.shape,
   ...IoProfileConfigSchema.shape,
+  ...IoSmIntConfigSchema.shape,
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
