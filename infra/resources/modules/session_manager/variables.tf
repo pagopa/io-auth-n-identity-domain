@@ -108,3 +108,11 @@ variable "io_profile" {
   })
   description = "Configuration for IO Profile service"
 }
+
+variable "io_session_manager_internal" {
+  type = object({
+    base_url  = string
+    base_path = string
+  })
+  description = "Configuration for IO Session Manager Internal service"
+}

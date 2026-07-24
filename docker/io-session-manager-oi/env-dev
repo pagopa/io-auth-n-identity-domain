@@ -4,3 +4,7 @@ PORT=${IO_SESSION_MANAGER_OI_PORT}
 LOLLIPOP_API_KEY=your-lollipop-api-key
 LOLLIPOP_API_URL=http://host.docker.internal:${FUNCTION_LOLLIPOP_PORT}
 LOLLIPOP_API_BASE_PATH=/api/v1
+
+IO_SM_INT_API_KEY=your-sm-int-api-key
+IO_SM_INT_API_URL=http://io-session-manager-internal:7071
+IO_SM_INT_API_BASE_PATH=/api/v1

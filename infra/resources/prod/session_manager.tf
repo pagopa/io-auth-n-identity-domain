@@ -27,4 +27,9 @@ module "session_manager" {
     base_url  = "https://${module.function_profile.function_app.function_app.default_hostname}"
     base_path = "/api/v1"
   }
+
+  io_session_manager_internal = {
+    base_url  = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
+    base_path = "/api/v1"
+  }
 }
