@@ -5,6 +5,7 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { ApplicationInfo } from "../generated/definitions/internal/ApplicationInfo";
 import { InfoService, InfoServiceDeps } from "../services/info";
+import { AssertionRef } from "../generated/definitions/types2/AssertionRef";
 
 type Dependencies = {
   InfoService: InfoService;
