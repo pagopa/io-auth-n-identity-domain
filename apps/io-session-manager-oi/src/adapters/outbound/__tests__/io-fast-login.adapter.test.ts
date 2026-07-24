@@ -12,7 +12,7 @@ import { fastLogin } from "../../../generated/io-fast-login/sdk.gen.js";
 import {
   FastLoginParams,
   FastLoginParamsSchema,
-} from "../../../domain/entities/fast-login.entity.js";
+} from "../../../domain/value-objects/fast-login.vo.js";
 
 vi.mock("../../../generated/io-fast-login/client/client.gen.js", () => ({
   createClient: vi.fn(() => ({
