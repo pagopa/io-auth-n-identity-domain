@@ -1,15 +1,11 @@
 import { OperationOptions } from "@azure/core-client";
 import {
   CreateTableEntityResponse,
-  DeleteTableEntityOptions,
-  DeleteTableEntityResponse,
   ListTableEntitiesOptions,
   RestError,
   TableClient,
   TableEntity,
   TableEntityResult,
-  UpdateEntityResponse,
-  UpdateTableEntityOptions,
 } from "@azure/data-tables";
 import {
   AuthenticationError,
@@ -190,45 +186,6 @@ export class TableClientWrapper<S extends TableEntitySchema> {
       return ok(response);
     } catch (error) {
       return err(this.handleError(error, "createEntity"));
-    }
-  }
-
-  /**
-   * Partially updates an existing row: fields present in `patch` overwrite
-   * the stored values, fields absent are preserved.
-   *
-   * `patch` must include `partitionKey` and `rowKey` (they identify the
-   * target row); every other schema field is optional and still type-checked
-   * when present.
-   *
-   * Uses the SDK's `"Merge"` mode.
-   *
-   * Fails with:
-   * - `ValidationError` if the patch does not match the schema.
-   * - `NotFoundError` if the target row does not exist.
-   * - `PreconditionFailedError` if `options.etag` no longer matches.
-   * - Other {@link TableStorageError} variants for the remaining SDK errors.
-   *
-   * @param patch   - Keys plus a partial payload; validated against
-   *   `schema.partial().required({ partitionKey, rowKey })`.
-   * @param options - Optional SDK request options, including `etag`.
-   */
-  public async patchEntity(
-    patch: EntityPatchOf<S>,
-    options?: UpdateTableEntityOptions,
-  ): Promise<Result<UpdateEntityResponse, TableStorageError>> {
-    const validated = this.validateEntity(patch, true);
-    if (validated.isErr()) return err(validated.error);
-
-    try {
-      const response = await this.client.updateEntity(
-        validated.value,
-        "Merge",
-        options,
-      );
-      return ok(response);
-    } catch (error) {
-      return err(this.handleError(error, "patchEntity"));
     }
   }
 
