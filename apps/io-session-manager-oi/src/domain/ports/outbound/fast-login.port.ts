@@ -4,11 +4,10 @@ import {
   GenericError,
 } from "@pagopa/hexagonal-core";
 import { type Result } from "neverthrow";
-
-import { FastLoginPayloadDTO } from "../../../adapters/outbound/dtos/io-fast-login.dto.js";
+import { FastLoginParams } from "../../entities/fast-login.entity.js";
 
 export interface FastLoginPort {
   fastLogin(
-    payload: FastLoginPayloadDTO,
+    payload: FastLoginParams,
   ): Promise<Result<NonEmptyString, AuthenticationError | GenericError>>;
 }

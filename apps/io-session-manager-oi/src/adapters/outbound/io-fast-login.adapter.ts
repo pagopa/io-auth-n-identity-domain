@@ -9,7 +9,7 @@ import {
   FastLoginResponses,
 } from "../../generated/io-fast-login/types.gen.js";
 
-import { FastLoginResponseDTO } from "./dtos/io-fast-login.dto.js";
+import { FastLoginResponseDto } from "./dtos/io-fast-login.dto.js";
 
 export const createIoFastLoginAdapter = (config: {
   baseUrl: string;
@@ -45,7 +45,7 @@ export const createIoFastLoginAdapter = (config: {
         | keyof FastLoginErrors;
       switch (status) {
         case 200: {
-          const parsed = FastLoginResponseDTO.safeParse(data);
+          const parsed = FastLoginResponseDto.safeParse(data);
           return parsed.success
             ? ok(parsed.data.saml_response)
             : err(
