@@ -93,7 +93,7 @@ describe("createSmInternalRolloutAdapter#getUserLollipopActivation", () => {
     const result = await adapter.getUserLollipopActivation(aFiscalCode);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toEqual(aLollipopActivation);
+    expect(result._unsafeUnwrap()).toEqual(aLollipopActivation.assertion_ref);
   });
 
   it("returns err(GenericError) when response body is invalid", async () => {

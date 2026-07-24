@@ -69,7 +69,7 @@ export const createSmInternalRolloutAdapter = (config: {
         case 200: {
           const parsed = LollipopActivationDto.safeParse(data);
           return parsed.success
-            ? ok(parsed.data)
+            ? ok(parsed.data.assertion_ref)
             : err(
                 new GenericError(
                   `Invalid getUserLollipopActivation response: ${parsed.error.message}`,

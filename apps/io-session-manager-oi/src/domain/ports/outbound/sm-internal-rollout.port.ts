@@ -5,7 +5,7 @@ import {
 } from "@pagopa/hexagonal-core";
 import { type Result } from "neverthrow";
 
-import { type LollipopActivationDto } from "../../../adapters/outbound/dtos/sm-internal-rollout.dto.js";
+import { LollipopAssertionRef } from "@pagopa/io-auth-n-identity-domain";
 
 /**
  * Port exposing the io-session-manager-internal endpoints used to support
@@ -25,5 +25,5 @@ export interface SmInternalRolloutPort {
    */
   readonly getUserLollipopActivation: (
     fiscalCode: FiscalCode,
-  ) => Promise<Result<LollipopActivationDto, GenericError | NotFoundError>>;
+  ) => Promise<Result<LollipopAssertionRef, GenericError | NotFoundError>>;
 }
