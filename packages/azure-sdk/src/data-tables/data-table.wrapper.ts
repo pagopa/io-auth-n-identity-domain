@@ -3,7 +3,6 @@ import {
   CreateTableEntityResponse,
   DeleteTableEntityOptions,
   DeleteTableEntityResponse,
-  GetTableEntityOptions,
   ListTableEntitiesOptions,
   RestError,
   TableClient,
@@ -11,7 +10,6 @@ import {
   TableEntityResult,
   UpdateEntityResponse,
   UpdateTableEntityOptions,
-  UpsertEntityResponse,
 } from "@azure/data-tables";
 import {
   AuthenticationError,
@@ -196,79 +194,6 @@ export class TableClientWrapper<S extends TableEntitySchema> {
   }
 
   /**
-   * Reads a single entity by `partitionKey` / `rowKey` and validates it
-   * against the bound schema.
-   *
-   * On success returns the validated entity and the etag/timestamp system
-   * metadata (see {@link TableEntityWithMetadata}) so the caller can perform
-   * subsequent conditional updates or deletes.
-   *
-   * Fails with:
-   * - `NotFoundError` if the row does not exist (HTTP `404`).
-   * - `ValidationError` if the stored row does not match the schema.
-   * - Other {@link TableStorageError} variants for the remaining SDK errors.
-   *
-   * @param partitionKey - Partition key of the target row, typed via `S`.
-   * @param rowKey       - Row key of the target row, typed via `S`.
-   * @param options      - Optional SDK request options.
-   */
-  public async getEntity(
-    partitionKey: PartitionKeyOf<S>,
-    rowKey: RowKeyOf<S>,
-    options?: GetTableEntityOptions,
-  ): Promise<Result<TableEntityWithMetadata<z.output<S>>, TableStorageError>> {
-    let response: TableEntityResult<Record<string, unknown>>;
-    try {
-      // pk/rk are string subtypes at the type level but TS's index-access
-      // through zod's shape widens to `unknown`; cast to satisfy the SDK.
-      response = await this.client.getEntity(
-        partitionKey,
-        rowKey,
-        options,
-      );
-    } catch (error) {
-      return err(this.handleError(error, "getEntity"));
-    }
-    return this.parseEntity(response, "getEntity");
-  }
-
-  /**
-   * Replaces an existing row.
-   *
-   * Uses the SDK's `"Replace"` mode: any pre-existing fields not present in
-   * `entity` are removed. For partial updates that preserve other fields,
-   * use {@link TableClientWrapper.patchEntity}.
-   *
-   * Fails with:
-   * - `ValidationError` if the entity does not match the schema.
-   * - `NotFoundError` if the target row does not exist.
-   * - `PreconditionFailedError` if `options.etag` no longer matches.
-   * - Other {@link TableStorageError} variants for the remaining SDK errors.
-   *
-   * @param entity  - Full row; validated against the schema.
-   * @param options - Optional SDK request options, including `etag` for
-   *   conditional updates.
-   */
-  public async updateEntity(
-    entity: z.input<S>,
-    options?: UpdateTableEntityOptions,
-  ): Promise<Result<UpdateEntityResponse, TableStorageError>> {
-    const validated = this.validateEntity(entity);
-    if (validated.isErr()) return err(validated.error);
-
-    try {
-      const response = await this.client.updateEntity(
-        validated.value,
-        "Replace",
-        options,
-      );
-      return ok(response);
-    } catch (error) {
-      return err(this.handleError(error, "updateEntity"));
-    }
-  }
-
-  /**
    * Partially updates an existing row: fields present in `patch` overwrite
    * the stored values, fields absent are preserved.
    *
@@ -304,72 +229,6 @@ export class TableClientWrapper<S extends TableEntitySchema> {
       return ok(response);
     } catch (error) {
       return err(this.handleError(error, "patchEntity"));
-    }
-  }
-
-  /**
-   * Inserts a row if it does not exist, otherwise replaces it.
-   *
-   * Uses the SDK's `"Replace"` mode. For merge upsert semantics, do a
-   * `getEntity` + `patchEntity` (or use `getTableClient().upsertEntity(...)`
-   * directly with `"Merge"`).
-   *
-   * Fails with:
-   * - `ValidationError` if the entity does not match the schema.
-   * - Other {@link TableStorageError} variants for SDK errors.
-   *
-   * @param entity  - Full row; validated against the schema.
-   * @param options - Optional SDK request options.
-   */
-  public async upsertEntity(
-    entity: z.input<S>,
-    options?: OperationOptions,
-  ): Promise<Result<UpsertEntityResponse, TableStorageError>> {
-    const validated = this.validateEntity(entity);
-    if (validated.isErr()) return err(validated.error);
-
-    try {
-      const response = await this.client.upsertEntity(
-        validated.value,
-        "Replace",
-        options,
-      );
-      return ok(response);
-    } catch (error) {
-      return err(this.handleError(error, "upsertEntity"));
-    }
-  }
-
-  /**
-   * Deletes a single row by `partitionKey` / `rowKey`.
-   *
-   * Pass `options.etag` to make the delete conditional (optimistic
-   * concurrency). Without it, the delete is unconditional (`etag: "*"`).
-   *
-   * Fails with:
-   * - `NotFoundError` if the row does not exist (HTTP `404`).
-   * - `PreconditionFailedError` if `options.etag` no longer matches
-   *   (HTTP `412`).
-   * - Other {@link TableStorageError} variants for the remaining SDK errors.
-   *
-   * @param partitionKey - Partition key of the target row, typed via `S`.
-   * @param rowKey       - Row key of the target row, typed via `S`.
-   * @param options      - Optional SDK request options, including `etag`.
-   */
-  public async deleteEntity(
-    partitionKey: PartitionKeyOf<S>,
-    rowKey: RowKeyOf<S>,
-    options?: DeleteTableEntityOptions,
-  ): Promise<Result<DeleteTableEntityResponse, TableStorageError>> {
-    try {
-      const response = await this.client.deleteEntity(
-        partitionKey,
-        rowKey,
-        options,
-      );
-      return ok(response);
-    } catch (error) {
-      return err(this.handleError(error, "deleteEntity"));
     }
   }
 
