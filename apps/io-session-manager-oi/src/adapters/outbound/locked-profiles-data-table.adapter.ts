@@ -71,10 +71,8 @@ export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
         if (entity.isErr()) {
           return err(entity.error);
         }
-        // If we find at least one entity that is not released, the profile is locked
-        if (entity.value.entity.Released !== true) {
-          return ok(true);
-        }
+        
+        return ok(true);
       }
 
       // If we didn't find any entities that are not released, the profile is not locked
