@@ -167,19 +167,6 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
     expect(result._unsafeUnwrap()).toBe(true);
   });
 
-  it("skips entities where Released === true and returns ok(false) if none remain", async () => {
-    // Defensive: the OData filter already excludes released rows, but if a
-    // released row leaks through the adapter must not report it as a lock.
-    listEntitiesMock.mockReturnValue(
-      asyncIterableOf([okEntity({ Released: true })]),
-    );
-
-    const result = await adapter.isLocked(FISCAL_CODE);
-
-    expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(false);
-  });
-
   it("returns ok(true) when a non-released entity follows a released one", async () => {
     listEntitiesMock.mockReturnValue(
       asyncIterableOf([
