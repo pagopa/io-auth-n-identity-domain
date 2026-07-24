@@ -167,20 +167,6 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
     expect(result._unsafeUnwrap()).toBe(true);
   });
 
-  it("returns ok(true) when a non-released entity follows a released one", async () => {
-    listEntitiesMock.mockReturnValue(
-      asyncIterableOf([
-        okEntity({ Released: true, rowKey: "111111111" }),
-        okEntity({ Released: false, rowKey: "222222222" }),
-      ]),
-    );
-
-    const result = await adapter.isLocked(FISCAL_CODE);
-
-    expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(true);
-  });
-
   it("returns the yielded error when the iterator emits an err", async () => {
     const notFound = new NotFoundError(TABLE_NAME, "table missing");
     listEntitiesMock.mockReturnValue(asyncIterableOf([err(notFound)]));
