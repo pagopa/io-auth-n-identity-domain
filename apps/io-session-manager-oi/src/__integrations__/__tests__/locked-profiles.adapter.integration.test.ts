@@ -144,28 +144,28 @@ describe("locked-profiles adapter (integration - Azurite)", () => {
     const result = await adapter.healthcheck();
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBeUndefined();
+    expect(result).toEqual(ok(undefined));
   });
 
   it("isLocked returns ok(true) for a fiscal code with an active lock", async () => {
     const result = await adapter.isLocked(LOCKED);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(true);
+    expect(result).toEqual(ok(true));
   });
 
   it("isLocked returns ok(false) for a fiscal code whose lock was released", async () => {
     const result = await adapter.isLocked(RELEASED);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(false);
+    expect(result).toEqual(ok(false));
   });
 
   it("isLocked returns ok(false) for a fiscal code with no lock row", async () => {
     const result = await adapter.isLocked(UNKNOWN);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(false);
+    expect(result).toEqual(ok(false));
   });
 
   it("healthcheck returns err(GenericError) when the table does not exist", async () => {

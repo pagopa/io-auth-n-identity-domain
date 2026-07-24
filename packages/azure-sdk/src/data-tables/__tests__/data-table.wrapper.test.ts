@@ -26,6 +26,7 @@ import {
   TableClientWrapper,
   TableEntitySchema,
 } from "../data-table.wrapper.js";
+import { ok } from "neverthrow";
 
 // ---------------------------------------------------------------------------
 // Test schema and fixtures
@@ -172,7 +173,7 @@ describe("TableClientWrapper - createEntity", () => {
     });
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(response);
+    expect(result).toEqual(ok(response));
     expect(client.createEntity).toHaveBeenCalledExactlyOnceWith(
       {
         partitionKey: PK,

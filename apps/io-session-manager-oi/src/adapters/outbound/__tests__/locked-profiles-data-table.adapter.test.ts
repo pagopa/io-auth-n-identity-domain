@@ -93,7 +93,7 @@ describe("LockedProfilesDataTableAdapter#healthcheck", () => {
     const result = await adapter.healthcheck();
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBeUndefined();
+    expect(result).toEqual(ok(undefined));
     expect(listEntitiesMock).toHaveBeenCalledExactlyOnceWith({
       queryOptions: { filter: "PartitionKey eq ''" },
     });
@@ -137,7 +137,7 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
     const result = await adapter.isLocked(FISCAL_CODE);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(false);
+    expect(result).toEqual(ok(false));
     expect(listEntitiesMock).toHaveBeenCalledExactlyOnceWith({
       queryOptions: {
         filter: `PartitionKey eq '${FISCAL_CODE}' and not Released`,
@@ -153,7 +153,7 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
     const result = await adapter.isLocked(FISCAL_CODE);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(true);
+    expect(result).toEqual(ok(true));
   });
 
   it("returns ok(true) when a lock entity has Released explicitly false", async () => {
@@ -164,7 +164,7 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
     const result = await adapter.isLocked(FISCAL_CODE);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(true);
+    expect(result).toEqual(ok(true));
   });
 
   it("returns the yielded error when the iterator emits an err", async () => {
@@ -174,7 +174,9 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
     const result = await adapter.isLocked(FISCAL_CODE);
 
     expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBe(notFound);
+    const error = result._unsafeUnwrapErr();
+    expect (error).toBeInstanceOf(NotFoundError);
+    expect(error).toEqual(notFound);
   });
 
   it("stops iterating on the first err (does not inspect subsequent entities)", async () => {
@@ -211,6 +213,8 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
     const result = await adapter.isLocked(FISCAL_CODE);
 
     expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr().message).toContain("raw string failure");
+    const error = result._unsafeUnwrapErr();
+    expect(error).toBeInstanceOf(GenericError);
+    expect(error.message).toContain("raw string failure");
   });
 });
