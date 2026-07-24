@@ -92,7 +92,8 @@ export default defineConfig([
     ],
   },
   {
-    input: "../io-fast-login/api/internal.yaml",
+    input:
+      "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/72f3e9344fac5cd525168be7228d84fa8cfe8b38/apps/io-fast-login/api/internal.yaml",
     output: {
       path: "src/generated/io-fast-login",
       module: {
