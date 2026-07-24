@@ -175,21 +175,38 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
 
     expect(result.isErr()).toBe(true);
     const error = result._unsafeUnwrapErr();
-    expect (error).toBeInstanceOf(NotFoundError);
+    expect(error).toBeInstanceOf(NotFoundError);
     expect(error).toEqual(notFound);
   });
 
-  it("stops iterating on the first err (does not inspect subsequent entities)", async () => {
-    const boom = new GenericError("first-error");
-    listEntitiesMock.mockReturnValue(
-      asyncIterableOf([err(boom), okEntity({ Released: false })]),
-    );
+  it.each([
+    {
+      case: "error",
+      entities: asyncIterableOf([
+        err(new GenericError("some error")),
+        okEntity({ Released: false }),
+      ]),
+      expected: err(new GenericError("some error")),
+    },
+    {
+      case: "locked",
+      entities: asyncIterableOf([
+        okEntity({ Released: true }), // ignored
+        okEntity({ Released: false }),
+        err(new GenericError("some error")),
+      ]),
+      expected: ok(true),
+    },
+  ] as const)(
+    "stops iterating on the first $case (does not inspect subsequent entities)",
+    async ({ entities, expected }) => {
+      listEntitiesMock.mockReturnValue(entities);
 
-    const result = await adapter.isLocked(FISCAL_CODE);
+      const result = await adapter.isLocked(FISCAL_CODE);
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBe(boom);
-  });
+      expect(result).toEqual(expected);
+    },
+  );
 
   it("falls back to GenericError when the iterator itself throws (defensive branch)", async () => {
     listEntitiesMock.mockReturnValue(
