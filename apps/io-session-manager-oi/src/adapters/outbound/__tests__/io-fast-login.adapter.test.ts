@@ -7,9 +7,12 @@ import {
 } from "@pagopa/io-auth-n-identity-domain";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { FastLoginPayloadDTO } from "../dtos/io-fast-login.dto.js";
 import { createIoFastLoginAdapter } from "../io-fast-login.adapter.js";
 import { fastLogin } from "../../../generated/io-fast-login/sdk.gen.js";
+import {
+  FastLoginParams,
+  FastLoginParamsSchema,
+} from "../../../domain/entities/fast-login.entity.js";
 
 vi.mock("../../../generated/io-fast-login/client/client.gen.js", () => ({
   createClient: vi.fn(() => ({
@@ -37,7 +40,7 @@ const anAssertionRef = LollipopAssertionRefSchema.parse(
   "sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU",
 );
 
-const aFastLoginPayload: FastLoginPayloadDTO = FastLoginPayloadDTO.parse({
+const aFastLoginPayload: FastLoginParams = FastLoginParamsSchema.parse({
   originalMethod: LollipopMethodSchema.enum.POST,
   originalUrl: "https://localhost/api/v1/fast-login",
   authJWT: "an-auth-jwt",
