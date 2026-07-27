@@ -1,4 +1,3 @@
-import { CosmosClient, ErrorResponse } from "@azure/cosmos";
 import {
   ConflictError,
   GenericError,
@@ -9,6 +8,11 @@ import type { LollipopAssertionRef } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  makeClientMock,
+  makeContainerMock,
+  makeErrorResponse,
+} from "../__mocks__/cosmos.mock.js";
 import { LollipopActivationCosmosAdapter } from "../lollipop-activation-cosmos.adapter.js";
 import type { LollipopActivation } from "../../../domain/entities/lollipop-activation.entity.js";
 
@@ -46,59 +50,11 @@ const aDbLollipopResource = {
 };
 
 // ---------------------------------------------------------------------------
-// Cosmos mocks
-// ---------------------------------------------------------------------------
-
-interface ContainerMock {
-  itemMock: {
-    read: ReturnType<typeof vi.fn>;
-    delete: ReturnType<typeof vi.fn>;
-  };
-  item: ReturnType<typeof vi.fn>;
-  create: ReturnType<typeof vi.fn>;
-  container: {
-    item: ReturnType<typeof vi.fn>;
-    items: {
-      create: ReturnType<typeof vi.fn>;
-    };
-  };
-}
-
-function makeContainerMock(): ContainerMock {
-  const itemMock = { read: vi.fn(), delete: vi.fn() };
-  const item = vi.fn(() => itemMock);
-  const create = vi.fn();
-
-  return {
-    itemMock,
-    item,
-    create,
-    container: {
-      item,
-      items: { create },
-    },
-  };
-}
-
-function makeClientMock(lollipop: ContainerMock): CosmosClient {
-  const container = vi.fn(() => lollipop.container);
-  return {
-    database: vi.fn(() => ({ container })),
-  } as unknown as CosmosClient;
-}
-
-function makeErrorResponse(code: number): ErrorResponse {
-  const e = new ErrorResponse(`cosmos error ${code}`);
-  e.code = code;
-  return e;
-}
-
-// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 const lollipop = makeContainerMock();
-const client = makeClientMock(lollipop);
+const client = makeClientMock(() => lollipop);
 const adapter = new LollipopActivationCosmosAdapter(
   client,
   DATABASE_ID,

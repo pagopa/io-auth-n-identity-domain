@@ -1,4 +1,3 @@
-import { CosmosClient, ErrorResponse } from "@azure/cosmos";
 import {
   ConflictError,
   GenericError,
@@ -8,6 +7,11 @@ import type { FiscalCode, NonEmptyString } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  makeClientMock,
+  makeContainerMock,
+  makeErrorResponse,
+} from "../__mocks__/cosmos.mock.js";
 import { SessionCosmosAdapter } from "../session-cosmos.adapter.js";
 import type {
   BaseSession,
@@ -101,82 +105,14 @@ const aDbSessionMetadataResource = {
 };
 
 // ---------------------------------------------------------------------------
-// Cosmos mocks
-// ---------------------------------------------------------------------------
-
-interface ContainerMock {
-  itemMock: {
-    read: ReturnType<typeof vi.fn>;
-    delete: ReturnType<typeof vi.fn>;
-  };
-  item: ReturnType<typeof vi.fn>;
-  create: ReturnType<typeof vi.fn>;
-  batch: ReturnType<typeof vi.fn>;
-  executeBulkOperations: ReturnType<typeof vi.fn>;
-  fetchAll: ReturnType<typeof vi.fn>;
-  query: ReturnType<typeof vi.fn>;
-  container: {
-    item: ReturnType<typeof vi.fn>;
-    items: {
-      create: ReturnType<typeof vi.fn>;
-      batch: ReturnType<typeof vi.fn>;
-      executeBulkOperations: ReturnType<typeof vi.fn>;
-      query: ReturnType<typeof vi.fn>;
-    };
-  };
-}
-
-function makeContainerMock(): ContainerMock {
-  const itemMock = { read: vi.fn(), delete: vi.fn() };
-  const item = vi.fn(() => itemMock);
-  const create = vi.fn();
-  const batch = vi.fn();
-  const executeBulkOperations = vi.fn();
-  const fetchAll = vi.fn();
-  const query = vi.fn(() => ({ fetchAll }));
-
-  return {
-    itemMock,
-    item,
-    create,
-    batch,
-    executeBulkOperations,
-    fetchAll,
-    query,
-    container: {
-      item,
-      items: { create, batch, executeBulkOperations, query },
-    },
-  };
-}
-
-function makeClientMock(
-  userSession: ContainerMock,
-  sessionMetadata: ContainerMock,
-): CosmosClient {
-  const container = vi.fn((id: string) =>
-    id === USER_SESSION_CONTAINER_ID
-      ? userSession.container
-      : sessionMetadata.container,
-  );
-  return {
-    database: vi.fn(() => ({ container })),
-  } as unknown as CosmosClient;
-}
-
-function makeErrorResponse(code: number): ErrorResponse {
-  const e = new ErrorResponse(`cosmos error ${code}`);
-  e.code = code;
-  return e;
-}
-
-// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 const userSession = makeContainerMock();
 const sessionMetadata = makeContainerMock();
-const client = makeClientMock(userSession, sessionMetadata);
+const client = makeClientMock((id) =>
+  id === USER_SESSION_CONTAINER_ID ? userSession : sessionMetadata,
+);
 const adapter = new SessionCosmosAdapter(
   client,
   DATABASE_ID,
