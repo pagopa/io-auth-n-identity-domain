@@ -41,7 +41,3 @@ export class NotificationStorageQueueAdapter
       });
   }
 }
-
-// function base64EncodeObject(obj: unknown): string {
-//   return Buffer.from(JSON.stringify(obj)).toString("base64");
-// }
