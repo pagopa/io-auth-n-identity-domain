@@ -27,6 +27,7 @@
     "@azure/cosmos": "catalog:",
     "@azure/data-tables": "catalog:",
     "@azure/identity": "catalog:",
+    "@azure/storage-queue": "catalog:",
     "@pagopa/azure-sdk": "workspace:^",
     "@pagopa/hexagonal-core": "catalog:",
     "@pagopa/hexagonal-fastify": "catalog:",
