@@ -1,16 +1,14 @@
 import { QueueClient } from "@azure/storage-queue";
 import { FiscalCode, GenericError } from "@pagopa/hexagonal-core";
 import { err, ok, Result, ResultAsync } from "neverthrow";
-import { NotificationOutboundPort } from "../../domain/ports/outbound/notification.port.js";
+import { NotificationPort } from "../../domain/ports/outbound/notification.port.js";
 import { Base64 } from "../../utils/codec.js";
 import { Hash } from "../../utils/crypto.js";
 
 /**
  * NotificationStorageQueueAdapter is an implementation of the NotificationOutboundPort interface that uses Azure Storage Queue to send messages for deleting installations.
  */
-export class NotificationStorageQueueAdapter
-  implements NotificationOutboundPort
-{
+export class NotificationStorageQueueAdapter implements NotificationPort {
   constructor(private readonly queueClient: QueueClient) {}
 
   async healthcheck(): Promise<Result<void, GenericError>> {
@@ -41,12 +39,9 @@ export class NotificationStorageQueueAdapter
       (error) =>
         new Error(error instanceof Error ? error.message : String(error)),
     )
-      .andThen((response) => {
-        if (response.errorCode) {
-          return err(new Error(response.errorCode));
-        }
-        return ok(undefined);
-      })
+      .andThen((response) =>
+        response.errorCode ? err(new Error(response.errorCode)) : ok(undefined),
+      )
       .mapErr(
         (error) =>
           new GenericError(
