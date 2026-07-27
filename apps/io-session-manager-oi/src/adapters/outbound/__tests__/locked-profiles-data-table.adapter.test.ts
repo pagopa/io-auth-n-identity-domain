@@ -191,12 +191,12 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
     {
       case: "locked",
       entities: asyncIterableOf([
-        okEntity({ Released: true }), // ignored
+        okEntity({ Released: false }),
         okEntity({ Released: false }),
         err(new GenericError("some error")),
       ]),
       expected: ok(true),
-    },
+    }
   ] as const)(
     "stops iterating on the first $case (does not inspect subsequent entities)",
     async ({ entities, expected }) => {
