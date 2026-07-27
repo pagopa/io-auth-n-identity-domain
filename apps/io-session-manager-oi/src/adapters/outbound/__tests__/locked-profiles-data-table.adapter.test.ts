@@ -92,7 +92,6 @@ describe("LockedProfilesDataTableAdapter#healthcheck", () => {
 
     const result = await adapter.healthcheck();
 
-    expect(result.isOk()).toBe(true);
     expect(result).toEqual(ok(undefined));
     expect(listEntitiesMock).toHaveBeenCalledExactlyOnceWith({
       queryOptions: { filter: "PartitionKey eq ''" },
@@ -106,7 +105,7 @@ describe("LockedProfilesDataTableAdapter#healthcheck", () => {
 
     const result = await adapter.healthcheck();
 
-    expect(result.isOk()).toBe(true);
+    expect(result).toEqual(ok(undefined));
   });
 
   it("returns err(GenericError) when the iterator yields an err", async () => {
@@ -135,8 +134,7 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
     listEntitiesMock.mockReturnValue(asyncIterableOf([]));
 
     const result = await adapter.isLocked(FISCAL_CODE);
-
-    expect(result.isOk()).toBe(true);
+    
     expect(result).toEqual(ok(false));
     expect(listEntitiesMock).toHaveBeenCalledExactlyOnceWith({
       queryOptions: {
@@ -151,8 +149,7 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
     );
 
     const result = await adapter.isLocked(FISCAL_CODE);
-
-    expect(result.isOk()).toBe(true);
+    
     expect(result).toEqual(ok(true));
   });
 
@@ -163,7 +160,6 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
 
     const result = await adapter.isLocked(FISCAL_CODE);
 
-    expect(result.isOk()).toBe(true);
     expect(result).toEqual(ok(true));
   });
 
