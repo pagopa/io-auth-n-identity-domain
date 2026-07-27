@@ -32,12 +32,11 @@ export class NotificationStorageQueueAdapter
         }
         return ok(undefined);
       })
-      .mapErr((error) => {
-        const err = new GenericError(
-          `Failed to send delete installation message: ${error.message}`,
-        );
-        console.log("LOG:" + err.message);
-        return err;
-      });
+      .mapErr(
+        (error) =>
+          new GenericError(
+            `Failed to send delete installation message: ${error.message}`,
+          ),
+      );
   }
 }
