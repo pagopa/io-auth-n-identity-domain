@@ -131,7 +131,7 @@ describe("SessionCosmosAdapter", () => {
 
   describe("findBySessionToken", () => {
     it("GIVEN an existing session WHEN findBySessionToken is called THEN returns the session", async () => {
-      userSession.itemMock.read.mockResolvedValue({
+      userSession.itemMock.read.mockResolvedValueOnce({
         resource: aDbSessionResource,
         statusCode: 200,
       });
@@ -149,7 +149,7 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN no session WHEN findBySessionToken is called THEN returns NotFoundError", async () => {
-      userSession.itemMock.read.mockResolvedValue({
+      userSession.itemMock.read.mockResolvedValueOnce({
         resource: undefined,
         statusCode: 404,
       });
@@ -163,7 +163,7 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN a malformed session document WHEN findBySessionToken is called THEN returns GenericError", async () => {
-      userSession.itemMock.read.mockResolvedValue({
+      userSession.itemMock.read.mockResolvedValueOnce({
         resource: { ...aDbSessionResource, fiscalCode: "invalid" },
         statusCode: 200,
       });
@@ -177,7 +177,7 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN a cosmos ErrorResponse WHEN findBySessionToken is called THEN returns GenericError", async () => {
-      userSession.itemMock.read.mockRejectedValue(makeErrorResponse(500));
+      userSession.itemMock.read.mockRejectedValueOnce(makeErrorResponse(500));
 
       const result = await adapter.findBySessionToken({
         sessionId: aSessionId,
@@ -188,7 +188,7 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN a conflict cosmos error WHEN findBySessionToken is called THEN maps it to GenericError", async () => {
-      userSession.itemMock.read.mockRejectedValue(makeErrorResponse(409));
+      userSession.itemMock.read.mockRejectedValueOnce(makeErrorResponse(409));
 
       const result = await adapter.findBySessionToken({
         sessionId: aSessionId,
@@ -205,7 +205,7 @@ describe("SessionCosmosAdapter", () => {
 
   describe("findByBpdToken", () => {
     it("GIVEN an existing session WHEN findByBpdToken is called THEN returns the session", async () => {
-      userSession.itemMock.read.mockResolvedValue({
+      userSession.itemMock.read.mockResolvedValueOnce({
         resource: {
           ...aDbSessionResource,
           id: COSMOS_BPD_PREFIX + aHashedBpdToken,
@@ -226,7 +226,7 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN no session WHEN findByBpdToken is called THEN returns NotFoundError", async () => {
-      userSession.itemMock.read.mockResolvedValue({
+      userSession.itemMock.read.mockResolvedValueOnce({
         resource: undefined,
         statusCode: 404,
       });
@@ -246,8 +246,8 @@ describe("SessionCosmosAdapter", () => {
 
   describe("create", () => {
     it("GIVEN valid session and metadata WHEN create is called THEN persists both and returns the session", async () => {
-      userSession.batch.mockResolvedValue({ code: 200, result: [] });
-      sessionMetadata.create.mockResolvedValue({
+      userSession.batch.mockResolvedValueOnce({ code: 200, result: [] });
+      sessionMetadata.create.mockResolvedValueOnce({
         resource: aDbSessionMetadataResource,
       });
 
@@ -292,7 +292,7 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN a user session already exists WHEN create is called THEN returns ConflictError and skips metadata creation", async () => {
-      userSession.batch.mockResolvedValue({
+      userSession.batch.mockResolvedValueOnce({
         code: 207,
         result: [{ statusCode: 409 }],
       });
@@ -307,7 +307,7 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN a non-conflict batch failure WHEN create is called THEN returns GenericError", async () => {
-      userSession.batch.mockResolvedValue({
+      userSession.batch.mockResolvedValueOnce({
         code: 500,
         result: [{ statusCode: 500 }],
       });
@@ -322,7 +322,7 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN the batch call throws WHEN create is called THEN returns GenericError", async () => {
-      userSession.batch.mockRejectedValue(new Error("boom"));
+      userSession.batch.mockRejectedValueOnce(new Error("boom"));
 
       const result = await adapter.create(
         aSessionMetadata,
@@ -343,8 +343,8 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN metadata creation conflicts WHEN create is called THEN returns ConflictError", async () => {
-      userSession.batch.mockResolvedValue({ code: 200, result: [] });
-      sessionMetadata.create.mockRejectedValue(makeErrorResponse(409));
+      userSession.batch.mockResolvedValueOnce({ code: 200, result: [] });
+      sessionMetadata.create.mockRejectedValueOnce(makeErrorResponse(409));
 
       const result = await adapter.create(
         aSessionMetadata,
@@ -355,7 +355,7 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN metadata expiration date in the past WHEN create is called THEN returns GenericError", async () => {
-      userSession.batch.mockResolvedValue({ code: 200, result: [] });
+      userSession.batch.mockResolvedValueOnce({ code: 200, result: [] });
 
       const result = await adapter.create(
         { ...aSessionMetadata, expirationDate: aPastExpirationDate },
@@ -373,7 +373,7 @@ describe("SessionCosmosAdapter", () => {
 
   describe("refresh", () => {
     it("GIVEN a valid session WHEN refresh is called THEN recreates the user session and returns it", async () => {
-      userSession.batch.mockResolvedValue({ code: 200, result: [] });
+      userSession.batch.mockResolvedValueOnce({ code: 200, result: [] });
 
       const result = await adapter.refresh(aSessionWithHashedTokens);
 
@@ -384,7 +384,7 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN a conflict WHEN refresh is called THEN returns ConflictError", async () => {
-      userSession.batch.mockResolvedValue({
+      userSession.batch.mockResolvedValueOnce({
         code: 207,
         result: [{ statusCode: 409 }],
       });
@@ -401,10 +401,17 @@ describe("SessionCosmosAdapter", () => {
 
   describe("delete", () => {
     it("GIVEN an existing session WHEN delete is called THEN deletes metadata, the SSO tokens first and the main token last", async () => {
-      sessionMetadata.itemMock.delete.mockResolvedValue({ statusCode: 204 });
-      userSession.executeBulkOperations.mockResolvedValue([
-        { response: { statusCode: 204 } },
-      ]);
+      sessionMetadata.itemMock.delete.mockResolvedValueOnce({
+        statusCode: 204,
+      });
+      userSession.executeBulkOperations
+        .mockResolvedValueOnce([
+          { response: { statusCode: 204 } },
+          { response: { statusCode: 204 } },
+          { response: { statusCode: 204 } },
+          { response: { statusCode: 204 } },
+        ])
+        .mockResolvedValueOnce([{ response: { statusCode: 204 } }]);
 
       const result = await adapter.delete(aSessionWithHashedTokens);
 
@@ -431,10 +438,15 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN metadata deletion returns 404 WHEN delete is called THEN still deletes the token items", async () => {
-      sessionMetadata.itemMock.delete.mockRejectedValue({ code: 404 });
-      userSession.executeBulkOperations.mockResolvedValue([
-        { response: { statusCode: 204 } },
-      ]);
+      sessionMetadata.itemMock.delete.mockRejectedValueOnce({ code: 404 });
+      userSession.executeBulkOperations
+        .mockResolvedValueOnce([
+          { response: { statusCode: 204 } },
+          { response: { statusCode: 204 } },
+          { response: { statusCode: 204 } },
+          { response: { statusCode: 204 } },
+        ])
+        .mockResolvedValueOnce([{ response: { statusCode: 204 } }]);
 
       const result = await adapter.delete(aSessionWithHashedTokens);
 
@@ -443,7 +455,7 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN metadata deletion fails WHEN delete is called THEN returns GenericError and skips token deletion", async () => {
-      sessionMetadata.itemMock.delete.mockRejectedValue({ code: 500 });
+      sessionMetadata.itemMock.delete.mockRejectedValueOnce({ code: 500 });
 
       const result = await adapter.delete(aSessionWithHashedTokens);
 
@@ -452,10 +464,14 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN an SSO token deletion fails WHEN delete is called THEN the main session token is NOT deleted and returns GenericError", async () => {
-      sessionMetadata.itemMock.delete.mockResolvedValue({ statusCode: 204 });
+      sessionMetadata.itemMock.delete.mockResolvedValueOnce({
+        statusCode: 204,
+      });
       userSession.executeBulkOperations.mockResolvedValueOnce([
         { response: { statusCode: 204 } },
+        { response: { statusCode: 204 } },
         { response: { statusCode: 500 } },
+        { response: { statusCode: 204 } },
       ]);
 
       const result = await adapter.delete(aSessionWithHashedTokens);
@@ -469,10 +485,35 @@ describe("SessionCosmosAdapter", () => {
       );
     });
 
+    it("GIVEN the SSO tokens bulk deletion throws WHEN delete is called THEN returns GenericError", async () => {
+      sessionMetadata.itemMock.delete.mockResolvedValueOnce({
+        statusCode: 204,
+      });
+      userSession.executeBulkOperations.mockRejectedValueOnce(
+        new Error("boom"),
+      );
+
+      const result = await adapter.delete(aSessionWithHashedTokens);
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+      expect(userSession.executeBulkOperations).toHaveBeenCalledTimes(1);
+      const onlyCallOps = userSession.executeBulkOperations.mock.calls[0][0];
+      expect(onlyCallOps.map((op: { id: string }) => op.id)).not.toContain(
+        COSMOS_SESSION_PREFIX + aHashedSessionToken,
+      );
+    });
+
     it("GIVEN SSO deletions succeed but the main token deletion fails WHEN delete is called THEN returns GenericError", async () => {
-      sessionMetadata.itemMock.delete.mockResolvedValue({ statusCode: 204 });
+      sessionMetadata.itemMock.delete.mockResolvedValueOnce({
+        statusCode: 204,
+      });
       userSession.executeBulkOperations
-        .mockResolvedValueOnce([{ response: { statusCode: 204 } }])
+        .mockResolvedValueOnce([
+          { response: { statusCode: 204 } },
+          { response: { statusCode: 204 } },
+          { response: { statusCode: 204 } },
+          { response: { statusCode: 204 } },
+        ])
         .mockResolvedValueOnce([{ response: { statusCode: 500 } }]);
 
       const result = await adapter.delete(aSessionWithHashedTokens);
@@ -482,11 +523,15 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN 404 on SSO tokens WHEN delete is called THEN still deletes the main token (idempotent retry)", async () => {
-      sessionMetadata.itemMock.delete.mockResolvedValue({ statusCode: 204 });
+      sessionMetadata.itemMock.delete.mockResolvedValueOnce({
+        statusCode: 204,
+      });
       userSession.executeBulkOperations
         .mockResolvedValueOnce([
           { response: { statusCode: 404 } },
-          { response: { statusCode: 404 } },
+          { response: { statusCode: 204 } },
+          { response: { statusCode: 204 } },
+          { response: { statusCode: 204 } },
         ])
         .mockResolvedValueOnce([{ response: { statusCode: 204 } }]);
 
@@ -495,15 +540,25 @@ describe("SessionCosmosAdapter", () => {
       expect(result).toEqual(ok(undefined));
       expect(userSession.executeBulkOperations).toHaveBeenCalledTimes(2);
     });
+  });
 
-    it("GIVEN the bulk deletion throws WHEN delete is called THEN returns GenericError", async () => {
-      sessionMetadata.itemMock.delete.mockResolvedValue({ statusCode: 204 });
-      userSession.executeBulkOperations.mockRejectedValue(new Error("boom"));
-
-      const result = await adapter.delete(aSessionWithHashedTokens);
-
-      expect(result).toEqual(err(expect.any(GenericError)));
+  it("GIVEN the main token bulk deletion throws WHEN delete is called THEN returns GenericError", async () => {
+    sessionMetadata.itemMock.delete.mockResolvedValueOnce({
+      statusCode: 204,
     });
+    userSession.executeBulkOperations
+      .mockResolvedValueOnce([
+        { response: { statusCode: 204 } },
+        { response: { statusCode: 204 } },
+        { response: { statusCode: 204 } },
+        { response: { statusCode: 204 } },
+      ])
+      .mockRejectedValueOnce(new Error("boom"));
+
+    const result = await adapter.delete(aSessionWithHashedTokens);
+
+    expect(result).toEqual(err(expect.any(GenericError)));
+    expect(userSession.executeBulkOperations).toHaveBeenCalledTimes(2);
   });
 
   // -------------------------------------------------------------------------
@@ -512,7 +567,7 @@ describe("SessionCosmosAdapter", () => {
 
   describe("invalidatePreviousSession", () => {
     it("GIVEN no previous session metadata WHEN invalidatePreviousSession is called THEN returns ok(undefined)", async () => {
-      sessionMetadata.itemMock.read.mockResolvedValue({
+      sessionMetadata.itemMock.read.mockResolvedValueOnce({
         resource: undefined,
         statusCode: 404,
       });
@@ -524,7 +579,7 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN a metadata read error WHEN invalidatePreviousSession is called THEN returns GenericError", async () => {
-      sessionMetadata.itemMock.read.mockResolvedValue({
+      sessionMetadata.itemMock.read.mockResolvedValueOnce({
         resource: aDbSessionMetadataResource,
         statusCode: 500,
       });
@@ -535,21 +590,23 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN an existing session WHEN invalidatePreviousSession is called THEN deletes items and returns the previous token", async () => {
-      sessionMetadata.itemMock.read.mockResolvedValue({
+      sessionMetadata.itemMock.read.mockResolvedValueOnce({
         resource: aDbSessionMetadataResource,
         statusCode: 200,
       });
-      userSession.fetchAll.mockResolvedValue({
+      userSession.fetchAll.mockResolvedValueOnce({
         resources: [
           { id: COSMOS_SESSION_PREFIX + aHashedSessionToken },
           { id: "WALLET-" + aHashedWalletToken },
         ],
       });
-      userSession.executeBulkOperations.mockResolvedValue([
+      userSession.executeBulkOperations.mockResolvedValueOnce([
         { response: { statusCode: 204 } },
         { response: { statusCode: 204 } },
       ]);
-      sessionMetadata.itemMock.delete.mockResolvedValue({ statusCode: 204 });
+      sessionMetadata.itemMock.delete.mockResolvedValueOnce({
+        statusCode: 204,
+      });
 
       const result = await adapter.invalidatePreviousSession(aFiscalCode);
 
@@ -564,12 +621,14 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN no session token item WHEN invalidatePreviousSession is called THEN returns ok(undefined)", async () => {
-      sessionMetadata.itemMock.read.mockResolvedValue({
+      sessionMetadata.itemMock.read.mockResolvedValueOnce({
         resource: aDbSessionMetadataResource,
         statusCode: 200,
       });
-      userSession.fetchAll.mockResolvedValue({ resources: [] });
-      sessionMetadata.itemMock.delete.mockResolvedValue({ statusCode: 204 });
+      userSession.fetchAll.mockResolvedValueOnce({ resources: [] });
+      sessionMetadata.itemMock.delete.mockResolvedValueOnce({
+        statusCode: 204,
+      });
 
       const result = await adapter.invalidatePreviousSession(aFiscalCode);
 
@@ -578,14 +637,14 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN a bulk deletion error status WHEN invalidatePreviousSession is called THEN returns GenericError", async () => {
-      sessionMetadata.itemMock.read.mockResolvedValue({
+      sessionMetadata.itemMock.read.mockResolvedValueOnce({
         resource: aDbSessionMetadataResource,
         statusCode: 200,
       });
-      userSession.fetchAll.mockResolvedValue({
+      userSession.fetchAll.mockResolvedValueOnce({
         resources: [{ id: COSMOS_SESSION_PREFIX + aHashedSessionToken }],
       });
-      userSession.executeBulkOperations.mockResolvedValue([
+      userSession.executeBulkOperations.mockResolvedValueOnce([
         { response: { statusCode: 500 } },
       ]);
 
@@ -596,11 +655,11 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN the query throws WHEN invalidatePreviousSession is called THEN returns GenericError", async () => {
-      sessionMetadata.itemMock.read.mockResolvedValue({
+      sessionMetadata.itemMock.read.mockResolvedValueOnce({
         resource: aDbSessionMetadataResource,
         statusCode: 200,
       });
-      userSession.fetchAll.mockRejectedValue(makeErrorResponse(500));
+      userSession.fetchAll.mockRejectedValueOnce(makeErrorResponse(500));
 
       const result = await adapter.invalidatePreviousSession(aFiscalCode);
 
@@ -608,11 +667,11 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN a conflict error is thrown WHEN invalidatePreviousSession is called THEN maps it to GenericError", async () => {
-      sessionMetadata.itemMock.read.mockResolvedValue({
+      sessionMetadata.itemMock.read.mockResolvedValueOnce({
         resource: aDbSessionMetadataResource,
         statusCode: 200,
       });
-      userSession.fetchAll.mockRejectedValue(makeErrorResponse(409));
+      userSession.fetchAll.mockRejectedValueOnce(makeErrorResponse(409));
 
       const result = await adapter.invalidatePreviousSession(aFiscalCode);
 

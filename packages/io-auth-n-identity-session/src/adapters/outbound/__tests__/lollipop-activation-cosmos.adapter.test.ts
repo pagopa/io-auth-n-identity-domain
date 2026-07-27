@@ -72,7 +72,7 @@ describe("LollipopActivationCosmosAdapter", () => {
 
   describe("getByFiscalCode", () => {
     it("GIVEN an existing activation WHEN getByFiscalCode is called THEN returns the activation", async () => {
-      lollipop.itemMock.read.mockResolvedValue({
+      lollipop.itemMock.read.mockResolvedValueOnce({
         resource: aDbLollipopResource,
         statusCode: 200,
       });
@@ -84,7 +84,7 @@ describe("LollipopActivationCosmosAdapter", () => {
     });
 
     it("GIVEN no activation WHEN getByFiscalCode is called THEN returns NotFoundError", async () => {
-      lollipop.itemMock.read.mockResolvedValue({
+      lollipop.itemMock.read.mockResolvedValueOnce({
         resource: undefined,
         statusCode: 404,
       });
@@ -95,18 +95,21 @@ describe("LollipopActivationCosmosAdapter", () => {
     });
 
     it("GIVEN a malformed activation document WHEN getByFiscalCode is called THEN returns GenericError", async () => {
-      lollipop.itemMock.read.mockResolvedValue({
+      lollipop.itemMock.read.mockResolvedValueOnce({
         resource: { ...aDbLollipopResource, assertionRef: "invalid" },
         statusCode: 200,
       });
 
       const result = await adapter.getByFiscalCode(aFiscalCode);
+      console.log(result);
 
-      expect(result).toEqual(err(expect.any(GenericError)));
+      expect(result).toEqual(
+        err(new GenericError("Invalid lollipop activation")),
+      );
     });
 
     it("GIVEN a cosmos ErrorResponse WHEN getByFiscalCode is called THEN returns GenericError", async () => {
-      lollipop.itemMock.read.mockRejectedValue(makeErrorResponse(500));
+      lollipop.itemMock.read.mockRejectedValueOnce(makeErrorResponse(500));
 
       const result = await adapter.getByFiscalCode(aFiscalCode);
 
@@ -114,7 +117,7 @@ describe("LollipopActivationCosmosAdapter", () => {
     });
 
     it("GIVEN a conflict cosmos error WHEN getByFiscalCode is called THEN maps it to GenericError", async () => {
-      lollipop.itemMock.read.mockRejectedValue(makeErrorResponse(409));
+      lollipop.itemMock.read.mockRejectedValueOnce(makeErrorResponse(409));
 
       const result = await adapter.getByFiscalCode(aFiscalCode);
 
@@ -128,7 +131,7 @@ describe("LollipopActivationCosmosAdapter", () => {
 
   describe("activate", () => {
     it("GIVEN a valid activation WHEN activate is called THEN persists it and returns ok", async () => {
-      lollipop.create.mockResolvedValue({ resource: aDbLollipopResource });
+      lollipop.create.mockResolvedValueOnce({ resource: aDbLollipopResource });
 
       const result = await adapter.activate(aLollipopActivation);
 
@@ -147,7 +150,7 @@ describe("LollipopActivationCosmosAdapter", () => {
     });
 
     it("GIVEN the activation already exists WHEN activate is called THEN returns ConflictError", async () => {
-      lollipop.create.mockRejectedValue(makeErrorResponse(409));
+      lollipop.create.mockRejectedValueOnce(makeErrorResponse(409));
 
       const result = await adapter.activate(aLollipopActivation);
 
@@ -155,7 +158,7 @@ describe("LollipopActivationCosmosAdapter", () => {
     });
 
     it("GIVEN a cosmos ErrorResponse WHEN activate is called THEN returns GenericError", async () => {
-      lollipop.create.mockRejectedValue(makeErrorResponse(500));
+      lollipop.create.mockRejectedValueOnce(makeErrorResponse(500));
 
       const result = await adapter.activate(aLollipopActivation);
 
@@ -169,11 +172,11 @@ describe("LollipopActivationCosmosAdapter", () => {
 
   describe("revokeByFiscalCode", () => {
     it("GIVEN an existing activation WHEN revokeByFiscalCode is called THEN deletes it and returns ok", async () => {
-      lollipop.itemMock.read.mockResolvedValue({
+      lollipop.itemMock.read.mockResolvedValueOnce({
         resource: aDbLollipopResource,
         statusCode: 200,
       });
-      lollipop.itemMock.delete.mockResolvedValue({ statusCode: 204 });
+      lollipop.itemMock.delete.mockResolvedValueOnce({ statusCode: 204 });
 
       const result = await adapter.revokeByFiscalCode(aFiscalCode);
 
@@ -183,7 +186,7 @@ describe("LollipopActivationCosmosAdapter", () => {
     });
 
     it("GIVEN no activation WHEN revokeByFiscalCode is called THEN returns ok and does not delete", async () => {
-      lollipop.itemMock.read.mockResolvedValue({
+      lollipop.itemMock.read.mockResolvedValueOnce({
         resource: undefined,
         statusCode: 404,
       });
@@ -195,7 +198,7 @@ describe("LollipopActivationCosmosAdapter", () => {
     });
 
     it("GIVEN a read error WHEN revokeByFiscalCode is called THEN returns GenericError and does not delete", async () => {
-      lollipop.itemMock.read.mockResolvedValue({
+      lollipop.itemMock.read.mockResolvedValueOnce({
         resource: aDbLollipopResource,
         statusCode: 500,
       });
@@ -207,11 +210,11 @@ describe("LollipopActivationCosmosAdapter", () => {
     });
 
     it("GIVEN the delete throws WHEN revokeByFiscalCode is called THEN returns GenericError", async () => {
-      lollipop.itemMock.read.mockResolvedValue({
+      lollipop.itemMock.read.mockResolvedValueOnce({
         resource: aDbLollipopResource,
         statusCode: 200,
       });
-      lollipop.itemMock.delete.mockRejectedValue(new Error("boom"));
+      lollipop.itemMock.delete.mockRejectedValueOnce(new Error("boom"));
 
       const result = await adapter.revokeByFiscalCode(aFiscalCode);
 
