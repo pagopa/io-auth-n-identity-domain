@@ -4,13 +4,13 @@ import {
   GenericError,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
-import type { FiscalCode } from "@pagopa/hexagonal-core";
+import type { FiscalCode, NonEmptyString } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SessionCosmosAdapter } from "../session-cosmos.adapter.js";
 import type {
-  Session,
+  BaseSession,
   SessionWithHashedSSOTokens,
 } from "../../../domain/entities/session.entity.js";
 import type { SessionMetadata } from "../../../domain/entities/session-metadata.entity.js";
@@ -25,16 +25,19 @@ import type { HashedZendeskSSOToken } from "../../../domain/value-objects/tokens
 // Test fixtures
 // ---------------------------------------------------------------------------
 
+const COSMOS_SESSION_PREFIX = "SESSION-";
+const COSMOS_WALLET_PREFIX = "WALLET-";
+const COSMOS_BPD_PREFIX = "BPD-";
+const COSMOS_FIMS_PREFIX = "FIMS-";
+const COSMOS_ZENDESK_PREFIX = "ZENDESK-";
+const COSMOS_SESSION_METADATA_ID = "SESSION_METADATA";
+
 const USER_SESSION_CONTAINER_ID = "tokens";
 const SESSION_METADATA_CONTAINER_ID = "session-info";
 const DATABASE_ID = "io-auth-SM";
 
-const COSMOS_SESSION_PREFIX = "SESSION-";
-const COSMOS_SESSION_METADATA_ID = "SESSION_METADATA";
-
 const aFiscalCode = "RSSMRA85T10A562S" as FiscalCode;
-const aSessionTrackingId =
-  "550e8400-e29b-41d4-a716-446655440001" as SessionTrackingId;
+const aSessionId = "550e8400-e29b-41d4-a716-446655440001" as SessionTrackingId;
 const aHashedSessionToken = "abc123hashedsessiontoken" as HashedSessionToken;
 const aHashedBpdToken = "bpd123hashedtoken" as HashedBpdSSOToken;
 const aHashedWalletToken = "wallet123hashedtoken" as HashedWalletSSOToken;
@@ -46,21 +49,19 @@ const anExpirationDate = new Date(Date.now() + 60 * 60 * 1000);
 // in the past to force computeTtl to fail
 const aPastExpirationDate = new Date(Date.now() - 60 * 60 * 1000);
 
-const aSession: Session = {
+const aBaseSession: BaseSession = {
   fiscalCode: aFiscalCode,
-  name: "Mario" as Session["name"],
-  familyName: "Rossi" as Session["familyName"],
+  name: "Mario" as NonEmptyString,
+  familyName: "Rossi" as NonEmptyString,
   dateOfBirth: new Date("1985-10-10"),
   spidLevel: "https://www.spid.gov.it/SpidL2",
-  hashedSessionTokenWithTrackingId: {
-    sessionTrackingId: aSessionTrackingId,
-    hashedSessionToken: aHashedSessionToken,
-  },
+  sessionId: aSessionId,
   expirationDate: anExpirationDate,
 };
 
 const aSessionWithHashedTokens: SessionWithHashedSSOTokens = {
-  ...aSession,
+  ...aBaseSession,
+  hashedSessionToken: aHashedSessionToken,
   ssoTokens: {
     bpdHashedToken: aHashedBpdToken,
     walletHashedToken: aHashedWalletToken,
@@ -72,14 +73,14 @@ const aSessionWithHashedTokens: SessionWithHashedSSOTokens = {
 const aSessionMetadata: SessionMetadata = {
   fiscalCode: aFiscalCode,
   loginType: "LEGACY",
-  sessionTrackingId: aSessionTrackingId,
+  sessionTrackingId: aSessionId,
   expirationDate: anExpirationDate,
 };
 
 // A valid raw session document as persisted in Cosmos DB
 const aDbSessionResource = {
   id: COSMOS_SESSION_PREFIX + aHashedSessionToken,
-  sessionTrackingId: aSessionTrackingId,
+  sessionTrackingId: aSessionId,
   fiscalCode: aFiscalCode,
   name: "Mario",
   familyName: "Rossi",
@@ -95,7 +96,7 @@ const aDbSessionMetadataResource = {
   type: COSMOS_SESSION_METADATA_ID,
   fiscalCode: aFiscalCode,
   loginType: "LEGACY",
-  sessionTrackingId: aSessionTrackingId,
+  sessionTrackingId: aSessionId,
   expirationDate: anExpirationDate.toISOString(),
 };
 
@@ -199,14 +200,15 @@ describe("SessionCosmosAdapter", () => {
         statusCode: 200,
       });
 
-      const result = await adapter.findBySessionToken(
-        aSession.hashedSessionTokenWithTrackingId,
-      );
+      const result = await adapter.findBySessionToken({
+        sessionId: aSessionId,
+        hashedSessionToken: aHashedSessionToken,
+      });
 
-      expect(result).toEqual(ok(aSession));
+      expect(result).toEqual(ok(aBaseSession));
       expect(userSession.item).toHaveBeenCalledWith(
         COSMOS_SESSION_PREFIX + aHashedSessionToken,
-        aSessionTrackingId,
+        aSessionId,
       );
     });
 
@@ -216,9 +218,10 @@ describe("SessionCosmosAdapter", () => {
         statusCode: 404,
       });
 
-      const result = await adapter.findBySessionToken(
-        aSession.hashedSessionTokenWithTrackingId,
-      );
+      const result = await adapter.findBySessionToken({
+        sessionId: aSessionId,
+        hashedSessionToken: aHashedSessionToken,
+      });
 
       expect(result).toEqual(err(expect.any(NotFoundError)));
     });
@@ -229,9 +232,10 @@ describe("SessionCosmosAdapter", () => {
         statusCode: 200,
       });
 
-      const result = await adapter.findBySessionToken(
-        aSession.hashedSessionTokenWithTrackingId,
-      );
+      const result = await adapter.findBySessionToken({
+        sessionId: aSessionId,
+        hashedSessionToken: aHashedSessionToken,
+      });
 
       expect(result).toEqual(err(expect.any(GenericError)));
     });
@@ -239,9 +243,10 @@ describe("SessionCosmosAdapter", () => {
     it("GIVEN a cosmos ErrorResponse WHEN findBySessionToken is called THEN returns GenericError", async () => {
       userSession.itemMock.read.mockRejectedValue(makeErrorResponse(500));
 
-      const result = await adapter.findBySessionToken(
-        aSession.hashedSessionTokenWithTrackingId,
-      );
+      const result = await adapter.findBySessionToken({
+        sessionId: aSessionId,
+        hashedSessionToken: aHashedSessionToken,
+      });
 
       expect(result).toEqual(err(expect.any(GenericError)));
     });
@@ -249,9 +254,10 @@ describe("SessionCosmosAdapter", () => {
     it("GIVEN a conflict cosmos error WHEN findBySessionToken is called THEN maps it to GenericError", async () => {
       userSession.itemMock.read.mockRejectedValue(makeErrorResponse(409));
 
-      const result = await adapter.findBySessionToken(
-        aSession.hashedSessionTokenWithTrackingId,
-      );
+      const result = await adapter.findBySessionToken({
+        sessionId: aSessionId,
+        hashedSessionToken: aHashedSessionToken,
+      });
 
       expect(result).toEqual(err(expect.any(GenericError)));
     });
@@ -264,19 +270,22 @@ describe("SessionCosmosAdapter", () => {
   describe("findByBpdToken", () => {
     it("GIVEN an existing session WHEN findByBpdToken is called THEN returns the session", async () => {
       userSession.itemMock.read.mockResolvedValue({
-        resource: aDbSessionResource,
+        resource: {
+          ...aDbSessionResource,
+          id: COSMOS_BPD_PREFIX + aHashedBpdToken,
+        },
         statusCode: 200,
       });
 
       const result = await adapter.findByBpdToken({
-        sessionTrackingId: aSessionTrackingId,
-        hashedToken: aHashedBpdToken,
+        sessionId: aSessionId,
+        hashedBPDSSOToken: aHashedBpdToken,
       });
 
-      expect(result).toEqual(ok(aSession));
+      expect(result).toEqual(ok(aBaseSession));
       expect(userSession.item).toHaveBeenCalledWith(
-        "BPD-" + aHashedBpdToken,
-        aSessionTrackingId,
+        COSMOS_BPD_PREFIX + aHashedBpdToken,
+        aSessionId,
       );
     });
 
@@ -287,8 +296,8 @@ describe("SessionCosmosAdapter", () => {
       });
 
       const result = await adapter.findByBpdToken({
-        sessionTrackingId: aSessionTrackingId,
-        hashedToken: aHashedBpdToken,
+        sessionId: aSessionId,
+        hashedBPDSSOToken: aHashedBpdToken,
       });
 
       expect(result).toEqual(err(expect.any(NotFoundError)));
@@ -313,6 +322,36 @@ describe("SessionCosmosAdapter", () => {
 
       expect(result).toEqual(ok(aSessionWithHashedTokens));
       expect(userSession.batch).toHaveBeenCalledTimes(1);
+      expect(userSession.batch).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            resourceBody: expect.objectContaining({
+              id: COSMOS_SESSION_PREFIX + aHashedSessionToken,
+            }),
+          }),
+          expect.objectContaining({
+            resourceBody: expect.objectContaining({
+              id: COSMOS_WALLET_PREFIX + aHashedWalletToken,
+            }),
+          }),
+          expect.objectContaining({
+            resourceBody: expect.objectContaining({
+              id: COSMOS_BPD_PREFIX + aHashedBpdToken,
+            }),
+          }),
+          expect.objectContaining({
+            resourceBody: expect.objectContaining({
+              id: COSMOS_FIMS_PREFIX + aHashedFimsToken,
+            }),
+          }),
+          expect.objectContaining({
+            resourceBody: expect.objectContaining({
+              id: COSMOS_ZENDESK_PREFIX + aHashedZendeskToken,
+            }),
+          }),
+        ]),
+        aSessionId,
+      );
       expect(sessionMetadata.create).toHaveBeenCalledTimes(1);
     });
 
@@ -425,10 +464,9 @@ describe("SessionCosmosAdapter", () => {
   // -------------------------------------------------------------------------
 
   describe("delete", () => {
-    it("GIVEN an existing session WHEN delete is called THEN deletes metadata and all token items", async () => {
+    it("GIVEN an existing session WHEN delete is called THEN deletes metadata, the SSO tokens first and the main token last", async () => {
       sessionMetadata.itemMock.delete.mockResolvedValue({ statusCode: 204 });
       userSession.executeBulkOperations.mockResolvedValue([
-        { response: { statusCode: 204 } },
         { response: { statusCode: 204 } },
       ]);
 
@@ -439,7 +477,21 @@ describe("SessionCosmosAdapter", () => {
         COSMOS_SESSION_METADATA_ID,
         aFiscalCode,
       );
-      expect(userSession.executeBulkOperations).toHaveBeenCalledTimes(1);
+      // Two bulk calls: first the 4 SSO tokens, then the main session token.
+      expect(userSession.executeBulkOperations).toHaveBeenCalledTimes(2);
+
+      const firstCallOps = userSession.executeBulkOperations.mock.calls[0][0];
+      expect(firstCallOps.map((op: { id: string }) => op.id)).toEqual([
+        COSMOS_WALLET_PREFIX + aHashedWalletToken,
+        COSMOS_BPD_PREFIX + aHashedBpdToken,
+        COSMOS_FIMS_PREFIX + aHashedFimsToken,
+        COSMOS_ZENDESK_PREFIX + aHashedZendeskToken,
+      ]);
+
+      const secondCallOps = userSession.executeBulkOperations.mock.calls[1][0];
+      expect(secondCallOps.map((op: { id: string }) => op.id)).toEqual([
+        COSMOS_SESSION_PREFIX + aHashedSessionToken,
+      ]);
     });
 
     it("GIVEN metadata deletion returns 404 WHEN delete is called THEN still deletes the token items", async () => {
@@ -451,7 +503,7 @@ describe("SessionCosmosAdapter", () => {
       const result = await adapter.delete(aSessionWithHashedTokens);
 
       expect(result).toEqual(ok(undefined));
-      expect(userSession.executeBulkOperations).toHaveBeenCalledTimes(1);
+      expect(userSession.executeBulkOperations).toHaveBeenCalledTimes(2);
     });
 
     it("GIVEN metadata deletion fails WHEN delete is called THEN returns GenericError and skips token deletion", async () => {
@@ -463,9 +515,9 @@ describe("SessionCosmosAdapter", () => {
       expect(userSession.executeBulkOperations).not.toHaveBeenCalled();
     });
 
-    it("GIVEN a token deletion returns an error status WHEN delete is called THEN returns GenericError", async () => {
+    it("GIVEN an SSO token deletion fails WHEN delete is called THEN the main session token is NOT deleted and returns GenericError", async () => {
       sessionMetadata.itemMock.delete.mockResolvedValue({ statusCode: 204 });
-      userSession.executeBulkOperations.mockResolvedValue([
+      userSession.executeBulkOperations.mockResolvedValueOnce([
         { response: { statusCode: 204 } },
         { response: { statusCode: 500 } },
       ]);
@@ -473,6 +525,39 @@ describe("SessionCosmosAdapter", () => {
       const result = await adapter.delete(aSessionWithHashedTokens);
 
       expect(result).toEqual(err(expect.any(GenericError)));
+      // The main session token (anchor) must survive: only the SSO bulk ran.
+      expect(userSession.executeBulkOperations).toHaveBeenCalledTimes(1);
+      const onlyCallOps = userSession.executeBulkOperations.mock.calls[0][0];
+      expect(onlyCallOps.map((op: { id: string }) => op.id)).not.toContain(
+        COSMOS_SESSION_PREFIX + aHashedSessionToken,
+      );
+    });
+
+    it("GIVEN SSO deletions succeed but the main token deletion fails WHEN delete is called THEN returns GenericError", async () => {
+      sessionMetadata.itemMock.delete.mockResolvedValue({ statusCode: 204 });
+      userSession.executeBulkOperations
+        .mockResolvedValueOnce([{ response: { statusCode: 204 } }])
+        .mockResolvedValueOnce([{ response: { statusCode: 500 } }]);
+
+      const result = await adapter.delete(aSessionWithHashedTokens);
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+      expect(userSession.executeBulkOperations).toHaveBeenCalledTimes(2);
+    });
+
+    it("GIVEN 404 on SSO tokens WHEN delete is called THEN still deletes the main token (idempotent retry)", async () => {
+      sessionMetadata.itemMock.delete.mockResolvedValue({ statusCode: 204 });
+      userSession.executeBulkOperations
+        .mockResolvedValueOnce([
+          { response: { statusCode: 404 } },
+          { response: { statusCode: 404 } },
+        ])
+        .mockResolvedValueOnce([{ response: { statusCode: 204 } }]);
+
+      const result = await adapter.delete(aSessionWithHashedTokens);
+
+      expect(result).toEqual(ok(undefined));
+      expect(userSession.executeBulkOperations).toHaveBeenCalledTimes(2);
     });
 
     it("GIVEN the bulk deletion throws WHEN delete is called THEN returns GenericError", async () => {
@@ -534,7 +619,7 @@ describe("SessionCosmosAdapter", () => {
 
       expect(result).toEqual(
         ok({
-          sessionTrackingId: aSessionTrackingId,
+          sessionId: aSessionId,
           hashedSessionToken: aHashedSessionToken,
         }),
       );

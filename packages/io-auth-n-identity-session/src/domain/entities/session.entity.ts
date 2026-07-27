@@ -6,7 +6,10 @@ import {
 import { z } from "zod";
 
 import { LoginType } from "../value-objects/login-type.vo.js";
-import { SessionTrackingId } from "../value-objects/session-tracking-id.vo.js";
+import {
+  SessionTrackingId,
+  SessionTrackingIdSchema,
+} from "../value-objects/session-tracking-id.vo.js";
 import { SpidLevelSchema } from "../value-objects/spid-level.vo.js";
 import {
   toHashedBpdSSOToken,
@@ -17,9 +20,9 @@ import {
   toPlainFimsSSOToken,
 } from "../value-objects/tokens/fims-sso-token.vo.js";
 import {
-  HashedSessionTokenWithTrackingIdSchema,
+  HashedSessionTokenSchema,
   newPlainSessionToken,
-  PlainSessionTokenWithTrackingIdSchema,
+  PlainSessionTokenSchema,
   toHashedSessionToken,
 } from "../value-objects/tokens/session-token.vo.js";
 import {
@@ -35,7 +38,12 @@ import {
   toPlainZendeskSSOToken,
 } from "../value-objects/tokens/zendesk-sso-token.vo.js";
 
-const BaseSessionSchema = z.object({
+// ------------------------------------------------------------------------------
+// Session Token Entity
+// ------------------------------------------------------------------------------
+
+export const BaseSessionSchema = z.object({
+  sessionId: SessionTrackingIdSchema,
   fiscalCode: FiscalCodeSchema,
   name: NonEmptyStringSchema,
   familyName: NonEmptyStringSchema,
@@ -45,6 +53,8 @@ const BaseSessionSchema = z.object({
   expirationDate: z.date(),
 });
 
+export type BaseSession = z.infer<typeof BaseSessionSchema>;
+
 // ------------------------------------------------------------------------------
 // Plain Session Token Value Object
 // ------------------------------------------------------------------------------
@@ -53,22 +63,23 @@ const BaseSessionSchema = z.object({
  * An extension of the BaseSessionSchema that includes a plain session token with tracking ID,
  * representing a unique identifier for the user session.
  */
-export const PlainSessionSchema = BaseSessionSchema.extend({
-  plainSessionTokenWithTrackingId: PlainSessionTokenWithTrackingIdSchema,
+export const SessionWithPlainTokenSchema = BaseSessionSchema.extend({
+  plainSessionToken: PlainSessionTokenSchema,
 });
 
 /**
  * A session with a plain session token with tracking ID, representing a unique identifier for the user session.
  */
-export type PlainSession = z.infer<typeof PlainSessionSchema>;
+export type SessionWithPlainToken = z.infer<typeof SessionWithPlainTokenSchema>;
 
 /**
  * An extension of the SessionSchema that includes plain SSO tokens,
  * representing a session with associated SSO tokens in plain text.
  */
-export const SessionWithPlainSSOTokensSchema = PlainSessionSchema.extend({
-  ssoTokens: PlainSSOTokensSchema,
-});
+export const SessionWithPlainSSOTokensSchema =
+  SessionWithPlainTokenSchema.extend({
+    ssoTokens: PlainSSOTokensSchema,
+  });
 
 /**
  * A session with associated SSO tokens that have already been hashed to be stored.
@@ -104,10 +115,7 @@ export const newPlainSession = async ({
     expirationDate: new Date(
       Date.now() + getSessionTtlMsByLoginType(loginType),
     ),
-    plainSessionTokenWithTrackingId: {
-      sessionTrackingId,
-      plainSessionToken,
-    },
+    plainSessionToken: plainSessionToken,
     ssoTokens: {
       walletPlainToken: toPlainWalletSSOToken(plainSessionToken),
       bpdPlainToken: toPlainBpdSSOToken(plainSessionToken),
@@ -126,23 +134,26 @@ export const newPlainSession = async ({
  * representing a unique identifier for the user session.
  * It is used to store the session in a secure way, without exposing the plain session token.
  */
-export const SessionSchema = BaseSessionSchema.extend({
-  hashedSessionTokenWithTrackingId: HashedSessionTokenWithTrackingIdSchema,
+export const SessionWithHashedTokenSchema = BaseSessionSchema.extend({
+  hashedSessionToken: HashedSessionTokenSchema,
 });
 
 /**
  * A session with a hashed session token with tracking ID, representing a unique identifier for the user session.
  * It is used to store the session in a secure way, without exposing the plain session token.
  */
-export type Session = z.infer<typeof SessionSchema>;
+export type SessionWithHashedToken = z.infer<
+  typeof SessionWithHashedTokenSchema
+>;
 
 /**
  * An extension of the SessionSchema that includes hashed SSO tokens,
  * representing a session with associated SSO tokens that have already been hashed to be stored.
  */
-export const SessionWithHashedSSOTokensSchema = SessionSchema.extend({
-  ssoTokens: HashedSSOTokensSchema,
-});
+export const SessionWithHashedSSOTokensSchema =
+  SessionWithHashedTokenSchema.extend({
+    ssoTokens: HashedSSOTokensSchema,
+  });
 
 /**
  * A session with associated SSO tokens that have already been hashed to be stored.
@@ -158,17 +169,12 @@ export type SessionWithHashedSSOTokens = z.infer<
 export const toHashedSession = (
   sessionWithPlainSSOTokens: SessionWithPlainSSOTokens,
 ): SessionWithHashedSSOTokens => {
-  const { plainSessionTokenWithTrackingId, ssoTokens, ...baseData } =
+  const { plainSessionToken, ssoTokens, ...baseData } =
     sessionWithPlainSSOTokens;
 
   return {
     ...baseData,
-    hashedSessionTokenWithTrackingId: {
-      sessionTrackingId: plainSessionTokenWithTrackingId.sessionTrackingId,
-      hashedSessionToken: toHashedSessionToken(
-        plainSessionTokenWithTrackingId.plainSessionToken,
-      ),
-    },
+    hashedSessionToken: toHashedSessionToken(plainSessionToken),
     ssoTokens: {
       walletHashedToken: toHashedWalletSSOToken(ssoTokens.walletPlainToken),
       bpdHashedToken: toHashedBpdSSOToken(ssoTokens.bpdPlainToken),

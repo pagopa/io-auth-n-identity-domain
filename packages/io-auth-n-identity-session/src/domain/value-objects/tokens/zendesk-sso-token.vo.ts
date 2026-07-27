@@ -1,3 +1,4 @@
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core/domain/value-objects";
 import { z } from "zod";
 
 import { toSha256 } from "../../../utils/hash.js";
@@ -12,10 +13,8 @@ import { PlainSessionToken } from "./session-token.vo.js";
 export declare const _plainZendeskSSOTokenBrand: unique symbol;
 
 // Zod schemas with string literal brands
-export const PlainZendeskSSOTokenSchema = z
-  .string()
-  .min(1)
-  .brand<typeof _plainZendeskSSOTokenBrand>();
+export const PlainZendeskSSOTokenSchema =
+  NonEmptyStringSchema.brand<typeof _plainZendeskSSOTokenBrand>();
 
 export type PlainZendeskSSOToken = z.infer<typeof PlainZendeskSSOTokenSchema>;
 
@@ -25,25 +24,10 @@ export type PlainZendeskSSOToken = z.infer<typeof PlainZendeskSSOTokenSchema>;
 
 export declare const _hashedZendeskSSOTokenBrand: unique symbol;
 
-export const HashedZendeskSSOTokenSchema = z
-  .string()
-  .min(1)
-  .brand<typeof _hashedZendeskSSOTokenBrand>();
+export const HashedZendeskSSOTokenSchema =
+  NonEmptyStringSchema.brand<typeof _hashedZendeskSSOTokenBrand>();
 
 export type HashedZendeskSSOToken = z.infer<typeof HashedZendeskSSOTokenSchema>;
-
-// ------------------------------------------------------------------------------
-// Hashed Zendesk SSO Token With Session Tracking ID Value Object
-// ------------------------------------------------------------------------------
-
-export const HashedZendeskSSOTokenWithSessionTrackingIdSchema = z.object({
-  sessionTrackingId: SessionTrackingIdSchema,
-  hashedToken: HashedZendeskSSOTokenSchema,
-});
-
-export type HashedZendeskSSOTokenWithSessionTrackingId = z.infer<
-  typeof HashedZendeskSSOTokenWithSessionTrackingIdSchema
->;
 
 // ------------------------------------------------------------------------------
 // Helper functions

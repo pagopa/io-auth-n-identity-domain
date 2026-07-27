@@ -1,8 +1,10 @@
 import {
+  BulkOperationType,
   Container,
   CosmosClient,
   ErrorResponse,
   JSONObject,
+  OperationInput,
   Resource,
 } from "@azure/cosmos";
 import {
@@ -78,6 +80,50 @@ export abstract class CosmosBaseAdapter {
         error,
         entityName,
         "readItem" as NonEmptyString,
+      ).mapErr((e) =>
+        e instanceof ConflictError ? new GenericError(e.message) : e,
+      );
+    }
+  }
+
+  protected async bulkDeleteItems(
+    container: Container,
+    ids: NonEmptyString[],
+    partitionKey: NonEmptyString,
+    entityName: NonEmptyString,
+  ): Promise<Result<void, GenericError>> {
+    if (ids.length === 0) {
+      return ok(undefined);
+    }
+
+    const operations: OperationInput[] = ids.map((id) => ({
+      operationType: BulkOperationType.Delete,
+      id,
+      partitionKey,
+    }));
+
+    try {
+      const result = await container.items.executeBulkOperations(operations);
+
+      for (const res of result) {
+        if (
+          // Avoid returning an error for successes or not found items
+          res.response !== undefined &&
+          ![200, 204, 404].includes(res.response.statusCode)
+        ) {
+          return err(
+            new GenericError(
+              `Error deleting ${entityName}. Status code: ${res.response?.statusCode}`,
+            ),
+          );
+        }
+      }
+      return ok(undefined);
+    } catch (error) {
+      return this.handleCosmosError(
+        error,
+        entityName,
+        "bulkDeleteItems" as NonEmptyString,
       ).mapErr((e) =>
         e instanceof ConflictError ? new GenericError(e.message) : e,
       );

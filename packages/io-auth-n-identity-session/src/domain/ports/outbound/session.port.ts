@@ -6,14 +6,19 @@ import {
 } from "@pagopa/hexagonal-core";
 import type { Result } from "neverthrow";
 
-
 import { SessionMetadata } from "../../entities/session-metadata.entity.js";
 import type {
-  Session,
   SessionWithHashedSSOTokens,
+  BaseSession,
 } from "../../entities/session.entity.js";
-import { HashedBpdSSOTokenWithSessionTrackingId } from "../../value-objects/tokens/bpd-sso-token.vo.js";
-import type { HashedSessionTokenWithTrackingId } from "../../value-objects/tokens/session-token.vo.js";
+import { SessionTrackingId } from "../../value-objects/session-tracking-id.vo.js";
+import { HashedBpdSSOToken } from "../../value-objects/tokens/bpd-sso-token.vo.js";
+import { HashedSessionToken } from "../../value-objects/tokens/session-token.vo.js";
+
+export type HashedSessionTokenWithSessionId = {
+  hashedSessionToken: HashedSessionToken;
+  sessionId: SessionTrackingId;
+};
 
 /**
  * Outbound port for managing UserSessions
@@ -21,21 +26,27 @@ import type { HashedSessionTokenWithTrackingId } from "../../value-objects/token
 export interface SessionPort {
   /**
    * Finds a session by its session token.
-   * @param sessionToken The hashed session token with tracking ID.
+   * @param hashedSessionToken The hashed session token
+   * @param sessionId The session tracking ID
    * @returns The session associated with the given token, or an error if not found or a generic error happens.
    */
-  readonly findBySessionToken: (
-    sessionToken: HashedSessionTokenWithTrackingId,
-  ) => Promise<Result<Session, NotFoundError | GenericError>>;
+  readonly findBySessionToken: ({
+    hashedSessionToken,
+    sessionId,
+  }: HashedSessionTokenWithSessionId) => Promise<
+    Result<BaseSession, NotFoundError | GenericError>
+  >;
 
   /**
    * Finds a session by its BPD SSO token.
-   * @param bpdToken The hashed BPD SSO token with session tracking ID.
+   * @param hashedBPDSSOToken The hashed BPD SSO token
+   * @param sessionId The session tracking ID
    * @returns The session associated with the given token, or an error if not found or a generic error happens.
    */
-  readonly findByBpdToken: (
-    bpdToken: HashedBpdSSOTokenWithSessionTrackingId,
-  ) => Promise<Result<Session, NotFoundError | GenericError>>;
+  readonly findByBpdToken: (bpdToken: {
+    hashedBPDSSOToken: HashedBpdSSOToken;
+    sessionId: SessionTrackingId;
+  }) => Promise<Result<BaseSession, NotFoundError | GenericError>>;
 
   /**
    * Creates a new session with the given metadata and tokens.
@@ -78,6 +89,6 @@ export interface SessionPort {
   readonly invalidatePreviousSession: (
     fiscalCode: FiscalCode,
   ) => Promise<
-    Result<HashedSessionTokenWithTrackingId | undefined, GenericError>
+    Result<HashedSessionTokenWithSessionId | undefined, GenericError>
   >;
 }

@@ -2,10 +2,8 @@ import { NonEmptyStringSchema } from "@pagopa/hexagonal-core/domain/value-object
 import { z } from "zod";
 
 import { toSha256 } from "../../../utils/hash.js";
-import { SessionTrackingIdSchema } from "../session-tracking-id.vo.js";
 
 import { PlainSessionToken } from "./session-token.vo.js";
-
 
 // ------------------------------------------------------------------------------
 // Plain BPD SSO Token Value Object
@@ -29,19 +27,6 @@ export const HashedBpdSSOTokenSchema =
   NonEmptyStringSchema.brand<typeof _hashedBpdSSOTokenBrand>();
 
 export type HashedBpdSSOToken = z.infer<typeof HashedBpdSSOTokenSchema>;
-
-// ------------------------------------------------------------------------------
-// Hashed BPD SSO Token With Session Tracking ID Value Object
-// ------------------------------------------------------------------------------
-
-export const HashedBpdSSOTokenWithSessionTrackingIdSchema = z.object({
-  sessionTrackingId: SessionTrackingIdSchema,
-  hashedToken: HashedBpdSSOTokenSchema,
-});
-
-export type HashedBpdSSOTokenWithSessionTrackingId = z.infer<
-  typeof HashedBpdSSOTokenWithSessionTrackingIdSchema
->;
 
 // ------------------------------------------------------------------------------
 // Helper functions

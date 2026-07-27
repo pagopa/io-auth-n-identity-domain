@@ -3,7 +3,6 @@ import {
   Container,
   CosmosClient,
   JSONObject,
-  OperationInput,
 } from "@azure/cosmos";
 import {
   ConflictError,
@@ -16,20 +15,23 @@ import { err, ok, Result } from "neverthrow";
 
 import type { SessionMetadata } from "../../domain/entities/session-metadata.entity.js";
 import { SessionMetadataSchema } from "../../domain/entities/session-metadata.entity.js";
-import { SessionSchema } from "../../domain/entities/session.entity.js";
+import { BaseSessionSchema } from "../../domain/entities/session.entity.js";
 import type {
-  Session,
+  SessionWithHashedToken,
+  BaseSession,
   SessionWithHashedSSOTokens,
 } from "../../domain/entities/session.entity.js";
-import { SessionPort } from "../../domain/ports/outbound/session.port.js";
-import type { HashedBpdSSOTokenWithSessionTrackingId } from "../../domain/value-objects/tokens/bpd-sso-token.vo.js";
+import {
+  HashedSessionTokenWithSessionId,
+  SessionPort,
+} from "../../domain/ports/outbound/session.port.js";
+import { SessionTrackingId } from "../../domain/value-objects/session-tracking-id.vo.js";
 import type { HashedBpdSSOToken } from "../../domain/value-objects/tokens/bpd-sso-token.vo.js";
 import type { HashedFimsSSOToken } from "../../domain/value-objects/tokens/fims-sso-token.vo.js";
-import type {
-  HashedSessionToken,
-  HashedSessionTokenWithTrackingId,
+import {
+  HashedSessionTokenSchema,
+  type HashedSessionToken,
 } from "../../domain/value-objects/tokens/session-token.vo.js";
-import { HashedSessionTokenWithTrackingIdSchema } from "../../domain/value-objects/tokens/session-token.vo.js";
 import type { HashedWalletSSOToken } from "../../domain/value-objects/tokens/wallet-sso-token.vo.js";
 import type { HashedZendeskSSOToken } from "../../domain/value-objects/tokens/zendesk-sso-token.vo.js";
 
@@ -73,29 +75,32 @@ export class SessionCosmosAdapter
       .container(sessionMetadataContainerId);
   }
 
-  public async findBySessionToken(
-    sessionToken: HashedSessionTokenWithTrackingId,
-  ): Promise<Result<Session, GenericError | NotFoundError>> {
-    const { sessionTrackingId, hashedSessionToken } = sessionToken;
+  public async findBySessionToken({
+    hashedSessionToken,
+    sessionId,
+  }: HashedSessionTokenWithSessionId): Promise<
+    Result<BaseSession, GenericError | NotFoundError>
+  > {
     const result = await this.readItem(
       this.userSessionContainer,
       toCosmosSessionId(hashedSessionToken),
-      sessionTrackingId as unknown as NonEmptyString,
+      sessionId as unknown as NonEmptyString,
       "UserSession" as NonEmptyString,
     );
-    return result.andThen(fromDbSession);
+    return result.andThen((rawSession) => fromDbSession(rawSession));
   }
 
-  public async findByBpdToken(
-    bpdToken: HashedBpdSSOTokenWithSessionTrackingId,
-  ): Promise<Result<Session, GenericError | NotFoundError>> {
+  public async findByBpdToken(bpdToken: {
+    hashedBPDSSOToken: HashedBpdSSOToken;
+    sessionId: SessionTrackingId;
+  }): Promise<Result<BaseSession, GenericError | NotFoundError>> {
     const result = await this.readItem(
       this.userSessionContainer,
-      toCosmosBpdSessionId(bpdToken.hashedToken),
-      bpdToken.sessionTrackingId as unknown as NonEmptyString,
-      "UserSession" as NonEmptyString,
+      toCosmosBpdSessionId(bpdToken.hashedBPDSSOToken),
+      bpdToken.sessionId as unknown as NonEmptyString,
+      "BPDSSOSession" as NonEmptyString,
     );
-    return result.andThen(fromDbSession);
+    return result.andThen((rawSession) => fromDbSession(rawSession));
   }
 
   public async create(
@@ -158,7 +163,7 @@ export class SessionCosmosAdapter
   public async invalidatePreviousSession(
     fiscalCode: FiscalCode,
   ): Promise<
-    Result<HashedSessionTokenWithTrackingId | undefined, GenericError>
+    Result<HashedSessionTokenWithSessionId | undefined, GenericError>
   > {
     try {
       // Step 1: read the SessionMetadata for the given fiscalCode to get the sessionTrackingId
@@ -190,35 +195,16 @@ export class SessionCosmosAdapter
         ? String(sessionItem.id).replace(COSMOS_SESSION_PREFIX, "")
         : undefined;
 
-      if (items.length > 0) {
-        const deleteOps: OperationInput[] = items.map(
-          (item: { id: string }) => ({
-            operationType: BulkOperationType.Delete,
-            id: item.id,
-            partitionKey: sessionTrackingId,
-          }),
-        );
-
-        const deleteResult =
-          await this.userSessionContainer.items.executeBulkOperations(
-            deleteOps,
-          );
-
-        for (const res of deleteResult) {
-          if (
-            // Avoid returning an error for successes or not found items
-            res.response?.statusCode !== 200 &&
-            res.response?.statusCode !== 204 &&
-            res.response?.statusCode !== 404 &&
-            res.response !== undefined
-          ) {
-            return err(
-              new GenericError(
-                `Error deleting user session. Status code: ${res.response?.statusCode}`,
-              ),
-            );
-          }
-        }
+      // All token items can be deleted together here: the retry anchor is the
+      // fiscalCode/SessionMetadata (deleted last in Step 3), not the SESSION- token.
+      const deleteResult = await this.bulkDeleteItems(
+        this.userSessionContainer,
+        items.map((item: { id: string }) => item.id as NonEmptyString),
+        sessionTrackingId as unknown as NonEmptyString,
+        "UserSession" as NonEmptyString,
+      );
+      if (deleteResult.isErr()) {
+        return err(deleteResult.error);
       }
 
       // Step 3: delete SessionMetadata
@@ -227,13 +213,13 @@ export class SessionCosmosAdapter
         .delete();
 
       if (hashedSessionToken) {
-        const parsed = HashedSessionTokenWithTrackingIdSchema.safeParse({
-          sessionTrackingId,
-          hashedSessionToken,
-        });
+        const parsed = HashedSessionTokenSchema.safeParse(hashedSessionToken);
 
         if (parsed.success) {
-          return ok(parsed.data);
+          return ok({
+            sessionId: sessionTrackingId,
+            hashedSessionToken: parsed.data,
+          });
         }
 
         return err(
@@ -305,7 +291,7 @@ export class SessionCosmosAdapter
             resourceBody: toDbZendeskUserSession(userSessionToCreate, ttl),
           },
         ],
-        userSessionToCreate.hashedSessionTokenWithTrackingId.sessionTrackingId,
+        userSessionToCreate.sessionId,
       );
 
       if (result.code !== 200) {
@@ -366,11 +352,10 @@ export class SessionCosmosAdapter
   private async deleteUserSession(
     userSessionWithTokens: SessionWithHashedSSOTokens,
   ): Promise<Result<void, GenericError | NotFoundError>> {
-    const tokenIds = [
-      toCosmosSessionId(
-        userSessionWithTokens.hashedSessionTokenWithTrackingId
-          .hashedSessionToken,
-      ),
+    // First delete the SSO token items. The main SESSION- token is deleted last
+    // so that, if an SSO deletion fails, it survives as the "anchor" that allows
+    // the session (fiscalCode and derived SSO tokens) to be re-resolved for a retry.
+    const ssoTokenIds = [
       toCosmosWalletSessionId(
         userSessionWithTokens.ssoTokens.walletHashedToken,
       ),
@@ -381,43 +366,23 @@ export class SessionCosmosAdapter
       ),
     ];
 
-    const operations: OperationInput[] = tokenIds.map((id) => ({
-      operationType: BulkOperationType.Delete,
-      id,
-      partitionKey:
-        userSessionWithTokens.hashedSessionTokenWithTrackingId
-          .sessionTrackingId,
-    }));
-
-    try {
-      const result =
-        await this.userSessionContainer.items.executeBulkOperations(operations);
-
-      for (const res of result) {
-        if (
-          // Avoid returning an error for successes or not found items
-          res.response?.statusCode !== 200 &&
-          res.response?.statusCode !== 204 &&
-          res.response?.statusCode !== 404 &&
-          res.response !== undefined
-        ) {
-          return err(
-            new GenericError(
-              `Error deleting user session. Status code: ${res.response?.statusCode}`,
-            ),
-          );
-        }
-      }
-      return ok(undefined);
-    } catch (error) {
-      return this.handleCosmosError(
-        error,
-        "UserSession" as NonEmptyString,
-        "deleteUserSession" as NonEmptyString,
-      ).mapErr((e) =>
-        e instanceof ConflictError ? new GenericError(e.message) : e,
-      );
+    const deleteSsoTokensResult = await this.bulkDeleteItems(
+      this.userSessionContainer,
+      ssoTokenIds,
+      userSessionWithTokens.sessionId as unknown as NonEmptyString,
+      "UserSession" as NonEmptyString,
+    );
+    if (deleteSsoTokensResult.isErr()) {
+      return deleteSsoTokensResult;
     }
+
+    // Then delete the main SESSION- token last.
+    return this.bulkDeleteItems(
+      this.userSessionContainer,
+      [toCosmosSessionId(userSessionWithTokens.hashedSessionToken)],
+      userSessionWithTokens.sessionId as unknown as NonEmptyString,
+      "UserSession" as NonEmptyString,
+    );
   }
 
   private async deleteSessionMetadata(
@@ -454,12 +419,9 @@ function fromDbSessionMetadata(
   return err(new GenericError(`Error parsing session metadata from DB`));
 }
 
-function fromDbSession(raw: JSONObject): Result<Session, GenericError> {
-  const parsedSession = SessionSchema.safeParse({
-    hashedSessionTokenWithTrackingId: {
-      sessionTrackingId: raw.sessionTrackingId,
-      hashedSessionToken: String(raw.id).replace(COSMOS_SESSION_PREFIX, ""),
-    },
+function fromDbSession(raw: JSONObject): Result<BaseSession, GenericError> {
+  const parsedSession = BaseSessionSchema.safeParse({
+    sessionId: raw.sessionTrackingId,
     fiscalCode: raw.fiscalCode,
     name: raw.name,
     familyName: raw.familyName,
@@ -477,13 +439,10 @@ function fromDbSession(raw: JSONObject): Result<Session, GenericError> {
   }
 }
 
-function toDbSession(session: Session, ttl: number): JSONObject {
+function toDbSession(session: SessionWithHashedToken, ttl: number): JSONObject {
   return {
-    id: toCosmosSessionId(
-      session.hashedSessionTokenWithTrackingId.hashedSessionToken,
-    ),
-    sessionTrackingId:
-      session.hashedSessionTokenWithTrackingId.sessionTrackingId,
+    id: toCosmosSessionId(session.hashedSessionToken),
+    sessionId: session.sessionId,
     fiscalCode: session.fiscalCode,
     name: session.name,
     familyName: session.familyName,

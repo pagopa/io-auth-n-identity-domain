@@ -6,7 +6,6 @@ import { SessionTrackingIdSchema } from "../session-tracking-id.vo.js";
 
 import { PlainSessionToken } from "./session-token.vo.js";
 
-
 // ------------------------------------------------------------------------------
 // Plain FIMS SSO Token Value Object
 // ------------------------------------------------------------------------------
@@ -29,19 +28,6 @@ export const HashedFimsSSOTokenSchema =
   NonEmptyStringSchema.brand<typeof _hashedFimsSSOTokenBrand>();
 
 export type HashedFimsSSOToken = z.infer<typeof HashedFimsSSOTokenSchema>;
-
-// ------------------------------------------------------------------------------
-// Hashed FIMS SSO Token With Session Tracking ID Value Object
-// ------------------------------------------------------------------------------
-
-export const HashedFimsSSOTokenWithSessionTrackingIdSchema = z.object({
-  sessionTrackingId: SessionTrackingIdSchema,
-  hashedToken: HashedFimsSSOTokenSchema,
-});
-
-export type HashedFimsSSOTokenWithSessionTrackingId = z.infer<
-  typeof HashedFimsSSOTokenWithSessionTrackingIdSchema
->;
 
 // ------------------------------------------------------------------------------
 // Helper functions
