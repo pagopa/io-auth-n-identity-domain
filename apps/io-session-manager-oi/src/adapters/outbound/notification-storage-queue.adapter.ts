@@ -13,6 +13,21 @@ export class NotificationStorageQueueAdapter
 {
   constructor(private readonly queueClient: QueueClient) {}
 
+  async healthcheck(): Promise<Result<void, GenericError>> {
+    try {
+      await this.queueClient.getProperties();
+      return ok(undefined);
+    } catch (error) {
+      return err(
+        new GenericError(
+          `Failed to perform healthcheck on notification queue: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ),
+      );
+    }
+  }
+
   async deleteInstallation(
     fiscalCode: FiscalCode,
   ): Promise<Result<undefined, GenericError>> {
