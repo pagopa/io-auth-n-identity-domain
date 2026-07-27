@@ -22,11 +22,11 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock("../../../utils/codec.js", () => ({
+vi.mock("../../../utils/codec/index.js", () => ({
   Base64: mocks.Base64,
 }));
 
-vi.mock("../../../utils/crypto.js", () => ({
+vi.mock("../../../utils/crypto/index.js", () => ({
   Hash: mocks.Hash,
 }));
 
