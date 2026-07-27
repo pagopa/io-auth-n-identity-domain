@@ -65,7 +65,7 @@ export class LollipopActivationCosmosAdapter
 
   public async revokeByFiscalCode(
     fiscalCode: FiscalCode,
-  ): Promise<Result<void, GenericError | NotFoundError>> {
+  ): Promise<Result<void, GenericError>> {
     const activationResult = await this.getByFiscalCode(fiscalCode);
     if (activationResult.isErr()) {
       if (activationResult.error instanceof NotFoundError) {

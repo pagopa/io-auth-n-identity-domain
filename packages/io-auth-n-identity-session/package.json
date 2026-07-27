@@ -10,6 +10,26 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./entities": {
+      "import": "./dist/domain/entities/index.js",
+      "types": "./dist/domain/entities/index.d.ts"
+    },
+    "./value-objects": {
+      "import": "./dist/domain/value-objects/index.js",
+      "types": "./dist/domain/value-objects/index.d.ts"
+    },
+    "./ports": {
+      "import": "./dist/domain/ports/index.js",
+      "types": "./dist/domain/ports/index.d.ts"
+    },
+    "./adapters": {
+      "import": "./dist/adapters/index.js",
+      "types": "./dist/adapters/index.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/utils/index.js",
+      "types": "./dist/utils/index.d.ts"
     }
   },
   "scripts": {

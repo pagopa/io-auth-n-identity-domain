@@ -64,7 +64,7 @@ export interface SessionPort {
   /**
    * Refreshes an existing session with new tokens.
    * @param sessionTokens The current session tokens.
-   * @returns The refreshed session with new tokens, or an error if the session is not found or a generic error happens.
+   * @returns The refreshed session with new tokens, or an error if a session is already found or a generic error happens.
    */
   readonly refresh: (
     sessionTokens: SessionWithHashedSSOTokens,

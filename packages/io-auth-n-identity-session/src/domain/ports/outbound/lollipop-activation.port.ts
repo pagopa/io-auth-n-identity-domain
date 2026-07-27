@@ -22,5 +22,5 @@ export interface LollipopActivationPort {
 
   readonly revokeByFiscalCode: (
     fiscalCode: FiscalCode,
-  ) => Promise<Result<void, GenericError | NotFoundError>>;
+  ) => Promise<Result<void, GenericError>>;
 }
