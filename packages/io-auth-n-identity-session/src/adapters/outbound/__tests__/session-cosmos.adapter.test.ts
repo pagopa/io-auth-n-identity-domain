@@ -4,6 +4,7 @@ import {
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import type { FiscalCode, NonEmptyString } from "@pagopa/hexagonal-core";
+import type { SessionId } from "../../../domain/value-objects/session-id.vo.js";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -17,13 +18,12 @@ import type {
   BaseSession,
   SessionWithHashedSSOTokens,
 } from "../../../domain/entities/session.entity.js";
-import type { SessionMetadata } from "../../../domain/entities/session-metadata.entity.js";
-import type { SessionTrackingId } from "../../../domain/value-objects/session-tracking-id.vo.js";
 import type { HashedSessionToken } from "../../../domain/value-objects/tokens/session-token.vo.js";
 import type { HashedBpdSSOToken } from "../../../domain/value-objects/tokens/bpd-sso-token.vo.js";
 import type { HashedWalletSSOToken } from "../../../domain/value-objects/tokens/wallet-sso-token.vo.js";
 import type { HashedFimsSSOToken } from "../../../domain/value-objects/tokens/fims-sso-token.vo.js";
 import type { HashedZendeskSSOToken } from "../../../domain/value-objects/tokens/zendesk-sso-token.vo.js";
+import { ActiveSession } from "../../../domain/index.js";
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -36,12 +36,12 @@ const COSMOS_FIMS_PREFIX = "FIMS-";
 const COSMOS_ZENDESK_PREFIX = "ZENDESK-";
 const COSMOS_SESSION_METADATA_ID = "SESSION_METADATA";
 
-const USER_SESSION_CONTAINER_ID = "tokens";
-const SESSION_METADATA_CONTAINER_ID = "session-info";
+const USER_SESSION_CONTAINER_ID = "session-tokens";
+const SESSION_METADATA_CONTAINER_ID = "active-sessions";
 const DATABASE_ID = "io-auth-SM";
 
 const aFiscalCode = "RSSMRA85T10A562S" as FiscalCode;
-const aSessionId = "550e8400-e29b-41d4-a716-446655440001" as SessionTrackingId;
+const aSessionId = "sessionId" as SessionId;
 const aHashedSessionToken = "abc123hashedsessiontoken" as HashedSessionToken;
 const aHashedBpdToken = "bpd123hashedtoken" as HashedBpdSSOToken;
 const aHashedWalletToken = "wallet123hashedtoken" as HashedWalletSSOToken;
@@ -74,17 +74,17 @@ const aSessionWithHashedTokens: SessionWithHashedSSOTokens = {
   },
 };
 
-const aSessionMetadata: SessionMetadata = {
+const aSessionMetadata: ActiveSession = {
   fiscalCode: aFiscalCode,
   loginType: "LEGACY",
-  sessionTrackingId: aSessionId,
+  sessionId: aSessionId,
   expirationDate: anExpirationDate,
 };
 
 // A valid raw session document as persisted in Cosmos DB
 const aDbSessionResource = {
   id: COSMOS_SESSION_PREFIX + aHashedSessionToken,
-  sessionTrackingId: aSessionId,
+  sessionId: aSessionId,
   fiscalCode: aFiscalCode,
   name: "Mario",
   familyName: "Rossi",
@@ -100,7 +100,7 @@ const aDbSessionMetadataResource = {
   type: COSMOS_SESSION_METADATA_ID,
   fiscalCode: aFiscalCode,
   loginType: "LEGACY",
-  sessionTrackingId: aSessionId,
+  sessionId: aSessionId,
   expirationDate: anExpirationDate.toISOString(),
 };
 
@@ -417,7 +417,7 @@ describe("SessionCosmosAdapter", () => {
 
       expect(result).toEqual(ok(undefined));
       expect(sessionMetadata.item).toHaveBeenCalledWith(
-        COSMOS_SESSION_METADATA_ID,
+        aFiscalCode,
         aFiscalCode,
       );
       // Two bulk calls: first the 4 SSO tokens, then the main session token.

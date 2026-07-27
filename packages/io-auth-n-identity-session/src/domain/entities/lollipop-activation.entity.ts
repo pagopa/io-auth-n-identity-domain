@@ -14,16 +14,3 @@ export const LollipopActivationSchema = z.object({
 });
 
 export type LollipopActivation = z.infer<typeof LollipopActivationSchema>;
-
-// ------------------------------------------------------------------------------
-// Helper functions
-// ------------------------------------------------------------------------------
-
-const getLollipopActivationTtlMsByLoginType = (loginType: LoginType) => {
-  const ttlByLoginType = {
-    LV: 365 * 24 * 60 * 60 * 1_000, // 1 year
-    LEGACY: 30 * 24 * 60 * 60 * 1_000, // 30 days
-  } as const;
-
-  return ttlByLoginType[loginType];
-};

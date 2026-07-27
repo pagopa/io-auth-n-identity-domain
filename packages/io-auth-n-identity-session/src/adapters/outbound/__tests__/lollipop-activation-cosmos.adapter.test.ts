@@ -101,7 +101,6 @@ describe("LollipopActivationCosmosAdapter", () => {
       });
 
       const result = await adapter.getByFiscalCode(aFiscalCode);
-      console.log(result);
 
       expect(result).toEqual(
         err(new GenericError("Invalid lollipop activation")),

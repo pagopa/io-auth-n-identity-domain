@@ -6,18 +6,18 @@ import {
 } from "@pagopa/hexagonal-core";
 import type { Result } from "neverthrow";
 
-import { SessionMetadata } from "../../entities/session-metadata.entity.js";
+import { ActiveSession } from "../../entities/active-session.entity.js";
 import type {
   SessionWithHashedSSOTokens,
   BaseSession,
 } from "../../entities/session.entity.js";
-import { SessionTrackingId } from "../../value-objects/session-tracking-id.vo.js";
+import { SessionId } from "../../value-objects/session-id.vo.js";
 import { HashedBpdSSOToken } from "../../value-objects/tokens/bpd-sso-token.vo.js";
 import { HashedSessionToken } from "../../value-objects/tokens/session-token.vo.js";
 
 export type HashedSessionTokenWithSessionId = {
+  sessionId: SessionId;
   hashedSessionToken: HashedSessionToken;
-  sessionId: SessionTrackingId;
 };
 
 /**
@@ -45,7 +45,7 @@ export interface SessionPort {
    */
   readonly findByBpdToken: (bpdToken: {
     hashedBPDSSOToken: HashedBpdSSOToken;
-    sessionId: SessionTrackingId;
+    sessionId: SessionId;
   }) => Promise<Result<BaseSession, NotFoundError | GenericError>>;
 
   /**
@@ -55,7 +55,7 @@ export interface SessionPort {
    * @returns The created session, or an error if a conflict occurs or a generic error happens.
    */
   readonly create: (
-    sessionMetadata: SessionMetadata,
+    sessionMetadata: ActiveSession,
     sessionTokens: SessionWithHashedSSOTokens,
   ) => Promise<
     Result<SessionWithHashedSSOTokens, ConflictError | GenericError>

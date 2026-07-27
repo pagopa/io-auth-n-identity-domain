@@ -13,8 +13,8 @@ import {
 } from "@pagopa/hexagonal-core";
 import { err, ok, Result } from "neverthrow";
 
-import type { SessionMetadata } from "../../domain/entities/session-metadata.entity.js";
-import { SessionMetadataSchema } from "../../domain/entities/session-metadata.entity.js";
+import type { ActiveSession } from "../../domain/entities/active-session.entity.js";
+import { ActiveSessionSchema } from "../../domain/entities/active-session.entity.js";
 import { BaseSessionSchema } from "../../domain/entities/session.entity.js";
 import type {
   SessionWithHashedToken,
@@ -25,7 +25,7 @@ import {
   HashedSessionTokenWithSessionId,
   SessionPort,
 } from "../../domain/ports/outbound/session.port.js";
-import { SessionTrackingId } from "../../domain/value-objects/session-tracking-id.vo.js";
+import { SessionId } from "../../domain/value-objects/session-id.vo.js";
 import type { HashedBpdSSOToken } from "../../domain/value-objects/tokens/bpd-sso-token.vo.js";
 import type { HashedFimsSSOToken } from "../../domain/value-objects/tokens/fims-sso-token.vo.js";
 import {
@@ -46,7 +46,6 @@ const COSMOS_WALLET_PREFIX = "WALLET-";
 const COSMOS_BPD_PREFIX = "BPD-";
 const COSMOS_FIMS_PREFIX = "FIMS-";
 const COSMOS_ZENDESK_PREFIX = "ZENDESK-";
-const COSMOS_SESSION_METADATA_ID = "SESSION_METADATA";
 
 // ---------------------------------------------------------------------------
 // Cosmos DB Adapter for SessionPort
@@ -92,7 +91,7 @@ export class SessionCosmosAdapter
 
   public async findByBpdToken(bpdToken: {
     hashedBPDSSOToken: HashedBpdSSOToken;
-    sessionId: SessionTrackingId;
+    sessionId: SessionId;
   }): Promise<Result<BaseSession, GenericError | NotFoundError>> {
     const result = await this.readItem(
       this.userSessionContainer,
@@ -104,7 +103,7 @@ export class SessionCosmosAdapter
   }
 
   public async create(
-    sessionMetadata: SessionMetadata,
+    sessionMetadata: ActiveSession,
     session: SessionWithHashedSSOTokens,
   ): Promise<Result<SessionWithHashedSSOTokens, ConflictError | GenericError>> {
     // First create the volatile user session in the userSessionContainer, which will expire after TTL.
@@ -166,7 +165,7 @@ export class SessionCosmosAdapter
     Result<HashedSessionTokenWithSessionId | undefined, GenericError>
   > {
     try {
-      // Step 1: read the SessionMetadata for the given fiscalCode to get the sessionTrackingId
+      // Step 1: read the SessionMetadata for the given fiscalCode to get the sessionId
       const sessionMetadataResult = await this.getSessionMetadata(fiscalCode);
 
       if (sessionMetadataResult.isErr()) {
@@ -177,14 +176,11 @@ export class SessionCosmosAdapter
         return err(sessionMetadataResult.error);
       }
 
-      const sessionTrackingId = sessionMetadataResult.value.sessionTrackingId;
+      const sessionId = sessionMetadataResult.value.sessionId;
 
-      // Step 2: delete all token items in userSessionContainer for that sessionTrackingId
+      // Step 2: delete all token items in userSessionContainer for that sessionId
       const { resources: items } = await this.userSessionContainer.items
-        .query(
-          { query: "SELECT c.id FROM c" },
-          { partitionKey: sessionTrackingId },
-        )
+        .query({ query: "SELECT c.id FROM c" }, { partitionKey: sessionId })
         .fetchAll();
 
       // Extract the hashed session token from the SESSION- item before deleting
@@ -200,7 +196,7 @@ export class SessionCosmosAdapter
       const deleteResult = await this.bulkDeleteItems(
         this.userSessionContainer,
         items.map((item: { id: string }) => item.id as NonEmptyString),
-        sessionTrackingId as unknown as NonEmptyString,
+        sessionId as unknown as NonEmptyString,
         "UserSession" as NonEmptyString,
       );
       if (deleteResult.isErr()) {
@@ -208,16 +204,14 @@ export class SessionCosmosAdapter
       }
 
       // Step 3: delete SessionMetadata
-      await this.sessionMetadataContainer
-        .item(COSMOS_SESSION_METADATA_ID, fiscalCode)
-        .delete();
+      await this.sessionMetadataContainer.item(fiscalCode, fiscalCode).delete();
 
       if (hashedSessionToken) {
         const parsed = HashedSessionTokenSchema.safeParse(hashedSessionToken);
 
         if (parsed.success) {
           return ok({
-            sessionId: sessionTrackingId,
+            sessionId: sessionId,
             hashedSessionToken: parsed.data,
           });
         }
@@ -247,10 +241,10 @@ export class SessionCosmosAdapter
 
   private async getSessionMetadata(
     fiscalCode: FiscalCode,
-  ): Promise<Result<SessionMetadata, GenericError | NotFoundError>> {
+  ): Promise<Result<ActiveSession, GenericError | NotFoundError>> {
     const result = await this.readItem(
       this.sessionMetadataContainer,
-      COSMOS_SESSION_METADATA_ID as NonEmptyString,
+      fiscalCode as unknown as NonEmptyString,
       fiscalCode as unknown as NonEmptyString,
       "SessionMetadata" as NonEmptyString,
     );
@@ -324,7 +318,7 @@ export class SessionCosmosAdapter
   }
 
   private async createSessionMetadata(
-    sessionMetadata: SessionMetadata,
+    sessionMetadata: ActiveSession,
   ): Promise<Result<void, ConflictError | GenericError>> {
     const sessionMetadataTtl = this.computeTtl(sessionMetadata.expirationDate);
 
@@ -333,11 +327,10 @@ export class SessionCosmosAdapter
     }
 
     const sessionInfoDoc = {
-      id: COSMOS_SESSION_METADATA_ID,
-      type: COSMOS_SESSION_METADATA_ID,
+      id: sessionMetadata.fiscalCode,
       fiscalCode: sessionMetadata.fiscalCode,
       loginType: sessionMetadata.loginType,
-      sessionTrackingId: sessionMetadata.sessionTrackingId,
+      sessionId: sessionMetadata.sessionId,
       expirationDate: sessionMetadata.expirationDate.toISOString(),
       ttl: sessionMetadataTtl.value,
     };
@@ -389,9 +382,7 @@ export class SessionCosmosAdapter
     fiscalCode: FiscalCode,
   ): Promise<Result<void, GenericError>> {
     try {
-      await this.sessionMetadataContainer
-        .item(COSMOS_SESSION_METADATA_ID, fiscalCode)
-        .delete();
+      await this.sessionMetadataContainer.item(fiscalCode, fiscalCode).delete();
       return ok(undefined);
     } catch (error: any) {
       if (error?.code === 404) {
@@ -408,8 +399,8 @@ export class SessionCosmosAdapter
 
 function fromDbSessionMetadata(
   raw: JSONObject,
-): Result<SessionMetadata, GenericError> {
-  const parsed = SessionMetadataSchema.safeParse({
+): Result<ActiveSession, GenericError> {
+  const parsed = ActiveSessionSchema.safeParse({
     ...raw,
     expirationDate: new Date(raw.expirationDate as string),
   });
@@ -421,7 +412,7 @@ function fromDbSessionMetadata(
 
 function fromDbSession(raw: JSONObject): Result<BaseSession, GenericError> {
   const parsedSession = BaseSessionSchema.safeParse({
-    sessionId: raw.sessionTrackingId,
+    sessionId: raw.sessionId,
     fiscalCode: raw.fiscalCode,
     name: raw.name,
     familyName: raw.familyName,

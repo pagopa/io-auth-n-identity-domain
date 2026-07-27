@@ -6,10 +6,7 @@ import {
 import { z } from "zod";
 
 import { LoginType } from "../value-objects/login-type.vo.js";
-import {
-  SessionTrackingId,
-  SessionTrackingIdSchema,
-} from "../value-objects/session-tracking-id.vo.js";
+import { SessionIdSchema } from "../value-objects/session-id.vo.js";
 import { SpidLevelSchema } from "../value-objects/spid-level.vo.js";
 import {
   toHashedBpdSSOToken,
@@ -43,7 +40,7 @@ import {
 // ------------------------------------------------------------------------------
 
 export const BaseSessionSchema = z.object({
-  sessionId: SessionTrackingIdSchema,
+  sessionId: SessionIdSchema,
   fiscalCode: FiscalCodeSchema,
   name: NonEmptyStringSchema,
   familyName: NonEmptyStringSchema,
@@ -102,11 +99,9 @@ export const getSessionTtlMsByLoginType = (loginType: LoginType) => {
 };
 
 export const newPlainSession = async ({
-  sessionTrackingId,
   loginType,
   ...baseData
 }: Omit<z.infer<typeof BaseSessionSchema>, "expirationDate"> & {
-  sessionTrackingId: SessionTrackingId;
   loginType: LoginType;
 }): Promise<SessionWithPlainSSOTokens> => {
   const plainSessionToken = await newPlainSessionToken();
