@@ -49,13 +49,13 @@ export interface SessionPort {
   }) => Promise<Result<BaseSession, NotFoundError | GenericError>>;
 
   /**
-   * Creates a new session with the given metadata and tokens.
-   * @param sessionMetadata The metadata for the new session.
+   * Creates a new session with the given session and tokens.
+   * @param activeSession The data for the new session.
    * @param sessionTokens The tokens associated with the new session.
    * @returns The created session, or an error if a conflict occurs or a generic error happens.
    */
   readonly create: (
-    sessionMetadata: ActiveSession,
+    activeSession: ActiveSession,
     sessionTokens: SessionWithHashedSSOTokens,
   ) => Promise<
     Result<SessionWithHashedSSOTokens, ConflictError | GenericError>

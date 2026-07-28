@@ -55,23 +55,23 @@ export class SessionCosmosAdapter
   extends CosmosBaseAdapter
   implements SessionPort
 {
-  protected readonly userSessionContainer: Container;
-  protected readonly sessionMetadataContainer: Container;
+  protected readonly sessionTokenContainer: Container;
+  protected readonly activeSessionContainer: Container;
 
   constructor(
     client: CosmosClient,
     databaseId: string,
-    userSessionContainerId: string,
-    sessionMetadataContainerId: string,
+    sessionTokenContainerId: string,
+    activeSessionContainerId: string,
   ) {
     super(client);
 
-    this.userSessionContainer = this.client
+    this.sessionTokenContainer = this.client
       .database(databaseId)
-      .container(userSessionContainerId);
-    this.sessionMetadataContainer = this.client
+      .container(sessionTokenContainerId);
+    this.activeSessionContainer = this.client
       .database(databaseId)
-      .container(sessionMetadataContainerId);
+      .container(activeSessionContainerId);
   }
 
   public async findBySessionToken({
@@ -81,7 +81,7 @@ export class SessionCosmosAdapter
     Result<BaseSession, GenericError | NotFoundError>
   > {
     const result = await this.readItem(
-      this.userSessionContainer,
+      this.sessionTokenContainer,
       toCosmosSessionId(hashedSessionToken),
       sessionId as unknown as NonEmptyString,
       "UserSession" as NonEmptyString,
@@ -94,7 +94,7 @@ export class SessionCosmosAdapter
     sessionId: SessionId;
   }): Promise<Result<BaseSession, GenericError | NotFoundError>> {
     const result = await this.readItem(
-      this.userSessionContainer,
+      this.sessionTokenContainer,
       toCosmosBpdSessionId(bpdToken.hashedBPDSSOToken),
       bpdToken.sessionId as unknown as NonEmptyString,
       "BPDSSOSession" as NonEmptyString,
@@ -103,7 +103,7 @@ export class SessionCosmosAdapter
   }
 
   public async create(
-    sessionMetadata: ActiveSession,
+    activeSession: ActiveSession,
     session: SessionWithHashedSSOTokens,
   ): Promise<Result<SessionWithHashedSSOTokens, ConflictError | GenericError>> {
     // First create the volatile user session in the userSessionContainer, which will expire after TTL.
@@ -112,14 +112,14 @@ export class SessionCosmosAdapter
       return sessionCreationResult;
     }
 
-    // Then create the session metadata in the sessionMetadataContainer, which will also expire after its TTL,
+    // Then create the active session in the activeSessionContainer, which will also expire after its TTL,
     // which it can be different from the user session TTL, depending on the login type.
-    const sessionMetadataCreationResult =
-      await this.createSessionMetadata(sessionMetadata);
-    if (sessionMetadataCreationResult.isErr()) {
-      // If an error occurs during the creation of the user metadata,
+    const activeSessionCreationResult =
+      await this.createActiveSession(activeSession);
+    if (activeSessionCreationResult.isErr()) {
+      // If an error occurs during the creation of the active session,
       // the userSession will be left orphaned in the userSessionContainer and will expire after TTL.
-      return err(sessionMetadataCreationResult.error);
+      return err(activeSessionCreationResult.error);
     }
 
     return ok(session);
@@ -139,18 +139,17 @@ export class SessionCosmosAdapter
   public async delete(
     sessionTokens: SessionWithHashedSSOTokens,
   ): Promise<Result<void, GenericError | NotFoundError>> {
-    // First delete the SessionMetadata, since fiscalCode is needed
+    // First delete the ActiveSession, since fiscalCode is needed
     //  to perform the deletion.
-    const deleteUserSessionResult = await this.deleteSessionMetadata(
+    const deleteActiveSessionResult = await this.deleteActiveSession(
       sessionTokens.fiscalCode,
     );
-    if (deleteUserSessionResult.isErr()) {
-      return deleteUserSessionResult;
+    if (deleteActiveSessionResult.isErr()) {
+      return deleteActiveSessionResult;
     }
 
-    // Then delete the user session in the userSessionContainer
-    // If an error occurs during the deletion of the user session,
-    // the request can be retried
+    // Then delete the user session in the session tokens container
+    // If an error occurs during the deletion, the request can be retried
     const deleteSessionInfoResult = await this.deleteUserSession(sessionTokens);
     if (deleteSessionInfoResult.isErr()) {
       return deleteSessionInfoResult;
@@ -165,21 +164,21 @@ export class SessionCosmosAdapter
     Result<HashedSessionTokenWithSessionId | undefined, GenericError>
   > {
     try {
-      // Step 1: read the SessionMetadata for the given fiscalCode to get the sessionId
-      const sessionMetadataResult = await this.getSessionMetadata(fiscalCode);
+      // Step 1: read the ActiveSession for the given fiscalCode to get the sessionId
+      const activeSessionResult = await this.getActiveSession(fiscalCode);
 
-      if (sessionMetadataResult.isErr()) {
-        if (sessionMetadataResult.error instanceof NotFoundError) {
+      if (activeSessionResult.isErr()) {
+        if (activeSessionResult.error instanceof NotFoundError) {
           // no previous session to invalidate
           return ok(undefined);
         }
-        return err(sessionMetadataResult.error);
+        return err(activeSessionResult.error);
       }
 
-      const sessionId = sessionMetadataResult.value.sessionId;
+      const sessionId = activeSessionResult.value.sessionId;
 
       // Step 2: delete all token items in userSessionContainer for that sessionId
-      const { resources: items } = await this.userSessionContainer.items
+      const { resources: items } = await this.sessionTokenContainer.items
         .query({ query: "SELECT c.id FROM c" }, { partitionKey: sessionId })
         .fetchAll();
 
@@ -192,9 +191,9 @@ export class SessionCosmosAdapter
         : undefined;
 
       // All token items can be deleted together here: the retry anchor is the
-      // fiscalCode/SessionMetadata (deleted last in Step 3), not the SESSION- token.
+      // fiscalCode/ActiveSession (deleted last in Step 3), not the SESSION- token.
       const deleteResult = await this.bulkDeleteItems(
-        this.userSessionContainer,
+        this.sessionTokenContainer,
         items.map((item: { id: string }) => item.id as NonEmptyString),
         sessionId as unknown as NonEmptyString,
         "UserSession" as NonEmptyString,
@@ -203,8 +202,8 @@ export class SessionCosmosAdapter
         return err(deleteResult.error);
       }
 
-      // Step 3: delete SessionMetadata
-      await this.sessionMetadataContainer.item(fiscalCode, fiscalCode).delete();
+      // Step 3: delete ActiveSession
+      await this.activeSessionContainer.item(fiscalCode, fiscalCode).delete();
 
       if (hashedSessionToken) {
         const parsed = HashedSessionTokenSchema.safeParse(hashedSessionToken);
@@ -239,16 +238,16 @@ export class SessionCosmosAdapter
   // Private Methods
   // ---------------------------------------------------------------------------
 
-  private async getSessionMetadata(
+  private async getActiveSession(
     fiscalCode: FiscalCode,
   ): Promise<Result<ActiveSession, GenericError | NotFoundError>> {
     const result = await this.readItem(
-      this.sessionMetadataContainer,
+      this.activeSessionContainer,
       fiscalCode as unknown as NonEmptyString,
       fiscalCode as unknown as NonEmptyString,
-      "SessionMetadata" as NonEmptyString,
+      "ActiveSession" as NonEmptyString,
     );
-    return result.andThen(fromDbSessionMetadata);
+    return result.andThen(fromDbActiveSession);
   }
 
   private async createUserSession(
@@ -262,7 +261,7 @@ export class SessionCosmosAdapter
     const ttl = ttlResult.value;
 
     try {
-      const result = await this.userSessionContainer.items.batch(
+      const result = await this.sessionTokenContainer.items.batch(
         [
           {
             operationType: BulkOperationType.Create,
@@ -317,28 +316,28 @@ export class SessionCosmosAdapter
     }
   }
 
-  private async createSessionMetadata(
-    sessionMetadata: ActiveSession,
+  private async createActiveSession(
+    activeSession: ActiveSession,
   ): Promise<Result<void, ConflictError | GenericError>> {
-    const sessionMetadataTtl = this.computeTtl(sessionMetadata.expirationDate);
+    const activeSessionTtl = this.computeTtl(activeSession.expirationDate);
 
-    if (sessionMetadataTtl.isErr()) {
-      return err(sessionMetadataTtl.error);
+    if (activeSessionTtl.isErr()) {
+      return err(activeSessionTtl.error);
     }
 
     const sessionInfoDoc = {
-      id: sessionMetadata.fiscalCode,
-      fiscalCode: sessionMetadata.fiscalCode,
-      loginType: sessionMetadata.loginType,
-      sessionId: sessionMetadata.sessionId,
-      expirationDate: sessionMetadata.expirationDate.toISOString(),
-      ttl: sessionMetadataTtl.value,
+      id: activeSession.fiscalCode,
+      fiscalCode: activeSession.fiscalCode,
+      loginType: activeSession.loginType,
+      sessionId: activeSession.sessionId,
+      expirationDate: activeSession.expirationDate.toISOString(),
+      ttl: activeSessionTtl.value,
     };
 
     return this.createItem(
-      this.sessionMetadataContainer,
+      this.activeSessionContainer,
       sessionInfoDoc,
-      "SessionMetadata" as NonEmptyString,
+      "ActiveSession" as NonEmptyString,
     ).then((result) => result.map(() => void 0));
   }
 
@@ -360,7 +359,7 @@ export class SessionCosmosAdapter
     ];
 
     const deleteSsoTokensResult = await this.bulkDeleteItems(
-      this.userSessionContainer,
+      this.sessionTokenContainer,
       ssoTokenIds,
       userSessionWithTokens.sessionId as unknown as NonEmptyString,
       "UserSession" as NonEmptyString,
@@ -371,18 +370,18 @@ export class SessionCosmosAdapter
 
     // Then delete the main SESSION- token last.
     return this.bulkDeleteItems(
-      this.userSessionContainer,
+      this.sessionTokenContainer,
       [toCosmosSessionId(userSessionWithTokens.hashedSessionToken)],
       userSessionWithTokens.sessionId as unknown as NonEmptyString,
       "UserSession" as NonEmptyString,
     );
   }
 
-  private async deleteSessionMetadata(
+  private async deleteActiveSession(
     fiscalCode: FiscalCode,
   ): Promise<Result<void, GenericError>> {
     try {
-      await this.sessionMetadataContainer.item(fiscalCode, fiscalCode).delete();
+      await this.activeSessionContainer.item(fiscalCode, fiscalCode).delete();
       return ok(undefined);
     } catch (error: any) {
       if (error?.code === 404) {
@@ -397,7 +396,7 @@ export class SessionCosmosAdapter
 // Private Mappers Functions
 // ---------------------------------------------------------------------------
 
-function fromDbSessionMetadata(
+function fromDbActiveSession(
   raw: JSONObject,
 ): Result<ActiveSession, GenericError> {
   const parsed = ActiveSessionSchema.safeParse({
@@ -407,7 +406,7 @@ function fromDbSessionMetadata(
   if (parsed.success) {
     return ok(parsed.data);
   }
-  return err(new GenericError(`Error parsing session metadata from DB`));
+  return err(new GenericError(`Error parsing active session from DB`));
 }
 
 function fromDbSession(raw: JSONObject): Result<BaseSession, GenericError> {
