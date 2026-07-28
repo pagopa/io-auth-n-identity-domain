@@ -39,6 +39,18 @@ export const IoProfileConfigSchema = z.object({
 export type IoProfileConfig = z.infer<typeof IoProfileConfigSchema>;
 
 /**
+ * IO Fast Login configuration schema.
+ * Consists of the URL, base path, and API key for the IO Fast Login service.
+ */
+export const IoFastLoginConfigSchema = z.object({
+  IO_FAST_LOGIN_API_URL: z.url(),
+  IO_FAST_LOGIN_API_BASE_PATH: NonEmptyStringSchema,
+  IO_FAST_LOGIN_API_KEY: NonEmptyStringSchema,
+});
+
+export type IoFastLoginConfig = z.infer<typeof IoFastLoginConfigSchema>;
+
+/**
  * Locked Profiles configuration schema.
  * Consists of the name of the Azure Table Storage table used to store locked profiles.
  */
@@ -56,6 +68,7 @@ const CommonConfigShape = {
   ...ServerConfigSchema.shape,
   ...LollipopConfigSchema.shape,
   ...IoProfileConfigSchema.shape,
+  ...IoFastLoginConfigSchema.shape,
   ...LockedProfilesConfigSchema.shape,
 };
 

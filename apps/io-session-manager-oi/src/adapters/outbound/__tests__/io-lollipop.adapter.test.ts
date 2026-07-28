@@ -7,12 +7,11 @@ import {
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import {
-  AssertionTypeSchema,
+  LollipopAssertionTypeSchema,
   LollipopAssertionRefSchema,
   LollipopJwk,
   LollipopJwkHashingAlgorithm,
   PubKeyStatusSchema,
-  type JwkPublicKey,
 } from "@pagopa/io-auth-n-identity-domain";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -76,7 +75,7 @@ const aNewPubKeyPayload: NewPubKeyPayloadDto = {
 
 const anActivatePubKeyPayload: ActivatePubKeyPayloadDto = {
   fiscal_code: aFiscalCode,
-  assertion_type: AssertionTypeSchema.enum.SAML,
+  assertion_type: LollipopAssertionTypeSchema.enum.SAML,
   assertion: "a-signed-assertion" as NonEmptyString,
   expired_at: new Date("2026-01-01T22:00:00.000Z"),
 };
@@ -88,7 +87,7 @@ const aGenerateLcParamsPayload: GenerateLcParamsPayloadDto = {
 const aValidLCParamsResult: LcParamsDto = {
   assertion_ref: anAssertionRef,
   assertion_file_name: `${aFiscalCode}-${anAssertionRef}` as NonEmptyString,
-  assertion_type: AssertionTypeSchema.enum.SAML,
+  assertion_type: LollipopAssertionTypeSchema.enum.SAML,
   expired_at: "2026-01-01T22:00:00.000Z" as NonEmptyString,
   fiscal_code: aFiscalCode,
   pub_key: anEncodedJwk,

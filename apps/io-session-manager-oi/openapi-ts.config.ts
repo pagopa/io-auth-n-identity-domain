@@ -91,4 +91,30 @@ export default defineConfig([
       },
     ],
   },
+  {
+    input:
+      "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/72f3e9344fac5cd525168be7228d84fa8cfe8b38/apps/io-fast-login/api/internal.yaml",
+    output: {
+      path: "src/generated/io-fast-login",
+      module: {
+        extension: ".js",
+      },
+    },
+    plugins: [
+      "@hey-api/client-fetch",
+      "@hey-api/schemas",
+      "@hey-api/sdk",
+      {
+        name: "zod",
+        $resolvers: {
+          // Intercept all string nodes
+          string: stringResolver,
+        },
+      },
+      {
+        enums: "javascript",
+        name: "@hey-api/typescript",
+      },
+    ],
+  },
 ] as ReadonlyArray<UserConfig>);
