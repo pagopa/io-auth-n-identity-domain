@@ -40,4 +40,9 @@ module "session_manager" {
     }
     table_name = local.locked_profiles_table_name
   }
+
+  io_session_manager_internal = {
+    base_url  = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
+    base_path = "/api/v1"
+  }
 }
