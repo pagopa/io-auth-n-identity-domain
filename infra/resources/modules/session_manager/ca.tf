@@ -23,7 +23,10 @@ module "sm_ca" {
       app_settings = local.app_settings
 
       liveness_probe = {
-        path = "/api/auth/v2/healthcheck"
+        path = "/api/auth/v2/health/liveness"
+      }
+      readiness_probe = {
+        path = "/api/auth/v2/health/readiness"
       }
     },
   ]
