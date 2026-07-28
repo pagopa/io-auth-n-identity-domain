@@ -55,7 +55,7 @@ export const createApp = (
   const pushNotificationsQueueServiceClient =
     config.NODE_ENV === "production"
       ? new QueueServiceClient(
-          config.PUSH_NOTIFICATIONS_STORAGE_ACCOUNT_URI,
+          config.PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI,
           AzureCredential.getInstance(),
         )
       : QueueServiceClient.fromConnectionString(

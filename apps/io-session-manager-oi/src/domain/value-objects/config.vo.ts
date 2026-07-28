@@ -102,7 +102,7 @@ export const ProductionConfigSchema = z.object({
   ...CommonConfigShape,
   NODE_ENV: z.literal("production"),
   LOCKED_PROFILES_STORAGE_ACCOUNT_URI: z.url(),
-  PUSH_NOTIFICATIONS_STORAGE_ACCOUNT_URI: z.url(),
+  PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI: z.url(),
 });
 
 export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
