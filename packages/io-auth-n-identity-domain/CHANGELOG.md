@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-domain
 
+## 0.3.0
+
+### Minor Changes
+
+- a3672f0: Added more lollipop value objects
+
 ## 0.2.0
 
 ### Minor Changes
