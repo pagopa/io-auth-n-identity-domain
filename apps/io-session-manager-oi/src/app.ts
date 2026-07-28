@@ -50,7 +50,12 @@ export const createApp = (
     ),
   );
 
-  mountHealthCheckHandler(
+  mountHealthCheckHandler("liveness")(
+    server,
+    getHealthCheckUseCase(packageInfo),
+  );
+
+  mountHealthCheckHandler("readiness")(
     server,
     getHealthCheckUseCase(packageInfo, [
       {
