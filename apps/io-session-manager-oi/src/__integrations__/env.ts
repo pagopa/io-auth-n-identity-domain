@@ -21,3 +21,18 @@ export const COSMOSDB_NAME = process.env.COSMOSDB_NAME ?? "testdb";
 
 // Must match PROFILE_COLLECTION_NAME from @pagopa/io-functions-commons.
 export const PROFILE_CONTAINER_NAME = "profiles";
+
+export const AZURITE_TABLE_PORT = Number(
+  process.env.AZURITE_TABLE_PORT ?? 20005,
+);
+
+// Well-known Azurite emulator account/key — safe to hard-code.
+const AZURITE_ACCOUNT = "devstoreaccount1";
+const AZURITE_KEY =
+  "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==";
+
+const AZURITE_CONNECTION_STRING = `DefaultEndpointsProtocol=http;AccountName=${AZURITE_ACCOUNT};AccountKey=${AZURITE_KEY};BlobEndpoint=http://localhost:10000/${AZURITE_ACCOUNT};QueueEndpoint=http://localhost:10001/${AZURITE_ACCOUNT};TableEndpoint=http://localhost:${AZURITE_TABLE_PORT}/${AZURITE_ACCOUNT};`;
+
+export const LOCKED_PROFILES_STORAGE_CONNECTION_STRING =
+  process.env.LOCKED_PROFILES_STORAGE_CONNECTION_STRING ??
+  AZURITE_CONNECTION_STRING;
