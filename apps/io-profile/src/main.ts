@@ -331,6 +331,12 @@ app.cosmosDB("RecoverSubscriptionsFeed", {
   leaseContainerName: config.SUBSCRIPTION_FEED_RECOVERY_LEASE_CONTAINER_NAME,
   leaseContainerPrefix: config.SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX,
   startFromTime: config.SUBSCRIPTION_FEED_RECOVERY_START_DATE.toISOString(),
+  retry: {
+    strategy: "exponentialBackoff",
+    maxRetryCount: 5,
+    minimumInterval: { seconds: 5 },
+    maximumInterval: { minutes: 1 },
+  },
 });
 
 // ---- HTTP FUNCTIONS ----
