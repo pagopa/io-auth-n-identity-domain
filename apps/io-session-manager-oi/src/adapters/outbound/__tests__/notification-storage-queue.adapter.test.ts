@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => {
     ENCODED_MESSAGE,
     queueClient: {
       sendMessage: vi.fn(),
+      getProperties: vi.fn(),
     },
     Base64: {
       encode: vi.fn(() => ENCODED_MESSAGE),
@@ -90,6 +91,35 @@ describe("NotificationStorageQueueAdapter#deleteInstallation", () => {
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr().message).toMatch(
       /Failed to send delete installation message: Unexpected failure$/,
+    );
+  });
+});
+
+describe("NotificationStorageQueueAdapter#healthcheck", () => {
+  const adapter = new NotificationStorageQueueAdapter(
+    mocks.queueClient as unknown as QueueClient,
+  );
+
+  it("returns ok when the queue properties are retrieved", async () => {
+    mocks.queueClient.getProperties.mockResolvedValue({});
+
+    const result = await adapter.healthcheck();
+
+    expect(result.isOk()).toBe(true);
+    expect(mocks.queueClient.getProperties).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it("returns a GenericError when retrieving queue properties rejects", async () => {
+    mocks.queueClient.getProperties.mockRejectedValue(
+      new Error("Queue unavailable"),
+    );
+
+    const result = await adapter.healthcheck();
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+    expect(result._unsafeUnwrapErr().message).toMatch(
+      /Failed to perform healthcheck on notification queue: Queue unavailable$/,
     );
   });
 });
