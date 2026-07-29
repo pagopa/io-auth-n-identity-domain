@@ -74,8 +74,8 @@ export const RecoverSubscriptionsFeed = (deps: Dependencies) =>
         continue;
       }
 
-      const day = new Date(changedAt).toISOString().substring(0, 10);
-      const instanceId = `recover-subfeed-${toHash(profile.fiscalCode)}-${day}-${deps.leasePrefix}`;
+      const date = new Date(changedAt).toISOString().substring(0, 10);
+      const instanceId = `recover-subfeed-${toHash(profile.fiscalCode)}-${date}-${deps.leasePrefix}`;
 
       if (processedInstanceIds.has(instanceId)) {
         continue;
@@ -87,7 +87,7 @@ export const RecoverSubscriptionsFeed = (deps: Dependencies) =>
         dfClient,
         ORCHESTRATOR_NAME,
         instanceId,
-        { fiscalCode: profile.fiscalCode, day },
+        { fiscalCode: profile.fiscalCode, date },
         RecoverSubscriptionsFeedOrchestratorInput,
       )();
 

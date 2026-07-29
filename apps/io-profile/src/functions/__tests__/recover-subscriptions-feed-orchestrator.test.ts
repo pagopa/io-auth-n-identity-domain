@@ -43,7 +43,7 @@ const decodeInput = (input: unknown) =>
     throw new Error(`Cannot decode input: ${readableReport(errs)}`);
   })(OrchestratorInput.decode(input));
 
-const aDay = "2009-02-13";
+const aDate = "2009-02-13";
 
 const recoveryActivityDefaultResult =
   GetProfileVersionsForRecoveryActivityResult.encode({
@@ -83,7 +83,7 @@ describe("RecoverSubscriptionsFeedOrchestrator", () => {
     };
     const telemetryClient = mockTelemetryClient();
     const ctx = createContextMock(
-      decodeInput({ fiscalCode: aFiscalCode, day: aDay }),
+      decodeInput({ fiscalCode: aFiscalCode, date: aDate }),
       {
         [GetProfileVersionsForRecoveryActivityName]:
           GetProfileVersionsForRecoveryActivityResult.encode({
@@ -130,7 +130,7 @@ describe("RecoverSubscriptionsFeedOrchestrator", () => {
     );
     const telemetryClient = mockTelemetryClient();
     const ctx = createContextMock(
-      decodeInput({ fiscalCode: aFiscalCode, day: aDay }),
+      decodeInput({ fiscalCode: aFiscalCode, date: aDate }),
       {
         [GetProfileVersionsForRecoveryActivityName]:
           GetProfileVersionsForRecoveryActivityResult.encode({
@@ -176,7 +176,7 @@ describe("RecoverSubscriptionsFeedOrchestrator", () => {
     );
     const telemetryClient = mockTelemetryClient();
     const ctx = createContextMock(
-      decodeInput({ fiscalCode: aFiscalCode, day: aDay }),
+      decodeInput({ fiscalCode: aFiscalCode, date: aDate }),
       {
         [GetProfileVersionsForRecoveryActivityName]:
           GetProfileVersionsForRecoveryActivityResult.encode({
@@ -218,7 +218,7 @@ describe("RecoverSubscriptionsFeedOrchestrator", () => {
     );
     const telemetryClient = mockTelemetryClient();
     const ctx = createContextMock(
-      decodeInput({ fiscalCode: aFiscalCode, day: aDay }),
+      decodeInput({ fiscalCode: aFiscalCode, date: aDate }),
       {
         [GetProfileVersionsForRecoveryActivityName]:
           GetProfileVersionsForRecoveryActivityResult.encode({
@@ -260,7 +260,7 @@ describe("RecoverSubscriptionsFeedOrchestrator", () => {
     );
     const telemetryClient = mockTelemetryClient();
     const ctx = createContextMock(
-      decodeInput({ fiscalCode: aFiscalCode, day: aDay }),
+      decodeInput({ fiscalCode: aFiscalCode, date: aDate }),
       {
         [GetProfileVersionsForRecoveryActivityName]:
           GetProfileVersionsForRecoveryActivityResult.encode({
@@ -298,7 +298,7 @@ describe("RecoverSubscriptionsFeedOrchestrator", () => {
     );
     const telemetryClient = mockTelemetryClient();
     const ctx = createContextMock(
-      decodeInput({ fiscalCode: aFiscalCode, day: aDay }),
+      decodeInput({ fiscalCode: aFiscalCode, date: aDate }),
       {
         [GetProfileVersionsForRecoveryActivityName]:
           GetProfileVersionsForRecoveryActivityResult.encode({
@@ -330,7 +330,7 @@ describe("RecoverSubscriptionsFeedOrchestrator", () => {
   it("should track failure and return false when no profile versions are found", () => {
     const telemetryClient = mockTelemetryClient();
     const ctx = createContextMock(
-      decodeInput({ fiscalCode: aFiscalCode, day: aDay }),
+      decodeInput({ fiscalCode: aFiscalCode, date: aDate }),
       {
         [GetProfileVersionsForRecoveryActivityName]:
           GetProfileVersionsForRecoveryActivityResult.encode({
@@ -365,7 +365,7 @@ describe("RecoverSubscriptionsFeedOrchestrator", () => {
   it("should track failure and return false when GetProfileVersionsForRecoveryActivity returns a permanent failure", () => {
     const telemetryClient = mockTelemetryClient();
     const ctx = createContextMock(
-      decodeInput({ fiscalCode: aFiscalCode, day: aDay }),
+      decodeInput({ fiscalCode: aFiscalCode, date: aDate }),
       {
         [GetProfileVersionsForRecoveryActivityName]: PermanentFailure.encode({
           kind: "PERMANENT_FAILURE",
@@ -406,7 +406,7 @@ describe("RecoverSubscriptionsFeedOrchestrator", () => {
     );
     const telemetryClient = mockTelemetryClient();
     const ctx = createContextMock(
-      decodeInput({ fiscalCode: aFiscalCode, day: aDay }),
+      decodeInput({ fiscalCode: aFiscalCode, date: aDate }),
       {
         [GetProfileVersionsForRecoveryActivityName]:
           GetProfileVersionsForRecoveryActivityResult.encode({
@@ -473,7 +473,7 @@ describe("RecoverSubscriptionsFeedOrchestrator", () => {
     );
     const telemetryClient = mockTelemetryClient();
     const ctx = createContextMock(
-      decodeInput({ fiscalCode: aFiscalCode, day: aDay }),
+      decodeInput({ fiscalCode: aFiscalCode, date: aDate }),
       {
         [GetProfileVersionsForRecoveryActivityName]:
           GetProfileVersionsForRecoveryActivityResult.encode({

@@ -25,7 +25,7 @@ import {
  */
 export const OrchestratorInput = t.type({
   fiscalCode: FiscalCode,
-  day: t.string,
+  date: t.string,
 });
 export type OrchestratorInput = t.TypeOf<typeof OrchestratorInput>;
 
@@ -77,11 +77,11 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
       return false;
     }
 
-    const { fiscalCode, day } = errorOrOrchestratorInput.right;
+    const { fiscalCode, date } = errorOrOrchestratorInput.right;
 
     if (!context.df.isReplaying) {
       context.trace(
-        `${logPrefix}|START|fiscalCode=${fiscalCode}|day=${day}|dryRun=${dryRun}`,
+        `${logPrefix}|START|fiscalCode=${fiscalCode}|day=${date}|dryRun=${dryRun}`,
       );
     }
 
@@ -110,12 +110,12 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
     };
 
     try {
-      const dayStart = new Date(`${day}T00:00:00.000Z`);
+      const dayStart = new Date(`${date}T00:00:00.000Z`);
       dayStart.setUTCHours(0, 0, 0, 0);
       const utcDayStartMillis = dayStart.getTime();
       if (Number.isNaN(utcDayStartMillis)) {
         if (!context.df.isReplaying) {
-          context.error(`${logPrefix}|Invalid day input|day=${day}`);
+          context.error(`${logPrefix}|Invalid day input|day=${date}`);
         }
         trackFailure("EXCEPTION");
         return false;
@@ -156,7 +156,7 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
 
       if (recoveryResult.kind === "NOT_FOUND") {
         if (!context.df.isReplaying) {
-          context.warn(`${logPrefix}|No profile version found|day=${day}`);
+          context.warn(`${logPrefix}|No profile version found|day=${date}`);
         }
         trackFailure("NOT_FOUND");
         return false;
@@ -165,7 +165,7 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
       if (recoveryResult.kind === "PERMANENT_FAILURE") {
         if (!context.df.isReplaying) {
           context.error(
-            `${logPrefix}|GetProfileVersionsForRecoveryActivity returned a permanent failure|day=${day}|REASON=${recoveryResult.reason}`,
+            `${logPrefix}|GetProfileVersionsForRecoveryActivity returned a permanent failure|day=${date}|REASON=${recoveryResult.reason}`,
           );
         }
         trackFailure("EXCEPTION");

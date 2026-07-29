@@ -68,7 +68,7 @@ describe("RecoverSubscriptionsFeed", () => {
         ),
         input: {
           fiscalCode: aFiscalCode,
-          day: new Date(profile._ts * 1000).toISOString().substring(0, 10),
+          date: new Date(profile._ts * 1000).toISOString().substring(0, 10),
         },
       }),
     );
