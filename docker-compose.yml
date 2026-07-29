@@ -376,7 +376,8 @@ services:
   redis-node-5:
     image: redis:7.0-alpine
     networks:
-      - io-fn
+      io-fn:
+        ipv4_address: 172.18.0.105
     ports:
       - 6385:6385
     volumes:
