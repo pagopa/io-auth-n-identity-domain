@@ -15,6 +15,18 @@ import {
 import { FiscalCode } from "@pagopa/io-functions-commons/dist/generated/definitions/FiscalCode";
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicesPreferencesMode";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
+import {
+  IResponseErrorQuery,
+  ResponseErrorQuery,
+} from "@pagopa/io-functions-commons/dist/src/utils/response";
+import {
+  IResponseErrorNotFound,
+  ResponseErrorNotFound,
+} from "@pagopa/ts-commons/lib/responses";
+import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/lib/function";
+import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
+
 
 export type SubscriptionFeedOperation = "SUBSCRIBED" | "UNSUBSCRIBED";
 
@@ -84,18 +96,6 @@ export const computeDailyProfileFeedOperation = (
       ? undefined
       : { lastOperation: undefined, previousMode },
   )?.lastOperation;
-import {
-  IResponseErrorQuery,
-  ResponseErrorQuery,
-} from "@pagopa/io-functions-commons/dist/src/utils/response";
-import {
-  IResponseErrorNotFound,
-  ResponseErrorNotFound,
-} from "@pagopa/ts-commons/lib/responses";
-import * as TE from "fp-ts/TaskEither";
-import { pipe } from "fp-ts/lib/function";
-import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
-
 /**
  * Converts a ApiProfile in a Profile model
  */
