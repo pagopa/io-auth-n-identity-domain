@@ -8,7 +8,11 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { type RedisClusterClient, RedisSetWrapper } from "../wrapper.js";
+import {
+  type RedisClusterClient,
+  type RedisNodeClient,
+  RedisSetWrapper,
+} from "../wrapper.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -256,5 +260,33 @@ describe("RedisSetWrapper — schema validation", () => {
     await strictWrapper.add(KEY, ["VALID", "VALID"]);
 
     expect(sAddMock).toHaveBeenCalledExactlyOnceWith(KEY, ["VALID", "VALID"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Topology: works with a single-node client too
+// ---------------------------------------------------------------------------
+
+describe("RedisSetWrapper — topology", () => {
+  it("accepts a single-node client and preserves its concrete type via getClient()", async () => {
+    const nodeSIsMember = vi.fn().mockResolvedValueOnce(true);
+    const nodeStub = {
+      sIsMember: nodeSIsMember,
+      sAdd: vi.fn(),
+      sRem: vi.fn(),
+    } as unknown as RedisNodeClient;
+
+    const nodeWrapper = new RedisSetWrapper(nodeStub, MemberSchema);
+
+    // getClient() preserves the concrete node-client type — this
+    // assignment would fail to compile if the generic were widened to
+    // the RedisSetCapableClient union.
+    const back: RedisNodeClient = nodeWrapper.getClient();
+    expect(back).toBe(nodeStub);
+
+    const result = await nodeWrapper.isMember(KEY, MEMBER);
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap()).toBe(true);
+    expect(nodeSIsMember).toHaveBeenCalledExactlyOnceWith(KEY, MEMBER);
   });
 });

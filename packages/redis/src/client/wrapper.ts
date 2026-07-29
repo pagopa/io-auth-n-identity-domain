@@ -1,9 +1,15 @@
 import { ValidationError } from "@pagopa/hexagonal-core";
 import { err, ok, Result } from "neverthrow";
-import type { createCluster } from "redis";
+import type { createClient, createCluster } from "redis";
 import { z } from "zod";
 
 import { RedisError, toRedisError } from "./errors.js";
+
+/**
+ * The concrete `redis` single-node client shape accepted by
+ * {@link RedisSetWrapper}.
+ */
+export type RedisNodeClient = ReturnType<typeof createClient>;
 
 /**
  * The concrete `redis` cluster client shape accepted by
@@ -12,17 +18,33 @@ import { RedisError, toRedisError } from "./errors.js";
 export type RedisClusterClient = ReturnType<typeof createCluster>;
 
 /**
- * `Result`-returning wrapper over the `redis` cluster client for
- * **Set operations**, generic in the domain type of the members.
+ * Any `node-redis` client that exposes the Set-command surface
+ * ({@link RedisSetWrapper} only touches `SISMEMBER`, `SADD`, `SREM`).
+ * Both single-node and cluster clients qualify.
+ */
+export type RedisSetClient = RedisClusterClient | RedisNodeClient;
+
+/**
+ * `Result`-returning wrapper over a `redis` client for **Set
+ * operations**, generic in the domain type of the members.
  *
  * The wrapper is constructed with a `zod` schema that describes what a
  * valid Set member looks like. Every write and read is defensively
  * re-validated against the schema before it hits Redis — TypeScript
  * narrows the input to `TMember` at compile time.
  *
+ * The wrapper is topology-agnostic: it accepts either a single-node
+ * client (`createClient()`) or a cluster client (`createCluster()`).
+ * The concrete client type is preserved through the `TClient` generic
+ * so callers that use {@link RedisSetWrapper.getClient} for
+ * topology-specific commands keep full type information.
+ *
  * @typeParam TMember - Domain type of the Set members. Must be a
  *   subtype of `string` (Redis Sets store strings). Typically a
  *   branded string like `FiscalCode`.
+ * @typeParam TClient - Concrete client type. Inferred from the value
+ *   passed to the constructor; defaults to the topology-agnostic
+ *   union {@link RedisSetClient}.
  *
  * @example
  * ```ts
@@ -32,17 +54,21 @@ export type RedisClusterClient = ReturnType<typeof createCluster>;
  * await wrapper.add("BLOCKEDUSERS", fiscalCode);
  * ```
  */
-export class RedisSetWrapper<TMember extends string = string> {
+export class RedisSetWrapper<
+  TMember extends string = string,
+  TClient extends RedisSetClient = RedisSetClient,
+> {
   constructor(
-    protected readonly client: RedisClusterClient,
+    protected readonly client: TClient,
     protected readonly memberSchema: z.ZodType<TMember>,
   ) {}
 
   /**
-   * Returns the underlying `redis` cluster client for commands not
-   * covered by this wrapper.
+   * Returns the underlying `redis` client for commands not covered by
+   * this wrapper. The concrete client type (single-node or cluster) is
+   * preserved from construction.
    */
-  public getClient(): RedisClusterClient {
+  public getClient(): TClient {
     return this.client;
   }
 

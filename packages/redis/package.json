@@ -18,6 +18,10 @@
     "./cluster-client": {
       "types": "./dist/cluster-client/index.d.ts",
       "import": "./dist/cluster-client/index.js"
+    },
+    "./node-client": {
+      "types": "./dist/node-client/index.d.ts",
+      "import": "./dist/node-client/index.js"
     }
   },
   "scripts": {
