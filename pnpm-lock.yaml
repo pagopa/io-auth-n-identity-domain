@@ -1321,6 +1321,9 @@ importers:
       '@pagopa/io-package-info':
         specifier: workspace:^
         version: link:../../packages/io-package-info
+      '@pagopa/redis':
+        specifier: workspace:^
+        version: link:../../packages/redis
       dotenv:
         specifier: 'catalog:'
         version: 16.4.7
@@ -1333,6 +1336,9 @@ importers:
       range_check:
         specifier: 'catalog:'
         version: 2.0.4
+      redis:
+        specifier: 'catalog:'
+        version: 4.7.1
       zod:
         specifier: 'catalog:'
         version: 4.4.3
@@ -1913,6 +1919,46 @@ importers:
       ts-node:
         specifier: ^10.9.1
         version: 10.9.2(@types/node@22.19.17)(typescript@5.8.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.8.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.4(@types/node@22.19.17)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)
+
+  packages/redis:
+    dependencies:
+      '@pagopa/hexagonal-core':
+        specifier: 'catalog:'
+        version: 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+      neverthrow:
+        specifier: 'catalog:'
+        version: 8.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
+    devDependencies:
+      '@pagopa/typescript-config-node22':
+        specifier: workspace:^
+        version: link:../typescript-config-node22
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.17
+      '@vitest/coverage-v8':
+        specifier: 'catalog:'
+        version: 3.2.4(vitest@3.2.4(@types/node@22.19.17)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
+      eslint:
+        specifier: 'catalog:'
+        version: 8.57.0
+      eslint-config-monorepo:
+        specifier: workspace:^
+        version: link:../eslint-config-monorepo
+      redis:
+        specifier: 'catalog:'
+        version: 4.7.1
+      shx:
+        specifier: 'catalog:'
+        version: 0.4.0
       typescript:
         specifier: 'catalog:'
         version: 5.8.3
@@ -11706,7 +11752,7 @@ snapshots:
       '@usebruno/lang': 0.27.0
       '@usebruno/requests': 0.7.0(debug@4.4.1)
       '@usebruno/vm2': 3.9.19
-      aws4-axios: 3.4.0(axios@1.11.0(debug@4.4.1))
+      aws4-axios: 3.4.0(axios@1.11.0)
       axios: 1.11.0(debug@4.4.1)
       axios-ntlm: 1.4.4(debug@4.4.1)
       chai: 4.5.0
@@ -12118,7 +12164,7 @@ snapshots:
 
   aws-sign2@0.7.0: {}
 
-  aws4-axios@3.4.0(axios@1.11.0(debug@4.4.1)):
+  aws4-axios@3.4.0(axios@1.11.0):
     dependencies:
       '@aws-sdk/client-sts': 3.862.0
       aws4: 1.13.2
