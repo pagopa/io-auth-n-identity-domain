@@ -68,16 +68,17 @@ export const createApp = async (
     ),
   );
 
-  mountHealthCheckHandler(
+  mountHealthCheckHandler("liveness")(
+    server,
+    getHealthCheckUseCase(packageInfo),
+  );
+
+  mountHealthCheckHandler("readiness")(
     server,
     getHealthCheckUseCase(packageInfo, [
       {
         name: lockedProfilesAdapter.constructor.name,
         port: lockedProfilesAdapter,
-      },
-      {
-        name: blockedUsersAdapter.constructor.name,
-        port: blockedUsersAdapter,
       },
     ]),
   );
