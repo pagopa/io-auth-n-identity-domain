@@ -61,6 +61,17 @@ export const createApp = async (
     enableTls: config.REDIS_TLS_ENABLED,
   });
 
+  // Close the Redis connection cleanly when Fastify shuts down (via
+  // `server.close()`). `QUIT` waits for the server's reply and drains
+  // the socket, avoiding leaked descriptors on redeploy.
+  server.addHook("onClose", async () => {
+    try {
+      await redisClient.quit();
+    } catch (err) {
+      server.log.warn({ err }, "Failed to close Redis client cleanly");
+    }
+  });
+
   const blockedUsersAdapter = new BlockedUsersRedisAdapter(
     // Both generics are inferred from the constructor arguments:
     // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
