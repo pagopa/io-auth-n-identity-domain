@@ -1,4 +1,9 @@
-import { BaseError, FiscalCode, GenericError } from "@pagopa/hexagonal-core";
+import {
+  BaseError,
+  FiscalCode,
+  FiscalCodeSchema,
+  GenericError,
+} from "@pagopa/hexagonal-core";
 import { RedisNodeClient, RedisSetWrapper } from "@pagopa/redis/client";
 import { Result, err, ok } from "neverthrow";
 
@@ -13,7 +18,10 @@ const EXPECTED_PING_REPLY = "PONG";
 
 export class BlockedUsersRedisAdapter implements BlockedUsersPort {
   constructor(
-    private readonly redis: RedisSetWrapper<FiscalCode, RedisNodeClient>,
+    private readonly redis: RedisSetWrapper<
+      typeof FiscalCodeSchema,
+      RedisNodeClient
+    >,
   ) {}
 
   /**

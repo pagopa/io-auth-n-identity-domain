@@ -26,12 +26,12 @@ export type RedisSetClient = RedisClusterClient | RedisNodeClient;
 
 /**
  * `Result`-returning wrapper over a `redis` client for **Set
- * operations**, generic in the domain type of the members.
+ * operations**, generic in the schema of the members.
  *
  * The wrapper is constructed with a `zod` schema that describes what a
  * valid Set member looks like. Every write and read is defensively
  * re-validated against the schema before it hits Redis — TypeScript
- * narrows the input to `TMember` at compile time.
+ * narrows the input to `z.output<TSchema>` at compile time.
  *
  * The wrapper is topology-agnostic: it accepts either a single-node
  * client (`createClient()`) or a cluster client (`createCluster()`).
@@ -39,9 +39,8 @@ export type RedisSetClient = RedisClusterClient | RedisNodeClient;
  * so callers that use {@link RedisSetWrapper.getClient} for
  * topology-specific commands keep full type information.
  *
- * @typeParam TMember - Domain type of the Set members. Must be a
- *   subtype of `string` (Redis Sets store strings). Typically a
- *   branded string like `FiscalCode`.
+ * @typeParam TSchema - Zod schema whose output describes the domain
+ *   type of the Set members.
  * @typeParam TClient - Concrete client type. Inferred from the value
  *   passed to the constructor; defaults to the topology-agnostic
  *   union {@link RedisSetClient}.
@@ -55,12 +54,12 @@ export type RedisSetClient = RedisClusterClient | RedisNodeClient;
  * ```
  */
 export class RedisSetWrapper<
-  TMember extends string = string,
+  TSchema extends z.ZodType<string> = z.ZodType<string>,
   TClient extends RedisSetClient = RedisSetClient,
 > {
   constructor(
     protected readonly client: TClient,
-    protected readonly memberSchema: z.core.$ZodType<TMember>,
+    protected readonly memberSchema: TSchema,
   ) {}
 
   /**
@@ -82,7 +81,7 @@ export class RedisSetWrapper<
    */
   public async isMember(
     key: string,
-    member: TMember,
+    member: z.output<TSchema>,
   ): Promise<Result<boolean, RedisError | ValidationError>> {
     const parsed = this.parseMember(member);
     if (parsed.isErr()) return err(parsed.error);
@@ -107,7 +106,7 @@ export class RedisSetWrapper<
    */
   public async add(
     key: string,
-    members: TMember | TMember[],
+    members: z.output<TSchema> | z.output<TSchema>[],
   ): Promise<Result<number, RedisError | ValidationError>> {
     const parsed = this.parseMembers(members);
     if (parsed.isErr()) return err(parsed.error);
@@ -132,7 +131,7 @@ export class RedisSetWrapper<
    */
   public async rem(
     key: string,
-    members: TMember | TMember[],
+    members: z.output<TSchema> | z.output<TSchema>[],
   ): Promise<Result<number, RedisError | ValidationError>> {
     const parsed = this.parseMembers(members);
     if (parsed.isErr()) return err(parsed.error);
@@ -148,8 +147,10 @@ export class RedisSetWrapper<
   /**
    * Parses a single member through the schema.
    */
-  private parseMember(member: TMember): Result<TMember, ValidationError> {
-    const result = z.safeParse(this.memberSchema, member);
+  private parseMember(
+    member: z.output<TSchema>,
+  ): Result<z.output<TSchema>, ValidationError> {
+    const result = this.memberSchema.safeParse(member);
     if (!result.success) {
       return err(
         new ValidationError(
@@ -166,13 +167,13 @@ export class RedisSetWrapper<
    * `string[]` for an array.
    */
   private parseMembers(
-    members: TMember | TMember[],
-  ): Result<TMember | TMember[], ValidationError> {
+    members: z.output<TSchema> | z.output<TSchema>[],
+  ): Result<z.output<TSchema> | z.output<TSchema>[], ValidationError> {
     if (!Array.isArray(members)) {
       return this.parseMember(members);
     }
 
-    const parsed: TMember[] = [];
+    const parsed: z.output<TSchema>[] = [];
     for (const m of members) {
       const result = this.parseMember(m);
       if (result.isErr()) return err(result.error);

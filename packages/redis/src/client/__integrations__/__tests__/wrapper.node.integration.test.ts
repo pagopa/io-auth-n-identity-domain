@@ -25,7 +25,7 @@ const MemberSchema = z.string().regex(/^[A-Z0-9]{16}$/);
 
 describe("RedisSetWrapper + createRedisNodeClient (integration - Redis standalone)", () => {
   let client: RedisNodeClient;
-  let wrapper: RedisSetWrapper;
+  let wrapper: RedisSetWrapper<typeof MemberSchema, RedisNodeClient>;
 
   beforeAll(async () => {
     client = await createRedisNodeClient({

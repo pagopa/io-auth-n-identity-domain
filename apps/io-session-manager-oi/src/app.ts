@@ -1,9 +1,9 @@
 import { TableClient } from "@azure/data-tables";
 import { DefaultAzureCredential } from "@azure/identity";
 import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
-import { FiscalCode, FiscalCodeSchema } from "@pagopa/hexagonal-core";
+import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import { type PackageInfo } from "@pagopa/io-package-info";
-import { RedisNodeClient, RedisSetWrapper } from "@pagopa/redis/client";
+import { RedisSetWrapper } from "@pagopa/redis/client";
 import { createRedisNodeClient } from "@pagopa/redis/node-client";
 import fastify, { type FastifyInstance } from "fastify";
 
@@ -62,10 +62,9 @@ export const createApp = async (
   });
 
   const blockedUsersAdapter = new BlockedUsersRedisAdapter(
-    new RedisSetWrapper<FiscalCode, RedisNodeClient>(
-      redisClient,
-      FiscalCodeSchema,
-    ),
+    // Both generics are inferred from the constructor arguments:
+    // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
+    new RedisSetWrapper(redisClient, FiscalCodeSchema),
   );
 
   mountHealthCheckHandler("liveness")(

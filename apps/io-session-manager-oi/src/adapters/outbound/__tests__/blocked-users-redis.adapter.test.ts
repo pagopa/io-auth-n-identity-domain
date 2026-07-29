@@ -25,7 +25,7 @@ const getClientMock = vi.fn(() => ({ ping: pingMock }));
 const wrapperStub = {
   isMember: isMemberMock,
   getClient: getClientMock,
-} as unknown as RedisSetWrapper<FiscalCode, RedisNodeClient>;
+} as unknown as RedisSetWrapper<typeof FiscalCodeSchema, RedisNodeClient>;
 
 const adapter = new BlockedUsersRedisAdapter(wrapperStub);
 
