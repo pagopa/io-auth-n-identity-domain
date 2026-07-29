@@ -60,7 +60,7 @@ export class RedisSetWrapper<
 > {
   constructor(
     protected readonly client: TClient,
-    protected readonly memberSchema: z.ZodType<TMember>,
+    protected readonly memberSchema: z.core.$ZodType<TMember>,
   ) {}
 
   /**
@@ -149,7 +149,7 @@ export class RedisSetWrapper<
    * Parses a single member through the schema.
    */
   private parseMember(member: TMember): Result<TMember, ValidationError> {
-    const result = this.memberSchema.safeParse(member);
+    const result = z.safeParse(this.memberSchema, member);
     if (!result.success) {
       return err(
         new ValidationError(
