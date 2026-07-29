@@ -14,7 +14,7 @@ import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/g
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import { TransientFailure } from "../utils/durable";
+import { PermanentFailure } from "../utils/durable";
 
 export const ActivityInput = t.type({
   fiscalCode: FiscalCode,
@@ -44,7 +44,7 @@ const ActivityResultNotFound = t.type({
 export const ActivityResult = t.union([
   ActivityResultFound,
   ActivityResultNotFound,
-  TransientFailure,
+  PermanentFailure,
 ]);
 export type ActivityResult = t.TypeOf<typeof ActivityResult>;
 
@@ -165,8 +165,8 @@ export const getGetProfileVersionsForRecoveryActivityHandler =
           decodedInputOrError.left,
         )}`,
       );
-      return TransientFailure.encode({
-        kind: "TRANSIENT_FAILURE",
+      return PermanentFailure.encode({
+        kind: "PERMANENT_FAILURE",
         reason: "Invalid activity input",
       });
     }
@@ -213,8 +213,8 @@ export const getGetProfileVersionsForRecoveryActivityHandler =
       };
     } catch (error) {
       context.error(`${ActivityName}|Unexpected error|ERROR=${String(error)}`);
-      return TransientFailure.encode({
-        kind: "TRANSIENT_FAILURE",
+      return PermanentFailure.encode({
+        kind: "PERMANENT_FAILURE",
         reason: "Unexpected activity error",
       });
     }

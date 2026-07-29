@@ -162,10 +162,10 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
         return false;
       }
 
-      if (recoveryResult.kind === "TRANSIENT_FAILURE") {
+      if (recoveryResult.kind === "PERMANENT_FAILURE") {
         if (!context.df.isReplaying) {
           context.error(
-            `${logPrefix}|GetProfileVersionsForRecoveryActivity returned a transient failure|day=${day}|REASON=${recoveryResult.reason}`,
+            `${logPrefix}|GetProfileVersionsForRecoveryActivity returned a permanent failure|day=${day}|REASON=${recoveryResult.reason}`,
           );
         }
         trackFailure("EXCEPTION");
@@ -180,9 +180,8 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
         );
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+
       const operation: "SUBSCRIBED" | "UNSUBSCRIBED" | undefined =
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         computeDailyProfileFeedOperation(previousMode, currentDayModes);
 
       if (operation === undefined) {

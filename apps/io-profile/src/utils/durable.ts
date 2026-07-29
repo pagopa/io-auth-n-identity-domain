@@ -147,16 +147,16 @@ export const startSingletonOrchestrator = <OInput>(
   );
 
 /**
- * Transient error returned by an activity that represents a deterministic,
+ * Permanent error returned by an activity that represents a deterministic,
  * non-retryable failure. Because it is returned instead of thrown, the
  * orchestrator can handle it without re-invoking the activity with the same
  * input.
  */
-export const TransientFailure = t.type({
-  kind: t.literal("TRANSIENT_FAILURE"),
+export const PermanentFailure = t.type({
+  kind: t.literal("PERMANENT_FAILURE"),
   reason: t.string,
 });
-export type TransientFailure = t.TypeOf<typeof TransientFailure>;
+export type PermanentFailure = t.TypeOf<typeof PermanentFailure>;
 
 /** Transient error that describes a NOT_YET_IMPLEMENTED , currently used
  * in the activities that retrieve the magic code and geolocation data during

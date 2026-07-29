@@ -23,7 +23,7 @@ import {
   ActivityName as GetProfileVersionsForRecoveryActivityName,
   ActivityResult as GetProfileVersionsForRecoveryActivityResult,
 } from "../get-profile-versions-for-recovery-activity";
-import { TransientFailure } from "../../utils/durable";
+import { PermanentFailure } from "../../utils/durable";
 import {
   getRecoverSubscriptionsFeedOrchestratorHandler,
   OrchestratorInput,
@@ -362,13 +362,13 @@ describe("RecoverSubscriptionsFeedOrchestrator", () => {
     expect(updateCalls).toHaveLength(0);
   });
 
-  it("should track failure and return false when GetProfileVersionsForRecoveryActivity returns a transient failure", () => {
+  it("should track failure and return false when GetProfileVersionsForRecoveryActivity returns a permanent failure", () => {
     const telemetryClient = mockTelemetryClient();
     const ctx = createContextMock(
       decodeInput({ fiscalCode: aFiscalCode, day: aDay }),
       {
-        [GetProfileVersionsForRecoveryActivityName]: TransientFailure.encode({
-          kind: "TRANSIENT_FAILURE",
+        [GetProfileVersionsForRecoveryActivityName]: PermanentFailure.encode({
+          kind: "PERMANENT_FAILURE",
           reason: "Invalid activity input",
         }),
       },

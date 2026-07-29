@@ -9,7 +9,7 @@ import {
   ActivityResult,
   getGetProfileVersionsForRecoveryActivityHandler,
 } from "../get-profile-versions-for-recovery-activity";
-import { TransientFailure } from "../../utils/durable";
+import { PermanentFailure } from "../../utils/durable";
 
 const createMockIterator = (pages: ReadonlyArray<ReadonlyArray<unknown>>) =>
   (async function* () {
@@ -143,8 +143,8 @@ describe(ActivityName, () => {
     expect(E.isRight(decoded)).toBe(true);
     if (E.isRight(decoded)) {
       expect(decoded.right).toEqual(
-        TransientFailure.encode({
-          kind: "TRANSIENT_FAILURE",
+        PermanentFailure.encode({
+          kind: "PERMANENT_FAILURE",
           reason: "Invalid activity input",
         }),
       );
