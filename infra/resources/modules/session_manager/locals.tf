@@ -50,7 +50,6 @@ locals {
     REDIS_URL         = var.redis.hostname
     REDIS_PORT        = var.redis.ssl_port
     REDIS_TLS_ENABLED = "true"
-    # REDIS_PASSWORD    = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_redis_access_key.versionless_id})"
-    REDIS_PASSWORD = "TODO"
+    # REDIS_PASSWORD is injected via the CA module's `secrets`
   }
 }
