@@ -108,3 +108,30 @@ variable "io_profile" {
   })
   description = "Configuration for IO Profile service"
 }
+
+variable "io_fast_login" {
+  type = object({
+    base_url  = string
+    base_path = string
+  })
+  description = "Configuration for IO Fast Login service"
+}
+
+variable "locked_profiles" {
+  type = object({
+    storage_account = object({
+      name                = string
+      resource_group_name = string
+    })
+    table_name = string
+  })
+  description = "Azure Table Storage backing the locked profiles feature."
+}
+
+variable "io_session_manager_internal" {
+  type = object({
+    base_url  = string
+    base_path = string
+  })
+  description = "Configuration for IO Session Manager Internal service"
+}

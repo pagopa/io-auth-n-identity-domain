@@ -1,6 +1,6 @@
 {
   "name": "io-session-manager-oi",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -23,7 +23,11 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "catalog:",
+    "@azure/core-client": "catalog:",
     "@azure/cosmos": "catalog:",
+    "@azure/data-tables": "catalog:",
+    "@azure/identity": "catalog:",
+    "@pagopa/azure-sdk": "workspace:^",
     "@pagopa/hexagonal-core": "catalog:",
     "@pagopa/hexagonal-fastify": "catalog:",
     "@pagopa/io-auth-n-identity-domain": "workspace:^",

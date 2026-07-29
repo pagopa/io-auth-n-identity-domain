@@ -67,9 +67,62 @@ export default defineConfig([
     ],
   },
   {
-    input: "../io-lollipop/api/internal.yaml",
+    input:
+      "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/71cba5610a1e7b59bb9c60140a26c924c0edf220/apps/io-lollipop/api/internal.yaml",
     output: {
       path: "src/generated/io-lollipop",
+      module: {
+        extension: ".js",
+      },
+    },
+    plugins: [
+      "@hey-api/client-fetch",
+      "@hey-api/schemas",
+      "@hey-api/sdk",
+      {
+        name: "zod",
+        $resolvers: {
+          // Intercept all string nodes
+          string: stringResolver,
+        },
+      },
+      {
+        enums: "javascript",
+        name: "@hey-api/typescript",
+      },
+    ],
+  },
+  {
+    input:
+      "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/72f3e9344fac5cd525168be7228d84fa8cfe8b38/apps/io-fast-login/api/internal.yaml",
+    output: {
+      path: "src/generated/io-fast-login",
+      module: {
+        extension: ".js",
+      },
+    },
+    plugins: [
+      "@hey-api/client-fetch",
+      "@hey-api/schemas",
+      "@hey-api/sdk",
+      {
+        name: "zod",
+        $resolvers: {
+          // Intercept all string nodes
+          string: stringResolver,
+        },
+      },
+      {
+        enums: "javascript",
+        name: "@hey-api/typescript",
+      },
+    ],
+  },
+  {
+    input:
+      "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/42e4199865414dd631016a3e6c984ad2e0aef1fc/apps/io-session-manager-internal/api/internal.yaml",
+    output: {
+      path: "src/generated/io-session-manager-internal",
       module: {
         extension: ".js",
       },

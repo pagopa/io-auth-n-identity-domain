@@ -6,7 +6,7 @@ import {
   LollipopJwkSchema,
   PubKeyStatusSchema,
   TimestampSchema,
-  AssertionTypeSchema,
+  LollipopAssertionTypeSchema,
 } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
 
@@ -27,18 +27,16 @@ export type NewPubKeyDto = z.infer<typeof NewPubKeyDto>;
 
 export const ActivatePubKeyPayloadDto = z.object({
   fiscal_code: FiscalCodeSchema,
-  assertion_type: AssertionTypeSchema,
+  assertion_type: LollipopAssertionTypeSchema,
   assertion: NonEmptyStringSchema,
   expired_at: TimestampSchema,
 });
-export type ActivatePubKeyPayloadDto = z.infer<
-  typeof ActivatePubKeyPayloadDto
->;
+export type ActivatePubKeyPayloadDto = z.infer<typeof ActivatePubKeyPayloadDto>;
 
 export const ActivatedPubKeyDto = NewPubKeyDto.extend({
   fiscal_code: FiscalCodeSchema,
   assertion_file_name: NonEmptyStringSchema,
-  assertion_type: AssertionTypeSchema,
+  assertion_type: LollipopAssertionTypeSchema,
   // ISO 8601 formatted date
   expired_at: NonEmptyStringSchema,
 });
