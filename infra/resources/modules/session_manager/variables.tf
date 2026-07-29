@@ -117,7 +117,6 @@ variable "io_fast_login" {
   description = "Configuration for IO Fast Login service"
 }
 
-
 variable "locked_profiles" {
   type = object({
     storage_account = object({
