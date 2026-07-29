@@ -45,4 +45,9 @@ module "session_manager" {
     base_url  = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
     base_path = "/api/v1"
   }
+
+  redis = {
+    hostname = module.redis_common_itn.hostname
+    ssl_port = module.redis_common_itn.ssl_port
+  }
 }

@@ -45,5 +45,12 @@ locals {
     IO_SM_INT_API_BASE_PATH = var.io_session_manager_internal.base_path
     # IO_SM_INT_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_io_sm_int_api_key.versionless_id})"
     IO_SM_INT_API_KEY = "TODO"
+
+    # Redis
+    REDIS_URL         = var.redis.hostname
+    REDIS_PORT        = var.redis.ssl_port
+    REDIS_TLS_ENABLED = "true"
+    # REDIS_PASSWORD    = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_redis_access_key.versionless_id})"
+    REDIS_PASSWORD = "TODO"
   }
 }
