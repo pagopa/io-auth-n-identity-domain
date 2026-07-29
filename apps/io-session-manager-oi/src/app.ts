@@ -80,6 +80,16 @@ export const createApp = async (
         name: lockedProfilesAdapter.constructor.name,
         port: lockedProfilesAdapter,
       },
+      /*
+       * TODO:
+       * Uncomment this when the blocked users adapter is ready to be used in the health check.
+       * The password for the Redis instance is currently not available in the environment, so the health check will fail.
+       */
+       
+      // {
+      //   name: blockedUsersAdapter.constructor.name,
+      //   port: blockedUsersAdapter,
+      // },
     ]),
   );
 
