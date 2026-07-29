@@ -93,7 +93,7 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
      */
     const trackFailure = (
       kind: "EXCEPTION" | "NOT_FOUND",
-      version?: number,
+      date: string = "",
     ) => {
       telemetryClient?.trackEvent({
         name: "subscriptionFeed.recovery.failure",
@@ -101,9 +101,7 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
           fiscalCode: toHash(fiscalCode),
           kind,
           step,
-          ...(version !== undefined && {
-            version: version.toString(),
-          }),
+          date,
         },
         tagOverrides: { samplingEnabled: "false" },
       });
@@ -117,7 +115,7 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
         if (!context.df.isReplaying) {
           context.error(`${logPrefix}|Invalid day input|day=${date}`);
         }
-        trackFailure("EXCEPTION");
+        trackFailure("EXCEPTION", date);
         return false;
       }
       const utcDayStartTimestamp = utcDayStartMillis / 1000;
@@ -158,7 +156,7 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
         if (!context.df.isReplaying) {
           context.warn(`${logPrefix}|No profile version found|day=${date}`);
         }
-        trackFailure("NOT_FOUND");
+        trackFailure("NOT_FOUND", date);
         return false;
       }
 
@@ -168,7 +166,7 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
             `${logPrefix}|GetProfileVersionsForRecoveryActivity returned a permanent failure|day=${date}|REASON=${recoveryResult.reason}`,
           );
         }
-        trackFailure("EXCEPTION");
+        trackFailure("EXCEPTION", date);
         return false;
       }
 
@@ -231,7 +229,7 @@ export const getRecoverSubscriptionsFeedOrchestratorHandler = ({
       if (!context.df.isReplaying) {
         context.error(`${logPrefix}|Recovery failed|step=${step}|ERROR=${String(e)}`);
       }
-      trackFailure("EXCEPTION");
+      trackFailure("EXCEPTION", date);
       return false;
     }
   };
