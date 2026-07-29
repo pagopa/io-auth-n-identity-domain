@@ -6,7 +6,7 @@ import { Base64 } from "../../utils/codec/index.js";
 import { Hash } from "../../utils/crypto/index.js";
 
 /**
- * NotificationStorageQueueAdapter is an implementation of the NotificationOutboundPort interface that uses Azure Storage Queue to send messages for deleting installations.
+ * NotificationStorageQueueAdapter is an implementation of the NotificationPort interface that uses Azure Storage Queue to send messages for deleting installations.
  */
 export class NotificationStorageQueueAdapter implements NotificationPort {
   constructor(private readonly queueClient: QueueClient) {}
