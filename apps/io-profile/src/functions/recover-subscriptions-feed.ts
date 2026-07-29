@@ -13,6 +13,7 @@ type Dependencies = {
   readonly dryRun: boolean;
   readonly startDate: number;
   readonly endDate: number;
+  readonly leasePrefix: string;
 };
 
 const ORCHESTRATOR_NAME = "RecoverSubscriptionsFeedOrchestrator";
@@ -27,6 +28,11 @@ const logPrefix = "RecoverSubscriptionsFeed";
  * required. Each invocation receives the documents that changed since the
  * last checkpoint.
  *
+ * The lease prefix is appended to the orchestration instance id so that every
+ * recovery pass gets its own deduplication namespace: a pass started with a
+ * new prefix replays the whole window from scratch and is not skipped because
+ * of the completed instances of a previous pass (e.g. a dry-run).
+ *
  * @param deps - the handler dependencies
  * @returns the Cosmos DB trigger handler function
  */
@@ -36,7 +42,7 @@ export const RecoverSubscriptionsFeed = (deps: Dependencies) =>
     context: InvocationContext,
   ): Promise<void> => {
     context.trace(
-      `${logPrefix}|START|documents=${documents.length}|dryRun=${deps.dryRun}`,
+      `${logPrefix}|START|documents=${documents.length}|dryRun=${deps.dryRun}|leasePrefix=${deps.leasePrefix}`,
     );
 
     const dfClient = df.getClient(context);
@@ -58,7 +64,6 @@ export const RecoverSubscriptionsFeed = (deps: Dependencies) =>
           },
           tagOverrides: { samplingEnabled: "false" },
         });
-        // eslint-disable-next-line no-continue
         continue;
       }
 
@@ -70,7 +75,7 @@ export const RecoverSubscriptionsFeed = (deps: Dependencies) =>
       }
 
       const day = new Date(changedAt).toISOString().substring(0, 10);
-      const instanceId = `recover-subfeed-${toHash(profile.fiscalCode)}-${day}`;
+      const instanceId = `recover-subfeed-${toHash(profile.fiscalCode)}-${day}-${deps.leasePrefix}`;
 
       if (processedInstanceIds.has(instanceId)) {
         continue;
@@ -78,7 +83,6 @@ export const RecoverSubscriptionsFeed = (deps: Dependencies) =>
 
       processedInstanceIds = new Set(processedInstanceIds).add(instanceId);
 
-      // eslint-disable-next-line no-await-in-loop
       const startResult = await startSingletonOrchestrator(
         dfClient,
         ORCHESTRATOR_NAME,

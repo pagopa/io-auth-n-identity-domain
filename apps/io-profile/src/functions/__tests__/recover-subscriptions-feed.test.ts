@@ -7,6 +7,7 @@ import {
   aRetrievedProfileVersion1,
 } from "../__mocks__/mocks";
 import { ServicesPreferencesModeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ServicesPreferencesMode";
+import { toHash } from "../../utils/crypto";
 import { RecoverSubscriptionsFeed } from "../recover-subscriptions-feed";
 
 const createMockDurableClient = () => ({
@@ -28,9 +29,12 @@ const telemetryClientMock = {
   trackEvent: vi.fn(),
 };
 
+const aLeasePrefix = "dryrun-01";
+
 const dependencies = {
   dryRun: false,
   endDate: Number.MAX_SAFE_INTEGER,
+  leasePrefix: aLeasePrefix,
   startDate: 0,
   telemetryClient: telemetryClientMock as any,
 };
@@ -59,7 +63,7 @@ describe("RecoverSubscriptionsFeed", () => {
           new RegExp(
             `^recover-subfeed-.+-${new Date(profile._ts * 1000)
               .toISOString()
-              .substring(0, 10)}$`,
+              .substring(0, 10)}-${aLeasePrefix}$`,
           ),
         ),
         input: {
@@ -225,5 +229,69 @@ describe("RecoverSubscriptionsFeed", () => {
     await handler([profile], contextMock as any);
 
     expect(dfClient.startNew).toHaveBeenCalledTimes(1);
+  });
+
+  it("should build a different instance id for each lease prefix", async () => {
+    const profile = aRetrievedProfileVersion1(
+      ServicesPreferencesModeEnum.AUTO,
+    );
+    const dfClient = createMockDurableClient();
+    (df.getClient as ReturnType<typeof vi.fn>).mockReturnValue(dfClient);
+
+    await RecoverSubscriptionsFeed({
+      ...dependencies,
+      dryRun: true,
+      leasePrefix: "dryrun-01",
+    })([profile], contextMock as any);
+    await RecoverSubscriptionsFeed({
+      ...dependencies,
+      leasePrefix: "run-01",
+    })([profile], contextMock as any);
+
+    expect(dfClient.startNew).toHaveBeenCalledTimes(2);
+    const [[, firstOptions], [, secondOptions]] = dfClient.startNew.mock.calls;
+    expect(firstOptions.instanceId).toMatch(/-dryrun-01$/);
+    expect(secondOptions.instanceId).toMatch(/-run-01$/);
+    expect(firstOptions.instanceId).not.toBe(secondOptions.instanceId);
+  });
+
+  it("should start a new orchestration when a previous pass completed under another lease prefix", async () => {
+    const profile = aRetrievedProfileVersion1(
+      ServicesPreferencesModeEnum.AUTO,
+    );
+    const day = new Date(profile._ts * 1000).toISOString().substring(0, 10);
+    const baseInstanceId = `recover-subfeed-${toHash(aFiscalCode)}-${day}`;
+    const dfClient = createMockDurableClient();
+    // only the dry-run instance exists and is completed: any other instance id
+    // is still unknown to the Durable Functions runtime
+    dfClient.getStatus.mockImplementation((instanceId: string) =>
+      instanceId === `${baseInstanceId}-dryrun-01`
+        ? Promise.resolve({
+            runtimeStatus: df.OrchestrationRuntimeStatus.Completed,
+          })
+        : Promise.reject(new Error("HTTP 404")),
+    );
+    (df.getClient as ReturnType<typeof vi.fn>).mockReturnValue(dfClient);
+
+    await RecoverSubscriptionsFeed({
+      ...dependencies,
+      dryRun: true,
+      leasePrefix: "dryrun-01",
+    })([profile], contextMock as any);
+
+    expect(dfClient.startNew).not.toHaveBeenCalled();
+
+    await RecoverSubscriptionsFeed({
+      ...dependencies,
+      leasePrefix: "run-01",
+    })([profile], contextMock as any);
+
+    expect(dfClient.startNew).toHaveBeenCalledTimes(1);
+    expect(dfClient.startNew).toHaveBeenCalledWith(
+      "RecoverSubscriptionsFeedOrchestrator",
+      expect.objectContaining({
+        instanceId: `${baseInstanceId}-run-01`,
+      }),
+    );
   });
 });

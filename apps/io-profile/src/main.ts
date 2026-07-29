@@ -324,10 +324,12 @@ app.cosmosDB("RecoverSubscriptionsFeed", {
   handler: RecoverSubscriptionsFeed({
     dryRun: config.SUBSCRIPTION_FEED_RECOVERY_DRY_RUN,
     endDate: config.SUBSCRIPTION_FEED_RECOVERY_END_DATE.getTime(),
+    leasePrefix: config.SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX,
     startDate: config.SUBSCRIPTION_FEED_RECOVERY_START_DATE.getTime(),
     telemetryClient,
   }),
   leaseContainerName: config.SUBSCRIPTION_FEED_RECOVERY_LEASE_CONTAINER_NAME,
+  leaseContainerPrefix: config.SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX,
   startFromTime: config.SUBSCRIPTION_FEED_RECOVERY_START_DATE.toISOString(),
 });
 
