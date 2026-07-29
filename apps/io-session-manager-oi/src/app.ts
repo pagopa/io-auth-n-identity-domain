@@ -1,10 +1,14 @@
 import { TableClient } from "@azure/data-tables";
 import { DefaultAzureCredential } from "@azure/identity";
 import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
+import { FiscalCode, FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import { type PackageInfo } from "@pagopa/io-package-info";
+import { RedisNodeClient, RedisSetWrapper } from "@pagopa/redis/client";
+import { createRedisNodeClient } from "@pagopa/redis/node-client";
 import fastify, { type FastifyInstance } from "fastify";
 
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
+import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { type Config } from "./domain/value-objects/config.vo.js";
@@ -22,12 +26,12 @@ class AzureCredential {
   }
 }
 
-export const createApp = (
+export const createApp = async (
   config: Config,
   packageInfo: PackageInfo,
-): {
+): Promise<{
   server: FastifyInstance;
-} => {
+}> => {
   const server = fastify({
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
   });
@@ -50,12 +54,30 @@ export const createApp = (
     ),
   );
 
+  const redisClient = await createRedisNodeClient({
+    url: config.REDIS_URL,
+    port: config.REDIS_PORT,
+    password: config.REDIS_PASSWORD,
+    enableTls: config.REDIS_TLS_ENABLED,
+  });
+
+  const blockedUsersAdapter = new BlockedUsersRedisAdapter(
+    new RedisSetWrapper<FiscalCode, RedisNodeClient>(
+      redisClient,
+      FiscalCodeSchema,
+    ),
+  );
+
   mountHealthCheckHandler(
     server,
     getHealthCheckUseCase(packageInfo, [
       {
         name: lockedProfilesAdapter.constructor.name,
         port: lockedProfilesAdapter,
+      },
+      {
+        name: blockedUsersAdapter.constructor.name,
+        port: blockedUsersAdapter,
       },
     ]),
   );

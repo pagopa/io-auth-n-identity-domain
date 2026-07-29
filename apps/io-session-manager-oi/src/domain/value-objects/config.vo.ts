@@ -49,6 +49,25 @@ export const LockedProfilesConfigSchema = z.object({
 export type LockedProfilesConfig = z.infer<typeof LockedProfilesConfigSchema>;
 
 /**
+ * Redis configuration schema.
+ *
+ * - `REDIS_URL` is a bare hostname (no scheme, no port).
+ * - `REDIS_PORT` is optional; when omitted the factory uses 6380 (TLS)
+ *   or 6379 (non-TLS).
+ * - `REDIS_PASSWORD` is optional (dev-only passwordless mode).
+ * - `REDIS_TLS_ENABLED` accepts the strings `"true"`/`"false"` and
+ *   defaults to `true` (production-safe default).
+ */
+export const RedisConfigSchema = z.object({
+  REDIS_URL: NonEmptyStringSchema,
+  REDIS_PORT: z.coerce.number().int().min(1).max(65535).optional(),
+  REDIS_PASSWORD: NonEmptyStringSchema.optional(),
+  REDIS_TLS_ENABLED: z.stringbool().default(true),
+});
+
+export type RedisConfig = z.infer<typeof RedisConfigSchema>;
+
+/**
  * Fields shared by every runtime environment.
  * Individual environment schemas extend this with their own discriminator + extras.
  */
@@ -57,6 +76,7 @@ const CommonConfigShape = {
   ...LollipopConfigSchema.shape,
   ...IoProfileConfigSchema.shape,
   ...LockedProfilesConfigSchema.shape,
+  ...RedisConfigSchema.shape,
 };
 
 /**
