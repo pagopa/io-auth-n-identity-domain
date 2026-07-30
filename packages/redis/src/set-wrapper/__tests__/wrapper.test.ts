@@ -12,7 +12,7 @@ import {
   type RedisClusterClient,
   type RedisNodeClient,
   RedisSetWrapper,
-} from "../wrapper.js";
+} from "../set-wrapper.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures

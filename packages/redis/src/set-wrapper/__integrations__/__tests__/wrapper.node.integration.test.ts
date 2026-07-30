@@ -6,7 +6,7 @@ import {
   createRedisNodeClient,
   type RedisNodeClient,
 } from "../../../node-client/factory.js";
-import { RedisSetWrapper } from "../../wrapper.js";
+import { RedisSetWrapper } from "../../set-wrapper.js";
 import {
   REDIS_STANDALONE_PASSWORD,
   REDIS_STANDALONE_PORT,

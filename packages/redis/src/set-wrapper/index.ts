@@ -4,4 +4,4 @@ export {
   type RedisNodeClient,
   type RedisSetClient as RedisSetCapableClient,
   RedisSetWrapper,
-} from "./wrapper.js";
+} from "./set-wrapper.js";
