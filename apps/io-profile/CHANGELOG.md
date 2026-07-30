@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.34.0
+
+### Minor Changes
+
+- 5dffa70: Add subscription feed recovery backfill (Option 1): profile-only, retroactive Cosmos DB trigger with lease-container checkpointing, dry-run mode, and dedicated orchestrator/activity.
+
 ## 5.33.1
 
 ### Patch Changes
