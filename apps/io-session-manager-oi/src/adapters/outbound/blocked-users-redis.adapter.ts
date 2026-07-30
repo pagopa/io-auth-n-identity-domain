@@ -4,7 +4,7 @@ import {
   FiscalCodeSchema,
   GenericError,
 } from "@pagopa/hexagonal-core";
-import { RedisNodeClient, RedisSetWrapper } from "@pagopa/redis/client";
+import { RedisNodeClient, RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import { Result, err, ok } from "neverthrow";
 
 import { BlockedUsersPort } from "../../domain/ports/outbound/blocked-users.port.js";

@@ -11,13 +11,13 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./client": {
-      "types": "./dist/client/index.d.ts",
-      "import": "./dist/client/index.js"
-    },
     "./node-client": {
       "types": "./dist/node-client/index.d.ts",
       "import": "./dist/node-client/index.js"
+    },
+    "./set-wrapper": {
+      "types": "./dist/set-wrapper/index.d.ts",
+      "import": "./dist/set-wrapper/index.js"
     }
   },
   "scripts": {
@@ -27,7 +27,7 @@
     "lint:check": "eslint . --ext .ts --cache",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:integration": "vitest run -c ./src/client/__integrations__/vite.config.mts"
+    "test:integration": "vitest run -c ./src/set-wrapper/__integrations__/vite.config.mts"
   },
   "dependencies": {
     "@pagopa/hexagonal-core": "catalog:",

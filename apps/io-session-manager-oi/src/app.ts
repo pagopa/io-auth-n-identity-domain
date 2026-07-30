@@ -3,8 +3,8 @@ import { DefaultAzureCredential } from "@azure/identity";
 import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
 import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import { type PackageInfo } from "@pagopa/io-package-info";
-import { RedisSetWrapper } from "@pagopa/redis/client";
 import { createRedisNodeClient } from "@pagopa/redis/node-client";
+import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
