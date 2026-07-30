@@ -1,5 +1,5 @@
 import { ValidationError } from "@pagopa/hexagonal-core";
-import { err, ok, Result } from "neverthrow";
+import { err, ok, type Result } from "neverthrow";
 import type { RedisClientType, RedisClusterType } from "redis";
 import { z } from "zod";
 
@@ -28,19 +28,14 @@ export type RedisSetClient = RedisClusterClient | RedisNodeClient;
  * `Result`-returning wrapper over a `redis` client for **Set
  * operations**, generic in the schema of the members.
  *
- * The wrapper is constructed with a `zod` schema that describes what a
- * valid Set member looks like. Every write and read is defensively
- * re-validated against the schema before it hits Redis — TypeScript
- * narrows the input to `z.output<TSchema>` at compile time.
- *
  * The wrapper is topology-agnostic: it accepts either a single-node
  * client (`createClient()`) or a cluster client (`createCluster()`).
  * The concrete client type is preserved through the `TClient` generic
  * so callers that use {@link RedisSetWrapper.getClient} for
  * topology-specific commands keep full type information.
  *
- * @typeParam TSchema - Zod schema whose output describes the domain
- *   type of the Set members.
+ * @typeParam TSchema - Any zod schema whose input (wire form) is a
+ *   string. The output (domain form) is free.
  * @typeParam TClient - Concrete client type. Inferred from the value
  *   passed to the constructor; defaults to the topology-agnostic
  *   union {@link RedisSetClient}.
@@ -48,13 +43,26 @@ export type RedisSetClient = RedisClusterClient | RedisNodeClient;
  * @example
  * ```ts
  * import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
- *
+ * // Identity codec: domain `FiscalCode`, wire `string`.
  * const wrapper = new RedisSetWrapper(client, FiscalCodeSchema);
  * await wrapper.add("BLOCKEDUSERS", fiscalCode);
  * ```
+ *
+ * @example
+ * ```ts
+ * // Non-identity codec: domain `Date`, wire ISO string.
+ * const TimestampCodec = z.codec(
+ *   z.iso.datetime(),
+ *   z.date(),
+ *   { decode: iso => new Date(iso), encode: date => date.toISOString() },
+ * );
+ * const wrapper = new RedisSetWrapper(client, TimestampCodec);
+ * await wrapper.add("SEEN", new Date()); // stored as ISO string
+ * ```
  */
+
 export class RedisSetWrapper<
-  TSchema extends z.ZodType<string> = z.ZodType<string>,
+  TSchema extends z.ZodType<unknown, string> = z.ZodType<unknown, string>,
   TClient extends RedisSetClient = RedisSetClient,
 > {
   constructor(
@@ -75,19 +83,18 @@ export class RedisSetWrapper<
    * [`SISMEMBER`](https://redis.io/commands/sismember/) — `O(1)`.
    * Returns `true` when `member` belongs to the Set stored at `key`.
    *
-   * The member is validated against the bound schema before the
-   * server round-trip; invalid input short-circuits with a
-   * `ValidationError`.
+   * The member is encoded through the bound schema before the server
+   * round-trip; invalid input short-circuits with a `ValidationError`.
    */
   public async isMember(
     key: string,
     member: z.output<TSchema>,
   ): Promise<Result<boolean, RedisError | ValidationError>> {
-    const parsed = this.parseMember(member);
-    if (parsed.isErr()) return err(parsed.error);
+    const encoded = this.encodeMember(member);
+    if (encoded.isErr()) return err(encoded.error);
 
     try {
-      const isMember = await this.client.sIsMember(key, parsed.value);
+      const isMember = await this.client.sIsMember(key, encoded.value);
       return ok(isMember === 1);
     } catch (cause) {
       return err(toRedisError(`SISMEMBER ${key}`, cause));
@@ -98,7 +105,7 @@ export class RedisSetWrapper<
    * [`SADD`](https://redis.io/commands/sadd/) — `O(1)` per member.
    * Idempotent: already-present members contribute `0` to the count.
    *
-   * Every member (single or array) is validated against the bound
+   * Every member (single or array) is encoded through the bound
    * schema before the server round-trip; the first invalid entry
    * short-circuits with a `ValidationError` and no `SADD` is sent.
    *
@@ -108,11 +115,11 @@ export class RedisSetWrapper<
     key: string,
     members: z.output<TSchema> | z.output<TSchema>[],
   ): Promise<Result<number, RedisError | ValidationError>> {
-    const parsed = this.parseMembers(members);
-    if (parsed.isErr()) return err(parsed.error);
+    const encoded = this.encodeMembers(members);
+    if (encoded.isErr()) return err(encoded.error);
 
     try {
-      const added = await this.client.sAdd(key, parsed.value);
+      const added = await this.client.sAdd(key, encoded.value);
       return ok(added);
     } catch (cause) {
       return err(toRedisError(`SADD ${key}`, cause));
@@ -123,7 +130,7 @@ export class RedisSetWrapper<
    * [`SREM`](https://redis.io/commands/srem/) — `O(1)` per member.
    * Idempotent: absent members contribute `0` to the count.
    *
-   * Every member (single or array) is validated against the bound
+   * Every member (single or array) is encoded through the bound
    * schema before the server round-trip; the first invalid entry
    * short-circuits with a `ValidationError` and no `SREM` is sent.
    *
@@ -133,11 +140,11 @@ export class RedisSetWrapper<
     key: string,
     members: z.output<TSchema> | z.output<TSchema>[],
   ): Promise<Result<number, RedisError | ValidationError>> {
-    const parsed = this.parseMembers(members);
-    if (parsed.isErr()) return err(parsed.error);
+    const encoded = this.encodeMembers(members);
+    if (encoded.isErr()) return err(encoded.error);
 
     try {
-      const removed = await this.client.sRem(key, parsed.value);
+      const removed = await this.client.sRem(key, encoded.value);
       return ok(removed);
     } catch (cause) {
       return err(toRedisError(`SREM ${key}`, cause));
@@ -145,12 +152,12 @@ export class RedisSetWrapper<
   }
 
   /**
-   * Parses a single member through the schema.
+   * Encodes a single domain member into its wire form via the schema.
    */
-  private parseMember(
+  private encodeMember(
     member: z.output<TSchema>,
-  ): Result<z.output<TSchema>, ValidationError> {
-    const result = this.memberSchema.safeParse(member);
+  ): Result<z.input<TSchema>, ValidationError> {
+    const result = z.safeEncode(this.memberSchema, member);
     if (!result.success) {
       return err(
         new ValidationError(
@@ -162,23 +169,33 @@ export class RedisSetWrapper<
   }
 
   /**
-   * Parses a single member or an array of members, preserving the
-   * shape so `sAdd`/`sRem` receive a `string` for a single member and
-   * `string[]` for an array.
+   * Encodes a single member or an array of members, preserving the
+   * shape so `sAdd`/`sRem` receive a single wire value for a single
+   * member and an array for an array.
+   *
+   * An empty array short-circuits with a `ValidationError` — sending
+   * `SADD KEY` (with no members) to Redis makes the server reply with
+   * "ERR wrong number of arguments", which surfaces to the caller as
+   * a confusing `GenericError`. Rejecting at the wrapper layer keeps
+   * the mistake attributable to the caller's input.
    */
-  private parseMembers(
+  private encodeMembers(
     members: z.output<TSchema> | z.output<TSchema>[],
-  ): Result<z.output<TSchema> | z.output<TSchema>[], ValidationError> {
+  ): Result<z.input<TSchema> | z.input<TSchema>[], ValidationError> {
     if (!Array.isArray(members)) {
-      return this.parseMember(members);
+      return this.encodeMember(members);
     }
 
-    const parsed: z.output<TSchema>[] = [];
-    for (const m of members) {
-      const result = this.parseMember(m);
-      if (result.isErr()) return err(result.error);
-      parsed.push(result.value);
+    if (members.length === 0) {
+      return err(new ValidationError("members array must be non-empty"));
     }
-    return ok(parsed);
+
+    const encoded: z.input<TSchema>[] = [];
+    for (const m of members) {
+      const result = this.encodeMember(m);
+      if (result.isErr()) return err(result.error);
+      encoded.push(result.value);
+    }
+    return ok(encoded);
   }
 }

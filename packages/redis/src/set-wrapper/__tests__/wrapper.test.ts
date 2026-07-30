@@ -264,6 +264,22 @@ describe("RedisSetWrapper — schema validation", () => {
 
     expect(sAddMock).toHaveBeenCalledExactlyOnceWith(KEY, ["VALID", "VALID"]);
   });
+
+  it("add short-circuits with ValidationError on an empty array", async () => {
+    const result = await strictWrapper.add(KEY, []);
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
+    expect(sAddMock).not.toHaveBeenCalled();
+  });
+
+  it("rem short-circuits with ValidationError on an empty array", async () => {
+    const result = await strictWrapper.rem(KEY, []);
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
+    expect(sRemMock).not.toHaveBeenCalled();
+  });
 });
 
 // ---------------------------------------------------------------------------
