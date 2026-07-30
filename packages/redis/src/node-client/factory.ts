@@ -51,7 +51,7 @@ export const createRedisNodeClient = async (
   const socket = enableTls
     ? {
         tls: true as const,
-        checkServerIdentity: (): undefined => undefined,
+        checkServerIdentity: () => undefined,
         keepAlive: true,
         keepAliveInitialDelay: SOCKET_KEEPALIVE_MS,
         reconnectStrategy: reconnectDelayMs,
