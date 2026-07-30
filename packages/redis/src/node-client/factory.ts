@@ -1,4 +1,4 @@
-import { createClient } from "redis";
+import { createClient, type RedisClientType } from "redis";
 
 import {
   type RedisNodeClientConfig,
@@ -8,7 +8,7 @@ import {
 /**
  * The concrete client type produced by `redis.createClient()`.
  */
-export type RedisNodeClient = ReturnType<typeof createClient>;
+export type RedisNodeClient = RedisClientType;
 
 const DEFAULT_TLS_SCHEME = "rediss://";
 const DEFAULT_NON_TLS_SCHEME = "redis://";
@@ -48,15 +48,24 @@ export const createRedisNodeClient = async (
     portOverride ?? (enableTls ? DEFAULT_TLS_PORT : DEFAULT_NON_TLS_PORT);
   const scheme = enableTls ? DEFAULT_TLS_SCHEME : DEFAULT_NON_TLS_SCHEME;
 
+  const socket = enableTls
+    ? {
+        tls: true as const,
+        checkServerIdentity: (): undefined => undefined,
+        keepAlive: true,
+        keepAliveInitialDelay: SOCKET_KEEPALIVE_MS,
+        reconnectStrategy: reconnectDelayMs,
+      }
+    : {
+        tls: false as const,
+        keepAlive: true,
+        keepAliveInitialDelay: SOCKET_KEEPALIVE_MS,
+        reconnectStrategy: reconnectDelayMs,
+      };
+
   const client = createClient({
-    legacyMode: false,
     password,
-    socket: {
-      checkServerIdentity: () => undefined,
-      keepAlive: SOCKET_KEEPALIVE_MS,
-      reconnectStrategy: reconnectDelayMs,
-      tls: enableTls,
-    },
+    socket,
     url: `${scheme}${url}:${port}`,
   });
 

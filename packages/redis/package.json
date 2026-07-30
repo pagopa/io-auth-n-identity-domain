@@ -40,12 +40,12 @@
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",
-    "redis": "catalog:",
+    "redis": "^6.1.0",
     "shx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
   "peerDependencies": {
-    "redis": "catalog:"
+    "redis": "^6.1.0"
   }
 }

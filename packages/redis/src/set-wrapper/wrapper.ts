@@ -1,6 +1,6 @@
 import { ValidationError } from "@pagopa/hexagonal-core";
 import { err, ok, Result } from "neverthrow";
-import type { createClient, createCluster } from "redis";
+import type { RedisClientType, RedisClusterType } from "redis";
 import { z } from "zod";
 
 import { RedisError, toRedisError } from "./errors.js";
@@ -9,13 +9,13 @@ import { RedisError, toRedisError } from "./errors.js";
  * The concrete `redis` single-node client shape accepted by
  * {@link RedisSetWrapper}.
  */
-export type RedisNodeClient = ReturnType<typeof createClient>;
+export type RedisNodeClient = RedisClientType;
 
 /**
  * The concrete `redis` cluster client shape accepted by
  * {@link RedisSetWrapper}.
  */
-export type RedisClusterClient = ReturnType<typeof createCluster>;
+export type RedisClusterClient = RedisClusterType;
 
 /**
  * Any `node-redis` client that exposes the Set-command surface
@@ -88,7 +88,7 @@ export class RedisSetWrapper<
 
     try {
       const isMember = await this.client.sIsMember(key, parsed.value);
-      return ok(isMember);
+      return ok(isMember === 1);
     } catch (cause) {
       return err(toRedisError(`SISMEMBER ${key}`, cause));
     }

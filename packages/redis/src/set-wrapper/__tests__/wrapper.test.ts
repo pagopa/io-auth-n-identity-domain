@@ -60,8 +60,11 @@ describe("RedisSetWrapper#getClient", () => {
 // ---------------------------------------------------------------------------
 
 describe("RedisSetWrapper#sIsMember", () => {
-  it("returns ok(true) when SISMEMBER resolves true", async () => {
-    sIsMemberMock.mockResolvedValueOnce(true);
+  it("returns ok(true) when SISMEMBER resolves 1", async () => {
+    // `node-redis` 6.x no longer auto-transforms SISMEMBER's integer
+    // reply into a boolean — the raw wire value comes through as
+    // `0 | 1` and the wrapper is what maps it to `boolean`.
+    sIsMemberMock.mockResolvedValueOnce(1);
 
     const result = await wrapper.isMember(KEY, MEMBER);
 
@@ -70,8 +73,8 @@ describe("RedisSetWrapper#sIsMember", () => {
     expect(sIsMemberMock).toHaveBeenCalledExactlyOnceWith(KEY, MEMBER);
   });
 
-  it("returns ok(false) when SISMEMBER resolves false", async () => {
-    sIsMemberMock.mockResolvedValueOnce(false);
+  it("returns ok(false) when SISMEMBER resolves 0", async () => {
+    sIsMemberMock.mockResolvedValueOnce(0);
 
     const result = await wrapper.isMember(KEY, MEMBER);
 
@@ -269,7 +272,7 @@ describe("RedisSetWrapper — schema validation", () => {
 
 describe("RedisSetWrapper — topology", () => {
   it("accepts a single-node client and preserves its concrete type via getClient()", async () => {
-    const nodeSIsMember = vi.fn().mockResolvedValueOnce(true);
+    const nodeSIsMember = vi.fn().mockResolvedValueOnce(1);
     const nodeStub = {
       sIsMember: nodeSIsMember,
       sAdd: vi.fn(),

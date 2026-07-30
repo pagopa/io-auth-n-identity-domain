@@ -38,7 +38,7 @@
     "fastify": "catalog:",
     "neverthrow": "catalog:",
     "range_check": "catalog:",
-    "redis": "catalog:",
+    "redis": "^6.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {

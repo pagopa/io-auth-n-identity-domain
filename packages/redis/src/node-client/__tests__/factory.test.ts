@@ -33,7 +33,14 @@ describe("createRedisNodeClient — defaults", () => {
 
     const opts = lastCreateClientOptions();
     expect(opts.url).toBe("rediss://cache.example.com:6380");
-    expect(opts.socket).toMatchObject({ tls: true, keepAlive: 2000 });
+    // `node-redis` 6.x split the socket-level `keepAlive: number` into
+    // `keepAlive: boolean` + `keepAliveInitialDelay: number` (matching
+    // Node's `net.Socket.setKeepAlive`), so we assert on both fields.
+    expect(opts.socket).toMatchObject({
+      tls: true,
+      keepAlive: true,
+      keepAliveInitialDelay: 2000,
+    });
   });
 
   it("switches to redis:// port 6379 when enableTls is false", async () => {
