@@ -51,6 +51,8 @@ export const createRedisNodeClient = async (
   const socket = enableTls
     ? {
         tls: true as const,
+        // TODO: from a [Github Copilot's comment in a Pull Request review](https://github.com/pagopa/io-auth-n-identity-domain/pull/764#discussion_r3675124646)
+        // checkServerIdentity: () => undefined disables TLS server identity verification, which can allow MITM when enableTls is true.
         checkServerIdentity: () => undefined,
         keepAlive: true,
         keepAliveInitialDelay: SOCKET_KEEPALIVE_MS,
