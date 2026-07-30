@@ -45,5 +45,9 @@ locals {
     IO_SM_INT_API_BASE_PATH = var.io_session_manager_internal.base_path
     # IO_SM_INT_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_io_sm_int_api_key.versionless_id})"
     IO_SM_INT_API_KEY = "TODO"
+
+    # IO-Communication notification queue
+    PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI = data.azurerm_storage_account.io_com.primary_queue_endpoint
+    PUSH_NOTIFICATIONS_QUEUE_NAME        = data.azurerm_storage_queue.push_notifications.name
   }
 }

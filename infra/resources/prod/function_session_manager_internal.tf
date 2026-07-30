@@ -50,7 +50,7 @@ locals {
 
 module "function_session_manager_internal" {
   source  = "pagopa-dx/azure-function-app/azurerm"
-  version = "~> 1.0"
+  version = "~> 6.0"
 
   # Note: SM and SM-int must be deployed in the WEU region to ensure connectivity with Redis.
   environment = {
@@ -65,7 +65,7 @@ module "function_session_manager_internal" {
   node_version      = 22
   health_check_path = "/api/v1/info"
 
-  tier = "l"
+  use_case = "default"
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
 
@@ -102,7 +102,7 @@ module "function_session_manager_internal" {
 
   application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
 
-  action_group_id = azurerm_monitor_action_group.error_action_group.id
+  action_group_ids = [azurerm_monitor_action_group.error_action_group.id]
 
   tags = local.tags
 }

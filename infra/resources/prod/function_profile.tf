@@ -97,7 +97,7 @@ resource "azurerm_key_vault_access_policy" "func_profile_staging_kv_common" {
 
 module "function_profile" {
   source  = "pagopa-dx/azure-function-app/azurerm"
-  version = "~> 1.0"
+  version = "~> 6.0"
 
   environment = {
     prefix          = local.prefix
@@ -113,7 +113,7 @@ module "function_profile" {
   has_durable_functions = "true"
 
   # P2mv3 SKU and 8 Worker process count
-  tier = "xl"
+  use_case = "high_load"
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
 
@@ -153,7 +153,7 @@ module "function_profile" {
 
   application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
 
-  action_group_id = azurerm_monitor_action_group.error_action_group.id
+  action_group_ids = [azurerm_monitor_action_group.error_action_group.id]
 
   tags = local.tags
 }
