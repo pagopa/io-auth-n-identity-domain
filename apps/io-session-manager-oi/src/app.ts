@@ -4,8 +4,10 @@ import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
 import { type PackageInfo } from "@pagopa/io-package-info";
 import fastify, { type FastifyInstance } from "fastify";
 
+import { QueueServiceClient } from "@azure/storage-queue";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
+import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { type Config } from "./domain/value-objects/config.vo.js";
 
@@ -50,6 +52,21 @@ export const createApp = (
     ),
   );
 
+  const pushNotificationsQueueServiceClient =
+    config.NODE_ENV === "production"
+      ? new QueueServiceClient(
+          config.PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI,
+          AzureCredential.getInstance(),
+        )
+      : QueueServiceClient.fromConnectionString(
+          config.PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING,
+        );
+  const notificationStorageQueueAdapter = new NotificationStorageQueueAdapter(
+    pushNotificationsQueueServiceClient.getQueueClient(
+      config.PUSH_NOTIFICATIONS_QUEUE_NAME,
+    ),
+  );
+
   mountHealthCheckHandler("liveness")(
     server,
     getHealthCheckUseCase(packageInfo),
@@ -61,6 +78,10 @@ export const createApp = (
       {
         name: lockedProfilesAdapter.constructor.name,
         port: lockedProfilesAdapter,
+      },
+      {
+        name: notificationStorageQueueAdapter.constructor.name,
+        port: notificationStorageQueueAdapter,
       },
     ]),
   );

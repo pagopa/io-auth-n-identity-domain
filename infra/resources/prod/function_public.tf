@@ -38,7 +38,7 @@ data "azurerm_resource_group" "function_public_rg" {
 
 module "function_public" {
   source  = "pagopa-dx/azure-function-app/azurerm"
-  version = "~> 1.0"
+  version = "~> 6.0"
 
   environment = {
     prefix          = local.prefix
@@ -74,7 +74,7 @@ module "function_public" {
   application_insights_connection_string   = data.azurerm_application_insights.application_insights.connection_string
   application_insights_sampling_percentage = local.function_public.prod_slot_sampling_percentage
 
-  action_group_id = azurerm_monitor_action_group.error_action_group.id
+  action_group_ids = [azurerm_monitor_action_group.error_action_group.id]
 
   tags = local.tags
 }

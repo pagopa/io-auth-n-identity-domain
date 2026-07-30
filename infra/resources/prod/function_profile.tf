@@ -19,10 +19,22 @@ locals {
 
       // TODO: Rename to SUBSCRIPTIONSFEEDBYDAY_TABLE_NAME
       SUBSCRIPTIONS_FEED_TABLE = "SubscriptionsFeedByDay"
-      MAIL_FROM                = "IO - l'app dei servizi pubblici <no-reply@io.italia.it>"
-      DPO_EMAIL_ADDRESS        = "dpo@pagopa.it" //TODO: seems to not be used anymore
-      PUBLIC_API_URL           = "https://api-app.internal.io.pagopa.it/"
-      FUNCTIONS_PUBLIC_URL     = "https://api.io.pagopa.it/public"
+
+      // Subscription feed recovery backfill (RecoverSubscriptionsFeed Cosmos DB
+      // trigger). See "Subscription feed recovery" in apps/io-profile/README.md.
+      // The window is half-open: [START_DATE, END_DATE).
+      // LEASE_PREFIX namespaces a single recovery pass (change feed checkpoint +
+      // orchestration instance id): the real pass MUST use a new value.
+      SUBSCRIPTION_FEED_RECOVERY_START_DATE           = "2026-04-17T00:00:00.000Z"
+      SUBSCRIPTION_FEED_RECOVERY_END_DATE             = "2026-06-18T23:59:59.999Z"
+      SUBSCRIPTION_FEED_RECOVERY_LEASE_CONTAINER_NAME = "upsert-subfeed-leases"
+      SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX         = "dryrun-01"
+      SUBSCRIPTION_FEED_RECOVERY_DRY_RUN              = "true"
+
+      MAIL_FROM            = "IO - l'app dei servizi pubblici <no-reply@io.italia.it>"
+      DPO_EMAIL_ADDRESS    = "dpo@pagopa.it" //TODO: seems to not be used anymore
+      PUBLIC_API_URL       = "https://api-app.internal.io.pagopa.it/"
+      FUNCTIONS_PUBLIC_URL = "https://api.io.pagopa.it/public"
 
       // Maintenance Storage Account
       MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.maintenance_st_connection_string.versionless_id})"
@@ -85,7 +97,7 @@ resource "azurerm_key_vault_access_policy" "func_profile_staging_kv_common" {
 
 module "function_profile" {
   source  = "pagopa-dx/azure-function-app/azurerm"
-  version = "~> 1.0"
+  version = "~> 6.0"
 
   environment = {
     prefix          = local.prefix
@@ -101,7 +113,7 @@ module "function_profile" {
   has_durable_functions = "true"
 
   # P2mv3 SKU and 8 Worker process count
-  tier = "xl"
+  use_case = "high_load"
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
 
@@ -115,8 +127,25 @@ module "function_profile" {
     resource_group_name = data.azurerm_virtual_network.itn_common.resource_group_name
   }
 
-  app_settings      = local.function_profile.app_settings
-  slot_app_settings = local.function_profile.app_settings
+  // The RecoverSubscriptionsFeed backfill trigger is kept disabled on both slots.
+  // It is enabled manually only for the duration of a recovery pass, following the
+  // runbook in apps/io-profile/README.md, and disabled again afterwards.
+  app_settings = merge(
+    local.function_profile.app_settings,
+    {
+      "AzureWebJobs.RecoverSubscriptionsFeed.Disabled" = "1"
+    }
+  )
+  slot_app_settings = merge(
+    local.function_profile.app_settings,
+    {
+      "AzureWebJobs.RecoverSubscriptionsFeed.Disabled" = "1"
+    }
+  )
+
+  sticky_app_setting_names = [
+    "AzureWebJobs.RecoverSubscriptionsFeed.Disabled",
+  ]
 
   subnet_service_endpoints = {
     web = true
@@ -124,7 +153,7 @@ module "function_profile" {
 
   application_insights_connection_string = data.azurerm_application_insights.application_insights.connection_string
 
-  action_group_id = azurerm_monitor_action_group.error_action_group.id
+  action_group_ids = [azurerm_monitor_action_group.error_action_group.id]
 
   tags = local.tags
 }
