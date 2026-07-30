@@ -62,11 +62,12 @@ export const createApp = async (
   });
 
   // Close the Redis connection cleanly when Fastify shuts down (via
-  // `server.close()`). `QUIT` waits for the server's reply and drains
-  // the socket, avoiding leaked descriptors on redeploy.
+  // `server.close()`). `close()` waits for pending commands to
+  // complete and drains the socket, avoiding leaked descriptors on
+  // redeploy.
   server.addHook("onClose", async () => {
     try {
-      await redisClient.quit();
+      await redisClient.close();
     } catch (err) {
       server.log.warn({ err }, "Failed to close Redis client cleanly");
     }
