@@ -41,6 +41,8 @@
     "@types/node": "catalog:",
     "@types/node-fetch": "catalog:",
     "@types/nodemailer": "catalog:",
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/parser": "^8.53.1",
     "@vitest/coverage-v8": "catalog:",
     "dependency-check": "catalog:",
     "dotenv": "catalog:",

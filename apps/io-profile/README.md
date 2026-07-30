@@ -90,3 +90,122 @@ After the template is ready:
   - the tag version of `io-messages-email-templates` repo
   - the applier template path
   - the target path of generated code
+
+## Subscription feed recovery
+
+The `RecoverSubscriptionsFeed` Cosmos DB trigger implements **Option 1** of the
+recovery RFC (profile-only, retroactive backfill). It listens to the profile
+container change feed from `SUBSCRIPTION_FEED_RECOVERY_START_DATE` and filters
+documents to the half-open UTC window
+`[SUBSCRIPTION_FEED_RECOVERY_START_DATE, SUBSCRIPTION_FEED_RECOVERY_END_DATE)`.
+For each fiscal code and UTC day in that window, it starts at most one
+`RecoverSubscriptionsFeedOrchestrator`. The orchestrator loads all profile
+versions changed on that day, recomputes the final profile-level subscription
+feed event (`SUBSCRIBED` or `UNSUBSCRIBED`), and calls the existing
+`UpdateSubscriptionFeedActivity` at most once.
+
+Key characteristics:
+
+- **Profile-only**: only `PROFILE` subscription events are emitted;
+  service-level entries (`S-*`) are intentionally not touched.
+- **Retroactive date**: the activity uses `profile._ts * 1000` as `updatedAt`,
+  so the feed entry is backdated to the original profile change.
+- **Bounded window**: `SUBSCRIPTION_FEED_RECOVERY_END_DATE` is required, must be
+  after the start date, and must not be in the future. Documents outside the
+  half-open window are ignored by the trigger. Cosmos DB has no upper-bound
+  change-feed option, so disable the trigger with the kill switch after the
+  recovery window has been processed.
+- **Daily singleton**: the orchestration instance ID is
+  `recover-subfeed-<fiscal-code-hash>-<YYYY-MM-DD>-<lease-prefix>`. A running or
+  completed instance is not started again; failed or terminated instances can be
+  retried. All versions in the day are ordered by profile version and only the
+  last effective operation is written to the feed. Because the instance ID ends
+  with `SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX`, each recovery pass gets its own
+  deduplication namespace: changing the prefix replays the whole window from
+  scratch.
+- **Checkpoint**: the Cosmos DB trigger maintains its own checkpoint in the
+  lease container configured via `SUBSCRIPTION_FEED_RECOVERY_LEASE_CONTAINER_NAME`,
+  under the lease prefix configured via `SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX`,
+  so no custom continuation-token store is required. The prefix is a required
+  setting and must match `^[A-Za-z0-9_-]+$`.
+- **Dry-run**: set `SUBSCRIPTION_FEED_RECOVERY_DRY_RUN=true` to track the
+  intended operations without writing to the subscription feed table.
+- **Kill switch**: keep the trigger disabled with
+  `AzureWebJobs.RecoverSubscriptionsFeed.Disabled=true` until you are ready to
+  run the backfill; remove or set to `false` to enable.
+
+Because the orchestrator never throws (failures are tracked as custom events),
+a small residual drift is accepted by design.
+
+### Runbook: dry-run pass and real pass
+
+The backfill is executed as **two passes over the same window**: a dry-run pass
+that only observes, and a real pass that writes. Each pass needs its **own**
+`SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX` value, because the prefix drives both
+the change feed checkpoint and the orchestration deduplication namespace.
+
+1. **Configure the dry-run pass**, with the trigger still disabled:
+
+   ```dotenv
+   SUBSCRIPTION_FEED_RECOVERY_START_DATE=<window start, ISO UTC>
+   SUBSCRIPTION_FEED_RECOVERY_END_DATE=<window end, ISO UTC, in the past>
+   SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX=dryrun-01
+   SUBSCRIPTION_FEED_RECOVERY_DRY_RUN=true
+   AzureWebJobs.RecoverSubscriptionsFeed.Disabled=true
+   ```
+
+2. **Enable the trigger** (`AzureWebJobs.RecoverSubscriptionsFeed.Disabled=false`)
+   and wait for the change feed to be fully consumed.
+
+3. **Review the outcome** on Application Insights: `subscriptionFeed.recovery.dryRun`
+   gives the operations that would be written, while
+   `subscriptionFeed.recovery.failure`, `subscriptionFeed.recovery.badRecord` and
+   `subscriptionFeed.recovery.startError` expose the problems to fix before
+   writing anything.
+
+4. **Disable the trigger again** (`AzureWebJobs.RecoverSubscriptionsFeed.Disabled=true`).
+
+5. **Configure the real pass**, changing *both* settings:
+
+   ```dotenv
+   SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX=run-01
+   SUBSCRIPTION_FEED_RECOVERY_DRY_RUN=false
+   ```
+
+   Changing the prefix is mandatory. Keeping the dry-run value would resume the
+   change feed from the dry-run checkpoint (nothing left to read) and, even after
+   a replay, every `(fiscal code, day)` pair would be skipped because the
+   dry-run orchestrations are already `Completed`.
+
+6. **Enable the trigger**, wait for the window to be consumed, then **disable it
+   for good**: Cosmos DB has no upper-bound change feed option, so the kill
+   switch is what stops the recovery once the window has been processed.
+
+> **Retrying failures.** A failed recovery is *not* retried by a second pass over
+> the same prefix: the orchestrator never throws, so even a logical failure ends
+> in the `Completed` runtime status and is treated as an already-processed
+> marker. Deleting the lease documents is therefore not a viable recovery
+> strategy either — the change feed would be replayed, but every completed
+> instance would still be skipped. The backfill is intentionally a **single
+> pass**: residual failures are visible through the custom events below and the
+> resulting drift is accepted. A full retry requires a brand new pass with a
+> different `SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX`.
+
+### Custom events
+
+The recovery pipeline emits the following custom events through Application
+Insights. All events are unsampled (`samplingEnabled: false`).
+
+#### Trigger level
+
+| Event name | Source | Fired when | Properties |
+|---|---|---|---|
+| `subscriptionFeed.recovery.badRecord` | `RecoverSubscriptionsFeed` | A document from the profile change feed cannot be decoded as a `RetrievedProfile`. | `kind`: `"DECODE_ERROR"` |
+| `subscriptionFeed.recovery.startError` | `RecoverSubscriptionsFeed` | The `RecoverSubscriptionsFeedOrchestrator` could not be started for a valid profile. | `fiscalCode`: hashed fiscal code; `instanceId`: orchestrator instance id; `kind`: `"START_FAILED"`; `version`: profile version as string |
+
+#### Orchestrator level
+
+| Event name | Source | Fired when | Properties |
+|---|---|---|---|
+| `subscriptionFeed.recovery.failure` | `RecoverSubscriptionsFeedOrchestrator` | A failure happened while reading profile versions or while updating the subscription feed. | `fiscalCode`: hashed fiscal code; `kind`: `"EXCEPTION"` \| `"NOT_FOUND"`; `step`: `"READ_PREVIOUS_VERSION"` \| `"UPDATE_FEED"`; `version`: profile version as string |
+| `subscriptionFeed.recovery.dryRun` | `RecoverSubscriptionsFeedOrchestrator` | An operation would be emitted and `dryRun` is enabled, so the activity is skipped and only tracked. | `fiscalCode`: hashed fiscal code; `operation`: `"SUBSCRIBED"` \| `"UNSUBSCRIBED"`; `version`: profile version as string |
