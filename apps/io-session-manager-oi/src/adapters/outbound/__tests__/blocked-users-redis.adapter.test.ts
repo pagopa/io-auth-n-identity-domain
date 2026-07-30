@@ -3,7 +3,7 @@ import {
   FiscalCodeSchema,
   GenericError,
 } from "@pagopa/hexagonal-core";
-import { RedisNodeClient, RedisSetWrapper } from "@pagopa/redis/client";
+import { RedisNodeClient, RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
