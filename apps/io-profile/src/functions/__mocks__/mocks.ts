@@ -160,6 +160,30 @@ export const aClosedUserDataProcessingStatus: UserDataProcessingStatus =
 export const aAbortedUserDataProcessingStatus: UserDataProcessingStatus =
   UserDataProcessingStatusEnum.ABORTED;
 
+export const aRetrievedProfileVersion1 = (mode: RetrievedProfile["servicePreferencesSettings"]["mode"]): RetrievedProfile => ({
+  ...aRetrievedProfile,
+  _ts: 1000,
+  servicePreferencesSettings:
+    mode === ServicesPreferencesModeEnum.LEGACY
+      ? legacyProfileServicePreferencesSettings
+      : mode === ServicesPreferencesModeEnum.AUTO
+        ? autoProfileServicePreferencesSettings
+        : manualProfileServicePreferencesSettings,
+  version: 1 as NonNegativeInteger,
+});
+
+export const aRetrievedProfileVersion2 = (mode: RetrievedProfile["servicePreferencesSettings"]["mode"]): RetrievedProfile => ({
+  ...aRetrievedProfile,
+  _ts: 2000,
+  servicePreferencesSettings:
+    mode === ServicesPreferencesModeEnum.LEGACY
+      ? legacyProfileServicePreferencesSettings
+      : mode === ServicesPreferencesModeEnum.AUTO
+        ? autoProfileServicePreferencesSettings
+        : manualProfileServicePreferencesSettings,
+  version: 2 as NonNegativeInteger,
+});
+
 export const aRetrievedUserDataProcessing: RetrievedUserDataProcessing = {
   ...aCosmosResourceMetadata,
   choice: aUserDataProcessingChoice,

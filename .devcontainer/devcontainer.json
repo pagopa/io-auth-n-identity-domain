@@ -1,4 +1,5 @@
 {
+  "name": "io-auth-n-identity",
   "image": "mcr.microsoft.com/devcontainers/base:debian@sha256:a07f1804d8e665ff64bf6adcd60f4d9b9223dc52ee18a1f1a7a8e1ee1a134d34",
   "features": {
     "ghcr.io/devcontainers-extra/features/pre-commit:2": {},
@@ -73,13 +74,21 @@
       },
       "mcp": {
         "servers": {
-          "dx-mcp-server": {
+          "dx": {
             "type": "http",
             "url": "https://api.dx.pagopa.it/mcp"
           },
-          "azure-learn-mcp-server": {
+          "azure-learn": {
             "type": "http",
             "url": "https://learn.microsoft.com/api/mcp"
+          },
+          "atlassian": {
+            "type": "http",
+            "url": "https://mcp.atlassian.com/v1/mcp"
+          },
+          "github": {
+            "type": "http",
+            "url": "https://api.githubcopilot.com/mcp/"
           }
         }
       }

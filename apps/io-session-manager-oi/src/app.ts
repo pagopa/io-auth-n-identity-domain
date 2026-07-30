@@ -7,9 +7,11 @@ import { createRedisNodeClient } from "@pagopa/redis/node-client";
 import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
+import { QueueServiceClient } from "@azure/storage-queue";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
+import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { type Config } from "./domain/value-objects/config.vo.js";
 
@@ -54,6 +56,21 @@ export const createApp = async (
     ),
   );
 
+  const pushNotificationsQueueServiceClient =
+    config.NODE_ENV === "production"
+      ? new QueueServiceClient(
+          config.PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI,
+          AzureCredential.getInstance(),
+        )
+      : QueueServiceClient.fromConnectionString(
+          config.PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING,
+        );
+  const notificationStorageQueueAdapter = new NotificationStorageQueueAdapter(
+    pushNotificationsQueueServiceClient.getQueueClient(
+      config.PUSH_NOTIFICATIONS_QUEUE_NAME,
+    ),
+  );
+
   const redisClient = await createRedisNodeClient({
     url: config.REDIS_URL,
     port: config.REDIS_PORT,
@@ -90,6 +107,10 @@ export const createApp = async (
       {
         name: lockedProfilesAdapter.constructor.name,
         port: lockedProfilesAdapter,
+      },
+      {
+        name: notificationStorageQueueAdapter.constructor.name,
+        port: notificationStorageQueueAdapter,
       },
       {
         name: blockedUsersAdapter.constructor.name,

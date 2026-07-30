@@ -72,6 +72,14 @@ export const LockedProfilesConfigSchema = z.object({
 
 export type LockedProfilesConfig = z.infer<typeof LockedProfilesConfigSchema>;
 
+export const NotificationQueueConfigSchema = z.object({
+  PUSH_NOTIFICATIONS_QUEUE_NAME: NonEmptyStringSchema,
+});
+
+export type NotificationQueueConfig = z.infer<
+  typeof NotificationQueueConfigSchema
+>;
+
 /**
  * Redis configuration schema.
  *
@@ -101,6 +109,7 @@ const CommonConfigShape = {
   ...IoProfileConfigSchema.shape,
   ...LockedProfilesConfigSchema.shape,
   ...IoSmIntConfigSchema.shape,
+  ...NotificationQueueConfigSchema.shape,
   ...RedisConfigSchema.shape,
 };
 
@@ -112,6 +121,7 @@ export const ProductionConfigSchema = z.object({
   ...CommonConfigShape,
   NODE_ENV: z.literal("production"),
   LOCKED_PROFILES_STORAGE_ACCOUNT_URI: z.url(),
+  PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI: z.url(),
 });
 
 export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
@@ -124,6 +134,7 @@ export const DevelopmentConfigSchema = z.object({
   ...CommonConfigShape,
   NODE_ENV: z.literal("development"),
   LOCKED_PROFILES_STORAGE_CONNECTION_STRING: NonEmptyStringSchema,
+  PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING: NonEmptyStringSchema,
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;

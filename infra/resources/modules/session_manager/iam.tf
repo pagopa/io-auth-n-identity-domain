@@ -40,6 +40,23 @@ module "ca_iam" {
     description          = "Allow Session Manager Container App to read the locked profiles table"
   }]
 
+  storage_queue = [
+    {
+      storage_account_name = data.azurerm_storage_account.io_com.name
+      resource_group_name  = data.azurerm_storage_account.io_com.resource_group_name
+      queue_name           = data.azurerm_storage_queue.push_notifications.name
+      description          = "Allow Session Manager Container App to read from the IO-Communication notification queue"
+      role                 = "reader"
+    },
+    {
+      storage_account_name = data.azurerm_storage_account.io_com.name
+      resource_group_name  = data.azurerm_storage_account.io_com.resource_group_name
+      queue_name           = data.azurerm_storage_queue.push_notifications.name
+      description          = "Allow Session Manager Container App to write to the IO-Communication notification queue"
+      role                 = "writer"
+    }
+  ]
+
   # cosmos = [ # TODO: capire su quali DB necessita scrittura/lettura
   #   {
   #     account_name        = data.azurerm_cosmosdb_account.cosmos.name

@@ -1,6 +1,6 @@
 module "sm_ca" {
   source  = "pagopa-dx/azure-container-app/azurerm"
-  version = "~> 5.0"
+  version = "~> 6.0"
 
   environment = {
     prefix          = var.prefix

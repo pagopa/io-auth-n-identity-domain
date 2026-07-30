@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.5.0
+
+### Minor Changes
+
+- 37125b6: add NotificationOutboundPort and its adapter
+
 ## 0.4.0
 
 ### Minor Changes
