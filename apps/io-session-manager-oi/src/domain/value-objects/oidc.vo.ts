@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export const OidcConfigurationEnv = z.union([
+export const OidcConfigurationEnvSchema = z.union([
   z.literal("UAT"),
   z.literal("PROD"),
 ]);
-export type OidcConfigurationEnv = z.infer<typeof OidcConfigurationEnv>;
+export type OidcConfigurationEnv = z.infer<typeof OidcConfigurationEnvSchema>;

@@ -6,11 +6,11 @@ import {
 import { z } from "zod";
 
 import {
-  CurrentUser,
-  LoginType,
+  CurrentUserSchema,
+  LoginTypeSchema,
   SpidAuthLevel,
 } from "../../../domain/value-objects/login.vo.js";
-import { OidcConfigurationEnv } from "../../../domain/value-objects/oidc.vo.js";
+import { OidcConfigurationEnvSchema } from "../../../domain/value-objects/oidc.vo.js";
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 
 extendZodWithOpenApi(z);
@@ -19,11 +19,11 @@ export const ReserveInputDTO = {
   headers: z.object({
     "x-pagopa-lollipop-hash-algorithm": LollipopJwkHashingAlgorithmSchema,
     "x-pagopa-lollipop-pub-key": JwkPublicKeyBase64UrlStringSchema,
-    "x-pagopa-login-type": LoginType,
-    "x-pagopa-current-user": CurrentUser,
+    "x-pagopa-login-type": LoginTypeSchema,
+    "x-pagopa-current-user": CurrentUserSchema,
   }),
   query: z.object({
-    env: OidcConfigurationEnv,
+    env: OidcConfigurationEnvSchema,
     authLevel: SpidAuthLevel,
   }),
 };

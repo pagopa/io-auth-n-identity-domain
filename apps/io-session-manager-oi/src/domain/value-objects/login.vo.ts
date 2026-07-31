@@ -8,22 +8,25 @@ export const SpidAuthLevel = z.union([
 
 export type SpidAuthLevel = z.infer<typeof SpidAuthLevel>;
 
-export const LoginType = z
+export const LoginTypeSchema = z
   .union([z.literal("LV"), z.literal("LEGACY")])
   .default("LEGACY");
 
-export type LoginType = z.infer<typeof LoginType>;
+export type LoginType = z.infer<typeof LoginTypeSchema>;
 
-export const CurrentUser = z.string().brand("LoginCurrentUser").optional();
+export const CurrentUserSchema = z
+  .string()
+  .brand("LoginCurrentUser")
+  .optional();
 
-export type CurrentUser = z.infer<typeof CurrentUser>;
+export type CurrentUser = z.infer<typeof CurrentUserSchema>;
 
-export const LoginAusiliarData = z.object({
-  loginType: LoginType,
-  currentUser: CurrentUser,
+export const LoginAusiliarDataSchema = z.object({
+  loginType: LoginTypeSchema,
+  currentUser: CurrentUserSchema,
   lollipopAssertionRef: LollipopAssertionRefSchema,
   clientId: NonEmptyStringSchema,
   minAuthLevel: SpidAuthLevel,
 });
 
-export type LoginAusiliarData = z.infer<typeof LoginAusiliarData>;
+export type LoginAusiliarData = z.infer<typeof LoginAusiliarDataSchema>;

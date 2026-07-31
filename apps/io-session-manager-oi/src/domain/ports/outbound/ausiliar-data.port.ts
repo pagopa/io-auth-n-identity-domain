@@ -1,14 +1,15 @@
 import { GenericError } from "@pagopa/hexagonal-core";
-import { ResultAsync } from "neverthrow";
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
+import { Result } from "neverthrow";
 import { LoginAusiliarData } from "../../value-objects/login.vo.js";
 
-export interface AusiliarDataPort {
+export interface AusiliarDataPort extends HealthCheckOutboundPort {
   readonly save: (
-    key: string,
+    id: string,
     obj: LoginAusiliarData,
-  ) => ResultAsync<undefined, GenericError>;
+  ) => Promise<Result<undefined, GenericError>>;
 
   readonly retrieve: (
-    key: string,
-  ) => ResultAsync<LoginAusiliarData | undefined, GenericError>;
+    id: string,
+  ) => Promise<Result<LoginAusiliarData | undefined, GenericError>>;
 }
