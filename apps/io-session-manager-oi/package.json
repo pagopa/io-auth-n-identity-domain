@@ -34,10 +34,12 @@
     "@pagopa/io-auth-n-identity-domain": "workspace:^",
     "@pagopa/io-env-config": "workspace:^",
     "@pagopa/io-package-info": "workspace:^",
+    "@pagopa/redis": "workspace:^",
     "dotenv": "catalog:",
     "fastify": "catalog:",
     "neverthrow": "catalog:",
     "range_check": "catalog:",
+    "redis": "^6.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {

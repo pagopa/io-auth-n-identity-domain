@@ -1,0 +1,51 @@
+{
+  "name": "@pagopa/redis",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./node-client": {
+      "types": "./dist/node-client/index.d.ts",
+      "import": "./dist/node-client/index.js"
+    },
+    "./set-wrapper": {
+      "types": "./dist/set-wrapper/index.d.ts",
+      "import": "./dist/set-wrapper/index.js"
+    }
+  },
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsc",
+    "lint": "pnpm lint:check --fix",
+    "lint:check": "eslint . --ext .ts --cache",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run -c ./src/set-wrapper/__integrations__/vite.config.mts"
+  },
+  "dependencies": {
+    "@pagopa/hexagonal-core": "catalog:",
+    "neverthrow": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@pagopa/typescript-config-node22": "workspace:^",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-monorepo": "workspace:^",
+    "redis": "^6.1.0",
+    "shx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "redis": "^6.1.0"
+  }
+}

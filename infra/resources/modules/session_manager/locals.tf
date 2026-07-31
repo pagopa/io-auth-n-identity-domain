@@ -49,5 +49,11 @@ locals {
     # IO-Communication notification queue
     PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI = data.azurerm_storage_account.io_com.primary_queue_endpoint
     PUSH_NOTIFICATIONS_QUEUE_NAME        = data.azurerm_storage_queue.push_notifications.name
+
+    # Redis
+    REDIS_HOSTNAME    = var.redis.hostname
+    REDIS_PORT        = var.redis.ssl_port
+    REDIS_TLS_ENABLED = "true"
+    # REDIS_PASSWORD is injected via the CA module's `secrets`
   }
 }

@@ -1,11 +1,15 @@
 import { TableClient } from "@azure/data-tables";
 import { DefaultAzureCredential } from "@azure/identity";
 import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
+import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import { type PackageInfo } from "@pagopa/io-package-info";
+import { createRedisNodeClient } from "@pagopa/redis/node-client";
+import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
 import { QueueServiceClient } from "@azure/storage-queue";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
+import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
@@ -24,12 +28,12 @@ class AzureCredential {
   }
 }
 
-export const createApp = (
+export const createApp = async (
   config: Config,
   packageInfo: PackageInfo,
-): {
+): Promise<{
   server: FastifyInstance;
-} => {
+}> => {
   const server = fastify({
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
   });
@@ -67,6 +71,31 @@ export const createApp = (
     ),
   );
 
+  const redisClient = await createRedisNodeClient({
+    hostname: config.REDIS_HOSTNAME,
+    port: config.REDIS_PORT,
+    password: config.REDIS_PASSWORD,
+    enableTls: config.REDIS_TLS_ENABLED,
+  });
+
+  // Close the Redis connection cleanly when Fastify shuts down (via
+  // `server.close()`). `close()` waits for pending commands to
+  // complete and drains the socket, avoiding leaked descriptors on
+  // redeploy.
+  server.addHook("onClose", async () => {
+    try {
+      await redisClient.close();
+    } catch (err) {
+      server.log.warn({ err }, "Failed to close Redis client gracefully");
+    }
+  });
+
+  const blockedUsersAdapter = new BlockedUsersRedisAdapter(
+    // Both generics are inferred from the constructor arguments:
+    // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
+    new RedisSetWrapper(redisClient, FiscalCodeSchema),
+  );
+
   mountHealthCheckHandler("liveness")(
     server,
     getHealthCheckUseCase(packageInfo),
@@ -82,6 +111,10 @@ export const createApp = (
       {
         name: notificationStorageQueueAdapter.constructor.name,
         port: notificationStorageQueueAdapter,
+      },
+      {
+        name: blockedUsersAdapter.constructor.name,
+        port: blockedUsersAdapter,
       },
     ]),
   );

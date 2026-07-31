@@ -135,3 +135,11 @@ variable "io_session_manager_internal" {
   })
   description = "Configuration for IO Session Manager Internal service"
 }
+
+variable "redis" {
+  type = object({
+    hostname = string
+    ssl_port = number
+  })
+  description = "Configuration for Redis service"
+}
