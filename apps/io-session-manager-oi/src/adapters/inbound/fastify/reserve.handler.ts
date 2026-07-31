@@ -1,23 +1,23 @@
 import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
 import {
-  ReserveInputSchema,
-  ReserveOutputSchema,
+  ReserveInputDTO,
+  ReserveOutputDTO,
 } from "../dtos/reserve-pub-key.dto.js";
 import { FastifyInstance } from "fastify";
 import { makeReserveUseCase } from "../../../application/use-cases/reserve.use-case.js";
 import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
-import { Config } from "../../../domain/entities/config.entity.js";
+import { Config } from "../../../domain/value-objects/config.vo.js";
 
 const reserveContract = defineRoute({
   description: "Reserve a Lollipop PubKey",
   method: "get",
   operationId: "reserve",
-  path: "/api/auth/v1/reserve",
-  request: ReserveInputSchema,
+  path: "/api/auth/v2/reserve",
+  request: ReserveInputDTO,
   response: {
     200: {
       description: "Application info returned successfully.",
-      schema: ReserveOutputSchema,
+      schema: ReserveOutputDTO,
     },
     500: {
       description: "Internal error",

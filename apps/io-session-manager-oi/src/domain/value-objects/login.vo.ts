@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { LollipopAssertionRef } from "./lollipop.js";
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
+import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 export const SpidAuthLevel = z.union([
   z.literal("SpidL2"),
   z.literal("SpidL3"),
@@ -21,9 +21,9 @@ export type CurrentUser = z.infer<typeof CurrentUser>;
 export const LoginAusiliarData = z.object({
   loginType: LoginType,
   currentUser: CurrentUser,
-  lollipopAssertionRef: LollipopAssertionRef,
+  lollipopAssertionRef: LollipopAssertionRefSchema,
   clientId: NonEmptyStringSchema,
-  authLevel: SpidAuthLevel,
+  minAuthLevel: SpidAuthLevel,
 });
 
 export type LoginAusiliarData = z.infer<typeof LoginAusiliarData>;

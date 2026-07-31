@@ -1,63 +1,24 @@
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import {
-  LollipopJwkSchema,
   LollipopJwkHashingAlgorithmSchema,
-  LollipopAssertionRefSchema,
+  JwkPublicKeyBase64UrlStringSchema,
 } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
 
 import {
-  JwkPublicKeyString,
-  LollipopHashAlgorithm,
-} from "../../../domain/entities/lollipop.js";
-import {
   CurrentUser,
   LoginType,
   SpidAuthLevel,
-} from "../../../domain/entities/login.js";
-import { OidcConfigurationEnv } from "../../../domain/entities/oidc.js";
+} from "../../../domain/value-objects/login.vo.js";
+import { OidcConfigurationEnv } from "../../../domain/value-objects/oidc.vo.js";
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 
 extendZodWithOpenApi(z);
 
-export const LollipopReservePublicKeyHeadersSchema = z
-  .object({
-    /** Base64url-encoded JWK public key */
-    "x-pagopa-lollipop-pub-key": LollipopJwkSchema,
-
-    /** Thumbprint hashing algorithm */
-    "x-pagopa-lollipop-pub-key-hash-algo":
-      LollipopJwkHashingAlgorithmSchema.optional(),
-  })
-  .meta({
-    description: "Headers for reserving a lollipop public key.",
-    id: "ReservePubKeyHeaders",
-  });
-
-export type LollipopReservePublicKeyHeaders = z.infer<
-  typeof LollipopReservePublicKeyHeadersSchema
->;
-
-export const LollipopReservePublicKeyResponseSchema = z
-  .object({
-    assertion_ref: LollipopAssertionRefSchema,
-    pub_key: LollipopJwkSchema,
-    status: z.enum(["PENDING", "VALID", "REVOKED"]),
-    ttl: z.number().int().nonnegative(),
-  })
-  .meta({
-    description: "The output of the reserve public key operation.",
-    id: "ReservePubKeyResponse",
-  });
-
-export type LollipopReservePublicKeyResponse = z.infer<
-  typeof LollipopReservePublicKeyResponseSchema
->;
-
-export const ReserveInputSchema = {
+export const ReserveInputDTO = {
   headers: z.object({
-    "x-pagopa-lollipop-hash-algorithm": LollipopHashAlgorithm,
-    "x-pagopa-lollipop-pub-key": JwkPublicKeyString,
+    "x-pagopa-lollipop-hash-algorithm": LollipopJwkHashingAlgorithmSchema,
+    "x-pagopa-lollipop-pub-key": JwkPublicKeyBase64UrlStringSchema,
     "x-pagopa-login-type": LoginType,
     "x-pagopa-current-user": CurrentUser,
   }),
@@ -67,10 +28,10 @@ export const ReserveInputSchema = {
   }),
 };
 
-export const ReserveOutputSchema = z.object({
-  clientId: NonEmptyStringSchema,
+export const ReserveOutputDTO = z.object({
+  client_id: NonEmptyStringSchema,
   state: NonEmptyStringSchema,
   nonce: NonEmptyStringSchema,
-  redirectUri: NonEmptyStringSchema,
-  oneIdBaseUrl: NonEmptyStringSchema,
+  redirect_uri: NonEmptyStringSchema,
+  issuer: NonEmptyStringSchema,
 });

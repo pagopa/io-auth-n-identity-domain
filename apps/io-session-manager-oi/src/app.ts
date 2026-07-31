@@ -19,6 +19,11 @@ import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profi
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { type Config } from "./domain/value-objects/config.vo.js";
+import * as redis from "redis";
+import { makeRedisAusiliarDataAdapter } from "./adapters/outbound/ausiliar-data.adapter.js";
+import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
+import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
+import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
 
 class AzureCredential {
   private static instance: DefaultAzureCredential | undefined;
@@ -32,10 +37,6 @@ class AzureCredential {
     return AzureCredential.instance;
   }
 }
-import * as redis from "redis";
-import { makeRedisAusiliarDataAdapter } from "./adapters/outbound/ausiliarDataRedis.js";
-import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
-import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 
 export const createApp = async (
   config: Config,
@@ -132,6 +133,20 @@ export const createApp = async (
     config.COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME,
   );
 
+  const ausiliarStorageAdapter = makeRedisAusiliarDataAdapter(
+    redisClient as redis.RedisClientType,
+  );
+
+  const fetchLollipopAdapter = createIoLollipopAdapter({
+    baseUrl: config.LOLLIPOP_API_URL,
+    apiKey: config.LOLLIPOP_API_KEY,
+  });
+
+  const reserveUseCase = makeReserveUseCase({
+    ausiliarDataRepository: ausiliarStorageAdapter,
+    lollipopClientRepository: fetchLollipopAdapter,
+  });
+
   // --------------------------------------------------
   // Endpoints mounting
   // --------------------------------------------------
@@ -158,28 +173,6 @@ export const createApp = async (
       },
     ]),
   );
-
-  const redisClient = await redis
-    .createClient({
-      url: config.REDIS_URL,
-      legacyMode: false,
-      password: config.REDIS_PASSWORD,
-      socket: {
-        tls: false,
-      },
-    })
-    .connect();
-
-  const ausiliarStorageAdapter = makeRedisAusiliarDataAdapter(
-    redisClient as redis.RedisClientType,
-  );
-
-  const reserveUseCase = makeReserveUseCase({
-    ausiliarDataRepository: ausiliarStorageAdapter,
-    lollipopClientRepository: fetchLollipopAdapter,
-  });
-
-  // --- HTTP function registrations ---
 
   mountReserveHandler(server, reserveUseCase, config);
   return { server };

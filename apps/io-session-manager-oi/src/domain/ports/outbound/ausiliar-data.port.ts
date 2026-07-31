@@ -1,8 +1,8 @@
 import { GenericError } from "@pagopa/hexagonal-core";
 import { ResultAsync } from "neverthrow";
-import { LoginAusiliarData } from "../../entities/login.js";
+import { LoginAusiliarData } from "../../value-objects/login.vo.js";
 
-export interface AusiliarDataI {
+export interface AusiliarDataPort {
   readonly save: (
     key: string,
     obj: LoginAusiliarData,

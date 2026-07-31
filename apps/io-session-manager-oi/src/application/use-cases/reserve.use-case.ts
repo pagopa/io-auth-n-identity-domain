@@ -4,26 +4,26 @@ import {
   NonEmptyString,
   UseCase,
 } from "@pagopa/hexagonal-core";
-import { OidcConfigurationEnv } from "../../domain/entities/oidc.js";
+import { OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js";
 import {
   CurrentUser,
   LoginType,
   SpidAuthLevel,
-} from "../../domain/entities/login.js";
-import {
-  JwkPublicKey,
-  LollipopAssertionRef,
-  LollipopHashAlgorithm,
-} from "../../domain/entities/lollipop.js";
-import * as nt from "neverthrow";
-import { LollipopClientI } from "../../domain/ports/outbound/lollipopClient.js";
-import { AusiliarDataI } from "../../domain/ports/outbound/ausiliarData.js";
+} from "../../domain/value-objects/login.vo.js";
+import { err, ok } from "neverthrow";
+import { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
+import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
 import { calculateJwkThumbprint } from "jose";
 import { randomBytes } from "node:crypto";
+import {
+  JwkPublicKeyBase64UrlString,
+  LollipopAssertionRef,
+  LollipopJwkHashingAlgorithm,
+} from "@pagopa/io-auth-n-identity-domain";
 
 type ReserveDeps = {
-  ausiliarDataRepository: AusiliarDataI;
-  lollipopClientRepository: LollipopClientI;
+  ausiliarDataRepository: AusiliarDataPort;
+  lollipopClientRepository: LollipopPort;
 };
 
 type input = {
@@ -36,34 +36,33 @@ type input = {
     clientRedirectUri: URL;
   };
   authLevel: SpidAuthLevel;
-  lollipopPublicKey: JwkPublicKey;
-  lollipopHashAlgorithm: LollipopHashAlgorithm;
+  lollipopPublicKey: JwkPublicKeyBase64UrlString;
+  lollipopHashAlgorithm: LollipopJwkHashingAlgorithm;
   loginType: LoginType;
   currentUser: CurrentUser;
 };
 
 type output = {
-  clientId: NonEmptyString;
+  client_id: NonEmptyString;
   state: NonEmptyString;
   nonce: NonEmptyString;
-  redirectUri: NonEmptyString;
-  oneIdBaseUrl: NonEmptyString;
+  redirect_uri: NonEmptyString;
+  issuer: NonEmptyString;
 };
 
 export const makeReserveUseCase =
   (deps: ReserveDeps): UseCase<input, output, GenericError | ConflictError> =>
   async (inputData) => {
-    const reserveResult =
-      await deps.lollipopClientRepository.reserveLollipopKey(
-        inputData.lollipopHashAlgorithm,
-        inputData.lollipopPublicKey,
-      );
+    const reserveResult = await deps.lollipopClientRepository.reservePubKey({
+      algo: inputData.lollipopHashAlgorithm,
+      pub_key: inputData.lollipopPublicKey,
+    });
     if (reserveResult.isErr()) {
       switch (reserveResult.error.kind) {
         case "GenericError":
-          return nt.err(new GenericError("cannot reserve pubkey"));
+          return err(new GenericError("cannot reserve pubkey"));
         case "ConflictError":
-          return nt.err(new ConflictError("Pubkey is already reserved"));
+          return err(new ConflictError("Pubkey is already reserved"));
       }
     }
 
@@ -89,7 +88,7 @@ export const makeReserveUseCase =
           inputData.oidc.uatBaseUrl || new URL("http://localhost");
 
     const ausiliarData = {
-      authLevel: inputData.authLevel,
+      minAuthLevel: inputData.authLevel,
       loginType: inputData.loginType,
       currentUser: inputData.currentUser,
       lollipopAssertionRef,
@@ -103,7 +102,7 @@ export const makeReserveUseCase =
     );
 
     if (ausiliarDataSaveResult.isErr()) {
-      return nt.err(new GenericError("Could not save ausiliar data"));
+      return err(new GenericError("Could not save ausiliar data"));
     }
 
     console.log({
@@ -113,11 +112,11 @@ export const makeReserveUseCase =
       redirectUri: inputData.oidc.clientRedirectUri.href as NonEmptyString,
       oneIdBaseUrl: oneIdBaseUrl.href as NonEmptyString,
     });
-    return nt.ok({
-      clientId,
+    return ok({
+      client_id: clientId,
       state,
       nonce,
-      redirectUri: inputData.oidc.clientRedirectUri.href as NonEmptyString,
-      oneIdBaseUrl: oneIdBaseUrl.href as NonEmptyString,
+      redirect_uri: inputData.oidc.clientRedirectUri.href as NonEmptyString,
+      issuer: oneIdBaseUrl.href as NonEmptyString,
     });
   };

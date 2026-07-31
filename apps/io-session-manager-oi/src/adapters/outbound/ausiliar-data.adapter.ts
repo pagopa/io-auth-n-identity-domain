@@ -1,12 +1,12 @@
 import { ResultAsync, ok, err } from "neverthrow";
 import { RedisClientType } from "redis";
-import { AusiliarDataI } from "../../domain/ports/outbound/ausiliarData.js";
+import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
 import { GenericError } from "@pagopa/hexagonal-core";
-import { LoginAusiliarData } from "../../domain/entities/login.js";
+import { LoginAusiliarData } from "../../domain/value-objects/login.vo.js";
 
 export const makeRedisAusiliarDataAdapter = (
   redisClient: RedisClientType,
-): AusiliarDataI => {
+): AusiliarDataPort => {
   return {
     save: (key, obj) => {
       return ResultAsync.fromPromise(
