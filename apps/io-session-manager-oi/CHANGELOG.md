@@ -1,5 +1,16 @@
 # io-session-manager-oi
 
+## 0.6.0
+
+### Minor Changes
+
+- 583dc03: BlockedUsersPort and BlockedUsersRedisAdapter
+
+### Patch Changes
+
+- Updated dependencies [583dc03]
+  - @pagopa/redis@0.1.0
+
 ## 0.5.0
 
 ### Minor Changes
