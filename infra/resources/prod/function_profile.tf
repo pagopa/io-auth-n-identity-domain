@@ -28,8 +28,8 @@ locals {
       SUBSCRIPTION_FEED_RECOVERY_START_DATE           = "2026-04-17T00:00:00.000Z"
       SUBSCRIPTION_FEED_RECOVERY_END_DATE             = "2026-06-18T23:59:59.999Z"
       SUBSCRIPTION_FEED_RECOVERY_LEASE_CONTAINER_NAME = "upsert-subfeed-leases"
-      SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX         = "dryrun-01"
-      SUBSCRIPTION_FEED_RECOVERY_DRY_RUN              = "true"
+      SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX         = "run-01"
+      SUBSCRIPTION_FEED_RECOVERY_DRY_RUN              = "false"
 
       MAIL_FROM            = "IO - l'app dei servizi pubblici <no-reply@io.italia.it>"
       DPO_EMAIL_ADDRESS    = "dpo@pagopa.it" //TODO: seems to not be used anymore
@@ -133,7 +133,7 @@ module "function_profile" {
   app_settings = merge(
     local.function_profile.app_settings,
     {
-      "AzureWebJobs.RecoverSubscriptionsFeed.Disabled" = "1"
+      "AzureWebJobs.RecoverSubscriptionsFeed.Disabled" = "0"
     }
   )
   slot_app_settings = merge(
