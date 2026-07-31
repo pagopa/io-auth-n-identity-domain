@@ -1,50 +1,73 @@
-import { ResultAsync, ok, err } from "neverthrow";
-import { RedisClientType } from "redis";
-import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
 import { GenericError } from "@pagopa/hexagonal-core";
-import { LoginAusiliarData } from "../../domain/value-objects/login.vo.js";
+import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
+import { err, ok, type Result } from "neverthrow";
+import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
+import {
+  LoginAusiliarData,
+  LoginAusiliarDataSchema,
+} from "../../domain/value-objects/login.vo.js";
+import { RedisClientType } from "redis";
 
-export const makeRedisAusiliarDataAdapter = (
-  redisClient: RedisClientType,
-): AusiliarDataPort => {
-  return {
-    save: (key, obj) => {
-      return ResultAsync.fromPromise(
-        redisClient.set(key, JSON.stringify(obj)),
-        (error) => {
-          const msg =
-            error instanceof Error ? error.message : "Unknown Redis error";
-          return new GenericError(`Redis save operation failed: ${msg}`);
-        },
-      ).map(() => undefined);
-    },
+export const REDIS_AUSILIAR_DATA_PREFIX = "RESERVE-";
 
-    retrieve: (key: string) => {
-      return ResultAsync.fromPromise(redisClient.get(key), (error) => {
-        const msg =
-          error instanceof Error ? error.message : "Unknown Redis error";
-        return new GenericError(`Redis retrieve operation failed: ${msg}`);
-      }).andThen((data) => {
-        if (!data) {
-          return ok(undefined);
-        }
-        try {
-          const deserializedData = JSON.parse(data);
+const EXPECTED_PING_REPLY = "PONG";
 
-          const parseResult = LoginAusiliarData.safeParse(deserializedData);
-          if (!parseResult.success) {
-            return err(
-              new GenericError(
-                `Couldn't parse retrieved data: ${parseResult.error.message}`,
-              ),
-            );
-          }
+export class AusiliarDataRedisAdapter implements AusiliarDataPort {
+  constructor(
+    private readonly redis: RedisObjectWrapper<
+      typeof LoginAusiliarDataSchema,
+      RedisClientType
+    >,
+  ) {}
 
-          return ok(parseResult.data);
-        } catch {
-          return err(new GenericError("Couldn't parse data"));
-        }
-      });
-    },
-  };
-};
+  async healthcheck(): Promise<Result<void, GenericError>> {
+    try {
+      const reply = await this.redis.getClient().ping();
+      if (reply !== EXPECTED_PING_REPLY) {
+        return err(
+          new GenericError(
+            `Redis healthcheck failed: unexpected PING reply "${reply}"`,
+          ),
+        );
+      }
+      return ok(undefined);
+    } catch (cause) {
+      const error = cause instanceof Error ? cause : new Error(String(cause));
+      return err(
+        new GenericError(`Redis healthcheck failed: ${error.message}`),
+      );
+    }
+  }
+
+  async save(
+    id: string,
+    obj: LoginAusiliarData,
+  ): Promise<Result<undefined, GenericError>> {
+    const result = await this.redis.save(
+      `${REDIS_AUSILIAR_DATA_PREFIX}${id}`,
+      obj,
+    );
+    if (result.isErr()) {
+      return err(
+        new GenericError(
+          `Redis save operation failed: ${result.error.message}`,
+        ),
+      );
+    }
+    return ok(undefined);
+  }
+
+  async retrieve(
+    id: string,
+  ): Promise<Result<LoginAusiliarData | undefined, GenericError>> {
+    const result = await this.redis.get(`${REDIS_AUSILIAR_DATA_PREFIX}${id}`);
+    if (result.isErr()) {
+      return err(
+        new GenericError(
+          `Redis retrieve operation failed: ${result.error.message}`,
+        ),
+      );
+    }
+    return ok(result.value);
+  }
+}

@@ -94,10 +94,9 @@ export const makeReserveUseCase =
       lollipopAssertionRef,
       clientId,
     };
-    const ausiliarDataKey = `RESERVE-${state}`;
 
     const ausiliarDataSaveResult = await deps.ausiliarDataRepository.save(
-      ausiliarDataKey,
+      state,
       ausiliarData,
     );
 
