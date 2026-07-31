@@ -138,7 +138,7 @@ export const createApp = async (
   );
 
   const fetchLollipopAdapter = createIoLollipopAdapter({
-    baseUrl: config.LOLLIPOP_API_URL,
+    baseUrl: `${config.LOLLIPOP_API_URL}${config.LOLLIPOP_API_BASE_PATH}`,
     apiKey: config.LOLLIPOP_API_KEY,
   });
 
