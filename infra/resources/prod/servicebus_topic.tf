@@ -48,7 +48,7 @@ resource "azurerm_servicebus_subscription_rule" "rejected_login_audit_logs_filte
 // Owner role to let the team manage the service bus topic on azure portal
 module "topic_io_auth" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~>1.0"
+  version = "~> 3.0"
 
   principal_id    = data.azuread_group.auth_admins.object_id
   subscription_id = data.azurerm_subscription.current.subscription_id
@@ -78,7 +78,7 @@ module "topic_io_auth" {
 //NOTE: staging slot has been enabled on io-infra
 module "pub_session_manager" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~>1.0"
+  version = "~> 3.0"
 
   principal_id    = data.azurerm_linux_web_app.weu_session_manager.identity[0].principal_id
   subscription_id = data.azurerm_subscription.current.subscription_id
@@ -96,7 +96,7 @@ module "pub_session_manager" {
 //NOTE: staging slot has been enabled on io-infra
 module "pub_session_manager_bis" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~>1.0"
+  version = "~> 3.0"
 
   principal_id    = data.azurerm_linux_web_app.weu_session_manager_bis.identity[0].principal_id
   subscription_id = data.azurerm_subscription.current.subscription_id
@@ -114,7 +114,7 @@ module "pub_session_manager_bis" {
 
 module "pub_session_manager_internal" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~>1.0"
+  version = "~> 3.0"
 
   principal_id    = module.function_session_manager_internal.function_app.function_app.principal_id
   subscription_id = data.azurerm_subscription.current.subscription_id
@@ -138,7 +138,7 @@ module "pub_session_manager_internal" {
 }
 module "pub_session_manager_internal_staging" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~>1.0"
+  version = "~> 3.0"
 
   principal_id    = module.function_session_manager_internal.function_app.function_app.slot.principal_id
   subscription_id = data.azurerm_subscription.current.subscription_id
@@ -165,7 +165,7 @@ module "pub_session_manager_internal_staging" {
 
 module "sub_io_prof_async" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~>1.0"
+  version = "~> 3.0"
 
   principal_id    = module.function_profile_async.function_app.function_app.principal_id
   subscription_id = data.azurerm_subscription.current.subscription_id
@@ -185,7 +185,7 @@ module "sub_io_prof_async" {
 
 module "sub_io_prof_async_staging" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~>1.0"
+  version = "~> 3.0"
 
   principal_id    = module.function_profile_async.function_app.function_app.slot.principal_id
   subscription_id = data.azurerm_subscription.current.subscription_id

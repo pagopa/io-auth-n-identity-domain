@@ -18,7 +18,7 @@
 
 module "ca_iam" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~> 1.3"
+  version = "~> 3.0"
 
   subscription_id = var.subscription_id
   principal_id    = module.sm_ca.principal_id
