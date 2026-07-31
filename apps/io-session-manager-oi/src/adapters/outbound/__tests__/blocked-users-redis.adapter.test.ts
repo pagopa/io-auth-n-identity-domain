@@ -62,14 +62,14 @@ describe("BlockedUsersRedisAdapter#isBlocked", () => {
     expect(result).toEqual(ok(false));
   });
 
-  it("forwards the wrapper's classified error unchanged", async () => {
+  it("returns err(GenericError) when the wrapper reports an error", async () => {
     const wrapperError = new GenericError("SISMEMBER failed");
     isMemberMock.mockResolvedValueOnce(err(wrapperError));
 
     const result = await adapter.isBlocked(FISCAL_CODE);
 
     expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBe(wrapperError);
+    expect(result._unsafeUnwrapErr()).toEqual(new GenericError(`Redis isBlocked failed: ${wrapperError.message}`));
   });
 });
 

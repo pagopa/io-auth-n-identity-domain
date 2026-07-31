@@ -1,10 +1,14 @@
 import {
-  BaseError,
   FiscalCode,
   FiscalCodeSchema,
   GenericError,
+  ValidationError,
 } from "@pagopa/hexagonal-core";
-import { RedisNodeClient, RedisSetWrapper } from "@pagopa/redis/set-wrapper";
+import {
+  type RedisError,
+  type RedisNodeClient,
+  RedisSetWrapper,
+} from "@pagopa/redis/set-wrapper";
 import { Result, err, ok } from "neverthrow";
 
 import { BlockedUsersPort } from "../../domain/ports/outbound/blocked-users.port.js";
@@ -49,7 +53,15 @@ export class BlockedUsersRedisAdapter implements BlockedUsersPort {
     }
   }
 
-  isBlocked(fiscalCode: FiscalCode): Promise<Result<boolean, BaseError>> {
-    return this.redis.isMember(BLOCKED_USERS_SET_KEY, fiscalCode);
+  async isBlocked(
+    fiscalCode: FiscalCode,
+  ): Promise<Result<boolean, RedisError | ValidationError>> {
+    const result = await this.redis.isMember(BLOCKED_USERS_SET_KEY, fiscalCode);
+    if (result.isErr()) {
+      return err(
+        new GenericError(`Redis isBlocked failed: ${result.error.message}`),
+      );
+    }
+    return ok(result.value);
   }
 }
