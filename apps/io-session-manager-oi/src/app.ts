@@ -72,7 +72,7 @@ export const createApp = async (
   );
 
   const redisClient = await createRedisNodeClient({
-    url: config.REDIS_URL,
+    hostname: config.REDIS_HOSTNAME,
     port: config.REDIS_PORT,
     password: config.REDIS_PASSWORD,
     enableTls: config.REDIS_TLS_ENABLED,

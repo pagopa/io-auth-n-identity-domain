@@ -29,7 +29,7 @@ beforeEach(() => {
 
 describe("createRedisNodeClient — defaults", () => {
   it("uses rediss:// and port 6380 by default", async () => {
-    await createRedisNodeClient({ url: "cache.example.com" });
+    await createRedisNodeClient({ hostname: "cache.example.com" });
 
     const opts = lastCreateClientOptions();
     expect(opts.url).toBe("rediss://cache.example.com:6380");
@@ -44,7 +44,7 @@ describe("createRedisNodeClient — defaults", () => {
   });
 
   it("switches to redis:// port 6379 when enableTls is false", async () => {
-    await createRedisNodeClient({ url: "localhost", enableTls: false });
+    await createRedisNodeClient({ hostname: "localhost", enableTls: false });
 
     const opts = lastCreateClientOptions();
     expect(opts.url).toBe("redis://localhost:6379");
@@ -52,7 +52,7 @@ describe("createRedisNodeClient — defaults", () => {
   });
 
   it("honours an explicit port", async () => {
-    await createRedisNodeClient({ url: "cache.example.com", port: 7001 });
+    await createRedisNodeClient({ hostname: "cache.example.com", port: 7001 });
 
     expect(lastCreateClientOptions().url).toBe(
       "rediss://cache.example.com:7001",
@@ -61,7 +61,7 @@ describe("createRedisNodeClient — defaults", () => {
 
   it("forwards the password", async () => {
     await createRedisNodeClient({
-      url: "cache.example.com",
+      hostname: "cache.example.com",
       password: "secret",
     });
 
@@ -78,7 +78,7 @@ describe("createRedisNodeClient — lifecycle", () => {
     const fake = buildFakeClient();
     createClient.mockReturnValueOnce(fake);
 
-    const client = await createRedisNodeClient({ url: "cache" });
+    const client = await createRedisNodeClient({ hostname: "cache" });
 
     expect(fake.connect).toHaveBeenCalledExactlyOnceWith();
     expect(client).toBe(fake);
@@ -91,7 +91,7 @@ describe("createRedisNodeClient — lifecycle", () => {
       .mockRejectedValueOnce(new Error("dns lookup failed"));
     createClient.mockReturnValueOnce(fake);
 
-    await expect(createRedisNodeClient({ url: "cache" })).rejects.toThrow(
+    await expect(createRedisNodeClient({ hostname: "cache" })).rejects.toThrow(
       "dns lookup failed",
     );
   });
@@ -103,7 +103,7 @@ describe("createRedisNodeClient — lifecycle", () => {
 
 describe("createRedisNodeClient — reconnect strategy", () => {
   it("uses a bounded linear backoff: attempt * 50ms", async () => {
-    await createRedisNodeClient({ url: "cache" });
+    await createRedisNodeClient({ hostname: "cache" });
 
     const strategy = lastCreateClientOptions().socket?.reconnectStrategy;
 
@@ -112,7 +112,7 @@ describe("createRedisNodeClient — reconnect strategy", () => {
   });
 
   it("caps the reconnect delay at 1000ms", async () => {
-    await createRedisNodeClient({ url: "cache" });
+    await createRedisNodeClient({ hostname: "cache" });
 
     const strategy = lastCreateClientOptions().socket?.reconnectStrategy;
 
@@ -125,16 +125,16 @@ describe("createRedisNodeClient — reconnect strategy", () => {
 // ---------------------------------------------------------------------------
 
 describe("createRedisNodeClient — config validation", () => {
-  it("rejects an empty url", async () => {
-    await expect(createRedisNodeClient({ url: "" })).rejects.toThrow(
+  it("rejects an empty hostname", async () => {
+    await expect(createRedisNodeClient({ hostname: "" })).rejects.toThrow(
       "hostname must be non-empty",
     );
     expect(createClient).not.toHaveBeenCalled();
   });
 
-  it("rejects a url that includes a scheme", async () => {
+  it("rejects a hostname that includes a scheme", async () => {
     await expect(
-      createRedisNodeClient({ url: "rediss://cache.example.com" }),
+      createRedisNodeClient({ hostname: "rediss://cache.example.com" }),
     ).rejects.toThrow("bare hostname without a scheme");
     expect(createClient).not.toHaveBeenCalled();
   });
@@ -146,14 +146,14 @@ describe("createRedisNodeClient — config validation", () => {
     ["non-integer", 6380.5],
   ])("rejects a %s port (%d)", async (_label, port) => {
     await expect(
-      createRedisNodeClient({ url: "cache", port }),
+      createRedisNodeClient({ hostname: "cache", port }),
     ).rejects.toThrow();
     expect(createClient).not.toHaveBeenCalled();
   });
 
   it("rejects an empty password", async () => {
     await expect(
-      createRedisNodeClient({ url: "cache", password: "" }),
+      createRedisNodeClient({ hostname: "cache", password: "" }),
     ).rejects.toThrow();
     expect(createClient).not.toHaveBeenCalled();
   });
@@ -163,7 +163,7 @@ describe("createRedisNodeClient — config validation", () => {
     createClient.mockReturnValueOnce(fake);
 
     await expect(
-      createRedisNodeClient({ url: "://invalid" }),
+      createRedisNodeClient({ hostname: "://invalid" }),
     ).rejects.toThrow();
 
     expect(fake.connect).not.toHaveBeenCalled();

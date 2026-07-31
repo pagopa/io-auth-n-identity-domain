@@ -83,7 +83,7 @@ export type NotificationQueueConfig = z.infer<
 /**
  * Redis configuration schema.
  *
- * - `REDIS_URL` is a bare hostname (no scheme, no port).
+ * - `REDIS_HOSTNAME` is a bare hostname (no scheme, no port).
  * - `REDIS_PORT` is optional; when omitted the factory uses 6380 (TLS)
  *   or 6379 (non-TLS).
  * - `REDIS_PASSWORD` is optional (dev-only passwordless mode).
@@ -91,7 +91,7 @@ export type NotificationQueueConfig = z.infer<
  *   defaults to `true` (production-safe default).
  */
 export const RedisConfigSchema = z.object({
-  REDIS_URL: NonEmptyStringSchema,
+  REDIS_HOSTNAME: NonEmptyStringSchema,
   REDIS_PORT: z.coerce.number().int().min(1).max(65535).optional(),
   REDIS_PASSWORD: NonEmptyStringSchema.optional(),
   REDIS_TLS_ENABLED: z.stringbool().default(true),

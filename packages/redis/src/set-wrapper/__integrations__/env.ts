@@ -5,8 +5,8 @@
  * (defaulted to port 6378, password "foo", no TLS — matching
  * `docker/.env.common.example`).
  */
-export const REDIS_STANDALONE_URL =
-  process.env.REDIS_STANDALONE_URL ?? "localhost";
+export const REDIS_STANDALONE_HOSTNAME =
+  process.env.REDIS_STANDALONE_HOSTNAME ?? "localhost";
 export const REDIS_STANDALONE_PORT = Number(
   process.env.REDIS_STANDALONE_PORT ?? 6378,
 );

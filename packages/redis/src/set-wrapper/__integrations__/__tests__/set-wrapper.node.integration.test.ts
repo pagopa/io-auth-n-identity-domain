@@ -11,7 +11,7 @@ import {
   REDIS_STANDALONE_PASSWORD,
   REDIS_STANDALONE_PORT,
   REDIS_STANDALONE_TLS_ENABLED,
-  REDIS_STANDALONE_URL,
+  REDIS_STANDALONE_HOSTNAME,
 } from "../env.js";
 import { ValidationError } from "@pagopa/hexagonal-core";
 
@@ -30,7 +30,7 @@ describe("RedisSetWrapper + createRedisNodeClient (integration - Redis standalon
 
   beforeAll(async () => {
     client = await createRedisNodeClient({
-      url: REDIS_STANDALONE_URL,
+      hostname: REDIS_STANDALONE_HOSTNAME,
       port: REDIS_STANDALONE_PORT,
       password: REDIS_STANDALONE_PASSWORD,
       enableTls: REDIS_STANDALONE_TLS_ENABLED,

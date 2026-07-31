@@ -32,7 +32,7 @@ export const RedisNodeClientConfigSchema = z.object({
    * Redis host, without scheme or port (e.g. `"cache.example.com"`).
    * The scheme is derived from `enableTls`.
    */
-  url: HostnameSchema,
+  hostname: HostnameSchema,
 
   /**
    * TCP port.

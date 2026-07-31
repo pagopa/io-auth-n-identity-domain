@@ -26,7 +26,7 @@ const reconnectDelayMs = (attempts: number): number =>
  * defaults for Azure Cache for Redis (non-cluster tier).
  *
  * ```ts
- * const client = await createRedisNodeClient({ url, password });
+ * const client = await createRedisNodeClient({ hostname, password });
  * ```
  *
  * @throws Any error thrown by `client.connect()`. The caller decides
@@ -38,7 +38,7 @@ export const createRedisNodeClient = async (
   // Validate and apply schema-level defaults up-front so the rest of
   // the factory can rely on a fully-normalized config.
   const {
-    url,
+    hostname,
     port: portOverride,
     password,
     enableTls,
@@ -68,7 +68,7 @@ export const createRedisNodeClient = async (
   const client = createClient({
     password,
     socket,
-    url: `${scheme}${url}:${port}`,
+    url: `${scheme}${hostname}:${port}`,
   });
 
   await client.connect();
