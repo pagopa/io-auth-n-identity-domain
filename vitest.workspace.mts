@@ -97,6 +97,14 @@ export default defineWorkspace([
     },
   },
   {
+    extends: "packages/io-auth-n-identity-session/vite.config.mts",
+    test: {
+      name: "io-auth-n-identity-session",
+      include: ["packages/io-auth-n-identity-session/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
+  {
     extends: "packages/io-package-info/vite.config.mts",
     test: {
       name: "io-package-info",
