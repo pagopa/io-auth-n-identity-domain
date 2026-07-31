@@ -86,7 +86,7 @@ export const createApp = async (
     try {
       await redisClient.close();
     } catch (err) {
-      server.log.warn({ err }, "Failed to close Redis client cleanly");
+      server.log.warn({ err }, "Failed to close Redis client gracefully");
     }
   });
 
