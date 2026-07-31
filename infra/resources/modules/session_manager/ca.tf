@@ -18,7 +18,7 @@ module "sm_ca" {
   secrets = [
     {
       name                = "REDIS_PASSWORD"
-      key_vault_secret_id = azurerm_key_vault_secret.sm_redis_access_key.id
+      key_vault_secret_id = azurerm_key_vault_secret.sm_redis_access_key.versionless_id
     },
   ]
 
