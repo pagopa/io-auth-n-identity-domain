@@ -18,6 +18,10 @@
     "./set-wrapper": {
       "types": "./dist/set-wrapper/index.d.ts",
       "import": "./dist/set-wrapper/index.js"
+    },
+    "./object-wrapper": {
+      "types": "./dist/object-wrapper/index.d.ts",
+      "import": "./dist/object-wrapper/index.js"
     }
   },
   "scripts": {

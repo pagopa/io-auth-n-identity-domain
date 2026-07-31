@@ -1,4 +1,3 @@
-export { RedisError, toRedisError } from "./errors.js";
 export {
   type RedisClusterClient,
   type RedisNodeClient,
