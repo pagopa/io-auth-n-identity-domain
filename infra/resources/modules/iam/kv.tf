@@ -24,7 +24,7 @@ module "kv_st" {
   for_each = var.storage_account_principal_ids
 
   source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~> 1.1"
+  version = "~> 3.0"
 
   subscription_id = var.subscription_id
   principal_id    = each.value
