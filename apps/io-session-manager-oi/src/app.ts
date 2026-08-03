@@ -11,6 +11,8 @@ import {
 import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
+import { CosmosClient } from "@azure/cosmos";
+import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
@@ -108,6 +110,24 @@ export const createApp = async (
     // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
     new RedisSetWrapper(redisClient, FiscalCodeSchema),
   );
+
+  const cosmosClient =
+    config.NODE_ENV === "production"
+      ? new CosmosClient({
+          endpoint: config.COSMOSDB_URI,
+          aadCredentials: AzureCredential.getInstance(),
+        })
+      : new CosmosClient(config.COSMOSDB_CONNECTION_STRING);
+  const sessionCosmosAdapter = new SessionCosmosAdapter(
+    cosmosClient,
+    config.COSMOSDB_NAME,
+    config.COSMOSDB_SESSION_TOKEN_CONTAINER_NAME,
+    config.COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME,
+  );
+
+  // --------------------------------------------------
+  // Endpoints mounting
+  // --------------------------------------------------
 
   mountHealthCheckHandler("liveness")(
     server,
