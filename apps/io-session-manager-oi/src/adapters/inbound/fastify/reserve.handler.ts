@@ -54,8 +54,8 @@ export const mountReserveHandler = (
         prodClientId: config.ONEID_PROD_CLIENT_ID,
         prodBaseUrl: new URL(config.ONEID_PROD_ISSUER),
         uatClientId: config.ONEID_UAT_CLIENT_ID,
-        uatBaseUrl: config.ONEID_UAT_REDIRECT_URI
-          ? new URL(config.ONEID_UAT_REDIRECT_URI)
+        uatBaseUrl: config.ONEID_UAT_ISSUER
+          ? new URL(config.ONEID_UAT_ISSUER)
           : undefined,
       },
       authLevel: req.query.authLevel,

@@ -89,7 +89,6 @@ const OneIdConfigSchema = z.object({
   ONEID_UAT_CLIENT_ID: NonEmptyStringSchema.optional(),
   ONEID_UAT_CLIENT_SECRET: NonEmptyStringSchema.optional(),
   ONEID_UAT_ISSUER: NonEmptyStringSchema.optional(),
-  ONEID_UAT_REDIRECT_URI: NonEmptyStringSchema.optional(),
 });
 
 export type OneIdConfig = z.infer<typeof OneIdConfigSchema>;
