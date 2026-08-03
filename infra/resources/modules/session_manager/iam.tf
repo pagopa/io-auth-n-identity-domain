@@ -39,11 +39,11 @@ module "ca_iam" {
     }
   ]
 
-  # managed_redis = [{
-  #   id          = module.managed_redis.id
-  #   role        = "writer"
-  #   description = "Allow Session Manager Container App to read/write to the Azure Managed Redis cache"
-  # }]
+  managed_redis = [{
+    id          = module.managed_redis.id
+    role        = "writer"
+    description = "Allow Session Manager Container App to read/write to the Azure Managed Redis cache"
+  }]
 
   # cosmos = [ # TODO: capire su quali DB necessita scrittura/lettura
   #   {
