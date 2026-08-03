@@ -133,7 +133,7 @@ module "function_profile" {
   app_settings = merge(
     local.function_profile.app_settings,
     {
-      "AzureWebJobs.RecoverSubscriptionsFeed.Disabled" = "0"
+      "AzureWebJobs.RecoverSubscriptionsFeed.Disabled" = "1"
     }
   )
   slot_app_settings = merge(
@@ -175,7 +175,7 @@ module "function_profile_autoscale" {
 
   scheduler = {
     normal_load = {
-      minimum = 8
+      minimum = 4
       default = 10
     },
     maximum = 30
