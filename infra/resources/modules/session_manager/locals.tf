@@ -51,6 +51,8 @@ locals {
     PUSH_NOTIFICATIONS_QUEUE_NAME        = data.azurerm_storage_queue.push_notifications.name
 
     # Redis
+    # Authentication is Microsoft Entra ID only (no access key): the CA's
+    # system-assigned identity is granted data-plane access via `ca_iam`.
     REDIS_HOSTNAME    = split(":", module.managed_redis.endpoint)[0]
     REDIS_PORT        = split(":", module.managed_redis.endpoint)[1]
     REDIS_TLS_ENABLED = "true"
@@ -60,5 +62,15 @@ locals {
     COSMOSDB_NAME                          = azurerm_cosmosdb_sql_database.session_manager.name
     COSMOSDB_SESSION_TOKEN_CONTAINER_NAME  = azurerm_cosmosdb_sql_container.session_tokens.name
     COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME = azurerm_cosmosdb_sql_container.active_sessions.name
+
+    # One Identity configs
+    ONEID_PROD_CLIENT_ID    = var.oneid_configuration.prod.client_id
+    ONEID_PROD_ISSUER       = var.oneid_configuration.prod.issuer
+    ONEID_PROD_REDIRECT_URI = var.oneid_configuration.prod.redirect_uri
+    # ONEID_PROD_CLIENT_SECRET is injected via the CA module's `secrets`
+
+    ONEID_UAT_CLIENT_ID = var.oneid_configuration.uat.client_id
+    ONEID_UAT_ISSUER    = var.oneid_configuration.uat.issuer
+    # ONEID_UAT_CLIENT_SECRET is injected via the CA module's `secrets`
   }
 }
