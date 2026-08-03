@@ -126,8 +126,8 @@ module "repo" {
     }
 
     use_github_app = true
-    cpu            = 1
-    memory         = "2Gi"
+    cpu            = 1.5
+    memory         = "3Gi"
   }
 
   private_dns_zone_resource_group_id = data.azurerm_resource_group.common_weu.id
