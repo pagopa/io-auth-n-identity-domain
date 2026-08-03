@@ -184,5 +184,11 @@
     "version": "3.0.0",
     "name": "azure_role_assignments",
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/3.0.0"
+  },
+  "session_manager.managed_redis": {
+    "hash": "c524014b8efbf4b0e7c542c98f2d10dd50befa5719bbb6be952fce9347fd3fa4",
+    "version": "1.0.0",
+    "name": "azure_managed_redis",
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-managed-redis/azurerm/1.0.0"
   }
 }
