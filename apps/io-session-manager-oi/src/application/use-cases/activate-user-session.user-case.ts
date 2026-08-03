@@ -174,6 +174,6 @@ const getOrCreateProfile = async (
       ),
     );
   } else {
-    return ok(newUserProfile);
+    return ok(createProfileResult.value);
   }
 };
