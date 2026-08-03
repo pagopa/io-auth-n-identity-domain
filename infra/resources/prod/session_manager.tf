@@ -48,6 +48,5 @@ module "session_manager" {
 
   redis = {
     hostname = module.redis_common_itn.hostname
-    ssl_port = module.redis_common_itn.ssl_port
   }
 }

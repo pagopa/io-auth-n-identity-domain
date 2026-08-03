@@ -15,20 +15,12 @@ module "sm_ca" {
 
   log_analytics_workspace_id = var.log_analytics_workspace_id
 
-  secrets = [
-    {
-      name                = "REDIS_PASSWORD"
-      key_vault_secret_id = azurerm_key_vault_secret.sm_redis_access_key.versionless_id
-    },
-  ]
-
   containers = [
     {
       image = "ghcr.io/pagopa/io-auth-sm"
       name  = "${var.prefix}-${var.domain}-${local.app_name}"
 
       app_settings = local.app_settings
-      secret_names = ["REDIS_PASSWORD"]
 
       liveness_probe = {
         path = "/api/auth/v2/health/liveness"

@@ -139,7 +139,7 @@ variable "io_session_manager_internal" {
 variable "redis" {
   type = object({
     hostname = string
-    ssl_port = number
+    ssl_port = optional(number)
   })
   description = "Configuration for Redis service"
 }
