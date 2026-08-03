@@ -41,7 +41,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@azure/cosmos": "^4.9.3",
+    "@azure/cosmos": "catalog:",
     "@pagopa/hexagonal-core": "catalog:",
     "@pagopa/io-auth-n-identity-domain": "workspace:^",
     "neverthrow": "catalog:",
