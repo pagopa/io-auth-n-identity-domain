@@ -1,8 +1,15 @@
+import { type TokenCredential } from "@azure/identity";
+import {
+  EntraIdCredentialsProviderFactory,
+  REDIS_SCOPE_DEFAULT,
+} from "@redis/entraid";
 import { createClient, type RedisClientType } from "redis";
 
 import {
   type RedisNodeClientConfig,
   RedisNodeClientConfigSchema,
+  type RedisPasswordNodeClientConfig,
+  RedisPasswordNodeClientConfigSchema,
 } from "./config.js";
 
 /**
@@ -22,8 +29,7 @@ const reconnectDelayMs = (attempts: number): number =>
   Math.min(attempts * 50, 1000);
 
 /**
- * Builds and connects a `node-redis` single-node client with sensible
- * defaults for Azure Cache for Redis (non-cluster tier).
+ * Builds and connects a `node-redis` single-node client with sensible defaults.
  *
  * ```ts
  * const client = await createRedisNodeClient({ hostname, password });
@@ -33,16 +39,14 @@ const reconnectDelayMs = (attempts: number): number =>
  *   whether to retry or fail-fast.
  */
 export const createRedisNodeClient = async (
-  config: RedisNodeClientConfig,
+  config: RedisPasswordNodeClientConfig,
 ): Promise<RedisNodeClient> => {
-  // Validate and apply schema-level defaults up-front so the rest of
-  // the factory can rely on a fully-normalized config.
   const {
     hostname,
     port: portOverride,
     password,
     enableTls,
-  } = RedisNodeClientConfigSchema.parse(config);
+  } = RedisPasswordNodeClientConfigSchema.parse(config);
 
   const port =
     portOverride ?? (enableTls ? DEFAULT_TLS_PORT : DEFAULT_NON_TLS_PORT);
@@ -69,6 +73,66 @@ export const createRedisNodeClient = async (
     password,
     socket,
     url: `${scheme}${hostname}:${port}`,
+  });
+
+  await client.connect();
+  return client;
+};
+
+/**
+ * Builds and connects a `node-redis` single-node client with sensible defaults,
+ * using an Azure Managed Identity to authenticate to the Redis server.
+ * 
+ * ```ts
+ * const client = await createRedisManagedIdentityNodeClient({ hostname }, credential);
+ * ```
+ *
+ * @throws Any error thrown by `client.connect()`. The caller decides
+ *   whether to retry or fail-fast.
+ */
+export const createRedisManagedIdentityNodeClient = async (
+  config: RedisNodeClientConfig,
+  credential: TokenCredential,
+): Promise<RedisNodeClient> => {
+  const {
+    hostname,
+    port: portOverride,
+    enableTls,
+  } = RedisNodeClientConfigSchema.parse(config);
+
+  const provider =
+    EntraIdCredentialsProviderFactory.createForDefaultAzureCredential({
+      credential,
+      scopes: REDIS_SCOPE_DEFAULT,
+      options: {},
+      tokenManagerConfig: {
+        expirationRefreshRatio: 0.8,
+      },
+    });
+
+  const port =
+    portOverride ?? (enableTls ? DEFAULT_TLS_PORT : DEFAULT_NON_TLS_PORT);
+  const scheme = enableTls ? DEFAULT_TLS_SCHEME : DEFAULT_NON_TLS_SCHEME;
+
+  const socket = enableTls
+    ? {
+        tls: true as const,
+        checkServerIdentity: () => undefined,
+        keepAlive: true,
+        keepAliveInitialDelay: SOCKET_KEEPALIVE_MS,
+        reconnectStrategy: reconnectDelayMs,
+      }
+    : {
+        tls: false as const,
+        keepAlive: true,
+        keepAliveInitialDelay: SOCKET_KEEPALIVE_MS,
+        reconnectStrategy: reconnectDelayMs,
+      };
+
+  const client = createClient({
+    socket,
+    url: `${scheme}${hostname}:${port}`,
+    credentialsProvider: provider,
   });
 
   await client.connect();

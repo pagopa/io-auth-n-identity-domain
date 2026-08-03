@@ -1,6 +1,11 @@
 export {
   type RedisNodeClientConfig,
   RedisNodeClientConfigSchema,
-  type ValidatedRedisNodeClientConfig,
+  type RedisPasswordNodeClientConfig,
+  RedisPasswordNodeClientConfigSchema,
 } from "./config.js";
-export { createRedisNodeClient, type RedisNodeClient } from "./factory.js";
+export {
+  createRedisNodeClient,
+  createRedisManagedIdentityNodeClient,
+  type RedisNodeClient,
+} from "./factory.js";
