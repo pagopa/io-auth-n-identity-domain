@@ -19,12 +19,16 @@ const reserveContract = defineRoute({
       description: "Application info returned successfully.",
       schema: ReserveOutputDTO,
     },
-    500: {
-      description: "Internal error",
+    400: {
+      description: "Bad request",
       schema: ProblemJson,
     },
     409: {
       description: "Conflict",
+      schema: ProblemJson,
+    },
+    500: {
+      description: "Internal error",
       schema: ProblemJson,
     },
   },

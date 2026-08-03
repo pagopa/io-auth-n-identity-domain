@@ -3,6 +3,7 @@ import {
   GenericError,
   NonEmptyString,
   UseCase,
+  ValidationError,
 } from "@pagopa/hexagonal-core";
 import { OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js";
 import {
@@ -51,8 +52,19 @@ type output = {
 };
 
 export const makeReserveUseCase =
-  (deps: ReserveDeps): UseCase<input, output, GenericError | ConflictError> =>
+  (
+    deps: ReserveDeps,
+  ): UseCase<input, output, GenericError | ConflictError | ValidationError> =>
   async (inputData) => {
+    if (
+      inputData.oidc.configurationEnv === "UAT" &&
+      (!inputData.oidc.uatClientId || !inputData.oidc.uatBaseUrl)
+    ) {
+      return err(
+        new ValidationError("Missing UAT client id or base url configuration"),
+      );
+    }
+
     const reserveResult = await deps.lollipopClientRepository.reservePubKey({
       algo: inputData.lollipopHashAlgorithm,
       pub_key: inputData.lollipopPublicKey,
@@ -77,15 +89,13 @@ export const makeReserveUseCase =
       `${inputData.lollipopHashAlgorithm}-${lollipopPubKeyThumbprint}` as LollipopAssertionRef;
 
     const clientId =
-      inputData.oidc.configurationEnv == "PROD"
+      inputData.oidc.configurationEnv === "PROD"
         ? inputData.oidc.prodClientId
-        : // TODO: refactor undefined behaviour
-          inputData.oidc.uatClientId || ("UNKNOWN" as NonEmptyString);
+        : (inputData.oidc.uatClientId as NonEmptyString);
     const oneIdBaseUrl =
-      inputData.oidc.configurationEnv == "PROD"
+      inputData.oidc.configurationEnv === "PROD"
         ? inputData.oidc.prodBaseUrl
-        : // TODO: refactor undefined behaviour
-          inputData.oidc.uatBaseUrl || new URL("http://localhost");
+        : (inputData.oidc.uatBaseUrl as URL);
 
     const ausiliarData = {
       minAuthLevel: inputData.authLevel,
