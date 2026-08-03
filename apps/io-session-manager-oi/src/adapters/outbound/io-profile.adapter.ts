@@ -7,17 +7,23 @@ import {
 import { err, ok, type Result } from "neverthrow";
 
 import { type UserProfile } from "../../domain/entities/profile.entity.js";
-import type { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
+import type {
+  NotifyLoginParams,
+  ProfilePort,
+} from "../../domain/ports/outbound/profile.port.js";
 import { createClient } from "../../generated/io-profile/client/index.js";
 import {
   createProfile,
   getProfile,
+  startNotifyLoginProcess,
 } from "../../generated/io-profile/sdk.gen.js";
 import type {
   CreateProfileErrors,
   CreateProfileResponses,
   GetProfileErrors,
   GetProfileResponses,
+  StartNotifyLoginProcessErrors,
+  StartNotifyLoginProcessResponses,
 } from "../../generated/io-profile/types.gen.js";
 import { zGetProfileResponse } from "../../generated/io-profile/zod.gen.js";
 
@@ -130,6 +136,48 @@ export const createIoProfileAdapter = (config: {
           return err(new ConflictError("Profile already exists in io-profile"));
         case 429:
           return err(new GenericError("Too many requests to io-profile"));
+        default: {
+          const _exhaustiveCheck: never = status;
+          return err(
+            new GenericError(`Unexpected error from io-profile: ${status}`),
+          );
+        }
+      }
+    },
+    notifyLogin: async (
+      params: NotifyLoginParams,
+    ): Promise<Result<void, GenericError>> => {
+      const { response } = await startNotifyLoginProcess({
+        client,
+        body: {
+          fiscal_code: params.fiscalCode,
+          name: params.name,
+          family_name: params.familyName,
+          email: params.email,
+          identity_provider: params.identityProvider,
+          ip_address: params.ipAddress,
+          is_email_validated: params.isEmailValidated,
+          device_name: undefined, // TODO: add device name if needed
+        },
+      });
+
+      const status = response?.status as
+        | keyof StartNotifyLoginProcessResponses
+        | keyof StartNotifyLoginProcessErrors;
+
+      switch (status) {
+        case 202:
+          return ok(undefined);
+        case 400:
+          return err(new GenericError("Invalid request to io-profile"));
+        case 401:
+          return err(new GenericError("Unauthorized request to io-profile"));
+        case 404:
+          return err(new GenericError("Notify login endpoint not found"));
+        case 429:
+          return err(new GenericError("Too many requests to io-profile"));
+        case 500:
+          return err(new GenericError("Internal server error from io-profile"));
         default: {
           const _exhaustiveCheck: never = status;
           return err(

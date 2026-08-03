@@ -12,8 +12,10 @@ import { createIoProfileAdapter } from "../io-profile.adapter.js";
 import {
   createProfile,
   getProfile,
+  startNotifyLoginProcess,
 } from "../../../generated/io-profile/sdk.gen.js";
 import { ExtendedProfile } from "../../../generated/io-profile/types.gen.js";
+import { NotifyLoginParams } from "../../../domain/ports/outbound/profile.port.js";
 
 vi.mock("../../../generated/io-profile/client/index.js", () => ({
   createClient: vi.fn(() => ({
@@ -24,6 +26,7 @@ vi.mock("../../../generated/io-profile/client/index.js", () => ({
 vi.mock("../../../generated/io-profile/sdk.gen.js", () => ({
   createProfile: vi.fn(),
   getProfile: vi.fn(),
+  startNotifyLoginProcess: vi.fn(),
 }));
 
 const FISCAL_CODE = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
@@ -183,5 +186,50 @@ describe("createIoProfileAdapter#create", () => {
         expect(result._unsafeUnwrapErr()).toBeInstanceOf(errorClass);
       },
     );
+  });
+});
+
+describe("createIoProfileAdapter#startNotifyLoginProcess", () => {
+  const notifyLoginParams: NotifyLoginParams = {
+    fiscalCode: FISCAL_CODE,
+    name: "Mario" as NotifyLoginParams["name"],
+    familyName: "Rossi" as NotifyLoginParams["familyName"],
+    email: "user@example.com" as EmailAddress,
+    identityProvider: "spid" as NotifyLoginParams["identityProvider"],
+    ipAddress: "127.0.0.1",
+  };
+
+  it("returns ok(void) on 202", async () => {
+    vi.mocked(startNotifyLoginProcess).mockResolvedValue({
+      data: undefined,
+      error: undefined,
+      response: { status: 202 } as Response,
+    });
+
+    const result = await adapter.notifyLogin(notifyLoginParams);
+
+    expect(result.isOk()).toBe(true);
+  });
+
+  describe("error status codes", () => {
+    it.each`
+      status
+      ${400}
+      ${401}
+      ${404}
+      ${429}
+      ${500}
+    `("returns err(GenericError) on $status", async ({ status }) => {
+      vi.mocked(startNotifyLoginProcess).mockResolvedValue({
+        data: undefined,
+        error: {},
+        response: { status } as Response,
+      });
+
+      const result = await adapter.notifyLogin(notifyLoginParams);
+
+      expect(result.isErr()).toBe(true);
+      expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+    });
   });
 });
