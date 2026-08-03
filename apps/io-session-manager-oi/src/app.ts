@@ -118,6 +118,9 @@ export const createApp = async (
           aadCredentials: AzureCredential.getInstance(),
         })
       : new CosmosClient(config.COSMOSDB_CONNECTION_STRING);
+
+  // TODO: wire into endpoints
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const sessionCosmosAdapter = new SessionCosmosAdapter(
     cosmosClient,
     config.COSMOSDB_NAME,

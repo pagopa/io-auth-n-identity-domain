@@ -81,7 +81,7 @@ export const makeActivateUserSessionUseCase =
       );
     }
 
-    // Retrive user profile, if exists, or create a new one with the provided data.
+    // Retrieve user profile, if exists, or create a new one with the provided data.
     // This is needed to ensure that the user profile exists before creating a new session.
     const getOrCreateProfileResult = await getOrCreateProfile(profiles, input);
 

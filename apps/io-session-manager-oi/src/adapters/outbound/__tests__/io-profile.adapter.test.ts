@@ -15,7 +15,7 @@ import {
   startNotifyLoginProcess,
 } from "../../../generated/io-profile/sdk.gen.js";
 import { ExtendedProfile } from "../../../generated/io-profile/types.gen.js";
-import { NotifyLoginParams } from "../../../domain/ports/outbound/profile.port.js";
+import type { NotifyLoginParams } from "../../../domain/ports/outbound/profile.port.js";
 
 vi.mock("../../../generated/io-profile/client/index.js", () => ({
   createClient: vi.fn(() => ({
