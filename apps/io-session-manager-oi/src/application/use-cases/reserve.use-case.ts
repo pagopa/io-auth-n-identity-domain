@@ -114,13 +114,6 @@ export const makeReserveUseCase =
       return err(new GenericError("Could not save ausiliar data"));
     }
 
-    console.log({
-      clientId,
-      state,
-      nonce,
-      redirectUri: inputData.oidc.clientRedirectUri.href as NonEmptyString,
-      oneIdBaseUrl: oneIdBaseUrl.href as NonEmptyString,
-    });
     return ok({
       client_id: clientId,
       state,
