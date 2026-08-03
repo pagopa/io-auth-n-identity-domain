@@ -13,7 +13,7 @@ module "managed_redis" {
 
   resource_group_name = var.resource_group_name
 
-  use_case = "development"
+  use_case = "default"
 
   virtual_network_id = var.virtual_network_id
 
