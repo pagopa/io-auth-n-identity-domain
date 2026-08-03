@@ -13,8 +13,7 @@ module "managed_redis" {
 
   resource_group_name = var.resource_group_name
 
-  use_case          = "default"
-  sku_name_override = "Balanced_B0"
+  use_case = "development"
 
   virtual_network_id = var.virtual_network_id
 
