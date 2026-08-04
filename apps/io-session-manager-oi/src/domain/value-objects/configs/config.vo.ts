@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { IoFastLoginConfigSchema } from "./fast-login.vo.js";
 import {
   LockedProfilesDevelopmentConfigSchema,
   LockedProfilesProductionConfigSchema,
@@ -10,12 +11,12 @@ import {
   PushNotificationsQueueDevelopmentConfigSchema,
   PushNotificationsQueueProductionConfigSchema,
 } from "./push-notification-queue.vo.js";
-import { ServerConfigSchema } from "./server.vo.js";
-import { IoSmIntConfigSchema } from "./session-manager-internal.vo.js";
 import {
   RedisDevelopmentConfigSchema,
   RedisProductionConfigSchema,
 } from "./redis.vo.js";
+import { ServerConfigSchema } from "./server.vo.js";
+import { IoSmIntConfigSchema } from "./session-manager-internal.vo.js";
 
 /**
  * Fields shared by every runtime environment.
@@ -25,6 +26,7 @@ const CommonConfigShape = {
   ...ServerConfigSchema.shape,
   ...LollipopConfigSchema.shape,
   ...IoProfileConfigSchema.shape,
+  ...IoFastLoginConfigSchema.shape,
   ...IoSmIntConfigSchema.shape,
 };
 
