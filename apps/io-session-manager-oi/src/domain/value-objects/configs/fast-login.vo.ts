@@ -10,3 +10,5 @@ export const IoFastLoginConfigSchema = z.object({
   IO_FAST_LOGIN_API_BASE_PATH: NonEmptyStringSchema,
   IO_FAST_LOGIN_API_KEY: NonEmptyStringSchema,
 });
+
+export type IoFastLoginConfig = z.infer<typeof IoFastLoginConfigSchema>;

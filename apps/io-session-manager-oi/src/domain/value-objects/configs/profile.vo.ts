@@ -10,3 +10,5 @@ export const IoProfileConfigSchema = z.object({
   IO_PROFILE_API_BASE_PATH: NonEmptyStringSchema,
   IO_PROFILE_API_KEY: NonEmptyStringSchema,
 });
+
+export type IoProfileConfig = z.infer<typeof IoProfileConfigSchema>;
