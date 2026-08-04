@@ -14,16 +14,17 @@ import fastify, { type FastifyInstance } from "fastify";
 import { CosmosClient } from "@azure/cosmos";
 import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
+import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { AusiliarDataRedisAdapter } from "./adapters/outbound/ausiliar-data.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
+import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
+import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
+import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/config.vo.js";
 import { LoginAusiliarDataSchema } from "./domain/value-objects/login.vo.js";
-import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
-import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
-import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
 
 class AzureCredential {
   private static instance: DefaultAzureCredential | undefined;
@@ -142,9 +143,18 @@ export const createApp = async (
     apiKey: config.LOLLIPOP_API_KEY,
   });
 
+  const oidcConfigAdapter = new InMemoryOidcConfigAdapter({
+    ONEID_PROD_CLIENT_ID: config.ONEID_PROD_CLIENT_ID,
+    ONEID_PROD_ISSUER: config.ONEID_PROD_ISSUER,
+    ONEID_PROD_REDIRECT_URI: config.ONEID_PROD_REDIRECT_URI,
+    ONEID_UAT_CLIENT_ID: config.ONEID_UAT_CLIENT_ID,
+    ONEID_UAT_ISSUER: config.ONEID_UAT_ISSUER,
+  });
+
   const reserveUseCase = makeReserveUseCase({
     ausiliarDataRepository: ausiliarStorageAdapter,
     lollipopClientRepository: fetchLollipopAdapter,
+    oidcConfigPort: oidcConfigAdapter,
   });
 
   // --------------------------------------------------
@@ -178,6 +188,6 @@ export const createApp = async (
     ]),
   );
 
-  mountReserveHandler(server, reserveUseCase, config);
+  mountReserveHandler(server, reserveUseCase);
   return { server };
 };

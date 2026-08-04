@@ -1,12 +1,12 @@
 import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
+import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
+import { FastifyInstance } from "fastify";
+
+import { makeReserveUseCase } from "../../../application/use-cases/reserve.use-case.js";
 import {
   ReserveInputDTO,
   ReserveOutputDTO,
 } from "../dtos/reserve-pub-key.dto.js";
-import { FastifyInstance } from "fastify";
-import { makeReserveUseCase } from "../../../application/use-cases/reserve.use-case.js";
-import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
-import { Config } from "../../../domain/value-objects/config.vo.js";
 
 const reserveContract = defineRoute({
   description: "Reserve a Lollipop PubKey",
@@ -39,7 +39,6 @@ const reserveContract = defineRoute({
 export const mountReserveHandler = (
   server: FastifyInstance,
   useCase: ReturnType<typeof makeReserveUseCase>,
-  config: Config,
 ): void => {
   mountFastifyRoute(server, {
     contract: reserveContract,
@@ -48,16 +47,7 @@ export const mountReserveHandler = (
       lollipopPublicKey: req.headers["x-pagopa-lollipop-pub-key"],
       loginType: req.headers["x-pagopa-login-type"],
       currentUser: req.headers["x-pagopa-current-user"],
-      oidc: {
-        configurationEnv: req.query.env,
-        clientRedirectUri: new URL(config.ONEID_PROD_REDIRECT_URI),
-        prodClientId: config.ONEID_PROD_CLIENT_ID,
-        prodBaseUrl: new URL(config.ONEID_PROD_ISSUER),
-        uatClientId: config.ONEID_UAT_CLIENT_ID,
-        uatBaseUrl: config.ONEID_UAT_ISSUER
-          ? new URL(config.ONEID_UAT_ISSUER)
-          : undefined,
-      },
+      oidcConfigurationEnv: req.query.env,
       authLevel: req.query.authLevel,
     }),
     useCase,

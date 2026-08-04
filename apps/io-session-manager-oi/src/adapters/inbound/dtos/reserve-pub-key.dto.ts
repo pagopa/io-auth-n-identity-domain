@@ -1,4 +1,5 @@
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import {
   LollipopJwkHashingAlgorithmSchema,
   JwkPublicKeyBase64UrlStringSchema,
@@ -11,7 +12,6 @@ import {
   SpidAuthLevel,
 } from "../../../domain/value-objects/login.vo.js";
 import { OidcConfigurationEnvSchema } from "../../../domain/value-objects/oidc.vo.js";
-import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 
 extendZodWithOpenApi(z);
 

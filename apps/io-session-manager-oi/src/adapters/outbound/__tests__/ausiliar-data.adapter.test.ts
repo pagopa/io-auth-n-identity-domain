@@ -25,6 +25,7 @@ const AUSILIAR_DATA: LoginAusiliarData = {
     "sha256-thumbprint" as LoginAusiliarData["lollipopAssertionRef"],
   clientId: "client-id" as LoginAusiliarData["clientId"],
   minAuthLevel: "SpidL2",
+  oidcConfigurationEnv: "PROD",
 };
 
 const saveMock = vi.fn();

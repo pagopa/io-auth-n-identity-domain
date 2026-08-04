@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 import {
   ConflictError,
   GenericError,
@@ -5,37 +7,33 @@ import {
   UseCase,
   ValidationError,
 } from "@pagopa/hexagonal-core";
-import { OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js";
-import {
-  CurrentUser,
-  LoginType,
-  SpidAuthLevel,
-} from "../../domain/value-objects/login.vo.js";
-import { err, ok } from "neverthrow";
-import { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
-import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
-import { calculateJwkThumbprint } from "jose";
-import { randomBytes } from "node:crypto";
 import {
   JwkPublicKeyBase64UrlString,
   LollipopAssertionRef,
   LollipopJwkHashingAlgorithm,
 } from "@pagopa/io-auth-n-identity-domain";
+import { calculateJwkThumbprint } from "jose";
+import { err, ok } from "neverthrow";
+
+import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
+import { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
+import { OidcConfigPort } from "../../domain/ports/outbound/oidc-config.port.js";
+import {
+  CurrentUser,
+  LoginAusiliarData,
+  LoginType,
+  SpidAuthLevel,
+} from "../../domain/value-objects/login.vo.js";
+import { OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js";
 
 type ReserveDeps = {
   ausiliarDataRepository: AusiliarDataPort;
   lollipopClientRepository: LollipopPort;
+  oidcConfigPort: OidcConfigPort;
 };
 
 type input = {
-  oidc: {
-    configurationEnv: OidcConfigurationEnv;
-    prodClientId: NonEmptyString;
-    prodBaseUrl: URL;
-    uatClientId?: NonEmptyString;
-    uatBaseUrl?: URL;
-    clientRedirectUri: URL;
-  };
+  oidcConfigurationEnv: OidcConfigurationEnv;
   authLevel: SpidAuthLevel;
   lollipopPublicKey: JwkPublicKeyBase64UrlString;
   lollipopHashAlgorithm: LollipopJwkHashingAlgorithm;
@@ -56,14 +54,18 @@ export const makeReserveUseCase =
     deps: ReserveDeps,
   ): UseCase<input, output, GenericError | ConflictError | ValidationError> =>
   async (inputData) => {
-    if (
-      inputData.oidc.configurationEnv === "UAT" &&
-      (!inputData.oidc.uatClientId || !inputData.oidc.uatBaseUrl)
-    ) {
-      return err(
-        new ValidationError("Missing UAT client id or base url configuration"),
-      );
+    const oidcConfigResult = deps.oidcConfigPort.getConfig(
+      inputData.oidcConfigurationEnv,
+    );
+    if (oidcConfigResult.isErr()) {
+      return err(oidcConfigResult.error);
     }
+
+    const {
+      clientId,
+      baseUrl: oneIdBaseUrl,
+      redirectUri: clientRedirectUri,
+    } = oidcConfigResult.value;
 
     const reserveResult = await deps.lollipopClientRepository.reservePubKey({
       algo: inputData.lollipopHashAlgorithm,
@@ -88,16 +90,7 @@ export const makeReserveUseCase =
     const lollipopAssertionRef =
       `${inputData.lollipopHashAlgorithm}-${lollipopPubKeyThumbprint}` as LollipopAssertionRef;
 
-    const clientId =
-      inputData.oidc.configurationEnv === "PROD"
-        ? inputData.oidc.prodClientId
-        : (inputData.oidc.uatClientId as NonEmptyString);
-    const oneIdBaseUrl =
-      inputData.oidc.configurationEnv === "PROD"
-        ? inputData.oidc.prodBaseUrl
-        : (inputData.oidc.uatBaseUrl as URL);
-
-    const ausiliarData = {
+    const ausiliarData: LoginAusiliarData = {
       minAuthLevel: inputData.authLevel,
       loginType: inputData.loginType,
       currentUser: inputData.currentUser,
@@ -118,7 +111,7 @@ export const makeReserveUseCase =
       client_id: clientId,
       state,
       nonce,
-      redirect_uri: inputData.oidc.clientRedirectUri.href as NonEmptyString,
+      redirect_uri: clientRedirectUri.href as NonEmptyString,
       issuer: oneIdBaseUrl.href as NonEmptyString,
     });
   };

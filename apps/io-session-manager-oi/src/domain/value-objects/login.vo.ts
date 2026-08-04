@@ -1,6 +1,7 @@
-import { z } from "zod";
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
+import { z } from "zod";
+
 export const SpidAuthLevel = z.union([
   z.literal("SpidL2"),
   z.literal("SpidL3"),

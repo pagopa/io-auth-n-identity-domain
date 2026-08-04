@@ -13,6 +13,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AusiliarDataPort } from "../../../domain/ports/outbound/ausiliar-data.port.js";
 import { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
+import { OidcConfigPort } from "../../../domain/ports/outbound/oidc-config.port.js";
 import {
   CurrentUser,
   LoginType,
@@ -51,14 +52,7 @@ vi.mock("node:crypto", () => {
 });
 
 const buildInput = (overrides = {}) => ({
-  oidc: {
-    configurationEnv: "PROD" as const,
-    prodClientId: PROD_CLIENT_ID,
-    prodBaseUrl: PROD_BASE_URL,
-    uatClientId: UAT_CLIENT_ID,
-    uatBaseUrl: UAT_BASE_URL,
-    clientRedirectUri: CLIENT_REDIRECT_URI,
-  },
+  oidcConfigurationEnv: "PROD" as const,
   authLevel: "SpidL2" as SpidAuthLevel,
   lollipopPublicKey: LOLLIPOP_PUBLIC_KEY,
   lollipopHashAlgorithm: LOLLIPOP_HASH_ALGORITHM,
@@ -67,25 +61,41 @@ const buildInput = (overrides = {}) => ({
   ...overrides,
 });
 
-const reservePubKeyMock = vi.fn();
+const reservePubKeyMock = vi.fn().mockResolvedValue(ok(undefined));
 const lollipopClientRepository = {
   reservePubKey: reservePubKeyMock,
 } as unknown as LollipopPort;
 
-const saveMock = vi.fn();
+const saveMock = vi.fn().mockResolvedValue(ok(undefined));
 const ausiliarDataRepository = {
   save: saveMock,
 } as unknown as AusiliarDataPort;
 
+const getConfigMock = vi.fn().mockImplementation((env: "PROD" | "UAT") =>
+  env === "PROD"
+    ? ok({
+        clientId: PROD_CLIENT_ID,
+        baseUrl: PROD_BASE_URL,
+        redirectUri: CLIENT_REDIRECT_URI,
+      })
+    : ok({
+        clientId: UAT_CLIENT_ID,
+        baseUrl: UAT_BASE_URL,
+        redirectUri: CLIENT_REDIRECT_URI,
+      }),
+);
+const oidcConfigPort = {
+  getConfig: getConfigMock,
+} as unknown as OidcConfigPort;
+
 const reserveUseCase = makeReserveUseCase({
   ausiliarDataRepository,
   lollipopClientRepository,
+  oidcConfigPort,
 });
 
 beforeEach(() => {
   vi.clearAllMocks();
-  reservePubKeyMock.mockResolvedValue(ok(undefined));
-  saveMock.mockResolvedValue(ok(undefined));
 });
 
 // ---------------------------------------------------------------------------
@@ -123,62 +133,32 @@ describe("makeReserveUseCase", () => {
 
   it("uses the UAT client id and base url when configurationEnv is UAT", async () => {
     const input = buildInput({
-      oidc: {
-        configurationEnv: "UAT" as const,
-        prodClientId: PROD_CLIENT_ID,
-        prodBaseUrl: PROD_BASE_URL,
-        uatClientId: UAT_CLIENT_ID,
-        uatBaseUrl: UAT_BASE_URL,
-        clientRedirectUri: CLIENT_REDIRECT_URI,
-      },
+      oidcConfigurationEnv: "UAT" as const,
     });
 
     const result = await reserveUseCase(input);
 
+    expect(getConfigMock).toHaveBeenCalledExactlyOnceWith("UAT");
     expect(result.isOk()).toBe(true);
     const output = result._unsafeUnwrap();
     expect(output.client_id).toBe(UAT_CLIENT_ID);
     expect(output.issuer).toBe(UAT_BASE_URL.href);
   });
 
-  it("returns err(ValidationError) when UAT client is selected but config has missing ID", async () => {
+  it("returns err(ValidationError) when the OIDC config port has no configuration for the requested environment", async () => {
+    const validationError = new ValidationError(
+      'Missing OIDC configuration for environment "UAT"',
+    );
+    getConfigMock.mockReturnValueOnce(err(validationError));
+
     const input = buildInput({
-      oidc: {
-        configurationEnv: "UAT" as const,
-        prodClientId: PROD_CLIENT_ID,
-        prodBaseUrl: PROD_BASE_URL,
-        uatBaseUrl: UAT_BASE_URL,
-        clientRedirectUri: CLIENT_REDIRECT_URI,
-      },
+      oidcConfigurationEnv: "UAT" as const,
     });
 
     const result = await reserveUseCase(input);
 
     expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toEqual(
-      new ValidationError("Missing UAT client id or base url configuration"),
-    );
-    expect(reservePubKeyMock).not.toHaveBeenCalled();
-    expect(saveMock).not.toHaveBeenCalled();
-  });
-
-  it("returns err(ValidationError) when UAT client is selected but config has missing baseUrl", async () => {
-    const input = buildInput({
-      oidc: {
-        configurationEnv: "UAT" as const,
-        prodClientId: PROD_CLIENT_ID,
-        prodBaseUrl: PROD_BASE_URL,
-        uatClientId: UAT_CLIENT_ID,
-        clientRedirectUri: CLIENT_REDIRECT_URI,
-      },
-    });
-
-    const result = await reserveUseCase(input);
-
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toEqual(
-      new ValidationError("Missing UAT client id or base url configuration"),
-    );
+    expect(result._unsafeUnwrapErr()).toEqual(validationError);
     expect(reservePubKeyMock).not.toHaveBeenCalled();
     expect(saveMock).not.toHaveBeenCalled();
   });
