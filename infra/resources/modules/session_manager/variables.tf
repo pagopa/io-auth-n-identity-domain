@@ -145,12 +145,9 @@ variable "io_session_manager_internal" {
 
 variable "session_cosmos" {
   type = object({
-    account_uri                   = string
-    account_name                  = string
-    resource_group_name           = string
-    database_name                 = string
-    session_token_container_name  = string
-    active_session_container_name = string
+    account_uri         = string
+    account_name        = string
+    resource_group_name = string
   })
   description = "Cosmos DB (io-auth-SM) accessed by the Session Manager Container App via managed identity"
 }

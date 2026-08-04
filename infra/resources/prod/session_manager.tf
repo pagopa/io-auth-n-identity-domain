@@ -49,11 +49,8 @@ module "session_manager" {
   action_group_id = azurerm_monitor_action_group.error_action_group.id
 
   session_cosmos = {
-    account_uri                   = data.azurerm_cosmosdb_account.cosmos_citizen_auth.endpoint
-    account_name                  = data.azurerm_cosmosdb_account.cosmos_citizen_auth.name
-    resource_group_name           = data.azurerm_resource_group.core_domain_data_rg.name
-    database_name                 = azurerm_cosmosdb_sql_database.session_manager.name
-    session_token_container_name  = azurerm_cosmosdb_sql_container.session_tokens.name
-    active_session_container_name = azurerm_cosmosdb_sql_container.active_sessions.name
+    account_uri         = data.azurerm_cosmosdb_account.cosmos_citizen_auth.endpoint
+    account_name        = data.azurerm_cosmosdb_account.cosmos_citizen_auth.name
+    resource_group_name = data.azurerm_resource_group.core_domain_data_rg.name
   }
 }
