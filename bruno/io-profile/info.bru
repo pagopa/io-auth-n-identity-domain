@@ -1,19 +1,13 @@
 meta {
-  name: upsertUserDataProcessing
+  name: info
   type: http
-  seq: 10
+  seq: 1
 }
 
-post {
-  url: {{IO_PROFILE_BASE_URL}}/user-data-processing/{{FISCAL_CODE}}
-  body: json
+get {
+  url: {{IO_PROFILE_BASE_URL}}/info
+  body: none
   auth: inherit
-}
-
-body:json {
-  {
-    "choice": "DELETE"
-  }
 }
 
 script:pre-request {
