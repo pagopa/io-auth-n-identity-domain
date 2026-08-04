@@ -14,6 +14,7 @@ import {
   newPlainSession,
   toHashedSession,
 } from "@pagopa/io-auth-n-identity-session/entities";
+import { IPString } from "@pagopa/io-auth-n-identity-domain";
 import {
   LoginType,
   newSessionId,
@@ -29,8 +30,7 @@ export type NewSessionToken = Omit<
   BaseSession,
   "sessionId" | "expirationDate"
 > & {
-  //TODO: IPString
-  ipAddress: string;
+  ipAddress: IPString;
   loginType: LoginType;
   identityProvider: NonEmptyString;
 };
