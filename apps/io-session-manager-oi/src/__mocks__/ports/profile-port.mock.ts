@@ -16,6 +16,8 @@ export const ProfilePortMock: ProfilePort = {
 
 export const resetProfilePortMock = () => {
   mockGetProfile.mockReset().mockResolvedValue(ok(aUserProfileWithEmail));
-  mockCreate.mockReset().mockResolvedValue(ok(aUserProfileWithEmail));
+  mockCreate
+    .mockReset()
+    .mockImplementation(async (newProfile) => ok(newProfile));
   mockNotifyLogin.mockReset().mockResolvedValue(ok(undefined));
 };

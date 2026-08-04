@@ -137,7 +137,6 @@ describe("makeActivateUserSessionUseCase", () => {
 
     it("creates the profile and notifies login when a spid email is provided", async () => {
       mockGetProfile.mockResolvedValueOnce(err(aNotFoundError));
-      mockProfileCreate.mockResolvedValueOnce(ok(aUserProfileWithEmail));
 
       const result = await activateUserSession(aNewSessionTokenInput);
 
