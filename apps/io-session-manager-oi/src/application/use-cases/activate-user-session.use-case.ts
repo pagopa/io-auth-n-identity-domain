@@ -24,7 +24,9 @@ import { UserProfile } from "../../domain/entities/profile.entity.js";
 import {
   ClientSessionToken,
   ClientSessionTokenSchema,
+  HashedClientSessionTokenSchema,
 } from "../../domain/value-objects/client-session-token.vo.js";
+import { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
 
 export type NewSessionToken = Omit<
   BaseSession,
@@ -49,6 +51,7 @@ export const makeActivateUserSessionUseCase =
   (
     userSessions: SessionPort,
     profiles: ProfilePort,
+    platformInternal: PlatformInternalPort,
   ): ActivateUserSessionUseCase =>
   async (input) => {
     // TODO: check if we can move newSessionId() within newActiveSession() to avoid having to pass sessionId as a parameter
@@ -82,6 +85,23 @@ export const makeActivateUserSessionUseCase =
       );
     }
 
+    if (invalidateResult.value !== undefined) {
+      const hashedClientSessionToken = HashedClientSessionTokenSchema.parse(
+        `${invalidateResult.value.sessionId}.${invalidateResult.value.hashedSessionToken}`,
+      );
+      const proxyResult = await platformInternal.deleteSession(
+        hashedClientSessionToken,
+      );
+
+      if (proxyResult.isErr()) {
+        return err(
+          new GenericError(
+            `Failed to invalidate previous session on proxy: ${proxyResult.error.message}`,
+          ),
+        );
+      }
+    }
+
     // Retrieve user profile, if exists, or create a new one with the provided data.
     // This is needed to ensure that the user profile exists before creating a new session.
     const getOrCreateProfileResult = await getOrCreateProfile(profiles, input);
@@ -91,8 +111,6 @@ export const makeActivateUserSessionUseCase =
     }
 
     const userProfile = getOrCreateProfileResult.value;
-
-    // TODO: call proxy to invalidate previous sessions with invalidatePreviousSession (if any)
 
     const result = await userSessions.create(
       activeSession,
