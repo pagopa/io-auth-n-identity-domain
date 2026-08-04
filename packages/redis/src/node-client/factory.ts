@@ -28,6 +28,15 @@ const SOCKET_KEEPALIVE_MS = 2000;
 const reconnectDelayMs = (attempts: number): number =>
   Math.min(attempts * 50, 1000);
 
+const getRedisPort = (
+  portOverride: number | undefined,
+  enableTls: boolean,
+): number =>
+  portOverride ?? (enableTls ? DEFAULT_TLS_PORT : DEFAULT_NON_TLS_PORT);
+
+const getRedisScheme = (enableTls: boolean): string =>
+  enableTls ? DEFAULT_TLS_SCHEME : DEFAULT_NON_TLS_SCHEME;
+
 /**
  * Builds and connects a `node-redis` single-node client with sensible defaults.
  *
@@ -48,9 +57,8 @@ export const createRedisNodeClient = async (
     enableTls,
   } = RedisPasswordNodeClientConfigSchema.parse(config);
 
-  const port =
-    portOverride ?? (enableTls ? DEFAULT_TLS_PORT : DEFAULT_NON_TLS_PORT);
-  const scheme = enableTls ? DEFAULT_TLS_SCHEME : DEFAULT_NON_TLS_SCHEME;
+  const port = getRedisPort(portOverride, enableTls);
+  const scheme = getRedisScheme(enableTls);
 
   const socket = enableTls
     ? {
@@ -82,7 +90,7 @@ export const createRedisNodeClient = async (
 /**
  * Builds and connects a `node-redis` single-node client with sensible defaults,
  * using an Azure Managed Identity to authenticate to the Redis server.
- * 
+ *
  * ```ts
  * const client = await createRedisManagedIdentityNodeClient({ hostname }, credential);
  * ```
@@ -110,9 +118,8 @@ export const createRedisManagedIdentityNodeClient = async (
       },
     });
 
-  const port =
-    portOverride ?? (enableTls ? DEFAULT_TLS_PORT : DEFAULT_NON_TLS_PORT);
-  const scheme = enableTls ? DEFAULT_TLS_SCHEME : DEFAULT_NON_TLS_SCHEME;
+  const port = getRedisPort(portOverride, enableTls);
+  const scheme = getRedisScheme(enableTls);
 
   const socket = enableTls
     ? {
