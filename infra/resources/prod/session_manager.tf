@@ -45,4 +45,6 @@ module "session_manager" {
     base_url  = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
     base_path = "/api/v1"
   }
+
+  action_group_id = azurerm_monitor_action_group.error_action_group.id
 }

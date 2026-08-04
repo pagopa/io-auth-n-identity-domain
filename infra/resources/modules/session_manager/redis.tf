@@ -20,5 +20,9 @@ module "managed_redis" {
 
   log_analytics_workspace_id = var.log_analytics_workspace_id
 
+  alerts = {
+    action_group_id = var.action_group_id
+  }
+
   tags = var.tags
 }
