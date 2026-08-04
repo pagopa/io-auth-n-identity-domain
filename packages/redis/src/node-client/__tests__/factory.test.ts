@@ -1,12 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  createRedisManagedIdentityNodeClient,
+  createRedisNodeClient,
+} from "../factory.js";
+
 const { createClient } = vi.hoisted(() => ({
   createClient: vi.fn(),
 }));
 
 vi.mock("redis", () => ({ createClient }));
 
-import { createRedisNodeClient } from "../factory.js";
+const { createForDefaultAzureCredential, REDIS_SCOPE_DEFAULT } = vi.hoisted(
+  () => ({
+    createForDefaultAzureCredential: vi.fn(),
+    REDIS_SCOPE_DEFAULT: "test-redis-scope",
+  }),
+);
+
+vi.mock("@redis/entraid", () => ({
+  EntraIdCredentialsProviderFactory: { createForDefaultAzureCredential },
+  REDIS_SCOPE_DEFAULT,
+}));
 
 const buildFakeClient = () => ({
   connect: vi.fn().mockResolvedValue(undefined),
@@ -167,5 +182,90 @@ describe("createRedisNodeClient — config validation", () => {
     ).rejects.toThrow();
 
     expect(fake.connect).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Managed identity
+// ---------------------------------------------------------------------------
+
+const fakeCredential = { kind: "test-credential" } as never;
+const fakeProvider = { kind: "test-provider" };
+
+describe("createRedisManagedIdentityNodeClient", () => {
+  beforeEach(() => {
+    createForDefaultAzureCredential.mockReturnValue(fakeProvider);
+  });
+
+  it("uses rediss:// and port 6380 by default", async () => {
+    await createRedisManagedIdentityNodeClient(
+      { hostname: "cache.example.com" },
+      fakeCredential,
+    );
+
+    const opts = lastCreateClientOptions();
+    expect(opts.url).toBe("rediss://cache.example.com:6380");
+    expect(opts.socket).toMatchObject({
+      tls: true,
+      keepAlive: true,
+      keepAliveInitialDelay: 2000,
+    });
+  });
+
+  it("does not send a password to createClient", async () => {
+    await createRedisManagedIdentityNodeClient(
+      { hostname: "cache" },
+      fakeCredential,
+    );
+
+    expect(lastCreateClientOptions().password).toBeUndefined();
+  });
+
+  it("wires an Entra-ID credentials provider with the expected shape", async () => {
+    await createRedisManagedIdentityNodeClient(
+      { hostname: "cache" },
+      fakeCredential,
+    );
+
+    expect(createForDefaultAzureCredential).toHaveBeenCalledExactlyOnceWith({
+      credential: fakeCredential,
+      scopes: REDIS_SCOPE_DEFAULT,
+      options: {},
+      tokenManagerConfig: { expirationRefreshRatio: 0.8 },
+    });
+    expect(lastCreateClientOptions().credentialsProvider).toBe(fakeProvider);
+  });
+
+  it("connects and returns the client", async () => {
+    const fake = buildFakeClient();
+    createClient.mockReturnValueOnce(fake);
+
+    const client = await createRedisManagedIdentityNodeClient(
+      { hostname: "cache" },
+      fakeCredential,
+    );
+
+    expect(fake.connect).toHaveBeenCalledExactlyOnceWith();
+    expect(client).toBe(fake);
+  });
+
+  it("re-throws any error from connect()", async () => {
+    const fake = buildFakeClient();
+    fake.connect = vi.fn().mockRejectedValueOnce(new Error("token failure"));
+    createClient.mockReturnValueOnce(fake);
+
+    await expect(
+      createRedisManagedIdentityNodeClient(
+        { hostname: "cache" },
+        fakeCredential,
+      ),
+    ).rejects.toThrow("token failure");
+  });
+
+  it("runs the base config schema (rejects an invalid hostname)", async () => {
+    await expect(
+      createRedisManagedIdentityNodeClient({ hostname: "" }, fakeCredential),
+    ).rejects.toThrow("hostname must be non-empty");
+    expect(createClient).not.toHaveBeenCalled();
   });
 });

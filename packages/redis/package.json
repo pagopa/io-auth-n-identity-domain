@@ -35,7 +35,10 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@azure/identity": "catalog:",
     "@pagopa/typescript-config-node22": "workspace:^",
+    "@redis/client": "^6.1.0",
+    "@redis/entraid": "^6.1.0",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
@@ -46,6 +49,9 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
+    "@azure/identity": "catalog:",
+    "@redis/client": "^6.1.0",
+    "@redis/entraid": "^6.1.0",
     "redis": "^6.1.0"
   }
 }

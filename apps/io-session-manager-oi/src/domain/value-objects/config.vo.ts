@@ -93,7 +93,6 @@ export type NotificationQueueConfig = z.infer<
 export const RedisConfigSchema = z.object({
   REDIS_HOSTNAME: NonEmptyStringSchema,
   REDIS_PORT: z.coerce.number().int().min(1).max(65535).optional(),
-  REDIS_PASSWORD: NonEmptyStringSchema.optional(),
   REDIS_TLS_ENABLED: z.stringbool().default(true),
 });
 
@@ -135,6 +134,7 @@ export const DevelopmentConfigSchema = z.object({
   NODE_ENV: z.literal("development"),
   LOCKED_PROFILES_STORAGE_CONNECTION_STRING: NonEmptyStringSchema,
   PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING: NonEmptyStringSchema,
+  REDIS_PASSWORD: NonEmptyStringSchema.optional(),
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;
