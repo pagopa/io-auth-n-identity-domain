@@ -52,7 +52,7 @@ locals {
 
     # Redis
     REDIS_HOSTNAME    = split(":", module.managed_redis.endpoint)[0]
-    REDIS_SSL_PORT    = split(":", module.managed_redis.endpoint)[1]
+    REDIS_PORT        = split(":", module.managed_redis.endpoint)[1]
     REDIS_TLS_ENABLED = "true"
   }
 }
