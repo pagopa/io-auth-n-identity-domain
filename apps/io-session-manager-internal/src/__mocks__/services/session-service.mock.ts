@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 import * as RTE from "fp-ts/lib/ReaderTaskEither";
 import { SessionService } from "../../services/session-service";
-import { anUnlockedUserSessionState } from "../user.mock";
+import { anAssertionRef, anUnlockedUserSessionState } from "../user.mock";
 
 export const mockInvalidateUserSession = vi
   .fn()
@@ -25,6 +25,10 @@ export const mockGetUserSessionState = vi
   .fn()
   .mockReturnValue(RTE.right(anUnlockedUserSessionState));
 
+export const mockGetUserLollipopActivation = vi
+  .fn()
+  .mockReturnValue(RTE.right(anAssertionRef));
+
 export const SessionServiceMock: SessionService = {
   invalidateUserSession: mockInvalidateUserSession,
   getUserSession: mockGetUserSession,
@@ -32,4 +36,5 @@ export const SessionServiceMock: SessionService = {
   unlockUserAuthentication: mockUnlockUserAuthentication,
   deleteUserSession: mockDeleteUserSession,
   getUserSessionState: mockGetUserSessionState,
+  getUserLollipopActivation: mockGetUserLollipopActivation,
 };
