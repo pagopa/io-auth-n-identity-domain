@@ -66,6 +66,7 @@ variable "virtual_network_id" {
 variable "private_dns_zone_resource_group_name" {
   type        = string
   description = "The resource group containing the Private DNS Zone for private endpoints"
+  default     = null
 }
 
 
