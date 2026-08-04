@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.7.0
+
+### Minor Changes
+
+- edd2800: Switch to Azure Managed Redis instance with Managed Identity auth
+
 ## 0.6.0
 
 ### Minor Changes
