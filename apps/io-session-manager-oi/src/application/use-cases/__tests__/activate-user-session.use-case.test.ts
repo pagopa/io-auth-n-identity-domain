@@ -34,7 +34,7 @@ import {
   aUserProfileWithEmail,
   aUserProfileWithoutEmail,
 } from "../../../__mocks__/session.mocks.js";
-import { makeActivateUserSessionUseCase } from "../activate-user-session.user-case.js";
+import { makeActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 
 // -----------------------------------------------------
 // Setup mocks

@@ -21,7 +21,7 @@ import {
 } from "@pagopa/io-auth-n-identity-session/value-objects";
 
 import { UserProfile } from "../domain/entities/profile.entity.js";
-import { type NewSessionToken } from "../application/use-cases/activate-user-session.user-case.js";
+import { type NewSessionToken } from "../application/use-cases/activate-user-session.use-case.js";
 
 export const aFiscalCode = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 export const anEmailAddress = EmailAddressSchema.parse("user@example.com");
