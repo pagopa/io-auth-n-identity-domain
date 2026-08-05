@@ -63,17 +63,13 @@ export class RedisObjectWrapper<
     key: string,
     value: z.output<TSchema>,
   ): Promise<Result<void, RedisError | ValidationError>> {
-    const parsed = this.valueSchema.safeParse(value);
-    if (!parsed.success) {
-      return err(
-        new ValidationError(
-          `Invalid value for key "${key}": ${z.prettifyError(parsed.error)}`,
-        ),
-      );
+    const encoded = this.encode(value);
+    if (encoded.isErr()) {
+      return err(encoded.error);
     }
 
     try {
-      await this.client.set(key, JSON.stringify(parsed.data));
+      await this.client.set(key, encoded.value);
       return ok(undefined);
     } catch (cause) {
       return err(toRedisError(`SET ${key}`, cause));
@@ -124,5 +120,17 @@ export class RedisObjectWrapper<
     }
 
     return ok(parsed.data);
+  }
+
+  private encode(object: z.output<TSchema>): Result<string, ValidationError> {
+    const result = z.safeEncode(this.valueSchema, object);
+    if (!result.success) {
+      return err(
+        new ValidationError(
+          `Invalid Set member: ${z.prettifyError(result.error)}`,
+        ),
+      );
+    }
+    return ok(JSON.stringify(result.data));
   }
 }
