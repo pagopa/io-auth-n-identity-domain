@@ -51,8 +51,12 @@ module "ca_iam" {
       resource_group_name = var.session_cosmos.resource_group_name
       description         = "Allow Session Manager Container App to read/write the io-auth-SM CosmosDB database"
       role                = "writer"
-      database            = var.session_cosmos.database_name
-      collections         = ["session-tokens", "active-sessions", "lollipop-activations"]
+      database            = azurerm_cosmosdb_sql_database.session_manager.name
+      collections = [
+        azurerm_cosmosdb_sql_container.session_tokens.name,
+        azurerm_cosmosdb_sql_container.active_sessions.name,
+        azurerm_cosmosdb_sql_container.lollipop_activations.name
+      ]
     }
   ]
 }

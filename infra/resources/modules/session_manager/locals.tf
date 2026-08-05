@@ -57,8 +57,8 @@ locals {
 
     # Session Cosmos DB (io-auth-SM) - accessed via managed identity
     COSMOSDB_URI                           = var.session_cosmos.account_uri
-    COSMOSDB_NAME                          = var.session_cosmos.database_name
-    COSMOSDB_SESSION_TOKEN_CONTAINER_NAME  = var.session_cosmos.session_token_container_name
-    COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME = var.session_cosmos.active_session_container_name
+    COSMOSDB_NAME                          = azurerm_cosmosdb_sql_database.session_manager.name
+    COSMOSDB_SESSION_TOKEN_CONTAINER_NAME  = azurerm_cosmosdb_sql_container.session_tokens.name
+    COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME = azurerm_cosmosdb_sql_container.active_sessions.name
   }
 }
