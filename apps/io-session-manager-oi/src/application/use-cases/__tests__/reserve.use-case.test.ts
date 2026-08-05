@@ -62,12 +62,12 @@ const buildInput = (overrides = {}) => ({
 });
 
 const reservePubKeyMock = vi.fn().mockResolvedValue(ok(undefined));
-const lollipopClientRepository = {
+const lollipopPort = {
   reservePubKey: reservePubKeyMock,
 } as unknown as LollipopPort;
 
 const saveMock = vi.fn().mockResolvedValue(ok(undefined));
-const ausiliarDataRepository = {
+const ausiliarDataPort = {
   save: saveMock,
 } as unknown as AusiliarDataPort;
 
@@ -89,8 +89,8 @@ const oidcConfigPort = {
 } as unknown as OidcConfigPort;
 
 const reserveUseCase = makeReserveUseCase({
-  ausiliarDataRepository,
-  lollipopClientRepository,
+  ausiliarDataPort: ausiliarDataPort,
+  lollipopPort: lollipopPort,
   oidcConfigPort,
 });
 

@@ -152,8 +152,8 @@ export const createApp = async (
   });
 
   const reserveUseCase = makeReserveUseCase({
-    ausiliarDataRepository: ausiliarStorageAdapter,
-    lollipopClientRepository: fetchLollipopAdapter,
+    ausiliarDataPort: ausiliarStorageAdapter,
+    lollipopPort: fetchLollipopAdapter,
     oidcConfigPort: oidcConfigAdapter,
   });
 

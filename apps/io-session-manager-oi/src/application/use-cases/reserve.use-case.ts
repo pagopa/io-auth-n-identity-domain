@@ -27,8 +27,8 @@ import {
 import { OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js";
 
 type ReserveDeps = {
-  ausiliarDataRepository: AusiliarDataPort;
-  lollipopClientRepository: LollipopPort;
+  ausiliarDataPort: AusiliarDataPort;
+  lollipopPort: LollipopPort;
   oidcConfigPort: OidcConfigPort;
 };
 
@@ -67,7 +67,7 @@ export const makeReserveUseCase =
       redirectUri: clientRedirectUri,
     } = oidcConfigResult.value;
 
-    const reserveResult = await deps.lollipopClientRepository.reservePubKey({
+    const reserveResult = await deps.lollipopPort.reservePubKey({
       algo: inputData.lollipopHashAlgorithm,
       pub_key: inputData.lollipopPublicKey,
     });
@@ -98,7 +98,7 @@ export const makeReserveUseCase =
       clientId,
     };
 
-    const ausiliarDataSaveResult = await deps.ausiliarDataRepository.save(
+    const ausiliarDataSaveResult = await deps.ausiliarDataPort.save(
       state,
       ausiliarData,
     );
