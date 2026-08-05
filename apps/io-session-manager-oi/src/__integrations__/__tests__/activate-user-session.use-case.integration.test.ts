@@ -2,7 +2,6 @@ import { CosmosClient } from "@azure/cosmos";
 import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { makeActivateUserSessionUseCase } from "../../application/use-cases/activate-user-session.user-case.js";
 import {
   ACTIVE_SESSION_CONTAINER_NAME,
   COSMOSDB_KEY,
@@ -10,6 +9,8 @@ import {
   COSMOSDB_URI,
   IO_PROFILE_API_KEY,
   IO_PROFILE_BASE_URL,
+  PLATFORM_INTERNAL_API_KEY,
+  PLATFORM_INTERNAL_BASE_URL,
   SESSION_TOKEN_CONTAINER_NAME,
 } from "../env.js";
 import {
@@ -21,6 +22,8 @@ import {
   seedSessionCosmosDb,
 } from "../fixtures/sessions.fixture.js";
 import { createIoProfileAdapter } from "../../adapters/outbound/io-profile.adapter.js";
+import { createPlatformInternalAdapter } from "../../adapters/outbound/platform-internal.adapter.js";
+import { makeActivateUserSessionUseCase } from "../../application/use-cases/activate-user-session.use-case.js";
 
 // The number of token documents persisted for a session: the main SESSION-
 // token plus the four SSO tokens (WALLET, BPD, FIMS, ZENDESK).
@@ -45,10 +48,15 @@ const adapter = createIoProfileAdapter({
   baseUrl: IO_PROFILE_BASE_URL,
   apiKey: IO_PROFILE_API_KEY,
 });
+const platformInternalAdapter = createPlatformInternalAdapter({
+  baseUrl: PLATFORM_INTERNAL_BASE_URL,
+  apiKey: PLATFORM_INTERNAL_API_KEY,
+});
 
 const activateUserSession = makeActivateUserSessionUseCase(
   sessionAdapter,
   adapter,
+  platformInternalAdapter,
 );
 
 describe("activate-user-session use case (integration)", () => {
@@ -63,6 +71,7 @@ describe("activate-user-session use case (integration)", () => {
       buildNewSessionTokenInput(NEW_SESSION_FISCAL_CODE),
     );
 
+    console.log("activateUserSession result", result);
     expect(result.isOk()).toBe(true);
 
     const clientSessionToken = result._unsafeUnwrap();
