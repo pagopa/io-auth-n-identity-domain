@@ -86,11 +86,22 @@ export const makeActivateUserSessionUseCase =
     }
 
     if (invalidateResult.value !== undefined) {
-      const hashedClientSessionToken = HashedClientSessionTokenSchema.parse(
-        `${invalidateResult.value.sessionId}.${invalidateResult.value.hashedSessionToken}`,
-      );
+      const hashedClientSessionTokenResult =
+        HashedClientSessionTokenSchema.safeParse(
+          `${invalidateResult.value.sessionId}.${invalidateResult.value.hashedSessionToken}`,
+        );
+
+      // This should never happen, but we check it just in case, to avoid sending an invalid token to the platform-internal service.
+      if (!hashedClientSessionTokenResult.success) {
+        return err(
+          new GenericError(
+            `Failed to parse hashed client session token: ${hashedClientSessionTokenResult.error.message}`,
+          ),
+        );
+      }
+
       const proxyResult = await platformInternal.deleteSession(
-        hashedClientSessionToken,
+        hashedClientSessionTokenResult.data,
       );
 
       if (proxyResult.isErr()) {
