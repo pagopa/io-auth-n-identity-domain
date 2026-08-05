@@ -17,10 +17,6 @@ resource "azurerm_cosmosdb_sql_container" "session_tokens" {
     indexing_mode = "consistent"
 
     included_path {
-      path = "/id/?"
-    }
-
-    included_path {
       path = "/sessionId/?"
     }
 
@@ -49,10 +45,6 @@ resource "azurerm_cosmosdb_sql_container" "active_sessions" {
     indexing_mode = "consistent"
 
     included_path {
-      path = "/id/?"
-    }
-
-    included_path {
       path = "/fiscalCode/?"
     }
 
@@ -79,10 +71,6 @@ resource "azurerm_cosmosdb_sql_container" "lollipop_activations" {
 
   indexing_policy {
     indexing_mode = "consistent"
-
-    included_path {
-      path = "/id/?"
-    }
 
     included_path {
       path = "/fiscalCode/?"
