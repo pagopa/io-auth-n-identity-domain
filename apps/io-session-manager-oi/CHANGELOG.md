@@ -1,5 +1,16 @@
 # io-session-manager-oi
 
+## 0.8.0
+
+### Minor Changes
+
+- cb0227a: Introduce activate user session use-case (base logic)
+
+### Patch Changes
+
+- Updated dependencies [cb0227a]
+  - @pagopa/io-auth-n-identity-session@0.2.0
+
 ## 0.7.0
 
 ### Minor Changes
