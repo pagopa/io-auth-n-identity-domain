@@ -1,4 +1,4 @@
-import { GenericError } from "@pagopa/hexagonal-core";
+import { GenericError, NotFoundError } from "@pagopa/hexagonal-core";
 import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -136,7 +136,10 @@ describe("AusiliarDataRedisAdapter#retrieve", () => {
 
     const result = await adapter.retrieve(ID);
 
-    expect(result).toEqual(ok(undefined));
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toEqual(
+      new NotFoundError("LoginAusiliarData", "LoginAusiliarData Not Found"),
+    );
   });
 
   it("returns err(GenericError) when the wrapper reports an error", async () => {

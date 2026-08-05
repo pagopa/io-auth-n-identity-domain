@@ -1,4 +1,4 @@
-import { GenericError } from "@pagopa/hexagonal-core";
+import { GenericError, NotFoundError } from "@pagopa/hexagonal-core";
 import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { Result } from "neverthrow";
 
@@ -12,5 +12,5 @@ export interface AusiliarDataPort extends HealthCheckOutboundPort {
 
   readonly retrieve: (
     id: string,
-  ) => Promise<Result<LoginAusiliarData | undefined, GenericError>>;
+  ) => Promise<Result<LoginAusiliarData, GenericError | NotFoundError>>;
 }

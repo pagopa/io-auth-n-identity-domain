@@ -1,4 +1,4 @@
-import { GenericError } from "@pagopa/hexagonal-core";
+import { GenericError, NotFoundError } from "@pagopa/hexagonal-core";
 import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 import { err, ok, type Result } from "neverthrow";
 import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
@@ -59,13 +59,18 @@ export class AusiliarDataRedisAdapter implements AusiliarDataPort {
 
   async retrieve(
     id: string,
-  ): Promise<Result<LoginAusiliarData | undefined, GenericError>> {
+  ): Promise<Result<LoginAusiliarData, GenericError | NotFoundError>> {
     const result = await this.redis.get(`${REDIS_AUSILIAR_DATA_PREFIX}${id}`);
     if (result.isErr()) {
       return err(
         new GenericError(
           `Redis retrieve operation failed: ${result.error.message}`,
         ),
+      );
+    }
+    if (result.value === undefined) {
+      return err(
+        new NotFoundError("LoginAusiliarData", "LoginAusiliarData Not Found"),
       );
     }
     return ok(result.value);
