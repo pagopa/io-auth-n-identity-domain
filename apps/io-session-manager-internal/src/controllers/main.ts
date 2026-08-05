@@ -173,6 +173,7 @@ app.http("DeleteUserSession", {
   route: `${v1BasePath}/sessions/{fiscalCode}/logout`,
 });
 
+// used to support the new session data model rollout plan
 app.http("GetUserLollipopActivation", {
   authLevel: "function",
   handler: GetUserLollipopActivationFunction({
