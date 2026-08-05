@@ -99,6 +99,19 @@ export const RedisConfigSchema = z.object({
 export type RedisConfig = z.infer<typeof RedisConfigSchema>;
 
 /**
+ * Session Cosmos DB configuration schema.
+ * Consists of the database name and the container names used by the
+ * SessionCosmosAdapter to store session tokens and active sessions.
+ */
+export const SessionCosmosConfigSchema = z.object({
+  COSMOSDB_NAME: NonEmptyStringSchema,
+  COSMOSDB_SESSION_TOKEN_CONTAINER_NAME: NonEmptyStringSchema,
+  COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME: NonEmptyStringSchema,
+});
+
+export type SessionCosmosConfig = z.infer<typeof SessionCosmosConfigSchema>;
+
+/**
  * Fields shared by every runtime environment.
  * Individual environment schemas extend this with their own discriminator + extras.
  */
@@ -110,6 +123,7 @@ const CommonConfigShape = {
   ...IoSmIntConfigSchema.shape,
   ...NotificationQueueConfigSchema.shape,
   ...RedisConfigSchema.shape,
+  ...SessionCosmosConfigSchema.shape,
 };
 
 /**
@@ -121,6 +135,7 @@ export const ProductionConfigSchema = z.object({
   NODE_ENV: z.literal("production"),
   LOCKED_PROFILES_STORAGE_ACCOUNT_URI: z.url(),
   PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI: z.url(),
+  COSMOSDB_URI: z.url(),
 });
 
 export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
@@ -135,6 +150,7 @@ export const DevelopmentConfigSchema = z.object({
   LOCKED_PROFILES_STORAGE_CONNECTION_STRING: NonEmptyStringSchema,
   PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING: NonEmptyStringSchema,
   REDIS_PASSWORD: NonEmptyStringSchema.optional(),
+  COSMOSDB_CONNECTION_STRING: NonEmptyStringSchema,
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;

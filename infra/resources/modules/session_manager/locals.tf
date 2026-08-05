@@ -54,5 +54,11 @@ locals {
     REDIS_HOSTNAME    = split(":", module.managed_redis.endpoint)[0]
     REDIS_PORT        = split(":", module.managed_redis.endpoint)[1]
     REDIS_TLS_ENABLED = "true"
+
+    # Session Cosmos DB (io-auth-SM) - accessed via managed identity
+    COSMOSDB_URI                           = var.session_cosmos.account_uri
+    COSMOSDB_NAME                          = var.session_cosmos.database_name
+    COSMOSDB_SESSION_TOKEN_CONTAINER_NAME  = var.session_cosmos.session_token_container_name
+    COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME = var.session_cosmos.active_session_container_name
   }
 }
