@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-domain
 
+## 0.3.1
+
+### Patch Changes
+
+- 6993b6a: Fix: EC key doesnt require alg field
+
 ## 0.3.0
 
 ### Minor Changes

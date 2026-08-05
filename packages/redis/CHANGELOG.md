@@ -1,5 +1,11 @@
 # @pagopa/redis
 
+## 0.2.0
+
+### Minor Changes
+
+- 6993b6a: Added redis object wrapper
+
 ## 0.1.0
 
 ### Minor Changes
