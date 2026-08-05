@@ -51,6 +51,7 @@ export const makeActivateUserSessionUseCase =
     profiles: ProfilePort,
   ): ActivateUserSessionUseCase =>
   async (input) => {
+    // TODO: check if we can move newSessionId() within newActiveSession() to avoid having to pass sessionId as a parameter
     const sessionId = await newSessionId();
 
     const activeSession: ActiveSession = newActiveSession({
