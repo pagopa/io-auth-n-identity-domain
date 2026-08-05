@@ -4,8 +4,8 @@ import {
   GenericError,
   ValidationError,
 } from "@pagopa/hexagonal-core";
+import { RedisError } from "@pagopa/redis";
 import {
-  type RedisError,
   type RedisNodeClient,
   RedisSetWrapper,
 } from "@pagopa/redis/set-wrapper";

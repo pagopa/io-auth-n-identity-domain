@@ -46,6 +46,20 @@ module "session_manager" {
     base_path = "/api/v1"
   }
 
+  oneid_configuration = {
+    prod = {
+      client_id = "8-yuXJFJNLNho_dwvQkOr6saiK0tXc41rxKjkCO4Wqs"
+      issuer    = "https://io.oneid.pagopa.it"
+      # TODO: change me with actual prod callback (mocked with localhost for URL
+      # constructor pass)
+      redirect_uri = "http://localhost/callback"
+    }
+    uat = {
+      client_id = "PttY9yV4MgvHgTmaJBc1GWYLNITw1LKJonaEde1Rgd4"
+      issuer    = "https://uat.io.oneid.pagopa.it"
+    }
+  }
+
   action_group_id = azurerm_monitor_action_group.error_action_group.id
 
   session_cosmos = {

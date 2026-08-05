@@ -1,0 +1,53 @@
+meta {
+  name: Reserve
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/reserve?authLevel=SpidL2&env=PROD
+  body: none
+  auth: inherit
+}
+
+params:query {
+  authLevel: SpidL2
+  env: PROD
+}
+
+headers {
+  x-pagopa-login-type: LV
+}
+
+script:pre-request {
+  const crypto = require("node:crypto");
+  const jose = require("node-jose");
+  
+  req.setMaxRedirects(0);
+  
+  const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
+    namedCurve: "P-256",
+    publicKeyEncoding: {
+      type: "spki",
+      format: "jwk",
+    },
+    privateKeyEncoding: {
+      type: "pkcs8",
+      format: "jwk"
+    }
+  });
+  
+  const jwk = JSON.stringify(publicKey);
+  const encodedPubKey = Buffer.from(jwk).toString("base64url");
+  const encodedPrivateKey =  Buffer.from(JSON.stringify(privateKey)).toString("base64url")
+  
+  const assertionRef = await jose.JWK.asKey(jwk)
+    .then(key => key.thumbprint('SHA-256'))
+    .then(thumbprint => thumbprint.toString('base64url'));
+  
+  req.setHeader("x-pagopa-lollipop-pub-key", encodedPubKey);
+  
+  bru.setEnvVar("publicKey", encodedPubKey)
+  bru.setEnvVar("privateKey", encodedPrivateKey)
+  bru.setEnvVar("assertionRef", `sha256-${assertionRef}`)
+}

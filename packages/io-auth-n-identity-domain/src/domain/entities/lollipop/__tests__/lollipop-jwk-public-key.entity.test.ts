@@ -11,7 +11,6 @@ const encode = (value: unknown): string =>
   Buffer.from(JSON.stringify(value)).toString("base64url");
 
 const validEcKey = {
-  alg: "ES256",
   crv: "P-256" as const,
   kty: "EC" as const,
   x: "abc",

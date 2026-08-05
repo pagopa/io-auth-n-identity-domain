@@ -80,6 +80,19 @@ export type NotificationQueueConfig = z.infer<
   typeof NotificationQueueConfigSchema
 >;
 
+const OneIdConfigSchema = z.object({
+  ONEID_PROD_CLIENT_ID: NonEmptyStringSchema,
+  ONEID_PROD_CLIENT_SECRET: NonEmptyStringSchema,
+  ONEID_PROD_ISSUER: NonEmptyStringSchema,
+  ONEID_PROD_REDIRECT_URI: NonEmptyStringSchema,
+
+  ONEID_UAT_CLIENT_ID: NonEmptyStringSchema.optional(),
+  ONEID_UAT_CLIENT_SECRET: NonEmptyStringSchema.optional(),
+  ONEID_UAT_ISSUER: NonEmptyStringSchema.optional(),
+});
+
+export type OneIdConfig = z.infer<typeof OneIdConfigSchema>;
+
 /**
  * Redis configuration schema.
  *
@@ -124,6 +137,7 @@ const CommonConfigShape = {
   ...NotificationQueueConfigSchema.shape,
   ...RedisConfigSchema.shape,
   ...SessionCosmosConfigSchema.shape,
+  ...OneIdConfigSchema.shape,
 };
 
 /**
