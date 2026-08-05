@@ -15,7 +15,7 @@ vi.mock("../../../generated/platform-internal/sdk.gen.js", () => ({
   deleteSession: vi.fn(),
 }));
 
-const SESSION_TOKEN = "a".repeat(64) as HashedClientSessionToken;
+const SESSION_TOKEN = `aValidSessionId.${"a".repeat(64)}` as HashedClientSessionToken;
 
 const adapter = createPlatformInternalAdapter({
   baseUrl: "http://localhost",

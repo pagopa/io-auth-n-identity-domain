@@ -4,6 +4,6 @@ import { HashedClientSessionToken } from "../../value-objects/client-session-tok
 
 export interface PlatformInternalPort {
   deleteSession(
-    hashedSessionToken: HashedClientSessionToken,
+    hashedClientSessionToken: HashedClientSessionToken,
   ): Promise<Result<void, GenericError>>;
 }
