@@ -151,22 +151,3 @@ variable "session_cosmos" {
   })
   description = "Cosmos DB (io-auth-SM) accessed by the Session Manager Container App via managed identity"
 }
-
-####################
-# OneID (SPID/CIE) #
-####################
-
-variable "oneid_configuration" {
-  type = object({
-    prod = object({
-      client_id    = string
-      issuer       = string
-      redirect_uri = string
-    }),
-    uat = object({
-      client_id = string
-      issuer    = string
-    })
-  })
-  description = "Non-secret configuration for the OneID (SPID/CIE) identity provider, split by environment (prod/uat). Client secrets are managed via Key Vault, see kv_secrets.tf."
-}
