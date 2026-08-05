@@ -87,6 +87,8 @@ export const makeReserveUseCase =
       currentUser: inputData.currentUser,
       lollipopAssertionRef: reserveResult.value,
       clientId,
+      oidcConfigurationEnv: inputData.oidcConfigurationEnv,
+      nonce,
     };
 
     const ausiliarDataSaveResult = await deps.ausiliarDataPort.save(

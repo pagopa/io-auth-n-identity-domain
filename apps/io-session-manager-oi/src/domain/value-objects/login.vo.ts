@@ -1,6 +1,7 @@
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
+import { OidcConfigurationEnvSchema } from "./oidc.vo.js";
 
 export const SpidAuthLevel = z.union([
   z.literal("SpidL2"),
@@ -28,6 +29,8 @@ export const LoginAusiliarDataSchema = z.object({
   lollipopAssertionRef: LollipopAssertionRefSchema,
   clientId: NonEmptyStringSchema,
   minAuthLevel: SpidAuthLevel,
+  oidcConfigurationEnv: OidcConfigurationEnvSchema,
+  nonce: NonEmptyStringSchema,
 });
 
 export type LoginAusiliarData = z.infer<typeof LoginAusiliarDataSchema>;

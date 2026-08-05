@@ -26,6 +26,7 @@ const AUSILIAR_DATA: LoginAusiliarData = {
   clientId: "client-id" as LoginAusiliarData["clientId"],
   minAuthLevel: "SpidL2",
   oidcConfigurationEnv: "PROD",
+  nonce: "a-nonce" as LoginAusiliarData["nonce"],
 };
 
 const saveMock = vi.fn();

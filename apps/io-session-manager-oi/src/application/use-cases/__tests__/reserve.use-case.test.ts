@@ -122,6 +122,8 @@ describe("makeReserveUseCase", () => {
       currentUser: input.currentUser,
       lollipopAssertionRef: `${LOLLIPOP_HASH_ALGORITHM}-${LOLLIPOP_PUBLIC_KEY_THUMBPRINT}`,
       clientId: PROD_CLIENT_ID,
+      oidcConfigurationEnv: "PROD",
+      nonce: MOCKED_HEX_RANDOM_BYTES,
     });
 
     expect(result.isOk()).toBe(true);
