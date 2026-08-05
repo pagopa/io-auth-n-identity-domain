@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.2.0
+
+### Minor Changes
+
+- cb0227a: Introduce activate user session use-case (base logic)
+
 ## 0.1.0
 
 ### Minor Changes
