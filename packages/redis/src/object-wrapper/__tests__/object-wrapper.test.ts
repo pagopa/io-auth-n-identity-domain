@@ -13,8 +13,18 @@ import { RedisClientType, RedisClusterType } from "redis";
 
 const KEY = "RESERVE-abc";
 
-const ValueSchema = z.object({ id: z.string(), name: z.string() });
-const VALUE = { id: "1", name: "Ada" };
+const ValueSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  // NumberFromString codec to test encode behaviour
+  parameter: z.codec(z.string(), z.number(), {
+    decode: (string) => +string,
+    encode: String,
+  }),
+});
+const aNumber = 100;
+const VALUE = { id: "1", name: "Ada", parameter: aNumber };
+const ENCODED_VALUE = ValueSchema.encode(VALUE);
 
 const getMock = vi.fn();
 const setMock = vi.fn();
@@ -49,7 +59,22 @@ describe("RedisObjectWrapper#save", () => {
     const result = await wrapper.save(KEY, VALUE);
 
     expect(result.isOk()).toBe(true);
-    expect(setMock).toHaveBeenCalledExactlyOnceWith(KEY, JSON.stringify(VALUE));
+    expect(setMock).toHaveBeenCalledExactlyOnceWith(
+      KEY,
+      JSON.stringify(ENCODED_VALUE),
+    );
+  });
+
+  it("should encode before storing", async () => {
+    setMock.mockResolvedValueOnce("OK");
+
+    const result = await wrapper.save(KEY, VALUE);
+
+    expect(result.isOk()).toBe(true);
+    expect(setMock).toHaveBeenCalledExactlyOnceWith(
+      KEY,
+      JSON.stringify(ENCODED_VALUE),
+    );
   });
 
   it("should return ValidationError when the value doesn't match the schema", async () => {
@@ -107,7 +132,7 @@ describe("RedisObjectWrapper#get", () => {
   });
 
   it("should parse, validate and store the JSON value", async () => {
-    getMock.mockResolvedValueOnce(JSON.stringify(VALUE));
+    getMock.mockResolvedValueOnce(JSON.stringify(ENCODED_VALUE));
 
     const result = await wrapper.get(KEY);
 
@@ -147,7 +172,9 @@ describe("RedisObjectWrapper#get", () => {
 
 describe("RedisObjectWrapper — topology", () => {
   it("accepts a single-node client and preserves its concrete type via getClient()", async () => {
-    const nodeGet = vi.fn().mockResolvedValueOnce(JSON.stringify(VALUE));
+    const nodeGet = vi
+      .fn()
+      .mockResolvedValueOnce(JSON.stringify(ENCODED_VALUE));
     const nodeStub = {
       get: nodeGet,
       set: vi.fn(),
