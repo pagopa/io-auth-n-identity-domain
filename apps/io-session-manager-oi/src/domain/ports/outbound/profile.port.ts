@@ -10,7 +10,7 @@ import { type Result } from "neverthrow";
 
 import { UserProfile } from "../../entities/profile.entity.js";
 
-export interface NotifyLoginParams {
+export interface NotifyLoginParamsDTO {
   fiscalCode: FiscalCode;
   name: NonEmptyString;
   familyName: NonEmptyString;
@@ -27,5 +27,7 @@ export interface ProfilePort {
   create(
     newProfile: UserProfile,
   ): Promise<Result<UserProfile, ConflictError | GenericError>>;
-  notifyLogin(params: NotifyLoginParams): Promise<Result<void, GenericError>>;
+  notifyLogin(
+    params: NotifyLoginParamsDTO,
+  ): Promise<Result<void, GenericError>>;
 }

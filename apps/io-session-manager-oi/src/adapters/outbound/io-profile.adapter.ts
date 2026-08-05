@@ -8,7 +8,7 @@ import { err, ok, type Result } from "neverthrow";
 
 import { type UserProfile } from "../../domain/entities/profile.entity.js";
 import type {
-  NotifyLoginParams,
+  NotifyLoginParamsDTO,
   ProfilePort,
 } from "../../domain/ports/outbound/profile.port.js";
 import { createClient } from "../../generated/io-profile/client/index.js";
@@ -145,7 +145,7 @@ export const createIoProfileAdapter = (config: {
       }
     },
     notifyLogin: async (
-      params: NotifyLoginParams,
+      params: NotifyLoginParamsDTO,
     ): Promise<Result<void, GenericError>> => {
       const { response } = await startNotifyLoginProcess({
         client,
