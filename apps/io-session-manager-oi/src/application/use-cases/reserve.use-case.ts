@@ -9,10 +9,8 @@ import {
 } from "@pagopa/hexagonal-core";
 import {
   JwkPublicKeyBase64UrlString,
-  LollipopAssertionRef,
   LollipopJwkHashingAlgorithm,
 } from "@pagopa/io-auth-n-identity-domain";
-import { calculateJwkThumbprint } from "jose";
 import { err, ok } from "neverthrow";
 
 import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
@@ -82,19 +80,12 @@ export const makeReserveUseCase =
 
     const state = randomBytes(24).toString("hex") as NonEmptyString;
     const nonce = randomBytes(24).toString("hex") as NonEmptyString;
-    const lollipopPubKeyThumbprint = await calculateJwkThumbprint(
-      inputData.lollipopPublicKey,
-      inputData.lollipopHashAlgorithm,
-    );
-
-    const lollipopAssertionRef =
-      `${inputData.lollipopHashAlgorithm}-${lollipopPubKeyThumbprint}` as LollipopAssertionRef;
 
     const ausiliarData: LoginAusiliarData = {
       minAuthLevel: inputData.authLevel,
       loginType: inputData.loginType,
       currentUser: inputData.currentUser,
-      lollipopAssertionRef,
+      lollipopAssertionRef: reserveResult.value,
       clientId,
     };
 

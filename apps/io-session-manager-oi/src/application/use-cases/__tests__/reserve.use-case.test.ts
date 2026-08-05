@@ -61,7 +61,11 @@ const buildInput = (overrides = {}) => ({
   ...overrides,
 });
 
-const reservePubKeyMock = vi.fn().mockResolvedValue(ok(undefined));
+const reservePubKeyMock = vi
+  .fn()
+  .mockResolvedValue(
+    ok(`${LOLLIPOP_HASH_ALGORITHM}-${LOLLIPOP_PUBLIC_KEY_THUMBPRINT}`),
+  );
 const lollipopPort = {
   reservePubKey: reservePubKeyMock,
 } as unknown as LollipopPort;

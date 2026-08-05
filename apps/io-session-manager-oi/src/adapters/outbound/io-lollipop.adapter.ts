@@ -23,6 +23,7 @@ import type {
 } from "../../generated/io-lollipop/types.gen.js";
 
 import { LcParamsDto } from "./dtos/io-lollipop.dto.js";
+import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 
 export const createIoLollipopAdapter = (config: {
   baseUrl: string;
@@ -37,7 +38,7 @@ export const createIoLollipopAdapter = (config: {
 
   return {
     reservePubKey: async (payload) => {
-      const { response } = await reservePubKey({
+      const { response, data } = await reservePubKey({
         client,
         body: {
           algo: payload.algo,
@@ -52,7 +53,16 @@ export const createIoLollipopAdapter = (config: {
         | keyof ReservePubKeyErrors;
       switch (status) {
         case 201:
-          return ok(undefined);
+          const parsed = LollipopAssertionRefSchema.safeParse(
+            data?.assertion_ref,
+          );
+          return parsed.success
+            ? ok(parsed.data)
+            : err(
+                new GenericError(
+                  `Invalid reservePubKey response: ${parsed.error.message}`,
+                ),
+              );
         case 400:
         case 403:
         case 500:
