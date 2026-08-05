@@ -25,6 +25,7 @@ import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/config.vo.js";
 import { LoginAusiliarDataSchema } from "./domain/value-objects/login.vo.js";
+import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 
 class AzureCredential {
   private static instance: DefaultAzureCredential | undefined;

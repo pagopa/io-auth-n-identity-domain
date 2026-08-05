@@ -196,7 +196,7 @@ catalogs:
       specifier: ^0.5.19
       version: 0.5.19
     jose:
-      specifier: ^5.3.0
+      specifier: ^5.9.4
       version: 5.9.4
     jsonwebtoken:
       specifier: ^9.0.2
@@ -1342,9 +1342,6 @@ importers:
       fastify:
         specifier: 'catalog:'
         version: 5.8.5
-      jose:
-        specifier: 'catalog:'
-        version: 5.9.4
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0
