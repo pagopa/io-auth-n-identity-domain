@@ -10,7 +10,7 @@ import {
 import { NonEmptyStringBrand } from "@pagopa/hexagonal-core/domain/value-objects";
 
 export const _clientSessionTokenBrand: unique symbol =
-  Symbol.for("ClientSessionToken");
+  Symbol("ClientSessionToken");
 
 export const ClientSessionTokenSchema = z
   .templateLiteral([SessionIdSchema, ".", PlainSessionTokenSchema])
