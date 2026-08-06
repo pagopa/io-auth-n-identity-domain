@@ -23,7 +23,6 @@ import {
 
 import { TableClient } from "@azure/data-tables";
 import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
-import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
 import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
 import { SessionState } from "../generated/definitions/internal/SessionState";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
