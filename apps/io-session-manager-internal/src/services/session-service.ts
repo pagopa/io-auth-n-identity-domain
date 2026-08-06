@@ -22,6 +22,7 @@ import {
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
 
 import { TableClient } from "@azure/data-tables";
+import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
 import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
 import { SessionState } from "../generated/definitions/internal/SessionState";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
@@ -38,9 +39,11 @@ import {
   ConflictError,
   ForbiddenError,
   GenericError,
+  NotFoundError,
   forbiddenError,
   toConflictError,
   toGenericError,
+  toNotFoundError,
 } from "../utils/errors";
 import { PlatformInternalRepository } from "../repositories/platform-internal";
 import { PlatformInternalApiClient } from "../utils/platform-internal-client";
@@ -452,6 +455,43 @@ const emitLogoutEvent: (
       }),
     );
 
+export type GetUserLollipopActivationDeps = Pick<
+  RedisDeps,
+  "SafeRedisClientTask" | "RedisRepository"
+>;
+const getUserLollipopActivation: (
+  fiscalCode: FiscalCode,
+) => RTE.ReaderTaskEither<
+  GetUserLollipopActivationDeps,
+  GenericError | NotFoundError,
+  AssertionRef
+> = (fiscalCode) => (deps) =>
+  pipe(
+    deps.SafeRedisClientTask,
+    TE.mapLeft((err) =>
+      toGenericError(`Could not establish connection to redis: ${err.message}`),
+    ),
+    TE.chainW((safeClient) =>
+      pipe(
+        deps.RedisRepository.getLollipopAssertionRefForUser({
+          safeClient,
+          fiscalCode,
+        }),
+        TE.mapLeft((err) =>
+          toGenericError(
+            `Error reading the lollipop assertion ref: [${err.message}]`,
+          ),
+        ),
+      ),
+    ),
+    TE.chainW((maybeAssertionRef) =>
+      pipe(
+        maybeAssertionRef,
+        TE.fromOption(() => toNotFoundError("LollipopActivation")),
+      ),
+    ),
+  );
+
 export type SessionService = typeof SessionService;
 export const SessionService = {
   getUserSession,
@@ -460,4 +500,5 @@ export const SessionService = {
   deleteUserSession,
   invalidateUserSession,
   getUserSessionState,
+  getUserLollipopActivation,
 };
