@@ -33,6 +33,7 @@ import {
 import { RejectedLoginEventProcessorFunction } from "./rejected-login-event-processor";
 import { PlatformInternalRepository } from "../repositories/platform-internal";
 import { getPlatformInternalApiClient } from "../utils/platform-internal-client";
+import { GetUserLollipopActivationFunction } from "./get-lollipop-activation";
 
 const v1BasePath = "api/v1";
 const config = getConfigOrThrow();
@@ -170,6 +171,18 @@ app.http("DeleteUserSession", {
   }),
   methods: ["POST"],
   route: `${v1BasePath}/sessions/{fiscalCode}/logout`,
+});
+
+// used to support the new session data model rollout plan
+app.http("GetUserLollipopActivation", {
+  authLevel: "function",
+  handler: GetUserLollipopActivationFunction({
+    SafeRedisClientTask: safeRedisClientTask,
+    SessionService,
+    RedisRepository,
+  }),
+  methods: ["GET"],
+  route: `${v1BasePath}/lollipop/{fiscalCode}/activation`,
 });
 
 // //////////////////////////////

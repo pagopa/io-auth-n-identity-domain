@@ -41,6 +41,7 @@ import {
   mockDeleteInstallation,
 } from "../../__mocks__/repositories/installation.mock";
 import {
+  anAssertionRef,
   anUnlockCode,
   anUnlockedUserSessionState,
   anotherUnlockCode,
@@ -50,6 +51,7 @@ import {
   forbiddenError,
   toConflictError,
   toGenericError,
+  toNotFoundError,
 } from "../../utils/errors";
 import { aNotReleasedData } from "../../__mocks__/table-client.mock";
 import { LoginTypeEnum } from "../../types/fast-login";
@@ -834,6 +836,66 @@ describe("Session Service#getUserSessionState", () => {
     expect(result).toEqual(
       E.left(
         toGenericError(`Error reading the session info: [${anErrorMessage}]`),
+      ),
+    );
+  });
+});
+
+describe("Session Service#getUserLollipopActivation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const deps = {
+    SafeRedisClientTask: RedisClientTaskMock,
+    RedisRepository: RedisRepositoryMock,
+  };
+
+  it("should succeed returning the user assertion ref", async () => {
+    const result =
+      await SessionService.getUserLollipopActivation(aFiscalCode)(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.right(anAssertionRef));
+  });
+
+  it("should return NotFoundError when no assertion ref is stored for the user", async () => {
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(TE.right(O.none));
+
+    const result =
+      await SessionService.getUserLollipopActivation(aFiscalCode)(deps)();
+
+    expect(result).toEqual(E.left(toNotFoundError("LollipopActivation")));
+  });
+
+  it("should return generic error when redis is not available", async () => {
+    const anErrorMessage = "ERROR";
+    const expectedError = toGenericError(
+      `Could not establish connection to redis: ${anErrorMessage}`,
+    );
+
+    const result = await SessionService.getUserLollipopActivation(aFiscalCode)({
+      ...deps,
+      SafeRedisClientTask: TE.left(Error(anErrorMessage)),
+    })();
+
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return generic error when assertion ref retrieval fails", async () => {
+    const anErrorMessage = "ERROR";
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(
+      TE.left(new Error(anErrorMessage)),
+    );
+
+    const result =
+      await SessionService.getUserLollipopActivation(aFiscalCode)(deps)();
+
+    expect(result).toEqual(
+      E.left(
+        toGenericError(
+          `Error reading the lollipop assertion ref: [${anErrorMessage}]`,
+        ),
       ),
     );
   });
