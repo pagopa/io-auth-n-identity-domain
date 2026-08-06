@@ -5,17 +5,20 @@ import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
 import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import { type PackageInfo } from "@pagopa/io-package-info";
 import {
-  createRedisNodeClient,
   createRedisManagedIdentityNodeClient,
+  createRedisNodeClient,
 } from "@pagopa/redis/node-client";
 import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
 import { CosmosClient } from "@azure/cosmos";
+import { ServiceBusClient } from "@azure/service-bus";
 import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
+import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { AusiliarDataRedisAdapter } from "./adapters/outbound/ausiliar-data.adapter.js";
+import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
@@ -25,7 +28,6 @@ import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAusiliarDataSchema } from "./domain/value-objects/login.vo.js";
-import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 
 class AzureCredential {
   private static instance: DefaultAzureCredential | undefined;
@@ -158,6 +160,18 @@ export const createApp = async (
     oidcConfigPort: oidcConfigAdapter,
   });
 
+  const serviceBusClient =
+    config.NODE_ENV === "production"
+      ? new ServiceBusClient(
+          config.SERVICE_BUS_HOSTNAME,
+          AzureCredential.getInstance(),
+        )
+      : new ServiceBusClient(config.SERVICE_BUS_CONNECTION_STRING);
+
+  const authEventServiceBusAdapter = new AuthEventServiceBusAdapter(
+    serviceBusClient.createSender(config.AUTH_SESSIONS_TOPIC_NAME),
+  );
+
   // --------------------------------------------------
   // Endpoints mounting
   // --------------------------------------------------
@@ -185,6 +199,10 @@ export const createApp = async (
       {
         name: ausiliarStorageAdapter.constructor.name,
         port: ausiliarStorageAdapter,
+      },
+      {
+        name: authEventServiceBusAdapter.constructor.name,
+        port: authEventServiceBusAdapter,
       },
     ]),
   );
