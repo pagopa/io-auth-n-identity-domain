@@ -79,6 +79,12 @@ variable "log_analytics_workspace_id" {
   description = "Log Analytics Workspace ID for monitoring"
 }
 
+variable "action_group_id" {
+  type        = string
+  description = "The ID of the Action Group to invoke when an alert is triggered"
+}
+
+
 
 ##############
 # Key Vaults #
@@ -137,10 +143,11 @@ variable "io_session_manager_internal" {
   description = "Configuration for IO Session Manager Internal service"
 }
 
-variable "redis" {
+variable "session_cosmos" {
   type = object({
-    hostname = string
-    ssl_port = number
+    account_uri         = string
+    account_name        = string
+    resource_group_name = string
   })
-  description = "Configuration for Redis service"
+  description = "Cosmos DB (io-auth-SM) accessed by the Session Manager Container App via managed identity"
 }

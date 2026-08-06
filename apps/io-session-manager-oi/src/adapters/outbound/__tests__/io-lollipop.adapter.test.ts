@@ -97,6 +97,14 @@ const aValidLCParamsResult: LcParamsDto = {
   lc_authentication_bearer: "aBearerTokenJWT" as NonEmptyString,
 };
 
+const aValidReservePubKeyResult = {
+  assertion_ref: anAssertionRef,
+  pub_key: anEncodedJwk,
+  version: 0,
+  status: "PENDING",
+  ttl: 900,
+};
+
 const adapter = createIoLollipopAdapter({
   baseUrl: "https://api.example.com",
   apiKey: "test-api-key",
@@ -107,9 +115,9 @@ beforeEach(() => {
 });
 
 describe("createIoLollipopAdapter#reservePubKey", () => {
-  it("returns ok(undefined) on 201 Success", async () => {
+  it("returns ok(assertion_ref) on 201 Success", async () => {
     vi.mocked(reservePubKey).mockResolvedValue({
-      data: undefined,
+      data: aValidReservePubKeyResult,
       error: undefined,
       response: { status: 201 } as Response,
     } as never);
@@ -117,7 +125,9 @@ describe("createIoLollipopAdapter#reservePubKey", () => {
     const result = await adapter.reservePubKey(aNewPubKeyPayload);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBeUndefined();
+    expect(result._unsafeUnwrap()).toEqual(
+      aValidReservePubKeyResult.assertion_ref,
+    );
   });
 
   it.each`

@@ -1,6 +1,6 @@
 {
   "name": "@pagopa/redis",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "type": "module",
   "files": [
@@ -18,6 +18,10 @@
     "./set-wrapper": {
       "types": "./dist/set-wrapper/index.d.ts",
       "import": "./dist/set-wrapper/index.js"
+    },
+    "./object-wrapper": {
+      "types": "./dist/object-wrapper/index.d.ts",
+      "import": "./dist/object-wrapper/index.js"
     }
   },
   "scripts": {
@@ -35,7 +39,10 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@azure/identity": "catalog:",
     "@pagopa/typescript-config-node22": "workspace:^",
+    "@redis/client": "^6.1.0",
+    "@redis/entraid": "^6.1.0",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
@@ -46,6 +53,9 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
+    "@azure/identity": "catalog:",
+    "@redis/client": "^6.1.0",
+    "@redis/entraid": "^6.1.0",
     "redis": "^6.1.0"
   }
 }

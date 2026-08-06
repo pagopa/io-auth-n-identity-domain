@@ -46,8 +46,11 @@ module "session_manager" {
     base_path = "/api/v1"
   }
 
-  redis = {
-    hostname = module.redis_common_itn.hostname
-    ssl_port = module.redis_common_itn.ssl_port
+  action_group_id = azurerm_monitor_action_group.error_action_group.id
+
+  session_cosmos = {
+    account_uri         = data.azurerm_cosmosdb_account.cosmos_citizen_auth.endpoint
+    account_name        = data.azurerm_cosmosdb_account.cosmos_citizen_auth.name
+    resource_group_name = data.azurerm_resource_group.core_domain_data_rg.name
   }
 }

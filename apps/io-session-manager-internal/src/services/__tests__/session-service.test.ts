@@ -53,7 +53,6 @@ import {
   toConflictError,
   toGenericError,
   toNotFoundError,
-  toNotFoundError,
 } from "../../utils/errors";
 import { aNotReleasedData } from "../../__mocks__/table-client.mock";
 import { LoginTypeEnum } from "../../types/fast-login";

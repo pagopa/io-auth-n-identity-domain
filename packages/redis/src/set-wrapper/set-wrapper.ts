@@ -3,7 +3,7 @@ import { err, ok, type Result } from "neverthrow";
 import type { RedisClientType, RedisClusterType } from "redis";
 import { z } from "zod";
 
-import { RedisError, toRedisError } from "./errors.js";
+import { RedisError, toRedisError } from "../errors.js";
 
 /**
  * The concrete `redis` single-node client shape accepted by

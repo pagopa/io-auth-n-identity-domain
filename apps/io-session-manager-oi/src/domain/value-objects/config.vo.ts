@@ -80,6 +80,19 @@ export type NotificationQueueConfig = z.infer<
   typeof NotificationQueueConfigSchema
 >;
 
+const OneIdConfigSchema = z.object({
+  ONEID_PROD_CLIENT_ID: NonEmptyStringSchema,
+  ONEID_PROD_CLIENT_SECRET: NonEmptyStringSchema,
+  ONEID_PROD_ISSUER: NonEmptyStringSchema,
+  ONEID_PROD_REDIRECT_URI: NonEmptyStringSchema,
+
+  ONEID_UAT_CLIENT_ID: NonEmptyStringSchema.optional(),
+  ONEID_UAT_CLIENT_SECRET: NonEmptyStringSchema.optional(),
+  ONEID_UAT_ISSUER: NonEmptyStringSchema.optional(),
+});
+
+export type OneIdConfig = z.infer<typeof OneIdConfigSchema>;
+
 /**
  * Redis configuration schema.
  *
@@ -93,11 +106,23 @@ export type NotificationQueueConfig = z.infer<
 export const RedisConfigSchema = z.object({
   REDIS_HOSTNAME: NonEmptyStringSchema,
   REDIS_PORT: z.coerce.number().int().min(1).max(65535).optional(),
-  REDIS_PASSWORD: NonEmptyStringSchema.optional(),
   REDIS_TLS_ENABLED: z.stringbool().default(true),
 });
 
 export type RedisConfig = z.infer<typeof RedisConfigSchema>;
+
+/**
+ * Session Cosmos DB configuration schema.
+ * Consists of the database name and the container names used by the
+ * SessionCosmosAdapter to store session tokens and active sessions.
+ */
+export const SessionCosmosConfigSchema = z.object({
+  COSMOSDB_NAME: NonEmptyStringSchema,
+  COSMOSDB_SESSION_TOKEN_CONTAINER_NAME: NonEmptyStringSchema,
+  COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME: NonEmptyStringSchema,
+});
+
+export type SessionCosmosConfig = z.infer<typeof SessionCosmosConfigSchema>;
 
 /**
  * Fields shared by every runtime environment.
@@ -111,6 +136,8 @@ const CommonConfigShape = {
   ...IoSmIntConfigSchema.shape,
   ...NotificationQueueConfigSchema.shape,
   ...RedisConfigSchema.shape,
+  ...SessionCosmosConfigSchema.shape,
+  ...OneIdConfigSchema.shape,
 };
 
 /**
@@ -122,6 +149,7 @@ export const ProductionConfigSchema = z.object({
   NODE_ENV: z.literal("production"),
   LOCKED_PROFILES_STORAGE_ACCOUNT_URI: z.url(),
   PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI: z.url(),
+  COSMOSDB_URI: z.url(),
 });
 
 export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
@@ -135,6 +163,8 @@ export const DevelopmentConfigSchema = z.object({
   NODE_ENV: z.literal("development"),
   LOCKED_PROFILES_STORAGE_CONNECTION_STRING: NonEmptyStringSchema,
   PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING: NonEmptyStringSchema,
+  REDIS_PASSWORD: NonEmptyStringSchema.optional(),
+  COSMOSDB_CONNECTION_STRING: NonEmptyStringSchema,
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;

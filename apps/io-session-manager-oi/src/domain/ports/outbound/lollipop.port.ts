@@ -17,7 +17,7 @@ import {
 export interface LollipopPort {
   readonly reservePubKey: (
     payload: NewPubKeyPayloadDto,
-  ) => Promise<Result<undefined, GenericError | ConflictError>>;
+  ) => Promise<Result<LollipopAssertionRef, GenericError | ConflictError>>;
 
   readonly activatePubKey: (
     assertionRef: LollipopAssertionRef,
