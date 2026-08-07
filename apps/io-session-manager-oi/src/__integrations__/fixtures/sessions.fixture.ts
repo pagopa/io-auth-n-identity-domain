@@ -1,5 +1,9 @@
 import { CosmosClient } from "@azure/cosmos";
-import { FiscalCodeSchema, NonEmptyStringSchema } from "@pagopa/hexagonal-core";
+import {
+  FiscalCodeSchema,
+  FiscalCodeBrand,
+  NonEmptyStringSchema,
+} from "@pagopa/hexagonal-core";
 
 import { NewSessionToken } from "../../application/use-cases/activate-user-session.use-case.js";
 import {

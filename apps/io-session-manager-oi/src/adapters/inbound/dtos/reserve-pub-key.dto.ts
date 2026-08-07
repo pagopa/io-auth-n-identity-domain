@@ -1,5 +1,8 @@
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
+import {
+  NonEmptyStringSchema,
+  NonEmptyStringBrand,
+} from "@pagopa/hexagonal-core";
 import {
   LollipopJwkHashingAlgorithmSchema,
   JwkPublicKeyBase64UrlStringSchema,

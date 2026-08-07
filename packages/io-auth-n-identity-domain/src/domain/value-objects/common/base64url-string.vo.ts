@@ -1,4 +1,7 @@
-import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
+import {
+  NonEmptyStringSchema,
+  type NonEmptyStringBrand,
+} from "@pagopa/hexagonal-core";
 import { z } from "zod";
 
 /**

@@ -9,9 +9,7 @@ import {
 } from "../dtos/reserve-pub-key.dto.js";
 
 const reserveContract = defineRoute({
-  description: "Reserve a Lollipop PubKey",
   method: "get",
-  operationId: "reserve",
   path: "/api/auth/v2/reserve",
   request: ReserveInputDTO,
   response: {
@@ -32,8 +30,6 @@ const reserveContract = defineRoute({
       schema: ProblemJson,
     },
   },
-  summary: "Reserve Lollipop PubKey",
-  tags: ["Lollipop"],
 });
 
 export const mountReserveHandler = (
