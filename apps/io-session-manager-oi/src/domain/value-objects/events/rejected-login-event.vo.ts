@@ -33,7 +33,7 @@ const OngoingUserDeletionRejectedLoginSchema = BaseRejectedLoginSchema.extend({
   rejectionCause: z.literal("ongoing_user_deletion"),
 });
 
-export const RejectedLoginEventSchema = z.union([
+export const RejectedLoginEventSchema = z.discriminatedUnion("rejectionCause", [
   AgeBlockRejectedLoginSchema,
   AuthLockRejectedLoginSchema,
   UserMismatchRejectedLoginSchema,
