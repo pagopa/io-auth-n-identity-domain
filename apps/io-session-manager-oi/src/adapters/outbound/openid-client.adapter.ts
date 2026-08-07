@@ -95,7 +95,6 @@ export class OpenIdClientAdapter implements OidcPort {
           expectedNonce: params.expectedNonce,
           idTokenExpected: true,
         },
-        { nonce: params.expectedNonce },
       );
 
       const rawClaims = tokens.claims();

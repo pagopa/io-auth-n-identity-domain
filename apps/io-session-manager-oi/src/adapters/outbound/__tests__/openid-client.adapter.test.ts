@@ -97,7 +97,6 @@ describe("OpenIdClientAdapter#exchange", () => {
         expectedNonce: anExchangeParams.expectedNonce,
         idTokenExpected: true,
       }),
-      { nonce: anExchangeParams.expectedNonce },
     );
   });
 
