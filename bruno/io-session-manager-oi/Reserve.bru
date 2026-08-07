@@ -1,7 +1,7 @@
 meta {
   name: Reserve
   type: http
-  seq: 8
+  seq: 2
 }
 
 get {
@@ -17,6 +17,10 @@ params:query {
 
 headers {
   x-pagopa-login-type: LV
+}
+
+vars:pre-request {
+  IO_SESSION_MANAGER_OI_BASE_URL: http://0.0.0.0:8001
 }
 
 script:pre-request {
@@ -50,4 +54,16 @@ script:pre-request {
   bru.setEnvVar("publicKey", encodedPubKey)
   bru.setEnvVar("privateKey", encodedPrivateKey)
   bru.setEnvVar("assertionRef", `sha256-${assertionRef}`)
+}
+
+script:post-response {
+  const { state, nonce } = res.body;
+  
+  if (!state || !nonce) {
+    throw new Error("Expected the reserve response to include state and nonce");
+  }
+  
+  console.log(
+    `https://dev.oneid.pagopa.it/oidc/authorize?client_id=${client_id}&redirect_uri=https://localhost:3000/callback&scope=openid&state=${state}&nonce=${nonce}&response_type=code&minAuthLevel=SpidL2&idp=https://idp.dev.oneid.pagopa.it`
+  );
 }

@@ -1,0 +1,29 @@
+meta {
+  name: Callback
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/callback?code=&state=
+  body: none
+  auth: inherit
+}
+
+params:query {
+  code: 
+  state: 
+}
+
+vars:pre-request {
+  IO_SESSION_MANAGER_OI_BASE_URL: http://0.0.0.0:8001
+}
+
+script:pre-request {
+  req.setMaxRedirects(0);
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
