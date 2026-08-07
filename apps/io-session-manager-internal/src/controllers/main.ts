@@ -33,6 +33,7 @@ import {
 import { RejectedLoginEventProcessorFunction } from "./rejected-login-event-processor";
 import { PlatformInternalRepository } from "../repositories/platform-internal";
 import { getPlatformInternalApiClient } from "../utils/platform-internal-client";
+import { SoftDeleteUserSessionFunction } from "./soft-delete-user-session";
 import { GetUserLollipopActivationFunction } from "./get-lollipop-activation";
 
 const v1BasePath = "api/v1";
@@ -171,6 +172,23 @@ app.http("DeleteUserSession", {
   }),
   methods: ["POST"],
   route: `${v1BasePath}/sessions/{fiscalCode}/logout`,
+});
+
+// used to support the new session data model rollout plan
+app.http("SoftDeleteUserSession", {
+  authLevel: "function",
+  handler: SoftDeleteUserSessionFunction({
+    FastRedisClientTask: fastRedisClientTask,
+    SafeRedisClientTask: safeRedisClientTask,
+    SessionService,
+    RedisRepository,
+    LollipopRepository,
+    RevokeAssertionRefQueueClient,
+    PlatformInternalRepository,
+    platformInternalApiClient,
+  }),
+  methods: ["POST"],
+  route: `${v1BasePath}/sessions/{fiscalCode}/soft-delete`,
 });
 
 // used to support the new session data model rollout plan

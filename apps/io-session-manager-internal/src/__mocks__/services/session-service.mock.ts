@@ -25,6 +25,10 @@ export const mockGetUserSessionState = vi
   .fn()
   .mockReturnValue(RTE.right(anUnlockedUserSessionState));
 
+export const mockSoftDeleteUserSession = vi
+  .fn()
+  .mockReturnValue(RTE.right(null));
+
 export const mockGetUserLollipopActivation = vi
   .fn()
   .mockReturnValue(RTE.right(anAssertionRef));
@@ -36,5 +40,6 @@ export const SessionServiceMock: SessionService = {
   unlockUserAuthentication: mockUnlockUserAuthentication,
   deleteUserSession: mockDeleteUserSession,
   getUserSessionState: mockGetUserSessionState,
+  softDeleteUserSession: mockSoftDeleteUserSession,
   getUserLollipopActivation: mockGetUserLollipopActivation,
 };
