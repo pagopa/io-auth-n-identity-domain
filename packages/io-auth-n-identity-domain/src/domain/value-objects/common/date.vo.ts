@@ -4,10 +4,8 @@ import { z } from "zod";
  * Represents a `Date` in the domain and a Unix timestamp in milliseconds at
  * the serialization boundary.
  */
-export const DateToTimestamp = z.codec(z.unknown(), z.date(), {
-  // `ZodType#decode` has a different callback signature from `z.codec`.
-  // Wrap it so the codec only forwards the value being decoded.
-  decode: (value) => z.coerce.date().decode(value),
+export const TimestampMillisToDate = z.codec(z.int().min(0), z.date(), {
+  decode: (millis) => new Date(millis),
   encode: (date) => date.getTime(),
 });
-export type DateToTimestamp = z.infer<typeof DateToTimestamp>;
+export type TimestampMillisToDate = z.infer<typeof TimestampMillisToDate>;
