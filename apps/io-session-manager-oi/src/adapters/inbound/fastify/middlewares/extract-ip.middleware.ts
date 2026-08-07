@@ -30,8 +30,6 @@ export const extractIpMiddleware: HttpRequestMiddleware<
 > = async ({ payload }) => {
   const headers = payload.headers as Record<string, string | undefined>;
 
-  console.log("Extracting client IP from headers:", headers);
-
   // With trust proxy the client IP is the leftmost `x-forwarded-for` entry.
   const forwardedFor = headers["x-forwarded-for"]?.split(",")[0]?.trim();
 
