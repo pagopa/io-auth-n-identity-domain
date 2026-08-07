@@ -182,7 +182,9 @@ jobs:
         if: >-
           steps.test_filter.outputs.io-lollipop == 'true' ||
           steps.test_filter.outputs.bruno-io-lollipop == 'true' ||
-          steps.test_filter.outputs.io-session-manager == 'true'
+          steps.test_filter.outputs.io-session-manager == 'true' ||
+          steps.test_filter.outputs.io-session-manager-oi == 'true' ||
+          steps.test_filter.outputs.pagopa-azure-sdk == 'true'
         run: |
           echo "::warning ::Disk usage before clean up:"
           echo "::warning ::$(df -h)"
@@ -215,7 +217,7 @@ jobs:
       - name: "IO Session Manager OI Tests"
         if: steps.test_filter.outputs.io-session-manager-oi == 'true'
         run: >-
-          pnpm docker:start:build io-session-manager-oi &&
+          pnpm docker:start:build io-profile io-session-manager-oi &&
           pnpm --filter io-session-manager-oi test:integrations
 
       - name: "Package '@pagopa/azure-sdk' Integration Tests"
