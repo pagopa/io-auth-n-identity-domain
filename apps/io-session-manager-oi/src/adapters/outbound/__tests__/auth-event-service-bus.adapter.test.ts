@@ -1,5 +1,6 @@
 import type { ServiceBusSender } from "@azure/service-bus";
 import { FiscalCodeSchema, GenericError } from "@pagopa/hexagonal-core";
+import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   AuthEvent,
@@ -47,7 +48,7 @@ describe("AuthEventServiceBusAdapter#sendEvent", () => {
 
     const result = await adapter.sendEvent(AUTH_EVENT);
 
-    expect(result.isOk()).toBe(true);
+    expect(result).toEqual(ok(undefined));
     expect(mocks.serviceBusSender.sendMessages).toHaveBeenCalledExactlyOnceWith(
       {
         body: AuthEventSchema.encode(AUTH_EVENT),
@@ -61,11 +62,13 @@ describe("AuthEventServiceBusAdapter#sendEvent", () => {
   it("returns a GenericError and does not send when encoding fails", async () => {
     const result = await adapter.sendEvent(INVALID_AUTH_EVENT);
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
-    expect(result._unsafeUnwrapErr().message).toMatch(
-      /^Failed to encode auth event message:/,
-    );
+    expect(result.isErr()).toEqual(true);
+    if (result.isErr()) {
+      expect(result.error).toBeInstanceOf(GenericError);
+      expect(result.error.message).toContain(
+        "Failed to encode auth event message:",
+      );
+    }
     expect(mocks.serviceBusSender.sendMessages).not.toHaveBeenCalled();
   });
 
@@ -76,10 +79,12 @@ describe("AuthEventServiceBusAdapter#sendEvent", () => {
 
     const result = await adapter.sendEvent(AUTH_EVENT);
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
-    expect(result._unsafeUnwrapErr().message).toMatch(
-      /Failed to send auth event message: Service Bus unavailable$/,
+    expect(result).toEqual(
+      err(
+        new GenericError(
+          "Failed to send auth event message: Service Bus unavailable",
+        ),
+      ),
     );
   });
 
@@ -88,10 +93,12 @@ describe("AuthEventServiceBusAdapter#sendEvent", () => {
 
     const result = await adapter.sendEvent(AUTH_EVENT);
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
-    expect(result._unsafeUnwrapErr().message).toMatch(
-      /Failed to send auth event message: Unexpected failure$/,
+    expect(result).toEqual(
+      err(
+        new GenericError(
+          "Failed to send auth event message: Unexpected failure",
+        ),
+      ),
     );
   });
 });
@@ -106,7 +113,7 @@ describe("AuthEventServiceBusAdapter#healthcheck", () => {
 
     const result = await adapter.healthcheck();
 
-    expect(result.isOk()).toBe(true);
+    expect(result).toEqual(ok(undefined));
     expect(
       mocks.serviceBusSender.createMessageBatch,
     ).toHaveBeenCalledExactlyOnceWith();
@@ -119,10 +126,12 @@ describe("AuthEventServiceBusAdapter#healthcheck", () => {
 
     const result = await adapter.healthcheck();
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
-    expect(result._unsafeUnwrapErr().message).toMatch(
-      /Failed to perform healthcheck on auth event Service Bus sender: Service Bus unavailable$/,
+    expect(result).toEqual(
+      err(
+        new GenericError(
+          "Failed to perform healthcheck on auth event Service Bus sender: Service Bus unavailable",
+        ),
+      ),
     );
   });
 
@@ -133,10 +142,12 @@ describe("AuthEventServiceBusAdapter#healthcheck", () => {
 
     const result = await adapter.healthcheck();
 
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
-    expect(result._unsafeUnwrapErr().message).toMatch(
-      /Failed to perform healthcheck on auth event Service Bus sender: Unexpected failure$/,
+    expect(result).toEqual(
+      err(
+        new GenericError(
+          "Failed to perform healthcheck on auth event Service Bus sender: Unexpected failure",
+        ),
+      ),
     );
   });
 });
