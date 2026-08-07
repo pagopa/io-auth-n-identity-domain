@@ -15,6 +15,7 @@ import { OidcConfigurationEnv } from "../../value-objects/oidc.vo.js";
  */
 export type OidcEnvConfig = {
   clientId: NonEmptyString;
+  clientSecret: NonEmptyString;
   baseUrl: URL;
   redirectUri: URL;
 };

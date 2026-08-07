@@ -1,0 +1,79 @@
+import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
+import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
+import { FastifyInstance } from "fastify";
+
+import {
+  makeHandleOidcCallbackUseCase,
+  type HandleOidcCallbackInput,
+} from "../../../application/use-cases/handle-oidc-callback.use-case.js";
+import { CallbackInputDTO } from "../dtos/callback.dto.js";
+import { extractIpMiddleware } from "./middlewares/extract-ip.middleware.js";
+
+const callbackContract = defineRoute({
+  method: "get",
+  path: "/api/auth/v2/callback",
+  request: CallbackInputDTO,
+  response: {
+    302: {
+      description:
+        "Redirect to the client: on success carrying the freshly minted session token, on a login error carrying the error code.",
+      redirect: true,
+      headers: {
+        Location: {
+          description:
+            "Client redirect URL carrying the session token or the login error code.",
+          schema: { type: "string" },
+        },
+      },
+    },
+    400: {
+      description: "Bad request",
+      schema: ProblemJson,
+    },
+    401: {
+      description: "Unauthorized",
+      schema: ProblemJson,
+    },
+    500: {
+      description: "Internal error",
+      schema: ProblemJson,
+    },
+  },
+});
+
+export type CallbackHandlerDeps = {
+  handleOidcCallbackUseCase: ReturnType<typeof makeHandleOidcCallbackUseCase>;
+  loginSuccessRedirectUrl: string;
+  loginErrorRedirectUrl: string;
+};
+
+export const mountCallbackHandler = (
+  server: FastifyInstance,
+  deps: CallbackHandlerDeps,
+): void => {
+  mountFastifyRoute(server, {
+    contract: callbackContract,
+    middlewares: [extractIpMiddleware] as const,
+    inputMapper: (req, context): HandleOidcCallbackInput => ({
+      callback: req.query,
+      ipAddress: context.ipAddress,
+    }),
+    outputMapper: (result) => {
+      if (result.outcome === "error") {
+        const errorUrl = new URL(deps.loginErrorRedirectUrl);
+        errorUrl.searchParams.set("errorCode", result.errorCode);
+        if (result.errorMessage !== undefined) {
+          errorUrl.searchParams.set("errorMessage", result.errorMessage);
+        }
+        return errorUrl.href;
+      } else {
+        const redirectUrl = new URL(deps.loginSuccessRedirectUrl);
+        redirectUrl.hash = new URLSearchParams({
+          token: result.token,
+        }).toString();
+        return redirectUrl.href;
+      }
+    },
+    useCase: deps.handleOidcCallbackUseCase,
+  });
+};

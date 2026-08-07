@@ -69,6 +69,8 @@ export const makeActivateUserSessionUseCase =
       newSessionWithPlainTokens,
     );
 
+    // TODO: invalidate installation id
+
     // TODO: invalidate lollipop key
     const invalidateResult = await userSessions.invalidatePreviousSession(
       input.fiscalCode,
