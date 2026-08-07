@@ -74,5 +74,8 @@ locals {
     ONEID_UAT_CLIENT_ID = "XbFEUWXdvQGOU1usvMURZv4YWQjYFS0ggAk0xyFCEKc"
     ONEID_UAT_ISSUER    = "https://uat.io.oneid.pagopa.it"
     # ONEID_UAT_CLIENT_SECRET is injected via the CA module's `secrets`
+
+    AUTH_SESSIONS_TOPIC_NAME = var.service_bus.auth_session_topic_name
+    SERVICE_BUS_HOSTNAME     = var.service_bus.hostname
   }
 }

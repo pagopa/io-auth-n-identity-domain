@@ -53,4 +53,12 @@ module "session_manager" {
     account_name        = data.azurerm_cosmosdb_account.cosmos_citizen_auth.name
     resource_group_name = data.azurerm_resource_group.core_domain_data_rg.name
   }
+
+  service_bus = {
+    hostname                = "${data.azurerm_servicebus_namespace.platform_service_bus_namespace.name}.servicebus.windows.net"
+    namespace_name          = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
+    resource_group_name     = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
+    auth_session_topic_name = azurerm_servicebus_topic.io_auth_sessions_topic.name
+  }
+
 }

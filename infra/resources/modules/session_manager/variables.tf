@@ -151,3 +151,13 @@ variable "session_cosmos" {
   })
   description = "Cosmos DB (io-auth-SM) accessed by the Session Manager Container App via managed identity"
 }
+
+variable "service_bus" {
+  type = object({
+    hostname                = string
+    namespace_name          = string
+    resource_group_name     = string
+    auth_session_topic_name = string
+  })
+  description = "Service Bus configuration for the Session Manager Container App"
+}
