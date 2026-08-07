@@ -225,3 +225,14 @@ jobs:
         run: >-
           pnpm docker:start:build storage &&
           pnpm --filter @pagopa/azure-sdk test:integrations
+
+      - name: "Dump docker state on failure"
+        if: failure() && steps.test_filter.outputs.io-session-manager-oi == 'true'
+        continue-on-error: true
+        run: |
+          docker compose --env-file docker/.env.common ps -a
+          docker logs io-mock-io-public-1              --tail 400 || true
+          docker logs io-mock-io-profile-1             --tail 400 || true
+          docker logs io-mock-io-session-manager-oi-1  --tail 400 || true
+          docker logs io-mock-cosmosdb-1               --tail 200 || true
+          docker logs storage                          --tail 100 || true
