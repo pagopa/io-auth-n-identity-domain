@@ -14,6 +14,7 @@ import fastify, { type FastifyInstance } from "fastify";
 import { CosmosClient } from "@azure/cosmos";
 import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
+import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
 import { AusiliarDataRedisAdapter } from "./adapters/outbound/ausiliar-data.adapter.js";
@@ -53,6 +54,9 @@ export const createApp = async (
   const server = fastify({
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
   });
+
+  // Expose the resolved client IP to hexagonal middlewares via `x-client-ip`.
+  server.addHook("onRequest", normalizeClientIpHook);
 
   const lockedProfilesTableClient =
     config.NODE_ENV === "production"

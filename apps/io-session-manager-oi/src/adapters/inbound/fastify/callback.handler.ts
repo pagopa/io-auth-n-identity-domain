@@ -1,6 +1,5 @@
 import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
 import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
-import { IPStringSchema } from "@pagopa/io-auth-n-identity-domain";
 import { FastifyInstance } from "fastify";
 
 import {
@@ -11,6 +10,7 @@ import { type AusiliarDataPort } from "../../../domain/ports/outbound/ausiliar-d
 import { type OidcPort } from "../../../domain/ports/outbound/oidc.port.js";
 import { CallbackInputDTO } from "../dtos/callback.dto.js";
 import { makeExchangeCodeMiddleware } from "./middlewares/exchange-code.middleware.js";
+import { extractIpMiddleware } from "./middlewares/extract-ip.middleware.js";
 import { makeRetrieveAusiliarDataMiddleware } from "./middlewares/retrieve-ausiliar-data.middleware.js";
 
 const callbackContract = defineRoute({
@@ -56,6 +56,7 @@ export const mountCallbackHandler = (
   deps: CallbackHandlerDeps,
 ): void => {
   const middlewares = [
+    extractIpMiddleware,
     makeRetrieveAusiliarDataMiddleware(deps.ausiliarDataPort),
     makeExchangeCodeMiddleware(deps.oidcExchangePort),
   ] as const;
@@ -63,31 +64,18 @@ export const mountCallbackHandler = (
   mountFastifyRoute(server, {
     contract: callbackContract,
     middlewares,
-    inputMapper: (req, context): NewSessionToken => {
-      console.log("callback handler: context", context);
-
-      //TODO: Migliorare
-      const forwardedFor = req.headers["x-forwarded-for"];
-      const clientIp = forwardedFor?.split(",")[0]?.trim();
-      const ipParse = IPStringSchema.safeParse(clientIp);
-      // Behind the ingress proxy the client IP always arrives via
-      // `x-forwarded-for`; fall back to loopback for local requests.
-      const ipAddress = ipParse.success
-        ? ipParse.data
-        : IPStringSchema.parse("127.0.0.1");
-
-      return {
-        fiscalCode: context.claims.fiscalNumber,
-        name: context.claims.name,
-        familyName: context.claims.familyName,
-        dateOfBirth: context.claims.dateOfBirth,
-        spidLevel: context.claims.acr,
-        spidEmail: context.claims.email,
-        ipAddress,
-        loginType: context.ausiliarData.loginType,
-        identityProvider: context.claims.iss,
-      };
-    },
+    inputMapper: (_req, context): NewSessionToken => ({
+      fiscalCode: context.claims.fiscalNumber,
+      name: context.claims.name,
+      familyName: context.claims.familyName,
+      dateOfBirth: context.claims.dateOfBirth,
+      spidLevel: context.claims.acr,
+      spidEmail: context.claims.email,
+      ipAddress: context.ipAddress,
+      loginType: context.ausiliarData.loginType,
+      //TODO: map to readable Identity Provider name
+      identityProvider: context.claims.iss,
+    }),
     outputMapper: (clientSessionToken) => {
       const redirectUrl = new URL(deps.loginSuccessRedirectUrl);
       redirectUrl.hash = new URLSearchParams({

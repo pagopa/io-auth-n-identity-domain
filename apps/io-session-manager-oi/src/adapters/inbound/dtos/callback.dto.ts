@@ -1,5 +1,4 @@
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
-import { IPStringSchema } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
 
 /**
@@ -10,9 +9,6 @@ import { z } from "zod";
  * app runs behind the ingress proxy.
  */
 export const CallbackInputDTO = {
-  headers: z.object({
-    "x-forwarded-for": IPStringSchema.optional(),
-  }),
   query: z.object({
     code: NonEmptyStringSchema,
     state: NonEmptyStringSchema,
