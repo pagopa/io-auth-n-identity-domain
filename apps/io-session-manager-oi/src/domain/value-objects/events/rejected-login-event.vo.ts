@@ -1,15 +1,15 @@
 import { FiscalCodeSchema, NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import {
-  DateToTimestamp,
   IPStringSchema,
+  TimestampMillisToDate,
 } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
 
 const BaseRejectedLoginSchema = z.object({
   eventType: z.literal("rejected_login"),
   fiscalCode: FiscalCodeSchema,
-  ts: DateToTimestamp,
-  expiredAt: DateToTimestamp,
+  ts: TimestampMillisToDate,
+  expiredAt: TimestampMillisToDate,
   ip: IPStringSchema,
   loginId: NonEmptyStringSchema.optional(),
 });
