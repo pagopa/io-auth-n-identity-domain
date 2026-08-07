@@ -217,3 +217,9 @@ jobs:
         run: >-
           pnpm docker:start:build io-session-manager-oi &&
           pnpm --filter io-session-manager-oi test:integrations
+
+      - name: "Package '@pagopa/azure-sdk' Integration Tests"
+        if: steps.test_filter.outputs.pagopa-azure-sdk == 'true'
+        run: >-
+          pnpm docker:start:build storage &&
+          pnpm --filter @pagopa/azure-sdk test:integrations
