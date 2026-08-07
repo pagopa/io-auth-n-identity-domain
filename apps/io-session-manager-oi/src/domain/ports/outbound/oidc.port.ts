@@ -10,14 +10,14 @@ import { type OidcConfigurationEnv } from "../../value-objects/oidc.vo.js";
 /**
  * Parameters required to exchange an OIDC authorization code for tokens.
  *
- * `expectedState` and `expectedNonce` are the values reserved at the start of
- * the login flow (stored server-side keyed by `state`) and are validated
- * against the incoming callback to prevent replay/CSRF.
+ * `code` and `state` are the values received on the callback; `state` and
+ * `expectedNonce` are validated against the values reserved at the start of the
+ * login flow (stored server-side keyed by `state`) to prevent replay/CSRF.
  */
-export type OidcExchangeParams = {
+export type OidcExchangeParamsDTO = {
   env: OidcConfigurationEnv;
-  query: Readonly<Record<string, string>>;
-  expectedState: string;
+  code: string;
+  state: string;
   expectedNonce: string;
 };
 
@@ -27,6 +27,6 @@ export type OidcExchangeParams = {
  */
 export interface OidcPort {
   readonly exchange: (
-    params: OidcExchangeParams,
+    params: OidcExchangeParamsDTO,
   ) => Promise<Result<OidcClaims, AuthenticationError | GenericError>>;
 }

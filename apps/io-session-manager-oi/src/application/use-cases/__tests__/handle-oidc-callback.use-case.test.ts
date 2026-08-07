@@ -14,7 +14,11 @@ import { ClientSessionToken } from "../../../domain/value-objects/client-session
 import { LoginAusiliarData } from "../../../domain/value-objects/login.vo.js";
 import { OidcClaims } from "../../../domain/value-objects/oidc-claims.vo.js";
 import { ActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
-import { makeHandleOidcCallbackUseCase } from "../handle-oidc-callback.use-case.js";
+import {
+  makeHandleOidcCallbackUseCase,
+  GENERIC_LOGIN_ERROR_CODE,
+  OidcCallbackParams,
+} from "../handle-oidc-callback.use-case.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -24,7 +28,16 @@ const IP_ADDRESS = "127.0.0.1" as IPString;
 const STATE = "a-state" as NonEmptyString;
 const CODE = "a-code" as NonEmptyString;
 
-const QUERY = { code: CODE, state: STATE } as Readonly<Record<string, string>>;
+const SUCCESS_CALLBACK = {
+  code: CODE,
+  state: STATE,
+} as const satisfies OidcCallbackParams;
+
+const ERROR_CALLBACK = {
+  state: STATE,
+  error: "access_denied" as NonEmptyString,
+  error_description: "user aborted the login" as NonEmptyString,
+} as const satisfies OidcCallbackParams;
 
 const AUSILIAR_DATA = {
   loginType: "LV",
@@ -82,15 +95,15 @@ beforeEach(() => {
 describe("makeHandleOidcCallbackUseCase", () => {
   it("retrieves ausiliar data, exchanges the code and activates the session", async () => {
     const result = await handleOidcCallbackUseCase({
-      query: QUERY,
+      callback: SUCCESS_CALLBACK,
       ipAddress: IP_ADDRESS,
     });
 
     expect(retrieveMock).toHaveBeenCalledExactlyOnceWith(STATE);
     expect(exchangeMock).toHaveBeenCalledExactlyOnceWith({
       env: AUSILIAR_DATA.oidcConfigurationEnv,
-      query: QUERY,
-      expectedState: STATE,
+      code: CODE,
+      state: STATE,
       expectedNonce: AUSILIAR_DATA.nonce,
     });
     expect(activateUserSessionUseCase).toHaveBeenCalledExactlyOnceWith({
@@ -105,17 +118,41 @@ describe("makeHandleOidcCallbackUseCase", () => {
       identityProvider: CLAIMS.iss,
     });
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(CLIENT_SESSION_TOKEN);
+    expect(result._unsafeUnwrap()).toEqual({
+      outcome: "success",
+      token: CLIENT_SESSION_TOKEN,
+    });
   });
 
-  it("returns AuthenticationError when the callback query is invalid", async () => {
+  it("validates the state then returns an error outcome on an OIDC error response", async () => {
     const result = await handleOidcCallbackUseCase({
-      query: { code: CODE } as Readonly<Record<string, string>>,
+      callback: ERROR_CALLBACK,
       ipAddress: IP_ADDRESS,
     });
 
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
-    expect(retrieveMock).not.toHaveBeenCalled();
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap()).toEqual({
+      outcome: "error",
+      errorCode: ERROR_CALLBACK.error,
+      errorMessage: ERROR_CALLBACK.error_description,
+    });
+    expect(retrieveMock).toHaveBeenCalledExactlyOnceWith(STATE);
+    expect(exchangeMock).not.toHaveBeenCalled();
+    expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the generic error code when the provider omits the error", async () => {
+    const result = await handleOidcCallbackUseCase({
+      callback: { state: STATE },
+      ipAddress: IP_ADDRESS,
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap()).toEqual({
+      outcome: "error",
+      errorCode: GENERIC_LOGIN_ERROR_CODE,
+      errorMessage: undefined,
+    });
     expect(exchangeMock).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
@@ -126,7 +163,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     );
 
     const result = await handleOidcCallbackUseCase({
-      query: QUERY,
+      callback: SUCCESS_CALLBACK,
       ipAddress: IP_ADDRESS,
     });
 
@@ -139,7 +176,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     retrieveMock.mockResolvedValueOnce(err(new GenericError("boom")));
 
     const result = await handleOidcCallbackUseCase({
-      query: QUERY,
+      callback: SUCCESS_CALLBACK,
       ipAddress: IP_ADDRESS,
     });
 
@@ -153,7 +190,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     exchangeMock.mockResolvedValueOnce(err(exchangeError));
 
     const result = await handleOidcCallbackUseCase({
-      query: QUERY,
+      callback: SUCCESS_CALLBACK,
       ipAddress: IP_ADDRESS,
     });
 

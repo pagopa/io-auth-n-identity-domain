@@ -13,7 +13,7 @@ import {
   type OidcConfigPort,
   type OidcEnvConfig,
 } from "../../../domain/ports/outbound/oidc-config.port.js";
-import { type OidcExchangeParams } from "../../../domain/ports/outbound/oidc.port.js";
+import { type OidcExchangeParamsDTO } from "../../../domain/ports/outbound/oidc.port.js";
 import { OidcClaimsSchema } from "../../../domain/value-objects/oidc-claims.vo.js";
 import {
   aDateOfBirth,
@@ -50,10 +50,10 @@ const aValidRawClaims = {
   iss: anIssuer,
 };
 
-const anExchangeParams: OidcExchangeParams = {
+const anExchangeParams: OidcExchangeParamsDTO = {
   env: "PROD",
-  query: { code: "an-auth-code", state: "a-state" },
-  expectedState: "a-state",
+  code: "an-auth-code",
+  state: "a-state",
   expectedNonce: "a-nonce",
 };
 
@@ -93,7 +93,7 @@ describe("OpenIdClientAdapter#exchange", () => {
       aConfiguration,
       expect.any(URL),
       expect.objectContaining({
-        expectedState: anExchangeParams.expectedState,
+        expectedState: anExchangeParams.state,
         expectedNonce: anExchangeParams.expectedNonce,
         idTokenExpected: true,
       }),

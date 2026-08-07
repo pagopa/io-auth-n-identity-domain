@@ -1,13 +1,12 @@
 import {
   AuthenticationError,
   GenericError,
-  NonEmptyStringSchema,
+  NonEmptyString,
   NotFoundError,
   UseCase,
 } from "@pagopa/hexagonal-core";
 import { IPString } from "@pagopa/io-auth-n-identity-domain";
-import { err } from "neverthrow";
-import { z } from "zod";
+import { err, ok } from "neverthrow";
 
 import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
 import { OidcPort } from "../../domain/ports/outbound/oidc.port.js";
@@ -17,13 +16,22 @@ import {
   NewSessionToken,
 } from "./activate-user-session.use-case.js";
 
-const CallbackQuerySchema = z.object({
-  code: NonEmptyStringSchema,
-  state: NonEmptyStringSchema,
-});
+// Error code sent to the client error page when the provider returns an error
+// response without an explicit `error` code.
+export const GENERIC_LOGIN_ERROR_CODE = "GENERIC_ERROR" as NonEmptyString;
+
+// Decoded OIDC callback: `state` is always present; a present `code` marks a
+// success response, otherwise it is a provider error response
+// (`error`/`error_description`, RFC 6749 §4.1.2.1).
+export type OidcCallbackParams = {
+  state: NonEmptyString;
+  code?: NonEmptyString;
+  error?: NonEmptyString;
+  error_description?: NonEmptyString;
+};
 
 export type HandleOidcCallbackInput = {
-  query: Readonly<Record<string, string>>;
+  callback: OidcCallbackParams;
   ipAddress: IPString;
 };
 
@@ -32,6 +40,18 @@ export type HandleOidcCallbackDeps = {
   oidcPort: OidcPort;
   activateUserSessionUseCase: ActivateUserSessionUseCase;
 };
+
+// Business outcome of the callback: a session token on success, or a login
+// error code (with an optional message) forwarded to the client error page.
+// Both variants are turned into a client redirect by the inbound handler;
+// unexpected failures stay on the error channel and become a problem+json.
+export type HandleOidcCallbackOutput =
+  | { readonly outcome: "success"; readonly token: ClientSessionToken }
+  | {
+      readonly outcome: "error";
+      readonly errorCode: NonEmptyString;
+      readonly errorMessage?: NonEmptyString;
+    };
 
 // ---------------------------------------------------------------
 // Orchestrates the OIDC callback: retrieves the login auxiliary
@@ -44,17 +64,15 @@ export const makeHandleOidcCallbackUseCase =
     deps: HandleOidcCallbackDeps,
   ): UseCase<
     HandleOidcCallbackInput,
-    ClientSessionToken,
+    HandleOidcCallbackOutput,
     AuthenticationError | GenericError
   > =>
-  async ({ query, ipAddress }) => {
-    const parsedQuery = CallbackQuerySchema.safeParse(query);
-    if (!parsedQuery.success) {
-      return err(new AuthenticationError());
-    }
-    const { state } = parsedQuery.data;
-
-    const ausiliarDataResult = await deps.ausiliarDataPort.retrieve(state);
+  async ({ callback, ipAddress }) => {
+    // Retrieve (and, once on Redis getDel, consume) the reserved login data
+    // even for an error response, so the state cannot be replayed.
+    const ausiliarDataResult = await deps.ausiliarDataPort.retrieve(
+      callback.state,
+    );
     if (ausiliarDataResult.isErr()) {
       return ausiliarDataResult.error instanceof NotFoundError
         ? err(new AuthenticationError())
@@ -62,10 +80,18 @@ export const makeHandleOidcCallbackUseCase =
     }
     const ausiliarData = ausiliarDataResult.value;
 
+    if (callback.code === undefined) {
+      return ok({
+        outcome: "error",
+        errorCode: callback.error ?? GENERIC_LOGIN_ERROR_CODE,
+        errorMessage: callback.error_description,
+      });
+    }
+
     const exchangeResult = await deps.oidcPort.exchange({
       env: ausiliarData.oidcConfigurationEnv,
-      query,
-      expectedState: state,
+      code: callback.code,
+      state: callback.state,
       expectedNonce: ausiliarData.nonce,
     });
     if (exchangeResult.isErr()) {
@@ -86,5 +112,11 @@ export const makeHandleOidcCallbackUseCase =
       identityProvider: claims.iss,
     };
 
-    return deps.activateUserSessionUseCase(newSessionToken);
+    const activateResult =
+      await deps.activateUserSessionUseCase(newSessionToken);
+    if (activateResult.isErr()) {
+      return err(activateResult.error);
+    }
+
+    return ok({ outcome: "success", token: activateResult.value });
   };

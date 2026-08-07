@@ -16,11 +16,12 @@ const callbackContract = defineRoute({
   response: {
     302: {
       description:
-        "Redirect to the client carrying the freshly minted session token.",
+        "Redirect to the client: on success carrying the freshly minted session token, on a login error carrying the error code.",
       redirect: true,
       headers: {
         Location: {
-          description: "Client redirect URL carrying the session token.",
+          description:
+            "Client redirect URL carrying the session token or the login error code.",
           schema: { type: "string" },
         },
       },
@@ -43,6 +44,7 @@ const callbackContract = defineRoute({
 export type CallbackHandlerDeps = {
   handleOidcCallbackUseCase: ReturnType<typeof makeHandleOidcCallbackUseCase>;
   loginSuccessRedirectUrl: string;
+  loginErrorRedirectUrl: string;
 };
 
 export const mountCallbackHandler = (
@@ -53,15 +55,24 @@ export const mountCallbackHandler = (
     contract: callbackContract,
     middlewares: [extractIpMiddleware] as const,
     inputMapper: (req, context): HandleOidcCallbackInput => ({
-      query: req.query,
+      callback: req.query,
       ipAddress: context.ipAddress,
     }),
-    outputMapper: (clientSessionToken) => {
-      const redirectUrl = new URL(deps.loginSuccessRedirectUrl);
-      redirectUrl.hash = new URLSearchParams({
-        token: clientSessionToken,
-      }).toString();
-      return redirectUrl.href;
+    outputMapper: (result) => {
+      if (result.outcome === "error") {
+        const errorUrl = new URL(deps.loginErrorRedirectUrl);
+        errorUrl.searchParams.set("errorCode", result.errorCode);
+        if (result.errorMessage !== undefined) {
+          errorUrl.searchParams.set("errorMessage", result.errorMessage);
+        }
+        return errorUrl.href;
+      } else {
+        const redirectUrl = new URL(deps.loginSuccessRedirectUrl);
+        redirectUrl.hash = new URLSearchParams({
+          token: result.token,
+        }).toString();
+        return redirectUrl.href;
+      }
     },
     useCase: deps.handleOidcCallbackUseCase,
   });

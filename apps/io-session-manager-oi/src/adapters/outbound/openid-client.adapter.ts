@@ -7,7 +7,7 @@ import {
   type OidcEnvConfig,
 } from "../../domain/ports/outbound/oidc-config.port.js";
 import {
-  type OidcExchangeParams,
+  type OidcExchangeParamsDTO,
   type OidcPort,
 } from "../../domain/ports/outbound/oidc.port.js";
 import {
@@ -59,7 +59,7 @@ export class OpenIdClientAdapter implements OidcPort {
   };
 
   exchange = async (
-    params: OidcExchangeParams,
+    params: OidcExchangeParamsDTO,
   ): Promise<Result<OidcClaims, AuthenticationError | GenericError>> => {
     const envConfigResult = this.oidcConfigPort.getConfig(params.env);
     if (envConfigResult.isErr()) {
@@ -85,13 +85,16 @@ export class OpenIdClientAdapter implements OidcPort {
       // `redirect_uri` sent to the token endpoint matches the auth request,
       // even when the app runs behind a reverse proxy.
       const callbackUrl = new URL(envConfig.redirectUri.href);
-      callbackUrl.search = new URLSearchParams(params.query).toString();
+      callbackUrl.search = new URLSearchParams({
+        code: params.code,
+        state: params.state,
+      }).toString();
 
       const tokens = await client.authorizationCodeGrant(
         oidcConfig,
         callbackUrl,
         {
-          expectedState: params.expectedState,
+          expectedState: params.state,
           expectedNonce: params.expectedNonce,
           idTokenExpected: true,
         },

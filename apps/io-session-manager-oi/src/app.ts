@@ -225,6 +225,7 @@ export const createApp = async (
   mountCallbackHandler(server, {
     handleOidcCallbackUseCase,
     loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
+    loginErrorRedirectUrl: config.LOGIN_ERROR_REDIRECT_URL,
   });
 
   return { server };
