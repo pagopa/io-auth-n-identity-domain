@@ -1,5 +1,19 @@
 # io-session-manager-oi
 
+## 0.10.0
+
+### Minor Changes
+
+- 04f1496: Upgrade hexagonal libraries + workaround for branded schema
+- df6e21c: Updated sm-internal client to upstream spec
+
+### Patch Changes
+
+- 5e3d5c4: Refactor config
+- Updated dependencies [04f1496]
+  - @pagopa/io-auth-n-identity-domain@0.4.0
+  - @pagopa/io-auth-n-identity-session@0.2.2
+
 ## 0.9.0
 
 ### Minor Changes
