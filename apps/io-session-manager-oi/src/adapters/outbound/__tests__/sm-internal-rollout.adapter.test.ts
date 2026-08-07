@@ -47,11 +47,11 @@ beforeEach(() => {
 });
 
 describe("createSmInternalRolloutAdapter#softDeleteUserSession", () => {
-  it("returns ok(undefined) on 200 Success", async () => {
+  it("returns ok(undefined) on 204 Success", async () => {
     vi.mocked(softDeleteUserSession).mockResolvedValue({
       data: undefined,
       error: undefined,
-      response: { status: 200 } as Response,
+      response: { status: 204 } as Response,
     } as never);
 
     const result = await adapter.softDeleteUserSession(aFiscalCode);

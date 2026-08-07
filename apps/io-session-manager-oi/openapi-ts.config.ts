@@ -120,7 +120,7 @@ export default defineConfig([
   },
   {
     input:
-      "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/42e4199865414dd631016a3e6c984ad2e0aef1fc/apps/io-session-manager-internal/api/internal.yaml",
+      "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/76041b36449feba55cb05578eac1f1fc90a22217/apps/io-session-manager-internal/api/internal.yaml",
     output: {
       path: "src/generated/io-session-manager-internal",
       module: {
