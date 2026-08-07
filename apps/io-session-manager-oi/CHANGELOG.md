@@ -1,5 +1,30 @@
 # io-session-manager-oi
 
+## 0.9.0
+
+### Minor Changes
+
+- 6993b6a: Added Reserve endpoint
+
+### Patch Changes
+
+- Updated dependencies [6993b6a]
+- Updated dependencies [6993b6a]
+  - @pagopa/io-auth-n-identity-domain@0.3.1
+  - @pagopa/redis@0.2.0
+  - @pagopa/io-auth-n-identity-session@0.2.1
+
+## 0.8.0
+
+### Minor Changes
+
+- cb0227a: Introduce activate user session use-case (base logic)
+
+### Patch Changes
+
+- Updated dependencies [cb0227a]
+  - @pagopa/io-auth-n-identity-session@0.2.0
+
 ## 0.7.0
 
 ### Minor Changes

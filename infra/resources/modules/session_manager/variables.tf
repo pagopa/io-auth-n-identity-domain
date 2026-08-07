@@ -142,3 +142,12 @@ variable "io_session_manager_internal" {
   })
   description = "Configuration for IO Session Manager Internal service"
 }
+
+variable "session_cosmos" {
+  type = object({
+    account_uri         = string
+    account_name        = string
+    resource_group_name = string
+  })
+  description = "Cosmos DB (io-auth-SM) accessed by the Session Manager Container App via managed identity"
+}

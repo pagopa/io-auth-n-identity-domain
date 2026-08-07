@@ -3,7 +3,6 @@ import { z } from "zod";
 import { Base64UrlJsonSchema } from "../../value-objects/common/base64url-string.vo.js";
 
 export const EcKeySchema = z.object({
-  alg: z.string(),
   crv: z.enum(["P-256", "P-384", "P-521"]),
   kty: z.literal("EC"),
   x: z.string(),

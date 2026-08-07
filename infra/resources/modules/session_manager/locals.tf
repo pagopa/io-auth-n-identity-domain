@@ -51,8 +51,28 @@ locals {
     PUSH_NOTIFICATIONS_QUEUE_NAME        = data.azurerm_storage_queue.push_notifications.name
 
     # Redis
+    # Authentication is Microsoft Entra ID only (no access key): the CA's
+    # system-assigned identity is granted data-plane access via `ca_iam`.
     REDIS_HOSTNAME    = split(":", module.managed_redis.endpoint)[0]
     REDIS_PORT        = split(":", module.managed_redis.endpoint)[1]
     REDIS_TLS_ENABLED = "true"
+
+    # Session Cosmos DB (io-auth-SM) - accessed via managed identity
+    COSMOSDB_URI                           = var.session_cosmos.account_uri
+    COSMOSDB_NAME                          = azurerm_cosmosdb_sql_database.session_manager.name
+    COSMOSDB_SESSION_TOKEN_CONTAINER_NAME  = azurerm_cosmosdb_sql_container.session_tokens.name
+    COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME = azurerm_cosmosdb_sql_container.active_sessions.name
+
+    # One Identity configs
+    ONEID_PROD_CLIENT_ID = "4HWHRx-Wv19-cY-YL6Q1AgYVvx3h0Gw_SvtayZWJVVE"
+    ONEID_PROD_ISSUER    = "https://io.oneid.pagopa.it"
+    # TODO: change me with actual prod callback (mocked with localhost for URL
+    # constructor pass)
+    ONEID_PROD_REDIRECT_URI = "http://localhost/callback"
+    # ONEID_PROD_CLIENT_SECRET is injected via the CA module's `secrets`
+
+    ONEID_UAT_CLIENT_ID = "XbFEUWXdvQGOU1usvMURZv4YWQjYFS0ggAk0xyFCEKc"
+    ONEID_UAT_ISSUER    = "https://uat.io.oneid.pagopa.it"
+    # ONEID_UAT_CLIENT_SECRET is injected via the CA module's `secrets`
   }
 }

@@ -103,17 +103,16 @@ export abstract class CosmosBaseAdapter {
     }));
 
     try {
-      const result = await container.items.executeBulkOperations(operations);
+      const result = await container.items.bulk(operations);
 
       for (const res of result) {
         if (
           // Avoid returning an error for successes or not found items
-          res.response !== undefined &&
-          ![200, 204, 404].includes(res.response.statusCode)
+          ![200, 204, 404].includes(res.statusCode)
         ) {
           return err(
             new GenericError(
-              `Error deleting ${entityName}. Status code: ${res.response?.statusCode}`,
+              `Error deleting ${entityName}. Status code: ${res.statusCode}`,
             ),
           );
         }

@@ -179,11 +179,19 @@ export class SessionCosmosAdapter
 
       // Step 2: delete all token items in userSessionContainer for that sessionId
       const { resources: items } = await this.sessionTokenContainer.items
-        .query({ query: "SELECT c.id FROM c" }, { partitionKey: sessionId })
+        .query<{
+          id: string;
+        }>(
+          {
+            query: "SELECT c.id FROM c WHERE c.sessionId = @sessionId",
+            parameters: [{ name: "@sessionId", value: sessionId }],
+          },
+          { partitionKey: sessionId },
+        )
         .fetchAll();
 
       // Extract the hashed session token from the SESSION- item before deleting
-      const sessionItem = items.find((item: { id: string }) =>
+      const sessionItem = items.find((item) =>
         item.id.startsWith(COSMOS_SESSION_PREFIX),
       );
       const hashedSessionToken = sessionItem

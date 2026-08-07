@@ -38,7 +38,7 @@ export const createSmInternalRolloutAdapter = (config: {
         | keyof SoftDeleteUserSessionResponses
         | keyof SoftDeleteUserSessionErrors;
       switch (status) {
-        case 200:
+        case 204:
           return ok(undefined);
         case 400:
         case 401:

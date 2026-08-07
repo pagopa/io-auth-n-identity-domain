@@ -9,7 +9,6 @@ import { describe, expect, it } from "vitest";
 
 import { toRedisError } from "../errors.js";
 
-
 const buildRedisError = (name: string, message: string): Error => {
   const error = new Error(message);
   error.name = name;

@@ -14,12 +14,16 @@ services:
       dockerfile: ./docker/server/Dockerfile
       args:
         SERVER_NAME: "io-session-manager-oi"
+    depends_on:
+      - redis-standalone
+      - io-lollipop
     env_file:
       - ./docker/generated/.env.io-session-manager-oi
     ports:
       - ${IO_SESSION_MANAGER_OI_PORT}:${IO_SESSION_MANAGER_OI_PORT}
     networks:
       - io-fn
+
   io-session-manager:
     image: io-session-manager
     build:

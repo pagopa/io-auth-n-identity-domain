@@ -45,14 +45,18 @@ module "ca_iam" {
     description = "Allow Session Manager Container App to read/write to the Azure Managed Redis cache"
   }]
 
-  # cosmos = [ # TODO: capire su quali DB necessita scrittura/lettura
-  #   {
-  #     account_name        = data.azurerm_cosmosdb_account.cosmos.name
-  #     resource_group_name = data.azurerm_cosmosdb_account.cosmos.resource_group_name
-  #     description         = "Allow Session Manager Container App to write CosmosDB"
-  #     role                = "writer"
-  #     database            = local.app_be.cosmosdb_name
-  #     collections         = ["services"] // TODO: refactor with a local variable
-  #   }
-  # ]
+  cosmos = [
+    {
+      account_name        = var.session_cosmos.account_name
+      resource_group_name = var.session_cosmos.resource_group_name
+      description         = "Allow Session Manager Container App to read/write the io-auth-SM CosmosDB database"
+      role                = "writer"
+      database            = azurerm_cosmosdb_sql_database.session_manager.name
+      collections = [
+        azurerm_cosmosdb_sql_container.session_tokens.name,
+        azurerm_cosmosdb_sql_container.active_sessions.name,
+        azurerm_cosmosdb_sql_container.lollipop_activations.name
+      ]
+    }
+  ]
 }
