@@ -105,11 +105,6 @@ export class OpenIdClientAdapter implements OidcPort {
 
       const parsedClaims = OidcClaimsSchema.safeParse(rawClaims);
       if (!parsedClaims.success) {
-        console.log("raw claims", rawClaims);
-        console.log(
-          "OIDC claims validation failed",
-          parsedClaims.error.format(),
-        );
         return err(new GenericError("Invalid OIDC claims"));
       }
 
