@@ -19,10 +19,6 @@ headers {
   x-pagopa-login-type: LV
 }
 
-vars:pre-request {
-  IO_SESSION_MANAGER_OI_BASE_URL: http://0.0.0.0:8001
-}
-
 script:pre-request {
   const crypto = require("node:crypto");
   const jose = require("node-jose");

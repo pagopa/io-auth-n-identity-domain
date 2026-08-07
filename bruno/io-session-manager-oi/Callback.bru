@@ -15,9 +15,6 @@ params:query {
   state: 
 }
 
-vars:pre-request {
-  IO_SESSION_MANAGER_OI_BASE_URL: http://0.0.0.0:8001
-}
 
 script:pre-request {
   req.setMaxRedirects(0);
