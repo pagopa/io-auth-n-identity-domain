@@ -20,12 +20,12 @@ const softDeleteUserSession: (
 ) => RTE.ReaderTaskEither<
   Dependencies & SoftDeleteUserSessionDeps,
   H.HttpError,
-  H.HttpResponse<null, 200>
+  H.HttpResponse<null, 204>
 > = (fiscalCode) => (deps) =>
   pipe(
     deps,
     deps.SessionService.softDeleteUserSession(fiscalCode),
-    TE.map((_) => H.success(null)),
+    TE.map((_) => H.empty),
     TE.mapLeft(
       (genericError) => new H.HttpError(genericError.causedBy?.message),
     ),
@@ -33,7 +33,7 @@ const softDeleteUserSession: (
 
 export const makeSoftDeleteUserSessionHandler: H.Handler<
   H.HttpRequest,
-  | H.HttpResponse<null, 200>
+  | H.HttpResponse<null, 204>
   | H.HttpResponse<H.ProblemJson, H.HttpErrorStatusCode>,
   Dependencies & SoftDeleteUserSessionDeps
 > = H.of((req: H.HttpRequest) =>

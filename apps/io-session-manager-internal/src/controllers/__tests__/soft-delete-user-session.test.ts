@@ -50,7 +50,7 @@ describe("Soft Delete User Session Handler", () => {
     })();
 
     expect(mockSoftDeleteUserSession).toHaveBeenCalledTimes(1);
-    expect(result).toMatchObject(E.right(H.success(null)));
+    expect(result).toMatchObject(E.right(H.empty));
   });
 
   it("should return Bad request on invalid path param", async () => {
