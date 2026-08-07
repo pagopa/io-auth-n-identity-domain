@@ -3,15 +3,11 @@ import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import { FastifyInstance } from "fastify";
 
 import {
-  makeActivateUserSessionUseCase,
-  type NewSessionToken,
-} from "../../../application/use-cases/activate-user-session.use-case.js";
-import { type AusiliarDataPort } from "../../../domain/ports/outbound/ausiliar-data.port.js";
-import { type OidcPort } from "../../../domain/ports/outbound/oidc.port.js";
+  makeHandleOidcCallbackUseCase,
+  type HandleOidcCallbackInput,
+} from "../../../application/use-cases/handle-oidc-callback.use-case.js";
 import { CallbackInputDTO } from "../dtos/callback.dto.js";
-import { makeExchangeCodeMiddleware } from "./middlewares/exchange-code.middleware.js";
 import { extractIpMiddleware } from "./middlewares/extract-ip.middleware.js";
-import { makeRetrieveAusiliarDataMiddleware } from "./middlewares/retrieve-ausiliar-data.middleware.js";
 
 const callbackContract = defineRoute({
   method: "get",
@@ -45,9 +41,7 @@ const callbackContract = defineRoute({
 });
 
 export type CallbackHandlerDeps = {
-  ausiliarDataPort: AusiliarDataPort;
-  oidcExchangePort: OidcPort;
-  activateUserSessionUseCase: ReturnType<typeof makeActivateUserSessionUseCase>;
+  handleOidcCallbackUseCase: ReturnType<typeof makeHandleOidcCallbackUseCase>;
   loginSuccessRedirectUrl: string;
 };
 
@@ -55,26 +49,12 @@ export const mountCallbackHandler = (
   server: FastifyInstance,
   deps: CallbackHandlerDeps,
 ): void => {
-  const middlewares = [
-    extractIpMiddleware,
-    makeRetrieveAusiliarDataMiddleware(deps.ausiliarDataPort),
-    makeExchangeCodeMiddleware(deps.oidcExchangePort),
-  ] as const;
-
   mountFastifyRoute(server, {
     contract: callbackContract,
-    middlewares,
-    inputMapper: (_req, context): NewSessionToken => ({
-      fiscalCode: context.claims.fiscalNumber,
-      name: context.claims.name,
-      familyName: context.claims.familyName,
-      dateOfBirth: context.claims.dateOfBirth,
-      spidLevel: context.claims.acr,
-      spidEmail: context.claims.email,
+    middlewares: [extractIpMiddleware] as const,
+    inputMapper: (req, context): HandleOidcCallbackInput => ({
+      query: req.query,
       ipAddress: context.ipAddress,
-      loginType: context.ausiliarData.loginType,
-      //TODO: map to readable Identity Provider name
-      identityProvider: context.claims.iss,
     }),
     outputMapper: (clientSessionToken) => {
       const redirectUrl = new URL(deps.loginSuccessRedirectUrl);
@@ -83,6 +63,6 @@ export const mountCallbackHandler = (
       }).toString();
       return redirectUrl.href;
     },
-    useCase: deps.activateUserSessionUseCase,
+    useCase: deps.handleOidcCallbackUseCase,
   });
 };

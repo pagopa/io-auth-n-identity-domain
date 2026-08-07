@@ -26,6 +26,7 @@ import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profi
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
+import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
@@ -182,6 +183,12 @@ export const createApp = async (
     profileAdapter,
   );
 
+  const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
+    ausiliarDataPort: ausiliarStorageAdapter,
+    oidcPort: oidcExchangeAdapter,
+    activateUserSessionUseCase,
+  });
+
   // --------------------------------------------------
   // Endpoints mounting
   // --------------------------------------------------
@@ -216,9 +223,7 @@ export const createApp = async (
   mountReserveHandler(server, reserveUseCase);
 
   mountCallbackHandler(server, {
-    ausiliarDataPort: ausiliarStorageAdapter,
-    oidcExchangePort: oidcExchangeAdapter,
-    activateUserSessionUseCase,
+    handleOidcCallbackUseCase,
     loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
   });
 
