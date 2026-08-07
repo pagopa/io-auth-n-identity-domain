@@ -49,11 +49,11 @@ catalogs:
       specifier: ^2.0.8
       version: 2.0.8
     '@pagopa/hexagonal-core':
-      specifier: ^0.1.1
-      version: 0.1.1
+      specifier: ^0.5.1
+      version: 0.5.1
     '@pagopa/hexagonal-fastify':
-      specifier: ^0.1.0
-      version: 0.1.0
+      specifier: ^0.3.0
+      version: 0.3.0
     '@pagopa/io-app-email-templates':
       specifier: ^0.8.0
       version: 0.8.0
@@ -1317,10 +1317,10 @@ importers:
         version: link:../../packages/azure-sdk
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
-        version: 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+        version: 0.5.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       '@pagopa/hexagonal-fastify':
         specifier: 'catalog:'
-        version: 0.1.0(@standard-schema/spec@1.1.0)(fastify@5.8.5)(neverthrow@8.2.0)(zod@4.4.3)
+        version: 0.3.0(@standard-schema/spec@1.1.0)(fastify@5.8.5)(neverthrow@8.2.0)(zod@4.4.3)
       '@pagopa/io-auth-n-identity-domain':
         specifier: workspace:^
         version: link:../../packages/io-auth-n-identity-domain
@@ -1557,7 +1557,7 @@ importers:
     dependencies:
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
-        version: 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+        version: 0.5.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0
@@ -1785,7 +1785,7 @@ importers:
     dependencies:
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
-        version: 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+        version: 0.5.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0
@@ -1825,7 +1825,7 @@ importers:
         version: 4.2.0
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
-        version: 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+        version: 0.5.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       '@pagopa/io-auth-n-identity-domain':
         specifier: workspace:^
         version: link:../io-auth-n-identity-domain
@@ -1865,7 +1865,7 @@ importers:
     dependencies:
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
-        version: 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+        version: 0.5.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0
@@ -1902,7 +1902,7 @@ importers:
     dependencies:
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
-        version: 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+        version: 0.5.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0
@@ -1985,7 +1985,7 @@ importers:
     dependencies:
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
-        version: 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+        version: 0.5.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0
@@ -3480,15 +3480,19 @@ packages:
       fp-ts: ^2.13.1
       io-ts: ^2.2.20
 
-  '@pagopa/hexagonal-core@0.1.1':
-    resolution: {integrity: sha512-bYdSSS7y/3geMiwnG/zSwQU30HWXP9+7UQvtSKOt0cEQE8Dovrd8xJNMRsPDozX5fk9N2hydoXHH1A7PoaIsjA==}
+  '@pagopa/hexagonal-core@0.5.1':
+    resolution: {integrity: sha512-Fv5pXoP/NHCy/pNCuAG8ltTe0hUBzzDTuWb1o5pSAxiEL6v35bSFUdTi1URXGRa94W2ISEvr92rHed/xYUShIQ==}
     peerDependencies:
+      '@pagopa/azure-tracing': ^0.5.4
       '@standard-schema/spec': ^1.1.0
       neverthrow: ^8.2.0
       zod: ^4.0.0
+    peerDependenciesMeta:
+      '@pagopa/azure-tracing':
+        optional: true
 
-  '@pagopa/hexagonal-fastify@0.1.0':
-    resolution: {integrity: sha512-OVVISK4MWqEBlPy2sKnLqKMmiU4hI0RVPZel0aIfi0IYvhynjDR2is0QDViJmvivk7QlXUiShmCUrbXS8JUqBg==}
+  '@pagopa/hexagonal-fastify@0.3.0':
+    resolution: {integrity: sha512-VMkxXzqKyp4m98P7od7W5g8LKIMYmtp+vv3xLZcxHuV3hU2SWzYzEM7vEAQWJsp5Fv0KdLihp9qNXLpEa43XXw==}
     peerDependencies:
       '@standard-schema/spec': ^1.1.0
       fastify: ^5.8.4
@@ -10896,19 +10900,21 @@ snapshots:
       - ts-node
       - typescript
 
-  '@pagopa/hexagonal-core@0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)':
+  '@pagopa/hexagonal-core@0.5.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)':
     dependencies:
       '@standard-schema/spec': 1.1.0
       neverthrow: 8.2.0
       zod: 4.4.3
 
-  '@pagopa/hexagonal-fastify@0.1.0(@standard-schema/spec@1.1.0)(fastify@5.8.5)(neverthrow@8.2.0)(zod@4.4.3)':
+  '@pagopa/hexagonal-fastify@0.3.0(@standard-schema/spec@1.1.0)(fastify@5.8.5)(neverthrow@8.2.0)(zod@4.4.3)':
     dependencies:
-      '@pagopa/hexagonal-core': 0.1.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+      '@pagopa/hexagonal-core': 0.5.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       '@standard-schema/spec': 1.1.0
       fastify: 5.8.5
       neverthrow: 8.2.0
       zod: 4.4.3
+    transitivePeerDependencies:
+      - '@pagopa/azure-tracing'
 
   '@pagopa/io-app-email-templates@0.8.0':
     dependencies:

@@ -1,8 +1,11 @@
 import {
   EmailAddressSchema,
+  EmailAddressBrand,
   FiscalCodeSchema,
+  FiscalCodeBrand,
   GenericError,
   NonEmptyStringSchema,
+  NonEmptyStringBrand,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import {

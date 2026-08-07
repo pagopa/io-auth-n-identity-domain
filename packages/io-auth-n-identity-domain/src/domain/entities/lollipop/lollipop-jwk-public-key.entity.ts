@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { type NonEmptyStringBrand } from "@pagopa/hexagonal-core";
+
 import { Base64UrlJsonSchema } from "../../value-objects/common/base64url-string.vo.js";
 
 export const EcKeySchema = z.object({
