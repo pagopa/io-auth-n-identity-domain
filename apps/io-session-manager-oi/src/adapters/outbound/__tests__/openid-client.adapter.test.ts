@@ -23,7 +23,6 @@ import {
   anEmailAddress,
   aSpidLevel,
 } from "../../../__mocks__/session.mocks.js";
-import { SpidLevelSchema } from "@pagopa/io-auth-n-identity-session";
 
 vi.mock("openid-client", () => ({
   discovery: vi.fn(),
