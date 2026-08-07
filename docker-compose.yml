@@ -172,7 +172,7 @@ services:
       mailhog:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7071/api/v1/ping"]
+      test: ["CMD", "curl", "-f", "http://localhost:7071/api/v1/info"]
       interval: 5s
       timeout: 5s
       retries: 20
