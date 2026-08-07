@@ -10,5 +10,3 @@ export const LollipopConfigSchema = z.object({
   LOLLIPOP_API_BASE_PATH: NonEmptyStringSchema,
   LOLLIPOP_API_KEY: NonEmptyStringSchema,
 });
-
-export type LollipopConfig = z.infer<typeof LollipopConfigSchema>;
