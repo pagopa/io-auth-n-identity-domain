@@ -111,18 +111,6 @@ export const createApp = async (
           enableTls: config.REDIS_TLS_ENABLED,
         });
 
-  // Close the Redis connection cleanly when Fastify shuts down (via
-  // `server.close()`). `close()` waits for pending commands to
-  // complete and drains the socket, avoiding leaked descriptors on
-  // redeploy.
-  server.addHook("onClose", async () => {
-    try {
-      await redisClient.close();
-    } catch (err) {
-      server.log.warn({ err }, "Failed to close Redis client gracefully");
-    }
-  });
-
   const blockedUsersAdapter = new BlockedUsersRedisAdapter(
     // Both generics are inferred from the constructor arguments:
     // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
@@ -201,6 +189,30 @@ export const createApp = async (
           AzureCredential.getInstance(),
         )
       : new ServiceBusClient(config.SERVICE_BUS_CONNECTION_STRING);
+
+  // Close external clients cleanly when Fastify shuts down (via
+  // `server.close()`). Run both independent close operations in parallel,
+  // while allowing one failure without preventing the other from completing.
+  server.addHook("onClose", async () => {
+    const results = await Promise.allSettled([
+      redisClient.close(),
+      serviceBusClient.close(),
+    ]);
+
+    const [redisResult, serviceBusResult] = results;
+    if (redisResult.status === "rejected") {
+      server.log.warn(
+        { err: redisResult.reason },
+        "Failed to close Redis client gracefully",
+      );
+    }
+    if (serviceBusResult.status === "rejected") {
+      server.log.warn(
+        { err: serviceBusResult.reason },
+        "Failed to close Service Bus client gracefully",
+      );
+    }
+  });
 
   const authEventServiceBusAdapter = new AuthEventServiceBusAdapter(
     serviceBusClient.createSender(config.AUTH_SESSIONS_TOPIC_NAME),
