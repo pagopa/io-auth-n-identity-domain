@@ -57,13 +57,15 @@ script:pre-request {
 }
 
 script:post-response {
-  const { state, nonce } = res.body;
+  const { state, nonce, client_id, redirect_uri, issuer } = res.body;
+  
+  const idp = "https://idp.uat.io.oneid.pagopa.it";
   
   if (!state || !nonce) {
     throw new Error("Expected the reserve response to include state and nonce");
   }
   
   console.log(
-    `https://dev.oneid.pagopa.it/oidc/authorize?client_id=${client_id}&redirect_uri=https://localhost:3000/callback&scope=openid&state=${state}&nonce=${nonce}&response_type=code&minAuthLevel=SpidL2&idp=https://idp.dev.oneid.pagopa.it`
+    `${issuer}oidc/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=openid&state=${state}&nonce=${nonce}&response_type=code&minAuthLevel=SpidL2&idp=${idp}`
   );
 }

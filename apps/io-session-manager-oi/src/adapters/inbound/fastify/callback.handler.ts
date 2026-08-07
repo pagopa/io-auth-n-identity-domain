@@ -80,8 +80,7 @@ export const mountCallbackHandler = (
         fiscalCode: context.claims.fiscalNumber,
         name: context.claims.name,
         familyName: context.claims.familyName,
-        // TODO: retrieve the date of birth from the OIDC claims when available.
-        dateOfBirth: new Date("1980-01-01"),
+        dateOfBirth: context.claims.dateOfBirth,
         spidLevel: context.claims.acr,
         spidEmail: context.claims.email,
         ipAddress,
@@ -90,10 +89,10 @@ export const mountCallbackHandler = (
       };
     },
     outputMapper: (clientSessionToken) => {
-      console.log("callback handler: clientSessionToken", clientSessionToken);
-      //TODO: set fragment
       const redirectUrl = new URL(deps.loginSuccessRedirectUrl);
-      redirectUrl.searchParams.set("token", clientSessionToken);
+      redirectUrl.hash = new URLSearchParams({
+        token: clientSessionToken,
+      }).toString();
       return redirectUrl.href;
     },
     useCase: deps.activateUserSessionUseCase,

@@ -3,7 +3,7 @@ import {
   FiscalCodeSchema,
   NonEmptyStringSchema,
 } from "@pagopa/hexagonal-core";
-import { SpidLevelSchema } from "@pagopa/io-auth-n-identity-session/value-objects";
+import { SpidLevelSchema } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
 
 /**
@@ -17,13 +17,12 @@ export const OidcClaimsSchema = z.object({
   fiscalNumber: FiscalCodeSchema,
   name: NonEmptyStringSchema,
   familyName: NonEmptyStringSchema,
+  email: EmailAddressSchema.optional(),
+  dateOfBirth: z.coerce.date(),
   // `acr` carries the SPID authentication level as its canonical URL.
   acr: SpidLevelSchema,
-  email: EmailAddressSchema.optional(),
   // `iss` is the OneID issuer, used as the identity provider reference.
   iss: NonEmptyStringSchema,
-
-  // TODO: add dateOfBirth
 });
 
 export type OidcClaims = z.infer<typeof OidcClaimsSchema>;
