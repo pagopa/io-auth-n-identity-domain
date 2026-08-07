@@ -10,5 +10,3 @@ export const IoSmIntConfigSchema = z.object({
   IO_SM_INT_API_BASE_PATH: NonEmptyStringSchema,
   IO_SM_INT_API_KEY: NonEmptyStringSchema,
 });
-
-export type IoSmIntConfig = z.infer<typeof IoSmIntConfigSchema>;

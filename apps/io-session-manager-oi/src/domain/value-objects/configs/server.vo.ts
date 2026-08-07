@@ -10,5 +10,3 @@ export const ServerConfigSchema = z.object({
   PORT: z.coerce.number().int().positive().max(65535),
   NODE_ENV: z.enum(["development", "production"]),
 });
-
-export type ServerConfig = z.infer<typeof ServerConfigSchema>;

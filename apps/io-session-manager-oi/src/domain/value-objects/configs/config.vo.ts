@@ -6,6 +6,7 @@ import {
   LockedProfilesProductionConfigSchema,
 } from "./locked-profiles.vo.js";
 import { LollipopConfigSchema } from "./lollipop.vo.js";
+import { OneIdConfigSchema } from "./one-id.vo.js";
 import { IoProfileConfigSchema } from "./profile.vo.js";
 import {
   PushNotificationsQueueDevelopmentConfigSchema,
@@ -17,6 +18,10 @@ import {
 } from "./redis.vo.js";
 import { ServerConfigSchema } from "./server.vo.js";
 import { IoSmIntConfigSchema } from "./session-manager-internal.vo.js";
+import {
+  SessionCosmosDevelopmentConfigSchema,
+  SessionCosmosProductionConfigSchema,
+} from "./session.vo.js";
 
 /**
  * Fields shared by every runtime environment.
@@ -28,6 +33,7 @@ const CommonConfigShape = {
   ...IoProfileConfigSchema.shape,
   ...IoFastLoginConfigSchema.shape,
   ...IoSmIntConfigSchema.shape,
+  ...OneIdConfigSchema.shape,
 };
 
 /**
@@ -40,6 +46,7 @@ export const ProductionConfigSchema = z.object({
   ...LockedProfilesProductionConfigSchema.shape,
   ...PushNotificationsQueueProductionConfigSchema.shape,
   ...RedisProductionConfigSchema.shape,
+  ...SessionCosmosProductionConfigSchema.shape,
 });
 
 export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
@@ -54,6 +61,7 @@ export const DevelopmentConfigSchema = z.object({
   ...LockedProfilesDevelopmentConfigSchema.shape,
   ...PushNotificationsQueueDevelopmentConfigSchema.shape,
   ...RedisDevelopmentConfigSchema.shape,
+  ...SessionCosmosDevelopmentConfigSchema.shape,
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;
