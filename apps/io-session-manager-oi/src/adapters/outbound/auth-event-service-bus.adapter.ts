@@ -14,22 +14,32 @@ export class AuthEventServiceBusAdapter implements AuthEventPort {
   constructor(private readonly serviceBusSender: ServiceBusSender) {}
 
   sendEvent(eventData: AuthEvent): ResultAsync<void, GenericError> {
-    return ResultAsync.fromPromise(
-      this.serviceBusSender.sendMessages({
-        body: AuthEventSchema.encode(eventData),
-        contentType: "application/json",
-        applicationProperties: {
-          eventType: eventData.eventType, // subscriptions filters apply to applicationProperties
-        },
-        sessionId: eventData.fiscalCode, // fiscalCode as ServiceBus session identifier
-      }),
+    return Result.fromThrowable(
+      AuthEventSchema.encode,
       (error) =>
         new GenericError(
-          `Failed to send auth event message: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
+          `Failed to encode auth event message: ${error instanceof Error ? error.message : String(error)}`,
         ),
-    );
+    )(eventData)
+      .asyncAndThen((body) =>
+        ResultAsync.fromPromise(
+          this.serviceBusSender.sendMessages({
+            body,
+            contentType: "application/json",
+            applicationProperties: {
+              eventType: eventData.eventType, // subscriptions filters apply to applicationProperties
+            },
+            sessionId: eventData.fiscalCode, // fiscalCode as ServiceBus session identifier
+          }),
+          (error) =>
+            new GenericError(
+              `Failed to send auth event message: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            ),
+        ),
+      )
+      .map(() => undefined);
   }
 
   /**

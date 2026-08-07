@@ -28,6 +28,11 @@ const AUTH_EVENT: AuthEvent = {
   idp: "https://idp.example.com",
 };
 
+const INVALID_AUTH_EVENT = {
+  ...AUTH_EVENT,
+  ts: new Date(Number.NaN),
+} as AuthEvent;
+
 beforeEach(() => {
   vi.resetAllMocks();
 });
@@ -51,6 +56,17 @@ describe("AuthEventServiceBusAdapter#sendEvent", () => {
         sessionId: AUTH_EVENT.fiscalCode,
       },
     );
+  });
+
+  it("returns a GenericError and does not send when encoding fails", async () => {
+    const result = await adapter.sendEvent(INVALID_AUTH_EVENT);
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+    expect(result._unsafeUnwrapErr().message).toMatch(
+      /^Failed to encode auth event message:/,
+    );
+    expect(mocks.serviceBusSender.sendMessages).not.toHaveBeenCalled();
   });
 
   it("returns a GenericError when Service Bus rejects with an Error", async () => {
@@ -107,6 +123,20 @@ describe("AuthEventServiceBusAdapter#healthcheck", () => {
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
     expect(result._unsafeUnwrapErr().message).toMatch(
       /Failed to perform healthcheck on auth event Service Bus sender: Service Bus unavailable$/,
+    );
+  });
+
+  it("converts non-Error rejections into a GenericError", async () => {
+    mocks.serviceBusSender.createMessageBatch.mockRejectedValue(
+      "Unexpected failure",
+    );
+
+    const result = await adapter.healthcheck();
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+    expect(result._unsafeUnwrapErr().message).toMatch(
+      /Failed to perform healthcheck on auth event Service Bus sender: Unexpected failure$/,
     );
   });
 });
