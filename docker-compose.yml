@@ -199,7 +199,7 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7071/info"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 20
       start_period: 2m
