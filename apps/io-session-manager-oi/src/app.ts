@@ -23,7 +23,7 @@ import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profi
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
-import { type Config } from "./domain/value-objects/config.vo.js";
+import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAusiliarDataSchema } from "./domain/value-objects/login.vo.js";
 import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 

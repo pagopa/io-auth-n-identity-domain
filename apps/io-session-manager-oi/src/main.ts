@@ -4,7 +4,7 @@ import { createPackageInfoAdapter } from "@pagopa/io-package-info";
 
 import { createConfigLoader } from "./adapters/outbound/config-loader.js";
 import { createApp } from "./app.js";
-import { ConfigSchema } from "./domain/value-objects/config.vo.js";
+import { ConfigSchema } from "./domain/value-objects/configs/index.js";
 
 const start = async () => {
   const configResult = createConfigLoader(ConfigSchema).load();
