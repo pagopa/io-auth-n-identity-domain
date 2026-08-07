@@ -22,6 +22,7 @@ import {
   SessionCosmosDevelopmentConfigSchema,
   SessionCosmosProductionConfigSchema,
 } from "./session.vo.js";
+import { LoginConfigSchema } from "./login.vo.js";
 
 /**
  * Fields shared by every runtime environment.
@@ -34,6 +35,7 @@ const CommonConfigShape = {
   ...IoFastLoginConfigSchema.shape,
   ...IoSmIntConfigSchema.shape,
   ...OneIdConfigSchema.shape,
+  ...LoginConfigSchema.shape,
 };
 
 /**

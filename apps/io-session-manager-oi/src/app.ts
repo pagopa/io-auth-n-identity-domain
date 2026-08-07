@@ -15,12 +15,16 @@ import { CosmosClient } from "@azure/cosmos";
 import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
+import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
 import { AusiliarDataRedisAdapter } from "./adapters/outbound/ausiliar-data.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
+import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
+import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
+import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
@@ -126,8 +130,6 @@ export const createApp = async (
         })
       : new CosmosClient(config.COSMOSDB_CONNECTION_STRING);
 
-  // TODO: wire into endpoints
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const sessionCosmosAdapter = new SessionCosmosAdapter(
     cosmosClient,
     config.COSMOSDB_NAME,
@@ -144,19 +146,37 @@ export const createApp = async (
     apiKey: config.LOLLIPOP_API_KEY,
   });
 
+  const profileAdapter = createIoProfileAdapter({
+    baseUrl: `${config.IO_PROFILE_API_URL}${config.IO_PROFILE_API_BASE_PATH}`,
+    apiKey: config.IO_PROFILE_API_KEY,
+  });
+
   const oidcConfigAdapter = new InMemoryOidcConfigAdapter({
     ONEID_PROD_CLIENT_ID: config.ONEID_PROD_CLIENT_ID,
+    ONEID_PROD_CLIENT_SECRET: config.ONEID_PROD_CLIENT_SECRET,
     ONEID_PROD_ISSUER: config.ONEID_PROD_ISSUER,
     ONEID_PROD_REDIRECT_URI: config.ONEID_PROD_REDIRECT_URI,
     ONEID_UAT_CLIENT_ID: config.ONEID_UAT_CLIENT_ID,
+    ONEID_UAT_CLIENT_SECRET: config.ONEID_UAT_CLIENT_SECRET,
     ONEID_UAT_ISSUER: config.ONEID_UAT_ISSUER,
   });
+
+  const oidcExchangeAdapter = new OpenIdClientAdapter(oidcConfigAdapter);
+
+  // Warm up OIDC discovery (metadata + JWKS) so the cost is paid at startup
+  // Best-effort: never blocks boot on a provider outage — the lazy path retries on demand.
+  await oidcExchangeAdapter.warmUp(["PROD", "UAT"]);
 
   const reserveUseCase = makeReserveUseCase({
     ausiliarDataPort: ausiliarStorageAdapter,
     lollipopPort: fetchLollipopAdapter,
     oidcConfigPort: oidcConfigAdapter,
   });
+
+  const activateUserSessionUseCase = makeActivateUserSessionUseCase(
+    sessionCosmosAdapter,
+    profileAdapter,
+  );
 
   // --------------------------------------------------
   // Endpoints mounting
@@ -190,5 +210,13 @@ export const createApp = async (
   );
 
   mountReserveHandler(server, reserveUseCase);
+
+  mountCallbackHandler(server, {
+    ausiliarDataPort: ausiliarStorageAdapter,
+    oidcExchangePort: oidcExchangeAdapter,
+    activateUserSessionUseCase,
+    loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
+  });
+
   return { server };
 };
