@@ -26,4 +26,3 @@ VALIDATION_TOKENS_TABLE_NAME=validationtokens
 
 # CORS for io-web local
 CORS_ALLOWED_ORIGINS=["http://localhost:3000"]
-CONTAINER_NAME=public

@@ -2,7 +2,7 @@ import { CosmosClient } from "@azure/cosmos";
 import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { makeActivateUserSessionUseCase } from "../../application/use-cases/activate-user-session.user-case.js";
+import { makeActivateUserSessionUseCase } from "../../application/use-cases/activate-user-session.use-case.js";
 import {
   ACTIVE_SESSION_CONTAINER_NAME,
   COSMOSDB_KEY,

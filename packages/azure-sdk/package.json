@@ -19,7 +19,7 @@
     "lint:check": "eslint . --ext .ts --cache",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:integration": "vitest run -c ./src/data-tables/__integrations__/vite.config.mts"
+    "test:integrations": "vitest run -c ./src/data-tables/__integrations__/vite.config.mts"
   },
   "dependencies": {
     "@pagopa/hexagonal-core": "catalog:",
