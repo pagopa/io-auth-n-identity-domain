@@ -8,13 +8,6 @@ import { err, ok } from "neverthrow";
 import * as client from "openid-client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { OpenIdClientAdapter } from "../openid-client.adapter.js";
-import {
-  type OidcConfigPort,
-  type OidcEnvConfig,
-} from "../../../domain/ports/outbound/oidc-config.port.js";
-import { type OidcExchangeParamsDTO } from "../../../domain/ports/outbound/oidc.port.js";
-import { OidcClaimsSchema } from "../../../domain/value-objects/oidc-claims.vo.js";
 import {
   aDateOfBirth,
   aFamilyName,
@@ -23,6 +16,13 @@ import {
   anEmailAddress,
   aSpidLevel,
 } from "../../../__mocks__/session.mocks.js";
+import {
+  type OidcConfigPort,
+  type OidcEnvConfig,
+} from "../../../domain/ports/outbound/oidc-config.port.js";
+import { type OidcExchangeParamsDTO } from "../../../domain/ports/outbound/oidc.port.js";
+import { OidcClaimsSchema } from "../../../domain/value-objects/oidc-claims.vo.js";
+import { OpenIdClientAdapter } from "../openid-client.adapter.js";
 
 vi.mock("openid-client", () => ({
   discovery: vi.fn(),
@@ -182,7 +182,7 @@ describe("OpenIdClientAdapter#exchange", () => {
 
 describe("OpenIdClientAdapter#warmUp", () => {
   it("discovers configuration for the requested environments", async () => {
-    await adapter.warmUp(["PROD", "UAT"]);
+    await adapter.warmUp(new Set(["PROD", "UAT"]));
 
     expect(client.discovery).toHaveBeenCalledTimes(2);
   });
@@ -194,7 +194,7 @@ describe("OpenIdClientAdapter#warmUp", () => {
         : err(new ValidationError("missing config")),
     );
 
-    await adapter.warmUp(["PROD", "UAT"]);
+    await adapter.warmUp(new Set(["PROD", "UAT"]));
 
     expect(client.discovery).toHaveBeenCalledTimes(1);
   });
@@ -202,6 +202,6 @@ describe("OpenIdClientAdapter#warmUp", () => {
   it("swallows discovery failures so startup is not blocked", async () => {
     vi.mocked(client.discovery).mockRejectedValue(new Error("discovery down"));
 
-    await expect(adapter.warmUp(["PROD"])).resolves.toBeUndefined();
+    await expect(adapter.warmUp(new Set(["PROD"]))).resolves.toBeUndefined();
   });
 });
