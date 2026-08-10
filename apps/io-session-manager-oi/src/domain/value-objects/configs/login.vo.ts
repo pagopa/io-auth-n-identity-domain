@@ -12,6 +12,11 @@ import { z } from "zod";
 export const LoginConfigSchema = z.object({
   LOGIN_SUCCESS_REDIRECT_URL: z.url(),
   LOGIN_ERROR_REDIRECT_URL: z.url(),
+
+  // Timeout (seconds) applied to every HTTP request towards the OIDC provider
+  // (discovery, JWKS, token endpoint). Prevents slow upstream responses from
+  // exhausting connections under load.
+  ONEID_HTTP_TIMEOUT_SECONDS: z.coerce.number().int().positive().default(8),
 });
 
 export type LoginConfig = z.infer<typeof LoginConfigSchema>;

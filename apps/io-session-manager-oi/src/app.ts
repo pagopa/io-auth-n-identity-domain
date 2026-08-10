@@ -166,7 +166,10 @@ export const createApp = async (
     ONEID_UAT_ISSUER: config.ONEID_UAT_ISSUER,
   });
 
-  const oidcExchangeAdapter = new OpenIdClientAdapter(oidcConfigAdapter);
+  const oidcExchangeAdapter = new OpenIdClientAdapter(
+    oidcConfigAdapter,
+    config.ONEID_HTTP_TIMEOUT_SECONDS,
+  );
 
   // Warm up OIDC discovery (metadata + JWKS) so the cost is paid at startup
   // Best-effort: never blocks boot on a provider outage — the lazy path retries on demand.

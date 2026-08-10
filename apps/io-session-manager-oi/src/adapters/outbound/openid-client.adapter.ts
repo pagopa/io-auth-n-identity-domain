@@ -8,7 +8,7 @@ import {
 } from "../../domain/ports/outbound/oidc-config.port.js";
 import {
   type OidcExchangeParamsDTO,
-  type OidcPort,
+  type OidcClientPort,
 } from "../../domain/ports/outbound/oidc.port.js";
 import {
   type OidcClaims,
@@ -16,22 +16,27 @@ import {
 } from "../../domain/value-objects/oidc-claims.vo.js";
 import { type OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js";
 
-// Timeout (seconds) applied to every HTTP request towards the OIDC provider
-// (discovery, JWKS, token endpoint). Prevents slow upstream responses from
-// exhausting connections under load.
-const OIDC_HTTP_TIMEOUT_SECONDS = 30;
 /**
  *
- * Adapter implementing {@link OidcPort} using the `openid-client`
+ * Adapter implementing {@link OidcClientPort} using the `openid-client`
  * library. Provider metadata is discovered lazily and cached per environment.
  */
-export class OpenIdClientAdapter implements OidcPort {
+export class OpenIdClientAdapter implements OidcClientPort {
   private readonly discoveryByEnv = new Map<
     OidcConfigurationEnv,
     Promise<client.Configuration>
   >();
 
-  constructor(private readonly oidcConfigPort: OidcConfigPort) {}
+  /**
+   * @param oidcConfigPort provides per-environment OIDC configuration.
+   * @param httpTimeoutSeconds timeout (seconds) applied to every HTTP request
+   *   towards the OIDC provider (discovery, JWKS, token endpoint). Prevents
+   *   slow upstream responses from exhausting connections under load.
+   */
+  constructor(
+    private readonly oidcConfigPort: OidcConfigPort,
+    private readonly httpTimeoutSeconds: number = 8,
+  ) {}
 
   /**
    * Triggers OIDC discovery (provider metadata + JWKS) for the given
@@ -137,7 +142,7 @@ export class OpenIdClientAdapter implements OidcPort {
           client.ClientSecretBasic(envConfig.clientSecret),
           {
             [client.customFetch as any]: sanitizingFetch,
-            timeout: OIDC_HTTP_TIMEOUT_SECONDS,
+            timeout: this.httpTimeoutSeconds,
           },
         )
         .catch((error: unknown) => {

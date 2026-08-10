@@ -25,7 +25,7 @@ export type OidcExchangeParamsDTO = {
  * Outbound port that performs the OpenID Connect authorization-code grant and
  * returns the validated ID token claims.
  */
-export interface OidcPort {
+export interface OidcClientPort {
   readonly exchange: (
     params: OidcExchangeParamsDTO,
   ) => Promise<Result<OidcClaims, AuthenticationError | GenericError>>;

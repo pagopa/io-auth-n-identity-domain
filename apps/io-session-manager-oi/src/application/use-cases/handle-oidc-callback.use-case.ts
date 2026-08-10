@@ -9,7 +9,7 @@ import { IPString } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok } from "neverthrow";
 
 import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
-import { OidcPort } from "../../domain/ports/outbound/oidc.port.js";
+import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
 import { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
 import {
   ActivateUserSessionUseCase,
@@ -37,7 +37,7 @@ export type HandleOidcCallbackInput = {
 
 export type HandleOidcCallbackDeps = {
   ausiliarDataPort: AusiliarDataPort;
-  oidcPort: OidcPort;
+  oidcPort: OidcClientPort;
   activateUserSessionUseCase: ActivateUserSessionUseCase;
 };
 
