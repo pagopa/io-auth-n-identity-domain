@@ -5,18 +5,19 @@ import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
 import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import { type PackageInfo } from "@pagopa/io-package-info";
 import {
-  createRedisNodeClient,
   createRedisManagedIdentityNodeClient,
+  createRedisNodeClient,
 } from "@pagopa/redis/node-client";
 import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
 import { CosmosClient } from "@azure/cosmos";
 import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
+import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
+import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
-import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
 import { AusiliarDataRedisAdapter } from "./adapters/outbound/ausiliar-data.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
@@ -31,7 +32,6 @@ import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAusiliarDataSchema } from "./domain/value-objects/login.vo.js";
-import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 
 class AzureCredential {
   private static instance: DefaultAzureCredential | undefined;
@@ -170,7 +170,7 @@ export const createApp = async (
 
   // Warm up OIDC discovery (metadata + JWKS) so the cost is paid at startup
   // Best-effort: never blocks boot on a provider outage — the lazy path retries on demand.
-  await oidcExchangeAdapter.warmUp(["PROD", "UAT"]);
+  await oidcExchangeAdapter.warmUp(new Set(["PROD", "UAT"]));
 
   const reserveUseCase = makeReserveUseCase({
     ausiliarDataPort: ausiliarStorageAdapter,

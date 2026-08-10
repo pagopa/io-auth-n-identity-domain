@@ -43,9 +43,9 @@ export class OpenIdClientAdapter implements OidcPort {
    * block deploys/scale-out). Failures are swallowed here; the lazy path in
    * {@link exchange} retries on the next request.
    */
-  warmUp = async (envs: readonly OidcConfigurationEnv[]): Promise<void> => {
+  warmUp = async (envs: ReadonlySet<OidcConfigurationEnv>): Promise<void> => {
     await Promise.all(
-      envs.map(async (env) => {
+      [...envs].map(async (env) => {
         const envConfigResult = this.oidcConfigPort.getConfig(env);
         // Skip environments that are not configured for this deployment.
         if (envConfigResult.isErr()) return;
