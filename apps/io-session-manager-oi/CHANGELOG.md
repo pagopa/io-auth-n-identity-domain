@@ -1,5 +1,16 @@
 # io-session-manager-oi
 
+## 0.12.0
+
+### Minor Changes
+
+- e9f6f07: Added capability to instantiate a redis cluster
+
+### Patch Changes
+
+- Updated dependencies [e9f6f07]
+  - @pagopa/redis@0.3.0
+
 ## 0.11.1
 
 ### Patch Changes

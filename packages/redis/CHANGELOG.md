@@ -1,5 +1,11 @@
 # @pagopa/redis
 
+## 0.3.0
+
+### Minor Changes
+
+- e9f6f07: Added capability to instantiate a redis cluster
+
 ## 0.2.0
 
 ### Minor Changes
