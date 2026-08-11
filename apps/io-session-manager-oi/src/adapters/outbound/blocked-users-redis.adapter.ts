@@ -5,10 +5,9 @@ import {
   ValidationError,
 } from "@pagopa/hexagonal-core";
 import { RedisError } from "@pagopa/redis";
-import {
-  type RedisNodeClient,
-  RedisSetWrapper,
-} from "@pagopa/redis/set-wrapper";
+import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
+
+import { RedisClientType, RedisClusterType } from "redis";
 import { Result, err, ok } from "neverthrow";
 
 import { BlockedUsersPort } from "../../domain/ports/outbound/blocked-users.port.js";
@@ -24,7 +23,7 @@ export class BlockedUsersRedisAdapter implements BlockedUsersPort {
   constructor(
     private readonly redis: RedisSetWrapper<
       typeof FiscalCodeSchema,
-      RedisNodeClient
+      RedisClientType | RedisClusterType
     >,
   ) {}
 

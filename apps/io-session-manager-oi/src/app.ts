@@ -5,8 +5,8 @@ import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
 import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import { type PackageInfo } from "@pagopa/io-package-info";
 import {
-  createRedisManagedIdentityNodeClient,
-  createRedisNodeClient,
+  createRedisManagedIdentityClusterClient,
+  createRedisClusterClient,
 } from "@pagopa/redis/node-client";
 import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
@@ -94,7 +94,7 @@ export const createApp = async (
 
   const redisClient =
     config.NODE_ENV === "production"
-      ? await createRedisManagedIdentityNodeClient(
+      ? await createRedisManagedIdentityClusterClient(
           {
             hostname: config.REDIS_HOSTNAME,
             port: config.REDIS_PORT,
@@ -102,7 +102,7 @@ export const createApp = async (
           },
           AzureCredential.getInstance(),
         )
-      : await createRedisNodeClient({
+      : await createRedisClusterClient({
           hostname: config.REDIS_HOSTNAME,
           password: config.REDIS_PASSWORD,
           port: config.REDIS_PORT,

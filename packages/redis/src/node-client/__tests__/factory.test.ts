@@ -1,15 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  createRedisClusterClient,
+  createRedisManagedIdentityClusterClient,
   createRedisManagedIdentityNodeClient,
   createRedisNodeClient,
 } from "../factory.js";
 
-const { createClient } = vi.hoisted(() => ({
+const { createClient, createCluster } = vi.hoisted(() => ({
   createClient: vi.fn(),
+  createCluster: vi.fn(),
 }));
 
-vi.mock("redis", () => ({ createClient }));
+vi.mock("redis", () => ({ createClient, createCluster }));
 
 const { createForDefaultAzureCredential, REDIS_SCOPE_DEFAULT } = vi.hoisted(
   () => ({
@@ -33,9 +36,16 @@ const lastCreateClientOptions = () => {
   return call[0];
 };
 
+const lastCreateClusterOptions = () => {
+  const call = createCluster.mock.calls.at(-1);
+  if (!call) throw new Error("createCluster was not called");
+  return call[0];
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   createClient.mockImplementation(buildFakeClient);
+  createCluster.mockImplementation(buildFakeClient);
 });
 
 // ---------------------------------------------------------------------------
@@ -267,5 +277,171 @@ describe("createRedisManagedIdentityNodeClient", () => {
       createRedisManagedIdentityNodeClient({ hostname: "" }, fakeCredential),
     ).rejects.toThrow("hostname must be non-empty");
     expect(createClient).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Cluster — password auth
+// ---------------------------------------------------------------------------
+
+describe("createRedisClusterClient", () => {
+  it("uses rediss:// and port 6380 by default", async () => {
+    await createRedisClusterClient({ hostname: "cache.example.com" });
+
+    const opts = lastCreateClusterOptions();
+    expect(opts.rootNodes).toEqual([
+      { url: "rediss://cache.example.com:6380" },
+    ]);
+    expect(opts.defaults.socket).toMatchObject({
+      tls: true,
+      keepAlive: true,
+      keepAliveInitialDelay: 2000,
+    });
+    expect(opts.useReplicas).toBe(true);
+  });
+
+  it("switches to redis:// port 6379 when enableTls is false", async () => {
+    await createRedisClusterClient({
+      hostname: "localhost",
+      enableTls: false,
+    });
+
+    const opts = lastCreateClusterOptions();
+    expect(opts.rootNodes).toEqual([{ url: "redis://localhost:6379" }]);
+    expect(opts.defaults.socket).toMatchObject({ tls: false });
+  });
+
+  it("honours an explicit port", async () => {
+    await createRedisClusterClient({
+      hostname: "cache.example.com",
+      port: 7001,
+    });
+
+    expect(lastCreateClusterOptions().rootNodes).toEqual([
+      { url: "rediss://cache.example.com:7001" },
+    ]);
+  });
+
+  it("forwards the password in the defaults", async () => {
+    await createRedisClusterClient({
+      hostname: "cache.example.com",
+      password: "secret",
+    });
+
+    expect(lastCreateClusterOptions().defaults.password).toBe("secret");
+  });
+
+  it("connects and returns the client", async () => {
+    const fake = buildFakeClient();
+    createCluster.mockReturnValueOnce(fake);
+
+    const client = await createRedisClusterClient({ hostname: "cache" });
+
+    expect(fake.connect).toHaveBeenCalledExactlyOnceWith();
+    expect(client).toBe(fake);
+  });
+
+  it("re-throws any error from connect()", async () => {
+    const fake = buildFakeClient();
+    fake.connect = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("dns lookup failed"));
+    createCluster.mockReturnValueOnce(fake);
+
+    await expect(
+      createRedisClusterClient({ hostname: "cache" }),
+    ).rejects.toThrow("dns lookup failed");
+  });
+
+  it("rejects an invalid hostname without calling createCluster", async () => {
+    await expect(
+      createRedisClusterClient({ hostname: "" }),
+    ).rejects.toThrow("hostname must be non-empty");
+    expect(createCluster).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Cluster — managed identity
+// ---------------------------------------------------------------------------
+
+describe("createRedisManagedIdentityClusterClient", () => {
+  beforeEach(() => {
+    createForDefaultAzureCredential.mockReturnValue(fakeProvider);
+  });
+
+  it("uses rediss:// and port 6380 by default", async () => {
+    await createRedisManagedIdentityClusterClient(
+      { hostname: "cache.example.com" },
+      fakeCredential,
+    );
+
+    const opts = lastCreateClusterOptions();
+    expect(opts.rootNodes).toEqual([
+      { url: "rediss://cache.example.com:6380" },
+    ]);
+    expect(opts.defaults.socket).toMatchObject({
+      tls: true,
+      keepAlive: true,
+      keepAliveInitialDelay: 2000,
+    });
+  });
+
+  it("switches to redis:// port 6379 when enableTls is false", async () => {
+    await createRedisManagedIdentityClusterClient(
+      { hostname: "localhost", enableTls: false },
+      fakeCredential,
+    );
+
+    const opts = lastCreateClusterOptions();
+    expect(opts.rootNodes).toEqual([{ url: "redis://localhost:6379" }]);
+    expect(opts.defaults.socket).toMatchObject({ tls: false });
+  });
+
+  it("wires an Entra-ID credentials provider onto defaults instead of a password", async () => {
+    await createRedisManagedIdentityClusterClient(
+      { hostname: "cache" },
+      fakeCredential,
+    );
+
+    expect(createForDefaultAzureCredential).toHaveBeenCalledExactlyOnceWith({
+      credential: fakeCredential,
+      scopes: REDIS_SCOPE_DEFAULT,
+      options: {},
+      tokenManagerConfig: { expirationRefreshRatio: 0.8 },
+    });
+    const opts = lastCreateClusterOptions();
+    expect(opts.defaults.credentialsProvider).toBe(fakeProvider);
+    expect(opts.defaults.password).toBeUndefined();
+  });
+
+  it("connects and returns the client", async () => {
+    const fake = buildFakeClient();
+    createCluster.mockReturnValueOnce(fake);
+
+    const client = await createRedisManagedIdentityClusterClient(
+      { hostname: "cache" },
+      fakeCredential,
+    );
+
+    expect(fake.connect).toHaveBeenCalledExactlyOnceWith();
+    expect(client).toBe(fake);
+  });
+
+  it("re-throws any error from connect()", async () => {
+    const fake = buildFakeClient();
+    fake.connect = vi.fn().mockRejectedValueOnce(new Error("token failure"));
+    createCluster.mockReturnValueOnce(fake);
+
+    await expect(
+      createRedisManagedIdentityClusterClient({ hostname: "cache" }, fakeCredential),
+    ).rejects.toThrow("token failure");
+  });
+
+  it("runs the base config schema (rejects an invalid hostname)", async () => {
+    await expect(
+      createRedisManagedIdentityClusterClient({ hostname: "" }, fakeCredential),
+    ).rejects.toThrow("hostname must be non-empty");
+    expect(createCluster).not.toHaveBeenCalled();
   });
 });

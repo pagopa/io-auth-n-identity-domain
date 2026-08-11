@@ -3,7 +3,12 @@ import {
   EntraIdCredentialsProviderFactory,
   REDIS_SCOPE_DEFAULT,
 } from "@redis/entraid";
-import { createClient, type RedisClientType } from "redis";
+import {
+  createClient,
+  createCluster,
+  type RedisClientType,
+  type RedisClusterType,
+} from "redis";
 
 import {
   type RedisNodeClientConfig,
@@ -15,8 +20,6 @@ import {
 /**
  * The concrete client type produced by `redis.createClient()`.
  */
-export type RedisNodeClient = RedisClientType;
-
 const DEFAULT_TLS_SCHEME = "rediss://";
 const DEFAULT_NON_TLS_SCHEME = "redis://";
 
@@ -49,7 +52,7 @@ const getRedisScheme = (enableTls: boolean): string =>
  */
 export const createRedisNodeClient = async (
   config: RedisPasswordNodeClientConfig,
-): Promise<RedisNodeClient> => {
+): Promise<RedisClientType> => {
   const {
     hostname,
     port: portOverride,
@@ -101,7 +104,7 @@ export const createRedisNodeClient = async (
 export const createRedisManagedIdentityNodeClient = async (
   config: RedisNodeClientConfig,
   credential: TokenCredential,
-): Promise<RedisNodeClient> => {
+): Promise<RedisClientType> => {
   const {
     hostname,
     port: portOverride,
@@ -140,6 +143,129 @@ export const createRedisManagedIdentityNodeClient = async (
     socket,
     url: `${scheme}${hostname}:${port}`,
     credentialsProvider: provider,
+  });
+
+  await client.connect();
+  return client;
+};
+
+/**
+ * Builds and connects a `node-redis` cluster client with sensible defaults,
+ * using a plain AUTH password (i.e. no Azure Managed Identity) to
+ * authenticate to the Redis server.
+ *
+ * ```ts
+ * const client = await createRedisClusterClient({ hostname, password });
+ * ```
+ *
+ * @throws Any error thrown by `client.connect()`. The caller decides
+ *   whether to retry or fail-fast.
+ */
+export const createRedisClusterClient = async (
+  config: RedisPasswordNodeClientConfig,
+): Promise<RedisClusterType> => {
+  const {
+    hostname,
+    port: portOverride,
+    password,
+    enableTls,
+  } = RedisPasswordNodeClientConfigSchema.parse(config);
+
+  const port = getRedisPort(portOverride, enableTls);
+  const scheme = getRedisScheme(enableTls);
+
+  const socket = enableTls
+    ? {
+        tls: true as const,
+        checkServerIdentity: () => undefined,
+        keepAlive: true,
+        keepAliveInitialDelay: SOCKET_KEEPALIVE_MS,
+        reconnectStrategy: reconnectDelayMs,
+      }
+    : {
+        tls: false as const,
+        keepAlive: true,
+        keepAliveInitialDelay: SOCKET_KEEPALIVE_MS,
+        reconnectStrategy: reconnectDelayMs,
+      };
+
+  const client = createCluster({
+    defaults: {
+      socket,
+      password,
+    },
+    rootNodes: [
+      {
+        url: `${scheme}${hostname}:${port}`,
+      },
+    ],
+    useReplicas: true,
+  });
+
+  await client.connect();
+  return client;
+};
+
+/**
+ * Builds and connects a `node-redis` cluster client with sensible defaults,
+ * using an Azure Managed Identity to authenticate to the Redis server.
+ *
+ * ```ts
+ * const client = await createRedisManagedIdentityClusterClient({ hostname }, credential);
+ * ```
+ *
+ * @throws Any error thrown by `client.connect()`. The caller decides
+ *   whether to retry or fail-fast.
+ */
+export const createRedisManagedIdentityClusterClient = async (
+  config: RedisNodeClientConfig,
+  credential: TokenCredential,
+): Promise<RedisClusterType> => {
+  const {
+    hostname,
+    port: portOverride,
+    enableTls,
+  } = RedisNodeClientConfigSchema.parse(config);
+
+  const provider =
+    EntraIdCredentialsProviderFactory.createForDefaultAzureCredential({
+      credential,
+      scopes: REDIS_SCOPE_DEFAULT,
+      options: {},
+      tokenManagerConfig: {
+        expirationRefreshRatio: 0.8,
+      },
+    });
+
+  const port = getRedisPort(portOverride, enableTls);
+  const scheme = getRedisScheme(enableTls);
+
+  const socket = enableTls
+    ? {
+        tls: true as const,
+        checkServerIdentity: () => undefined,
+        keepAlive: true,
+        keepAliveInitialDelay: SOCKET_KEEPALIVE_MS,
+        reconnectStrategy: reconnectDelayMs,
+      }
+    : {
+        tls: false as const,
+        keepAlive: true,
+        keepAliveInitialDelay: SOCKET_KEEPALIVE_MS,
+        reconnectStrategy: reconnectDelayMs,
+      };
+
+  const client = createCluster({
+    defaults: {
+      socket,
+      credentialsProvider: provider,
+    },
+    rootNodes: [
+      {
+        url: `${scheme}${hostname}:${port}`,
+      },
+    ],
+    useReplicas: true,
   });
 
   await client.connect();
