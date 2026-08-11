@@ -24,6 +24,14 @@ module "sm_ca" {
       name                = "ONEID_UAT_CLIENT_SECRET"
       key_vault_secret_id = azurerm_key_vault_secret.sm_oneid_uat_client_secret.versionless_id
     },
+    {
+      name                = "LOLLIPOP_API_KEY"
+      key_vault_secret_id = azurerm_key_vault_secret.sm_lollipop_api_key.versionless_id
+    },
+    {
+      name                = "IO_PROFILE_API_KEY"
+      key_vault_secret_id = azurerm_key_vault_secret.sm_io_profile_api_key.versionless_id
+    },
   ]
 
   containers = [
@@ -32,7 +40,7 @@ module "sm_ca" {
       name  = "${var.prefix}-${var.domain}-${local.app_name}"
 
       app_settings = local.app_settings
-      secret_names = ["ONEID_PROD_CLIENT_SECRET", "ONEID_UAT_CLIENT_SECRET"]
+      secret_names = ["ONEID_PROD_CLIENT_SECRET", "ONEID_UAT_CLIENT_SECRET", "LOLLIPOP_API_KEY", "IO_PROFILE_API_KEY"]
 
       liveness_probe = {
         path = "/api/auth/v2/health/liveness"
