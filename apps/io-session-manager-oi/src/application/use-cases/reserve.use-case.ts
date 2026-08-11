@@ -97,7 +97,11 @@ export const makeReserveUseCase =
     );
 
     if (ausiliarDataSaveResult.isErr()) {
-      return err(new GenericError("Could not save ausiliar data"));
+      return err(
+        new GenericError(
+          `Could not save ausiliar data, caused by: ${ausiliarDataSaveResult.error.message}`,
+        ),
+      );
     }
 
     return ok({

@@ -196,13 +196,16 @@ describe("makeReserveUseCase", () => {
   });
 
   it("returns err(GenericError) when saving ausiliar data fails", async () => {
-    saveMock.mockResolvedValueOnce(err(new GenericError("save failed")));
+    const error = new GenericError("save failed");
+    saveMock.mockResolvedValueOnce(err(error));
 
     const result = await reserveUseCase(buildInput());
 
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr()).toEqual(
-      new GenericError("Could not save ausiliar data"),
+      new GenericError(
+        `Could not save ausiliar data, caused by: ${error.message}`,
+      ),
     );
   });
 });
