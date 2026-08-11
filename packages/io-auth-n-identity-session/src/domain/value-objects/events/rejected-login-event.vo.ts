@@ -26,7 +26,7 @@ const AuthLockRejectedLoginSchema = BaseRejectedLoginSchema.extend({
 
 const UserMismatchRejectedLoginSchema = BaseRejectedLoginSchema.extend({
   rejectionCause: z.literal("cf_mismatch"),
-  currentFiscalCodeHash: z.string().regex(/^[a-fA-F0-9]{64}$/), // TODO old Sha256HexString
+  currentFiscalCodeHash: z.string().regex(/^[a-fA-F0-9]{64}$/),
 });
 
 const OngoingUserDeletionRejectedLoginSchema = BaseRejectedLoginSchema.extend({
