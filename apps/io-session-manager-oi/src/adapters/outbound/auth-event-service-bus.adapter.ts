@@ -1,11 +1,11 @@
 import type { ServiceBusSender } from "@azure/service-bus";
 import { GenericError } from "@pagopa/hexagonal-core";
-import { err, ok, Result, ResultAsync } from "neverthrow";
-import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import {
-  AuthEvent,
+  type AuthEvent,
   AuthEventSchema,
-} from "../../domain/value-objects/events/auth-event.vo.js";
+} from "@pagopa/io-auth-n-identity-session";
+import { err, ok, Result, ResultAsync } from "neverthrow";
+import type { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 
 /**
  * AuthEventServiceBusAdapter is an implementation of the AuthEventPort interface that uses Azure Service Bus to send authentication events.

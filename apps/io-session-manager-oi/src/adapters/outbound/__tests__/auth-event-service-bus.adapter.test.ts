@@ -1,11 +1,11 @@
 import type { ServiceBusSender } from "@azure/service-bus";
 import { FiscalCodeSchema, GenericError } from "@pagopa/hexagonal-core";
+import {
+  type AuthEvent,
+  AuthEventSchema,
+} from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  AuthEvent,
-  AuthEventSchema,
-} from "../../../domain/value-objects/events/auth-event.vo.js";
 import { AuthEventServiceBusAdapter } from "../auth-event-service-bus.adapter.js";
 
 const mocks = vi.hoisted(() => ({
