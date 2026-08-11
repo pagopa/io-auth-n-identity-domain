@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.11.1
+
+### Patch Changes
+
+- 6c98116: fix ausiliar data log error message
+
 ## 0.11.0
 
 ### Minor Changes
