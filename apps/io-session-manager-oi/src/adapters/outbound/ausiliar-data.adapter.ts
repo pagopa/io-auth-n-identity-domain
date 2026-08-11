@@ -6,7 +6,7 @@ import {
   LoginAusiliarData,
   LoginAusiliarDataSchema,
 } from "../../domain/value-objects/login.vo.js";
-import { RedisClientType } from "redis";
+import { RedisClientType, RedisClusterType } from "redis";
 
 export const REDIS_AUSILIAR_DATA_PREFIX = "RESERVE-";
 
@@ -16,7 +16,7 @@ export class AusiliarDataRedisAdapter implements AusiliarDataPort {
   constructor(
     private readonly redis: RedisObjectWrapper<
       typeof LoginAusiliarDataSchema,
-      RedisClientType
+      RedisClientType | RedisClusterType
     >,
   ) {}
 
