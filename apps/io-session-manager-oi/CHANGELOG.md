@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.11.0
+
+### Minor Changes
+
+- 29c4d81: Add OIDC Callback endpoint
+
 ## 0.10.0
 
 ### Minor Changes
