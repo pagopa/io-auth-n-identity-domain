@@ -1,0 +1,20 @@
+meta {
+  name: Liveness
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/health/liveness
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  IO_SESSION_MANAGER_OI_BASE_URL: http://0.0.0.0:8001
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

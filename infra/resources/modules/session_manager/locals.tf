@@ -70,5 +70,8 @@ locals {
     ONEID_UAT_CLIENT_ID = "XbFEUWXdvQGOU1usvMURZv4YWQjYFS0ggAk0xyFCEKc"
     ONEID_UAT_ISSUER    = "https://uat.io.oneid.pagopa.it"
     # ONEID_UAT_CLIENT_SECRET is injected via the CA module's `secrets`
+
+    LOGIN_SUCCESS_REDIRECT_URL = "https://${trimsuffix(data.azurerm_dns_a_record.api_app_io_pagopa_it.fqdn, ".")}/profile.html"
+    LOGIN_ERROR_REDIRECT_URL   = "https://${trimsuffix(data.azurerm_dns_a_record.api_app_io_pagopa_it.fqdn, ".")}/error.html"
   }
 }

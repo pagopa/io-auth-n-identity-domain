@@ -1,7 +1,7 @@
 meta {
   name: Reserve
   type: http
-  seq: 8
+  seq: 2
 }
 
 get {
@@ -50,4 +50,18 @@ script:pre-request {
   bru.setEnvVar("publicKey", encodedPubKey)
   bru.setEnvVar("privateKey", encodedPrivateKey)
   bru.setEnvVar("assertionRef", `sha256-${assertionRef}`)
+}
+
+script:post-response {
+  const { state, nonce, client_id, redirect_uri, issuer } = res.body;
+  
+  const idp = "https://idp.uat.io.oneid.pagopa.it";
+  
+  if (!state || !nonce) {
+    throw new Error("Expected the reserve response to include state and nonce");
+  }
+  
+  console.log(
+    `${issuer}oidc/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=openid&state=${state}&nonce=${nonce}&response_type=code&minAuthLevel=SpidL2&idp=${idp}`
+  );
 }
