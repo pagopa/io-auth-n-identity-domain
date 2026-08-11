@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-domain
 
+## 0.4.0
+
+### Minor Changes
+
+- 04f1496: Upgrade hexagonal libraries + workaround for branded schema
+
 ## 0.3.1
 
 ### Patch Changes
