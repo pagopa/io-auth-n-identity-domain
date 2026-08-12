@@ -9,5 +9,6 @@ locals {
     infra_cd_policy_branches = ["main"]
     opex_cd_policy_branches  = ["main"]
     app_cd_policy_branches   = ["main"]
+    app_cd_policy_tags       = ["io-session-manager-oi@*", "io-session-manager-internal@*", "io-profile@*", "io-fast-login@*", "io-lollipop@*"]
   }
 }
