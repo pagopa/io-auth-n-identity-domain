@@ -1,6 +1,7 @@
 import z from "zod";
 
 import {
+  HashedSessionTokenSchema,
   PlainSessionTokenSchema,
   _plainSessionTokenBrand,
   SessionIdSchema,
@@ -17,3 +18,11 @@ export const ClientSessionTokenSchema = z
   .brand(_clientSessionTokenBrand);
 
 export type ClientSessionToken = z.infer<typeof ClientSessionTokenSchema>;
+
+export const HashedClientSessionTokenSchema = z
+  .templateLiteral([SessionIdSchema, ".", HashedSessionTokenSchema])
+  .brand<"HashedClientSessionToken">();
+
+export type HashedClientSessionToken = z.infer<
+  typeof HashedClientSessionTokenSchema
+>;
