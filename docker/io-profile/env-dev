@@ -1,4 +1,5 @@
 DOTNET_EnableWriteXorExecute=0
+AzureWebJobsSecretStorageType=files
 AzureWebJobsStorage=${STORAGE_CONN_STRING}
 
 NODE_ENV=dev
