@@ -308,9 +308,12 @@ importers:
       '@pagopa/typescript-config-node':
         specifier: workspace:^
         version: link:packages/typescript-config-node
+      dotenv:
+        specifier: 'catalog:'
+        version: 16.4.7
       dotenv-cli:
-        specifier: ^3.2.0
-        version: 3.2.0
+        specifier: 'catalog:'
+        version: 7.4.4
       envsub:
         specifier: ^4.0.7
         version: 4.1.0
