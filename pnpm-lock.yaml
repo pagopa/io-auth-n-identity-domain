@@ -229,8 +229,8 @@ catalogs:
       specifier: ^2.6.9
       version: 2.7.0
     nodemailer:
-      specifier: ^6.10.0
-      version: 6.10.0
+      specifier: ^8.0.0
+      version: 8.0.11
     oval:
       specifier: ^1.0.0
       version: 1.0.0
@@ -709,7 +709,7 @@ importers:
         version: 2.7.0
       nodemailer:
         specifier: 'catalog:'
-        version: 6.10.0
+        version: 8.0.11
       redis:
         specifier: 'catalog:'
         version: 4.7.1
@@ -842,7 +842,7 @@ importers:
         version: 2.7.0
       nodemailer:
         specifier: 'catalog:'
-        version: 6.10.0
+        version: 8.0.11
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 'catalog:'
@@ -6930,6 +6930,10 @@ packages:
     resolution: {integrity: sha512-SQ3wZCExjeSatLE/HBaXS5vqUOQk6GtBdIIKxiFdmm01mOQZX/POJkO3SUX1wDiYcwUOJwT23scFSC9fY2H8IA==}
     engines: {node: '>=6.0.0'}
 
+  nodemailer@8.0.11:
+    resolution: {integrity: sha512-nrO/pDAUKl+wXX+lx16tDLbnm0fW6sK/x8mgohaCpg+CdCEl482bD4tCuAZk2DyliruiNTIZxRCoWkDqJEnAiA==}
+    engines: {node: '>=6.0.0'}
+
   normalize-package-data@2.5.0:
     resolution: {integrity: sha512-/5CMN3T0R4XTj4DcGaexo+roZSdSFW/0AOOTROrjxzCG1wrWXEsGbRKevjlIL+ZDE4sZlJr5ED4YW0yqmkK+eA==}
 
@@ -8439,6 +8443,7 @@ packages:
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   v8-compile-cache-lib@3.0.1:
@@ -14985,6 +14990,8 @@ snapshots:
       '@sendgrid/mail': 6.5.5
 
   nodemailer@6.10.0: {}
+
+  nodemailer@8.0.11: {}
 
   normalize-package-data@2.5.0:
     dependencies:
