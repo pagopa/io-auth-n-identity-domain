@@ -4,6 +4,7 @@ import type { RedisClusterType, RedisClientType } from "redis";
 import { z } from "zod";
 
 import { RedisError, toRedisError } from "../errors.js";
+import { RedisTtlSeconds } from "./redis-ttl.vo.js";
 
 /**
  * `Result`-returning wrapper over a `redis` client for storing and
@@ -77,6 +78,31 @@ export class RedisObjectWrapper<
   }
 
   /**
+   * [`SET`](https://redis.io/commands/set/) with expiration - `O(1)`.
+   * Validates and stores `value` like {@link save}, expiring it after
+   * `ttlSeconds` seconds.
+   */
+  public async saveWithTtl(
+    key: string,
+    value: z.output<TSchema>,
+    ttlSeconds: RedisTtlSeconds,
+  ): Promise<Result<void, RedisError | ValidationError>> {
+    const encoded = this.encode(value);
+    if (encoded.isErr()) {
+      return err(encoded.error);
+    }
+
+    try {
+      await this.client.set(key, encoded.value, {
+        expiration: { type: "EX", value: ttlSeconds },
+      });
+      return ok(undefined);
+    } catch (cause) {
+      return err(toRedisError(`SET ${key}`, cause));
+    }
+  }
+
+  /**
    * [`GET`](https://redis.io/commands/get/) - `O(1)`.
    * Retrieves the value stored at `key`, parses it as JSON and
    * validates it against the bound schema.
@@ -97,6 +123,33 @@ export class RedisObjectWrapper<
       return err(toRedisError(`GET ${key}`, cause));
     }
 
+    return this.decode(key, raw);
+  }
+
+  /**
+   * [`GETDEL`](https://redis.io/commands/getdel/) - `O(1)`.
+   * Atomically retrieves and deletes the value stored at `key`, then
+   * parses and validates it like {@link get}.
+   */
+  public async getAndDelete(
+    key: string,
+  ): Promise<
+    Result<z.output<TSchema> | undefined, RedisError | ValidationError>
+  > {
+    let raw: null | string;
+    try {
+      raw = await this.client.getDel(key);
+    } catch (cause) {
+      return err(toRedisError(`GETDEL ${key}`, cause));
+    }
+
+    return this.decode(key, raw);
+  }
+
+  private decode(
+    key: string,
+    raw: null | string,
+  ): Result<z.output<TSchema> | undefined, ValidationError> {
     if (raw === null) {
       return ok(undefined);
     }
