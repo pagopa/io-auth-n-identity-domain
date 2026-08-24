@@ -44,7 +44,7 @@
     "neverthrow": "catalog:",
     "openid-client": "^6.8.4",
     "range_check": "catalog:",
-    "redis": "^6.1.0",
+    "redis": "^6.2.1",
     "zod": "catalog:"
   },
   "devDependencies": {
