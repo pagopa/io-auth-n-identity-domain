@@ -4,6 +4,7 @@ import {
   TimestampMillisToDate,
 } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
+import { Sha256HexStringSchema } from "../../../index.js";
 
 const BaseRejectedLoginSchema = z.object({
   eventType: z.literal("rejected_login"),
@@ -26,7 +27,7 @@ const AuthLockRejectedLoginSchema = BaseRejectedLoginSchema.extend({
 
 const UserMismatchRejectedLoginSchema = BaseRejectedLoginSchema.extend({
   rejectionCause: z.literal("cf_mismatch"),
-  currentFiscalCodeHash: z.string().regex(/^[a-fA-F0-9]{64}$/),
+  currentFiscalCodeHash: Sha256HexStringSchema,
 });
 
 const OngoingUserDeletionRejectedLoginSchema = BaseRejectedLoginSchema.extend({
