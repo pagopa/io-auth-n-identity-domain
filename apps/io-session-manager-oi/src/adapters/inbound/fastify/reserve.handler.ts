@@ -17,7 +17,7 @@ const reserveContract = defineRoute({
   summary: "Reserve an OIDC authorization request",
   description:
     "Prepares (reserves) an OpenID Connect authorization request for the Lollipop-bound client and returns the parameters needed to start the login flow with the selected OneIdentity environment.",
-  tags: ["auth", "oidc"],
+  tags: ["oidc"],
   // Public endpoint: bootstraps the OIDC login flow.
   security: [],
   response: {

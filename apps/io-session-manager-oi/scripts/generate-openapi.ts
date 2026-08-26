@@ -37,6 +37,13 @@ const document = buildOpenApiDocument({
       version: packageJson.version,
     },
     servers: [{ url: "https://api-app.io.pagopa.it" }],
+    tags: [
+      {
+        name: "oidc",
+        description:
+          "Operations that take part in the OpenID Connect authorization flow.",
+      },
+    ],
   },
   routes: [callbackContract, reserveRoute],
 });

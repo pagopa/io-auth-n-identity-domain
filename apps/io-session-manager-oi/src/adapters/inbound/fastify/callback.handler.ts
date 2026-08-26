@@ -17,7 +17,7 @@ export const callbackContract = defineRoute({
   summary: "Handle the OIDC callback",
   description:
     "Handles the OpenID Connect callback from the identity provider. On success it mints a fresh session token and redirects the client to the success URL carrying the token; on a login error it redirects to the error URL carrying the error code.",
-  tags: ["auth", "oidc"],
+  tags: ["oidc"],
   // Public endpoint: part of the pre-authentication OIDC login flow.
   security: [],
   response: {
