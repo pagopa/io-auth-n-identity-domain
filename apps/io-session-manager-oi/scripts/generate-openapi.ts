@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 // OpenAPI generator run with tsx. Route contracts carry their own OpenAPI
 // metadata (operationId, summary, tags, …), so this script only assembles and
 // writes them.

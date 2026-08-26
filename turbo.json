@@ -37,12 +37,14 @@
     "format:check": {},
     "lint": {
       "inputs": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "scripts/**/*.ts"
       ]
     },
     "lint:check": {
       "inputs": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "scripts/**/*.ts"
       ]
     },
     "test": {
