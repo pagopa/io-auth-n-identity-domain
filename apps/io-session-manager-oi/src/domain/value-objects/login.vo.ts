@@ -3,16 +3,11 @@ import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
 import { OidcConfigurationEnvSchema } from "./oidc.vo.js";
 
-export const SpidAuthLevel = z.union([
-  z.literal("SpidL2"),
-  z.literal("SpidL3"),
-]);
+export const SpidAuthLevel = z.enum(["SpidL2", "SpidL3"]);
 
 export type SpidAuthLevel = z.infer<typeof SpidAuthLevel>;
 
-export const LoginTypeSchema = z
-  .union([z.literal("LV"), z.literal("LEGACY")])
-  .default("LEGACY");
+export const LoginTypeSchema = z.enum(["LV", "LEGACY"]).default("LEGACY");
 
 export type LoginType = z.infer<typeof LoginTypeSchema>;
 

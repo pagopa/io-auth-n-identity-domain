@@ -82,6 +82,18 @@
       ],
       "outputLogs": "errors-only"
     },
+    "openapi:check": {
+      "inputs": [
+        "src/**/*.ts",
+        "scripts/generate-openapi.ts",
+        "api/external.yaml",
+        "package.json"
+      ],
+      "outputs": [],
+      "dependsOn": [
+        "^build"
+      ]
+    },
     "clean": {
       "inputs": [
         "dist/**"

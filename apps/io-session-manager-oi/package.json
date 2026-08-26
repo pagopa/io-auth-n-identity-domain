@@ -19,7 +19,9 @@
     "test": "vitest run -c ./vite.config.mts",
     "test:integration": "vitest run -c ./src/__integrations__/vite.config.mts",
     "test:coverage": "vitest run --coverage -c ./vite.config.mts",
-    "generate": "openapi-ts"
+    "generate": "openapi-ts",
+    "openapi:generate": "tsx scripts/generate-openapi.ts",
+    "openapi:check": "tsx scripts/generate-openapi.ts --check"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "catalog:",
@@ -46,12 +48,14 @@
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "catalog:",
+    "@pagopa/hexagonal-openapi": "catalog:",
     "@pagopa/typescript-config-node22": "workspace:^",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",
     "shx": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

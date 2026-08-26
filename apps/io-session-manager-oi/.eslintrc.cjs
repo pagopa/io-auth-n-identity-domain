@@ -13,6 +13,7 @@ module.exports = {
   ignorePatterns: [
     "*.yaml",
     "dist/**/*",
+    "scripts/**/*",
     "vite.config.mts",
     "openapi-ts.config.ts",
   ],
