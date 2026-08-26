@@ -5,6 +5,9 @@ info:
   version: 0.12.0
 servers:
   - url: https://api-app.io.pagopa.it
+tags:
+  - name: oidc
+    description: Operations that take part in the OpenID Connect authorization flow.
 components:
   schemas:
     ProblemDetails:
@@ -78,7 +81,6 @@ paths:
       security: []
       summary: Handle the OIDC callback
       tags:
-        - auth
         - oidc
       parameters:
         - schema:
@@ -150,7 +152,6 @@ paths:
       security: []
       summary: Reserve an OIDC authorization request
       tags:
-        - auth
         - oidc
       parameters:
         - schema:
