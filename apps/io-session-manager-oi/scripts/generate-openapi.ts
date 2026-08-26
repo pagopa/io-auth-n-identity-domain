@@ -1,6 +1,6 @@
 // OpenAPI generator run with tsx. Route contracts carry their own OpenAPI
-// metadata (operationId, summary, tags, …) thanks to the augmentation opted into
-// by `src/openapi-metadata.d.ts`, so this script only assembles and writes them.
+// metadata (operationId, summary, tags, …), so this script only assembles and
+// writes them.
 import { mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
