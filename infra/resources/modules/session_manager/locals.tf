@@ -73,5 +73,8 @@ locals {
 
     LOGIN_SUCCESS_REDIRECT_URL = "https://${trimsuffix(data.azurerm_dns_a_record.api_app_io_pagopa_it.fqdn, ".")}/profile.html"
     LOGIN_ERROR_REDIRECT_URL   = "https://${trimsuffix(data.azurerm_dns_a_record.api_app_io_pagopa_it.fqdn, ".")}/error.html"
+
+    AUTH_SESSIONS_TOPIC_NAME = var.service_bus.auth_session_topic_name
+    SERVICE_BUS_HOSTNAME     = var.service_bus.hostname
   }
 }
