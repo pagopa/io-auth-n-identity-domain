@@ -1,6 +1,6 @@
 {
   "name": "io-session-manager-oi",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -29,6 +29,7 @@
     "@azure/cosmos": "catalog:",
     "@azure/data-tables": "catalog:",
     "@azure/identity": "catalog:",
+    "@azure/service-bus": "catalog:",
     "@azure/storage-queue": "catalog:",
     "@pagopa/azure-sdk": "workspace:^",
     "@pagopa/hexagonal-core": "catalog:",

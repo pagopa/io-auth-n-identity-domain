@@ -1,8 +1,10 @@
-import { NonEmptyStringSchema } from "@pagopa/hexagonal-core/domain/value-objects";
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import { z } from "zod";
-
-
-import { getRandomBytesHex, toSha256 } from "../../../utils/hash.js";
+import {
+  getRandomBytesHex,
+  Sha256HexStringSchema,
+  toSha256,
+} from "../../../utils/hash.js";
 
 // ------------------------------------------------------------------------------
 // Plain Session Token Value Object
@@ -31,7 +33,7 @@ export declare const _hashedSessionTokenBrand: unique symbol;
  * Zod schema for a hashed session token
  */
 export const HashedSessionTokenSchema =
-  NonEmptyStringSchema.brand<typeof _hashedSessionTokenBrand>();
+  Sha256HexStringSchema.brand<typeof _hashedSessionTokenBrand>();
 
 /**
  * A hashed session token

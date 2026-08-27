@@ -1315,6 +1315,9 @@ importers:
       '@azure/identity':
         specifier: 'catalog:'
         version: 4.10.1
+      '@azure/service-bus':
+        specifier: 'catalog:'
+        version: 7.9.5
       '@azure/storage-queue':
         specifier: 'catalog:'
         version: 12.25.0
