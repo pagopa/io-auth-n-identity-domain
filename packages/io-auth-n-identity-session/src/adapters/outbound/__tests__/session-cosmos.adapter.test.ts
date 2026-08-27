@@ -1,29 +1,32 @@
+import type { FiscalCode, NonEmptyString } from "@pagopa/hexagonal-core";
 import {
   ConflictError,
   GenericError,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
-import type { FiscalCode, NonEmptyString } from "@pagopa/hexagonal-core";
-import type { SessionId } from "../../../domain/value-objects/session-id.vo.js";
+import crypto from "crypto";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { SessionId } from "../../../domain/value-objects/session-id.vo.js";
 
+import type {
+  BaseSession,
+  SessionWithHashedSSOTokens,
+} from "../../../domain/entities/session.entity.js";
+import {
+  ActiveSession,
+  HashedBpdSSOTokenSchema,
+  HashedFimsSSOTokenSchema,
+  HashedSessionTokenSchema,
+  HashedWalletSSOTokenSchema,
+  HashedZendeskSSOTokenSchema,
+} from "../../../domain/index.js";
 import {
   makeClientMock,
   makeContainerMock,
   makeErrorResponse,
 } from "../__mocks__/cosmos.mock.js";
 import { SessionCosmosAdapter } from "../session-cosmos.adapter.js";
-import type {
-  BaseSession,
-  SessionWithHashedSSOTokens,
-} from "../../../domain/entities/session.entity.js";
-import type { HashedSessionToken } from "../../../domain/value-objects/tokens/session-token.vo.js";
-import type { HashedBpdSSOToken } from "../../../domain/value-objects/tokens/bpd-sso-token.vo.js";
-import type { HashedWalletSSOToken } from "../../../domain/value-objects/tokens/wallet-sso-token.vo.js";
-import type { HashedFimsSSOToken } from "../../../domain/value-objects/tokens/fims-sso-token.vo.js";
-import type { HashedZendeskSSOToken } from "../../../domain/value-objects/tokens/zendesk-sso-token.vo.js";
-import { ActiveSession } from "../../../domain/index.js";
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -41,11 +44,21 @@ const DATABASE_ID = "io-auth-SM";
 
 const aFiscalCode = "RSSMRA85T10A562S" as FiscalCode;
 const aSessionId = "sessionId" as SessionId;
-const aHashedSessionToken = "abc123hashedsessiontoken" as HashedSessionToken;
-const aHashedBpdToken = "bpd123hashedtoken" as HashedBpdSSOToken;
-const aHashedWalletToken = "wallet123hashedtoken" as HashedWalletSSOToken;
-const aHashedFimsToken = "fims123hashedtoken" as HashedFimsSSOToken;
-const aHashedZendeskToken = "zendesk123hashedtoken" as HashedZendeskSSOToken;
+const aHashedSessionToken = HashedSessionTokenSchema.parse(
+  crypto.createHash("sha256").update("abc123sessiontoken").digest("hex"),
+);
+const aHashedBpdToken = HashedBpdSSOTokenSchema.parse(
+  crypto.createHash("sha256").update("bpd123token").digest("hex"),
+);
+const aHashedWalletToken = HashedWalletSSOTokenSchema.parse(
+  crypto.createHash("sha256").update("wallet123token").digest("hex"),
+);
+const aHashedFimsToken = HashedFimsSSOTokenSchema.parse(
+  crypto.createHash("sha256").update("fims123token").digest("hex"),
+);
+const aHashedZendeskToken = HashedZendeskSSOTokenSchema.parse(
+  crypto.createHash("sha256").update("zendesk123token").digest("hex"),
+);
 
 // 1 hour in the future so that computeTtl succeeds
 const anExpirationDate = new Date(Date.now() + 60 * 60 * 1000);

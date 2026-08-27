@@ -1,9 +1,5 @@
-import { NonEmptyStringSchema } from "@pagopa/hexagonal-core/domain/value-objects";
 import { z } from "zod";
-
-
-import { toSha256 } from "../../../utils/hash.js";
-
+import { Sha256HexStringSchema, toSha256 } from "../../../utils/hash.js";
 import { PlainSessionToken } from "./session-token.vo.js";
 
 // ------------------------------------------------------------------------------
@@ -14,7 +10,7 @@ export declare const _plainWalletSSOTokenBrand: unique symbol;
 
 // Zod schemas with string literal brands
 export const PlainWalletSSOTokenSchema =
-  NonEmptyStringSchema.brand<typeof _plainWalletSSOTokenBrand>();
+  Sha256HexStringSchema.brand<typeof _plainWalletSSOTokenBrand>();
 
 export type PlainWalletSSOToken = z.infer<typeof PlainWalletSSOTokenSchema>;
 
@@ -25,7 +21,7 @@ export type PlainWalletSSOToken = z.infer<typeof PlainWalletSSOTokenSchema>;
 export declare const _hashedWalletSSOTokenBrand: unique symbol;
 
 export const HashedWalletSSOTokenSchema =
-  NonEmptyStringSchema.brand<typeof _hashedWalletSSOTokenBrand>();
+  Sha256HexStringSchema.brand<typeof _hashedWalletSSOTokenBrand>();
 
 export type HashedWalletSSOToken = z.infer<typeof HashedWalletSSOTokenSchema>;
 
