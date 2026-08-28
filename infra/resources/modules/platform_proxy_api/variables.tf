@@ -32,6 +32,11 @@ variable "external_api_base_path" {
   description = "Base path for API"
 }
 
+variable "session_manager_oi_url" {
+  type        = string
+  description = "Session Manager OI service URL for the external API"
+}
+
 variable "fims_api_base_path" {
   type        = string
   description = "Base path for API"
