@@ -2,9 +2,9 @@ openapi: 3.1.0
 info:
   description: OpenID Connect (OneIdentity) login endpoints exposed by io-session-manager-oi.
   title: IO Session Manager OneIdentity API
-  version: 0.12.0
+  version: 0.14.0
 servers:
-  - url: https://api-app.io.pagopa.it
+  - url: https://api-app.io.pagopa.it/api/auth/v2
 tags:
   - name: oidc
     description: Operations that take part in the OpenID Connect authorization flow.
@@ -74,7 +74,7 @@ components:
       description: The login type requested by the client.
   parameters: {}
 paths:
-  /api/auth/v2/callback:
+  /callback:
     get:
       description: Handles the OpenID Connect callback from the identity provider. On success it mints a fresh session token and redirects the client to the success URL carrying the token; on a login error it redirects to the error URL carrying the error code.
       operationId: callback
@@ -145,7 +145,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-  /api/auth/v2/reserve:
+  /reserve:
     get:
       description: Prepares (reserves) an OpenID Connect authorization request for the Lollipop-bound client and returns the parameters needed to start the login flow with the selected OneIdentity environment.
       operationId: reserve
@@ -225,4 +225,3 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-webhooks: {}

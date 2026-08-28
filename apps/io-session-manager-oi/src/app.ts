@@ -1,20 +1,21 @@
+import { CosmosClient } from "@azure/cosmos";
 import { TableClient } from "@azure/data-tables";
 import { DefaultAzureCredential } from "@azure/identity";
+import { ServiceBusClient } from "@azure/service-bus";
 import { QueueServiceClient } from "@azure/storage-queue";
 import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
 import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
+import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
 import { type PackageInfo } from "@pagopa/io-package-info";
 import {
   createRedisClusterClient,
   createRedisManagedIdentityClusterClient,
 } from "@pagopa/redis/node-client";
+import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
-import { CosmosClient } from "@azure/cosmos";
-import { ServiceBusClient } from "@azure/service-bus";
-import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
-import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
+
 import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";

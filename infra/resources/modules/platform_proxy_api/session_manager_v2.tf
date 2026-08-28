@@ -1,23 +1,3 @@
-locals {
-  session_manager_oi_base_policy = <<XML
-  <policies>
-      <inbound>
-          <base />
-          <rewrite-uri template='@(context.Request.Url.Path)' />
-      </inbound>
-      <backend>
-          <base />
-      </backend>
-      <outbound>
-          <base />
-      </outbound>
-      <on-error>
-          <base />
-      </on-error>
-  </policies>
-  XML
-}
-
 resource "azurerm_api_management_api" "external_api_session_manager_v2" {
   name                  = "io-session-manager-external-api-v2"
   api_management_name   = var.platform_apim_name
@@ -32,11 +12,12 @@ resource "azurerm_api_management_api" "external_api_session_manager_v2" {
   display_name = "IO SESSION MANAGER OI EXTERNAL API"
   path         = var.external_api_base_path
   protocols    = ["https"]
-  service_url  = var.session_manager_oi_url
+  service_url  = "${var.session_manager_oi_url}/${var.external_api_base_path}/v2"
 
   import {
     content_format = "openapi-link"
     content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/1330014a83b1bca9a5b26d541f0e25922054aaab/apps/io-session-manager-oi/api/external.yaml"
+
   }
 }
 
@@ -45,14 +26,6 @@ resource "azurerm_api_management_product_api" "external_api_session_manager_v2" 
   resource_group_name = var.platform_apim_resource_group_name
   api_management_name = var.platform_apim_name
   product_id          = data.azurerm_api_management_product.apim_platform_domain_product.product_id
-}
-
-resource "azurerm_api_management_api_policy" "external_api_session_manager_v2" {
-  api_name            = azurerm_api_management_api.external_api_session_manager_v2.name
-  api_management_name = var.platform_apim_name
-  resource_group_name = var.platform_apim_resource_group_name
-
-  xml_content = local.session_manager_oi_base_policy
 }
 
 resource "azurerm_api_management_api_tag" "external_api_session_manager_v2" {

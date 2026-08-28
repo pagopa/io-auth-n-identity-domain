@@ -6,9 +6,8 @@ import {
 } from "@pagopa/hexagonal-core";
 import { RedisError } from "@pagopa/redis";
 import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
-
-import { RedisClientType, RedisClusterType } from "redis";
 import { Result, err, ok } from "neverthrow";
+import { RedisClientType, RedisClusterType } from "redis";
 
 import { BlockedUsersPort } from "../../domain/ports/outbound/blocked-users.port.js";
 

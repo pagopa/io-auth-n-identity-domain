@@ -5,6 +5,7 @@ import {
   AuthEventSchema,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, Result, ResultAsync } from "neverthrow";
+
 import type { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 
 /**

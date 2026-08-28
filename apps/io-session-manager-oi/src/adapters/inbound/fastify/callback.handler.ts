@@ -6,13 +6,15 @@ import {
   makeHandleOidcCallbackUseCase,
   type HandleOidcCallbackInput,
 } from "../../../application/use-cases/handle-oidc-callback.use-case.js";
+import { BASE_PATH } from "../base-path.js";
 import { CallbackInputDTO } from "../dtos/callback.dto.js";
+
 import { extractIpMiddleware } from "./middlewares/extract-ip.middleware.js";
 
 export const callbackContract = defineRoute({
   method: "get",
   operationId: "callback",
-  path: "/api/auth/v2/callback",
+  path: `${BASE_PATH}/callback`,
   request: CallbackInputDTO,
   summary: "Handle the OIDC callback",
   description:

@@ -9,6 +9,7 @@ import {
   LockedProfilesDevelopmentConfigSchema,
   LockedProfilesProductionConfigSchema,
 } from "./locked-profiles.vo.js";
+import { LoginConfigSchema } from "./login.vo.js";
 import { LollipopConfigSchema } from "./lollipop.vo.js";
 import { OneIdConfigSchema } from "./one-id.vo.js";
 import { IoProfileConfigSchema } from "./profile.vo.js";
@@ -26,7 +27,6 @@ import {
   SessionCosmosDevelopmentConfigSchema,
   SessionCosmosProductionConfigSchema,
 } from "./session.vo.js";
-import { LoginConfigSchema } from "./login.vo.js";
 
 /**
  * Fields shared by every runtime environment.

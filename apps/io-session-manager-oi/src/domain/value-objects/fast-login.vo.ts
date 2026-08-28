@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import {
   LollipopAssertionRefSchema,
   LollipopAssertionTypeSchema,
@@ -10,7 +10,7 @@ import {
   IPStringSchema,
   LollipopJwkSchema,
 } from "@pagopa/io-auth-n-identity-domain";
-import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
+import { z } from "zod";
 
 export const FastLoginParamsSchema = z.object({
   originalMethod: LollipopMethodSchema,
