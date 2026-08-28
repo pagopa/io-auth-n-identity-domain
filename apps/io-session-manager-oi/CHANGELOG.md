@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.14.1
+
+### Patch Changes
+
+- d877819: added a shared BASE_PATH constant used by both route handlers and openapi-generator and apply linting fixes
+
 ## 0.14.0
 
 ### Minor Changes
