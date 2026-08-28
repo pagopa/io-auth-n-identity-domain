@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.14.0
+
+### Minor Changes
+
+- e463af5: Adds generated OpenAPI
+
 ## 0.13.0
 
 ### Minor Changes
