@@ -112,8 +112,8 @@ module "function_profile" {
   health_check_path     = "/api/v1/info"
   has_durable_functions = "true"
 
-  # P2mv3 SKU and 8 Worker process count
-  use_case = "high_load"
+  # P3mv3 SKU and 10 Worker process count
+  size = "P3mv3"
 
   resource_group_name = data.azurerm_resource_group.main_resource_group.name
 
@@ -175,8 +175,8 @@ module "function_profile_autoscale" {
 
   scheduler = {
     normal_load = {
-      minimum = 4
-      default = 10
+      minimum = 15
+      default = 15
     },
     maximum = 30
   }
