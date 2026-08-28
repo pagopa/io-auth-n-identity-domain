@@ -37,12 +37,14 @@
     "format:check": {},
     "lint": {
       "inputs": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "scripts/**/*.ts"
       ]
     },
     "lint:check": {
       "inputs": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "scripts/**/*.ts"
       ]
     },
     "test": {
@@ -81,6 +83,18 @@
         "certs"
       ],
       "outputLogs": "errors-only"
+    },
+    "openapi:check": {
+      "inputs": [
+        "src/**/*.ts",
+        "scripts/generate-openapi.ts",
+        "api/external.yaml",
+        "package.json"
+      ],
+      "outputs": [],
+      "dependsOn": [
+        "^build"
+      ]
     },
     "clean": {
       "inputs": [

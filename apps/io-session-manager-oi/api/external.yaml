@@ -1,0 +1,228 @@
+openapi: 3.1.0
+info:
+  description: OpenID Connect (OneIdentity) login endpoints exposed by io-session-manager-oi.
+  title: IO Session Manager OneIdentity API
+  version: 0.12.0
+servers:
+  - url: https://api-app.io.pagopa.it
+tags:
+  - name: oidc
+    description: Operations that take part in the OpenID Connect authorization flow.
+components:
+  schemas:
+    ProblemDetails:
+      type: object
+      properties:
+        detail:
+          type: string
+        status:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          format: uri
+      required:
+        - detail
+        - status
+        - title
+        - type
+      description: RFC 7807 Problem Details for HTTP APIs. See https://www.rfc-editor.org/rfc/rfc7807.
+    ReserveResponse:
+      type: object
+      properties:
+        client_id:
+          type: string
+          minLength: 1
+        state:
+          type: string
+          minLength: 1
+        nonce:
+          type: string
+          minLength: 1
+        redirect_uri:
+          type: string
+          minLength: 1
+        issuer:
+          type: string
+          minLength: 1
+      required:
+        - client_id
+        - state
+        - nonce
+        - redirect_uri
+        - issuer
+      description: The parameters needed to start the OIDC authorization flow.
+    OidcConfigurationEnv:
+      type: string
+      enum:
+        - UAT
+        - PROD
+      description: The OneIdentity configuration environment.
+    SpidAuthLevel:
+      type: string
+      enum:
+        - SpidL2
+        - SpidL3
+      description: The SPID authentication level.
+    LoginType:
+      type: string
+      enum:
+        - LV
+        - LEGACY
+      default: LEGACY
+      description: The login type requested by the client.
+  parameters: {}
+paths:
+  /api/auth/v2/callback:
+    get:
+      description: Handles the OpenID Connect callback from the identity provider. On success it mints a fresh session token and redirects the client to the success URL carrying the token; on a login error it redirects to the error URL carrying the error code.
+      operationId: callback
+      security: []
+      summary: Handle the OIDC callback
+      tags:
+        - oidc
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            description: The opaque value used to maintain state between the request and the callback.
+          required: true
+          description: The opaque value used to maintain state between the request and the callback.
+          name: state
+          in: query
+        - schema:
+            type: string
+            minLength: 1
+            description: The authorization code returned by the identity provider on success.
+          required: false
+          description: The authorization code returned by the identity provider on success.
+          name: code
+          in: query
+        - schema:
+            type: string
+            minLength: 1
+            description: The error code returned by the identity provider on failure.
+          required: false
+          description: The error code returned by the identity provider on failure.
+          name: error
+          in: query
+        - schema:
+            type: string
+            minLength: 1
+            description: The human-readable error description returned by the identity provider on failure.
+          required: false
+          description: The human-readable error description returned by the identity provider on failure.
+          name: error_description
+          in: query
+      responses:
+        "302":
+          description: |-
+            Redirect (`302`) back to the client; the outcome is encoded in the `Location` URL.
+            - **Success** — the success redirect URL with the freshly minted session token in the URL **fragment**: `<successUrl>#token=<sessionToken>`.
+            - **Login error** — the error redirect URL with the error in the **query string**: `<errorUrl>?errorCode=<code>[&errorMessage=<message>]` (`errorMessage` is present only when the identity provider returned one).
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: "Client redirect URL. On success: `<successUrl>#token=<sessionToken>` (token in the fragment). On login error: `<errorUrl>?errorCode=<code>[&errorMessage=<message>]` (params in the query string)."
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/auth/v2/reserve:
+    get:
+      description: Prepares (reserves) an OpenID Connect authorization request for the Lollipop-bound client and returns the parameters needed to start the login flow with the selected OneIdentity environment.
+      operationId: reserve
+      security: []
+      summary: Reserve an OIDC authorization request
+      tags:
+        - oidc
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/OidcConfigurationEnv"
+          required: true
+          description: The OneIdentity configuration environment.
+          name: env
+          in: query
+        - schema:
+            $ref: "#/components/schemas/SpidAuthLevel"
+          required: true
+          description: The SPID authentication level.
+          name: authLevel
+          in: query
+        - schema:
+            type: string
+            enum:
+              - sha256
+              - sha384
+              - sha512
+            default: sha256
+            description: Hashing algorithm used to compute the JWK thumbprint of the Lollipop public key.
+          required: false
+          description: Hashing algorithm used to compute the JWK thumbprint of the Lollipop public key.
+          name: x-pagopa-lollipop-hash-algorithm
+          in: header
+        - schema:
+            type: string
+            minLength: 1
+            pattern: ^[A-Za-z0-9_-]+$
+            description: The Lollipop public key, encoded as a Base64url JSON JWK.
+          required: true
+          description: The Lollipop public key, encoded as a Base64url JSON JWK.
+          name: x-pagopa-lollipop-pub-key
+          in: header
+        - schema:
+            $ref: "#/components/schemas/LoginType"
+          required: false
+          description: The login type requested by the client.
+          name: x-pagopa-login-type
+          in: header
+        - schema:
+            type: string
+            description: Optional identifier of the user currently logged in.
+          required: false
+          description: Optional identifier of the user currently logged in.
+          name: x-pagopa-current-user
+          in: header
+      responses:
+        "200":
+          description: Lollipop Key has been reserved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReserveResponse"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+webhooks: {}

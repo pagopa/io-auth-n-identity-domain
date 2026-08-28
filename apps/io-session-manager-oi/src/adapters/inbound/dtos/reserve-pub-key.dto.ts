@@ -20,21 +20,42 @@ extendZodWithOpenApi(z);
 
 export const ReserveInputDTO = {
   headers: z.object({
-    "x-pagopa-lollipop-hash-algorithm": LollipopJwkHashingAlgorithmSchema,
-    "x-pagopa-lollipop-pub-key": JwkPublicKeyBase64UrlStringSchema,
-    "x-pagopa-login-type": LoginTypeSchema,
-    "x-pagopa-current-user": CurrentUserSchema,
+    "x-pagopa-lollipop-hash-algorithm": LollipopJwkHashingAlgorithmSchema.meta({
+      description:
+        "Hashing algorithm used to compute the JWK thumbprint of the Lollipop public key.",
+    }),
+    "x-pagopa-lollipop-pub-key": JwkPublicKeyBase64UrlStringSchema.meta({
+      description: "The Lollipop public key, encoded as a Base64url JSON JWK.",
+    }),
+    "x-pagopa-login-type": LoginTypeSchema.meta({
+      id: "LoginType",
+      description: "The login type requested by the client.",
+    }),
+    "x-pagopa-current-user": CurrentUserSchema.meta({
+      description: "Optional identifier of the user currently logged in.",
+    }),
   }),
   query: z.object({
-    env: OidcConfigurationEnvSchema,
-    authLevel: SpidAuthLevel,
+    env: OidcConfigurationEnvSchema.meta({
+      id: "OidcConfigurationEnv",
+      description: "The OneIdentity configuration environment.",
+    }),
+    authLevel: SpidAuthLevel.meta({
+      id: "SpidAuthLevel",
+      description: "The SPID authentication level.",
+    }),
   }),
 };
 
-export const ReserveOutputDTO = z.object({
-  client_id: NonEmptyStringSchema,
-  state: NonEmptyStringSchema,
-  nonce: NonEmptyStringSchema,
-  redirect_uri: NonEmptyStringSchema,
-  issuer: NonEmptyStringSchema,
-});
+export const ReserveOutputDTO = z
+  .object({
+    client_id: NonEmptyStringSchema,
+    state: NonEmptyStringSchema,
+    nonce: NonEmptyStringSchema,
+    redirect_uri: NonEmptyStringSchema,
+    issuer: NonEmptyStringSchema,
+  })
+  .meta({
+    id: "ReserveResponse",
+    description: "The parameters needed to start the OIDC authorization flow.",
+  });

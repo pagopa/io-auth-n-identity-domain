@@ -54,6 +54,9 @@ catalogs:
     '@pagopa/hexagonal-fastify':
       specifier: ^0.3.0
       version: 0.3.0
+    '@pagopa/hexagonal-openapi':
+      specifier: ^0.1.2
+      version: 0.1.2
     '@pagopa/io-app-email-templates':
       specifier: ^0.8.0
       version: 0.8.0
@@ -270,6 +273,9 @@ catalogs:
     timekeeper:
       specifier: ^2.2.0
       version: 2.3.1
+    tsx:
+      specifier: ^4.19.2
+      version: 4.22.4
     typescript:
       specifier: ^5.4.5
       version: 5.8.3
@@ -1364,6 +1370,9 @@ importers:
       '@hey-api/openapi-ts':
         specifier: 'catalog:'
         version: 0.99.0(magicast@0.3.5)(typescript@5.8.3)
+      '@pagopa/hexagonal-openapi':
+        specifier: 'catalog:'
+        version: 0.1.2(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       '@pagopa/typescript-config-node22':
         specifier: workspace:^
         version: link:../../packages/typescript-config-node22
@@ -1382,6 +1391,9 @@ importers:
       shx:
         specifier: 'catalog:'
         version: 0.4.0
+      tsx:
+        specifier: 'catalog:'
+        version: 4.22.4
       typescript:
         specifier: 'catalog:'
         version: 5.8.3
@@ -3503,6 +3515,11 @@ packages:
       '@standard-schema/spec': ^1.1.0
       fastify: ^5.8.4
       neverthrow: ^8.2.0
+      zod: ^4.0.0
+
+  '@pagopa/hexagonal-openapi@0.1.2':
+    resolution: {integrity: sha512-YcDBuM5SbQa6XWye5XcwQnKnTF7FSD1e0twiGmMMCL8Jh9d5sol4FRa2M67+bg0qkzUdvNnnyjFfyUbIGOYOYw==}
+    peerDependencies:
       zod: ^4.0.0
 
   '@pagopa/io-app-email-templates@0.8.0':
@@ -10931,6 +10948,17 @@ snapshots:
     transitivePeerDependencies:
       - '@pagopa/azure-tracing'
 
+  '@pagopa/hexagonal-openapi@0.1.2(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)':
+    dependencies:
+      '@asteasolutions/zod-to-openapi': 8.5.0(zod@4.4.3)
+      '@pagopa/hexagonal-core': 0.5.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+      yaml: 2.9.0
+      zod: 4.4.3
+    transitivePeerDependencies:
+      - '@pagopa/azure-tracing'
+      - '@standard-schema/spec'
+      - neverthrow
+
   '@pagopa/io-app-email-templates@0.8.0':
     dependencies:
       '@pagopa/ts-commons': 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
@@ -13339,7 +13367,6 @@ snapshots:
       '@esbuild/win32-arm64': 0.28.1
       '@esbuild/win32-ia32': 0.28.1
       '@esbuild/win32-x64': 0.28.1
-    optional: true
 
   escalade@3.2.0: {}
 
@@ -16400,7 +16427,6 @@ snapshots:
       esbuild: 0.28.1
     optionalDependencies:
       fsevents: 2.3.3
-    optional: true
 
   tty-table@4.2.3:
     dependencies:

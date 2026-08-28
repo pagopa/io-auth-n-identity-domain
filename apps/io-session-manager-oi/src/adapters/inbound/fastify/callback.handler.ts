@@ -9,20 +9,29 @@ import {
 import { CallbackInputDTO } from "../dtos/callback.dto.js";
 import { extractIpMiddleware } from "./middlewares/extract-ip.middleware.js";
 
-const callbackContract = defineRoute({
+export const callbackContract = defineRoute({
   method: "get",
+  operationId: "callback",
   path: "/api/auth/v2/callback",
   request: CallbackInputDTO,
+  summary: "Handle the OIDC callback",
+  description:
+    "Handles the OpenID Connect callback from the identity provider. On success it mints a fresh session token and redirects the client to the success URL carrying the token; on a login error it redirects to the error URL carrying the error code.",
+  tags: ["oidc"],
+  // Public endpoint: part of the pre-authentication OIDC login flow.
+  security: [],
   response: {
     302: {
       description:
-        "Redirect to the client: on success carrying the freshly minted session token, on a login error carrying the error code.",
+        "Redirect (`302`) back to the client; the outcome is encoded in the `Location` URL.\n" +
+        "- **Success** — the success redirect URL with the freshly minted session token in the URL **fragment**: `<successUrl>#token=<sessionToken>`.\n" +
+        "- **Login error** — the error redirect URL with the error in the **query string**: `<errorUrl>?errorCode=<code>[&errorMessage=<message>]` (`errorMessage` is present only when the identity provider returned one).",
       redirect: true,
       headers: {
         Location: {
           description:
-            "Client redirect URL carrying the session token or the login error code.",
-          schema: { type: "string" },
+            "Client redirect URL. On success: `<successUrl>#token=<sessionToken>` (token in the fragment). On login error: `<errorUrl>?errorCode=<code>[&errorMessage=<message>]` (params in the query string).",
+          schema: { type: "string", format: "uri" },
         },
       },
     },

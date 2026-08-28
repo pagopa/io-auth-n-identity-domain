@@ -35,6 +35,7 @@ const healthcheckContract = (
 ) =>
   defineRoute({
     method: "get",
+    operationId: healthCheckContractTemplate.operationId,
     path: healthCheckContractTemplate.path,
     request: {},
     response: {

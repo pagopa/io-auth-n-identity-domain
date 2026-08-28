@@ -13,9 +13,21 @@ import { z } from "zod";
  */
 export const CallbackInputDTO = {
   query: z.object({
-    state: NonEmptyStringSchema,
-    code: NonEmptyStringSchema.optional(),
-    error: NonEmptyStringSchema.optional(),
-    error_description: NonEmptyStringSchema.optional(),
+    state: NonEmptyStringSchema.meta({
+      description:
+        "The opaque value used to maintain state between the request and the callback.",
+    }),
+    code: NonEmptyStringSchema.optional().meta({
+      description:
+        "The authorization code returned by the identity provider on success.",
+    }),
+    error: NonEmptyStringSchema.optional().meta({
+      description:
+        "The error code returned by the identity provider on failure.",
+    }),
+    error_description: NonEmptyStringSchema.optional().meta({
+      description:
+        "The human-readable error description returned by the identity provider on failure.",
+    }),
   }),
 };
