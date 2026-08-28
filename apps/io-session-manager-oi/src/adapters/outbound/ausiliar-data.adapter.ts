@@ -1,12 +1,13 @@
 import { GenericError, NotFoundError } from "@pagopa/hexagonal-core";
 import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 import { err, ok, type Result } from "neverthrow";
+import { RedisClientType, RedisClusterType } from "redis";
+
 import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
 import {
   LoginAusiliarData,
   LoginAusiliarDataSchema,
 } from "../../domain/value-objects/login.vo.js";
-import { RedisClientType, RedisClusterType } from "redis";
 
 export const REDIS_AUSILIAR_DATA_PREFIX = "RESERVE-";
 

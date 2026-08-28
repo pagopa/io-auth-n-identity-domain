@@ -3,9 +3,9 @@ import {
   type GenericError,
   type NotFoundError,
 } from "@pagopa/hexagonal-core";
+import { LollipopAssertionRef } from "@pagopa/io-auth-n-identity-domain";
 import { type Result } from "neverthrow";
 
-import { LollipopAssertionRef } from "@pagopa/io-auth-n-identity-domain";
 
 /**
  * Port exposing the io-session-manager-internal endpoints used to support

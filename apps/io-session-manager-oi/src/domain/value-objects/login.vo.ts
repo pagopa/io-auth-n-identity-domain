@@ -1,6 +1,7 @@
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
+
 import { OidcConfigurationEnvSchema } from "./oidc.vo.js";
 
 export const SpidAuthLevel = z.enum(["SpidL2", "SpidL3"]);
