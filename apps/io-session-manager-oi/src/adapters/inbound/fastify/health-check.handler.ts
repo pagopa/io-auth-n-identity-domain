@@ -3,6 +3,7 @@ import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { FastifyInstance } from "fastify";
 
 import { getHealthCheckUseCase } from "../../../application/use-cases/health-check.use-case.js";
+import { BASE_PATH } from "../base-path.js";
 import { HealthCheckResponseDto } from "../dtos/health-check.dto.js";
 
 type HealthCheckType = "liveness" | "readiness";
@@ -19,13 +20,13 @@ const healthCheckContractTemplates: Record<
   readiness: {
     description:
       "Check if the application is ready to serve requests. Returns the application name, version, and health status.",
-    path: "/api/auth/v2/health/readiness",
+    path: `${BASE_PATH}/health/readiness`,
     operationId: "getReadiness",
   },
   liveness: {
     description:
       "Check if the application is alive. Returns the application name and version.",
-    path: "/api/auth/v2/health/liveness",
+    path: `${BASE_PATH}/health/liveness`,
     operationId: "getLiveness",
   },
 };

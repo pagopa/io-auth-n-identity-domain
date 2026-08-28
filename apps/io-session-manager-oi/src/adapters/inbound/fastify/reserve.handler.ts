@@ -4,6 +4,7 @@ import type { AnyRouteContract } from "@pagopa/hexagonal-openapi";
 import { FastifyInstance } from "fastify";
 
 import { makeReserveUseCase } from "../../../application/use-cases/reserve.use-case.js";
+import { BASE_PATH } from "../base-path.js";
 import {
   ReserveInputDTO,
   ReserveOutputDTO,
@@ -12,7 +13,7 @@ import {
 const reserveContract = defineRoute({
   method: "get",
   operationId: "reserve",
-  path: "/api/auth/v2/reserve",
+  path: `${BASE_PATH}/reserve`,
   request: ReserveInputDTO,
   summary: "Reserve an OIDC authorization request",
   description:
