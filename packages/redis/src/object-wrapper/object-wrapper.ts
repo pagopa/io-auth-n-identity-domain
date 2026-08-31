@@ -71,11 +71,7 @@ export class RedisObjectWrapper<
     }
 
     try {
-      if (options === undefined) {
-        await this.client.set(key, encoded.value);
-      } else {
-        await this.client.set(key, encoded.value, options);
-      }
+      await this.client.set(key, encoded.value, options);
       return ok(undefined);
     } catch (cause) {
       return err(toRedisError(`SET ${key}`, cause));
