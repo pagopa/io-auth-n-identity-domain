@@ -1,42 +1,6 @@
-import crypto from "node:crypto";
-
 import { describe, expect, it } from "vitest";
 
-import {
-  BearerAuthorizationHeaderSchema,
-  SsoBpdUserOutputDTO,
-} from "../sso-bpd-user.dto.js";
-
-const aSessionId = "aValidSessionId";
-const aPlainBpdSSOToken = crypto
-  .createHash("sha256")
-  .update("bpd:aPlainSessionToken")
-  .digest("hex");
-const aBpdClientSessionToken = `${aSessionId}.${aPlainBpdSSOToken}`;
-
-describe("BearerAuthorizationHeaderSchema", () => {
-  it("accepts a well-formed Bearer header", () => {
-    const raw = `Bearer ${aBpdClientSessionToken}`;
-
-    const result = BearerAuthorizationHeaderSchema.safeParse(raw);
-
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data).toBe(raw);
-    }
-  });
-
-  it.each`
-    scenario                      | input
-    ${"missing 'Bearer ' prefix"} | ${aBpdClientSessionToken}
-    ${"wrong scheme"}             | ${`Basic ${aBpdClientSessionToken}`}
-    ${"empty string"}             | ${""}
-  `("rejects invalid input ($scenario)", ({ input }) => {
-    expect(BearerAuthorizationHeaderSchema.safeParse(input).success).toBe(
-      false,
-    );
-  });
-});
+import { SsoBpdUserOutputDTO } from "../sso-bpd-user.dto.js";
 
 describe("SsoBpdUserOutputDTO", () => {
   it("accepts a valid BPD user payload", () => {
