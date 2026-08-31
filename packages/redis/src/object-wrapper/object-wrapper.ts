@@ -1,10 +1,9 @@
 import { ValidationError } from "@pagopa/hexagonal-core";
 import { err, ok, type Result } from "neverthrow";
-import type { RedisClusterType, RedisClientType } from "redis";
+import type { RedisClusterType, RedisClientType, SetOptions } from "redis";
 import { z } from "zod";
 
 import { RedisError, toRedisError } from "../errors.js";
-import { RedisTtlSeconds } from "./redis-ttl.vo.js";
 
 /**
  * `Result`-returning wrapper over a `redis` client for storing and
@@ -55,7 +54,8 @@ export class RedisObjectWrapper<
   /**
    * [`SET`](https://redis.io/commands/set/) - `O(1)`.
    * Validates `value` against the bound schema, serializes it to JSON
-   * and stores it at `key`.
+   * and stores it at `key`. Optional node-redis {@link SetOptions}
+   * (expiration, NX/XX, …) are forwarded as-is.
    *
    * Invalid input short-circuits with a `ValidationError` and no `SET`
    * is sent.
@@ -63,6 +63,7 @@ export class RedisObjectWrapper<
   public async save(
     key: string,
     value: z.output<TSchema>,
+    options?: SetOptions,
   ): Promise<Result<void, RedisError | ValidationError>> {
     const encoded = this.encode(value);
     if (encoded.isErr()) {
@@ -70,32 +71,11 @@ export class RedisObjectWrapper<
     }
 
     try {
-      await this.client.set(key, encoded.value);
-      return ok(undefined);
-    } catch (cause) {
-      return err(toRedisError(`SET ${key}`, cause));
-    }
-  }
-
-  /**
-   * [`SET`](https://redis.io/commands/set/) with expiration - `O(1)`.
-   * Validates and stores `value` like {@link save}, expiring it after
-   * `ttlSeconds` seconds.
-   */
-  public async saveWithTtl(
-    key: string,
-    value: z.output<TSchema>,
-    ttlSeconds: RedisTtlSeconds,
-  ): Promise<Result<void, RedisError | ValidationError>> {
-    const encoded = this.encode(value);
-    if (encoded.isErr()) {
-      return err(encoded.error);
-    }
-
-    try {
-      await this.client.set(key, encoded.value, {
-        expiration: { type: "EX", value: ttlSeconds },
-      });
+      if (options === undefined) {
+        await this.client.set(key, encoded.value);
+      } else {
+        await this.client.set(key, encoded.value, options);
+      }
       return ok(undefined);
     } catch (cause) {
       return err(toRedisError(`SET ${key}`, cause));

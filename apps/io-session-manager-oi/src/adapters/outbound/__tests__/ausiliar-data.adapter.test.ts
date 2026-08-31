@@ -31,13 +31,13 @@ const AUSILIAR_DATA: LoginAusiliarData = {
   nonce: "a-nonce" as LoginAusiliarData["nonce"],
 };
 
-const saveWithTtlMock = vi.fn();
+const saveMock = vi.fn();
 const getAndDeleteMock = vi.fn();
 const pingMock = vi.fn();
 const getClientMock = vi.fn(() => ({ ping: pingMock }));
 
 const wrapperStub = {
-  saveWithTtl: saveWithTtlMock,
+  save: saveMock,
   getAndDelete: getAndDeleteMock,
   getClient: getClientMock,
 } as unknown as RedisObjectWrapper<
@@ -94,21 +94,21 @@ describe("AusiliarDataRedisAdapter#healthcheck", () => {
 
 describe("AusiliarDataRedisAdapter#save", () => {
   it("returns ok(undefined) when the wrapper saves successfully", async () => {
-    saveWithTtlMock.mockResolvedValueOnce(ok(undefined));
+    saveMock.mockResolvedValueOnce(ok(undefined));
 
     const result = await adapter.save(ID, AUSILIAR_DATA);
 
-    expect(saveWithTtlMock).toHaveBeenCalledExactlyOnceWith(
+    expect(saveMock).toHaveBeenCalledExactlyOnceWith(
       `${REDIS_AUSILIAR_DATA_PREFIX}${ID}`,
       AUSILIAR_DATA,
-      TTL_SECONDS,
+      { expiration: { type: "EX", value: TTL_SECONDS } },
     );
     expect(result).toEqual(ok(undefined));
   });
 
   it("returns err(GenericError) when the wrapper reports an error", async () => {
     const wrapperError = new GenericError("SET failed");
-    saveWithTtlMock.mockResolvedValueOnce(err(wrapperError));
+    saveMock.mockResolvedValueOnce(err(wrapperError));
 
     const result = await adapter.save(ID, AUSILIAR_DATA);
 

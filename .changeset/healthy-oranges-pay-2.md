@@ -2,4 +2,4 @@
 "@pagopa/redis": minor
 ---
 
-Add `saveWithTtl` and `getAndDelete` to `RedisObjectWrapper`
+Add optional SET options on `RedisObjectWrapper.save` and `getAndDelete`

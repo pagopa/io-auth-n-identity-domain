@@ -9,8 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { RedisObjectWrapper } from "../object-wrapper.js";
-import { RedisTtlSecondsSchema } from "../redis-ttl.vo.js";
-import { RedisClientType, RedisClusterType } from "redis";
+import { RedisClusterType } from "redis";
 
 const KEY = "RESERVE-abc";
 
@@ -26,7 +25,7 @@ const ValueSchema = z.object({
 const aNumber = 100;
 const VALUE = { id: "1", name: "Ada", parameter: aNumber };
 const ENCODED_VALUE = ValueSchema.encode(VALUE);
-const TTL_SECONDS = RedisTtlSecondsSchema.parse(900);
+const SET_EX_OPTIONS = { expiration: { type: "EX" as const, value: 900 } };
 
 const getMock = vi.fn();
 const getDelMock = vi.fn();
@@ -123,25 +122,25 @@ describe("RedisObjectWrapper#save", () => {
   });
 });
 
-describe("RedisObjectWrapper#saveWithTtl", () => {
-  it("should store the JSON object with an expiration in seconds", async () => {
+describe("RedisObjectWrapper#save with options", () => {
+  it("should forward SET options such as expiration", async () => {
     setMock.mockResolvedValueOnce("OK");
 
-    const result = await wrapper.saveWithTtl(KEY, VALUE, TTL_SECONDS);
+    const result = await wrapper.save(KEY, VALUE, SET_EX_OPTIONS);
 
     expect(result.isOk()).toBe(true);
     expect(setMock).toHaveBeenCalledExactlyOnceWith(
       KEY,
       JSON.stringify(ENCODED_VALUE),
-      { expiration: { type: "EX", value: 900 } },
+      SET_EX_OPTIONS,
     );
   });
 
   it("should validate the value before storing", async () => {
-    const result = await wrapper.saveWithTtl(
+    const result = await wrapper.save(
       KEY,
       { id: "1" } as unknown as typeof VALUE,
-      TTL_SECONDS,
+      SET_EX_OPTIONS,
     );
 
     expect(result.isErr()).toBe(true);
@@ -154,7 +153,7 @@ describe("RedisObjectWrapper#saveWithTtl", () => {
       buildRedisError("ConnectionTimeoutError", "connect ETIMEDOUT"),
     );
 
-    const result = await wrapper.saveWithTtl(KEY, VALUE, TTL_SECONDS);
+    const result = await wrapper.save(KEY, VALUE, SET_EX_OPTIONS);
 
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(GatewayTimeoutError);

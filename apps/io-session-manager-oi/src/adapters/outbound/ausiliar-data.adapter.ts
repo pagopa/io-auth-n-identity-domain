@@ -1,9 +1,5 @@
 import { GenericError, NotFoundError } from "@pagopa/hexagonal-core";
-import {
-  RedisObjectWrapper,
-  RedisTtlSeconds,
-  RedisTtlSecondsSchema,
-} from "@pagopa/redis/object-wrapper";
+import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 import { err, ok, type Result } from "neverthrow";
 import { RedisClientType, RedisClusterType } from "redis";
 
@@ -19,17 +15,13 @@ export const REDIS_AUSILIAR_DATA_PREFIX = "RESERVE-";
 const EXPECTED_PING_REPLY = "PONG";
 
 export class AusiliarDataRedisAdapter implements AusiliarDataPort {
-  private readonly ttlSeconds: RedisTtlSeconds;
-
   constructor(
     private readonly redis: RedisObjectWrapper<
       typeof LoginAusiliarDataSchema,
       RedisClientType | RedisClusterType
     >,
-    ttlSeconds: PositiveInteger,
-  ) {
-    this.ttlSeconds = RedisTtlSecondsSchema.parse(ttlSeconds);
-  }
+    private readonly ttlSeconds: PositiveInteger,
+  ) {}
 
   async healthcheck(): Promise<Result<void, GenericError>> {
     try {
@@ -54,10 +46,10 @@ export class AusiliarDataRedisAdapter implements AusiliarDataPort {
     id: string,
     obj: LoginAusiliarData,
   ): Promise<Result<undefined, GenericError>> {
-    const result = await this.redis.saveWithTtl(
+    const result = await this.redis.save(
       `${REDIS_AUSILIAR_DATA_PREFIX}${id}`,
       obj,
-      this.ttlSeconds,
+      { expiration: { type: "EX", value: this.ttlSeconds } },
     );
     if (result.isErr()) {
       return err(
