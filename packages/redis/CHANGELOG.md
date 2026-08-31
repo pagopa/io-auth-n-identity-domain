@@ -1,5 +1,11 @@
 # @pagopa/redis
 
+## 0.4.0
+
+### Minor Changes
+
+- bc89b97: Add optional SET options on `RedisObjectWrapper.save` and `getAndDelete`
+
 ## 0.3.0
 
 ### Minor Changes

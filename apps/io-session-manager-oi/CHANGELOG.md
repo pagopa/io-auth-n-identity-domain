@@ -1,5 +1,16 @@
 # io-session-manager-oi
 
+## 0.15.0
+
+### Minor Changes
+
+- bc89b97: Improve login auxiliary data security
+
+### Patch Changes
+
+- Updated dependencies [bc89b97]
+  - @pagopa/redis@0.4.0
+
 ## 0.14.1
 
 ### Patch Changes
