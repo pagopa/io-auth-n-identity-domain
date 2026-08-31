@@ -1,25 +1,24 @@
 import {
+  AuthenticationError,
   FiscalCode,
   GenericError,
   NonEmptyString,
   NotFoundError,
   UseCase,
-  ValidationError,
 } from "@pagopa/hexagonal-core";
 import { SessionPort } from "@pagopa/io-auth-n-identity-session/ports";
 import {
-  type PlainBpdSSOToken,
   PlainBpdSSOTokenSchema,
-  type SessionId,
   SessionIdSchema,
   toHashedBpdSSOToken,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
 
+import { BearerAuthorizationHeaderSchema } from "../../domain/value-objects/bearer-authorization-header.vo.js";
 import { BpdClientSessionTokenSchema } from "../../domain/value-objects/bpd-client-session-token.vo.js";
 
 export type GetUserForBpdInput = {
-  bpdClientSessionToken: string;
+  authorizationHeader: string | undefined;
 };
 
 export type GetUserForBpdOutput = {
@@ -28,7 +27,7 @@ export type GetUserForBpdOutput = {
   fiscal_code: FiscalCode;
 };
 
-export type GetUserForBpdError = ValidationError | NotFoundError | GenericError;
+export type GetUserForBpdError = AuthenticationError | GenericError;
 
 export type GetUserForBpdUseCase = UseCase<
   GetUserForBpdInput,
@@ -38,34 +37,45 @@ export type GetUserForBpdUseCase = UseCase<
 
 export const makeGetUserForBpdUseCase =
   (sessions: SessionPort): GetUserForBpdUseCase =>
-  async ({ bpdClientSessionToken }) => {
-    const validation = BpdClientSessionTokenSchema.safeParse(
-      bpdClientSessionToken,
-    );
-    if (!validation.success) {
-      return err(new ValidationError("Invalid BPD client session token"));
+  async ({ authorizationHeader }) => {
+    const bearer =
+      BearerAuthorizationHeaderSchema.safeParse(authorizationHeader);
+    if (!bearer.success) {
+      return err(new AuthenticationError());
     }
 
-    const separatorIndex = validation.data.lastIndexOf(".");
+    const token = BpdClientSessionTokenSchema.safeParse(bearer.data);
+    if (!token.success) {
+      return err(new AuthenticationError());
+    }
 
-    const sessionId: SessionId = SessionIdSchema.parse(
-      validation.data.slice(0, separatorIndex),
+    const separatorIndex = token.data.lastIndexOf(".");
+
+    const sessionIdResult = SessionIdSchema.safeParse(
+      token.data.slice(0, separatorIndex),
     );
-    const plainBpdSSOToken: PlainBpdSSOToken = PlainBpdSSOTokenSchema.parse(
-      validation.data.slice(separatorIndex + 1),
+    const plainBpdSSOTokenResult = PlainBpdSSOTokenSchema.safeParse(
+      token.data.slice(separatorIndex + 1),
     );
 
-    // Sanity check
-    if (!sessionId || !plainBpdSSOToken) {
-      return err(new ValidationError("Invalid BPD client session token"));
+    // Sanity check: unreachable if `BpdClientSessionTokenSchema` matched.
+    if (!sessionIdResult.success || !plainBpdSSOTokenResult.success) {
+      return err(
+        new GenericError(
+          "BpdClientSessionToken shape parsed but sub-schemas rejected",
+        ),
+      );
     }
 
     const lookup = await sessions.findByBpdToken({
-      sessionId,
-      hashedBPDSSOToken: toHashedBpdSSOToken(plainBpdSSOToken),
+      sessionId: sessionIdResult.data,
+      hashedBPDSSOToken: toHashedBpdSSOToken(plainBpdSSOTokenResult.data),
     });
 
     if (lookup.isErr()) {
+      if (lookup.error instanceof NotFoundError) {
+        return err(new AuthenticationError());
+      }
       return err(lookup.error);
     }
 
