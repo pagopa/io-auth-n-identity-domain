@@ -11,12 +11,14 @@ import { z } from "zod";
 
 import {
   CurrentUserSchema,
-  LoginTypeSchema,
   SpidAuthLevel,
 } from "../../../domain/value-objects/login.vo.js";
 import { OidcConfigurationEnvSchema } from "../../../domain/value-objects/oidc.vo.js";
+import { LoginTypeSchema } from "@pagopa/io-auth-n-identity-session";
 
 extendZodWithOpenApi(z);
+
+export const LoginTypeDTOSchema = LoginTypeSchema.default("LEGACY");
 
 export const ReserveInputDTO = {
   headers: z.object({
@@ -27,7 +29,7 @@ export const ReserveInputDTO = {
     "x-pagopa-lollipop-pub-key": JwkPublicKeyBase64UrlStringSchema.meta({
       description: "The Lollipop public key, encoded as a Base64url JSON JWK.",
     }),
-    "x-pagopa-login-type": LoginTypeSchema.meta({
+    "x-pagopa-login-type": LoginTypeDTOSchema.meta({
       id: "LoginType",
       description: "The login type requested by the client.",
     }),

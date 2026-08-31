@@ -8,6 +8,7 @@ import {
   LoginAusiliarData,
   LoginAusiliarDataSchema,
 } from "../../domain/value-objects/login.vo.js";
+import { PositiveInteger } from "../../domain/value-objects/positive-integer.vo.js";
 
 export const REDIS_AUSILIAR_DATA_PREFIX = "RESERVE-";
 
@@ -19,6 +20,7 @@ export class AusiliarDataRedisAdapter implements AusiliarDataPort {
       typeof LoginAusiliarDataSchema,
       RedisClientType | RedisClusterType
     >,
+    private readonly ttlSeconds: PositiveInteger,
   ) {}
 
   async healthcheck(): Promise<Result<void, GenericError>> {
@@ -47,6 +49,7 @@ export class AusiliarDataRedisAdapter implements AusiliarDataPort {
     const result = await this.redis.save(
       `${REDIS_AUSILIAR_DATA_PREFIX}${id}`,
       obj,
+      { expiration: { type: "EX", value: this.ttlSeconds } },
     );
     if (result.isErr()) {
       return err(
@@ -61,7 +64,9 @@ export class AusiliarDataRedisAdapter implements AusiliarDataPort {
   async retrieve(
     id: string,
   ): Promise<Result<LoginAusiliarData, GenericError | NotFoundError>> {
-    const result = await this.redis.get(`${REDIS_AUSILIAR_DATA_PREFIX}${id}`);
+    const result = await this.redis.getAndDelete(
+      `${REDIS_AUSILIAR_DATA_PREFIX}${id}`,
+    );
     if (result.isErr()) {
       return err(
         new GenericError(

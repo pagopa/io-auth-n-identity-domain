@@ -16,10 +16,11 @@ import { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
 import { OidcConfigPort } from "../../../domain/ports/outbound/oidc-config.port.js";
 import {
   CurrentUser,
-  LoginType,
+  CurrentUserSchema,
   SpidAuthLevel,
 } from "../../../domain/value-objects/login.vo.js";
 import { makeReserveUseCase } from "../reserve.use-case.js";
+import { LoginType } from "@pagopa/io-auth-n-identity-session";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -51,13 +52,15 @@ vi.mock("node:crypto", () => {
   return { randomBytes: vi.fn(() => Buffer.from(MOCKED_RANDOM_BYTES)) };
 });
 
+const aCurrentUser = CurrentUserSchema.parse("a-current-user");
+
 const buildInput = (overrides = {}) => ({
   oidcConfigurationEnv: "PROD" as const,
   authLevel: "SpidL2" as SpidAuthLevel,
   lollipopPublicKey: LOLLIPOP_PUBLIC_KEY,
   lollipopHashAlgorithm: LOLLIPOP_HASH_ALGORITHM,
   loginType: "LV" as LoginType,
-  currentUser: "a-current-user" as CurrentUser,
+  currentUser: aCurrentUser,
   ...overrides,
 });
 

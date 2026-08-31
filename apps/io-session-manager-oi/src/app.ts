@@ -135,6 +135,7 @@ export const createApp = async (
 
   const ausiliarStorageAdapter = new AusiliarDataRedisAdapter(
     new RedisObjectWrapper(redisClient, LoginAusiliarDataSchema),
+    config.LOGIN_AUSILIAR_DATA_TTL_SECONDS,
   );
 
   const fetchLollipopAdapter = createIoLollipopAdapter({

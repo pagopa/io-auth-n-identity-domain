@@ -41,21 +41,21 @@
   "devDependencies": {
     "@azure/identity": "catalog:",
     "@pagopa/typescript-config-node22": "workspace:^",
-    "@redis/client": "^6.1.0",
-    "@redis/entraid": "^6.1.0",
+    "@redis/client": "^6.2.1",
+    "@redis/entraid": "^6.2.1",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",
-    "redis": "^6.1.0",
+    "redis": "^6.2.1",
     "shx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
   "peerDependencies": {
     "@azure/identity": "catalog:",
-    "@redis/client": "^6.1.0",
-    "@redis/entraid": "^6.1.0",
-    "redis": "^6.1.0"
+    "@redis/client": "^6.2.1",
+    "@redis/entraid": "^6.2.1",
+    "redis": "^6.2.1"
   }
 }
