@@ -112,7 +112,6 @@ beforeEach(() => {
 describe("makeReserveUseCase", () => {
   it("reserves the pubkey, saves ausiliar data and returns the OIDC parameters (PROD)", async () => {
     const input = buildInput();
-    console.log("input", input);
 
     const result = await reserveUseCase(input);
 
