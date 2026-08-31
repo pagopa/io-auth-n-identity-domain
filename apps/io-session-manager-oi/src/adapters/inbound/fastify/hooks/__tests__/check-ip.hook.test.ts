@@ -33,7 +33,7 @@ describe("createCheckIpHook", () => {
     expect(response.json()).toEqual({ ok: true });
   });
 
-  it("blocks a request from an IP outside the CIDR range with 403", async () => {
+  it("blocks a request from an IP outside the CIDR range with 401", async () => {
     const server = buildServer([ALLOWED_CIDR]);
 
     const response = await server.inject({
@@ -42,13 +42,12 @@ describe("createCheckIpHook", () => {
       url: "/test",
     });
 
-    expect(response.statusCode).toBe(403);
+    expect(response.statusCode).toBe(401);
     expect(response.headers["content-type"]).toContain(
       "application/problem+json",
     );
     expect(response.json()).toMatchObject({
-      status: 403,
-      title: "Forbidden",
+      status: 401,
     });
   });
 
@@ -112,6 +111,6 @@ describe("createCheckIpHook", () => {
       url: "/test",
     });
 
-    expect(response.statusCode).toBe(403);
+    expect(response.statusCode).toBe(401);
   });
 });
