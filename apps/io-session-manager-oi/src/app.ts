@@ -15,11 +15,11 @@ import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
-
 import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
+import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
 import { AusiliarDataRedisAdapter } from "./adapters/outbound/ausiliar-data.adapter.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
@@ -30,6 +30,7 @@ import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profi
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
+import { makeGetUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
@@ -184,6 +185,8 @@ export const createApp = async (
     activateUserSessionUseCase,
   });
 
+  const getUserForBpdUseCase = makeGetUserForBpdUseCase(sessionCosmosAdapter);
+
   const serviceBusClient =
     config.NODE_ENV === "production"
       ? new ServiceBusClient(
@@ -261,6 +264,11 @@ export const createApp = async (
     handleOidcCallbackUseCase,
     loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
     loginErrorRedirectUrl: config.LOGIN_ERROR_REDIRECT_URL,
+  });
+
+  mountSsoBpdUserHandler(server, {
+    allowedIpSourceRange: config.ALLOW_BPD_IP_SOURCE_RANGE,
+    getUserForBpdUseCase,
   });
 
   return { server };
