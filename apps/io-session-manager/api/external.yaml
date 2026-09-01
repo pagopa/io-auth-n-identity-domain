@@ -1,6 +1,6 @@
 openapi: 3.0.1
 servers:
-  - url: https://api-app.io.pagopa.it/api/auth/v1
+  - url: https://api-app.io.pagopa.it
 info:
   title: Collection of exposed endpoints to interact with user's auth session.
   version: 0.0.1
@@ -8,7 +8,7 @@ security:
   # Global security strategy, unless overridden at operation level
   - Bearer: []
 paths:
-  /fast-login:
+  /api/auth/v1/fast-login:
     post:
       operationId: fastLogin
       summary: POST a session refresh request with Lollipop
@@ -63,7 +63,7 @@ paths:
           description: Bad gateway.
         "504":
           description: Gateway timeout.
-  /fast-login/nonce/generate:
+  /api/auth/v1/fast-login/nonce/generate:
     post:
       operationId: lvGenerateNonce
       summary: Generate a Nonce for a session refresh flow
@@ -81,7 +81,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /session:
+  /api/auth/v1/session:
     get:
       operationId: getSessionState
       summary: Get the user current session
@@ -121,7 +121,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /logout:
+  /api/auth/v1/logout:
     post:
       operationId: logout
       summary: Execute the logout
@@ -149,7 +149,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /login:
+  /api/auth/v1/login:
     get:
       operationId: login
       summary: Login SPID/CIE
@@ -186,7 +186,7 @@ paths:
                 $ref: "#/components/schemas/ProblemJson"
         "503":
           description: Service unavailable
-  /test-login:
+  /api/auth/v1/test-login:
     post:
       operationId: testLogin
       summary: Login Test User with password
@@ -220,7 +220,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /healthcheck:
+  /api/auth/v1/healthcheck:
     get:
       operationId: healthcheck
       summary: The healthcheck endpoint
@@ -239,7 +239,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /assertionConsumerService:
+  /api/auth/v1/assertionConsumerService:
     post:
       operationId: acs
       summary: ACS step of Login SPID/CIE
@@ -260,7 +260,7 @@ paths:
             Location:
               schema:
                 type: string
-  /metadata:
+  /api/auth/v1/metadata:
     get:
       operationId: getMetadata
       summary: Get SPID metadata
@@ -270,7 +270,7 @@ paths:
           description: SPID metadata
           content:
             application/xml: {}
-  /user-identity:
+  /api/auth/v1/user-identity:
     get:
       summary: Session token introspection
       description: Introspect the session token and returns the related user identity
@@ -302,6 +302,44 @@ paths:
           content: {}
         "500":
           description: There was an error retrieving user's identity.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+  /api/auth/v2/reserve:
+    get:
+      operationId: reserve
+      summary: Reserve an OIDC authorization request
+      security: [] # Authentication not needed for this operation
+      description: Prepares (reserves) an authorization request for the Lollipop-bound client and returns the parameters needed to start the login flow with the selected OneIdentity environment.
+      parameters:
+        - $ref: "#/components/parameters/OidcConfigurationEnv"
+        - $ref: "#/components/parameters/AuthLevel"
+        - $ref: "#/components/parameters/JwkPubKeyToken"
+        - $ref: "#/components/parameters/JwkPubKeyHashAlgorithm"
+        - $ref: "#/components/parameters/LoginType"
+        - $ref: "#/components/parameters/CurrentUser"
+      responses:
+        "200":
+          description: Lollipop Key has been reserved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReserveResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "500":
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -373,6 +411,17 @@ components:
         format: ^[a-fA-F0-9]{64}$
       description: Represents the currently logged in (if any) user's FiscalCode hashed with sha256
       required: false
+    OidcConfigurationEnv:
+      name: env
+      in: query
+      schema:
+        type: string
+        enum:
+          - UAT
+          - PROD
+        description: The OneIdentity configuration environment.
+      required: true
+      x-example: PROD
   schemas:
     FiscalCode:
       $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/c258312149f075dd17c72905bb97cda2a730fd42/openapi/definitions_v3.yaml#/FiscalCode"
@@ -464,6 +513,31 @@ components:
           $ref: "#/components/schemas/Nonce"
       required:
         - nonce
+    ReserveResponse:
+      type: object
+      properties:
+        client_id:
+          type: string
+          minLength: 1
+        state:
+          type: string
+          minLength: 1
+        nonce:
+          type: string
+          minLength: 1
+        redirect_uri:
+          type: string
+          minLength: 1
+        issuer:
+          type: string
+          minLength: 1
+      required:
+        - client_id
+        - state
+        - nonce
+        - redirect_uri
+        - issuer
+      description: The parameters needed to start the OIDC authorization flow.
     SpidLevel:
       type: string
       description: A SPID level.
