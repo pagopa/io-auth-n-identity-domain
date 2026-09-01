@@ -1,0 +1,90 @@
+openapi: 3.1.0
+info:
+  description: BPD SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.
+  title: IO Session Manager OneIdentity — BPD SSO API
+  version: 0.14.1
+servers:
+  - url: https://api-app.io.pagopa.it/sso/bpd/v2
+tags:
+  - name: sso
+    description: Single Sign-On endpoints consumed by downstream backends (BPD).
+components:
+  schemas:
+    BPDUser:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        family_name:
+          type: string
+          minLength: 1
+        fiscal_code:
+          type: string
+          pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/i
+      required:
+        - name
+        - family_name
+        - fiscal_code
+      description: The user data returned to the BPD backend.
+    ProblemDetails:
+      type: object
+      properties:
+        detail:
+          type: string
+        status:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          format: uri
+      required:
+        - detail
+        - status
+        - title
+        - type
+      description: RFC 7807 Problem Details for HTTP APIs. See https://www.rfc-editor.org/rfc/rfc7807.
+  parameters: {}
+paths:
+  /user:
+    get:
+      description: "Returns the BPD user identified by the `<sessionId>.<plainBpdSSOToken>` token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`."
+      operationId: getUserForBpd
+      security: []
+      summary: Return the BPD user for a session token
+      tags:
+        - sso
+      parameters:
+        - schema:
+            type: string
+            description: "`Bearer <sessionId>.<plainBpdSSOToken>` authorization header."
+          required: false
+          description: "`Bearer <sessionId>.<plainBpdSSOToken>` authorization header."
+          name: authorization
+          in: header
+      responses:
+        "200":
+          description: The BPD user for the provided session token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BPDUser"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Missing/invalid `Authorization` header, unknown session, or source IP blocked by the allowlist.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
