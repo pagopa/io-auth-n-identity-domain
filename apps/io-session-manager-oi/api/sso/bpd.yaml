@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   description: BPD SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.
   title: IO Session Manager OneIdentity — BPD SSO API
-  version: 0.14.1
+  version: 0.15.0
 servers:
   - url: https://api-app.io.pagopa.it/sso/bpd/v2
 tags:
