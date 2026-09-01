@@ -32,7 +32,7 @@ type ReserveDeps = {
 
 type input = {
   oidcConfigurationEnv: OidcConfigurationEnv;
-  authLevel: SpidAuthLevel;
+  minAuthLevel: SpidAuthLevel;
   lollipopPublicKey: JwkPublicKeyBase64UrlString;
   lollipopHashAlgorithm: LollipopJwkHashingAlgorithm;
   loginType: LoginType;
@@ -82,7 +82,7 @@ export const makeReserveUseCase =
     const nonce = randomBytes(24).toString("hex") as NonEmptyString;
 
     const ausiliarData: LoginAusiliarData = {
-      minAuthLevel: inputData.authLevel,
+      minAuthLevel: inputData.minAuthLevel,
       loginType: inputData.loginType,
       currentUser: inputData.currentUser,
       lollipopAssertionRef: reserveResult.value,

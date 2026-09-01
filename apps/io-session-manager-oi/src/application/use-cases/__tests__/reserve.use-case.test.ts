@@ -56,7 +56,7 @@ const aCurrentUser = CurrentUserSchema.parse("a-current-user");
 
 const buildInput = (overrides = {}) => ({
   oidcConfigurationEnv: "PROD" as const,
-  authLevel: "SpidL2" as SpidAuthLevel,
+  minAuthLevel: "SpidL2" as SpidAuthLevel,
   lollipopPublicKey: LOLLIPOP_PUBLIC_KEY,
   lollipopHashAlgorithm: LOLLIPOP_HASH_ALGORITHM,
   loginType: "LV" as LoginType,
@@ -120,7 +120,7 @@ describe("makeReserveUseCase", () => {
       pub_key: LOLLIPOP_PUBLIC_KEY,
     });
     expect(saveMock).toHaveBeenCalledExactlyOnceWith(MOCKED_HEX_RANDOM_BYTES, {
-      minAuthLevel: input.authLevel,
+      minAuthLevel: input.minAuthLevel,
       loginType: input.loginType,
       currentUser: input.currentUser,
       lollipopAssertionRef: `${LOLLIPOP_HASH_ALGORITHM}-${LOLLIPOP_PUBLIC_KEY_THUMBPRINT}`,

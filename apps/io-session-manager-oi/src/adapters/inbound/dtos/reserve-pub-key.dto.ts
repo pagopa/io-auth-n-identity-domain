@@ -18,35 +18,39 @@ import { LoginTypeSchema } from "@pagopa/io-auth-n-identity-session";
 
 extendZodWithOpenApi(z);
 
-export const LoginTypeDTOSchema = LoginTypeSchema.default("LEGACY");
-
 export const ReserveInputDTO = {
-  headers: z.object({
-    "x-pagopa-lollipop-hash-algorithm": LollipopJwkHashingAlgorithmSchema.meta({
+  body: z
+    .object({
+      env: OidcConfigurationEnvSchema.meta({
+        id: "OidcConfigurationEnv",
+        description: "The OneIdentity configuration environment.",
+      }),
+      min_auth_level: SpidAuthLevel.meta({
+        id: "SpidAuthLevel",
+        description: "The SPID authentication level.",
+      }),
+      lollipop_pub_key: JwkPublicKeyBase64UrlStringSchema.meta({
+        description:
+          "The Lollipop public key, encoded as a Base64url JSON JWK.",
+      }),
+      lollipop_hash_algo: LollipopJwkHashingAlgorithmSchema.meta({
+        id: "LollipopHashAlgorithm",
+        description:
+          "Hashing algorithm used to compute the JWK thumbprint of the Lollipop public key.",
+      }),
+      login_type: LoginTypeSchema.default("LEGACY").meta({
+        id: "LoginType",
+        description: "The login type requested by the client.",
+      }),
+      current_user: CurrentUserSchema.meta({
+        description: "Optional identifier of the user currently logged in.",
+      }),
+    })
+    .meta({
+      id: "ReserveRequest",
       description:
-        "Hashing algorithm used to compute the JWK thumbprint of the Lollipop public key.",
+        "Parameters needed to reserve a Lollipop public key and start the OIDC authorization flow.",
     }),
-    "x-pagopa-lollipop-pub-key": JwkPublicKeyBase64UrlStringSchema.meta({
-      description: "The Lollipop public key, encoded as a Base64url JSON JWK.",
-    }),
-    "x-pagopa-login-type": LoginTypeDTOSchema.meta({
-      id: "LoginType",
-      description: "The login type requested by the client.",
-    }),
-    "x-pagopa-current-user": CurrentUserSchema.meta({
-      description: "Optional identifier of the user currently logged in.",
-    }),
-  }),
-  query: z.object({
-    env: OidcConfigurationEnvSchema.meta({
-      id: "OidcConfigurationEnv",
-      description: "The OneIdentity configuration environment.",
-    }),
-    authLevel: SpidAuthLevel.meta({
-      id: "SpidAuthLevel",
-      description: "The SPID authentication level.",
-    }),
-  }),
 };
 
 export const ReserveOutputDTO = z
