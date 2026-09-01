@@ -4,7 +4,6 @@ import type { AnyRouteContract } from "@pagopa/hexagonal-openapi";
 import { FastifyInstance } from "fastify";
 
 import { makeGetUserForBpdUseCase } from "../../../application/use-cases/get-user-for-bpd.use-case.js";
-import { BASE_PATH } from "../base-path.js";
 import {
   SsoBpdUserInputDTO,
   SsoBpdUserOutputDTO,
@@ -15,7 +14,7 @@ import { createCheckIpHook } from "./hooks/check-ip.hook.js";
 const ssoBpdUserContract = defineRoute({
   method: "get",
   operationId: "getUserForBpd",
-  path: `${BASE_PATH}/sso/bpd/v1/user`,
+  path: `/sso/bpd/v2/user`,
   request: SsoBpdUserInputDTO,
   summary: "Return the BPD user for a session token",
   description:

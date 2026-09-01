@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/sso/bpd/v1/user
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/sso/bpd/v2/user
   body: none
   auth: inherit
 }
@@ -23,7 +23,7 @@ docs {
   Returns the BPD user (name, family_name, fiscal_code) identified by the
   `<sessionId>.<plainBpdSSOToken>` credential carried in the `Authorization: Bearer`
   header.
-
+  
   Requires the `bpdClientSessionToken` env var to be set to the concatenated token
   and the caller IP to be within `ALLOW_BPD_IP_SOURCE_RANGE`.
 }
