@@ -65,6 +65,7 @@
     "monocle-ts": "catalog:",
     "newtype-ts": "catalog:",
     "node-fetch": "catalog:",
+    "openid-client": "^6.8.4",
     "passport": "catalog:",
     "passport-http-bearer": "catalog:",
     "passport-http-custom-bearer": "catalog:",
