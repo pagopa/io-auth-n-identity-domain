@@ -46,7 +46,7 @@ script:pre-request {
     .then(thumbprint => thumbprint.toString('base64url'));
   
   const body = req.getBody();
-  body.pub_key = encodedPubKey;
+  body.lollipop_pub_key = encodedPubKey;
   req.setBody(body);
   
   bru.setEnvVar("publicKey", encodedPubKey)
