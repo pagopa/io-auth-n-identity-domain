@@ -65,6 +65,7 @@ describe("RedisObjectWrapper#save", () => {
     expect(setMock).toHaveBeenCalledExactlyOnceWith(
       KEY,
       JSON.stringify(ENCODED_VALUE),
+      undefined,
     );
   });
 
@@ -77,6 +78,7 @@ describe("RedisObjectWrapper#save", () => {
     expect(setMock).toHaveBeenCalledExactlyOnceWith(
       KEY,
       JSON.stringify(ENCODED_VALUE),
+      undefined,
     );
   });
 
