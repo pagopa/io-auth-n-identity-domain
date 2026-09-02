@@ -1,3 +1,9 @@
+/**
+ * Removing the import of `NonEmptyStringBrand` causes the following:
+ * The inferred type of 'BpdClientSessionTokenSchema' references an inaccessible 'unique symbol' type.
+ * A type annotation is necessary.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { NonEmptyStringBrand } from "@pagopa/hexagonal-core/domain/value-objects";
 import {
   PlainBpdSSOTokenSchema,
