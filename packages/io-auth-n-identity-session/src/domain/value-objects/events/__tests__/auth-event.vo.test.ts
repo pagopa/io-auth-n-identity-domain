@@ -1,7 +1,7 @@
 import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import { describe, expect, it } from "vitest";
-import { Sha256HexStringSchema } from "../../../utils/hash.js";
-import { AuthEventSchema } from "./auth-event.vo.js";
+import { Sha256HexStringSchema } from "../../../../utils/hash.js";
+import { AuthEventSchema } from "../auth-event.vo.js";
 
 const fiscalCode = FiscalCodeSchema.parse("AAAAAA00A00A000A");
 const fiscalCodeHash = Sha256HexStringSchema.parse(
