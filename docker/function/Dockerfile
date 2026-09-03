@@ -23,7 +23,7 @@ RUN pnpm exec turbo run build
 
 
 FROM node:${NODE_VERSION} AS functions-node
-RUN npm i -g azure-functions-core-tools@4 --unsafe-perm true
+RUN npm i -g azure-functions-core-tools@4.12.1 --unsafe-perm true
 
 
 FROM functions-node AS runner
