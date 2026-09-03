@@ -102,9 +102,17 @@ export const reserve =
       );
     }
 
+    const errorOrAuthorizationEndpoint = NonEmptyString.decode(
+      oidcConfiguration.serverMetadata().authorization_endpoint,
+    );
+
+    if (E.isLeft(errorOrAuthorizationEndpoint)) {
+      return ResponseErrorInternal(`Could not parse auth endpoint`);
+    }
+
     return ResponseSuccessJson({
       client_id: envConfig.clientId,
-      issuer: oidcConfiguration.serverMetadata().issuer as NonEmptyString,
+      authorization_endpoint: errorOrAuthorizationEndpoint.right,
       nonce,
       redirect_uri: envConfig.redirectUri.href as NonEmptyString,
       state,

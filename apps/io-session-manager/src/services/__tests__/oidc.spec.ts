@@ -25,7 +25,9 @@ const aJwk = {
   y: "lnMva1zx1hRgqV9zuDSwdWGrRXSDIxQt5aRUxmDUn84",
 } as unknown as JwkPublicKey;
 
-const aServerMetadata = { issuer: "https://prod.oneid.pagopa.it/" };
+const aServerMetadata = {
+  authorization_endpoint: "https://localhost/authorize",
+};
 const anOidcConfiguration = {
   serverMetadata: () => aServerMetadata,
 };
@@ -59,16 +61,16 @@ describe("OidcService#reserve", () => {
       expect.any(Number),
       expect.stringContaining('"lollipopAssertionRef":"sha256-'),
     );
-    expect(result.kind).toEqual("IResponseSuccessJson");
-    if (result.kind === "IResponseSuccessJson") {
-      expect(result.value).toMatchObject({
+    expect(result).toMatchObject({
+      kind: "IResponseSuccessJson",
+      value: {
         client_id: "prod-client-id",
-        issuer: aServerMetadata.issuer,
+        authorization_endpoint: aServerMetadata.authorization_endpoint,
         redirect_uri: "https://localhost/api/auth/v2/callback",
-      });
-      expect(result.value.state).toEqual(expect.any(String));
-      expect(result.value.nonce).toEqual(expect.any(String));
-    }
+        state: expect.any(String),
+        nonce: expect.any(String),
+      },
+    });
   });
 
   test("should return IResponseErrorValidation when the requested environment is not a valid OidcConfigurationEnv", async () => {

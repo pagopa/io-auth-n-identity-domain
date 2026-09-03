@@ -72,7 +72,7 @@ export const LoginAusiliarData = t.intersection([
 export type ReserveResponse = t.TypeOf<typeof ReserveResponse>;
 export const ReserveResponse = t.type({
   client_id: NonEmptyString,
-  issuer: NonEmptyString,
+  authorization_endpoint: NonEmptyString,
   nonce: NonEmptyString,
   redirect_uri: NonEmptyString,
   state: NonEmptyString,

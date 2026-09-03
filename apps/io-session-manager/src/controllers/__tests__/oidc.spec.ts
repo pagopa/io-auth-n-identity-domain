@@ -20,7 +20,9 @@ const mockedGetOidcConfiguration = vi.mocked(getOidcConfiguration);
 const AN_ENCODED_JWK =
   "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IjRmMzB6dUdNcm9kRXl3cEoxelZKbWFRLVYtZlM4OVZBTW8yZnN6dWxOTmsiLCJ5IjoibG5NdmExengxaFJncVY5enVEU3dkV0dyUlhTREl4UXQ1YVJVeG1EVW44NCJ9";
 
-const aServerMetadata = { issuer: "https://prod.oneid.pagopa.it/" };
+const aServerMetadata = {
+  authorization_endpoint: "https://localhost/authorize",
+};
 const anOidcConfiguration = {
   serverMetadata: () => aServerMetadata,
 };
@@ -51,7 +53,6 @@ describe("OidcController#reserveEndpoint", () => {
     });
 
     const result = await pipe({ ...deps, req }, reserveEndpoint, TE.toUnion)();
-
     expect(result.kind).toEqual("IResponseSuccessJson");
   });
 
