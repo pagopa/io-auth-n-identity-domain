@@ -11,6 +11,7 @@ import {
 import { getOidcConfiguration } from "../../repositories/oidc-client";
 import * as OneIdConfig from "../../config/one-id";
 import { JwkPubKeyHashAlgorithmEnum } from "../../generated/lollipop-api/JwkPubKeyHashAlgorithm";
+import type * as client from "openid-client" with { "resolution-mode": "import" };
 
 vi.mock("../../repositories/oidc-client", () => ({
   getOidcConfiguration: vi.fn(),
@@ -50,7 +51,7 @@ describe("OidcService#reserve", () => {
 
   test("should compute the lollipop assertion ref, save the ausiliar data and return the OIDC parameters", async () => {
     mockedGetOidcConfiguration.mockResolvedValueOnce(
-      anOidcConfiguration as never,
+      anOidcConfiguration as client.Configuration,
     );
     mockSetEx.mockResolvedValueOnce("OK");
 
@@ -91,7 +92,7 @@ describe("OidcService#reserve", () => {
     // the "FOO" case above, which never reaches a valid
     // OidcConfigurationEnv in the first place).
     const getOidcEnvConfigSpy = vi
-      .spyOn(OneIdConfig, "getOidcEnvConfig")
+      .spyOn(OneIdConfig, "getOneIdEnvConfig")
       .mockReturnValueOnce(
         E.left(new Error('Missing OIDC configuration for environment "UAT"')),
       );
@@ -112,6 +113,19 @@ describe("OidcService#reserve", () => {
     mockedGetOidcConfiguration.mockRejectedValueOnce(
       new Error("discovery failed"),
     );
+
+    const result = await reserve(deps)(aReserveInput);
+
+    expect(result.kind).toEqual("IResponseErrorInternal");
+    expect(mockSetEx).not.toHaveBeenCalled();
+  });
+
+  test("should return IResponseErrorInternal when OIDC discovery returns an invalid authorization endpoint", async () => {
+    mockedGetOidcConfiguration.mockResolvedValueOnce({
+      serverMetadata: () => ({
+        autorization_endpoint: "foo",
+      }),
+    } as unknown as client.Configuration);
 
     const result = await reserve(deps)(aReserveInput);
 

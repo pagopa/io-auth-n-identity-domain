@@ -110,7 +110,7 @@ const configByEnv: Partial<Record<OidcConfigurationEnv, OidcEnvConfig>> = {
  * The `UAT` environment is optional: when its env vars are not provided,
  * requests for `UAT` are rejected with a `Left`.
  */
-export const getOidcEnvConfig = (
+export const getOneIdEnvConfig = (
   env: OidcConfigurationEnv,
 ): E.Either<Error, OidcEnvConfig> =>
   pipe(

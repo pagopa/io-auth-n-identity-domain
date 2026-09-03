@@ -10,7 +10,7 @@ import {
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import {
-  getOidcEnvConfig,
+  getOneIdEnvConfig,
   LOGIN_AUSILIAR_DATA_TTL_SECONDS,
   ONEID_HTTP_TIMEOUT_SECONDS,
 } from "../config/one-id";
@@ -24,6 +24,7 @@ import {
 } from "../types/oidc";
 import { save } from "./redis-ausiliar-data";
 import { getNewTokenAsync } from "./token";
+import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 
 export type ReserveDeps = RedisRepo.RedisRepositoryDeps;
 
@@ -43,7 +44,7 @@ export type ReserveOutput =
 export const reserve =
   (deps: ReserveDeps) =>
   async (input: ReserveInput): Promise<ReserveOutput> => {
-    const envConfigResult = getOidcEnvConfig(input.env);
+    const envConfigResult = getOneIdEnvConfig(input.env);
     if (E.isLeft(envConfigResult)) {
       return ResponseErrorValidation(
         "Bad request",
@@ -81,6 +82,14 @@ export const reserve =
       );
     }
 
+    const errorOrAuthorizationEndpoint = UrlFromString.decode(
+      oidcConfiguration.serverMetadata().authorization_endpoint,
+    );
+
+    if (E.isLeft(errorOrAuthorizationEndpoint)) {
+      return ResponseErrorInternal(`Could not parse auth endpoint`);
+    }
+
     const ausiliarData: LoginAusiliarData = {
       clientId: envConfig.clientId,
       currentUser: input.currentUser,
@@ -102,17 +111,10 @@ export const reserve =
       );
     }
 
-    const errorOrAuthorizationEndpoint = NonEmptyString.decode(
-      oidcConfiguration.serverMetadata().authorization_endpoint,
-    );
-
-    if (E.isLeft(errorOrAuthorizationEndpoint)) {
-      return ResponseErrorInternal(`Could not parse auth endpoint`);
-    }
-
     return ResponseSuccessJson({
       client_id: envConfig.clientId,
-      authorization_endpoint: errorOrAuthorizationEndpoint.right,
+      authorization_endpoint: errorOrAuthorizationEndpoint.right
+        .href as NonEmptyString,
       nonce,
       redirect_uri: envConfig.redirectUri.href as NonEmptyString,
       state,

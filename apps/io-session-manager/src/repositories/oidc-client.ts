@@ -10,7 +10,7 @@ import { OidcConfigurationEnv } from "../types/oidc";
  *
  * A failed discovery is evicted so the next call can retry.
  */
-const discoveryByEnv = new Map<
+export const discoveryByEnv = new Map<
   OidcConfigurationEnv,
   Promise<client.Configuration>
 >();
@@ -34,6 +34,7 @@ export const getOidcConfiguration = (
   envConfig: OidcEnvConfig,
   httpTimeoutSeconds: number,
 ): Promise<client.Configuration> => {
+  console.log(discoveryByEnv);
   const cached = discoveryByEnv.get(env);
   if (cached) {
     return cached;
@@ -53,10 +54,12 @@ export const getOidcConfiguration = (
         timeout: httpTimeoutSeconds,
       },
     );
-  })().catch((error: unknown) => {
+  })().catch((_error: unknown) => {
+    // TODO: emit event and/or send an error log
+
     // Evict the failed discovery so the next request can retry.
     discoveryByEnv.delete(env);
-    throw error;
+    return Promise.reject(void 0);
   });
 
   discoveryByEnv.set(env, discoveryPromise);
@@ -72,7 +75,7 @@ export const getOidcConfiguration = (
  * Only POST responses (the token endpoint) are inspected; discovery and JWKS
  * requests (GET) are forwarded untouched to avoid needless re-parsing.
  */
-const sanitizingFetch = async (
+export const sanitizingFetch = async (
   input: RequestInfo | URL,
   init?: RequestInit,
 ): Promise<Response> => {
