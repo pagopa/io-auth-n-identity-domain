@@ -86,7 +86,7 @@ export const reserve =
       currentUser: input.currentUser,
       lollipopAssertionRef,
       loginType: input.loginType,
-      minAuthLevel: input.authLevel,
+      minAuthLevel: input.minAuthLevel,
       nonce,
       oidcConfigurationEnv: input.env,
     };

@@ -68,7 +68,10 @@ import {
   PlatformInternalService,
   RedisSessionStorageService,
 } from "./services";
-import { lollipopLoginMiddleware } from "./utils/lollipop";
+import {
+  lollipopLoginMiddleware,
+  lollipopReserveMiddleware,
+} from "./utils/lollipop";
 import { checkIP, withIPFromRequest } from "./utils/network";
 import { expressLollipopMiddleware } from "./utils/lollipop";
 import { bearerZendeskTokenStrategy } from "./auth/bearer-zendesk-token-strategy";
@@ -397,10 +400,10 @@ function setupExternalOidcEndpoints(
   redisClientSelector: RedisClientSelectorType,
   appInsightsClient?: appInsights.TelemetryClient,
 ) {
-  app.get(
+  app.post(
     `${basePath}/reserve`,
     toExpressMiddleware(
-      lollipopLoginMiddleware(
+      lollipopReserveMiddleware(
         APIClients.fnLollipopAPIClient,
         appInsightsClient,
       ),

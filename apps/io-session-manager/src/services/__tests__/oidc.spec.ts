@@ -32,7 +32,7 @@ const anOidcConfiguration = {
 
 const aReserveInput: ReserveInput = {
   env: "PROD",
-  authLevel: "SpidL2",
+  minAuthLevel: "SpidL2",
   jwk: aJwk,
   jwkPubKeyHashAlgorithm: JwkPubKeyHashAlgorithmEnum.sha256,
 };

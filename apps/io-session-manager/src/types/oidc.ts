@@ -30,8 +30,8 @@ export const SpidAuthLevel = t.union(
 export type ReserveInput = t.TypeOf<typeof ReserveInput>;
 export const ReserveInput = t.intersection([
   t.type({
-    authLevel: SpidAuthLevel,
     env: OidcConfigurationEnv,
+    minAuthLevel: SpidAuthLevel,
     jwk: JwkPublicKeyFromToken,
     jwkPubKeyHashAlgorithm: withDefault(
       JwkPubKeyHashAlgorithm,

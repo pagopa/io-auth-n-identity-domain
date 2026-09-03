@@ -307,18 +307,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
   /api/auth/v2/reserve:
-    get:
+    post:
       operationId: reserve
       summary: Reserve an OIDC authorization request
       security: [] # Authentication not needed for this operation
       description: Prepares (reserves) an authorization request for the Lollipop-bound client and returns the parameters needed to start the login flow with the selected OneIdentity environment.
-      parameters:
-        - $ref: "#/components/parameters/OidcConfigurationEnv"
-        - $ref: "#/components/parameters/AuthLevel"
-        - $ref: "#/components/parameters/JwkPubKeyToken"
-        - $ref: "#/components/parameters/JwkPubKeyHashAlgorithm"
-        - $ref: "#/components/parameters/LoginType"
-        - $ref: "#/components/parameters/CurrentUser"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReserveRequest"
       responses:
         "200":
           description: Lollipop Key has been reserved successfully
@@ -411,17 +410,6 @@ components:
         format: ^[a-fA-F0-9]{64}$
       description: Represents the currently logged in (if any) user's FiscalCode hashed with sha256
       required: false
-    OidcConfigurationEnv:
-      name: env
-      in: query
-      schema:
-        type: string
-        enum:
-          - UAT
-          - PROD
-        description: The OneIdentity configuration environment.
-      required: true
-      x-example: PROD
   schemas:
     FiscalCode:
       $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/c258312149f075dd17c72905bb97cda2a730fd42/openapi/definitions_v3.yaml#/FiscalCode"
@@ -513,6 +501,57 @@ components:
           $ref: "#/components/schemas/Nonce"
       required:
         - nonce
+    ReserveRequest:
+      type: object
+      properties:
+        env:
+          $ref: "#/components/schemas/OidcConfigurationEnv"
+        min_auth_level:
+          $ref: "#/components/schemas/SpidAuthLevel"
+        lollipop_pub_key:
+          type: string
+          minLength: 1
+          pattern: ^[A-Za-z0-9_-]+$
+          description: The Lollipop public key, encoded as a Base64url JSON JWK.
+        lollipop_hash_algo:
+          $ref: "#/components/schemas/LollipopHashAlgorithm"
+        login_type:
+          $ref: "#/components/schemas/LoginType"
+        current_user:
+          type: string
+          minLength: 1
+          description: Optional identifier of the user currently logged in.
+      required:
+        - env
+        - min_auth_level
+        - lollipop_pub_key
+      description: Parameters needed to reserve a Lollipop public key and start the OIDC authorization flow.
+    OidcConfigurationEnv:
+      type: string
+      description: The OneIdentity configuration environment.
+      enum:
+        - UAT
+        - PROD
+    SpidAuthLevel:
+      type: string
+      description: The SPID authentication level requested for the OIDC login flow.
+      enum:
+        - SpidL2
+        - SpidL3
+    LollipopHashAlgorithm:
+      type: string
+      enum:
+        - sha256
+        - sha384
+        - sha512
+      default: sha256
+      description: Hashing algorithm used to compute the JWK thumbprint of the Lollipop public key.
+    LoginType:
+      type: string
+      description: Used by IO to force the login using the LEGACY behavior.
+      enum:
+        - LV
+        - LEGACY
     ReserveResponse:
       type: object
       properties:

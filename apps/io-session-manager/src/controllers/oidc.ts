@@ -8,23 +8,18 @@ import { ReserveInput } from "../types/oidc";
 import { WithExpressRequest } from "../utils/express";
 import { withValidatedOrValidationErrorRTE } from "../utils/responses";
 
-const JWK_PUB_KEY_HEADER_NAME = "x-pagopa-lollipop-pub-key";
-const JWK_PUB_KEY_HASH_ALGO_HEADER_NAME = "x-pagopa-lollipop-pub-key-hash-algo";
-const LOGIN_TYPE_HEADER_NAME = "x-pagopa-login-type";
-const CURRENT_USER_HEADER_NAME = "x-pagopa-current-user";
-
 /**
- * Decodes the query params and headers required by the `reserve` endpoint
- * from the express Request into a `ReserveInput`.
+ * Decodes the JSON request body required by the `reserve` endpoint from the
+ * express Request into a `ReserveInput`.
  */
 const decodeReserveInput = (req: express.Request): t.Validation<ReserveInput> =>
   ReserveInput.decode({
-    authLevel: req.query.authLevel,
-    currentUser: req.header(CURRENT_USER_HEADER_NAME),
-    env: req.query.env,
-    jwk: req.header(JWK_PUB_KEY_HEADER_NAME),
-    jwkPubKeyHashAlgorithm: req.header(JWK_PUB_KEY_HASH_ALGO_HEADER_NAME),
-    loginType: req.header(LOGIN_TYPE_HEADER_NAME),
+    currentUser: req.body?.current_user,
+    env: req.body?.env,
+    jwk: req.body?.lollipop_pub_key,
+    jwkPubKeyHashAlgorithm: req.body?.lollipop_hash_algo,
+    loginType: req.body?.login_type,
+    minAuthLevel: req.body?.min_auth_level,
   });
 
 export type ReserveEndpointDeps = ReserveDeps & WithExpressRequest;

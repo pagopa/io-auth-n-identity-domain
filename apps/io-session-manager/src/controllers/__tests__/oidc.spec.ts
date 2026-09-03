@@ -25,16 +25,8 @@ const anOidcConfiguration = {
   serverMetadata: () => aServerMetadata,
 };
 
-const buildReq = (
-  headers: Record<string, string>,
-  query: Record<string, string>,
-) => {
-  const req = mockReq({ headers, query }) as unknown as Request;
-  (req.header as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-    (name: string) => headers[name.toLowerCase()],
-  );
-  return req;
-};
+const buildReq = (body: Record<string, unknown>) =>
+  mockReq({ body }) as unknown as Request;
 
 const deps = {
   redisClientSelector: mockRedisClientSelector,
@@ -51,13 +43,12 @@ describe("OidcController#reserveEndpoint", () => {
     );
     mockSetEx.mockResolvedValueOnce("OK");
 
-    const req = buildReq(
-      {
-        "x-pagopa-lollipop-pub-key": AN_ENCODED_JWK,
-        "x-pagopa-lollipop-pub-key-hash-algo": "sha256",
-      },
-      { env: "PROD", authLevel: "SpidL2" },
-    );
+    const req = buildReq({
+      env: "PROD",
+      min_auth_level: "SpidL2",
+      lollipop_pub_key: AN_ENCODED_JWK,
+      lollipop_hash_algo: "sha256",
+    });
 
     const result = await pipe({ ...deps, req }, reserveEndpoint, TE.toUnion)();
 
@@ -65,7 +56,7 @@ describe("OidcController#reserveEndpoint", () => {
   });
 
   test("should return IResponseErrorValidation when required params are missing", async () => {
-    const req = buildReq({}, {});
+    const req = buildReq({});
 
     const result = await pipe({ ...deps, req }, reserveEndpoint, TE.toUnion)();
 

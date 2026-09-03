@@ -222,6 +222,143 @@ export const lollipopLoginMiddleware =
       res,
     ).then((_) => (LollipopLoginParams.is(_) ? undefined : _));
 
+/**
+ * Same as `lollipopLoginHandler`, but decodes the Lollipop public key and
+ * hash algorithm from the JSON request body (`lollipop_pub_key` /
+ * `lollipop_hash_algo`) instead of the request headers. Used by the
+ * `/reserve` endpoint, whose request body already carries these parameters.
+ */
+export const lollipopReserveHandler =
+  (
+    lollipopApiClient: FnLollipopRepo.LollipopApiClient,
+    appInsightsTelemetryClient?: appInsights.TelemetryClient,
+  ) =>
+  async (
+    req: express.Request,
+    res: express.Response,
+  ): Promise<
+    | IResponseErrorValidation
+    | IResponseErrorInternal
+    | IResponseErrorConflict
+    | LollipopLoginParams
+    | undefined
+  > =>
+    withValidatedOrValidationError(
+      pipe(
+        req.body?.lollipop_pub_key,
+        O.fromNullable,
+        O.map(JwkPublicKeyFromToken.decode),
+        O.bindTo("jwk"),
+        O.bind("algo", () =>
+          pipe(
+            req.body?.lollipop_hash_algo,
+            O.fromNullable,
+            O.getOrElseW(() => DEFAULT_LOLLIPOP_HASH_ALGORITHM),
+            O.of,
+            O.map(LollipopHashAlgorithm.decode),
+          ),
+        ),
+        O.map(A.sequenceS(E.Applicative)),
+        O.getOrElseW(() => E.right(void 0)),
+      ),
+      (lollipopParams) =>
+        pipe(
+          lollipopParams,
+          O.fromNullable,
+          O.map(({ algo, jwk }) =>
+            pipe(
+              TE.tryCatch(
+                () =>
+                  lollipopApiClient.reservePubKey({
+                    body: {
+                      algo: JwkPubKeyHashAlgorithmEnum[algo],
+                      pub_key: jwk,
+                    },
+                  }),
+                (e) => {
+                  const error = E.toError(e);
+                  appInsightsTelemetryClient?.trackEvent({
+                    name: getLoginErrorEventName,
+                    properties: {
+                      message: `Error calling reservePubKey endpoint: ${error.message}`,
+                    },
+                    tagOverrides: { samplingEnabled: "false" },
+                  });
+                  return error;
+                },
+              ),
+              TE.mapLeft(() =>
+                ResponseErrorInternal("Error while calling reservePubKey API"),
+              ),
+              TE.chainEitherKW(
+                E.mapLeft((err) =>
+                  pipe(
+                    err,
+                    errorsToError,
+                    (e) => {
+                      appInsightsTelemetryClient?.trackEvent({
+                        name: getLoginErrorEventName,
+                        properties: {
+                          message: `Error calling reservePubKey endpoint: ${e.message}`,
+                        },
+                        tagOverrides: { samplingEnabled: "false" },
+                      });
+                      return e;
+                    },
+                    () =>
+                      ResponseErrorInternal("Cannot parse reserve response"),
+                  ),
+                ),
+              ),
+              TE.filterOrElseW(
+                isReservePubKeyResponseSuccess,
+                (errorResponse) =>
+                  errorResponse.status === 409
+                    ? ResponseErrorConflict("PubKey is already reserved")
+                    : ResponseErrorInternal("Cannot reserve pubKey"),
+              ),
+              TE.chainW(() =>
+                pipe(
+                  TE.tryCatch(() => calculateJwkThumbprint(jwk), E.toError),
+                  TE.map((thumbprint) => {
+                    res.cookie(
+                      VALIDATION_COOKIE_NAME,
+                      `${algo}-${thumbprint}`,
+                      VALIDATION_COOKIE_SETTINGS,
+                    );
+                  }),
+                  TE.mapLeft(() =>
+                    ResponseErrorInternal("Cannot set cookie value"),
+                  ),
+                ),
+              ),
+              TE.map(() => lollipopParams),
+              TE.toUnion,
+            )(),
+          ),
+          O.toUndefined,
+        ),
+    );
+
+export const lollipopReserveMiddleware =
+  (
+    lollipopApiClient: FnLollipopRepo.LollipopApiClient,
+    appInsightsTelemetryClient?: appInsights.TelemetryClient,
+  ) =>
+  (
+    req: express.Request,
+    res: express.Response,
+  ): Promise<
+    | IResponseErrorValidation
+    | IResponseErrorInternal
+    | IResponseErrorConflict
+    | undefined
+  > =>
+    lollipopReserveHandler(lollipopApiClient, appInsightsTelemetryClient)(
+      req,
+      res,
+    ).then((_) => (LollipopLoginParams.is(_) ? undefined : _));
+
 const NONCE_REGEX = new RegExp(';?nonce="([^"]+)";?');
 // Take the first occurrence of the field keyid into the signature-params
 const KEY_ID_REGEX = new RegExp(';?keyid="([^"]+)";?');
