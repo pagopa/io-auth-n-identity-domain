@@ -59,7 +59,7 @@ export const ReserveOutputDTO = z
     state: NonEmptyStringSchema,
     nonce: NonEmptyStringSchema,
     redirect_uri: NonEmptyStringSchema,
-    issuer: NonEmptyStringSchema,
+    authorization_endpoint: NonEmptyStringSchema,
   })
   .meta({
     id: "ReserveResponse",

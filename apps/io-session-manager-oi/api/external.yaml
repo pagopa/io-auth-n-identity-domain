@@ -43,7 +43,7 @@ components:
         redirect_uri:
           type: string
           minLength: 1
-        issuer:
+        authorization_endpoint:
           type: string
           minLength: 1
       required:
@@ -51,7 +51,7 @@ components:
         - state
         - nonce
         - redirect_uri
-        - issuer
+        - authorization_endpoint
       description: The parameters needed to start the OIDC authorization flow.
     ReserveRequest:
       type: object

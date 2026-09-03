@@ -15,7 +15,6 @@ import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
-
 import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
@@ -170,6 +169,7 @@ export const createApp = async (
   const reserveUseCase = makeReserveUseCase({
     ausiliarDataPort: ausiliarStorageAdapter,
     lollipopPort: fetchLollipopAdapter,
+    oidcClientPort: oidcExchangeAdapter,
     oidcConfigPort: oidcConfigAdapter,
   });
 

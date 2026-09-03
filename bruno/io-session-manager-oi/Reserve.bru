@@ -55,7 +55,7 @@ script:pre-request {
 }
 
 script:post-response {
-  const { state, nonce, client_id, redirect_uri, issuer } = res.body;
+  const { state, nonce, client_id, redirect_uri, authorization_endpoint } = res.body;
   
   const idp = "https://idp.uat.io.oneid.pagopa.it";
   
@@ -64,6 +64,6 @@ script:post-response {
   }
   
   console.log(
-    `${issuer}oidc/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=openid&state=${state}&nonce=${nonce}&response_type=code&minAuthLevel=SpidL2&idp=${idp}`
+    `${authorization_endpoint}?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=openid&state=${state}&nonce=${nonce}&response_type=code&minAuthLevel=SpidL2&idp=${idp}`
   );
 }

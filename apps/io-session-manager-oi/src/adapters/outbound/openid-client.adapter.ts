@@ -45,27 +45,52 @@ export class OpenIdClientAdapter implements OidcClientPort {
    *
    * Best-effort by design: a provider outage at boot must not prevent the
    * container from starting (that would couple our availability to OneID and
-   * block deploys/scale-out). Failures are swallowed here; the lazy path in
-   * {@link exchange} retries on the next request.
+   * block deploys/scale-out). Failures stay in the {@link resolveConfiguration}
+   * Result and are discarded; the lazy path in {@link exchange} and
+   * {@link getAuthorizationEndpoint} retries on the next request.
    */
   warmUp = async (envs: ReadonlySet<OidcConfigurationEnv>): Promise<void> => {
-    await Promise.all(
-      [...envs].map(async (env) => {
-        const envConfigResult = this.oidcConfigPort.getConfig(env);
-        // Skip environments that are not configured for this deployment.
-        if (envConfigResult.isErr()) return;
-        try {
-          await this.getConfiguration(env, envConfigResult.value);
-        } catch {
-          // Swallowed: lazy fallback will retry on the first request.
-        }
-      }),
-    );
+    await Promise.all([...envs].map((env) => this.resolveConfiguration(env)));
+  };
+
+  getAuthorizationEndpoint = async (
+    env: OidcConfigurationEnv,
+  ): Promise<Result<URL, GenericError>> => {
+    const oidcConfigResult = await this.resolveConfiguration(env);
+    if (oidcConfigResult.isErr()) {
+      return err(oidcConfigResult.error);
+    }
+
+    const authorizationEndpoint =
+      oidcConfigResult.value.serverMetadata().authorization_endpoint;
+    if (!authorizationEndpoint) {
+      return err(
+        new GenericError(
+          "OIDC discovery metadata is missing authorization_endpoint",
+        ),
+      );
+    }
+
+    try {
+      return ok(new URL(authorizationEndpoint));
+    } catch {
+      return err(
+        new GenericError(
+          `Invalid authorization_endpoint from OIDC discovery: ${authorizationEndpoint}`,
+        ),
+      );
+    }
   };
 
   exchange = async (
     params: OidcExchangeParamsDTO,
   ): Promise<Result<OidcClaims, AuthenticationError | GenericError>> => {
+    const oidcConfigResult = await this.resolveConfiguration(params.env);
+    if (oidcConfigResult.isErr()) {
+      return err(oidcConfigResult.error);
+    }
+    const oidcConfig = oidcConfigResult.value;
+
     const envConfigResult = this.oidcConfigPort.getConfig(params.env);
     if (envConfigResult.isErr()) {
       return err(
@@ -75,15 +100,6 @@ export class OpenIdClientAdapter implements OidcClientPort {
       );
     }
     const envConfig = envConfigResult.value;
-
-    let oidcConfig: client.Configuration;
-    try {
-      oidcConfig = await this.getConfiguration(params.env, envConfig);
-    } catch (error) {
-      return err(
-        new GenericError(`OIDC discovery failed: ${toMessage(error)}`),
-      );
-    }
 
     try {
       // Reconstruct the callback URL from the registered redirect URI so the
@@ -120,6 +136,31 @@ export class OpenIdClientAdapter implements OidcClientPort {
       //TODO: Discriminate between invalid code/state/nonce
       // and other errors (network, provider outage, etc.) to return a more specific error type.
       return err(new AuthenticationError());
+    }
+  };
+
+  /**
+   * Resolves env config and discovered provider metadata, mapping failures to
+   * {@link GenericError} so callers share the same error contract.
+   */
+  private resolveConfiguration = async (
+    env: OidcConfigurationEnv,
+  ): Promise<Result<client.Configuration, GenericError>> => {
+    const envConfigResult = this.oidcConfigPort.getConfig(env);
+    if (envConfigResult.isErr()) {
+      return err(
+        new GenericError(
+          `Missing OIDC configuration: ${envConfigResult.error.message}`,
+        ),
+      );
+    }
+
+    try {
+      return ok(await this.getConfiguration(env, envConfigResult.value));
+    } catch (error) {
+      return err(
+        new GenericError(`OIDC discovery failed: ${toMessage(error)}`),
+      );
     }
   };
 
