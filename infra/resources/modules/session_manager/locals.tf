@@ -60,10 +60,8 @@ locals {
     COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME = azurerm_cosmosdb_sql_container.active_sessions.name
 
     # One Identity configs
-    ONEID_PROD_CLIENT_ID = "4HWHRx-Wv19-cY-YL6Q1AgYVvx3h0Gw_SvtayZWJVVE"
-    ONEID_PROD_ISSUER    = "https://io.oneid.pagopa.it"
-    # TODO: change me with actual prod callback (mocked with localhost for URL
-    # constructor pass)
+    ONEID_PROD_CLIENT_ID    = "4HWHRx-Wv19-cY-YL6Q1AgYVvx3h0Gw_SvtayZWJVVE"
+    ONEID_PROD_ISSUER       = "https://io.oneid.pagopa.it"
     ONEID_PROD_REDIRECT_URI = "https://api-app.io.pagopa.it/api/auth/v2/callback"
     # ONEID_PROD_CLIENT_SECRET is injected via the CA module's `secrets`
 
