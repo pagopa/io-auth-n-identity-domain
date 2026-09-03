@@ -1,6 +1,6 @@
 openapi: 3.0.1
 servers:
-  - url: https://api-app.io.pagopa.it
+  - url: https://api-app.io.pagopa.it/api/auth/v1
 info:
   title: Collection of exposed endpoints to interact with user's auth session.
   version: 0.0.1
@@ -8,7 +8,7 @@ security:
   # Global security strategy, unless overridden at operation level
   - Bearer: []
 paths:
-  /api/auth/v1/fast-login:
+  /fast-login:
     post:
       operationId: fastLogin
       summary: POST a session refresh request with Lollipop
@@ -63,7 +63,7 @@ paths:
           description: Bad gateway.
         "504":
           description: Gateway timeout.
-  /api/auth/v1/fast-login/nonce/generate:
+  /fast-login/nonce/generate:
     post:
       operationId: lvGenerateNonce
       summary: Generate a Nonce for a session refresh flow
@@ -81,7 +81,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /api/auth/v1/session:
+  /session:
     get:
       operationId: getSessionState
       summary: Get the user current session
@@ -121,7 +121,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /api/auth/v1/logout:
+  /logout:
     post:
       operationId: logout
       summary: Execute the logout
@@ -149,7 +149,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /api/auth/v1/login:
+  /login:
     get:
       operationId: login
       summary: Login SPID/CIE
@@ -186,7 +186,7 @@ paths:
                 $ref: "#/components/schemas/ProblemJson"
         "503":
           description: Service unavailable
-  /api/auth/v1/test-login:
+  /test-login:
     post:
       operationId: testLogin
       summary: Login Test User with password
@@ -220,7 +220,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /api/auth/v1/healthcheck:
+  /healthcheck:
     get:
       operationId: healthcheck
       summary: The healthcheck endpoint
@@ -239,7 +239,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /api/auth/v1/assertionConsumerService:
+  /assertionConsumerService:
     post:
       operationId: acs
       summary: ACS step of Login SPID/CIE
@@ -260,7 +260,7 @@ paths:
             Location:
               schema:
                 type: string
-  /api/auth/v1/metadata:
+  /metadata:
     get:
       operationId: getMetadata
       summary: Get SPID metadata
@@ -270,7 +270,7 @@ paths:
           description: SPID metadata
           content:
             application/xml: {}
-  /api/auth/v1/user-identity:
+  /user-identity:
     get:
       summary: Session token introspection
       description: Introspect the session token and returns the related user identity
@@ -306,7 +306,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
-  /api/auth/v2/reserve:
+  /reserve:
     post:
       operationId: reserve
       summary: Reserve an OIDC authorization request

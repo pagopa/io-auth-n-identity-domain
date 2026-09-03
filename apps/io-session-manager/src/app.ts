@@ -59,7 +59,6 @@ import {
   AppInsightsConfig,
   ServiceBusConfig,
   PROXY_BASE_PATH,
-  PROXY_BASE_PATH_V2,
   toProxySSOBasePath,
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
@@ -200,14 +199,6 @@ export const newApp: (
     authMiddlewares,
     REDIS_CLIENT_SELECTOR,
     acsDependencies,
-    appInsightsClient,
-  );
-
-  setupExternalOidcEndpoints(
-    app,
-    PROXY_BASE_PATH_V2,
-    APIClients,
-    REDIS_CLIENT_SELECTOR,
     appInsightsClient,
   );
 
@@ -393,31 +384,6 @@ function setupFIMSEndpoints(
   );
 }
 
-function setupExternalOidcEndpoints(
-  app: express.Application,
-  basePath: string,
-  APIClients: ReturnType<typeof initAPIClientsDependencies>,
-  redisClientSelector: RedisClientSelectorType,
-  appInsightsClient?: appInsights.TelemetryClient,
-) {
-  app.post(
-    `${basePath}/reserve`,
-    toExpressMiddleware(
-      lollipopReserveMiddleware(
-        APIClients.fnLollipopAPIClient,
-        appInsightsClient,
-      ),
-    ),
-    pipe(
-      toExpressHandler({
-        redisClientSelector,
-        appInsightsTelemetryClient: appInsightsClient,
-      }),
-      ap(OidcController.reserveEndpoint),
-    ),
-  );
-}
-
 function setupExternalEndpoints(
   app: express.Application,
   basePath: string,
@@ -544,6 +510,23 @@ function setupExternalEndpoints(
         platformInternalAPIClient: APIClients.platformInternalAPIClient,
       }),
       ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
+    ),
+  );
+
+  app.post(
+    `${basePath}/reserve`,
+    toExpressMiddleware(
+      lollipopReserveMiddleware(
+        APIClients.fnLollipopAPIClient,
+        appInsightsClient,
+      ),
+    ),
+    pipe(
+      toExpressHandler({
+        redisClientSelector,
+        appInsightsTelemetryClient: appInsightsClient,
+      }),
+      ap(OidcController.reserveEndpoint),
     ),
   );
 }
