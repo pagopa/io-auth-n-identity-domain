@@ -64,7 +64,7 @@ locals {
     ONEID_PROD_ISSUER    = "https://io.oneid.pagopa.it"
     # TODO: change me with actual prod callback (mocked with localhost for URL
     # constructor pass)
-    ONEID_PROD_REDIRECT_URI = "http://localhost/callback"
+    ONEID_PROD_REDIRECT_URI = "https://api-app.io.pagopa.it/api/auth/v2/callback"
     # ONEID_PROD_CLIENT_SECRET is injected via the CA module's `secrets`
 
     ONEID_UAT_CLIENT_ID = "XbFEUWXdvQGOU1usvMURZv4YWQjYFS0ggAk0xyFCEKc"
