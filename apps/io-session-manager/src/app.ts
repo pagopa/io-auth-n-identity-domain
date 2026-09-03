@@ -411,6 +411,7 @@ function setupExternalOidcEndpoints(
     pipe(
       toExpressHandler({
         redisClientSelector,
+        appInsightsTelemetryClient: appInsightsClient,
       }),
       ap(OidcController.reserveEndpoint),
     ),

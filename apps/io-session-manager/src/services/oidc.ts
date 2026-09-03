@@ -25,8 +25,10 @@ import {
 import { save } from "./redis-ausiliar-data";
 import { getNewTokenAsync } from "./token";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
+import { AppInsightsDeps } from "../utils/appinsights";
+import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 
-export type ReserveDeps = RedisRepo.RedisRepositoryDeps;
+export type ReserveDeps = RedisRepo.RedisRepositoryDeps & AppInsightsDeps;
 
 export type ReserveOutput =
   | IResponseErrorValidation
@@ -75,11 +77,16 @@ export const reserve =
         ONEID_HTTP_TIMEOUT_SECONDS,
       );
     } catch (err) {
-      return ResponseErrorInternal(
-        `OIDC discovery failed: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
-      );
+      // reserve operation is retriable, therefore this event can follow
+      // sampling strategy
+      deps.appInsightsTelemetryClient?.trackEvent({
+        name: "session-manager.oidc.reserve.discovery.error",
+        properties: {
+          env: input.env,
+          errorMessage: err instanceof Error ? err.message : String(err),
+        },
+      });
+      return ResponseErrorInternal(`OIDC discovery failed`);
     }
 
     const errorOrAuthorizationEndpoint = UrlFromString.decode(
@@ -87,6 +94,17 @@ export const reserve =
     );
 
     if (E.isLeft(errorOrAuthorizationEndpoint)) {
+      // reserve operation is retriable, therefore this event can follow
+      // sampling strategy
+      deps.appInsightsTelemetryClient?.trackEvent({
+        name: "session-manager.oidc.reserve.auth-decode.error",
+        properties: {
+          env: input.env,
+          errorMessage: readableReportSimplified(
+            errorOrAuthorizationEndpoint.left,
+          ),
+        },
+      });
       return ResponseErrorInternal(`Could not parse auth endpoint`);
     }
 
@@ -106,9 +124,16 @@ export const reserve =
       LOGIN_AUSILIAR_DATA_TTL_SECONDS,
     )(deps)();
     if (E.isLeft(saveResult)) {
-      return ResponseErrorInternal(
-        `Could not save ausiliar data: ${saveResult.left.message}`,
-      );
+      // reserve operation is retriable, therefore this event can follow
+      // sampling strategy
+      deps.appInsightsTelemetryClient?.trackEvent({
+        name: "session-manager.oidc.reserve.ausiliar-data.error",
+        properties: {
+          env: input.env,
+          errorMessage: saveResult.left.message,
+        },
+      });
+      return ResponseErrorInternal(`Could not save ausiliar data`);
     }
 
     return ResponseSuccessJson({

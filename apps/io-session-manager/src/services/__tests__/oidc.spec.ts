@@ -12,6 +12,10 @@ import { getOidcConfiguration } from "../../repositories/oidc-client";
 import * as OneIdConfig from "../../config/one-id";
 import { JwkPubKeyHashAlgorithmEnum } from "../../generated/lollipop-api/JwkPubKeyHashAlgorithm";
 import type * as client from "openid-client" with { "resolution-mode": "import" };
+import {
+  mockTrackEvent,
+  mockedAppinsightsTelemetryClient,
+} from "../../__mocks__/appinsights.mocks";
 
 vi.mock("../../repositories/oidc-client", () => ({
   getOidcConfiguration: vi.fn(),
@@ -42,6 +46,7 @@ const aReserveInput: ReserveInput = {
 
 const deps = {
   redisClientSelector: mockRedisClientSelector,
+  appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
 };
 
 describe("OidcService#reserve", () => {
@@ -72,6 +77,7 @@ describe("OidcService#reserve", () => {
         nonce: expect.any(String),
       },
     });
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   test("should return IResponseErrorValidation when the requested environment is not a valid OidcConfigurationEnv", async () => {
@@ -83,6 +89,7 @@ describe("OidcService#reserve", () => {
 
     expect(result.kind).toEqual("IResponseErrorValidation");
     expect(mockSetEx).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   test("should return IResponseErrorValidation when UAT is requested but only PROD is configured", async () => {
@@ -91,11 +98,9 @@ describe("OidcService#reserve", () => {
     // real `getOidcEnvConfig` "missing configuration" branch (as opposed to
     // the "FOO" case above, which never reaches a valid
     // OidcConfigurationEnv in the first place).
-    const getOidcEnvConfigSpy = vi
-      .spyOn(OneIdConfig, "getOneIdEnvConfig")
-      .mockReturnValueOnce(
-        E.left(new Error('Missing OIDC configuration for environment "UAT"')),
-      );
+    vi.spyOn(OneIdConfig, "getOneIdEnvConfig").mockReturnValueOnce(
+      E.left(new Error('Missing OIDC configuration for environment "UAT"')),
+    );
 
     const result = await reserve(deps)({
       ...aReserveInput,
@@ -105,8 +110,7 @@ describe("OidcService#reserve", () => {
     expect(result.kind).toEqual("IResponseErrorValidation");
     expect(mockedGetOidcConfiguration).not.toHaveBeenCalled();
     expect(mockSetEx).not.toHaveBeenCalled();
-
-    getOidcEnvConfigSpy.mockRestore();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   test("should return IResponseErrorInternal when OIDC discovery fails", async () => {
@@ -118,6 +122,7 @@ describe("OidcService#reserve", () => {
 
     expect(result.kind).toEqual("IResponseErrorInternal");
     expect(mockSetEx).not.toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
   test("should return IResponseErrorInternal when OIDC discovery returns an invalid authorization endpoint", async () => {
@@ -131,6 +136,7 @@ describe("OidcService#reserve", () => {
 
     expect(result.kind).toEqual("IResponseErrorInternal");
     expect(mockSetEx).not.toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
   test("should return IResponseErrorInternal when saving the ausiliar data fails", async () => {
@@ -142,5 +148,6 @@ describe("OidcService#reserve", () => {
     const result = await reserve(deps)(aReserveInput);
 
     expect(result.kind).toEqual("IResponseErrorInternal");
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 });
