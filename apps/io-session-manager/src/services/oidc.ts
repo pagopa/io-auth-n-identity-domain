@@ -17,16 +17,13 @@ import {
 import { AssertionRef } from "../generated/lollipop-api/AssertionRef";
 import { RedisRepo } from "../repositories";
 import { getOidcConfiguration } from "../repositories/oidc-client";
-import {
-  LoginAusiliarData,
-  ReserveInput,
-  ReserveResponse,
-} from "../types/oidc";
+import { LoginAusiliarData, ReserveInput } from "../types/oidc";
 import { save } from "./redis-ausiliar-data";
 import { getNewTokenAsync } from "./token";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 import { AppInsightsDeps } from "../utils/appinsights";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
+import { ReserveResponse } from "../generated/backend/ReserveResponse";
 
 export type ReserveDeps = RedisRepo.RedisRepositoryDeps & AppInsightsDeps;
 

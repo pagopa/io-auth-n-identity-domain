@@ -1,6 +1,6 @@
 import type * as client from "openid-client" with { "resolution-mode": "import" };
 import { OidcEnvConfig } from "../config/one-id";
-import { OidcConfigurationEnv } from "../types/oidc";
+import { OidcConfigurationEnv } from "../generated/backend/OidcConfigurationEnv";
 
 /**
  * Per-environment in-memory cache of the discovered `openid-client` {@link

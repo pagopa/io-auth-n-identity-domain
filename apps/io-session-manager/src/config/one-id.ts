@@ -2,12 +2,12 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { IntegerFromString } from "@pagopa/ts-commons/lib/numbers";
+import { NonNegativeIntegerFromString } from "@pagopa/ts-commons/lib/numbers";
 import { Second } from "@pagopa/ts-commons/lib/units";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 import { getRequiredENVVar } from "../utils/environment";
-import { OidcConfigurationEnv } from "../types/oidc";
 import { log } from "../utils/logger";
+import { OidcConfigurationEnv } from "../generated/backend/OidcConfigurationEnv";
 
 /**
  * Resolved OneIdentity (OIDC provider) configuration for a single
@@ -68,7 +68,7 @@ const ONEID_UAT_ISSUER = pipe(
 const DEFAULT_ONEID_HTTP_TIMEOUT_SECONDS = 8;
 export const ONEID_HTTP_TIMEOUT_SECONDS = pipe(
   process.env.ONEID_HTTP_TIMEOUT_SECONDS,
-  IntegerFromString.decode,
+  NonNegativeIntegerFromString.decode,
   E.getOrElse(() => DEFAULT_ONEID_HTTP_TIMEOUT_SECONDS),
 );
 
@@ -77,11 +77,14 @@ export const ONEID_HTTP_TIMEOUT_SECONDS = pipe(
 const DEFAULT_LOGIN_AUSILIAR_DATA_TTL_SECONDS = 900;
 export const LOGIN_AUSILIAR_DATA_TTL_SECONDS = pipe(
   process.env.LOGIN_AUSILIAR_DATA_TTL_SECONDS,
-  IntegerFromString.decode,
+  NonNegativeIntegerFromString.decode,
   E.getOrElse(() => DEFAULT_LOGIN_AUSILIAR_DATA_TTL_SECONDS),
 ) as Second;
 
-const configByEnv: Partial<Record<OidcConfigurationEnv, OidcEnvConfig>> = {
+const configByEnv: Readonly<{
+  PROD: OidcEnvConfig;
+  UAT?: OidcEnvConfig;
+}> = {
   PROD: {
     clientId: ONEID_PROD_CLIENT_ID,
     clientSecret: ONEID_PROD_CLIENT_SECRET,

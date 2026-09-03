@@ -8,24 +8,8 @@ import {
   JwkPubKeyHashAlgorithmEnum,
 } from "../generated/lollipop-api/JwkPubKeyHashAlgorithm";
 import { LoginType } from "./fast-login";
-
-/**
- * The OneIdentity (OIDC provider) configuration environment.
- */
-export type OidcConfigurationEnv = t.TypeOf<typeof OidcConfigurationEnv>;
-export const OidcConfigurationEnv = t.union(
-  [t.literal("UAT"), t.literal("PROD")],
-  "OidcConfigurationEnv",
-);
-
-/**
- * The SPID authentication level requested for the OIDC login flow.
- */
-export type SpidAuthLevel = t.TypeOf<typeof SpidAuthLevel>;
-export const SpidAuthLevel = t.union(
-  [t.literal("SpidL2"), t.literal("SpidL3")],
-  "SpidAuthLevel",
-);
+import { OidcConfigurationEnv } from "../generated/backend/OidcConfigurationEnv";
+import { SpidAuthLevel } from "../generated/backend/SpidAuthLevel";
 
 export type ReserveInput = t.TypeOf<typeof ReserveInput>;
 export const ReserveInput = t.intersection([
@@ -63,17 +47,3 @@ export const LoginAusiliarData = t.intersection([
     loginType: LoginType,
   }),
 ]);
-
-/**
- * The parameters returned by the `reserve` endpoint, needed by the client to
- * start the OIDC authorization flow with the selected OneIdentity
- * environment.
- */
-export type ReserveResponse = t.TypeOf<typeof ReserveResponse>;
-export const ReserveResponse = t.type({
-  client_id: NonEmptyString,
-  authorization_endpoint: NonEmptyString,
-  nonce: NonEmptyString,
-  redirect_uri: NonEmptyString,
-  state: NonEmptyString,
-});
