@@ -33,6 +33,7 @@ import {
   ZendeskController,
   BPDController,
   PagoPAController,
+  OidcController,
 } from "./controllers";
 import {
   applyErrorMiddleware,
@@ -58,6 +59,7 @@ import {
   AppInsightsConfig,
   ServiceBusConfig,
   PROXY_BASE_PATH,
+  PROXY_BASE_PATH_V2,
   toProxySSOBasePath,
 } from "./config";
 import { acsRequestMapper, getLoginTypeOnElegible } from "./utils/fast-login";
@@ -195,6 +197,14 @@ export const newApp: (
     authMiddlewares,
     REDIS_CLIENT_SELECTOR,
     acsDependencies,
+    appInsightsClient,
+  );
+
+  setupExternalOidcEndpoints(
+    app,
+    PROXY_BASE_PATH_V2,
+    APIClients,
+    REDIS_CLIENT_SELECTOR,
     appInsightsClient,
   );
 
@@ -376,6 +386,30 @@ function setupFIMSEndpoints(
         appInsightsTelemetryClient: appInsightsClient,
       }),
       ap(withUserFromRequest(SSOController.getLollipopUserForFIMS)),
+    ),
+  );
+}
+
+function setupExternalOidcEndpoints(
+  app: express.Application,
+  basePath: string,
+  APIClients: ReturnType<typeof initAPIClientsDependencies>,
+  redisClientSelector: RedisClientSelectorType,
+  appInsightsClient?: appInsights.TelemetryClient,
+) {
+  app.get(
+    `${basePath}/reserve`,
+    toExpressMiddleware(
+      lollipopLoginMiddleware(
+        APIClients.fnLollipopAPIClient,
+        appInsightsClient,
+      ),
+    ),
+    pipe(
+      toExpressHandler({
+        redisClientSelector,
+      }),
+      ap(OidcController.reserveEndpoint),
     ),
   );
 }

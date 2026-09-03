@@ -15,6 +15,7 @@ import * as FastLoginConfig from "./fast-login";
 import * as LockProfileConfig from "./lock-profile";
 import * as LoginConfig from "./login";
 import * as LollipopConfig from "./lollipop";
+import * as OneIdConfig from "./one-id";
 import * as SpidConfig from "./spid";
 import * as SpidLogConfig from "./spid-logs";
 import * as ZendeskConfig from "./zendesk";
@@ -42,6 +43,7 @@ export const BACKEND_HOST = pipe(
 );
 
 export const PROXY_BASE_PATH = "/api/auth/v1";
+export const PROXY_BASE_PATH_V2 = "/api/auth/v2";
 export const toProxySSOBasePath = <T extends Lowercase<string>>(scope: T) =>
   `/api/sso/${scope}/v1` as const;
 
@@ -52,6 +54,7 @@ export {
   LockProfileConfig,
   LoginConfig,
   LollipopConfig,
+  OneIdConfig,
   SpidConfig,
   SpidLogConfig,
   ZendeskConfig,
