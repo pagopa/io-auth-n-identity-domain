@@ -8,7 +8,7 @@ import {
   GetSessionOutputDTO,
 } from "../dtos/get-session.dto.js";
 
-const getSessionContract = defineRoute({
+export const getSessionContract = defineRoute({
   operationId: "getSession",
   method: "get",
   path: "/api/auth/v2/session",
@@ -49,3 +49,7 @@ export const mountGetSessionHandler =
       useCase: deps.useCase,
     });
   };
+
+// Widened for the OpenAPI generator: exporting the inferred contract type would
+// leak the branded `unique symbol` of `GetSessionOutputDTO` (TS2527).
+// export const getSessionRoute: AnyRouteContract = getSessionContract;

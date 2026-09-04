@@ -15,6 +15,7 @@ import {
 
 import { BASE_PATH } from "../src/adapters/inbound/base-path.js";
 import { callbackContract } from "../src/adapters/inbound/fastify/callback.handler.js";
+import { getSessionContract } from "../src/adapters/inbound/fastify/get-session.handler.js";
 import { reserveRoute } from "../src/adapters/inbound/fastify/reserve.handler.js";
 
 interface PackageJson {
@@ -63,7 +64,9 @@ const document = {
         },
       ],
     },
-    routes: [callbackContract, reserveRoute].map(toOpenApiRoute),
+    routes: [callbackContract, reserveRoute, getSessionContract].map(
+      toOpenApiRoute,
+    ),
   }),
   webhooks: undefined, // The OpenAPI spec is generated from the route contracts, which do not declare any webhooks. Therefore, the `webhooks` property is set to `undefined` to avoid generating an empty object in the OpenAPI spec, which causes the OpenAPI import to fail in the Azure API Management service.
 };
