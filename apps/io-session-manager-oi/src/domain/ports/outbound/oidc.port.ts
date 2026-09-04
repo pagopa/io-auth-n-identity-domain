@@ -29,4 +29,12 @@ export interface OidcClientPort {
   readonly exchange: (
     params: OidcExchangeParamsDTO,
   ) => Promise<Result<OidcClaims, AuthenticationError | GenericError>>;
+
+  /**
+   * Returns the OIDC `authorization_endpoint` discovered from the provider
+   * well-known metadata for the given environment.
+   */
+  readonly getAuthorizationEndpoint: (
+    env: OidcConfigurationEnv,
+  ) => Promise<Result<URL, GenericError>>;
 }

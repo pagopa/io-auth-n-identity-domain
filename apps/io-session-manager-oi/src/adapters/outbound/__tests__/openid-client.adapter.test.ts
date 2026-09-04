@@ -32,6 +32,7 @@ vi.mock("openid-client", () => ({
 }));
 
 const anIssuer = "https://uat.io.oneid.pagopa.it";
+const anAuthorizationEndpoint = `${anIssuer}/oidc/authorize`;
 
 const anEnvConfig: OidcEnvConfig = {
   clientId: "a-client-id" as NonEmptyString,
@@ -57,7 +58,16 @@ const anExchangeParams: OidcExchangeParamsDTO = {
   expectedNonce: "a-nonce",
 };
 
-const aConfiguration = {} as client.Configuration;
+const makeConfiguration = (
+  authorizationEndpoint?: string,
+): client.Configuration =>
+  ({
+    serverMetadata: () => ({
+      authorization_endpoint: authorizationEndpoint,
+    }),
+  }) as client.Configuration;
+
+const aConfiguration = makeConfiguration(anAuthorizationEndpoint);
 
 const oidcConfigPort: OidcConfigPort = {
   getConfig: vi.fn(),
@@ -177,6 +187,94 @@ describe("OpenIdClientAdapter#exchange", () => {
     const result = await adapter.exchange(anExchangeParams);
 
     expect(result).toEqual(err(new AuthenticationError()));
+  });
+});
+
+describe("OpenIdClientAdapter#getAuthorizationEndpoint", () => {
+  it("returns ok(authorization_endpoint) from discovered metadata", async () => {
+    const result = await adapter.getAuthorizationEndpoint("PROD");
+
+    expect(result).toEqual(ok(new URL(anAuthorizationEndpoint)));
+    expect(client.discovery).toHaveBeenCalledTimes(1);
+  });
+
+  it("shares cached discovery with exchange for the same environment", async () => {
+    await adapter.getAuthorizationEndpoint("PROD");
+    await adapter.exchange(anExchangeParams);
+
+    expect(client.discovery).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries discovery on the next call after a failed discovery", async () => {
+    vi.mocked(client.discovery).mockRejectedValueOnce(
+      new Error("discovery down"),
+    );
+
+    const firstResult = await adapter.getAuthorizationEndpoint("PROD");
+    const secondResult = await adapter.getAuthorizationEndpoint("PROD");
+
+    expect(firstResult).toEqual(
+      err(new GenericError("OIDC discovery failed: discovery down")),
+    );
+    expect(secondResult).toEqual(ok(new URL(anAuthorizationEndpoint)));
+    expect(client.discovery).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns err(GenericError) when the environment is not configured", async () => {
+    vi.mocked(oidcConfigPort.getConfig).mockReturnValue(
+      err(new ValidationError("missing config")),
+    );
+
+    const result = await adapter.getAuthorizationEndpoint("UAT");
+
+    expect(result).toEqual(
+      err(
+        new GenericError(
+          "Missing OIDC configuration: Validation error: missing config",
+        ),
+      ),
+    );
+    expect(client.discovery).not.toHaveBeenCalled();
+  });
+
+  it("returns err(GenericError) when discovery fails", async () => {
+    vi.mocked(client.discovery).mockRejectedValue(new Error("discovery down"));
+
+    const result = await adapter.getAuthorizationEndpoint("PROD");
+
+    expect(result).toEqual(
+      err(new GenericError("OIDC discovery failed: discovery down")),
+    );
+  });
+
+  it("returns err(GenericError) when authorization_endpoint is missing", async () => {
+    vi.mocked(client.discovery).mockResolvedValue(makeConfiguration(undefined));
+
+    const result = await adapter.getAuthorizationEndpoint("PROD");
+
+    expect(result).toEqual(
+      err(
+        new GenericError(
+          "OIDC discovery metadata is missing authorization_endpoint",
+        ),
+      ),
+    );
+  });
+
+  it("returns err(GenericError) when authorization_endpoint is not a valid URL", async () => {
+    vi.mocked(client.discovery).mockResolvedValue(
+      makeConfiguration("not-a-url"),
+    );
+
+    const result = await adapter.getAuthorizationEndpoint("PROD");
+
+    expect(result).toEqual(
+      err(
+        new GenericError(
+          "Invalid authorization_endpoint from OIDC discovery: not-a-url",
+        ),
+      ),
+    );
   });
 });
 

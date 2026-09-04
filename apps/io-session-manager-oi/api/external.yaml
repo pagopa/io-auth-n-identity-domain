@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   description: OpenID Connect (OneIdentity) login endpoints exposed by io-session-manager-oi.
   title: IO Session Manager OneIdentity API
-  version: 0.15.0
+  version: 0.16.0
 servers:
   - url: https://api-app.io.pagopa.it/api/auth/v2
 tags:
@@ -43,7 +43,7 @@ components:
         redirect_uri:
           type: string
           minLength: 1
-        issuer:
+        authorization_endpoint:
           type: string
           minLength: 1
       required:
@@ -51,7 +51,7 @@ components:
         - state
         - nonce
         - redirect_uri
-        - issuer
+        - authorization_endpoint
       description: The parameters needed to start the OIDC authorization flow.
     ReserveRequest:
       type: object

@@ -14,8 +14,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AusiliarDataPort } from "../../../domain/ports/outbound/ausiliar-data.port.js";
 import { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
 import { OidcConfigPort } from "../../../domain/ports/outbound/oidc-config.port.js";
+import { OidcClientPort } from "../../../domain/ports/outbound/oidc.port.js";
 import {
-  CurrentUser,
   CurrentUserSchema,
   SpidAuthLevel,
 } from "../../../domain/value-objects/login.vo.js";
@@ -43,6 +43,12 @@ const PROD_CLIENT_ID = "prod-client-id" as NonEmptyString;
 const UAT_CLIENT_ID = "uat-client-id" as NonEmptyString;
 const PROD_BASE_URL = new URL("https://prod.example.com");
 const UAT_BASE_URL = new URL("https://uat.example.com");
+const PROD_AUTHORIZATION_ENDPOINT = new URL(
+  "https://prod.example.com/oidc/authorize",
+);
+const UAT_AUTHORIZATION_ENDPOINT = new URL(
+  "https://uat.example.com/oidc/authorize",
+);
 const CLIENT_REDIRECT_URI = new URL("https://client.example.com/callback");
 
 const MOCKED_RANDOM_BYTES = "a".repeat(24);
@@ -95,9 +101,21 @@ const oidcConfigPort = {
   getConfig: getConfigMock,
 } as unknown as OidcConfigPort;
 
+const getAuthorizationEndpointMock = vi
+  .fn()
+  .mockImplementation((env: "PROD" | "UAT") =>
+    env === "PROD"
+      ? ok(PROD_AUTHORIZATION_ENDPOINT)
+      : ok(UAT_AUTHORIZATION_ENDPOINT),
+  );
+const oidcClientPort = {
+  getAuthorizationEndpoint: getAuthorizationEndpointMock,
+} as unknown as OidcClientPort;
+
 const reserveUseCase = makeReserveUseCase({
   ausiliarDataPort: ausiliarDataPort,
   lollipopPort: lollipopPort,
+  oidcClientPort,
   oidcConfigPort,
 });
 
@@ -136,11 +154,11 @@ describe("makeReserveUseCase", () => {
       state: MOCKED_HEX_RANDOM_BYTES,
       nonce: MOCKED_HEX_RANDOM_BYTES,
       redirect_uri: CLIENT_REDIRECT_URI.href,
-      issuer: PROD_BASE_URL.href,
+      authorization_endpoint: PROD_AUTHORIZATION_ENDPOINT.href,
     });
   });
 
-  it("uses the UAT client id and base url when configurationEnv is UAT", async () => {
+  it("uses the UAT client id and authorization endpoint when configurationEnv is UAT", async () => {
     const input = buildInput({
       oidcConfigurationEnv: "UAT" as const,
     });
@@ -148,10 +166,23 @@ describe("makeReserveUseCase", () => {
     const result = await reserveUseCase(input);
 
     expect(getConfigMock).toHaveBeenCalledExactlyOnceWith("UAT");
+    expect(getAuthorizationEndpointMock).toHaveBeenCalledExactlyOnceWith("UAT");
     expect(result.isOk()).toBe(true);
     const output = result._unsafeUnwrap();
     expect(output.client_id).toBe(UAT_CLIENT_ID);
-    expect(output.issuer).toBe(UAT_BASE_URL.href);
+    expect(output.authorization_endpoint).toBe(UAT_AUTHORIZATION_ENDPOINT.href);
+  });
+
+  it("returns err(GenericError) when the authorization endpoint cannot be resolved", async () => {
+    const discoveryError = new GenericError("OIDC discovery failed: boom");
+    getAuthorizationEndpointMock.mockResolvedValueOnce(err(discoveryError));
+
+    const result = await reserveUseCase(buildInput());
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toEqual(discoveryError);
+    expect(reservePubKeyMock).not.toHaveBeenCalled();
+    expect(saveMock).not.toHaveBeenCalled();
   });
 
   it("returns err(ValidationError) when the OIDC config port has no configuration for the requested environment", async () => {
