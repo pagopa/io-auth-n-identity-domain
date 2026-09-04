@@ -16,6 +16,8 @@ import {
   mockTrackEvent,
   mockedAppinsightsTelemetryClient,
 } from "../../__mocks__/appinsights.mocks";
+import { OidcConfigurationEnvEnum } from "../../generated/backend/OidcConfigurationEnv";
+import { SpidAuthLevelEnum } from "../../generated/backend/SpidAuthLevel";
 
 vi.mock("../../repositories/oidc-client", () => ({
   getOidcConfiguration: vi.fn(),
@@ -38,8 +40,8 @@ const anOidcConfiguration = {
 };
 
 const aReserveInput: ReserveInput = {
-  env: "PROD",
-  minAuthLevel: "SpidL2",
+  env: OidcConfigurationEnvEnum.PROD,
+  minAuthLevel: SpidAuthLevelEnum.SpidL2,
   jwk: aJwk,
   jwkPubKeyHashAlgorithm: JwkPubKeyHashAlgorithmEnum.sha256,
 };
@@ -104,7 +106,7 @@ describe("OidcService#reserve", () => {
 
     const result = await reserve(deps)({
       ...aReserveInput,
-      env: "UAT",
+      env: OidcConfigurationEnvEnum.UAT,
     });
 
     expect(result.kind).toEqual("IResponseErrorValidation");
@@ -113,17 +115,22 @@ describe("OidcService#reserve", () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  test("should return IResponseErrorInternal when OIDC discovery fails", async () => {
-    mockedGetOidcConfiguration.mockRejectedValueOnce(
-      new Error("discovery failed"),
-    );
+  test.each`
+    case                       | value
+    ${"with an error"}         | ${new Error("discovery failed")}
+    ${"with a generic object"} | ${{ foo: "bar" }}
+  `(
+    "should return IResponseErrorInternal when OIDC discovery fails $case",
+    async ({ value }) => {
+      mockedGetOidcConfiguration.mockRejectedValueOnce(value);
 
-    const result = await reserve(deps)(aReserveInput);
+      const result = await reserve(deps)(aReserveInput);
 
-    expect(result.kind).toEqual("IResponseErrorInternal");
-    expect(mockSetEx).not.toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-  });
+      expect(result.kind).toEqual("IResponseErrorInternal");
+      expect(mockSetEx).not.toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    },
+  );
 
   test("should return IResponseErrorInternal when OIDC discovery returns an invalid authorization endpoint", async () => {
     mockedGetOidcConfiguration.mockResolvedValueOnce({

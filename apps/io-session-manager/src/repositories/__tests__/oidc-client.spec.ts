@@ -87,6 +87,27 @@ describe("getOidcConfiguration", async () => {
     );
   });
 
+  it("returns a cached configuration when available", async () => {
+    await getOidcConfiguration(OidcConfigurationEnvEnum.PROD, anEnvConfig, 8);
+
+    expect(discoveryByEnv.size).toEqual(1);
+    await getOidcConfiguration(OidcConfigurationEnvEnum.PROD, anEnvConfig, 8);
+
+    expect(discoveryByEnv.size).toEqual(1);
+    expect(client.discovery).toHaveBeenCalledExactlyOnceWith(
+      new URL(anIssuer.href),
+      "a-client-id",
+      {
+        client_secret: "a-client-secret",
+      },
+      "client-secret-basic",
+      {
+        timeout: 8,
+        [client.customFetch]: sanitizingFetch,
+      },
+    );
+  });
+
   it("should enable recovery on second discovery try", async () => {
     vi.mocked(client.discovery).mockRejectedValueOnce(
       Error("an error occurred"),
