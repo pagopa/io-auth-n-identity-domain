@@ -57,7 +57,7 @@ export const SESSION_ID_LENGTH_BYTES = 32;
 type DefaultFilterSessionKeysType =
   `(${Concat<Union2Tuple<keyof PublicSession>>})`;
 const DEFAULT_FILTER_QUERY_PARAM: DefaultFilterSessionKeysType =
-  "(lollipopAssertionRef,spidLevel,expirationDate,walletToken,myPortalToken,bpdToken,zendeskToken,fimsToken)";
+  "(spidLevel,expirationDate,lollipopAssertionRef,walletToken,myPortalToken,bpdToken,zendeskToken,fimsToken)";
 
 const FilterDecoder = withDefault(
   NonEmptyString,
