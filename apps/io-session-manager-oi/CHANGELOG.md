@@ -1,5 +1,77 @@
 # io-session-manager-oi
 
+## 0.15.0
+
+### Minor Changes
+
+- bc89b97: Improve login auxiliary data security
+
+### Patch Changes
+
+- Updated dependencies [bc89b97]
+  - @pagopa/redis@0.4.0
+
+## 0.14.1
+
+### Patch Changes
+
+- d877819: added a shared BASE_PATH constant used by both route handlers and openapi-generator and apply linting fixes
+
+## 0.14.0
+
+### Minor Changes
+
+- e463af5: Adds generated OpenAPI
+
+## 0.13.0
+
+### Minor Changes
+
+- 926424f: add auth event Port and Adapter to send events via Service Bus
+
+### Patch Changes
+
+- Updated dependencies [926424f]
+  - @pagopa/io-auth-n-identity-session@0.3.0
+  - @pagopa/io-auth-n-identity-domain@0.5.0
+
+## 0.12.0
+
+### Minor Changes
+
+- e9f6f07: Added capability to instantiate a redis cluster
+
+### Patch Changes
+
+- Updated dependencies [e9f6f07]
+  - @pagopa/redis@0.3.0
+
+## 0.11.1
+
+### Patch Changes
+
+- 6c98116: fix ausiliar data log error message
+
+## 0.11.0
+
+### Minor Changes
+
+- 29c4d81: Add OIDC Callback endpoint
+
+## 0.10.0
+
+### Minor Changes
+
+- 04f1496: Upgrade hexagonal libraries + workaround for branded schema
+- df6e21c: Updated sm-internal client to upstream spec
+
+### Patch Changes
+
+- 5e3d5c4: Refactor config
+- Updated dependencies [04f1496]
+  - @pagopa/io-auth-n-identity-domain@0.4.0
+  - @pagopa/io-auth-n-identity-session@0.2.2
+
 ## 0.9.0
 
 ### Minor Changes

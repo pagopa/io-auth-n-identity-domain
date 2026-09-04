@@ -19,10 +19,10 @@ import { OidcConfigPort } from "../../domain/ports/outbound/oidc-config.port.js"
 import {
   CurrentUser,
   LoginAusiliarData,
-  LoginType,
   SpidAuthLevel,
 } from "../../domain/value-objects/login.vo.js";
 import { OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js";
+import { LoginType } from "@pagopa/io-auth-n-identity-session";
 
 type ReserveDeps = {
   ausiliarDataPort: AusiliarDataPort;
@@ -97,7 +97,11 @@ export const makeReserveUseCase =
     );
 
     if (ausiliarDataSaveResult.isErr()) {
-      return err(new GenericError("Could not save ausiliar data"));
+      return err(
+        new GenericError(
+          `Could not save ausiliar data, caused by: ${ausiliarDataSaveResult.error.message}`,
+        ),
+      );
     }
 
     return ok({

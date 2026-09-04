@@ -4,6 +4,7 @@ import {
   GenericError,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
+import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok } from "neverthrow";
 
 import { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
@@ -23,7 +24,6 @@ import type {
 } from "../../generated/io-lollipop/types.gen.js";
 
 import { LcParamsDto } from "./dtos/io-lollipop.dto.js";
-import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 
 export const createIoLollipopAdapter = (config: {
   baseUrl: string;

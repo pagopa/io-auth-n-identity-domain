@@ -1,6 +1,6 @@
 import { ValidationError } from "@pagopa/hexagonal-core";
 import { err, ok, type Result } from "neverthrow";
-import type { RedisClusterType, RedisClientType } from "redis";
+import type { RedisClusterType, RedisClientType, SetOptions } from "redis";
 import { z } from "zod";
 
 import { RedisError, toRedisError } from "../errors.js";
@@ -54,7 +54,8 @@ export class RedisObjectWrapper<
   /**
    * [`SET`](https://redis.io/commands/set/) - `O(1)`.
    * Validates `value` against the bound schema, serializes it to JSON
-   * and stores it at `key`.
+   * and stores it at `key`. Optional node-redis {@link SetOptions}
+   * (expiration, NX/XX, …) are forwarded as-is.
    *
    * Invalid input short-circuits with a `ValidationError` and no `SET`
    * is sent.
@@ -62,6 +63,7 @@ export class RedisObjectWrapper<
   public async save(
     key: string,
     value: z.output<TSchema>,
+    options?: SetOptions,
   ): Promise<Result<void, RedisError | ValidationError>> {
     const encoded = this.encode(value);
     if (encoded.isErr()) {
@@ -69,7 +71,7 @@ export class RedisObjectWrapper<
     }
 
     try {
-      await this.client.set(key, encoded.value);
+      await this.client.set(key, encoded.value, options);
       return ok(undefined);
     } catch (cause) {
       return err(toRedisError(`SET ${key}`, cause));
@@ -97,6 +99,33 @@ export class RedisObjectWrapper<
       return err(toRedisError(`GET ${key}`, cause));
     }
 
+    return this.decode(key, raw);
+  }
+
+  /**
+   * [`GETDEL`](https://redis.io/commands/getdel/) - `O(1)`.
+   * Atomically retrieves and deletes the value stored at `key`, then
+   * parses and validates it like {@link get}.
+   */
+  public async getAndDelete(
+    key: string,
+  ): Promise<
+    Result<z.output<TSchema> | undefined, RedisError | ValidationError>
+  > {
+    let raw: null | string;
+    try {
+      raw = await this.client.getDel(key);
+    } catch (cause) {
+      return err(toRedisError(`GETDEL ${key}`, cause));
+    }
+
+    return this.decode(key, raw);
+  }
+
+  private decode(
+    key: string,
+    raw: null | string,
+  ): Result<z.output<TSchema> | undefined, ValidationError> {
     if (raw === null) {
       return ok(undefined);
     }

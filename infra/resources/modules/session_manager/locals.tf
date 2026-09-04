@@ -21,14 +21,10 @@ locals {
     # Lollipop service
     LOLLIPOP_API_URL       = var.lollipop.base_url
     LOLLIPOP_API_BASE_PATH = var.lollipop.base_path
-    # LOLLIPOP_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_lollipop_api_key.versionless_id})"
-    LOLLIPOP_API_KEY = "TODO"
 
     # Profile service
     IO_PROFILE_API_URL       = var.io_profile.base_url
     IO_PROFILE_API_BASE_PATH = var.io_profile.base_path
-    # IO_PROFILE_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_io_profile_api_key.versionless_id})"
-    IO_PROFILE_API_KEY = "TODO"
 
     # Fast Login service
     IO_FAST_LOGIN_API_URL       = var.io_fast_login.base_url
@@ -64,15 +60,19 @@ locals {
     COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME = azurerm_cosmosdb_sql_container.active_sessions.name
 
     # One Identity configs
-    ONEID_PROD_CLIENT_ID = "4HWHRx-Wv19-cY-YL6Q1AgYVvx3h0Gw_SvtayZWJVVE"
-    ONEID_PROD_ISSUER    = "https://io.oneid.pagopa.it"
-    # TODO: change me with actual prod callback (mocked with localhost for URL
-    # constructor pass)
-    ONEID_PROD_REDIRECT_URI = "http://localhost/callback"
+    ONEID_PROD_CLIENT_ID    = "4HWHRx-Wv19-cY-YL6Q1AgYVvx3h0Gw_SvtayZWJVVE"
+    ONEID_PROD_ISSUER       = "https://io.oneid.pagopa.it"
+    ONEID_PROD_REDIRECT_URI = "https://api-app.io.pagopa.it/api/auth/v2/callback"
     # ONEID_PROD_CLIENT_SECRET is injected via the CA module's `secrets`
 
     ONEID_UAT_CLIENT_ID = "XbFEUWXdvQGOU1usvMURZv4YWQjYFS0ggAk0xyFCEKc"
     ONEID_UAT_ISSUER    = "https://uat.io.oneid.pagopa.it"
     # ONEID_UAT_CLIENT_SECRET is injected via the CA module's `secrets`
+
+    LOGIN_SUCCESS_REDIRECT_URL = "https://${trimsuffix(data.azurerm_dns_a_record.api_app_io_pagopa_it.fqdn, ".")}/profile.html"
+    LOGIN_ERROR_REDIRECT_URL   = "https://${trimsuffix(data.azurerm_dns_a_record.api_app_io_pagopa_it.fqdn, ".")}/error.html"
+
+    AUTH_SESSIONS_TOPIC_NAME = var.service_bus.auth_session_topic_name
+    SERVICE_BUS_HOSTNAME     = var.service_bus.hostname
   }
 }

@@ -1,8 +1,10 @@
 import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
 import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
+import type { AnyRouteContract } from "@pagopa/hexagonal-openapi";
 import { FastifyInstance } from "fastify";
 
 import { makeReserveUseCase } from "../../../application/use-cases/reserve.use-case.js";
+import { BASE_PATH } from "../base-path.js";
 import {
   ReserveInputDTO,
   ReserveOutputDTO,
@@ -10,11 +12,18 @@ import {
 
 const reserveContract = defineRoute({
   method: "get",
-  path: "/api/auth/v2/reserve",
+  operationId: "reserve",
+  path: `${BASE_PATH}/reserve`,
   request: ReserveInputDTO,
+  summary: "Reserve an OIDC authorization request",
+  description:
+    "Prepares (reserves) an OpenID Connect authorization request for the Lollipop-bound client and returns the parameters needed to start the login flow with the selected OneIdentity environment.",
+  tags: ["oidc"],
+  // Public endpoint: bootstraps the OIDC login flow.
+  security: [],
   response: {
     200: {
-      description: "Application info returned successfully.",
+      description: "Lollipop Key has been reserved successfully",
       schema: ReserveOutputDTO,
     },
     400: {
@@ -49,3 +58,7 @@ export const mountReserveHandler = (
     useCase,
   });
 };
+
+// Widened for the OpenAPI generator: exporting the inferred contract type would
+// leak the branded `unique symbol` of `ReserveOutputDTO` (TS2527).
+export const reserveRoute: AnyRouteContract = reserveContract;

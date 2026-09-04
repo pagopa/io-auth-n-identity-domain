@@ -1,5 +1,17 @@
 # @pagopa/io-auth-n-identity-domain
 
+## 0.5.0
+
+### Minor Changes
+
+- 926424f: add auth event Port and Adapter to send events via Service Bus
+
+## 0.4.0
+
+### Minor Changes
+
+- 04f1496: Upgrade hexagonal libraries + workaround for branded schema
+
 ## 0.3.1
 
 ### Patch Changes

@@ -1,12 +1,10 @@
-import { ok, err, Result } from "neverthrow";
 import {
   GenericError,
   NonEmptyString,
   NotFoundError,
   UseCase,
 } from "@pagopa/hexagonal-core";
-
-import { SessionPort } from "@pagopa/io-auth-n-identity-session/ports";
+import { IPString } from "@pagopa/io-auth-n-identity-domain";
 import {
   ActiveSession,
   BaseSession,
@@ -14,13 +12,15 @@ import {
   newPlainSession,
   toHashedSession,
 } from "@pagopa/io-auth-n-identity-session/entities";
-import { IPString } from "@pagopa/io-auth-n-identity-domain";
+import { SessionPort } from "@pagopa/io-auth-n-identity-session/ports";
 import {
   LoginType,
   newSessionId,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
-import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
+import { ok, err, Result } from "neverthrow";
+
 import { UserProfile } from "../../domain/entities/profile.entity.js";
+import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import {
   ClientSessionToken,
   ClientSessionTokenSchema,
@@ -68,6 +68,8 @@ export const makeActivateUserSessionUseCase =
     const newSessionWithHashedTokens = toHashedSession(
       newSessionWithPlainTokens,
     );
+
+    // TODO: invalidate installation id
 
     // TODO: invalidate lollipop key
     const invalidateResult = await userSessions.invalidatePreviousSession(

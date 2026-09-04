@@ -1,5 +1,23 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.3.0
+
+### Minor Changes
+
+- 926424f: add auth event Port and Adapter to send events via Service Bus
+
+### Patch Changes
+
+- Updated dependencies [926424f]
+  - @pagopa/io-auth-n-identity-domain@0.5.0
+
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [04f1496]
+  - @pagopa/io-auth-n-identity-domain@0.4.0
+
 ## 0.2.1
 
 ### Patch Changes

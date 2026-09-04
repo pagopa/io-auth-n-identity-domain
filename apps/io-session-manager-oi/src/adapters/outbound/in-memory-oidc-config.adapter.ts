@@ -14,9 +14,11 @@ import { OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js";
  */
 export type InMemoryOidcConfigAdapterEnv = {
   ONEID_PROD_CLIENT_ID: NonEmptyString;
+  ONEID_PROD_CLIENT_SECRET: NonEmptyString;
   ONEID_PROD_ISSUER: NonEmptyString;
   ONEID_PROD_REDIRECT_URI: NonEmptyString;
   ONEID_UAT_CLIENT_ID?: NonEmptyString;
+  ONEID_UAT_CLIENT_SECRET?: NonEmptyString;
   ONEID_UAT_ISSUER?: NonEmptyString;
 };
 
@@ -31,13 +33,17 @@ export class InMemoryOidcConfigAdapter implements OidcConfigPort {
     this.configByEnv = {
       PROD: {
         clientId: env.ONEID_PROD_CLIENT_ID,
+        clientSecret: env.ONEID_PROD_CLIENT_SECRET,
         baseUrl: new URL(env.ONEID_PROD_ISSUER),
         redirectUri,
       },
-      ...(env.ONEID_UAT_CLIENT_ID && env.ONEID_UAT_ISSUER
+      ...(env.ONEID_UAT_CLIENT_ID &&
+      env.ONEID_UAT_CLIENT_SECRET &&
+      env.ONEID_UAT_ISSUER
         ? {
             UAT: {
               clientId: env.ONEID_UAT_CLIENT_ID,
+              clientSecret: env.ONEID_UAT_CLIENT_SECRET,
               baseUrl: new URL(env.ONEID_UAT_ISSUER),
               redirectUri,
             },

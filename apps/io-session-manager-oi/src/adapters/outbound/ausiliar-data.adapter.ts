@@ -1,12 +1,14 @@
 import { GenericError, NotFoundError } from "@pagopa/hexagonal-core";
 import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 import { err, ok, type Result } from "neverthrow";
+import { RedisClientType, RedisClusterType } from "redis";
+
 import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
 import {
   LoginAusiliarData,
   LoginAusiliarDataSchema,
 } from "../../domain/value-objects/login.vo.js";
-import { RedisClientType } from "redis";
+import { PositiveInteger } from "../../domain/value-objects/positive-integer.vo.js";
 
 export const REDIS_AUSILIAR_DATA_PREFIX = "RESERVE-";
 
@@ -16,8 +18,9 @@ export class AusiliarDataRedisAdapter implements AusiliarDataPort {
   constructor(
     private readonly redis: RedisObjectWrapper<
       typeof LoginAusiliarDataSchema,
-      RedisClientType
+      RedisClientType | RedisClusterType
     >,
+    private readonly ttlSeconds: PositiveInteger,
   ) {}
 
   async healthcheck(): Promise<Result<void, GenericError>> {
@@ -46,6 +49,7 @@ export class AusiliarDataRedisAdapter implements AusiliarDataPort {
     const result = await this.redis.save(
       `${REDIS_AUSILIAR_DATA_PREFIX}${id}`,
       obj,
+      { expiration: { type: "EX", value: this.ttlSeconds } },
     );
     if (result.isErr()) {
       return err(
@@ -60,7 +64,9 @@ export class AusiliarDataRedisAdapter implements AusiliarDataPort {
   async retrieve(
     id: string,
   ): Promise<Result<LoginAusiliarData, GenericError | NotFoundError>> {
-    const result = await this.redis.get(`${REDIS_AUSILIAR_DATA_PREFIX}${id}`);
+    const result = await this.redis.getAndDelete(
+      `${REDIS_AUSILIAR_DATA_PREFIX}${id}`,
+    );
     if (result.isErr()) {
       return err(
         new GenericError(

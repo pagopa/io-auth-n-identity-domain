@@ -1,10 +1,15 @@
 import { z } from "zod";
 
+import {
+  AuthEventServiceBusDevelopmentConfigSchema,
+  AuthEventServiceBusProductionConfigSchema,
+} from "./auth-event-service-bus.vo.js";
 import { IoFastLoginConfigSchema } from "./fast-login.vo.js";
 import {
   LockedProfilesDevelopmentConfigSchema,
   LockedProfilesProductionConfigSchema,
 } from "./locked-profiles.vo.js";
+import { LoginConfigSchema } from "./login.vo.js";
 import { LollipopConfigSchema } from "./lollipop.vo.js";
 import { OneIdConfigSchema } from "./one-id.vo.js";
 import { IoProfileConfigSchema } from "./profile.vo.js";
@@ -34,6 +39,7 @@ const CommonConfigShape = {
   ...IoFastLoginConfigSchema.shape,
   ...IoSmIntConfigSchema.shape,
   ...OneIdConfigSchema.shape,
+  ...LoginConfigSchema.shape,
 };
 
 /**
@@ -47,6 +53,7 @@ export const ProductionConfigSchema = z.object({
   ...PushNotificationsQueueProductionConfigSchema.shape,
   ...RedisProductionConfigSchema.shape,
   ...SessionCosmosProductionConfigSchema.shape,
+  ...AuthEventServiceBusProductionConfigSchema.shape,
 });
 
 export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
@@ -62,6 +69,7 @@ export const DevelopmentConfigSchema = z.object({
   ...PushNotificationsQueueDevelopmentConfigSchema.shape,
   ...RedisDevelopmentConfigSchema.shape,
   ...SessionCosmosDevelopmentConfigSchema.shape,
+  ...AuthEventServiceBusDevelopmentConfigSchema.shape,
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;

@@ -7,5 +7,6 @@ export {
 export {
   createRedisNodeClient,
   createRedisManagedIdentityNodeClient,
-  type RedisNodeClient,
+  createRedisClusterClient,
+  createRedisManagedIdentityClusterClient,
 } from "./factory.js";

@@ -59,4 +59,14 @@ module "ca_iam" {
       ]
     }
   ]
+
+  service_bus = [
+    {
+      namespace_name      = var.service_bus.namespace_name
+      resource_group_name = var.service_bus.resource_group_name
+      description         = "Allow Session Manager Container App to send messages to the AUTH_SESSIONS topic"
+      role                = "writer"
+      topic_names         = [var.service_bus.auth_session_topic_name]
+    }
+  ]
 }
