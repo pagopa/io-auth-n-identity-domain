@@ -1,20 +1,20 @@
+import type { FiscalCode } from "@pagopa/hexagonal-core";
 import {
   ConflictError,
   GenericError,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
-import type { FiscalCode } from "@pagopa/hexagonal-core";
-import type { LollipopAssertionRef } from "@pagopa/io-auth-n-identity-domain";
+import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { LollipopActivation } from "../../../domain/entities/lollipop-activation.entity.js";
 import {
   makeClientMock,
   makeContainerMock,
   makeErrorResponse,
 } from "../__mocks__/cosmos.mock.js";
 import { LollipopActivationCosmosAdapter } from "../lollipop-activation-cosmos.adapter.js";
-import type { LollipopActivation } from "../../../domain/entities/lollipop-activation.entity.js";
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -24,8 +24,9 @@ const LOLLIPOP_CONTAINER_ID = "lollipop-activations";
 const DATABASE_ID = "io-auth-SM";
 
 const aFiscalCode = "RSSMRA85T10A562S" as FiscalCode;
-const anAssertionRef =
-  "sha256-p1NafwcgIu9Iac3hOVdCzOWjTPwqvNRUNl6hkgTZWys=" as LollipopAssertionRef;
+const anAssertionRef = LollipopAssertionRefSchema.parse(
+  "sha256-p1NafwcgIu9Iac3hOVdCzOWjTPwqvNRUNl6hkgTZWys",
+);
 
 const aLollipopId = `LOLLIPOP-${aFiscalCode}`;
 
