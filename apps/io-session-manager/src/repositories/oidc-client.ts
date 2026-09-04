@@ -53,12 +53,10 @@ export const getOidcConfiguration = (
         timeout: httpTimeoutSeconds,
       },
     );
-  })().catch((_error: unknown) => {
-    // TODO: emit event and/or send an error log
-
+  })().catch((error: unknown) => {
     // Evict the failed discovery so the next request can retry.
     discoveryByEnv.delete(env);
-    return Promise.reject(void 0);
+    return Promise.reject(error);
   });
 
   discoveryByEnv.set(env, discoveryPromise);

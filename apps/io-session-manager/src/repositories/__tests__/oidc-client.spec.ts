@@ -9,6 +9,7 @@ import { OidcEnvConfig } from "../../config/one-id";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 import * as E from "fp-ts/lib/Either";
+import { OidcConfigurationEnvEnum } from "../../generated/backend/OidcConfigurationEnv";
 
 const anIssuer = (
   UrlFromString.decode("https://localhost/prod") as E.Right<UrlFromString>
@@ -46,31 +47,31 @@ describe("getOidcConfiguration", async () => {
   const client = await import("openid-client");
 
   it("returns a reject on discovery failures", async () => {
-    vi.mocked(client.discovery).mockRejectedValueOnce(
-      new Error("discovery down"),
-    );
+    const anError = new Error("discovery down");
+    vi.mocked(client.discovery).mockRejectedValueOnce(anError);
 
     try {
-      await getOidcConfiguration("PROD", anEnvConfig, 8);
+      await getOidcConfiguration(OidcConfigurationEnvEnum.PROD, anEnvConfig, 8);
     } catch (err) {
-      expect(err).toEqual(void 0);
+      expect(err).toEqual(anError);
     }
   });
 
   it("returns a reject on discovery throw", async () => {
+    const anError = Error("an error occurred");
     vi.mocked(client.discovery).mockImplementationOnce(() => {
-      throw Error("an error occurred");
+      throw anError;
     });
 
     try {
-      await getOidcConfiguration("PROD", anEnvConfig, 8);
+      await getOidcConfiguration(OidcConfigurationEnvEnum.PROD, anEnvConfig, 8);
     } catch (err) {
-      expect(err).toEqual(void 0);
+      expect(err).toEqual(anError);
     }
   });
 
   it("discovers configuration for the requested environments", async () => {
-    await getOidcConfiguration("PROD", anEnvConfig, 8);
+    await getOidcConfiguration(OidcConfigurationEnvEnum.PROD, anEnvConfig, 8);
 
     expect(client.discovery).toHaveBeenCalledExactlyOnceWith(
       new URL(anIssuer.href),
@@ -92,15 +93,18 @@ describe("getOidcConfiguration", async () => {
     );
 
     try {
-      await getOidcConfiguration("PROD", anEnvConfig, 8);
+      await getOidcConfiguration(OidcConfigurationEnvEnum.PROD, anEnvConfig, 8);
     } catch {}
 
     expect(discoveryByEnv.size).toEqual(0);
-    await getOidcConfiguration("PROD", anEnvConfig, 8);
+    await getOidcConfiguration(OidcConfigurationEnvEnum.PROD, anEnvConfig, 8);
 
     expect(client.discovery).toHaveBeenCalledTimes(2);
     expect(discoveryByEnv).toEqual(
-      new Map().set("PROD", Promise.resolve(aConfiguration)),
+      new Map().set(
+        OidcConfigurationEnvEnum.PROD,
+        Promise.resolve(aConfiguration),
+      ),
     );
   });
 });
