@@ -104,7 +104,7 @@ const configByEnv: Readonly<{
         redirectUri: ONEID_PROD_REDIRECT_URI,
       },
     })),
-    O.getOrElse(() => ({}) as Partial<Record<"UAT", OidcEnvConfig>>),
+    O.getOrElse(() => ({})),
   ),
 };
 
