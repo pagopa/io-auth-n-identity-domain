@@ -34,7 +34,6 @@ export const getOidcConfiguration = (
   envConfig: OidcEnvConfig,
   httpTimeoutSeconds: number,
 ): Promise<client.Configuration> => {
-  console.log(discoveryByEnv);
   const cached = discoveryByEnv.get(env);
   if (cached) {
     return cached;
