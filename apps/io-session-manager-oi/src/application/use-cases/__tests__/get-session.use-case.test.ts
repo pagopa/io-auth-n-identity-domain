@@ -1,4 +1,4 @@
-import { GenericError } from "@pagopa/hexagonal-core";
+import { AuthenticationError, GenericError } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -298,7 +298,7 @@ describe("makeGetSessionUseCase", () => {
     },
   );
 
-  it("maps a missing session to a generic session-not-found error", async () => {
+  it("maps a missing session to an authentication error", async () => {
     // given
     mockFindBySessionToken.mockResolvedValueOnce(err(aNotFoundError));
 
@@ -312,7 +312,7 @@ describe("makeGetSessionUseCase", () => {
     const result = await getSession(input);
 
     // then
-    expect(result).toEqual(err(new GenericError("Session not found")));
+    expect(result).toEqual(err(new AuthenticationError()));
     expect(lollipopActivationPortMock.getByFiscalCode).not.toHaveBeenCalled();
     expect(mockGetProfile).not.toHaveBeenCalled();
   });

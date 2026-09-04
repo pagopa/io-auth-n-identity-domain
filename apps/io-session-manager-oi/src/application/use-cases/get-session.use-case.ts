@@ -1,7 +1,6 @@
 import {
   AuthenticationError,
   GenericError,
-  NotFoundError,
   UseCase,
   ValidationError,
 } from "@pagopa/hexagonal-core";
@@ -46,9 +45,10 @@ export const makeGetSessionUseCase =
   ): UseCase<
     GetSessionInput,
     GetSessionOutput,
-    ValidationError | AuthenticationError | NotFoundError | GenericError
+    ValidationError | AuthenticationError | GenericError
   > =>
   async (input) => {
+    // FIXME: move token validation/introspection to a dedicated middleware
     const maybeSession = await deps.sessionPort.findBySessionToken({
       hashedSessionToken: toHashedSessionToken(input.sessionToken),
       sessionId: input.sessionId,
@@ -56,8 +56,10 @@ export const makeGetSessionUseCase =
     if (maybeSession.isErr()) {
       switch (maybeSession.error.kind) {
         case "NotFoundError":
-          return err(new GenericError("Session not found"));
+          // TODO: log the underlying error for debugging purposes
+          return err(new AuthenticationError());
         case "GenericError":
+          // TODO: log the underlying error for debugging purposes
           return err(
             new GenericError("An error occurred while retrieving the session"),
           );
@@ -87,6 +89,7 @@ export const makeGetSessionUseCase =
               maybeSession.value.fiscalCode,
             );
           if (maybeLollipopActivation.isErr()) {
+            // TODO: log the underlying error for debugging purposes
             return err(
               new GenericError(
                 "An error occurred while retrieving the lollipop activation",
