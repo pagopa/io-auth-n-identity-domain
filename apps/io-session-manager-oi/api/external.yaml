@@ -105,6 +105,45 @@ components:
         - LEGACY
       default: LEGACY
       description: The login type requested by the client.
+    PublicSession:
+      type: object
+      properties:
+        spidLevel:
+          type: string
+          enum:
+            - https://www.spid.gov.it/SpidL1
+            - https://www.spid.gov.it/SpidL2
+            - https://www.spid.gov.it/SpidL3
+        expirationDate:
+          type: string
+          format: date-time
+        lollipopAssertionRef:
+          oneOf:
+            - type: string
+            - type: string
+            - type: string
+        walletToken:
+          type: string
+        bpdToken:
+          type: string
+        zendeskToken:
+          type: string
+          pattern: ^[a-fA-F0-9]{72}$
+        fimsToken:
+          type: string
+      description: The public session data that can be retrieved by the client
+    FieldsFilter:
+      type: string
+      default:
+        - spidLevel
+        - expirationDate
+        - lollipopAssertionRef
+        - walletToken
+        - bpdToken
+        - zendeskToken
+        - fimsToken
+      description: "The use of this parameters allows the client to obtain only the requested parameters. NOTE: nested fields retrieval is currently not supported. NOTE: field names are case-sensitive Example: ?fields=(spidLevel,walletToken) For more info, see https://opensource.zalando.com/restful-api-guidelines/#157"
+      example: (spidLevel,walletToken)
   parameters: {}
 paths:
   /callback:
@@ -207,6 +246,47 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
         "409":
           description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /session:
+    get:
+      operationId: getSession
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/FieldsFilter"
+          required: false
+          description: "The use of this parameters allows the client to obtain only the requested parameters. NOTE: nested fields retrieval is currently not supported. NOTE: field names are case-sensitive Example: ?fields=(spidLevel,walletToken) For more info, see https://opensource.zalando.com/restful-api-guidelines/#157"
+          name: fields
+          in: query
+        - schema:
+            type: string
+            pattern: ^Bearer [^.]+\.[^.]+$
+          required: true
+          name: authorization
+          in: header
+      responses:
+        "200":
+          description: Session info returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicSession"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Bearer token null or expired
           content:
             application/problem+json:
               schema:
