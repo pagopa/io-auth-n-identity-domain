@@ -26,10 +26,6 @@ const getSessionContract = defineRoute({
       description: "Bearer token null or expired",
       schema: ProblemJson,
     },
-    404: {
-      description: "Session not found",
-      schema: ProblemJson,
-    },
     500: {
       description: "Internal error",
       schema: ProblemJson,
