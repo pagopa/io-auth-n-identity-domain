@@ -1,3 +1,4 @@
+import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 import {
   ExtendedPlainZendeskSSOTokenSchema,
   PlainBpdSSOTokenSchema,
@@ -9,28 +10,10 @@ import {
 } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
 
-const AssertionRefSha256Schema = z
-  .string()
-  .regex(/^(sha256-[A-Za-z0-9-_=]{1,44})$/);
-
-const AssertionRefSha384Schema = z
-  .string()
-  .regex(/^(sha384-[A-Za-z0-9-_=]{1,66})$/);
-
-const AssertionRefSha512Schema = z
-  .string()
-  .regex(/^(sha512-[A-Za-z0-9-_=]{1,88})$/);
-
 export const GetSessionOutputDTO = z.object({
   spidLevel: SpidLevelSchema.optional(),
   expirationDate: z.date().optional(),
-  lollipopAssertionRef: z
-    .union([
-      AssertionRefSha256Schema,
-      AssertionRefSha384Schema,
-      AssertionRefSha512Schema,
-    ])
-    .optional(),
+  lollipopAssertionRef: LollipopAssertionRefSchema.optional(),
   walletToken: PlainWalletSSOTokenSchema.optional(),
   bpdToken: PlainBpdSSOTokenSchema.optional(),
   zendeskToken: ExtendedPlainZendeskSSOTokenSchema.optional(),
