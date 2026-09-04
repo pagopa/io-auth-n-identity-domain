@@ -4,6 +4,7 @@ import {
   AuthEventServiceBusDevelopmentConfigSchema,
   AuthEventServiceBusProductionConfigSchema,
 } from "./auth-event-service-bus.vo.js";
+import { BPDConfigSchema } from "./bpd.vo.js";
 import { IoFastLoginConfigSchema } from "./fast-login.vo.js";
 import {
   LockedProfilesDevelopmentConfigSchema,
@@ -40,6 +41,7 @@ const CommonConfigShape = {
   ...IoSmIntConfigSchema.shape,
   ...OneIdConfigSchema.shape,
   ...LoginConfigSchema.shape,
+  ...BPDConfigSchema.shape,
 };
 
 /**
