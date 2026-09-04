@@ -15,6 +15,7 @@ import * as FastLoginConfig from "./fast-login";
 import * as LockProfileConfig from "./lock-profile";
 import * as LoginConfig from "./login";
 import * as LollipopConfig from "./lollipop";
+import * as OneIdConfig from "./one-id";
 import * as SpidConfig from "./spid";
 import * as SpidLogConfig from "./spid-logs";
 import * as ZendeskConfig from "./zendesk";
@@ -52,6 +53,7 @@ export {
   LockProfileConfig,
   LoginConfig,
   LollipopConfig,
+  OneIdConfig,
   SpidConfig,
   SpidLogConfig,
   ZendeskConfig,
