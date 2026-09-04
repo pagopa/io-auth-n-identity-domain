@@ -54,3 +54,7 @@ io-auth-n-identity-commons:
 bruno-io-lollipop:
   - "bruno/io-lollipop/**/*.json"
   - "bruno/io-lollipop/**/*.bru"
+pagopa-azure-sdk:
+  - "packages/azure-sdk/**/*.ts"
+  # package.json, function.json, tsconfig.json, ...
+  - "packages/azure-sdk/**/*.json"

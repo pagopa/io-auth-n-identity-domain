@@ -81,7 +81,7 @@ class ExtendedLockedProfilesDataTableAdapter extends LockedProfilesDataTableAdap
     unlockCode: string,
   ): Promise<Result<void, TableStorageError>> {
     // Delete the locked profile entity from the table
-    await this["lockedProfilesTableClientWrapper"].patchEntity({
+    await this["lockedProfilesTableClientWrapper"].getTableClient().updateEntity({
       partitionKey: fiscalCode,
       rowKey: unlockCode,
       Released: true,

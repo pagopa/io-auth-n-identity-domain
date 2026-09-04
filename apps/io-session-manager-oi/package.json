@@ -17,7 +17,7 @@
     "lint:check": "eslint .",
     "start": "node dist/main.js",
     "test": "vitest run -c ./vite.config.mts",
-    "test:integration": "vitest run -c ./src/__integrations__/vite.config.mts",
+    "test:integrations": "vitest run -c ./src/__integrations__/vite.config.mts",
     "test:coverage": "vitest run --coverage -c ./vite.config.mts",
     "generate": "openapi-ts",
     "openapi:generate": "tsx scripts/generate-openapi.ts",
