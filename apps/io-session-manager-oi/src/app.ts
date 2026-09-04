@@ -171,6 +171,7 @@ export const createApp = async (
   const reserveUseCase = makeReserveUseCase({
     ausiliarDataPort: ausiliarStorageAdapter,
     lollipopPort: fetchLollipopAdapter,
+    oidcClientPort: oidcExchangeAdapter,
     oidcConfigPort: oidcConfigAdapter,
   });
 

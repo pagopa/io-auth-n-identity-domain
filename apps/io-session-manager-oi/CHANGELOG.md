@@ -1,5 +1,17 @@
 # io-session-manager-oi
 
+## 0.17.0
+
+### Minor Changes
+
+- b670533: Return the OIDC authorization endpoint from discovery in the reserve response
+
+## 0.16.0
+
+### Minor Changes
+
+- 86e3d55: Refactor reserve endpoint as POST
+
 ## 0.15.0
 
 ### Minor Changes

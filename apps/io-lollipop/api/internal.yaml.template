@@ -11,7 +11,7 @@ servers:
 security:
   - ApiKeyAuth: []
 paths:
-  /ping:
+  /info:
     get:
       operationId: ping
       responses:

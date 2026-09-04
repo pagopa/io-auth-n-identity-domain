@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   description: OpenID Connect (OneIdentity) login endpoints exposed by io-session-manager-oi.
   title: IO Session Manager OneIdentity API
-  version: 0.15.0
+  version: 0.17.0
 servers:
   - url: https://api-app.io.pagopa.it/api/auth/v2
 tags:
@@ -43,7 +43,7 @@ components:
         redirect_uri:
           type: string
           minLength: 1
-        issuer:
+        authorization_endpoint:
           type: string
           minLength: 1
       required:
@@ -51,8 +51,33 @@ components:
         - state
         - nonce
         - redirect_uri
-        - issuer
+        - authorization_endpoint
       description: The parameters needed to start the OIDC authorization flow.
+    ReserveRequest:
+      type: object
+      properties:
+        env:
+          $ref: "#/components/schemas/OidcConfigurationEnv"
+        min_auth_level:
+          $ref: "#/components/schemas/SpidAuthLevel"
+        lollipop_pub_key:
+          type: string
+          minLength: 1
+          pattern: ^[A-Za-z0-9_-]+$
+          description: The Lollipop public key, encoded as a Base64url JSON JWK.
+        lollipop_hash_algo:
+          $ref: "#/components/schemas/LollipopHashAlgorithm"
+        login_type:
+          $ref: "#/components/schemas/LoginType"
+        current_user:
+          type: string
+          minLength: 1
+          description: Optional identifier of the user currently logged in.
+      required:
+        - env
+        - min_auth_level
+        - lollipop_pub_key
+      description: Parameters needed to reserve a Lollipop public key and start the OIDC authorization flow.
     OidcConfigurationEnv:
       type: string
       enum:
@@ -65,6 +90,14 @@ components:
         - SpidL2
         - SpidL3
       description: The SPID authentication level.
+    LollipopHashAlgorithm:
+      type: string
+      enum:
+        - sha256
+        - sha384
+        - sha512
+      default: sha256
+      description: Hashing algorithm used to compute the JWK thumbprint of the Lollipop public key.
     LoginType:
       type: string
       enum:
@@ -146,61 +179,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
   /reserve:
-    get:
+    post:
       description: Prepares (reserves) an OpenID Connect authorization request for the Lollipop-bound client and returns the parameters needed to start the login flow with the selected OneIdentity environment.
       operationId: reserve
       security: []
       summary: Reserve an OIDC authorization request
       tags:
         - oidc
-      parameters:
-        - schema:
-            $ref: "#/components/schemas/OidcConfigurationEnv"
-          required: true
-          description: The OneIdentity configuration environment.
-          name: env
-          in: query
-        - schema:
-            $ref: "#/components/schemas/SpidAuthLevel"
-          required: true
-          description: The SPID authentication level.
-          name: authLevel
-          in: query
-        - schema:
-            type: string
-            enum:
-              - sha256
-              - sha384
-              - sha512
-            default: sha256
-            description: Hashing algorithm used to compute the JWK thumbprint of the Lollipop public key.
-          required: false
-          description: Hashing algorithm used to compute the JWK thumbprint of the Lollipop public key.
-          name: x-pagopa-lollipop-hash-algorithm
-          in: header
-        - schema:
-            type: string
-            minLength: 1
-            pattern: ^[A-Za-z0-9_-]+$
-            description: The Lollipop public key, encoded as a Base64url JSON JWK.
-          required: true
-          description: The Lollipop public key, encoded as a Base64url JSON JWK.
-          name: x-pagopa-lollipop-pub-key
-          in: header
-        - schema:
-            $ref: "#/components/schemas/LoginType"
-          required: false
-          description: The login type requested by the client.
-          name: x-pagopa-login-type
-          in: header
-        - schema:
-            type: string
-            minLength: 1
-            description: Optional identifier of the user currently logged in.
-          required: false
-          description: Optional identifier of the user currently logged in.
-          name: x-pagopa-current-user
-          in: header
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReserveRequest"
       responses:
         "200":
           description: Lollipop Key has been reserved successfully
