@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.16.0
+
+### Minor Changes
+
+- 86e3d55: Refactor reserve endpoint as POST
+
 ## 0.15.0
 
 ### Minor Changes
