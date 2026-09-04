@@ -107,9 +107,15 @@ export const makeGetSessionUseCase =
           const maybeProfile = await deps.profilePort.getProfile(
             maybeSession.value.fiscalCode,
           );
+          const validEmail =
+            maybeProfile.isOk() &&
+            maybeProfile.value.email &&
+            maybeProfile.value.isEmailValidated
+              ? maybeProfile.value.email
+              : undefined;
           sessionData.zendeskToken = await toExtendedPlainZendeskSSOToken(
             input.sessionToken,
-            maybeProfile.isOk() ? maybeProfile.value.email : undefined,
+            validEmail,
           );
           break;
         case "fimsToken":

@@ -20,6 +20,7 @@ import {
   aPlainSessionToken,
   aSessionId,
   aSessionWithHashedTokens,
+  aUserProfileWithoutEmail,
 } from "../../../__mocks__/session.mocks.js";
 import {
   type GetSessionInput,
@@ -259,6 +260,43 @@ describe("makeGetSessionUseCase", () => {
     ).toHaveBeenCalledExactlyOnceWith(aPlainSessionToken, anEmailAddress);
     expect(lollipopActivationPortMock.getByFiscalCode).not.toHaveBeenCalled();
   });
+
+  it.each([
+    ["the profile has no email", ok(aUserProfileWithoutEmail), undefined],
+    [
+      "the profile email is not validated",
+      ok({
+        ...aUserProfileWithoutEmail,
+        email: anEmailAddress,
+      }),
+      undefined,
+    ],
+    ["the profile cannot be retrieved", err(aGenericError), undefined],
+  ] as const)(
+    "creates the extended Zendesk token without an email when %s",
+    async (_scenario, profileResult, expectedEmail) => {
+      // given
+      mockGetProfile.mockResolvedValueOnce(profileResult);
+
+      const input = {
+        sessionId: aSessionId,
+        sessionToken: aPlainSessionToken,
+        fieldsFilter: ["zendeskToken"] as const,
+      } satisfies GetSessionInput;
+
+      // when
+      const result = await getSession(input);
+
+      // then
+      expect(result).toEqual(
+        ok({ zendeskToken: mocks.anExtendedZendeskToken }),
+      );
+      expect(mockGetProfile).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+      expect(
+        mocks.toExtendedPlainZendeskSSOToken,
+      ).toHaveBeenCalledExactlyOnceWith(aPlainSessionToken, expectedEmail);
+    },
+  );
 
   it("maps a missing session to a generic session-not-found error", async () => {
     // given
