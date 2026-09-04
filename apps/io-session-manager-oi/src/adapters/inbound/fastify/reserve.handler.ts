@@ -11,7 +11,7 @@ import {
 } from "../dtos/reserve-pub-key.dto.js";
 
 const reserveContract = defineRoute({
-  method: "get",
+  method: "post",
   operationId: "reserve",
   path: `${BASE_PATH}/reserve`,
   request: ReserveInputDTO,
@@ -48,12 +48,12 @@ export const mountReserveHandler = (
   mountFastifyRoute(server, {
     contract: reserveContract,
     inputMapper: (req) => ({
-      lollipopHashAlgorithm: req.headers["x-pagopa-lollipop-hash-algorithm"],
-      lollipopPublicKey: req.headers["x-pagopa-lollipop-pub-key"],
-      loginType: req.headers["x-pagopa-login-type"],
-      currentUser: req.headers["x-pagopa-current-user"],
-      oidcConfigurationEnv: req.query.env,
-      authLevel: req.query.authLevel,
+      lollipopHashAlgorithm: req.body.lollipop_hash_algo,
+      lollipopPublicKey: req.body.lollipop_pub_key,
+      loginType: req.body.login_type,
+      currentUser: req.body.current_user,
+      oidcConfigurationEnv: req.body.env,
+      minAuthLevel: req.body.min_auth_level,
     }),
     useCase,
   });

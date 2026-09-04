@@ -4,19 +4,19 @@ meta {
   seq: 2
 }
 
-get {
-  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/reserve?authLevel=SpidL2&env=PROD
-  body: none
+post {
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/reserve
+  body: json
   auth: inherit
 }
 
-params:query {
-  authLevel: SpidL2
-  env: PROD
-}
-
-headers {
-  x-pagopa-login-type: LV
+body:json {
+  {
+    "env": "PROD",
+    "min_auth_level": "SpidL2",
+    "lollipop_pub_key": "SET_IN_PREREQUEST",
+    "login_type": "LV"
+  }
 }
 
 script:pre-request {
@@ -45,7 +45,9 @@ script:pre-request {
     .then(key => key.thumbprint('SHA-256'))
     .then(thumbprint => thumbprint.toString('base64url'));
   
-  req.setHeader("x-pagopa-lollipop-pub-key", encodedPubKey);
+  const body = req.getBody();
+  body.lollipop_pub_key = encodedPubKey;
+  req.setBody(body);
   
   bru.setEnvVar("publicKey", encodedPubKey)
   bru.setEnvVar("privateKey", encodedPrivateKey)
