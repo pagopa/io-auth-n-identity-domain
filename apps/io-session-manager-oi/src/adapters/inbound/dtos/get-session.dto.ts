@@ -10,22 +10,26 @@ import {
 } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
 
-export const GetSessionOutputDTO = z.object({
-  spidLevel: SpidLevelSchema.optional(),
-  expirationDate: z.date().optional(),
-  lollipopAssertionRef: LollipopAssertionRefSchema.optional(),
-  walletToken: PlainWalletSSOTokenSchema.optional(),
-  bpdToken: PlainBpdSSOTokenSchema.optional(),
-  zendeskToken: ExtendedPlainZendeskSSOTokenSchema.optional(),
-  fimsToken: PlainFimsSSOTokenSchema.optional(),
-});
+export const GetSessionOutputDTO = z
+  .object({
+    spidLevel: SpidLevelSchema.optional(),
+    expirationDate: z.date().optional(),
+    lollipopAssertionRef: LollipopAssertionRefSchema.optional(),
+    walletToken: PlainWalletSSOTokenSchema.optional(),
+    bpdToken: PlainBpdSSOTokenSchema.optional(),
+    zendeskToken: ExtendedPlainZendeskSSOTokenSchema.optional(),
+    fimsToken: PlainFimsSSOTokenSchema.optional(),
+  })
+  .meta({
+    id: "PublicSession",
+    description: "The public session data that can be retrieved by the client",
+  });
 export type GetSessionOutputDTO = z.infer<typeof GetSessionOutputDTO>;
 
 const SessionFieldSchema = GetSessionOutputDTO.keyof();
 
 const FieldsQueryParamSchema = z
-  .string()
-  .regex(/^\([^()]+\)$/) // Matches a string that starts with '(' and ends with ')' and does not contain any parentheses inside
+  .stringFormat("fields-filter", /^\([^()]+\)$/) // Matches a string that starts with '(' and ends with ')' and does not contain any parentheses inside
   .transform((fields) =>
     fields
       .slice(1, -1) // Remove the surrounding parentheses
@@ -67,9 +71,10 @@ export const GetSessionInputDTO = {
   }),
   query: z.object({
     fields: FieldsQueryParamSchema.meta({
-      id: "fieldsFilter",
+      id: "FieldsFilter",
       description:
         "The use of this parameters allows the client to obtain only the requested parameters. NOTE: nested fields retrieval is currently not supported. NOTE: field names are case-sensitive Example: ?fields=(spidLevel,walletToken) For more info, see https://opensource.zalando.com/restful-api-guidelines/#157",
+      example: "(spidLevel,walletToken)",
     }),
   }),
 };
