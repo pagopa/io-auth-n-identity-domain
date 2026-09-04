@@ -2,15 +2,17 @@ import { EmailAddress } from "@pagopa/hexagonal-core";
 import { z } from "zod";
 import {
   getRandomBytesHex,
-  SHA256_HEX_STRING_LENGTH,
   Sha256HexStringSchema,
   toSha256,
 } from "../../../utils/hash.js";
 import { PlainSessionToken } from "./session-token.vo.js";
 
-const EXTENDED_PLAIN_ZENDESK_SSO_TOKEN_SUFFIX_BYTES_LENGTH = 4;
-const EXTENDED_PLAIN_ZENDESK_SSO_TOKEN_SUFFIX_HEX_LENGTH =
-  EXTENDED_PLAIN_ZENDESK_SSO_TOKEN_SUFFIX_BYTES_LENGTH * 2;
+const SHA256_HEX_LENGTH = 64;
+const EXTENDED_ZENDESK_SSO_TOKEN_SUFFIX_BYTES_LENGTH = 4;
+const EXTENDED_ZENDESK_SSO_TOKEN_SUFFIX_HEX_LENGTH =
+  EXTENDED_ZENDESK_SSO_TOKEN_SUFFIX_BYTES_LENGTH * 2;
+const EXTENDED_ZENDESK_SSO_TOKEN_HEX_LENGTH =
+  SHA256_HEX_LENGTH + EXTENDED_ZENDESK_SSO_TOKEN_SUFFIX_HEX_LENGTH;
 
 // ------------------------------------------------------------------------------
 // Plain Zendesk SSO Token Value Object
@@ -33,11 +35,7 @@ export declare const _extendedPlainZendeskSSOTokenBrand: unique symbol;
 // Zod schemas with string literal brands
 export const ExtendedPlainZendeskSSOTokenSchema = z
   .string()
-  .regex(
-    new RegExp(
-      `^[a-fA-F0-9]{${SHA256_HEX_STRING_LENGTH + EXTENDED_PLAIN_ZENDESK_SSO_TOKEN_SUFFIX_HEX_LENGTH}}$`,
-    ),
-  ) // Matches a 72-character hexadecimal string (64 characters for the SHA-256 hash and 8 characters for the email address hash)
+  .regex(new RegExp(`^[a-fA-F0-9]{${EXTENDED_ZENDESK_SSO_TOKEN_HEX_LENGTH}}$`)) // Matches a 72-character hexadecimal string (64 characters for the SHA-256 hash and 8 characters for the suffix)
   .brand<typeof _extendedPlainZendeskSSOTokenBrand>();
 
 export type ExtendedPlainZendeskSSOToken = z.infer<
@@ -67,12 +65,7 @@ export const toPlainZendeskSSOToken = (
 export const toPlainZendeskSSOTokenFromExtended = (
   token: ExtendedPlainZendeskSSOToken,
 ): PlainZendeskSSOToken =>
-  PlainZendeskSSOTokenSchema.parse(
-    token.substring(
-      0,
-      token.length - EXTENDED_PLAIN_ZENDESK_SSO_TOKEN_SUFFIX_HEX_LENGTH,
-    ), // Extract the first 64 characters (the SHA-256 hash) from the extended token
-  );
+  PlainZendeskSSOTokenSchema.parse(token.substring(0, SHA256_HEX_LENGTH));
 
 /**
  * Extends a plain session token to create an extended plain Zendesk SSO token.
@@ -87,13 +80,8 @@ export const toExtendedPlainZendeskSSOToken = async (
   email?: EmailAddress,
 ): Promise<ExtendedPlainZendeskSSOToken> => {
   const suffix = email
-    ? toSha256(email).substring(
-        0,
-        EXTENDED_PLAIN_ZENDESK_SSO_TOKEN_SUFFIX_HEX_LENGTH,
-      )
-    : await getRandomBytesHex(
-        EXTENDED_PLAIN_ZENDESK_SSO_TOKEN_SUFFIX_BYTES_LENGTH,
-      );
+    ? toSha256(email).substring(0, EXTENDED_ZENDESK_SSO_TOKEN_SUFFIX_HEX_LENGTH)
+    : await getRandomBytesHex(EXTENDED_ZENDESK_SSO_TOKEN_SUFFIX_BYTES_LENGTH);
   return ExtendedPlainZendeskSSOTokenSchema.parse(
     `${toPlainZendeskSSOToken(token)}${suffix}`,
   );
