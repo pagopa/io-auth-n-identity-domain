@@ -16,6 +16,7 @@ import { err, ok } from "neverthrow";
 import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
 import { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import { OidcConfigPort } from "../../domain/ports/outbound/oidc-config.port.js";
+import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
 import {
   CurrentUser,
   LoginAusiliarData,
@@ -27,12 +28,13 @@ import { LoginType } from "@pagopa/io-auth-n-identity-session";
 type ReserveDeps = {
   ausiliarDataPort: AusiliarDataPort;
   lollipopPort: LollipopPort;
+  oidcClientPort: OidcClientPort;
   oidcConfigPort: OidcConfigPort;
 };
 
 type input = {
   oidcConfigurationEnv: OidcConfigurationEnv;
-  authLevel: SpidAuthLevel;
+  minAuthLevel: SpidAuthLevel;
   lollipopPublicKey: JwkPublicKeyBase64UrlString;
   lollipopHashAlgorithm: LollipopJwkHashingAlgorithm;
   loginType: LoginType;
@@ -44,7 +46,7 @@ type output = {
   state: NonEmptyString;
   nonce: NonEmptyString;
   redirect_uri: NonEmptyString;
-  issuer: NonEmptyString;
+  authorization_endpoint: NonEmptyString;
 };
 
 export const makeReserveUseCase =
@@ -59,11 +61,15 @@ export const makeReserveUseCase =
       return err(oidcConfigResult.error);
     }
 
-    const {
-      clientId,
-      baseUrl: oneIdBaseUrl,
-      redirectUri: clientRedirectUri,
-    } = oidcConfigResult.value;
+    const { clientId, redirectUri: clientRedirectUri } = oidcConfigResult.value;
+
+    const authorizationEndpointResult =
+      await deps.oidcClientPort.getAuthorizationEndpoint(
+        inputData.oidcConfigurationEnv,
+      );
+    if (authorizationEndpointResult.isErr()) {
+      return err(authorizationEndpointResult.error);
+    }
 
     const reserveResult = await deps.lollipopPort.reservePubKey({
       algo: inputData.lollipopHashAlgorithm,
@@ -82,7 +88,7 @@ export const makeReserveUseCase =
     const nonce = randomBytes(24).toString("hex") as NonEmptyString;
 
     const ausiliarData: LoginAusiliarData = {
-      minAuthLevel: inputData.authLevel,
+      minAuthLevel: inputData.minAuthLevel,
       loginType: inputData.loginType,
       currentUser: inputData.currentUser,
       lollipopAssertionRef: reserveResult.value,
@@ -109,6 +115,7 @@ export const makeReserveUseCase =
       state,
       nonce,
       redirect_uri: clientRedirectUri.href as NonEmptyString,
-      issuer: oneIdBaseUrl.href as NonEmptyString,
+      authorization_endpoint: authorizationEndpointResult.value
+        .href as NonEmptyString,
     });
   };
