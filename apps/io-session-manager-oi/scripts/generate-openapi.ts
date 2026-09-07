@@ -126,10 +126,10 @@ const specs: ReadonlyArray<DocumentSpec> = [
       {
         name: "sso",
         description:
-          "Single Sign-On endpoints consumed by downstream backends (BPD).",
+          "BPD Single Sign-On endpoints.",
       },
     ],
-    title: "IO Session Manager OneIdentity — BPD SSO API",
+    title: "Bonus Pagamenti Digitali API for user authentication.",
   },
 ];
 
