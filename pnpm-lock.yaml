@@ -1064,6 +1064,9 @@ importers:
       node-fetch:
         specifier: 'catalog:'
         version: 2.7.0
+      openid-client:
+        specifier: ^6.8.4
+        version: 6.8.4
       passport:
         specifier: 'catalog:'
         version: 0.6.0

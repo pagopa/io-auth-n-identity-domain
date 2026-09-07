@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.27.0
+
+### Minor Changes
+
+- db5d981: Added reserve endpoint
+
 ## 1.26.0
 
 ### Minor Changes
