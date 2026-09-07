@@ -33,6 +33,7 @@ import {
   ZendeskController,
   BPDController,
   PagoPAController,
+  OidcController,
 } from "./controllers";
 import {
   applyErrorMiddleware,
@@ -66,7 +67,10 @@ import {
   PlatformInternalService,
   RedisSessionStorageService,
 } from "./services";
-import { lollipopLoginMiddleware } from "./utils/lollipop";
+import {
+  lollipopLoginMiddleware,
+  lollipopReserveMiddleware,
+} from "./utils/lollipop";
 import { checkIP, withIPFromRequest } from "./utils/network";
 import { expressLollipopMiddleware } from "./utils/lollipop";
 import { bearerZendeskTokenStrategy } from "./auth/bearer-zendesk-token-strategy";
@@ -506,6 +510,23 @@ function setupExternalEndpoints(
         platformInternalAPIClient: APIClients.platformInternalAPIClient,
       }),
       ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
+    ),
+  );
+
+  app.post(
+    `${basePath}/reserve`,
+    toExpressMiddleware(
+      lollipopReserveMiddleware(
+        APIClients.fnLollipopAPIClient,
+        appInsightsClient,
+      ),
+    ),
+    pipe(
+      toExpressHandler({
+        redisClientSelector,
+        appInsightsTelemetryClient: appInsightsClient,
+      }),
+      ap(OidcController.reserveEndpoint),
     ),
   );
 }

@@ -18,6 +18,7 @@ export const sessionInfoKeyPrefix = "SESSIONINFO-";
 export const noticeEmailPrefix = "NOTICEEMAIL-";
 export const blockedUserSetKey = "BLOCKEDUSERS";
 export const lollipopDataPrefix = "KEYS-";
+export const oidcAusiliarDataPrefix = "RESERVE-";
 export const keyPrefixes = [
   sessionKeyPrefix,
   walletKeyPrefix,
@@ -30,6 +31,7 @@ export const keyPrefixes = [
   noticeEmailPrefix,
   blockedUserSetKey,
   lollipopDataPrefix,
+  oidcAusiliarDataPrefix,
 ] as const;
 export const sessionNotFoundError = new Error("Session not found");
 

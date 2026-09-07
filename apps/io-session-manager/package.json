@@ -1,6 +1,6 @@
 {
   "name": "io-session-manager",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "author": "IO Auth & Identity Team",
   "description": "API for IO session",
   "engines": {
@@ -65,6 +65,7 @@
     "monocle-ts": "catalog:",
     "newtype-ts": "catalog:",
     "node-fetch": "catalog:",
+    "openid-client": "^6.8.4",
     "passport": "catalog:",
     "passport-http-bearer": "catalog:",
     "passport-http-custom-bearer": "catalog:",

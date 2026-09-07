@@ -7,6 +7,7 @@ import * as SSOController from "./sso";
 import * as ZendeskController from "./zendesk";
 import * as BPDController from "./bpd";
 import * as PagoPAController from "./pagopa";
+import * as OidcController from "./oidc";
 
 export {
   AuthenticationController,
@@ -18,4 +19,5 @@ export {
   ZendeskController,
   BPDController,
   PagoPAController,
+  OidcController,
 };
