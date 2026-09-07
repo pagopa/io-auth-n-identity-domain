@@ -1,16 +1,14 @@
-import {
-  NonEmptyStringSchema,
-  type NonEmptyStringBrand,
-} from "@pagopa/hexagonal-core";
 import { z } from "zod";
+
+const Base64UrlZodSchema = z.base64url();
 
 /**
  * A non-empty Base64url-encoded string (RFC 4648 §5, unpadded).
  */
-export const Base64UrlStringSchema = NonEmptyStringSchema.regex(
-  /^[A-Za-z0-9_-]+$/,
-  { message: "Invalid Base64url string" },
-);
+export const Base64UrlStringSchema = Base64UrlZodSchema.nonempty().meta({
+  format: Base64UrlZodSchema.def.format,
+  pattern: Base64UrlZodSchema.def.pattern?.source,
+});
 
 export type Base64UrlString = z.infer<typeof Base64UrlStringSchema>;
 

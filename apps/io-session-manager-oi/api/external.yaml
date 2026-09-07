@@ -63,7 +63,8 @@ components:
         lollipop_pub_key:
           type: string
           minLength: 1
-          pattern: ^[A-Za-z0-9_-]+$
+          format: base64url
+          pattern: ^[A-Za-z0-9_-]*$
           description: The Lollipop public key, encoded as a Base64url JSON JWK.
         lollipop_hash_algo:
           $ref: "#/components/schemas/LollipopHashAlgorithm"
@@ -120,17 +121,26 @@ components:
         lollipopAssertionRef:
           oneOf:
             - type: string
+              pattern: ^sha256-[A-Za-z0-9_-]{43}$
             - type: string
+              pattern: ^sha384-[A-Za-z0-9_-]{64}$
             - type: string
+              pattern: ^sha512-[A-Za-z0-9_-]{86}$
         walletToken:
           type: string
+          format: sha256_hex
+          pattern: ^[0-9a-fA-F]{64}$
         bpdToken:
           type: string
+          format: sha256_hex
+          pattern: ^[0-9a-fA-F]{64}$
         zendeskToken:
           type: string
-          pattern: ^[a-fA-F0-9]{72}$
+          pattern: ^[0-9a-fA-F]{64}[0-9a-fA-F]{8}$
         fimsToken:
           type: string
+          format: sha256_hex
+          pattern: ^[0-9a-fA-F]{64}$
       description: The public session data that can be retrieved by the client
     FieldsFilter:
       type: string
