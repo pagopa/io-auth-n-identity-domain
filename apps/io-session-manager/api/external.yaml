@@ -306,6 +306,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
+  /reserve:
+    post:
+      operationId: reserve
+      summary: Reserve an OIDC authorization request
+      security: [] # Authentication not needed for this operation
+      description: Prepares (reserves) an authorization request for the Lollipop-bound client and returns the parameters needed to start the login flow with the selected OneIdentity environment.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReserveRequest"
+      responses:
+        "200":
+          description: Lollipop Key has been reserved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReserveResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
 components:
   parameters:
     EntityId:
@@ -464,6 +501,82 @@ components:
           $ref: "#/components/schemas/Nonce"
       required:
         - nonce
+    ReserveRequest:
+      type: object
+      properties:
+        env:
+          $ref: "#/components/schemas/OidcConfigurationEnv"
+        min_auth_level:
+          $ref: "#/components/schemas/SpidAuthLevel"
+        lollipop_pub_key:
+          type: string
+          minLength: 1
+          pattern: ^[A-Za-z0-9_-]+$
+          description: The Lollipop public key, encoded as a Base64url JSON JWK.
+        lollipop_hash_algo:
+          $ref: "#/components/schemas/LollipopHashAlgorithm"
+        login_type:
+          $ref: "#/components/schemas/LoginType"
+        current_user:
+          type: string
+          minLength: 1
+          description: Optional identifier of the user currently logged in.
+      required:
+        - env
+        - min_auth_level
+        - lollipop_pub_key
+      description: Parameters needed to reserve a Lollipop public key and start the OIDC authorization flow.
+    OidcConfigurationEnv:
+      type: string
+      description: The OneIdentity configuration environment.
+      enum:
+        - UAT
+        - PROD
+    SpidAuthLevel:
+      type: string
+      description: The SPID authentication level requested for the OIDC login flow.
+      enum:
+        - SpidL2
+        - SpidL3
+    LollipopHashAlgorithm:
+      type: string
+      enum:
+        - sha256
+        - sha384
+        - sha512
+      default: sha256
+      description: Hashing algorithm used to compute the JWK thumbprint of the Lollipop public key.
+    LoginType:
+      type: string
+      description: Used by IO to force the login using the LEGACY behavior.
+      enum:
+        - LV
+        - LEGACY
+    ReserveResponse:
+      type: object
+      properties:
+        client_id:
+          type: string
+          minLength: 1
+        state:
+          type: string
+          minLength: 1
+        nonce:
+          type: string
+          minLength: 1
+        redirect_uri:
+          type: string
+          minLength: 1
+        authorization_endpoint:
+          type: string
+          minLength: 1
+      required:
+        - client_id
+        - state
+        - nonce
+        - redirect_uri
+        - authorization_endpoint
+      description: The parameters needed to start the OIDC authorization flow.
     SpidLevel:
       type: string
       description: A SPID level.
