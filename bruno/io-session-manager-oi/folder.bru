@@ -1,8 +1,11 @@
 meta {
   name: io-session-manager-oi
-  seq: 8
 }
 
 auth {
-  mode: inherit
+  mode: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
 }
