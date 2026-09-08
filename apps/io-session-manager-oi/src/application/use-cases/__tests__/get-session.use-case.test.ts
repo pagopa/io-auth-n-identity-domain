@@ -27,6 +27,11 @@ import {
   makeGetSessionUseCase,
 } from "../get-session.use-case.js";
 
+type SessionField =
+  GetSessionInput["fieldsFilter"] extends ReadonlySet<infer Field>
+    ? Field
+    : never;
+
 const mocks = vi.hoisted(() => {
   const anExtendedZendeskToken = "aExtendedZendeskToken";
   const anHashedSessionToken = "anHashedSessionToken";
@@ -177,7 +182,7 @@ describe("makeGetSessionUseCase", () => {
       },
     },
   ] as const satisfies ReadonlyArray<{
-    field: GetSessionInput["fieldsFilter"][number];
+    field: SessionField;
     expectedValue: unknown;
     checkExpectations: () => void;
   }>;
@@ -194,7 +199,7 @@ describe("makeGetSessionUseCase", () => {
       const input = {
         sessionId: aSessionId,
         sessionToken: aPlainSessionToken,
-        fieldsFilter: [field],
+        fieldsFilter: new Set([field]),
       } satisfies GetSessionInput;
 
       // when
@@ -225,7 +230,7 @@ describe("makeGetSessionUseCase", () => {
     const input = {
       sessionId: aSessionId,
       sessionToken: aPlainSessionToken,
-      fieldsFilter: ["lollipopAssertionRef"] as const,
+      fieldsFilter: new Set(["lollipopAssertionRef"] as const),
     } satisfies GetSessionInput;
 
     // when
@@ -246,7 +251,7 @@ describe("makeGetSessionUseCase", () => {
     const input = {
       sessionId: aSessionId,
       sessionToken: aPlainSessionToken,
-      fieldsFilter: ["zendeskToken"] as const,
+      fieldsFilter: new Set(["zendeskToken"] as const),
     } satisfies GetSessionInput;
 
     // when
@@ -281,7 +286,7 @@ describe("makeGetSessionUseCase", () => {
       const input = {
         sessionId: aSessionId,
         sessionToken: aPlainSessionToken,
-        fieldsFilter: ["zendeskToken"] as const,
+        fieldsFilter: new Set(["zendeskToken"] as const),
       } satisfies GetSessionInput;
 
       // when
@@ -305,7 +310,7 @@ describe("makeGetSessionUseCase", () => {
     const input = {
       sessionId: aSessionId,
       sessionToken: aPlainSessionToken,
-      fieldsFilter: ["spidLevel"] as const,
+      fieldsFilter: new Set(["spidLevel"] as const),
     } satisfies GetSessionInput;
 
     // when
@@ -324,7 +329,7 @@ describe("makeGetSessionUseCase", () => {
     const input = {
       sessionId: aSessionId,
       sessionToken: aPlainSessionToken,
-      fieldsFilter: ["spidLevel"] as const,
+      fieldsFilter: new Set(["spidLevel"] as const),
     } satisfies GetSessionInput;
 
     // when
@@ -347,7 +352,7 @@ describe("makeGetSessionUseCase", () => {
     const input = {
       sessionId: aSessionId,
       sessionToken: aPlainSessionToken,
-      fieldsFilter: ["lollipopAssertionRef"] as const,
+      fieldsFilter: new Set(["lollipopAssertionRef"] as const),
     } satisfies GetSessionInput;
 
     // when

@@ -54,11 +54,15 @@ describe("GetSessionInputDTO", () => {
     const allSessionFields = GetSessionOutputDTO.keyof().options;
 
     it.each([
-      ["(spidLevel,walletToken)", ["spidLevel", "walletToken"]],
-      ["(spidLevel, walletToken)", ["spidLevel", "walletToken"]],
+      ["(spidLevel,walletToken)", new Set(["spidLevel", "walletToken"])],
+      ["(spidLevel, walletToken)", new Set(["spidLevel", "walletToken"])],
+      [
+        "(spidLevel,walletToken,spidLevel)",
+        new Set(["spidLevel", "walletToken"]),
+      ],
       [
         "(spidLevel,expirationDate,lollipopAssertionRef,walletToken,bpdToken,zendeskToken,fimsToken)",
-        [
+        new Set([
           "spidLevel",
           "expirationDate",
           "lollipopAssertionRef",
@@ -66,9 +70,9 @@ describe("GetSessionInputDTO", () => {
           "bpdToken",
           "zendeskToken",
           "fimsToken",
-        ],
+        ]),
       ],
-      [undefined, allSessionFields],
+      [undefined, new Set(allSessionFields)],
     ])("parses fields %s", (fields, expected) => {
       const parsed = GetSessionInputDTO.query.parse({ fields });
       const typedFields: FieldsQueryParam = parsed.fields;
@@ -80,7 +84,7 @@ describe("GetSessionInputDTO", () => {
       "returns all session fields when fields is not valued: %o",
       (query) => {
         expect(GetSessionInputDTO.query.parse(query).fields).toEqual(
-          allSessionFields,
+          new Set(allSessionFields),
         );
       },
     );
@@ -89,9 +93,14 @@ describe("GetSessionInputDTO", () => {
       "",
       "()",
       "( )",
+      "(, )",
       "spidLevel,walletToken",
+      " (spidLevel)",
+      "(spidLevel) ",
+      " (spidLevel) ",
       "(,spidLevel)",
       "(spidLevel,)",
+      "(spidLevel, )",
       "(spidLevel,,walletToken)",
       "(spidLevel.walletToken)",
       "(rootField(nestedField))",

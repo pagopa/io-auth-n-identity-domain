@@ -33,12 +33,12 @@ const FieldsQueryParamSchema = z
   .transform((fields) =>
     fields
       .slice(1, -1) // Remove the surrounding parentheses
-      .trim()
       .split(",")
       .map((field) => field.trim()),
   )
-  .pipe(z.array(SessionFieldSchema).min(1))
-  .default(SessionFieldSchema.options);
+  .pipe(SessionFieldSchema.array().min(1))
+  .default(SessionFieldSchema.options)
+  .transform((fields) => new Set(fields)); // Converts the array of field names into a Set for easier lookup and uniqueness
 export type FieldsQueryParam = z.infer<typeof FieldsQueryParamSchema>;
 
 const BearerSessionTokenSchema = z
