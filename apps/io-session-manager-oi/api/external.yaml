@@ -136,7 +136,7 @@ components:
           pattern: ^[0-9a-fA-F]{64}$
         zendeskToken:
           type: string
-          pattern: ^[0-9a-fA-F]{64}[0-9a-fA-F]{8}$
+          pattern: "[0-9a-fA-F]{72}$"
         fimsToken:
           type: string
           format: sha256_hex

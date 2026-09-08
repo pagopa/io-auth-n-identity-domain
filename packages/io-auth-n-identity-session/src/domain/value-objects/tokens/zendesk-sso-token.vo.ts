@@ -1,8 +1,5 @@
 import { EmailAddress } from "@pagopa/hexagonal-core";
-import {
-  HEX_CHAR_PATTERN,
-  Sha256HexPattern,
-} from "@pagopa/io-auth-n-identity-domain";
+import { HEX_CHAR_PATTERN } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
 import {
   getRandomBytesHex,
@@ -11,9 +8,12 @@ import {
 } from "../../../utils/hash.js";
 import { PlainSessionToken } from "./session-token.vo.js";
 
+const SHA256_HEX_LENGTH = 64;
 const EXT_ZENDESK_SSO_TOKEN_SUFFIX_BYTES_LENGTH = 4;
 const EXT_ZENDESK_SSO_TOKEN_SUFFIX_HEX_LENGTH =
   EXT_ZENDESK_SSO_TOKEN_SUFFIX_BYTES_LENGTH * 2;
+const EXT_ZENDESK_SSO_TOKEN_HEX_LENGTH =
+  SHA256_HEX_LENGTH + EXT_ZENDESK_SSO_TOKEN_SUFFIX_HEX_LENGTH;
 
 // ------------------------------------------------------------------------------
 // Plain Zendesk SSO Token Value Object
@@ -37,9 +37,7 @@ export declare const _extendedPlainZendeskSSOTokenBrand: unique symbol;
 export const ExtendedPlainZendeskSSOTokenSchema = z
   .string()
   .regex(
-    new RegExp(
-      `${Sha256HexPattern.source.slice(0, -1)}${HEX_CHAR_PATTERN}{${EXT_ZENDESK_SSO_TOKEN_SUFFIX_HEX_LENGTH}}$`,
-    ),
+    new RegExp(`${HEX_CHAR_PATTERN}{${EXT_ZENDESK_SSO_TOKEN_HEX_LENGTH}}$`),
   )
   .brand<typeof _extendedPlainZendeskSSOTokenBrand>();
 
