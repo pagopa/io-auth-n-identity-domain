@@ -74,7 +74,7 @@ beforeEach(() => {
 describe("makeGetSessionUseCase", () => {
   const lollipopActivation = {
     fiscalCode: aFiscalCode,
-    assertionRef: "sha256-assertion-ref",
+    assertionRef: `sha256-${"a".repeat(43)}`,
     expirationDate: new Date("2100-01-01"),
   };
 
