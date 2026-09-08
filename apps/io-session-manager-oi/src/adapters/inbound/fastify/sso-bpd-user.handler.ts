@@ -20,12 +20,6 @@ const ssoBpdUserContract = defineRoute({
   description:
     "Returns the BPD user identified by the `<sessionId>.<plainBpdSSOToken>` token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`.",
   tags: ["sso"],
-  // Bearer credential is validated by the use case; source IP allowlist is enforced by the check-ip hook.
-  security: [
-    {
-      bearerAuth: [],
-    },
-  ],
   response: {
     200: {
       description: "The BPD user for the provided session token",
@@ -45,6 +39,7 @@ const ssoBpdUserContract = defineRoute({
       schema: ProblemJson,
     },
   },
+  // TODO: add security schemes for the OpenAPI documentation.
 });
 
 export type SsoBpdUserHandlerDeps = {
