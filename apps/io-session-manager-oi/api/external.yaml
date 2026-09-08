@@ -269,6 +269,7 @@ paths:
   /session:
     get:
       operationId: getSession
+      security: []
       parameters:
         - schema:
             $ref: "#/components/schemas/FieldsFilter"
@@ -277,8 +278,17 @@ paths:
           name: fields
           in: query
         - schema:
-            type: string
-            pattern: ^Bearer [^.]+\.[^.]+$
+            type: object
+            properties:
+              sessionId:
+                type: string
+                minLength: 1
+              sessionToken:
+                type: string
+                minLength: 1
+            required:
+              - sessionId
+              - sessionToken
           required: true
           name: authorization
           in: header

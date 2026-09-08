@@ -7,6 +7,8 @@ import {
   SessionIdSchema,
 } from "@pagopa/io-auth-n-identity-session";
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
+import { createBearerTokenSchema } from "../../bearer-token.js";
 import {
   FieldsQueryParam,
   GetSessionInputDTO,
@@ -15,6 +17,19 @@ import {
 
 describe("GetSessionInputDTO", () => {
   describe("headers", () => {
+    it("accepts a custom Zod schema for the session token", () => {
+      const sessionId = SessionIdSchema.parse("aSessionId");
+      const schema = createBearerTokenSchema(z.literal("aCustomSessionToken"));
+
+      expect(schema.parse(`Bearer ${sessionId}.aCustomSessionToken`)).toEqual({
+        sessionId,
+        sessionToken: "aCustomSessionToken",
+      });
+      expect(
+        schema.safeParse(`Bearer ${sessionId}.aDifferentSessionToken`).success,
+      ).toBe(false);
+    });
+
     it("decodes a Bearer authorization header into its typed tokens", () => {
       const sessionId = SessionIdSchema.parse("aSessionId");
       const sessionToken = PlainSessionTokenSchema.parse("aPlainSessionToken");

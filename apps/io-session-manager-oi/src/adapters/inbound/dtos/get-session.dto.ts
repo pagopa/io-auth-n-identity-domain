@@ -5,10 +5,10 @@ import {
   PlainFimsSSOTokenSchema,
   PlainSessionTokenSchema,
   PlainWalletSSOTokenSchema,
-  SessionIdSchema,
   SpidLevelSchema,
 } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
+import { createBearerTokenSchema } from "../bearer-token.js";
 
 export const GetSessionOutputDTO = z
   .object({
@@ -41,21 +41,9 @@ const FieldsQueryParamSchema = z
   .transform((fields) => new Set(fields)); // Converts the array of field names into a Set for easier lookup and uniqueness
 export type FieldsQueryParam = z.infer<typeof FieldsQueryParamSchema>;
 
-const BearerSessionTokenSchema = z
-  .string()
-  .regex(/^Bearer [^.]+\.[^.]+$/) // Matches a string that starts with "Bearer " followed by two non-empty strings separated by a dot
-  .transform((authorization) => {
-    const [sessionId, sessionToken] = authorization
-      .slice("Bearer ".length)
-      .split(".");
-    return { sessionId, sessionToken };
-  })
-  .pipe(
-    z.object({
-      sessionId: SessionIdSchema,
-      sessionToken: PlainSessionTokenSchema,
-    }),
-  );
+const BearerSessionTokenSchema = createBearerTokenSchema(
+  PlainSessionTokenSchema,
+);
 
 /**
  * Request schema for the GET /session endpoint.
