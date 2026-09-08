@@ -9,7 +9,6 @@ import {
   COSMOSDB_URI,
   IO_PROFILE_API_KEY,
   IO_PROFILE_BASE_URL,
-  PLATFORM_INTERNAL_API_KEY,
   PLATFORM_INTERNAL_BASE_URL,
   SESSION_TOKEN_CONTAINER_NAME,
 } from "../env.js";
@@ -50,7 +49,6 @@ const adapter = createIoProfileAdapter({
 });
 const platformInternalAdapter = createPlatformInternalAdapter({
   baseUrl: PLATFORM_INTERNAL_BASE_URL,
-  apiKey: PLATFORM_INTERNAL_API_KEY,
 });
 
 const activateUserSession = makeActivateUserSessionUseCase(
