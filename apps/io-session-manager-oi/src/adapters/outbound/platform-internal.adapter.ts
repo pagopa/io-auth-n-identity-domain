@@ -11,13 +11,9 @@ import type {
 
 export const createPlatformInternalAdapter = (config: {
   baseUrl: string;
-  apiKey: string;
 }): PlatformInternalPort => {
   const client = createClient({
     baseUrl: config.baseUrl,
-    headers: {
-      "X-Functions-Key": config.apiKey,
-    },
   });
 
   return {

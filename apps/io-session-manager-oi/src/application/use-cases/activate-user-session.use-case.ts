@@ -72,47 +72,14 @@ export const makeActivateUserSessionUseCase =
       newSessionWithPlainTokens,
     );
 
-    // TODO: invalidate installation id
-
-    // TODO: invalidate lollipop key
-    const invalidateResult = await userSessions.invalidatePreviousSession(
+    const invalidationResult = await invalidatePreviousUserState(
+      userSessions,
+      platformInternal,
       input.fiscalCode,
     );
 
-    if (invalidateResult.isErr()) {
-      return err(
-        new GenericError(
-          `Failed to invalidate previous sessions: ${invalidateResult.error.message}`,
-        ),
-      );
-    }
-
-    if (invalidateResult.value !== undefined) {
-      const hashedClientSessionTokenResult =
-        HashedClientSessionTokenSchema.safeParse(
-          `${invalidateResult.value.sessionId}.${invalidateResult.value.hashedSessionToken}`,
-        );
-
-      // This should never happen, but we check it just in case, to avoid sending an invalid token to the platform-internal service.
-      if (!hashedClientSessionTokenResult.success) {
-        return err(
-          new GenericError(
-            `Failed to parse hashed client session token: ${hashedClientSessionTokenResult.error.message}`,
-          ),
-        );
-      }
-
-      const proxyResult = await platformInternal.deleteSession(
-        hashedClientSessionTokenResult.data,
-      );
-
-      if (proxyResult.isErr()) {
-        return err(
-          new GenericError(
-            `Failed to invalidate previous session on proxy: ${proxyResult.error.message}`,
-          ),
-        );
-      }
+    if (invalidationResult.isErr()) {
+      return err(invalidationResult.error);
     }
 
     // Retrieve user profile, if exists, or create a new one with the provided data.
@@ -171,6 +138,61 @@ export const makeActivateUserSessionUseCase =
 // ----------------
 // Private helper functions
 // ----------------
+
+const invalidatePreviousUserState = async (
+  userSessions: SessionPort,
+  platformInternal: PlatformInternalPort,
+  fiscalCode: NewSessionToken["fiscalCode"],
+): Promise<Result<void, GenericError>> => {
+  // TODO: invalidate installation id
+
+  // TODO: invalidate lollipop key
+
+  const previousSessionInvalidationResult =
+    await userSessions.invalidatePreviousSession(fiscalCode);
+
+  if (previousSessionInvalidationResult.isErr()) {
+    return err(
+      new GenericError(
+        `Failed to invalidate previous sessions: ${previousSessionInvalidationResult.error.message}`,
+      ),
+    );
+  }
+
+  const previousHashedSession = previousSessionInvalidationResult.value;
+
+  if (previousHashedSession === undefined) {
+    return ok(undefined);
+  }
+
+  const hashedClientSessionTokenParseResult =
+    HashedClientSessionTokenSchema.safeParse(
+      `${previousHashedSession.sessionId}.${previousHashedSession.hashedSessionToken}`,
+    );
+
+  // This should never happen, but we check it just in case, to avoid sending an invalid token to the platform-internal service.
+  if (!hashedClientSessionTokenParseResult.success) {
+    return err(
+      new GenericError(
+        `Failed to parse hashed client session token: ${hashedClientSessionTokenParseResult.error.message}`,
+      ),
+    );
+  }
+
+  const cachedSessionInvalidationResult = await platformInternal.deleteSession(
+    hashedClientSessionTokenParseResult.data,
+  );
+
+  if (cachedSessionInvalidationResult.isErr()) {
+    return err(
+      new GenericError(
+        `Failed to invalidate previous session on proxy: ${cachedSessionInvalidationResult.error.message}`,
+      ),
+    );
+  }
+
+  return ok(undefined);
+};
 
 const getOrCreateProfile = async (
   profiles: ProfilePort,
