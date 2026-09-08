@@ -126,8 +126,10 @@ export const makeGetSessionUseCase =
           break;
         default: {
           const _exhaustiveCheck: never = field;
-          throw new GenericError(
-            "An unexpected error occurred while retrieving the session field data",
+          return err(
+            new GenericError(
+              "An unexpected error occurred while retrieving the session field data",
+            ),
           );
         }
       }
