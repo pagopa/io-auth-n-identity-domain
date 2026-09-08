@@ -143,6 +143,14 @@ variable "io_session_manager_internal" {
   description = "Configuration for IO Session Manager Internal service"
 }
 
+variable "platform_proxy" {
+  type = object({
+    base_url  = string
+    base_path = string
+  })
+  description = "Configuration for Platform Proxy Internal API"
+}
+
 variable "session_cosmos" {
   type = object({
     account_uri         = string
