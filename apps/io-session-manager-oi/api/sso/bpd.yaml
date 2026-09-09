@@ -57,9 +57,7 @@ paths:
       parameters:
         - schema:
             type: string
-            description: "`Bearer <sessionId>.<plainBpdSSOToken>` authorization header."
-          required: false
-          description: "`Bearer <sessionId>.<plainBpdSSOToken>` authorization header."
+          required: true
           name: authorization
           in: header
       responses:

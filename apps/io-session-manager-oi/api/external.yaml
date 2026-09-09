@@ -63,7 +63,8 @@ components:
         lollipop_pub_key:
           type: string
           minLength: 1
-          pattern: ^[A-Za-z0-9_-]+$
+          format: base64url
+          pattern: ^[A-Za-z0-9_-]*$
           description: The Lollipop public key, encoded as a Base64url JSON JWK.
         lollipop_hash_algo:
           $ref: "#/components/schemas/LollipopHashAlgorithm"
