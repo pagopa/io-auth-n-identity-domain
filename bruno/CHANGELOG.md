@@ -1,5 +1,11 @@
 # io-auth-n-identity-bruno-collections
 
+## 0.4.1
+
+### Patch Changes
+
+- 55db1f1: implement getSession handler and use case and mount it to fastify server
+
 ## 0.4.0
 
 ### Minor Changes
