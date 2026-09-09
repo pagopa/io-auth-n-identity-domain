@@ -15,36 +15,38 @@ export const createBearerTokenSchema = <
 >(
   sessionTokenSchema: SessionTokenSchema,
 ) =>
-  z.preprocess(
-    (value, context) => {
-      if (typeof value !== "string" || !value.startsWith(BearerPrefix)) {
-        context.addIssue({
-          code: "custom",
-          message: "Invalid Bearer authorization header",
-        });
-        return z.NEVER;
-      }
+  z
+    .preprocess(
+      (value, context) => {
+        if (typeof value !== "string" || !value.startsWith(BearerPrefix)) {
+          context.addIssue({
+            code: "custom",
+            message: "Invalid Bearer authorization header",
+          });
+          return z.NEVER;
+        }
 
-      const bearerValue = value.slice(BearerPrefix.length);
-      const separatorIndex = bearerValue.indexOf(".");
-      if (
-        separatorIndex <= 0 ||
-        separatorIndex === bearerValue.length - 1 ||
-        separatorIndex !== bearerValue.lastIndexOf(".")
-      ) {
-        context.addIssue({
-          code: "custom",
-          message: "Invalid Bearer authorization header",
-        });
-        return z.NEVER;
-      }
+        const bearerValue = value.slice(BearerPrefix.length);
+        const separatorIndex = bearerValue.indexOf(".");
+        if (
+          separatorIndex <= 0 ||
+          separatorIndex === bearerValue.length - 1 ||
+          separatorIndex !== bearerValue.lastIndexOf(".")
+        ) {
+          context.addIssue({
+            code: "custom",
+            message: "Invalid Bearer authorization header",
+          });
+          return z.NEVER;
+        }
 
-      const sessionId = bearerValue.slice(0, separatorIndex);
-      const sessionToken = bearerValue.slice(separatorIndex + 1);
-      return { sessionId, sessionToken };
-    },
-    z.object({
-      sessionId: SessionIdSchema,
-      sessionToken: sessionTokenSchema,
-    }),
-  );
+        const sessionId = bearerValue.slice(0, separatorIndex);
+        const sessionToken = bearerValue.slice(separatorIndex + 1);
+        return { sessionId, sessionToken };
+      },
+      z.object({
+        sessionId: SessionIdSchema,
+        sessionToken: sessionTokenSchema,
+      }),
+    )
+    .meta({ type: "string" });

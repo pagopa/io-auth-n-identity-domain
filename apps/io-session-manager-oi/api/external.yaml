@@ -278,17 +278,7 @@ paths:
           name: fields
           in: query
         - schema:
-            type: object
-            properties:
-              sessionId:
-                type: string
-                minLength: 1
-              sessionToken:
-                type: string
-                minLength: 1
-            required:
-              - sessionId
-              - sessionToken
+            type: string
           required: true
           name: authorization
           in: header
