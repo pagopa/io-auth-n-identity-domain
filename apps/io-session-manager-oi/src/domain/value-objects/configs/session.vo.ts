@@ -5,19 +5,18 @@ import { z } from "zod"; /**
  * Consists of the database name and the container names used by the
  * SessionCosmosAdapter to store session tokens and active sessions.
  */
+import {
+  CosmosDevelopmentConfigSchema,
+  CosmosProductionConfigSchema,
+} from "./cosmos.vo.js";
 
 const SessionCosmosBaseConfigSchema = z.object({
-  COSMOSDB_NAME: NonEmptyStringSchema,
   COSMOSDB_SESSION_TOKEN_CONTAINER_NAME: NonEmptyStringSchema,
   COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME: NonEmptyStringSchema,
 });
 
 export const SessionCosmosProductionConfigSchema =
-  SessionCosmosBaseConfigSchema.extend({
-    COSMOSDB_URI: z.url(),
-  });
+  CosmosProductionConfigSchema.extend(SessionCosmosBaseConfigSchema.shape);
 
 export const SessionCosmosDevelopmentConfigSchema =
-  SessionCosmosBaseConfigSchema.extend({
-    COSMOSDB_CONNECTION_STRING: NonEmptyStringSchema,
-  });
+  CosmosDevelopmentConfigSchema.extend(SessionCosmosBaseConfigSchema.shape);

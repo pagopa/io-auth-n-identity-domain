@@ -1,0 +1,129 @@
+import type {
+  PlainSessionToken,
+  SessionId,
+} from "@pagopa/io-auth-n-identity-session";
+import {
+  PlainSessionTokenSchema,
+  SessionIdSchema,
+} from "@pagopa/io-auth-n-identity-session";
+import { describe, expect, it } from "vitest";
+import { z } from "zod";
+import { createBearerTokenSchema } from "../../bearer-token.js";
+import {
+  FieldsQueryParam,
+  GetSessionInputDTO,
+  GetSessionOutputDTO,
+} from "../get-session.dto.js";
+
+describe("GetSessionInputDTO", () => {
+  describe("headers", () => {
+    it("accepts a custom Zod schema for the session token", () => {
+      const sessionId = SessionIdSchema.parse("aSessionId");
+      const schema = createBearerTokenSchema(z.literal("aCustomSessionToken"));
+
+      expect(schema.parse(`Bearer ${sessionId}.aCustomSessionToken`)).toEqual({
+        sessionId,
+        sessionToken: "aCustomSessionToken",
+      });
+      expect(
+        schema.safeParse(`Bearer ${sessionId}.aDifferentSessionToken`).success,
+      ).toBe(false);
+    });
+
+    it("decodes a Bearer authorization header into its typed tokens", () => {
+      const sessionId = SessionIdSchema.parse("aSessionId");
+      const sessionToken = PlainSessionTokenSchema.parse("aPlainSessionToken");
+      const parsed = GetSessionInputDTO.headers.parse({
+        authorization: `Bearer ${sessionId}.${sessionToken}`,
+      });
+      const typedSessionId: SessionId = parsed.authorization.sessionId;
+      const typedSessionToken: PlainSessionToken =
+        parsed.authorization.sessionToken;
+
+      expect({
+        sessionId: typedSessionId,
+        sessionToken: typedSessionToken,
+      }).toEqual({
+        sessionId,
+        sessionToken,
+      });
+    });
+
+    it.each([
+      "aPlainSessionToken",
+      "Bearer",
+      "Bearer ",
+      "Bearer aSessionId",
+      "Bearer .aPlainSessionToken",
+      "Bearer aSessionId.",
+      "Bearer aSessionId.aPlainSessionToken.extra",
+      "bearer aPlainSessionToken",
+      "Basic aPlainSessionToken",
+    ])("rejects an invalid authorization header: %s", (authorization) => {
+      expect(
+        GetSessionInputDTO.headers.safeParse({ authorization }).success,
+      ).toBe(false);
+    });
+  });
+  describe("query", () => {
+    const allSessionFields = GetSessionOutputDTO.keyof().options;
+
+    it.each([
+      ["(spidLevel,walletToken)", new Set(["spidLevel", "walletToken"])],
+      ["(spidLevel, walletToken)", new Set(["spidLevel", "walletToken"])],
+      [
+        "(spidLevel,walletToken,spidLevel)",
+        new Set(["spidLevel", "walletToken"]),
+      ],
+      [
+        "(spidLevel,expirationDate,lollipopAssertionRef,walletToken,bpdToken,zendeskToken,fimsToken)",
+        new Set([
+          "spidLevel",
+          "expirationDate",
+          "lollipopAssertionRef",
+          "walletToken",
+          "bpdToken",
+          "zendeskToken",
+          "fimsToken",
+        ]),
+      ],
+      [undefined, new Set(allSessionFields)],
+    ])("parses fields %s", (fields, expected) => {
+      const parsed = GetSessionInputDTO.query.parse({ fields });
+      const typedFields: FieldsQueryParam = parsed.fields;
+
+      expect(typedFields).toEqual(expected);
+    });
+
+    it.each([{}, { fields: undefined }])(
+      "returns all session fields when fields is not valued: %o",
+      (query) => {
+        expect(GetSessionInputDTO.query.parse(query).fields).toEqual(
+          new Set(allSessionFields),
+        );
+      },
+    );
+
+    it.each([
+      "",
+      "()",
+      "( )",
+      "(, )",
+      "spidLevel,walletToken",
+      " (spidLevel)",
+      "(spidLevel) ",
+      " (spidLevel) ",
+      "(,spidLevel)",
+      "(spidLevel,)",
+      "(spidLevel, )",
+      "(spidLevel,,walletToken)",
+      "(spidLevel.walletToken)",
+      "(rootField(nestedField))",
+      "(unknownField)",
+    ])("rejects malformed fields %s", (fields) => {
+      expect(GetSessionInputDTO.query.safeParse({ fields }).success).toBe(
+        false,
+      );
+    });
+  });
+});

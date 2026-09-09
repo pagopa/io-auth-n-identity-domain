@@ -5,7 +5,10 @@ import { ServiceBusClient } from "@azure/service-bus";
 import { QueueServiceClient } from "@azure/storage-queue";
 import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
 import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
-import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
+import {
+  LollipopActivationCosmosAdapter,
+  SessionCosmosAdapter,
+} from "@pagopa/io-auth-n-identity-session/adapters";
 import { type PackageInfo } from "@pagopa/io-package-info";
 import {
   createRedisClusterClient,
@@ -16,6 +19,7 @@ import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
 import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
+import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
@@ -29,6 +33,7 @@ import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profi
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
+import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
@@ -58,8 +63,9 @@ export const createApp = async (
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
   });
 
-  // Expose the resolved client IP to hexagonal middlewares via `x-client-ip`.
-  server.addHook("onRequest", normalizeClientIpHook);
+  // --------------------------------------------------
+  // Clients initialization
+  // --------------------------------------------------
 
   const lockedProfilesTableClient =
     config.NODE_ENV === "production"
@@ -72,12 +78,6 @@ export const createApp = async (
           config.LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
           config.LOCKED_PROFILES_TABLE_NAME,
         );
-  const lockedProfilesAdapter = new LockedProfilesDataTableAdapter(
-    new TableClientWrapper(
-      lockedProfilesTableClient,
-      LockedProfilesDataTableAdapter.schema,
-    ),
-  );
 
   const pushNotificationsQueueServiceClient =
     config.NODE_ENV === "production"
@@ -88,11 +88,6 @@ export const createApp = async (
       : QueueServiceClient.fromConnectionString(
           config.PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING,
         );
-  const notificationStorageQueueAdapter = new NotificationStorageQueueAdapter(
-    pushNotificationsQueueServiceClient.getQueueClient(
-      config.PUSH_NOTIFICATIONS_QUEUE_NAME,
-    ),
-  );
 
   const redisClient =
     config.NODE_ENV === "production"
@@ -111,12 +106,6 @@ export const createApp = async (
           enableTls: config.REDIS_TLS_ENABLED,
         });
 
-  const blockedUsersAdapter = new BlockedUsersRedisAdapter(
-    // Both generics are inferred from the constructor arguments:
-    // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
-    new RedisSetWrapper(redisClient, FiscalCodeSchema),
-  );
-
   const cosmosClient =
     config.NODE_ENV === "production"
       ? new CosmosClient({
@@ -124,6 +113,37 @@ export const createApp = async (
           aadCredentials: AzureCredential.getInstance(),
         })
       : new CosmosClient(config.COSMOSDB_CONNECTION_STRING);
+
+  const serviceBusClient =
+    config.NODE_ENV === "production"
+      ? new ServiceBusClient(
+          config.SERVICE_BUS_HOSTNAME,
+          AzureCredential.getInstance(),
+        )
+      : new ServiceBusClient(config.SERVICE_BUS_CONNECTION_STRING);
+
+  // --------------------------------------------------
+  // Adapters initialization
+  // --------------------------------------------------
+
+  const lockedProfilesAdapter = new LockedProfilesDataTableAdapter(
+    new TableClientWrapper(
+      lockedProfilesTableClient,
+      LockedProfilesDataTableAdapter.schema,
+    ),
+  );
+
+  const notificationStorageQueueAdapter = new NotificationStorageQueueAdapter(
+    pushNotificationsQueueServiceClient.getQueueClient(
+      config.PUSH_NOTIFICATIONS_QUEUE_NAME,
+    ),
+  );
+
+  const blockedUsersAdapter = new BlockedUsersRedisAdapter(
+    // Both generics are inferred from the constructor arguments:
+    // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
+    new RedisSetWrapper(redisClient, FiscalCodeSchema),
+  );
 
   const sessionCosmosAdapter = new SessionCosmosAdapter(
     cosmosClient,
@@ -161,10 +181,23 @@ export const createApp = async (
     oidcConfigAdapter,
     config.ONEID_HTTP_TIMEOUT_SECONDS,
   );
-
   // Warm up OIDC discovery (metadata + JWKS) so the cost is paid at startup
   // Best-effort: never blocks boot on a provider outage — the lazy path retries on demand.
   await oidcExchangeAdapter.warmUp(new Set(["PROD", "UAT"]));
+
+  const authEventServiceBusAdapter = new AuthEventServiceBusAdapter(
+    serviceBusClient.createSender(config.AUTH_SESSIONS_TOPIC_NAME),
+  );
+
+  const lollipopActivationCosmosAdapter = new LollipopActivationCosmosAdapter(
+    cosmosClient,
+    config.COSMOSDB_NAME,
+    config.COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME,
+  );
+
+  // --------------------------------------------------
+  // Use cases initialization
+  // --------------------------------------------------
 
   const reserveUseCase = makeReserveUseCase({
     ausiliarDataPort: ausiliarStorageAdapter,
@@ -184,41 +217,11 @@ export const createApp = async (
     activateUserSessionUseCase,
   });
 
-  const serviceBusClient =
-    config.NODE_ENV === "production"
-      ? new ServiceBusClient(
-          config.SERVICE_BUS_HOSTNAME,
-          AzureCredential.getInstance(),
-        )
-      : new ServiceBusClient(config.SERVICE_BUS_CONNECTION_STRING);
-
-  // Close external clients cleanly when Fastify shuts down (via
-  // `server.close()`). Run both independent close operations in parallel,
-  // while allowing one failure without preventing the other from completing.
-  server.addHook("onClose", async () => {
-    const results = await Promise.allSettled([
-      redisClient.close(),
-      serviceBusClient.close(),
-    ]);
-
-    const [redisResult, serviceBusResult] = results;
-    if (redisResult.status === "rejected") {
-      server.log.warn(
-        { err: redisResult.reason },
-        "Failed to close Redis client gracefully",
-      );
-    }
-    if (serviceBusResult.status === "rejected") {
-      server.log.warn(
-        { err: serviceBusResult.reason },
-        "Failed to close Service Bus client gracefully",
-      );
-    }
+  const getSessionUseCase = makeGetSessionUseCase({
+    sessionPort: sessionCosmosAdapter,
+    lollipopActivationPort: lollipopActivationCosmosAdapter,
+    profilePort: profileAdapter,
   });
-
-  const authEventServiceBusAdapter = new AuthEventServiceBusAdapter(
-    serviceBusClient.createSender(config.AUTH_SESSIONS_TOPIC_NAME),
-  );
 
   // --------------------------------------------------
   // Endpoints mounting
@@ -261,6 +264,39 @@ export const createApp = async (
     handleOidcCallbackUseCase,
     loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
     loginErrorRedirectUrl: config.LOGIN_ERROR_REDIRECT_URL,
+  });
+
+  mountGetSessionHandler({ useCase: getSessionUseCase })(server);
+
+  // --------------------------------------------------
+  // Middlewares mounting
+  // --------------------------------------------------
+
+  // Expose the resolved client IP to hexagonal middlewares via `x-client-ip`.
+  server.addHook("onRequest", normalizeClientIpHook);
+
+  // Close external clients cleanly when Fastify shuts down (via
+  // `server.close()`). Run both independent close operations in parallel,
+  // while allowing one failure without preventing the other from completing.
+  server.addHook("onClose", async () => {
+    const results = await Promise.allSettled([
+      redisClient.close(),
+      serviceBusClient.close(),
+    ]);
+
+    const [redisResult, serviceBusResult] = results;
+    if (redisResult.status === "rejected") {
+      server.log.warn(
+        { err: redisResult.reason },
+        "Failed to close Redis client gracefully",
+      );
+    }
+    if (serviceBusResult.status === "rejected") {
+      server.log.warn(
+        { err: serviceBusResult.reason },
+        "Failed to close Service Bus client gracefully",
+      );
+    }
   });
 
   return { server };

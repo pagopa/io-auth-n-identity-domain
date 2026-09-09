@@ -7,12 +7,12 @@ meta {
 post {
   url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/reserve
   body: json
-  auth: inherit
+  auth: none
 }
 
 body:json {
   {
-    "env": "PROD",
+    "env": "UAT",
     "min_auth_level": "SpidL2",
     "lollipop_pub_key": "SET_IN_PREREQUEST",
     "login_type": "LV"
