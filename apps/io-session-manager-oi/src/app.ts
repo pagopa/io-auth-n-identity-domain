@@ -34,8 +34,8 @@ import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profi
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
-import { makeGetUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
+import { makeGetUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
@@ -55,6 +55,7 @@ class AzureCredential {
   }
 }
 
+// eslint-disable-next-line max-lines-per-function
 export const createApp = async (
   config: Config,
   packageInfo: PackageInfo,
@@ -221,14 +222,6 @@ export const createApp = async (
 
   const getUserForBpdUseCase = makeGetUserForBpdUseCase(sessionCosmosAdapter);
 
-  const serviceBusClient =
-    config.NODE_ENV === "production"
-      ? new ServiceBusClient(
-          config.SERVICE_BUS_HOSTNAME,
-          AzureCredential.getInstance(),
-        )
-      : new ServiceBusClient(config.SERVICE_BUS_CONNECTION_STRING);
-
   // Close external clients cleanly when Fastify shuts down (via
   // `server.close()`). Run both independent close operations in parallel,
   // while allowing one failure without preventing the other from completing.
@@ -251,6 +244,8 @@ export const createApp = async (
         "Failed to close Service Bus client gracefully",
       );
     }
+  });
+
   const getSessionUseCase = makeGetSessionUseCase({
     sessionPort: sessionCosmosAdapter,
     lollipopActivationPort: lollipopActivationCosmosAdapter,
@@ -303,6 +298,8 @@ export const createApp = async (
   mountSsoBpdUserHandler(server, {
     allowedIpSourceRange: config.ALLOW_BPD_IP_SOURCE_RANGE,
     getUserForBpdUseCase,
+  });
+
   mountGetSessionHandler({ useCase: getSessionUseCase })(server);
 
   // --------------------------------------------------
