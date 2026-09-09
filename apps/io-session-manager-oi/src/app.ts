@@ -220,7 +220,9 @@ export const createApp = async (
     activateUserSessionUseCase,
   });
 
-  const getUserForBpdUseCase = makeGetUserForBpdUseCase(sessionCosmosAdapter);
+  const getUserForBpdUseCase = makeGetUserForBpdUseCase({
+    sessionPort: sessionCosmosAdapter,
+  });
 
   // Close external clients cleanly when Fastify shuts down (via
   // `server.close()`). Run both independent close operations in parallel,
