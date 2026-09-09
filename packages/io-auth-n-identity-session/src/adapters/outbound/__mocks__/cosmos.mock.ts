@@ -16,6 +16,7 @@ export interface ContainerMock {
   batch: MockFn;
   bulk: MockFn;
   fetchAll: MockFn;
+  fetchNext: MockFn;
   query: MockFn;
   container: Container;
 }
@@ -27,7 +28,8 @@ export function makeContainerMock(): ContainerMock {
   const batch = vi.fn();
   const bulk = vi.fn();
   const fetchAll = vi.fn();
-  const query = vi.fn(() => ({ fetchAll }));
+  const fetchNext = vi.fn();
+  const query = vi.fn(() => ({ fetchAll, fetchNext }));
 
   const container = {
     item,
@@ -41,6 +43,7 @@ export function makeContainerMock(): ContainerMock {
     batch,
     bulk,
     fetchAll,
+    fetchNext,
     query,
     container,
   };
