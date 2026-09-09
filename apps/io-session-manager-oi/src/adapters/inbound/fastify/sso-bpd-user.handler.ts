@@ -57,7 +57,7 @@ export const mountSsoBpdUserHandler = (
     mountFastifyRoute(scope, {
       contract: ssoBpdUserContract,
       inputMapper: (req) => ({
-        authorizationHeader: req.headers.authorization,
+        ...req.headers.authorization,
       }),
       useCase: deps.getUserForBpdUseCase,
     });

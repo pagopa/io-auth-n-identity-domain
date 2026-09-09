@@ -6,19 +6,17 @@ import {
   NotFoundError,
   UseCase,
 } from "@pagopa/hexagonal-core";
-import { SessionPort } from "@pagopa/io-auth-n-identity-session/ports";
+import { type SessionPort } from "@pagopa/io-auth-n-identity-session/ports";
 import {
-  PlainBpdSSOTokenSchema,
-  SessionIdSchema,
+  type PlainBpdSSOToken,
+  type SessionId,
   toHashedBpdSSOToken,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
 
-import { BearerAuthorizationHeaderSchema } from "../../domain/value-objects/bearer-authorization-header.vo.js";
-import { BpdClientSessionTokenSchema } from "../../domain/value-objects/bpd-client-session-token.vo.js";
-
 export type GetUserForBpdInput = {
-  authorizationHeader: string | undefined;
+  sessionId: SessionId;
+  sessionToken: PlainBpdSSOToken;
 };
 
 export type GetUserForBpdOutput = {
@@ -29,6 +27,10 @@ export type GetUserForBpdOutput = {
 
 export type GetUserForBpdError = AuthenticationError | GenericError;
 
+type GetUserForBpdDeps = {
+  sessionPort: SessionPort;
+};
+
 export type GetUserForBpdUseCase = UseCase<
   GetUserForBpdInput,
   GetUserForBpdOutput,
@@ -36,40 +38,11 @@ export type GetUserForBpdUseCase = UseCase<
 >;
 
 export const makeGetUserForBpdUseCase =
-  (sessions: SessionPort): GetUserForBpdUseCase =>
-  async ({ authorizationHeader }) => {
-    const bearer =
-      BearerAuthorizationHeaderSchema.safeParse(authorizationHeader);
-    if (!bearer.success) {
-      return err(new AuthenticationError());
-    }
-
-    const token = BpdClientSessionTokenSchema.safeParse(bearer.data);
-    if (!token.success) {
-      return err(new AuthenticationError());
-    }
-
-    const separatorIndex = token.data.lastIndexOf(".");
-
-    const sessionIdResult = SessionIdSchema.safeParse(
-      token.data.slice(0, separatorIndex),
-    );
-    const plainBpdSSOTokenResult = PlainBpdSSOTokenSchema.safeParse(
-      token.data.slice(separatorIndex + 1),
-    );
-
-    // Sanity check: unreachable if `BpdClientSessionTokenSchema` matched.
-    if (!sessionIdResult.success || !plainBpdSSOTokenResult.success) {
-      return err(
-        new GenericError(
-          "BpdClientSessionToken shape parsed but sub-schemas rejected",
-        ),
-      );
-    }
-
-    const lookup = await sessions.findByBpdToken({
-      sessionId: sessionIdResult.data,
-      hashedBPDSSOToken: toHashedBpdSSOToken(plainBpdSSOTokenResult.data),
+  (deps: GetUserForBpdDeps): GetUserForBpdUseCase =>
+  async (input) => {
+    const lookup = await deps.sessionPort.findByBpdToken({
+      sessionId: input.sessionId,
+      hashedBPDSSOToken: toHashedBpdSSOToken(input.sessionToken),
     });
 
     if (lookup.isErr()) {

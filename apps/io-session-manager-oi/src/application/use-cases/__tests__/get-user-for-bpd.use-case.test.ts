@@ -25,12 +25,14 @@ import { makeGetUserForBpdUseCase } from "../get-user-for-bpd.use-case.js";
 
 const aPlainBpdSSOToken = toPlainBpdSSOToken(aPlainSessionToken);
 const aBpdClientSessionToken = `${aSessionId}.${aPlainBpdSSOToken}`;
-const aValidAuthorizationHeader = `Bearer ${aBpdClientSessionToken}`;
+
 const aBaseSession: BaseSession = aSessionWithHashedTokens;
 const anExpectedHashedBpdSSOToken =
   aSessionWithHashedTokens.ssoTokens.bpdHashedToken;
 
-const getUserForBpd = makeGetUserForBpdUseCase(SessionPortMock);
+const getUserForBpd = makeGetUserForBpdUseCase({
+  sessionPort: SessionPortMock,
+});
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -42,7 +44,8 @@ describe("makeGetUserForBpdUseCase", () => {
     mockFindByBpdToken.mockResolvedValueOnce(ok(aBaseSession));
 
     const result = await getUserForBpd({
-      authorizationHeader: aValidAuthorizationHeader,
+      sessionId: aSessionId,
+      sessionToken: aPlainBpdSSOToken,
     });
 
     expect(result).toEqual(
@@ -58,33 +61,14 @@ describe("makeGetUserForBpdUseCase", () => {
     });
   });
 
-  it.each`
-    scenario                      | authorizationHeader
-    ${"missing header"}           | ${undefined}
-    ${"empty header"}             | ${""}
-    ${"non-Bearer scheme"}        | ${`Basic ${aBpdClientSessionToken}`}
-    ${"lowercase bearer prefix"}  | ${`bearer ${aBpdClientSessionToken}`}
-    ${"Bearer with empty token"}  | ${"Bearer "}
-    ${"no separator in token"}    | ${`Bearer ${aSessionId}${aPlainBpdSSOToken}`}
-    ${"empty sessionId in token"} | ${`Bearer .${aPlainBpdSSOToken}`}
-    ${"non-hex plainBpdSSOToken"} | ${`Bearer ${aSessionId}.not-a-sha256-hex`}
-  `(
-    "returns AuthenticationError when the Bearer credentials are invalid ($scenario)",
-    async ({ authorizationHeader }) => {
-      const result = await getUserForBpd({ authorizationHeader });
-
-      expect(result).toEqual(err(new AuthenticationError()));
-      expect(mockFindByBpdToken).not.toHaveBeenCalled();
-    },
-  );
-
   it("returns AuthenticationError when the session is not found (Express passport-bearer parity)", async () => {
     mockFindByBpdToken.mockResolvedValueOnce(
       err(new NotFoundError("BPDSSOSession", "not found")),
     );
 
     const result = await getUserForBpd({
-      authorizationHeader: aValidAuthorizationHeader,
+      sessionId: aSessionId,
+      sessionToken: aPlainBpdSSOToken,
     });
 
     expect(result).toEqual(err(new AuthenticationError()));
@@ -95,7 +79,8 @@ describe("makeGetUserForBpdUseCase", () => {
     mockFindByBpdToken.mockResolvedValueOnce(err(generic));
 
     const result = await getUserForBpd({
-      authorizationHeader: aValidAuthorizationHeader,
+      sessionId: aSessionId,
+      sessionToken: aPlainBpdSSOToken,
     });
 
     expect(result).toEqual(err(generic));
