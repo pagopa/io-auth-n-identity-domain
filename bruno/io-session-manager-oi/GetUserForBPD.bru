@@ -7,11 +7,11 @@ meta {
 get {
   url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/sso/bpd/v2/user
   body: none
-  auth: inherit
+  auth: bearer
 }
 
-headers {
-  Authorization: Bearer {{bpdClientSessionToken}}
+auth:bearer {
+  token: {{bpdClientSessionToken}}
 }
 
 settings {
