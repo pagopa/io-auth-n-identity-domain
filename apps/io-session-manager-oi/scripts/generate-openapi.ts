@@ -15,6 +15,7 @@ import {
 
 import { BASE_PATH } from "../src/adapters/inbound/base-path.js";
 import { callbackContract } from "../src/adapters/inbound/fastify/callback.handler.js";
+import { getSessionContract } from "../src/adapters/inbound/fastify/get-session.handler.js";
 import { reserveRoute } from "../src/adapters/inbound/fastify/reserve.handler.js";
 import { ssoBpdUserRoute } from "../src/adapters/inbound/fastify/sso-bpd-user.handler.js";
 

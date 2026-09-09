@@ -11,6 +11,10 @@ import {
   LockedProfilesProductionConfigSchema,
 } from "./locked-profiles.vo.js";
 import { LoginConfigSchema } from "./login.vo.js";
+import {
+  LollipopActivationCosmosDevelopmentConfigSchema,
+  LollipopActivationCosmosProductionConfigSchema,
+} from "./lollipop-activation.vo.js";
 import { LollipopConfigSchema } from "./lollipop.vo.js";
 import { OneIdConfigSchema } from "./one-id.vo.js";
 import { IoProfileConfigSchema } from "./profile.vo.js";
@@ -56,6 +60,7 @@ export const ProductionConfigSchema = z.object({
   ...RedisProductionConfigSchema.shape,
   ...SessionCosmosProductionConfigSchema.shape,
   ...AuthEventServiceBusProductionConfigSchema.shape,
+  ...LollipopActivationCosmosProductionConfigSchema.shape,
 });
 
 export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
@@ -72,6 +77,7 @@ export const DevelopmentConfigSchema = z.object({
   ...RedisDevelopmentConfigSchema.shape,
   ...SessionCosmosDevelopmentConfigSchema.shape,
   ...AuthEventServiceBusDevelopmentConfigSchema.shape,
+  ...LollipopActivationCosmosDevelopmentConfigSchema.shape,
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;

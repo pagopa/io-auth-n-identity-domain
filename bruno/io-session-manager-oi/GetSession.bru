@@ -1,18 +1,17 @@
 meta {
-  name: Callback
+  name: GetSession
   type: http
-  seq: 3
+  seq: 4
 }
 
 get {
-  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/callback?code=&state=
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/session
   body: none
-  auth: none
+  auth: inherit
 }
 
 params:query {
-  code: 
-  state: 
+  ~fields: 
 }
 
 script:pre-request {
