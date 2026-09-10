@@ -94,6 +94,7 @@ import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { isUserElegibleForValidationCookie } from "./config/validation-cookie";
 import { CallbackDeps } from "./services/oidc";
+import { getSpidIdpFriendlyName } from "./utils/spid";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -190,6 +191,7 @@ export const newApp: (
     AuthSessionsTopicRepository,
     authSessionsTopicSender: authSessionsTopicServiceBusSender,
     platformInternalAPIService: PlatformInternalService,
+    getIdentityProvider: getSpidIdpFriendlyName,
     platformInternalAPIClient: APIClients.platformInternalAPIClient,
   };
 
