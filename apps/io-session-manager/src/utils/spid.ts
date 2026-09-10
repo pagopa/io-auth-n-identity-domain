@@ -1,9 +1,11 @@
+import * as E from "fp-ts/lib/Either";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import * as S from "fp-ts/lib/string";
 import * as A from "fp-ts/lib/Array";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { flow, pipe } from "fp-ts/lib/function";
+import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import { UserWithoutTokens } from "../types/user";
 import { SpidLevel, SpidLevelEnum } from "../types/spid-level";
@@ -14,6 +16,14 @@ const SAML_NAMESPACE = {
   ASSERTION: "urn:oasis:names:tc:SAML:2.0:assertion",
   PROTOCOL: "urn:oasis:names:tc:SAML:2.0:protocol",
 };
+
+export const getSpidIdpFriendlyName = (issuer: string): string =>
+  pipe(
+    Issuer.decode(issuer),
+    E.map((decodedIssuer) => IDP_NAMES[decodedIssuer]),
+    E.chainW(E.fromNullable(null)),
+    E.getOrElse(() => "Sconosciuto"),
+  );
 
 export const getIssuerFromSAMLResponse: (
   doc: Document,
