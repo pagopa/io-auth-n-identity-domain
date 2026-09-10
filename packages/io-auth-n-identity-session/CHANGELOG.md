@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.5.0
+
+### Minor Changes
+
+- e1c62dd: add health check to both LollipopActivationCosmosAdapter and SessionCosmosAdapter
+
 ## 0.4.0
 
 ### Minor Changes

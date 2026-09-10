@@ -1,5 +1,16 @@
 # io-session-manager-oi
 
+## 0.19.0
+
+### Minor Changes
+
+- e1c62dd: add health check to both LollipopActivationCosmosAdapter and SessionCosmosAdapter
+
+### Patch Changes
+
+- Updated dependencies [e1c62dd]
+  - @pagopa/io-auth-n-identity-session@0.5.0
+
 ## 0.18.0
 
 ### Minor Changes
