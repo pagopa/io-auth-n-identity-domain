@@ -49,7 +49,7 @@ components:
 paths:
   /user:
     get:
-      description: "Returns the BPD user identified by the `<sessionId>.<plainBpdSSOToken>` token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`."
+      description: "Returns the BPD user identified by the token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`."
       operationId: getUserForBpd
       summary: Return the BPD user for a session token
       tags:
