@@ -18,7 +18,7 @@ const ssoBpdUserContract = defineRoute({
   request: SsoBpdUserInputDTO,
   summary: "Return the BPD user for a session token",
   description:
-    "Returns the BPD user identified by the `<sessionId>.<plainBpdSSOToken>` token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`.",
+    "Returns the BPD user identified by the token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`.",
   tags: ["sso"],
   response: {
     200: {
