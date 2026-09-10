@@ -15,12 +15,12 @@ import { err, ok, Result } from "neverthrow";
 
 import type { ActiveSession } from "../../domain/entities/active-session.entity.js";
 import { ActiveSessionSchema } from "../../domain/entities/active-session.entity.js";
-import { BaseSessionSchema } from "../../domain/entities/session.entity.js";
 import type {
-  SessionWithHashedToken,
   BaseSession,
   SessionWithHashedSSOTokens,
+  SessionWithHashedToken,
 } from "../../domain/entities/session.entity.js";
+import { BaseSessionSchema } from "../../domain/entities/session.entity.js";
 import {
   HashedSessionTokenWithSessionId,
   SessionPort,
@@ -35,6 +35,7 @@ import {
 import type { HashedWalletSSOToken } from "../../domain/value-objects/tokens/wallet-sso-token.vo.js";
 import type { HashedZendeskSSOToken } from "../../domain/value-objects/tokens/zendesk-sso-token.vo.js";
 
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { CosmosBaseAdapter } from "./cosmos-base.adapter.js";
 
 // ---------------------------------------------------------------------------
@@ -53,7 +54,7 @@ const COSMOS_ZENDESK_PREFIX = "ZENDESK-";
 
 export class SessionCosmosAdapter
   extends CosmosBaseAdapter
-  implements SessionPort
+  implements SessionPort, HealthCheckOutboundPort
 {
   protected readonly sessionTokenContainer: Container;
   protected readonly activeSessionContainer: Container;
@@ -72,6 +73,18 @@ export class SessionCosmosAdapter
     this.activeSessionContainer = this.client
       .database(databaseId)
       .container(activeSessionContainerId);
+  }
+
+  async healthcheck(): Promise<Result<void, GenericError>> {
+    try {
+      await Promise.all([
+        this.sessionTokenContainer.items.query("SELECT 1").fetchAll(),
+        this.activeSessionContainer.items.query("SELECT 1").fetchAll(),
+      ]);
+      return ok(undefined);
+    } catch (error) {
+      return err(new GenericError(errorToString(error)));
+    }
   }
 
   public async findBySessionToken({
@@ -521,4 +534,17 @@ function toCosmosZendeskSessionId(
   zendeskHashedToken: HashedZendeskSSOToken,
 ): NonEmptyString {
   return (COSMOS_ZENDESK_PREFIX + zendeskHashedToken) as NonEmptyString;
+}
+
+// TODO: centralize (unknown) error to string conversion across the project
+function errorToString(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  return JSON.stringify(error);
 }

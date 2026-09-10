@@ -137,6 +137,43 @@ describe("SessionCosmosAdapter", () => {
   });
 
   // -------------------------------------------------------------------------
+  // healthcheck
+  // -------------------------------------------------------------------------
+
+  describe("healthcheck", () => {
+    it("checks data-plane access on both session containers", async () => {
+      userSession.fetchAll.mockResolvedValueOnce({ resources: [1] });
+      activeSession.fetchAll.mockResolvedValueOnce({ resources: [1] });
+
+      const result = await adapter.healthcheck();
+
+      expect(result).toEqual(ok(undefined));
+      expect(userSession.query).toHaveBeenCalledWith("SELECT 1");
+      expect(activeSession.query).toHaveBeenCalledWith("SELECT 1");
+      expect(userSession.fetchAll).toHaveBeenCalledOnce();
+      expect(activeSession.fetchAll).toHaveBeenCalledOnce();
+    });
+
+    it("returns a GenericError when the session token query fails", async () => {
+      userSession.fetchAll.mockRejectedValueOnce(makeErrorResponse(500));
+      activeSession.fetchAll.mockResolvedValueOnce({ resources: [1] });
+
+      const result = await adapter.healthcheck();
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+    });
+
+    it("returns a GenericError when the active session query fails", async () => {
+      userSession.fetchAll.mockResolvedValueOnce({ resources: [1] });
+      activeSession.fetchAll.mockRejectedValueOnce(makeErrorResponse(500));
+
+      const result = await adapter.healthcheck();
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // findBySessionToken
   // -------------------------------------------------------------------------
 
