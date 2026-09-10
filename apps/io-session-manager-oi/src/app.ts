@@ -224,30 +224,6 @@ export const createApp = async (
     sessionPort: sessionCosmosAdapter,
   });
 
-  // Close external clients cleanly when Fastify shuts down (via
-  // `server.close()`). Run both independent close operations in parallel,
-  // while allowing one failure without preventing the other from completing.
-  server.addHook("onClose", async () => {
-    const results = await Promise.allSettled([
-      redisClient.close(),
-      serviceBusClient.close(),
-    ]);
-
-    const [redisResult, serviceBusResult] = results;
-    if (redisResult.status === "rejected") {
-      server.log.warn(
-        { err: redisResult.reason },
-        "Failed to close Redis client gracefully",
-      );
-    }
-    if (serviceBusResult.status === "rejected") {
-      server.log.warn(
-        { err: serviceBusResult.reason },
-        "Failed to close Service Bus client gracefully",
-      );
-    }
-  });
-
   const getSessionUseCase = makeGetSessionUseCase({
     sessionPort: sessionCosmosAdapter,
     lollipopActivationPort: lollipopActivationCosmosAdapter,
