@@ -107,7 +107,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
     description:
       "OpenID Connect (OneIdentity) login endpoints exposed by io-session-manager-oi.",
     outputRelPath: "api/external.yaml",
-    routes: [callbackContract, reserveRoute],
+    routes: [callbackContract, reserveRoute, getSessionContract],
     tags: [
       {
         name: "oidc",
