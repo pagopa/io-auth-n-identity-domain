@@ -1,4 +1,7 @@
-import { ForbiddenError, ValidationError } from "@pagopa/hexagonal-core/domain/errors";
+import {
+  AuthenticationError,
+  ValidationError,
+} from "@pagopa/hexagonal-core/domain/errors";
 import { sendErrorResponse } from "@pagopa/hexagonal-fastify";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import * as rangeCheck from "range_check";
@@ -56,7 +59,7 @@ export const createCheckIpHook =
 
     if (!rangeCheck.inRange(ip, Array.from(allowedCIDRs))) {
       request.log.warn(`Blocked source IP ${ip}.`);
-      sendErrorResponse(reply, new ForbiddenError());
+      sendErrorResponse(reply, new AuthenticationError());
       return;
     }
   };

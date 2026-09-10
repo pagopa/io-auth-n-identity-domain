@@ -1,0 +1,20 @@
+meta {
+  name: GetUserForBPD
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/sso/bpd/v2/user
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bpdClientSessionToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
