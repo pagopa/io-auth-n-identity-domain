@@ -9,6 +9,12 @@ tags:
   - name: oidc
     description: Operations that take part in the OpenID Connect authorization flow.
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+      description: Enter the opaque token provided by the authentication authority
   schemas:
     ProblemDetails:
       type: object
@@ -269,7 +275,8 @@ paths:
   /session:
     get:
       operationId: getSession
-      security: []
+      security:
+        - bearerAuth: []
       parameters:
         - schema:
             $ref: "#/components/schemas/FieldsFilter"

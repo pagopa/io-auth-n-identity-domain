@@ -74,6 +74,15 @@ const generate = async (spec: DocumentSpec): Promise<boolean> => {
         servers: [{ url: `https://api-app.io.pagopa.it${spec.basePath}` }],
         tags: [...spec.tags],
       },
+      registerComponents: (registry) => {
+        registry.registerComponent("securitySchemes", "bearerAuth", {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "opaque",
+          description:
+            "Enter the opaque token provided by the authentication authority",
+        });
+      },
       routes: spec.routes.map(stripBasePath(spec.basePath)),
     }),
     webhooks: undefined, // Route contracts declare no webhooks; keep the key absent so APIM import doesn't reject an empty object.
@@ -126,8 +135,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
     tags: [
       {
         name: "sso",
-        description:
-          "BPD Single Sign-On endpoints.",
+        description: "BPD Single Sign-On endpoints.",
       },
     ],
     title: "Bonus Pagamenti Digitali API for user authentication.",

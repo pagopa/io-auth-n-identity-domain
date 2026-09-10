@@ -32,7 +32,7 @@ export const getSessionContract = defineRoute({
       schema: ProblemJson,
     },
   },
-  security: [], // TODO: Add bearer token security scheme once implemented
+  security: [{ bearerAuth: [] }],
 });
 
 type GetSessionHandlerDeps = {
