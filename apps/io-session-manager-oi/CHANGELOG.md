@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.20.0
+
+### Minor Changes
+
+- 12ea09a: Add `GET /sso/bpd/v2/user` endpoint
+
 ## 0.19.0
 
 ### Minor Changes
