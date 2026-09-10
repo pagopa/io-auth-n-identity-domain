@@ -61,7 +61,7 @@ describe("makeGetUserForBpdUseCase", () => {
     });
   });
 
-  it("returns AuthenticationError when the session is not found (Express passport-bearer parity)", async () => {
+  it("returns AuthenticationError when the session is not found", async () => {
     mockFindByBpdToken.mockResolvedValueOnce(
       err(new NotFoundError("BPDSSOSession", "not found")),
     );

@@ -46,6 +46,7 @@ export const makeGetUserForBpdUseCase =
     });
 
     if (lookup.isErr()) {
+      // If the session is not found return AuthenticationError (legacy Session Manager's passport-bearer parity)
       if (lookup.error instanceof NotFoundError) {
         return err(new AuthenticationError());
       }
