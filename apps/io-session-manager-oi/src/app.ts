@@ -262,6 +262,14 @@ export const createApp = async (
         name: authEventServiceBusAdapter.constructor.name,
         port: authEventServiceBusAdapter,
       },
+      {
+        name: sessionCosmosAdapter.constructor.name,
+        port: sessionCosmosAdapter,
+      },
+      {
+        name: lollipopActivationCosmosAdapter.constructor.name,
+        port: lollipopActivationCosmosAdapter,
+      },
     ]),
   );
 

@@ -68,6 +68,32 @@ describe("LollipopActivationCosmosAdapter", () => {
   });
 
   // -------------------------------------------------------------------------
+  // healthcheck
+  // -------------------------------------------------------------------------
+
+  describe("healthcheck", () => {
+    it("checks data-plane access with a bounded query", async () => {
+      lollipop.fetchNext.mockResolvedValueOnce({ resources: [1] });
+
+      const result = await adapter.healthcheck();
+
+      expect(result).toEqual(ok(undefined));
+      expect(lollipop.query).toHaveBeenCalledWith("SELECT VALUE 1", {
+        maxItemCount: 1,
+      });
+      expect(lollipop.fetchNext).toHaveBeenCalledOnce();
+    });
+
+    it("returns a GenericError when the health check query fails", async () => {
+      lollipop.fetchNext.mockRejectedValueOnce(makeErrorResponse(500));
+
+      const result = await adapter.healthcheck();
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // getByFiscalCode
   // -------------------------------------------------------------------------
 
