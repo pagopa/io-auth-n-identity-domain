@@ -9,6 +9,12 @@ tags:
   - name: oidc
     description: Operations that take part in the OpenID Connect authorization flow.
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+      description: Enter the opaque token provided by the authentication authority
   schemas:
     ProblemDetails:
       type: object
@@ -269,7 +275,8 @@ paths:
   /session:
     get:
       operationId: getSession
-      security: []
+      security:
+        - bearerAuth: []
       parameters:
         - schema:
             $ref: "#/components/schemas/FieldsFilter"
@@ -277,11 +284,6 @@ paths:
           description: "The use of this parameters allows the client to obtain only the requested parameters. NOTE: nested fields retrieval is currently not supported. NOTE: field names are case-sensitive Example: ?fields=(spidLevel,walletToken) For more info, see https://opensource.zalando.com/restful-api-guidelines/#157"
           name: fields
           in: query
-        - schema:
-            type: string
-          required: true
-          name: authorization
-          in: header
       responses:
         "200":
           description: Session info returned successfully.
