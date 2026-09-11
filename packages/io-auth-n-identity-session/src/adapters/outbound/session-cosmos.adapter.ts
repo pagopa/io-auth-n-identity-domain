@@ -115,6 +115,19 @@ export class SessionCosmosAdapter
     return result.andThen((rawSession) => fromDbSession(rawSession));
   }
 
+  public async findByFimsToken(fimsToken: {
+    hashedFimsSSOToken: HashedFimsSSOToken;
+    sessionId: SessionId;
+  }): Promise<Result<BaseSession, GenericError | NotFoundError>> {
+    const result = await this.readItem(
+      this.sessionTokenContainer,
+      toCosmosFimsSessionId(fimsToken.hashedFimsSSOToken),
+      fimsToken.sessionId as unknown as NonEmptyString,
+      "FIMSSSOSession" as NonEmptyString,
+    );
+    return result.andThen((rawSession) => fromDbSession(rawSession));
+  }
+
   public async create(
     activeSession: ActiveSession,
     session: SessionWithHashedSSOTokens,

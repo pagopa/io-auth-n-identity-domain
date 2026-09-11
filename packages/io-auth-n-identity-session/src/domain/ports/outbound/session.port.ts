@@ -13,6 +13,7 @@ import type {
 } from "../../entities/session.entity.js";
 import { SessionId } from "../../value-objects/session-id.vo.js";
 import { HashedBpdSSOToken } from "../../value-objects/tokens/bpd-sso-token.vo.js";
+import { HashedFimsSSOToken } from "../../value-objects/tokens/fims-sso-token.vo.js";
 import { HashedSessionToken } from "../../value-objects/tokens/session-token.vo.js";
 
 export type HashedSessionTokenWithSessionId = {
@@ -45,6 +46,17 @@ export interface SessionPort {
    */
   readonly findByBpdToken: (bpdToken: {
     hashedBPDSSOToken: HashedBpdSSOToken;
+    sessionId: SessionId;
+  }) => Promise<Result<BaseSession, NotFoundError | GenericError>>;
+
+  /**
+   * Finds a session by its FIMS SSO token.
+   * @param hashedFimsSSOToken The hashed FIMS SSO token
+   * @param sessionId The session tracking ID
+   * @returns The session associated with the given token, or an error if not found or a generic error happens.
+   */
+  readonly findByFimsToken: (fimsToken: {
+    hashedFimsSSOToken: HashedFimsSSOToken;
     sessionId: SessionId;
   }) => Promise<Result<BaseSession, NotFoundError | GenericError>>;
 

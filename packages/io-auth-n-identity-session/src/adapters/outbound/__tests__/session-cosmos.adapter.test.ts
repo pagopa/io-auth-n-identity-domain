@@ -247,6 +247,8 @@ describe("SessionCosmosAdapter", () => {
     });
   });
 
+  // TODO: Refactor token tests
+
   // -------------------------------------------------------------------------
   // findByBpdToken
   // -------------------------------------------------------------------------
@@ -282,6 +284,47 @@ describe("SessionCosmosAdapter", () => {
       const result = await adapter.findByBpdToken({
         sessionId: aSessionId,
         hashedBPDSSOToken: aHashedBpdToken,
+      });
+
+      expect(result).toEqual(err(expect.any(NotFoundError)));
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // findByFimsToken
+  // -------------------------------------------------------------------------
+
+  describe("findByFimsToken", () => {
+    it("GIVEN an existing session WHEN findByFimsToken is called THEN returns the session", async () => {
+      userSession.itemMock.read.mockResolvedValueOnce({
+        resource: {
+          ...aDbSessionResource,
+          id: COSMOS_FIMS_PREFIX + aHashedFimsToken,
+        },
+        statusCode: 200,
+      });
+
+      const result = await adapter.findByFimsToken({
+        sessionId: aSessionId,
+        hashedFimsSSOToken: aHashedFimsToken,
+      });
+
+      expect(result).toEqual(ok(aBaseSession));
+      expect(userSession.item).toHaveBeenCalledWith(
+        COSMOS_FIMS_PREFIX + aHashedFimsToken,
+        aSessionId,
+      );
+    });
+
+    it("GIVEN no session WHEN findByFimsToken is called THEN returns NotFoundError", async () => {
+      userSession.itemMock.read.mockResolvedValueOnce({
+        resource: undefined,
+        statusCode: 404,
+      });
+
+      const result = await adapter.findByFimsToken({
+        sessionId: aSessionId,
+        hashedFimsSSOToken: aHashedFimsToken,
       });
 
       expect(result).toEqual(err(expect.any(NotFoundError)));
