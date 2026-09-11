@@ -295,11 +295,6 @@ export const createApp = async (
     getUserForBpdUseCase,
   });
 
-  mountSsoBpdUserHandler(server, {
-    allowedIpSourceRange: config.ALLOW_BPD_IP_SOURCE_RANGE,
-    getUserForBpdUseCase,
-  });
-
   mountGetSessionHandler({
     middlewares: [authenticateMiddleware] as const,
     useCase: getSessionUseCase,
