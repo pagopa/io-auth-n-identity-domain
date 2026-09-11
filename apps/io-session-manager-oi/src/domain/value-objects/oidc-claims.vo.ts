@@ -7,7 +7,7 @@ import { SpidLevelSchema } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
 
 // International prefix for fiscal numbers that should be stripped before validation.
-const FISCAL_NUMBER_INTERNATIONAL_PREFIX = "TINIT-";
+const FISCAL_NUMBER_INTERNATIONAL_PREFIX = /^TINIT-/;
 
 /**
  * Subset of the OpenID Connect ID token claims returned by OneID that the
