@@ -67,8 +67,8 @@ export function getOneIdAPIClient(
   };
 }
 
-export type OneIdAPIClient = typeof getOneIdAPIClient;
+export type OneIdAPIClient = ReturnType<typeof getOneIdAPIClient>;
 
 export type OneIdAPIRepositoryDeps = {
-  oneIdAPIClient: ReturnType<OneIdAPIClient>;
+  oneIdAPIClient: OneIdAPIClient;
 };
