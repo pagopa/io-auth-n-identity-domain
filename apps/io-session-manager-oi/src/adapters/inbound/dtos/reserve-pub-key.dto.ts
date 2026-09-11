@@ -7,6 +7,7 @@ import {
   LollipopJwkHashingAlgorithmSchema,
   JwkPublicKeyBase64UrlStringSchema,
 } from "@pagopa/io-auth-n-identity-domain";
+import { LoginTypeSchema } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
 
 import {
@@ -14,7 +15,6 @@ import {
   SpidAuthLevel,
 } from "../../../domain/value-objects/login.vo.js";
 import { OidcConfigurationEnvSchema } from "../../../domain/value-objects/oidc.vo.js";
-import { LoginTypeSchema } from "@pagopa/io-auth-n-identity-session";
 
 extendZodWithOpenApi(z);
 
