@@ -75,5 +75,8 @@ locals {
 
     AUTH_SESSIONS_TOPIC_NAME = var.service_bus.auth_session_topic_name
     SERVICE_BUS_HOSTNAME     = var.service_bus.hostname
+
+    # TODO: Restrict the allowed IP source range for BPD
+    ALLOW_BPD_IP_SOURCE_RANGE = "0.0.0.0/0"
   }
 }
