@@ -1,14 +1,4 @@
-import type {
-  PlainSessionToken,
-  SessionId,
-} from "@pagopa/io-auth-n-identity-session";
-import {
-  PlainSessionTokenSchema,
-  SessionIdSchema,
-} from "@pagopa/io-auth-n-identity-session";
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
-import { createBearerTokenSchema } from "../../bearer-token.js";
 import {
   FieldsQueryParam,
   GetSessionInputDTO,
@@ -16,55 +6,6 @@ import {
 } from "../get-session.dto.js";
 
 describe("GetSessionInputDTO", () => {
-  describe("headers", () => {
-    it("accepts a custom Zod schema for the session token", () => {
-      const sessionId = SessionIdSchema.parse("aSessionId");
-      const schema = createBearerTokenSchema(z.literal("aCustomSessionToken"));
-
-      expect(schema.parse(`Bearer ${sessionId}.aCustomSessionToken`)).toEqual({
-        sessionId,
-        sessionToken: "aCustomSessionToken",
-      });
-      expect(
-        schema.safeParse(`Bearer ${sessionId}.aDifferentSessionToken`).success,
-      ).toBe(false);
-    });
-
-    it("decodes a Bearer authorization header into its typed tokens", () => {
-      const sessionId = SessionIdSchema.parse("aSessionId");
-      const sessionToken = PlainSessionTokenSchema.parse("aPlainSessionToken");
-      const parsed = GetSessionInputDTO.headers.parse({
-        authorization: `Bearer ${sessionId}.${sessionToken}`,
-      });
-      const typedSessionId: SessionId = parsed.authorization.sessionId;
-      const typedSessionToken: PlainSessionToken =
-        parsed.authorization.sessionToken;
-
-      expect({
-        sessionId: typedSessionId,
-        sessionToken: typedSessionToken,
-      }).toEqual({
-        sessionId,
-        sessionToken,
-      });
-    });
-
-    it.each([
-      "aPlainSessionToken",
-      "Bearer",
-      "Bearer ",
-      "Bearer aSessionId",
-      "Bearer .aPlainSessionToken",
-      "Bearer aSessionId.",
-      "Bearer aSessionId.aPlainSessionToken.extra",
-      "bearer aPlainSessionToken",
-      "Basic aPlainSessionToken",
-    ])("rejects an invalid authorization header: %s", (authorization) => {
-      expect(
-        GetSessionInputDTO.headers.safeParse({ authorization }).success,
-      ).toBe(false);
-    });
-  });
   describe("query", () => {
     const allSessionFields = GetSessionOutputDTO.keyof().options;
 

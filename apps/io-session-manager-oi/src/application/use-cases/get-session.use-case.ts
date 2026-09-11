@@ -5,6 +5,7 @@ import {
   ValidationError,
 } from "@pagopa/hexagonal-core";
 import type {
+  BaseSession,
   LollipopActivationPort,
   PlainSessionToken,
   SessionId,
@@ -12,7 +13,6 @@ import type {
 } from "@pagopa/io-auth-n-identity-session";
 import {
   toExtendedPlainZendeskSSOToken,
-  toHashedSessionToken,
   toPlainBpdSSOToken,
   toPlainFimsSSOToken,
   toPlainWalletSSOToken,
@@ -34,6 +34,7 @@ type GetSessionUseCaseDeps = {
 export type GetSessionInput = {
   sessionId: SessionId;
   sessionToken: PlainSessionToken;
+  session: BaseSession;
   fieldsFilter: FieldsQueryParam;
 };
 
@@ -48,45 +49,19 @@ export const makeGetSessionUseCase =
     ValidationError | AuthenticationError | GenericError
   > =>
   async (input) => {
-    // FIXME: move token validation/introspection to a dedicated middleware
-    const maybeSession = await deps.sessionPort.findBySessionToken({
-      hashedSessionToken: toHashedSessionToken(input.sessionToken),
-      sessionId: input.sessionId,
-    });
-    if (maybeSession.isErr()) {
-      switch (maybeSession.error.kind) {
-        case "NotFoundError":
-          // TODO: log the underlying error for debugging purposes
-          return err(new AuthenticationError());
-        case "GenericError":
-          // TODO: log the underlying error for debugging purposes
-          return err(
-            new GenericError("An error occurred while retrieving the session"),
-          );
-        default: {
-          const _exhaustiveCheck: never = maybeSession.error;
-          return err(
-            new GenericError(
-              "An unexpected error occurred while retrieving the session",
-            ),
-          );
-        }
-      }
-    }
-
     const sessionData: GetSessionOutput = {};
     for (const field of input.fieldsFilter) {
       switch (field) {
         case "spidLevel":
-          sessionData.spidLevel = maybeSession.value.spidLevel;
+          sessionData.spidLevel = input.session.spidLevel;
           break;
         case "expirationDate":
-          sessionData.expirationDate = maybeSession.value.expirationDate;
+          sessionData.expirationDate = input.session.expirationDate;
           break;
         case "lollipopAssertionRef": {
           const maybeLollipopActivation =
             await deps.lollipopActivationPort.getByFiscalCode(
-              maybeSession.value.fiscalCode,
+              input.session.fiscalCode,
             );
           if (maybeLollipopActivation.isErr()) {
             // TODO: log the underlying error for debugging purposes
@@ -108,7 +83,7 @@ export const makeGetSessionUseCase =
           break;
         case "zendeskToken":
           const maybeProfile = await deps.profilePort.getProfile(
-            maybeSession.value.fiscalCode,
+            input.session.fiscalCode,
           );
           const validEmail =
             maybeProfile.isOk() &&
