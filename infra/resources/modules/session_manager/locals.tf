@@ -42,6 +42,10 @@ locals {
     # IO_SM_INT_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_io_sm_int_api_key.versionless_id})"
     IO_SM_INT_API_KEY = "TODO"
 
+    # Platform Proxy Internal API
+    PLATFORM_PROXY_API_URL       = var.platform_proxy.base_url
+    PLATFORM_PROXY_API_BASE_PATH = var.platform_proxy.base_path
+
     # IO-Communication notification queue
     PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI = data.azurerm_storage_account.io_com.primary_queue_endpoint
     PUSH_NOTIFICATIONS_QUEUE_NAME        = data.azurerm_storage_queue.push_notifications.name

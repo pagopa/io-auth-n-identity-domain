@@ -2,6 +2,8 @@ export const IO_PROFILE_BASE_URL = `http://localhost:${process.env.FUNCTION_PROF
 
 export const IO_PROFILE_API_KEY = process.env.IO_PROFILE_API_KEY ?? "api_key";
 
+export const PLATFORM_INTERNAL_BASE_URL = `http://localhost:${process.env.FUNCTION_SESSION_MANAGER_INTERNAL_PORT ?? 3009}/api/platform-internal/v1`;
+
 export const ENVIRONMENT = process.env.ENVIRONMENT || "DEV";
 
 // Cosmos DB (local emulator started via docker-compose).
