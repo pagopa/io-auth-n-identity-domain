@@ -92,6 +92,7 @@ import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { isUserElegibleForValidationCookie } from "./config/validation-cookie";
+import { CallbackDeps } from "./services/oidc";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -199,6 +200,10 @@ export const newApp: (
     authMiddlewares,
     REDIS_CLIENT_SELECTOR,
     acsDependencies,
+    {
+      ...acsDependencies,
+      oneIdAPIClient: APIClients.oneIdAPIClient,
+    },
     appInsightsClient,
   );
 
@@ -397,6 +402,7 @@ function setupExternalEndpoints(
   },
   redisClientSelector: RedisClientSelectorType,
   acsDependencies: AcsDependencies,
+  oidcCallbackDependencies: CallbackDeps,
   appInsightsClient?: appInsights.TelemetryClient,
 ) {
   pipe(
@@ -527,6 +533,14 @@ function setupExternalEndpoints(
         appInsightsTelemetryClient: appInsightsClient,
       }),
       ap(OidcController.reserveEndpoint),
+    ),
+  );
+
+  app.get(
+    `${basePath}/callback`,
+    pipe(
+      toExpressHandler(oidcCallbackDependencies),
+      ap(OidcController.callbackEndpoint),
     ),
   );
 }

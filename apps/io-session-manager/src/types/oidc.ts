@@ -47,3 +47,26 @@ export const LoginAusiliarData = t.intersection([
     loginType: LoginType,
   }),
 ]);
+
+export type CallbackSuccessInput = t.TypeOf<typeof CallbackSuccessInput>;
+export const CallbackSuccessInput = t.type({
+  code: NonEmptyString,
+  state: NonEmptyString,
+});
+
+export type CallbackErrorInput = t.TypeOf<typeof CallbackErrorInput>;
+export const CallbackErrorInput = t.intersection([
+  t.type({
+    state: NonEmptyString,
+    error: NonEmptyString,
+  }),
+  t.partial({
+    error_description: NonEmptyString,
+  }),
+]);
+
+export type ExchangeCodeAPIResponse = t.TypeOf<typeof ExchangeCodeAPIResponse>;
+export const ExchangeCodeAPIResponse = t.type({
+  access_token: NonEmptyString,
+  id_token: NonEmptyString,
+});
