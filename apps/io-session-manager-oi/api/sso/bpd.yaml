@@ -9,6 +9,12 @@ tags:
   - name: sso
     description: BPD Single Sign-On endpoints.
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+      description: Enter the opaque token provided by the authentication authority
   schemas:
     BPDUser:
       type: object
