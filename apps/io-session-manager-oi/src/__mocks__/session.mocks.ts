@@ -1,3 +1,9 @@
+/**
+ * Removing the import of `NonEmptyStringBrand` causes the following:
+ * The inferred type of 'BpdClientSessionTokenSchema' references an inaccessible 'unique symbol' type.
+ * A type annotation is necessary.
+ */
+// eslint-disable @typescript-eslint/no-unused-vars
 import {
   EmailAddressSchema,
   EmailAddressBrand,
@@ -9,8 +15,10 @@ import {
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import {
+  BaseSession,
   SessionWithHashedSSOTokens,
   SessionWithPlainSSOTokens,
+  SessionWithPlainToken,
   toHashedSession,
 } from "@pagopa/io-auth-n-identity-session/entities";
 import {
@@ -23,8 +31,8 @@ import {
   toPlainZendeskSSOToken,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
 
-import { UserProfile } from "../domain/entities/profile.entity.js";
 import { type NewSessionToken } from "../application/use-cases/activate-user-session.use-case.js";
+import { UserProfile } from "../domain/entities/profile.entity.js";
 
 export const aFiscalCode = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 export const anEmailAddress = EmailAddressSchema.parse("user@example.com");
@@ -61,7 +69,7 @@ export const aNewSessionTokenInputWithoutSpidEmail: NewSessionToken = {
   spidEmail: undefined,
 };
 
-export const aSessionWithPlainTokens: SessionWithPlainSSOTokens = {
+export const aBaseSession: BaseSession = {
   sessionId: aSessionId,
   fiscalCode: aFiscalCode,
   name: aName,
@@ -70,7 +78,15 @@ export const aSessionWithPlainTokens: SessionWithPlainSSOTokens = {
   spidLevel: aSpidLevel,
   spidEmail: anEmailAddress,
   expirationDate: new Date("2100-01-01"),
+};
+
+export const aSessionWithPlainToken: SessionWithPlainToken = {
+  ...aBaseSession,
   plainSessionToken: aPlainSessionToken,
+};
+
+export const aSessionWithPlainSSOTokens: SessionWithPlainSSOTokens = {
+  ...aSessionWithPlainToken,
   ssoTokens: {
     walletPlainToken: toPlainWalletSSOToken(aPlainSessionToken),
     bpdPlainToken: toPlainBpdSSOToken(aPlainSessionToken),
@@ -80,7 +96,7 @@ export const aSessionWithPlainTokens: SessionWithPlainSSOTokens = {
 };
 
 export const aSessionWithHashedTokens: SessionWithHashedSSOTokens =
-  toHashedSession(aSessionWithPlainTokens);
+  toHashedSession(aSessionWithPlainSSOTokens);
 
 export const aUserProfileWithEmail: UserProfile = {
   fiscalCode: aFiscalCode,

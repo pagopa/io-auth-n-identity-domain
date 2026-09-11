@@ -41,6 +41,7 @@ import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAusiliarDataSchema } from "./domain/value-objects/login.vo.js";
+import { authenticate } from "./middlewares/authentication.middleware.js";
 
 class AzureCredential {
   private static instance: DefaultAzureCredential | undefined;
@@ -231,6 +232,14 @@ export const createApp = async (
   });
 
   // --------------------------------------------------
+  // Middlewares definition
+  // --------------------------------------------------
+
+  const authenticateMiddleware = authenticate({
+    sessionPort: sessionCosmosAdapter,
+  });
+
+  // --------------------------------------------------
   // Endpoints mounting
   // --------------------------------------------------
 
@@ -286,10 +295,18 @@ export const createApp = async (
     getUserForBpdUseCase,
   });
 
-  mountGetSessionHandler({ useCase: getSessionUseCase })(server);
+  mountSsoBpdUserHandler(server, {
+    allowedIpSourceRange: config.ALLOW_BPD_IP_SOURCE_RANGE,
+    getUserForBpdUseCase,
+  });
+
+  mountGetSessionHandler({
+    middlewares: [authenticateMiddleware] as const,
+    useCase: getSessionUseCase,
+  })(server);
 
   // --------------------------------------------------
-  // Middlewares mounting
+  // Hooks mounting
   // --------------------------------------------------
 
   // Expose the resolved client IP to hexagonal middlewares via `x-client-ip`.
