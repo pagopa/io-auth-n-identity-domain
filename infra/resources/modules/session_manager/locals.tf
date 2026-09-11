@@ -58,10 +58,11 @@ locals {
     REDIS_TLS_ENABLED = "true"
 
     # Session Cosmos DB (io-auth-SM) - accessed via managed identity
-    COSMOSDB_URI                           = var.session_cosmos.account_uri
-    COSMOSDB_NAME                          = azurerm_cosmosdb_sql_database.session_manager.name
-    COSMOSDB_SESSION_TOKEN_CONTAINER_NAME  = azurerm_cosmosdb_sql_container.session_tokens.name
-    COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME = azurerm_cosmosdb_sql_container.active_sessions.name
+    COSMOSDB_URI                                = var.session_cosmos.account_uri
+    COSMOSDB_NAME                               = azurerm_cosmosdb_sql_database.session_manager.name
+    COSMOSDB_SESSION_TOKEN_CONTAINER_NAME       = azurerm_cosmosdb_sql_container.session_tokens.name
+    COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME      = azurerm_cosmosdb_sql_container.active_sessions.name
+    COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME = azurerm_cosmosdb_sql_container.lollipop_activations.name
 
     # One Identity configs
     ONEID_PROD_CLIENT_ID    = "4HWHRx-Wv19-cY-YL6Q1AgYVvx3h0Gw_SvtayZWJVVE"

@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-domain
 
+## 0.5.1
+
+### Patch Changes
+
+- 55db1f1: fix regex by using zod built-in schemas and patterns
+
 ## 0.5.0
 
 ### Minor Changes

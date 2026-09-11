@@ -1,5 +1,22 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.5.0
+
+### Minor Changes
+
+- e1c62dd: add health check to both LollipopActivationCosmosAdapter and SessionCosmosAdapter
+
+## 0.4.0
+
+### Minor Changes
+
+- 55db1f1: implement getSession handler and use case and mount it to fastify server
+
+### Patch Changes
+
+- Updated dependencies [55db1f1]
+  - @pagopa/io-auth-n-identity-domain@0.5.1
+
 ## 0.3.0
 
 ### Minor Changes

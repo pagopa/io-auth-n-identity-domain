@@ -14,11 +14,12 @@ import {
 } from "../../domain/entities/lollipop-activation.entity.js";
 import { LollipopActivationPort } from "../../domain/ports/outbound/lollipop-activation.port.js";
 
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { CosmosBaseAdapter } from "./cosmos-base.adapter.js";
 
 export class LollipopActivationCosmosAdapter
   extends CosmosBaseAdapter
-  implements LollipopActivationPort
+  implements LollipopActivationPort, HealthCheckOutboundPort
 {
   protected readonly lollipopContainer: Container;
 
@@ -32,6 +33,17 @@ export class LollipopActivationCosmosAdapter
     this.lollipopContainer = this.client
       .database(databaseId)
       .container(lollipopContainerId);
+  }
+
+  async healthcheck(): Promise<Result<void, GenericError>> {
+    try {
+      await this.lollipopContainer.items
+        .query("SELECT VALUE 1", { maxItemCount: 1 })
+        .fetchNext();
+      return ok(void 0);
+    } catch (error) {
+      return err(new GenericError(errorToString(error)));
+    }
   }
 
   public async getByFiscalCode(
@@ -84,7 +96,7 @@ export class LollipopActivationCosmosAdapter
     } catch (error) {
       return err(
         new GenericError(
-          `Error revoking lollipop activation: ${(error as Error).message}`,
+          `Error revoking lollipop activation: ${errorToString(error)}`,
         ),
       );
     }
@@ -126,4 +138,17 @@ function fromDbLollipopActivation(
   } else {
     return err(new GenericError("Invalid lollipop activation"));
   }
+}
+
+// TODO: centralize (unknown) error to string conversion across the project
+function errorToString(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  return JSON.stringify(error);
 }

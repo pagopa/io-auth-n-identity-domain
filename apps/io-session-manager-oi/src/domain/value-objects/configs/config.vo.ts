@@ -4,12 +4,17 @@ import {
   AuthEventServiceBusDevelopmentConfigSchema,
   AuthEventServiceBusProductionConfigSchema,
 } from "./auth-event-service-bus.vo.js";
+import { BPDConfigSchema } from "./bpd.vo.js";
 import { IoFastLoginConfigSchema } from "./fast-login.vo.js";
 import {
   LockedProfilesDevelopmentConfigSchema,
   LockedProfilesProductionConfigSchema,
 } from "./locked-profiles.vo.js";
 import { LoginConfigSchema } from "./login.vo.js";
+import {
+  LollipopActivationCosmosDevelopmentConfigSchema,
+  LollipopActivationCosmosProductionConfigSchema,
+} from "./lollipop-activation.vo.js";
 import { LollipopConfigSchema } from "./lollipop.vo.js";
 import { OneIdConfigSchema } from "./one-id.vo.js";
 import { PlatformProxyConfigSchema } from "./platform-proxy.vo.js";
@@ -42,6 +47,7 @@ const CommonConfigShape = {
   ...PlatformProxyConfigSchema.shape,
   ...OneIdConfigSchema.shape,
   ...LoginConfigSchema.shape,
+  ...BPDConfigSchema.shape,
 };
 
 /**
@@ -56,6 +62,7 @@ export const ProductionConfigSchema = z.object({
   ...RedisProductionConfigSchema.shape,
   ...SessionCosmosProductionConfigSchema.shape,
   ...AuthEventServiceBusProductionConfigSchema.shape,
+  ...LollipopActivationCosmosProductionConfigSchema.shape,
 });
 
 export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
@@ -72,6 +79,7 @@ export const DevelopmentConfigSchema = z.object({
   ...RedisDevelopmentConfigSchema.shape,
   ...SessionCosmosDevelopmentConfigSchema.shape,
   ...AuthEventServiceBusDevelopmentConfigSchema.shape,
+  ...LollipopActivationCosmosDevelopmentConfigSchema.shape,
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;

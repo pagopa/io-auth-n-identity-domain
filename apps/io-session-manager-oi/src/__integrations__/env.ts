@@ -32,6 +32,10 @@ export const SESSION_TOKEN_CONTAINER_NAME =
 export const ACTIVE_SESSION_CONTAINER_NAME =
   process.env.COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME ?? "active-sessions";
 
+export const COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME =
+  process.env.COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME ??
+  "lollipop-activations";
+
 export const AZURITE_TABLE_PORT = Number(
   process.env.AZURITE_TABLE_PORT ?? 20005,
 );

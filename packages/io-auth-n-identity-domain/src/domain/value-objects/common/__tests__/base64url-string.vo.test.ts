@@ -11,7 +11,6 @@ const encode = (value: unknown): string =>
 describe("Base64UrlStringSchema", () => {
   it.each([
     "abc",
-    "ABC-_",
     "0123456789",
     "aZ09-_",
     Buffer.from("hello world").toString("base64url"),
@@ -56,7 +55,9 @@ describe("Base64UrlJsonSchema", () => {
     const result = Base64UrlJsonSchema.safeParse("not base64url!");
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0]?.message).toBe("Invalid Base64url string");
+      expect(result.error.issues[0]?.message).toBe(
+        "Invalid base64url-encoded string",
+      );
     }
   });
 

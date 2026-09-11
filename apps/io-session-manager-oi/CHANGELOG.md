@@ -1,5 +1,35 @@
 # io-session-manager-oi
 
+## 0.20.0
+
+### Minor Changes
+
+- 12ea09a: Add `GET /sso/bpd/v2/user` endpoint
+
+## 0.19.0
+
+### Minor Changes
+
+- e1c62dd: add health check to both LollipopActivationCosmosAdapter and SessionCosmosAdapter
+
+### Patch Changes
+
+- Updated dependencies [e1c62dd]
+  - @pagopa/io-auth-n-identity-session@0.5.0
+
+## 0.18.0
+
+### Minor Changes
+
+- 55db1f1: implement getSession handler and use case and mount it to fastify server
+
+### Patch Changes
+
+- Updated dependencies [55db1f1]
+- Updated dependencies [55db1f1]
+  - @pagopa/io-auth-n-identity-session@0.4.0
+  - @pagopa/io-auth-n-identity-domain@0.5.1
+
 ## 0.17.0
 
 ### Minor Changes
