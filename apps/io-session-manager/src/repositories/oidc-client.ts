@@ -64,6 +64,31 @@ export const getOidcConfiguration = (
 };
 
 /**
+ * Executes the OIDC Authorization Code Grant
+ * against the provider's token endpoint, exchanging the
+ * authorization `code` received on the callback URL for a token response
+ * (access token, and optionally id token/refresh token).
+ *
+ * NOTE: `openid-client` v6 ships as an ECMAScript module only: since this app is
+ * built as CommonJS, it's loaded through a dynamic `import()` rather than a
+ * static one.
+ *
+ * @param oidcConfiguration the discovered OIDC `Configuration` for the
+ *   environment (PROD/UAT) the authorization request was started on
+ * @param currentUrl the full callback URL (including `code`/`state` query
+ *   params) the Authorization Server redirected the user-agent to
+ * @param checks authorization code grant checks to perform
+ */
+export const exchangeAuthorizationCode = async (
+  oidcConfiguration: client.Configuration,
+  currentUrl: URL,
+  checks: client.AuthorizationCodeGrantChecks,
+): ReturnType<typeof client.authorizationCodeGrant> => {
+  const { authorizationCodeGrant } = await import("openid-client");
+  return authorizationCodeGrant(oidcConfiguration, currentUrl, checks);
+};
+
+/**
  * Some OIDC providers return `null` for optional token fields such as
  * `refresh_token`/`access_token`/`id_token`. `openid-client` strictly rejects
  * non-string values, so this fetch wrapper drops every `null` field before the
