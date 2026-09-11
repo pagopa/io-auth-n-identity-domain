@@ -21,7 +21,7 @@ import {
 } from "../config/one-id";
 import { AssertionRef } from "../generated/lollipop-api/AssertionRef";
 import { OidcConfigurationEnv } from "../generated/backend/OidcConfigurationEnv";
-import { RedisRepo } from "../repositories";
+import { OneIdRepo, RedisRepo } from "../repositories";
 import {
   exchangeAuthorizationCode,
   getOidcConfiguration,
