@@ -14,7 +14,6 @@ import {
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
-import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import {
   errorsToReadableMessages,
@@ -171,6 +170,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
     >;
     isUserElegibleForFastLogin: (fiscalCode: FiscalCode) => boolean;
     isUserElegibleForValidationCookie: (fiscalCode: FiscalCode) => boolean;
+    getIdentityProvider: (issuer: string) => string;
   };
 
 export const acs: (
@@ -851,12 +851,7 @@ export const acs: (
           email: userEmail,
           family_name: user.family_name,
           fiscal_code: user.fiscal_code,
-          identity_provider: pipe(
-            Issuer.decode(spidUser.issuer),
-            E.map((issuer) => IDP_NAMES[issuer]),
-            E.chainW(E.fromNullable(null)),
-            E.getOrElse(() => "Sconosciuto"),
-          ),
+          identity_provider: deps.getIdentityProvider(spidUser.issuer),
           ip_address: requestIp,
           is_email_validated: userHasEmailValidated,
           name: user.name,

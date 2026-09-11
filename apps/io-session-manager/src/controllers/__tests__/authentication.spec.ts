@@ -100,6 +100,7 @@ import { LoginTypeEnum } from "../../types/fast-login";
 import { SpidLevelEnum } from "../../types/spid-level";
 import { SpidUser } from "../../types/user";
 import { withCookieClearanceResponsePermanentRedirect } from "../../utils/responses";
+import { getSpidIdpFriendlyName } from "../../utils/spid";
 import * as AuthController from "../authentication";
 import {
   AGE_LIMIT,
@@ -134,7 +135,8 @@ const dependencies: AcsDependencies = {
   AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
   authSessionsTopicSender: mockServiceBusSender,
   platformInternalAPIClient: {} as PlatformInternalAPIClient,
-  platformInternalAPIService: mockPlatformInternalAPIService
+  platformInternalAPIService: mockPlatformInternalAPIService,
+  getIdentityProvider: getSpidIdpFriendlyName,
 };
 
 const aRequestIpAddress = "127.0.0.2";

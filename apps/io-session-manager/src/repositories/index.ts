@@ -1,6 +1,7 @@
 import * as FnAppRepo from "./fn-app-api";
 import * as FnFastLoginRepo from "./fast-login-api";
 import * as FnLollipopRepo from "./lollipop-api";
+import * as IdpFriendlyNamesRepo from "./idp-friendly-names";
 import * as OidcClientRepo from "./oidc-client";
 import * as RedisRepo from "./redis";
 import * as SpidLogsRepo from "./spid-logs";
@@ -14,6 +15,7 @@ export {
   FnAppRepo,
   FnLollipopRepo,
   FnFastLoginRepo,
+  IdpFriendlyNamesRepo,
   OidcClientRepo,
   RedisRepo,
   LockedProfileRepo,
