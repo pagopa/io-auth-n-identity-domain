@@ -3,12 +3,10 @@ import {
   ExtendedPlainZendeskSSOTokenSchema,
   PlainBpdSSOTokenSchema,
   PlainFimsSSOTokenSchema,
-  PlainSessionTokenSchema,
   PlainWalletSSOTokenSchema,
   SpidLevelSchema,
 } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
-import { createBearerTokenSchema } from "../bearer-token.js";
 
 export const GetSessionOutputDTO = z
   .object({
@@ -41,10 +39,6 @@ const FieldsQueryParamSchema = z
   .transform((fields) => new Set(fields)); // Converts the array of field names into a Set for easier lookup and uniqueness
 export type FieldsQueryParam = z.infer<typeof FieldsQueryParamSchema>;
 
-const BearerSessionTokenSchema = createBearerTokenSchema(
-  PlainSessionTokenSchema,
-);
-
 /**
  * Request schema for the GET /session endpoint.
  * The `fields` query parameter allows the client to obtain only the requested parameters.
@@ -54,9 +48,6 @@ const BearerSessionTokenSchema = createBearerTokenSchema(
  * For more info, see https://opensource.zalando.com/restful-api-guidelines/#157
  */
 export const GetSessionInputDTO = {
-  headers: z.object({
-    authorization: BearerSessionTokenSchema,
-  }),
   query: z.object({
     fields: FieldsQueryParamSchema.meta({
       id: "FieldsFilter",

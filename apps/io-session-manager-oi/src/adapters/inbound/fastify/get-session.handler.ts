@@ -3,6 +3,7 @@ import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import { FastifyInstance } from "fastify";
 
 import { makeGetSessionUseCase } from "../../../application/use-cases/get-session.use-case.js";
+import { authenticate } from "../../../middlewares/authentication.middleware.js";
 import {
   GetSessionInputDTO,
   GetSessionOutputDTO,
@@ -31,20 +32,25 @@ export const getSessionContract = defineRoute({
       schema: ProblemJson,
     },
   },
-  security: [], // TODO: Add bearer token security scheme once implemented
+  security: [{ bearerAuth: [] }],
 });
 
 type GetSessionHandlerDeps = {
+  middlewares: readonly [ReturnType<typeof authenticate>];
   useCase: ReturnType<typeof makeGetSessionUseCase>;
 };
 
 export const mountGetSessionHandler =
   (deps: GetSessionHandlerDeps) =>
   (server: FastifyInstance): void => {
+    const middlewares = deps.middlewares;
     mountFastifyRoute(server, {
       contract: getSessionContract,
-      inputMapper: (req) => ({
-        ...req.headers.authorization,
+      middlewares: middlewares,
+      inputMapper: (req, context) => ({
+        sessionId: context.sessionId,
+        sessionToken: context.sessionToken,
+        session: context.session,
         fieldsFilter: req.query.fields,
       }),
       useCase: deps.useCase,
