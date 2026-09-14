@@ -112,7 +112,7 @@ export type CallbackEndpointDeps = CallbackDeps & WithExpressRequest;
 
 /**
  * Landing endpoint for the OIDC authorization code flow, returning a fresh
- * session token or an error with a 302 redirect
+ * session token or an error with a 301 redirect
  */
 export const callbackEndpoint: RTE.ReaderTaskEither<
   CallbackEndpointDeps,

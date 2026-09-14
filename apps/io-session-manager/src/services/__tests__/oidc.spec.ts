@@ -154,7 +154,7 @@ describe("OidcService#reserve", () => {
       value: {
         client_id: "prod-client-id",
         authorization_endpoint: aServerMetadata.authorization_endpoint,
-        redirect_uri: "https://localhost/api/auth/v2/callback",
+        redirect_uri: "https://localhost/api/auth/v1/callback",
         state: expect.any(String),
         nonce: expect.any(String),
       },
