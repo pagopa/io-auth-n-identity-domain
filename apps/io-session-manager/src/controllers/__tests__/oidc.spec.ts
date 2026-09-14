@@ -163,11 +163,57 @@ describe("OidcController#callbackEndpoint", () => {
 
     expect(mockGetDel).toHaveBeenCalledWith(expect.stringContaining("a-state"));
     expect(mockOIDCCallback).not.toHaveBeenCalled();
-    expect(result).toMatchObject({ kind: "IResponsePermanentRedirect" });
     expect(result).toMatchObject({
+      kind: "IResponsePermanentRedirect",
       detail: getClientErrorRedirectionUrl({
         errorCode: 22,
         errorMessage: "access_denied" as NonEmptyString,
+      }).href,
+    });
+  });
+
+  test("should forward an error as a permanent redirect with errorCode and errorMessage", async () => {
+    mockGetDel.mockResolvedValueOnce(JSON.stringify({}));
+
+    const req = mockReq({
+      query: {
+        error: "access_denied",
+        error_description: "22",
+        state: "a-state",
+      },
+    }) as unknown as Request;
+
+    const result = await pipe({ ...deps, req }, callbackEndpoint, TE.toUnion)();
+
+    expect(mockGetDel).toHaveBeenCalledTimes(1);
+    expect(mockOIDCCallback).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      kind: "IResponsePermanentRedirect",
+      detail: getClientErrorRedirectionUrl({
+        errorCode: 22,
+        errorMessage: "access_denied" as NonEmptyString,
+      }).href,
+    });
+  });
+
+  test("should forward an error as a permanent redirect with only errorMessage", async () => {
+    mockGetDel.mockResolvedValueOnce(JSON.stringify({}));
+
+    const req = mockReq({
+      query: {
+        error: "internal_error",
+        state: "a-state",
+      },
+    }) as unknown as Request;
+
+    const result = await pipe({ ...deps, req }, callbackEndpoint, TE.toUnion)();
+
+    expect(mockGetDel).toHaveBeenCalledTimes(1);
+    expect(mockOIDCCallback).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      kind: "IResponsePermanentRedirect",
+      detail: getClientErrorRedirectionUrl({
+        errorMessage: "internal_error" as NonEmptyString,
       }).href,
     });
   });
@@ -179,8 +225,8 @@ describe("OidcController#callbackEndpoint", () => {
 
     expect(mockGetDel).not.toHaveBeenCalled();
     expect(mockOIDCCallback).not.toHaveBeenCalled();
-    expect(result).toMatchObject({ kind: "IResponsePermanentRedirect" });
     expect(result).toMatchObject({
+      kind: "IResponsePermanentRedirect",
       detail: getClientErrorRedirectionUrl({
         errorMessage: "error occurred" as NonEmptyString,
       }).href,
