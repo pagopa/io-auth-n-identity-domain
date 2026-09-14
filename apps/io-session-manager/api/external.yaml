@@ -343,8 +343,56 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemJson"
+  /callback:
+    get:
+      operationId: callback
+      summary: OIDC callback
+      security: [] # Authentication not needed for this operation
+      description: Landing endpoint for OIDC authorization code flow
+      parameters:
+        - $ref: "#/components/parameters/Code"
+        - $ref: "#/components/parameters/State"
+        - $ref: "#/components/parameters/Error"
+        - $ref: "#/components/parameters/ErrorDescription"
+      responses:
+        "200":
+          description: dummy response for generator
+        "301":
+          description: Redirect to home page
+          headers:
+            Location:
+              schema:
+                type: string
 components:
   parameters:
+    Code:
+      name: code
+      in: query
+      schema:
+        type: string
+        minLength: 1
+      description: Authorization code returned by the OIDC provider on a successful authentication
+    State:
+      name: state
+      in: query
+      schema:
+        type: string
+        minLength: 1
+      description: Opaque value used to correlate the callback request with the original authorization request
+    Error:
+      name: error
+      in: query
+      schema:
+        type: string
+        minLength: 1
+      description: Error code returned by the OIDC provider when the authorization request fails
+    ErrorDescription:
+      name: error_description
+      in: query
+      schema:
+        type: string
+        minLength: 1
+      description: Human readable description of the error returned by the OIDC provider
     EntityId:
       name: entityID
       in: query
