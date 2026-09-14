@@ -254,9 +254,7 @@ export const getSAMLAssertion = async (
 ): Promise<E.Either<Error, Document>> =>
   pipe(
     oneIdRepo.oneIdAPIClient.getSamlAssertion(issuer.href, accessToken),
-    TE.chain((response) => {
-      return TE.right(safeXMLParseFromString(response));
-    }),
+    TE.map((response) => safeXMLParseFromString(response)),
     TE.chain(
       TE.fromOption(() => new Error("Empty assertion returned from parsing")),
     ),
@@ -340,7 +338,7 @@ export const OIDCCallback =
           samplingEnabled: "false",
         },
       });
-      return ResponseErrorInternal("OIDC code exchange failed");
+      return ResponseErrorInternal("SAML assertion retrieval failed");
     }
 
     // TODO: perform SAML check against SAML Assertion (view DR), perform MIN_AGE_FF check and
