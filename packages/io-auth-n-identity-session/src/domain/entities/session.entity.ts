@@ -48,6 +48,7 @@ export const BaseSessionSchema = z.object({
   spidLevel: SpidLevelSchema,
   spidEmail: EmailAddressSchema.optional(),
   expirationDate: z.date(),
+  createdAt: z.date(),
 });
 
 export type BaseSession = z.infer<typeof BaseSessionSchema>;

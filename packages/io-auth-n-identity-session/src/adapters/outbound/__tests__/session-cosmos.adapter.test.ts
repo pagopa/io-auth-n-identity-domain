@@ -62,6 +62,8 @@ const aHashedZendeskToken = HashedZendeskSSOTokenSchema.parse(
 
 // 1 hour in the future so that computeTtl succeeds
 const anExpirationDate = new Date(Date.now() + 60 * 60 * 1000);
+// 15 minutes before the expiration date
+const aCreatedAt = new Date(Date.now() - 15 * 60 * 1000);
 // in the past to force computeTtl to fail
 const aPastExpirationDate = new Date(Date.now() - 60 * 60 * 1000);
 
@@ -73,6 +75,7 @@ const aBaseSession: BaseSession = {
   spidLevel: "https://www.spid.gov.it/SpidL2",
   sessionId: aSessionId,
   expirationDate: anExpirationDate,
+  createdAt: aCreatedAt,
 };
 
 const aSessionWithHashedTokens: SessionWithHashedSSOTokens = {
@@ -103,7 +106,7 @@ const aDbSessionResource = {
   dateOfBirth: new Date("1985-10-10").toISOString(),
   spidLevel: "https://www.spid.gov.it/SpidL2",
   expirationDate: anExpirationDate.toISOString(),
-  createdAt: new Date().toISOString(),
+  createdAt: aCreatedAt.toISOString(),
 };
 
 // A valid raw active session document as persisted in Cosmos DB
