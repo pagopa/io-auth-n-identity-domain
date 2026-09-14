@@ -86,12 +86,13 @@ const decodeAndForwardError = (
       (errorInput) =>
         pipe(
           // fire & forget get and delete ausiliar data
-          getAndDelete(errorInput.state)(deps)().catch(void 0 as never),
+          getAndDelete(errorInput.state)(deps)().catch(() => undefined),
           (_) =>
             TE.left(
               ResponsePermanentRedirect(
                 getClientErrorRedirectionUrl({
-                  errorCode: parseInt(errorInput.error_description || "0") || 0,
+                  errorCode:
+                    parseInt(errorInput.error_description || "0", 10) || 0,
                   errorMessage: errorInput.error,
                 }),
               ),

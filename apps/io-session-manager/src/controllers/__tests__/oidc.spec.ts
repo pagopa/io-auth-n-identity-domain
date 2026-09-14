@@ -164,12 +164,12 @@ describe("OidcController#callbackEndpoint", () => {
     expect(mockGetDel).toHaveBeenCalledWith(expect.stringContaining("a-state"));
     expect(mockOIDCCallback).not.toHaveBeenCalled();
     expect(result).toMatchObject({ kind: "IResponsePermanentRedirect" });
-    expect((result as { detail: string }).detail).toEqual(
-      getClientErrorRedirectionUrl({
+    expect(result).toMatchObject({
+      detail: getClientErrorRedirectionUrl({
         errorCode: 22,
         errorMessage: "access_denied" as NonEmptyString,
       }).href,
-    );
+    });
   });
 
   test("should return a generic error redirect when neither a success nor an error input can be decoded", async () => {
