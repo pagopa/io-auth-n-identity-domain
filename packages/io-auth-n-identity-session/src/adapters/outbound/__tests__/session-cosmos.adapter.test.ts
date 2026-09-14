@@ -605,116 +605,107 @@ describe("SessionCosmosAdapter", () => {
   });
 
   // -------------------------------------------------------------------------
-  // invalidatePreviousSession
+  // findByFiscalCode
   // -------------------------------------------------------------------------
 
-  describe("invalidatePreviousSession", () => {
-    it("GIVEN no previous active session WHEN invalidatePreviousSession is called THEN returns ok(undefined)", async () => {
+  describe("findByFiscalCode", () => {
+    const previousSessionItems = [
+      aDbSessionResource,
+      { id: COSMOS_WALLET_PREFIX + aHashedWalletToken },
+      { id: COSMOS_BPD_PREFIX + aHashedBpdToken },
+      { id: COSMOS_FIMS_PREFIX + aHashedFimsToken },
+      { id: COSMOS_ZENDESK_PREFIX + aHashedZendeskToken },
+    ];
+
+    it("GIVEN no previous active session WHEN findByFiscalCode is called THEN returns ok(undefined)", async () => {
       activeSession.itemMock.read.mockResolvedValueOnce({
         resource: undefined,
         statusCode: 404,
       });
 
-      const result = await adapter.invalidatePreviousSession(aFiscalCode);
+      const result = await adapter.findByFiscalCode(aFiscalCode);
 
       expect(result).toEqual(ok(undefined));
       expect(userSession.query).not.toHaveBeenCalled();
+      expect(userSession.bulk).not.toHaveBeenCalled();
+      expect(activeSession.itemMock.delete).not.toHaveBeenCalled();
     });
 
-    it("GIVEN an active session read error WHEN invalidatePreviousSession is called THEN returns GenericError", async () => {
+    it("GIVEN an active session read error WHEN findByFiscalCode is called THEN returns GenericError", async () => {
       activeSession.itemMock.read.mockResolvedValueOnce({
         resource: aDbActiveSessionResource,
         statusCode: 500,
       });
 
-      const result = await adapter.invalidatePreviousSession(aFiscalCode);
+      const result = await adapter.findByFiscalCode(aFiscalCode);
 
       expect(result).toEqual(err(expect.any(GenericError)));
     });
 
-    it("GIVEN an existing session WHEN invalidatePreviousSession is called THEN deletes items and returns the previous token", async () => {
+    it("GIVEN an existing session WHEN findByFiscalCode is called THEN returns the hashed session without deleting", async () => {
       activeSession.itemMock.read.mockResolvedValueOnce({
         resource: aDbActiveSessionResource,
         statusCode: 200,
       });
       userSession.fetchAll.mockResolvedValueOnce({
-        resources: [
-          { id: COSMOS_SESSION_PREFIX + aHashedSessionToken },
-          { id: "WALLET-" + aHashedWalletToken },
-        ],
-      });
-      userSession.bulk.mockResolvedValueOnce([
-        { statusCode: 204 },
-        { statusCode: 204 },
-      ]);
-      activeSession.itemMock.delete.mockResolvedValueOnce({
-        statusCode: 204,
+        resources: previousSessionItems,
       });
 
-      const result = await adapter.invalidatePreviousSession(aFiscalCode);
+      const result = await adapter.findByFiscalCode(aFiscalCode);
 
-      expect(result).toEqual(
-        ok({
-          sessionId: aSessionId,
-          hashedSessionToken: aHashedSessionToken,
-        }),
-      );
-      expect(userSession.bulk).toHaveBeenCalledTimes(1);
-      expect(activeSession.itemMock.delete).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(ok(aSessionWithHashedTokens));
+      expect(userSession.bulk).not.toHaveBeenCalled();
+      expect(activeSession.itemMock.delete).not.toHaveBeenCalled();
     });
 
-    it("GIVEN no session token item WHEN invalidatePreviousSession is called THEN returns ok(undefined)", async () => {
+    it("GIVEN no session token item WHEN findByFiscalCode is called THEN returns GenericError", async () => {
       activeSession.itemMock.read.mockResolvedValueOnce({
         resource: aDbActiveSessionResource,
         statusCode: 200,
       });
       userSession.fetchAll.mockResolvedValueOnce({ resources: [] });
-      activeSession.itemMock.delete.mockResolvedValueOnce({
-        statusCode: 204,
-      });
 
-      const result = await adapter.invalidatePreviousSession(aFiscalCode);
+      const result = await adapter.findByFiscalCode(aFiscalCode);
 
-      expect(result).toEqual(ok(undefined));
+      expect(result).toEqual(err(expect.any(GenericError)));
       expect(userSession.bulk).not.toHaveBeenCalled();
+      expect(activeSession.itemMock.delete).not.toHaveBeenCalled();
     });
 
-    it("GIVEN a bulk deletion error status WHEN invalidatePreviousSession is called THEN returns GenericError", async () => {
+    it("GIVEN incomplete hashed tokens WHEN findByFiscalCode is called THEN returns GenericError", async () => {
       activeSession.itemMock.read.mockResolvedValueOnce({
         resource: aDbActiveSessionResource,
         statusCode: 200,
       });
       userSession.fetchAll.mockResolvedValueOnce({
-        resources: [{ id: COSMOS_SESSION_PREFIX + aHashedSessionToken }],
+        resources: [aDbSessionResource],
       });
-      userSession.bulk.mockResolvedValueOnce([{ statusCode: 500 }]);
 
-      const result = await adapter.invalidatePreviousSession(aFiscalCode);
+      const result = await adapter.findByFiscalCode(aFiscalCode);
 
       expect(result).toEqual(err(expect.any(GenericError)));
-      expect(activeSession.itemMock.delete).not.toHaveBeenCalled();
     });
 
-    it("GIVEN the query throws WHEN invalidatePreviousSession is called THEN returns GenericError", async () => {
+    it("GIVEN the query throws WHEN findByFiscalCode is called THEN returns GenericError", async () => {
       activeSession.itemMock.read.mockResolvedValueOnce({
         resource: aDbActiveSessionResource,
         statusCode: 200,
       });
       userSession.fetchAll.mockRejectedValueOnce(makeErrorResponse(500));
 
-      const result = await adapter.invalidatePreviousSession(aFiscalCode);
+      const result = await adapter.findByFiscalCode(aFiscalCode);
 
       expect(result).toEqual(err(expect.any(GenericError)));
     });
 
-    it("GIVEN a conflict error is thrown WHEN invalidatePreviousSession is called THEN maps it to GenericError", async () => {
+    it("GIVEN a conflict error is thrown WHEN findByFiscalCode is called THEN maps it to GenericError", async () => {
       activeSession.itemMock.read.mockResolvedValueOnce({
         resource: aDbActiveSessionResource,
         statusCode: 200,
       });
       userSession.fetchAll.mockRejectedValueOnce(makeErrorResponse(409));
 
-      const result = await adapter.invalidatePreviousSession(aFiscalCode);
+      const result = await adapter.findByFiscalCode(aFiscalCode);
 
       expect(result).toEqual(err(expect.any(GenericError)));
     });

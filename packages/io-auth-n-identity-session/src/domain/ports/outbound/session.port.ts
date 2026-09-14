@@ -38,6 +38,16 @@ export interface SessionPort {
   >;
 
   /**
+   * Finds the session associated with the given fiscal code, if any.
+   * @param fiscalCode The fiscal code of the user.
+   * @returns The hashed session with all its tokens,
+   *          undefined when none exists, or a generic error.
+   */
+  readonly findByFiscalCode: (
+    fiscalCode: FiscalCode,
+  ) => Promise<Result<SessionWithHashedSSOTokens | undefined, GenericError>>;
+
+  /**
    * Finds a session by its BPD SSO token.
    * @param hashedBPDSSOToken The hashed BPD SSO token
    * @param sessionId The session tracking ID
@@ -80,15 +90,4 @@ export interface SessionPort {
   readonly delete: (
     sessionTokens: SessionWithHashedSSOTokens,
   ) => Promise<Result<void, NotFoundError | GenericError>>;
-
-  /**
-   * Invalidates the previous session associated with the given fiscal code.
-   * @param fiscalCode The fiscal code of the user.
-   * @returns The hashed session token with tracking ID of the invalidated session, or an error if a generic error happens.
-   */
-  readonly invalidatePreviousSession: (
-    fiscalCode: FiscalCode,
-  ) => Promise<
-    Result<HashedSessionTokenWithSessionId | undefined, GenericError>
-  >;
 }

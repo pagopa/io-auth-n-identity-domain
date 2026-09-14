@@ -11,6 +11,7 @@ import {
   NonEmptyString,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok, Result } from "neverthrow";
 
 import type { ActiveSession } from "../../domain/entities/active-session.entity.js";
@@ -20,22 +21,36 @@ import type {
   SessionWithHashedSSOTokens,
   SessionWithHashedToken,
 } from "../../domain/entities/session.entity.js";
-import { BaseSessionSchema } from "../../domain/entities/session.entity.js";
+import {
+  BaseSessionSchema,
+  SessionWithHashedSSOTokensSchema,
+} from "../../domain/entities/session.entity.js";
 import {
   HashedSessionTokenWithSessionId,
   SessionPort,
 } from "../../domain/ports/outbound/session.port.js";
 import { SessionId } from "../../domain/value-objects/session-id.vo.js";
-import type { HashedBpdSSOToken } from "../../domain/value-objects/tokens/bpd-sso-token.vo.js";
-import type { HashedFimsSSOToken } from "../../domain/value-objects/tokens/fims-sso-token.vo.js";
+import {
+  HashedBpdSSOTokenSchema,
+  type HashedBpdSSOToken,
+} from "../../domain/value-objects/tokens/bpd-sso-token.vo.js";
+import {
+  HashedFimsSSOTokenSchema,
+  type HashedFimsSSOToken,
+} from "../../domain/value-objects/tokens/fims-sso-token.vo.js";
 import {
   HashedSessionTokenSchema,
   type HashedSessionToken,
 } from "../../domain/value-objects/tokens/session-token.vo.js";
-import type { HashedWalletSSOToken } from "../../domain/value-objects/tokens/wallet-sso-token.vo.js";
-import type { HashedZendeskSSOToken } from "../../domain/value-objects/tokens/zendesk-sso-token.vo.js";
+import {
+  HashedWalletSSOTokenSchema,
+  type HashedWalletSSOToken,
+} from "../../domain/value-objects/tokens/wallet-sso-token.vo.js";
+import {
+  HashedZendeskSSOTokenSchema,
+  type HashedZendeskSSOToken,
+} from "../../domain/value-objects/tokens/zendesk-sso-token.vo.js";
 
-import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { CosmosBaseAdapter } from "./cosmos-base.adapter.js";
 
 // ---------------------------------------------------------------------------
@@ -100,6 +115,43 @@ export class SessionCosmosAdapter
       "UserSession" as NonEmptyString,
     );
     return result.andThen((rawSession) => fromDbSession(rawSession));
+  }
+
+  public async findByFiscalCode(
+    fiscalCode: FiscalCode,
+  ): Promise<Result<SessionWithHashedSSOTokens | undefined, GenericError>> {
+    try {
+      const activeSessionResult = await this.getActiveSession(fiscalCode);
+
+      if (activeSessionResult.isErr()) {
+        if (activeSessionResult.error instanceof NotFoundError) {
+          return ok(undefined);
+        }
+        return err(activeSessionResult.error);
+      }
+
+      const sessionId = activeSessionResult.value.sessionId;
+
+      const { resources: items } = await this.sessionTokenContainer.items
+        .query<JSONObject>(
+          {
+            query: "SELECT * FROM c WHERE c.sessionId = @sessionId",
+            parameters: [{ name: "@sessionId", value: sessionId }],
+          },
+          { partitionKey: sessionId },
+        )
+        .fetchAll();
+
+      return fromDbHashedSession(items);
+    } catch (error) {
+      return this.handleCosmosError(
+        error,
+        "UserSession" as NonEmptyString,
+        "findByFiscalCode" as NonEmptyString,
+      ).mapErr((e) =>
+        e instanceof ConflictError ? new GenericError(e.message) : e,
+      );
+    }
   }
 
   public async findByBpdToken(bpdToken: {
@@ -169,90 +221,6 @@ export class SessionCosmosAdapter
     }
 
     return ok(void 0);
-  }
-
-  public async invalidatePreviousSession(
-    fiscalCode: FiscalCode,
-  ): Promise<
-    Result<HashedSessionTokenWithSessionId | undefined, GenericError>
-  > {
-    try {
-      // Step 1: read the ActiveSession for the given fiscalCode to get the sessionId
-      const activeSessionResult = await this.getActiveSession(fiscalCode);
-
-      if (activeSessionResult.isErr()) {
-        if (activeSessionResult.error instanceof NotFoundError) {
-          // no previous session to invalidate
-          return ok(undefined);
-        }
-        return err(activeSessionResult.error);
-      }
-
-      const sessionId = activeSessionResult.value.sessionId;
-
-      // Step 2: delete all token items in userSessionContainer for that sessionId
-      const { resources: items } = await this.sessionTokenContainer.items
-        .query<{
-          id: string;
-        }>(
-          {
-            query: "SELECT c.id FROM c WHERE c.sessionId = @sessionId",
-            parameters: [{ name: "@sessionId", value: sessionId }],
-          },
-          { partitionKey: sessionId },
-        )
-        .fetchAll();
-
-      // Extract the hashed session token from the SESSION- item before deleting
-      const sessionItem = items.find((item) =>
-        item.id.startsWith(COSMOS_SESSION_PREFIX),
-      );
-      const hashedSessionToken = sessionItem
-        ? String(sessionItem.id).replace(COSMOS_SESSION_PREFIX, "")
-        : undefined;
-
-      // All token items can be deleted together here: the retry anchor is the
-      // fiscalCode/ActiveSession (deleted last in Step 3), not the SESSION- token.
-      const deleteResult = await this.bulkDeleteItems(
-        this.sessionTokenContainer,
-        items.map((item: { id: string }) => item.id as NonEmptyString),
-        sessionId as unknown as NonEmptyString,
-        "UserSession" as NonEmptyString,
-      );
-      if (deleteResult.isErr()) {
-        return err(deleteResult.error);
-      }
-
-      // Step 3: delete ActiveSession
-      await this.activeSessionContainer.item(fiscalCode, fiscalCode).delete();
-
-      if (hashedSessionToken) {
-        const parsed = HashedSessionTokenSchema.safeParse(hashedSessionToken);
-
-        if (parsed.success) {
-          return ok({
-            sessionId: sessionId,
-            hashedSessionToken: parsed.data,
-          });
-        }
-
-        return err(
-          new GenericError(
-            `Error parsing invalidated session token: ${parsed.error.message}`,
-          ),
-        );
-      }
-
-      return ok(undefined);
-    } catch (error) {
-      return this.handleCosmosError(
-        error,
-        "UserSession" as NonEmptyString,
-        "invalidatePreviousSession" as NonEmptyString,
-      ).mapErr((e) =>
-        e instanceof ConflictError ? new GenericError(e.message) : e,
-      );
-    }
   }
 
   // ---------------------------------------------------------------------------
@@ -448,6 +416,103 @@ function fromDbSession(raw: JSONObject): Result<BaseSession, GenericError> {
   } else {
     return err(new GenericError(`Error parsing session from DB`));
   }
+}
+
+function fromDbHashedSession(
+  items: JSONObject[],
+): Result<SessionWithHashedSSOTokens, GenericError> {
+  const sessionItem = items.find(
+    (item) =>
+      typeof item.id === "string" && item.id.startsWith(COSMOS_SESSION_PREFIX),
+  );
+
+  if (!sessionItem) {
+    return err(new GenericError("Previous session token item not found"));
+  }
+
+  const baseSessionResult = fromDbSession(sessionItem);
+  if (baseSessionResult.isErr()) {
+    return err(baseSessionResult.error);
+  }
+
+  const hashedSessionToken = hashedTokenFromPrefixedId(
+    items,
+    COSMOS_SESSION_PREFIX,
+    HashedSessionTokenSchema,
+  );
+  const walletHashedToken = hashedTokenFromPrefixedId(
+    items,
+    COSMOS_WALLET_PREFIX,
+    HashedWalletSSOTokenSchema,
+  );
+  const bpdHashedToken = hashedTokenFromPrefixedId(
+    items,
+    COSMOS_BPD_PREFIX,
+    HashedBpdSSOTokenSchema,
+  );
+  const fimsHashedToken = hashedTokenFromPrefixedId(
+    items,
+    COSMOS_FIMS_PREFIX,
+    HashedFimsSSOTokenSchema,
+  );
+  const zendeskHashedToken = hashedTokenFromPrefixedId(
+    items,
+    COSMOS_ZENDESK_PREFIX,
+    HashedZendeskSSOTokenSchema,
+  );
+
+  if (
+    hashedSessionToken === undefined ||
+    walletHashedToken === undefined ||
+    bpdHashedToken === undefined ||
+    fimsHashedToken === undefined ||
+    zendeskHashedToken === undefined
+  ) {
+    return err(
+      new GenericError("Previous session hashed tokens are incomplete"),
+    );
+  }
+
+  const parsed = SessionWithHashedSSOTokensSchema.safeParse({
+    ...baseSessionResult.value,
+    hashedSessionToken,
+    ssoTokens: {
+      walletHashedToken,
+      bpdHashedToken,
+      fimsHashedToken,
+      zendeskHashedToken,
+    },
+  });
+
+  if (!parsed.success) {
+    return err(
+      new GenericError(
+        `Error parsing previous hashed session: ${parsed.error.message}`,
+      ),
+    );
+  }
+
+  return ok(parsed.data);
+}
+
+function hashedTokenFromPrefixedId<T>(
+  items: JSONObject[],
+  prefix: string,
+  schema: {
+    safeParse: (
+      value: string,
+    ) => { success: true; data: T } | { success: false };
+  },
+): T | undefined {
+  const item = items.find(
+    (entry) => typeof entry.id === "string" && entry.id.startsWith(prefix),
+  );
+  if (!item || typeof item.id !== "string") {
+    return undefined;
+  }
+
+  const parsed = schema.safeParse(item.id.slice(prefix.length));
+  return parsed.success ? parsed.data : undefined;
 }
 
 function toDbSession(session: SessionWithHashedToken, ttl: number): JSONObject {

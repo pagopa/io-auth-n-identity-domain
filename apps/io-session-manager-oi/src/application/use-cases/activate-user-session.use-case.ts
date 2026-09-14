@@ -20,13 +20,13 @@ import {
 import { ok, err, Result } from "neverthrow";
 
 import { UserProfile } from "../../domain/entities/profile.entity.js";
+import { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
 import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import {
   ClientSessionToken,
   ClientSessionTokenSchema,
   HashedClientSessionTokenSchema,
 } from "../../domain/value-objects/client-session-token.vo.js";
-import { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
 
 export type NewSessionToken = Omit<
   BaseSession,
@@ -148,18 +148,17 @@ const invalidatePreviousUserState = async (
 
   // TODO: invalidate lollipop key
 
-  const previousSessionInvalidationResult =
-    await userSessions.invalidatePreviousSession(fiscalCode);
+  const previousSessionResult = await userSessions.findByFiscalCode(fiscalCode);
 
-  if (previousSessionInvalidationResult.isErr()) {
+  if (previousSessionResult.isErr()) {
     return err(
       new GenericError(
-        `Failed to invalidate previous sessions: ${previousSessionInvalidationResult.error.message}`,
+        `Failed to find previous session: ${previousSessionResult.error.message}`,
       ),
     );
   }
 
-  const previousHashedSession = previousSessionInvalidationResult.value;
+  const previousHashedSession = previousSessionResult.value;
 
   if (previousHashedSession === undefined) {
     return ok(undefined);
@@ -187,6 +186,16 @@ const invalidatePreviousUserState = async (
     return err(
       new GenericError(
         `Failed to invalidate previous session on proxy: ${cachedSessionInvalidationResult.error.message}`,
+      ),
+    );
+  }
+
+  const deleteResult = await userSessions.delete(previousHashedSession);
+
+  if (deleteResult.isErr()) {
+    return err(
+      new GenericError(
+        `Failed to invalidate previous sessions: ${deleteResult.error.message}`,
       ),
     );
   }

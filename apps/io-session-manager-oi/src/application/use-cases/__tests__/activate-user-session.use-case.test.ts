@@ -13,7 +13,8 @@ import {
 } from "../../../__mocks__/ports/profile-port.mock.js";
 import {
   mockCreate as mockSessionCreate,
-  mockInvalidatePreviousSession,
+  mockDelete as mockSessionDelete,
+  mockFindByFiscalCode,
   resetSessionPortMock,
   SessionPortMock,
 } from "../../../__mocks__/ports/session-port.mock.js";
@@ -28,7 +29,6 @@ import {
   aFamilyName,
   aFiscalCode,
   aGenericError,
-  aHashedSessionTokenWithSessionId,
   aName,
   aNewSessionTokenInput,
   aNewSessionTokenInputWithoutSpidEmail,
@@ -36,6 +36,7 @@ import {
   anIdentityProvider,
   anIpAddress,
   aSessionId,
+  aSessionWithHashedTokens,
   aSessionWithPlainTokens,
   aUserProfileWithEmail,
   aUserProfileWithoutEmail,
@@ -90,9 +91,8 @@ describe("makeActivateUserSessionUseCase", () => {
       const result = await activateUserSession(aNewSessionTokenInput);
 
       expect(result).toMatchObject(ok(aClientSessionToken));
-      expect(mockInvalidatePreviousSession).toHaveBeenCalledExactlyOnceWith(
-        aFiscalCode,
-      );
+      expect(mockFindByFiscalCode).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+      expect(mockSessionDelete).not.toHaveBeenCalled();
       expect(mockGetProfile).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
       expect(mockProfileCreate).not.toHaveBeenCalled();
       expect(mockSessionCreate).toHaveBeenCalledOnce();
@@ -167,8 +167,25 @@ describe("makeActivateUserSessionUseCase", () => {
   });
 
   describe("error paths", () => {
-    it("returns err when invalidatePreviousSession fails", async () => {
-      mockInvalidatePreviousSession.mockResolvedValueOnce(err(aGenericError));
+    it("returns err when findByFiscalCode fails", async () => {
+      mockFindByFiscalCode.mockResolvedValueOnce(err(aGenericError));
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(
+        err(
+          new GenericError(
+            `Failed to find previous session: ${aGenericError.message}`,
+          ),
+        ),
+      );
+      expect(mockSessionDelete).not.toHaveBeenCalled();
+      expect(mockSessionCreate).not.toHaveBeenCalled();
+    });
+
+    it("returns err when deleting the previous session fails", async () => {
+      mockFindByFiscalCode.mockResolvedValueOnce(ok(aSessionWithHashedTokens));
+      mockSessionDelete.mockResolvedValueOnce(err(aGenericError));
 
       const result = await activateUserSession(aNewSessionTokenInput);
 
@@ -179,6 +196,7 @@ describe("makeActivateUserSessionUseCase", () => {
           ),
         ),
       );
+      expect(mockDeletePlatformInternalSession).toHaveBeenCalledOnce();
       expect(mockSessionCreate).not.toHaveBeenCalled();
     });
 
@@ -243,9 +261,7 @@ describe("makeActivateUserSessionUseCase", () => {
     });
 
     it("returns err when proxy deleteSession fails", async () => {
-      mockInvalidatePreviousSession.mockResolvedValueOnce(
-        ok(aHashedSessionTokenWithSessionId),
-      );
+      mockFindByFiscalCode.mockResolvedValueOnce(ok(aSessionWithHashedTokens));
       mockDeletePlatformInternalSession.mockResolvedValueOnce(
         err(aGenericError),
       );
@@ -259,30 +275,32 @@ describe("makeActivateUserSessionUseCase", () => {
           ),
         ),
       );
+      expect(mockSessionDelete).not.toHaveBeenCalled();
       expect(mockSessionCreate).not.toHaveBeenCalled();
     });
   });
 
   describe("proxy deleteSession", () => {
-    it("calls deleteSession with the hashed session token when a previous session exists", async () => {
-      mockInvalidatePreviousSession.mockResolvedValueOnce(
-        ok(aHashedSessionTokenWithSessionId),
-      );
+    it("calls deleteSession then delete when a previous session exists", async () => {
+      mockFindByFiscalCode.mockResolvedValueOnce(ok(aSessionWithHashedTokens));
 
       const result = await activateUserSession(aNewSessionTokenInput);
 
       expect(result).toMatchObject(ok(aClientSessionToken));
       expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
-        `${aHashedSessionTokenWithSessionId.sessionId}.${aHashedSessionTokenWithSessionId.hashedSessionToken}`,
+        `${aSessionWithHashedTokens.sessionId}.${aSessionWithHashedTokens.hashedSessionToken}`,
+      );
+      expect(mockSessionDelete).toHaveBeenCalledExactlyOnceWith(
+        aSessionWithHashedTokens,
       );
     });
 
-    it("skips deleteSession when there is no previous session", async () => {
-      // mockInvalidatePreviousSession default returns ok(undefined)
+    it("skips deleteSession and delete when there is no previous session", async () => {
       const result = await activateUserSession(aNewSessionTokenInput);
 
       expect(result).toMatchObject(ok(aClientSessionToken));
       expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
+      expect(mockSessionDelete).not.toHaveBeenCalled();
     });
   });
 });
