@@ -24,7 +24,6 @@ import {
 } from "@pagopa/ts-commons/lib/responses";
 import { pipe } from "fp-ts/lib/function";
 import { getAndDelete } from "../services/redis-ausiliar-data";
-import { getClientErrorRedirectionUrl } from "../config/spid";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 
@@ -79,7 +78,7 @@ const decodeAndForwardError = (
       () =>
         TE.left(
           ResponsePermanentRedirect(
-            getClientErrorRedirectionUrl({
+            deps.getClientErrorRedirectionUrl({
               errorMessage: "error occurred" as NonEmptyString,
             }),
           ),
@@ -91,7 +90,7 @@ const decodeAndForwardError = (
           (_) =>
             TE.left(
               ResponsePermanentRedirect(
-                getClientErrorRedirectionUrl(
+                deps.getClientErrorRedirectionUrl(
                   withoutUndefinedValues({
                     errorCode:
                       parseInt(errorInput.error_description || "", 10) ||
