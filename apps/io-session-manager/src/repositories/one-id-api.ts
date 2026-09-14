@@ -4,7 +4,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
-const SAML_ASSERTION_PATH = "/saml/assertion";
+const SAML_ASSERTION_PATH = "saml/assertion";
 
 /**
  * Client for ONE Identity API built with plain `fetch`, as an alternative to
@@ -30,9 +30,11 @@ export function getOneIdAPIClient(
       TE.tryCatch(
         () =>
           fetchApi(
-            `${baseUrl}${SAML_ASSERTION_PATH}?${new URLSearchParams({
-              access_token: accessToken,
-            }).toString()}`,
+            `${baseUrl.replace(/\/$/, "")}/${SAML_ASSERTION_PATH}?${new URLSearchParams(
+              {
+                access_token: accessToken,
+              },
+            ).toString()}`,
             {
               method: "GET",
               headers: { Accept: "application/xml" },
