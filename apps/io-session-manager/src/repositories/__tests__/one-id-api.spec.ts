@@ -3,7 +3,7 @@ import * as E from "fp-ts/Either";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { getOneIdAPIClient } from "../one-id-api";
 
-const aBaseUrl = "https://localhost/prod";
+const aBaseUrl = new URL("https://localhost/prod");
 const anAccessToken = "an-access-token" as NonEmptyString;
 const anXmlAssertion = "<saml2p:Response>an assertion</saml2p:Response>";
 
@@ -24,10 +24,13 @@ describe("OneIdAPIClient#getSamlAssertion", () => {
     });
 
     const client = getOneIdAPIClient(mockFetch as unknown as typeof fetch);
-    const result = await client.getSamlAssertion(aBaseUrl, anAccessToken)();
+    const result = await client.getSamlAssertion(
+      aBaseUrl.href,
+      anAccessToken,
+    )();
 
     expect(mockFetch).toHaveBeenCalledWith(
-      `${aBaseUrl}/saml/assertion?access_token=${anAccessToken}`,
+      `${aBaseUrl.href}/saml/assertion?access_token=${anAccessToken}`,
       {
         method: "GET",
         headers: { Accept: "application/xml" },
@@ -41,7 +44,10 @@ describe("OneIdAPIClient#getSamlAssertion", () => {
     mockFetch.mockRejectedValueOnce(aNetworkError);
 
     const client = getOneIdAPIClient(mockFetch as unknown as typeof fetch);
-    const result = await client.getSamlAssertion(aBaseUrl, anAccessToken)();
+    const result = await client.getSamlAssertion(
+      aBaseUrl.href,
+      anAccessToken,
+    )();
 
     expect(result).toEqual(E.left(aNetworkError));
   });
@@ -56,7 +62,10 @@ describe("OneIdAPIClient#getSamlAssertion", () => {
     });
 
     const client = getOneIdAPIClient(mockFetch as unknown as typeof fetch);
-    const result = await client.getSamlAssertion(aBaseUrl, anAccessToken)();
+    const result = await client.getSamlAssertion(
+      aBaseUrl.href,
+      anAccessToken,
+    )();
 
     expect(E.isLeft(result)).toBeTruthy();
     if (E.isLeft(result)) {
@@ -73,7 +82,10 @@ describe("OneIdAPIClient#getSamlAssertion", () => {
     });
 
     const client = getOneIdAPIClient(mockFetch as unknown as typeof fetch);
-    const result = await client.getSamlAssertion(aBaseUrl, anAccessToken)();
+    const result = await client.getSamlAssertion(
+      aBaseUrl.href,
+      anAccessToken,
+    )();
 
     expect(E.isLeft(result)).toBeTruthy();
     if (E.isLeft(result)) {
@@ -92,7 +104,10 @@ describe("OneIdAPIClient#getSamlAssertion", () => {
     });
 
     const client = getOneIdAPIClient(mockFetch as unknown as typeof fetch);
-    const result = await client.getSamlAssertion(aBaseUrl, anAccessToken)();
+    const result = await client.getSamlAssertion(
+      aBaseUrl.href,
+      anAccessToken,
+    )();
 
     expect(E.isLeft(result)).toBeTruthy();
     if (E.isLeft(result)) {
