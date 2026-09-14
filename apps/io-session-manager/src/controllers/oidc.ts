@@ -26,6 +26,7 @@ import { pipe } from "fp-ts/lib/function";
 import { getAndDelete } from "../services/redis-ausiliar-data";
 import { getClientErrorRedirectionUrl } from "../config/spid";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 
 /**
  * Decodes the JSON request body required by the `reserve` endpoint from the
@@ -90,11 +91,14 @@ const decodeAndForwardError = (
           (_) =>
             TE.left(
               ResponsePermanentRedirect(
-                getClientErrorRedirectionUrl({
-                  errorCode:
-                    parseInt(errorInput.error_description || "0", 10) || 0,
-                  errorMessage: errorInput.error,
-                }),
+                getClientErrorRedirectionUrl(
+                  withoutUndefinedValues({
+                    errorCode:
+                      parseInt(errorInput.error_description || "", 10) ||
+                      undefined,
+                    errorMessage: errorInput.error,
+                  }),
+                ),
               ),
             ),
         ),

@@ -22,7 +22,6 @@ import { mockAuthSessionsTopicRepository } from "../../repositories/__mocks__/au
 import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
 import { mockPlatformInternalAPIService } from "../../__mocks__/platform-internal.mocks";
 import { PlatformInternalAPIClient } from "../../repositories/platform-internal-client";
-import { OneIdAPIClient } from "../../repositories/one-id-api";
 
 import {
   CallbackDeps,
