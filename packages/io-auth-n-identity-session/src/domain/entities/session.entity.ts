@@ -102,7 +102,7 @@ export const getSessionTtlMsByLoginType = (loginType: LoginType) => {
 export const newPlainSession = async ({
   loginType,
   ...baseData
-}: Omit<z.infer<typeof BaseSessionSchema>, "expirationDate"> & {
+}: Omit<z.infer<typeof BaseSessionSchema>, "expirationDate" | "createdAt"> & {
   loginType: LoginType;
 }): Promise<SessionWithPlainSSOTokens> => {
   const plainSessionToken = await newPlainSessionToken();
@@ -111,6 +111,7 @@ export const newPlainSession = async ({
     expirationDate: new Date(
       Date.now() + getSessionTtlMsByLoginType(loginType),
     ),
+    createdAt: new Date(),
     plainSessionToken: plainSessionToken,
     ssoTokens: {
       walletPlainToken: toPlainWalletSSOToken(plainSessionToken),
