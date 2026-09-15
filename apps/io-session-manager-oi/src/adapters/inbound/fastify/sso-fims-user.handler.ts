@@ -40,6 +40,7 @@ const ssoFimsUserContract = defineRoute({
     },
   },
   // TODO: add security schemes for the OpenAPI documentation.
+  security: [],
 });
 
 export type SsoFimsUserHandlerDeps = {
