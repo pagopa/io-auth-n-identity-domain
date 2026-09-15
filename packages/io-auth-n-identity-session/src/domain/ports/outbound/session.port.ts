@@ -15,6 +15,7 @@ import { SessionId } from "../../value-objects/session-id.vo.js";
 import { HashedBpdSSOToken } from "../../value-objects/tokens/bpd-sso-token.vo.js";
 import { HashedFimsSSOToken } from "../../value-objects/tokens/fims-sso-token.vo.js";
 import { HashedSessionToken } from "../../value-objects/tokens/session-token.vo.js";
+import { HashedWalletSSOToken } from "../../value-objects/tokens/wallet-sso-token.vo.js";
 
 export type HashedSessionTokenWithSessionId = {
   sessionId: SessionId;
@@ -57,6 +58,17 @@ export interface SessionPort {
    */
   readonly findByFimsToken: (fimsToken: {
     hashedFimsSSOToken: HashedFimsSSOToken;
+    sessionId: SessionId;
+  }) => Promise<Result<BaseSession, NotFoundError | GenericError>>;
+
+  /**
+   * Finds a session by its Wallet SSO token.
+   * @param hashedWalletSSOToken The hashed Wallet SSO token
+   * @param sessionId The session tracking ID
+   * @returns The session associated with the given token, or an error if not found or a generic error happens.
+   */
+  readonly findByWalletToken: (walletToken: {
+    hashedWalletSSOToken: HashedWalletSSOToken;
     sessionId: SessionId;
   }) => Promise<Result<BaseSession, NotFoundError | GenericError>>;
 

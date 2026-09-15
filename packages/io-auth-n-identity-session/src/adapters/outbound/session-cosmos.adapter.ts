@@ -128,6 +128,19 @@ export class SessionCosmosAdapter
     return result.andThen((rawSession) => fromDbSession(rawSession));
   }
 
+  public async findByWalletToken(walletToken: {
+    hashedWalletSSOToken: HashedWalletSSOToken;
+    sessionId: SessionId;
+  }): Promise<Result<BaseSession, GenericError | NotFoundError>> {
+    const result = await this.readItem(
+      this.sessionTokenContainer,
+      toCosmosWalletSessionId(walletToken.hashedWalletSSOToken),
+      walletToken.sessionId as unknown as NonEmptyString,
+      "WALLETSSOSession" as NonEmptyString,
+    );
+    return result.andThen((rawSession) => fromDbSession(rawSession));
+  }
+
   public async create(
     activeSession: ActiveSession,
     session: SessionWithHashedSSOTokens,
