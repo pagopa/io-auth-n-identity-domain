@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.20.1
+
+### Patch Changes
+
+- 2358b99: Strip the SPID/CIE `TINIT-` prefix from OIDC `fiscalNumber` claims so CIE Collaudo login no longer fails with invalid claims (IOPID-4203).
+
 ## 0.20.0
 
 ### Minor Changes
