@@ -11,6 +11,7 @@ import {
   toHashedSessionToken,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, type Result } from "neverthrow";
+
 import type { AuthToken, TokenType } from "../auth-token.js";
 
 /**

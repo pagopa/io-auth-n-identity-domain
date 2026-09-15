@@ -9,6 +9,7 @@ import type {
   SessionId,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
+
 import type { AuthToken, TokenType } from "./auth-token.js";
 import type { TokenIntrospectionStrategyFactory } from "./factories/token-introspection.factory.js";
 import type { BearerTokenParsingStrategyFactory } from "./factories/token-parsing.factory.js";
@@ -34,8 +35,7 @@ type MakeAuthenticationMiddleware = <T extends TokenType>(
 export const makeAuthenticationMiddleware: MakeAuthenticationMiddleware = (
   bearerTokenParsingStrategy,
   tokenIntrospectionStrategy,
-) => {
-  return async ({ payload }) => {
+) => async ({ payload }) => {
     const headers = payload.headers as { authorization?: string } | undefined;
     const parsedBearerToken = bearerTokenParsingStrategy.parse(
       headers?.authorization ?? "",
@@ -59,7 +59,6 @@ export const makeAuthenticationMiddleware: MakeAuthenticationMiddleware = (
       sessionToken,
     });
   };
-};
 
 /**
  * Factory class for creating authentication middleware instances based on the token type.

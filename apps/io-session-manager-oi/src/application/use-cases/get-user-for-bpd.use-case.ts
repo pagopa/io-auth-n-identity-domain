@@ -28,10 +28,8 @@ export type GetUserForBpdUseCase = UseCase<
 
 export const getUserForBpdUseCase: GetUserForBpdUseCase = async ({
   session,
-}) => {
-  return ok({
+}) => ok({
     name: session.name,
     family_name: session.familyName,
     fiscal_code: session.fiscalCode,
   });
-};

@@ -4,12 +4,12 @@ import type { AnyRouteContract } from "@pagopa/hexagonal-openapi";
 import { FastifyInstance } from "fastify";
 
 import { GetUserForBpdUseCase } from "../../../application/use-cases/get-user-for-bpd.use-case.js";
+import { AuthenticationMiddleware } from "../../../middlewares/authentication/index.js";
 import {
   SsoBpdUserInputDTO,
   SsoBpdUserOutputDTO,
 } from "../dtos/sso-bpd-user.dto.js";
 
-import { AuthenticationMiddleware } from "../../../middlewares/authentication/index.js";
 import { createCheckIpHook } from "./hooks/check-ip.hook.js";
 
 const ssoBpdUserContract = defineRoute({

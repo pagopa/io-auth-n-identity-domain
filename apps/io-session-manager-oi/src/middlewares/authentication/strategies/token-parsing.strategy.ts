@@ -7,6 +7,7 @@ import {
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, type Result } from "neverthrow";
 import z from "zod";
+
 import type { AuthToken, TokenType } from "../auth-token.js";
 
 const BearerPrefix = "Bearer ";

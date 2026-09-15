@@ -1,4 +1,5 @@
 import type { SessionPort } from "@pagopa/io-auth-n-identity-session";
+
 import type { TokenType } from "../auth-token.js";
 import {
   BpdTokenIntrospectionStrategy,
