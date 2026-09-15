@@ -24,6 +24,7 @@ import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
+import { mountSsoFimsUserHandler } from "./adapters/inbound/fastify/sso-fims-user.handler.js";
 import { AusiliarDataRedisAdapter } from "./adapters/outbound/ausiliar-data.adapter.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
@@ -36,6 +37,7 @@ import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.j
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
 import { makeGetUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
+import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-fims.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
@@ -224,6 +226,11 @@ export const createApp = async (
     sessionPort: sessionCosmosAdapter,
   });
 
+  const getUserForFimsUseCase = makeGetUserForFimsUseCase({
+    sessionPort: sessionCosmosAdapter,
+    profilePort: profileAdapter,
+  });
+
   const getSessionUseCase = makeGetSessionUseCase({
     sessionPort: sessionCosmosAdapter,
     lollipopActivationPort: lollipopActivationCosmosAdapter,
@@ -284,6 +291,11 @@ export const createApp = async (
   mountSsoBpdUserHandler(server, {
     allowedIpSourceRange: config.ALLOW_BPD_IP_SOURCE_RANGE,
     getUserForBpdUseCase,
+  });
+  
+  mountSsoFimsUserHandler(server, {
+    allowedIpSourceRange: config.ALLOW_FIMS_IP_SOURCE_RANGE,
+    getUserForFimsUseCase,
   });
 
   mountGetSessionHandler({ useCase: getSessionUseCase })(server);
