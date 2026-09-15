@@ -11,6 +11,7 @@ import {
   JwkPublicKeyBase64UrlString,
   LollipopJwkHashingAlgorithm,
 } from "@pagopa/io-auth-n-identity-domain";
+import { LoginType } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 
 import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
@@ -23,7 +24,6 @@ import {
   SpidAuthLevel,
 } from "../../domain/value-objects/login.vo.js";
 import { OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js";
-import { LoginType } from "@pagopa/io-auth-n-identity-session";
 
 type ReserveDeps = {
   ausiliarDataPort: AusiliarDataPort;

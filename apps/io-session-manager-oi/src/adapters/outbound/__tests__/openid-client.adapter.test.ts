@@ -96,6 +96,19 @@ describe("OpenIdClientAdapter#exchange", () => {
     expect(result).toEqual(ok(anExpectedClaims));
   });
 
+  it("strips a TINIT- prefix from fiscalNumber before returning claims", async () => {
+    vi.mocked(client.authorizationCodeGrant).mockResolvedValue(
+      makeTokens({
+        ...aValidRawClaims,
+        fiscalNumber: `TINIT-${aFiscalCode}`,
+      }),
+    );
+
+    const result = await adapter.exchange(anExchangeParams);
+
+    expect(result).toEqual(ok(anExpectedClaims));
+  });
+
   it("forwards state and nonce to the authorization code grant", async () => {
     await adapter.exchange(anExchangeParams);
 

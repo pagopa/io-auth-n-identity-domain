@@ -8,6 +8,7 @@ import {
   SpidLevelSchema,
 } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
+
 import { createBearerTokenSchema } from "../bearer-token.js";
 
 export const GetSessionOutputDTO = z

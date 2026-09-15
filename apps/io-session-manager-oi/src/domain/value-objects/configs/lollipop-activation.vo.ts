@@ -1,5 +1,6 @@
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import { z } from "zod";
+
 import {
   CosmosDevelopmentConfigSchema,
   CosmosProductionConfigSchema,

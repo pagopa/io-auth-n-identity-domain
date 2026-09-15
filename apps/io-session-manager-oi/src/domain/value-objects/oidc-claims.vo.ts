@@ -6,6 +6,9 @@ import {
 import { SpidLevelSchema } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
 
+// International prefix for fiscal numbers that should be stripped before validation.
+const FISCAL_NUMBER_INTERNATIONAL_PREFIX = /^TINIT-/;
+
 /**
  * Subset of the OpenID Connect ID token claims returned by OneID that the
  * session domain needs to build a new user session.
@@ -14,7 +17,10 @@ import { z } from "zod";
  * while validating the fields consumed downstream.
  */
 export const OidcClaimsSchema = z.object({
-  fiscalNumber: FiscalCodeSchema,
+  fiscalNumber: z
+    .string()
+    .transform((value) => value.replace(FISCAL_NUMBER_INTERNATIONAL_PREFIX, ""))
+    .pipe(FiscalCodeSchema),
   name: NonEmptyStringSchema,
   familyName: NonEmptyStringSchema,
   email: EmailAddressSchema.optional(),
