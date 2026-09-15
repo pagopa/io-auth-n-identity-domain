@@ -106,12 +106,11 @@ export const newPlainSession = async ({
   loginType: LoginType;
 }): Promise<SessionWithPlainSSOTokens> => {
   const plainSessionToken = await newPlainSessionToken();
+  const now = new Date();
   return {
     ...baseData,
-    expirationDate: new Date(
-      Date.now() + getSessionTtlMsByLoginType(loginType),
-    ),
-    createdAt: new Date(),
+    expirationDate: new Date(now.getTime() + getSessionTtlMsByLoginType(loginType)),
+    createdAt: now,
     plainSessionToken: plainSessionToken,
     ssoTokens: {
       walletPlainToken: toPlainWalletSSOToken(plainSessionToken),
