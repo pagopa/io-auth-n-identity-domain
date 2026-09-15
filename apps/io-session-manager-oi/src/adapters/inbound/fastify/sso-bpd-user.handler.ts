@@ -3,12 +3,13 @@ import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { AnyRouteContract } from "@pagopa/hexagonal-openapi";
 import { FastifyInstance } from "fastify";
 
-import { makeGetUserForBpdUseCase } from "../../../application/use-cases/get-user-for-bpd.use-case.js";
+import { GetUserForBpdUseCase } from "../../../application/use-cases/get-user-for-bpd.use-case.js";
 import {
   SsoBpdUserInputDTO,
   SsoBpdUserOutputDTO,
 } from "../dtos/sso-bpd-user.dto.js";
 
+import { AuthenticationMiddleware } from "../../../middlewares/authentication/index.js";
 import { createCheckIpHook } from "./hooks/check-ip.hook.js";
 
 const ssoBpdUserContract = defineRoute({
@@ -39,12 +40,13 @@ const ssoBpdUserContract = defineRoute({
       schema: ProblemJson,
     },
   },
-  // TODO: add security schemes for the OpenAPI documentation.
+  security: [{ bearerAuth: [] }],
 });
 
 export type SsoBpdUserHandlerDeps = {
   allowedIpSourceRange: ReadonlyArray<string>;
-  getUserForBpdUseCase: ReturnType<typeof makeGetUserForBpdUseCase>;
+  middlewares: readonly [AuthenticationMiddleware<"bpd">];
+  useCase: GetUserForBpdUseCase;
 };
 
 export const mountSsoBpdUserHandler = (
@@ -56,10 +58,11 @@ export const mountSsoBpdUserHandler = (
     scope.addHook("preHandler", createCheckIpHook(deps.allowedIpSourceRange));
     mountFastifyRoute(scope, {
       contract: ssoBpdUserContract,
-      inputMapper: (req) => ({
-        ...req.headers.authorization,
+      middlewares: deps.middlewares,
+      inputMapper: (_, context) => ({
+        session: context.session,
       }),
-      useCase: deps.getUserForBpdUseCase,
+      useCase: deps.useCase,
     });
     done();
   });

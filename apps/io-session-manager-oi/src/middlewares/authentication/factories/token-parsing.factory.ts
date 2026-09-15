@@ -1,0 +1,28 @@
+import { type TokenType } from "../auth-token.js";
+import {
+  BpdBearerTokenParsingStrategy,
+  SessionBearerTokenParsingStrategy,
+} from "../strategies/token-parsing.strategy.js";
+
+/**
+ * Factory class for creating instances of BearerTokenParsingStrategy.
+ */
+export class BearerTokenParsingStrategyFactory {
+  /**
+   * Creates a new instance of BearerTokenParsingStrategy for the specified token type.
+   * @param tokenType The type of token for which to create the parsing strategy.
+   * @returns An instance of BearerTokenParsingStrategy for the specified token type.
+   */
+  create<T extends TokenType>(tokenType: T) {
+    switch (tokenType) {
+      case "session":
+        return new SessionBearerTokenParsingStrategy();
+      case "bpd":
+        return new BpdBearerTokenParsingStrategy();
+      default:
+        const _exhaustiveCheck: never = tokenType;
+        console.error(`Unsupported token type: ${tokenType}`);
+        throw new Error(`Unsupported token type: ${tokenType}`);
+    }
+  }
+}

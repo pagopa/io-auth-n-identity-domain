@@ -36,13 +36,17 @@ import { NotificationStorageQueueAdapter } from "./adapters/outbound/notificatio
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
-import { makeGetUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
+import { getUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAusiliarDataSchema } from "./domain/value-objects/login.vo.js";
-import { authenticate } from "./middlewares/authentication.middleware.js";
+import {
+  AuthenticationMiddlewareFactory,
+  BearerTokenParsingStrategyFactory,
+  TokenIntrospectionStrategyFactory,
+} from "./middlewares/authentication/index.js";
 
 class AzureCredential {
   private static instance: DefaultAzureCredential | undefined;
@@ -227,10 +231,6 @@ export const createApp = async (
     activateUserSessionUseCase,
   });
 
-  const getUserForBpdUseCase = makeGetUserForBpdUseCase({
-    sessionPort: sessionCosmosAdapter,
-  });
-
   const getSessionUseCase = makeGetSessionUseCase({
     sessionPort: sessionCosmosAdapter,
     lollipopActivationPort: lollipopActivationCosmosAdapter,
@@ -241,9 +241,14 @@ export const createApp = async (
   // Middlewares definition
   // --------------------------------------------------
 
-  const authenticateMiddleware = authenticate({
-    sessionPort: sessionCosmosAdapter,
-  });
+  const authenticationMiddlewareFactory = new AuthenticationMiddlewareFactory(
+    new BearerTokenParsingStrategyFactory(),
+    new TokenIntrospectionStrategyFactory(sessionCosmosAdapter),
+  );
+  const authenticateSessionMiddleware =
+    authenticationMiddlewareFactory.create("session");
+  const authenticateBpdMiddleware =
+    authenticationMiddlewareFactory.create("bpd");
 
   // --------------------------------------------------
   // Endpoints mounting
@@ -298,11 +303,12 @@ export const createApp = async (
 
   mountSsoBpdUserHandler(server, {
     allowedIpSourceRange: config.ALLOW_BPD_IP_SOURCE_RANGE,
-    getUserForBpdUseCase,
+    middlewares: [authenticateBpdMiddleware] as const,
+    useCase: getUserForBpdUseCase,
   });
 
   mountGetSessionHandler({
-    middlewares: [authenticateMiddleware] as const,
+    middlewares: [authenticateSessionMiddleware] as const,
     useCase: getSessionUseCase,
   })(server);
 
