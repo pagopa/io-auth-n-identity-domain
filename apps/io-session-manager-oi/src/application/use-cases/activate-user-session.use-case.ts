@@ -28,7 +28,7 @@ import {
 
 export type NewSessionToken = Omit<
   BaseSession,
-  "sessionId" | "expirationDate"
+  "sessionId" | "expirationDate" | "createdAt"
 > & {
   ipAddress: IPString;
   loginType: LoginType;
