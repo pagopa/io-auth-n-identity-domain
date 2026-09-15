@@ -18,6 +18,7 @@ import { callbackContract } from "../src/adapters/inbound/fastify/callback.handl
 import { getSessionContract } from "../src/adapters/inbound/fastify/get-session.handler.js";
 import { reserveRoute } from "../src/adapters/inbound/fastify/reserve.handler.js";
 import { ssoBpdUserRoute } from "../src/adapters/inbound/fastify/sso-bpd-user.handler.js";
+import { ssoFimsUserRoute } from "../src/adapters/inbound/fastify/sso-fims-user.handler.js";
 
 interface PackageJson {
   version: string;
@@ -131,6 +132,21 @@ const specs: ReadonlyArray<DocumentSpec> = [
       },
     ],
     title: "Bonus Pagamenti Digitali API for user authentication.",
+  },
+  {
+    basePath: "/sso/fims/v2",
+    description:
+      "FIMS SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.",
+    outputRelPath: "api/sso/fims.yaml",
+    routes: [ssoFimsUserRoute],
+    tags: [
+      {
+        name: "sso",
+        description:
+          "FIMS Single Sign-On endpoints.",
+      },
+    ],
+    title: "FIMS API for user authentication.",
   },
 ];
 
