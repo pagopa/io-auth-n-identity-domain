@@ -363,6 +363,18 @@ paths:
             Location:
               schema:
                 type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemJson"
 components:
   parameters:
     Code:
@@ -379,6 +391,7 @@ components:
         type: string
         minLength: 1
       description: Opaque value used to correlate the callback request with the original authorization request
+      required: true
     Error:
       name: error
       in: query
