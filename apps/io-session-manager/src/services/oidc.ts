@@ -3,6 +3,7 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { calculateJwkThumbprint } from "jose";
+import * as jwt from "jsonwebtoken";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import {
   IResponseErrorInternal,
@@ -29,7 +30,9 @@ import {
 import {
   CallbackSuccessInput,
   ExchangeCodeAPIResponse,
+  ExchangeCodeResult,
   LoginAusiliarData,
+  OIDCExpectedClaims,
   ReserveInput,
 } from "../types/oidc";
 import { getAndDelete, save } from "./redis-ausiliar-data";
@@ -42,6 +45,12 @@ import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
 import { AcsDependencies } from "../controllers/authentication";
 import { getClientProfileRedirectionUrl } from "../config/spid";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
+import {
+  getFiscalNumberFromPayload,
+  getRequestIDFromResponse,
+  isSpidLevelGreaterOrEqual,
+  isWellFormedSAMLAssertion,
+} from "../utils/spid";
 
 export type ReserveDeps = RedisRepo.RedisRepositoryDeps & AppInsightsDeps;
 
@@ -210,7 +219,7 @@ export const exchangeCode = async (
   envConfig: OidcEnvConfig,
   ausiliarData: LoginAusiliarData,
   input: CallbackSuccessInput,
-): Promise<E.Either<Error, ExchangeCodeAPIResponse>> => {
+): Promise<E.Either<Error, ExchangeCodeResult>> => {
   const currentUrl = new URL(envConfig.redirectUri.href);
   currentUrl.searchParams.set("code", input.code);
   currentUrl.searchParams.set("state", input.state);
@@ -241,6 +250,25 @@ export const exchangeCode = async (
             `Could not decode OIDC exchange code API response: ${readableReportSimplified(err)}`,
           ),
       ),
+      E.chain((decodedResponse) =>
+        pipe(
+          // the id token signature, expiration and claims have already been
+          // verified by `exchangeAuthorizationCode` (see NOTE above), so here
+          // we only need to decode its payload, without verifying it again
+          jwt.decode(decodedResponse.id_token, { json: true }),
+          OIDCExpectedClaims.decode,
+          E.bimap(
+            (err) =>
+              new Error(
+                `Could not decode OIDC id token claims: ${readableReportSimplified(err)}`,
+              ),
+            (idTokenClaims): ExchangeCodeResult => ({
+              access_token: decodedResponse.access_token,
+              idTokenClaims,
+            }),
+          ),
+        ),
+      ),
     );
   } catch (err) {
     return E.left(err instanceof Error ? err : new Error(String(err)));
@@ -259,6 +287,76 @@ export const getSAMLAssertion = async (
       TE.fromOption(() => new Error("Empty assertion returned from parsing")),
     ),
   )();
+
+/**
+ * Performs the required verifications on the SAML assertion retrieved from
+ * OneIdentity, cross-checking it against the id token claims (already
+ * decoded in `exchangeCode`) and the ausiliar data saved at `reserve` time:
+ *
+ * 1. the assertion is well formed and has not been tampered with
+ * 2. `fiscalNumber` in the id token claims matches the one in the assertion
+ * 3. the assertion `InResponseTo` matches the lollipop assertion ref sent
+ *    with the original authorization request
+ * 4. the SPID level granted by the assertion (via the id token `acr` claim)
+ *    is equal or greater than the requested `minAuthLevel`
+ */
+export const performSAMLAssertionChecks = (
+  samlAssertion: Document,
+  idTokenClaims: OIDCExpectedClaims,
+  ausiliarData: LoginAusiliarData,
+): E.Either<Error, true> =>
+  pipe(
+    samlAssertion,
+    E.fromPredicate(
+      () => isWellFormedSAMLAssertion(samlAssertion),
+      () => new Error("SAML assertion has an invalid or tampered format"),
+    ),
+    E.chain(() =>
+      pipe(
+        getFiscalNumberFromPayload(samlAssertion),
+        E.fromOption(
+          () =>
+            new Error("Could not extract fiscalNumber from the SAML assertion"),
+        ),
+      ),
+    ),
+    E.chain((samlFiscalNumber) =>
+      samlFiscalNumber === idTokenClaims.fiscalNumber
+        ? E.right(true as const)
+        : E.left(
+            new Error(
+              "Fiscal number mismatch between id token and SAML assertion",
+            ),
+          ),
+    ),
+    E.chain(() =>
+      pipe(
+        getRequestIDFromResponse(samlAssertion),
+        E.fromOption(
+          () =>
+            new Error("Could not extract InResponseTo from the SAML assertion"),
+        ),
+      ),
+    ),
+    E.chain((inResponseTo) =>
+      inResponseTo === ausiliarData.lollipopAssertionRef
+        ? E.right(true as const)
+        : E.left(
+            new Error(
+              "SAML assertion InResponseTo does not match the expected assertion ref",
+            ),
+          ),
+    ),
+    E.chain(() =>
+      isSpidLevelGreaterOrEqual(idTokenClaims.acr, ausiliarData.minAuthLevel)
+        ? E.right(true as const)
+        : E.left(
+            new Error(
+              "SPID authentication level lower than the requested minAuthLevel",
+            ),
+          ),
+    ),
+  );
 
 export const OIDCCallback =
   (deps: CallbackDeps) =>
@@ -321,7 +419,7 @@ export const OIDCCallback =
       return ResponseErrorInternal("OIDC code exchange failed");
     }
 
-    const { access_token } = exchangeResult.right;
+    const { access_token, idTokenClaims } = exchangeResult.right;
     const getSAMLAssertionResult = await getSAMLAssertion(
       access_token,
       deps,
@@ -340,9 +438,31 @@ export const OIDCCallback =
       });
       return ResponseErrorInternal("SAML assertion retrieval failed");
     }
+    const samlAssertion = getSAMLAssertionResult.right;
 
-    // TODO: perform SAML check against SAML Assertion (view DR), perform MIN_AGE_FF check and
-    // call acs with correct parameters
+    const verifySAMLAssertionResult = performSAMLAssertionChecks(
+      samlAssertion,
+      idTokenClaims,
+      ausiliarData,
+    );
+    if (E.isLeft(verifySAMLAssertionResult)) {
+      deps.appInsightsTelemetryClient?.trackEvent({
+        name: "session-manager.oidc.callback.saml-verification.error",
+        properties: {
+          env: ausiliarData.oidcConfigurationEnv,
+          errorMessage: verifySAMLAssertionResult.left.message,
+        },
+        tagOverrides: {
+          samplingEnabled: "false",
+        },
+      });
+      return ResponseErrorValidation(
+        "Bad request",
+        "SAML assertion verification failed",
+      );
+    }
+
+    // TODO: perform MIN_AGE_FF check and call acs with correct parameters
     return ResponsePermanentRedirect(
       getClientProfileRedirectionUrl("work_in_progress"),
     );
