@@ -94,5 +94,11 @@ export const aUserProfileWithoutEmail: UserProfile = {
   isEmailValidated: false,
 };
 
+export const aUserProfileWithEmailNotValidated: UserProfile = {
+  fiscalCode: aFiscalCode,
+  email: anEmailAddress,
+  isEmailValidated: false,
+};
+
 export const aGenericError = new GenericError("boom");
 export const aNotFoundError = new NotFoundError("Profile", "not found");
