@@ -70,6 +70,7 @@ export const aSessionWithPlainTokens: SessionWithPlainSSOTokens = {
   spidLevel: aSpidLevel,
   spidEmail: anEmailAddress,
   expirationDate: new Date("2100-01-01"),
+  createdAt: new Date("2099-12-01"),
   plainSessionToken: aPlainSessionToken,
   ssoTokens: {
     walletPlainToken: toPlainWalletSSOToken(aPlainSessionToken),
