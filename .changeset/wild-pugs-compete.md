@@ -3,4 +3,4 @@
 "io-auth-n-identity-bruno-collections": patch
 ---
 
-create a gneric bearer token introspection middleware
+create a generic bearer token introspection middleware
