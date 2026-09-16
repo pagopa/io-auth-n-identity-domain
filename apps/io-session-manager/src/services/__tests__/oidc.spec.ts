@@ -3,7 +3,7 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { JwkPublicKey } from "@pagopa/ts-commons/lib/jwk";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 import {
   getClientErrorRedirectionUrl,
@@ -31,6 +31,7 @@ import {
   OIDCCallback,
   reserve,
   resolveOidcEnvConfiguration,
+  performSAMLAssertionChecks,
 } from "../oidc";
 import {
   CallbackSuccessInput,
@@ -61,15 +62,33 @@ import {
 import { OidcConfigurationEnvEnum } from "../../generated/backend/OidcConfigurationEnv";
 import { SpidAuthLevelEnum } from "../../generated/backend/SpidAuthLevel";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
+import * as jwt from "jsonwebtoken";
+import { getASAMLResponse } from "../../__mocks__/spid.mocks";
+import { aFiscalCode } from "../../__mocks__/user.mocks";
+import { SpidLevelEnum } from "../../types/spid-level";
+import { OidcUserClaims } from "../../types/oidc";
 
 vi.mock("../../repositories/oidc-client", () => ({
   getOidcConfiguration: vi.fn(),
   exchangeAuthorizationCode: vi.fn(),
 }));
 
-vi.mock("@pagopa/io-spid-commons/dist/utils/samlUtils", () => ({
-  safeXMLParseFromString: vi.fn(),
-}));
+vi.mock(
+  "@pagopa/io-spid-commons/dist/utils/samlUtils",
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import("@pagopa/io-spid-commons/dist/utils/samlUtils")
+      >();
+    return {
+      ...actual,
+      // spies on the actual implementation by default, so real SAML fixtures
+      // are parsed into real Documents, while still allowing tests to
+      // override the return value when needed
+      safeXMLParseFromString: vi.fn(actual.safeXMLParseFromString),
+    };
+  },
+);
 
 const mockedExchangeAuthorizationCode = vi.mocked(exchangeAuthorizationCode);
 const mockedSafeXMLParseFromString = vi.mocked(safeXMLParseFromString);
@@ -112,6 +131,28 @@ const anEnvConfig = {
     ) as E.Right<UrlFromString>
   ).right,
 };
+
+const anIdTokenPayload = {
+  fiscalNumber: `TINIT-${aFiscalCode}`,
+  name: "a-name",
+  familyName: "a-family-name",
+  dateOfBirth: "1970-01-01",
+  acr: SpidLevelEnum["https://www.spid.gov.it/SpidL2"],
+  iss: "https://oneid.example.it",
+};
+// NOTE: the id token signature has already been verified upstream by
+// `exchangeAuthorizationCode` (see NOTE in `exchangeCode`), so a dummy
+// signing secret is enough to build a realistic fixture for `jwt.decode`
+const anIdToken = jwt.sign(anIdTokenPayload, "a-test-secret") as NonEmptyString;
+const anIdTokenClaims = (
+  OidcUserClaims.decode(anIdTokenPayload) as E.Right<OidcUserClaims>
+).right;
+
+const aSAMLAssertionXML = getASAMLResponse(
+  aFiscalCode,
+  anAssertionRef as unknown as NonEmptyString,
+  SpidLevelEnum["https://www.spid.gov.it/SpidL2"],
+);
 
 const aCallbackSuccessInput: CallbackSuccessInput = {
   code: aCode,
@@ -339,8 +380,10 @@ describe("OidcService#exchangeCode", () => {
   test("should return the decoded token response on a successful code exchange", async () => {
     const aTokenResponse = {
       access_token: "an-access-token",
-      id_token: "an-id-token",
-    } as client.TokenEndpointResponse & client.TokenEndpointResponseHelpers;
+      id_token: anIdToken,
+      claims: () => anIdTokenClaims,
+    } as unknown as client.TokenEndpointResponse &
+      client.TokenEndpointResponseHelpers;
 
     mockedExchangeAuthorizationCode.mockResolvedValueOnce(aTokenResponse);
 
@@ -360,7 +403,12 @@ describe("OidcService#exchangeCode", () => {
         idTokenExpected: true,
       },
     );
-    expect(result).toEqual(E.right(aTokenResponse));
+    expect(result).toEqual(
+      E.right({
+        accessToken: "an-access-token",
+        claims: anIdTokenClaims,
+      }),
+    );
   });
 
   test("should return an error when the token response cannot be decoded", async () => {
@@ -377,6 +425,32 @@ describe("OidcService#exchangeCode", () => {
     if (E.isLeft(result)) {
       expect(result.left.message).toContain(
         "Could not decode OIDC exchange code API response",
+      );
+    }
+  });
+
+  test("should return an error when the id token claims cannot be decoded", async () => {
+    const anInvalidIdToken = jwt.sign(
+      { ...anIdTokenPayload, fiscalNumber: undefined },
+      "a-test-secret",
+    ) as NonEmptyString;
+    mockedExchangeAuthorizationCode.mockResolvedValueOnce({
+      access_token: "an-access-token",
+      id_token: anInvalidIdToken,
+      claims: () => anInvalidIdToken,
+    } as any);
+
+    const result = await exchangeCode(
+      anOidcConfiguration,
+      anEnvConfig,
+      anAusiliarData,
+      aCallbackSuccessInput,
+    );
+
+    expect(E.isLeft(result)).toBeTruthy();
+    if (E.isLeft(result)) {
+      expect(result.left.message).toContain(
+        "Could not decode OIDC id_token claims",
       );
     }
   });
@@ -449,6 +523,108 @@ describe("OidcService#getSAMLAssertion", () => {
     if (E.isLeft(result)) {
       expect(result.left.message).toEqual(
         "Empty assertion returned from parsing",
+      );
+    }
+  });
+});
+
+describe("OidcService#performSAMLAssertionChecks", () => {
+  const parseAssertion = (xml: string): Document =>
+    O.toUndefined(safeXMLParseFromString(xml)) as Document;
+
+  test("should return right when all checks pass", async () => {
+    const samlAssertion = parseAssertion(aSAMLAssertionXML);
+
+    const result = await performSAMLAssertionChecks(
+      samlAssertion,
+      anIdTokenClaims,
+      anAusiliarData,
+    )();
+
+    expect(result).toEqual(E.right(true));
+  });
+
+  test("should return an error when the SAML assertion has been tampered with (trailing content)", async () => {
+    const tamperedXML = `${aSAMLAssertionXML}<injected>evil</injected>`;
+    const samlAssertion = parseAssertion(tamperedXML);
+
+    const result = await performSAMLAssertionChecks(
+      samlAssertion,
+      anIdTokenClaims,
+      anAusiliarData,
+    )();
+
+    expect(E.isLeft(result)).toBeTruthy();
+    if (E.isLeft(result)) {
+      expect(result.left.message).toEqual(
+        "SAML assertion has an invalid or tampered format",
+      );
+    }
+  });
+
+  test("should return an error when the fiscal number doesn't match the id token claims", async () => {
+    const samlAssertion = parseAssertion(
+      getASAMLResponse(
+        "AAABBB00A00A000A" as FiscalCode,
+        anAssertionRef as unknown as NonEmptyString,
+        SpidLevelEnum["https://www.spid.gov.it/SpidL2"],
+      ),
+    );
+
+    const result = await performSAMLAssertionChecks(
+      samlAssertion,
+      anIdTokenClaims,
+      anAusiliarData,
+    )();
+
+    expect(E.isLeft(result)).toBeTruthy();
+    if (E.isLeft(result)) {
+      expect(result.left.message).toEqual(
+        "Fiscal number mismatch between id token and SAML assertion",
+      );
+    }
+  });
+
+  test("should return an error when InResponseTo doesn't match the lollipop assertion ref", async () => {
+    const samlAssertion = parseAssertion(
+      getASAMLResponse(
+        aFiscalCode,
+        "a-different-assertion-ref" as NonEmptyString,
+        SpidLevelEnum["https://www.spid.gov.it/SpidL2"],
+      ),
+    );
+
+    const result = await performSAMLAssertionChecks(
+      samlAssertion,
+      anIdTokenClaims,
+      anAusiliarData,
+    )();
+
+    expect(E.isLeft(result)).toBeTruthy();
+    if (E.isLeft(result)) {
+      expect(result.left.message).toEqual(
+        "SAML assertion InResponseTo does not match the expected assertion ref",
+      );
+    }
+  });
+
+  test("should return an error when the SPID level is lower than the required minAuthLevel", async () => {
+    const samlAssertion = parseAssertion(aSAMLAssertionXML);
+    const lowerAcrIdTokenClaims = {
+      ...anIdTokenClaims,
+      acr: SpidLevelEnum["https://www.spid.gov.it/SpidL1"],
+    };
+
+    const result = await performSAMLAssertionChecks(
+      samlAssertion,
+      lowerAcrIdTokenClaims,
+      anAusiliarData,
+    )();
+
+    expect(E.isLeft(result)).toBeTruthy();
+    if (E.isLeft(result)) {
+      expect(result.left.message).toEqual(
+        "SPID authentication level lower than the requested minAuthLevel",
       );
     }
   });
@@ -543,7 +719,8 @@ describe("OidcService#OIDCCallback", () => {
     );
     mockedExchangeAuthorizationCode.mockResolvedValueOnce({
       access_token: "an-access-token",
-      id_token: "an-id-token",
+      id_token: anIdToken,
+      claims: () => anIdTokenClaims,
     } as never);
     mockGetSamlAssertion.mockReturnValueOnce(
       TE.left(new Error("saml assertion error")),
@@ -559,6 +736,39 @@ describe("OidcService#OIDCCallback", () => {
     );
   });
 
+  test("should return IResponseErrorValidation when the SAML assertion verification fails", async () => {
+    mockGetDel.mockResolvedValueOnce(
+      JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
+    );
+    mockedGetOidcConfiguration.mockResolvedValueOnce(
+      anOidcConfiguration as never,
+    );
+    mockedExchangeAuthorizationCode.mockResolvedValueOnce({
+      access_token: "an-access-token",
+      id_token: anIdToken,
+      claims: () => anIdTokenClaims,
+    } as never);
+    // fiscal number in the SAML assertion doesn't match the one in the id token
+    mockGetSamlAssertion.mockReturnValueOnce(
+      TE.right(
+        getASAMLResponse(
+          "AAABBB00A00A000A" as FiscalCode,
+          anAssertionRef as unknown as NonEmptyString,
+          SpidLevelEnum["https://www.spid.gov.it/SpidL2"],
+        ),
+      ),
+    );
+
+    const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
+
+    expect(result.kind).toEqual("IResponseErrorValidation");
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "session-manager.oidc.callback.saml-verification.error",
+      }),
+    );
+  });
+
   test("should return IResponsePermanentRedirect on a successful callback", async () => {
     mockGetDel.mockResolvedValueOnce(
       JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
@@ -568,10 +778,10 @@ describe("OidcService#OIDCCallback", () => {
     );
     mockedExchangeAuthorizationCode.mockResolvedValueOnce({
       access_token: "an-access-token",
-      id_token: "an-id-token",
+      id_token: anIdToken,
+      claims: () => anIdTokenClaims,
     } as never);
-    mockGetSamlAssertion.mockReturnValueOnce(TE.right("<xml/>"));
-    mockedSafeXMLParseFromString.mockReturnValueOnce(O.some({} as Document));
+    mockGetSamlAssertion.mockReturnValueOnce(TE.right(aSAMLAssertionXML));
 
     const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
 
