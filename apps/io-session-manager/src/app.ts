@@ -83,6 +83,7 @@ import {
 } from "./config/spid";
 import {
   isUserElegibleForIoLoginUrlScheme,
+  LOGIN_AGE_LIMIT,
   standardTokenDurationSecs,
 } from "./config/login";
 import { initStorageDependencies } from "./utils/storages";
@@ -93,7 +94,6 @@ import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { isUserElegibleForValidationCookie } from "./config/validation-cookie";
 import { CallbackDeps } from "./services/oidc";
-import { LOGIN_AGE_LIMIT } from "./config/one-id";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;

@@ -81,13 +81,6 @@ export const LOGIN_AUSILIAR_DATA_TTL_SECONDS = pipe(
   E.getOrElse(() => DEFAULT_LOGIN_AUSILIAR_DATA_TTL_SECONDS),
 ) as Second;
 
-const DEFAULT_LOGIN_AGE_LIMIT = 18;
-export const LOGIN_AGE_LIMIT = pipe(
-  process.env.LOGIN_AGE_LIMIT,
-  NonNegativeIntegerFromString.decode,
-  E.getOrElse(() => DEFAULT_LOGIN_AGE_LIMIT),
-);
-
 const configByEnv: Readonly<{
   PROD: OidcEnvConfig;
   UAT?: OidcEnvConfig;
