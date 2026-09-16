@@ -93,6 +93,7 @@ import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { isUserElegibleForValidationCookie } from "./config/validation-cookie";
 import { CallbackDeps } from "./services/oidc";
+import { LOGIN_AGE_LIMIT } from "./config/one-id";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -184,6 +185,7 @@ export const newApp: (
     ...omit(["spidLogQueueClient"], storageDependencies),
     isUserElegibleForFastLogin,
     isUserElegibleForValidationCookie,
+    ageLimit: LOGIN_AGE_LIMIT,
     AuthSessionsTopicRepository,
     authSessionsTopicSender: authSessionsTopicServiceBusSender,
     platformInternalAPIService: PlatformInternalService,
