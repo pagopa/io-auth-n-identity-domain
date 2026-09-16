@@ -47,7 +47,6 @@ export const mountGetSessionHandler =
       contract: getSessionContract,
       middlewares: deps.middlewares,
       inputMapper: (req, context) => ({
-        sessionId: context.sessionId,
         sessionToken: context.sessionToken,
         session: context.session,
         fieldsFilter: req.query.fields,

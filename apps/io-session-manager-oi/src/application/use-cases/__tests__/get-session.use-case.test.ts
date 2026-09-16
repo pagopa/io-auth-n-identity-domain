@@ -15,7 +15,6 @@ import {
   aGenericError,
   anEmailAddress,
   aPlainSessionToken,
-  aSessionId,
   aSessionWithHashedTokens,
   aUserProfileWithoutEmail,
 } from "../../../__mocks__/session.mocks.js";
@@ -193,7 +192,6 @@ describe("makeGetSessionUseCase", () => {
       }
 
       const input = {
-        sessionId: aSessionId,
         sessionToken: aPlainSessionToken,
         session: aBaseSession,
         fieldsFilter: new Set([field]),
@@ -218,7 +216,6 @@ describe("makeGetSessionUseCase", () => {
     );
 
     const input = {
-      sessionId: aSessionId,
       sessionToken: aPlainSessionToken,
       session: aBaseSession,
       fieldsFilter: new Set(["lollipopAssertionRef"] as const),
@@ -240,7 +237,6 @@ describe("makeGetSessionUseCase", () => {
   it("creates the extended Zendesk token only when requested", async () => {
     // given
     const input = {
-      sessionId: aSessionId,
       sessionToken: aPlainSessionToken,
       session: aBaseSession,
       fieldsFilter: new Set(["zendeskToken"] as const),
@@ -276,7 +272,6 @@ describe("makeGetSessionUseCase", () => {
       mockGetProfile.mockResolvedValueOnce(profileResult);
 
       const input = {
-        sessionId: aSessionId,
         sessionToken: aPlainSessionToken,
         session: aBaseSession,
         fieldsFilter: new Set(["zendeskToken"] as const),
@@ -303,7 +298,6 @@ describe("makeGetSessionUseCase", () => {
     );
 
     const input = {
-      sessionId: aSessionId,
       sessionToken: aPlainSessionToken,
       session: aBaseSession,
       fieldsFilter: new Set(["lollipopAssertionRef"] as const),

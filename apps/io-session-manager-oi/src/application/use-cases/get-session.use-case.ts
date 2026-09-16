@@ -1,14 +1,8 @@
-import {
-  AuthenticationError,
-  GenericError,
-  UseCase,
-  ValidationError,
-} from "@pagopa/hexagonal-core";
+import { GenericError, UseCase } from "@pagopa/hexagonal-core";
 import type {
   BaseSession,
   LollipopActivationPort,
   PlainSessionToken,
-  SessionId,
   SessionPort,
 } from "@pagopa/io-auth-n-identity-session";
 import {
@@ -32,7 +26,6 @@ type GetSessionUseCaseDeps = {
 };
 
 export type GetSessionInput = {
-  sessionId: SessionId;
   sessionToken: PlainSessionToken;
   session: BaseSession;
   fieldsFilter: FieldsQueryParam;
@@ -43,11 +36,7 @@ type GetSessionOutput = GetSessionOutputDTO;
 export const makeGetSessionUseCase =
   (
     deps: GetSessionUseCaseDeps,
-  ): UseCase<
-    GetSessionInput,
-    GetSessionOutput,
-    ValidationError | AuthenticationError | GenericError
-  > =>
+  ): UseCase<GetSessionInput, GetSessionOutput, GenericError> =>
   async (input) => {
     const sessionData: GetSessionOutput = {};
     for (const field of input.fieldsFilter) {
@@ -100,7 +89,7 @@ export const makeGetSessionUseCase =
           sessionData.fimsToken = toPlainFimsSSOToken(input.sessionToken);
           break;
         default: {
-          const _exhaustiveCheck: never = field;
+          const _exhaustiveCheck: never = field; // This ensures that all possible fields are handled in the switch statement
           return err(
             new GenericError(
               "An unexpected error occurred while retrieving the session field data",
