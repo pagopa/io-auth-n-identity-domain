@@ -34,7 +34,7 @@ export interface BearerTokenParsingStrategy<T extends TokenType> {
  * Strategy for parsing Bearer tokens from authorization headers.
  * This class uses a Zod schema to validate and extract the session ID and token from the header.
  */
-export abstract class BearerTokenParsingBaseStrategy<T extends TokenType>
+abstract class BearerTokenParsingBaseStrategy<T extends TokenType>
   implements BearerTokenParsingStrategy<T>
 {
   private readonly bearerTokenSchema: ReturnType<

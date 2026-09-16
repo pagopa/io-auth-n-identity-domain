@@ -29,7 +29,7 @@ export interface TokenIntrospectionStrategy<T extends TokenType> {
  * Abstract base class for token introspection strategies.
  * Provides common logic for resolving sessions based on the provided session ID and token (Template Method pattern).
  */
-export abstract class TokenIntrospectionBaseStrategy<T extends TokenType>
+abstract class TokenIntrospectionBaseStrategy<T extends TokenType>
   implements TokenIntrospectionStrategy<T>
 {
   constructor(protected readonly sessionPort: SessionPort) {}
