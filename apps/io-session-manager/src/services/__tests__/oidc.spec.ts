@@ -833,19 +833,23 @@ describe("OidcService#OIDCCallback", () => {
       isUserElegibleForValidationCookie: expect.any(Function),
       validateSpidUser: expect.any(Function),
     });
-    const injectedValidateSpidUser = mockedAcs.mock.calls[0][0].validateSpidUser;
+    const injectedValidateSpidUser =
+      mockedAcs.mock.calls[0][0].validateSpidUser;
     const validatedUser = injectedValidateSpidUser({});
     expect(E.isRight(validatedUser)).toBeTruthy();
     if (E.isRight(validatedUser)) {
       expect(validatedUser.right).toEqual(
         expect.objectContaining({
-          authnContextClassRef: aDecodedClaims.acr,
-          fiscalNumber: aDecodedClaims.fiscalNumber,
-          name: aDecodedClaims.name,
-          familyName: aDecodedClaims.familyName,
-          dateOfBirth: "1990-01-01T00:00:00.000Z",
-          email: aDecodedClaims.email,
-          issuer: aDecodedClaims.iss,
+          authnContextClassRef: anIdTokenClaims.acr,
+          fiscalNumber: anIdTokenClaims.fiscalNumber,
+          name: anIdTokenClaims.name,
+          familyName: anIdTokenClaims.familyName,
+          dateOfBirth: DateFromString.encode(anIdTokenClaims.dateOfBirth),
+          email: anIdTokenClaims.email,
+          issuer: anIdTokenClaims.iss,
+          getAcsOriginalRequest: expect.any(Function),
+          getAssertionXml: expect.any(Function),
+          getSamlResponseXml: expect.any(Function),
         }),
       );
     }
