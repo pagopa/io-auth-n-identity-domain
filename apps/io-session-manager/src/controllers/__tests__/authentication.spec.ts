@@ -100,6 +100,7 @@ import { LoginTypeEnum } from "../../types/fast-login";
 import { SpidLevelEnum } from "../../types/spid-level";
 import { SpidUser } from "../../types/user";
 import { withCookieClearanceResponsePermanentRedirect } from "../../utils/responses";
+import { validateSpidUser } from "../../utils/user";
 import * as AuthController from "../authentication";
 import {
   AGE_LIMIT_ERROR_CODE,
@@ -135,6 +136,7 @@ const dependencies: AcsDependencies = {
   appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
   isUserElegibleForFastLogin: () => false,
   isUserElegibleForValidationCookie: () => false,
+  validateSpidUser,
   ageLimit: AGE_LIMIT,
   AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
   authSessionsTopicSender: mockServiceBusSender,

@@ -523,5 +523,7 @@ export const OIDCCallback =
     return AuthenticationController.acs({
       ...deps,
       isUserElegibleForValidationCookie: () => false,
+      // Return an already built SPID-user payload.
+      validateSpidUser: (_rawValue: unknown) => E.right(userPayload),
     })(userPayload, additionalProps);
   };

@@ -107,7 +107,7 @@ import {
   withCookieClearanceResponsePermanentRedirect,
 } from "../utils/responses";
 import { getRequestIDFromResponse } from "../utils/spid";
-import { toAppUser, validateSpidUser } from "../utils/user";
+import { toAppUser, ValidateSpidUser } from "../utils/user";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 import { AuthenticationController } from ".";
 
@@ -170,6 +170,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
     isUserElegibleForFastLogin: (fiscalCode: FiscalCode) => boolean;
     isUserElegibleForValidationCookie: (fiscalCode: FiscalCode) => boolean;
     ageLimit: number;
+    validateSpidUser: ValidateSpidUser;
   };
 
 export const acs: (
@@ -182,7 +183,7 @@ export const acs: (
     //
     // decode the SPID assertion into a SPID user
     //
-    const errorOrSpidUser = validateSpidUser(userPayload);
+    const errorOrSpidUser = deps.validateSpidUser(userPayload);
 
     if (E.isLeft(errorOrSpidUser)) {
       log.error(
@@ -1037,7 +1038,7 @@ export const acsTest: (
     const acsResponse = await AuthenticationController.acs(deps)(
       userPayload,
       pipe(
-        validateSpidUser(userPayload),
+        deps.validateSpidUser(userPayload),
         E.chainW((spidUser) =>
           acsRequestMapper(spidUser.getAcsOriginalRequest()),
         ),
