@@ -32,8 +32,6 @@ export interface TokenIntrospectionStrategy<T extends TokenType> {
 abstract class TokenIntrospectionBaseStrategy<T extends TokenType>
   implements TokenIntrospectionStrategy<T>
 {
-  constructor(protected readonly sessionPort: SessionPort) {}
-
   async resolve(
     sessionId: SessionId,
     sessionToken: AuthToken[T]["type"],
@@ -87,11 +85,11 @@ abstract class TokenIntrospectionBaseStrategy<T extends TokenType>
  * Token introspection strategy for session tokens.
  */
 export class SessionTokenIntrospectionStrategy extends TokenIntrospectionBaseStrategy<"session"> {
-  constructor(sessionPort: SessionPort) {
-    super(sessionPort);
+  constructor(private readonly sessionPort: SessionPort) {
+    super();
   }
 
-  protected findSessionByToken(
+  protected override findSessionByToken(
     sessionId: SessionId,
     sessionToken: AuthToken["session"]["hashedType"],
   ): Promise<Result<BaseSession, NotFoundError | GenericError>> {
@@ -101,7 +99,7 @@ export class SessionTokenIntrospectionStrategy extends TokenIntrospectionBaseStr
     });
   }
 
-  protected toHashedToken(
+  protected override toHashedToken(
     sessionToken: AuthToken["session"]["type"],
   ): AuthToken["session"]["hashedType"] {
     return toHashedSessionToken(sessionToken);
@@ -112,11 +110,11 @@ export class SessionTokenIntrospectionStrategy extends TokenIntrospectionBaseStr
  * Token introspection strategy for BPD tokens.
  */
 export class BpdTokenIntrospectionStrategy extends TokenIntrospectionBaseStrategy<"bpd"> {
-  constructor(sessionPort: SessionPort) {
-    super(sessionPort);
+  constructor(private readonly sessionPort: SessionPort) {
+    super();
   }
 
-  protected findSessionByToken(
+  protected override findSessionByToken(
     sessionId: SessionId,
     sessionToken: AuthToken["bpd"]["hashedType"],
   ): Promise<Result<BaseSession, NotFoundError | GenericError>> {
@@ -126,7 +124,7 @@ export class BpdTokenIntrospectionStrategy extends TokenIntrospectionBaseStrateg
     });
   }
 
-  protected toHashedToken(
+  protected override toHashedToken(
     sessionToken: AuthToken["bpd"]["type"],
   ): AuthToken["bpd"]["hashedType"] {
     return toHashedBpdSSOToken(sessionToken);
