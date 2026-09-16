@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.21.0
+
+### Minor Changes
+
+- 52a9a0f: Add PlatformInternal Port, integrate into Activate Session use-case
+
 ## 0.20.1
 
 ### Patch Changes
