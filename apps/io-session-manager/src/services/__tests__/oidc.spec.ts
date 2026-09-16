@@ -171,26 +171,6 @@ const aCallbackSuccessInput: CallbackSuccessInput = {
   state: aState,
 };
 
-const aRawClaims = {
-  fiscalNumber: "TINIT-AAAAAA00A00A000A",
-  name: "Mario",
-  familyName: "Rossi",
-  dateOfBirth: "1990-01-01",
-  email: "mario.rossi@example.com",
-  acr: "https://www.spid.gov.it/SpidL2",
-  iss: "https://oneid.pagopa.it",
-};
-
-const aDecodedClaims = {
-  fiscalNumber: "AAAAAA00A00A000A",
-  name: "Mario",
-  familyName: "Rossi",
-  dateOfBirth: new Date("1990-01-01"),
-  email: "mario.rossi@example.com",
-  acr: "https://www.spid.gov.it/SpidL2",
-  iss: "https://oneid.pagopa.it",
-};
-
 const aReserveInput: ReserveInput = {
   env: OidcConfigurationEnvEnum.PROD,
   minAuthLevel: SpidAuthLevelEnum.SpidL2,
