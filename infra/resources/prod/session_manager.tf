@@ -46,6 +46,11 @@ module "session_manager" {
     base_path = "/api/v1"
   }
 
+  platform_proxy = {
+    base_url  = "https://proxy.internal.io.pagopa.it"
+    base_path = "/api/platform-internal/v1"
+  }
+
   action_group_id = azurerm_monitor_action_group.error_action_group.id
 
   session_cosmos = {

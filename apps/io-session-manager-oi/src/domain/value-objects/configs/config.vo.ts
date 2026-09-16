@@ -17,6 +17,7 @@ import {
 } from "./lollipop-activation.vo.js";
 import { LollipopConfigSchema } from "./lollipop.vo.js";
 import { OneIdConfigSchema } from "./one-id.vo.js";
+import { PlatformProxyConfigSchema } from "./platform-proxy.vo.js";
 import { IoProfileConfigSchema } from "./profile.vo.js";
 import {
   PushNotificationsQueueDevelopmentConfigSchema,
@@ -43,6 +44,7 @@ const CommonConfigShape = {
   ...IoProfileConfigSchema.shape,
   ...IoFastLoginConfigSchema.shape,
   ...IoSmIntConfigSchema.shape,
+  ...PlatformProxyConfigSchema.shape,
   ...OneIdConfigSchema.shape,
   ...LoginConfigSchema.shape,
   ...BPDConfigSchema.shape,
