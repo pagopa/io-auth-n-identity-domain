@@ -3,7 +3,6 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { calculateJwkThumbprint } from "jose";
-import * as jwt from "jsonwebtoken";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import {
   IResponseErrorInternal,
@@ -32,7 +31,7 @@ import {
   ExchangeCodeAPIResponse,
   ExchangeCodeResult,
   LoginAusiliarData,
-  OIDCExpectedClaims,
+  OidcUserClaims,
   ReserveInput,
 } from "../types/oidc";
 import { getAndDelete, save } from "./redis-ausiliar-data";
@@ -242,33 +241,35 @@ export const exchangeCode = async (
       },
     );
     return pipe(
-      tokenResponse,
-      ExchangeCodeAPIResponse.decode,
-      E.mapLeft(
-        (err) =>
-          new Error(
-            `Could not decode OIDC exchange code API response: ${readableReportSimplified(err)}`,
-          ),
-      ),
-      E.chain((decodedResponse) =>
+      E.Do,
+      E.bind("tokens", () =>
         pipe(
-          // the id token signature, expiration and claims have already been
-          // verified by `exchangeAuthorizationCode` (see NOTE above), so here
-          // we only need to decode its payload, without verifying it again
-          jwt.decode(decodedResponse.id_token, { json: true }),
-          OIDCExpectedClaims.decode,
-          E.bimap(
+          tokenResponse,
+          ExchangeCodeAPIResponse.decode,
+          E.mapLeft(
             (err) =>
               new Error(
-                `Could not decode OIDC id token claims: ${readableReportSimplified(err)}`,
+                `Could not decode OIDC exchange code API response: ${readableReportSimplified(err)}`,
               ),
-            (idTokenClaims): ExchangeCodeResult => ({
-              access_token: decodedResponse.access_token,
-              idTokenClaims,
-            }),
           ),
         ),
       ),
+      E.bind("claims", () =>
+        pipe(
+          tokenResponse.claims(),
+          OidcUserClaims.decode,
+          E.mapLeft(
+            (err) =>
+              new Error(
+                `Could not decode OIDC id_token claims: ${readableReportSimplified(err)}`,
+              ),
+          ),
+        ),
+      ),
+      E.map(({ tokens, claims }) => ({
+        accessToken: tokens.access_token,
+        claims,
+      })),
     );
   } catch (err) {
     return E.left(err instanceof Error ? err : new Error(String(err)));
@@ -302,7 +303,7 @@ export const getSAMLAssertion = async (
  */
 export const performSAMLAssertionChecks = (
   samlAssertion: Document,
-  idTokenClaims: OIDCExpectedClaims,
+  idTokenClaims: OidcUserClaims,
   ausiliarData: LoginAusiliarData,
 ): E.Either<Error, true> =>
   pipe(
@@ -419,7 +420,7 @@ export const OIDCCallback =
       return ResponseErrorInternal("OIDC code exchange failed");
     }
 
-    const { access_token, idTokenClaims } = exchangeResult.right;
+    const { accessToken: access_token, claims } = exchangeResult.right;
     const getSAMLAssertionResult = await getSAMLAssertion(
       access_token,
       deps,
@@ -442,7 +443,7 @@ export const OIDCCallback =
 
     const verifySAMLAssertionResult = performSAMLAssertionChecks(
       samlAssertion,
-      idTokenClaims,
+      claims,
       ausiliarData,
     );
     if (E.isLeft(verifySAMLAssertionResult)) {

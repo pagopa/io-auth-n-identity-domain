@@ -92,8 +92,13 @@ const tinitReplacerDecoder = new t.Type(
 );
 const fiscalCodeDecoderWithReplacer = tinitReplacerDecoder.pipe(FiscalCode);
 
-export type OIDCExpectedClaims = t.TypeOf<typeof OIDCExpectedClaims>;
-export const OIDCExpectedClaims = t.intersection([
+/**
+ * Subset of the OneIdentity id_token claims consumed by the OIDC callback,
+ * mirroring io-session-manager-oi's `OidcClaimsSchema` (only `email` optional).
+ * `fiscalNumber` may arrive as `TINIT-<CF>` and is stripped by the decoder.
+ */
+export type OidcUserClaims = t.TypeOf<typeof OidcUserClaims>;
+export const OidcUserClaims = t.intersection([
   t.type({
     fiscalNumber: fiscalCodeDecoderWithReplacer,
     name: NonEmptyString,
@@ -109,8 +114,7 @@ export const OIDCExpectedClaims = t.intersection([
   }),
 ]);
 
-export type ExchangeCodeResult = t.TypeOf<typeof ExchangeCodeResult>;
-export const ExchangeCodeResult = t.type({
-  access_token: NonEmptyString,
-  idTokenClaims: OIDCExpectedClaims,
-});
+export type ExchangeCodeResult = {
+  accessToken: NonEmptyString;
+  claims: OidcUserClaims;
+};

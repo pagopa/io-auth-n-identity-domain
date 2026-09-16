@@ -66,7 +66,7 @@ import * as jwt from "jsonwebtoken";
 import { getASAMLResponse } from "../../__mocks__/spid.mocks";
 import { aFiscalCode } from "../../__mocks__/user.mocks";
 import { SpidLevelEnum } from "../../types/spid-level";
-import { OIDCExpectedClaims } from "../../types/oidc";
+import { OidcUserClaims } from "../../types/oidc";
 
 vi.mock("../../repositories/oidc-client", () => ({
   getOidcConfiguration: vi.fn(),
@@ -133,7 +133,7 @@ const anEnvConfig = {
 };
 
 const anIdTokenPayload = {
-  fiscalNumber: aFiscalCode,
+  fiscalNumber: `TINIT-${aFiscalCode}`,
   name: "a-name",
   familyName: "a-family-name",
   dateOfBirth: "1970-01-01",
@@ -145,9 +145,7 @@ const anIdTokenPayload = {
 // signing secret is enough to build a realistic fixture for `jwt.decode`
 const anIdToken = jwt.sign(anIdTokenPayload, "a-test-secret") as NonEmptyString;
 const anIdTokenClaims = (
-  OIDCExpectedClaims.decode(
-    jwt.decode(anIdToken, { json: true }),
-  ) as E.Right<OIDCExpectedClaims>
+  OidcUserClaims.decode(anIdTokenPayload) as E.Right<OidcUserClaims>
 ).right;
 
 const aSAMLAssertionXML = getASAMLResponse(
@@ -383,7 +381,9 @@ describe("OidcService#exchangeCode", () => {
     const aTokenResponse = {
       access_token: "an-access-token",
       id_token: anIdToken,
-    } as client.TokenEndpointResponse & client.TokenEndpointResponseHelpers;
+      claims: () => anIdTokenClaims,
+    } as unknown as client.TokenEndpointResponse &
+      client.TokenEndpointResponseHelpers;
 
     mockedExchangeAuthorizationCode.mockResolvedValueOnce(aTokenResponse);
 
@@ -405,8 +405,8 @@ describe("OidcService#exchangeCode", () => {
     );
     expect(result).toEqual(
       E.right({
-        access_token: "an-access-token",
-        idTokenClaims: anIdTokenClaims,
+        accessToken: "an-access-token",
+        claims: anIdTokenClaims,
       }),
     );
   });
@@ -437,6 +437,7 @@ describe("OidcService#exchangeCode", () => {
     mockedExchangeAuthorizationCode.mockResolvedValueOnce({
       access_token: "an-access-token",
       id_token: anInvalidIdToken,
+      claims: () => anInvalidIdToken,
     } as any);
 
     const result = await exchangeCode(
@@ -449,7 +450,7 @@ describe("OidcService#exchangeCode", () => {
     expect(E.isLeft(result)).toBeTruthy();
     if (E.isLeft(result)) {
       expect(result.left.message).toContain(
-        "Could not decode OIDC id token claims",
+        "Could not decode OIDC id_token claims",
       );
     }
   });
@@ -719,6 +720,7 @@ describe("OidcService#OIDCCallback", () => {
     mockedExchangeAuthorizationCode.mockResolvedValueOnce({
       access_token: "an-access-token",
       id_token: anIdToken,
+      claims: () => anIdTokenClaims,
     } as never);
     mockGetSamlAssertion.mockReturnValueOnce(
       TE.left(new Error("saml assertion error")),
@@ -744,6 +746,7 @@ describe("OidcService#OIDCCallback", () => {
     mockedExchangeAuthorizationCode.mockResolvedValueOnce({
       access_token: "an-access-token",
       id_token: anIdToken,
+      claims: () => anIdTokenClaims,
     } as never);
     // fiscal number in the SAML assertion doesn't match the one in the id token
     mockGetSamlAssertion.mockReturnValueOnce(
@@ -776,6 +779,7 @@ describe("OidcService#OIDCCallback", () => {
     mockedExchangeAuthorizationCode.mockResolvedValueOnce({
       access_token: "an-access-token",
       id_token: anIdToken,
+      claims: () => anIdTokenClaims,
     } as never);
     mockGetSamlAssertion.mockReturnValueOnce(TE.right(aSAMLAssertionXML));
 
