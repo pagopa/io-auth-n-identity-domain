@@ -528,31 +528,31 @@ describe("OidcService#getSAMLAssertion", () => {
   });
 });
 
-describe("OidcService#verifySAMLAssertion", () => {
+describe("OidcService#performSAMLAssertionChecks", () => {
   const parseAssertion = (xml: string): Document =>
     O.toUndefined(safeXMLParseFromString(xml)) as Document;
 
-  test("should return right when all checks pass", () => {
+  test("should return right when all checks pass", async () => {
     const samlAssertion = parseAssertion(aSAMLAssertionXML);
 
-    const result = performSAMLAssertionChecks(
+    const result = await performSAMLAssertionChecks(
       samlAssertion,
       anIdTokenClaims,
       anAusiliarData,
-    );
+    )();
 
     expect(result).toEqual(E.right(true));
   });
 
-  test("should return an error when the SAML assertion has been tampered with (trailing content)", () => {
+  test("should return an error when the SAML assertion has been tampered with (trailing content)", async () => {
     const tamperedXML = `${aSAMLAssertionXML}<injected>evil</injected>`;
     const samlAssertion = parseAssertion(tamperedXML);
 
-    const result = performSAMLAssertionChecks(
+    const result = await performSAMLAssertionChecks(
       samlAssertion,
       anIdTokenClaims,
       anAusiliarData,
-    );
+    )();
 
     expect(E.isLeft(result)).toBeTruthy();
     if (E.isLeft(result)) {
@@ -562,7 +562,7 @@ describe("OidcService#verifySAMLAssertion", () => {
     }
   });
 
-  test("should return an error when the fiscal number doesn't match the id token claims", () => {
+  test("should return an error when the fiscal number doesn't match the id token claims", async () => {
     const samlAssertion = parseAssertion(
       getASAMLResponse(
         "AAABBB00A00A000A" as FiscalCode,
@@ -571,11 +571,11 @@ describe("OidcService#verifySAMLAssertion", () => {
       ),
     );
 
-    const result = performSAMLAssertionChecks(
+    const result = await performSAMLAssertionChecks(
       samlAssertion,
       anIdTokenClaims,
       anAusiliarData,
-    );
+    )();
 
     expect(E.isLeft(result)).toBeTruthy();
     if (E.isLeft(result)) {
@@ -585,7 +585,7 @@ describe("OidcService#verifySAMLAssertion", () => {
     }
   });
 
-  test("should return an error when InResponseTo doesn't match the lollipop assertion ref", () => {
+  test("should return an error when InResponseTo doesn't match the lollipop assertion ref", async () => {
     const samlAssertion = parseAssertion(
       getASAMLResponse(
         aFiscalCode,
@@ -594,11 +594,11 @@ describe("OidcService#verifySAMLAssertion", () => {
       ),
     );
 
-    const result = performSAMLAssertionChecks(
+    const result = await performSAMLAssertionChecks(
       samlAssertion,
       anIdTokenClaims,
       anAusiliarData,
-    );
+    )();
 
     expect(E.isLeft(result)).toBeTruthy();
     if (E.isLeft(result)) {
@@ -608,18 +608,18 @@ describe("OidcService#verifySAMLAssertion", () => {
     }
   });
 
-  test("should return an error when the SPID level is lower than the required minAuthLevel", () => {
+  test("should return an error when the SPID level is lower than the required minAuthLevel", async () => {
     const samlAssertion = parseAssertion(aSAMLAssertionXML);
     const lowerAcrIdTokenClaims = {
       ...anIdTokenClaims,
       acr: SpidLevelEnum["https://www.spid.gov.it/SpidL1"],
     };
 
-    const result = performSAMLAssertionChecks(
+    const result = await performSAMLAssertionChecks(
       samlAssertion,
       lowerAcrIdTokenClaims,
       anAusiliarData,
-    );
+    )();
 
     expect(E.isLeft(result)).toBeTruthy();
     if (E.isLeft(result)) {

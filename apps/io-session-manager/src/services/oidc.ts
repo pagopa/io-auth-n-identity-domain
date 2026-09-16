@@ -1,5 +1,6 @@
 import type * as client from "openid-client" with { "resolution-mode": "import" };
 import * as E from "fp-ts/Either";
+import * as AP from "fp-ts/lib/Apply";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { calculateJwkThumbprint } from "jose";
@@ -305,58 +306,59 @@ export const performSAMLAssertionChecks = (
   samlAssertion: Document,
   idTokenClaims: OidcUserClaims,
   ausiliarData: LoginAusiliarData,
-): E.Either<Error, true> =>
+): TE.TaskEither<Error, true> =>
   pipe(
-    samlAssertion,
-    E.fromPredicate(
-      () => isWellFormedSAMLAssertion(samlAssertion),
-      () => new Error("SAML assertion has an invalid or tampered format"),
-    ),
-    E.chain(() =>
+    AP.sequenceT(TE.ApplicativePar)(
+      TE.fromPredicate(
+        () => isWellFormedSAMLAssertion(samlAssertion),
+        () => new Error("SAML assertion has an invalid or tampered format"),
+      )(samlAssertion),
       pipe(
         getFiscalNumberFromPayload(samlAssertion),
         E.fromOption(
           () =>
             new Error("Could not extract fiscalNumber from the SAML assertion"),
         ),
+        E.chain((samlFiscalNumber) =>
+          samlFiscalNumber === idTokenClaims.fiscalNumber
+            ? E.right(true as const)
+            : E.left(
+                new Error(
+                  "Fiscal number mismatch between id token and SAML assertion",
+                ),
+              ),
+        ),
+        TE.fromEither,
       ),
-    ),
-    E.chain((samlFiscalNumber) =>
-      samlFiscalNumber === idTokenClaims.fiscalNumber
-        ? E.right(true as const)
-        : E.left(
-            new Error(
-              "Fiscal number mismatch between id token and SAML assertion",
-            ),
-          ),
-    ),
-    E.chain(() =>
       pipe(
         getRequestIDFromResponse(samlAssertion),
         E.fromOption(
           () =>
             new Error("Could not extract InResponseTo from the SAML assertion"),
         ),
+        E.chain((inResponseTo) =>
+          inResponseTo === ausiliarData.lollipopAssertionRef
+            ? E.right(true as const)
+            : E.left(
+                new Error(
+                  "SAML assertion InResponseTo does not match the expected assertion ref",
+                ),
+              ),
+        ),
+        TE.fromEither,
+      ),
+      pipe(
+        isSpidLevelGreaterOrEqual(idTokenClaims.acr, ausiliarData.minAuthLevel)
+          ? E.right(true as const)
+          : E.left(
+              new Error(
+                "SPID authentication level lower than the requested minAuthLevel",
+              ),
+            ),
+        TE.fromEither,
       ),
     ),
-    E.chain((inResponseTo) =>
-      inResponseTo === ausiliarData.lollipopAssertionRef
-        ? E.right(true as const)
-        : E.left(
-            new Error(
-              "SAML assertion InResponseTo does not match the expected assertion ref",
-            ),
-          ),
-    ),
-    E.chain(() =>
-      isSpidLevelGreaterOrEqual(idTokenClaims.acr, ausiliarData.minAuthLevel)
-        ? E.right(true as const)
-        : E.left(
-            new Error(
-              "SPID authentication level lower than the requested minAuthLevel",
-            ),
-          ),
-    ),
+    TE.map((_) => true as const),
   );
 
 export const OIDCCallback =
@@ -441,11 +443,11 @@ export const OIDCCallback =
     }
     const samlAssertion = getSAMLAssertionResult.right;
 
-    const verifySAMLAssertionResult = performSAMLAssertionChecks(
+    const verifySAMLAssertionResult = await performSAMLAssertionChecks(
       samlAssertion,
       claims,
       ausiliarData,
-    );
+    )();
     if (E.isLeft(verifySAMLAssertionResult)) {
       deps.appInsightsTelemetryClient?.trackEvent({
         name: "session-manager.oidc.callback.saml-verification.error",
