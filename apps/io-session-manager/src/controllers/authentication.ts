@@ -107,12 +107,10 @@ import {
   withCookieClearanceResponsePermanentRedirect,
 } from "../utils/responses";
 import { getRequestIDFromResponse } from "../utils/spid";
-import { toAppUser, validateSpidUser } from "../utils/user";
+import { toAppUser, ValidateSpidUser } from "../utils/user";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 import { AuthenticationController } from ".";
 
-// Minimum user age allowed to login if the Age limit is enabled
-export const AGE_LIMIT = 14;
 // Custom error codes handled by the client to show a specific error page
 export const AGE_LIMIT_ERROR_CODE = 1001;
 export const AUTHENTICATION_LOCKED_ERROR = 1002;
@@ -155,7 +153,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   CreateNewProfileDependencies &
   NotificationsRepo.NotificationsueueDeps &
   AppInsightsDeps &
-  AuthSessionEventsRepo.AuthSessionEventsDeps & 
+  AuthSessionEventsRepo.AuthSessionEventsDeps &
   PlatformInternalServiceDependency & {
     getClientErrorRedirectionUrl: (
       params: ClientErrorRedirectionUrlParams,
@@ -171,6 +169,8 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
     >;
     isUserElegibleForFastLogin: (fiscalCode: FiscalCode) => boolean;
     isUserElegibleForValidationCookie: (fiscalCode: FiscalCode) => boolean;
+    ageLimit: number;
+    validateSpidUser: ValidateSpidUser;
   };
 
 export const acs: (
@@ -183,7 +183,7 @@ export const acs: (
     //
     // decode the SPID assertion into a SPID user
     //
-    const errorOrSpidUser = validateSpidUser(userPayload);
+    const errorOrSpidUser = deps.validateSpidUser(userPayload);
 
     if (E.isLeft(errorOrSpidUser)) {
       log.error(
@@ -286,7 +286,7 @@ export const acs: (
       return validationCookieClearanceErrorForbidden;
     }
 
-    if (!isOlderThan(AGE_LIMIT)(parse(spidUser.dateOfBirth), new Date())) {
+    if (!isOlderThan(deps.ageLimit)(parse(spidUser.dateOfBirth), new Date())) {
       // The IO App show the proper error screen if only the `errorCode`
       // query param is provided and `errorMessage` is missing.
       // this constraint could be ignored when this PR https://github.com/pagopa/io-app/pull/3642 is merged,
@@ -295,7 +295,7 @@ export const acs: (
         errorCode: AGE_LIMIT_ERROR_CODE,
       });
       log.error(
-        `acs: the age of the user is less than ${AGE_LIMIT} yo [%s]`,
+        `acs: the age of the user is less than ${deps.ageLimit} yo [%s]`,
         spidUser.dateOfBirth,
       );
       deps.appInsightsTelemetryClient?.trackEvent({
@@ -309,7 +309,7 @@ export const acs: (
       const rejectedLoginEvent: RejectedLoginEvent = {
         ...buildBaseRejectedLoginEvent(spidUser, requestIp),
         rejectionCause: RejectedLoginCauseEnum.AGE_BLOCK,
-        minimumAge: AGE_LIMIT,
+        minimumAge: deps.ageLimit,
         dateOfBirth: spidUser.dateOfBirth,
       };
 
@@ -1038,7 +1038,7 @@ export const acsTest: (
     const acsResponse = await AuthenticationController.acs(deps)(
       userPayload,
       pipe(
-        validateSpidUser(userPayload),
+        deps.validateSpidUser(userPayload),
         E.chainW((spidUser) =>
           acsRequestMapper(spidUser.getAcsOriginalRequest()),
         ),

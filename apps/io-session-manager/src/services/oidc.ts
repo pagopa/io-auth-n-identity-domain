@@ -1,9 +1,11 @@
 import type * as client from "openid-client" with { "resolution-mode": "import" };
+import type * as express from "express";
 import * as E from "fp-ts/Either";
 import * as AP from "fp-ts/lib/Apply";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { calculateJwkThumbprint } from "jose";
+import { DateFromString } from "@pagopa/ts-commons/lib/dates";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import {
   IResponseErrorInternal,
@@ -11,7 +13,6 @@ import {
   IResponseSuccessJson,
   ResponseErrorInternal,
   ResponseErrorValidation,
-  ResponsePermanentRedirect,
   ResponseSuccessJson,
 } from "@pagopa/ts-commons/lib/responses";
 import {
@@ -42,8 +43,11 @@ import { AppInsightsDeps } from "../utils/appinsights";
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { ReserveResponse } from "../generated/backend/ReserveResponse";
 import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
+import * as AuthenticationController from "../controllers/authentication";
 import { AcsDependencies } from "../controllers/authentication";
-import { getClientProfileRedirectionUrl } from "../config/spid";
+import { AdditionalLoginPropsT } from "../types/fast-login";
+import { SpidUser } from "../types/user";
+import { WithExpressRequest } from "../utils/express";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import {
   getFiscalNumberFromPayload,
@@ -277,16 +281,32 @@ export const exchangeCode = async (
   }
 };
 
+export type SAMLAssertion = {
+  assertionXml: NonEmptyString;
+  assertion: Document;
+};
+
 export const getSAMLAssertion = async (
   accessToken: NonEmptyString,
   oneIdRepo: Pick<CallbackDeps, "oneIdAPIClient">,
   issuer: ValidUrl,
-): Promise<E.Either<Error, Document>> =>
+): Promise<E.Either<Error, SAMLAssertion>> =>
   pipe(
     oneIdRepo.oneIdAPIClient.getSamlAssertion(issuer.href, accessToken),
-    TE.map((response) => safeXMLParseFromString(response)),
-    TE.chain(
-      TE.fromOption(() => new Error("Empty assertion returned from parsing")),
+    TE.chainEitherKW((rawAssertion) =>
+      pipe(
+        NonEmptyString.decode(rawAssertion),
+        E.mapLeft(() => new Error("Empty assertion returned")),
+        E.chain((assertionXml) =>
+          pipe(
+            safeXMLParseFromString(assertionXml),
+            E.fromOption(
+              () => new Error("Empty assertion returned from parsing"),
+            ),
+            E.map((assertion) => ({ assertionXml, assertion })),
+          ),
+        ),
+      ),
     ),
   )();
 
@@ -361,8 +381,30 @@ export const performSAMLAssertionChecks = (
     TE.map((_) => true as const),
   );
 
+/**
+ * Builds the SPID-user shaped payload consumed by `acs` from the OneIdentity
+ * id_token claims. `dateOfBirth` is re-encoded as a string because acs
+ * consumes it as such.
+ */
+export const buildSpidUserPayload = (
+  claims: OidcUserClaims,
+  { assertionXml }: SAMLAssertion,
+  req: express.Request,
+): SpidUser => ({
+  authnContextClassRef: claims.acr,
+  dateOfBirth: DateFromString.encode(claims.dateOfBirth),
+  email: claims.email,
+  familyName: claims.familyName,
+  fiscalNumber: claims.fiscalNumber,
+  getAcsOriginalRequest: () => req,
+  getAssertionXml: () => assertionXml,
+  getSamlResponseXml: () => assertionXml,
+  issuer: claims.iss,
+  name: claims.name,
+});
+
 export const OIDCCallback =
-  (deps: CallbackDeps) =>
+  (deps: CallbackDeps & WithExpressRequest) =>
   async (input: CallbackSuccessInput): Promise<CallbackOutput> => {
     const ausiliarDataResult = await getLoginAusiliarData(deps)(input.state);
     if (E.isLeft(ausiliarDataResult)) {
@@ -444,7 +486,7 @@ export const OIDCCallback =
     const samlAssertion = getSAMLAssertionResult.right;
 
     const verifySAMLAssertionResult = await performSAMLAssertionChecks(
-      samlAssertion,
+      samlAssertion.assertion,
       claims,
       ausiliarData,
     )();
@@ -465,8 +507,23 @@ export const OIDCCallback =
       );
     }
 
-    // TODO: perform MIN_AGE_FF check and call acs with correct parameters
-    return ResponsePermanentRedirect(
-      getClientProfileRedirectionUrl("work_in_progress"),
+    const userPayload = buildSpidUserPayload(
+      claims,
+      getSAMLAssertionResult.right,
+      deps.req,
     );
+
+    const additionalProps: AdditionalLoginPropsT = {
+      loginType: ausiliarData.loginType,
+      currentUser: ausiliarData.currentUser,
+    };
+
+    // The validation cookie is not part of the OIDC callback flow, so the user
+    // is marked as not eligible to make `acs` skip the cookie check.
+    return AuthenticationController.acs({
+      ...deps,
+      isUserElegibleForValidationCookie: () => false,
+      // Return an already built SPID-user payload.
+      validateSpidUser: (_rawValue: unknown) => E.right(userPayload),
+    })(userPayload, additionalProps);
   };

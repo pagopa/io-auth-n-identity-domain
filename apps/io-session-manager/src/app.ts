@@ -43,7 +43,7 @@ import {
   setupMetadataRefresher,
   AppWithRefresherTimer,
 } from "./utils/express";
-import { withUserFromRequest } from "./utils/user";
+import { validateSpidUser, withUserFromRequest } from "./utils/user";
 import { AdditionalLoginProps, LoginTypeEnum } from "./types/fast-login";
 import { TimeTracer } from "./utils/timer";
 import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
@@ -83,6 +83,7 @@ import {
 } from "./config/spid";
 import {
   isUserElegibleForIoLoginUrlScheme,
+  LOGIN_AGE_LIMIT,
   standardTokenDurationSecs,
 } from "./config/login";
 import { initStorageDependencies } from "./utils/storages";
@@ -184,6 +185,8 @@ export const newApp: (
     ...omit(["spidLogQueueClient"], storageDependencies),
     isUserElegibleForFastLogin,
     isUserElegibleForValidationCookie,
+    validateSpidUser,
+    ageLimit: LOGIN_AGE_LIMIT,
     AuthSessionsTopicRepository,
     authSessionsTopicSender: authSessionsTopicServiceBusSender,
     platformInternalAPIService: PlatformInternalService,

@@ -25,7 +25,7 @@ import { mockedFnAppAPIClient } from "../../__mocks__/repositories/fn-app-api-mo
 import { mockedTableClient } from "../../__mocks__/repositories/table-client-mocks";
 import { mockedLollipopApiClient } from "../../__mocks__/repositories/lollipop-api.mocks";
 import { mockQueueClient } from "../../__mocks__/repositories/queue-client.mocks";
-import { standardTokenDurationSecs } from "../../config/login";
+import { LOGIN_AGE_LIMIT, standardTokenDurationSecs } from "../../config/login";
 import {
   lvLongSessionDurationSecs,
   lvTokenDurationSecs,
@@ -122,6 +122,7 @@ describe("OidcController#callbackEndpoint", () => {
     platformInternalAPIClient: {} as PlatformInternalAPIClient,
     platformInternalAPIService: mockPlatformInternalAPIService,
     oneIdAPIClient: {} as OneIdAPIClient,
+    ageLimit: LOGIN_AGE_LIMIT,
   };
 
   afterEach(() => {

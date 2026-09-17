@@ -67,6 +67,10 @@ import { getASAMLResponse } from "../../__mocks__/spid.mocks";
 import { aFiscalCode } from "../../__mocks__/user.mocks";
 import { SpidLevelEnum } from "../../types/spid-level";
 import { OidcUserClaims } from "../../types/oidc";
+import type * as express from "express";
+import { ResponsePermanentRedirect } from "@pagopa/ts-commons/lib/responses";
+import * as AuthenticationController from "../../controllers/authentication";
+import { DateFromString } from "@pagopa/ts-commons/lib/dates";
 
 vi.mock("../../repositories/oidc-client", () => ({
   getOidcConfiguration: vi.fn(),
@@ -90,8 +94,16 @@ vi.mock(
   },
 );
 
+vi.mock("../../controllers/authentication", async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import("../../controllers/authentication")
+  >()),
+  acs: vi.fn(),
+}));
+
 const mockedExchangeAuthorizationCode = vi.mocked(exchangeAuthorizationCode);
 const mockedSafeXMLParseFromString = vi.mocked(safeXMLParseFromString);
+const mockedAcs = vi.mocked(AuthenticationController.acs);
 
 const mockedGetOidcConfiguration = vi.mocked(getOidcConfiguration);
 
@@ -493,7 +505,9 @@ describe("OidcService#getSAMLAssertion", () => {
       anIssuer.href,
       anAccessToken,
     );
-    expect(result).toEqual(E.right(aFakeDocument));
+    expect(result).toEqual(
+      E.right({ assertionXml: "<xml/>", assertion: aFakeDocument }),
+    );
   });
 
   test("should return an error when the SAML assertion retrieval fails", async () => {
@@ -634,8 +648,9 @@ describe("OidcService#OIDCCallback", () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
+  const AGE_LIMIT = 18;
 
-  const callbackDeps: CallbackDeps = {
+  const callbackDeps: CallbackDeps & { req: express.Request } = {
     redisClientSelector: mockRedisClientSelector,
     fnAppAPIClient: mockedFnAppAPIClient,
     lockUserTableClient: mockedTableClient,
@@ -653,11 +668,13 @@ describe("OidcService#OIDCCallback", () => {
     appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
     isUserElegibleForFastLogin: () => false,
     isUserElegibleForValidationCookie: () => false,
+    ageLimit: AGE_LIMIT,
     AuthSessionsTopicRepository: mockAuthSessionsTopicRepository,
     authSessionsTopicSender: mockServiceBusSender,
     platformInternalAPIClient: {} as PlatformInternalAPIClient,
     platformInternalAPIService: mockPlatformInternalAPIService,
     oneIdAPIClient: mockedOneIdAPIClient,
+    req: {} as express.Request,
   };
 
   test("should return IResponseErrorValidation when the login state is missing or expired", async () => {
@@ -769,7 +786,7 @@ describe("OidcService#OIDCCallback", () => {
     );
   });
 
-  test("should return IResponsePermanentRedirect on a successful callback", async () => {
+  test("should call acs and return its response on a successful callback", async () => {
     mockGetDel.mockResolvedValueOnce(
       JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
     );
@@ -783,9 +800,58 @@ describe("OidcService#OIDCCallback", () => {
     } as never);
     mockGetSamlAssertion.mockReturnValueOnce(TE.right(aSAMLAssertionXML));
 
+    const anAcsResponse = ResponsePermanentRedirect({
+      href: "https://localhost/success",
+    });
+    const mockAcsHandler = vi.fn().mockResolvedValueOnce(anAcsResponse);
+    mockedAcs.mockReturnValueOnce(mockAcsHandler);
+
     const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
 
-    expect(result.kind).toEqual("IResponsePermanentRedirect");
+    expect(mockedAcs).toHaveBeenCalledExactlyOnceWith({
+      ...callbackDeps,
+      isUserElegibleForValidationCookie: expect.any(Function),
+      validateSpidUser: expect.any(Function),
+    });
+    const injectedValidateSpidUser =
+      mockedAcs.mock.calls[0][0].validateSpidUser;
+    const validatedUser = injectedValidateSpidUser({});
+    expect(E.isRight(validatedUser)).toBeTruthy();
+    if (E.isRight(validatedUser)) {
+      expect(validatedUser.right).toEqual(
+        expect.objectContaining({
+          authnContextClassRef: anIdTokenClaims.acr,
+          fiscalNumber: anIdTokenClaims.fiscalNumber,
+          name: anIdTokenClaims.name,
+          familyName: anIdTokenClaims.familyName,
+          dateOfBirth: DateFromString.encode(anIdTokenClaims.dateOfBirth),
+          email: anIdTokenClaims.email,
+          issuer: anIdTokenClaims.iss,
+          getAcsOriginalRequest: expect.any(Function),
+          getAssertionXml: expect.any(Function),
+          getSamlResponseXml: expect.any(Function),
+        }),
+      );
+    }
+    expect(mockAcsHandler).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        authnContextClassRef: anIdTokenClaims.acr,
+        fiscalNumber: anIdTokenClaims.fiscalNumber,
+        name: anIdTokenClaims.name,
+        familyName: anIdTokenClaims.familyName,
+        dateOfBirth: DateFromString.encode(anIdTokenClaims.dateOfBirth),
+        email: anIdTokenClaims.email,
+        issuer: anIdTokenClaims.iss,
+        getAcsOriginalRequest: expect.any(Function),
+        getAssertionXml: expect.any(Function),
+        getSamlResponseXml: expect.any(Function),
+      }),
+      {
+        loginType: anAusiliarData.loginType,
+        currentUser: anAusiliarData.currentUser,
+      },
+    );
+    expect(result).toEqual(anAcsResponse);
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });
