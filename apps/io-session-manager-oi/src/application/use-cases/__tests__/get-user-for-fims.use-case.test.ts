@@ -1,10 +1,5 @@
-import {
-  AuthenticationError,
-  GenericError,
-  NotFoundError,
-} from "@pagopa/hexagonal-core";
+import { GenericError, NotFoundError } from "@pagopa/hexagonal-core";
 import { BaseSession } from "@pagopa/io-auth-n-identity-session/entities";
-import { toPlainFimsSSOToken } from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
