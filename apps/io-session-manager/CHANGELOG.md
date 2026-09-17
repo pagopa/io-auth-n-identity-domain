@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.28.0
+
+### Minor Changes
+
+- 59874c7: feat: add OIDC callback and new AGE_LIMIT value (defaults to 18)
+
 ## 1.27.0
 
 ### Minor Changes
