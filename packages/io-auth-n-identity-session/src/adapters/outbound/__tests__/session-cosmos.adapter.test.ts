@@ -63,7 +63,8 @@ const aHashedZendeskToken = HashedZendeskSSOTokenSchema.parse(
 // 1 hour in the future so that computeTtl succeeds
 const anExpirationDate = new Date(Date.now() + 60 * 60 * 1000);
 // 15 minutes before the expiration date
-const aCreatedAt = new Date(anExpirationDate.getTime() - 15 * 60 * 1000);// in the past to force computeTtl to fail
+const aCreatedAt = new Date(anExpirationDate.getTime() - 15 * 60 * 1000);
+// in the past to force computeTtl to fail
 const aPastExpirationDate = new Date(Date.now() - 60 * 60 * 1000);
 
 const aBaseSession: BaseSession = {
