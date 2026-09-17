@@ -5,10 +5,7 @@ import { FastifyInstance } from "fastify";
 
 import { GetUserForBpdUseCase } from "../../../application/use-cases/get-user-for-bpd.use-case.js";
 import { AuthenticationMiddleware } from "../../../middlewares/authentication/index.js";
-import {
-  SsoBpdUserInputDTO,
-  SsoBpdUserOutputDTO,
-} from "../dtos/sso-bpd-user.dto.js";
+import { SsoBpdUserOutputDTO } from "../dtos/sso-bpd-user.dto.js";
 
 import { createCheckIpHook } from "./hooks/check-ip.hook.js";
 
@@ -16,7 +13,7 @@ const ssoBpdUserContract = defineRoute({
   method: "get",
   operationId: "getUserForBpd",
   path: `/sso/bpd/v2/user`,
-  request: SsoBpdUserInputDTO,
+  request: {},
   summary: "Return the BPD user for a session token",
   description:
     "Returns the BPD user identified by the token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`.",

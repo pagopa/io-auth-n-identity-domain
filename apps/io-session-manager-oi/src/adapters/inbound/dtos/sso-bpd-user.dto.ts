@@ -4,10 +4,6 @@ import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
-export const SsoBpdUserInputDTO = {
-  headers: z.object({}),
-};
-
 export const SsoBpdUserOutputDTO = z
   .object({
     name: NonEmptyStringSchema,
