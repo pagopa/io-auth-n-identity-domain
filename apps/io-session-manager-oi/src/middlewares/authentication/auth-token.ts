@@ -26,5 +26,5 @@ export const AuthToken = {
   session: { schema: PlainSessionTokenSchema },
   bpd: { schema: PlainBpdSSOTokenSchema },
 } as const satisfies {
-  [T in TokenType]: Omit<Omit<AuthToken[T], "type">, "hashedType">;
+  [T in TokenType]: Omit<AuthToken[T], "type" | "hashedType">;
 };
