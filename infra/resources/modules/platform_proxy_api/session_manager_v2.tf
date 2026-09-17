@@ -74,3 +74,42 @@ resource "azurerm_api_management_api_tag" "bpd_api_session_manager_v2" {
   api_id = azurerm_api_management_api.bpd_api_session_manager_v2.id
   name   = azurerm_api_management_tag.session_manager_tag.name
 }
+
+
+##################
+#      FIMS      #
+##################
+resource "azurerm_api_management_api" "fims_api_session_manager_v2" {
+  name                  = "io-session-manager-fims-api-v2"
+  api_management_name   = var.platform_apim_name
+  resource_group_name   = var.platform_apim_resource_group_name
+  subscription_required = false
+
+  version_set_id = azurerm_api_management_api_version_set.fims_v1.id
+  version        = "v2"
+  revision       = 1
+
+  description  = "Auth & Identity Session Manager FIMS API with OI integration"
+  display_name = "IO SESSION MANAGER OI FIMS API"
+  path         = var.fims_api_base_path
+  protocols    = ["https"]
+  service_url  = "${var.session_manager_oi_url}/${var.fims_api_base_path}/v2"
+
+  import {
+    content_format = "openapi-link"
+    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/<INSERT_COMMIT_HASH_AFTER_THE_MERGE_OF_PR_840>/apps/io-session-manager-oi/api/sso/fims.yaml"
+
+  }
+}
+
+resource "azurerm_api_management_product_api" "fims_api_session_manager_v2" {
+  api_name            = azurerm_api_management_api.fims_api_session_manager_v2.name
+  resource_group_name = var.platform_apim_resource_group_name
+  api_management_name = var.platform_apim_name
+  product_id          = data.azurerm_api_management_product.apim_platform_domain_product.product_id
+}
+
+resource "azurerm_api_management_api_tag" "fims_api_session_manager_v2" {
+  api_id = azurerm_api_management_api.fims_api_session_manager_v2.id
+  name   = azurerm_api_management_tag.session_manager_tag.name
+}
