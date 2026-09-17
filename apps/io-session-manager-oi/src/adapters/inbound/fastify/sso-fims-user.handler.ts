@@ -3,17 +3,18 @@ import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { AnyRouteContract } from "@pagopa/hexagonal-openapi";
 import { FastifyInstance } from "fastify";
 
+
 import { GetUserForFimsUseCase } from "../../../application/use-cases/get-user-for-fims.use-case.js";
 import { AuthenticationMiddleware } from "../../../middlewares/authentication/index.js";
+import { SSO_FIMS_BASE_PATH } from "../base-path.js";
 import { SsoFimsUserOutputDTO } from "../dtos/sso-fims-user.dto.js";
 
 import { createCheckIpHook } from "./hooks/check-ip.hook.js";
 
-
 const ssoFimsUserContract = defineRoute({
   method: "get",
   operationId: "getUserForFims",
-  path: `/sso/fims/v2/user`,
+  path: `${SSO_FIMS_BASE_PATH}/user`,
   request: {},
   summary: "Return the FIMS user for a session token",
   description:

@@ -13,7 +13,7 @@ import {
   writeOpenApiYaml,
 } from "@pagopa/hexagonal-openapi";
 
-import { BASE_PATH, SSO_BPD_BASE_PATH } from "../src/adapters/inbound/base-path.js";
+import { BASE_PATH, SSO_BPD_BASE_PATH, SSO_FIMS_BASE_PATH } from "../src/adapters/inbound/base-path.js";
 import { callbackContract } from "../src/adapters/inbound/fastify/callback.handler.js";
 import { getSessionContract } from "../src/adapters/inbound/fastify/get-session.handler.js";
 import { reserveRoute } from "../src/adapters/inbound/fastify/reserve.handler.js";
@@ -140,7 +140,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
     title: "Bonus Pagamenti Digitali API for user authentication.",
   },
   {
-    basePath: "/sso/fims/v2",
+    basePath: SSO_FIMS_BASE_PATH,
     description:
       "FIMS SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.",
     outputRelPath: "api/sso/fims.yaml",
