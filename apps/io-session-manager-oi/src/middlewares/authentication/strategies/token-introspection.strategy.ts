@@ -10,6 +10,7 @@ import {
   toHashedBpdSSOToken,
   toHashedFimsSSOToken,
   toHashedSessionToken,
+  toHashedWalletSSOToken,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, type Result } from "neverthrow";
 
@@ -154,5 +155,30 @@ export class FimsTokenIntrospectionStrategy extends TokenIntrospectionBaseStrate
     sessionToken: AuthToken["fims"]["type"],
   ): AuthToken["fims"]["hashedType"] {
     return toHashedFimsSSOToken(sessionToken);
+  }
+}
+
+/**
+ * Token introspection strategy for Wallet tokens.
+ */
+export class WalletTokenIntrospectionStrategy extends TokenIntrospectionBaseStrategy<"wallet"> {
+  constructor(private readonly sessionPort: SessionPort) {
+    super();
+  }
+
+  protected override findSessionByToken(
+    sessionId: SessionId,
+    sessionToken: AuthToken["wallet"]["hashedType"],
+  ): Promise<Result<BaseSession, NotFoundError | GenericError>> {
+    return this.sessionPort.findByWalletToken({
+      sessionId,
+      hashedWalletSSOToken: sessionToken,
+    });
+  }
+
+  protected override toHashedToken(
+    sessionToken: AuthToken["wallet"]["type"],
+  ): AuthToken["wallet"]["hashedType"] {
+    return toHashedWalletSSOToken(sessionToken);
   }
 }
