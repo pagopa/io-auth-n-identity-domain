@@ -1,6 +1,7 @@
 import { AuthenticationError } from "@pagopa/hexagonal-core";
 import {
   PlainBpdSSOTokenSchema,
+  PlainFimsSSOTokenSchema,
   PlainSessionTokenSchema,
   type SessionId,
   SessionIdSchema,
@@ -125,5 +126,11 @@ export class SessionBearerTokenParsingStrategy extends BearerTokenParsingBaseStr
 export class BpdBearerTokenParsingStrategy extends BearerTokenParsingBaseStrategy<"bpd"> {
   constructor() {
     super(PlainBpdSSOTokenSchema);
+  }
+}
+
+export class FimsBearerTokenParsingStrategy extends BearerTokenParsingBaseStrategy<"fims"> {
+  constructor() {
+    super(PlainFimsSSOTokenSchema);
   }
 }

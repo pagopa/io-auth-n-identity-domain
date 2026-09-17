@@ -3,19 +3,18 @@ import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { AnyRouteContract } from "@pagopa/hexagonal-openapi";
 import { FastifyInstance } from "fastify";
 
-import { makeGetUserForFimsUseCase } from "../../../application/use-cases/get-user-for-fims.use-case.js";
-import {
-  SsoFimsUserInputDTO,
-  SsoFimsUserOutputDTO,
-} from "../dtos/sso-fims-user.dto.js";
+import { GetUserForFimsUseCase } from "../../../application/use-cases/get-user-for-fims.use-case.js";
+import { AuthenticationMiddleware } from "../../../middlewares/authentication/index.js";
+import { SsoFimsUserOutputDTO } from "../dtos/sso-fims-user.dto.js";
 
 import { createCheckIpHook } from "./hooks/check-ip.hook.js";
+
 
 const ssoFimsUserContract = defineRoute({
   method: "get",
   operationId: "getUserForFims",
   path: `/sso/fims/v2/user`,
-  request: SsoFimsUserInputDTO,
+  request: {},
   summary: "Return the FIMS user for a session token",
   description:
     "Returns the FIMS user identified by the token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`.",
@@ -39,13 +38,13 @@ const ssoFimsUserContract = defineRoute({
       schema: ProblemJson,
     },
   },
-  // TODO: add security schemes for the OpenAPI documentation.
-  security: [],
+  security: [{ bearerAuth: [] }],
 });
 
 export type SsoFimsUserHandlerDeps = {
   allowedIpSourceRange: ReadonlyArray<string>;
-  getUserForFimsUseCase: ReturnType<typeof makeGetUserForFimsUseCase>;
+  middlewares: readonly [AuthenticationMiddleware<"fims">];
+  useCase: GetUserForFimsUseCase;
 };
 
 export const mountSsoFimsUserHandler = (
@@ -57,10 +56,11 @@ export const mountSsoFimsUserHandler = (
     scope.addHook("preHandler", createCheckIpHook(deps.allowedIpSourceRange));
     mountFastifyRoute(scope, {
       contract: ssoFimsUserContract,
-      inputMapper: (req) => ({
-        ...req.headers.authorization,
+      middlewares: deps.middlewares,
+      inputMapper: (_, context) => ({
+        session: context.session,
       }),
-      useCase: deps.getUserForFimsUseCase,
+      useCase: deps.useCase,
     });
     done();
   });

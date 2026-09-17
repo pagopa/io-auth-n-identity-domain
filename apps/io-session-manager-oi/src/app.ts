@@ -31,13 +31,14 @@ import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redi
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
 import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
-import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
+import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
 import { getUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
+import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-fims.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
@@ -250,6 +251,8 @@ export const createApp = async (
     authenticationMiddlewareFactory.create("session");
   const authenticateBpdMiddleware =
     authenticationMiddlewareFactory.create("bpd");
+  const authenticateFimsMiddleware =
+    authenticationMiddlewareFactory.create("fims");
 
   // --------------------------------------------------
   // Endpoints mounting
@@ -307,10 +310,13 @@ export const createApp = async (
     middlewares: [authenticateBpdMiddleware] as const,
     useCase: getUserForBpdUseCase,
   });
-  
+
   mountSsoFimsUserHandler(server, {
     allowedIpSourceRange: config.ALLOW_FIMS_IP_SOURCE_RANGE,
-    getUserForFimsUseCase,
+    middlewares: [authenticateFimsMiddleware] as const,
+    useCase: makeGetUserForFimsUseCase({
+      profilePort: profileAdapter,
+    }),
   });
 
   mountGetSessionHandler({

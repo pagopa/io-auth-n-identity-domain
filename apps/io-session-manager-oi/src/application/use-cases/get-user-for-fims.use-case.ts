@@ -7,24 +7,18 @@ import {
   NotFoundError,
   UseCase,
 } from "@pagopa/hexagonal-core";
-import { type SessionPort } from "@pagopa/io-auth-n-identity-session/ports";
-import {
-  type PlainFimsSSOToken,
-  type SessionId,
-  toHashedFimsSSOToken,
-  type SpidLevel,
-} from "@pagopa/io-auth-n-identity-session/value-objects";
+import { BaseSession } from "@pagopa/io-auth-n-identity-session";
+import { type SpidLevel } from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
 import { z } from "zod";
 
 import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 
-const IsoDateSchema = z.iso.date();
-type IsoDate = z.infer<typeof IsoDateSchema>;
+const _IsoDateSchema = z.iso.date();
+type IsoDate = z.infer<typeof _IsoDateSchema>;
 
 export type GetUserForFimsInput = {
-  sessionId: SessionId;
-  sessionToken: PlainFimsSSOToken;
+  session: BaseSession;
 };
 
 export type GetUserForFimsOutput = {
@@ -40,7 +34,6 @@ export type GetUserForFimsOutput = {
 export type GetUserForFimsError = AuthenticationError | GenericError;
 
 type GetUserForFimsDeps = {
-  sessionPort: SessionPort;
   profilePort: ProfilePort;
 };
 
@@ -52,28 +45,15 @@ export type GetUserForFimsUseCase = UseCase<
 
 export const makeGetUserForFimsUseCase =
   (deps: GetUserForFimsDeps): GetUserForFimsUseCase =>
-  async (input) => {
-    const tokenLookup = await deps.sessionPort.findByFimsToken({
-      sessionId: input.sessionId,
-      hashedFimsSSOToken: toHashedFimsSSOToken(input.sessionToken),
-    });
-
-    if (tokenLookup.isErr()) {
-      // If the session is not found return AuthenticationError
-      if (tokenLookup.error instanceof NotFoundError) {
-        return err(new AuthenticationError());
-      }
-      return err(tokenLookup.error);
-    }
-
-    const session = tokenLookup.value;
-
+  async ({ session }: GetUserForFimsInput) => {
     const profileLookup = await deps.profilePort.getProfile(session.fiscalCode);
 
     if (profileLookup.isErr()) {
       return err(
         profileLookup.error instanceof NotFoundError
-          ? new GenericError("Inconsistency: a profile for a valid token was not found")
+          ? new GenericError(
+              "Inconsistency: a profile for a valid token was not found",
+            )
           : profileLookup.error,
       );
     }

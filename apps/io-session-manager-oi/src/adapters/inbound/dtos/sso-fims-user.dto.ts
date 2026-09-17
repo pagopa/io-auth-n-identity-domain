@@ -5,25 +5,13 @@ import {
   NonEmptyStringSchema,
 } from "@pagopa/hexagonal-core";
 import {
-  PlainFimsSSOTokenSchema,
   SpidLevelSchema,
 } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
 
 import { PositiveIntegerSchema } from "../../../domain/value-objects/positive-integer.vo.js";
-import { createBearerTokenSchema } from "../bearer-token.js";
 
 extendZodWithOpenApi(z);
-
-const BearerFimsTokenSchema = createBearerTokenSchema(PlainFimsSSOTokenSchema);
-
-export const SsoFimsUserInputDTO = {
-  headers: z.object({
-    authorization: BearerFimsTokenSchema,
-  }),
-};
-
-export type SsoFimsUserInputDTO = z.infer<typeof SsoFimsUserInputDTO>;
 
 export const SsoFimsUserOutputDTO = z
   .object({
