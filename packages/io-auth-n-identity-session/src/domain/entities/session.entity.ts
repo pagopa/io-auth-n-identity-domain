@@ -99,6 +99,19 @@ export const getSessionTtlMsByLoginType = (loginType: LoginType) => {
   return ttlByLoginType[loginType];
 };
 
+/**
+ * Returns the expiration date of a session based on the login type and the starting date.
+ *
+ * @param loginType The type of login used for the session.
+ * @param from The starting date from which to calculate the expiration date. Defaults to the current date and time.
+ * @returns The calculated expiration date of the session.
+ */
+export const getSessionExpiration = (
+  loginType: LoginType,
+  from: Date = new Date(),
+) => new Date(from.getTime() + getSessionTtlMsByLoginType(loginType));
+
+
 export const newPlainSession = async ({
   loginType,
   ...baseData
@@ -109,7 +122,7 @@ export const newPlainSession = async ({
   const now = new Date();
   return {
     ...baseData,
-    expirationDate: new Date(now.getTime() + getSessionTtlMsByLoginType(loginType)),
+    expirationDate: getSessionExpiration(loginType, now),
     createdAt: now,
     plainSessionToken: plainSessionToken,
     ssoTokens: {
