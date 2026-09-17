@@ -1,11 +1,12 @@
-import { describe, test, expect } from "vitest";
+import { describe, test, expect, afterEach, vi } from "vitest";
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { Second } from "@pagopa/ts-commons/lib/units";
 import {
-  mockGetDel,
+  mockGet,
+  mockDel,
   mockSetEx,
   mockRedisClientSelector,
 } from "../../__mocks__/redis.mocks";
@@ -67,10 +68,15 @@ describe("RedisAuxiliarData#save", () => {
 });
 
 describe("RedisAuxiliarData#getAndDelete", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
   test("should succeed and return the stored ausiliar data", async () => {
-    mockGetDel.mockImplementationOnce(() =>
+    mockGet.mockImplementationOnce(() =>
       Promise.resolve(JSON.stringify(LoginAusiliarData.encode(anAusiliarData))),
     );
+    mockDel.mockImplementationOnce(() => Promise.resolve(1));
 
     await pipe(
       getAndDelete(aState)(deps),
@@ -78,23 +84,43 @@ describe("RedisAuxiliarData#getAndDelete", () => {
       TE.mapLeft((err) => expect(err).toBeFalsy()),
     )();
 
-    expect(mockGetDel).toHaveBeenCalledTimes(1);
-    expect(mockGetDel).toHaveBeenCalledWith(`RESERVE-${aState}`);
+    expect(mockGet).toHaveBeenCalledTimes(1);
+    expect(mockGet).toHaveBeenCalledWith(`RESERVE-${aState}`);
+    expect(mockDel).toHaveBeenCalledTimes(1);
+    expect(mockDel).toHaveBeenCalledWith(`RESERVE-${aState}`);
   });
 
   test("should succeed and return none if the key is missing", async () => {
-    mockGetDel.mockImplementationOnce(() => Promise.resolve(null));
+    mockGet.mockImplementationOnce(() => Promise.resolve(null));
 
     await pipe(
       getAndDelete(aState)(deps),
       TE.map((result) => expect(result).toEqual(O.none)),
       TE.mapLeft((err) => expect(err).toBeFalsy()),
     )();
+
+    expect(mockDel).not.toHaveBeenCalled();
   });
 
-  test("should fail with a left response if an error occurs on redis", async () => {
+  test("should fail with a left response if an error occurs on redis get", async () => {
     const expectedError = new Error("redis Error");
-    mockGetDel.mockImplementationOnce(() => Promise.reject(expectedError));
+    mockGet.mockImplementationOnce(() => Promise.reject(expectedError));
+
+    await pipe(
+      getAndDelete(aState)(deps),
+      TE.map((result) => expect(result).toBeFalsy()),
+      TE.mapLeft((err) => expect(err).toEqual(expectedError)),
+    )();
+
+    expect(mockDel).not.toHaveBeenCalled();
+  });
+
+  test("should fail with a left response if an error occurs on redis del", async () => {
+    const expectedError = new Error("redis Error");
+    mockGet.mockImplementationOnce(() =>
+      Promise.resolve(JSON.stringify(LoginAusiliarData.encode(anAusiliarData))),
+    );
+    mockDel.mockImplementationOnce(() => Promise.reject(expectedError));
 
     await pipe(
       getAndDelete(aState)(deps),
@@ -104,7 +130,8 @@ describe("RedisAuxiliarData#getAndDelete", () => {
   });
 
   test("should fail with a left response if the stored value is invalid", async () => {
-    mockGetDel.mockImplementationOnce(() => Promise.resolve("not-json"));
+    mockGet.mockImplementationOnce(() => Promise.resolve("not-json"));
+    mockDel.mockImplementationOnce(() => Promise.resolve(1));
 
     await pipe(
       getAndDelete(aState)(deps),

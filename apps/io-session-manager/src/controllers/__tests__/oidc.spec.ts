@@ -7,7 +7,8 @@ import { ResponseErrorInternal } from "@pagopa/ts-commons/lib/responses";
 
 import mockReq from "../../__mocks__/request.mocks";
 import {
-  mockGetDel,
+  mockGet,
+  mockDel,
   mockRedisClientSelector,
   mockSetEx,
 } from "../../__mocks__/redis.mocks";
@@ -150,7 +151,8 @@ describe("OidcController#callbackEndpoint", () => {
   });
 
   test("should forward an authorization error as a permanent redirect and invalidate the ausiliar data", async () => {
-    mockGetDel.mockResolvedValueOnce(JSON.stringify({}));
+    mockGet.mockResolvedValueOnce(JSON.stringify({}));
+    mockDel.mockResolvedValueOnce(1);
 
     const req = mockReq({
       query: {
@@ -162,7 +164,7 @@ describe("OidcController#callbackEndpoint", () => {
 
     const result = await pipe({ ...deps, req }, callbackEndpoint, TE.toUnion)();
 
-    expect(mockGetDel).toHaveBeenCalledWith(expect.stringContaining("a-state"));
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining("a-state"));
     expect(mockOIDCCallback).not.toHaveBeenCalled();
     expect(result).toMatchObject({
       kind: "IResponsePermanentRedirect",
@@ -174,7 +176,8 @@ describe("OidcController#callbackEndpoint", () => {
   });
 
   test("should forward an error as a permanent redirect with errorCode and errorMessage", async () => {
-    mockGetDel.mockResolvedValueOnce(JSON.stringify({}));
+    mockGet.mockResolvedValueOnce(JSON.stringify({}));
+    mockDel.mockResolvedValueOnce(1);
 
     const req = mockReq({
       query: {
@@ -186,7 +189,7 @@ describe("OidcController#callbackEndpoint", () => {
 
     const result = await pipe({ ...deps, req }, callbackEndpoint, TE.toUnion)();
 
-    expect(mockGetDel).toHaveBeenCalledTimes(1);
+    expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockOIDCCallback).not.toHaveBeenCalled();
     expect(result).toMatchObject({
       kind: "IResponsePermanentRedirect",
@@ -198,7 +201,8 @@ describe("OidcController#callbackEndpoint", () => {
   });
 
   test("should forward an error as a permanent redirect with only errorMessage", async () => {
-    mockGetDel.mockResolvedValueOnce(JSON.stringify({}));
+    mockGet.mockResolvedValueOnce(JSON.stringify({}));
+    mockDel.mockResolvedValueOnce(1);
 
     const req = mockReq({
       query: {
@@ -209,7 +213,7 @@ describe("OidcController#callbackEndpoint", () => {
 
     const result = await pipe({ ...deps, req }, callbackEndpoint, TE.toUnion)();
 
-    expect(mockGetDel).toHaveBeenCalledTimes(1);
+    expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockOIDCCallback).not.toHaveBeenCalled();
     expect(result).toMatchObject({
       kind: "IResponsePermanentRedirect",
@@ -224,7 +228,7 @@ describe("OidcController#callbackEndpoint", () => {
 
     const result = await pipe({ ...deps, req }, callbackEndpoint, TE.toUnion)();
 
-    expect(mockGetDel).not.toHaveBeenCalled();
+    expect(mockGet).not.toHaveBeenCalled();
     expect(mockOIDCCallback).not.toHaveBeenCalled();
     expect(result).toMatchObject({
       kind: "IResponsePermanentRedirect",

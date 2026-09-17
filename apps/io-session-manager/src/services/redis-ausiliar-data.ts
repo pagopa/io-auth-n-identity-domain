@@ -73,10 +73,15 @@ export const save: (
     );
 
 /**
- * Reads and atomically deletes the ausiliar data associated to a reserved
+ * Reads and then deletes the ausiliar data associated to a reserved
  * OIDC authorization request `state`. The data is single-use: it's meant
  * to be consumed once by the (future) callback step of the OneIdentity
  * login flow, which is why the read is paired with a delete.
+ *
+ * Note: this uses a plain `GET` followed by a `DEL` (rather than the
+ * atomic `GETDEL` command) because it must remain compatible with Redis
+ * versions prior to 6.2, which do not support `GETDEL`. The `DEL` is only
+ * issued after a successful `GET`.
  * @param state the `state` value returned by the `reserve` step, used as
  *   the Redis key suffix
  * @returns the ausiliar data if present, `none` if the key was missing or
@@ -88,15 +93,13 @@ export const getAndDelete: (
   RedisRepo.RedisRepositoryDeps,
   Error,
   O.Option<LoginAusiliarData>
-> = (state) => (deps) =>
-  pipe(
-    TE.tryCatch(
-      () =>
-        deps.redisClientSelector
-          .selectOne(RedisClientMode.FAST)
-          .getDel(`${oidcAusiliarDataPrefix}${state}`),
-      E.toError,
-    ),
+> = (state) => (deps) => {
+  const key = `${oidcAusiliarDataPrefix}${state}`;
+  const redisClient = deps.redisClientSelector.selectOne(
+    RedisClientMode.FAST,
+  );
+  return pipe(
+    TE.tryCatch(() => redisClient.get(key), E.toError),
     TE.chain((value) =>
       pipe(
         value,
@@ -104,8 +107,14 @@ export const getAndDelete: (
         O.fold(
           () => TE.right<Error, O.Option<LoginAusiliarData>>(O.none),
           (raw) =>
-            pipe(parseLoginAusiliarData(raw), E.map(O.some), TE.fromEither),
+            pipe(
+              TE.tryCatch(() => redisClient.del(key), E.toError),
+              TE.chain(() =>
+                pipe(parseLoginAusiliarData(raw), E.map(O.some), TE.fromEither),
+              ),
+            ),
         ),
       ),
     ),
   );
+};
