@@ -11,6 +11,7 @@ import { SsoFimsUserOutputDTO } from "../dtos/sso-fims-user.dto.js";
 
 import { createCheckIpHook } from "./hooks/check-ip.hook.js";
 
+
 const ssoFimsUserContract = defineRoute({
   method: "get",
   operationId: "getUserForFims",

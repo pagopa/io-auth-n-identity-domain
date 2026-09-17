@@ -310,10 +310,13 @@ export const createApp = async (
     middlewares: [authenticateBpdMiddleware] as const,
     useCase: getUserForBpdUseCase,
   });
-  
+
   mountSsoFimsUserHandler(server, {
     allowedIpSourceRange: config.ALLOW_FIMS_IP_SOURCE_RANGE,
-    getUserForFimsUseCase,
+    middlewares: [authenticateFimsMiddleware] as const,
+    useCase: makeGetUserForFimsUseCase({
+      profilePort: profileAdapter,
+    }),
   });
 
   mountSsoFimsUserHandler(server, {
