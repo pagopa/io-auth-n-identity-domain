@@ -39,7 +39,8 @@ import {
   ReserveInput,
 } from "../../types/oidc";
 import {
-  mockGetDel,
+  mockGet,
+  mockDel,
   mockRedisClientSelector,
   mockSetEx,
 } from "../../__mocks__/redis.mocks";
@@ -299,17 +300,19 @@ describe("OidcService#getLoginAusiliarData", () => {
   const redisDeps = { redisClientSelector: mockRedisClientSelector };
 
   test("should return the ausiliar data when present", async () => {
-    mockGetDel.mockResolvedValueOnce(
+    mockGet.mockResolvedValueOnce(
       JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
     );
+    mockDel.mockResolvedValueOnce(1);
 
     const result = await getLoginAusiliarData(redisDeps)(aState);
 
     expect(result).toEqual(E.right(anAusiliarData));
+    expect(mockDel).toHaveBeenCalledWith(`RESERVE-${aState}`);
   });
 
   test("should return an error when the ausiliar data is missing or expired", async () => {
-    mockGetDel.mockResolvedValueOnce(null);
+    mockGet.mockResolvedValueOnce(null);
 
     const result = await getLoginAusiliarData(redisDeps)(aState);
 
@@ -323,7 +326,7 @@ describe("OidcService#getLoginAusiliarData", () => {
 
   test("should return an error when redis rejects", async () => {
     const anError = new Error("redis error");
-    mockGetDel.mockRejectedValueOnce(anError);
+    mockGet.mockRejectedValueOnce(anError);
 
     const result = await getLoginAusiliarData(redisDeps)(aState);
 
@@ -678,7 +681,7 @@ describe("OidcService#OIDCCallback", () => {
   };
 
   test("should return IResponseErrorValidation when the login state is missing or expired", async () => {
-    mockGetDel.mockResolvedValueOnce(null);
+    mockGet.mockResolvedValueOnce(null);
 
     const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
 
@@ -691,9 +694,10 @@ describe("OidcService#OIDCCallback", () => {
   });
 
   test("should return IResponseErrorInternal when OIDC discovery fails", async () => {
-    mockGetDel.mockResolvedValueOnce(
+    mockGet.mockResolvedValueOnce(
       JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
     );
+    mockDel.mockResolvedValueOnce(1);
     mockedGetOidcConfiguration.mockRejectedValueOnce(
       new Error("discovery failed"),
     );
@@ -709,9 +713,10 @@ describe("OidcService#OIDCCallback", () => {
   });
 
   test("should return IResponseErrorInternal when the code exchange fails", async () => {
-    mockGetDel.mockResolvedValueOnce(
+    mockGet.mockResolvedValueOnce(
       JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
     );
+    mockDel.mockResolvedValueOnce(1);
     mockedGetOidcConfiguration.mockResolvedValueOnce(anOidcConfiguration);
     mockedExchangeAuthorizationCode.mockRejectedValueOnce(
       new Error("code exchange failed"),
@@ -728,9 +733,10 @@ describe("OidcService#OIDCCallback", () => {
   });
 
   test("should return IResponseErrorInternal when the SAML assertion retrieval fails", async () => {
-    mockGetDel.mockResolvedValueOnce(
+    mockGet.mockResolvedValueOnce(
       JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
     );
+    mockDel.mockResolvedValueOnce(1);
     mockedGetOidcConfiguration.mockResolvedValueOnce(
       anOidcConfiguration as never,
     );
@@ -754,9 +760,10 @@ describe("OidcService#OIDCCallback", () => {
   });
 
   test("should return IResponseErrorValidation when the SAML assertion verification fails", async () => {
-    mockGetDel.mockResolvedValueOnce(
+    mockGet.mockResolvedValueOnce(
       JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
     );
+    mockDel.mockResolvedValueOnce(1);
     mockedGetOidcConfiguration.mockResolvedValueOnce(
       anOidcConfiguration as never,
     );
@@ -787,9 +794,10 @@ describe("OidcService#OIDCCallback", () => {
   });
 
   test("should call acs and return its response on a successful callback", async () => {
-    mockGetDel.mockResolvedValueOnce(
+    mockGet.mockResolvedValueOnce(
       JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
     );
+    mockDel.mockResolvedValueOnce(1);
     mockedGetOidcConfiguration.mockResolvedValueOnce(
       anOidcConfiguration as never,
     );
