@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.28.1
+
+### Patch Changes
+
+- c62418f: fix: getdel command not available on legacy redis
+
 ## 1.28.0
 
 ### Minor Changes
