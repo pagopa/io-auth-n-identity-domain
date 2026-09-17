@@ -46,7 +46,7 @@ resource "azurerm_api_management_api" "bpd_api_session_manager_v2" {
   resource_group_name   = var.platform_apim_resource_group_name
   subscription_required = false
 
-  version_set_id = azurerm_api_management_api_version_set.auth_v1.id
+  version_set_id = azurerm_api_management_api_version_set.bpd_v1.id
   version        = "v2"
   revision       = 1
 
