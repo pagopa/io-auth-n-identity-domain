@@ -1,5 +1,17 @@
 # io-session-manager-oi
 
+## 0.21.1
+
+### Patch Changes
+
+- 9b64e4d: move bearer token check and introspection into a specific middleware
+
+## 0.21.0
+
+### Minor Changes
+
+- 52a9a0f: Add PlatformInternal Port, integrate into Activate Session use-case
+
 ## 0.20.1
 
 ### Patch Changes

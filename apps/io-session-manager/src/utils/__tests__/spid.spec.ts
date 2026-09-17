@@ -16,8 +16,12 @@ import {
   getRequestIDFromResponse,
   getSpidEmailFromAssertion,
   getSpidLevelFromSAMLResponse,
+  isSpidLevelGreaterOrEqual,
+  isWellFormedSAMLAssertion,
 } from "../spid";
 import { aFiscalCode } from "../../__mocks__/user.mocks";
+import { SpidLevelEnum } from "../../types/spid-level";
+import { SpidAuthLevelEnum } from "../../generated/backend/SpidAuthLevel";
 
 const aDOMSamlRequest = O.getOrElseW(() => {
   throw new Error("Invalid mock");
@@ -70,4 +74,43 @@ describe("SPID logs", () => {
     const spidEmail = getSpidEmailFromAssertion(aDOMSamlResponse);
     expect(spidEmail).toEqual(O.some("spid.tech@agid.gov.it"));
   });
+});
+
+describe("isWellFormedSAMLAssertion", () => {
+  test("should return true for a well formed SAML response", () => {
+    expect(isWellFormedSAMLAssertion(aDOMSamlResponse)).toEqual(true);
+  });
+
+  test("should return false for a tampered SAML response with trailing content", () => {
+    const tamperedResponse = O.getOrElseW(() => {
+      throw new Error("Invalid mock");
+    })(
+      safeXMLParseFromString(`${getASAMLResponse()}<injected>evil</injected>`),
+    );
+
+    expect(isWellFormedSAMLAssertion(tamperedResponse)).toEqual(false);
+  });
+});
+
+describe("isSpidLevelGreaterOrEqual", () => {
+  const spidL1 = SpidLevelEnum["https://www.spid.gov.it/SpidL1"];
+  const spidL2 = SpidLevelEnum["https://www.spid.gov.it/SpidL2"];
+  const spidL3 = SpidLevelEnum["https://www.spid.gov.it/SpidL3"];
+
+  // NOTE: starting from SpidL2 comparison because its the minimum supported
+  test.each`
+    spidLevelReceived | minAuthLevel                | expected
+    ${spidL2}         | ${SpidAuthLevelEnum.SpidL2} | ${true}
+    ${spidL3}         | ${SpidAuthLevelEnum.SpidL2} | ${true}
+    ${spidL1}         | ${SpidAuthLevelEnum.SpidL2} | ${false}
+    ${spidL2}         | ${SpidAuthLevelEnum.SpidL3} | ${false}
+    ${spidL3}         | ${SpidAuthLevelEnum.SpidL3} | ${true}
+  `(
+    "should return $expected when spidLevelReceived is $spidLevelReceived and minAuthLevel is $minAuthLevel",
+    ({ spidLevelReceived, minAuthLevel, expected }) => {
+      expect(
+        isSpidLevelGreaterOrEqual(spidLevelReceived, minAuthLevel),
+      ).toEqual(expected);
+    },
+  );
 });

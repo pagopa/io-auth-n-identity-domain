@@ -1,4 +1,4 @@
-import { AuthenticationError, GenericError } from "@pagopa/hexagonal-core";
+import { GenericError } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,17 +8,13 @@ import {
   ProfilePortMock,
   resetProfilePortMock,
 } from "../../../__mocks__/ports/profile-port.mock.js";
+import { SessionPortMock } from "../../../__mocks__/ports/session-port.mock.js";
 import {
-  mockFindBySessionToken,
-  SessionPortMock,
-} from "../../../__mocks__/ports/session-port.mock.js";
-import {
+  aBaseSession,
   aFiscalCode,
   aGenericError,
   anEmailAddress,
-  aNotFoundError,
   aPlainSessionToken,
-  aSessionId,
   aSessionWithHashedTokens,
   aUserProfileWithoutEmail,
 } from "../../../__mocks__/session.mocks.js";
@@ -68,7 +64,6 @@ vi.mock("@pagopa/io-auth-n-identity-session", async (importOriginal) => {
 beforeEach(() => {
   vi.resetAllMocks();
   resetProfilePortMock();
-  mockFindBySessionToken.mockResolvedValue(ok(aSessionWithHashedTokens));
 });
 
 describe("makeGetSessionUseCase", () => {
@@ -197,8 +192,8 @@ describe("makeGetSessionUseCase", () => {
       }
 
       const input = {
-        sessionId: aSessionId,
         sessionToken: aPlainSessionToken,
+        session: aBaseSession,
         fieldsFilter: new Set([field]),
       } satisfies GetSessionInput;
 
@@ -210,13 +205,6 @@ describe("makeGetSessionUseCase", () => {
       if (result.isOk()) {
         expect(result.value).toEqual({ [field]: expectedValue });
       }
-      expect(mockFindBySessionToken).toHaveBeenCalledExactlyOnceWith({
-        sessionId: aSessionId,
-        hashedSessionToken: mocks.anHashedSessionToken,
-      });
-      expect(mocks.toHashedSessionToken).toHaveBeenCalledExactlyOnceWith(
-        aPlainSessionToken,
-      );
       checkExpectations();
     },
   );
@@ -228,8 +216,8 @@ describe("makeGetSessionUseCase", () => {
     );
 
     const input = {
-      sessionId: aSessionId,
       sessionToken: aPlainSessionToken,
+      session: aBaseSession,
       fieldsFilter: new Set(["lollipopAssertionRef"] as const),
     } satisfies GetSessionInput;
 
@@ -249,8 +237,8 @@ describe("makeGetSessionUseCase", () => {
   it("creates the extended Zendesk token only when requested", async () => {
     // given
     const input = {
-      sessionId: aSessionId,
       sessionToken: aPlainSessionToken,
+      session: aBaseSession,
       fieldsFilter: new Set(["zendeskToken"] as const),
     } satisfies GetSessionInput;
 
@@ -284,8 +272,8 @@ describe("makeGetSessionUseCase", () => {
       mockGetProfile.mockResolvedValueOnce(profileResult);
 
       const input = {
-        sessionId: aSessionId,
         sessionToken: aPlainSessionToken,
+        session: aBaseSession,
         fieldsFilter: new Set(["zendeskToken"] as const),
       } satisfies GetSessionInput;
 
@@ -303,46 +291,6 @@ describe("makeGetSessionUseCase", () => {
     },
   );
 
-  it("maps a missing session to an authentication error", async () => {
-    // given
-    mockFindBySessionToken.mockResolvedValueOnce(err(aNotFoundError));
-
-    const input = {
-      sessionId: aSessionId,
-      sessionToken: aPlainSessionToken,
-      fieldsFilter: new Set(["spidLevel"] as const),
-    } satisfies GetSessionInput;
-
-    // when
-    const result = await getSession(input);
-
-    // then
-    expect(result).toEqual(err(new AuthenticationError()));
-    expect(lollipopActivationPortMock.getByFiscalCode).not.toHaveBeenCalled();
-    expect(mockGetProfile).not.toHaveBeenCalled();
-  });
-
-  it("maps a generic session retrieval error to a generic error", async () => {
-    // given
-    mockFindBySessionToken.mockResolvedValueOnce(err(aGenericError));
-
-    const input = {
-      sessionId: aSessionId,
-      sessionToken: aPlainSessionToken,
-      fieldsFilter: new Set(["spidLevel"] as const),
-    } satisfies GetSessionInput;
-
-    // when
-    const result = await getSession(input);
-
-    // then
-    expect(result).toEqual(
-      err(new GenericError("An error occurred while retrieving the session")),
-    );
-    expect(lollipopActivationPortMock.getByFiscalCode).not.toHaveBeenCalled();
-    expect(mockGetProfile).not.toHaveBeenCalled();
-  });
-
   it("returns an error when the requested Lollipop activation cannot be retrieved", async () => {
     // given
     lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
@@ -350,8 +298,8 @@ describe("makeGetSessionUseCase", () => {
     );
 
     const input = {
-      sessionId: aSessionId,
       sessionToken: aPlainSessionToken,
+      session: aBaseSession,
       fieldsFilter: new Set(["lollipopAssertionRef"] as const),
     } satisfies GetSessionInput;
 

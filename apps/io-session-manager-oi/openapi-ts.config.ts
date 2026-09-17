@@ -144,4 +144,30 @@ export default defineConfig([
       },
     ],
   },
+  {
+    input:
+      "https://raw.githubusercontent.com/pagopa/io-infra/702da5fed9986814e1e19720b04359d73774b34f/src/common/_modules/platform_api_gateway/api/platform-internal/v1/api.yaml",
+    output: {
+      path: "src/generated/platform-internal",
+      module: {
+        extension: ".js",
+      },
+    },
+    plugins: [
+      "@hey-api/client-fetch",
+      "@hey-api/schemas",
+      "@hey-api/sdk",
+      {
+        name: "zod",
+        $resolvers: {
+          // Intercept all string nodes
+          string: stringResolver,
+        },
+      },
+      {
+        enums: "javascript",
+        name: "@hey-api/typescript",
+      },
+    ],
+  },
 ] as ReadonlyArray<UserConfig>);

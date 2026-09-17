@@ -2,13 +2,19 @@ openapi: 3.1.0
 info:
   description: BPD SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.
   title: Bonus Pagamenti Digitali API for user authentication.
-  version: 0.20.1
+  version: 0.21.0
 servers:
   - url: https://api-app.io.pagopa.it/sso/bpd/v2
 tags:
   - name: sso
     description: BPD Single Sign-On endpoints.
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+      description: Enter the opaque token provided by the authentication authority
   schemas:
     BPDUser:
       type: object
@@ -51,15 +57,11 @@ paths:
     get:
       description: "Returns the BPD user identified by the token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`."
       operationId: getUserForBpd
+      security:
+        - bearerAuth: []
       summary: Return the BPD user for a session token
       tags:
         - sso
-      parameters:
-        - schema:
-            type: string
-          required: true
-          name: authorization
-          in: header
       responses:
         "200":
           description: The BPD user for the provided session token

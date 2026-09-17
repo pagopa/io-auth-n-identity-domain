@@ -5,32 +5,38 @@ import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  mockCreate as mockProfileCreate,
   mockGetProfile,
   mockNotifyLogin,
+  mockCreate as mockProfileCreate,
   ProfilePortMock,
   resetProfilePortMock,
 } from "../../../__mocks__/ports/profile-port.mock.js";
 import {
-  mockCreate as mockSessionCreate,
   mockInvalidatePreviousSession,
+  mockCreate as mockSessionCreate,
   resetSessionPortMock,
   SessionPortMock,
 } from "../../../__mocks__/ports/session-port.mock.js";
 import {
+  mockDeletePlatformInternalSession,
+  PlatformInternalPortMock,
+  resetPlatformInternalPortMock,
+} from "../../../__mocks__/ports/platform-internal-port.mock.js";
+import {
   aClientSessionToken,
-  anEmailAddress,
   aFamilyName,
   aFiscalCode,
   aGenericError,
+  aHashedSessionTokenWithSessionId,
   aName,
+  anEmailAddress,
   aNewSessionTokenInput,
   aNewSessionTokenInputWithoutSpidEmail,
-  aNotFoundError,
   anIdentityProvider,
   anIpAddress,
+  aNotFoundError,
   aSessionId,
-  aSessionWithPlainTokens,
+  aSessionWithPlainSSOTokens,
   aUserProfileWithEmail,
   aUserProfileWithoutEmail,
 } from "../../../__mocks__/session.mocks.js";
@@ -62,14 +68,16 @@ vi.mock("@pagopa/io-auth-n-identity-session/entities", async (importActual) => {
 const activateUserSession = makeActivateUserSessionUseCase(
   SessionPortMock,
   ProfilePortMock,
+  PlatformInternalPortMock,
 );
 
 beforeEach(() => {
   vi.clearAllMocks();
   resetSessionPortMock();
   resetProfilePortMock();
+  resetPlatformInternalPortMock();
   vi.mocked(newSessionId).mockResolvedValue(aSessionId);
-  vi.mocked(newPlainSession).mockResolvedValue(aSessionWithPlainTokens);
+  vi.mocked(newPlainSession).mockResolvedValue(aSessionWithPlainSSOTokens);
 });
 
 // -----------------------------------------------------
@@ -232,6 +240,49 @@ describe("makeActivateUserSessionUseCase", () => {
           ),
         ),
       );
+    });
+
+    it("returns err when proxy deleteSession fails", async () => {
+      mockInvalidatePreviousSession.mockResolvedValueOnce(
+        ok(aHashedSessionTokenWithSessionId),
+      );
+      mockDeletePlatformInternalSession.mockResolvedValueOnce(
+        err(aGenericError),
+      );
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(
+        err(
+          new GenericError(
+            `Failed to invalidate previous session on proxy: ${aGenericError.message}`,
+          ),
+        ),
+      );
+      expect(mockSessionCreate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("proxy deleteSession", () => {
+    it("calls deleteSession with the hashed session token when a previous session exists", async () => {
+      mockInvalidatePreviousSession.mockResolvedValueOnce(
+        ok(aHashedSessionTokenWithSessionId),
+      );
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
+        `${aHashedSessionTokenWithSessionId.sessionId}.${aHashedSessionTokenWithSessionId.hashedSessionToken}`,
+      );
+    });
+
+    it("skips deleteSession when there is no previous session", async () => {
+      // mockInvalidatePreviousSession default returns ok(undefined)
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
     });
   });
 });

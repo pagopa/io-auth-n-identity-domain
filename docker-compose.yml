@@ -321,7 +321,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-        ipv4_address: 172.18.0.100
+        ipv4_address: 172.19.0.100
     ports:
       - 6380:6380
     volumes:
@@ -333,7 +333,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-        ipv4_address: 172.18.0.101
+        ipv4_address: 172.19.0.101
     ports:
       - 6381:6381
     volumes:
@@ -345,7 +345,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-        ipv4_address: 172.18.0.102
+        ipv4_address: 172.19.0.102
     ports:
       - 6382:6382
     volumes:
@@ -357,7 +357,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-        ipv4_address: 172.18.0.103
+        ipv4_address: 172.19.0.103
     ports:
       - 6383:6383
     volumes:
@@ -369,7 +369,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-        ipv4_address: 172.18.0.104
+        ipv4_address: 172.19.0.104
     ports:
       - 6384:6384
     volumes:
@@ -381,7 +381,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-        ipv4_address: 172.18.0.105
+        ipv4_address: 172.19.0.105
     ports:
       - 6385:6385
     volumes:
@@ -393,7 +393,7 @@ services:
     image: redis:7.0-alpine
     networks:
       io-fn:
-        ipv4_address: 172.18.0.99
+        ipv4_address: 172.19.0.99
     ports:
       - 6379:6379
     volumes:
@@ -513,8 +513,8 @@ networks:
       com.docker.network.driver.mtu: 1450
     ipam:
       config:
-        - subnet: 172.18.0.0/16
-          gateway: 172.18.0.1
+        - subnet: 172.19.0.0/16
+          gateway: 172.19.0.1
 
 volumes:
   redis-node-0-data:

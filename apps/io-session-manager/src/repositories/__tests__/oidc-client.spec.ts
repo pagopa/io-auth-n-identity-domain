@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   discoveryByEnv,
+  exchangeAuthorizationCode,
   getOidcConfiguration,
   sanitizingFetch,
 } from "../oidc-client";
@@ -127,5 +128,48 @@ describe("getOidcConfiguration", async () => {
         Promise.resolve(aConfiguration),
       ),
     );
+  });
+});
+
+describe("exchangeAuthorizationCode", async () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+  const client = await import("openid-client");
+
+  const aCurrentUrl = new URL(
+    "https://example.com/api/auth/v2/callback?code=a-code&state=a-state",
+  );
+  const aChecks: client.AuthorizationCodeGrantChecks = {
+    expectedNonce: "a-nonce",
+    expectedState: "a-state",
+    idTokenExpected: true,
+  };
+
+  it("should delegate to openid-client's authorizationCodeGrant with the given configuration, url and checks", async () => {
+    const aTokenResponse = {
+      access_token: "an-access-token",
+      id_token: "an-id-token",
+    } as client.TokenEndpointResponse & client.TokenEndpointResponseHelpers;
+    vi.mocked(client.authorizationCodeGrant).mockResolvedValueOnce(
+      aTokenResponse,
+    );
+
+    await exchangeAuthorizationCode(aConfiguration, aCurrentUrl, aChecks);
+
+    expect(client.authorizationCodeGrant).toHaveBeenCalledExactlyOnceWith(
+      aConfiguration,
+      aCurrentUrl,
+      aChecks,
+    );
+  });
+
+  it("should propagate a rejection from authorizationCodeGrant", async () => {
+    const anError = new Error("code exchange failed");
+    vi.mocked(client.authorizationCodeGrant).mockRejectedValueOnce(anError);
+
+    await expect(
+      exchangeAuthorizationCode(aConfiguration, aCurrentUrl, aChecks),
+    ).rejects.toEqual(anError);
   });
 });

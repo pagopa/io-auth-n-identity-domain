@@ -65,9 +65,11 @@ export const withOptionalUserFromRequest = async <T>(
 /**
  * Validates a SPID User extracted from a SAML response.
  */
-export const validateSpidUser = (
+export type ValidateSpidUser = (
   rawValue: unknown,
-): E.Either<string, SpidUser> => {
+) => E.Either<string, SpidUser>;
+
+export const validateSpidUser: ValidateSpidUser = (rawValue) => {
   const validated = SpidObject.decode(rawValue);
   if (E.isLeft(validated)) {
     return E.left(`validateSpidUser: ${readableReport(validated.left)}`);

@@ -31,18 +31,23 @@ import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redi
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
 import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
+import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
-import { makeGetUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
-import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-fims.use-case.js";
+import { getUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAusiliarDataSchema } from "./domain/value-objects/login.vo.js";
+import {
+  AuthenticationMiddlewareFactory,
+  BearerTokenParsingStrategyFactory,
+  TokenIntrospectionStrategyFactory,
+} from "./middlewares/authentication/index.js";
 
 class AzureCredential {
   private static instance: DefaultAzureCredential | undefined;
@@ -172,6 +177,10 @@ export const createApp = async (
     apiKey: config.IO_PROFILE_API_KEY,
   });
 
+  const platformInternalAdapter = createPlatformInternalAdapter({
+    baseUrl: `${config.PLATFORM_PROXY_API_URL}${config.PLATFORM_PROXY_API_BASE_PATH}`,
+  });
+
   const oidcConfigAdapter = new InMemoryOidcConfigAdapter({
     ONEID_PROD_CLIENT_ID: config.ONEID_PROD_CLIENT_ID,
     ONEID_PROD_CLIENT_SECRET: config.ONEID_PROD_CLIENT_SECRET,
@@ -214,6 +223,7 @@ export const createApp = async (
   const activateUserSessionUseCase = makeActivateUserSessionUseCase(
     sessionCosmosAdapter,
     profileAdapter,
+    platformInternalAdapter,
   );
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
@@ -222,20 +232,24 @@ export const createApp = async (
     activateUserSessionUseCase,
   });
 
-  const getUserForBpdUseCase = makeGetUserForBpdUseCase({
-    sessionPort: sessionCosmosAdapter,
-  });
-
-  const getUserForFimsUseCase = makeGetUserForFimsUseCase({
-    sessionPort: sessionCosmosAdapter,
-    profilePort: profileAdapter,
-  });
-
   const getSessionUseCase = makeGetSessionUseCase({
     sessionPort: sessionCosmosAdapter,
     lollipopActivationPort: lollipopActivationCosmosAdapter,
     profilePort: profileAdapter,
   });
+
+  // --------------------------------------------------
+  // Middlewares definition
+  // --------------------------------------------------
+
+  const authenticationMiddlewareFactory = new AuthenticationMiddlewareFactory(
+    new BearerTokenParsingStrategyFactory(),
+    new TokenIntrospectionStrategyFactory(sessionCosmosAdapter),
+  );
+  const authenticateSessionMiddleware =
+    authenticationMiddlewareFactory.create("session");
+  const authenticateBpdMiddleware =
+    authenticationMiddlewareFactory.create("bpd");
 
   // --------------------------------------------------
   // Endpoints mounting
@@ -290,7 +304,8 @@ export const createApp = async (
 
   mountSsoBpdUserHandler(server, {
     allowedIpSourceRange: config.ALLOW_BPD_IP_SOURCE_RANGE,
-    getUserForBpdUseCase,
+    middlewares: [authenticateBpdMiddleware] as const,
+    useCase: getUserForBpdUseCase,
   });
   
   mountSsoFimsUserHandler(server, {
@@ -298,10 +313,13 @@ export const createApp = async (
     getUserForFimsUseCase,
   });
 
-  mountGetSessionHandler({ useCase: getSessionUseCase })(server);
+  mountGetSessionHandler({
+    middlewares: [authenticateSessionMiddleware] as const,
+    useCase: getSessionUseCase,
+  })(server);
 
   // --------------------------------------------------
-  // Middlewares mounting
+  // Hooks mounting
   // --------------------------------------------------
 
   // Expose the resolved client IP to hexagonal middlewares via `x-client-ip`.

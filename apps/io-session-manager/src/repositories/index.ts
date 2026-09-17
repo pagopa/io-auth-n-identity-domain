@@ -9,6 +9,7 @@ import * as LollipopRevokeRepo from "./lollipop-revoke-queue";
 import * as NotificationsRepo from "./notifications";
 import * as AuthSessionEventsRepo from "./auth-session-events";
 import * as PlatformInternalClientRepo from "./platform-internal-client";
+import * as OneIdRepo from "./one-id-api";
 
 export {
   FnAppRepo,
@@ -22,4 +23,5 @@ export {
   SpidLogsRepo,
   AuthSessionEventsRepo,
   PlatformInternalClientRepo,
+  OneIdRepo,
 };
