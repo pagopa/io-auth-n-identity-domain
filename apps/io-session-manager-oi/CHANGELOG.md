@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.21.1
+
+### Patch Changes
+
+- 9b64e4d: move bearer token check and introspection into a specific middleware
+
 ## 0.21.0
 
 ### Minor Changes
