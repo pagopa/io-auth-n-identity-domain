@@ -4,7 +4,7 @@ info:
   title: FIMS API for user authentication.
   version: 0.21.1
 servers:
-  - url: https://api-app.io.pagopa.it/sso/fims/v2
+  - url: https://api-app.io.pagopa.it/api/sso/fims/v2
 tags:
   - name: sso
     description: FIMS Single Sign-On endpoints.
