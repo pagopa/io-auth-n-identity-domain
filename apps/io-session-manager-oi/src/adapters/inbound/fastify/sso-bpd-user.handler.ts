@@ -5,6 +5,7 @@ import { FastifyInstance } from "fastify";
 
 import { GetUserForBpdUseCase } from "../../../application/use-cases/get-user-for-bpd.use-case.js";
 import { AuthenticationMiddleware } from "../../../middlewares/authentication/index.js";
+import { SSO_BPD_BASE_PATH } from "../base-path.js";
 import { SsoBpdUserOutputDTO } from "../dtos/sso-bpd-user.dto.js";
 
 import { createCheckIpHook } from "./hooks/check-ip.hook.js";
@@ -12,7 +13,7 @@ import { createCheckIpHook } from "./hooks/check-ip.hook.js";
 const ssoBpdUserContract = defineRoute({
   method: "get",
   operationId: "getUserForBpd",
-  path: `/sso/bpd/v2/user`,
+  path: `${SSO_BPD_BASE_PATH}/user`,
   request: {},
   summary: "Return the BPD user for a session token",
   description:
