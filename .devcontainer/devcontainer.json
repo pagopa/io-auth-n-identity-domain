@@ -19,7 +19,11 @@
       "pnpmVersion": "none",
       "nvmInstallPath": "/opt/nvm"
     },
-    "ghcr.io/devcontainers/features/copilot-cli:1": {}
+    "ghcr.io/devcontainers/features/copilot-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {
+      "moby": false,
+      "installDockerBuildx": true
+    }
   },
   "postStartCommand": {
     "set-workspace-as-safe-dir": "git config --global --add safe.directory ${containerWorkspaceFolder}",

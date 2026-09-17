@@ -3,11 +3,9 @@ import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { AnyRouteContract } from "@pagopa/hexagonal-openapi";
 import { FastifyInstance } from "fastify";
 
-import { makeGetUserForBpdUseCase } from "../../../application/use-cases/get-user-for-bpd.use-case.js";
-import {
-  SsoBpdUserInputDTO,
-  SsoBpdUserOutputDTO,
-} from "../dtos/sso-bpd-user.dto.js";
+import { GetUserForBpdUseCase } from "../../../application/use-cases/get-user-for-bpd.use-case.js";
+import { AuthenticationMiddleware } from "../../../middlewares/authentication/index.js";
+import { SsoBpdUserOutputDTO } from "../dtos/sso-bpd-user.dto.js";
 
 import { createCheckIpHook } from "./hooks/check-ip.hook.js";
 
@@ -15,7 +13,7 @@ const ssoBpdUserContract = defineRoute({
   method: "get",
   operationId: "getUserForBpd",
   path: `/sso/bpd/v2/user`,
-  request: SsoBpdUserInputDTO,
+  request: {},
   summary: "Return the BPD user for a session token",
   description:
     "Returns the BPD user identified by the token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`.",
@@ -39,12 +37,13 @@ const ssoBpdUserContract = defineRoute({
       schema: ProblemJson,
     },
   },
-  // TODO: add security schemes for the OpenAPI documentation.
+  security: [{ bearerAuth: [] }],
 });
 
 export type SsoBpdUserHandlerDeps = {
   allowedIpSourceRange: ReadonlyArray<string>;
-  getUserForBpdUseCase: ReturnType<typeof makeGetUserForBpdUseCase>;
+  middlewares: readonly [AuthenticationMiddleware<"bpd">];
+  useCase: GetUserForBpdUseCase;
 };
 
 export const mountSsoBpdUserHandler = (
@@ -56,10 +55,11 @@ export const mountSsoBpdUserHandler = (
     scope.addHook("preHandler", createCheckIpHook(deps.allowedIpSourceRange));
     mountFastifyRoute(scope, {
       contract: ssoBpdUserContract,
-      inputMapper: (req) => ({
-        ...req.headers.authorization,
+      middlewares: deps.middlewares,
+      inputMapper: (_, context) => ({
+        session: context.session,
       }),
-      useCase: deps.getUserForBpdUseCase,
+      useCase: deps.useCase,
     });
     done();
   });

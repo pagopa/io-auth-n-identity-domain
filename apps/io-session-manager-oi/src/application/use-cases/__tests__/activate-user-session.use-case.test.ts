@@ -5,15 +5,15 @@ import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  mockCreate as mockProfileCreate,
   mockGetProfile,
   mockNotifyLogin,
+  mockCreate as mockProfileCreate,
   ProfilePortMock,
   resetProfilePortMock,
 } from "../../../__mocks__/ports/profile-port.mock.js";
 import {
-  mockCreate as mockSessionCreate,
   mockInvalidatePreviousSession,
+  mockCreate as mockSessionCreate,
   resetSessionPortMock,
   SessionPortMock,
 } from "../../../__mocks__/ports/session-port.mock.js";
@@ -24,19 +24,19 @@ import {
 } from "../../../__mocks__/ports/platform-internal-port.mock.js";
 import {
   aClientSessionToken,
-  anEmailAddress,
   aFamilyName,
   aFiscalCode,
   aGenericError,
   aHashedSessionTokenWithSessionId,
   aName,
+  anEmailAddress,
   aNewSessionTokenInput,
   aNewSessionTokenInputWithoutSpidEmail,
-  aNotFoundError,
   anIdentityProvider,
   anIpAddress,
+  aNotFoundError,
   aSessionId,
-  aSessionWithPlainTokens,
+  aSessionWithPlainSSOTokens,
   aUserProfileWithEmail,
   aUserProfileWithoutEmail,
 } from "../../../__mocks__/session.mocks.js";
@@ -77,7 +77,7 @@ beforeEach(() => {
   resetProfilePortMock();
   resetPlatformInternalPortMock();
   vi.mocked(newSessionId).mockResolvedValue(aSessionId);
-  vi.mocked(newPlainSession).mockResolvedValue(aSessionWithPlainTokens);
+  vi.mocked(newPlainSession).mockResolvedValue(aSessionWithPlainSSOTokens);
 });
 
 // -----------------------------------------------------

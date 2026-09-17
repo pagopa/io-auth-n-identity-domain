@@ -28,6 +28,7 @@
     "docker:generate:env:servicebus": "dotenv -e docker/.env.common envsub docker/servicebus/env-dev docker/generated/.env.servicebus",
     "docker:build": "docker compose --env-file docker/.env.common build",
     "docker:start": "docker compose --env-file docker/.env.common up -d",
+    "docker:stop": "docker compose --env-file docker/.env.common stop",
     "docker:start:build": "docker compose --env-file docker/.env.common up --build -d",
     "test:integrations": "pnpm run test:integrations:io-lollipop && pnpm run test:integrations:io-sm-oi",
     "test:integrations:io-lollipop": "docker compose --env-file docker/.env.common exec io-lollipop /bin/bash -c 'pnpm vitest run src/__integrations__/__tests__ -c src/__integrations__/vite.config.mts'",
