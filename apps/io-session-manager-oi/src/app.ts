@@ -25,7 +25,7 @@ import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-i
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
 import { mountSsoFimsUserHandler } from "./adapters/inbound/fastify/sso-fims-user.handler.js";
-import { mountSsoWalletUserHandler } from "./adapters/inbound/fastify/sso-wallet-user.handler.js";
+import { mountSsoPagoPaUserHandler } from "./adapters/inbound/fastify/sso-pagopa-user.handler.js";
 import { AusiliarDataRedisAdapter } from "./adapters/outbound/ausiliar-data.adapter.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
@@ -40,7 +40,7 @@ import { makeActivateUserSessionUseCase } from "./application/use-cases/activate
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
 import { getUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
 import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-fims.use-case.js";
-import { makeGetUserForWalletUseCase } from "./application/use-cases/get-user-for-wallet.use-case.js";
+import { makeGetUserForPagoPaUseCase } from "./application/use-cases/get-user-for-pagopa.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
@@ -323,10 +323,10 @@ export const createApp = async (
     }),
   });
 
-  mountSsoWalletUserHandler(server, {
-    allowedIpSourceRange: config.ALLOW_WALLET_IP_SOURCE_RANGE,
+  mountSsoPagoPaUserHandler(server, {
+    allowedIpSourceRange: config.ALLOW_PAGOPA_IP_SOURCE_RANGE,
     middlewares: [authenticateWalletMiddleware] as const,
-    useCase: makeGetUserForWalletUseCase({
+    useCase: makeGetUserForPagoPaUseCase({
       profilePort: profileAdapter,
     }),
   });

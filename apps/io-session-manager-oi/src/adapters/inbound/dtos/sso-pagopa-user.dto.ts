@@ -8,15 +8,15 @@ import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
-export const SsoWalletUserOutputDTO = z
+export const SsoPagoPaUserOutputDTO = z
   .object({
     name: NonEmptyStringSchema,
     family_name: NonEmptyStringSchema,
     fiscal_code: FiscalCodeSchema,
-    spid_email: EmailAddressSchema,
+    spid_email: EmailAddressSchema.optional(),
     notice_email: EmailAddressSchema,
   })
   .meta({
-    id: "WalletUser",
-    description: "The user data returned to the Wallet backend.",
+    id: "PagoPaUser",
+    description: "The user data returned to the PagoPA backend.",
   });
