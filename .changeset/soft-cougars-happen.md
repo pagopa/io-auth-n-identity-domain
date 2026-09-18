@@ -2,4 +2,4 @@
 "io-session-manager-oi": minor
 ---
 
-Add `GET /sso/wallet/v2/user` endpoint
+Add `GET /sso/pagopa/v2/user` endpoint
