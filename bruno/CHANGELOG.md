@@ -1,5 +1,11 @@
 # io-auth-n-identity-bruno-collections
 
+## 0.4.2
+
+### Patch Changes
+
+- 5d62137: Fix BPD SSO API Base Path and centralize its management into dedicated base path file
+
 ## 0.4.1
 
 ### Patch Changes

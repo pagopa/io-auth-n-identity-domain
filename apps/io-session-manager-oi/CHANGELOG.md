@@ -1,5 +1,17 @@
 # io-session-manager-oi
 
+## 0.22.0
+
+### Minor Changes
+
+- f58b71c: Add FIMS SSO `/user` endpoint
+
+### Patch Changes
+
+- 5d62137: Fix BPD SSO API Base Path and centralize its management into dedicated base path file
+- Updated dependencies [f58b71c]
+  - @pagopa/io-auth-n-identity-session@0.6.0
+
 ## 0.21.1
 
 ### Patch Changes
