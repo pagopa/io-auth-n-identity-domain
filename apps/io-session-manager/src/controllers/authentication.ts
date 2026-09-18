@@ -14,7 +14,6 @@ import {
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
-import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import {
   errorsToReadableMessages,
@@ -171,6 +170,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
     isUserElegibleForValidationCookie: (fiscalCode: FiscalCode) => boolean;
     ageLimit: number;
     validateSpidUser: ValidateSpidUser;
+    getIdentityProvider: (issuer: string) => Promise<string>;
   };
 
 export const acs: (
@@ -511,26 +511,37 @@ export const acs: (
       )().catch(() => void 0 as never);
     }
 
-    const errorOrSessionInfoKeys = await RedisSessionStorageService
-      .retrieveSessionInfoKeys(deps.redisClientSelector)(spidUser.fiscalNumber)();
+    const errorOrSessionInfoKeys =
+      await RedisSessionStorageService.retrieveSessionInfoKeys(
+        deps.redisClientSelector,
+      )(spidUser.fiscalNumber)();
 
     if (E.isLeft(errorOrSessionInfoKeys)) {
-        log.error(
-          "acs: error reading session info keys from Redis [%s]",
-          errorOrSessionInfoKeys.left,
-        );
-        return validationCookieClearanceErrorInternal(
-          "Error while reading session info keys from Redis",
-        );
+      log.error(
+        "acs: error reading session info keys from Redis [%s]",
+        errorOrSessionInfoKeys.left,
+      );
+      return validationCookieClearanceErrorInternal(
+        "Error while reading session info keys from Redis",
+      );
     }
 
-    const sessionInfoKeys = RedisSessionStorageService
-      .removePrefixFromSessionInfoKeys(errorOrSessionInfoKeys.right) as ReadonlyArray<SessionToken>;
-    const errorOrCacheDelResult = await deps.platformInternalAPIService.cacheDelSessionTokens(sessionInfoKeys)(deps)();
+    const sessionInfoKeys =
+      RedisSessionStorageService.removePrefixFromSessionInfoKeys(
+        errorOrSessionInfoKeys.right,
+      ) as ReadonlyArray<SessionToken>;
+    const errorOrCacheDelResult =
+      await deps.platformInternalAPIService.cacheDelSessionTokens(
+        sessionInfoKeys,
+      )(deps)();
 
     if (E.isLeft(errorOrCacheDelResult)) {
-      log.error(`acs: error clearing cached session tokens [${errorOrCacheDelResult.left.message}]`);
-      return validationCookieClearanceErrorInternal("Error while clearing cached session tokens");
+      log.error(
+        `acs: error clearing cached session tokens [${errorOrCacheDelResult.left.message}]`,
+      );
+      return validationCookieClearanceErrorInternal(
+        "Error while clearing cached session tokens",
+      );
     }
 
     const errorOrActivatedPubKey = await pipe(
@@ -851,12 +862,7 @@ export const acs: (
           email: userEmail,
           family_name: user.family_name,
           fiscal_code: user.fiscal_code,
-          identity_provider: pipe(
-            Issuer.decode(spidUser.issuer),
-            E.map((issuer) => IDP_NAMES[issuer]),
-            E.chainW(E.fromNullable(null)),
-            E.getOrElse(() => "Sconosciuto"),
-          ),
+          identity_provider: await deps.getIdentityProvider(spidUser.issuer),
           ip_address: requestIp,
           is_email_validated: userHasEmailValidated,
           name: user.name,
