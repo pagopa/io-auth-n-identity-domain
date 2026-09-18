@@ -33,7 +33,7 @@ export type AuthToken = {
     schema: typeof PlainWalletSSOTokenSchema;
     type: PlainWalletSSOToken;
     hashedType: HashedWalletSSOToken;
-  }
+  };
 };
 
 export type TokenType = keyof AuthToken;
