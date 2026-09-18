@@ -1,0 +1,20 @@
+meta {
+  name: GetUserForFims
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/sso/fims/v2/user
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{fimsClientSessionToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

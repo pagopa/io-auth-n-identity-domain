@@ -78,6 +78,7 @@ export const aBaseSession: BaseSession = {
   spidLevel: aSpidLevel,
   spidEmail: anEmailAddress,
   expirationDate: new Date("2100-01-01"),
+  createdAt: new Date("2099-12-01"),
 };
 
 export const aSessionWithPlainToken: SessionWithPlainToken = {
@@ -111,6 +112,12 @@ export const aUserProfileWithEmail: UserProfile = {
 
 export const aUserProfileWithoutEmail: UserProfile = {
   fiscalCode: aFiscalCode,
+  isEmailValidated: false,
+};
+
+export const aUserProfileWithEmailNotValidated: UserProfile = {
+  fiscalCode: aFiscalCode,
+  email: anEmailAddress,
   isEmailValidated: false,
 };
 

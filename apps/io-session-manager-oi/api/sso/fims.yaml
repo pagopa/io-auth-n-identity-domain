@@ -1,0 +1,107 @@
+openapi: 3.1.0
+info:
+  description: FIMS SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.
+  title: FIMS API for user authentication.
+  version: 0.21.1
+servers:
+  - url: https://api-app.io.pagopa.it/api/sso/fims/v2
+tags:
+  - name: sso
+    description: FIMS Single Sign-On endpoints.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+      description: Enter the opaque token provided by the authentication authority
+  schemas:
+    FIMSUser:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        family_name:
+          type: string
+          minLength: 1
+        fiscal_code:
+          type: string
+          pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/i
+        auth_time:
+          type: integer
+          exclusiveMinimum: 0
+        acr:
+          type: string
+          enum:
+            - https://www.spid.gov.it/SpidL1
+            - https://www.spid.gov.it/SpidL2
+            - https://www.spid.gov.it/SpidL3
+        email:
+          type: string
+          pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+        date_of_birth:
+          type: string
+          format: date
+      required:
+        - name
+        - family_name
+        - fiscal_code
+        - auth_time
+        - acr
+        - date_of_birth
+      description: The user data returned to the FIMS backend.
+    ProblemDetails:
+      type: object
+      properties:
+        detail:
+          type: string
+        status:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          format: uri
+      required:
+        - detail
+        - status
+        - title
+        - type
+      description: RFC 7807 Problem Details for HTTP APIs. See https://www.rfc-editor.org/rfc/rfc7807.
+  parameters: {}
+paths:
+  /user:
+    get:
+      description: "Returns the FIMS user identified by the token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`."
+      operationId: getUserForFims
+      security:
+        - bearerAuth: []
+      summary: Return the FIMS user for a session token
+      tags:
+        - sso
+      responses:
+        "200":
+          description: The FIMS user for the provided session token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FIMSUser"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Missing/invalid `Authorization` header, unknown session, or source IP blocked by the allowlist.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"

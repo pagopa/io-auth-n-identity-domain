@@ -5,6 +5,7 @@ import {
   BpdTokenIntrospectionStrategy,
   SessionTokenIntrospectionStrategy,
   type TokenIntrospectionStrategy,
+  FimsTokenIntrospectionStrategy,
 } from "../strategies/token-introspection.strategy.js";
 
 /**
@@ -19,6 +20,8 @@ export class TokenIntrospectionStrategyFactory {
         return new SessionTokenIntrospectionStrategy(this.sessionPort);
       case "bpd":
         return new BpdTokenIntrospectionStrategy(this.sessionPort);
+      case "fims":
+        return new FimsTokenIntrospectionStrategy(this.sessionPort);
       default:
         const _exhaustiveCheck: never = tokenType;
         throw new Error(`Unsupported token type: ${tokenType}`);

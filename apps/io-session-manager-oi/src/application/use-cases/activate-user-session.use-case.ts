@@ -30,7 +30,7 @@ import { PlatformInternalPort } from "../../domain/ports/outbound/platform-inter
 
 export type NewSessionToken = Omit<
   BaseSession,
-  "sessionId" | "expirationDate"
+  "sessionId" | "expirationDate" | "createdAt"
 > & {
   ipAddress: IPString;
   loginType: LoginType;

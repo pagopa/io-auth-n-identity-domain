@@ -8,6 +8,7 @@ import {
   type SessionId,
   type SessionPort,
   toHashedBpdSSOToken,
+  toHashedFimsSSOToken,
   toHashedSessionToken,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, type Result } from "neverthrow";
@@ -128,5 +129,30 @@ export class BpdTokenIntrospectionStrategy extends TokenIntrospectionBaseStrateg
     sessionToken: AuthToken["bpd"]["type"],
   ): AuthToken["bpd"]["hashedType"] {
     return toHashedBpdSSOToken(sessionToken);
+  }
+}
+
+/**
+ * Token introspection strategy for FIMS tokens.
+ */
+export class FimsTokenIntrospectionStrategy extends TokenIntrospectionBaseStrategy<"fims"> {
+  constructor(private readonly sessionPort: SessionPort) {
+    super();
+  }
+
+  protected override findSessionByToken(
+    sessionId: SessionId,
+    sessionToken: AuthToken["fims"]["hashedType"],
+  ): Promise<Result<BaseSession, NotFoundError | GenericError>> {
+    return this.sessionPort.findByFimsToken({
+      sessionId,
+      hashedFimsSSOToken: sessionToken,
+    });
+  }
+
+  protected override toHashedToken(
+    sessionToken: AuthToken["fims"]["type"],
+  ): AuthToken["fims"]["hashedType"] {
+    return toHashedFimsSSOToken(sessionToken);
   }
 }

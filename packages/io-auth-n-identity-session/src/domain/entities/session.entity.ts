@@ -48,6 +48,7 @@ export const BaseSessionSchema = z.object({
   spidLevel: SpidLevelSchema,
   spidEmail: EmailAddressSchema.optional(),
   expirationDate: z.date(),
+  createdAt: z.date(),
 });
 
 export type BaseSession = z.infer<typeof BaseSessionSchema>;
@@ -98,18 +99,31 @@ export const getSessionTtlMsByLoginType = (loginType: LoginType) => {
   return ttlByLoginType[loginType];
 };
 
+/**
+ * Returns the expiration date of a session based on the login type and the starting date.
+ *
+ * @param loginType The type of login used for the session.
+ * @param from The starting date from which to calculate the expiration date. Defaults to the current date and time.
+ * @returns The calculated expiration date of the session.
+ */
+export const getSessionExpiration = (
+  loginType: LoginType,
+  from: Date = new Date(),
+) => new Date(from.getTime() + getSessionTtlMsByLoginType(loginType));
+
+
 export const newPlainSession = async ({
   loginType,
   ...baseData
-}: Omit<z.infer<typeof BaseSessionSchema>, "expirationDate"> & {
+}: Omit<z.infer<typeof BaseSessionSchema>, "expirationDate" | "createdAt"> & {
   loginType: LoginType;
 }): Promise<SessionWithPlainSSOTokens> => {
   const plainSessionToken = await newPlainSessionToken();
+  const now = new Date();
   return {
     ...baseData,
-    expirationDate: new Date(
-      Date.now() + getSessionTtlMsByLoginType(loginType),
-    ),
+    expirationDate: getSessionExpiration(loginType, now),
+    createdAt: now,
     plainSessionToken: plainSessionToken,
     ssoTokens: {
       walletPlainToken: toPlainWalletSSOToken(plainSessionToken),

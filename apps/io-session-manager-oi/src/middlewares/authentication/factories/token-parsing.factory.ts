@@ -2,6 +2,7 @@ import { type TokenType } from "../auth-token.js";
 import {
   BpdBearerTokenParsingStrategy,
   SessionBearerTokenParsingStrategy,
+  FimsBearerTokenParsingStrategy,
 } from "../strategies/token-parsing.strategy.js";
 
 /**
@@ -19,6 +20,8 @@ export class BearerTokenParsingStrategyFactory {
         return new SessionBearerTokenParsingStrategy();
       case "bpd":
         return new BpdBearerTokenParsingStrategy();
+      case "fims":
+        return new FimsBearerTokenParsingStrategy();
       default:
         const _exhaustiveCheck: never = tokenType;
         console.error(`Unsupported token type: ${tokenType}`);
