@@ -19,7 +19,7 @@ const SAML_NAMESPACE = {
   PROTOCOL: "urn:oasis:names:tc:SAML:2.0:protocol",
 };
 
-export const getSpidIdpFriendlyName = (issuer: string): string =>
+export const getSpidIdpFriendlyName = async (issuer: string): Promise<string> =>
   pipe(
     Issuer.decode(issuer),
     E.map((decodedIssuer) => IDP_NAMES[decodedIssuer]),

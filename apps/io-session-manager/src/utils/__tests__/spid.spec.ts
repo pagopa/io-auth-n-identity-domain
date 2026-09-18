@@ -74,23 +74,23 @@ describe("SPID logs", () => {
 
   test("should get SPID user's email from response", () => {
     const spidEmail = getSpidEmailFromAssertion(aDOMSamlResponse);
-   
+    expect(spidEmail).toEqual(O.some("spid.tech@agid.gov.it"));
+  });
+});
 
 describe("getSpidIdpFriendlyName", () => {
   const aKnownIssuer = Object.keys(IDP_NAMES)[0] as Issuer;
 
-  test("should return the mapped IDP name for a known issuer", () => {
-    expect(getSpidIdpFriendlyName(aKnownIssuer)).toEqual(
+  test("should return the mapped IDP name for a known issuer", async () => {
+    expect(await getSpidIdpFriendlyName(aKnownIssuer)).toEqual(
       IDP_NAMES[aKnownIssuer],
     );
   });
 
-  test("should return Sconosciuto for an unknown issuer", () => {
-    expect(getSpidIdpFriendlyName("https://unknown.idp.example")).toEqual(
+  test("should return Sconosciuto for an unknown issuer", async () => {
+    expect(await getSpidIdpFriendlyName("https://unknown.idp.example")).toEqual(
       "Sconosciuto",
     );
-  });
-}); expect(spidEmail).toEqual(O.some("spid.tech@agid.gov.it"));
   });
 });
 

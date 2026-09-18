@@ -820,6 +820,7 @@ describe("OidcService#OIDCCallback", () => {
       ...callbackDeps,
       isUserElegibleForValidationCookie: expect.any(Function),
       validateSpidUser: expect.any(Function),
+      getIdentityProvider: expect.any(Function),
     });
     const injectedValidateSpidUser =
       mockedAcs.mock.calls[0][0].validateSpidUser;

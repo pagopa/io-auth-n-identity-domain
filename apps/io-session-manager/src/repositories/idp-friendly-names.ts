@@ -6,7 +6,6 @@ import {
 import { agent } from "@pagopa/ts-commons";
 import { Millisecond } from "@pagopa/ts-commons/lib/units";
 import * as E from "fp-ts/Either";
-import * as T from "fp-ts/Task";
 import {
   IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS,
   IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS,
@@ -46,7 +45,7 @@ const defaultIdpFriendlyNamesDeps: IdpFriendlyNamesDeps = {
 export type GetIdpFriendlyName = (
   env: OidcConfigurationEnv,
   identifier: string,
-) => T.Task<string>;
+) => Promise<string>;
 
 const makeResolveList = (deps: IdpFriendlyNamesDeps) => {
   const inFlightByEnv = new Map<
@@ -107,7 +106,7 @@ export const makeGetIdpFriendlyName = (
 ): GetIdpFriendlyName => {
   const resolveList = makeResolveList(deps);
 
-  return (env, identifier) => async () => {
+  return async (env, identifier) => {
     const map = await resolveList(env);
     return map?.[identifier] ?? "Sconosciuto";
   };
