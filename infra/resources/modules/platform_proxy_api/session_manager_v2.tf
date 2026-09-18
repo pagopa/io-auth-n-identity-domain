@@ -97,7 +97,7 @@ resource "azurerm_api_management_api" "fims_api_session_manager_v2" {
 
   import {
     content_format = "openapi-link"
-    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/<INSERT_COMMIT_HASH_AFTER_THE_MERGE_OF_PR_840>/apps/io-session-manager-oi/api/sso/fims.yaml"
+    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/5ec54767cbea92a8099977e86c1fc1434bde70eb/apps/io-session-manager-oi/api/sso/fims.yaml"
 
   }
 }
