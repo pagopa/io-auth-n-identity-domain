@@ -30,7 +30,7 @@ components:
           pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/i
         auth_time:
           type: integer
-          exclusiveMinimum: 0
+          minimum: 1
         acr:
           type: string
           enum:

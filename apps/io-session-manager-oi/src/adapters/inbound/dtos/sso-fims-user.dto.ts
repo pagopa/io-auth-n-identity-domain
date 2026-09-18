@@ -9,8 +9,6 @@ import {
 } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
 
-import { PositiveIntegerSchema } from "../../../domain/value-objects/positive-integer.vo.js";
-
 extendZodWithOpenApi(z);
 
 export const SsoFimsUserOutputDTO = z
@@ -18,7 +16,11 @@ export const SsoFimsUserOutputDTO = z
     name: NonEmptyStringSchema,
     family_name: NonEmptyStringSchema,
     fiscal_code: FiscalCodeSchema,
-    auth_time: PositiveIntegerSchema,
+    // `PositiveIntegerSchema` from `@pagopa/hexagonal-core` generates an OpenAPI spec which is not compatible with APIM.
+    // It generates a `type: integer` with a `exclusiveMinimum` in the OpenAPI spec, which APIM does not accept.
+    // Using z.int().min(1) instead of PositiveIntegerSchema to ensure compatibility with APIM.
+    // This generates a `type: integer` with a `minimum: 1` in the OpenAPI spec instead.
+    auth_time: z.int().min(1),
     acr: SpidLevelSchema,
     email: EmailAddressSchema.optional(),
     date_of_birth: z.iso.date(),

@@ -13,6 +13,7 @@ import { err, ok } from "neverthrow";
 import { z } from "zod";
 
 import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
+import { PositiveInteger } from "../../domain/value-objects/positive-integer.vo.js";
 
 const _IsoDateSchema = z.iso.date();
 type IsoDate = z.infer<typeof _IsoDateSchema>;
@@ -25,7 +26,7 @@ export type GetUserForFimsOutput = {
   name: NonEmptyString;
   family_name: NonEmptyString;
   fiscal_code: FiscalCode;
-  auth_time: number;
+  auth_time: PositiveInteger;
   acr: SpidLevel;
   email?: EmailAddress;
   date_of_birth: IsoDate;
@@ -64,7 +65,7 @@ export const makeGetUserForFimsUseCase =
       name: session.name,
       family_name: session.familyName,
       fiscal_code: session.fiscalCode,
-      auth_time: session.createdAt.getTime(),
+      auth_time: (session.createdAt.getTime()) as PositiveInteger,
       acr: session.spidLevel,
       // If the email is not validated yet, the value returned will be undefined
       email: profile.isEmailValidated ? profile.email : undefined,
