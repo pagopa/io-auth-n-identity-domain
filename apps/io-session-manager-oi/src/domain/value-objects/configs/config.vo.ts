@@ -34,6 +34,7 @@ import {
   SessionCosmosDevelopmentConfigSchema,
   SessionCosmosProductionConfigSchema,
 } from "./session.vo.js";
+import { WalletConfigSchema } from "./wallet.vo.js";
 
 /**
  * Fields shared by every runtime environment.
@@ -50,6 +51,7 @@ const CommonConfigShape = {
   ...LoginConfigSchema.shape,
   ...BPDConfigSchema.shape,
   ...FimsConfigSchema.shape,
+  ...WalletConfigSchema.shape,
 };
 
 /**
