@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.6.0
+
+### Minor Changes
+
+- f58b71c: Add `findByFimsToken` and include `createdAt` in `BaseSessionSchema`
+
 ## 0.5.0
 
 ### Minor Changes
