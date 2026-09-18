@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.22.1
+
+### Patch Changes
+
+- b2bffa7: Fix FIMS OpenAPI spec for APIM compatibility
+
 ## 0.22.0
 
 ### Minor Changes
