@@ -21,6 +21,6 @@
   },
   "devDependencies": {
     "@mattrglobal/http-signatures": "catalog:",
-    "@usebruno/cli": "^2.9.0"
+    "@usebruno/cli": "^3.0.0"
   }
 }
