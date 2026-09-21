@@ -400,7 +400,8 @@ export const buildSpidUserPayload = (
   getAcsOriginalRequest: () => req,
   getAssertionXml: () => assertionXml,
   getSamlResponseXml: () => assertionXml,
-  issuer: claims.iss,
+  // `issuer` is the SPID identity provider identifier
+  issuer: claims.idpEntityId,
   name: claims.name,
 });
 

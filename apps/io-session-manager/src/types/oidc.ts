@@ -108,6 +108,8 @@ export const OidcUserClaims = t.intersection([
     acr: SpidLevel,
     // `iss` is the OneID issuer, used as the identity provider reference.
     iss: NonEmptyString,
+    // `idpEntityId` is the unique identifier of the identity provider.
+    idpEntityId: NonEmptyString,
   }),
   t.partial({
     email: EmailString,

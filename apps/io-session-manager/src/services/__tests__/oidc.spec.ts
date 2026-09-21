@@ -152,6 +152,7 @@ const anIdTokenPayload = {
   dateOfBirth: "1970-01-01",
   acr: SpidLevelEnum["https://www.spid.gov.it/SpidL2"],
   iss: "https://oneid.example.it",
+  idpEntityId: "https://idp.example.it",
 };
 // NOTE: the id token signature has already been verified upstream by
 // `exchangeAuthorizationCode` (see NOTE in `exchangeCode`), so a dummy
@@ -835,7 +836,7 @@ describe("OidcService#OIDCCallback", () => {
           familyName: anIdTokenClaims.familyName,
           dateOfBirth: DateFromString.encode(anIdTokenClaims.dateOfBirth),
           email: anIdTokenClaims.email,
-          issuer: anIdTokenClaims.iss,
+          issuer: anIdTokenClaims.idpEntityId,
           getAcsOriginalRequest: expect.any(Function),
           getAssertionXml: expect.any(Function),
           getSamlResponseXml: expect.any(Function),
@@ -850,7 +851,7 @@ describe("OidcService#OIDCCallback", () => {
         familyName: anIdTokenClaims.familyName,
         dateOfBirth: DateFromString.encode(anIdTokenClaims.dateOfBirth),
         email: anIdTokenClaims.email,
-        issuer: anIdTokenClaims.iss,
+        issuer: anIdTokenClaims.idpEntityId,
         getAcsOriginalRequest: expect.any(Function),
         getAssertionXml: expect.any(Function),
         getSamlResponseXml: expect.any(Function),
