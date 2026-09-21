@@ -1,22 +1,33 @@
+import { NonEmptyStringBrand } from "@pagopa/hexagonal-core";
 import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 import {
   ExtendedPlainZendeskSSOTokenSchema,
   PlainBpdSSOTokenSchema,
   PlainFimsSSOTokenSchema,
   PlainWalletSSOTokenSchema,
+  SessionIdSchema,
   SpidLevelSchema,
 } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
+
+console.log("Imported brands from @pagopa/hexagonal-core: ", [
+  NonEmptyStringBrand,
+]);
+
+const withSessionId = (tokenSchema: z.core.$ZodTemplateLiteralPart) =>
+  z.templateLiteral([SessionIdSchema, ".", tokenSchema]).meta({
+    type: "string",
+  });
 
 export const GetSessionOutputDTO = z
   .object({
     spidLevel: SpidLevelSchema.optional(),
     expirationDate: z.date().optional(),
     lollipopAssertionRef: LollipopAssertionRefSchema.optional(),
-    walletToken: PlainWalletSSOTokenSchema.optional(),
-    bpdToken: PlainBpdSSOTokenSchema.optional(),
-    zendeskToken: ExtendedPlainZendeskSSOTokenSchema.optional(),
-    fimsToken: PlainFimsSSOTokenSchema.optional(),
+    walletToken: withSessionId(PlainWalletSSOTokenSchema).optional(),
+    bpdToken: withSessionId(PlainBpdSSOTokenSchema).optional(),
+    zendeskToken: withSessionId(ExtendedPlainZendeskSSOTokenSchema).optional(),
+    fimsToken: withSessionId(PlainFimsSSOTokenSchema).optional(),
   })
   .meta({
     id: "PublicSession",

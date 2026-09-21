@@ -1,4 +1,8 @@
-import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
+import {
+  defineRoute,
+  NonEmptyStringBrand,
+  ProblemJson,
+} from "@pagopa/hexagonal-core";
 import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import { FastifyInstance } from "fastify";
 
@@ -8,6 +12,10 @@ import {
   GetSessionInputDTO,
   GetSessionOutputDTO,
 } from "../dtos/get-session.dto.js";
+
+console.log("Imported brands from @pagopa/hexagonal-core: ", [
+  NonEmptyStringBrand,
+]);
 
 export const getSessionContract = defineRoute({
   operationId: "getSession",
