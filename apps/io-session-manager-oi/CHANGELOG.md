@@ -1,5 +1,16 @@
 # io-session-manager-oi
 
+## 0.23.0
+
+### Minor Changes
+
+- 62672ac: Add `GET /sso/pagopa/v2/user` endpoint
+
+### Patch Changes
+
+- Updated dependencies [62672ac]
+  - @pagopa/io-auth-n-identity-session@0.7.0
+
 ## 0.22.2
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.7.0
+
+### Minor Changes
+
+- 62672ac: Add `findByWalletToken`
+
 ## 0.6.1
 
 ### Patch Changes
