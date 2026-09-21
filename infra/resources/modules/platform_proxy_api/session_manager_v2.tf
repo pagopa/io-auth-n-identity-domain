@@ -136,7 +136,7 @@ resource "azurerm_api_management_api" "pagopa_api_session_manager_v2" {
 
   import {
     content_format = "openapi-link"
-    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/<TODO_AFTER_PR_MERGE>/apps/io-session-manager-oi/api/sso/pagopa.yaml"
+    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/e5596cc6e345bd1eb0387cb9aa2161a6f5dc7a56/apps/io-session-manager-oi/api/sso/pagopa.yaml"
 
   }
 }
