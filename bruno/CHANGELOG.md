@@ -1,5 +1,11 @@
 # io-auth-n-identity-bruno-collections
 
+## 0.4.3
+
+### Patch Changes
+
+- fd524f9: add all supported fields values
+
 ## 0.4.2
 
 ### Patch Changes
