@@ -15,6 +15,7 @@ import {
   aGenericError,
   anEmailAddress,
   aPlainSessionToken,
+  aSessionId,
   aSessionWithHashedTokens,
   aUserProfileWithoutEmail,
 } from "../../../__mocks__/session.mocks.js";
@@ -114,7 +115,7 @@ describe("makeGetSessionUseCase", () => {
     },
     {
       field: "walletToken",
-      expectedValue: mocks.aWalletSSOToken,
+      expectedValue: `${aSessionId}.${mocks.aWalletSSOToken}`,
       checkExpectations: () => {
         expect(mocks.toPlainWalletSSOToken).toHaveBeenCalledExactlyOnceWith(
           aPlainSessionToken,
@@ -130,7 +131,7 @@ describe("makeGetSessionUseCase", () => {
     },
     {
       field: "bpdToken",
-      expectedValue: mocks.aPlainBpdSSOToken,
+      expectedValue: `${aSessionId}.${mocks.aPlainBpdSSOToken}`,
       checkExpectations: () => {
         expect(mocks.toPlainBpdSSOToken).toHaveBeenCalledExactlyOnceWith(
           aPlainSessionToken,
@@ -146,7 +147,7 @@ describe("makeGetSessionUseCase", () => {
     },
     {
       field: "zendeskToken",
-      expectedValue: mocks.anExtendedZendeskToken,
+      expectedValue: `${aSessionId}.${mocks.anExtendedZendeskToken}`,
       checkExpectations: () => {
         expect(mockGetProfile).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
         expect(
@@ -162,7 +163,7 @@ describe("makeGetSessionUseCase", () => {
     },
     {
       field: "fimsToken",
-      expectedValue: mocks.aFimsSSOToken,
+      expectedValue: `${aSessionId}.${mocks.aFimsSSOToken}`,
       checkExpectations: () => {
         expect(mocks.toPlainFimsSSOToken).toHaveBeenCalledExactlyOnceWith(
           aPlainSessionToken,
@@ -246,7 +247,9 @@ describe("makeGetSessionUseCase", () => {
     const result = await getSession(input);
 
     // then
-    expect(result).toEqual(ok({ zendeskToken: mocks.anExtendedZendeskToken }));
+    expect(result).toEqual(
+      ok({ zendeskToken: `${aSessionId}.${mocks.anExtendedZendeskToken}` }),
+    );
     expect(mockGetProfile).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
     expect(
       mocks.toExtendedPlainZendeskSSOToken,
@@ -282,7 +285,7 @@ describe("makeGetSessionUseCase", () => {
 
       // then
       expect(result).toEqual(
-        ok({ zendeskToken: mocks.anExtendedZendeskToken }),
+        ok({ zendeskToken: `${aSessionId}.${mocks.anExtendedZendeskToken}` }),
       );
       expect(mockGetProfile).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
       expect(

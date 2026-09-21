@@ -20,13 +20,13 @@ import {
 import { ok, err, Result } from "neverthrow";
 
 import { UserProfile } from "../../domain/entities/profile.entity.js";
+import { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
 import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import {
   ClientSessionToken,
   ClientSessionTokenSchema,
   HashedClientSessionTokenSchema,
 } from "../../domain/value-objects/client-session-token.vo.js";
-import { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
 
 export type NewSessionToken = Omit<
   BaseSession,

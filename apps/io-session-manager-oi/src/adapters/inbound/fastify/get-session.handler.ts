@@ -1,4 +1,8 @@
-import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
+import {
+  defineRoute,
+  NonEmptyStringBrand,
+  ProblemJson,
+} from "@pagopa/hexagonal-core";
 import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import { FastifyInstance } from "fastify";
 
@@ -8,6 +12,9 @@ import {
   GetSessionInputDTO,
   GetSessionOutputDTO,
 } from "../dtos/get-session.dto.js";
+
+// This is a temporary workaround to ensure that the branded types are included in the type system.
+const _brands = [NonEmptyStringBrand];
 
 export const getSessionContract = defineRoute({
   operationId: "getSession",

@@ -64,13 +64,17 @@ export const makeGetSessionUseCase =
             maybeLollipopActivation.value.assertionRef;
           break;
         }
-        case "walletToken":
-          sessionData.walletToken = toPlainWalletSSOToken(input.sessionToken);
+        case "walletToken": {
+          const walletToken = toPlainWalletSSOToken(input.sessionToken);
+          sessionData.walletToken = `${input.session.sessionId}.${walletToken}`;
           break;
-        case "bpdToken":
-          sessionData.bpdToken = toPlainBpdSSOToken(input.sessionToken);
+        }
+        case "bpdToken": {
+          const bpdToken = toPlainBpdSSOToken(input.sessionToken);
+          sessionData.bpdToken = `${input.session.sessionId}.${bpdToken}`;
           break;
-        case "zendeskToken":
+        }
+        case "zendeskToken": {
           const maybeProfile = await deps.profilePort.getProfile(
             input.session.fiscalCode,
           );
@@ -80,14 +84,18 @@ export const makeGetSessionUseCase =
             maybeProfile.value.isEmailValidated
               ? maybeProfile.value.email
               : undefined;
-          sessionData.zendeskToken = await toExtendedPlainZendeskSSOToken(
+          const zendeskToken = await toExtendedPlainZendeskSSOToken(
             input.sessionToken,
             validEmail,
           );
+          sessionData.zendeskToken = `${input.session.sessionId}.${zendeskToken}`;
           break;
-        case "fimsToken":
-          sessionData.fimsToken = toPlainFimsSSOToken(input.sessionToken);
+        }
+        case "fimsToken": {
+          const fimsToken = toPlainFimsSSOToken(input.sessionToken);
+          sessionData.fimsToken = `${input.session.sessionId}.${fimsToken}`;
           break;
+        }
         default: {
           const _exhaustiveCheck: never = field; // This ensures that all possible fields are handled in the switch statement
           return err(
