@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import * as E from "fp-ts/Either";
-import { IDP_FRIENDLY_NAMES_URLS } from "../../config/idp-friendly-names";
 import { OidcConfigurationEnvEnum } from "../../generated/backend/OidcConfigurationEnv";
 import { fetchIdpFriendlyNameList } from "../idp-friendly-names-fetch";
+import { getIdpFriendlyNamesUrl } from "../../config/idp-friendly-names";
+import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 
 const aProdList = {
   "https://posteid.poste.it": "Poste ID",
@@ -20,6 +21,13 @@ const jsonResponse = (body: unknown, status = 200): Response =>
     json: async () => body,
   }) as Response;
 
+const PROD_URL = (
+  getIdpFriendlyNamesUrl(OidcConfigurationEnvEnum.PROD) as E.Right<ValidUrl>
+).right.href;
+const UAT_URL = (
+  getIdpFriendlyNamesUrl(OidcConfigurationEnvEnum.UAT) as E.Right<ValidUrl>
+).right.href;
+
 describe("fetchIdpFriendlyNameList", () => {
   it("should fetch the PROD assets URL", async () => {
     const fetchApi = vi.fn().mockResolvedValue(jsonResponse(aProdList));
@@ -29,9 +37,7 @@ describe("fetchIdpFriendlyNameList", () => {
       fetchApi,
     );
 
-    expect(fetchApi).toHaveBeenCalledExactlyOnceWith(
-      IDP_FRIENDLY_NAMES_URLS.PROD,
-    );
+    expect(fetchApi).toHaveBeenCalledExactlyOnceWith(PROD_URL);
     expect(result).toEqual(E.right(aProdList));
   });
 
@@ -43,9 +49,7 @@ describe("fetchIdpFriendlyNameList", () => {
       fetchApi,
     );
 
-    expect(fetchApi).toHaveBeenCalledExactlyOnceWith(
-      IDP_FRIENDLY_NAMES_URLS.UAT,
-    );
+    expect(fetchApi).toHaveBeenCalledExactlyOnceWith(UAT_URL);
     expect(result).toEqual(E.right(aUatList));
   });
 
@@ -61,7 +65,7 @@ describe("fetchIdpFriendlyNameList", () => {
     expect(result).toEqual(E.right(unexpectedList));
   });
 
-  it("should reject payloads with non-string values", async () => {
+  it("should return Left on payloads with non-string values", async () => {
     const fetchApi = vi.fn().mockResolvedValue(jsonResponse({ posteid: 1 }));
 
     const result = await fetchIdpFriendlyNameList(
@@ -77,7 +81,7 @@ describe("fetchIdpFriendlyNameList", () => {
     }
   });
 
-  it("should reject non-object payloads", async () => {
+  it("should return Left on payloads with non-object payloads", async () => {
     const fetchApi = vi.fn().mockResolvedValue(jsonResponse(["posteid"]));
 
     const result = await fetchIdpFriendlyNameList(
@@ -86,6 +90,11 @@ describe("fetchIdpFriendlyNameList", () => {
     );
 
     expect(E.isLeft(result)).toBe(true);
+    if (E.isLeft(result)) {
+      expect(result.left.message).toContain(
+        "Invalid IDP friendly names payload",
+      );
+    }
   });
 
   it("should return Left when the HTTP status is not ok", async () => {

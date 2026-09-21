@@ -1,7 +1,7 @@
 import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
-import { IDP_FRIENDLY_NAMES_URLS } from "../config/idp-friendly-names";
+import { getIdpFriendlyNamesUrl } from "../config/idp-friendly-names";
 import { OidcConfigurationEnv } from "../generated/backend/OidcConfigurationEnv";
 import { STRINGS_RECORD } from "../types/common";
 
@@ -16,7 +16,13 @@ export const fetchIdpFriendlyNameList = async (
   fetchApi: typeof fetch,
 ): Promise<E.Either<Error, IdpFriendlyNameList>> => {
   try {
-    const response = await fetchApi(IDP_FRIENDLY_NAMES_URLS[env]);
+    const friendlyNamesUrlResult = getIdpFriendlyNamesUrl(env);
+    if (E.isLeft(friendlyNamesUrlResult)) {
+      return E.left(friendlyNamesUrlResult.left);
+    }
+    const friendlyNamesUrlValue = friendlyNamesUrlResult.right;
+
+    const response = await fetchApi(friendlyNamesUrlValue.href);
     if (!response.ok) {
       return E.left(
         new Error(

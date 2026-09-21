@@ -25,7 +25,7 @@ export type OidcEnvConfig = {
   redirectUri: UrlFromString;
 };
 
-const decodeRequiredUrl = (envName: string): UrlFromString =>
+export const decodeRequiredUrl = (envName: string): UrlFromString =>
   pipe(
     getRequiredENVVar(envName),
     UrlFromString.decode,
