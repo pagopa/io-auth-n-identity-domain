@@ -170,7 +170,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
     isUserElegibleForValidationCookie: (fiscalCode: FiscalCode) => boolean;
     ageLimit: number;
     validateSpidUser: ValidateSpidUser;
-    getIdentityProvider: (issuer: string) => Promise<string>;
+    getIdentityProvider: (issuer: string) => T.Task<string>;
   };
 
 export const acs: (
@@ -862,7 +862,7 @@ export const acs: (
           email: userEmail,
           family_name: user.family_name,
           fiscal_code: user.fiscal_code,
-          identity_provider: await deps.getIdentityProvider(spidUser.issuer),
+          identity_provider: await deps.getIdentityProvider(spidUser.issuer)(),
           ip_address: requestIp,
           is_email_validated: userHasEmailValidated,
           name: user.name,

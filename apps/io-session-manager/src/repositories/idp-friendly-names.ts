@@ -5,7 +5,11 @@ import {
 } from "@pagopa/ts-commons/lib/fetch";
 import { agent } from "@pagopa/ts-commons";
 import { Millisecond } from "@pagopa/ts-commons/lib/units";
-import * as E from "fp-ts/Either";
+
+import * as T from "fp-ts/Task";
+import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/function";
+
 import {
   IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS,
   IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS,
@@ -45,17 +49,53 @@ const defaultIdpFriendlyNamesDeps: IdpFriendlyNamesDeps = {
 export type GetIdpFriendlyName = (
   env: OidcConfigurationEnv,
   identifier: string,
-) => Promise<string>;
+) => T.Task<string>;
 
-const makeResolveList = (deps: IdpFriendlyNamesDeps) => {
+/**
+ * Handle single HTTP fetch with fallback to last-known-good.
+ * Returns the fetched map if successful, otherwise falls back to the cached entry if available.
+ */
+const fetchAndHandleFallback = (
+  env: OidcConfigurationEnv,
+  deps: IdpFriendlyNamesDeps,
+  cached?: CacheEntry,
+): T.Task<IdpFriendlyNameList | undefined> =>
+  pipe(
+    fetchIdpFriendlyNameList(env, deps.fetchApi),
+    TE.match(
+      (error) => {
+        if (cached) {
+          log.warn(
+            "Failed to fetch IDP friendly names for %s, using last-known-good | %s",
+            env,
+            error.message,
+          );
+          return cached.map;
+        }
+
+        log.error(
+          "Failed to fetch IDP friendly names for %s | %s",
+          env,
+          error.message,
+        );
+        return undefined;
+      },
+      (map) => {
+        deps.cache.set(env, { map, fetchedAt: deps.now() });
+        return map;
+      },
+    ),
+  );
+
+const makeResolveList = (
+  deps: IdpFriendlyNamesDeps,
+): ((env: OidcConfigurationEnv) => T.Task<IdpFriendlyNameList | undefined>) => {
   const inFlightByEnv = new Map<
     OidcConfigurationEnv,
     Promise<IdpFriendlyNameList | undefined>
   >();
 
-  return async (
-    env: OidcConfigurationEnv,
-  ): Promise<IdpFriendlyNameList | undefined> => {
+  return (env) => async () => {
     const cached = deps.cache.get(env);
     const isFresh =
       cached !== undefined &&
@@ -70,34 +110,16 @@ const makeResolveList = (deps: IdpFriendlyNamesDeps) => {
       return inFlight;
     }
 
-    const promise = (async () => {
-      const result = await fetchIdpFriendlyNameList(env, deps.fetchApi);
-      if (E.isRight(result)) {
-        deps.cache.set(env, { map: result.right, fetchedAt: deps.now() });
-        return result.right;
-      }
-
-      if (cached) {
-        log.warn(
-          "Failed to fetch IDP friendly names for %s, using last-known-good | %s",
-          env,
-          result.left.message,
-        );
-        return cached.map;
-      }
-
-      log.error(
-        "Failed to fetch IDP friendly names for %s | %s",
-        env,
-        result.left.message,
-      );
-      return undefined;
-    })().finally(() => {
+    const fetchFriendlyNamePromise = fetchAndHandleFallback(
+      env,
+      deps,
+      cached,
+    )().finally(() => {
       inFlightByEnv.delete(env);
     });
 
-    inFlightByEnv.set(env, promise);
-    return promise;
+    inFlightByEnv.set(env, fetchFriendlyNamePromise);
+    return fetchFriendlyNamePromise;
   };
 };
 
@@ -106,8 +128,8 @@ export const makeGetIdpFriendlyName = (
 ): GetIdpFriendlyName => {
   const resolveList = makeResolveList(deps);
 
-  return async (env, identifier) => {
-    const map = await resolveList(env);
+  return (env, identifier) => async () => {
+    const map = await resolveList(env)();
     return map?.[identifier] ?? "Sconosciuto";
   };
 };

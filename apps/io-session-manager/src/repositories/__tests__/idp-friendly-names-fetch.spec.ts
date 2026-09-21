@@ -35,7 +35,7 @@ describe("fetchIdpFriendlyNameList", () => {
     const result = await fetchIdpFriendlyNameList(
       OidcConfigurationEnvEnum.PROD,
       fetchApi,
-    );
+    )();
 
     expect(fetchApi).toHaveBeenCalledExactlyOnceWith(PROD_URL);
     expect(result).toEqual(E.right(aProdList));
@@ -47,7 +47,7 @@ describe("fetchIdpFriendlyNameList", () => {
     const result = await fetchIdpFriendlyNameList(
       OidcConfigurationEnvEnum.UAT,
       fetchApi,
-    );
+    )();
 
     expect(fetchApi).toHaveBeenCalledExactlyOnceWith(UAT_URL);
     expect(result).toEqual(E.right(aUatList));
@@ -60,7 +60,7 @@ describe("fetchIdpFriendlyNameList", () => {
     const result = await fetchIdpFriendlyNameList(
       OidcConfigurationEnvEnum.PROD,
       fetchApi,
-    );
+    )();
 
     expect(result).toEqual(E.right(unexpectedList));
   });
@@ -71,7 +71,7 @@ describe("fetchIdpFriendlyNameList", () => {
     const result = await fetchIdpFriendlyNameList(
       OidcConfigurationEnvEnum.PROD,
       fetchApi,
-    );
+    )();
 
     expect(E.isLeft(result)).toBe(true);
     if (E.isLeft(result)) {
@@ -87,7 +87,7 @@ describe("fetchIdpFriendlyNameList", () => {
     const result = await fetchIdpFriendlyNameList(
       OidcConfigurationEnvEnum.PROD,
       fetchApi,
-    );
+    )();
 
     expect(E.isLeft(result)).toBe(true);
     if (E.isLeft(result)) {
@@ -103,7 +103,7 @@ describe("fetchIdpFriendlyNameList", () => {
     const result = await fetchIdpFriendlyNameList(
       OidcConfigurationEnvEnum.PROD,
       fetchApi,
-    );
+    )();
 
     expect(E.isLeft(result)).toBe(true);
     if (E.isLeft(result)) {
@@ -117,7 +117,7 @@ describe("fetchIdpFriendlyNameList", () => {
     const result = await fetchIdpFriendlyNameList(
       OidcConfigurationEnvEnum.PROD,
       fetchApi,
-    );
+    )();
 
     expect(E.isLeft(result)).toBe(true);
     if (E.isLeft(result)) {

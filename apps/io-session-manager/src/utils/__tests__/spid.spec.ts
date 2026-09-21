@@ -82,15 +82,15 @@ describe("getSpidIdpFriendlyName", () => {
   const aKnownIssuer = Object.keys(IDP_NAMES)[0] as Issuer;
 
   test("should return the mapped IDP name for a known issuer", async () => {
-    expect(await getSpidIdpFriendlyName(aKnownIssuer)).toEqual(
+    expect(await getSpidIdpFriendlyName(aKnownIssuer)()).toEqual(
       IDP_NAMES[aKnownIssuer],
     );
   });
 
   test("should return Sconosciuto for an unknown issuer", async () => {
-    expect(await getSpidIdpFriendlyName("https://unknown.idp.example")).toEqual(
-      "Sconosciuto",
-    );
+    expect(
+      await getSpidIdpFriendlyName("https://unknown.idp.example")(),
+    ).toEqual("Sconosciuto");
   });
 });
 

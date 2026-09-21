@@ -38,7 +38,7 @@ const makeLookup = (overrides: Partial<IdpFriendlyNamesDeps> = {}) => {
   );
   return {
     lookup: (identifier = posteId): Promise<string> =>
-      getIdpFriendlyName(OidcConfigurationEnvEnum.PROD, identifier),
+      getIdpFriendlyName(OidcConfigurationEnvEnum.PROD, identifier)(),
   };
 };
 

@@ -3,6 +3,7 @@ import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import * as S from "fp-ts/lib/string";
 import * as A from "fp-ts/lib/Array";
+import * as T from "fp-ts/lib/Task";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { flow, pipe } from "fp-ts/lib/function";
 import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
@@ -19,12 +20,13 @@ const SAML_NAMESPACE = {
   PROTOCOL: "urn:oasis:names:tc:SAML:2.0:protocol",
 };
 
-export const getSpidIdpFriendlyName = async (issuer: string): Promise<string> =>
+export const getSpidIdpFriendlyName = (issuer: string): T.Task<string> =>
   pipe(
     Issuer.decode(issuer),
     E.map((decodedIssuer) => IDP_NAMES[decodedIssuer]),
     E.chainW(E.fromNullable(null)),
     E.getOrElse(() => "Sconosciuto"),
+    T.of,
   );
 
 export const getIssuerFromSAMLResponse: (
