@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  description: PagoPA SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.
+  title: PagoPA API for user authentication.
+  version: 0.22.1
+servers:
+  - url: https://api-app.io.pagopa.it/api/sso/pagopa/v2
+tags:
+  - name: sso
+    description: PagoPA Single Sign-On endpoints.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+      description: Enter the opaque token provided by the authentication authority
+  schemas:
+    PagoPaUser:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        family_name:
+          type: string
+          minLength: 1
+        fiscal_code:
+          type: string
+          pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/i
+        spid_email:
+          type: string
+          pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+        notice_email:
+          type: string
+          pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+      required:
+        - name
+        - family_name
+        - fiscal_code
+        - notice_email
+      description: The user data returned to the PagoPA backend.
+    ProblemDetails:
+      type: object
+      properties:
+        detail:
+          type: string
+        status:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          format: uri
+      required:
+        - detail
+        - status
+        - title
+        - type
+      description: RFC 7807 Problem Details for HTTP APIs. See https://www.rfc-editor.org/rfc/rfc7807.
+  parameters: {}
+paths:
+  /user:
+    get:
+      description: "Returns the PagoPa user identified by the token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`."
+      operationId: getUserForPagoPa
+      security:
+        - bearerAuth: []
+      summary: Return the PagoPa user for a session token
+      tags:
+        - sso
+      responses:
+        "200":
+          description: The PagoPa user for the provided session token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagoPaUser"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Missing/invalid `Authorization` header, unknown session, or source IP blocked by the allowlist.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"

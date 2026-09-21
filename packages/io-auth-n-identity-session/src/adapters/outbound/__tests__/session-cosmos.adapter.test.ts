@@ -15,9 +15,12 @@ import type {
 } from "../../../domain/entities/session.entity.js";
 import {
   ActiveSession,
+  type HashedBpdSSOToken,
   HashedBpdSSOTokenSchema,
+  type HashedFimsSSOToken,
   HashedFimsSSOTokenSchema,
   HashedSessionTokenSchema,
+  type HashedWalletSSOToken,
   HashedWalletSSOTokenSchema,
   HashedZendeskSSOTokenSchema,
 } from "../../../domain/index.js";
@@ -237,101 +240,63 @@ describe("SessionCosmosAdapter", () => {
 
       expect(result).toEqual(err(expect.any(GenericError)));
     });
-
-    it("GIVEN a conflict cosmos error WHEN findBySessionToken is called THEN maps it to GenericError", async () => {
-      userSession.itemMock.read.mockRejectedValueOnce(makeErrorResponse(409));
-
-      const result = await adapter.findBySessionToken({
-        sessionId: aSessionId,
-        hashedSessionToken: aHashedSessionToken,
-      });
-
-      expect(result).toEqual(err(expect.any(GenericError)));
-    });
-  });
-
-  // TODO: Refactor token tests
-
-  // -------------------------------------------------------------------------
-  // findByBpdToken
-  // -------------------------------------------------------------------------
-
-  describe("findByBpdToken", () => {
-    it("GIVEN an existing session WHEN findByBpdToken is called THEN returns the session", async () => {
-      userSession.itemMock.read.mockResolvedValueOnce({
-        resource: {
-          ...aDbSessionResource,
-          id: COSMOS_BPD_PREFIX + aHashedBpdToken,
-        },
-        statusCode: 200,
-      });
-
-      const result = await adapter.findByBpdToken({
-        sessionId: aSessionId,
-        hashedBPDSSOToken: aHashedBpdToken,
-      });
-
-      expect(result).toEqual(ok(aBaseSession));
-      expect(userSession.item).toHaveBeenCalledWith(
-        COSMOS_BPD_PREFIX + aHashedBpdToken,
-        aSessionId,
-      );
-    });
-
-    it("GIVEN no session WHEN findByBpdToken is called THEN returns NotFoundError", async () => {
-      userSession.itemMock.read.mockResolvedValueOnce({
-        resource: undefined,
-        statusCode: 404,
-      });
-
-      const result = await adapter.findByBpdToken({
-        sessionId: aSessionId,
-        hashedBPDSSOToken: aHashedBpdToken,
-      });
-
-      expect(result).toEqual(err(expect.any(NotFoundError)));
-    });
   });
 
   // -------------------------------------------------------------------------
-  // findByFimsToken
+  // findBySsoToken
   // -------------------------------------------------------------------------
 
-  describe("findByFimsToken", () => {
-    it("GIVEN an existing session WHEN findByFimsToken is called THEN returns the session", async () => {
-      userSession.itemMock.read.mockResolvedValueOnce({
-        resource: {
-          ...aDbSessionResource,
-          id: COSMOS_FIMS_PREFIX + aHashedFimsToken,
-        },
-        statusCode: 200,
-      });
+  describe("findBySsoToken", () => {
+    it.each`
+      type        | prefix                  | hashedToken           | findMethod
+      ${"BPD"}    | ${COSMOS_BPD_PREFIX}    | ${aHashedBpdToken}    | ${(sessionId: SessionId, hashedToken: HashedBpdSSOToken) => adapter.findByBpdToken({ sessionId, hashedBPDSSOToken: hashedToken })}
+      ${"FIMS"}   | ${COSMOS_FIMS_PREFIX}   | ${aHashedFimsToken}   | ${(sessionId: SessionId, hashedToken: HashedFimsSSOToken) => adapter.findByFimsToken({ sessionId, hashedFimsSSOToken: hashedToken })}
+      ${"WALLET"} | ${COSMOS_WALLET_PREFIX} | ${aHashedWalletToken} | ${(sessionId: SessionId, hashedToken: HashedWalletSSOToken) => adapter.findByWalletToken({ sessionId, hashedWalletSSOToken: hashedToken })}
+    `(
+      "GIVEN an existing session WHEN $type token lookup is called THEN returns the session",
+      async ({ prefix, hashedToken, findMethod }) => {
+        userSession.itemMock.read.mockResolvedValueOnce({
+          resource: {
+            ...aDbSessionResource,
+            id: prefix + hashedToken,
+          },
+          statusCode: 200,
+        });
 
-      const result = await adapter.findByFimsToken({
-        sessionId: aSessionId,
-        hashedFimsSSOToken: aHashedFimsToken,
-      });
+        const result = await findMethod(aSessionId, hashedToken);
 
-      expect(result).toEqual(ok(aBaseSession));
-      expect(userSession.item).toHaveBeenCalledWith(
-        COSMOS_FIMS_PREFIX + aHashedFimsToken,
-        aSessionId,
-      );
-    });
+        expect(userSession.item).toHaveBeenCalledWith(
+          prefix + hashedToken,
+          aSessionId,
+        );
 
-    it("GIVEN no session WHEN findByFimsToken is called THEN returns NotFoundError", async () => {
-      userSession.itemMock.read.mockResolvedValueOnce({
-        resource: undefined,
-        statusCode: 404,
-      });
+        expect(result).toEqual(ok(aBaseSession));
+      },
+    );
 
-      const result = await adapter.findByFimsToken({
-        sessionId: aSessionId,
-        hashedFimsSSOToken: aHashedFimsToken,
-      });
+    it.each`
+      type        | prefix                  | hashedToken           | findMethod
+      ${"BPD"}    | ${COSMOS_BPD_PREFIX}    | ${aHashedBpdToken}    | ${(sessionId: SessionId, hashedToken: HashedBpdSSOToken) => adapter.findByBpdToken({ sessionId, hashedBPDSSOToken: hashedToken })}
+      ${"FIMS"}   | ${COSMOS_FIMS_PREFIX}   | ${aHashedFimsToken}   | ${(sessionId: SessionId, hashedToken: HashedFimsSSOToken) => adapter.findByFimsToken({ sessionId, hashedFimsSSOToken: hashedToken })}
+      ${"WALLET"} | ${COSMOS_WALLET_PREFIX} | ${aHashedWalletToken} | ${(sessionId: SessionId, hashedToken: HashedWalletSSOToken) => adapter.findByWalletToken({ sessionId, hashedWalletSSOToken: hashedToken })}
+    `(
+      "GIVEN no session WHEN $type token lookup is called THEN returns NotFoundError",
+      async ({ prefix, hashedToken, findMethod }) => {
+        userSession.itemMock.read.mockResolvedValueOnce({
+          resource: undefined,
+          statusCode: 404,
+        });
 
-      expect(result).toEqual(err(expect.any(NotFoundError)));
-    });
+        const result = await findMethod(aSessionId, hashedToken);
+
+        expect(userSession.item).toHaveBeenCalledWith(
+          prefix + hashedToken,
+          aSessionId,
+        );
+
+        expect(result).toEqual(err(expect.any(NotFoundError)));
+      },
+    );
   });
 
   // -------------------------------------------------------------------------

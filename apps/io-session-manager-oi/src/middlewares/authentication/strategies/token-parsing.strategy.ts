@@ -3,6 +3,7 @@ import {
   PlainBpdSSOTokenSchema,
   PlainFimsSSOTokenSchema,
   PlainSessionTokenSchema,
+  PlainWalletSSOTokenSchema,
   type SessionId,
   SessionIdSchema,
 } from "@pagopa/io-auth-n-identity-session";
@@ -132,5 +133,11 @@ export class BpdBearerTokenParsingStrategy extends BearerTokenParsingBaseStrateg
 export class FimsBearerTokenParsingStrategy extends BearerTokenParsingBaseStrategy<"fims"> {
   constructor() {
     super(PlainFimsSSOTokenSchema);
+  }
+}
+
+export class WalletBearerTokenParsingStrategy extends BearerTokenParsingBaseStrategy<"wallet"> {
+  constructor() {
+    super(PlainWalletSSOTokenSchema);
   }
 }
