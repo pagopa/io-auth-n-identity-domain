@@ -10,9 +10,8 @@ import {
 } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
 
-console.log("Imported brands from @pagopa/hexagonal-core: ", [
-  NonEmptyStringBrand,
-]);
+// This is a temporary workaround to ensure that the branded types are included in the type system.
+const _brands = [NonEmptyStringBrand];
 
 const withSessionId = (tokenSchema: z.core.$ZodTemplateLiteralPart) =>
   z.templateLiteral([SessionIdSchema, ".", tokenSchema]).meta({

@@ -13,9 +13,8 @@ import {
   GetSessionOutputDTO,
 } from "../dtos/get-session.dto.js";
 
-console.log("Imported brands from @pagopa/hexagonal-core: ", [
-  NonEmptyStringBrand,
-]);
+// This is a temporary workaround to ensure that the branded types are included in the type system.
+const _brands = [NonEmptyStringBrand];
 
 export const getSessionContract = defineRoute({
   operationId: "getSession",
