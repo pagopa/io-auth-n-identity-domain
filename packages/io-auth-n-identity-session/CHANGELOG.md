@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.6.1
+
+### Patch Changes
+
+- fd524f9: add `<sessionId>.` prefix to all session tokens
+
 ## 0.6.0
 
 ### Minor Changes

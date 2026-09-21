@@ -1,5 +1,13 @@
 # io-session-manager-oi
 
+## 0.22.2
+
+### Patch Changes
+
+- fd524f9: add `<sessionId>.` prefix to all session tokens
+- Updated dependencies [fd524f9]
+  - @pagopa/io-auth-n-identity-session@0.6.1
+
 ## 0.22.1
 
 ### Patch Changes
