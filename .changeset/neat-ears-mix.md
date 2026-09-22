@@ -3,4 +3,4 @@
 "io-session-manager-oi": patch
 ---
 
-Rename Wallet token in PagoPA token
+Rename Wallet token to PagoPA token
