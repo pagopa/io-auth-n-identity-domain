@@ -11,6 +11,7 @@ import {
   NonEmptyString,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok, Result } from "neverthrow";
 
 import type { ActiveSession } from "../../domain/entities/active-session.entity.js";
@@ -28,14 +29,13 @@ import {
 import { SessionId } from "../../domain/value-objects/session-id.vo.js";
 import type { HashedBpdSSOToken } from "../../domain/value-objects/tokens/bpd-sso-token.vo.js";
 import type { HashedFimsSSOToken } from "../../domain/value-objects/tokens/fims-sso-token.vo.js";
+import type { HashedPagoPaSSOToken } from "../../domain/value-objects/tokens/pagopa-sso-token.vo.js";
 import {
   HashedSessionTokenSchema,
   type HashedSessionToken,
 } from "../../domain/value-objects/tokens/session-token.vo.js";
-import type { HashedWalletSSOToken } from "../../domain/value-objects/tokens/wallet-sso-token.vo.js";
 import type { HashedZendeskSSOToken } from "../../domain/value-objects/tokens/zendesk-sso-token.vo.js";
 
-import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { CosmosBaseAdapter } from "./cosmos-base.adapter.js";
 
 // ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ import { CosmosBaseAdapter } from "./cosmos-base.adapter.js";
 // ---------------------------------------------------------------------------
 
 const COSMOS_SESSION_PREFIX = "SESSION-";
-const COSMOS_WALLET_PREFIX = "WALLET-";
+const COSMOS_PAGOPA_PREFIX = "PAGOPA-";
 const COSMOS_BPD_PREFIX = "BPD-";
 const COSMOS_FIMS_PREFIX = "FIMS-";
 const COSMOS_ZENDESK_PREFIX = "ZENDESK-";
@@ -128,15 +128,15 @@ export class SessionCosmosAdapter
     return result.andThen((rawSession) => fromDbSession(rawSession));
   }
 
-  public async findByWalletToken(walletToken: {
-    hashedWalletSSOToken: HashedWalletSSOToken;
+  public async findByPagoPaToken(pagopaToken: {
+    hashedPagoPaSSOToken: HashedPagoPaSSOToken;
     sessionId: SessionId;
   }): Promise<Result<BaseSession, GenericError | NotFoundError>> {
     const result = await this.readItem(
       this.sessionTokenContainer,
-      toCosmosWalletSessionId(walletToken.hashedWalletSSOToken),
-      walletToken.sessionId as unknown as NonEmptyString,
-      "WALLETSSOSession" as NonEmptyString,
+      toCosmosPagoPaSessionId(pagopaToken.hashedPagoPaSSOToken),
+      pagopaToken.sessionId as unknown as NonEmptyString,
+      "PAGOPASSOSession" as NonEmptyString,
     );
     return result.andThen((rawSession) => fromDbSession(rawSession));
   }
@@ -316,7 +316,7 @@ export class SessionCosmosAdapter
           },
           {
             operationType: BulkOperationType.Create,
-            resourceBody: toDbWalletUserSession(userSessionToCreate, ttl),
+            resourceBody: toDbPagoPaUserSession(userSessionToCreate, ttl),
           },
           {
             operationType: BulkOperationType.Create,
@@ -395,8 +395,8 @@ export class SessionCosmosAdapter
     // so that, if an SSO deletion fails, it survives as the "anchor" that allows
     // the session (fiscalCode and derived SSO tokens) to be re-resolved for a retry.
     const ssoTokenIds = [
-      toCosmosWalletSessionId(
-        userSessionWithTokens.ssoTokens.walletHashedToken,
+      toCosmosPagoPaSessionId(
+        userSessionWithTokens.ssoTokens.pagopaHashedToken,
       ),
       toCosmosBpdSessionId(userSessionWithTokens.ssoTokens.bpdHashedToken),
       toCosmosFimsSessionId(userSessionWithTokens.ssoTokens.fimsHashedToken),
@@ -492,13 +492,13 @@ function toDbSession(session: SessionWithHashedToken, ttl: number): JSONObject {
   };
 }
 
-function toDbWalletUserSession(
+function toDbPagoPaUserSession(
   session: SessionWithHashedSSOTokens,
   ttl: number,
 ): JSONObject {
   return {
     ...toDbSession(session, ttl),
-    id: toCosmosWalletSessionId(session.ssoTokens.walletHashedToken),
+    id: toCosmosPagoPaSessionId(session.ssoTokens.pagopaHashedToken),
   };
 }
 
@@ -538,10 +538,10 @@ function toCosmosSessionId(
   return (COSMOS_SESSION_PREFIX + hashedSessionToken) as NonEmptyString;
 }
 
-function toCosmosWalletSessionId(
-  walletHashedToken: HashedWalletSSOToken,
+function toCosmosPagoPaSessionId(
+  pagopaHashedToken: HashedPagoPaSSOToken,
 ): NonEmptyString {
-  return (COSMOS_WALLET_PREFIX + walletHashedToken) as NonEmptyString;
+  return (COSMOS_PAGOPA_PREFIX + pagopaHashedToken) as NonEmptyString;
 }
 
 function toCosmosBpdSessionId(

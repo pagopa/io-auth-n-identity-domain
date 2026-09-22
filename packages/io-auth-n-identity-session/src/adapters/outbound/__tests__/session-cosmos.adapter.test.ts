@@ -20,8 +20,8 @@ import {
   type HashedFimsSSOToken,
   HashedFimsSSOTokenSchema,
   HashedSessionTokenSchema,
-  type HashedWalletSSOToken,
-  HashedWalletSSOTokenSchema,
+  type HashedPagoPaSSOToken,
+  HashedPagoPaSSOTokenSchema,
   HashedZendeskSSOTokenSchema,
 } from "../../../domain/index.js";
 import {
@@ -36,7 +36,7 @@ import { SessionCosmosAdapter } from "../session-cosmos.adapter.js";
 // ---------------------------------------------------------------------------
 
 const COSMOS_SESSION_PREFIX = "SESSION-";
-const COSMOS_WALLET_PREFIX = "WALLET-";
+const COSMOS_PAGOPA_PREFIX = "PAGOPA-";
 const COSMOS_BPD_PREFIX = "BPD-";
 const COSMOS_FIMS_PREFIX = "FIMS-";
 const COSMOS_ZENDESK_PREFIX = "ZENDESK-";
@@ -53,8 +53,8 @@ const aHashedSessionToken = HashedSessionTokenSchema.parse(
 const aHashedBpdToken = HashedBpdSSOTokenSchema.parse(
   crypto.createHash("sha256").update("bpd123token").digest("hex"),
 );
-const aHashedWalletToken = HashedWalletSSOTokenSchema.parse(
-  crypto.createHash("sha256").update("wallet123token").digest("hex"),
+const aHashedPagoPaToken = HashedPagoPaSSOTokenSchema.parse(
+  crypto.createHash("sha256").update("pagopa123token").digest("hex"),
 );
 const aHashedFimsToken = HashedFimsSSOTokenSchema.parse(
   crypto.createHash("sha256").update("fims123token").digest("hex"),
@@ -86,7 +86,7 @@ const aSessionWithHashedTokens: SessionWithHashedSSOTokens = {
   hashedSessionToken: aHashedSessionToken,
   ssoTokens: {
     bpdHashedToken: aHashedBpdToken,
-    walletHashedToken: aHashedWalletToken,
+    pagopaHashedToken: aHashedPagoPaToken,
     fimsHashedToken: aHashedFimsToken,
     zendeskHashedToken: aHashedZendeskToken,
   },
@@ -251,7 +251,7 @@ describe("SessionCosmosAdapter", () => {
       type        | prefix                  | hashedToken           | findMethod
       ${"BPD"}    | ${COSMOS_BPD_PREFIX}    | ${aHashedBpdToken}    | ${(sessionId: SessionId, hashedToken: HashedBpdSSOToken) => adapter.findByBpdToken({ sessionId, hashedBPDSSOToken: hashedToken })}
       ${"FIMS"}   | ${COSMOS_FIMS_PREFIX}   | ${aHashedFimsToken}   | ${(sessionId: SessionId, hashedToken: HashedFimsSSOToken) => adapter.findByFimsToken({ sessionId, hashedFimsSSOToken: hashedToken })}
-      ${"WALLET"} | ${COSMOS_WALLET_PREFIX} | ${aHashedWalletToken} | ${(sessionId: SessionId, hashedToken: HashedWalletSSOToken) => adapter.findByWalletToken({ sessionId, hashedWalletSSOToken: hashedToken })}
+      ${"PAGOPA"} | ${COSMOS_PAGOPA_PREFIX} | ${aHashedPagoPaToken} | ${(sessionId: SessionId, hashedToken: HashedPagoPaSSOToken) => adapter.findByPagoPaToken({ sessionId, hashedPagoPaSSOToken: hashedToken })}
     `(
       "GIVEN an existing session WHEN $type token lookup is called THEN returns the session",
       async ({ prefix, hashedToken, findMethod }) => {
@@ -278,7 +278,7 @@ describe("SessionCosmosAdapter", () => {
       type        | prefix                  | hashedToken           | findMethod
       ${"BPD"}    | ${COSMOS_BPD_PREFIX}    | ${aHashedBpdToken}    | ${(sessionId: SessionId, hashedToken: HashedBpdSSOToken) => adapter.findByBpdToken({ sessionId, hashedBPDSSOToken: hashedToken })}
       ${"FIMS"}   | ${COSMOS_FIMS_PREFIX}   | ${aHashedFimsToken}   | ${(sessionId: SessionId, hashedToken: HashedFimsSSOToken) => adapter.findByFimsToken({ sessionId, hashedFimsSSOToken: hashedToken })}
-      ${"WALLET"} | ${COSMOS_WALLET_PREFIX} | ${aHashedWalletToken} | ${(sessionId: SessionId, hashedToken: HashedWalletSSOToken) => adapter.findByWalletToken({ sessionId, hashedWalletSSOToken: hashedToken })}
+      ${"PAGOPA"} | ${COSMOS_PAGOPA_PREFIX} | ${aHashedPagoPaToken} | ${(sessionId: SessionId, hashedToken: HashedPagoPaSSOToken) => adapter.findByPagoPaToken({ sessionId, hashedPagoPaSSOToken: hashedToken })}
     `(
       "GIVEN no session WHEN $type token lookup is called THEN returns NotFoundError",
       async ({ prefix, hashedToken, findMethod }) => {
@@ -326,7 +326,7 @@ describe("SessionCosmosAdapter", () => {
           }),
           expect.objectContaining({
             resourceBody: expect.objectContaining({
-              id: COSMOS_WALLET_PREFIX + aHashedWalletToken,
+              id: COSMOS_PAGOPA_PREFIX + aHashedPagoPaToken,
             }),
           }),
           expect.objectContaining({
@@ -481,7 +481,7 @@ describe("SessionCosmosAdapter", () => {
 
       const firstCallOps = userSession.bulk.mock.calls[0][0];
       expect(firstCallOps.map((op: { id: string }) => op.id)).toEqual([
-        COSMOS_WALLET_PREFIX + aHashedWalletToken,
+        COSMOS_PAGOPA_PREFIX + aHashedPagoPaToken,
         COSMOS_BPD_PREFIX + aHashedBpdToken,
         COSMOS_FIMS_PREFIX + aHashedFimsToken,
         COSMOS_ZENDESK_PREFIX + aHashedZendeskToken,
@@ -651,7 +651,7 @@ describe("SessionCosmosAdapter", () => {
       userSession.fetchAll.mockResolvedValueOnce({
         resources: [
           { id: COSMOS_SESSION_PREFIX + aHashedSessionToken },
-          { id: "WALLET-" + aHashedWalletToken },
+          { id: "PAGOPA-" + aHashedPagoPaToken },
         ],
       });
       userSession.bulk.mockResolvedValueOnce([

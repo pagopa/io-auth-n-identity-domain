@@ -27,9 +27,9 @@ import {
   PlainSSOTokensSchema,
 } from "../value-objects/tokens/sso-token.vo.js";
 import {
-  toHashedWalletSSOToken,
-  toPlainWalletSSOToken,
-} from "../value-objects/tokens/wallet-sso-token.vo.js";
+  toHashedPagoPaSSOToken,
+  toPlainPagoPaSSOToken,
+} from "../value-objects/tokens/pagopa-sso-token.vo.js";
 import {
   toHashedZendeskSSOToken,
   toPlainZendeskSSOToken,
@@ -126,7 +126,7 @@ export const newPlainSession = async ({
     createdAt: now,
     plainSessionToken: plainSessionToken,
     ssoTokens: {
-      walletPlainToken: toPlainWalletSSOToken(plainSessionToken),
+      pagopaPlainToken: toPlainPagoPaSSOToken(plainSessionToken),
       bpdPlainToken: toPlainBpdSSOToken(plainSessionToken),
       fimsPlainToken: toPlainFimsSSOToken(plainSessionToken),
       zendeskPlainToken: toPlainZendeskSSOToken(plainSessionToken),
@@ -185,7 +185,7 @@ export const toHashedSession = (
     ...baseData,
     hashedSessionToken: toHashedSessionToken(plainSessionToken),
     ssoTokens: {
-      walletHashedToken: toHashedWalletSSOToken(ssoTokens.walletPlainToken),
+      pagopaHashedToken: toHashedPagoPaSSOToken(ssoTokens.pagopaPlainToken),
       bpdHashedToken: toHashedBpdSSOToken(ssoTokens.bpdPlainToken),
       fimsHashedToken: toHashedFimsSSOToken(ssoTokens.fimsPlainToken),
       zendeskHashedToken: toHashedZendeskSSOToken(ssoTokens.zendeskPlainToken),
