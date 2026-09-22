@@ -4,7 +4,7 @@ import {
   ExtendedPlainZendeskSSOTokenSchema,
   PlainBpdSSOTokenSchema,
   PlainFimsSSOTokenSchema,
-  PlainWalletSSOTokenSchema,
+  PlainPagoPaSSOTokenSchema,
   SessionIdSchema,
   SpidLevelSchema,
 } from "@pagopa/io-auth-n-identity-session";
@@ -23,7 +23,7 @@ export const GetSessionOutputDTO = z
     spidLevel: SpidLevelSchema.optional(),
     expirationDate: z.date().optional(),
     lollipopAssertionRef: LollipopAssertionRefSchema.optional(),
-    walletToken: withSessionId(PlainWalletSSOTokenSchema).optional(),
+    walletToken: withSessionId(PlainPagoPaSSOTokenSchema).optional(),
     bpdToken: withSessionId(PlainBpdSSOTokenSchema).optional(),
     zendeskToken: withSessionId(ExtendedPlainZendeskSSOTokenSchema).optional(),
     fimsToken: withSessionId(PlainFimsSSOTokenSchema).optional(),

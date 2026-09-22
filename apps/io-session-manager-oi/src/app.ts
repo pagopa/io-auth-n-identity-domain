@@ -255,8 +255,8 @@ export const createApp = async (
     authenticationMiddlewareFactory.create("bpd");
   const authenticateFimsMiddleware =
     authenticationMiddlewareFactory.create("fims");
-  const authenticateWalletMiddleware =
-    authenticationMiddlewareFactory.create("wallet");
+  const authenticatePagoPaMiddleware =
+    authenticationMiddlewareFactory.create("pagopa");
 
   // --------------------------------------------------
   // Endpoints mounting
@@ -325,7 +325,7 @@ export const createApp = async (
 
   mountSsoPagoPaUserHandler(server, {
     allowedIpSourceRange: config.ALLOW_PAGOPA_IP_SOURCE_RANGE,
-    middlewares: [authenticateWalletMiddleware] as const,
+    middlewares: [authenticatePagoPaMiddleware] as const,
     useCase: makeGetUserForPagoPaUseCase({
       profilePort: profileAdapter,
     }),

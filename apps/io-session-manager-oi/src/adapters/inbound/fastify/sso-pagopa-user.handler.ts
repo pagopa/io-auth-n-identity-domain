@@ -43,7 +43,7 @@ const ssoPagoPaUserContract = defineRoute({
 
 export type SsoPagoPaUserHandlerDeps = {
   allowedIpSourceRange: ReadonlyArray<string>;
-  middlewares: readonly [AuthenticationMiddleware<"wallet">];
+  middlewares: readonly [AuthenticationMiddleware<"pagopa">];
   useCase: GetUserForPagoPaUseCase;
 };
 

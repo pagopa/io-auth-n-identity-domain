@@ -9,7 +9,7 @@ import {
   toExtendedPlainZendeskSSOToken,
   toPlainBpdSSOToken,
   toPlainFimsSSOToken,
-  toPlainWalletSSOToken,
+  toPlainPagoPaSSOToken,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 
@@ -65,8 +65,8 @@ export const makeGetSessionUseCase =
           break;
         }
         case "walletToken": {
-          const walletToken = toPlainWalletSSOToken(input.sessionToken);
-          sessionData.walletToken = `${input.session.sessionId}.${walletToken}`;
+          const pagopaToken = toPlainPagoPaSSOToken(input.sessionToken);
+          sessionData.walletToken = `${input.session.sessionId}.${pagopaToken}`;
           break;
         }
         case "bpdToken": {
