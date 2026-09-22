@@ -135,6 +135,17 @@ variable "locked_profiles" {
   description = "Azure Table Storage backing the locked profiles feature."
 }
 
+variable "technical_locked_profiles" {
+  type = object({
+    storage_account = object({
+      name                = string
+      resource_group_name = string
+    })
+    table_name = string
+  })
+  description = "Azure Table Storage backing the technical locked profiles feature."
+}
+
 variable "io_session_manager_internal" {
   type = object({
     base_url  = string

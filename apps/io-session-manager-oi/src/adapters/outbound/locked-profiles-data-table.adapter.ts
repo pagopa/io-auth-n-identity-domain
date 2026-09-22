@@ -8,50 +8,40 @@ import {
   FiscalCode,
   FiscalCodeSchema,
   GenericError,
+  NotFoundError,
 } from "@pagopa/hexagonal-core";
-import { ok, err, Result } from "neverthrow";
+import { err, ok, Result } from "neverthrow";
 import z from "zod";
 
 import { LockedProfilesPort } from "../../domain/ports/outbound/locked-profiles.port.js";
 
-const UnlockCodeSchema = z
-  .string()
-  .regex(/^\d{9}$/, "unlockCode must be 9 digits");
-
-/**
- * Schema for the LockedProfileDataTable data.
- * This schema is used to validate the structure of the data stored in the Azure Table Storage.
- */
-const LockedProfileDataTableSchema = z.object({
-  partitionKey: FiscalCodeSchema,
-  rowKey: UnlockCodeSchema,
-  CreatedAt: z.coerce.date(),
-  Released: z.boolean().optional(),
-});
+const HEALTHCHECK_KEY = "__healthcheck__";
 
 export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
-  static readonly schema = LockedProfileDataTableSchema;
+  static readonly schema = z.object({
+    partitionKey: FiscalCodeSchema,
+    rowKey: z.string().regex(/^\d{9}$/, "unlockCode must be 9 digits"), // UnlockCode
+    CreatedAt: z.coerce.date(),
+    Released: z.boolean().optional(),
+  });
 
   constructor(
     private readonly lockedProfilesTableClientWrapper: TableClientWrapper<
-      typeof LockedProfileDataTableSchema
+      typeof LockedProfilesDataTableAdapter.schema
     >,
   ) {}
 
   async healthcheck(): Promise<Result<void, GenericError>> {
-    for await (const entity of this.lockedProfilesTableClientWrapper.listEntities(
-      {
-        queryOptions: { filter: "PartitionKey eq ''" },
-      },
-    )) {
-      if (entity.isErr()) {
-        return err(
-          new GenericError(
-            `Health check failed for LockedProfilesDataTableAdapter: ${entity.error.message}`,
-          ),
-        );
-      }
-      break;
+    const result = await this.lockedProfilesTableClientWrapper.getEntity(
+      HEALTHCHECK_KEY,
+      HEALTHCHECK_KEY,
+    );
+    if (result.isErr() && !(result.error instanceof NotFoundError)) {
+      return err(
+        new GenericError(
+          `Health check failed for LockedProfilesDataTableAdapter: ${result.error.message}`,
+        ),
+      );
     }
     return ok(undefined);
   }
@@ -71,7 +61,7 @@ export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
         if (entity.isErr()) {
           return err(entity.error);
         }
-        
+
         return ok(true);
       }
 

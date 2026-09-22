@@ -1,6 +1,7 @@
 import { OperationOptions } from "@azure/core-client";
 import {
   CreateTableEntityResponse,
+  GetTableEntityOptions,
   ListTableEntitiesOptions,
   RestError,
   TableClient,
@@ -225,6 +226,30 @@ export class TableClientWrapper<S extends TableEntitySchema> {
       }
     } catch (error) {
       yield err(this.handleError(error, "listEntities"));
+    }
+  }
+
+  /**
+   * Retrieves a single entity from the table by its partition key and row key.
+   * @param partitionKey - The partition key of the entity to retrieve.
+   * @param rowKey - The row key of the entity to retrieve.
+   * @param options - Optional SDK request options.
+   * @returns A `Result` containing the entity with metadata if successful, or a `TableStorageError` if the operation fails.
+   */
+  public async getEntity(
+    partitionKey: string,
+    rowKey: string,
+    options?: GetTableEntityOptions,
+  ): Promise<Result<TableEntityWithMetadata<z.output<S>>, TableStorageError>> {
+    try {
+      const response = await this.client.getEntity<Record<string, unknown>>(
+        partitionKey,
+        rowKey,
+        options,
+      );
+      return this.parseEntity(response, "getEntity");
+    } catch (error) {
+      return err(this.handleError(error, "getEntity"));
     }
   }
 

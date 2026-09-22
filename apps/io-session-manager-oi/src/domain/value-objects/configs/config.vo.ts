@@ -18,6 +18,7 @@ import {
 } from "./lollipop-activation.vo.js";
 import { LollipopConfigSchema } from "./lollipop.vo.js";
 import { OneIdConfigSchema } from "./one-id.vo.js";
+import { PagopaConfigSchema } from "./pagopa.vo.js";
 import { PlatformProxyConfigSchema } from "./platform-proxy.vo.js";
 import { IoProfileConfigSchema } from "./profile.vo.js";
 import {
@@ -34,7 +35,10 @@ import {
   SessionCosmosDevelopmentConfigSchema,
   SessionCosmosProductionConfigSchema,
 } from "./session.vo.js";
-import { PagopaConfigSchema } from "./pagopa.vo.js";
+import {
+  TechnicalLockedProfilesDevelopmentConfigSchema,
+  TechnicalLockedProfilesProductionConfigSchema,
+} from "./technical-locked-profiles.vo.js";
 
 /**
  * Fields shared by every runtime environment.
@@ -62,6 +66,7 @@ export const ProductionConfigSchema = z.object({
   ...CommonConfigShape,
   NODE_ENV: z.literal("production"),
   ...LockedProfilesProductionConfigSchema.shape,
+  ...TechnicalLockedProfilesProductionConfigSchema.shape,
   ...PushNotificationsQueueProductionConfigSchema.shape,
   ...RedisProductionConfigSchema.shape,
   ...SessionCosmosProductionConfigSchema.shape,
@@ -79,6 +84,7 @@ export const DevelopmentConfigSchema = z.object({
   ...CommonConfigShape,
   NODE_ENV: z.literal("development"),
   ...LockedProfilesDevelopmentConfigSchema.shape,
+  ...TechnicalLockedProfilesDevelopmentConfigSchema.shape,
   ...PushNotificationsQueueDevelopmentConfigSchema.shape,
   ...RedisDevelopmentConfigSchema.shape,
   ...SessionCosmosDevelopmentConfigSchema.shape,
