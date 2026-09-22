@@ -134,6 +134,8 @@ components:
               pattern: ^sha512-[A-Za-z0-9_-]{86}$
         walletToken:
           type: string
+        pagopaToken:
+          type: string
         bpdToken:
           type: string
         zendeskToken:
@@ -148,6 +150,7 @@ components:
         - expirationDate
         - lollipopAssertionRef
         - walletToken
+        - pagopaToken
         - bpdToken
         - zendeskToken
         - fimsToken

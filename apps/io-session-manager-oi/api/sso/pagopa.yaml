@@ -16,7 +16,7 @@ components:
       bearerFormat: opaque
       description: Enter the opaque token provided by the authentication authority
   schemas:
-    PagoPaUser:
+    PagopaUser:
       type: object
       properties:
         name:
@@ -62,20 +62,20 @@ components:
 paths:
   /user:
     get:
-      description: "Returns the PagoPa user identified by the token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`."
-      operationId: getUserForPagoPa
+      description: "Returns the Pagopa user identified by the token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`."
+      operationId: getUserForPagopa
       security:
         - bearerAuth: []
-      summary: Return the PagoPa user for a session token
+      summary: Return the Pagopa user for a session token
       tags:
         - sso
       responses:
         "200":
-          description: The PagoPa user for the provided session token
+          description: The Pagopa user for the provided session token
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PagoPaUser"
+                $ref: "#/components/schemas/PagopaUser"
         "400":
           description: Bad request
           content:

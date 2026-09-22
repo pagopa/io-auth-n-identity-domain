@@ -9,7 +9,7 @@ import {
   toExtendedPlainZendeskSSOToken,
   toPlainBpdSSOToken,
   toPlainFimsSSOToken,
-  toPlainWalletSSOToken,
+  toPlainPagopaSSOToken,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 
@@ -64,9 +64,13 @@ export const makeGetSessionUseCase =
             maybeLollipopActivation.value.assertionRef;
           break;
         }
-        case "walletToken": {
-          const walletToken = toPlainWalletSSOToken(input.sessionToken);
-          sessionData.walletToken = `${input.session.sessionId}.${walletToken}`;
+        // TODO: once the name wallet token is fully deprecated, remove the walletToken case entirely
+        case "walletToken":
+        case "pagopaToken": {
+          const pagopaToken = toPlainPagopaSSOToken(input.sessionToken);
+          // TODO: remove the walletToken assignment once it is fully deprecated
+          sessionData.walletToken = `${input.session.sessionId}.${pagopaToken}`;
+          sessionData.pagopaToken = `${input.session.sessionId}.${pagopaToken}`;
           break;
         }
         case "bpdToken": {
