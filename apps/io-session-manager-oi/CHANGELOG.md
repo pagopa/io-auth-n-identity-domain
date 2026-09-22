@@ -1,5 +1,13 @@
 # io-session-manager-oi
 
+## 0.23.1
+
+### Patch Changes
+
+- c0b0fe4: Rename Wallet token to PagoPA token
+- Updated dependencies [c0b0fe4]
+  - @pagopa/io-auth-n-identity-session@0.7.1
+
 ## 0.23.0
 
 ### Minor Changes
