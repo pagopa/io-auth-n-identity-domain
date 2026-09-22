@@ -115,7 +115,10 @@ describe("makeGetSessionUseCase", () => {
     },
     {
       field: "walletToken",
-      expectedValue: `${aSessionId}.${mocks.aPagoPaSSOToken}`,
+      expectedValue: {
+        walletToken: `${aSessionId}.${mocks.aPagoPaSSOToken}`,
+        pagopaToken: `${aSessionId}.${mocks.aPagoPaSSOToken}`,
+      },
       checkExpectations: () => {
         expect(mocks.toPlainPagoPaSSOToken).toHaveBeenCalledExactlyOnceWith(
           aPlainSessionToken,
@@ -204,7 +207,9 @@ describe("makeGetSessionUseCase", () => {
       // then
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
-        expect(result.value).toEqual({ [field]: expectedValue });
+        const expectedOutput =
+          field === "walletToken" ? expectedValue : { [field]: expectedValue };
+        expect(result.value).toEqual(expectedOutput);
       }
       checkExpectations();
     },

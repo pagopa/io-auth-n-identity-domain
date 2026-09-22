@@ -64,9 +64,13 @@ export const makeGetSessionUseCase =
             maybeLollipopActivation.value.assertionRef;
           break;
         }
-        case "walletToken": {
+        // TODO: once the name wallet token is fully deprecated, remove the walletToken case entirely
+        case "walletToken":
+        case "pagopaToken": {
           const pagopaToken = toPlainPagoPaSSOToken(input.sessionToken);
+          // TODO: remove the walletToken assignment once it is fully deprecated
           sessionData.walletToken = `${input.session.sessionId}.${pagopaToken}`;
+          sessionData.pagopaToken = `${input.session.sessionId}.${pagopaToken}`;
           break;
         }
         case "bpdToken": {

@@ -24,6 +24,7 @@ export const GetSessionOutputDTO = z
     expirationDate: z.date().optional(),
     lollipopAssertionRef: LollipopAssertionRefSchema.optional(),
     walletToken: withSessionId(PlainPagoPaSSOTokenSchema).optional(),
+    pagopaToken: withSessionId(PlainPagoPaSSOTokenSchema).optional(),
     bpdToken: withSessionId(PlainBpdSSOTokenSchema).optional(),
     zendeskToken: withSessionId(ExtendedPlainZendeskSSOTokenSchema).optional(),
     fimsToken: withSessionId(PlainFimsSSOTokenSchema).optional(),
