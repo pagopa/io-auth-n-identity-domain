@@ -9,7 +9,7 @@ import {
   toExtendedPlainZendeskSSOToken,
   toPlainBpdSSOToken,
   toPlainFimsSSOToken,
-  toPlainPagoPaSSOToken,
+  toPlainPagopaSSOToken,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 
@@ -67,7 +67,7 @@ export const makeGetSessionUseCase =
         // TODO: once the name wallet token is fully deprecated, remove the walletToken case entirely
         case "walletToken":
         case "pagopaToken": {
-          const pagopaToken = toPlainPagoPaSSOToken(input.sessionToken);
+          const pagopaToken = toPlainPagopaSSOToken(input.sessionToken);
           // TODO: remove the walletToken assignment once it is fully deprecated
           sessionData.walletToken = `${input.session.sessionId}.${pagopaToken}`;
           sessionData.pagopaToken = `${input.session.sessionId}.${pagopaToken}`;

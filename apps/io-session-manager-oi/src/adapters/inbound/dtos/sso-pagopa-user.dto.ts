@@ -8,7 +8,7 @@ import { z } from "zod";
 
 extendZodWithOpenApi(z);
 
-export const SsoPagoPaUserOutputDTO = z
+export const SsoPagopaUserOutputDTO = z
   .object({
     name: NonEmptyStringSchema,
     family_name: NonEmptyStringSchema,
@@ -17,6 +17,6 @@ export const SsoPagoPaUserOutputDTO = z
     notice_email: EmailAddressSchema,
   })
   .meta({
-    id: "PagoPaUser",
+    id: "PagopaUser",
     description: "The user data returned to the PagoPA backend.",
   });

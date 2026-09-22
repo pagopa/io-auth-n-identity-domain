@@ -34,7 +34,7 @@ import {
   SessionCosmosDevelopmentConfigSchema,
   SessionCosmosProductionConfigSchema,
 } from "./session.vo.js";
-import { PagoPaConfigSchema } from "./pagopa.vo.js";
+import { PagopaConfigSchema } from "./pagopa.vo.js";
 
 /**
  * Fields shared by every runtime environment.
@@ -51,7 +51,7 @@ const CommonConfigShape = {
   ...LoginConfigSchema.shape,
   ...BPDConfigSchema.shape,
   ...FimsConfigSchema.shape,
-  ...PagoPaConfigSchema.shape,
+  ...PagopaConfigSchema.shape,
 };
 
 /**

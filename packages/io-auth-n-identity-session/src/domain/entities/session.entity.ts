@@ -27,8 +27,8 @@ import {
   PlainSSOTokensSchema,
 } from "../value-objects/tokens/sso-token.vo.js";
 import {
-  toHashedPagoPaSSOToken,
-  toPlainPagoPaSSOToken,
+  toHashedPagopaSSOToken,
+  toPlainPagopaSSOToken,
 } from "../value-objects/tokens/pagopa-sso-token.vo.js";
 import {
   toHashedZendeskSSOToken,
@@ -111,7 +111,6 @@ export const getSessionExpiration = (
   from: Date = new Date(),
 ) => new Date(from.getTime() + getSessionTtlMsByLoginType(loginType));
 
-
 export const newPlainSession = async ({
   loginType,
   ...baseData
@@ -126,7 +125,7 @@ export const newPlainSession = async ({
     createdAt: now,
     plainSessionToken: plainSessionToken,
     ssoTokens: {
-      pagopaPlainToken: toPlainPagoPaSSOToken(plainSessionToken),
+      pagopaPlainToken: toPlainPagopaSSOToken(plainSessionToken),
       bpdPlainToken: toPlainBpdSSOToken(plainSessionToken),
       fimsPlainToken: toPlainFimsSSOToken(plainSessionToken),
       zendeskPlainToken: toPlainZendeskSSOToken(plainSessionToken),
@@ -185,7 +184,7 @@ export const toHashedSession = (
     ...baseData,
     hashedSessionToken: toHashedSessionToken(plainSessionToken),
     ssoTokens: {
-      pagopaHashedToken: toHashedPagoPaSSOToken(ssoTokens.pagopaPlainToken),
+      pagopaHashedToken: toHashedPagopaSSOToken(ssoTokens.pagopaPlainToken),
       bpdHashedToken: toHashedBpdSSOToken(ssoTokens.bpdPlainToken),
       fimsHashedToken: toHashedFimsSSOToken(ssoTokens.fimsPlainToken),
       zendeskHashedToken: toHashedZendeskSSOToken(ssoTokens.zendeskPlainToken),

@@ -34,18 +34,18 @@ const mocks = vi.hoisted(() => {
   const anHashedSessionToken = "anHashedSessionToken";
   const aPlainBpdSSOToken = "aPlainBpdSSOToken";
   const aFimsSSOToken = "aFimsSSOToken";
-  const aPagoPaSSOToken = "aPagoPaSSOToken";
+  const aPagopaSSOToken = "aPagopaSSOToken";
   return {
     anExtendedZendeskToken,
     anHashedSessionToken,
     aPlainBpdSSOToken,
     aFimsSSOToken,
-    aPagoPaSSOToken,
+    aPagopaSSOToken,
     toExtendedPlainZendeskSSOToken: vi.fn(() => anExtendedZendeskToken),
     toHashedSessionToken: vi.fn(() => anHashedSessionToken),
     toPlainBpdSSOToken: vi.fn(() => aPlainBpdSSOToken),
     toPlainFimsSSOToken: vi.fn(() => aFimsSSOToken),
-    toPlainPagoPaSSOToken: vi.fn(() => aPagoPaSSOToken),
+    toPlainPagopaSSOToken: vi.fn(() => aPagopaSSOToken),
   };
 });
 
@@ -58,7 +58,7 @@ vi.mock("@pagopa/io-auth-n-identity-session", async (importOriginal) => {
     toHashedSessionToken: mocks.toHashedSessionToken,
     toPlainBpdSSOToken: mocks.toPlainBpdSSOToken,
     toPlainFimsSSOToken: mocks.toPlainFimsSSOToken,
-    toPlainPagoPaSSOToken: mocks.toPlainPagoPaSSOToken,
+    toPlainPagopaSSOToken: mocks.toPlainPagopaSSOToken,
   };
 });
 
@@ -81,7 +81,7 @@ describe("makeGetSessionUseCase", () => {
   });
 
   const commonExpectations = () => {
-    expect(mocks.toPlainPagoPaSSOToken).not.toHaveBeenCalled();
+    expect(mocks.toPlainPagopaSSOToken).not.toHaveBeenCalled();
     expect(mocks.toPlainBpdSSOToken).not.toHaveBeenCalled();
     expect(mocks.toPlainFimsSSOToken).not.toHaveBeenCalled();
     expect(mocks.toExtendedPlainZendeskSSOToken).not.toHaveBeenCalled();
@@ -107,7 +107,7 @@ describe("makeGetSessionUseCase", () => {
           lollipopActivationPortMock.getByFiscalCode,
         ).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
         expect(mockGetProfile).not.toHaveBeenCalled();
-        expect(mocks.toPlainPagoPaSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainPagopaSSOToken).not.toHaveBeenCalled();
         expect(mocks.toPlainBpdSSOToken).not.toHaveBeenCalled();
         expect(mocks.toPlainFimsSSOToken).not.toHaveBeenCalled();
         expect(mocks.toExtendedPlainZendeskSSOToken).not.toHaveBeenCalled();
@@ -116,11 +116,11 @@ describe("makeGetSessionUseCase", () => {
     {
       field: "walletToken",
       expectedValue: {
-        walletToken: `${aSessionId}.${mocks.aPagoPaSSOToken}`,
-        pagopaToken: `${aSessionId}.${mocks.aPagoPaSSOToken}`,
+        walletToken: `${aSessionId}.${mocks.aPagopaSSOToken}`,
+        pagopaToken: `${aSessionId}.${mocks.aPagopaSSOToken}`,
       },
       checkExpectations: () => {
-        expect(mocks.toPlainPagoPaSSOToken).toHaveBeenCalledExactlyOnceWith(
+        expect(mocks.toPlainPagopaSSOToken).toHaveBeenCalledExactlyOnceWith(
           aPlainSessionToken,
         );
         expect(mocks.toPlainBpdSSOToken).not.toHaveBeenCalled();
@@ -139,7 +139,7 @@ describe("makeGetSessionUseCase", () => {
         expect(mocks.toPlainBpdSSOToken).toHaveBeenCalledExactlyOnceWith(
           aPlainSessionToken,
         );
-        expect(mocks.toPlainPagoPaSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainPagopaSSOToken).not.toHaveBeenCalled();
         expect(mocks.toPlainFimsSSOToken).not.toHaveBeenCalled();
         expect(mocks.toExtendedPlainZendeskSSOToken).not.toHaveBeenCalled();
         expect(
@@ -156,7 +156,7 @@ describe("makeGetSessionUseCase", () => {
         expect(
           mocks.toExtendedPlainZendeskSSOToken,
         ).toHaveBeenCalledExactlyOnceWith(aPlainSessionToken, anEmailAddress);
-        expect(mocks.toPlainPagoPaSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainPagopaSSOToken).not.toHaveBeenCalled();
         expect(mocks.toPlainBpdSSOToken).not.toHaveBeenCalled();
         expect(mocks.toPlainFimsSSOToken).not.toHaveBeenCalled();
         expect(
@@ -171,7 +171,7 @@ describe("makeGetSessionUseCase", () => {
         expect(mocks.toPlainFimsSSOToken).toHaveBeenCalledExactlyOnceWith(
           aPlainSessionToken,
         );
-        expect(mocks.toPlainPagoPaSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainPagopaSSOToken).not.toHaveBeenCalled();
         expect(mocks.toPlainBpdSSOToken).not.toHaveBeenCalled();
         expect(mocks.toExtendedPlainZendeskSSOToken).not.toHaveBeenCalled();
         expect(

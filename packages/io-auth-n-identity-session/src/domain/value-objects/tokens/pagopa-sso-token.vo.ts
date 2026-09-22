@@ -8,35 +8,35 @@ import { PlainSessionToken } from "./session-token.vo.js";
 // Plain PagoPA SSO Token Value Object
 // ------------------------------------------------------------------------------
 
-export declare const _plainPagoPaSSOTokenBrand: unique symbol;
+export declare const _plainPagopaSSOTokenBrand: unique symbol;
 
 // Zod schemas with string literal brands
-export const PlainPagoPaSSOTokenSchema =
-  Sha256HexStringSchema.brand<typeof _plainPagoPaSSOTokenBrand>();
+export const PlainPagopaSSOTokenSchema =
+  Sha256HexStringSchema.brand<typeof _plainPagopaSSOTokenBrand>();
 
-export type PlainPagoPaSSOToken = z.infer<typeof PlainPagoPaSSOTokenSchema>;
+export type PlainPagopaSSOToken = z.infer<typeof PlainPagopaSSOTokenSchema>;
 
 // ------------------------------------------------------------------------------
 // Hashed PagoPA SSO Token Value Object
 // ------------------------------------------------------------------------------
 
-export declare const _hashedPagoPaSSOTokenBrand: unique symbol;
+export declare const _hashedPagopaSSOTokenBrand: unique symbol;
 
-export const HashedPagoPaSSOTokenSchema =
-  Sha256HexStringSchema.brand<typeof _hashedPagoPaSSOTokenBrand>();
+export const HashedPagopaSSOTokenSchema =
+  Sha256HexStringSchema.brand<typeof _hashedPagopaSSOTokenBrand>();
 
-export type HashedPagoPaSSOToken = z.infer<typeof HashedPagoPaSSOTokenSchema>;
+export type HashedPagopaSSOToken = z.infer<typeof HashedPagopaSSOTokenSchema>;
 
 // ------------------------------------------------------------------------------
 // Helper functions
 // ------------------------------------------------------------------------------
 
-export const toPlainPagoPaSSOToken = (
+export const toPlainPagopaSSOToken = (
   token: PlainSessionToken,
-): PlainPagoPaSSOToken =>
-  PlainPagoPaSSOTokenSchema.parse(toSha256(`pagopa:${token}`));
+): PlainPagopaSSOToken =>
+  PlainPagopaSSOTokenSchema.parse(toSha256(`pagopa:${token}`));
 
-export const toHashedPagoPaSSOToken = (
-  plainToken: PlainPagoPaSSOToken,
-): HashedPagoPaSSOToken =>
-  HashedPagoPaSSOTokenSchema.parse(toSha256(plainToken));
+export const toHashedPagopaSSOToken = (
+  plainToken: PlainPagopaSSOToken,
+): HashedPagopaSSOToken =>
+  HashedPagopaSSOTokenSchema.parse(toSha256(plainToken));

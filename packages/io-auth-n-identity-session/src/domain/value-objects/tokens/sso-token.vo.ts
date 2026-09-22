@@ -9,8 +9,8 @@ import {
   PlainFimsSSOTokenSchema,
 } from "./fims-sso-token.vo.js";
 import {
-  HashedPagoPaSSOTokenSchema,
-  PlainPagoPaSSOTokenSchema,
+  HashedPagopaSSOTokenSchema,
+  PlainPagopaSSOTokenSchema,
 } from "./pagopa-sso-token.vo.js";
 import {
   HashedZendeskSSOTokenSchema,
@@ -23,7 +23,7 @@ import {
 
 export const PlainSSOTokensSchema = z.object({
   bpdPlainToken: PlainBpdSSOTokenSchema,
-  pagopaPlainToken: PlainPagoPaSSOTokenSchema,
+  pagopaPlainToken: PlainPagopaSSOTokenSchema,
   zendeskPlainToken: PlainZendeskSSOTokenSchema,
   fimsPlainToken: PlainFimsSSOTokenSchema,
 });
@@ -36,7 +36,7 @@ export type PlainSSOTokens = z.infer<typeof PlainSSOTokensSchema>;
 
 export const HashedSSOTokensSchema = z.object({
   bpdHashedToken: HashedBpdSSOTokenSchema,
-  pagopaHashedToken: HashedPagoPaSSOTokenSchema,
+  pagopaHashedToken: HashedPagopaSSOTokenSchema,
   zendeskHashedToken: HashedZendeskSSOTokenSchema,
   fimsHashedToken: HashedFimsSSOTokenSchema,
 });

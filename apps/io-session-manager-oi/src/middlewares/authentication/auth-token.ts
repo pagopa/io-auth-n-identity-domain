@@ -8,9 +8,9 @@ import {
   HashedFimsSSOToken,
   PlainFimsSSOToken,
   PlainFimsSSOTokenSchema,
-  PlainPagoPaSSOToken,
-  HashedPagoPaSSOToken,
-  PlainPagoPaSSOTokenSchema,
+  PlainPagopaSSOToken,
+  HashedPagopaSSOToken,
+  PlainPagopaSSOTokenSchema,
 } from "@pagopa/io-auth-n-identity-session";
 
 export type AuthToken = {
@@ -30,10 +30,10 @@ export type AuthToken = {
     hashedType: HashedFimsSSOToken;
   };
   pagopa: {
-    schema: typeof PlainPagoPaSSOTokenSchema;
-    type: PlainPagoPaSSOToken;
-    hashedType: HashedPagoPaSSOToken;
-  }
+    schema: typeof PlainPagopaSSOTokenSchema;
+    type: PlainPagopaSSOToken;
+    hashedType: HashedPagopaSSOToken;
+  };
 };
 
 export type TokenType = keyof AuthToken;
@@ -42,7 +42,7 @@ export const AuthToken = {
   session: { schema: PlainSessionTokenSchema },
   bpd: { schema: PlainBpdSSOTokenSchema },
   fims: { schema: PlainFimsSSOTokenSchema },
-  pagopa: { schema: PlainPagoPaSSOTokenSchema },
+  pagopa: { schema: PlainPagopaSSOTokenSchema },
 } as const satisfies {
   [T in TokenType]: Omit<AuthToken[T], "type" | "hashedType">;
 };

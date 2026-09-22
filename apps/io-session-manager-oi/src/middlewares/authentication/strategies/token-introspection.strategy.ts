@@ -10,7 +10,7 @@ import {
   toHashedBpdSSOToken,
   toHashedFimsSSOToken,
   toHashedSessionToken,
-  toHashedPagoPaSSOToken,
+  toHashedPagopaSSOToken,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, type Result } from "neverthrow";
 
@@ -161,7 +161,7 @@ export class FimsTokenIntrospectionStrategy extends TokenIntrospectionBaseStrate
 /**
  * Token introspection strategy for PagoPA tokens.
  */
-export class PagoPaTokenIntrospectionStrategy extends TokenIntrospectionBaseStrategy<"pagopa"> {
+export class PagopaTokenIntrospectionStrategy extends TokenIntrospectionBaseStrategy<"pagopa"> {
   constructor(private readonly sessionPort: SessionPort) {
     super();
   }
@@ -170,15 +170,15 @@ export class PagoPaTokenIntrospectionStrategy extends TokenIntrospectionBaseStra
     sessionId: SessionId,
     sessionToken: AuthToken["pagopa"]["hashedType"],
   ): Promise<Result<BaseSession, NotFoundError | GenericError>> {
-    return this.sessionPort.findByPagoPaToken({
+    return this.sessionPort.findByPagopaToken({
       sessionId,
-      hashedPagoPaSSOToken: sessionToken,
+      hashedPagopaSSOToken: sessionToken,
     });
   }
 
   protected override toHashedToken(
     sessionToken: AuthToken["pagopa"]["type"],
   ): AuthToken["pagopa"]["hashedType"] {
-    return toHashedPagoPaSSOToken(sessionToken);
+    return toHashedPagopaSSOToken(sessionToken);
   }
 }

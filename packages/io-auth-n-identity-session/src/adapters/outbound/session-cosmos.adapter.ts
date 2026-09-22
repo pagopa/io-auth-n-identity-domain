@@ -29,7 +29,7 @@ import {
 import { SessionId } from "../../domain/value-objects/session-id.vo.js";
 import type { HashedBpdSSOToken } from "../../domain/value-objects/tokens/bpd-sso-token.vo.js";
 import type { HashedFimsSSOToken } from "../../domain/value-objects/tokens/fims-sso-token.vo.js";
-import type { HashedPagoPaSSOToken } from "../../domain/value-objects/tokens/pagopa-sso-token.vo.js";
+import type { HashedPagopaSSOToken } from "../../domain/value-objects/tokens/pagopa-sso-token.vo.js";
 import {
   HashedSessionTokenSchema,
   type HashedSessionToken,
@@ -128,13 +128,13 @@ export class SessionCosmosAdapter
     return result.andThen((rawSession) => fromDbSession(rawSession));
   }
 
-  public async findByPagoPaToken(pagopaToken: {
-    hashedPagoPaSSOToken: HashedPagoPaSSOToken;
+  public async findByPagopaToken(pagopaToken: {
+    hashedPagopaSSOToken: HashedPagopaSSOToken;
     sessionId: SessionId;
   }): Promise<Result<BaseSession, GenericError | NotFoundError>> {
     const result = await this.readItem(
       this.sessionTokenContainer,
-      toCosmosPagoPaSessionId(pagopaToken.hashedPagoPaSSOToken),
+      toCosmosPagopaSessionId(pagopaToken.hashedPagopaSSOToken),
       pagopaToken.sessionId as unknown as NonEmptyString,
       "PAGOPASSOSession" as NonEmptyString,
     );
@@ -316,7 +316,7 @@ export class SessionCosmosAdapter
           },
           {
             operationType: BulkOperationType.Create,
-            resourceBody: toDbPagoPaUserSession(userSessionToCreate, ttl),
+            resourceBody: toDbPagopaUserSession(userSessionToCreate, ttl),
           },
           {
             operationType: BulkOperationType.Create,
@@ -395,7 +395,7 @@ export class SessionCosmosAdapter
     // so that, if an SSO deletion fails, it survives as the "anchor" that allows
     // the session (fiscalCode and derived SSO tokens) to be re-resolved for a retry.
     const ssoTokenIds = [
-      toCosmosPagoPaSessionId(
+      toCosmosPagopaSessionId(
         userSessionWithTokens.ssoTokens.pagopaHashedToken,
       ),
       toCosmosBpdSessionId(userSessionWithTokens.ssoTokens.bpdHashedToken),
@@ -492,13 +492,13 @@ function toDbSession(session: SessionWithHashedToken, ttl: number): JSONObject {
   };
 }
 
-function toDbPagoPaUserSession(
+function toDbPagopaUserSession(
   session: SessionWithHashedSSOTokens,
   ttl: number,
 ): JSONObject {
   return {
     ...toDbSession(session, ttl),
-    id: toCosmosPagoPaSessionId(session.ssoTokens.pagopaHashedToken),
+    id: toCosmosPagopaSessionId(session.ssoTokens.pagopaHashedToken),
   };
 }
 
@@ -538,8 +538,8 @@ function toCosmosSessionId(
   return (COSMOS_SESSION_PREFIX + hashedSessionToken) as NonEmptyString;
 }
 
-function toCosmosPagoPaSessionId(
-  pagopaHashedToken: HashedPagoPaSSOToken,
+function toCosmosPagopaSessionId(
+  pagopaHashedToken: HashedPagopaSSOToken,
 ): NonEmptyString {
   return (COSMOS_PAGOPA_PREFIX + pagopaHashedToken) as NonEmptyString;
 }

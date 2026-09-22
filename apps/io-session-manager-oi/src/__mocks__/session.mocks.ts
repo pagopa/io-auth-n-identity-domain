@@ -27,7 +27,7 @@ import {
   SpidLevelSchema,
   toPlainBpdSSOToken,
   toPlainFimsSSOToken,
-  toPlainPagoPaSSOToken,
+  toPlainPagopaSSOToken,
   toPlainZendeskSSOToken,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
 
@@ -89,7 +89,7 @@ export const aSessionWithPlainToken: SessionWithPlainToken = {
 export const aSessionWithPlainSSOTokens: SessionWithPlainSSOTokens = {
   ...aSessionWithPlainToken,
   ssoTokens: {
-    pagopaPlainToken: toPlainPagoPaSSOToken(aPlainSessionToken),
+    pagopaPlainToken: toPlainPagopaSSOToken(aPlainSessionToken),
     bpdPlainToken: toPlainBpdSSOToken(aPlainSessionToken),
     fimsPlainToken: toPlainFimsSSOToken(aPlainSessionToken),
     zendeskPlainToken: toPlainZendeskSSOToken(aPlainSessionToken),

@@ -3,7 +3,7 @@ import {
   BpdBearerTokenParsingStrategy,
   SessionBearerTokenParsingStrategy,
   FimsBearerTokenParsingStrategy,
-  PagoPaBearerTokenParsingStrategy,
+  PagopaBearerTokenParsingStrategy,
 } from "../strategies/token-parsing.strategy.js";
 
 /**
@@ -24,7 +24,7 @@ export class BearerTokenParsingStrategyFactory {
       case "fims":
         return new FimsBearerTokenParsingStrategy();
       case "pagopa":
-        return new PagoPaBearerTokenParsingStrategy();
+        return new PagopaBearerTokenParsingStrategy();
       default:
         const _exhaustiveCheck: never = tokenType;
         console.error(`Unsupported token type: ${tokenType}`);
