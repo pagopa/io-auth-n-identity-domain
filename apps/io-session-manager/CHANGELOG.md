@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.29.0
+
+### Minor Changes
+
+- e96ec95: Handle Idp Friendly Names
+
 ## 1.28.1
 
 ### Patch Changes
