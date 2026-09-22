@@ -55,6 +55,7 @@ import {
   isSpidLevelGreaterOrEqual,
   isWellFormedSAMLAssertion,
 } from "../utils/spid";
+import { getIdpFriendlyName } from "../repositories/idp-friendly-names";
 
 export type ReserveDeps = RedisRepo.RedisRepositoryDeps & AppInsightsDeps;
 
@@ -399,7 +400,8 @@ export const buildSpidUserPayload = (
   getAcsOriginalRequest: () => req,
   getAssertionXml: () => assertionXml,
   getSamlResponseXml: () => assertionXml,
-  issuer: claims.iss,
+  // `issuer` is the SPID identity provider identifier
+  issuer: claims.idpEntityId,
   name: claims.name,
 });
 
@@ -525,5 +527,7 @@ export const OIDCCallback =
       isUserElegibleForValidationCookie: () => false,
       // Return an already built SPID-user payload.
       validateSpidUser: (_rawValue: unknown) => E.right(userPayload),
+      getIdentityProvider: (issuer) =>
+        getIdpFriendlyName(ausiliarData.oidcConfigurationEnv, issuer),
     })(userPayload, additionalProps);
   };

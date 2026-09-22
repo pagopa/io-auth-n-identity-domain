@@ -1,4 +1,5 @@
 import { test, describe, expect } from "vitest";
+import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import * as O from "fp-ts/Option";
 import {
@@ -15,6 +16,7 @@ import {
   getRequestIDFromRequest,
   getRequestIDFromResponse,
   getSpidEmailFromAssertion,
+  getSpidIdpFriendlyName,
   getSpidLevelFromSAMLResponse,
   isSpidLevelGreaterOrEqual,
   isWellFormedSAMLAssertion,
@@ -73,6 +75,22 @@ describe("SPID logs", () => {
   test("should get SPID user's email from response", () => {
     const spidEmail = getSpidEmailFromAssertion(aDOMSamlResponse);
     expect(spidEmail).toEqual(O.some("spid.tech@agid.gov.it"));
+  });
+});
+
+describe("getSpidIdpFriendlyName", () => {
+  const aKnownIssuer = Object.keys(IDP_NAMES)[0] as Issuer;
+
+  test("should return the mapped IDP name for a known issuer", async () => {
+    expect(await getSpidIdpFriendlyName(aKnownIssuer)()).toEqual(
+      IDP_NAMES[aKnownIssuer],
+    );
+  });
+
+  test("should return Sconosciuto for an unknown issuer", async () => {
+    expect(
+      await getSpidIdpFriendlyName("https://unknown.idp.example")(),
+    ).toEqual("Sconosciuto");
   });
 });
 

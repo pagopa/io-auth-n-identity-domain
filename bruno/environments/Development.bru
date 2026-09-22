@@ -7,7 +7,7 @@ vars {
   IO_SM_INT_BASE_URL: http://localhost:7077
   IO_FAST_LOGIN_BASE_URL: http://localhost:7075
   IO_PROFAS_BASE_URL: http://localhost:7074
-  IO_SESSION_MANAGER_OI_BASE_URL: http://localhost:8001
+  IO_SESSION_MANAGER_OI_BASE_URL: https://localhost:8080/sm
 }
 vars:secret [
   SERVICE_ID,
@@ -21,4 +21,5 @@ vars:secret [
   bearerToken,
   fimsClientSessionToken,
   walletClientSessionToken
+  oidc_redirect_url
 ]
