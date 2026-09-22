@@ -227,7 +227,9 @@ describe("makeGetSessionUseCase", () => {
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         const expectedOutput =
-          field === "walletToken" ? expectedValue : { [field]: expectedValue };
+          field === "walletToken" || field === "pagopaToken"
+            ? expectedValue
+            : { [field]: expectedValue };
         expect(result.value).toEqual(expectedOutput);
       }
       checkExpectations();
