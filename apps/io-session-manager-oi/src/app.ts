@@ -40,7 +40,7 @@ import { makeActivateUserSessionUseCase } from "./application/use-cases/activate
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
 import { getUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
 import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-fims.use-case.js";
-import { makeGetUserForPagopaUseCase as makeGetUserForPagopaUseCase } from "./application/use-cases/get-user-for-pagopa.use-case.js";
+import { makeGetUserForPagopaUseCase } from "./application/use-cases/get-user-for-pagopa.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
