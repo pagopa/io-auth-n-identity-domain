@@ -133,6 +133,25 @@ describe("makeGetSessionUseCase", () => {
       },
     },
     {
+      field: "pagopaToken",
+      expectedValue: {
+        walletToken: `${aSessionId}.${mocks.aPagopaSSOToken}`,
+        pagopaToken: `${aSessionId}.${mocks.aPagopaSSOToken}`,
+      },
+      checkExpectations: () => {
+        expect(mocks.toPlainPagopaSSOToken).toHaveBeenCalledExactlyOnceWith(
+          aPlainSessionToken,
+        );
+        expect(mocks.toPlainBpdSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainFimsSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toExtendedPlainZendeskSSOToken).not.toHaveBeenCalled();
+        expect(
+          lollipopActivationPortMock.getByFiscalCode,
+        ).not.toHaveBeenCalled();
+        expect(mockGetProfile).not.toHaveBeenCalled();
+      },
+    },
+    {
       field: "bpdToken",
       expectedValue: `${aSessionId}.${mocks.aPlainBpdSSOToken}`,
       checkExpectations: () => {
