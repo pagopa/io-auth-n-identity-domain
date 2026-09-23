@@ -12,8 +12,10 @@ import { TechnicalLockedProfilesDataTableAdapter } from "../technical-locked-pro
 const FISCAL_CODE = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 
 const getEntityMock = vi.fn();
+const listEntitiesMock = vi.fn();
 const wrapperStub = {
   getEntity: getEntityMock,
+  listEntities: listEntitiesMock,
 } as unknown as TableClientWrapper<
   typeof TechnicalLockedProfilesDataTableAdapter.schema
 >;
@@ -67,22 +69,37 @@ describe("TechnicalLockedProfilesDataTableAdapter#isLocked", () => {
 });
 
 describe("TechnicalLockedProfilesDataTableAdapter#healthcheck", () => {
-  it("returns ok when the sentinel entity is not found", async () => {
-    getEntityMock.mockResolvedValue(
-      err(new NotFoundError("TechnicalLockedProfiles", "not found")),
-    );
+  it("returns ok when the wrapper iterator yields nothing", async () => {
+    listEntitiesMock.mockReturnValue({
+      async *[Symbol.asyncIterator]() {},
+    });
 
     const result = await adapter.healthcheck();
 
     expect(result).toEqual(ok(undefined));
-    expect(getEntityMock).toHaveBeenCalledExactlyOnceWith(
-      "__healthcheck__",
-      "__healthcheck__",
-    );
+    expect(listEntitiesMock).toHaveBeenCalledExactlyOnceWith({
+      queryOptions: { filter: "PartitionKey eq ''" },
+    });
   });
 
-  it("returns a GenericError when the point lookup fails", async () => {
-    getEntityMock.mockResolvedValue(err(new GenericError("table unavailable")));
+  it("returns ok as soon as the iterator yields a single ok result", async () => {
+    listEntitiesMock.mockReturnValue({
+      async *[Symbol.asyncIterator]() {
+        yield ok({ entity: {}, etag: "etag" });
+      },
+    });
+
+    const result = await adapter.healthcheck();
+
+    expect(result).toEqual(ok(undefined));
+  });
+
+  it("returns a GenericError when the iterator yields an error", async () => {
+    listEntitiesMock.mockReturnValue({
+      async *[Symbol.asyncIterator]() {
+        yield err(new GenericError("table unavailable"));
+      },
+    });
 
     const result = await adapter.healthcheck();
 

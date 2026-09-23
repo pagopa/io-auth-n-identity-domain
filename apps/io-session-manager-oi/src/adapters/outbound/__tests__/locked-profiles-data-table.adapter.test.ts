@@ -17,10 +17,8 @@ const FISCAL_CODE = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 const TABLE_NAME = "lockedprofile01";
 const ROW_KEY = "123456789";
 
-const getEntityMock = vi.fn();
 const listEntitiesMock = vi.fn();
 const wrapperStub = {
-  getEntity: getEntityMock,
   listEntities: listEntitiesMock,
 } as unknown as TableClientWrapper<
   typeof LockedProfilesDataTableAdapter.schema
@@ -81,22 +79,29 @@ beforeEach(() => {
 });
 
 describe("LockedProfilesDataTableAdapter#healthcheck", () => {
-  it("returns ok when the sentinel entity is not found", async () => {
-    getEntityMock.mockResolvedValue(
-      err(new NotFoundError("LockedProfiles", "not found")),
-    );
+  it("returns ok when the wrapper iterator yields nothing", async () => {
+    listEntitiesMock.mockReturnValue(asyncIterableOf([]));
 
     const result = await adapter.healthcheck();
 
     expect(result).toEqual(ok(undefined));
-    expect(getEntityMock).toHaveBeenCalledExactlyOnceWith(
-      "__healthcheck__",
-      "__healthcheck__",
-    );
+    expect(listEntitiesMock).toHaveBeenCalledExactlyOnceWith({
+      queryOptions: { filter: "PartitionKey eq ''" },
+    });
   });
 
-  it("returns a GenericError when the point lookup fails", async () => {
-    getEntityMock.mockResolvedValue(err(new GenericError("azurite down")));
+  it("returns ok as soon as the iterator yields a single ok result", async () => {
+    listEntitiesMock.mockReturnValue(asyncIterableOf([okEntity()]));
+
+    const result = await adapter.healthcheck();
+
+    expect(result).toEqual(ok(undefined));
+  });
+
+  it("returns err(GenericError) when the iterator yields an err", async () => {
+    listEntitiesMock.mockReturnValue(
+      asyncIterableOf([err(new GenericError("azurite down"))]),
+    );
 
     const result = await adapter.healthcheck();
 

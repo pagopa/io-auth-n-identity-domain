@@ -8,14 +8,11 @@ import {
   FiscalCode,
   FiscalCodeSchema,
   GenericError,
-  NotFoundError,
 } from "@pagopa/hexagonal-core";
 import { err, ok, Result } from "neverthrow";
 import z from "zod";
 
 import { LockedProfilesPort } from "../../domain/ports/outbound/locked-profiles.port.js";
-
-const HEALTHCHECK_KEY = "__healthcheck__";
 
 export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
   static readonly schema = z.object({
@@ -32,16 +29,19 @@ export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
   ) {}
 
   async healthcheck(): Promise<Result<void, GenericError>> {
-    const result = await this.lockedProfilesTableClientWrapper.getEntity(
-      HEALTHCHECK_KEY,
-      HEALTHCHECK_KEY,
-    );
-    if (result.isErr() && !(result.error instanceof NotFoundError)) {
-      return err(
-        new GenericError(
-          `Health check failed for LockedProfilesDataTableAdapter: ${result.error.message}`,
-        ),
-      );
+    for await (const entity of this.lockedProfilesTableClientWrapper.listEntities(
+      {
+        queryOptions: { filter: "PartitionKey eq ''" },
+      },
+    )) {
+      if (entity.isErr()) {
+        return err(
+          new GenericError(
+            `Health check failed for LockedProfilesDataTableAdapter: ${entity.error.message}`,
+          ),
+        );
+      }
+      break;
     }
     return ok(undefined);
   }

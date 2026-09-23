@@ -14,8 +14,6 @@ import z from "zod";
 import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { TechnicalLockedProfilesPort } from "../../domain/ports/outbound/technical-locked-profiles.port.js";
 
-const HEALTHCHECK_KEY = "__healthcheck__";
-
 export class TechnicalLockedProfilesDataTableAdapter
   implements TechnicalLockedProfilesPort, HealthCheckOutboundPort
 {
@@ -32,16 +30,17 @@ export class TechnicalLockedProfilesDataTableAdapter
   ) {}
 
   async healthcheck(): Promise<Result<void, GenericError>> {
-    const result = await this.tableClientWrapper.getEntity(
-      HEALTHCHECK_KEY,
-      HEALTHCHECK_KEY,
-    );
-    if (result.isErr() && !(result.error instanceof NotFoundError)) {
-      return err(
-        new GenericError(
-          `Health check failed for ${TechnicalLockedProfilesDataTableAdapter.name}: ${result.error.message}`,
-        ),
-      );
+    for await (const entity of this.tableClientWrapper.listEntities({
+      queryOptions: { filter: "PartitionKey eq ''" },
+    })) {
+      if (entity.isErr()) {
+        return err(
+          new GenericError(
+            `Health check failed for ${TechnicalLockedProfilesDataTableAdapter.name}: ${entity.error.message}`,
+          ),
+        );
+      }
+      break;
     }
     return ok(undefined);
   }
