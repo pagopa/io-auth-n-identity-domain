@@ -88,3 +88,87 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "service-bus-logout-ev
 
   tags = local.tags
 }
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "sm_oidc_callback_error_alert" {
+  enabled                 = true
+  name                    = "[${upper(local.domain)}] Session Manager: Errors on OIDC callback"
+  resource_group_name     = data.azurerm_resource_group.main_resource_group.name
+  scopes                  = [data.azurerm_application_insights.application_insights.id]
+  description             = <<-EOT
+    Detected multiple errors inside the OIDC callback endpoint. For more info
+  see events details
+  EOT
+  severity                = 1
+  auto_mitigation_enabled = true
+  location                = local.location
+
+  // check once every 5 minutes(evaluation_frequency)
+  // on the last 10 minutes of data(window_duration)
+  evaluation_frequency = "PT5M"
+  window_duration      = "PT10M"
+
+  criteria {
+    query                   = <<-QUERY
+customEvents
+| where name matches regex "session-manager\\.oidc\\.callback\\.(.+)\\.error"
+| extend category = extract("session-manager\\.oidc\\.callback\\.(.+)\\.error",1,name)
+| project name, category, customDimensions.errorMessage
+    QUERY
+    operator                = "GreaterThanOrEqual"
+    time_aggregation_method = "Count"
+    threshold               = 10
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+
+  # Action groups for alerts
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "sm_oidc_reserve_error_alert" {
+  enabled                 = true
+  name                    = "[${upper(local.domain)}] Session Manager: Errors on OIDC reserve"
+  resource_group_name     = data.azurerm_resource_group.main_resource_group.name
+  scopes                  = [data.azurerm_application_insights.application_insights.id]
+  description             = <<-EOT
+    Detected multiple errors inside the OIDC reserve endpoint. For more info
+  see events details
+  EOT
+  severity                = 1
+  auto_mitigation_enabled = true
+  location                = local.location
+
+  // check once every 5 minutes(evaluation_frequency)
+  // on the last 10 minutes of data(window_duration)
+  evaluation_frequency = "PT5M"
+  window_duration      = "PT10M"
+
+  criteria {
+    query                   = <<-QUERY
+customEvents
+| where name matches regex "session-manager\\.oidc\\.reserve\\.(.+)\\.error"
+| extend category = extract("session-manager\\.oidc\\.reserve\\.(.+)\\.error",1,name)
+| project name, category, customDimensions.errorMessage
+    QUERY
+    operator                = "GreaterThanOrEqual"
+    time_aggregation_method = "Count"
+    threshold               = 10
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+
+  # Action groups for alerts
+  action {
+    action_groups = [azurerm_monitor_action_group.error_action_group.id]
+  }
+
+  tags = local.tags
+}
