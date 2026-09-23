@@ -11,7 +11,7 @@ import {
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AusiliarDataPort } from "../../../domain/ports/outbound/ausiliar-data.port.js";
+import { AuxiliaryDataPort } from "../../../domain/ports/outbound/auxiliary-data.port.js";
 import { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
 import { OidcConfigPort } from "../../../domain/ports/outbound/oidc-config.port.js";
 import { OidcClientPort } from "../../../domain/ports/outbound/oidc.port.js";
@@ -80,9 +80,9 @@ const lollipopPort = {
 } as unknown as LollipopPort;
 
 const saveMock = vi.fn().mockResolvedValue(ok(undefined));
-const ausiliarDataPort = {
+const auxiliaryDataPort = {
   save: saveMock,
-} as unknown as AusiliarDataPort;
+} as unknown as AuxiliaryDataPort;
 
 const getConfigMock = vi.fn().mockImplementation((env: "PROD" | "UAT") =>
   env === "PROD"
@@ -113,7 +113,7 @@ const oidcClientPort = {
 } as unknown as OidcClientPort;
 
 const reserveUseCase = makeReserveUseCase({
-  ausiliarDataPort: ausiliarDataPort,
+  auxiliaryDataPort: auxiliaryDataPort,
   lollipopPort: lollipopPort,
   oidcClientPort,
   oidcConfigPort,
@@ -128,7 +128,7 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("makeReserveUseCase", () => {
-  it("reserves the pubkey, saves ausiliar data and returns the OIDC parameters (PROD)", async () => {
+  it("reserves the pubkey, saves auxiliary data and returns the OIDC parameters (PROD)", async () => {
     const input = buildInput();
 
     const result = await reserveUseCase(input);
@@ -229,7 +229,7 @@ describe("makeReserveUseCase", () => {
     expect(saveMock).not.toHaveBeenCalled();
   });
 
-  it("returns err(GenericError) when saving ausiliar data fails", async () => {
+  it("returns err(GenericError) when saving auxiliary data fails", async () => {
     const error = new GenericError("save failed");
     saveMock.mockResolvedValueOnce(err(error));
 
@@ -238,7 +238,7 @@ describe("makeReserveUseCase", () => {
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr()).toEqual(
       new GenericError(
-        `Could not save ausiliar data, caused by: ${error.message}`,
+        `Could not save auxiliary data, caused by: ${error.message}`,
       ),
     );
   });

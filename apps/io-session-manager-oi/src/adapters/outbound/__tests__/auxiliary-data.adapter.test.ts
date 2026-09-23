@@ -5,12 +5,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RedisClientType } from "redis";
 
 import {
-  AusiliarDataRedisAdapter,
-  REDIS_AUSILIAR_DATA_PREFIX,
-} from "../ausiliar-data.adapter.js";
+  AuxiliaryDataRedisAdapter,
+  REDIS_AUXILIARY_DATA_PREFIX,
+} from "../auxiliary-data.adapter.js";
 import {
-  LoginAusiliarData,
-  LoginAusiliarDataSchema,
+  LoginAuxiliaryData,
+  LoginAuxiliaryDataSchema,
 } from "../../../domain/value-objects/login.vo.js";
 import { PositiveIntegerSchema } from "../../../domain/value-objects/positive-integer.vo.js";
 
@@ -21,14 +21,14 @@ import { PositiveIntegerSchema } from "../../../domain/value-objects/positive-in
 const ID = "d19de497-b356-483f-a9ce-9f8671615a9f";
 const TTL_SECONDS = PositiveIntegerSchema.parse(900);
 
-const AUSILIAR_DATA: LoginAusiliarData = {
+const AUXILIARY_DATA: LoginAuxiliaryData = {
   loginType: "LV",
   lollipopAssertionRef:
-    "sha256-thumbprint" as LoginAusiliarData["lollipopAssertionRef"],
-  clientId: "client-id" as LoginAusiliarData["clientId"],
+    "sha256-thumbprint" as LoginAuxiliaryData["lollipopAssertionRef"],
+  clientId: "client-id" as LoginAuxiliaryData["clientId"],
   minAuthLevel: "SpidL2",
   oidcConfigurationEnv: "PROD",
-  nonce: "a-nonce" as LoginAusiliarData["nonce"],
+  nonce: "a-nonce" as LoginAuxiliaryData["nonce"],
 };
 
 const saveMock = vi.fn();
@@ -41,11 +41,11 @@ const wrapperStub = {
   getAndDelete: getAndDeleteMock,
   getClient: getClientMock,
 } as unknown as RedisObjectWrapper<
-  typeof LoginAusiliarDataSchema,
+  typeof LoginAuxiliaryDataSchema,
   RedisClientType
 >;
 
-const adapter = new AusiliarDataRedisAdapter(wrapperStub, TTL_SECONDS);
+const adapter = new AuxiliaryDataRedisAdapter(wrapperStub, TTL_SECONDS);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -55,7 +55,7 @@ beforeEach(() => {
 // healthcheck
 // ---------------------------------------------------------------------------
 
-describe("AusiliarDataRedisAdapter#healthcheck", () => {
+describe("AuxiliaryDataRedisAdapter#healthcheck", () => {
   it("returns ok(undefined) when PING replies PONG", async () => {
     pingMock.mockResolvedValueOnce("PONG");
 
@@ -92,15 +92,15 @@ describe("AusiliarDataRedisAdapter#healthcheck", () => {
 // save
 // ---------------------------------------------------------------------------
 
-describe("AusiliarDataRedisAdapter#save", () => {
+describe("AuxiliaryDataRedisAdapter#save", () => {
   it("returns ok(undefined) when the wrapper saves successfully", async () => {
     saveMock.mockResolvedValueOnce(ok(undefined));
 
-    const result = await adapter.save(ID, AUSILIAR_DATA);
+    const result = await adapter.save(ID, AUXILIARY_DATA);
 
     expect(saveMock).toHaveBeenCalledExactlyOnceWith(
-      `${REDIS_AUSILIAR_DATA_PREFIX}${ID}`,
-      AUSILIAR_DATA,
+      `${REDIS_AUXILIARY_DATA_PREFIX}${ID}`,
+      AUXILIARY_DATA,
       { expiration: { type: "EX", value: TTL_SECONDS } },
     );
     expect(result).toEqual(ok(undefined));
@@ -110,7 +110,7 @@ describe("AusiliarDataRedisAdapter#save", () => {
     const wrapperError = new GenericError("SET failed");
     saveMock.mockResolvedValueOnce(err(wrapperError));
 
-    const result = await adapter.save(ID, AUSILIAR_DATA);
+    const result = await adapter.save(ID, AUXILIARY_DATA);
 
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr()).toEqual(
@@ -123,16 +123,16 @@ describe("AusiliarDataRedisAdapter#save", () => {
 // retrieve
 // ---------------------------------------------------------------------------
 
-describe("AusiliarDataRedisAdapter#retrieve", () => {
-  it("returns ok(LoginAusiliarData) when the wrapper finds the value", async () => {
-    getAndDeleteMock.mockResolvedValueOnce(ok(AUSILIAR_DATA));
+describe("AuxiliaryDataRedisAdapter#retrieve", () => {
+  it("returns ok(LoginAuxiliaryData) when the wrapper finds the value", async () => {
+    getAndDeleteMock.mockResolvedValueOnce(ok(AUXILIARY_DATA));
 
     const result = await adapter.retrieve(ID);
 
     expect(getAndDeleteMock).toHaveBeenCalledExactlyOnceWith(
-      `${REDIS_AUSILIAR_DATA_PREFIX}${ID}`,
+      `${REDIS_AUXILIARY_DATA_PREFIX}${ID}`,
     );
-    expect(result).toEqual(ok(AUSILIAR_DATA));
+    expect(result).toEqual(ok(AUXILIARY_DATA));
   });
 
   it("returns ok(undefined) when the wrapper finds no value", async () => {
@@ -142,7 +142,7 @@ describe("AusiliarDataRedisAdapter#retrieve", () => {
 
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr()).toEqual(
-      new NotFoundError("LoginAusiliarData", "LoginAusiliarData Not Found"),
+      new NotFoundError("LoginAuxiliaryData", "LoginAuxiliaryData Not Found"),
     );
   });
 

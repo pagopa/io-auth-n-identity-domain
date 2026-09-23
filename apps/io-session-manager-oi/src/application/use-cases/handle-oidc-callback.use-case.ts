@@ -8,7 +8,7 @@ import {
 import { IPString } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok } from "neverthrow";
 
-import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
+import { AuxiliaryDataPort } from "../../domain/ports/outbound/auxiliary-data.port.js";
 import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
 import { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
 
@@ -37,7 +37,7 @@ export type HandleOidcCallbackInput = {
 };
 
 export type HandleOidcCallbackDeps = {
-  ausiliarDataPort: AusiliarDataPort;
+  auxiliaryDataPort: AuxiliaryDataPort;
   oidcPort: OidcClientPort;
   activateUserSessionUseCase: ActivateUserSessionUseCase;
 };
@@ -71,15 +71,15 @@ export const makeHandleOidcCallbackUseCase =
   async ({ callback, ipAddress }) => {
     // Retrieve (and, once on Redis getDel, consume) the reserved login data
     // even for an error response, so the state cannot be replayed.
-    const ausiliarDataResult = await deps.ausiliarDataPort.retrieve(
+    const auxiliaryDataResult = await deps.auxiliaryDataPort.retrieve(
       callback.state,
     );
-    if (ausiliarDataResult.isErr()) {
-      return ausiliarDataResult.error instanceof NotFoundError
+    if (auxiliaryDataResult.isErr()) {
+      return auxiliaryDataResult.error instanceof NotFoundError
         ? err(new AuthenticationError())
-        : err(new GenericError(ausiliarDataResult.error.message));
+        : err(new GenericError(auxiliaryDataResult.error.message));
     }
-    const ausiliarData = ausiliarDataResult.value;
+    const auxiliaryData = auxiliaryDataResult.value;
 
     if (callback.code === undefined) {
       return ok({
@@ -90,10 +90,10 @@ export const makeHandleOidcCallbackUseCase =
     }
 
     const exchangeResult = await deps.oidcPort.exchange({
-      env: ausiliarData.oidcConfigurationEnv,
+      env: auxiliaryData.oidcConfigurationEnv,
       code: callback.code,
       state: callback.state,
-      expectedNonce: ausiliarData.nonce,
+      expectedNonce: auxiliaryData.nonce,
     });
     if (exchangeResult.isErr()) {
       return err(exchangeResult.error);
@@ -108,7 +108,7 @@ export const makeHandleOidcCallbackUseCase =
       spidLevel: claims.acr,
       spidEmail: claims.email,
       ipAddress,
-      loginType: ausiliarData.loginType,
+      loginType: auxiliaryData.loginType,
       //TODO: map to readable Identity Provider name
       identityProvider: claims.iss,
     };

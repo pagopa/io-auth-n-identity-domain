@@ -4,7 +4,7 @@ import { z } from "zod";
 import { PositiveIntegerSchema } from "../positive-integer.vo.js";
 
 export const RedisProductionConfigSchema = z.object({
-  LOGIN_AUSILIAR_DATA_TTL_SECONDS: PositiveIntegerSchema.default(
+  LOGIN_AUXILIARY_DATA_TTL_SECONDS: PositiveIntegerSchema.default(
     PositiveIntegerSchema.parse(900),
   ),
   REDIS_HOSTNAME: NonEmptyStringSchema,

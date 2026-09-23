@@ -3,21 +3,21 @@ import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 import { err, ok, type Result } from "neverthrow";
 import { RedisClientType, RedisClusterType } from "redis";
 
-import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
+import { AuxiliaryDataPort } from "../../domain/ports/outbound/auxiliary-data.port.js";
 import {
-  LoginAusiliarData,
-  LoginAusiliarDataSchema,
+  LoginAuxiliaryData,
+  LoginAuxiliaryDataSchema,
 } from "../../domain/value-objects/login.vo.js";
 import { PositiveInteger } from "../../domain/value-objects/positive-integer.vo.js";
 
-export const REDIS_AUSILIAR_DATA_PREFIX = "RESERVE-";
+export const REDIS_AUXILIARY_DATA_PREFIX = "RESERVE-";
 
 const EXPECTED_PING_REPLY = "PONG";
 
-export class AusiliarDataRedisAdapter implements AusiliarDataPort {
+export class AuxiliaryDataRedisAdapter implements AuxiliaryDataPort {
   constructor(
     private readonly redis: RedisObjectWrapper<
-      typeof LoginAusiliarDataSchema,
+      typeof LoginAuxiliaryDataSchema,
       RedisClientType | RedisClusterType
     >,
     private readonly ttlSeconds: PositiveInteger,
@@ -44,10 +44,10 @@ export class AusiliarDataRedisAdapter implements AusiliarDataPort {
 
   async save(
     id: string,
-    obj: LoginAusiliarData,
+    obj: LoginAuxiliaryData,
   ): Promise<Result<undefined, GenericError>> {
     const result = await this.redis.save(
-      `${REDIS_AUSILIAR_DATA_PREFIX}${id}`,
+      `${REDIS_AUXILIARY_DATA_PREFIX}${id}`,
       obj,
       { expiration: { type: "EX", value: this.ttlSeconds } },
     );
@@ -63,9 +63,9 @@ export class AusiliarDataRedisAdapter implements AusiliarDataPort {
 
   async retrieve(
     id: string,
-  ): Promise<Result<LoginAusiliarData, GenericError | NotFoundError>> {
+  ): Promise<Result<LoginAuxiliaryData, GenericError | NotFoundError>> {
     const result = await this.redis.getAndDelete(
-      `${REDIS_AUSILIAR_DATA_PREFIX}${id}`,
+      `${REDIS_AUXILIARY_DATA_PREFIX}${id}`,
     );
     if (result.isErr()) {
       return err(
@@ -76,7 +76,7 @@ export class AusiliarDataRedisAdapter implements AusiliarDataPort {
     }
     if (result.value === undefined) {
       return err(
-        new NotFoundError("LoginAusiliarData", "LoginAusiliarData Not Found"),
+        new NotFoundError("LoginAuxiliaryData", "LoginAuxiliaryData Not Found"),
       );
     }
     return ok(result.value);
