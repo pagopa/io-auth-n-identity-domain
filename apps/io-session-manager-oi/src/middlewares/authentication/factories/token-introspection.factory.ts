@@ -6,7 +6,7 @@ import {
   SessionTokenIntrospectionStrategy,
   type TokenIntrospectionStrategy,
   FimsTokenIntrospectionStrategy,
-  WalletTokenIntrospectionStrategy,
+  PagopaTokenIntrospectionStrategy,
 } from "../strategies/token-introspection.strategy.js";
 
 /**
@@ -23,8 +23,8 @@ export class TokenIntrospectionStrategyFactory {
         return new BpdTokenIntrospectionStrategy(this.sessionPort);
       case "fims":
         return new FimsTokenIntrospectionStrategy(this.sessionPort);
-      case "wallet":
-        return new WalletTokenIntrospectionStrategy(this.sessionPort);
+      case "pagopa":
+        return new PagopaTokenIntrospectionStrategy(this.sessionPort);
       default:
         const _exhaustiveCheck: never = tokenType;
         throw new Error(`Unsupported token type: ${tokenType}`);

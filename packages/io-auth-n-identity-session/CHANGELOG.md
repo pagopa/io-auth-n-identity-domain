@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.7.1
+
+### Patch Changes
+
+- c0b0fe4: Rename Wallet token to PagoPA token
+
 ## 0.7.0
 
 ### Minor Changes

@@ -12,11 +12,11 @@ import { err, ok } from "neverthrow";
 
 import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 
-export type GetUserForPagoPaInput = {
+export type GetUserForPagopaInput = {
   session: BaseSession;
 };
 
-export type GetUserForPagoPaOutput = {
+export type GetUserForPagopaOutput = {
   name: NonEmptyString;
   family_name: NonEmptyString;
   fiscal_code: FiscalCode;
@@ -24,21 +24,21 @@ export type GetUserForPagoPaOutput = {
   notice_email: EmailAddress;
 };
 
-export type GetUserForPagoPaError = AuthenticationError | GenericError;
+export type GetUserForPagopaError = AuthenticationError | GenericError;
 
-type GetUserForPagoPaDeps = {
+type GetUserForPagopaDeps = {
   profilePort: ProfilePort;
 };
 
-export type GetUserForPagoPaUseCase = UseCase<
-  GetUserForPagoPaInput,
-  GetUserForPagoPaOutput,
-  GetUserForPagoPaError
+export type GetUserForPagopaUseCase = UseCase<
+  GetUserForPagopaInput,
+  GetUserForPagopaOutput,
+  GetUserForPagopaError
 >;
 
-export const makeGetUserForPagoPaUseCase =
-  (deps: GetUserForPagoPaDeps): GetUserForPagoPaUseCase =>
-  async ({ session }: GetUserForPagoPaInput) => {
+export const makeGetUserForPagopaUseCase =
+  (deps: GetUserForPagopaDeps): GetUserForPagopaUseCase =>
+  async ({ session }: GetUserForPagopaInput) => {
     const profileLookup = await deps.profilePort.getProfile(session.fiscalCode);
 
     if (profileLookup.isErr()) {
