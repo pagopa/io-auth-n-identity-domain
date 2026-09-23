@@ -95,8 +95,8 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "sm_oidc_callback_erro
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
   description             = <<-EOT
-    Detected multiple errors inside the OIDC callback endpoint. For more info
-  see events details
+    Detected multiple errors inside the OIDC callback endpoint. Please
+  see https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/3351479845/SM+Errori+flusso+di+callback
   EOT
   severity                = 1
   auto_mitigation_enabled = true
@@ -109,10 +109,10 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "sm_oidc_callback_erro
 
   criteria {
     query                   = <<-QUERY
-customEvents
-| where name matches regex "session-manager\\.oidc\\.callback\\.(.+)\\.error"
-| extend category = extract("session-manager\\.oidc\\.callback\\.(.+)\\.error",1,name)
-| project name, category, customDimensions.errorMessage
+    customEvents
+    | where name startswith "session-manager.oidc.callback." and name endswith ".error"
+    | parse name with "session-manager.oidc.callback." category ".error"
+    | where tostring(customDimensions.env) != "UAT"
     QUERY
     operator                = "GreaterThanOrEqual"
     time_aggregation_method = "Count"
@@ -137,8 +137,8 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "sm_oidc_reserve_error
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
   description             = <<-EOT
-    Detected multiple errors inside the OIDC reserve endpoint. For more info
-  see events details
+    Detected multiple errors inside the OIDC reserve endpoint. Please
+  see https://pagopa.atlassian.net/wiki/spaces/IAEI/pages/3351511321/SM+Errori+flusso+di+reserve
   EOT
   severity                = 1
   auto_mitigation_enabled = true
@@ -151,10 +151,10 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "sm_oidc_reserve_error
 
   criteria {
     query                   = <<-QUERY
-customEvents
-| where name matches regex "session-manager\\.oidc\\.reserve\\.(.+)\\.error"
-| extend category = extract("session-manager\\.oidc\\.reserve\\.(.+)\\.error",1,name)
-| project name, category, customDimensions.errorMessage
+    customEvents
+    | where name startswith "session-manager.oidc.reserve." and name endswith ".error"
+    | parse name with "session-manager.oidc.reserve." category ".error"
+    | where tostring(customDimensions.env) != "UAT"
     QUERY
     operator                = "GreaterThanOrEqual"
     time_aggregation_method = "Count"
