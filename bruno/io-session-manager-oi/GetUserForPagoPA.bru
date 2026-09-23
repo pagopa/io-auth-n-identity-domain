@@ -1,5 +1,5 @@
 meta {
-  name: GetUserForWallet
+  name: GetUserForPagoPA
   type: http
   seq: 7
 }
@@ -11,7 +11,7 @@ get {
 }
 
 auth:bearer {
-  token: {{walletClientSessionToken}}
+  token: {{pagopaClientSessionToken}}
 }
 
 settings {
