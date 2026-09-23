@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   description: PagoPA SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.
   title: PagoPA API for user authentication.
-  version: 0.23.0
+  version: 0.23.1
 servers:
   - url: https://api-app.io.pagopa.it/api/sso/pagopa/v2
 tags:
