@@ -18,6 +18,33 @@ script:pre-request {
   req.setMaxRedirects(0);
 }
 
+script:post-response {
+  if(res.status !== 200) {
+    return 0;
+  }
+  
+  const resTokens = ["walletToken", "pagopaToken", "bpdToken", "zendeskToken", "fimsToken"];
+  const brunoTokens = ["pagopaClientSessionToken", "pagopaClientSessionToken", "bpdClientSessionToken", "zendeskClientSessionToken", "fimsClientSessionToken"];
+  const tokens = resTokens.map(function(elem, index) {
+    return [elem, brunoTokens[index]];
+  });
+  
+  const missingTokens = [];
+  
+  tokens.forEach(([resToken, brunoToken]) => {
+    if (res.body[resToken]) {
+      bru.setEnvVar(brunoToken, res.body[resToken]);
+    }
+    else {
+      missingTokens.push(resToken);
+    }
+  });
+  
+  if (missingTokens.length > 0) {
+    console.log(`Missing tokens in response body: ${missingTokens.join(", ")}. If needed, update the query parameter 'fields'.`);
+  }
+}
+
 settings {
   encodeUrl: true
   timeout: 0
