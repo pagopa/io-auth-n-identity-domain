@@ -7,18 +7,18 @@ import { readableReportSimplified } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { Second } from "@pagopa/ts-commons/lib/units";
 import { RedisRepo } from "../repositories";
-import { oidcAusiliarDataPrefix } from "../repositories/redis";
-import { LoginAusiliarData } from "../types/oidc";
+import { oidcAuxiliaryDataPrefix } from "../repositories/redis";
+import { LoginAuxiliaryData } from "../types/oidc";
 import { RedisClientMode } from "../types/redis";
 
-const parseLoginAusiliarData = (
+const parseLoginAuxiliaryData = (
   value: string,
-): E.Either<Error, LoginAusiliarData> =>
+): E.Either<Error, LoginAuxiliaryData> =>
   pipe(
     E.parseJSON(value, E.toError),
     E.chain(
       flow(
-        LoginAusiliarData.decode,
+        LoginAuxiliaryData.decode,
         E.mapLeft((err) => new Error(readableReportSimplified(err))),
       ),
     ),
@@ -41,18 +41,18 @@ const falsyResponseToErrorAsync =
     );
 
 /**
- * Persists the ausiliar data associated to a reserved OIDC authorization
+ * Persists the auxiliary data associated to a reserved OIDC authorization
  * request, keyed by `state`, with the given expiration. Used by the
  * `reserve` step of the OneIdentity login flow.
  * @param state the `state` value returned by the `reserve` step, used as
  *   the Redis key suffix
- * @param data the ausiliar data to persist
+ * @param data the auxiliary data to persist
  * @param expireSec the expiration (seconds) applied to the stored key
  * @returns whether the value has been correctly stored, or an error
  */
 export const save: (
   state: NonEmptyString,
-  data: LoginAusiliarData,
+  data: LoginAuxiliaryData,
   expireSec: Second,
 ) => RTE.ReaderTaskEither<RedisRepo.RedisRepositoryDeps, Error, boolean> =
   (state, data, expireSec) => (deps) =>
@@ -62,18 +62,18 @@ export const save: (
           deps.redisClientSelector
             .selectOne(RedisClientMode.FAST)
             .setEx(
-              `${oidcAusiliarDataPrefix}${state}`,
+              `${oidcAuxiliaryDataPrefix}${state}`,
               expireSec,
-              JSON.stringify(LoginAusiliarData.encode(data)),
+              JSON.stringify(LoginAuxiliaryData.encode(data)),
             ),
         E.toError,
       ),
       singleStringReplyAsync,
-      falsyResponseToErrorAsync(new Error("Error setting ausiliar data key")),
+      falsyResponseToErrorAsync(new Error("Error setting auxiliary data key")),
     );
 
 /**
- * Reads and then deletes the ausiliar data associated to a reserved
+ * Reads and then deletes the auxiliary data associated to a reserved
  * OIDC authorization request `state`. The data is single-use: it's meant
  * to be consumed once by the (future) callback step of the OneIdentity
  * login flow, which is why the read is paired with a delete.
@@ -84,7 +84,7 @@ export const save: (
  * issued after a successful `GET`.
  * @param state the `state` value returned by the `reserve` step, used as
  *   the Redis key suffix
- * @returns the ausiliar data if present, `none` if the key was missing or
+ * @returns the auxiliary data if present, `none` if the key was missing or
  *   already expired, or an error
  */
 export const getAndDelete: (
@@ -92,9 +92,9 @@ export const getAndDelete: (
 ) => RTE.ReaderTaskEither<
   RedisRepo.RedisRepositoryDeps,
   Error,
-  O.Option<LoginAusiliarData>
+  O.Option<LoginAuxiliaryData>
 > = (state) => (deps) => {
-  const key = `${oidcAusiliarDataPrefix}${state}`;
+  const key = `${oidcAuxiliaryDataPrefix}${state}`;
   const redisClient = deps.redisClientSelector.selectOne(
     RedisClientMode.FAST,
   );
@@ -105,12 +105,12 @@ export const getAndDelete: (
         value,
         O.fromNullable,
         O.fold(
-          () => TE.right<Error, O.Option<LoginAusiliarData>>(O.none),
+          () => TE.right<Error, O.Option<LoginAuxiliaryData>>(O.none),
           (raw) =>
             pipe(
               TE.tryCatch(() => redisClient.del(key), E.toError),
               TE.chain(() =>
-                pipe(parseLoginAusiliarData(raw), E.map(O.some), TE.fromEither),
+                pipe(parseLoginAuxiliaryData(raw), E.map(O.some), TE.fromEither),
               ),
             ),
         ),

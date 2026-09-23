@@ -17,7 +17,7 @@ import {
 } from "@pagopa/ts-commons/lib/responses";
 import {
   getOneIdEnvConfig,
-  LOGIN_AUSILIAR_DATA_TTL_SECONDS,
+  LOGIN_AUXILIARY_DATA_TTL_SECONDS,
   OidcEnvConfig,
   ONEID_HTTP_TIMEOUT_SECONDS,
 } from "../config/one-id";
@@ -32,11 +32,11 @@ import {
   CallbackSuccessInput,
   ExchangeCodeAPIResponse,
   ExchangeCodeResult,
-  LoginAusiliarData,
+  LoginAuxiliaryData,
   OidcUserClaims,
   ReserveInput,
 } from "../types/oidc";
-import { getAndDelete, save } from "./redis-ausiliar-data";
+import { getAndDelete, save } from "./redis-auxiliary-data";
 import { getNewTokenAsync } from "./token";
 import { UrlFromString, ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { AppInsightsDeps } from "../utils/appinsights";
@@ -87,7 +87,7 @@ export const reserve =
     // NOTE: The public key has already been reserved (and the assertion ref
     // computed the same way) by `lollipopLoginMiddleware`, so we only need
     // to recompute the same assertion ref here to persist it in the
-    // ausiliar data.
+    // auxiliary data.
     const jwkThumbprint = await calculateJwkThumbprint(
       input.jwk,
       input.jwkPubKeyHashAlgorithm,
@@ -137,7 +137,7 @@ export const reserve =
       return ResponseErrorInternal(`Could not parse auth endpoint`);
     }
 
-    const ausiliarData: LoginAusiliarData = {
+    const auxiliaryData: LoginAuxiliaryData = {
       clientId: envConfig.clientId,
       currentUser: input.currentUser,
       lollipopAssertionRef,
@@ -149,20 +149,20 @@ export const reserve =
 
     const saveResult = await save(
       state,
-      ausiliarData,
-      LOGIN_AUSILIAR_DATA_TTL_SECONDS,
+      auxiliaryData,
+      LOGIN_AUXILIARY_DATA_TTL_SECONDS,
     )(deps)();
     if (E.isLeft(saveResult)) {
       // reserve operation is retriable, therefore this event can follow
       // sampling strategy
       deps.appInsightsTelemetryClient?.trackEvent({
-        name: "session-manager.oidc.reserve.ausiliar-data.error",
+        name: "session-manager.oidc.reserve.auxiliary-data.error",
         properties: {
           env: input.env,
           errorMessage: saveResult.left.message,
         },
       });
-      return ResponseErrorInternal(`Could not save ausiliar data`);
+      return ResponseErrorInternal(`Could not save auxiliary data`);
     }
 
     return ResponseSuccessJson({
@@ -186,14 +186,14 @@ export type ResolvedOidcConfiguration = {
   oidcConfiguration: client.Configuration;
 };
 
-export const getLoginAusiliarData =
+export const getLoginAuxiliaryData =
   (deps: RedisRepo.RedisRepositoryDeps) =>
-  (state: NonEmptyString): Promise<E.Either<Error, LoginAusiliarData>> =>
+  (state: NonEmptyString): Promise<E.Either<Error, LoginAuxiliaryData>> =>
     pipe(
       getAndDelete(state)(deps),
       TE.chainEitherKW(
         E.fromOption(
-          () => new Error("Missing or expired OIDC login ausiliar data"),
+          () => new Error("Missing or expired OIDC login auxiliary data"),
         ),
       ),
     )();
@@ -222,7 +222,7 @@ export const resolveOidcEnvConfiguration = async (
 export const exchangeCode = async (
   oidcConfiguration: client.Configuration,
   envConfig: OidcEnvConfig,
-  ausiliarData: LoginAusiliarData,
+  auxiliaryData: LoginAuxiliaryData,
   input: CallbackSuccessInput,
 ): Promise<E.Either<Error, ExchangeCodeResult>> => {
   const currentUrl = new URL(envConfig.redirectUri.href);
@@ -241,7 +241,7 @@ export const exchangeCode = async (
       oidcConfiguration,
       currentUrl,
       {
-        expectedNonce: ausiliarData.nonce,
+        expectedNonce: auxiliaryData.nonce,
         expectedState: input.state,
         idTokenExpected: true,
       },
@@ -314,7 +314,7 @@ export const getSAMLAssertion = async (
 /**
  * Performs the required verifications on the SAML assertion retrieved from
  * OneIdentity, cross-checking it against the id token claims (already
- * decoded in `exchangeCode`) and the ausiliar data saved at `reserve` time:
+ * decoded in `exchangeCode`) and the auxiliary data saved at `reserve` time:
  *
  * 1. the assertion is well formed and has not been tampered with
  * 2. `fiscalNumber` in the id token claims matches the one in the assertion
@@ -326,7 +326,7 @@ export const getSAMLAssertion = async (
 export const performSAMLAssertionChecks = (
   samlAssertion: Document,
   idTokenClaims: OidcUserClaims,
-  ausiliarData: LoginAusiliarData,
+  auxiliaryData: LoginAuxiliaryData,
 ): TE.TaskEither<Error, true> =>
   pipe(
     AP.sequenceT(TE.ApplicativePar)(
@@ -358,7 +358,7 @@ export const performSAMLAssertionChecks = (
             new Error("Could not extract InResponseTo from the SAML assertion"),
         ),
         E.chain((inResponseTo) =>
-          inResponseTo === ausiliarData.lollipopAssertionRef
+          inResponseTo === auxiliaryData.lollipopAssertionRef
             ? E.right(true as const)
             : E.left(
                 new Error(
@@ -369,7 +369,7 @@ export const performSAMLAssertionChecks = (
         TE.fromEither,
       ),
       pipe(
-        isSpidLevelGreaterOrEqual(idTokenClaims.acr, ausiliarData.minAuthLevel)
+        isSpidLevelGreaterOrEqual(idTokenClaims.acr, auxiliaryData.minAuthLevel)
           ? E.right(true as const)
           : E.left(
               new Error(
@@ -408,14 +408,14 @@ export const buildSpidUserPayload = (
 export const OIDCCallback =
   (deps: CallbackDeps & WithExpressRequest) =>
   async (input: CallbackSuccessInput): Promise<CallbackOutput> => {
-    const ausiliarDataResult = await getLoginAusiliarData(deps)(input.state);
-    if (E.isLeft(ausiliarDataResult)) {
+    const auxiliaryDataResult = await getLoginAuxiliaryData(deps)(input.state);
+    if (E.isLeft(auxiliaryDataResult)) {
       // the state is either unknown/forged or has already been consumed,
       // hence not retriable
       deps.appInsightsTelemetryClient?.trackEvent({
-        name: "session-manager.oidc.callback.ausiliar-data.error",
+        name: "session-manager.oidc.callback.auxiliary-data.error",
         properties: {
-          errorMessage: ausiliarDataResult.left.message,
+          errorMessage: auxiliaryDataResult.left.message,
         },
         tagOverrides: {
           samplingEnabled: "false",
@@ -426,16 +426,16 @@ export const OIDCCallback =
         "Missing or expired login state",
       );
     }
-    const ausiliarData = ausiliarDataResult.right;
+    const auxiliaryData = auxiliaryDataResult.right;
 
     const envConfigurationResult = await resolveOidcEnvConfiguration(
-      ausiliarData.oidcConfigurationEnv,
+      auxiliaryData.oidcConfigurationEnv,
     );
     if (E.isLeft(envConfigurationResult)) {
       deps.appInsightsTelemetryClient?.trackEvent({
         name: "session-manager.oidc.callback.discovery.error",
         properties: {
-          env: ausiliarData.oidcConfigurationEnv,
+          env: auxiliaryData.oidcConfigurationEnv,
           errorMessage: envConfigurationResult.left.message,
         },
         tagOverrides: {
@@ -449,14 +449,14 @@ export const OIDCCallback =
     const exchangeResult = await exchangeCode(
       oidcConfiguration,
       envConfig,
-      ausiliarData,
+      auxiliaryData,
       input,
     );
     if (E.isLeft(exchangeResult)) {
       deps.appInsightsTelemetryClient?.trackEvent({
         name: "session-manager.oidc.callback.code-exchange.error",
         properties: {
-          env: ausiliarData.oidcConfigurationEnv,
+          env: auxiliaryData.oidcConfigurationEnv,
           errorMessage: exchangeResult.left.message,
         },
         tagOverrides: {
@@ -476,7 +476,7 @@ export const OIDCCallback =
       deps.appInsightsTelemetryClient?.trackEvent({
         name: "session-manager.oidc.callback.saml-assertion.error",
         properties: {
-          env: ausiliarData.oidcConfigurationEnv,
+          env: auxiliaryData.oidcConfigurationEnv,
           errorMessage: getSAMLAssertionResult.left.message,
         },
         tagOverrides: {
@@ -490,13 +490,13 @@ export const OIDCCallback =
     const verifySAMLAssertionResult = await performSAMLAssertionChecks(
       samlAssertion.assertion,
       claims,
-      ausiliarData,
+      auxiliaryData,
     )();
     if (E.isLeft(verifySAMLAssertionResult)) {
       deps.appInsightsTelemetryClient?.trackEvent({
         name: "session-manager.oidc.callback.saml-verification.error",
         properties: {
-          env: ausiliarData.oidcConfigurationEnv,
+          env: auxiliaryData.oidcConfigurationEnv,
           errorMessage: verifySAMLAssertionResult.left.message,
         },
         tagOverrides: {
@@ -516,8 +516,8 @@ export const OIDCCallback =
     );
 
     const additionalProps: AdditionalLoginPropsT = {
-      loginType: ausiliarData.loginType,
-      currentUser: ausiliarData.currentUser,
+      loginType: auxiliaryData.loginType,
+      currentUser: auxiliaryData.currentUser,
     };
 
     // The validation cookie is not part of the OIDC callback flow, so the user
@@ -528,6 +528,6 @@ export const OIDCCallback =
       // Return an already built SPID-user payload.
       validateSpidUser: (_rawValue: unknown) => E.right(userPayload),
       getIdentityProvider: (issuer) =>
-        getIdpFriendlyName(ausiliarData.oidcConfigurationEnv, issuer),
+        getIdpFriendlyName(auxiliaryData.oidcConfigurationEnv, issuer),
     })(userPayload, additionalProps);
   };

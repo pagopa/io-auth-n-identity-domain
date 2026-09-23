@@ -10,16 +10,16 @@ import {
   mockSetEx,
   mockRedisClientSelector,
 } from "../../__mocks__/redis.mocks";
-import { LoginAusiliarData } from "../../types/oidc";
-import { save, getAndDelete } from "../redis-ausiliar-data";
+import { LoginAuxiliaryData } from "../../types/oidc";
+import { save, getAndDelete } from "../redis-auxiliary-data";
 
 const aState = "a-state-token" as NonEmptyString;
 const anExpireSec = 900 as Second;
 
-const anAusiliarData: LoginAusiliarData = {
+const anAuxiliaryData: LoginAuxiliaryData = {
   clientId: "a-client-id" as NonEmptyString,
   lollipopAssertionRef:
-    "sha256-anAssertionRef" as LoginAusiliarData["lollipopAssertionRef"],
+    "sha256-anAssertionRef" as LoginAuxiliaryData["lollipopAssertionRef"],
   minAuthLevel: "SpidL2",
   nonce: "a-nonce" as NonEmptyString,
   oidcConfigurationEnv: "PROD",
@@ -32,7 +32,7 @@ describe("RedisAuxiliarData#save", () => {
     mockSetEx.mockImplementationOnce(() => Promise.resolve("OK"));
 
     await pipe(
-      save(aState, anAusiliarData, anExpireSec)(deps),
+      save(aState, anAuxiliaryData, anExpireSec)(deps),
       TE.map((result) => expect(result).toEqual(true)),
       TE.mapLeft((err) => expect(err).toBeFalsy()),
     )();
@@ -41,7 +41,7 @@ describe("RedisAuxiliarData#save", () => {
     expect(mockSetEx).toHaveBeenCalledWith(
       `RESERVE-${aState}`,
       anExpireSec,
-      JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
+      JSON.stringify(LoginAuxiliaryData.encode(anAuxiliaryData)),
     );
   });
 
@@ -50,7 +50,7 @@ describe("RedisAuxiliarData#save", () => {
     mockSetEx.mockImplementationOnce(() => Promise.reject(expectedError));
 
     await pipe(
-      save(aState, anAusiliarData, anExpireSec)(deps),
+      save(aState, anAuxiliaryData, anExpireSec)(deps),
       TE.map((result) => expect(result).toBeFalsy()),
       TE.mapLeft((err) => expect(err).toEqual(expectedError)),
     )();
@@ -60,7 +60,7 @@ describe("RedisAuxiliarData#save", () => {
     mockSetEx.mockImplementationOnce(() => Promise.resolve(null));
 
     await pipe(
-      save(aState, anAusiliarData, anExpireSec)(deps),
+      save(aState, anAuxiliaryData, anExpireSec)(deps),
       TE.map((result) => expect(result).toBeFalsy()),
       TE.mapLeft((err) => expect(err).toBeTruthy()),
     )();
@@ -72,15 +72,15 @@ describe("RedisAuxiliarData#getAndDelete", () => {
     vi.clearAllMocks();
   });
 
-  test("should succeed and return the stored ausiliar data", async () => {
+  test("should succeed and return the stored auxiliary data", async () => {
     mockGet.mockImplementationOnce(() =>
-      Promise.resolve(JSON.stringify(LoginAusiliarData.encode(anAusiliarData))),
+      Promise.resolve(JSON.stringify(LoginAuxiliaryData.encode(anAuxiliaryData))),
     );
     mockDel.mockImplementationOnce(() => Promise.resolve(1));
 
     await pipe(
       getAndDelete(aState)(deps),
-      TE.map((result) => expect(result).toEqual(O.some(anAusiliarData))),
+      TE.map((result) => expect(result).toEqual(O.some(anAuxiliaryData))),
       TE.mapLeft((err) => expect(err).toBeFalsy()),
     )();
 
@@ -118,7 +118,7 @@ describe("RedisAuxiliarData#getAndDelete", () => {
   test("should fail with a left response if an error occurs on redis del", async () => {
     const expectedError = new Error("redis Error");
     mockGet.mockImplementationOnce(() =>
-      Promise.resolve(JSON.stringify(LoginAusiliarData.encode(anAusiliarData))),
+      Promise.resolve(JSON.stringify(LoginAuxiliaryData.encode(anAuxiliaryData))),
     );
     mockDel.mockImplementationOnce(() => Promise.reject(expectedError));
 
