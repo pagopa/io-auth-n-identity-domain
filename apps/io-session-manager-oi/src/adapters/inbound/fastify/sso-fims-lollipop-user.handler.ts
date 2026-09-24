@@ -83,6 +83,6 @@ export const mountSsoFimsLollipopUserHandler = (
 };
 
 // Widened for the OpenAPI generator: exporting the inferred contract type would
-// leak the branded `unique symbol` of `SsoFimsUserOutputDTO` (TS2527).
+// leak the branded `unique symbol` of `SsoFimsLollipopUserOutputDto` (TS2527).
 export const ssoFimsLollipopUserRoute: AnyRouteContract =
   ssoFimsLollipopUserContract;
