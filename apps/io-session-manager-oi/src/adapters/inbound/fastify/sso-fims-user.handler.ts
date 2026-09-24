@@ -33,6 +33,10 @@ const ssoFimsUserContract = defineRoute({
         "Missing/invalid `Authorization` header, unknown session, or source IP blocked by the allowlist.",
       schema: ProblemJson,
     },
+    404: {
+      description: "User not found",
+      schema: ProblemJson,
+    },
     500: {
       description: "Internal error",
       schema: ProblemJson,
