@@ -52,7 +52,7 @@ const ssoFimsLollipopUserContract = defineRoute({
   security: [{ bearerAuth: [] }],
 });
 
-export type SsoLollipopFimsUserHandlerDeps = {
+export type SsoFimsLollipopUserHandlerDeps = {
   allowedIpSourceRange: ReadonlyArray<string>;
   middlewares: readonly [AuthenticationMiddleware<"fims">];
   useCase: GetLollipopUserForFimsUseCase;
@@ -60,7 +60,7 @@ export type SsoLollipopFimsUserHandlerDeps = {
 
 export const mountSsoFimsLollipopUserHandler = (
   server: FastifyInstance,
-  deps: SsoLollipopFimsUserHandlerDeps,
+  deps: SsoFimsLollipopUserHandlerDeps,
 ): void => {
   // Fastify plugin scope: the check-ip preHandler stays confined to this route.
   server.register((scope, _opts, done) => {
