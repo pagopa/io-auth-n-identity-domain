@@ -3,7 +3,7 @@
 // OpenAPI generator run with tsx. Route contracts carry their own OpenAPI
 // metadata (operationId, summary, tags, …), so this script only assembles and
 // writes them.
-import { mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -26,17 +26,6 @@ import { ssoBpdUserRoute } from "../src/adapters/inbound/fastify/sso-bpd-user.ha
 import { ssoFimsUserRoute } from "../src/adapters/inbound/fastify/sso-fims-user.handler.js";
 import { ssoPagopaUserRoute } from "../src/adapters/inbound/fastify/sso-pagopa-user.handler.js";
 
-interface PackageJson {
-  version: string;
-}
-
-const packageJson = JSON.parse(
-  readFileSync(
-    fileURLToPath(new URL("../package.json", import.meta.url)),
-    "utf8",
-  ),
-) as PackageJson;
-
 const check = process.argv.includes("--check");
 
 interface DocumentSpec {
@@ -46,6 +35,7 @@ interface DocumentSpec {
   readonly routes: ReadonlyArray<AnyRouteContract>;
   readonly tags: ReadonlyArray<{ name: string; description: string }>;
   readonly title: string;
+  readonly version: string;
 }
 
 const stripBasePath =
@@ -74,7 +64,7 @@ const generate = async (spec: DocumentSpec): Promise<boolean> => {
         info: {
           description: spec.description,
           title: spec.title,
-          version: packageJson.version,
+          version: spec.version,
         },
         servers: [{ url: `https://api-app.io.pagopa.it${spec.basePath}` }],
         tags: [...spec.tags],
@@ -130,6 +120,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
       },
     ],
     title: "IO Session Manager OneIdentity API",
+    version: "0.23.1",
   },
   {
     basePath: SSO_BPD_BASE_PATH,
@@ -144,6 +135,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
       },
     ],
     title: "Bonus Pagamenti Digitali API for user authentication.",
+    version: "0.23.1",
   },
   {
     basePath: SSO_FIMS_BASE_PATH,
@@ -158,6 +150,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
       },
     ],
     title: "FIMS API for user authentication.",
+    version: "0.23.1",
   },
   {
     basePath: SSO_PAGOPA_BASE_PATH,
@@ -172,6 +165,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
       },
     ],
     title: "PagoPA API for user authentication.",
+    version: "0.23.1",
   },
 ];
 
