@@ -72,13 +72,13 @@ export const ONEID_HTTP_TIMEOUT_SECONDS = pipe(
   E.getOrElse(() => DEFAULT_ONEID_HTTP_TIMEOUT_SECONDS),
 );
 
-// TTL (seconds) applied to the ausiliar data stored between the `reserve`
+// TTL (seconds) applied to the auxiliary data stored between the `reserve`
 // and the (future) `callback` steps of the OneIdentity login flow.
-const DEFAULT_LOGIN_AUSILIAR_DATA_TTL_SECONDS = 900;
-export const LOGIN_AUSILIAR_DATA_TTL_SECONDS = pipe(
-  process.env.LOGIN_AUSILIAR_DATA_TTL_SECONDS,
+const DEFAULT_LOGIN_AUXILIARY_DATA_TTL_SECONDS = 900;
+export const LOGIN_AUXILIARY_DATA_TTL_SECONDS = pipe(
+  process.env.LOGIN_AUXILIARY_DATA_TTL_SECONDS,
   NonNegativeIntegerFromString.decode,
-  E.getOrElse(() => DEFAULT_LOGIN_AUSILIAR_DATA_TTL_SECONDS),
+  E.getOrElse(() => DEFAULT_LOGIN_AUXILIARY_DATA_TTL_SECONDS),
 ) as Second;
 
 const configByEnv: Readonly<{

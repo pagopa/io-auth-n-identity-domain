@@ -23,7 +23,7 @@ import {
   ResponsePermanentRedirect,
 } from "@pagopa/ts-commons/lib/responses";
 import { pipe } from "fp-ts/lib/function";
-import { getAndDelete } from "../services/redis-ausiliar-data";
+import { getAndDelete } from "../services/redis-auxiliary-data";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 
@@ -60,7 +60,7 @@ export const reserveEndpoint: RTE.ReaderTaskEither<
 /**
  * Errors are forwarded to callback endpoint in the form of query parameters
  * (e.g. ?error=access_denied&state=x&description=22).
- * This utility function decodes the error input and invalidates ausiliar data
+ * This utility function decodes the error input and invalidates auxiliary data
  * with a fire & forget strategy
  *
  * NOTE:
@@ -85,7 +85,7 @@ const decodeAndForwardError = (
         ),
       (errorInput) =>
         pipe(
-          // fire & forget get and delete ausiliar data
+          // fire & forget get and delete auxiliary data
           getAndDelete(errorInput.state)(deps)().catch(() => undefined),
           (_) =>
             TE.left(

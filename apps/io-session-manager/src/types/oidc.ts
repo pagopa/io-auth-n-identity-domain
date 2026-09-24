@@ -41,8 +41,8 @@ export const ReserveInput = t.intersection([
  * server-side (keyed by `state`) between the `reserve` and `callback` steps
  * of the OneIdentity login flow.
  */
-export type LoginAusiliarData = t.TypeOf<typeof LoginAusiliarData>;
-export const LoginAusiliarData = t.intersection([
+export type LoginAuxiliaryData = t.TypeOf<typeof LoginAuxiliaryData>;
+export const LoginAuxiliaryData = t.intersection([
   t.type({
     clientId: NonEmptyString,
     lollipopAssertionRef: AssertionRef,

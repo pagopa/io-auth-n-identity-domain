@@ -26,7 +26,7 @@ import { PlatformInternalAPIClient } from "../../repositories/platform-internal-
 import {
   CallbackDeps,
   exchangeCode,
-  getLoginAusiliarData,
+  getLoginAuxiliaryData,
   getSAMLAssertion,
   OIDCCallback,
   reserve,
@@ -35,7 +35,7 @@ import {
 } from "../oidc";
 import {
   CallbackSuccessInput,
-  LoginAusiliarData,
+  LoginAuxiliaryData,
   ReserveInput,
 } from "../../types/oidc";
 import {
@@ -124,7 +124,7 @@ const anOidcConfiguration = {
 
 const aState = "a-state" as NonEmptyString;
 const aCode = "a-code" as NonEmptyString;
-const anAusiliarData: LoginAusiliarData = {
+const anAuxiliaryData: LoginAuxiliaryData = {
   clientId: "prod-client-id" as NonEmptyString,
   lollipopAssertionRef: anAssertionRef,
   minAuthLevel: SpidAuthLevelEnum.SpidL2,
@@ -190,7 +190,7 @@ describe("OidcService#reserve", () => {
     vi.clearAllMocks();
   });
 
-  test("should compute the lollipop assertion ref, save the ausiliar data and return the OIDC parameters", async () => {
+  test("should compute the lollipop assertion ref, save the auxiliary data and return the OIDC parameters", async () => {
     mockedGetOidcConfiguration.mockResolvedValueOnce(
       anOidcConfiguration as client.Configuration,
     );
@@ -280,7 +280,7 @@ describe("OidcService#reserve", () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
-  test("should return IResponseErrorInternal when saving the ausiliar data fails", async () => {
+  test("should return IResponseErrorInternal when saving the auxiliary data fails", async () => {
     mockedGetOidcConfiguration.mockResolvedValueOnce(
       anOidcConfiguration as never,
     );
@@ -293,34 +293,34 @@ describe("OidcService#reserve", () => {
   });
 });
 
-describe("OidcService#getLoginAusiliarData", () => {
+describe("OidcService#getLoginAuxiliaryData", () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
   const redisDeps = { redisClientSelector: mockRedisClientSelector };
 
-  test("should return the ausiliar data when present", async () => {
+  test("should return the auxiliary data when present", async () => {
     mockGet.mockResolvedValueOnce(
-      JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
+      JSON.stringify(LoginAuxiliaryData.encode(anAuxiliaryData)),
     );
     mockDel.mockResolvedValueOnce(1);
 
-    const result = await getLoginAusiliarData(redisDeps)(aState);
+    const result = await getLoginAuxiliaryData(redisDeps)(aState);
 
-    expect(result).toEqual(E.right(anAusiliarData));
+    expect(result).toEqual(E.right(anAuxiliaryData));
     expect(mockDel).toHaveBeenCalledWith(`RESERVE-${aState}`);
   });
 
-  test("should return an error when the ausiliar data is missing or expired", async () => {
+  test("should return an error when the auxiliary data is missing or expired", async () => {
     mockGet.mockResolvedValueOnce(null);
 
-    const result = await getLoginAusiliarData(redisDeps)(aState);
+    const result = await getLoginAuxiliaryData(redisDeps)(aState);
 
     expect(E.isLeft(result)).toBeTruthy();
     if (E.isLeft(result)) {
       expect(result.left.message).toEqual(
-        "Missing or expired OIDC login ausiliar data",
+        "Missing or expired OIDC login auxiliary data",
       );
     }
   });
@@ -329,7 +329,7 @@ describe("OidcService#getLoginAusiliarData", () => {
     const anError = new Error("redis error");
     mockGet.mockRejectedValueOnce(anError);
 
-    const result = await getLoginAusiliarData(redisDeps)(aState);
+    const result = await getLoginAuxiliaryData(redisDeps)(aState);
 
     expect(result).toEqual(E.left(anError));
   });
@@ -406,7 +406,7 @@ describe("OidcService#exchangeCode", () => {
     const result = await exchangeCode(
       anOidcConfiguration,
       anEnvConfig,
-      anAusiliarData,
+      anAuxiliaryData,
       aCallbackSuccessInput,
     );
 
@@ -414,7 +414,7 @@ describe("OidcService#exchangeCode", () => {
       anOidcConfiguration,
       expect.any(URL),
       {
-        expectedNonce: anAusiliarData.nonce,
+        expectedNonce: anAuxiliaryData.nonce,
         expectedState: aCallbackSuccessInput.state,
         idTokenExpected: true,
       },
@@ -433,7 +433,7 @@ describe("OidcService#exchangeCode", () => {
     const result = await exchangeCode(
       anOidcConfiguration,
       anEnvConfig,
-      anAusiliarData,
+      anAuxiliaryData,
       aCallbackSuccessInput,
     );
 
@@ -459,7 +459,7 @@ describe("OidcService#exchangeCode", () => {
     const result = await exchangeCode(
       anOidcConfiguration,
       anEnvConfig,
-      anAusiliarData,
+      anAuxiliaryData,
       aCallbackSuccessInput,
     );
 
@@ -478,7 +478,7 @@ describe("OidcService#exchangeCode", () => {
     const result = await exchangeCode(
       anOidcConfiguration,
       anEnvConfig,
-      anAusiliarData,
+      anAuxiliaryData,
       aCallbackSuccessInput,
     );
 
@@ -556,7 +556,7 @@ describe("OidcService#performSAMLAssertionChecks", () => {
     const result = await performSAMLAssertionChecks(
       samlAssertion,
       anIdTokenClaims,
-      anAusiliarData,
+      anAuxiliaryData,
     )();
 
     expect(result).toEqual(E.right(true));
@@ -569,7 +569,7 @@ describe("OidcService#performSAMLAssertionChecks", () => {
     const result = await performSAMLAssertionChecks(
       samlAssertion,
       anIdTokenClaims,
-      anAusiliarData,
+      anAuxiliaryData,
     )();
 
     expect(E.isLeft(result)).toBeTruthy();
@@ -592,7 +592,7 @@ describe("OidcService#performSAMLAssertionChecks", () => {
     const result = await performSAMLAssertionChecks(
       samlAssertion,
       anIdTokenClaims,
-      anAusiliarData,
+      anAuxiliaryData,
     )();
 
     expect(E.isLeft(result)).toBeTruthy();
@@ -615,7 +615,7 @@ describe("OidcService#performSAMLAssertionChecks", () => {
     const result = await performSAMLAssertionChecks(
       samlAssertion,
       anIdTokenClaims,
-      anAusiliarData,
+      anAuxiliaryData,
     )();
 
     expect(E.isLeft(result)).toBeTruthy();
@@ -636,7 +636,7 @@ describe("OidcService#performSAMLAssertionChecks", () => {
     const result = await performSAMLAssertionChecks(
       samlAssertion,
       lowerAcrIdTokenClaims,
-      anAusiliarData,
+      anAuxiliaryData,
     )();
 
     expect(E.isLeft(result)).toBeTruthy();
@@ -689,14 +689,14 @@ describe("OidcService#OIDCCallback", () => {
     expect(result.kind).toEqual("IResponseErrorValidation");
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "session-manager.oidc.callback.ausiliar-data.error",
+        name: "session-manager.oidc.callback.auxiliary-data.error",
       }),
     );
   });
 
   test("should return IResponseErrorInternal when OIDC discovery fails", async () => {
     mockGet.mockResolvedValueOnce(
-      JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
+      JSON.stringify(LoginAuxiliaryData.encode(anAuxiliaryData)),
     );
     mockDel.mockResolvedValueOnce(1);
     mockedGetOidcConfiguration.mockRejectedValueOnce(
@@ -715,7 +715,7 @@ describe("OidcService#OIDCCallback", () => {
 
   test("should return IResponseErrorInternal when the code exchange fails", async () => {
     mockGet.mockResolvedValueOnce(
-      JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
+      JSON.stringify(LoginAuxiliaryData.encode(anAuxiliaryData)),
     );
     mockDel.mockResolvedValueOnce(1);
     mockedGetOidcConfiguration.mockResolvedValueOnce(anOidcConfiguration);
@@ -735,7 +735,7 @@ describe("OidcService#OIDCCallback", () => {
 
   test("should return IResponseErrorInternal when the SAML assertion retrieval fails", async () => {
     mockGet.mockResolvedValueOnce(
-      JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
+      JSON.stringify(LoginAuxiliaryData.encode(anAuxiliaryData)),
     );
     mockDel.mockResolvedValueOnce(1);
     mockedGetOidcConfiguration.mockResolvedValueOnce(
@@ -762,7 +762,7 @@ describe("OidcService#OIDCCallback", () => {
 
   test("should return IResponseErrorValidation when the SAML assertion verification fails", async () => {
     mockGet.mockResolvedValueOnce(
-      JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
+      JSON.stringify(LoginAuxiliaryData.encode(anAuxiliaryData)),
     );
     mockDel.mockResolvedValueOnce(1);
     mockedGetOidcConfiguration.mockResolvedValueOnce(
@@ -796,7 +796,7 @@ describe("OidcService#OIDCCallback", () => {
 
   test("should call acs and return its response on a successful callback", async () => {
     mockGet.mockResolvedValueOnce(
-      JSON.stringify(LoginAusiliarData.encode(anAusiliarData)),
+      JSON.stringify(LoginAuxiliaryData.encode(anAuxiliaryData)),
     );
     mockDel.mockResolvedValueOnce(1);
     mockedGetOidcConfiguration.mockResolvedValueOnce(
@@ -857,8 +857,8 @@ describe("OidcService#OIDCCallback", () => {
         getSamlResponseXml: expect.any(Function),
       }),
       {
-        loginType: anAusiliarData.loginType,
-        currentUser: anAusiliarData.currentUser,
+        loginType: anAuxiliaryData.loginType,
+        currentUser: anAuxiliaryData.currentUser,
       },
     );
     expect(result).toEqual(anAcsResponse);

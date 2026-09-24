@@ -26,7 +26,7 @@ import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
 import { mountSsoFimsUserHandler } from "./adapters/inbound/fastify/sso-fims-user.handler.js";
 import { mountSsoPagopaUserHandler } from "./adapters/inbound/fastify/sso-pagopa-user.handler.js";
-import { AusiliarDataRedisAdapter } from "./adapters/outbound/ausiliar-data.adapter.js";
+import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
@@ -45,7 +45,7 @@ import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oi
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
-import { LoginAusiliarDataSchema } from "./domain/value-objects/login.vo.js";
+import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
 import {
   AuthenticationMiddlewareFactory,
   BearerTokenParsingStrategyFactory,
@@ -165,9 +165,9 @@ export const createApp = async (
     config.COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME,
   );
 
-  const ausiliarStorageAdapter = new AusiliarDataRedisAdapter(
-    new RedisObjectWrapper(redisClient, LoginAusiliarDataSchema),
-    config.LOGIN_AUSILIAR_DATA_TTL_SECONDS,
+  const auxiliaryStorageAdapter = new AuxiliaryDataRedisAdapter(
+    new RedisObjectWrapper(redisClient, LoginAuxiliaryDataSchema),
+    config.LOGIN_AUXILIARY_DATA_TTL_SECONDS,
   );
 
   const fetchLollipopAdapter = createIoLollipopAdapter({
@@ -217,7 +217,7 @@ export const createApp = async (
   // --------------------------------------------------
 
   const reserveUseCase = makeReserveUseCase({
-    ausiliarDataPort: ausiliarStorageAdapter,
+    auxiliaryDataPort: auxiliaryStorageAdapter,
     lollipopPort: fetchLollipopAdapter,
     oidcClientPort: oidcExchangeAdapter,
     oidcConfigPort: oidcConfigAdapter,
@@ -230,7 +230,7 @@ export const createApp = async (
   );
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
-    ausiliarDataPort: ausiliarStorageAdapter,
+    auxiliaryDataPort: auxiliaryStorageAdapter,
     oidcPort: oidcExchangeAdapter,
     activateUserSessionUseCase,
   });
@@ -283,8 +283,8 @@ export const createApp = async (
         port: blockedUsersAdapter,
       },
       {
-        name: ausiliarStorageAdapter.constructor.name,
-        port: ausiliarStorageAdapter,
+        name: auxiliaryStorageAdapter.constructor.name,
+        port: auxiliaryStorageAdapter,
       },
       {
         name: authEventServiceBusAdapter.constructor.name,

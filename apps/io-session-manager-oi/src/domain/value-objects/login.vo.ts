@@ -13,7 +13,7 @@ export const CurrentUserSchema = NonEmptyStringSchema.optional();
 
 export type CurrentUser = z.infer<typeof CurrentUserSchema>;
 
-export const LoginAusiliarDataSchema = z.object({
+export const LoginAuxiliaryDataSchema = z.object({
   loginType: LoginTypeSchema,
   currentUser: CurrentUserSchema,
   lollipopAssertionRef: LollipopAssertionRefSchema,
@@ -23,4 +23,4 @@ export const LoginAusiliarDataSchema = z.object({
   nonce: NonEmptyStringSchema,
 });
 
-export type LoginAusiliarData = z.infer<typeof LoginAusiliarDataSchema>;
+export type LoginAuxiliaryData = z.infer<typeof LoginAuxiliaryDataSchema>;

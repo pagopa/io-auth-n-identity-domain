@@ -150,7 +150,7 @@ describe("OidcController#callbackEndpoint", () => {
     expect(result).toEqual(expectedResponse);
   });
 
-  test("should forward an authorization error as a permanent redirect and invalidate the ausiliar data", async () => {
+  test("should forward an authorization error as a permanent redirect and invalidate the auxiliary data", async () => {
     mockGet.mockResolvedValueOnce(JSON.stringify({}));
     mockDel.mockResolvedValueOnce(1);
 

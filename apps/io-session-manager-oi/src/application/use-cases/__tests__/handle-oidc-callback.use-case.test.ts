@@ -8,10 +8,10 @@ import { IPString } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AusiliarDataPort } from "../../../domain/ports/outbound/ausiliar-data.port.js";
+import { AuxiliaryDataPort } from "../../../domain/ports/outbound/auxiliary-data.port.js";
 import { OidcClientPort } from "../../../domain/ports/outbound/oidc.port.js";
 import { ClientSessionToken } from "../../../domain/value-objects/client-session-token.vo.js";
-import { LoginAusiliarData } from "../../../domain/value-objects/login.vo.js";
+import { LoginAuxiliaryData } from "../../../domain/value-objects/login.vo.js";
 import { OidcClaims } from "../../../domain/value-objects/oidc-claims.vo.js";
 import { ActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 import {
@@ -39,7 +39,7 @@ const ERROR_CALLBACK = {
   error_description: "user aborted the login" as NonEmptyString,
 } as const satisfies OidcCallbackParams;
 
-const AUSILIAR_DATA = {
+const AUXILIARY_DATA = {
   loginType: "LV",
   currentUser: undefined,
   lollipopAssertionRef: "sha256-thumbprint",
@@ -47,7 +47,7 @@ const AUSILIAR_DATA = {
   minAuthLevel: "SpidL2",
   oidcConfigurationEnv: "PROD",
   nonce: "a-nonce",
-} as unknown as LoginAusiliarData;
+} as unknown as LoginAuxiliaryData;
 
 const CLAIMS = {
   fiscalNumber: "AAABBB01C02D345E",
@@ -62,10 +62,10 @@ const CLAIMS = {
 const CLIENT_SESSION_TOKEN =
   "session-id.plain-token" as unknown as ClientSessionToken;
 
-const retrieveMock = vi.fn().mockResolvedValue(ok(AUSILIAR_DATA));
-const ausiliarDataPort = {
+const retrieveMock = vi.fn().mockResolvedValue(ok(AUXILIARY_DATA));
+const auxiliaryDataPort = {
   retrieve: retrieveMock,
-} as unknown as AusiliarDataPort;
+} as unknown as AuxiliaryDataPort;
 
 const exchangeMock = vi.fn().mockResolvedValue(ok(CLAIMS));
 const oidcPort = {
@@ -79,7 +79,7 @@ const activateUserSessionUseCase = vi
   ) as unknown as ActivateUserSessionUseCase;
 
 const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
-  ausiliarDataPort,
+  auxiliaryDataPort,
   oidcPort,
   activateUserSessionUseCase,
 });
@@ -93,7 +93,7 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("makeHandleOidcCallbackUseCase", () => {
-  it("retrieves ausiliar data, exchanges the code and activates the session", async () => {
+  it("retrieves auxiliary data, exchanges the code and activates the session", async () => {
     const result = await handleOidcCallbackUseCase({
       callback: SUCCESS_CALLBACK,
       ipAddress: IP_ADDRESS,
@@ -101,10 +101,10 @@ describe("makeHandleOidcCallbackUseCase", () => {
 
     expect(retrieveMock).toHaveBeenCalledExactlyOnceWith(STATE);
     expect(exchangeMock).toHaveBeenCalledExactlyOnceWith({
-      env: AUSILIAR_DATA.oidcConfigurationEnv,
+      env: AUXILIARY_DATA.oidcConfigurationEnv,
       code: CODE,
       state: STATE,
-      expectedNonce: AUSILIAR_DATA.nonce,
+      expectedNonce: AUXILIARY_DATA.nonce,
     });
     expect(activateUserSessionUseCase).toHaveBeenCalledExactlyOnceWith({
       fiscalCode: CLAIMS.fiscalNumber,
@@ -114,7 +114,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
       spidLevel: CLAIMS.acr,
       spidEmail: CLAIMS.email,
       ipAddress: IP_ADDRESS,
-      loginType: AUSILIAR_DATA.loginType,
+      loginType: AUXILIARY_DATA.loginType,
       identityProvider: CLAIMS.iss,
     });
     expect(result.isOk()).toBe(true);
@@ -157,9 +157,9 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
-  it("returns AuthenticationError when the ausiliar data is not found", async () => {
+  it("returns AuthenticationError when the auxiliary data is not found", async () => {
     retrieveMock.mockResolvedValueOnce(
-      err(new NotFoundError("ausiliar data", "ausiliar data not found")),
+      err(new NotFoundError("auxiliary data", "auxiliary data not found")),
     );
 
     const result = await handleOidcCallbackUseCase({
@@ -172,7 +172,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
-  it("returns GenericError when the ausiliar data retrieval fails", async () => {
+  it("returns GenericError when the auxiliary data retrieval fails", async () => {
     retrieveMock.mockResolvedValueOnce(err(new GenericError("boom")));
 
     const result = await handleOidcCallbackUseCase({

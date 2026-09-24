@@ -14,19 +14,19 @@ import {
 import { LoginType } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 
-import { AusiliarDataPort } from "../../domain/ports/outbound/ausiliar-data.port.js";
+import { AuxiliaryDataPort } from "../../domain/ports/outbound/auxiliary-data.port.js";
 import { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import { OidcConfigPort } from "../../domain/ports/outbound/oidc-config.port.js";
 import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
 import {
   CurrentUser,
-  LoginAusiliarData,
+  LoginAuxiliaryData,
   SpidAuthLevel,
 } from "../../domain/value-objects/login.vo.js";
 import { OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js";
 
 type ReserveDeps = {
-  ausiliarDataPort: AusiliarDataPort;
+  auxiliaryDataPort: AuxiliaryDataPort;
   lollipopPort: LollipopPort;
   oidcClientPort: OidcClientPort;
   oidcConfigPort: OidcConfigPort;
@@ -87,7 +87,7 @@ export const makeReserveUseCase =
     const state = randomBytes(24).toString("hex") as NonEmptyString;
     const nonce = randomBytes(24).toString("hex") as NonEmptyString;
 
-    const ausiliarData: LoginAusiliarData = {
+    const auxiliaryData: LoginAuxiliaryData = {
       minAuthLevel: inputData.minAuthLevel,
       loginType: inputData.loginType,
       currentUser: inputData.currentUser,
@@ -97,15 +97,15 @@ export const makeReserveUseCase =
       nonce,
     };
 
-    const ausiliarDataSaveResult = await deps.ausiliarDataPort.save(
+    const auxiliaryDataSaveResult = await deps.auxiliaryDataPort.save(
       state,
-      ausiliarData,
+      auxiliaryData,
     );
 
-    if (ausiliarDataSaveResult.isErr()) {
+    if (auxiliaryDataSaveResult.isErr()) {
       return err(
         new GenericError(
-          `Could not save ausiliar data, caused by: ${ausiliarDataSaveResult.error.message}`,
+          `Could not save auxiliary data, caused by: ${auxiliaryDataSaveResult.error.message}`,
         ),
       );
     }
