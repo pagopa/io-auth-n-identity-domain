@@ -127,15 +127,23 @@ export const makeActivateUserSessionUseCase =
       }
     }
 
-    authEventPort.sendEvent({
+    const sendEventResult = await authEventPort.sendEvent({
       eventType: "login",
       fiscalCode: userProfile.fiscalCode,
       ts: createdSession.createdAt,
       expiredAt: createdSession.expirationDate,
-      loginType: input.loginType === "LEGACY" ? "legacy" : "lv", // TODO: map login type correctly
-      scenario: "standard",
+      loginType: input.loginType === "LEGACY" ? "legacy" : "lv", // TODO: evaluate if a more structured approach is needed
+      scenario: "standard", // TODO: handle also "new_user" and "relogin"
       idp: input.identityProvider,
     });
+
+    if (sendEventResult.isErr()) {
+      return err(
+        new GenericError(
+          `Failed to emit login event: ${sendEventResult.error.message}`,
+        ),
+      );
+    }
 
     return ok(
       ClientSessionTokenSchema.parse(

@@ -274,6 +274,20 @@ describe("makeActivateUserSessionUseCase", () => {
       expect(mockSendEvent).not.toHaveBeenCalled();
     });
 
+    it("returns err when emitting the login event fails", async () => {
+      mockSendEvent.mockResolvedValueOnce(err(aGenericError));
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(
+        err(
+          new GenericError(
+            `Failed to emit login event: ${aGenericError.message}`,
+          ),
+        ),
+      );
+    });
+
     it("returns err when proxy deleteSession fails", async () => {
       mockInvalidatePreviousSession.mockResolvedValueOnce(
         ok(aHashedSessionTokenWithSessionId),
