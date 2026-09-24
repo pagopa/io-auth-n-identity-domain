@@ -30,10 +30,3 @@ export const LCParamsForFims = z.object({
 });
 
 export type LCParamsForFims = z.infer<typeof LCParamsForFims>;
-
-export const FimsPlusUserSchema = z.object({
-  profile: FimsUserSchema,
-  lc_params: LCParamsForFims,
-});
-
-export type FimsPlusUser = z.infer<typeof FimsPlusUserSchema>;
