@@ -3,4 +3,4 @@
 "io-session-manager-oi": minor
 ---
 
-add a (seccessfully) login event
+add a successful login event

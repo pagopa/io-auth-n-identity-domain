@@ -1,7 +1,9 @@
 import { CosmosClient } from "@azure/cosmos";
 import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
+import { ResultAsync, ok } from "neverthrow";
 import { beforeAll, describe, expect, it } from "vitest";
 
+import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import {
   ACTIVE_SESSION_CONTAINER_NAME,
   COSMOSDB_KEY,
@@ -50,11 +52,16 @@ const adapter = createIoProfileAdapter({
 const platformInternalAdapter = createPlatformInternalAdapter({
   baseUrl: PLATFORM_INTERNAL_BASE_URL,
 });
+const authEventPort: AuthEventPort = {
+  sendEvent: () => ResultAsync.fromSafePromise(Promise.resolve(undefined)),
+  healthcheck: async () => ok(undefined),
+};
 
 const activateUserSession = makeActivateUserSessionUseCase(
   sessionAdapter,
   adapter,
   platformInternalAdapter,
+  authEventPort,
 );
 
 describe("activate-user-session use case (integration)", () => {
