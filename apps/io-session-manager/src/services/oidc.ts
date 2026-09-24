@@ -469,6 +469,7 @@ export const OIDCCallback =
         properties: {
           env: auxiliaryData.oidcConfigurationEnv,
           errorMessage: getSAMLAssertionResult.left.message,
+          idpEntityId: claims.idpEntityId,
         },
         tagOverrides: {
           samplingEnabled: "false",
@@ -489,6 +490,7 @@ export const OIDCCallback =
         properties: {
           env: auxiliaryData.oidcConfigurationEnv,
           errorMessage: verifySAMLAssertionResult.left.message,
+          idpEntityId: claims.idpEntityId,
         },
         tagOverrides: {
           samplingEnabled: "false",
