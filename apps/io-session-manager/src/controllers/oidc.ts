@@ -96,7 +96,6 @@ const decodeAndForwardError = (
                   properties: {
                     errorMessage: errorOrData.left.message,
                   },
-                  tagOverrides: { samplingEnabled: "false" },
                 });
               }
             })
@@ -127,7 +126,6 @@ const decodeAndForwardError = (
         properties: {
           errorLocation: redirect.detail || "UNKNOWN",
         },
-        tagOverrides: { samplingEnabled: "false" },
       });
       return redirect;
     }),
