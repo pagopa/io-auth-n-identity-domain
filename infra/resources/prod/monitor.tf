@@ -91,7 +91,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "service-bus-logout-ev
 
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "sm_oidc_callback_error_alert" {
   enabled                 = true
-  name                    = "[${upper(local.domain)}] Session Manager: Errors on OIDC callback"
+  name                    = "[${upper(local.domain)}] Session Manager - Errors on OIDC callback"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
   description             = <<-EOT
@@ -133,7 +133,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "sm_oidc_callback_erro
 
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "sm_oidc_reserve_error_alert" {
   enabled                 = true
-  name                    = "[${upper(local.domain)}] Session Manager: Errors on OIDC reserve"
+  name                    = "[${upper(local.domain)}] Session Manager - Errors on OIDC reserve"
   resource_group_name     = data.azurerm_resource_group.main_resource_group.name
   scopes                  = [data.azurerm_application_insights.application_insights.id]
   description             = <<-EOT
