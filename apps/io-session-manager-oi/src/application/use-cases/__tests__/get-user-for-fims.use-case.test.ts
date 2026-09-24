@@ -65,22 +65,15 @@ describe("makeGetUserForFimsUseCase", () => {
     },
   );
 
-  it("returns GenericError when the profile is not found", async () => {
-    mockGetProfile.mockResolvedValueOnce(
-      err(new NotFoundError("Profile", "not found")),
-    );
+  it("propagates NotFoundError when the profile is not found", async () => {
+    const notFound = new NotFoundError("Profile", "not found");
+    mockGetProfile.mockResolvedValueOnce(err(notFound));
 
     const result = await getUserForFims({
       session: aBaseSession,
     });
 
-    expect(result).toEqual(
-      err(
-        new GenericError(
-          "Inconsistency: a profile for a valid token was not found",
-        ),
-      ),
-    );
+    expect(result).toEqual(err(notFound));
   });
 
   it("propagates GenericError from the profile port", async () => {
