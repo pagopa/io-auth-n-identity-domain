@@ -100,17 +100,10 @@ const decodeAndForwardError = (
                 });
               }
             })
-            .catch((err: unknown) => {
-              // warning level because this shouldn't trigger any alert
-              // and is fired only for troubleshooting on custom dashboards.
-              deps.appInsightsTelemetryClient?.trackEvent({
-                name: "session-manager.oidc.callback.auxiliary-remediation.warning",
-                properties: {
-                  errorMessage: E.toError(err).message,
-                },
-                tagOverrides: { samplingEnabled: "false" },
-              });
-            }),
+            // This should not happen with the implementation above.
+            // the task either removes the capability of promise rejection.
+            // however we keep this block empty to handle the case anyway
+            .catch(() => void 0),
           (_) =>
             TE.left(
               ResponsePermanentRedirect(
