@@ -5,6 +5,16 @@ import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  AuthEventPortMock,
+  mockSendEvent,
+  resetAuthEventPortMock,
+} from "../../../__mocks__/ports/auth-event-port.mock.js";
+import {
+  mockDeletePlatformInternalSession,
+  PlatformInternalPortMock,
+  resetPlatformInternalPortMock,
+} from "../../../__mocks__/ports/platform-internal-port.mock.js";
+import {
   mockGetProfile,
   mockNotifyLogin,
   mockCreate as mockProfileCreate,
@@ -17,11 +27,6 @@ import {
   resetSessionPortMock,
   SessionPortMock,
 } from "../../../__mocks__/ports/session-port.mock.js";
-import {
-  mockDeletePlatformInternalSession,
-  PlatformInternalPortMock,
-  resetPlatformInternalPortMock,
-} from "../../../__mocks__/ports/platform-internal-port.mock.js";
 import {
   aClientSessionToken,
   aFamilyName,
@@ -62,13 +67,17 @@ vi.mock("@pagopa/io-auth-n-identity-session/entities", async (importActual) => {
     await importActual<
       typeof import("@pagopa/io-auth-n-identity-session/entities")
     >();
-  return { ...actual, newPlainSession: vi.fn() };
+  return {
+    ...actual,
+    newPlainSession: vi.fn(),
+  };
 });
 
 const activateUserSession = makeActivateUserSessionUseCase(
   SessionPortMock,
   ProfilePortMock,
   PlatformInternalPortMock,
+  AuthEventPortMock,
 );
 
 beforeEach(() => {
@@ -76,9 +85,24 @@ beforeEach(() => {
   resetSessionPortMock();
   resetProfilePortMock();
   resetPlatformInternalPortMock();
+  resetAuthEventPortMock();
   vi.mocked(newSessionId).mockResolvedValue(aSessionId);
   vi.mocked(newPlainSession).mockResolvedValue(aSessionWithPlainSSOTokens);
 });
+
+const expectLoginEvent = () => {
+  expect(mockSendEvent).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      eventType: "login",
+      fiscalCode: aFiscalCode,
+      ts: new Date("2099-12-01"),
+      expiredAt: new Date("2100-01-01"),
+      loginType: "legacy",
+      scenario: "standard",
+      idp: anIdentityProvider,
+    }),
+  );
+};
 
 // -----------------------------------------------------
 // Tests
@@ -88,7 +112,6 @@ describe("makeActivateUserSessionUseCase", () => {
   describe("happy paths", () => {
     it("returns the client session token and persists the hashed session", async () => {
       const result = await activateUserSession(aNewSessionTokenInput);
-
       expect(result).toMatchObject(ok(aClientSessionToken));
       expect(mockInvalidatePreviousSession).toHaveBeenCalledExactlyOnceWith(
         aFiscalCode,
@@ -105,6 +128,7 @@ describe("makeActivateUserSessionUseCase", () => {
         ipAddress: anIpAddress,
         isEmailValidated: aUserProfileWithEmail.isEmailValidated,
       });
+      expectLoginEvent();
 
       const [activeSessionArg, sessionTokensArg] =
         mockSessionCreate.mock.calls[0];
@@ -124,6 +148,7 @@ describe("makeActivateUserSessionUseCase", () => {
       expect(result).toMatchObject(ok(aClientSessionToken));
       expect(mockProfileCreate).not.toHaveBeenCalled();
       expect(mockNotifyLogin).not.toHaveBeenCalled();
+      expectLoginEvent();
     });
 
     it("creates the profile and skips notification when no spid email is provided", async () => {
@@ -141,6 +166,7 @@ describe("makeActivateUserSessionUseCase", () => {
         email: undefined,
       });
       expect(mockNotifyLogin).not.toHaveBeenCalled();
+      expectLoginEvent();
     });
 
     it("creates the profile and notifies login when a spid email is provided", async () => {
@@ -163,6 +189,7 @@ describe("makeActivateUserSessionUseCase", () => {
         ipAddress: anIpAddress,
         isEmailValidated: false,
       });
+      expectLoginEvent();
     });
   });
 
@@ -180,6 +207,7 @@ describe("makeActivateUserSessionUseCase", () => {
         ),
       );
       expect(mockSessionCreate).not.toHaveBeenCalled();
+      expect(mockSendEvent).not.toHaveBeenCalled();
     });
 
     it("returns err when retrieving the profile fails with a generic error", async () => {
@@ -195,6 +223,7 @@ describe("makeActivateUserSessionUseCase", () => {
         ),
       );
       expect(mockSessionCreate).not.toHaveBeenCalled();
+      expect(mockSendEvent).not.toHaveBeenCalled();
     });
 
     it("returns err when creating the profile fails", async () => {
@@ -211,6 +240,7 @@ describe("makeActivateUserSessionUseCase", () => {
         ),
       );
       expect(mockSessionCreate).not.toHaveBeenCalled();
+      expect(mockSendEvent).not.toHaveBeenCalled();
     });
 
     it("returns err when persisting the session fails", async () => {
@@ -226,6 +256,7 @@ describe("makeActivateUserSessionUseCase", () => {
         ),
       );
       expect(mockNotifyLogin).not.toHaveBeenCalled();
+      expect(mockSendEvent).not.toHaveBeenCalled();
     });
 
     it("returns err when notifying the login event fails", async () => {
@@ -240,6 +271,7 @@ describe("makeActivateUserSessionUseCase", () => {
           ),
         ),
       );
+      expect(mockSendEvent).not.toHaveBeenCalled();
     });
 
     it("returns err when proxy deleteSession fails", async () => {
@@ -260,6 +292,7 @@ describe("makeActivateUserSessionUseCase", () => {
         ),
       );
       expect(mockSessionCreate).not.toHaveBeenCalled();
+      expect(mockSendEvent).not.toHaveBeenCalled();
     });
   });
 
@@ -275,6 +308,7 @@ describe("makeActivateUserSessionUseCase", () => {
       expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
         `${aHashedSessionTokenWithSessionId.sessionId}.${aHashedSessionTokenWithSessionId.hashedSessionToken}`,
       );
+      expectLoginEvent();
     });
 
     it("skips deleteSession when there is no previous session", async () => {
@@ -283,6 +317,7 @@ describe("makeActivateUserSessionUseCase", () => {
 
       expect(result).toMatchObject(ok(aClientSessionToken));
       expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
+      expectLoginEvent();
     });
   });
 });
