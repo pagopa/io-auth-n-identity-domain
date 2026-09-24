@@ -41,7 +41,7 @@ const ssoFimsLollipopUserContract = defineRoute({
       schema: ProblemJson,
     },
     404: {
-      description: " User or Lollipop Data not found",
+      description: "User or Lollipop data not found",
       schema: ProblemJson,
     },
     500: {
