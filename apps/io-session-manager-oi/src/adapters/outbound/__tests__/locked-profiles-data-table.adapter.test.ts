@@ -7,10 +7,7 @@ import {
 import { err, ok, Result } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  LockedProfileDataTableSchema,
-  LockedProfilesDataTableAdapter,
-} from "../locked-profiles-data-table.adapter.js";
+import { LockedProfilesDataTableAdapter } from "../locked-profiles-data-table.adapter.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -20,13 +17,12 @@ const FISCAL_CODE = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 const TABLE_NAME = "lockedprofile01";
 const ROW_KEY = "123456789";
 
-// The adapter only calls `listEntities` on the wrapper, so we stub that
-// single method and inject the object directly through the constructor —
-// no module-level `vi.mock` needed.
 const listEntitiesMock = vi.fn();
 const wrapperStub = {
   listEntities: listEntitiesMock,
-} as unknown as TableClientWrapper<typeof LockedProfileDataTableSchema>;
+} as unknown as TableClientWrapper<
+  typeof LockedProfilesDataTableAdapter.schema
+>;
 
 const adapter = new LockedProfilesDataTableAdapter(wrapperStub);
 
@@ -82,10 +78,6 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-// ---------------------------------------------------------------------------
-// healthcheck
-// ---------------------------------------------------------------------------
-
 describe("LockedProfilesDataTableAdapter#healthcheck", () => {
   it("returns ok when the wrapper iterator yields nothing", async () => {
     listEntitiesMock.mockReturnValue(asyncIterableOf([]));
@@ -99,8 +91,6 @@ describe("LockedProfilesDataTableAdapter#healthcheck", () => {
   });
 
   it("returns ok as soon as the iterator yields a single ok result", async () => {
-    // The reachability filter matches nothing in practice, but if the service
-    // returned a row we should still treat it as a successful probe.
     listEntitiesMock.mockReturnValue(asyncIterableOf([okEntity()]));
 
     const result = await adapter.healthcheck();
@@ -125,16 +115,12 @@ describe("LockedProfilesDataTableAdapter#healthcheck", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// isLocked
-// ---------------------------------------------------------------------------
-
 describe("LockedProfilesDataTableAdapter#isLocked", () => {
   it("returns ok(false) when the iterator yields nothing (no locks found)", async () => {
     listEntitiesMock.mockReturnValue(asyncIterableOf([]));
 
     const result = await adapter.isLocked(FISCAL_CODE);
-    
+
     expect(result).toEqual(ok(false));
     expect(listEntitiesMock).toHaveBeenCalledExactlyOnceWith({
       queryOptions: {
@@ -149,7 +135,7 @@ describe("LockedProfilesDataTableAdapter#isLocked", () => {
     );
 
     const result = await adapter.isLocked(FISCAL_CODE);
-    
+
     expect(result).toEqual(ok(true));
   });
 

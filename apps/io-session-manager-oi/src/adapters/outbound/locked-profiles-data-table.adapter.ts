@@ -9,32 +9,22 @@ import {
   FiscalCodeSchema,
   GenericError,
 } from "@pagopa/hexagonal-core";
-import { ok, err, Result } from "neverthrow";
+import { err, ok, Result } from "neverthrow";
 import z from "zod";
 
 import { LockedProfilesPort } from "../../domain/ports/outbound/locked-profiles.port.js";
 
-const UnlockCodeSchema = z
-  .string()
-  .regex(/^\d{9}$/, "unlockCode must be 9 digits");
-
-/**
- * Schema for the LockedProfileDataTable data.
- * This schema is used to validate the structure of the data stored in the Azure Table Storage.
- */
-const LockedProfileDataTableSchema = z.object({
-  partitionKey: FiscalCodeSchema,
-  rowKey: UnlockCodeSchema,
-  CreatedAt: z.coerce.date(),
-  Released: z.boolean().optional(),
-});
-
 export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
-  static readonly schema = LockedProfileDataTableSchema;
+  static readonly schema = z.object({
+    partitionKey: FiscalCodeSchema,
+    rowKey: z.string().regex(/^\d{9}$/, "unlockCode must be 9 digits"), // UnlockCode
+    CreatedAt: z.coerce.date(),
+    Released: z.boolean().optional(),
+  });
 
   constructor(
     private readonly lockedProfilesTableClientWrapper: TableClientWrapper<
-      typeof LockedProfileDataTableSchema
+      typeof LockedProfilesDataTableAdapter.schema
     >,
   ) {}
 
@@ -71,7 +61,7 @@ export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
         if (entity.isErr()) {
           return err(entity.error);
         }
-        
+
         return ok(true);
       }
 

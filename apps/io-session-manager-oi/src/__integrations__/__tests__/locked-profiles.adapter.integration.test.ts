@@ -12,16 +12,14 @@ import { ok, Result } from "neverthrow";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import z from "zod";
 
-import {
-  LockedProfilesDataTableAdapter,
-} from "../../adapters/outbound/locked-profiles-data-table.adapter.js";
+import { LockedProfilesDataTableAdapter } from "../../adapters/outbound/locked-profiles-data-table.adapter.js";
 import { LOCKED_PROFILES_STORAGE_CONNECTION_STRING } from "../env.js";
 import {
   LOCK_ID,
   LOCKED_FISCAL_CODE,
   RELEASED_FISCAL_CODE,
-  UNKNOWN_FISCAL_CODE,
   uniqueLockedProfilesTableName,
+  UNKNOWN_FISCAL_CODE,
 } from "../fixtures/locked-profiles.fixture.js";
 
 // ---------------------------------------------------------------------------
@@ -80,12 +78,17 @@ class ExtendedLockedProfilesDataTableAdapter extends LockedProfilesDataTableAdap
     fiscalCode: FiscalCode,
     unlockCode: string,
   ): Promise<Result<void, TableStorageError>> {
-    // Delete the locked profile entity from the table
-    await this["lockedProfilesTableClientWrapper"].patchEntity({
-      partitionKey: fiscalCode,
-      rowKey: unlockCode,
-      Released: true,
-    });
+    // Mark the locked profile as released using a merge update.
+    await this["lockedProfilesTableClientWrapper"]
+      .getTableClient()
+      .updateEntity(
+        {
+          partitionKey: fiscalCode,
+          rowKey: unlockCode,
+          Released: true,
+        },
+        "Merge",
+      );
 
     return ok(void 0);
   }
@@ -108,7 +111,9 @@ class ExtendedLockedProfilesDataTableAdapter extends LockedProfilesDataTableAdap
     return ok(null);
   }
 
-  private static mapper(entity: z.infer<typeof LockedProfilesDataTableAdapter.schema>): LockedProfile {
+  private static mapper(
+    entity: z.infer<typeof LockedProfilesDataTableAdapter.schema>,
+  ): LockedProfile {
     return LockedProfileSchema.parse({
       fiscalCode: entity.partitionKey,
       unlockCode: entity.rowKey,
@@ -176,7 +181,10 @@ describe("locked-profiles adapter (integration - Azurite)", () => {
       { allowInsecureConnection: true },
     );
     const missingTableAdapter = new LockedProfilesDataTableAdapter(
-      new TableClientWrapper(missingTableClient, LockedProfilesDataTableAdapter.schema),
+      new TableClientWrapper(
+        missingTableClient,
+        LockedProfilesDataTableAdapter.schema,
+      ),
     );
 
     const result = await missingTableAdapter.healthcheck();

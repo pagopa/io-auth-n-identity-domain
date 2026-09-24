@@ -36,6 +36,7 @@ import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profi
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
+import { TechnicalLockedProfilesDataTableAdapter } from "./adapters/outbound/technical-locked-profiles-data-table.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
 import { getUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
@@ -92,6 +93,18 @@ export const createApp = async (
           config.LOCKED_PROFILES_TABLE_NAME,
         );
 
+  const technicalLockedProfilesTableClient =
+    config.NODE_ENV === "production"
+      ? new TableClient(
+          config.TECHNICAL_LOCKED_PROFILES_STORAGE_ACCOUNT_URI,
+          config.TECHNICAL_LOCKED_PROFILES_TABLE_NAME,
+          AzureCredential.getInstance(),
+        )
+      : TableClient.fromConnectionString(
+          config.TECHNICAL_LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
+          config.TECHNICAL_LOCKED_PROFILES_TABLE_NAME,
+        );
+
   const pushNotificationsQueueServiceClient =
     config.NODE_ENV === "production"
       ? new QueueServiceClient(
@@ -145,6 +158,14 @@ export const createApp = async (
       LockedProfilesDataTableAdapter.schema,
     ),
   );
+
+  const technicalLockedProfilesAdapter =
+    new TechnicalLockedProfilesDataTableAdapter(
+      new TableClientWrapper(
+        technicalLockedProfilesTableClient,
+        TechnicalLockedProfilesDataTableAdapter.schema,
+      ),
+    );
 
   const notificationStorageQueueAdapter = new NotificationStorageQueueAdapter(
     pushNotificationsQueueServiceClient.getQueueClient(
@@ -273,6 +294,10 @@ export const createApp = async (
       {
         name: lockedProfilesAdapter.constructor.name,
         port: lockedProfilesAdapter,
+      },
+      {
+        name: technicalLockedProfilesAdapter.constructor.name,
+        port: technicalLockedProfilesAdapter,
       },
       {
         name: notificationStorageQueueAdapter.constructor.name,

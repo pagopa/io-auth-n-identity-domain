@@ -2,7 +2,6 @@ import {
   CreateTableEntityResponse,
   TableClient,
   TableEntityResult,
-  UpdateEntityResponse,
 } from "@azure/data-tables";
 import {
   AuthenticationError,
@@ -22,11 +21,11 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
+import { ok } from "neverthrow";
 import {
   TableClientWrapper,
   TableEntitySchema,
 } from "../data-table.wrapper.js";
-import { ok } from "neverthrow";
 
 // ---------------------------------------------------------------------------
 // Test schema and fixtures
@@ -52,6 +51,7 @@ const RK = "row-1";
 interface MockedClient {
   tableName: string;
   createEntity: ReturnType<typeof vi.fn>;
+  getEntity: ReturnType<typeof vi.fn>;
   updateEntity: ReturnType<typeof vi.fn>;
   listEntities: ReturnType<typeof vi.fn>;
 }
@@ -59,6 +59,7 @@ interface MockedClient {
 const buildMockClient = (): MockedClient => ({
   tableName: TABLE_NAME,
   createEntity: vi.fn(),
+  getEntity: vi.fn(),
   updateEntity: vi.fn(),
   listEntities: vi.fn(),
 });
@@ -231,6 +232,65 @@ describe("TableClientWrapper - createEntity", () => {
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(ConflictError);
     expect(result._unsafeUnwrapErr().message).toContain("createEntity failed");
+  });
+});
+
+describe("TableClientWrapper - getEntity", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns the validated entity and forwards the keys to the SDK", async () => {
+    const { wrapper, client } = buildWrapper();
+    const row = buildStoredRow();
+    client.getEntity.mockResolvedValue(row);
+
+    const result = await wrapper.getEntity(PK, RK);
+
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap()).toEqual({
+      entity: {
+        partitionKey: PK,
+        rowKey: RK,
+        name: "alpha",
+        count: 1,
+        active: true,
+      },
+      etag: 'W/"etag-1"',
+      timestamp: "2024-01-01T00:00:00Z",
+    });
+    expect(client.getEntity).toHaveBeenCalledExactlyOnceWith(PK, RK, undefined);
+  });
+
+  it("forwards get options untouched", async () => {
+    const { wrapper, client } = buildWrapper();
+    client.getEntity.mockResolvedValue(buildStoredRow());
+    const options = { queryOptions: { select: ["name"] } };
+
+    await wrapper.getEntity(PK, RK, options);
+
+    expect(client.getEntity).toHaveBeenCalledExactlyOnceWith(PK, RK, options);
+  });
+
+  it("returns ValidationError when the retrieved entity is invalid", async () => {
+    const { wrapper, client } = buildWrapper();
+    client.getEntity.mockResolvedValue(
+      buildStoredRow({ count: "not-a-number" }),
+    );
+
+    const result = await wrapper.getEntity(PK, RK);
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
+  });
+
+  it("maps a missing entity into NotFoundError", async () => {
+    const { wrapper, client } = buildWrapper();
+    client.getEntity.mockRejectedValue(buildRestError(404, "missing"));
+
+    const result = await wrapper.getEntity(PK, RK);
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(NotFoundError);
+    expect(result._unsafeUnwrapErr().message).toContain("getEntity failed");
   });
 });
 

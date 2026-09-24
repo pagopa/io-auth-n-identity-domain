@@ -36,6 +36,10 @@ locals {
     LOCKED_PROFILES_STORAGE_ACCOUNT_URI = "https://${var.locked_profiles.storage_account.name}.table.core.windows.net"
     LOCKED_PROFILES_TABLE_NAME          = var.locked_profiles.table_name
 
+    # Technical Locked Profiles table
+    TECHNICAL_LOCKED_PROFILES_STORAGE_ACCOUNT_URI = "https://${var.technical_locked_profiles.storage_account.name}.table.core.windows.net"
+    TECHNICAL_LOCKED_PROFILES_TABLE_NAME          = var.technical_locked_profiles.table_name
+
     # Session Manager Internal service
     IO_SM_INT_API_URL       = var.io_session_manager_internal.base_url
     IO_SM_INT_API_BASE_PATH = var.io_session_manager_internal.base_path

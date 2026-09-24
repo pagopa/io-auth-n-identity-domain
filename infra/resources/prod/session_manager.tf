@@ -41,6 +41,14 @@ module "session_manager" {
     table_name = local.locked_profiles_table_name
   }
 
+  technical_locked_profiles = {
+    storage_account = {
+      name                = module.storage_accounts.session.name
+      resource_group_name = module.storage_accounts.session.resource_group_name
+    }
+    table_name = local.technical_locked_profiles_table_name
+  }
+
   io_session_manager_internal = {
     base_url  = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
     base_path = "/api/v1"

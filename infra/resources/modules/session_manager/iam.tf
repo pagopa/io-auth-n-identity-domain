@@ -14,13 +14,22 @@ module "ca_iam" {
     }
   }]
 
-  storage_table = [{
-    storage_account_name = var.locked_profiles.storage_account.name
-    resource_group_name  = var.locked_profiles.storage_account.resource_group_name
-    table_name           = var.locked_profiles.table_name
-    role                 = "reader"
-    description          = "Allow Session Manager Container App to read the locked profiles table"
-  }]
+  storage_table = [
+    {
+      storage_account_name = var.locked_profiles.storage_account.name
+      resource_group_name  = var.locked_profiles.storage_account.resource_group_name
+      table_name           = var.locked_profiles.table_name
+      role                 = "reader"
+      description          = "Allow Session Manager Container App to read the locked profiles table"
+    },
+    {
+      storage_account_name = var.technical_locked_profiles.storage_account.name
+      resource_group_name  = var.technical_locked_profiles.storage_account.resource_group_name
+      table_name           = var.technical_locked_profiles.table_name
+      role                 = "reader"
+      description          = "Allow Session Manager Container App to read the technical locked profiles table"
+    }
+  ]
 
   storage_queue = [
     {
