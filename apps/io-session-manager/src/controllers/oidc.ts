@@ -86,7 +86,31 @@ const decodeAndForwardError = (
       (errorInput) =>
         pipe(
           // fire & forget get and delete auxiliary data
-          getAndDelete(errorInput.state)(deps)().catch(() => undefined),
+          getAndDelete(errorInput.state)(deps)()
+            .then((errorOrData) => {
+              if (E.isLeft(errorOrData)) {
+                // warning level because this shouldn't trigger any alert
+                // and is fired only for troubleshooting on custom dashboards.
+                deps.appInsightsTelemetryClient?.trackEvent({
+                  name: "session-manager.oidc.callback.auxiliary-remediation.warning",
+                  properties: {
+                    errorMessage: errorOrData.left.message,
+                  },
+                  tagOverrides: { samplingEnabled: "false" },
+                });
+              }
+            })
+            .catch((err: unknown) => {
+              // warning level because this shouldn't trigger any alert
+              // and is fired only for troubleshooting on custom dashboards.
+              deps.appInsightsTelemetryClient?.trackEvent({
+                name: "session-manager.oidc.callback.auxiliary-remediation.warning",
+                properties: {
+                  errorMessage: E.toError(err).message,
+                },
+                tagOverrides: { samplingEnabled: "false" },
+              });
+            }),
           (_) =>
             TE.left(
               ResponsePermanentRedirect(
@@ -102,6 +126,18 @@ const decodeAndForwardError = (
             ),
         ),
     ),
+    TE.mapLeft((redirect) => {
+      // warning level because this shouldn't trigger any alert
+      // and is fired only for troubleshooting on custom dashboards.
+      deps.appInsightsTelemetryClient?.trackEvent({
+        name: "session-manager.oidc.callback.upstream-error.warning",
+        properties: {
+          errorLocation: redirect.detail || "UNKNOWN",
+        },
+        tagOverrides: { samplingEnabled: "false" },
+      });
+      return redirect;
+    }),
   );
 
 const callbackEndpointMiddleware = (deps: CallbackEndpointDeps) =>
