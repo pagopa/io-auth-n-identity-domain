@@ -6,8 +6,14 @@ meta {
 
 post {
   url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/sso/fims/v2/lollipop-user
-  body: none
+  body: json
   auth: bearer
+}
+
+body:json {
+  {
+    "operation_id": "an-operation-id"
+  }
 }
 
 auth:bearer {
