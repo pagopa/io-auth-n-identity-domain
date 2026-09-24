@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.29.1
+
+### Patch Changes
+
+- 9740922: Renamed ausiliar data references to "auxiliary"
+
 ## 1.29.0
 
 ### Minor Changes
