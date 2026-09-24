@@ -31,7 +31,10 @@ import {
   lvLongSessionDurationSecs,
   lvTokenDurationSecs,
 } from "../../config/fast-login";
-import { mockedAppinsightsTelemetryClient } from "../../__mocks__/appinsights.mocks";
+import {
+  mockedAppinsightsTelemetryClient,
+  mockTrackEvent,
+} from "../../__mocks__/appinsights.mocks";
 import { mockAuthSessionsTopicRepository } from "../../repositories/__mocks__/auth-session-topic-repository.mocks";
 import { mockServiceBusSender } from "../../__mocks__/service-bus-sender.mocks";
 import { mockPlatformInternalAPIService } from "../../__mocks__/platform-internal.mocks";
@@ -124,6 +127,8 @@ describe("OidcController#callbackEndpoint", () => {
     platformInternalAPIService: mockPlatformInternalAPIService,
     oneIdAPIClient: {} as OneIdAPIClient,
     ageLimit: LOGIN_AGE_LIMIT,
+    validateSpidUser: vi.fn(),
+    getIdentityProvider: vi.fn(),
   };
 
   afterEach(() => {
@@ -148,12 +153,17 @@ describe("OidcController#callbackEndpoint", () => {
       state: "a-state",
     });
     expect(result).toEqual(expectedResponse);
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   test("should forward an authorization error as a permanent redirect and invalidate the auxiliary data", async () => {
     mockGet.mockResolvedValueOnce(JSON.stringify({}));
     mockDel.mockResolvedValueOnce(1);
 
+    const expectedErrorDetail = getClientErrorRedirectionUrl({
+      errorCode: 22,
+      errorMessage: "access_denied" as NonEmptyString,
+    }).href;
     const req = mockReq({
       query: {
         error: "access_denied",
@@ -168,17 +178,26 @@ describe("OidcController#callbackEndpoint", () => {
     expect(mockOIDCCallback).not.toHaveBeenCalled();
     expect(result).toMatchObject({
       kind: "IResponsePermanentRedirect",
-      detail: getClientErrorRedirectionUrl({
-        errorCode: 22,
-        errorMessage: "access_denied" as NonEmptyString,
-      }).href,
+      detail: expectedErrorDetail,
     });
+    expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        name: "session-manager.oidc.callback.upstream-error.warning",
+        properties: {
+          errorLocation: expectedErrorDetail,
+        },
+      }),
+    );
   });
 
-  test("should forward an error as a permanent redirect with errorCode and errorMessage", async () => {
-    mockGet.mockResolvedValueOnce(JSON.stringify({}));
-    mockDel.mockResolvedValueOnce(1);
+  test("should forward an error and event when auxiliary-data remediation fails", async () => {
+    const anError = Error("failure");
+    mockGet.mockRejectedValueOnce(anError);
 
+    const expectedErrorDetail = getClientErrorRedirectionUrl({
+      errorCode: 22,
+      errorMessage: "access_denied" as NonEmptyString,
+    }).href;
     const req = mockReq({
       query: {
         error: "access_denied",
@@ -193,17 +212,70 @@ describe("OidcController#callbackEndpoint", () => {
     expect(mockOIDCCallback).not.toHaveBeenCalled();
     expect(result).toMatchObject({
       kind: "IResponsePermanentRedirect",
-      detail: getClientErrorRedirectionUrl({
-        errorCode: 22,
-        errorMessage: "access_denied" as NonEmptyString,
-      }).href,
+      detail: expectedErrorDetail,
     });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    expect(mockTrackEvent).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        name: "session-manager.oidc.callback.upstream-error.warning",
+        properties: {
+          errorLocation: expectedErrorDetail,
+        },
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        name: "session-manager.oidc.callback.auxiliary-remediation.warning",
+        properties: {
+          errorMessage: anError.message,
+        },
+      }),
+    );
+  });
+
+  test("should forward an error as a permanent redirect with errorCode and errorMessage", async () => {
+    mockGet.mockResolvedValueOnce(JSON.stringify({}));
+    mockDel.mockResolvedValueOnce(1);
+
+    const expectedErrorDetail = getClientErrorRedirectionUrl({
+      errorCode: 22,
+      errorMessage: "access_denied" as NonEmptyString,
+    }).href;
+    const req = mockReq({
+      query: {
+        error: "access_denied",
+        error_description: "22",
+        state: "a-state",
+      },
+    }) as unknown as Request;
+
+    const result = await pipe({ ...deps, req }, callbackEndpoint, TE.toUnion)();
+
+    expect(mockGet).toHaveBeenCalledTimes(1);
+    expect(mockOIDCCallback).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      kind: "IResponsePermanentRedirect",
+      detail: expectedErrorDetail,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        name: "session-manager.oidc.callback.upstream-error.warning",
+        properties: {
+          errorLocation: expectedErrorDetail,
+        },
+      }),
+    );
   });
 
   test("should forward an error as a permanent redirect with only errorMessage", async () => {
     mockGet.mockResolvedValueOnce(JSON.stringify({}));
     mockDel.mockResolvedValueOnce(1);
 
+    const expectedErrorDetail = getClientErrorRedirectionUrl({
+      errorMessage: "internal_error" as NonEmptyString,
+    }).href;
     const req = mockReq({
       query: {
         error: "internal_error",
@@ -217,13 +289,22 @@ describe("OidcController#callbackEndpoint", () => {
     expect(mockOIDCCallback).not.toHaveBeenCalled();
     expect(result).toMatchObject({
       kind: "IResponsePermanentRedirect",
-      detail: getClientErrorRedirectionUrl({
-        errorMessage: "internal_error" as NonEmptyString,
-      }).href,
+      detail: expectedErrorDetail,
     });
+    expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        name: "session-manager.oidc.callback.upstream-error.warning",
+        properties: {
+          errorLocation: expectedErrorDetail,
+        },
+      }),
+    );
   });
 
   test("should return a generic error redirect when neither a success nor an error input can be decoded", async () => {
+    const expectedErrorDetail = getClientErrorRedirectionUrl({
+      errorMessage: "error occurred" as NonEmptyString,
+    }).href;
     const req = mockReq({}) as unknown as Request;
 
     const result = await pipe({ ...deps, req }, callbackEndpoint, TE.toUnion)();
@@ -232,9 +313,15 @@ describe("OidcController#callbackEndpoint", () => {
     expect(mockOIDCCallback).not.toHaveBeenCalled();
     expect(result).toMatchObject({
       kind: "IResponsePermanentRedirect",
-      detail: getClientErrorRedirectionUrl({
-        errorMessage: "error occurred" as NonEmptyString,
-      }).href,
+      detail: expectedErrorDetail,
     });
+    expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        name: "session-manager.oidc.callback.upstream-error.warning",
+        properties: {
+          errorLocation: expectedErrorDetail,
+        },
+      }),
+    );
   });
 });
