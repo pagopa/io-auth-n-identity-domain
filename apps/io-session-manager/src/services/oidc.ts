@@ -417,9 +417,6 @@ export const OIDCCallback =
         properties: {
           errorMessage: auxiliaryDataResult.left.message,
         },
-        tagOverrides: {
-          samplingEnabled: "false",
-        },
       });
       return ResponseErrorValidation(
         "Bad request",
@@ -438,9 +435,6 @@ export const OIDCCallback =
           env: auxiliaryData.oidcConfigurationEnv,
           errorMessage: envConfigurationResult.left.message,
         },
-        tagOverrides: {
-          samplingEnabled: "false",
-        },
       });
       return ResponseErrorInternal("OIDC discovery failed");
     }
@@ -458,9 +452,6 @@ export const OIDCCallback =
         properties: {
           env: auxiliaryData.oidcConfigurationEnv,
           errorMessage: exchangeResult.left.message,
-        },
-        tagOverrides: {
-          samplingEnabled: "false",
         },
       });
       return ResponseErrorInternal("OIDC code exchange failed");
