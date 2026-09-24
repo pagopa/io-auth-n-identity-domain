@@ -1,5 +1,16 @@
 # io-session-manager-oi
 
+## 0.24.0
+
+### Minor Changes
+
+- eb15068: add technical locked profile port and adapter
+
+### Patch Changes
+
+- Updated dependencies [eb15068]
+  - @pagopa/azure-sdk@0.2.0
+
 ## 0.23.2
 
 ### Patch Changes
