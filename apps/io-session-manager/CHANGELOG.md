@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.30.0
+
+### Minor Changes
+
+- 1a5dd14: Added warning events on callback errors
+
 ## 1.29.1
 
 ### Patch Changes
