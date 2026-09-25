@@ -1,0 +1,18 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "generate": {
+      "inputs": [
+        "openapi-ts.config.ts",
+        "api/**/*.yaml",
+        "api/**/*.yaml.template"
+      ],
+      "outputs": ["src/generated/**/*.ts"]
+    },
+    "generate:patch-lollipop": {
+      "inputs": ["scripts/patch-io-lollipop-types.ts"],
+      "outputs": ["src/generated/io-lollipop/**/*.ts"],
+      "dependsOn": ["generate"]
+    }
+  }
+}

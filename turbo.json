@@ -1,87 +1,39 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [
-    "**/env.example"
-  ],
+  "globalDependencies": ["**/env.example"],
   "tasks": {
     "build": {
-      "inputs": [
-        "src/**/*.ts",
-        "package.json",
-        "tsconfig.json"
-      ],
-      "outputs": [
-        "dist/**"
-      ],
-      "dependsOn": [
-        "^clean",
-        "clean",
-        "^generate",
-        "generate",
-        "^build"
-      ]
+      "inputs": ["src/**/*.ts", "package.json", "tsconfig.json"],
+      "outputs": ["dist/**"],
+      "dependsOn": ["^clean", "clean", "^generate", "generate", "^build"]
     },
     "typecheck": {
-      "inputs": [
-        "src/**/*.ts",
-        "package.json",
-        "tsconfig.json"
-      ],
+      "inputs": ["src/**/*.ts", "package.json", "tsconfig.json"],
       "outputs": [],
-      "dependsOn": [
-        "^build",
-        "^typecheck"
-      ]
+      "dependsOn": ["^build", "^typecheck"]
     },
     "format": {},
     "format:check": {},
     "lint": {
-      "inputs": [
-        "src/**/*.ts",
-        "scripts/**/*.ts"
-      ]
+      "inputs": ["src/**/*.ts", "scripts/**/*.ts"]
     },
     "lint:check": {
-      "inputs": [
-        "src/**/*.ts",
-        "scripts/**/*.ts"
-      ]
+      "inputs": ["src/**/*.ts", "scripts/**/*.ts"]
     },
     "test": {
-      "inputs": [
-        "src/**/*.ts",
-        "**/vite.config.mts"
-      ],
-      "dependsOn": [
-        "^build",
-        "^test"
-      ],
+      "inputs": ["src/**/*.ts", "**/vite.config.mts"],
+      "dependsOn": ["^build", "^test"],
       "outputLogs": "full"
     },
     "test:coverage": {
-      "inputs": [
-        "src/**/*.ts",
-        "vite.config.mts"
-      ],
-      "outputs": [
-        "coverage/**"
-      ],
-      "dependsOn": [
-        "^build",
-        "^test"
-      ],
+      "inputs": ["src/**/*.ts", "vite.config.mts"],
+      "outputs": ["coverage/**"],
+      "dependsOn": ["^build", "^test"],
       "outputLogs": "errors-only"
     },
     "generate": {
-      "inputs": [
-        "openapi-ts.config.ts",
-        "api/**/*.yaml",
-        "api/**/*.yaml.template"
-      ],
-      "outputs": [
-        "src/generated/**/*.ts",
-        "certs"
-      ],
+      "inputs": ["api/**/*.yaml", "api/**/*.yaml.template"],
+      "outputs": ["src/generated/**/*.ts", "certs"],
       "outputLogs": "errors-only"
     },
     "openapi:check": {
@@ -92,14 +44,10 @@
         "package.json"
       ],
       "outputs": [],
-      "dependsOn": [
-        "^build"
-      ]
+      "dependsOn": ["^build"]
     },
     "clean": {
-      "inputs": [
-        "dist/**"
-      ],
+      "inputs": ["dist/**"],
       "cache": false
     }
   }

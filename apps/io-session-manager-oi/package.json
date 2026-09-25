@@ -19,7 +19,8 @@
     "test": "vitest run -c ./vite.config.mts",
     "test:integration": "vitest run -c ./src/__integrations__/vite.config.mts",
     "test:coverage": "vitest run --coverage -c ./vite.config.mts",
-    "generate": "openapi-ts && tsx scripts/patch-io-lollipop-types.ts",
+    "generate": "openapi-ts",
+    "generate:patch-lollipop": "tsx scripts/patch-io-lollipop-types.ts",
     "openapi:generate": "tsx scripts/generate-openapi.ts",
     "openapi:check": "tsx scripts/generate-openapi.ts --check"
   },
