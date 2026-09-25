@@ -17,9 +17,10 @@ import {
   LoginType,
   newSessionId,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
-import { ok, err, Result } from "neverthrow";
+import { err, ok, Result } from "neverthrow";
 
 import { UserProfile } from "../../domain/entities/profile.entity.js";
+import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
 import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import {
@@ -52,26 +53,9 @@ export const makeActivateUserSessionUseCase =
     userSessions: SessionPort,
     profiles: ProfilePort,
     platformInternal: PlatformInternalPort,
+    authEventPort: AuthEventPort,
   ): ActivateUserSessionUseCase =>
   async (input) => {
-    // TODO: check if we can move newSessionId() within newActiveSession() to avoid having to pass sessionId as a parameter
-    const sessionId = await newSessionId();
-
-    const activeSession: ActiveSession = newActiveSession({
-      fiscalCode: input.fiscalCode,
-      loginType: input.loginType,
-      sessionId,
-    });
-
-    const newSessionWithPlainTokens = await newPlainSession({
-      ...input,
-      sessionId,
-    });
-
-    const newSessionWithHashedTokens = toHashedSession(
-      newSessionWithPlainTokens,
-    );
-
     const invalidationResult = await invalidatePreviousUserState(
       userSessions,
       platformInternal,
@@ -92,6 +76,21 @@ export const makeActivateUserSessionUseCase =
 
     const userProfile = getOrCreateProfileResult.value;
 
+    // TODO: check if we can move newSessionId() within newActiveSession() to avoid having to pass sessionId as a parameter
+    const sessionId = await newSessionId();
+    const activeSession: ActiveSession = newActiveSession({
+      fiscalCode: input.fiscalCode,
+      loginType: input.loginType,
+      sessionId,
+    });
+    const newSessionWithPlainTokens = await newPlainSession({
+      ...input,
+      sessionId,
+    });
+    const newSessionWithHashedTokens = toHashedSession(
+      newSessionWithPlainTokens,
+    );
+
     const result = await userSessions.create(
       activeSession,
       newSessionWithHashedTokens,
@@ -104,6 +103,8 @@ export const makeActivateUserSessionUseCase =
         ),
       );
     }
+
+    const createdSession = result.value;
 
     if (userProfile.email) {
       // Notify login event to user
@@ -126,7 +127,23 @@ export const makeActivateUserSessionUseCase =
       }
     }
 
-    //TODO: Send login event
+    const sendEventResult = await authEventPort.sendEvent({
+      eventType: "login",
+      fiscalCode: userProfile.fiscalCode,
+      ts: createdSession.createdAt,
+      expiredAt: createdSession.expirationDate,
+      loginType: input.loginType === "LEGACY" ? "legacy" : "lv", // TODO: evaluate if a more structured approach is needed
+      scenario: "standard", // TODO: handle also "new_user" and "relogin"
+      idp: input.identityProvider,
+    });
+
+    if (sendEventResult.isErr()) {
+      return err(
+        new GenericError(
+          `Failed to emit login event: ${sendEventResult.error.message}`,
+        ),
+      );
+    }
 
     return ok(
       ClientSessionTokenSchema.parse(

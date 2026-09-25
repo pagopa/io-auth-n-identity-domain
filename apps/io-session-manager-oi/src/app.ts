@@ -248,6 +248,7 @@ export const createApp = async (
     sessionCosmosAdapter,
     profileAdapter,
     platformInternalAdapter,
+    authEventServiceBusAdapter,
   );
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({

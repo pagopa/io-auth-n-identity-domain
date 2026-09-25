@@ -29,9 +29,7 @@ export const newActiveSession = ({
   fiscalCode,
   loginType,
   sessionId,
-  expirationDate: new Date(
-    Date.now() + getActiveSessionTtlMsByLoginType(loginType),
-  ),
+  expirationDate: getActiveSessionExpiration(loginType),
 });
 
 const getActiveSessionTtlMsByLoginType = (loginType: LoginType) => {
@@ -42,3 +40,15 @@ const getActiveSessionTtlMsByLoginType = (loginType: LoginType) => {
 
   return ttlByLoginType[loginType];
 };
+
+/**
+ * Returns the expiration date of an active session based on the login type and the starting date.
+ *
+ * @param loginType The type of login used for the session.
+ * @param from The starting date from which to calculate the expiration date. Defaults to the current date and time.
+ * @returns The calculated expiration date of the active session.
+ */
+export const getActiveSessionExpiration = (
+  loginType: LoginType,
+  from: Date = new Date(),
+) => new Date(from.getTime() + getActiveSessionTtlMsByLoginType(loginType));
