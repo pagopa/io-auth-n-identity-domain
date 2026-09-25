@@ -7,8 +7,8 @@ import {
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import {
-  LollipopAssertionTypeSchema,
   LollipopAssertionRefSchema,
+  LollipopAssertionTypeSchema,
   LollipopJwk,
   LollipopJwkHashingAlgorithm,
   PubKeyStatusSchema,
@@ -16,17 +16,17 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  activatePubKey,
+  generateLcParams,
+  reservePubKey,
+} from "../../../generated/io-lollipop/sdk.gen.js";
+import {
   type ActivatePubKeyPayloadDto,
   type GenerateLcParamsPayloadDto,
   type LcParamsDto,
   type NewPubKeyPayloadDto,
 } from "../dtos/io-lollipop.dto.js";
 import { createIoLollipopAdapter } from "../io-lollipop.adapter.js";
-import {
-  activatePubKey,
-  generateLcParams,
-  reservePubKey,
-} from "../../../generated/io-lollipop/sdk.gen.js";
 
 vi.mock("../../../generated/io-lollipop/client/index.js", () => ({
   createClient: vi.fn(() => ({
@@ -128,6 +128,13 @@ describe("createIoLollipopAdapter#reservePubKey", () => {
     expect(result._unsafeUnwrap()).toEqual(
       aValidReservePubKeyResult.assertion_ref,
     );
+    expect(reservePubKey).toHaveBeenCalledExactlyOnceWith({
+      client: expect.anything(),
+      body: {
+        algo: aNewPubKeyPayload.algo,
+        pub_key: aPublicJwk,
+      },
+    });
   });
 
   it.each`
