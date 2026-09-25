@@ -144,11 +144,11 @@ export class SessionCosmosAdapter
   public async create(
     activeSession: ActiveSession,
     session: SessionWithHashedSSOTokens,
-  ): Promise<Result<SessionWithHashedSSOTokens, ConflictError | GenericError>> {
-    // First create the volatile user session in the userSessionContainer, which will expire after TTL.
-    const sessionCreationResult = await this.createUserSession(session);
+  ): Promise<Result<void, ConflictError | GenericError>> {
+    // First create the volatile session tokens in the sessionTokenContainer, which will expire after TTL.
+    const sessionCreationResult = await this.createSessionTokens(session);
     if (sessionCreationResult.isErr()) {
-      return sessionCreationResult;
+      return err(sessionCreationResult.error);
     }
 
     // Then create the active session in the activeSessionContainer, which will also expire after its TTL,
@@ -161,15 +161,15 @@ export class SessionCosmosAdapter
       return err(activeSessionCreationResult.error);
     }
 
-    return ok(session);
+    return ok(undefined);
   }
 
   public async refresh(
     session: SessionWithHashedSSOTokens,
   ): Promise<Result<SessionWithHashedSSOTokens, ConflictError | GenericError>> {
-    const result = await this.createUserSession(session);
+    const result = await this.createSessionTokens(session);
     if (result.isErr()) {
-      return result;
+      return err(result.error);
     }
 
     return ok(session);
@@ -297,10 +297,10 @@ export class SessionCosmosAdapter
     return result.andThen(fromDbActiveSession);
   }
 
-  private async createUserSession(
-    userSessionToCreate: SessionWithHashedSSOTokens,
-  ): Promise<Result<SessionWithHashedSSOTokens, ConflictError | GenericError>> {
-    const ttlResult = this.computeTtl(userSessionToCreate.expirationDate);
+  private async createSessionTokens(
+    sessionTokens: SessionWithHashedSSOTokens,
+  ): Promise<Result<void, ConflictError | GenericError>> {
+    const ttlResult = this.computeTtl(sessionTokens.expirationDate);
 
     if (ttlResult.isErr()) {
       return err(ttlResult.error);
@@ -312,26 +312,26 @@ export class SessionCosmosAdapter
         [
           {
             operationType: BulkOperationType.Create,
-            resourceBody: toDbSession(userSessionToCreate, ttl),
+            resourceBody: toDbSessionToken(sessionTokens, ttl),
           },
           {
             operationType: BulkOperationType.Create,
-            resourceBody: toDbPagopaUserSession(userSessionToCreate, ttl),
+            resourceBody: toDbPagopaUserSessionToken(sessionTokens, ttl),
           },
           {
             operationType: BulkOperationType.Create,
-            resourceBody: toDbBpdUserSession(userSessionToCreate, ttl),
+            resourceBody: toDbBpdUserSessionToken(sessionTokens, ttl),
           },
           {
             operationType: BulkOperationType.Create,
-            resourceBody: toDbFimsUserSession(userSessionToCreate, ttl),
+            resourceBody: toDbFimsUserSessionToken(sessionTokens, ttl),
           },
           {
             operationType: BulkOperationType.Create,
-            resourceBody: toDbZendeskUserSession(userSessionToCreate, ttl),
+            resourceBody: toDbZendeskUserSessionToken(sessionTokens, ttl),
           },
         ],
-        userSessionToCreate.sessionId,
+        sessionTokens.sessionId,
       );
 
       if (result.code !== 200) {
@@ -353,7 +353,7 @@ export class SessionCosmosAdapter
         );
       }
 
-      return ok(userSessionToCreate);
+      return ok(undefined);
     } catch (error) {
       return this.handleCosmosError(
         error,
@@ -377,6 +377,7 @@ export class SessionCosmosAdapter
       fiscalCode: activeSession.fiscalCode,
       loginType: activeSession.loginType,
       sessionId: activeSession.sessionId,
+      createdAt: activeSession.createdAt.toISOString(),
       expirationDate: activeSession.expirationDate.toISOString(),
       ttl: activeSessionTtl.value,
     };
@@ -449,6 +450,7 @@ function fromDbActiveSession(
   const parsed = ActiveSessionSchema.safeParse({
     ...raw,
     expirationDate: new Date(raw.expirationDate as string),
+    createdAt: new Date(raw.createdAt as string),
   });
   if (parsed.success) {
     return ok(parsed.data);
@@ -476,58 +478,61 @@ function fromDbSession(raw: JSONObject): Result<BaseSession, GenericError> {
   }
 }
 
-function toDbSession(session: SessionWithHashedToken, ttl: number): JSONObject {
+function toDbSessionToken(
+  sessionToken: SessionWithHashedToken,
+  ttl: number,
+): JSONObject {
   return {
-    id: toCosmosSessionId(session.hashedSessionToken),
-    sessionId: session.sessionId,
-    fiscalCode: session.fiscalCode,
-    name: session.name,
-    familyName: session.familyName,
-    dateOfBirth: session.dateOfBirth.toISOString(),
-    spidLevel: session.spidLevel,
-    expirationDate: session.expirationDate.toISOString(),
-    spidEmail: session.spidEmail ?? null,
+    id: toCosmosSessionId(sessionToken.hashedSessionToken),
+    sessionId: sessionToken.sessionId,
+    fiscalCode: sessionToken.fiscalCode,
+    name: sessionToken.name,
+    familyName: sessionToken.familyName,
+    dateOfBirth: sessionToken.dateOfBirth.toISOString(),
+    spidLevel: sessionToken.spidLevel,
+    expirationDate: sessionToken.expirationDate.toISOString(),
+    spidEmail: sessionToken.spidEmail ?? null,
     ttl,
-    createdAt: new Date().toISOString(),
+    createdAt: sessionToken.createdAt.toISOString(),
   };
 }
 
-function toDbPagopaUserSession(
+function toDbPagopaUserSessionToken(
   session: SessionWithHashedSSOTokens,
   ttl: number,
 ): JSONObject {
   return {
-    ...toDbSession(session, ttl),
+    ...toDbSessionToken(session, ttl),
     id: toCosmosPagopaSessionId(session.ssoTokens.pagopaHashedToken),
   };
 }
 
-function toDbBpdUserSession(
+function toDbBpdUserSessionToken(
   session: SessionWithHashedSSOTokens,
   ttl: number,
 ): JSONObject {
   return {
-    ...toDbSession(session, ttl),
+    ...toDbSessionToken(session, ttl),
     id: toCosmosBpdSessionId(session.ssoTokens.bpdHashedToken),
   };
 }
 
-function toDbFimsUserSession(
+function toDbFimsUserSessionToken(
   session: SessionWithHashedSSOTokens,
   ttl: number,
 ): JSONObject {
   return {
-    ...toDbSession(session, ttl),
+    ...toDbSessionToken(session, ttl),
     id: toCosmosFimsSessionId(session.ssoTokens.fimsHashedToken),
   };
 }
 
-function toDbZendeskUserSession(
+function toDbZendeskUserSessionToken(
   session: SessionWithHashedSSOTokens,
   ttl: number,
 ): JSONObject {
   return {
-    ...toDbSession(session, ttl),
+    ...toDbSessionToken(session, ttl),
     id: toCosmosZendeskSessionId(session.ssoTokens.zendeskHashedToken),
   };
 }

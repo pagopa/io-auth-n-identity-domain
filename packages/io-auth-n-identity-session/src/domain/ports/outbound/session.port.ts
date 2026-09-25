@@ -8,8 +8,8 @@ import type { Result } from "neverthrow";
 
 import { ActiveSession } from "../../entities/active-session.entity.js";
 import type {
-  SessionWithHashedSSOTokens,
   BaseSession,
+  SessionWithHashedSSOTokens,
 } from "../../entities/session.entity.js";
 import { SessionId } from "../../value-objects/session-id.vo.js";
 import { HashedBpdSSOToken } from "../../value-objects/tokens/bpd-sso-token.vo.js";
@@ -81,9 +81,7 @@ export interface SessionPort {
   readonly create: (
     activeSession: ActiveSession,
     sessionTokens: SessionWithHashedSSOTokens,
-  ) => Promise<
-    Result<SessionWithHashedSSOTokens, ConflictError | GenericError>
-  >;
+  ) => Promise<Result<void, ConflictError | GenericError>>;
 
   /**
    * Refreshes an existing session with new tokens.

@@ -4,14 +4,16 @@
  * A type annotation is necessary.
  */
 // eslint-disable @typescript-eslint/no-unused-vars
+import type {
+  EmailAddress,
+  FiscalCode,
+  NonEmptyString,
+} from "@pagopa/hexagonal-core";
 import {
   EmailAddressSchema,
-  EmailAddressBrand,
   FiscalCodeSchema,
-  FiscalCodeBrand,
   GenericError,
   NonEmptyStringSchema,
-  NonEmptyStringBrand,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import {
@@ -19,7 +21,7 @@ import {
   SessionWithHashedSSOTokens,
   SessionWithPlainSSOTokens,
   SessionWithPlainToken,
-  toHashedSession,
+  toHashedSessionTokens,
 } from "@pagopa/io-auth-n-identity-session/entities";
 import {
   PlainSessionTokenSchema,
@@ -29,26 +31,30 @@ import {
   toPlainFimsSSOToken,
   toPlainPagopaSSOToken,
   toPlainZendeskSSOToken,
+  type PlainSessionToken,
+  type SessionId,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
 
 import { type NewSessionToken } from "../application/use-cases/activate-user-session.use-case.js";
 import { UserProfile } from "../domain/entities/profile.entity.js";
 
-export const aFiscalCode = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
-export const anEmailAddress = EmailAddressSchema.parse("user@example.com");
-export const aName = NonEmptyStringSchema.parse("Mario");
-export const aFamilyName = NonEmptyStringSchema.parse("Rossi");
-export const anIdentityProvider = NonEmptyStringSchema.parse("spid");
+export const aFiscalCode: FiscalCode =
+  FiscalCodeSchema.parse("ISPXNB32R82Y766D");
+export const anEmailAddress: EmailAddress =
+  EmailAddressSchema.parse("user@example.com");
+export const aName: NonEmptyString = NonEmptyStringSchema.parse("Mario");
+export const aFamilyName: NonEmptyString = NonEmptyStringSchema.parse("Rossi");
+export const anIdentityProvider: NonEmptyString =
+  NonEmptyStringSchema.parse("spid");
 export const aSpidLevel = SpidLevelSchema.parse(
   "https://www.spid.gov.it/SpidL2",
 );
 export const aDateOfBirth = new Date("1985-10-10");
 export const anIpAddress = "127.0.0.1";
 
-export const aSessionId = SessionIdSchema.parse("aValidSessionId");
-export const aPlainSessionToken = PlainSessionTokenSchema.parse(
-  "aValidPlainSessionToken",
-);
+export const aSessionId: SessionId = SessionIdSchema.parse("aValidSessionId");
+export const aPlainSessionToken: PlainSessionToken =
+  PlainSessionTokenSchema.parse("aValidPlainSessionToken");
 
 export const aClientSessionToken = `${aSessionId}.${aPlainSessionToken}`;
 
@@ -97,9 +103,12 @@ export const aSessionWithPlainSSOTokens: SessionWithPlainSSOTokens = {
 };
 
 export const aSessionWithHashedTokens: SessionWithHashedSSOTokens =
-  toHashedSession(aSessionWithPlainSSOTokens);
+  toHashedSessionTokens(aSessionWithPlainSSOTokens);
 
-export const aHashedSessionTokenWithSessionId = {
+export const aHashedSessionTokenWithSessionId: {
+  sessionId: SessionId;
+  hashedSessionToken: SessionWithHashedSSOTokens["hashedSessionToken"];
+} = {
   sessionId: aSessionId,
   hashedSessionToken: aSessionWithHashedTokens.hashedSessionToken,
 };
