@@ -1,5 +1,5 @@
 import { GenericError } from "@pagopa/hexagonal-core";
-import { newPlainSession } from "@pagopa/io-auth-n-identity-session/entities";
+import { newPlainSessionTokens } from "@pagopa/io-auth-n-identity-session/entities";
 import { newSessionId } from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -69,7 +69,7 @@ vi.mock("@pagopa/io-auth-n-identity-session/entities", async (importActual) => {
     >();
   return {
     ...actual,
-    newPlainSession: vi.fn(),
+    newPlainSessionTokens: vi.fn(),
   };
 });
 
@@ -87,16 +87,20 @@ beforeEach(() => {
   resetPlatformInternalPortMock();
   resetAuthEventPortMock();
   vi.mocked(newSessionId).mockResolvedValue(aSessionId);
-  vi.mocked(newPlainSession).mockResolvedValue(aSessionWithPlainSSOTokens);
+  vi.mocked(newPlainSessionTokens).mockResolvedValue(
+    aSessionWithPlainSSOTokens,
+  );
 });
 
 const expectLoginEvent = () => {
+  const [{ createdAt, expirationDate }] = mockSessionCreate.mock.calls[0];
+
   expect(mockSendEvent).toHaveBeenCalledExactlyOnceWith(
     expect.objectContaining({
       eventType: "login",
       fiscalCode: aFiscalCode,
-      ts: new Date("2099-12-01"),
-      expiredAt: new Date("2100-01-01"),
+      ts: createdAt,
+      expiredAt: expirationDate,
       loginType: "legacy",
       scenario: "standard",
       idp: anIdentityProvider,

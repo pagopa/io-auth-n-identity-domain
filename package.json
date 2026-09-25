@@ -9,7 +9,7 @@
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",
     "build": "turbo run build",
-    "generate": "turbo run generate",
+    "generate": "turbo run generate generate:patch-lollipop",
     "typecheck": "turbo run typecheck",
     "version": "changeset version && pnpm generate",
     "release": "changeset tag",
@@ -47,7 +47,7 @@
     "eslint-plugin-turbo": "^2.5.5",
     "prettier": "catalog:",
     "shx": "^0.3.4",
-    "turbo": "^2.5.5",
+    "turbo": "^2.9.16",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },

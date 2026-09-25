@@ -8,10 +8,10 @@ import {
   GenericError,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok, Result } from "neverthrow";
 import z from "zod";
 
-import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { TechnicalLockedProfilesPort } from "../../domain/ports/outbound/technical-locked-profiles.port.js";
 
 export class TechnicalLockedProfilesDataTableAdapter
