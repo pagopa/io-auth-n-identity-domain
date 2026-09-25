@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   description: FIMS SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.
   title: FIMS API for user authentication.
-  version: 0.23.1
+  version: 0.23.2
 servers:
   - url: https://api-app.io.pagopa.it/api/sso/fims/v2
 tags:
@@ -69,6 +69,79 @@ components:
         - title
         - type
       description: RFC 7807 Problem Details for HTTP APIs. See https://www.rfc-editor.org/rfc/rfc7807.
+    FIMSPlusUser:
+      type: object
+      properties:
+        profile:
+          type: object
+          properties:
+            name:
+              type: string
+              minLength: 1
+            family_name:
+              type: string
+              minLength: 1
+            fiscal_code:
+              type: string
+              pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/i
+            auth_time:
+              type: integer
+              minimum: 1
+            acr:
+              type: string
+              enum:
+                - https://www.spid.gov.it/SpidL1
+                - https://www.spid.gov.it/SpidL2
+                - https://www.spid.gov.it/SpidL3
+            email:
+              type: string
+              pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+            date_of_birth:
+              type: string
+              format: date
+          required:
+            - name
+            - family_name
+            - fiscal_code
+            - auth_time
+            - acr
+            - date_of_birth
+        lc_params:
+          type: object
+          properties:
+            assertion_ref:
+              oneOf:
+                - type: string
+                  pattern: ^sha256-[A-Za-z0-9_-]{43}$
+                - type: string
+                  pattern: ^sha384-[A-Za-z0-9_-]{64}$
+                - type: string
+                  pattern: ^sha512-[A-Za-z0-9_-]{86}$
+            pub_key:
+              type: string
+              minLength: 1
+              format: base64url
+              pattern: ^[A-Za-z0-9_-]*$
+            lc_authentication_bearer:
+              type: string
+              minLength: 1
+          required:
+            - assertion_ref
+            - pub_key
+            - lc_authentication_bearer
+      required:
+        - profile
+        - lc_params
+      description: FIMS User with additional LCParamsForFims
+    GetLollipopUserForFIMSPayload:
+      type: object
+      properties:
+        operation_id:
+          type: string
+          minLength: 1
+      required:
+        - operation_id
+      description: Input payload for fetching FIMS Lollipop user
   parameters: {}
 paths:
   /user:
@@ -95,6 +168,64 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
         "401":
           description: Missing/invalid `Authorization` header, unknown session, or source IP blocked by the allowlist.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: User not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /lollipop-user:
+    post:
+      description: Returns the user data needed by FIMS backend and the LCParams needed by the RC to verify the Lollipop request. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`.
+      operationId: getLollipopUserForFIMS
+      security:
+        - bearerAuth: []
+      summary: Get user's data and generate LCParams
+      tags:
+        - sso
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetLollipopUserForFIMSPayload"
+      responses:
+        "200":
+          description: The FIMS user for the provided session token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FIMSPlusUser"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Missing/invalid `Authorization` header, unknown session, or source IP blocked by the allowlist.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden - Not Authorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: " User or Lollipop Data not found"
           content:
             application/problem+json:
               schema:

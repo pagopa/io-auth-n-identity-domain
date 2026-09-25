@@ -24,6 +24,7 @@ import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
+import { mountSsoFimsLollipopUserHandler } from "./adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
 import { mountSsoFimsUserHandler } from "./adapters/inbound/fastify/sso-fims-user.handler.js";
 import { mountSsoPagopaUserHandler } from "./adapters/inbound/fastify/sso-pagopa-user.handler.js";
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
@@ -38,6 +39,7 @@ import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.j
 import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
 import { TechnicalLockedProfilesDataTableAdapter } from "./adapters/outbound/technical-locked-profiles-data-table.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
+import { makeGetLollipopUserForFimsUseCase } from "./application/use-cases/get-lollipop-user-for-fims.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
 import { getUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
 import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-fims.use-case.js";
@@ -346,6 +348,16 @@ export const createApp = async (
     middlewares: [authenticateFimsMiddleware] as const,
     useCase: makeGetUserForFimsUseCase({
       profilePort: profileAdapter,
+    }),
+  });
+
+  mountSsoFimsLollipopUserHandler(server, {
+    allowedIpSourceRange: config.ALLOW_FIMS_IP_SOURCE_RANGE,
+    middlewares: [authenticateFimsMiddleware] as const,
+    useCase: makeGetLollipopUserForFimsUseCase({
+      profilePort: profileAdapter,
+      lollipopPort: fetchLollipopAdapter,
+      lollipopActivationPort: lollipopActivationCosmosAdapter,
     }),
   });
 

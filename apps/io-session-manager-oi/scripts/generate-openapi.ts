@@ -13,6 +13,7 @@ import {
   writeOpenApiYaml,
 } from "@pagopa/hexagonal-openapi";
 
+import { ssoFimsLollipopUserRoute } from "../dist/adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
 import {
   BASE_PATH,
   SSO_BPD_BASE_PATH,
@@ -142,7 +143,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
     description:
       "FIMS SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.",
     outputRelPath: "api/sso/fims.yaml",
-    routes: [ssoFimsUserRoute],
+    routes: [ssoFimsUserRoute, ssoFimsLollipopUserRoute],
     tags: [
       {
         name: "sso",

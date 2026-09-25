@@ -3,26 +3,29 @@ import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { AnyRouteContract } from "@pagopa/hexagonal-openapi";
 import { FastifyInstance } from "fastify";
 
-import { GetUserForFimsUseCase } from "../../../application/use-cases/get-user-for-fims.use-case.js";
+import { GetLollipopUserForFimsUseCase } from "../../../application/use-cases/get-lollipop-user-for-fims.use-case.js";
 import { AuthenticationMiddleware } from "../../../middlewares/authentication/index.js";
 import { SSO_FIMS_BASE_PATH } from "../base-path.js";
-import { SsoFimsUserOutputDTO } from "../dtos/sso-fims-user.dto.js";
+import {
+  SsoFimsLollipopUserInputDto,
+  SsoFimsLollipopUserOutputDto,
+} from "../dtos/sso-fims-lollipop-user.dto.js";
 
 import { createCheckIpHook } from "./hooks/check-ip.hook.js";
 
-const ssoFimsUserContract = defineRoute({
-  method: "get",
-  operationId: "getUserForFims",
-  path: `${SSO_FIMS_BASE_PATH}/user`,
-  request: {},
-  summary: "Return the FIMS user for a session token",
+const ssoFimsLollipopUserContract = defineRoute({
+  method: "post",
+  operationId: "getLollipopUserForFIMS",
+  path: `${SSO_FIMS_BASE_PATH}/lollipop-user`,
+  request: SsoFimsLollipopUserInputDto,
+  summary: "Get user's data and generate LCParams",
   description:
-    "Returns the FIMS user identified by the token carried in the `Authorization: Bearer` header. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`.",
+    "Returns the user data needed by FIMS backend and the LCParams needed by the RC to verify the Lollipop request. Requests whose source IP is not within the configured allowlist are rejected with `401 Unauthorized`.",
   tags: ["sso"],
   response: {
     200: {
       description: "The FIMS user for the provided session token",
-      schema: SsoFimsUserOutputDTO,
+      schema: SsoFimsLollipopUserOutputDto,
     },
     400: {
       description: "Bad request",
@@ -33,8 +36,12 @@ const ssoFimsUserContract = defineRoute({
         "Missing/invalid `Authorization` header, unknown session, or source IP blocked by the allowlist.",
       schema: ProblemJson,
     },
+    403: {
+      description: "Forbidden - Not Authorized",
+      schema: ProblemJson,
+    },
     404: {
-      description: "User not found",
+      description: "User or Lollipop data not found",
       schema: ProblemJson,
     },
     500: {
@@ -45,24 +52,29 @@ const ssoFimsUserContract = defineRoute({
   security: [{ bearerAuth: [] }],
 });
 
-export type SsoFimsUserHandlerDeps = {
+export type SsoFimsLollipopUserHandlerDeps = {
   allowedIpSourceRange: ReadonlyArray<string>;
   middlewares: readonly [AuthenticationMiddleware<"fims">];
-  useCase: GetUserForFimsUseCase;
+  useCase: GetLollipopUserForFimsUseCase;
 };
 
-export const mountSsoFimsUserHandler = (
+export const mountSsoFimsLollipopUserHandler = (
   server: FastifyInstance,
-  deps: SsoFimsUserHandlerDeps,
+  deps: SsoFimsLollipopUserHandlerDeps,
 ): void => {
   // Fastify plugin scope: the check-ip preHandler stays confined to this route.
   server.register((scope, _opts, done) => {
     scope.addHook("preHandler", createCheckIpHook(deps.allowedIpSourceRange));
     mountFastifyRoute(scope, {
-      contract: ssoFimsUserContract,
+      contract: ssoFimsLollipopUserContract,
       middlewares: deps.middlewares,
-      inputMapper: (_, context) => ({
+      inputMapper: (req, context) => ({
         session: context.session,
+        operationId: req.body.operation_id,
+      }),
+      outputMapper: ({ profile, lcParams }) => ({
+        profile,
+        lc_params: lcParams,
       }),
       useCase: deps.useCase,
     });
@@ -71,5 +83,6 @@ export const mountSsoFimsUserHandler = (
 };
 
 // Widened for the OpenAPI generator: exporting the inferred contract type would
-// leak the branded `unique symbol` of `SsoFimsUserOutputDTO` (TS2527).
-export const ssoFimsUserRoute: AnyRouteContract = ssoFimsUserContract;
+// leak the branded `unique symbol` of `SsoFimsLollipopUserOutputDto` (TS2527).
+export const ssoFimsLollipopUserRoute: AnyRouteContract =
+  ssoFimsLollipopUserContract;

@@ -1,38 +1,28 @@
 import {
   AuthenticationError,
-  EmailAddress,
-  FiscalCode,
   GenericError,
-  NonEmptyString,
   NotFoundError,
   UseCase,
 } from "@pagopa/hexagonal-core";
 import { BaseSession } from "@pagopa/io-auth-n-identity-session";
-import { type SpidLevel } from "@pagopa/io-auth-n-identity-session/value-objects";
-import { err, ok } from "neverthrow";
-import { z } from "zod";
+import { err, ok, Result } from "neverthrow";
 
 import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
-import { PositiveInteger } from "../../domain/value-objects/positive-integer.vo.js";
-
-const _IsoDateSchema = z.iso.date();
-type IsoDate = z.infer<typeof _IsoDateSchema>;
+import {
+  FimsUser,
+  FimsUserSchema,
+} from "../../domain/value-objects/fims.vo.js";
 
 export type GetUserForFimsInput = {
   session: BaseSession;
 };
 
-export type GetUserForFimsOutput = {
-  name: NonEmptyString;
-  family_name: NonEmptyString;
-  fiscal_code: FiscalCode;
-  auth_time: PositiveInteger;
-  acr: SpidLevel;
-  email?: EmailAddress;
-  date_of_birth: IsoDate;
-};
+export type GetUserForFimsOutput = FimsUser;
 
-export type GetUserForFimsError = AuthenticationError | GenericError;
+export type GetUserForFimsError =
+  | AuthenticationError
+  | NotFoundError
+  | GenericError;
 
 type GetUserForFimsDeps = {
   profilePort: ProfilePort;
@@ -44,33 +34,32 @@ export type GetUserForFimsUseCase = UseCase<
   GetUserForFimsError
 >;
 
-export const makeGetUserForFimsUseCase =
-  (deps: GetUserForFimsDeps): GetUserForFimsUseCase =>
-  async ({ session }: GetUserForFimsInput) => {
-    const profileLookup = await deps.profilePort.getProfile(session.fiscalCode);
+export const getUserForFims = async (
+  session: BaseSession,
+  profilePort: ProfilePort,
+): Promise<Result<FimsUser, NotFoundError | GenericError>> => {
+  const profileLookup = await profilePort.getProfile(session.fiscalCode);
 
-    if (profileLookup.isErr()) {
-      return err(
-        profileLookup.error instanceof NotFoundError
-          ? new GenericError(
-              "Inconsistency: a profile for a valid token was not found",
-            )
-          : profileLookup.error,
-      );
-    }
+  if (profileLookup.isErr()) {
+    return err(profileLookup.error);
+  }
 
-    const profile = profileLookup.value;
+  const profile = profileLookup.value;
 
-    return ok({
+  return ok(
+    FimsUserSchema.parse({
       name: session.name,
       family_name: session.familyName,
       fiscal_code: session.fiscalCode,
-      auth_time: (session.createdAt.getTime()) as PositiveInteger,
+      auth_time: session.createdAt.getTime(),
       acr: session.spidLevel,
-      // If the email is not validated yet, the value returned will be undefined
       email: profile.isEmailValidated ? profile.email : undefined,
-      // Convert the date of birth to a string in the format YYYY-MM-DD.
-      // The index 0 to 10 extracts the YYYY-MM-DD part of the ISO string, splitting at the "T" character.
       date_of_birth: session.dateOfBirth.toISOString().slice(0, 10),
-    });
-  };
+    }),
+  );
+};
+
+export const makeGetUserForFimsUseCase =
+  (deps: GetUserForFimsDeps): GetUserForFimsUseCase =>
+  async ({ session }: GetUserForFimsInput) =>
+    getUserForFims(session, deps.profilePort);
