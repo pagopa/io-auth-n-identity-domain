@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-domain
 
+## 0.5.2
+
+### Patch Changes
+
+- a28ecaa: activate declarationMap from tsconfig file
+
 ## 0.5.1
 
 ### Patch Changes
