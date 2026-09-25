@@ -48,6 +48,7 @@
     },
     "clean": {
       "inputs": ["dist/**"],
+      "outputLogs": "hash-only",
       "cache": false
     }
   }
