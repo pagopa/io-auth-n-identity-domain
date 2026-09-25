@@ -1,5 +1,19 @@
 # io-session-manager-oi
 
+## 0.25.0
+
+### Minor Changes
+
+- a28ecaa: add a successful login event
+
+### Patch Changes
+
+- Updated dependencies [a28ecaa]
+- Updated dependencies [a28ecaa]
+  - @pagopa/io-auth-n-identity-session@0.8.0
+  - @pagopa/io-auth-n-identity-domain@0.5.2
+  - @pagopa/azure-sdk@0.2.1
+
 ## 0.24.0
 
 ### Minor Changes
