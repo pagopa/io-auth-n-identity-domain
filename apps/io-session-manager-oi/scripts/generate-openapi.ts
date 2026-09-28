@@ -13,7 +13,7 @@ import {
   writeOpenApiYaml,
 } from "@pagopa/hexagonal-openapi";
 
-import { ssoFimsLollipopUserRoute } from "../dist/adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
+import { ssoFimsLollipopUserRoute } from "../src/adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
 import {
   BASE_PATH,
   SSO_BPD_BASE_PATH,
