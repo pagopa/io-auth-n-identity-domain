@@ -7,32 +7,33 @@ import {
   UseCase,
   ForbiddenError,
 } from "@pagopa/hexagonal-core";
+import {
+  LollipopJwk,
+  LollipopAssertionRef,
+} from "@pagopa/io-auth-n-identity-domain";
 import { BaseSession } from "@pagopa/io-auth-n-identity-session";
 import { LollipopActivationPort } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, Result } from "neverthrow";
 
 import { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
-import { FimsUser } from "../../domain/value-objects/fims.vo.js";
 
-import { getUserForFims } from "./get-user-for-fims.use-case.js";
-
-type LcParams =
-  Awaited<ReturnType<LollipopPort["generateLCParams"]>> extends Result<
-    infer T,
-    unknown
-  >
-    ? T
-    : never;
+import  { GetUserForFimsUseCase, type FimsUser } from "./get-user-for-fims.use-case.js";
 
 export type GetLollipopUserForFimsInput = {
   session: BaseSession;
   operationId: NonEmptyString;
 };
 
+type LcParamsForFims = {
+  assertion_ref: LollipopAssertionRef;
+  pub_key: LollipopJwk;
+  lc_authentication_bearer: NonEmptyString;
+};
+
 export type GetLollipopUserForFimsOutput = {
   profile: FimsUser;
-  lcParams: LcParams;
+  lc_params: LcParamsForFims;
 };
 
 export type GetLollipopUserForFimsError =
@@ -45,6 +46,7 @@ type GetLollipopUserForFimsDeps = {
   profilePort: ProfilePort;
   lollipopPort: LollipopPort;
   lollipopActivationPort: LollipopActivationPort;
+  getUserForFimsUseCase: GetUserForFimsUseCase;
 };
 
 export type GetLollipopUserForFimsUseCase = UseCase<
@@ -58,7 +60,9 @@ const generateLcParamsForFimsUser = async (
   operationId: NonEmptyString,
   lollipopPort: LollipopPort,
   lollipopActivationPort: LollipopActivationPort,
-) => {
+): Promise<
+  Result<LcParamsForFims, ForbiddenError | NotFoundError | GenericError>
+> => {
   const lollipopActivationLookup =
     await lollipopActivationPort.getByFiscalCode(fiscalCode);
   if (lollipopActivationLookup.isErr()) {
@@ -75,14 +79,21 @@ const generateLcParamsForFimsUser = async (
   if (lcParamsGeneration.isErr()) {
     return err(lcParamsGeneration.error);
   }
-  return ok(lcParamsGeneration.value);
+
+  const lcParams = lcParamsGeneration.value;
+
+  return ok({
+    assertion_ref: lcParams.assertion_ref,
+    pub_key: lcParams.pub_key,
+    lc_authentication_bearer: lcParams.lc_authentication_bearer,
+  });
 };
 
 export const makeGetLollipopUserForFimsUseCase =
   (deps: GetLollipopUserForFimsDeps): GetLollipopUserForFimsUseCase =>
   async ({ session, operationId }: GetLollipopUserForFimsInput) => {
     const [fimsUserResult, lcParamsResult] = await Promise.all([
-      getUserForFims(session, deps.profilePort),
+      deps.getUserForFimsUseCase({ session }),
       generateLcParamsForFimsUser(
         session.fiscalCode,
         operationId,
@@ -99,10 +110,10 @@ export const makeGetLollipopUserForFimsUseCase =
     if (lcParamsResult.isErr()) {
       return err(lcParamsResult.error);
     }
-    const lcParams = lcParamsResult.value;
+    const lcParams: LcParamsForFims = lcParamsResult.value;
 
     return ok({
       profile: fimsUser,
-      lcParams: lcParams,
+      lc_params: lcParams,
     });
   };

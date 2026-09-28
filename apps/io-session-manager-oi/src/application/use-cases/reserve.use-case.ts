@@ -8,7 +8,7 @@ import {
   ValidationError,
 } from "@pagopa/hexagonal-core";
 import {
-  JwkPublicKeyBase64UrlString,
+  JwkPublicKey,
   LollipopJwkHashingAlgorithm,
 } from "@pagopa/io-auth-n-identity-domain";
 import { LoginType } from "@pagopa/io-auth-n-identity-session";
@@ -35,7 +35,7 @@ type ReserveDeps = {
 type input = {
   oidcConfigurationEnv: OidcConfigurationEnv;
   minAuthLevel: SpidAuthLevel;
-  lollipopPublicKey: JwkPublicKeyBase64UrlString;
+  lollipopPublicKey: JwkPublicKey;
   lollipopHashAlgorithm: LollipopJwkHashingAlgorithm;
   loginType: LoginType;
   currentUser: CurrentUser;

@@ -30,7 +30,7 @@ components:
           pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/i
         auth_time:
           type: integer
-          minimum: 1
+          minimum: 0
         acr:
           type: string
           enum:
@@ -49,6 +49,7 @@ components:
         - fiscal_code
         - auth_time
         - acr
+        - email
         - date_of_birth
       description: The user data returned to the FIMS backend.
     ProblemDetails:
@@ -73,66 +74,37 @@ components:
       type: object
       properties:
         profile:
-          type: object
-          properties:
-            name:
-              type: string
-              minLength: 1
-            family_name:
-              type: string
-              minLength: 1
-            fiscal_code:
-              type: string
-              pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/i
-            auth_time:
-              type: integer
-              minimum: 1
-            acr:
-              type: string
-              enum:
-                - https://www.spid.gov.it/SpidL1
-                - https://www.spid.gov.it/SpidL2
-                - https://www.spid.gov.it/SpidL3
-            email:
-              type: string
-              pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
-            date_of_birth:
-              type: string
-              format: date
-          required:
-            - name
-            - family_name
-            - fiscal_code
-            - auth_time
-            - acr
-            - date_of_birth
+          $ref: "#/components/schemas/FIMSUser"
         lc_params:
-          type: object
-          properties:
-            assertion_ref:
-              oneOf:
-                - type: string
-                  pattern: ^sha256-[A-Za-z0-9_-]{43}$
-                - type: string
-                  pattern: ^sha384-[A-Za-z0-9_-]{64}$
-                - type: string
-                  pattern: ^sha512-[A-Za-z0-9_-]{86}$
-            pub_key:
-              type: string
-              minLength: 1
-              format: base64url
-              pattern: ^[A-Za-z0-9_-]*$
-            lc_authentication_bearer:
-              type: string
-              minLength: 1
-          required:
-            - assertion_ref
-            - pub_key
-            - lc_authentication_bearer
+          $ref: "#/components/schemas/LcParamsForFims"
       required:
         - profile
         - lc_params
       description: FIMS User with additional LCParamsForFims
+    LcParamsForFims:
+      type: object
+      properties:
+        assertion_ref:
+          oneOf:
+            - type: string
+              pattern: ^sha256-[A-Za-z0-9_-]{43}$
+            - type: string
+              pattern: ^sha384-[A-Za-z0-9_-]{64}$
+            - type: string
+              pattern: ^sha512-[A-Za-z0-9_-]{86}$
+        pub_key:
+          type: string
+          minLength: 1
+          pattern: ^[A-Za-z0-9_-]+=*$
+          description: Base64url-encoded JWK
+        lc_authentication_bearer:
+          type: string
+          minLength: 1
+      required:
+        - assertion_ref
+        - pub_key
+        - lc_authentication_bearer
+      description: LC Params for FIMS
     GetLollipopUserForFIMSPayload:
       type: object
       properties:
@@ -225,7 +197,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
         "404":
-          description: " User or Lollipop Data not found"
+          description: User or Lollipop data not found
           content:
             application/problem+json:
               schema:

@@ -265,6 +265,10 @@ export const createApp = async (
     profilePort: profileAdapter,
   });
 
+  const getUserForFimsUseCase = makeGetUserForFimsUseCase({
+    profilePort: profileAdapter,
+  });
+
   // --------------------------------------------------
   // Middlewares definition
   // --------------------------------------------------
@@ -346,9 +350,7 @@ export const createApp = async (
   mountSsoFimsUserHandler(server, {
     allowedIpSourceRange: config.ALLOW_FIMS_IP_SOURCE_RANGE,
     middlewares: [authenticateFimsMiddleware] as const,
-    useCase: makeGetUserForFimsUseCase({
-      profilePort: profileAdapter,
-    }),
+    useCase: getUserForFimsUseCase,
   });
 
   mountSsoFimsLollipopUserHandler(server, {
@@ -358,6 +360,7 @@ export const createApp = async (
       profilePort: profileAdapter,
       lollipopPort: fetchLollipopAdapter,
       lollipopActivationPort: lollipopActivationCosmosAdapter,
+      getUserForFimsUseCase: getUserForFimsUseCase,
     }),
   });
 

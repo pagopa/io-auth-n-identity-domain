@@ -1,8 +1,12 @@
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
+import {
+  LollipopAssertionRefSchema,
+  LollipopJwkSchema,
+} from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
 
-import { FimsUserSchema, LCParamsForFims } from "../../../domain/value-objects/fims.vo.js";
+import { FimsUserSchema } from "./sso-fims-user.dto.js";
 
 extendZodWithOpenApi(z);
 
@@ -17,10 +21,25 @@ export const SsoFimsLollipopUserInputDto = {
     }),
 };
 
-export const SsoFimsLollipopUserOutputDto = z.object({
-  profile: FimsUserSchema,
-  lc_params: LCParamsForFims,
-}).meta({
-  id: "FIMSPlusUser",
-  description: "FIMS User with additional LCParamsForFims",
-});
+const LcParamsForFimsSchema = z
+  .object({
+    assertion_ref: LollipopAssertionRefSchema,
+    pub_key: LollipopJwkSchema,
+    lc_authentication_bearer: NonEmptyStringSchema,
+  })
+  .meta({
+    id: "LcParamsForFims",
+    description: "LC Params for FIMS",
+  });
+
+const FimsPlusUserSchema = z
+  .object({
+    profile: FimsUserSchema,
+    lc_params: LcParamsForFimsSchema,
+  })
+  .meta({
+    id: "FIMSPlusUser",
+    description: "FIMS User with additional LCParamsForFims",
+  });
+
+export const SsoFimsLollipopUserOutputDto = FimsPlusUserSchema;
