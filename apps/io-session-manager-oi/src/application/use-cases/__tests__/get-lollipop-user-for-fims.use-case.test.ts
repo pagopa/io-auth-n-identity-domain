@@ -7,16 +7,11 @@ import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
-import {
-  mockGetProfile,
-  ProfilePortMock,
-} from "../../../__mocks__/ports/profile-port.mock.js";
-import {
-  aSessionWithHashedTokens,
-  aUserProfileWithEmail,
-} from "../../../__mocks__/session.mocks.js";
+import { ProfilePortMock } from "../../../__mocks__/ports/profile-port.mock.js";
+import { aSessionWithHashedTokens } from "../../../__mocks__/session.mocks.js";
 import { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
 import { makeGetLollipopUserForFimsUseCase } from "../get-lollipop-user-for-fims.use-case.js";
+import { GetUserForFimsUseCase } from "../get-user-for-fims.use-case.js";
 
 const aSession = aSessionWithHashedTokens;
 const anOperationId = "an-operation-id" as NonEmptyString;
@@ -28,10 +23,13 @@ const lollipopPortMock = {
   generateLCParams: vi.fn(),
 } satisfies LollipopPort;
 
+const getUserForFimsUseCase = vi.fn();
+
 const getLollipopUserForFims = makeGetLollipopUserForFimsUseCase({
   profilePort: ProfilePortMock,
   lollipopPort: lollipopPortMock,
   lollipopActivationPort: lollipopActivationPortMock,
+  getUserForFimsUseCase,
 });
 
 beforeEach(() => {
@@ -57,7 +55,17 @@ describe("makeGetLollipopUserForFimsUseCase", () => {
       version: 1,
       lc_authentication_bearer: "a-bearer-token",
     };
-    mockGetProfile.mockResolvedValueOnce(ok(aUserProfileWithEmail));
+    getUserForFimsUseCase.mockResolvedValueOnce(
+      ok({
+        name: "Mario Rossi",
+        family_name: "Rossi",
+        fiscal_code: aSession.fiscalCode,
+        auth_time: aSession.createdAt.getTime(),
+        acr: aSession.spidLevel,
+        email: "mario.rossi@example.com",
+        date_of_birth: "1985-10-10",
+      }),
+    );
     lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
       ok(lollipopActivation),
     );
@@ -77,20 +85,24 @@ describe("makeGetLollipopUserForFimsUseCase", () => {
       anAssertionRef,
       { operation_id: anOperationId },
     );
+    expect(getUserForFimsUseCase).toHaveBeenCalledExactlyOnceWith({
+      session: aSession,
+    });
     expect(result).toEqual(
       ok({
-        profile: expect.objectContaining({
-          fiscal_code: aSession.fiscalCode,
-          email: aUserProfileWithEmail.email,
-        }),
-        lcParams,
+        profile: expect.objectContaining({ fiscal_code: aSession.fiscalCode }),
+        lc_params: {
+          assertion_ref: lcParams.assertion_ref,
+          pub_key: lcParams.pub_key,
+          lc_authentication_bearer: lcParams.lc_authentication_bearer,
+        },
       }),
     );
   });
 
   it("propagates a profile lookup error", async () => {
     const error = new NotFoundError("Profile", "not found");
-    mockGetProfile.mockResolvedValueOnce(err(error));
+    getUserForFimsUseCase.mockResolvedValueOnce(err(error));
     lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
       ok({
         fiscalCode: aSession.fiscalCode,
@@ -110,7 +122,7 @@ describe("makeGetLollipopUserForFimsUseCase", () => {
 
   it("propagates an activation lookup error", async () => {
     const error = new GenericError("activation not found");
-    mockGetProfile.mockResolvedValueOnce(ok(aUserProfileWithEmail));
+    getUserForFimsUseCase.mockResolvedValueOnce(ok({} as never));
     lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
       err(error),
     );
@@ -126,7 +138,7 @@ describe("makeGetLollipopUserForFimsUseCase", () => {
 
   it("propagates an LC params generation error", async () => {
     const error = new GenericError("lollipop unavailable");
-    mockGetProfile.mockResolvedValueOnce(ok(aUserProfileWithEmail));
+    getUserForFimsUseCase.mockResolvedValueOnce(ok({} as never));
     lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
       ok({
         fiscalCode: aSession.fiscalCode,

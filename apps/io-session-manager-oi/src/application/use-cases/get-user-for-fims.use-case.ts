@@ -4,8 +4,13 @@ import {
   NotFoundError,
   UseCase,
 } from "@pagopa/hexagonal-core";
-import type { FiscalCode, NonEmptyString, EmailAddress } from "@pagopa/hexagonal-core";
+import type {
+  FiscalCode,
+  NonEmptyString,
+  EmailAddress,
+} from "@pagopa/hexagonal-core";
 import { BaseSession } from "@pagopa/io-auth-n-identity-session";
+import type { SpidLevel } from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
 
 import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
@@ -19,7 +24,7 @@ export type FimsUser = {
   family_name: NonEmptyString;
   fiscal_code: FiscalCode;
   auth_time: number;
-  acr: string;
+  acr: SpidLevel;
   email: EmailAddress;
   date_of_birth: NonEmptyString;
 };
