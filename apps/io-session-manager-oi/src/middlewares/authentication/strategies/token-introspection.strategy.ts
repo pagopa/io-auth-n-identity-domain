@@ -11,6 +11,7 @@ import {
   toHashedFimsSSOToken,
   toHashedSessionToken,
   toHashedPagopaSSOToken,
+  toHashedZendeskSSOToken,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, type Result } from "neverthrow";
 
@@ -180,5 +181,30 @@ export class PagopaTokenIntrospectionStrategy extends TokenIntrospectionBaseStra
     sessionToken: AuthToken["pagopa"]["type"],
   ): AuthToken["pagopa"]["hashedType"] {
     return toHashedPagopaSSOToken(sessionToken);
+  }
+}
+
+/**
+ * Token introspection strategy for Zendesk tokens.
+ */
+export class ZendeskTokenIntrospectionStrategy extends TokenIntrospectionBaseStrategy<"zendesk"> {
+  constructor(private readonly sessionPort: SessionPort) {
+    super();
+  }
+
+  protected override findSessionByToken(
+    sessionId: SessionId,
+    sessionToken: AuthToken["zendesk"]["hashedType"],
+  ): Promise<Result<BaseSession, NotFoundError | GenericError>> {
+    return this.sessionPort.findByZendeskToken({
+      sessionId,
+      hashedZendeskSSOToken: sessionToken,
+    });
+  }
+
+  protected override toHashedToken(
+    sessionToken: AuthToken["zendesk"]["type"],
+  ): AuthToken["zendesk"]["hashedType"] {
+    return toHashedZendeskSSOToken(sessionToken);
   }
 }

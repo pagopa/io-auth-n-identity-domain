@@ -10,10 +10,10 @@ import {
 import type { AuthToken } from "../auth-token.js";
 import {
   AuthenticationMiddlewareFactory,
-  makeAuthenticationMiddleware,
+  makeBearerAuthenticationMiddleware,
 } from "../authentication.middleware.js";
 import type { TokenIntrospectionStrategyFactory } from "../factories/token-introspection.factory.js";
-import type { BearerTokenParsingStrategyFactory } from "../factories/token-parsing.factory.js";
+import type { TokenParsingStrategyFactory } from "../factories/token-parsing.factory.js";
 import type { TokenIntrospectionStrategy } from "../strategies/token-introspection.strategy.js";
 import type { BearerTokenParsingStrategy } from "../strategies/token-parsing.strategy.js";
 
@@ -27,7 +27,7 @@ describe("AuthenticationMiddleware", () => {
   const tokenIntrospectionStrategy = {
     resolve,
   } as unknown as TokenIntrospectionStrategy<"session">;
-  const middleware = makeAuthenticationMiddleware(
+  const middleware = makeBearerAuthenticationMiddleware(
     bearerTokenParsingStrategy,
     tokenIntrospectionStrategy,
   );
@@ -123,7 +123,7 @@ describe("AuthenticationMiddlewareFactory", () => {
       >;
       const bearerTokenParsingStrategyFactory = {
         create: vi.fn().mockReturnValue(parsingStrategy),
-      } as unknown as BearerTokenParsingStrategyFactory;
+      } as unknown as TokenParsingStrategyFactory;
       const tokenIntrospectionStrategyFactory = {
         create: vi.fn().mockReturnValue(introspectionStrategy),
       } as unknown as TokenIntrospectionStrategyFactory;

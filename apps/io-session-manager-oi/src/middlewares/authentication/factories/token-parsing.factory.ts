@@ -4,18 +4,20 @@ import {
   SessionBearerTokenParsingStrategy,
   FimsBearerTokenParsingStrategy,
   PagopaBearerTokenParsingStrategy,
+  ZendeskBodyTokenParsingStrategy,
 } from "../strategies/token-parsing.strategy.js";
+import type { TokenParsingStrategy } from "../strategies/token-parsing.strategy.js";
 
 /**
  * Factory class for creating instances of BearerTokenParsingStrategy.
  */
-export class BearerTokenParsingStrategyFactory {
+export class TokenParsingStrategyFactory {
   /**
    * Creates a new instance of BearerTokenParsingStrategy for the specified token type.
    * @param tokenType The type of token for which to create the parsing strategy.
    * @returns An instance of BearerTokenParsingStrategy for the specified token type.
    */
-  create<T extends TokenType>(tokenType: T) {
+  create<T extends TokenType>(tokenType: T): TokenParsingStrategy<T> {
     switch (tokenType) {
       case "session":
         return new SessionBearerTokenParsingStrategy();
@@ -25,6 +27,8 @@ export class BearerTokenParsingStrategyFactory {
         return new FimsBearerTokenParsingStrategy();
       case "pagopa":
         return new PagopaBearerTokenParsingStrategy();
+      case "zendesk":
+        return new ZendeskBodyTokenParsingStrategy();
       default:
         const _exhaustiveCheck: never = tokenType;
         console.error(`Unsupported token type: ${tokenType}`);

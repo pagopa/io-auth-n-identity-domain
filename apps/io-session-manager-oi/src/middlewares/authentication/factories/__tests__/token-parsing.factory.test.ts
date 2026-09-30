@@ -4,10 +4,10 @@ import {
   BpdBearerTokenParsingStrategy,
   SessionBearerTokenParsingStrategy,
 } from "../../strategies/token-parsing.strategy.js";
-import { BearerTokenParsingStrategyFactory } from "../token-parsing.factory.js";
+import { TokenParsingStrategyFactory } from "../token-parsing.factory.js";
 
 describe("BearerTokenParsingStrategyFactory", () => {
-  const factory = new BearerTokenParsingStrategyFactory();
+  const factory = new TokenParsingStrategyFactory();
 
   it("creates a strategy for session tokens", () => {
     // given
