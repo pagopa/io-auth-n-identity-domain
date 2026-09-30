@@ -99,11 +99,6 @@ export const aSessionWithPlainSSOTokens: SessionWithPlainSSOTokens = {
 export const aSessionWithHashedTokens: SessionWithHashedSSOTokens =
   toHashedSession(aSessionWithPlainSSOTokens);
 
-export const aHashedSessionTokenWithSessionId = {
-  sessionId: aSessionId,
-  hashedSessionToken: aSessionWithHashedTokens.hashedSessionToken,
-};
-
 export const aUserProfileWithEmail: UserProfile = {
   fiscalCode: aFiscalCode,
   email: anEmailAddress,
