@@ -68,8 +68,9 @@ locals {
       // -------------------------
       // Audit Logs config
       // -------------------------
-      AUDIT_LOG_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.ioweb_kv_audit_st_connection_string.versionless_id})"
-      AUDIT_LOG_CONTAINER         = local.immutable_audit_logs_container_name
+      AUDIT_LOG_CONNECTION_STRING       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.ioweb_kv_audit_st_connection_string.versionless_id})"
+      AUDIT_LOG_CONTAINER               = local.immutable_audit_logs_container_name
+      AUDIT_LOG_STORAGE__blobServiceUri = "https://${module.storage_accounts.audit.name}.blob.core.windows.net"
     }
     prod_slot_sampling_percentage = 5
   }
