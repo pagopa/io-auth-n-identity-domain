@@ -1,6 +1,7 @@
 export * from "./lollipop-assertion-ref.vo.js";
 export * from "./lollipop-assertion-type.vo.js";
 export * from "./lollipop-jwk-hash-algorithm.vo.js";
+export * from "./lollipop-jwk-public-key.entity.js";
 export * from "./lollipop-jwk.vo.js";
 export * from "./lollipop-jwt-authorization.vo.js";
 export * from "./lollipop-method.vo.js";

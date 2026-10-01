@@ -1,38 +1,44 @@
 import {
   AuthenticationError,
-  EmailAddress,
-  FiscalCode,
   GenericError,
-  NonEmptyString,
   NotFoundError,
   UseCase,
+  ValidationError,
+  UnprocessableEntityError,
+} from "@pagopa/hexagonal-core";
+import type {
+  FiscalCode,
+  NonEmptyString,
+  EmailAddress,
 } from "@pagopa/hexagonal-core";
 import { BaseSession } from "@pagopa/io-auth-n-identity-session";
-import { type SpidLevel } from "@pagopa/io-auth-n-identity-session/value-objects";
+import type { SpidLevel } from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
-import { z } from "zod";
 
 import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
-import { PositiveInteger } from "../../domain/value-objects/positive-integer.vo.js";
-
-const _IsoDateSchema = z.iso.date();
-type IsoDate = z.infer<typeof _IsoDateSchema>;
 
 export type GetUserForFimsInput = {
   session: BaseSession;
 };
 
-export type GetUserForFimsOutput = {
+export type FimsUser = {
   name: NonEmptyString;
   family_name: NonEmptyString;
   fiscal_code: FiscalCode;
-  auth_time: PositiveInteger;
+  auth_time: number;
   acr: SpidLevel;
-  email?: EmailAddress;
-  date_of_birth: IsoDate;
+  email: EmailAddress;
+  date_of_birth: NonEmptyString;
 };
 
-export type GetUserForFimsError = AuthenticationError | GenericError;
+export type GetUserForFimsOutput = FimsUser;
+
+export type GetUserForFimsError =
+  | AuthenticationError
+  | NotFoundError
+  | GenericError
+  | ValidationError 
+  | UnprocessableEntityError;
 
 type GetUserForFimsDeps = {
   profilePort: ProfilePort;
@@ -50,27 +56,25 @@ export const makeGetUserForFimsUseCase =
     const profileLookup = await deps.profilePort.getProfile(session.fiscalCode);
 
     if (profileLookup.isErr()) {
-      return err(
-        profileLookup.error instanceof NotFoundError
-          ? new GenericError(
-              "Inconsistency: a profile for a valid token was not found",
-            )
-          : profileLookup.error,
-      );
+      return err(profileLookup.error);
     }
 
     const profile = profileLookup.value;
+    const email = profile.isEmailValidated ? profile.email : undefined;
+    if (!email) {
+      // TODO: use `UnprocessableEntityError` instead of `ValidationError` after downstream services support it
+      return err(new ValidationError("Profile email is not validated"));
+    }
 
     return ok({
       name: session.name,
       family_name: session.familyName,
       fiscal_code: session.fiscalCode,
-      auth_time: (session.createdAt.getTime()) as PositiveInteger,
+      auth_time: session.createdAt.getTime(),
       acr: session.spidLevel,
-      // If the email is not validated yet, the value returned will be undefined
-      email: profile.isEmailValidated ? profile.email : undefined,
-      // Convert the date of birth to a string in the format YYYY-MM-DD.
-      // The index 0 to 10 extracts the YYYY-MM-DD part of the ISO string, splitting at the "T" character.
-      date_of_birth: session.dateOfBirth.toISOString().slice(0, 10),
+      email: email,
+      date_of_birth: session.dateOfBirth
+        .toISOString()
+        .slice(0, 10) as NonEmptyString,
     });
   };
