@@ -150,6 +150,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+        "422":
+          description: "Unprocessable Content: the user has an invalid or missing email"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "500":
           description: Internal error
           content:
@@ -198,6 +204,12 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
         "404":
           description: User or Lollipop data not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "422":
+          description: "Unprocessable Content: the user has an invalid or missing email"
           content:
             application/problem+json:
               schema:
