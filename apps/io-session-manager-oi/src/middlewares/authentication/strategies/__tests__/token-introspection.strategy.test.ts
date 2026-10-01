@@ -1,17 +1,12 @@
 import { AuthenticationError, GenericError } from "@pagopa/hexagonal-core";
+import { ExtendedPlainZendeskSSOTokenSchema } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import type { AuthToken, TokenType } from "../../auth-token.js";
-import {
-  BpdTokenIntrospectionStrategy,
-  SessionTokenIntrospectionStrategy,
-  type TokenIntrospectionStrategy,
-} from "../token-introspection.strategy.js";
 
 import {
   mockFindByBpdToken,
   mockFindBySessionToken,
+  mockFindByZendeskToken,
   resetSessionPortMock,
   SessionPortMock,
 } from "../../../../__mocks__/ports/session-port.mock.js";
@@ -24,13 +19,20 @@ import {
   aSessionWithHashedTokens,
   aSessionWithPlainSSOTokens,
 } from "../../../../__mocks__/session.mocks.js";
+import type { AuthToken, TokenType } from "../../auth-token.js";
+import {
+  BpdTokenIntrospectionStrategy,
+  SessionTokenIntrospectionStrategy,
+  ZendeskTokenIntrospectionStrategy,
+  type TokenIntrospectionStrategy,
+} from "../token-introspection.strategy.js";
 
-const mocks = vi.hoisted(() => {
-  return {
-    toHashedSessionToken: vi.fn(),
-    toHashedBpdSSOToken: vi.fn(),
-  };
-});
+const mocks = vi.hoisted(() => ({
+  toHashedSessionToken: vi.fn(),
+  toHashedBpdSSOToken: vi.fn(),
+  toHashedZendeskSSOToken: vi.fn(),
+  toPlainZendeskSSOTokenFromExtended: vi.fn(),
+}));
 
 vi.mock("@pagopa/io-auth-n-identity-session", async (importOriginal) => {
   const actual =
@@ -39,6 +41,9 @@ vi.mock("@pagopa/io-auth-n-identity-session", async (importOriginal) => {
     ...actual,
     toHashedBpdSSOToken: mocks.toHashedBpdSSOToken,
     toHashedSessionToken: mocks.toHashedSessionToken,
+    toHashedZendeskSSOToken: mocks.toHashedZendeskSSOToken,
+    toPlainZendeskSSOTokenFromExtended:
+      mocks.toPlainZendeskSSOTokenFromExtended,
   };
 });
 
@@ -63,6 +68,12 @@ const testTokenIntrospectionStrategy = <T extends TokenType>({
     mocks.toHashedBpdSSOToken
       .mockReset()
       .mockReturnValue(aSessionWithHashedTokens.ssoTokens.bpdHashedToken);
+    mocks.toHashedZendeskSSOToken
+      .mockReset()
+      .mockReturnValue(aSessionWithHashedTokens.ssoTokens.zendeskHashedToken);
+    mocks.toPlainZendeskSSOTokenFromExtended
+      .mockReset()
+      .mockReturnValue(aSessionWithPlainSSOTokens.ssoTokens.zendeskPlainToken);
   });
 
   it("hashes the token, looks up the session, and returns it", async () => {
@@ -125,5 +136,36 @@ describe("BpdTokenIntrospectionStrategy", () => {
       sessionId: aSessionId,
       hashedBPDSSOToken: aSessionWithHashedTokens.ssoTokens.bpdHashedToken,
     },
+  });
+});
+
+describe("ZendeskTokenIntrospectionStrategy", () => {
+  const extendedToken = ExtendedPlainZendeskSSOTokenSchema.parse(
+    `${aSessionWithPlainSSOTokens.ssoTokens.zendeskPlainToken}12345678`,
+  );
+  const strategy = new ZendeskTokenIntrospectionStrategy(SessionPortMock);
+
+  testTokenIntrospectionStrategy({
+    strategy,
+    sessionToken: extendedToken,
+    findSession: mockFindByZendeskToken,
+    expectedLookup: {
+      sessionId: aSessionId,
+      hashedZendeskSSOToken:
+        aSessionWithHashedTokens.ssoTokens.zendeskHashedToken,
+    },
+  });
+
+  it("converts the extended token before hashing", async () => {
+    mockFindByZendeskToken.mockResolvedValueOnce(ok(aBaseSession));
+
+    await strategy.resolve(aSessionId, extendedToken);
+
+    expect(
+      mocks.toPlainZendeskSSOTokenFromExtended,
+    ).toHaveBeenCalledExactlyOnceWith(extendedToken);
+    expect(mocks.toHashedZendeskSSOToken).toHaveBeenCalledExactlyOnceWith(
+      aSessionWithPlainSSOTokens.ssoTokens.zendeskPlainToken,
+    );
   });
 });

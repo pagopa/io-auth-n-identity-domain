@@ -64,7 +64,7 @@ type HttpAuthenticationScheme = "Bearer" | "Basic";
  * This strategy handles the extraction of tokens from the "Authorization" header, optionally stripping the specified authentication scheme.
  * The stripping is left optional and controlled by the `scheme` parameter in the constructor to allow flexibility for non-standard authentications.
  */
-export abstract class AuthorizationHeaderTokenTransportStrategy extends HeaderTokenTransportStrategy {
+export class AuthorizationHeaderTokenTransportStrategy extends HeaderTokenTransportStrategy {
   constructor(private readonly scheme?: HttpAuthenticationScheme) {
     super("Authorization" as NonEmptyString);
   }
