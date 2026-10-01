@@ -6,6 +6,9 @@ import type { HttpRequestPayload } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
+/**
+ * This interface defines the contract for token transport strategies that extract authorization tokens from HTTP requests.
+ */
 export interface TokenTransportStrategy {
   /**
    * Extracts the authorization token to obtain the session ID and token.
@@ -19,6 +22,9 @@ export interface TokenTransportStrategy {
 
 /**
  * Abstract class for token transport strategies that extract the token from HTTP headers.
+ *
+ * Subclasses should specify the header name and implement any scheme-specific logic if needed.
+ * Provides a base implementation for extracting tokens from HTTP headers in the method `extract`.
  */
 export abstract class HeaderTokenTransportStrategy
   implements TokenTransportStrategy
@@ -28,7 +34,7 @@ export abstract class HeaderTokenTransportStrategy
   /**
    * Extracts the authorization token from the specified HTTP header.
    * @param payload The HTTP request payload containing the authorization token.
-   * @returns A Result object containing the parsed session ID and active token, or an AuthenticationError if extraction fails.
+   * @returns A Result object containing the extracted token as a NonEmptyString, or an AuthenticationError if extraction fails.
    */
   extract(
     payload: Readonly<HttpRequestPayload>,
@@ -45,11 +51,59 @@ export abstract class HeaderTokenTransportStrategy
 }
 
 /**
- * Authorization header token transport strategy that extracts the token from the "Authorization" header.
+ * Supported HTTP authentication schemes as defined in [RFC 7235](https://www.rfc-editor.org/info/rfc7235/).
+ *
+ * Extend the list of supported schemes as needed.
+ * See the full list of registered HTTP authentication schemes at:
+ * https://www.iana.org/assignments/http-authschemes.
  */
-export class AuthorizationHeaderTokenTransportStrategy extends HeaderTokenTransportStrategy {
-  constructor() {
+type HttpAuthenticationScheme = "Bearer" | "Basic";
+
+/**
+ * Authorization header token transport strategy that extracts the token from the "Authorization" header.
+ * This strategy handles the extraction of tokens from the "Authorization" header, optionally stripping the specified authentication scheme.
+ * The stripping is left optional and controlled by the `scheme` parameter in the constructor to allow flexibility for non-standard authentications.
+ */
+export abstract class AuthorizationHeaderTokenTransportStrategy extends HeaderTokenTransportStrategy {
+  constructor(private readonly scheme?: HttpAuthenticationScheme) {
     super("Authorization" as NonEmptyString);
+  }
+
+  private stripScheme(
+    headerValue: NonEmptyString,
+  ): Result<NonEmptyString, AuthenticationError> {
+    if (!this.scheme) {
+      return ok(headerValue);
+    }
+    const prefix = `${this.scheme} `;
+    if (headerValue.startsWith(prefix) && headerValue.length > prefix.length) {
+      return ok(headerValue.slice(prefix.length) as NonEmptyString);
+    }
+
+    return err(new AuthenticationError());
+  }
+
+  override extract(
+    payload: Readonly<HttpRequestPayload>,
+  ): Result<NonEmptyString, AuthenticationError> {
+    const result = super.extract(payload);
+    if (result.isErr()) {
+      return result;
+    }
+    const headerValue = result.value;
+
+    const strippedResult = this.stripScheme(headerValue);
+    if (strippedResult.isErr()) {
+      return strippedResult;
+    }
+
+    return ok(strippedResult.value);
+  }
+}
+
+export class BearerAuthorizationHeaderTokenTransportStrategy extends AuthorizationHeaderTokenTransportStrategy {
+  constructor() {
+    super("Bearer");
   }
 }
 
