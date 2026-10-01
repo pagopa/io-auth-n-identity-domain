@@ -35,7 +35,7 @@ const ssoPagopaUserContract = defineRoute({
     },
     422: {
       description:
-        "Unprocessable Content: the user has an invalid or missing email",
+        "Unprocessable Content: the user has an unverified or missing email",
       schema: ProblemJson,
     },
     500: {
