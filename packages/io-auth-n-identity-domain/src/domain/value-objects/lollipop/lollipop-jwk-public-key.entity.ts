@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { Base64UrlJsonSchema } from "../common/base64url-string.vo.js";
+import { Base64UrlJsonCodec } from "../common/base64url-string.vo.js";
 
 export const EcKeySchema = z.object({
   crv: z.enum(["P-256", "P-384", "P-521"]),
@@ -35,4 +35,4 @@ export type JwkPublicKey = z.infer<typeof JwkPublicKeySchema>;
  * ```
  */
 export const JwkPublicKeyBase64UrlStringSchema =
-  Base64UrlJsonSchema.pipe(JwkPublicKeySchema);
+  Base64UrlJsonCodec.pipe(JwkPublicKeySchema);

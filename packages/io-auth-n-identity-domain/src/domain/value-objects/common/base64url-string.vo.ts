@@ -20,7 +20,7 @@ export type Base64UrlString = z.infer<typeof Base64UrlStringSchema>;
  * encoding it. Compose with another Zod schema via `.pipe()` to validate the
  * decoded shape.
  */
-export const Base64UrlJsonSchema = z.codec(Base64UrlStringSchema, z.unknown(), {
+export const Base64UrlJsonCodec = z.codec(Base64UrlStringSchema, z.unknown(), {
   decode: (val, ctx) => {
     try {
       return JSON.parse(
