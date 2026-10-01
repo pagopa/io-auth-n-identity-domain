@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.8.1
+
+### Patch Changes
+
+- 9cfd8fa: fix expiredAt value of successful login event and other minor refactoring/renaming
+
 ## 0.8.0
 
 ### Minor Changes
