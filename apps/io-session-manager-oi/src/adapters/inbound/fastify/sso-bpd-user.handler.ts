@@ -33,6 +33,10 @@ const ssoBpdUserContract = defineRoute({
         "Missing/invalid `Authorization` header, unknown session, or source IP blocked by the allowlist.",
       schema: ProblemJson,
     },
+    429: {
+      description: "Too many requests",
+      schema: ProblemJson,
+    },
     500: {
       description: "Internal error",
       schema: ProblemJson,

@@ -37,6 +37,10 @@ const ssoFimsUserContract = defineRoute({
       description: "User not found",
       schema: ProblemJson,
     },
+    429: {
+      description: "Too many requests",
+      schema: ProblemJson,
+    },
     500: {
       description: "Internal error",
       schema: ProblemJson,
