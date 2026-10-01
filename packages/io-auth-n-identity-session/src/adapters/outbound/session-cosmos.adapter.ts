@@ -149,7 +149,7 @@ export class SessionCosmosAdapter
       this.sessionTokenContainer,
       toCosmosZendeskSessionId(zendeskToken.hashedZendeskSSOToken),
       zendeskToken.sessionId as unknown as NonEmptyString,
-      "UserSession" as NonEmptyString,
+      "ZENDESKSSOSession" as NonEmptyString,
     );
     return result.andThen((rawSession) => fromDbSession(rawSession));
   }
