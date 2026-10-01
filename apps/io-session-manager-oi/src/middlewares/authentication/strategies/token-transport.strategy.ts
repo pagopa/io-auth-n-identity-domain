@@ -11,9 +11,9 @@ import type { Result } from "neverthrow";
  */
 export interface TokenTransportStrategy {
   /**
-   * Extracts the authorization token to obtain the session ID and token.
+   * Extracts the raw authorization token from the HTTP request.
    * @param payload The HTTP request payload containing the authorization token.
-   * @returns A Result object containing the parsed session ID and active token, or an AuthenticationError if extraction fails.
+   * @returns A Result object containing the extracted raw token as a NonEmptyString, or an AuthenticationError if extraction fails.
    */
   extract(
     payload: Readonly<HttpRequestPayload>,
