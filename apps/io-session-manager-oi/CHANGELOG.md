@@ -1,5 +1,13 @@
 # io-session-manager-oi
 
+## 0.25.1
+
+### Patch Changes
+
+- 9cfd8fa: fix expiredAt value of successful login event and other minor refactoring/renaming
+- Updated dependencies [9cfd8fa]
+  - @pagopa/io-auth-n-identity-session@0.8.1
+
 ## 0.25.0
 
 ### Minor Changes
