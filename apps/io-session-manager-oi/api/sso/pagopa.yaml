@@ -89,7 +89,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
         "422":
-          description: "Unprocessable Content: the user has an invalid or missing email"
+          description: "Unprocessable Content: the user has an unverified or missing email"
           content:
             application/problem+json:
               schema:
