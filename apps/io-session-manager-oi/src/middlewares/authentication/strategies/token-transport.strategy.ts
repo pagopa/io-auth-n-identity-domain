@@ -66,7 +66,7 @@ type HttpAuthenticationScheme = "Bearer" | "Basic";
  */
 export class AuthorizationHeaderTokenTransportStrategy extends HeaderTokenTransportStrategy {
   constructor(private readonly scheme?: HttpAuthenticationScheme) {
-    super("Authorization" as NonEmptyString);
+    super("authorization" as NonEmptyString);
   }
 
   private stripScheme(

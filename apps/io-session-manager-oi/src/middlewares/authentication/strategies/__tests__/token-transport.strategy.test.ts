@@ -13,7 +13,7 @@ describe("AuthorizationHeaderTokenTransportStrategy", () => {
 
   it("extracts the authorization header without changing its scheme", () => {
     expect(
-      strategy.extract({ headers: { Authorization: "Bearer session.token" } }),
+      strategy.extract({ headers: { authorization: "Bearer session.token" } }),
     ).toEqual(ok("Bearer session.token"));
   });
 
@@ -27,16 +27,16 @@ describe("BearerAuthorizationHeaderTokenTransportStrategy", () => {
 
   it("extracts the token after the Bearer scheme", () => {
     expect(
-      strategy.extract({ headers: { Authorization: "Bearer session.token" } }),
+      strategy.extract({ headers: { authorization: "Bearer session.token" } }),
     ).toEqual(ok("session.token"));
   });
 
   it.each(["Basic session.token", "Bearer", "Bearer "])(
     "returns AuthenticationError for invalid authorization: %s",
     (authorization) => {
-      expect(
-        strategy.extract({ headers: { Authorization: authorization } }),
-      ).toEqual(err(new AuthenticationError()));
+      expect(strategy.extract({ headers: { authorization } })).toEqual(
+        err(new AuthenticationError()),
+      );
     },
   );
 });
