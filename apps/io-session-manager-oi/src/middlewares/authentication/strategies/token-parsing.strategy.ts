@@ -6,7 +6,7 @@ import {
   PlainPagopaSSOTokenSchema,
   type SessionId,
   SessionIdSchema,
-  PlainZendeskSSOTokenSchema,
+  ExtendedPlainZendeskSSOTokenSchema,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, type Result } from "neverthrow";
 import z from "zod";
@@ -226,6 +226,6 @@ export class PagopaBearerTokenParsingStrategy extends BearerTokenParsingStrategy
 
 export class ZendeskBodyTokenParsingStrategy extends BodyTokenParsingStrategy<"zendesk"> {
   constructor() {
-    super(PlainZendeskSSOTokenSchema);
+    super(ExtendedPlainZendeskSSOTokenSchema);
   }
 }

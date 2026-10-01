@@ -12,6 +12,7 @@ import {
   toHashedSessionToken,
   toHashedPagopaSSOToken,
   toHashedZendeskSSOToken,
+  toPlainZendeskSSOTokenFromExtended,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, type Result } from "neverthrow";
 
@@ -205,6 +206,8 @@ export class ZendeskTokenIntrospectionStrategy extends TokenIntrospectionBaseStr
   protected override toHashedToken(
     sessionToken: AuthToken["zendesk"]["type"],
   ): AuthToken["zendesk"]["hashedType"] {
-    return toHashedZendeskSSOToken(sessionToken);
+    return toHashedZendeskSSOToken(
+      toPlainZendeskSSOTokenFromExtended(sessionToken),
+    );
   }
 }

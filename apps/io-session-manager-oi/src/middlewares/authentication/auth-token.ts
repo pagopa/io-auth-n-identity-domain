@@ -12,8 +12,8 @@ import {
   HashedPagopaSSOToken,
   PlainPagopaSSOTokenSchema,
   HashedZendeskSSOToken,
-  PlainZendeskSSOToken,
-  PlainZendeskSSOTokenSchema,
+  ExtendedPlainZendeskSSOTokenSchema,
+  ExtendedPlainZendeskSSOToken,
 } from "@pagopa/io-auth-n-identity-session";
 
 export type AuthToken = {
@@ -38,8 +38,8 @@ export type AuthToken = {
     hashedType: HashedPagopaSSOToken;
   };
   zendesk: {
-    schema: typeof PlainZendeskSSOTokenSchema;
-    type: PlainZendeskSSOToken;
+    schema: typeof ExtendedPlainZendeskSSOTokenSchema;
+    type: ExtendedPlainZendeskSSOToken;
     hashedType: HashedZendeskSSOToken;
   };
 };
@@ -51,7 +51,7 @@ export const AuthToken = {
   bpd: { schema: PlainBpdSSOTokenSchema },
   fims: { schema: PlainFimsSSOTokenSchema },
   pagopa: { schema: PlainPagopaSSOTokenSchema },
-  zendesk: { schema: PlainZendeskSSOTokenSchema },
+  zendesk: { schema: ExtendedPlainZendeskSSOTokenSchema },
 } as const satisfies {
   [T in TokenType]: Omit<AuthToken[T], "type" | "hashedType">;
 };
