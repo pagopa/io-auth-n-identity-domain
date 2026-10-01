@@ -5,6 +5,7 @@ import {
   GenericError,
   NonEmptyString,
   NotFoundError,
+  UnprocessableEntityError,
   UseCase,
   ValidationError,
 } from "@pagopa/hexagonal-core";
@@ -28,7 +29,8 @@ export type GetUserForPagopaOutput = {
 export type GetUserForPagopaError =
   | AuthenticationError
   | GenericError
-  | ValidationError;
+  | ValidationError
+  | UnprocessableEntityError;
 
 type GetUserForPagopaDeps = {
   profilePort: ProfilePort;
@@ -58,6 +60,7 @@ export const makeGetUserForPagopaUseCase =
     const profile = profileLookup.value;
     const noticeEmail = profile.isEmailValidated ? profile.email : undefined;
     if (!noticeEmail) {
+      // TODO: use `UnprocessableEntityError` instead of `ValidationError` after downstream services support it
       return err(new ValidationError("Notice email is not validated"));
     }
 

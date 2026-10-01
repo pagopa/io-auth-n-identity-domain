@@ -7,6 +7,7 @@ import {
   UseCase,
   ForbiddenError,
   ValidationError,
+  UnprocessableEntityError,
 } from "@pagopa/hexagonal-core";
 import {
   LollipopJwk,
@@ -19,7 +20,10 @@ import { err, ok, Result } from "neverthrow";
 import { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 
-import  { GetUserForFimsUseCase, type FimsUser } from "./get-user-for-fims.use-case.js";
+import {
+  GetUserForFimsUseCase,
+  type FimsUser,
+} from "./get-user-for-fims.use-case.js";
 
 export type GetLollipopUserForFimsInput = {
   session: BaseSession;
@@ -42,7 +46,8 @@ export type GetLollipopUserForFimsError =
   | ForbiddenError
   | NotFoundError
   | GenericError
-  | ValidationError;
+  | ValidationError
+  | UnprocessableEntityError;
 
 type GetLollipopUserForFimsDeps = {
   profilePort: ProfilePort;

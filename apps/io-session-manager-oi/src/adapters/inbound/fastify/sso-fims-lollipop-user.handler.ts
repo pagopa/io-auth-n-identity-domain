@@ -44,8 +44,9 @@ const ssoFimsLollipopUserContract = defineRoute({
       description: "User or Lollipop data not found",
       schema: ProblemJson,
     },
-    429: {
-      description: "Too many requests",
+    422: {
+      description:
+        "Unprocessable Content: the user has an invalid or missing email",
       schema: ProblemJson,
     },
     500: {

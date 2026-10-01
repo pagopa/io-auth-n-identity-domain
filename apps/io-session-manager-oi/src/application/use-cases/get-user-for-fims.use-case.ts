@@ -4,6 +4,7 @@ import {
   NotFoundError,
   UseCase,
   ValidationError,
+  UnprocessableEntityError,
 } from "@pagopa/hexagonal-core";
 import type {
   FiscalCode,
@@ -36,7 +37,8 @@ export type GetUserForFimsError =
   | AuthenticationError
   | NotFoundError
   | GenericError
-  | ValidationError;
+  | ValidationError 
+  | UnprocessableEntityError;
 
 type GetUserForFimsDeps = {
   profilePort: ProfilePort;
@@ -60,6 +62,7 @@ export const makeGetUserForFimsUseCase =
     const profile = profileLookup.value;
     const email = profile.isEmailValidated ? profile.email : undefined;
     if (!email) {
+      // TODO: use `UnprocessableEntityError` instead of `ValidationError` after downstream services support it
       return err(new ValidationError("Profile email is not validated"));
     }
 
