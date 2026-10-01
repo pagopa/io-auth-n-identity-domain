@@ -6,6 +6,7 @@ import {
   NonEmptyString,
   UseCase,
   ForbiddenError,
+  ValidationError,
 } from "@pagopa/hexagonal-core";
 import {
   LollipopJwk,
@@ -40,7 +41,8 @@ export type GetLollipopUserForFimsError =
   | AuthenticationError
   | ForbiddenError
   | NotFoundError
-  | GenericError;
+  | GenericError
+  | ValidationError;
 
 type GetLollipopUserForFimsDeps = {
   profilePort: ProfilePort;

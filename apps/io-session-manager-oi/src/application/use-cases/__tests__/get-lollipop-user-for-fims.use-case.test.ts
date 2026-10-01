@@ -2,6 +2,7 @@ import {
   GenericError,
   NonEmptyString,
   NotFoundError,
+  ValidationError,
 } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -102,6 +103,26 @@ describe("makeGetLollipopUserForFimsUseCase", () => {
 
   it("propagates a profile lookup error", async () => {
     const error = new NotFoundError("Profile", "not found");
+    getUserForFimsUseCase.mockResolvedValueOnce(err(error));
+    lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
+      ok({
+        fiscalCode: aSession.fiscalCode,
+        assertionRef: anAssertionRef,
+        expirationDate: new Date("2100-01-01"),
+      }),
+    );
+    lollipopPortMock.generateLCParams = vi.fn().mockResolvedValueOnce(ok({}));
+
+    const result = await getLollipopUserForFims({
+      session: aSession,
+      operationId: anOperationId,
+    });
+
+    expect(result).toEqual(err(error));
+  });
+
+  it("propagates a profile validation error", async () => {
+    const error = new ValidationError("Profile email is not validated");
     getUserForFimsUseCase.mockResolvedValueOnce(err(error));
     lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
       ok({

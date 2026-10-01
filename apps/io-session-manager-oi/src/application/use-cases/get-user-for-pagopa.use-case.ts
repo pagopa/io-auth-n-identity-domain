@@ -6,6 +6,7 @@ import {
   NonEmptyString,
   NotFoundError,
   UseCase,
+  ValidationError,
 } from "@pagopa/hexagonal-core";
 import { BaseSession } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
@@ -24,7 +25,10 @@ export type GetUserForPagopaOutput = {
   notice_email: EmailAddress;
 };
 
-export type GetUserForPagopaError = AuthenticationError | GenericError;
+export type GetUserForPagopaError =
+  | AuthenticationError
+  | GenericError
+  | ValidationError;
 
 type GetUserForPagopaDeps = {
   profilePort: ProfilePort;
@@ -54,7 +58,7 @@ export const makeGetUserForPagopaUseCase =
     const profile = profileLookup.value;
     const noticeEmail = profile.isEmailValidated ? profile.email : undefined;
     if (!noticeEmail) {
-      return err(new GenericError("Notice email is not validated"));
+      return err(new ValidationError("Notice email is not validated"));
     }
 
     return ok({

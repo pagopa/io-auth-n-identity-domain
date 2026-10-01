@@ -3,6 +3,7 @@ import {
   GenericError,
   NotFoundError,
   UseCase,
+  ValidationError,
 } from "@pagopa/hexagonal-core";
 import type {
   FiscalCode,
@@ -34,7 +35,8 @@ export type GetUserForFimsOutput = FimsUser;
 export type GetUserForFimsError =
   | AuthenticationError
   | NotFoundError
-  | GenericError;
+  | GenericError
+  | ValidationError;
 
 type GetUserForFimsDeps = {
   profilePort: ProfilePort;
@@ -58,7 +60,7 @@ export const makeGetUserForFimsUseCase =
     const profile = profileLookup.value;
     const email = profile.isEmailValidated ? profile.email : undefined;
     if (!email) {
-      return err(new GenericError("Profile email is not validated"));
+      return err(new ValidationError("Profile email is not validated"));
     }
 
     return ok({

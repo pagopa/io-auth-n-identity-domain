@@ -1,4 +1,8 @@
-import { GenericError, NotFoundError } from "@pagopa/hexagonal-core";
+import {
+  GenericError,
+  NotFoundError,
+  ValidationError,
+} from "@pagopa/hexagonal-core";
 import { BaseSession } from "@pagopa/io-auth-n-identity-session/entities";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -60,13 +64,13 @@ describe("makeGetUserForFimsUseCase", () => {
   it.each([
     ["without an email", aUserProfileWithoutEmail],
     ["with an unvalidated email", aUserProfileWithEmailNotValidated],
-  ])("returns GenericError for a profile %s", async (_, profile) => {
+  ])("returns ValidationError for a profile %s", async (_, profile) => {
     mockGetProfile.mockResolvedValueOnce(ok(profile));
 
     const result = await getUserForFims({ session: aBaseSession });
 
     expect(result).toEqual(
-      err(new GenericError("Profile email is not validated")),
+      err(new ValidationError("Profile email is not validated")),
     );
   });
 
