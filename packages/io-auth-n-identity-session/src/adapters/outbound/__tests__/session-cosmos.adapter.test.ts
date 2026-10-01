@@ -19,9 +19,9 @@ import {
   HashedBpdSSOTokenSchema,
   type HashedFimsSSOToken,
   HashedFimsSSOTokenSchema,
-  HashedSessionTokenSchema,
   type HashedPagopaSSOToken,
   HashedPagopaSSOTokenSchema,
+  HashedSessionTokenSchema,
   HashedZendeskSSOTokenSchema,
 } from "../../../domain/index.js";
 import {
@@ -96,6 +96,7 @@ const anActiveSession: ActiveSession = {
   fiscalCode: aFiscalCode,
   loginType: "LEGACY",
   sessionId: aSessionId,
+  createdAt: aCreatedAt,
   expirationDate: anExpirationDate,
 };
 
@@ -118,6 +119,7 @@ const aDbActiveSessionResource = {
   fiscalCode: aFiscalCode,
   loginType: "LEGACY",
   sessionId: aSessionId,
+  createdAt: aCreatedAt.toISOString(),
   expirationDate: anExpirationDate.toISOString(),
 };
 
@@ -304,7 +306,7 @@ describe("SessionCosmosAdapter", () => {
   // -------------------------------------------------------------------------
 
   describe("create", () => {
-    it("GIVEN valid session and active session WHEN create is called THEN persists both and returns the session", async () => {
+    it("GIVEN valid session and active session WHEN create is called THEN persists both and returns ok", async () => {
       userSession.batch.mockResolvedValueOnce({ code: 200, result: [] });
       activeSession.create.mockResolvedValueOnce({
         resource: aDbActiveSessionResource,
@@ -315,7 +317,7 @@ describe("SessionCosmosAdapter", () => {
         aSessionWithHashedTokens,
       );
 
-      expect(result).toEqual(ok(aSessionWithHashedTokens));
+      expect(result).toEqual(ok(undefined));
       expect(userSession.batch).toHaveBeenCalledTimes(1);
       expect(userSession.batch).toHaveBeenCalledWith(
         expect.arrayContaining([

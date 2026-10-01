@@ -6,11 +6,10 @@ import {
 } from "@pagopa/hexagonal-core";
 import { IPString } from "@pagopa/io-auth-n-identity-domain";
 import {
-  ActiveSession,
   BaseSession,
   newActiveSession,
-  newPlainSession,
-  toHashedSession,
+  newPlainSessionTokens,
+  toHashedSessionTokens,
 } from "@pagopa/io-auth-n-identity-session/entities";
 import { SessionPort } from "@pagopa/io-auth-n-identity-session/ports";
 import {
@@ -78,22 +77,20 @@ export const makeActivateUserSessionUseCase =
 
     // TODO: check if we can move newSessionId() within newActiveSession() to avoid having to pass sessionId as a parameter
     const sessionId = await newSessionId();
-    const activeSession: ActiveSession = newActiveSession({
+    const activeSession = newActiveSession({
       fiscalCode: input.fiscalCode,
       loginType: input.loginType,
       sessionId,
     });
-    const newSessionWithPlainTokens = await newPlainSession({
+    const plainSessionTokens = await newPlainSessionTokens({
       ...input,
       sessionId,
     });
-    const newSessionWithHashedTokens = toHashedSession(
-      newSessionWithPlainTokens,
-    );
+    const hashedSessionTokens = toHashedSessionTokens(plainSessionTokens);
 
     const result = await userSessions.create(
       activeSession,
-      newSessionWithHashedTokens,
+      hashedSessionTokens,
     );
 
     if (result.isErr()) {
@@ -103,8 +100,6 @@ export const makeActivateUserSessionUseCase =
         ),
       );
     }
-
-    const createdSession = result.value;
 
     if (userProfile.email) {
       // Notify login event to user
@@ -130,8 +125,8 @@ export const makeActivateUserSessionUseCase =
     const sendEventResult = await authEventPort.sendEvent({
       eventType: "login",
       fiscalCode: userProfile.fiscalCode,
-      ts: createdSession.createdAt,
-      expiredAt: createdSession.expirationDate,
+      ts: activeSession.createdAt,
+      expiredAt: activeSession.expirationDate,
       loginType: input.loginType === "LEGACY" ? "legacy" : "lv", // TODO: evaluate if a more structured approach is needed
       scenario: "standard", // TODO: handle also "new_user" and "relogin"
       idp: input.identityProvider,
@@ -147,7 +142,7 @@ export const makeActivateUserSessionUseCase =
 
     return ok(
       ClientSessionTokenSchema.parse(
-        `${newSessionWithPlainTokens.sessionId}.${newSessionWithPlainTokens.plainSessionToken}`,
+        `${plainSessionTokens.sessionId}.${plainSessionTokens.plainSessionToken}`,
       ),
     );
   };

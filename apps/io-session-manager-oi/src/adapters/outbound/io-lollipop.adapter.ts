@@ -42,9 +42,7 @@ export const createIoLollipopAdapter = (config: {
         client,
         body: {
           algo: payload.algo,
-          // BUG: spec expects a string but a JSON object is required instead
-          // remove cast after resolving
-          pub_key: payload.pub_key as unknown as string,
+          pub_key: payload.pub_key,
         },
       });
 

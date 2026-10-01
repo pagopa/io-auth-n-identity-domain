@@ -26,8 +26,8 @@ import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
 import { mountSsoFimsUserHandler } from "./adapters/inbound/fastify/sso-fims-user.handler.js";
 import { mountSsoPagopaUserHandler } from "./adapters/inbound/fastify/sso-pagopa-user.handler.js";
-import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
+import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";

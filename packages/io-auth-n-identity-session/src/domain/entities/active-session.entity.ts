@@ -12,6 +12,7 @@ export const ActiveSessionSchema = z.object({
   fiscalCode: FiscalCodeSchema,
   loginType: LoginTypeSchema,
   sessionId: SessionIdSchema,
+  createdAt: z.date(),
   expirationDate: z.date(),
 });
 
@@ -25,12 +26,16 @@ export const newActiveSession = ({
   fiscalCode,
   loginType,
   sessionId,
-}: Omit<ActiveSession, "expirationDate">): ActiveSession => ({
-  fiscalCode,
-  loginType,
-  sessionId,
-  expirationDate: getActiveSessionExpiration(loginType),
-});
+}: Omit<ActiveSession, "expirationDate" | "createdAt">): ActiveSession => {
+  const createdAt = new Date();
+  return {
+    fiscalCode,
+    loginType,
+    sessionId,
+    createdAt: createdAt,
+    expirationDate: getActiveSessionExpiration(loginType, createdAt),
+  };
+};
 
 const getActiveSessionTtlMsByLoginType = (loginType: LoginType) => {
   const ttlByLoginType = {

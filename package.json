@@ -47,7 +47,7 @@
     "eslint-plugin-turbo": "^2.5.5",
     "prettier": "catalog:",
     "shx": "^0.3.4",
-    "turbo": "^2.5.5",
+    "turbo": "^2.9.16",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },

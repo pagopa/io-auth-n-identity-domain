@@ -17,6 +17,10 @@ import {
   toPlainFimsSSOToken,
 } from "../value-objects/tokens/fims-sso-token.vo.js";
 import {
+  toHashedPagopaSSOToken,
+  toPlainPagopaSSOToken,
+} from "../value-objects/tokens/pagopa-sso-token.vo.js";
+import {
   HashedSessionTokenSchema,
   newPlainSessionToken,
   PlainSessionTokenSchema,
@@ -26,10 +30,6 @@ import {
   HashedSSOTokensSchema,
   PlainSSOTokensSchema,
 } from "../value-objects/tokens/sso-token.vo.js";
-import {
-  toHashedPagopaSSOToken,
-  toPlainPagopaSSOToken,
-} from "../value-objects/tokens/pagopa-sso-token.vo.js";
 import {
   toHashedZendeskSSOToken,
   toPlainZendeskSSOToken,
@@ -90,7 +90,7 @@ export type SessionWithPlainSSOTokens = z.infer<
 // Helper functions
 // --------------------------------------
 
-export const getSessionTtlMsByLoginType = (loginType: LoginType) => {
+const getSessionTokenTtlMsByLoginType = (loginType: LoginType) => {
   const ttlByLoginType = {
     LV: 15 * 60 * 1_000, // 15 minutes (short-lived token, renewable)
     LEGACY: 30 * 24 * 60 * 60 * 1_000, // 30 days
@@ -106,12 +106,12 @@ export const getSessionTtlMsByLoginType = (loginType: LoginType) => {
  * @param from The starting date from which to calculate the expiration date. Defaults to the current date and time.
  * @returns The calculated expiration date of the session.
  */
-export const getSessionExpiration = (
+const getSessionTokenExpiration = (
   loginType: LoginType,
   from: Date = new Date(),
-) => new Date(from.getTime() + getSessionTtlMsByLoginType(loginType));
+) => new Date(from.getTime() + getSessionTokenTtlMsByLoginType(loginType));
 
-export const newPlainSession = async ({
+export const newPlainSessionTokens = async ({
   loginType,
   ...baseData
 }: Omit<z.infer<typeof BaseSessionSchema>, "expirationDate" | "createdAt"> & {
@@ -121,7 +121,7 @@ export const newPlainSession = async ({
   const now = new Date();
   return {
     ...baseData,
-    expirationDate: getSessionExpiration(loginType, now),
+    expirationDate: getSessionTokenExpiration(loginType, now),
     createdAt: now,
     plainSessionToken: plainSessionToken,
     ssoTokens: {
@@ -174,7 +174,7 @@ export type SessionWithHashedSSOTokens = z.infer<
 // Helper functions
 // --------------------------------------
 
-export const toHashedSession = (
+export const toHashedSessionTokens = (
   sessionWithPlainSSOTokens: SessionWithPlainSSOTokens,
 ): SessionWithHashedSSOTokens => {
   const { plainSessionToken, ssoTokens, ...baseData } =
