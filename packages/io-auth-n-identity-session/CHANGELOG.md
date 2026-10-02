@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.9.0
+
+### Minor Changes
+
+- 6e04dd6: Add `findByZendeskToken` to `SessionPort` and its Cosmos Adapter
+
 ## 0.8.1
 
 ### Patch Changes
