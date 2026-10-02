@@ -1,5 +1,16 @@
 # io-session-manager-oi
 
+## 0.26.0
+
+### Minor Changes
+
+- 6e04dd6: Add Transport Strategies to Authentication Middleware
+
+### Patch Changes
+
+- Updated dependencies [6e04dd6]
+  - @pagopa/io-auth-n-identity-session@0.9.0
+
 ## 0.25.1
 
 ### Patch Changes
