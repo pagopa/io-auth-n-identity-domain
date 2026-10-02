@@ -11,6 +11,7 @@ import {
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { LoginType } from "@pagopa/io-auth-n-identity-session";
 import { AuxiliaryDataPort } from "../../../domain/ports/outbound/auxiliary-data.port.js";
 import { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
 import { OidcConfigPort } from "../../../domain/ports/outbound/oidc-config.port.js";
@@ -20,7 +21,6 @@ import {
   SpidAuthLevel,
 } from "../../../domain/value-objects/login.vo.js";
 import { makeReserveUseCase } from "../reserve.use-case.js";
-import { LoginType } from "@pagopa/io-auth-n-identity-session";
 
 // ---------------------------------------------------------------------------
 // Fixtures

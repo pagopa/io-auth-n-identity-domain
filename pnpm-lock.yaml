@@ -1351,6 +1351,9 @@ importers:
       '@pagopa/redis':
         specifier: workspace:^
         version: link:../../packages/redis
+      '@xmldom/xmldom':
+        specifier: 'catalog:'
+        version: 0.8.10
       dotenv:
         specifier: 'catalog:'
         version: 16.4.7
