@@ -141,6 +141,19 @@ export class SessionCosmosAdapter
     return result.andThen((rawSession) => fromDbSession(rawSession));
   }
 
+  public async findByZendeskToken(zendeskToken: {
+    hashedZendeskSSOToken: HashedZendeskSSOToken;
+    sessionId: SessionId;
+  }): Promise<Result<BaseSession, GenericError | NotFoundError>> {
+    const result = await this.readItem(
+      this.sessionTokenContainer,
+      toCosmosZendeskSessionId(zendeskToken.hashedZendeskSSOToken),
+      zendeskToken.sessionId as unknown as NonEmptyString,
+      "ZendeskSSOSession" as NonEmptyString,
+    );
+    return result.andThen((rawSession) => fromDbSession(rawSession));
+  }
+
   public async create(
     activeSession: ActiveSession,
     session: SessionWithHashedSSOTokens,

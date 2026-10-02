@@ -2,12 +2,15 @@ import { describe, expect, it } from "vitest";
 
 import {
   BpdBearerTokenParsingStrategy,
+  FimsBearerTokenParsingStrategy,
+  PagopaBearerTokenParsingStrategy,
   SessionBearerTokenParsingStrategy,
+  ZendeskTokenParsingStrategy,
 } from "../../strategies/token-parsing.strategy.js";
-import { BearerTokenParsingStrategyFactory } from "../token-parsing.factory.js";
+import { TokenParsingStrategyFactory } from "../token-parsing.factory.js";
 
 describe("BearerTokenParsingStrategyFactory", () => {
-  const factory = new BearerTokenParsingStrategyFactory();
+  const factory = new TokenParsingStrategyFactory();
 
   it("creates a strategy for session tokens", () => {
     // given
@@ -27,6 +30,14 @@ describe("BearerTokenParsingStrategyFactory", () => {
 
     // then
     expect(strategy).toBeInstanceOf(BpdBearerTokenParsingStrategy);
+  });
+
+  it.each([
+    ["fims", FimsBearerTokenParsingStrategy],
+    ["pagopa", PagopaBearerTokenParsingStrategy],
+    ["zendesk", ZendeskTokenParsingStrategy],
+  ] as const)("creates a strategy for %s tokens", (tokenType, strategyType) => {
+    expect(factory.create(tokenType)).toBeInstanceOf(strategyType);
   });
 
   it("creates a new strategy for each request", () => {

@@ -23,6 +23,7 @@ import {
   HashedPagopaSSOTokenSchema,
   HashedSessionTokenSchema,
   HashedZendeskSSOTokenSchema,
+  HashedZendeskSSOToken,
 } from "../../../domain/index.js";
 import {
   makeClientMock,
@@ -250,10 +251,11 @@ describe("SessionCosmosAdapter", () => {
 
   describe("findBySsoToken", () => {
     it.each`
-      type        | prefix                  | hashedToken           | findMethod
-      ${"BPD"}    | ${COSMOS_BPD_PREFIX}    | ${aHashedBpdToken}    | ${(sessionId: SessionId, hashedToken: HashedBpdSSOToken) => adapter.findByBpdToken({ sessionId, hashedBPDSSOToken: hashedToken })}
-      ${"FIMS"}   | ${COSMOS_FIMS_PREFIX}   | ${aHashedFimsToken}   | ${(sessionId: SessionId, hashedToken: HashedFimsSSOToken) => adapter.findByFimsToken({ sessionId, hashedFimsSSOToken: hashedToken })}
-      ${"PAGOPA"} | ${COSMOS_PAGOPA_PREFIX} | ${aHashedPagopaToken} | ${(sessionId: SessionId, hashedToken: HashedPagopaSSOToken) => adapter.findByPagopaToken({ sessionId, hashedPagopaSSOToken: hashedToken })}
+      type         | prefix                   | hashedToken            | findMethod
+      ${"BPD"}     | ${COSMOS_BPD_PREFIX}     | ${aHashedBpdToken}     | ${(sessionId: SessionId, hashedToken: HashedBpdSSOToken) => adapter.findByBpdToken({ sessionId, hashedBPDSSOToken: hashedToken })}
+      ${"FIMS"}    | ${COSMOS_FIMS_PREFIX}    | ${aHashedFimsToken}    | ${(sessionId: SessionId, hashedToken: HashedFimsSSOToken) => adapter.findByFimsToken({ sessionId, hashedFimsSSOToken: hashedToken })}
+      ${"PAGOPA"}  | ${COSMOS_PAGOPA_PREFIX}  | ${aHashedPagopaToken}  | ${(sessionId: SessionId, hashedToken: HashedPagopaSSOToken) => adapter.findByPagopaToken({ sessionId, hashedPagopaSSOToken: hashedToken })}
+      ${"ZENDESK"} | ${COSMOS_ZENDESK_PREFIX} | ${aHashedZendeskToken} | ${(sessionId: SessionId, hashedToken: HashedZendeskSSOToken) => adapter.findByZendeskToken({ sessionId, hashedZendeskSSOToken: hashedToken })}
     `(
       "GIVEN an existing session WHEN $type token lookup is called THEN returns the session",
       async ({ prefix, hashedToken, findMethod }) => {
