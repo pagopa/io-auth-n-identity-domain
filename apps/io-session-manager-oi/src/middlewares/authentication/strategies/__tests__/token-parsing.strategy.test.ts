@@ -13,7 +13,7 @@ import type { AuthToken, TokenType } from "../../auth-token.js";
 import {
   BpdBearerTokenParsingStrategy,
   SessionBearerTokenParsingStrategy,
-  ZendeskBodyTokenParsingStrategy,
+  ZendeskTokenParsingStrategy,
   type BearerTokenParsingStrategy,
 } from "../token-parsing.strategy.js";
 
@@ -86,7 +86,7 @@ describe("BpdBearerTokenParsingStrategy", () => {
 });
 
 describe("ZendeskBodyTokenParsingStrategy", () => {
-  const strategy = new ZendeskBodyTokenParsingStrategy();
+  const strategy = new ZendeskTokenParsingStrategy();
   const extendedToken = ExtendedPlainZendeskSSOTokenSchema.parse(
     `${aSessionWithPlainSSOTokens.ssoTokens.zendeskPlainToken}12345678`,
   );

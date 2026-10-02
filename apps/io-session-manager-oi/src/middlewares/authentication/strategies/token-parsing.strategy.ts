@@ -13,16 +13,14 @@ import z from "zod";
 
 import type { AuthToken, TokenType } from "../auth-token.js";
 
-const BearerPrefix = "Bearer ";
-
 /**
- * Interface for any parser that extracts session ID and token.
+ * Interface for any parser that extracts session ID and session token from an authorization token.
  */
 export interface TokenParsingStrategy<T extends TokenType> {
   /**
-   * Parses the authorization token to extract the session ID and token.
-   * @param token The authorization token containing the session ID and active token.
-   * @returns A Result object containing the parsed session ID and active token, or an AuthenticationError if parsing fails.
+   * Parses the authorization token to extract the session ID and session token.
+   * @param token The authorization token containing the session ID and session token.
+   * @returns A Result object containing the parsed session ID and session token, or an AuthenticationError if parsing fails.
    */
   parse(token: string): Result<
     {
@@ -34,103 +32,19 @@ export interface TokenParsingStrategy<T extends TokenType> {
 }
 
 /**
- * Strategy for parsing Bearer tokens from authorization headers.
- * This class uses a Zod schema to validate and extract the session ID and token from the header.
+ * Strategy for parsing authorization tokens.
+ * This class uses a Zod schema to validate and extract the session ID and session token from the authorization token.
  */
-export abstract class BearerTokenParsingStrategy<T extends TokenType>
-  implements TokenParsingStrategy<T>
-{
-  private readonly bearerTokenSchema: ReturnType<
-    (typeof BearerTokenParsingStrategy)["createBearerTokenSchema"]
-  >;
-
-  constructor(sessionTokenSchema: AuthToken[T]["schema"]) {
-    this.bearerTokenSchema =
-      BearerTokenParsingStrategy.createBearerTokenSchema(sessionTokenSchema);
-  }
-
-  parse(bearerToken: string): Result<
-    {
-      sessionId: SessionId;
-      sessionToken: AuthToken[T]["type"];
-    },
-    AuthenticationError
-  > {
-    const parsedBearerToken = this.bearerTokenSchema.safeParse(bearerToken);
-
-    if (!parsedBearerToken.success) {
-      // TODO: log the underlying error for debugging purposes
-      console.warn(parsedBearerToken.error.message);
-      return err(new AuthenticationError());
-    }
-
-    const { sessionId, sessionToken } = parsedBearerToken.data;
-
-    return ok({ sessionId, sessionToken });
-  }
-
-  /**
-   * Creates a Zod schema for a Bearer authorization header containing a session token.
-   * The header must be in the format "Bearer <sessionId>.<sessionToken>".
-   *
-   * @param sessionTokenSchema The Zod schema to validate the session token part of the header.
-   * @returns A Zod schema that validates the Bearer authorization header format and extracts the session ID and token.
-   */
-  private static createBearerTokenSchema<T extends TokenType>(
-    sessionTokenSchema: AuthToken[T]["schema"],
-  ) {
-    return z
-      .preprocess(
-        (value, context) => {
-          if (typeof value !== "string" || !value.startsWith(BearerPrefix)) {
-            context.addIssue({
-              code: "custom",
-              message: "Invalid Bearer authorization header",
-            });
-            return z.NEVER;
-          }
-
-          const bearerValue = value.slice(BearerPrefix.length);
-          const separatorIndex = bearerValue.indexOf(".");
-          if (
-            separatorIndex <= 0 ||
-            separatorIndex === bearerValue.length - 1 ||
-            separatorIndex !== bearerValue.lastIndexOf(".")
-          ) {
-            context.addIssue({
-              code: "custom",
-              message: "Invalid Bearer authorization header",
-            });
-            return z.NEVER;
-          }
-
-          const sessionId = bearerValue.slice(0, separatorIndex);
-          const sessionToken = bearerValue.slice(separatorIndex + 1);
-          return { sessionId, sessionToken };
-        },
-        z.object({
-          sessionId: SessionIdSchema,
-          sessionToken: sessionTokenSchema,
-        }),
-      )
-      .meta({ type: "string" });
-  }
-}
-
-/**
- * Strategy for parsing tokens from the body.
- * This class uses a Zod schema to validate and extract the session ID and token from the body.
- */
-export abstract class BodyTokenParsingStrategy<T extends TokenType>
+abstract class AbstractTokenParsingStrategy<T extends TokenType>
   implements TokenParsingStrategy<T>
 {
   private readonly bodyTokenSchema: ReturnType<
-    (typeof BodyTokenParsingStrategy)["createBodyTokenSchema"]
+    (typeof AbstractTokenParsingStrategy)["createTokenSchema"]
   >;
 
   constructor(sessionTokenSchema: AuthToken[T]["schema"]) {
     this.bodyTokenSchema =
-      BodyTokenParsingStrategy.createBodyTokenSchema(sessionTokenSchema);
+      AbstractTokenParsingStrategy.createTokenSchema(sessionTokenSchema);
   }
 
   parse(token: string): Result<
@@ -154,13 +68,13 @@ export abstract class BodyTokenParsingStrategy<T extends TokenType>
   }
 
   /**
-   * Creates a Zod schema for an authorization body containing a session token.
-   * The body must be in the format "<sessionId>.<sessionToken>".
+   * Creates a Zod schema for an authorization token containing a session ID and session token.
+   * The authorization token must be in the format "<sessionId>.<sessionToken>".
    *
-   * @param sessionTokenSchema The Zod schema to validate the session token part of the body.
-   * @returns A Zod schema that validates the authorization body format and extracts the session ID and token.
+   * @param sessionTokenSchema The Zod schema to validate the session token.
+   * @returns A Zod schema that validates the authorization token format and extracts the session ID and session token.
    */
-  private static createBodyTokenSchema<T extends TokenType>(
+  private static createTokenSchema<T extends TokenType>(
     sessionTokenSchema: AuthToken[T]["schema"],
   ) {
     return z
@@ -200,31 +114,31 @@ export abstract class BodyTokenParsingStrategy<T extends TokenType>
   }
 }
 
-export class SessionBearerTokenParsingStrategy extends BearerTokenParsingStrategy<"session"> {
+export class SessionBearerTokenParsingStrategy extends AbstractTokenParsingStrategy<"session"> {
   constructor() {
     super(PlainSessionTokenSchema);
   }
 }
 
-export class BpdBearerTokenParsingStrategy extends BearerTokenParsingStrategy<"bpd"> {
+export class BpdBearerTokenParsingStrategy extends AbstractTokenParsingStrategy<"bpd"> {
   constructor() {
     super(PlainBpdSSOTokenSchema);
   }
 }
 
-export class FimsBearerTokenParsingStrategy extends BearerTokenParsingStrategy<"fims"> {
+export class FimsBearerTokenParsingStrategy extends AbstractTokenParsingStrategy<"fims"> {
   constructor() {
     super(PlainFimsSSOTokenSchema);
   }
 }
 
-export class PagopaBearerTokenParsingStrategy extends BearerTokenParsingStrategy<"pagopa"> {
+export class PagopaBearerTokenParsingStrategy extends AbstractTokenParsingStrategy<"pagopa"> {
   constructor() {
     super(PlainPagopaSSOTokenSchema);
   }
 }
 
-export class ZendeskBodyTokenParsingStrategy extends BodyTokenParsingStrategy<"zendesk"> {
+export class ZendeskTokenParsingStrategy extends AbstractTokenParsingStrategy<"zendesk"> {
   constructor() {
     super(ExtendedPlainZendeskSSOTokenSchema);
   }

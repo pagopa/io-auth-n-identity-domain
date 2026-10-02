@@ -5,7 +5,7 @@ import {
   FimsBearerTokenParsingStrategy,
   PagopaBearerTokenParsingStrategy,
   SessionBearerTokenParsingStrategy,
-  ZendeskBodyTokenParsingStrategy,
+  ZendeskTokenParsingStrategy,
 } from "../../strategies/token-parsing.strategy.js";
 import { TokenParsingStrategyFactory } from "../token-parsing.factory.js";
 
@@ -35,7 +35,7 @@ describe("BearerTokenParsingStrategyFactory", () => {
   it.each([
     ["fims", FimsBearerTokenParsingStrategy],
     ["pagopa", PagopaBearerTokenParsingStrategy],
-    ["zendesk", ZendeskBodyTokenParsingStrategy],
+    ["zendesk", ZendeskTokenParsingStrategy],
   ] as const)("creates a strategy for %s tokens", (tokenType, strategyType) => {
     expect(factory.create(tokenType)).toBeInstanceOf(strategyType);
   });

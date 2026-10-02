@@ -4,7 +4,7 @@ import {
   SessionBearerTokenParsingStrategy,
   FimsBearerTokenParsingStrategy,
   PagopaBearerTokenParsingStrategy,
-  ZendeskBodyTokenParsingStrategy,
+  ZendeskTokenParsingStrategy,
 } from "../strategies/token-parsing.strategy.js";
 import type { TokenParsingStrategy } from "../strategies/token-parsing.strategy.js";
 
@@ -28,7 +28,7 @@ export class TokenParsingStrategyFactory {
       case "pagopa":
         return new PagopaBearerTokenParsingStrategy();
       case "zendesk":
-        return new ZendeskBodyTokenParsingStrategy();
+        return new ZendeskTokenParsingStrategy();
       default:
         const _exhaustiveCheck: never = tokenType;
         console.error(`Unsupported token type: ${tokenType}`);
