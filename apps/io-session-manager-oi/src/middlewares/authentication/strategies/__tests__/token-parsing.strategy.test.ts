@@ -50,12 +50,12 @@ const testBearerTokenParsingStrategy = <T extends TokenType>({
   it.each([
     undefined,
     "",
-    "Basic aSessionId.aSessionToken",
-    "bearer aSessionId.aSessionToken",
+    "Basic",
+    "bearer",
     "Bearer",
     "Bearer ",
     "Bearer aSessionId",
-    "Bearer .aSessionToken",
+    ".aSessionToken",
     "Bearer aSessionId.",
     "Bearer aSessionId.aSessionToken.extra",
   ])("returns AuthenticationError for invalid token: %o", (token) => {
@@ -72,7 +72,7 @@ const testBearerTokenParsingStrategy = <T extends TokenType>({
 describe("SessionBearerTokenParsingStrategy", () => {
   testBearerTokenParsingStrategy({
     strategy: new SessionBearerTokenParsingStrategy(),
-    validBearerToken: `Bearer ${aClientSessionToken}`,
+    validBearerToken: aClientSessionToken,
     expectedToken: aPlainSessionToken,
   });
 });
@@ -80,7 +80,7 @@ describe("SessionBearerTokenParsingStrategy", () => {
 describe("BpdBearerTokenParsingStrategy", () => {
   testBearerTokenParsingStrategy({
     strategy: new BpdBearerTokenParsingStrategy(),
-    validBearerToken: `Bearer ${aSessionId}.${aSessionWithPlainSSOTokens.ssoTokens.bpdPlainToken}`,
+    validBearerToken: `${aSessionId}.${aSessionWithPlainSSOTokens.ssoTokens.bpdPlainToken}`,
     expectedToken: aSessionWithPlainSSOTokens.ssoTokens.bpdPlainToken,
   });
 });
