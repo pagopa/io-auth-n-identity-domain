@@ -3,24 +3,9 @@ import { err, ok } from "neverthrow";
 import { describe, expect, it } from "vitest";
 
 import {
-  AuthorizationHeaderTokenTransportStrategy,
   BearerAuthorizationHeaderTokenTransportStrategy,
-  UserTokenBodyTokenTransportStrategy,
+  ZendeskTokenTransportStrategy,
 } from "../token-transport.strategy.js";
-
-describe("AuthorizationHeaderTokenTransportStrategy", () => {
-  const strategy = new AuthorizationHeaderTokenTransportStrategy();
-
-  it("extracts the authorization header without changing its scheme", () => {
-    expect(
-      strategy.extract({ headers: { authorization: "Bearer session.token" } }),
-    ).toEqual(ok("Bearer session.token"));
-  });
-
-  it("returns AuthenticationError when the header is missing", () => {
-    expect(strategy.extract({})).toEqual(err(new AuthenticationError()));
-  });
-});
 
 describe("BearerAuthorizationHeaderTokenTransportStrategy", () => {
   const strategy = new BearerAuthorizationHeaderTokenTransportStrategy();
@@ -41,8 +26,8 @@ describe("BearerAuthorizationHeaderTokenTransportStrategy", () => {
   );
 });
 
-describe("UserTokenBodyTokenTransportStrategy", () => {
-  const strategy = new UserTokenBodyTokenTransportStrategy();
+describe("ZendeskTokenTransportStrategy", () => {
+  const strategy = new ZendeskTokenTransportStrategy();
 
   it("extracts the user_token body field", () => {
     expect(strategy.extract({ body: { user_token: "session.token" } })).toEqual(

@@ -1,8 +1,8 @@
 import { type TokenType } from "../auth-token.js";
 import {
-  AuthorizationHeaderTokenTransportStrategy,
+  BearerAuthorizationHeaderTokenTransportStrategy,
   TokenTransportStrategy,
-  UserTokenBodyTokenTransportStrategy,
+  ZendeskTokenTransportStrategy,
 } from "../strategies/token-transport.strategy.js";
 
 /**
@@ -17,15 +17,15 @@ export class TokenTransportStrategyFactory {
   create<T extends TokenType>(tokenType: T): TokenTransportStrategy {
     switch (tokenType) {
       case "session":
-        return new AuthorizationHeaderTokenTransportStrategy();
+        return new BearerAuthorizationHeaderTokenTransportStrategy();
       case "bpd":
-        return new AuthorizationHeaderTokenTransportStrategy();
+        return new BearerAuthorizationHeaderTokenTransportStrategy();
       case "fims":
-        return new AuthorizationHeaderTokenTransportStrategy();
+        return new BearerAuthorizationHeaderTokenTransportStrategy();
       case "pagopa":
-        return new AuthorizationHeaderTokenTransportStrategy();
+        return new BearerAuthorizationHeaderTokenTransportStrategy();
       case "zendesk":
-        return new UserTokenBodyTokenTransportStrategy();
+        return new ZendeskTokenTransportStrategy();
       default:
         const _exhaustiveCheck: never = tokenType;
         console.error(`Unsupported token type: ${tokenType}`);

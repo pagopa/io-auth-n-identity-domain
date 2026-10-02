@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  AuthorizationHeaderTokenTransportStrategy,
-  UserTokenBodyTokenTransportStrategy,
+  BearerAuthorizationHeaderTokenTransportStrategy,
+  ZendeskTokenTransportStrategy,
 } from "../../strategies/token-transport.strategy.js";
 import { TokenTransportStrategyFactory } from "../token-transport.factory.js";
 
@@ -13,14 +13,14 @@ describe("TokenTransportStrategyFactory", () => {
     "creates an authorization-header strategy for %s tokens",
     (tokenType) => {
       expect(factory.create(tokenType)).toBeInstanceOf(
-        AuthorizationHeaderTokenTransportStrategy,
+        BearerAuthorizationHeaderTokenTransportStrategy,
       );
     },
   );
 
   it("creates a body strategy for Zendesk tokens", () => {
     expect(factory.create("zendesk")).toBeInstanceOf(
-      UserTokenBodyTokenTransportStrategy,
+      ZendeskTokenTransportStrategy,
     );
   });
 });

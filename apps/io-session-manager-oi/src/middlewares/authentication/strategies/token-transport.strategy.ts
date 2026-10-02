@@ -26,10 +26,8 @@ export interface TokenTransportStrategy {
  * Subclasses should specify the header name and implement any scheme-specific logic if needed.
  * Provides a base implementation for extracting tokens from HTTP headers in the method `extract`.
  */
-export abstract class HeaderTokenTransportStrategy
-  implements TokenTransportStrategy
-{
-  constructor(private readonly headerName: NonEmptyString) {}
+abstract class HeaderTokenTransportStrategy implements TokenTransportStrategy {
+  constructor() {}
 
   /**
    * Extracts the authorization token from the specified HTTP header.
@@ -39,15 +37,44 @@ export abstract class HeaderTokenTransportStrategy
   extract(
     payload: Readonly<HttpRequestPayload>,
   ): Result<NonEmptyString, AuthenticationError> {
+    const headerName = this.getHeaderName();
     const headers = payload.headers as
-      | { [key in typeof this.headerName]?: string }
+      | { [key in typeof headerName]?: string }
       | undefined;
-    const headerValue = headers?.[this.headerName] ?? "";
-    if (!headerValue) {
+
+    const rawHeaderValue = headers?.[headerName] ?? "";
+    if (!rawHeaderValue) {
       return err(new AuthenticationError());
     }
-    return ok(headerValue as NonEmptyString);
+
+    const strippedResult = this.stripScheme(rawHeaderValue as NonEmptyString);
+    if (strippedResult.isErr()) {
+      return err(new AuthenticationError());
+    }
+    const strippedHeaderValue = strippedResult.value;
+
+    return ok(strippedHeaderValue);
   }
+
+  private stripScheme(
+    headerValue: NonEmptyString,
+  ): Result<NonEmptyString, AuthenticationError> {
+    const scheme = this.getScheme();
+    if (!scheme) {
+      return ok(headerValue);
+    }
+
+    const prefix = `${scheme} `;
+    if (headerValue.startsWith(prefix) && headerValue.length > prefix.length) {
+      return ok(headerValue.slice(prefix.length) as NonEmptyString);
+    }
+
+    return err(new AuthenticationError());
+  }
+
+  protected abstract getScheme(): HttpAuthenticationScheme | undefined;
+
+  protected abstract getHeaderName(): NonEmptyString;
 }
 
 /**
@@ -59,61 +86,21 @@ export abstract class HeaderTokenTransportStrategy
  */
 type HttpAuthenticationScheme = "Bearer" | "Basic";
 
-/**
- * Authorization header token transport strategy that extracts the token from the "Authorization" header.
- * This strategy handles the extraction of tokens from the "Authorization" header, optionally stripping the specified authentication scheme.
- * The stripping is left optional and controlled by the `scheme` parameter in the constructor to allow flexibility for non-standard authentications.
- */
-export class AuthorizationHeaderTokenTransportStrategy extends HeaderTokenTransportStrategy {
-  constructor(private readonly scheme?: HttpAuthenticationScheme) {
-    super("authorization" as NonEmptyString);
+export class BearerAuthorizationHeaderTokenTransportStrategy extends HeaderTokenTransportStrategy {
+  protected getScheme(): HttpAuthenticationScheme | undefined {
+    return "Bearer";
   }
 
-  private stripScheme(
-    headerValue: NonEmptyString,
-  ): Result<NonEmptyString, AuthenticationError> {
-    if (!this.scheme) {
-      return ok(headerValue);
-    }
-    const prefix = `${this.scheme} `;
-    if (headerValue.startsWith(prefix) && headerValue.length > prefix.length) {
-      return ok(headerValue.slice(prefix.length) as NonEmptyString);
-    }
-
-    return err(new AuthenticationError());
-  }
-
-  override extract(
-    payload: Readonly<HttpRequestPayload>,
-  ): Result<NonEmptyString, AuthenticationError> {
-    const result = super.extract(payload);
-    if (result.isErr()) {
-      return result;
-    }
-    const headerValue = result.value;
-
-    const strippedResult = this.stripScheme(headerValue);
-    if (strippedResult.isErr()) {
-      return strippedResult;
-    }
-
-    return ok(strippedResult.value);
-  }
-}
-
-export class BearerAuthorizationHeaderTokenTransportStrategy extends AuthorizationHeaderTokenTransportStrategy {
-  constructor() {
-    super("Bearer");
+  protected getHeaderName(): NonEmptyString {
+    return "authorization" as NonEmptyString;
   }
 }
 
 /**
  * Abstract class for token transport strategies that extract the token from the body of the HTTP request.
  */
-export abstract class BodyTokenTransportStrategy
-  implements TokenTransportStrategy
-{
-  constructor(private readonly bodyFieldName: NonEmptyString) {}
+abstract class BodyTokenTransportStrategy implements TokenTransportStrategy {
+  constructor() {}
 
   /**
    * Extracts the authorization token from the specified HTTP body field.
@@ -123,22 +110,27 @@ export abstract class BodyTokenTransportStrategy
   extract(
     payload: Readonly<HttpRequestPayload>,
   ): Result<NonEmptyString, AuthenticationError> {
+    const bodyFieldName = this.getBodyFieldName();
+
     const body = payload.body as
-      | { [key in typeof this.bodyFieldName]?: string }
+      | { [key in typeof bodyFieldName]?: string }
       | undefined;
-    const bodyValue = body?.[this.bodyFieldName] ?? "";
+    const bodyValue = body?.[bodyFieldName] ?? "";
     if (!bodyValue) {
       return err(new AuthenticationError());
     }
     return ok(bodyValue as NonEmptyString);
   }
+
+  protected abstract getBodyFieldName(): NonEmptyString;
 }
 
 /**
- * User token body token transport strategy that extracts the token from the "user_token" field in the HTTP request body.
+ * Zendesk token body token transport strategy.
+ * Zendesk requires that the token has to be sent in the "user_token" field in the HTTP request body.
  */
-export class UserTokenBodyTokenTransportStrategy extends BodyTokenTransportStrategy {
-  constructor() {
-    super("user_token" as NonEmptyString);
+export class ZendeskTokenTransportStrategy extends BodyTokenTransportStrategy {
+  protected getBodyFieldName(): NonEmptyString {
+    return "user_token" as NonEmptyString;
   }
 }
