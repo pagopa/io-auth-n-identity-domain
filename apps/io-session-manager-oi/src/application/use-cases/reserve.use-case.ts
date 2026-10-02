@@ -23,7 +23,7 @@ import {
   LoginAuxiliaryData,
   SpidAuthLevel,
 } from "../../domain/value-objects/login.vo.js";
-import { OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js";
+import { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
 
 type ReserveDeps = {
   auxiliaryDataPort: AuxiliaryDataPort;
@@ -33,7 +33,7 @@ type ReserveDeps = {
 };
 
 type input = {
-  oidcConfigurationEnv: OidcConfigurationEnv;
+  oidcConfigurationEnv: OidcEnvironment;
   minAuthLevel: SpidAuthLevel;
   lollipopPublicKey: JwkPublicKeyBase64UrlString;
   lollipopHashAlgorithm: LollipopJwkHashingAlgorithm;

@@ -4,19 +4,25 @@ import {
   NonEmptyString,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
-import { IPString } from "@pagopa/io-auth-n-identity-domain";
+import type {
+  IPString,
+  LollipopAssertionRef,
+} from "@pagopa/io-auth-n-identity-domain";
+import { DOMParser } from "@xmldom/xmldom";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AuxiliaryDataPort } from "../../../domain/ports/outbound/auxiliary-data.port.js";
+import { IdentityAssertionFetcherPort } from "../../../domain/ports/outbound/identity-assertion-fetcher.port.js";
 import { OidcClientPort } from "../../../domain/ports/outbound/oidc.port.js";
+import type { IdentityAssertion } from "../../../domain/value-objects/assertion.vo.js";
 import { ClientSessionToken } from "../../../domain/value-objects/client-session-token.vo.js";
 import { LoginAuxiliaryData } from "../../../domain/value-objects/login.vo.js";
-import { OidcClaims } from "../../../domain/value-objects/oidc-claims.vo.js";
+import { OidcClaims } from "../../../domain/value-objects/oidc.vo.js";
 import { ActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 import {
-  makeHandleOidcCallbackUseCase,
   GENERIC_LOGIN_ERROR_CODE,
+  makeHandleOidcCallbackUseCase,
   OidcCallbackParams,
 } from "../handle-oidc-callback.use-case.js";
 
@@ -27,6 +33,7 @@ import {
 const IP_ADDRESS = "127.0.0.1" as IPString;
 const STATE = "a-state" as NonEmptyString;
 const CODE = "a-code" as NonEmptyString;
+const ACCESS_TOKEN = "an-access-token" as NonEmptyString;
 
 const SUCCESS_CALLBACK = {
   code: CODE,
@@ -59,6 +66,16 @@ const CLAIMS = {
   iss: "https://oneid.example.com",
 } as unknown as OidcClaims;
 
+const IDENTITY_ASSERTION: IdentityAssertion = {
+  assertionRef: "an-assertion-ref" as LollipopAssertionRef,
+  rawAssertion: "a-raw-saml-assertion" as NonEmptyString,
+  assertion: new DOMParser().parseFromString(
+    "<Assertion />",
+    "application/xml",
+  ),
+  type: "SAML",
+};
+
 const CLIENT_SESSION_TOKEN =
   "session-id.plain-token" as unknown as ClientSessionToken;
 
@@ -67,10 +84,17 @@ const auxiliaryDataPort = {
   retrieve: retrieveMock,
 } as unknown as AuxiliaryDataPort;
 
-const exchangeMock = vi.fn().mockResolvedValue(ok(CLAIMS));
+const exchangeMock = vi
+  .fn()
+  .mockResolvedValue(ok({ claims: CLAIMS, accessToken: ACCESS_TOKEN }));
 const oidcPort = {
   exchange: exchangeMock,
 } as unknown as OidcClientPort;
+
+const getAssertionMock = vi.fn().mockResolvedValue(ok(IDENTITY_ASSERTION));
+const identityAssertionFetcherPort = {
+  getAssertion: getAssertionMock,
+} as unknown as IdentityAssertionFetcherPort;
 
 const activateUserSessionUseCase = vi
   .fn()
@@ -81,6 +105,7 @@ const activateUserSessionUseCase = vi
 const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
   auxiliaryDataPort,
   oidcPort,
+  identityAssertionFetcherPort,
   activateUserSessionUseCase,
 });
 
@@ -106,16 +131,27 @@ describe("makeHandleOidcCallbackUseCase", () => {
       state: STATE,
       expectedNonce: AUXILIARY_DATA.nonce,
     });
+    expect(getAssertionMock).toHaveBeenCalledExactlyOnceWith(
+      AUXILIARY_DATA.oidcConfigurationEnv,
+      ACCESS_TOKEN,
+    );
     expect(activateUserSessionUseCase).toHaveBeenCalledExactlyOnceWith({
-      fiscalCode: CLAIMS.fiscalNumber,
-      name: CLAIMS.name,
-      familyName: CLAIMS.familyName,
-      dateOfBirth: CLAIMS.dateOfBirth,
-      spidLevel: CLAIMS.acr,
-      spidEmail: CLAIMS.email,
-      ipAddress: IP_ADDRESS,
-      loginType: AUXILIARY_DATA.loginType,
-      identityProvider: CLAIMS.iss,
+      sessionToken: {
+        fiscalCode: CLAIMS.fiscalNumber,
+        name: CLAIMS.name,
+        familyName: CLAIMS.familyName,
+        dateOfBirth: CLAIMS.dateOfBirth,
+        spidLevel: CLAIMS.acr,
+        spidEmail: CLAIMS.email,
+        ipAddress: IP_ADDRESS,
+        loginType: AUXILIARY_DATA.loginType,
+        identityProvider: CLAIMS.iss,
+      },
+      assertion: {
+        assertionRef: AUXILIARY_DATA.lollipopAssertionRef,
+        rawAssertion: IDENTITY_ASSERTION.rawAssertion,
+        type: IDENTITY_ASSERTION.type,
+      },
     });
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toEqual({
@@ -138,6 +174,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     });
     expect(retrieveMock).toHaveBeenCalledExactlyOnceWith(STATE);
     expect(exchangeMock).not.toHaveBeenCalled();
+    expect(getAssertionMock).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
@@ -154,6 +191,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
       errorMessage: undefined,
     });
     expect(exchangeMock).not.toHaveBeenCalled();
+    expect(getAssertionMock).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
@@ -169,6 +207,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
 
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
     expect(exchangeMock).not.toHaveBeenCalled();
+    expect(getAssertionMock).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
@@ -182,6 +221,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
 
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
     expect(exchangeMock).not.toHaveBeenCalled();
+    expect(getAssertionMock).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
@@ -196,5 +236,33 @@ describe("makeHandleOidcCallbackUseCase", () => {
 
     expect(result._unsafeUnwrapErr()).toBe(exchangeError);
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+  });
+
+  it("returns GenericError when fetching the identity assertion fails", async () => {
+    getAssertionMock.mockResolvedValueOnce(
+      err(new GenericError("fetch failed")),
+    );
+
+    const result = await handleOidcCallbackUseCase({
+      callback: SUCCESS_CALLBACK,
+      ipAddress: IP_ADDRESS,
+    });
+
+    expect(result._unsafeUnwrapErr()).toEqual(new GenericError("fetch failed"));
+    expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+  });
+
+  it("propagates activation errors", async () => {
+    const activationError = new GenericError("activation failed");
+    vi.mocked(activateUserSessionUseCase).mockResolvedValueOnce(
+      err(activationError),
+    );
+
+    const result = await handleOidcCallbackUseCase({
+      callback: SUCCESS_CALLBACK,
+      ipAddress: IP_ADDRESS,
+    });
+
+    expect(result._unsafeUnwrapErr()).toBe(activationError);
   });
 });

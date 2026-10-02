@@ -40,6 +40,7 @@
     "@pagopa/io-env-config": "workspace:^",
     "@pagopa/io-package-info": "workspace:^",
     "@pagopa/redis": "workspace:^",
+    "@xmldom/xmldom": "catalog:",
     "dotenv": "catalog:",
     "fastify": "catalog:",
     "neverthrow": "catalog:",
