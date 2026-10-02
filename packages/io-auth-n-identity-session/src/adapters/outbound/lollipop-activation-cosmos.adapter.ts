@@ -75,6 +75,22 @@ export class LollipopActivationCosmosAdapter
     ).then((result) => result.map(() => void 0));
   }
 
+  public async upsert(
+    activation: LollipopActivation,
+  ): Promise<Result<void, ConflictError | GenericError>> {
+    const ttl = this.computeTtl(activation.expirationDate);
+
+    if (ttl.isErr()) {
+      return err(ttl.error);
+    }
+
+    return this.upsertItem(
+      this.lollipopContainer,
+      toDbLollipopActivation(activation, ttl.value),
+      "LollipopActivation" as NonEmptyString,
+    ).then((result) => result.map(() => void 0));
+  }
+
   public async revokeByFiscalCode(
     fiscalCode: FiscalCode,
   ): Promise<Result<void, GenericError>> {

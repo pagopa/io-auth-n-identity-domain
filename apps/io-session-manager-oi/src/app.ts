@@ -34,6 +34,7 @@ import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter
 import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
+import { OneIdIdentityAssertionFetcherAdapter } from "./adapters/outbound/one-id-identity-assertion-fetcher-adapter.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
 import { TechnicalLockedProfilesDataTableAdapter } from "./adapters/outbound/technical-locked-profiles-data-table.adapter.js";
@@ -205,15 +206,7 @@ export const createApp = async (
     baseUrl: `${config.PLATFORM_PROXY_API_URL}${config.PLATFORM_PROXY_API_BASE_PATH}`,
   });
 
-  const oidcConfigAdapter = new InMemoryOidcConfigAdapter({
-    ONEID_PROD_CLIENT_ID: config.ONEID_PROD_CLIENT_ID,
-    ONEID_PROD_CLIENT_SECRET: config.ONEID_PROD_CLIENT_SECRET,
-    ONEID_PROD_ISSUER: config.ONEID_PROD_ISSUER,
-    ONEID_PROD_REDIRECT_URI: config.ONEID_PROD_REDIRECT_URI,
-    ONEID_UAT_CLIENT_ID: config.ONEID_UAT_CLIENT_ID,
-    ONEID_UAT_CLIENT_SECRET: config.ONEID_UAT_CLIENT_SECRET,
-    ONEID_UAT_ISSUER: config.ONEID_UAT_ISSUER,
-  });
+  const oidcConfigAdapter = new InMemoryOidcConfigAdapter(config);
 
   const oidcExchangeAdapter = new OpenIdClientAdapter(
     oidcConfigAdapter,
@@ -233,6 +226,9 @@ export const createApp = async (
     config.COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME,
   );
 
+  const oneIdIdentityAssertionFetcherAdapter =
+    new OneIdIdentityAssertionFetcherAdapter(config);
+
   // --------------------------------------------------
   // Use cases initialization
   // --------------------------------------------------
@@ -244,16 +240,19 @@ export const createApp = async (
     oidcConfigPort: oidcConfigAdapter,
   });
 
-  const activateUserSessionUseCase = makeActivateUserSessionUseCase(
-    sessionCosmosAdapter,
-    profileAdapter,
-    platformInternalAdapter,
-    authEventServiceBusAdapter,
-  );
+  const activateUserSessionUseCase = makeActivateUserSessionUseCase({
+    sessionPort: sessionCosmosAdapter,
+    profilePort: profileAdapter,
+    platformInternalPort: platformInternalAdapter,
+    authEventPort: authEventServiceBusAdapter,
+    lollipopActivationPort: lollipopActivationCosmosAdapter,
+    lollipopPort: fetchLollipopAdapter,
+  });
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
     auxiliaryDataPort: auxiliaryStorageAdapter,
     oidcPort: oidcExchangeAdapter,
+    identityAssertionFetcherPort: oneIdIdentityAssertionFetcherAdapter,
     activateUserSessionUseCase,
   });
 
@@ -323,6 +322,10 @@ export const createApp = async (
       {
         name: lollipopActivationCosmosAdapter.constructor.name,
         port: lollipopActivationCosmosAdapter,
+      },
+      {
+        name: oneIdIdentityAssertionFetcherAdapter.constructor.name,
+        port: oneIdIdentityAssertionFetcherAdapter,
       },
     ]),
   );
