@@ -13,19 +13,21 @@ import {
   writeOpenApiYaml,
 } from "@pagopa/hexagonal-openapi";
 
-import { ssoFimsLollipopUserRoute } from "../src/adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
 import {
   BASE_PATH,
   SSO_BPD_BASE_PATH,
   SSO_FIMS_BASE_PATH,
   SSO_PAGOPA_BASE_PATH,
+  SSO_ZENDESK_BASE_PATH,
 } from "../src/adapters/inbound/base-path.js";
 import { callbackContract } from "../src/adapters/inbound/fastify/callback.handler.js";
 import { getSessionContract } from "../src/adapters/inbound/fastify/get-session.handler.js";
 import { reserveRoute } from "../src/adapters/inbound/fastify/reserve.handler.js";
 import { ssoBpdUserRoute } from "../src/adapters/inbound/fastify/sso-bpd-user.handler.js";
+import { ssoFimsLollipopUserRoute } from "../src/adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
 import { ssoFimsUserRoute } from "../src/adapters/inbound/fastify/sso-fims-user.handler.js";
 import { ssoPagopaUserRoute } from "../src/adapters/inbound/fastify/sso-pagopa-user.handler.js";
+import { ssoZendeskTokenRoute } from "../src/adapters/inbound/fastify/sso-zendesk-token.handler.js";
 
 const check = process.argv.includes("--check");
 
@@ -166,6 +168,21 @@ const specs: ReadonlyArray<DocumentSpec> = [
       },
     ],
     title: "PagoPA API for user authentication.",
+    version: "0.23.1",
+  },
+  {
+    basePath: SSO_ZENDESK_BASE_PATH,
+    description:
+      "Zendesk SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.",
+    outputRelPath: "api/sso/zendesk.yaml",
+    routes: [ssoZendeskTokenRoute],
+    tags: [
+      {
+        name: "sso",
+        description: "Zendesk Single Sign-On endpoints.",
+      },
+    ],
+    title: "Zendesk API for user authentication.",
     version: "0.23.1",
   },
 ];
