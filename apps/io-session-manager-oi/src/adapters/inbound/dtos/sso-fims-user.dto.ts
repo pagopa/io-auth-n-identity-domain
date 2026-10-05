@@ -20,7 +20,7 @@ export const FimsUserSchema = z
     date_of_birth: z.iso.date(),
   })
   .meta({
-    id: "FIMSUser",
+    id: "FimsUser",
     description: "The user data returned to the FIMS backend.",
   });
 
