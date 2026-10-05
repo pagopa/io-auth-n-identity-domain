@@ -76,22 +76,6 @@ export const makeActivateUserSessionUseCase =
       return err(invalidationResult.error);
     }
 
-    /*********************************/
-    /* Lollipop (session) activation */
-    /*********************************/
-    const lollipopUpsertResult = await deps.lollipopActivationPort.upsert({
-      fiscalCode: input.sessionToken.fiscalCode,
-      assertionRef: input.assertion.assertionRef,
-      expirationDate: new Date(),
-    });
-    if (lollipopUpsertResult.isErr()) {
-      return err(
-        new GenericError(
-          `Failed to invalidate previous lollipop activation: ${lollipopUpsertResult.error.message}`,
-        ),
-      );
-    }
-
     /****************************************/
     /* Create new active session "instance" */
     /****************************************/
@@ -102,6 +86,22 @@ export const makeActivateUserSessionUseCase =
       loginType: input.sessionToken.loginType,
       sessionId,
     });
+
+    /*********************************/
+    /* Lollipop (session) activation */
+    /*********************************/
+    const lollipopUpsertResult = await deps.lollipopActivationPort.upsert({
+      fiscalCode: input.sessionToken.fiscalCode,
+      assertionRef: input.assertion.assertionRef,
+      expirationDate: activeSession.expirationDate,
+    });
+    if (lollipopUpsertResult.isErr()) {
+      return err(
+        new GenericError(
+          `Failed to invalidate previous lollipop activation: ${lollipopUpsertResult.error.message}`,
+        ),
+      );
+    }
 
     /**********************************/
     /* Lollipop public key activation */
