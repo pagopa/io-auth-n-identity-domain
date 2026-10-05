@@ -16,7 +16,7 @@ components:
       bearerFormat: opaque
       description: Enter the opaque token provided by the authentication authority
   schemas:
-    FIMSUser:
+    FimsUser:
       type: object
       properties:
         name:
@@ -70,11 +70,11 @@ components:
         - title
         - type
       description: RFC 7807 Problem Details for HTTP APIs. See https://www.rfc-editor.org/rfc/rfc7807.
-    FIMSPlusUser:
+    FimsPlusUser:
       type: object
       properties:
         profile:
-          $ref: "#/components/schemas/FIMSUser"
+          $ref: "#/components/schemas/FimsUser"
         lc_params:
           $ref: "#/components/schemas/LcParamsForFims"
       required:
@@ -105,7 +105,7 @@ components:
         - pub_key
         - lc_authentication_bearer
       description: LC Params for FIMS
-    GetLollipopUserForFIMSPayload:
+    GetLollipopUserForFimsPayload:
       type: object
       properties:
         operation_id:
@@ -131,7 +131,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/FIMSUser"
+                $ref: "#/components/schemas/FimsUser"
         "400":
           description: Bad request
           content:
@@ -176,14 +176,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/GetLollipopUserForFIMSPayload"
+              $ref: "#/components/schemas/GetLollipopUserForFimsPayload"
       responses:
         "200":
           description: The FIMS user for the provided session token
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/FIMSPlusUser"
+                $ref: "#/components/schemas/FimsPlusUser"
         "400":
           description: Bad request
           content:
