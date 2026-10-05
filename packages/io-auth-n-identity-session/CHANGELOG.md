@@ -1,5 +1,12 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies [e8f3915]
+  - @pagopa/io-auth-n-identity-domain@0.6.0
+
 ## 0.9.0
 
 ### Minor Changes
