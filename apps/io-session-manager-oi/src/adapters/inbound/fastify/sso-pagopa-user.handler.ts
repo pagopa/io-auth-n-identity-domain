@@ -33,6 +33,11 @@ const ssoPagopaUserContract = defineRoute({
         "Missing/invalid `Authorization` header, unknown session, or source IP blocked by the allowlist.",
       schema: ProblemJson,
     },
+    422: {
+      description:
+        "Unprocessable Content: the user has an unverified or missing email",
+      schema: ProblemJson,
+    },
     500: {
       description: "Internal error",
       schema: ProblemJson,

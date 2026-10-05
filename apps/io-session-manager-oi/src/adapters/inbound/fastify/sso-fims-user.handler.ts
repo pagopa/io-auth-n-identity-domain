@@ -33,6 +33,15 @@ const ssoFimsUserContract = defineRoute({
         "Missing/invalid `Authorization` header, unknown session, or source IP blocked by the allowlist.",
       schema: ProblemJson,
     },
+    404: {
+      description: "User not found",
+      schema: ProblemJson,
+    },
+    422: {
+      description:
+        "Unprocessable Content: the user has an unverified or missing email",
+      schema: ProblemJson,
+    },
     500: {
       description: "Internal error",
       schema: ProblemJson,
@@ -59,6 +68,15 @@ export const mountSsoFimsUserHandler = (
       middlewares: deps.middlewares,
       inputMapper: (_, context) => ({
         session: context.session,
+      }),
+      outputMapper: (user) => ({
+        name: user.name,
+        family_name: user.familyName,
+        fiscal_code: user.fiscalCode,
+        auth_time: user.authTime,
+        acr: user.acr,
+        email: user.email,
+        date_of_birth: user.dateOfBirth,
       }),
       useCase: deps.useCase,
     });
