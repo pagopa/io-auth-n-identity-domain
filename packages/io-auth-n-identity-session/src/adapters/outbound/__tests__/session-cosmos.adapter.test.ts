@@ -101,6 +101,17 @@ const anActiveSession: ActiveSession = {
   expirationDate: anExpirationDate,
 };
 
+// ------------------------------
+// CosmosDB Resources
+// ------------------------------
+
+const aBaseCosmosResource = {
+  _rid: "_rid",
+  _ts: Date.parse("2026-01-01T00:00:00.000Z"),
+  _self: "_self",
+  _etag: "_etag",
+};
+
 // A valid raw session document as persisted in Cosmos DB
 const aDbSessionResource = {
   id: COSMOS_SESSION_PREFIX + aHashedSessionToken,
@@ -112,6 +123,7 @@ const aDbSessionResource = {
   spidLevel: "https://www.spid.gov.it/SpidL2",
   expirationDate: anExpirationDate.toISOString(),
   createdAt: aCreatedAt.toISOString(),
+  ...aBaseCosmosResource,
 };
 
 // A valid raw active session document as persisted in Cosmos DB
@@ -122,6 +134,7 @@ const aDbActiveSessionResource = {
   sessionId: aSessionId,
   createdAt: aCreatedAt.toISOString(),
   expirationDate: anExpirationDate.toISOString(),
+  ...aBaseCosmosResource,
 };
 
 // ---------------------------------------------------------------------------
@@ -130,6 +143,14 @@ const aDbActiveSessionResource = {
 
 const userSession = makeContainerMock();
 const activeSession = makeContainerMock();
+activeSession.itemMock.read.mockResolvedValue({
+  resource: aDbActiveSessionResource,
+  statusCode: 200,
+});
+activeSession.itemMock.delete.mockResolvedValue({
+  statusCode: 204,
+});
+
 const client = makeClientMock((id) =>
   id === USER_SESSION_CONTAINER_ID ? userSession : activeSession,
 );
@@ -464,9 +485,6 @@ describe("SessionCosmosAdapter", () => {
 
   describe("delete", () => {
     it("GIVEN an existing session WHEN delete is called THEN deletes the active session, the SSO tokens first and the main token last", async () => {
-      activeSession.itemMock.delete.mockResolvedValueOnce({
-        statusCode: 204,
-      });
       userSession.bulk
         .mockResolvedValueOnce([
           { statusCode: 204 },
@@ -497,8 +515,82 @@ describe("SessionCosmosAdapter", () => {
       ]);
     });
 
+    it("GIVEN active session read returns Not Found WHEN delete is called THEN still deletes the token items", async () => {
+      activeSession.itemMock.read.mockResolvedValueOnce({
+        statusCode: 404,
+      });
+      userSession.bulk
+        .mockResolvedValueOnce([
+          { statusCode: 204 },
+          { statusCode: 204 },
+          { statusCode: 204 },
+          { statusCode: 204 },
+        ])
+        .mockResolvedValueOnce([{ statusCode: 204 }]);
+
+      const result = await adapter.delete(aSessionWithHashedTokens);
+
+      expect(result).toEqual(ok(undefined));
+      expect(activeSession.itemMock.delete).not.toHaveBeenCalled();
+      expect(userSession.bulk).toHaveBeenCalledTimes(2);
+    });
+
+    it("GIVEN active session read returns a different sessionId WHEN delete is called THEN still deletes the token items", async () => {
+      activeSession.itemMock.read.mockResolvedValueOnce({
+        resource: {
+          ...aDbActiveSessionResource,
+          sessionId: "differentSessionId",
+        },
+        statusCode: 200,
+      });
+      userSession.bulk
+        .mockResolvedValueOnce([
+          { statusCode: 204 },
+          { statusCode: 204 },
+          { statusCode: 204 },
+          { statusCode: 204 },
+        ])
+        .mockResolvedValueOnce([{ statusCode: 204 }]);
+
+      const result = await adapter.delete(aSessionWithHashedTokens);
+
+      expect(result).toEqual(ok(undefined));
+      expect(activeSession.itemMock.delete).not.toHaveBeenCalled();
+      expect(userSession.bulk).toHaveBeenCalledTimes(2);
+    });
+
+    it("GIVEN active session etag different from the one just read (412 Precondition Failed) WHEN delete is called THEN still deletes the token items", async () => {
+      activeSession.itemMock.delete.mockRejectedValueOnce({ code: 412 });
+
+      userSession.bulk
+        .mockResolvedValueOnce([
+          { statusCode: 204 },
+          { statusCode: 204 },
+          { statusCode: 204 },
+          { statusCode: 204 },
+        ])
+        .mockResolvedValueOnce([{ statusCode: 204 }]);
+
+      const result = await adapter.delete(aSessionWithHashedTokens);
+
+      expect(result).toEqual(ok(undefined));
+      expect(userSession.bulk).toHaveBeenCalledTimes(2);
+    });
+
+    it("GIVEN active session read fails WHEN delete is called THEN returns GenericError and skips token deletion", async () => {
+      activeSession.itemMock.read.mockRejectedValueOnce({ code: 500 });
+
+      const result = await adapter.delete(aSessionWithHashedTokens);
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+      expect(activeSession.itemMock.delete).not.toHaveBeenCalled();
+      expect(userSession.bulk).not.toHaveBeenCalled();
+    });
+
     it("GIVEN active session deletion returns 404 WHEN delete is called THEN still deletes the token items", async () => {
-      activeSession.itemMock.delete.mockRejectedValueOnce({ code: 404 });
+      activeSession.itemMock.delete.mockRejectedValueOnce(
+        makeErrorResponse(404),
+      );
       userSession.bulk
         .mockResolvedValueOnce([
           { statusCode: 204 },
@@ -515,7 +607,9 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN active session deletion fails WHEN delete is called THEN returns GenericError and skips token deletion", async () => {
-      activeSession.itemMock.delete.mockRejectedValueOnce({ code: 500 });
+      activeSession.itemMock.delete.mockRejectedValueOnce(
+        makeErrorResponse(500),
+      );
 
       const result = await adapter.delete(aSessionWithHashedTokens);
 
@@ -524,9 +618,6 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN an SSO token deletion fails WHEN delete is called THEN the main session token is NOT deleted and returns GenericError", async () => {
-      activeSession.itemMock.delete.mockResolvedValueOnce({
-        statusCode: 204,
-      });
       userSession.bulk.mockResolvedValueOnce([
         { statusCode: 204 },
         { statusCode: 204 },
@@ -546,9 +637,6 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN the SSO tokens bulk deletion throws WHEN delete is called THEN returns GenericError", async () => {
-      activeSession.itemMock.delete.mockResolvedValueOnce({
-        statusCode: 204,
-      });
       userSession.bulk.mockRejectedValueOnce(new Error("boom"));
 
       const result = await adapter.delete(aSessionWithHashedTokens);
@@ -562,9 +650,6 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN SSO deletions succeed but the main token deletion fails WHEN delete is called THEN returns GenericError", async () => {
-      activeSession.itemMock.delete.mockResolvedValueOnce({
-        statusCode: 204,
-      });
       userSession.bulk
         .mockResolvedValueOnce([
           { statusCode: 204 },
@@ -581,9 +666,6 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN 404 on SSO tokens WHEN delete is called THEN still deletes the main token (idempotent retry)", async () => {
-      activeSession.itemMock.delete.mockResolvedValueOnce({
-        statusCode: 204,
-      });
       userSession.bulk
         .mockResolvedValueOnce([
           { statusCode: 404 },
@@ -601,9 +683,6 @@ describe("SessionCosmosAdapter", () => {
   });
 
   it("GIVEN the main token bulk deletion throws WHEN delete is called THEN returns GenericError", async () => {
-    activeSession.itemMock.delete.mockResolvedValueOnce({
-      statusCode: 204,
-    });
     userSession.bulk
       .mockResolvedValueOnce([
         { statusCode: 204 },

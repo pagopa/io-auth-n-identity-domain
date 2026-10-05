@@ -3,6 +3,7 @@ import {
   Container,
   CosmosClient,
   JSONObject,
+  Resource,
 } from "@azure/cosmos";
 import {
   ConflictError,
@@ -36,7 +37,11 @@ import {
 } from "../../domain/value-objects/tokens/session-token.vo.js";
 import type { HashedZendeskSSOToken } from "../../domain/value-objects/tokens/zendesk-sso-token.vo.js";
 
-import { CosmosBaseAdapter } from "./cosmos-base.adapter.js";
+import {
+  CosmosBaseAdapter,
+  CosmosDBResourceSchema,
+} from "./cosmos-base.adapter.js";
+import zod from "zod";
 
 // ---------------------------------------------------------------------------
 // Cosmos DB Document ID Prefixes
@@ -47,6 +52,16 @@ const COSMOS_PAGOPA_PREFIX = "PAGOPA-";
 const COSMOS_BPD_PREFIX = "BPD-";
 const COSMOS_FIMS_PREFIX = "FIMS-";
 const COSMOS_ZENDESK_PREFIX = "ZENDESK-";
+
+// ---------------------------------------------------------------------------
+// Cosmos DB Records
+// ---------------------------------------------------------------------------
+
+const ActiveSessionResourceSchema = ActiveSessionSchema.and(
+  CosmosDBResourceSchema,
+);
+
+type ActiveSessionResource = zod.infer<typeof ActiveSessionResourceSchema>;
 
 // ---------------------------------------------------------------------------
 // Cosmos DB Adapter for SessionPort
@@ -193,11 +208,27 @@ export class SessionCosmosAdapter
   ): Promise<Result<void, GenericError | NotFoundError>> {
     // First delete the ActiveSession, since fiscalCode is needed
     //  to perform the deletion.
-    const deleteActiveSessionResult = await this.deleteActiveSession(
-      sessionTokens.fiscalCode,
-    );
-    if (deleteActiveSessionResult.isErr()) {
-      return deleteActiveSessionResult;
+    const activeSession = await this.getActiveSession(sessionTokens.fiscalCode);
+
+    if (
+      activeSession.isErr() &&
+      !(activeSession.error instanceof NotFoundError)
+    ) {
+      return err(activeSession.error);
+    }
+
+    // Skip deleting the active session if it was not found.
+    if (!activeSession.isErr()) {
+      // Avoid deleting the active session if the session IDs do not match.
+      if (activeSession.value.sessionId === sessionTokens.sessionId) {
+        const deleteActiveSessionResult = await this.deleteActiveSession(
+          sessionTokens.fiscalCode,
+          activeSession.value._etag,
+        );
+        if (deleteActiveSessionResult.isErr()) {
+          return deleteActiveSessionResult;
+        }
+      }
     }
 
     // Then delete the user session in the session tokens container
@@ -263,8 +294,16 @@ export class SessionCosmosAdapter
       }
 
       // Step 3: delete ActiveSession
-      await this.activeSessionContainer.item(fiscalCode, fiscalCode).delete();
+      const activeSessionDeleteResult = await this.deleteActiveSession(
+        fiscalCode,
+        activeSessionResult.value._etag,
+      );
 
+      if (activeSessionDeleteResult.isErr()) {
+        return err(activeSessionDeleteResult.error);
+      }
+
+      // Return the invalidated session token if it exists, otherwise undefined
       if (hashedSessionToken) {
         const parsed = HashedSessionTokenSchema.safeParse(hashedSessionToken);
 
@@ -300,7 +339,7 @@ export class SessionCosmosAdapter
 
   private async getActiveSession(
     fiscalCode: FiscalCode,
-  ): Promise<Result<ActiveSession, GenericError | NotFoundError>> {
+  ): Promise<Result<ActiveSessionResource, GenericError | NotFoundError>> {
     const result = await this.readItem(
       this.activeSessionContainer,
       fiscalCode as unknown as NonEmptyString,
@@ -354,14 +393,14 @@ export class SessionCosmosAdapter
         if (responseErrors.includes(409)) {
           return err(
             new ConflictError(
-              `Conflict error creating user session. Status code: ${result.code}. Errors: ${JSON.stringify(responseErrors)}`,
+              `Conflict error creating user session. Status code: ${result.code}.`,
             ),
           );
         }
 
         return err(
           new GenericError(
-            `Error creating user session. Status code: ${result.code}. Errors: ${JSON.stringify(responseErrors)}`,
+            `Error creating user session. Status code: ${result.code}.`,
           ),
         );
       }
@@ -440,12 +479,18 @@ export class SessionCosmosAdapter
 
   private async deleteActiveSession(
     fiscalCode: FiscalCode,
+    _etag: string,
   ): Promise<Result<void, GenericError>> {
     try {
-      await this.activeSessionContainer.item(fiscalCode, fiscalCode).delete();
+      await this.activeSessionContainer.item(fiscalCode, fiscalCode).delete({
+        // OPTIMISTIC CONCURRENCY CONTROL:
+        // Cosmos will delete the document ONLY IF the etag matches the one currently in the DB.
+        accessCondition: { type: "IfMatch", condition: _etag },
+      });
       return ok(undefined);
     } catch (error: any) {
-      if (error?.code === 404) {
+      // If the error code is 404 (Not Found) or 412 (Precondition Failed), it means the session was already deleted or the etag did not match.
+      if (error?.code === 404 || error?.code === 412) {
         return ok(undefined);
       }
       return err(new GenericError("Error deleting session info data"));
@@ -458,9 +503,9 @@ export class SessionCosmosAdapter
 // ---------------------------------------------------------------------------
 
 function fromDbActiveSession(
-  raw: JSONObject,
-): Result<ActiveSession, GenericError> {
-  const parsed = ActiveSessionSchema.safeParse({
+  raw: JSONObject & Resource,
+): Result<ActiveSessionResource, GenericError> {
+  const parsed = ActiveSessionResourceSchema.safeParse({
     ...raw,
     expirationDate: new Date(raw.expirationDate as string),
     createdAt: new Date(raw.createdAt as string),
