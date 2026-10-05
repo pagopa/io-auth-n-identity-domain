@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-domain
 
+## 0.6.0
+
+### Minor Changes
+
+- e8f3915: Transform `Base64UrlJsonSchema` in a codec
+
 ## 0.5.2
 
 ### Patch Changes
