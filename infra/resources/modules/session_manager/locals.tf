@@ -85,8 +85,12 @@ locals {
     SERVICE_BUS_HOSTNAME     = var.service_bus.hostname
 
     # TODO: Restrict the allowed IP source range for the following
-    ALLOW_BPD_IP_SOURCE_RANGE    = "0.0.0.0/0"
-    ALLOW_FIMS_IP_SOURCE_RANGE   = "0.0.0.0/0"
-    ALLOW_PAGOPA_IP_SOURCE_RANGE = "0.0.0.0/0"
+    ALLOW_BPD_IP_SOURCE_RANGE     = "0.0.0.0/0"
+    ALLOW_FIMS_IP_SOURCE_RANGE    = "0.0.0.0/0"
+    ALLOW_PAGOPA_IP_SOURCE_RANGE  = "0.0.0.0/0"
+    ALLOW_ZENDESK_IP_SOURCE_RANGE = "0.0.0.0/0"
+
+    JWT_ZENDESK_SUPPORT_TOKEN_EXPIRATION = "1200"
+    JWT_ZENDESK_SUPPORT_TOKEN_ISSUER     = "app-backend.io.italia.it"
   }
 }
