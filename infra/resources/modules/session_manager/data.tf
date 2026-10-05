@@ -1,4 +1,8 @@
 
+data "azurerm_key_vault" "auth" {
+  name                = var.key_vault.name
+  resource_group_name = var.key_vault.resource_group_name
+}
 
 data "azurerm_storage_account" "io_com" {
   name                = "iopitncomst01"
