@@ -38,7 +38,7 @@ const FimsPlusUserSchema = z
     lc_params: LcParamsForFimsSchema,
   })
   .meta({
-    id: "FIMSPlusUser",
+    id: "FimsPlusUser",
     description: "FIMS User with additional LCParamsForFims",
   });
 
