@@ -1,0 +1,26 @@
+meta {
+  name: GetLollipopUserForFims
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/sso/fims/v2/lollipop-user
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "operation_id": "an-operation-id"
+  }
+}
+
+auth:bearer {
+  token: {{fimsClientSessionToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

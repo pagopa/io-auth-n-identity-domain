@@ -1,5 +1,17 @@
 # io-session-manager-oi
 
+## 0.27.0
+
+### Minor Changes
+
+- e8f3915: Add GetLolliPoP User for FIMS SSO endpoint
+
+### Patch Changes
+
+- Updated dependencies [e8f3915]
+  - @pagopa/io-auth-n-identity-domain@0.6.0
+  - @pagopa/io-auth-n-identity-session@0.9.1
+
 ## 0.26.0
 
 ### Minor Changes

@@ -88,6 +88,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+        "422":
+          description: "Unprocessable Content: the user has an unverified or missing email"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "500":
           description: Internal error
           content:

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  Base64UrlJsonSchema,
+  Base64UrlJsonCodec,
   Base64UrlStringSchema,
 } from "../base64url-string.vo.js";
 
@@ -44,7 +44,7 @@ describe("Base64UrlJsonSchema", () => {
     { kind: "boolean", value: true },
     { kind: "null", value: null },
   ])("decodes a Base64url payload wrapping a JSON $kind", ({ value }) => {
-    const result = Base64UrlJsonSchema.safeParse(encode(value));
+    const result = Base64UrlJsonCodec.safeParse(encode(value));
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toStrictEqual(value);
@@ -52,7 +52,7 @@ describe("Base64UrlJsonSchema", () => {
   });
 
   it("rejects an input that is not a valid Base64url string", () => {
-    const result = Base64UrlJsonSchema.safeParse("not base64url!");
+    const result = Base64UrlJsonCodec.safeParse("not base64url!");
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0]?.message).toBe(
@@ -63,7 +63,7 @@ describe("Base64UrlJsonSchema", () => {
 
   it("rejects a Base64url string whose decoded content is not valid JSON", () => {
     const invalidJson = Buffer.from("{not json").toString("base64url");
-    const result = Base64UrlJsonSchema.safeParse(invalidJson);
+    const result = Base64UrlJsonCodec.safeParse(invalidJson);
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0]?.message).toBe(
@@ -73,6 +73,6 @@ describe("Base64UrlJsonSchema", () => {
   });
 
   it("rejects an empty string", () => {
-    expect(Base64UrlJsonSchema.safeParse("").success).toBe(false);
+    expect(Base64UrlJsonCodec.safeParse("").success).toBe(false);
   });
 });

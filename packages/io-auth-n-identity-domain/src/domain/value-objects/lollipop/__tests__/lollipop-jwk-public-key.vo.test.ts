@@ -5,7 +5,7 @@ import {
   JwkPublicKeyBase64UrlStringSchema,
   JwkPublicKeySchema,
   RsaKeySchema,
-} from "../lollipop-jwk-public-key.entity.js";
+} from "../lollipop-jwk-public-key.vo.js";
 
 const encode = (value: unknown): string =>
   Buffer.from(JSON.stringify(value)).toString("base64url");
