@@ -16,7 +16,7 @@ export const SsoFimsLollipopUserInputDto = {
       operation_id: NonEmptyStringSchema,
     })
     .meta({
-      id: "GetLollipopUserForFIMSPayload",
+      id: "GetLollipopUserForFimsPayload",
       description: "Input payload for fetching FIMS Lollipop user",
     }),
 };
