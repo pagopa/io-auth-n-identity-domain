@@ -112,7 +112,7 @@ describe("OneIdIdentityAssertionFetcherAdapter#getAssertion", () => {
     });
     expect(sdkMocks.getSamlAssertion).toHaveBeenCalledExactlyOnceWith({
       client: expect.anything(),
-      baseUrl: UAT_URL,
+      baseUrl: UAT_URL.href,
       query: { access_token: ACCESS_TOKEN },
       headers: { Accept: "application/xml" },
     });
