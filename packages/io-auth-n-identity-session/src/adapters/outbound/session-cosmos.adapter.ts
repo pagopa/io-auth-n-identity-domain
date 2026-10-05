@@ -14,6 +14,7 @@ import {
 } from "@pagopa/hexagonal-core";
 import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok, Result } from "neverthrow";
+import zod from "zod";
 
 import type { ActiveSession } from "../../domain/entities/active-session.entity.js";
 import { ActiveSessionSchema } from "../../domain/entities/active-session.entity.js";
@@ -41,7 +42,6 @@ import {
   CosmosBaseAdapter,
   CosmosDBResourceSchema,
 } from "./cosmos-base.adapter.js";
-import zod from "zod";
 
 // ---------------------------------------------------------------------------
 // Cosmos DB Document ID Prefixes

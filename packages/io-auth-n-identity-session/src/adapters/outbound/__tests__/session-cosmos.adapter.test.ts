@@ -498,6 +498,12 @@ describe("SessionCosmosAdapter", () => {
 
       expect(result).toEqual(ok(undefined));
       expect(activeSession.item).toHaveBeenCalledWith(aFiscalCode, aFiscalCode);
+      expect(activeSession.itemMock.delete).toHaveBeenCalledWith({
+        accessCondition: {
+          type: "IfMatch",
+          condition: aBaseCosmosResource._etag,
+        },
+      });
       // Two bulk calls: first the 4 SSO tokens, then the main session token.
       expect(userSession.bulk).toHaveBeenCalledTimes(2);
 
