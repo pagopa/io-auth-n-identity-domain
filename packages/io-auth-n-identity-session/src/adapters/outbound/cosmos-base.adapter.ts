@@ -71,7 +71,7 @@ export abstract class CosmosBaseAdapter {
       return this.handleCosmosError(
         error,
         entityName,
-        "createItem" as NonEmptyString,
+        "upsertItem" as NonEmptyString,
       );
     }
   }
