@@ -16,6 +16,7 @@ import { HashedBpdSSOToken } from "../../value-objects/tokens/bpd-sso-token.vo.j
 import { HashedFimsSSOToken } from "../../value-objects/tokens/fims-sso-token.vo.js";
 import { HashedPagopaSSOToken } from "../../value-objects/tokens/pagopa-sso-token.vo.js";
 import { HashedSessionToken } from "../../value-objects/tokens/session-token.vo.js";
+import { HashedZendeskSSOToken } from "../../value-objects/tokens/zendesk-sso-token.vo.js";
 
 export type HashedSessionTokenWithSessionId = {
   sessionId: SessionId;
@@ -69,6 +70,17 @@ export interface SessionPort {
    */
   readonly findByPagopaToken: (pagopaToken: {
     hashedPagopaSSOToken: HashedPagopaSSOToken;
+    sessionId: SessionId;
+  }) => Promise<Result<BaseSession, NotFoundError | GenericError>>;
+
+  /**
+   * Finds a session by its Zendesk SSO token.
+   * @param hashedZendeskSSOToken The hashed Zendesk SSO token
+   * @param sessionId The session tracking ID
+   * @returns The session associated with the given token, or an error if not found or a generic error happens.
+   */
+  readonly findByZendeskToken: (zendeskToken: {
+    hashedZendeskSSOToken: HashedZendeskSSOToken;
     sessionId: SessionId;
   }) => Promise<Result<BaseSession, NotFoundError | GenericError>>;
 

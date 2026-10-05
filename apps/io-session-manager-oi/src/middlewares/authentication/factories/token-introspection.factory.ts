@@ -7,6 +7,7 @@ import {
   type TokenIntrospectionStrategy,
   FimsTokenIntrospectionStrategy,
   PagopaTokenIntrospectionStrategy,
+  ZendeskTokenIntrospectionStrategy,
 } from "../strategies/token-introspection.strategy.js";
 
 /**
@@ -25,6 +26,8 @@ export class TokenIntrospectionStrategyFactory {
         return new FimsTokenIntrospectionStrategy(this.sessionPort);
       case "pagopa":
         return new PagopaTokenIntrospectionStrategy(this.sessionPort);
+      case "zendesk":
+        return new ZendeskTokenIntrospectionStrategy(this.sessionPort);
       default:
         const _exhaustiveCheck: never = tokenType;
         throw new Error(`Unsupported token type: ${tokenType}`);

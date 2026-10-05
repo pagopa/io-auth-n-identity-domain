@@ -51,8 +51,9 @@ import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
 import {
   AuthenticationMiddlewareFactory,
-  BearerTokenParsingStrategyFactory,
+  TokenParsingStrategyFactory,
   TokenIntrospectionStrategyFactory,
+  TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
 
 class AzureCredential {
@@ -274,7 +275,8 @@ export const createApp = async (
   // --------------------------------------------------
 
   const authenticationMiddlewareFactory = new AuthenticationMiddlewareFactory(
-    new BearerTokenParsingStrategyFactory(),
+    new TokenTransportStrategyFactory(),
+    new TokenParsingStrategyFactory(),
     new TokenIntrospectionStrategyFactory(sessionCosmosAdapter),
   );
   const authenticateSessionMiddleware =

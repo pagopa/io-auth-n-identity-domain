@@ -1,4 +1,5 @@
 import { AuthenticationError } from "@pagopa/hexagonal-core";
+import { ExtendedPlainZendeskSSOTokenSchema } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -12,6 +13,7 @@ import type { AuthToken, TokenType } from "../../auth-token.js";
 import {
   BpdBearerTokenParsingStrategy,
   SessionBearerTokenParsingStrategy,
+  ZendeskTokenParsingStrategy,
   type BearerTokenParsingStrategy,
 } from "../token-parsing.strategy.js";
 
@@ -48,12 +50,12 @@ const testBearerTokenParsingStrategy = <T extends TokenType>({
   it.each([
     undefined,
     "",
-    "Basic aSessionId.aSessionToken",
-    "bearer aSessionId.aSessionToken",
+    "Basic",
+    "bearer",
     "Bearer",
     "Bearer ",
     "Bearer aSessionId",
-    "Bearer .aSessionToken",
+    ".aSessionToken",
     "Bearer aSessionId.",
     "Bearer aSessionId.aSessionToken.extra",
   ])("returns AuthenticationError for invalid token: %o", (token) => {
@@ -70,7 +72,7 @@ const testBearerTokenParsingStrategy = <T extends TokenType>({
 describe("SessionBearerTokenParsingStrategy", () => {
   testBearerTokenParsingStrategy({
     strategy: new SessionBearerTokenParsingStrategy(),
-    validBearerToken: `Bearer ${aClientSessionToken}`,
+    validBearerToken: aClientSessionToken,
     expectedToken: aPlainSessionToken,
   });
 });
@@ -78,7 +80,33 @@ describe("SessionBearerTokenParsingStrategy", () => {
 describe("BpdBearerTokenParsingStrategy", () => {
   testBearerTokenParsingStrategy({
     strategy: new BpdBearerTokenParsingStrategy(),
-    validBearerToken: `Bearer ${aSessionId}.${aSessionWithPlainSSOTokens.ssoTokens.bpdPlainToken}`,
+    validBearerToken: `${aSessionId}.${aSessionWithPlainSSOTokens.ssoTokens.bpdPlainToken}`,
     expectedToken: aSessionWithPlainSSOTokens.ssoTokens.bpdPlainToken,
+  });
+});
+
+describe("ZendeskBodyTokenParsingStrategy", () => {
+  const strategy = new ZendeskTokenParsingStrategy();
+  const extendedToken = ExtendedPlainZendeskSSOTokenSchema.parse(
+    `${aSessionWithPlainSSOTokens.ssoTokens.zendeskPlainToken}12345678`,
+  );
+
+  beforeEach(() => {
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  });
+
+  it("parses a session ID and extended Zendesk token", () => {
+    expect(strategy.parse(`${aSessionId}.${extendedToken}`)).toEqual(
+      ok({ sessionId: aSessionId, sessionToken: extendedToken }),
+    );
+  });
+
+  it.each([
+    "",
+    "sessionId",
+    `${aSessionId}.`,
+    `${aSessionId}.${"a".repeat(64)}`,
+  ])("returns AuthenticationError for invalid token: %o", (token) => {
+    expect(strategy.parse(token)).toEqual(err(new AuthenticationError()));
   });
 });

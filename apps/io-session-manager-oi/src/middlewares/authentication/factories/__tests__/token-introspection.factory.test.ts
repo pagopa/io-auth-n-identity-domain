@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 import { SessionPortMock } from "../../../../__mocks__/ports/session-port.mock.js";
 import {
   BpdTokenIntrospectionStrategy,
+  FimsTokenIntrospectionStrategy,
+  PagopaTokenIntrospectionStrategy,
   SessionTokenIntrospectionStrategy,
+  ZendeskTokenIntrospectionStrategy,
 } from "../../strategies/token-introspection.strategy.js";
 import { TokenIntrospectionStrategyFactory } from "../token-introspection.factory.js";
 
@@ -28,5 +31,13 @@ describe("TokenIntrospectionStrategyFactory", () => {
 
     // then
     expect(strategy).toBeInstanceOf(BpdTokenIntrospectionStrategy);
+  });
+
+  it.each([
+    ["fims", FimsTokenIntrospectionStrategy],
+    ["pagopa", PagopaTokenIntrospectionStrategy],
+    ["zendesk", ZendeskTokenIntrospectionStrategy],
+  ] as const)("creates a %s token strategy", (tokenType, strategyType) => {
+    expect(factory.create(tokenType)).toBeInstanceOf(strategyType);
   });
 });
