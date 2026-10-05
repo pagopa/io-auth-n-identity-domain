@@ -6,9 +6,10 @@
     },
     "generate:clients": {
       "inputs": [
-        "openapi-ts.config.ts",
         "api/**/*.yaml",
-        "api/**/*.yaml.template"
+        "api/**/*.yaml.template",
+        "openapi-ts.config.ts",
+        "one-id-oas.json"
       ],
       "outputs": ["src/generated/**/*.ts"],
       "outputLogs": "hash-only"
