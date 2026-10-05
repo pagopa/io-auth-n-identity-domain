@@ -1357,6 +1357,9 @@ importers:
       fastify:
         specifier: 'catalog:'
         version: 5.8.5
+      jsonwebtoken:
+        specifier: 'catalog:'
+        version: 9.0.2
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0
@@ -1369,6 +1372,9 @@ importers:
       redis:
         specifier: ^6.2.1
         version: 6.2.1(@opentelemetry/api@1.9.1)
+      ulid:
+        specifier: 'catalog:'
+        version: 2.3.0
       zod:
         specifier: 'catalog:'
         version: 4.4.3
@@ -1382,6 +1388,9 @@ importers:
       '@pagopa/typescript-config-node22':
         specifier: workspace:^
         version: link:../../packages/typescript-config-node22
+      '@types/jsonwebtoken':
+        specifier: 'catalog:'
+        version: 9.0.7
       '@types/node':
         specifier: 'catalog:'
         version: 22.19.17
