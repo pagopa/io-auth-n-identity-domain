@@ -69,6 +69,15 @@ export const mountSsoFimsUserHandler = (
       inputMapper: (_, context) => ({
         session: context.session,
       }),
+      outputMapper: (user) => ({
+        name: user.name,
+        family_name: user.familyName,
+        fiscal_code: user.fiscalCode,
+        auth_time: user.authTime,
+        acr: user.acr,
+        email: user.email,
+        date_of_birth: user.dateOfBirth,
+      }),
       useCase: deps.useCase,
     });
     done();

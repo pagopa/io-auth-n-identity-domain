@@ -31,14 +31,14 @@ export type GetLollipopUserForFimsInput = {
 };
 
 type LcParamsForFims = {
-  assertion_ref: LollipopAssertionRef;
-  pub_key: LollipopJwk;
-  lc_authentication_bearer: NonEmptyString;
+  assertionRef: LollipopAssertionRef;
+  pubKey: LollipopJwk;
+  lcAuthenticationBearer: NonEmptyString;
 };
 
 export type GetLollipopUserForFimsOutput = {
   profile: FimsUser;
-  lc_params: LcParamsForFims;
+  lcParams: LcParamsForFims;
 };
 
 export type GetLollipopUserForFimsError =
@@ -90,9 +90,9 @@ const generateLcParamsForFimsUser = async (
   const lcParams = lcParamsGeneration.value;
 
   return ok({
-    assertion_ref: lcParams.assertion_ref,
-    pub_key: lcParams.pub_key,
-    lc_authentication_bearer: lcParams.lc_authentication_bearer,
+    assertionRef: lcParams.assertion_ref,
+    pubKey: lcParams.pub_key,
+    lcAuthenticationBearer: lcParams.lc_authentication_bearer,
   });
 };
 
@@ -121,6 +121,6 @@ export const makeGetLollipopUserForFimsUseCase =
 
     return ok({
       profile: fimsUser,
-      lc_params: lcParams,
+      lcParams,
     });
   };

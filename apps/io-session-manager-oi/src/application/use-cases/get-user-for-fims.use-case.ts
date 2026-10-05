@@ -23,12 +23,12 @@ export type GetUserForFimsInput = {
 
 export type FimsUser = {
   name: NonEmptyString;
-  family_name: NonEmptyString;
-  fiscal_code: FiscalCode;
-  auth_time: number;
+  familyName: NonEmptyString;
+  fiscalCode: FiscalCode;
+  authTime: number;
   acr: SpidLevel;
   email: EmailAddress;
-  date_of_birth: NonEmptyString;
+  dateOfBirth: NonEmptyString;
 };
 
 export type GetUserForFimsOutput = FimsUser;
@@ -37,7 +37,7 @@ export type GetUserForFimsError =
   | AuthenticationError
   | NotFoundError
   | GenericError
-  | ValidationError 
+  | ValidationError
   | UnprocessableEntityError;
 
 type GetUserForFimsDeps = {
@@ -68,12 +68,12 @@ export const makeGetUserForFimsUseCase =
 
     return ok({
       name: session.name,
-      family_name: session.familyName,
-      fiscal_code: session.fiscalCode,
-      auth_time: session.createdAt.getTime(),
+      familyName: session.familyName,
+      fiscalCode: session.fiscalCode,
+      authTime: session.createdAt.getTime(),
       acr: session.spidLevel,
       email: email,
-      date_of_birth: session.dateOfBirth
+      dateOfBirth: session.dateOfBirth
         .toISOString()
         .slice(0, 10) as NonEmptyString,
     });

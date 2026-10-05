@@ -51,12 +51,12 @@ describe("makeGetUserForFimsUseCase", () => {
     expect(result).toEqual(
       ok({
         name: aBaseSession.name,
-        family_name: aBaseSession.familyName,
-        fiscal_code: aBaseSession.fiscalCode,
+        familyName: aBaseSession.familyName,
+        fiscalCode: aBaseSession.fiscalCode,
         email: aUserProfileWithEmail.email,
         acr: aBaseSession.spidLevel,
-        auth_time: expectedAuthTime,
-        date_of_birth: expectedDateOfBirth,
+        authTime: expectedAuthTime,
+        dateOfBirth: expectedDateOfBirth,
       }),
     );
   });

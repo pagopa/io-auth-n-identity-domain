@@ -59,12 +59,12 @@ describe("makeGetLollipopUserForFimsUseCase", () => {
     getUserForFimsUseCase.mockResolvedValueOnce(
       ok({
         name: "Mario Rossi",
-        family_name: "Rossi",
-        fiscal_code: aSession.fiscalCode,
-        auth_time: aSession.createdAt.getTime(),
+        familyName: "Rossi",
+        fiscalCode: aSession.fiscalCode,
+        authTime: aSession.createdAt.getTime(),
         acr: aSession.spidLevel,
         email: "mario.rossi@example.com",
-        date_of_birth: "1985-10-10",
+        dateOfBirth: "1985-10-10",
       }),
     );
     lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
@@ -91,11 +91,11 @@ describe("makeGetLollipopUserForFimsUseCase", () => {
     });
     expect(result).toEqual(
       ok({
-        profile: expect.objectContaining({ fiscal_code: aSession.fiscalCode }),
-        lc_params: {
-          assertion_ref: lcParams.assertion_ref,
-          pub_key: lcParams.pub_key,
-          lc_authentication_bearer: lcParams.lc_authentication_bearer,
+        profile: expect.objectContaining({ fiscalCode: aSession.fiscalCode }),
+        lcParams: {
+          assertionRef: lcParams.assertion_ref,
+          pubKey: lcParams.pub_key,
+          lcAuthenticationBearer: lcParams.lc_authentication_bearer,
         },
       }),
     );
