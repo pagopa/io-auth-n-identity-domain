@@ -3,6 +3,7 @@ import { TableClient } from "@azure/data-tables";
 import { DefaultAzureCredential } from "@azure/identity";
 import { ServiceBusClient } from "@azure/service-bus";
 import { QueueServiceClient } from "@azure/storage-queue";
+import formbody from "@fastify/formbody";
 import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
 import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import {
@@ -27,6 +28,7 @@ import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.
 import { mountSsoFimsLollipopUserHandler } from "./adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
 import { mountSsoFimsUserHandler } from "./adapters/inbound/fastify/sso-fims-user.handler.js";
 import { mountSsoPagopaUserHandler } from "./adapters/inbound/fastify/sso-pagopa-user.handler.js";
+import { mountSsoZendeskTokenHandler } from "./adapters/inbound/fastify/sso-zendesk-token.handler.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
@@ -41,6 +43,7 @@ import { TechnicalLockedProfilesDataTableAdapter } from "./adapters/outbound/tec
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { makeGetLollipopUserForFimsUseCase } from "./application/use-cases/get-lollipop-user-for-fims.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
+import { makeGetTokenForZendeskUseCase } from "./application/use-cases/get-token-for-zendesk.use-case.js";
 import { getUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
 import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-fims.use-case.js";
 import { makeGetUserForPagopaUseCase } from "./application/use-cases/get-user-for-pagopa.use-case.js";
@@ -79,6 +82,7 @@ export const createApp = async (
   const server = fastify({
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
   });
+  server.register(formbody);
 
   // --------------------------------------------------
   // Clients initialization
@@ -287,6 +291,8 @@ export const createApp = async (
     authenticationMiddlewareFactory.create("fims");
   const authenticatePagopaMiddleware =
     authenticationMiddlewareFactory.create("pagopa");
+  const authenticateZendeskMiddleware =
+    authenticationMiddlewareFactory.create("zendesk");
 
   // --------------------------------------------------
   // Endpoints mounting
@@ -371,6 +377,18 @@ export const createApp = async (
     middlewares: [authenticatePagopaMiddleware] as const,
     useCase: makeGetUserForPagopaUseCase({
       profilePort: profileAdapter,
+    }),
+  });
+
+  mountSsoZendeskTokenHandler(server, {
+    allowedIpSourceRange: config.ALLOW_ZENDESK_IP_SOURCE_RANGE,
+    middlewares: [authenticateZendeskMiddleware] as const,
+    useCase: makeGetTokenForZendeskUseCase({
+      profilePort: profileAdapter,
+      jwtZendeskSupportTokenSecret: config.JWT_ZENDESK_SUPPORT_TOKEN_SECRET,
+      jwtZendeskSupportTokenExpiration:
+        config.JWT_ZENDESK_SUPPORT_TOKEN_EXPIRATION,
+      jwtZendeskSupportTokenIssuer: config.JWT_ZENDESK_SUPPORT_TOKEN_ISSUER,
     }),
   });
 

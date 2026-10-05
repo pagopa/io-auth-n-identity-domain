@@ -32,6 +32,7 @@
     "@azure/identity": "catalog:",
     "@azure/service-bus": "catalog:",
     "@azure/storage-queue": "catalog:",
+    "@fastify/formbody": "catalog:",
     "@pagopa/azure-sdk": "workspace:^",
     "@pagopa/hexagonal-core": "catalog:",
     "@pagopa/hexagonal-fastify": "catalog:",
