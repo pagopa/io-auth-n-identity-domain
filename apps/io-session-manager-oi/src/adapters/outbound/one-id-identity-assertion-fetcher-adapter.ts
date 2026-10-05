@@ -84,7 +84,7 @@ export class OneIdIdentityAssertionFetcherAdapter
     try {
       const result = await getSamlAssertionFromSdk({
         client: this.client,
-        baseUrl: config.baseUrl,
+        baseUrl: config.baseUrl.href,
         query: { access_token: accessToken },
         headers: {
           Accept: "application/xml",
