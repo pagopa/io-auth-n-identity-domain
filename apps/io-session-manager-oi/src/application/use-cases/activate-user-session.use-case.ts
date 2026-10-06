@@ -73,7 +73,6 @@ export const makeActivateUserSessionUseCase =
   async (input) => {
     const invalidationResult = await invalidatePreviousUserState(deps)(
       input.sessionToken.fiscalCode,
-      input.assertion.assertionRef,
     );
 
     if (invalidationResult.isErr()) {
@@ -228,23 +227,37 @@ const invalidatePreviousUserState =
   (deps: {
     sessionPort: SessionPort;
     platformInternalPort: PlatformInternalPort;
+    lollipopActivationPort: LollipopActivationPort;
     lollipopRevocationPort: LollipopRevocationPort;
   }) =>
   async (
     fiscalCode: NewSessionToken["fiscalCode"],
-    assertionRef: IdentityAssertion["assertionRef"],
   ): Promise<Result<void, GenericError>> => {
     // TODO: invalidate installation id
 
     /************************************************************/
     /* Revoke the lollipop associated with the previous session */
     /************************************************************/
-    const lollipopRevocationResult =
-      await deps.lollipopRevocationPort.requestRevocation(assertionRef);
-    if (lollipopRevocationResult.isErr()) {
-      // fire-and-forget: we log the error but do not block the flow
-      console.error(
-        `Failed to revoke lollipop: ${lollipopRevocationResult.error.message}`,
+    const lollipopActivationDataResult =
+      await deps.lollipopActivationPort.getByFiscalCode(fiscalCode);
+    if (lollipopActivationDataResult.isOk()) {
+      // Lollipop activation data found, proceed with revocation
+      const lollipopActivationData = lollipopActivationDataResult.value;
+      const lollipopRevocationResult =
+        await deps.lollipopRevocationPort.requestRevocation(
+          lollipopActivationData.assertionRef,
+        );
+      if (lollipopRevocationResult.isErr()) {
+        // fire-and-forget: we log the error but do not block the flow
+        console.error(
+          `Failed to revoke lollipop: ${lollipopRevocationResult.error.message}`,
+        );
+      }
+    } else if (lollipopActivationDataResult.error.kind !== "NotFoundError") {
+      return err(
+        new GenericError(
+          `Failed to retrieve previous lollipop activation data: ${lollipopActivationDataResult.error.message}`,
+        ),
       );
     }
 

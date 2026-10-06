@@ -99,6 +99,8 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
 });
 
 const assertionRef = "a-lollipop-assertion-ref" as LollipopAssertionRef;
+const previousAssertionRef =
+  "a-previous-lollipop-assertion-ref" as LollipopAssertionRef;
 const assertionInput = {
   assertionRef,
   rawAssertion: "a-raw-saml-assertion" as NonEmptyString,
@@ -116,6 +118,13 @@ beforeEach(() => {
   vi.mocked(newSessionId).mockResolvedValue(aSessionId);
   vi.mocked(newPlainSessionTokens).mockResolvedValue(
     aSessionWithPlainSSOTokens,
+  );
+  lollipopActivationPortMock.getByFiscalCode.mockReset().mockResolvedValue(
+    ok({
+      fiscalCode: aFiscalCode,
+      assertionRef: previousAssertionRef,
+      expirationDate: new Date("2100-01-01"),
+    }),
   );
   lollipopActivationPortMock.upsert
     .mockReset()
@@ -156,7 +165,7 @@ describe("makeActivateUserSessionUseCase", () => {
         aFiscalCode,
       );
       expect(mockRequestRevocation).toHaveBeenCalledExactlyOnceWith(
-        assertionRef,
+        previousAssertionRef,
       );
       expect(mockRequestRevocation.mock.invocationCallOrder[0]).toBeLessThan(
         mockInvalidatePreviousSession.mock.invocationCallOrder[0],
@@ -260,7 +269,7 @@ describe("makeActivateUserSessionUseCase", () => {
 
       expect(result).toMatchObject(ok(aClientSessionToken));
       expect(mockRequestRevocation).toHaveBeenCalledExactlyOnceWith(
-        assertionRef,
+        previousAssertionRef,
       );
       expect(errorSpy).toHaveBeenCalledExactlyOnceWith(
         `Failed to revoke lollipop: ${aGenericError.message}`,
@@ -270,6 +279,39 @@ describe("makeActivateUserSessionUseCase", () => {
       );
       expect(mockSessionCreate).toHaveBeenCalledOnce();
       errorSpy.mockRestore();
+    });
+
+    it("continues without requesting revocation when no previous activation exists", async () => {
+      lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
+        err(aNotFoundError),
+      );
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(mockRequestRevocation).not.toHaveBeenCalled();
+      expect(mockInvalidatePreviousSession).toHaveBeenCalledExactlyOnceWith(
+        aFiscalCode,
+      );
+    });
+
+    it("returns err when retrieving the previous Lollipop activation fails", async () => {
+      lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
+        err(aGenericError),
+      );
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(
+        err(
+          new GenericError(
+            `Failed to retrieve previous lollipop activation data: ${aGenericError.message}`,
+          ),
+        ),
+      );
+      expect(mockRequestRevocation).not.toHaveBeenCalled();
+      expect(mockInvalidatePreviousSession).not.toHaveBeenCalled();
+      expect(mockSessionCreate).not.toHaveBeenCalled();
     });
 
     it("returns err when invalidatePreviousSession fails", async () => {
