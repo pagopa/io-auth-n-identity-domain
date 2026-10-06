@@ -7,6 +7,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import type { ComponentTypeOf } from "@asteasolutions/zod-to-openapi/dist/openapi-registry.js";
 import {
   type AnyRouteContract,
   buildOpenApiDocument,
@@ -39,6 +40,20 @@ interface Route {
   readonly requestBodyContentType?: ContentType;
 }
 
+type SecuritySchema = "bearerAuth";
+const SECURITY_SCHEMES: Record<
+  SecuritySchema,
+  ComponentTypeOf<"securitySchemes">
+> = {
+  bearerAuth: {
+    type: "http",
+    scheme: "bearer",
+    bearerFormat: "opaque",
+    description:
+      "Enter the opaque token provided by the authentication authority",
+  },
+};
+
 interface DocumentSpec {
   readonly basePath: string;
   readonly description: string;
@@ -47,6 +62,7 @@ interface DocumentSpec {
   readonly tags: ReadonlyArray<{ name: string; description: string }>;
   readonly title: string;
   readonly version: string;
+  readonly securitySchemes?: ReadonlyArray<SecuritySchema>;
 }
 
 const stripBasePath =
@@ -81,13 +97,13 @@ const generate = async (spec: DocumentSpec): Promise<boolean> => {
         tags: [...spec.tags],
       },
       registerComponents: (registry) => {
-        registry.registerComponent("securitySchemes", "bearerAuth", {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "opaque",
-          description:
-            "Enter the opaque token provided by the authentication authority",
-        });
+        for (const schema of spec.securitySchemes ?? []) {
+          registry.registerComponent(
+            "securitySchemes",
+            schema,
+            SECURITY_SCHEMES[schema],
+          );
+        }
       },
       routes: spec.routes.map(({ contract }) =>
         stripBasePath(spec.basePath)(contract),
@@ -161,6 +177,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
       { contract: reserveRoute },
       { contract: getSessionContract },
     ],
+    securitySchemes: ["bearerAuth"],
     tags: [
       {
         name: "oidc",
@@ -183,6 +200,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
         description: "BPD Single Sign-On endpoints.",
       },
     ],
+    securitySchemes: ["bearerAuth"],
     title: "Bonus Pagamenti Digitali API for user authentication.",
     version: "0.23.1",
   },
@@ -195,6 +213,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
       { contract: ssoFimsUserRoute },
       { contract: ssoFimsLollipopUserRoute },
     ],
+    securitySchemes: ["bearerAuth"],
     tags: [
       {
         name: "sso",
@@ -210,6 +229,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
       "PagoPA SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.",
     outputRelPath: "api/sso/pagopa.yaml",
     routes: [{ contract: ssoPagopaUserRoute }],
+    securitySchemes: ["bearerAuth"],
     tags: [
       {
         name: "sso",
