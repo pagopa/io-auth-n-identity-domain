@@ -385,10 +385,7 @@ export const createApp = async (
     middlewares: [authenticateZendeskMiddleware] as const,
     useCase: makeGetTokenForZendeskUseCase({
       profilePort: profileAdapter,
-      jwtZendeskSupportTokenSecret: config.JWT_ZENDESK_SUPPORT_TOKEN_SECRET,
-      jwtZendeskSupportTokenExpiration:
-        config.JWT_ZENDESK_SUPPORT_TOKEN_EXPIRATION,
-      jwtZendeskSupportTokenIssuer: config.JWT_ZENDESK_SUPPORT_TOKEN_ISSUER,
+      config,
     }),
   });
 
