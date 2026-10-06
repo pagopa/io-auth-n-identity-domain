@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.10.0
+
+### Minor Changes
+
+- ab27d62: fetch SAML Assertion from One-ID and add lollipop integration within login/callback
+
 ## 0.9.1
 
 ### Patch Changes
