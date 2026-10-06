@@ -11,7 +11,7 @@ import { err, ok } from "neverthrow";
 import { ulid } from "ulid";
 
 import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
-import { PositiveInteger } from "../../domain/value-objects/positive-integer.vo.js";
+import { ZendeskConfig } from "../../domain/value-objects/configs/zendesk.vo.js";
 
 export type GetTokenForZendeskInput = {
   session: BaseSession;
@@ -25,8 +25,6 @@ export type GetTokenForZendeskError = GenericError | UnprocessableEntityError;
 
 type GetTokenForZendeskDeps = {
   profilePort: ProfilePort;
-  jwtZendeskSupportTokenSecret: NonEmptyString;
-  jwtZendeskSupportTokenExpiration: PositiveInteger;
   config: Omit<ZendeskConfig, "ALLOW_ZENDESK_IP_SOURCE_RANGE">
 };
 
@@ -70,11 +68,11 @@ export const makeGetTokenForZendeskUseCase =
           jti: ulid(),
           name: `${session.name} ${session.familyName}`,
         },
-        deps.jwtZendeskSupportTokenSecret,
+        deps.config.JWT_ZENDESK_SUPPORT_TOKEN_SECRET,
         {
           algorithm: "HS256",
-          expiresIn: deps.jwtZendeskSupportTokenExpiration,
-          issuer: deps.jwtZendeskSupportTokenIssuer,
+          expiresIn: deps.config.JWT_ZENDESK_SUPPORT_TOKEN_EXPIRATION,
+          issuer: deps.config.JWT_ZENDESK_SUPPORT_TOKEN_ISSUER,
         },
       );
 
