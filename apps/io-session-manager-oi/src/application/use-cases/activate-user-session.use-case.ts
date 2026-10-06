@@ -164,7 +164,6 @@ export const makeActivateUserSessionUseCase =
         ),
       );
     }
-    const createdSession = result.value;
 
     /********************/
     /* Send login event */
