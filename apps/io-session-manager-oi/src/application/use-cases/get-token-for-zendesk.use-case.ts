@@ -53,8 +53,9 @@ export const makeGetTokenForZendeskUseCase =
 
     const profile = profileLookup.value;
     if (!profile.isEmailValidated || !profile.email) {
+      // TODO: use `UnprocessableEntityError` instead of `GenericError` after downstream services support it
       return err(
-        new UnprocessableEntityError(
+        new GenericError(
           "Zendesk support email is not validated",
         ),
       );
