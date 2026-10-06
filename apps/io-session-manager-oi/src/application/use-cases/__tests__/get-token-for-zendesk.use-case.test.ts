@@ -4,7 +4,6 @@ import {
   GenericError,
   NonEmptyStringSchema,
   NotFoundError,
-  UnprocessableEntityError,
 } from "@pagopa/hexagonal-core";
 import { BaseSession } from "@pagopa/io-auth-n-identity-session";
 import {
@@ -43,9 +42,11 @@ const profilePort = {
 
 const getTokenForZendesk = makeGetTokenForZendeskUseCase({
   profilePort,
-  jwtZendeskSupportTokenSecret: secret,
-  jwtZendeskSupportTokenExpiration: expiration,
-  jwtZendeskSupportTokenIssuer: issuer,
+  config: {
+    JWT_ZENDESK_SUPPORT_TOKEN_SECRET: secret,
+    JWT_ZENDESK_SUPPORT_TOKEN_EXPIRATION: expiration,
+    JWT_ZENDESK_SUPPORT_TOKEN_ISSUER: issuer,
+  },
 });
 
 beforeEach(() => {
@@ -92,11 +93,7 @@ describe("makeGetTokenForZendeskUseCase", () => {
     const result = await getTokenForZendesk({ session: aBaseSession });
 
     expect(result).toEqual(
-      err(
-        new UnprocessableEntityError(
-          "Zendesk support email is not validated",
-        ),
-      ),
+      err(new GenericError("Zendesk support email is not validated")),
     );
   });
 
