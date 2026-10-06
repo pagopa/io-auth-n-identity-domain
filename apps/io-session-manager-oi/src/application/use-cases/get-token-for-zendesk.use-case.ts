@@ -27,7 +27,7 @@ type GetTokenForZendeskDeps = {
   profilePort: ProfilePort;
   jwtZendeskSupportTokenSecret: NonEmptyString;
   jwtZendeskSupportTokenExpiration: PositiveInteger;
-  jwtZendeskSupportTokenIssuer: NonEmptyString;
+  config: Omit<ZendeskConfig, "ALLOW_ZENDESK_IP_SOURCE_RANGE">
 };
 
 export type GetTokenForZendeskUseCase = UseCase<
