@@ -13,10 +13,7 @@ import { IdentityAssertionFetcherPort } from "../../domain/ports/outbound/identi
 import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
 import { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
 
-import {
-  ActivateUserSessionUseCase,
-  NewSessionToken,
-} from "./activate-user-session.use-case.js";
+import { ActivateUserSessionUseCase } from "./activate-user-session.use-case.js";
 
 // Error code sent to the client error page when the provider returns an error
 // response without an explicit `error` code.
@@ -102,7 +99,7 @@ export const makeHandleOidcCallbackUseCase =
     }
     const claims = exchangeResult.value.claims;
 
-    const newSessionToken: NewSessionToken = {
+    const newSessionToken = {
       fiscalCode: claims.fiscalNumber,
       name: claims.name,
       familyName: claims.familyName,

@@ -35,8 +35,11 @@ import {
   type SessionId,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
 
-import { type NewSessionToken } from "../application/use-cases/activate-user-session.use-case.js";
-import { UserProfile } from "../domain/entities/profile.entity.js";
+import type { ActivateUserSessionUseCase } from "../application/use-cases/activate-user-session.use-case.js";
+import type { UserProfile } from "../domain/entities/profile.entity.js";
+
+export type NewSessionToken =
+  Parameters<ActivateUserSessionUseCase>[0]["sessionToken"];
 
 export const aFiscalCode: FiscalCode =
   FiscalCodeSchema.parse("ISPXNB32R82Y766D");
