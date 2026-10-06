@@ -1,11 +1,11 @@
 import { CosmosClient } from "@azure/cosmos";
 import {
-  FiscalCodeSchema,
   FiscalCodeBrand,
+  FiscalCodeSchema,
   NonEmptyStringSchema,
 } from "@pagopa/hexagonal-core";
 
-import { NewSessionToken } from "../../application/use-cases/activate-user-session.use-case.js";
+import type { NewSessionToken } from "../../__mocks__/session.mocks.js";
 import {
   ACTIVE_SESSION_CONTAINER_NAME,
   COSMOSDB_KEY,
@@ -13,6 +13,9 @@ import {
   COSMOSDB_URI,
   SESSION_TOKEN_CONTAINER_NAME,
 } from "../env.js";
+
+// FIXME: This is a temporary workaround to ensure that the branded types are included in the type system.
+const _brands = [FiscalCodeBrand];
 
 // The user session tokens are stored partitioned by their session tracking id,
 // while the active session metadata is partitioned by fiscal code.

@@ -47,12 +47,11 @@ import {
   aSessionWithPlainSSOTokens,
   aUserProfileWithEmail,
   aUserProfileWithoutEmail,
-} from "../../../__mocks__/session.mocks.js";
-import type { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
-import {
-  makeActivateUserSessionUseCase,
   type NewSessionToken,
-} from "../activate-user-session.use-case.js";
+} from "../../../__mocks__/session.mocks.js";
+import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
+import type { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
+import { makeActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 
 // -----------------------------------------------------
 // Setup mocks
@@ -84,6 +83,10 @@ const mockActivatePubKey = vi.fn();
 const lollipopPort = {
   activatePubKey: mockActivatePubKey,
 } as unknown as LollipopPort;
+const mockRequestRevocation = vi.fn();
+const lollipopRevocationPort = {
+  requestRevocation: mockRequestRevocation,
+} as unknown as LollipopRevocationPort;
 
 const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   sessionPort: SessionPortMock,
@@ -92,6 +95,7 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   authEventPort: AuthEventPortMock,
   lollipopActivationPort: lollipopActivationPortMock,
   lollipopPort,
+  lollipopRevocationPort,
 });
 
 const assertionRef = "a-lollipop-assertion-ref" as LollipopAssertionRef;
@@ -117,6 +121,7 @@ beforeEach(() => {
     .mockReset()
     .mockResolvedValue(ok(undefined));
   mockActivatePubKey.mockReset().mockResolvedValue(ok(assertionRef));
+  mockRequestRevocation.mockReset().mockResolvedValue(ok(undefined));
   lollipopActivationPortMock.revokeByFiscalCode.mockResolvedValue(
     ok(undefined),
   );
@@ -149,6 +154,12 @@ describe("makeActivateUserSessionUseCase", () => {
       expect(result).toMatchObject(ok(aClientSessionToken));
       expect(mockInvalidatePreviousSession).toHaveBeenCalledExactlyOnceWith(
         aFiscalCode,
+      );
+      expect(mockRequestRevocation).toHaveBeenCalledExactlyOnceWith(
+        assertionRef,
+      );
+      expect(mockRequestRevocation.mock.invocationCallOrder[0]).toBeLessThan(
+        mockInvalidatePreviousSession.mock.invocationCallOrder[0],
       );
       expect(mockGetProfile).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
       expect(mockProfileCreate).not.toHaveBeenCalled();
@@ -241,6 +252,26 @@ describe("makeActivateUserSessionUseCase", () => {
   });
 
   describe("error paths", () => {
+    it("continues login when requesting Lollipop revocation fails", async () => {
+      mockRequestRevocation.mockResolvedValueOnce(err(aGenericError));
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(mockRequestRevocation).toHaveBeenCalledExactlyOnceWith(
+        assertionRef,
+      );
+      expect(errorSpy).toHaveBeenCalledExactlyOnceWith(
+        `Failed to revoke lollipop: ${aGenericError.message}`,
+      );
+      expect(mockInvalidatePreviousSession).toHaveBeenCalledExactlyOnceWith(
+        aFiscalCode,
+      );
+      expect(mockSessionCreate).toHaveBeenCalledOnce();
+      errorSpy.mockRestore();
+    });
+
     it("returns err when invalidatePreviousSession fails", async () => {
       mockInvalidatePreviousSession.mockResolvedValueOnce(err(aGenericError));
 
