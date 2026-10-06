@@ -1,9 +1,9 @@
-import { FiscalCodeSchema, NonEmptyStringSchema } from "@pagopa/hexagonal-core";
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 import { LoginTypeSchema } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
 
-import { OidcConfigurationEnvSchema } from "./oidc.vo.js";
+import { OidcEnvironmentSchema } from "./oidc.vo.js";
 
 export const SpidAuthLevel = z.enum(["SpidL2", "SpidL3"]);
 
@@ -19,7 +19,7 @@ export const LoginAuxiliaryDataSchema = z.object({
   lollipopAssertionRef: LollipopAssertionRefSchema,
   clientId: NonEmptyStringSchema,
   minAuthLevel: SpidAuthLevel,
-  oidcConfigurationEnv: OidcConfigurationEnvSchema,
+  oidcConfigurationEnv: OidcEnvironmentSchema,
   nonce: NonEmptyStringSchema,
 });
 

@@ -4,7 +4,7 @@ import {
 } from "@pagopa/hexagonal-core";
 import { Result } from "neverthrow";
 
-import { OidcConfigurationEnv } from "../../value-objects/oidc.vo.js";
+import { OidcEnvironment } from "../../value-objects/oidc.vo.js";
 
 /**
  * Resolved OpenID Connect configuration for a single environment (PROD/UAT).
@@ -13,7 +13,7 @@ import { OidcConfigurationEnv } from "../../value-objects/oidc.vo.js";
  * this application (shared across environments), while `baseUrl` is the
  * OIDC provider's issuer for the given environment.
  */
-export type OidcEnvConfig = {
+export type OidcConfig = {
   clientId: NonEmptyString;
   clientSecret: NonEmptyString;
   baseUrl: URL;
@@ -22,6 +22,6 @@ export type OidcEnvConfig = {
 
 export interface OidcConfigPort {
   readonly getConfig: (
-    env: OidcConfigurationEnv,
-  ) => Result<OidcEnvConfig, ValidationError>;
+    env: OidcEnvironment,
+  ) => Result<OidcConfig, ValidationError>;
 }

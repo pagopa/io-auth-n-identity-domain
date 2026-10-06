@@ -4,8 +4,10 @@ import {
 } from "@pagopa/hexagonal-core";
 import { type Result } from "neverthrow";
 
-import { type OidcClaims } from "../../value-objects/oidc-claims.vo.js";
-import { type OidcConfigurationEnv } from "../../value-objects/oidc.vo.js";
+import {
+  OidcAuthTokens,
+  type OidcEnvironment,
+} from "../../value-objects/oidc.vo.js";
 
 /**
  * Parameters required to exchange an OIDC authorization code for tokens.
@@ -15,7 +17,7 @@ import { type OidcConfigurationEnv } from "../../value-objects/oidc.vo.js";
  * login flow (stored server-side keyed by `state`) to prevent replay/CSRF.
  */
 export type OidcExchangeParamsDTO = {
-  env: OidcConfigurationEnv;
+  env: OidcEnvironment;
   code: string;
   state: string;
   expectedNonce: string;
@@ -28,13 +30,13 @@ export type OidcExchangeParamsDTO = {
 export interface OidcClientPort {
   readonly exchange: (
     params: OidcExchangeParamsDTO,
-  ) => Promise<Result<OidcClaims, AuthenticationError | GenericError>>;
+  ) => Promise<Result<OidcAuthTokens, AuthenticationError | GenericError>>;
 
   /**
    * Returns the OIDC `authorization_endpoint` discovered from the provider
    * well-known metadata for the given environment.
    */
   readonly getAuthorizationEndpoint: (
-    env: OidcConfigurationEnv,
+    env: OidcEnvironment,
   ) => Promise<Result<URL, GenericError>>;
 }

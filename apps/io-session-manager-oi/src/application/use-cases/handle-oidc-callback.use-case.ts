@@ -9,6 +9,7 @@ import { IPString } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok } from "neverthrow";
 
 import { AuxiliaryDataPort } from "../../domain/ports/outbound/auxiliary-data.port.js";
+import { IdentityAssertionFetcherPort } from "../../domain/ports/outbound/identity-assertion-fetcher.port.js";
 import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
 import { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
 
@@ -39,6 +40,7 @@ export type HandleOidcCallbackInput = {
 export type HandleOidcCallbackDeps = {
   auxiliaryDataPort: AuxiliaryDataPort;
   oidcPort: OidcClientPort;
+  identityAssertionFetcherPort: IdentityAssertionFetcherPort;
   activateUserSessionUseCase: ActivateUserSessionUseCase;
 };
 
@@ -98,7 +100,7 @@ export const makeHandleOidcCallbackUseCase =
     if (exchangeResult.isErr()) {
       return err(exchangeResult.error);
     }
-    const claims = exchangeResult.value;
+    const claims = exchangeResult.value.claims;
 
     const newSessionToken: NewSessionToken = {
       fiscalCode: claims.fiscalNumber,
@@ -113,8 +115,26 @@ export const makeHandleOidcCallbackUseCase =
       identityProvider: claims.iss,
     };
 
-    const activateResult =
-      await deps.activateUserSessionUseCase(newSessionToken);
+    const assertionResult =
+      await deps.identityAssertionFetcherPort.getAssertion(
+        auxiliaryData.oidcConfigurationEnv,
+        exchangeResult.value.accessToken,
+      );
+    if (assertionResult.isErr()) {
+      return err(assertionResult.error);
+    }
+    const assertion = assertionResult.value;
+
+    // TODO: validate SAML Assertion
+
+    const activateResult = await deps.activateUserSessionUseCase({
+      sessionToken: newSessionToken,
+      assertion: {
+        assertionRef: auxiliaryData.lollipopAssertionRef, // TODO: pick the assertion reference from `assertion` once checks are implemented
+        rawAssertion: assertion.rawAssertion,
+        type: assertion.type,
+      },
+    });
     if (activateResult.isErr()) {
       return err(activateResult.error);
     }

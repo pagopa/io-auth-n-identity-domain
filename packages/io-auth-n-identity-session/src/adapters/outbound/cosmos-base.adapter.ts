@@ -51,6 +51,31 @@ export abstract class CosmosBaseAdapter {
     }
   }
 
+  protected async upsertItem(
+    container: Container,
+    document: JSONObject,
+    entityName: NonEmptyString,
+  ): Promise<Result<JSONObject & Resource, ConflictError | GenericError>> {
+    try {
+      const { resource: upsertedItem } = await container.items.upsert(document);
+
+      if (!upsertedItem) {
+        return err(
+          new GenericError(
+            `Error upserting ${entityName}: no resource returned`,
+          ),
+        );
+      }
+      return ok(upsertedItem);
+    } catch (error) {
+      return this.handleCosmosError(
+        error,
+        entityName,
+        "upsertItem" as NonEmptyString,
+      );
+    }
+  }
+
   protected async readItem(
     container: Container,
     id: NonEmptyString,

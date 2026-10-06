@@ -1,0 +1,2663 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "oneid-io-es-1-p-restapi",
+    "description": "OI description\n\nSome useful links:\n- [One Identity repository](https://github.com/pagopa/oneidentity)\n- [The source API definition for OI](https://io.oneid.pagopa.it/static/openapi/oas30.json)",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "https://io.oneid.pagopa.it"
+    },
+    {
+      "url": "https://uat.io.oneid.pagopa.it"
+    }
+  ],
+  "paths": {
+    "/saml/acs": {
+      "post": {
+        "operationId": "Post_saml_acs",
+        "parameters": [
+          {
+            "name": "Cookie",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/MODELa7a455"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "405": {
+            "description": "405 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "429": {
+            "description": "429 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "400": {
+            "description": "400 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "content-type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "302": {
+            "description": "302 response",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "500": {
+            "description": "500 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/.well-known/openid-configuration": {
+      "get": {
+        "operationId": "Get_OpenIDDiscovery",
+        "responses": {
+          "405": {
+            "description": "405 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenIDDiscovery"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "500": {
+            "description": "500 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "403": {
+            "description": "403 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      },
+      "options": {
+        "operationId": "Options_getOpenIDDiscovery",
+        "parameters": [
+          {
+            "name": "Access-Control-Request-Method",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Access-Control-Request-Headers",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "400 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "204": {
+            "description": "204 response",
+            "headers": {
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/login": {
+      "get": {
+        "parameters": [
+          {
+            "name": "response_type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nonce",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "redirect_uri",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "404 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "location": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "content-type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/saml/{id_type}/metadata": {
+      "get": {
+        "operationId": "Get_saml_metadata",
+        "parameters": [
+          {
+            "name": "id_type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "404 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "405": {
+            "description": "405 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "location": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "content-type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "429": {
+            "description": "429 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "500": {
+            "description": "500 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/clients/{client_id}": {
+      "get": {
+        "operationId": "Get_ClientFromClientId",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "404 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientFE"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "operationId": "Options_client",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/monitor/{type}/status": {
+      "get": {
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entityKey",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MODEL67f400"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "content-type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "401": {
+            "description": "401 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "500": {
+            "description": "500 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "403": {
+            "description": "403 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "405": {
+            "description": "405 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "429": {
+            "description": "429 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/login/error": {
+      "get": {
+        "parameters": [
+          {
+            "name": "errorCode",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "404 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "location": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "content-type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/idps": {
+      "get": {
+        "operationId": "Get_findAllIdps",
+        "responses": {
+          "404": {
+            "description": "404 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      },
+      "options": {
+        "operationId": "Options_idps",
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/saml/assertion": {
+      "get": {
+        "operationId": "Get_saml_assertion",
+        "parameters": [
+          {
+            "name": "access_token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "location": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "content-type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "content-type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "401": {
+            "description": "401 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "500": {
+            "description": "500 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "403": {
+            "description": "403 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "404": {
+            "description": "404 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "405": {
+            "description": "405 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "429": {
+            "description": "429 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "responses": {
+          "302": {
+            "description": "302 response",
+            "headers": {
+              "location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/oidc/keys": {
+      "get": {
+        "operationId": "Get_jwk_set_",
+        "responses": {
+          "405": {
+            "description": "405 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MODELce30a1"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "429 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "500": {
+            "description": "500 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "403": {
+            "description": "403 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      },
+      "options": {
+        "operationId": "Options_jwk_set_",
+        "parameters": [
+          {
+            "name": "Access-Control-Request-Method",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Access-Control-Request-Headers",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "400 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "204": {
+            "description": "204 response",
+            "headers": {
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "operationId": "Get_request_health_check",
+        "responses": {
+          "503": {
+            "description": "503 response",
+            "content": {}
+          },
+          "500": {
+            "description": "500 response",
+            "content": {}
+          },
+          "200": {
+            "description": "200 response",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/oidc/authorize": {
+      "get": {
+        "operationId": "Get_request_authorization",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nonce",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "response_type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-pagopa-lollipop-assertion-ref",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "idp",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "acr_values",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Forwarded-For",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "redirect_uri",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "location": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "content-type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "400": {
+            "description": "400 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "content-type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "302": {
+            "description": "302 response",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "401": {
+            "description": "401 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "500": {
+            "description": "500 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "403": {
+            "description": "403 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "405": {
+            "description": "405 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "429": {
+            "description": "429 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      },
+      "post": {
+        "operationId": "Post_request_authorization",
+        "parameters": [
+          {
+            "name": "x-pagopa-lollipop-assertion-ref",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Forwarded-For",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/MODEL068bf8"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "location": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "content-type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "400": {
+            "description": "400 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "content-type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "302": {
+            "description": "302 response",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "401": {
+            "description": "401 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "500": {
+            "description": "500 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "403": {
+            "description": "403 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "405": {
+            "description": "405 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "429": {
+            "description": "429 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/oidc/userinfo": {
+      "get": {
+        "operationId": "Get_userinfo",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/jwt": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdToken"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "401": {
+            "description": "401 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "500": {
+            "description": "500 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "403": {
+            "description": "403 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "405": {
+            "description": "405 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "429": {
+            "description": "429 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      },
+      "post": {
+        "operationId": "Post_userinfo",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/jwt": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdToken"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "401": {
+            "description": "401 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "500": {
+            "description": "500 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "403": {
+            "description": "403 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "405": {
+            "description": "405 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "429": {
+            "description": "429 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      },
+      "options": {
+        "operationId": "Options_userinfo",
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/clients": {
+      "get": {
+        "operationId": "Get_AllClients",
+        "responses": {
+          "404": {
+            "description": "404 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArrayOfClientFE"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "operationId": "Options_clients",
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/oidc/token": {
+      "post": {
+        "operationId": "Create_request_token",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/MODEL7dd823"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenData"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "401": {
+            "description": "401 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "500": {
+            "description": "500 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "204": {
+            "description": "204 response",
+            "headers": {
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "403": {
+            "description": "403 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "405": {
+            "description": "405 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "406": {
+            "description": "406 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "429": {
+            "description": "429 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/static/{proxy+}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "proxy",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "404 response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Pragma": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          },
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "IdToken": {
+        "required": ["aud", "exp", "iat", "iss", "sub"],
+        "type": "object",
+        "properties": {
+          "iss": {
+            "type": "string",
+            "description": "Issuer identifier"
+          },
+          "sub": {
+            "type": "string",
+            "description": "Subject identifier"
+          },
+          "aud": {
+            "type": "string",
+            "description": "Audience for which the token is intended, the client ID."
+          },
+          "exp": {
+            "type": "integer",
+            "description": "Expiration time (Unix timestamp).",
+            "format": "int64"
+          },
+          "nonce": {
+            "type": "string",
+            "description": "A string value used to associate a Client session with an ID Token, and to mitigate replay attacks."
+          },
+          "sameIdp": {
+            "type": "boolean",
+            "description": "Indicates whether the user authenticated with the same Identity Provider as the previous session. This is useful for Single Sign-On (SSO) scenarios."
+          },
+          "pairwise": {
+            "type": "string",
+            "description": "PDV namespaced token. This claim is present only if the client has registered for pairwise subject identifiers."
+          },
+          "iat": {
+            "type": "integer",
+            "description": "Time the token was issued (Unix timestamp).",
+            "format": "int64"
+          },
+          "spidCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "familyName": {
+            "type": "string"
+          },
+          "placeOfBirth": {
+            "type": "string"
+          },
+          "countyOfBirth": {
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "registeredOffice": {
+            "type": "string"
+          },
+          "fiscalNumber": {
+            "type": "string"
+          },
+          "ivaCode": {
+            "type": "string"
+          },
+          "idCard": {
+            "type": "string"
+          },
+          "mobilePhone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "address": {
+            "type": "string"
+          },
+          "expirationDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "digitalAddress": {
+            "type": "string"
+          },
+          "domicileAddress": {
+            "type": "string"
+          },
+          "domicilePlace": {
+            "type": "string"
+          },
+          "domicilePostalCode": {
+            "type": "string"
+          },
+          "domicileProvince": {
+            "type": "string"
+          },
+          "domicileCountry": {
+            "type": "string"
+          },
+          "qualification": {
+            "type": "string"
+          },
+          "commonName": {
+            "type": "string"
+          },
+          "surname": {
+            "type": "string"
+          },
+          "givenName": {
+            "type": "string"
+          },
+          "preferredUsername": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "userCertificate": {
+            "type": "string"
+          },
+          "employeeNumber": {
+            "type": "string"
+          },
+          "orgUnitName": {
+            "type": "string"
+          },
+          "preferredLanguage": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "stateOrProvince": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postalCode": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          }
+        }
+      },
+      "ArrayOfClientFE": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ClientFE"
+        }
+      },
+      "MODEL068bf8": {
+        "required": [
+          "client_id",
+          "idp",
+          "nonce",
+          "redirect_uri",
+          "response_type",
+          "scope",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "idp": {
+            "type": "string",
+            "description": "This is the requested 'idp' to initiate the authentication flow"
+          },
+          "client_id": {
+            "type": "string",
+            "description": "This is the 'client_id' of the requesting client. Maximum 255 characters."
+          },
+          "response_type": {
+            "type": "string",
+            "description": "MUST be one of the listed available values. Any response_type other than 'code' or 'token' is only supported in conjunction with scope=openid. As per the OAuth specification: 'code' is used for authorization code grant type flow, 'token' is used for implicit grant type flow, 'token id_token' is an extension provided by OpenID Connect, and 'code id_token', 'id_token', and 'none' are extensions provided by OpenID Connect Multiple Response Types",
+            "enum": [
+              "code",
+              "token",
+              "token id_token",
+              "code id_token",
+              "id_token",
+              "code token",
+              "code id_token token",
+              "none"
+            ]
+          },
+          "redirect_uri": {
+            "type": "string",
+            "description": "The 'redirect_uri' that was registered for this client. It is required if multiple redirect_uri's have been registered for this client. If the scope contains openid, this field becomes MANDATORY."
+          },
+          "scope": {
+            "type": "string",
+            "description": "Only SCOPE values that were registered for this client will be granted. If only non-matching SCOPE values are requested, the request will fail."
+          },
+          "state": {
+            "type": "string",
+            "description": "Value opaque to the server, used by the client to track its session. It will be returned as received."
+          },
+          "nonce": {
+            "type": "string",
+            "description": "This is required for response_type 'token id_token'.  Typically, in an OpenID authorization scheme, the nonce represents a cryptographically strong random  string that is used to prevent intercepted responses from being reused."
+          },
+          "acr_values": {
+            "type": "string",
+            "description": "Optional dynamic authentication context class reference. When provided, overrides the client default and sets comparison=exact. Allowed values: https://www.spid.gov.it/SpidL2, https://www.spid.gov.it/SpidL3.",
+            "enum": [
+              "https://www.spid.gov.it/SpidL2",
+              "https://www.spid.gov.it/SpidL3"
+            ]
+          }
+        }
+      },
+      "ClientFE": {
+        "type": "object",
+        "properties": {
+          "clientID": {
+            "type": "string"
+          },
+          "friendlyName": {
+            "type": "string"
+          },
+          "logoUri": {
+            "type": "string",
+            "description": "The RP logo URI",
+            "format": "uri"
+          },
+          "policyUri": {
+            "type": "string",
+            "description": "The privacy policy URI",
+            "format": "uri"
+          },
+          "tosUri": {
+            "type": "string",
+            "description": "The terms of service URI",
+            "format": "uri"
+          }
+        }
+      },
+      "MODELa7a455": {
+        "required": ["RelayState", "SAMLResponse"],
+        "type": "object",
+        "properties": {
+          "SAMLResponse": {
+            "type": "string",
+            "description": "This is the 'SAMLResponse' of the requesting AUTHnreq."
+          },
+          "RelayState": {
+            "type": "string",
+            "description": "This is the 'RelayState' which identify the service requested. https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/trasmissione.html"
+          }
+        }
+      },
+      "MODELce30a1": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "description": "JWK set in JSON array format",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "TokenData": {
+        "title": "TokenData",
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "description": "The Access Token for the given token request"
+          },
+          "token_type": {
+            "type": "string",
+            "description": "The Token Type issued"
+          },
+          "expires_in": {
+            "type": "string",
+            "description": "The expiry time, in seconds"
+          },
+          "refresh_token": {
+            "type": "string",
+            "description": "The refresh token, if applicable"
+          },
+          "scope": {
+            "type": "string",
+            "description": "The issued scope"
+          },
+          "id_token": {
+            "type": "string",
+            "description": "If the requested scope included 'msso' or 'openid', the response includes an ID token. The ID token is a JSON Web Token (JWT) that contains claims about the authenticated user. Below are the standard and optional claims typically included."
+          },
+          "id_token_type": {
+            "type": "string",
+            "description": "If the requested SCOPE included 'msso' or 'openid', response includes an id_token_type"
+          }
+        }
+      },
+      "OpenIDDiscovery": {
+        "required": [
+          "authorization_endpoint",
+          "id_token_signing_alg_values_supported",
+          "issuer",
+          "jwks_uri",
+          "response_types_supported",
+          "subject_types_supported",
+          "token_endpoint"
+        ],
+        "type": "object",
+        "properties": {
+          "userinfo_endpoint": {
+            "type": "string",
+            "description": "URL of the user info endpoint"
+          },
+          "jwks_uri": {
+            "type": "string",
+            "description": "URL of JSON Web Key Set document"
+          },
+          "scopes_supported": {
+            "type": "array",
+            "description": "list of the OAuth 2.0 scope values that this server supports",
+            "items": {
+              "type": "string"
+            }
+          },
+          "subject_types_supported": {
+            "type": "array",
+            "description": "list of the Subject Identifier types that this OP supports",
+            "items": {
+              "type": "string"
+            }
+          },
+          "token_endpoint": {
+            "type": "string",
+            "description": "URL of the OAuth 2.0 token endpoint"
+          },
+          "id_token_signing_alg_values_supported": {
+            "type": "array",
+            "description": "list of the JWS signing algorithms (alg values) supported by the OP for the ID Token to encode the Claims in a JWT",
+            "items": {
+              "type": "string"
+            }
+          },
+          "response_types_supported": {
+            "type": "array",
+            "description": "ist of the OAuth 2.0 response_type values that this OP supports",
+            "items": {
+              "type": "string"
+            }
+          },
+          "claims_supported": {
+            "type": "array",
+            "description": "list of the Claim Names of the Claims that the OpenID Provider MAY be able to supply values for",
+            "items": {
+              "type": "string"
+            }
+          },
+          "authorization_endpoint": {
+            "type": "string",
+            "description": "URL of the OAuth 2.0 authorization endpoint"
+          },
+          "issuer": {
+            "type": "string",
+            "description": "the identifier of the token's issuer. This is identical to the 'iss' Claim value in ID Tokens"
+          },
+          "grant_types_supported": {
+            "type": "array",
+            "description": "list of the OAuth 2.0 Grant Type values that this OP supports",
+            "items": {
+              "type": "string"
+            }
+          },
+          "acr_values_supported": {
+            "type": "array",
+            "description": "list of the Authentication Context Class References that this OP supports",
+            "items": {
+              "type": "string"
+            }
+          },
+          "token_endpoint_auth_methods_supported": {
+            "type": "array",
+            "description": "list of Client Authentication methods supported by this Token Endpoint",
+            "items": {
+              "type": "string"
+            }
+          },
+          "token_endpoint_auth_signing_alg_values_supported": {
+            "type": "array",
+            "description": "list of the JWS signing algorithms (alg values) supported by the Token Endpoint for the signature on the JWT used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt authentication methods. Servers SHOULD support RS256. The value none MUST NOT be used.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "display_values_supported": {
+            "type": "array",
+            "description": "list of the display parameter values that the OpenID Provider supports",
+            "items": {
+              "type": "string"
+            }
+          },
+          "claim_types_supported": {
+            "type": "array",
+            "description": "list of the Claim Types that the OpenID Provider supports",
+            "items": {
+              "type": "string"
+            }
+          },
+          "service_documentation": {
+            "type": "string",
+            "description": "URL of a page containing human-readable information that developers might want or need to know when using the OpenID Provider"
+          },
+          "ui_locales_supported": {
+            "type": "array",
+            "description": "Languages and scripts supported for the user interface",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "description": "The OpenID configuration document as defined by the specification: http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata"
+      },
+      "MODEL7dd823": {
+        "required": ["code", "grant_type", "redirect_uri"],
+        "type": "object",
+        "properties": {
+          "redirect_uri": {
+            "type": "string",
+            "description": "Required if grant_type is authorization_code. Must contain a valid auth code"
+          },
+          "code": {
+            "type": "string",
+            "description": "Required if grant_type is authorization_code"
+          },
+          "grant_type": {
+            "type": "string",
+            "description": "For grant_type=authorization_code: client_id, client_secret, code, and redirect_uri are required.",
+            "enum": ["authorization_code"],
+            "default": "authorization_code"
+          }
+        }
+      },
+      "MODEL67f400": {
+        "type": "object",
+        "properties": {
+          "entityId": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "start": {
+                  "type": "string",
+                  "description": "The start timestamp for the status period."
+                },
+                "end": {
+                  "type": "string",
+                  "description": "The end timestamp for the status period."
+                },
+                "status": {
+                  "type": "string",
+                  "description": "The status value for the specified period.",
+                  "enum": ["OK", "KO"]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-amazon-apigateway-security-policy": "TLS_1_0"
+}
