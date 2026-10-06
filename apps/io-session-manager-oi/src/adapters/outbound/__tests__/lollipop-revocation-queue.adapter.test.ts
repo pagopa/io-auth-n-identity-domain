@@ -23,14 +23,16 @@ beforeEach(() => {
 });
 
 describe("LollipopRevocationQueueAdapter#requestRevocation", () => {
-  it("sends the Base64-encoded assertion reference and returns ok", async () => {
+  it("sends the Base64-encoded revocation payload and returns ok", async () => {
     queueClient.sendMessage.mockResolvedValueOnce({ errorCode: undefined });
 
     const result = await adapter.requestRevocation(assertionRef);
 
     expect(result.isOk()).toBe(true);
     expect(queueClient.sendMessage).toHaveBeenCalledExactlyOnceWith(
-      Buffer.from(assertionRef).toString("base64"),
+      Buffer.from(JSON.stringify({ assertion_ref: assertionRef })).toString(
+        "base64",
+      ),
     );
   });
 

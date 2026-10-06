@@ -33,7 +33,7 @@ export class LollipopRevocationQueueAdapter
   ): Promise<Result<void, GenericError>> {
     try {
       const response = await this.queueClient.sendMessage(
-        Base64.encode(assertionRef),
+        Base64.encode({ assertion_ref: assertionRef }), // TODO: Consider to validate/parse the structure of the message before sending
       );
       if (response.errorCode) {
         return err(
