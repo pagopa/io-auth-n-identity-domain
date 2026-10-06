@@ -2,8 +2,6 @@ locals {
   app_name    = "sm"
   listen_port = 8080
 
-  zendesk_support_token_secret_name = "session-manager-JWT-ZENDESK-SUPPORT-TOKEN-SECRET"
-
   app_settings = {
     NODE_ENV = "production"
 

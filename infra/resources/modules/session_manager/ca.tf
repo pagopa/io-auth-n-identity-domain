@@ -33,12 +33,8 @@ module "sm_ca" {
       key_vault_secret_id = azurerm_key_vault_secret.sm_io_profile_api_key.versionless_id
     },
     {
-      name = "JWT_ZENDESK_SUPPORT_TOKEN_SECRET"
-      key_vault_secret_id = format(
-        "%s/secrets/%s",
-        trimsuffix(data.azurerm_key_vault.auth.vault_uri, "/"),
-        local.zendesk_support_token_secret_name,
-      )
+      name                = "JWT_ZENDESK_SUPPORT_TOKEN_SECRET"
+      key_vault_secret_id = azurerm_key_vault_secret.sm_zendesk_support_token_secret.versionless_id
     },
   ]
 

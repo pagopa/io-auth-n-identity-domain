@@ -38,3 +38,12 @@ resource "azurerm_key_vault_secret" "sm_oneid_uat_client_secret" {
   tags = var.tags
 }
 
+resource "azurerm_key_vault_secret" "sm_zendesk_support_token_secret" {
+  name         = "sm-zendesk-support-token-secret"
+  key_vault_id = var.key_vault.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = var.tags
+}
