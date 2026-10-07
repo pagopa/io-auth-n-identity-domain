@@ -2,6 +2,7 @@ import {
   ConflictError,
   ForbiddenError,
   GenericError,
+  NonEmptyString,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
@@ -26,13 +27,13 @@ import type {
 import { LcParamsDto } from "./dtos/io-lollipop.dto.js";
 
 export const createIoLollipopAdapter = (config: {
-  baseUrl: string;
-  apiKey: string;
+  baseUrl: URL;
+  apiKey: NonEmptyString;
 }): LollipopPort => {
   const client = createClient({
-    baseUrl: config.baseUrl,
+    baseUrl: config.baseUrl.href,
     headers: {
-      "X-Functions-Key": config.apiKey,
+      "X-Functions-Key": config.apiKey, // TODO: try to use auth property instead of explicit header if possible
     },
   });
 

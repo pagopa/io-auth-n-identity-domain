@@ -2,6 +2,7 @@ import {
   ConflictError,
   FiscalCode,
   GenericError,
+  NonEmptyString,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import { err, ok, type Result } from "neverthrow";
@@ -34,13 +35,13 @@ const RestrictedUserProfileSchema = zGetProfileResponse.pick({
 });
 
 export const createIoProfileAdapter = (config: {
-  baseUrl: string;
-  apiKey: string;
+  baseUrl: URL;
+  apiKey: NonEmptyString;
 }): ProfilePort => {
   const client = createClient({
-    baseUrl: config.baseUrl,
+    baseUrl: config.baseUrl.href,
     headers: {
-      "X-Functions-Key": config.apiKey,
+      "X-Functions-Key": config.apiKey, // TODO: try to use auth property instead of explicit header if possible
     },
   });
 
