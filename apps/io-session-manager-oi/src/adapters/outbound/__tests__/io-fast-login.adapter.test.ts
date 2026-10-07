@@ -8,7 +8,10 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createIoFastLoginAdapter } from "../io-fast-login.adapter.js";
-import { fastLogin } from "../../../generated/io-fast-login/sdk.gen.js";
+import {
+  fastLogin,
+  generateNonce,
+} from "../../../generated/io-fast-login/sdk.gen.js";
 import {
   FastLoginParams,
   FastLoginParamsSchema,
@@ -22,6 +25,7 @@ vi.mock("../../../generated/io-fast-login/client/client.gen.js", () => ({
 
 vi.mock("../../../generated/io-fast-login/sdk.gen.js", () => ({
   fastLogin: vi.fn(),
+  generateNonce: vi.fn(),
 }));
 
 const aPublicJwk = {
@@ -60,6 +64,43 @@ const adapter = createIoFastLoginAdapter({
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+describe("createIoFastLoginAdapter#generateNonce", () => {
+  it("returns the nonce on success", async () => {
+    const nonce = "870c6d89-a3c4-48b1-a796-cdacddaf94b4";
+    vi.mocked(generateNonce).mockResolvedValue({
+      data: { nonce },
+      response: { status: 200 } as Response,
+    } as never);
+
+    const result = await adapter.generateNonce();
+
+    expect(result._unsafeUnwrap()).toBe(nonce);
+    expect(generateNonce).toHaveBeenCalledWith({ client: expect.anything() });
+  });
+
+  it.each([401, 500, 502, 504])("returns an error on %i", async (status) => {
+    vi.mocked(generateNonce).mockResolvedValue({
+      data: undefined,
+      response: { status } as Response,
+    } as never);
+
+    const result = await adapter.generateNonce();
+
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+  });
+
+  it("rejects an empty success response", async () => {
+    vi.mocked(generateNonce).mockResolvedValue({
+      data: { nonce: "" },
+      response: { status: 200 } as Response,
+    } as never);
+
+    const result = await adapter.generateNonce();
+
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+  });
 });
 
 describe("createIoFastLoginAdapter#fastLogin", () => {
