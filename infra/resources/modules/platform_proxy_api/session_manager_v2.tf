@@ -175,7 +175,7 @@ resource "azurerm_api_management_api" "zendesk_api_session_manager_v2" {
 
   import {
     content_format = "openapi-link"
-    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/<TODO>/apps/io-session-manager-oi/api/sso/zendesk.yaml"
+    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/287b675025994f74e44b74ed40a93d71989bd1b9/apps/io-session-manager-oi/api/sso/zendesk.yaml"
   }
 }
 
