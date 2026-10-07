@@ -1,0 +1,11 @@
+meta {
+  name: GenerateNonce
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/fast-login/nonce/generate
+  body: none
+  auth: none
+}
