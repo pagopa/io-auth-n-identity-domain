@@ -12,6 +12,7 @@ catalog:
   '@azure/service-bus': ^7.9.5
   '@azure/storage-blob': ^12.29.1
   '@azure/storage-queue': ^12.22.0
+  '@fastify/formbody': ^8.0.2
   '@hey-api/openapi-ts': ^0.99.0
   '@mattrglobal/http-signatures': ^4.1.0
   '@pagopa/azure-storage-migration-kit': ^0.0.2

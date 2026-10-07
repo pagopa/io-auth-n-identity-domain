@@ -7,36 +7,62 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import type { ComponentTypeOf } from "@asteasolutions/zod-to-openapi/dist/openapi-registry.js";
 import {
   type AnyRouteContract,
   buildOpenApiDocument,
   writeOpenApiYaml,
 } from "@pagopa/hexagonal-openapi";
 
-import { ssoFimsLollipopUserRoute } from "../src/adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
 import {
   BASE_PATH,
   SSO_BPD_BASE_PATH,
   SSO_FIMS_BASE_PATH,
   SSO_PAGOPA_BASE_PATH,
+  SSO_ZENDESK_BASE_PATH,
 } from "../src/adapters/inbound/base-path.js";
 import { callbackContract } from "../src/adapters/inbound/fastify/callback.handler.js";
 import { getSessionContract } from "../src/adapters/inbound/fastify/get-session.handler.js";
 import { reserveRoute } from "../src/adapters/inbound/fastify/reserve.handler.js";
 import { ssoBpdUserRoute } from "../src/adapters/inbound/fastify/sso-bpd-user.handler.js";
+import { ssoFimsLollipopUserRoute } from "../src/adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
 import { ssoFimsUserRoute } from "../src/adapters/inbound/fastify/sso-fims-user.handler.js";
 import { ssoPagopaUserRoute } from "../src/adapters/inbound/fastify/sso-pagopa-user.handler.js";
+import { ssoZendeskTokenRoute } from "../src/adapters/inbound/fastify/sso-zendesk-token.handler.js";
 
 const check = process.argv.includes("--check");
+
+type ContentType = "application/json" | "application/x-www-form-urlencoded";
+const DEFAULT_CONTENT_TYPE: ContentType = "application/json";
+
+interface Route {
+  readonly contract: AnyRouteContract;
+  readonly requestBodyContentType?: ContentType;
+}
+
+type SecuritySchema = "bearerAuth";
+const SECURITY_SCHEMES: Record<
+  SecuritySchema,
+  ComponentTypeOf<"securitySchemes">
+> = {
+  bearerAuth: {
+    type: "http",
+    scheme: "bearer",
+    bearerFormat: "opaque",
+    description:
+      "Enter the opaque token provided by the authentication authority",
+  },
+};
 
 interface DocumentSpec {
   readonly basePath: string;
   readonly description: string;
   readonly outputRelPath: string;
-  readonly routes: ReadonlyArray<AnyRouteContract>;
+  readonly routes: ReadonlyArray<Route>;
   readonly tags: ReadonlyArray<{ name: string; description: string }>;
   readonly title: string;
   readonly version: string;
+  readonly securitySchemes?: ReadonlyArray<SecuritySchema>;
 }
 
 const stripBasePath =
@@ -71,18 +97,52 @@ const generate = async (spec: DocumentSpec): Promise<boolean> => {
         tags: [...spec.tags],
       },
       registerComponents: (registry) => {
-        registry.registerComponent("securitySchemes", "bearerAuth", {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "opaque",
-          description:
-            "Enter the opaque token provided by the authentication authority",
-        });
+        for (const schema of spec.securitySchemes ?? []) {
+          registry.registerComponent(
+            "securitySchemes",
+            schema,
+            SECURITY_SCHEMES[schema],
+          );
+        }
       },
-      routes: spec.routes.map(stripBasePath(spec.basePath)),
+      routes: spec.routes.map(({ contract }) =>
+        stripBasePath(spec.basePath)(contract),
+      ),
     }),
     webhooks: undefined, // Route contracts declare no webhooks; keep the key absent so APIM import doesn't reject an empty object.
   };
+
+  const documentWithRequestBodies = document as unknown as {
+    paths?: Record<
+      string,
+      Record<string, { requestBody?: { content?: Record<string, unknown> } }>
+    >;
+  };
+
+  for (const route of spec.routes) {
+    const requestBodyContentType: ContentType =
+      route.requestBodyContentType ?? DEFAULT_CONTENT_TYPE;
+    if (requestBodyContentType === DEFAULT_CONTENT_TYPE) {
+      continue;
+    }
+
+    const routePath = stripBasePath(spec.basePath)(route.contract).path;
+    const operation =
+      documentWithRequestBodies.paths?.[routePath]?.[
+        route.contract.method.toLowerCase()
+      ];
+    const content = operation?.requestBody?.content;
+    const requestSchema = content?.[DEFAULT_CONTENT_TYPE];
+
+    if (!content || requestSchema === undefined) {
+      throw new Error(
+        `Route "${routePath}" (${route.contract.method}) has no generated ${DEFAULT_CONTENT_TYPE} request body to convert.`,
+      );
+    }
+
+    delete content[DEFAULT_CONTENT_TYPE];
+    content[requestBodyContentType] = requestSchema;
+  }
 
   if (!check) {
     mkdirSync(dirname(outputPath), { recursive: true });
@@ -112,7 +172,12 @@ const specs: ReadonlyArray<DocumentSpec> = [
     description:
       "OpenID Connect (OneIdentity) login endpoints exposed by io-session-manager-oi.",
     outputRelPath: "api/external.yaml",
-    routes: [callbackContract, reserveRoute, getSessionContract],
+    routes: [
+      { contract: callbackContract },
+      { contract: reserveRoute },
+      { contract: getSessionContract },
+    ],
+    securitySchemes: ["bearerAuth"],
     tags: [
       {
         name: "oidc",
@@ -128,13 +193,14 @@ const specs: ReadonlyArray<DocumentSpec> = [
     description:
       "BPD SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.",
     outputRelPath: "api/sso/bpd.yaml",
-    routes: [ssoBpdUserRoute],
+    routes: [{ contract: ssoBpdUserRoute }],
     tags: [
       {
         name: "sso",
         description: "BPD Single Sign-On endpoints.",
       },
     ],
+    securitySchemes: ["bearerAuth"],
     title: "Bonus Pagamenti Digitali API for user authentication.",
     version: "0.23.1",
   },
@@ -143,7 +209,11 @@ const specs: ReadonlyArray<DocumentSpec> = [
     description:
       "FIMS SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.",
     outputRelPath: "api/sso/fims.yaml",
-    routes: [ssoFimsUserRoute, ssoFimsLollipopUserRoute],
+    routes: [
+      { contract: ssoFimsUserRoute },
+      { contract: ssoFimsLollipopUserRoute },
+    ],
+    securitySchemes: ["bearerAuth"],
     tags: [
       {
         name: "sso",
@@ -158,7 +228,8 @@ const specs: ReadonlyArray<DocumentSpec> = [
     description:
       "PagoPA SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.",
     outputRelPath: "api/sso/pagopa.yaml",
-    routes: [ssoPagopaUserRoute],
+    routes: [{ contract: ssoPagopaUserRoute }],
+    securitySchemes: ["bearerAuth"],
     tags: [
       {
         name: "sso",
@@ -166,6 +237,26 @@ const specs: ReadonlyArray<DocumentSpec> = [
       },
     ],
     title: "PagoPA API for user authentication.",
+    version: "0.23.1",
+  },
+  {
+    basePath: SSO_ZENDESK_BASE_PATH,
+    description:
+      "Zendesk SSO endpoints exposed by io-session-manager-oi. Access is restricted to the configured source IP allowlist.",
+    outputRelPath: "api/sso/zendesk.yaml",
+    routes: [
+      {
+        contract: ssoZendeskTokenRoute,
+        requestBodyContentType: "application/x-www-form-urlencoded",
+      },
+    ],
+    tags: [
+      {
+        name: "sso",
+        description: "Zendesk Single Sign-On endpoints.",
+      },
+    ],
+    title: "Zendesk API for user authentication.",
     version: "0.23.1",
   },
 ];
