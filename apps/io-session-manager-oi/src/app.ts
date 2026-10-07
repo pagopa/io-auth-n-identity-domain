@@ -20,6 +20,7 @@ import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
 import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
+import { mountGenerateNonceHandler } from "./adapters/inbound/fastify/generate-nonce.handler.js";
 import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
@@ -34,6 +35,7 @@ import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.ad
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
+import { createIoFastLoginAdapter } from "./adapters/outbound/io-fast-login.adapter.js";
 import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
@@ -42,6 +44,7 @@ import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.j
 import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
 import { TechnicalLockedProfilesDataTableAdapter } from "./adapters/outbound/technical-locked-profiles-data-table.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
+import { makeGenerateNonceUseCase } from "./application/use-cases/generate-nonce.use-case.js";
 import { makeGetLollipopUserForFimsUseCase } from "./application/use-cases/get-lollipop-user-for-fims.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
 import { makeGetTokenForZendeskUseCase } from "./application/use-cases/get-token-for-zendesk.use-case.js";
@@ -204,6 +207,13 @@ export const createApp = async (
     apiKey: config.LOLLIPOP_API_KEY,
   });
 
+  const fastLoginAdapter = createIoFastLoginAdapter({
+    // We don't need the base path for the Fast Login API 
+    // since it is already included in the paths of the OpenAPI specification.
+    baseUrl: `${config.IO_FAST_LOGIN_API_URL}`,
+    apiKey: config.IO_FAST_LOGIN_API_KEY,
+  });
+
   const profileAdapter = createIoProfileAdapter({
     baseUrl: `${config.IO_PROFILE_API_URL}${config.IO_PROFILE_API_BASE_PATH}`,
     apiKey: config.IO_PROFILE_API_KEY,
@@ -345,6 +355,8 @@ export const createApp = async (
   );
 
   mountReserveHandler(server, reserveUseCase);
+
+  mountGenerateNonceHandler(server, makeGenerateNonceUseCase(fastLoginAdapter));
 
   mountCallbackHandler(server, {
     handleOidcCallbackUseCase,

@@ -1,9 +1,16 @@
-import { AuthenticationError, GenericError } from "@pagopa/hexagonal-core";
+import {
+  AuthenticationError,
+  GenericError,
+  NonEmptyStringSchema,
+} from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 
 import { FastLoginPort } from "../../domain/ports/outbound/fast-login.port.js";
 import { createClient } from "../../generated/io-fast-login/client/client.gen.js";
-import { fastLogin } from "../../generated/io-fast-login/sdk.gen.js";
+import {
+  fastLogin,
+  generateNonce,
+} from "../../generated/io-fast-login/sdk.gen.js";
 import {
   FastLoginErrors,
   FastLoginResponses,
@@ -23,6 +30,15 @@ export const createIoFastLoginAdapter = (config: {
   });
 
   return {
+    generateNonce: async () => {
+      const { response, data } = await generateNonce({ client });
+      const nonce = NonEmptyStringSchema.safeParse(data?.nonce);
+      if (response?.status === 200 && nonce.success) {
+        return ok(nonce.data);
+      }
+      return err(new GenericError("Error while calling generateNonce"));
+    },
+
     fastLogin: async (payload) => {
       const { response, data } = await fastLogin({
         client,
