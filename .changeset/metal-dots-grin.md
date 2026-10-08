@@ -2,4 +2,4 @@
 "io-session-manager-oi": patch
 ---
 
-fix lollipop fetcher client URL
+fix API client base URL construction

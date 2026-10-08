@@ -1,17 +1,18 @@
 import {
   FiscalCodeSchema,
   GenericError,
+  NonEmptyStringSchema,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { type LollipopActivationDto } from "../dtos/sm-internal-rollout.dto.js";
-import { createSmInternalRolloutAdapter } from "../sm-internal-rollout.adapter.js";
 import {
   getUserLollipopActivation,
   softDeleteUserSession,
 } from "../../../generated/io-session-manager-internal/sdk.gen.js";
+import { type LollipopActivationDto } from "../dtos/sm-internal-rollout.dto.js";
+import { createSmInternalRolloutAdapter } from "../sm-internal-rollout.adapter.js";
 
 vi.mock(
   "../../../generated/io-session-manager-internal/client/index.js",
@@ -38,8 +39,8 @@ const aLollipopActivation: LollipopActivationDto = {
 };
 
 const adapter = createSmInternalRolloutAdapter({
-  baseUrl: "https://api.example.com",
-  apiKey: "test-api-key",
+  baseUrl: new URL("https://api.example.com"),
+  apiKey: NonEmptyStringSchema.parse("test-api-key"),
 });
 
 beforeEach(() => {
