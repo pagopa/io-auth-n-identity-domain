@@ -1,5 +1,15 @@
 # io-session-manager-oi
 
+## 0.29.0
+
+### Minor Changes
+
+- 287b675: Zendesk SSO Token endpoint
+
+### Patch Changes
+
+- 2de3d5e: fix API client base URL construction
+
 ## 0.28.0
 
 ### Minor Changes
