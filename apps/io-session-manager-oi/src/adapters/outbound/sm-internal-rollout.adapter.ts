@@ -1,4 +1,8 @@
-import { GenericError, NotFoundError } from "@pagopa/hexagonal-core";
+import {
+  GenericError,
+  NonEmptyString,
+  NotFoundError,
+} from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 
 import { SmInternalRolloutPort } from "../../domain/ports/outbound/sm-internal-rollout.port.js";
@@ -17,13 +21,13 @@ import type {
 import { LollipopActivationDto } from "./dtos/sm-internal-rollout.dto.js";
 
 export const createSmInternalRolloutAdapter = (config: {
-  baseUrl: string;
-  apiKey: string;
+  baseUrl: URL;
+  apiKey: NonEmptyString;
 }): SmInternalRolloutPort => {
   const client = createClient({
-    baseUrl: config.baseUrl,
+    baseUrl: config.baseUrl.href,
     headers: {
-      "X-Functions-Key": config.apiKey,
+      "X-Functions-Key": config.apiKey, // TODO: try to use auth property instead of explicit header if possible
     },
   });
 

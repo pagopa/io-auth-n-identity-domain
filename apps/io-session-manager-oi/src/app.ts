@@ -200,17 +200,23 @@ export const createApp = async (
   );
 
   const fetchLollipopAdapter = createIoLollipopAdapter({
-    baseUrl: `${config.LOLLIPOP_API_URL}${config.LOLLIPOP_API_BASE_PATH}`,
+    baseUrl: new URL(config.LOLLIPOP_API_BASE_PATH, config.LOLLIPOP_API_URL),
     apiKey: config.LOLLIPOP_API_KEY,
   });
 
   const profileAdapter = createIoProfileAdapter({
-    baseUrl: `${config.IO_PROFILE_API_URL}${config.IO_PROFILE_API_BASE_PATH}`,
+    baseUrl: new URL(
+      config.IO_PROFILE_API_BASE_PATH,
+      config.IO_PROFILE_API_URL,
+    ),
     apiKey: config.IO_PROFILE_API_KEY,
   });
 
   const platformInternalAdapter = createPlatformInternalAdapter({
-    baseUrl: `${config.PLATFORM_PROXY_API_URL}${config.PLATFORM_PROXY_API_BASE_PATH}`,
+    baseUrl: new URL(
+      config.PLATFORM_PROXY_API_BASE_PATH,
+      config.PLATFORM_PROXY_API_URL,
+    ),
   });
 
   const oidcConfigAdapter = new InMemoryOidcConfigAdapter(config);

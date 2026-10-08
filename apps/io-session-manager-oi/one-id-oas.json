@@ -7,10 +7,10 @@
   },
   "servers": [
     {
-      "url": "https://io.oneid.pagopa.it"
-    },
-    {
-      "url": "https://uat.io.oneid.pagopa.it"
+      "url": "https://io.oneid.pagopa.it",
+      "x-amazon-apigateway-endpoint-configuration": {
+        "disableExecuteApiEndpoint": true
+      }
     }
   ],
   "paths": {
@@ -30,7 +30,7 @@
           "content": {
             "application/x-www-form-urlencoded": {
               "schema": {
-                "$ref": "#/components/schemas/MODELa7a455"
+                "$ref": "#/components/schemas/MODEL7f94ef"
               }
             }
           },
@@ -302,7 +302,7 @@
             }
           },
           {
-            "name": "client_id",
+            "name": "nonce",
             "in": "query",
             "required": true,
             "schema": {
@@ -310,7 +310,7 @@
             }
           },
           {
-            "name": "nonce",
+            "name": "client_id",
             "in": "query",
             "required": true,
             "schema": {
@@ -351,12 +351,12 @@
                   "type": "string"
                 }
               },
-              "location": {
+              "content-type": {
                 "schema": {
                   "type": "string"
                 }
               },
-              "content-type": {
+              "location": {
                 "schema": {
                   "type": "string"
                 }
@@ -367,7 +367,13 @@
                 }
               }
             },
-            "content": {}
+            "content": {
+              "text/html": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -426,18 +432,24 @@
           "200": {
             "description": "200 response",
             "headers": {
-              "location": {
+              "content-type": {
                 "schema": {
                   "type": "string"
                 }
               },
-              "content-type": {
+              "location": {
                 "schema": {
                   "type": "string"
                 }
               }
             },
-            "content": {}
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringResponse"
+                }
+              }
+            }
           },
           "429": {
             "description": "429 response",
@@ -604,7 +616,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MODEL67f400"
+                  "$ref": "#/components/schemas/MODEL50c9ff"
                 }
               }
             }
@@ -630,8 +642,8 @@
             },
             "content": {}
           },
-          "401": {
-            "description": "401 response",
+          "500": {
+            "description": "500 response",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -646,8 +658,8 @@
             },
             "content": {}
           },
-          "500": {
-            "description": "500 response",
+          "401": {
+            "description": "401 response",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -771,7 +783,13 @@
                 }
               }
             },
-            "content": {}
+            "content": {
+              "text/html": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -853,12 +871,12 @@
           "200": {
             "description": "200 response",
             "headers": {
-              "location": {
+              "content-type": {
                 "schema": {
                   "type": "string"
                 }
               },
-              "content-type": {
+              "location": {
                 "schema": {
                   "type": "string"
                 }
@@ -867,7 +885,7 @@
             "content": {
               "application/xml": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/StringResponse"
                 }
               }
             }
@@ -1044,7 +1062,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MODELce30a1"
+                  "$ref": "#/components/schemas/MODELecf78f"
                 }
               }
             }
@@ -1201,14 +1219,6 @@
             }
           },
           {
-            "name": "client_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "nonce",
             "in": "query",
             "required": true,
@@ -1217,7 +1227,7 @@
             }
           },
           {
-            "name": "response_type",
+            "name": "client_id",
             "in": "query",
             "required": true,
             "schema": {
@@ -1227,6 +1237,14 @@
           {
             "name": "x-pagopa-lollipop-assertion-ref",
             "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "response_type",
+            "in": "query",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1296,7 +1314,13 @@
                 }
               }
             },
-            "content": {}
+            "content": {
+              "text/html": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringResponse"
+                }
+              }
+            }
           },
           "400": {
             "description": "400 response",
@@ -1319,15 +1343,15 @@
             },
             "content": {}
           },
-          "302": {
-            "description": "302 response",
+          "500": {
+            "description": "500 response",
             "headers": {
-              "Set-Cookie": {
+              "Cache-Control": {
                 "schema": {
                   "type": "string"
                 }
               },
-              "location": {
+              "Pragma": {
                 "schema": {
                   "type": "string"
                 }
@@ -1351,15 +1375,15 @@
             },
             "content": {}
           },
-          "500": {
-            "description": "500 response",
+          "302": {
+            "description": "302 response",
             "headers": {
-              "Cache-Control": {
+              "Set-Cookie": {
                 "schema": {
                   "type": "string"
                 }
               },
-              "Pragma": {
+              "location": {
                 "schema": {
                   "type": "string"
                 }
@@ -1445,7 +1469,7 @@
           "content": {
             "application/x-www-form-urlencoded": {
               "schema": {
-                "$ref": "#/components/schemas/MODEL068bf8"
+                "$ref": "#/components/schemas/MODEL0b438a"
               }
             }
           },
@@ -1460,12 +1484,12 @@
                   "type": "string"
                 }
               },
-              "location": {
+              "content-type": {
                 "schema": {
                   "type": "string"
                 }
               },
-              "content-type": {
+              "location": {
                 "schema": {
                   "type": "string"
                 }
@@ -1476,7 +1500,13 @@
                 }
               }
             },
-            "content": {}
+            "content": {
+              "text/html": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringResponse"
+                }
+              }
+            }
           },
           "400": {
             "description": "400 response",
@@ -1515,8 +1545,8 @@
             },
             "content": {}
           },
-          "401": {
-            "description": "401 response",
+          "500": {
+            "description": "500 response",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -1531,8 +1561,8 @@
             },
             "content": {}
           },
-          "500": {
-            "description": "500 response",
+          "401": {
+            "description": "401 response",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -1769,8 +1799,8 @@
             },
             "content": {}
           },
-          "401": {
-            "description": "401 response",
+          "500": {
+            "description": "500 response",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -1785,8 +1815,8 @@
             },
             "content": {}
           },
-          "500": {
-            "description": "500 response",
+          "401": {
+            "description": "401 response",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -1971,7 +2001,7 @@
           "content": {
             "application/x-www-form-urlencoded": {
               "schema": {
-                "$ref": "#/components/schemas/MODEL7dd823"
+                "$ref": "#/components/schemas/MODELc5c454"
               }
             }
           },
@@ -2336,13 +2366,25 @@
           }
         }
       },
+      "MODELecf78f": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "description": "JWK set in JSON array format",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "ArrayOfClientFE": {
         "type": "array",
         "items": {
           "$ref": "#/components/schemas/ClientFE"
         }
       },
-      "MODEL068bf8": {
+      "MODEL0b438a": {
         "required": [
           "client_id",
           "idp",
@@ -2394,11 +2436,37 @@
           },
           "acr_values": {
             "type": "string",
-            "description": "Optional dynamic authentication context class reference. When provided, overrides the client default and sets comparison=exact. Allowed values: https://www.spid.gov.it/SpidL2, https://www.spid.gov.it/SpidL3.",
+            "description": "Optional dynamic authentication context class reference. When provided, overrides the client default and sets comparison=minimum. Allowed values: https://www.spid.gov.it/SpidL2, https://www.spid.gov.it/SpidL3.",
             "enum": [
               "https://www.spid.gov.it/SpidL2",
               "https://www.spid.gov.it/SpidL3"
             ]
+          }
+        }
+      },
+      "MODEL50c9ff": {
+        "type": "object",
+        "properties": {
+          "entityId": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "start": {
+                  "type": "string",
+                  "description": "The start timestamp for the status period."
+                },
+                "end": {
+                  "type": "string",
+                  "description": "The end timestamp for the status period."
+                },
+                "status": {
+                  "type": "string",
+                  "description": "The status value for the specified period.",
+                  "enum": ["OK", "KO"]
+                }
+              }
+            }
           }
         }
       },
@@ -2428,7 +2496,7 @@
           }
         }
       },
-      "MODELa7a455": {
+      "MODEL7f94ef": {
         "required": ["RelayState", "SAMLResponse"],
         "type": "object",
         "properties": {
@@ -2439,18 +2507,6 @@
           "RelayState": {
             "type": "string",
             "description": "This is the 'RelayState' which identify the service requested. https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/trasmissione.html"
-          }
-        }
-      },
-      "MODELce30a1": {
-        "type": "object",
-        "properties": {
-          "keys": {
-            "type": "array",
-            "description": "JWK set in JSON array format",
-            "items": {
-              "type": "string"
-            }
           }
         }
       },
@@ -2487,6 +2543,9 @@
             "description": "If the requested SCOPE included 'msso' or 'openid', response includes an id_token_type"
           }
         }
+      },
+      "StringResponse": {
+        "type": "string"
       },
       "OpenIDDiscovery": {
         "required": [
@@ -2611,7 +2670,7 @@
         },
         "description": "The OpenID configuration document as defined by the specification: http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata"
       },
-      "MODEL7dd823": {
+      "MODELc5c454": {
         "required": ["code", "grant_type", "redirect_uri"],
         "type": "object",
         "properties": {
@@ -2628,32 +2687,6 @@
             "description": "For grant_type=authorization_code: client_id, client_secret, code, and redirect_uri are required.",
             "enum": ["authorization_code"],
             "default": "authorization_code"
-          }
-        }
-      },
-      "MODEL67f400": {
-        "type": "object",
-        "properties": {
-          "entityId": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "start": {
-                  "type": "string",
-                  "description": "The start timestamp for the status period."
-                },
-                "end": {
-                  "type": "string",
-                  "description": "The end timestamp for the status period."
-                },
-                "status": {
-                  "type": "string",
-                  "description": "The status value for the specified period.",
-                  "enum": ["OK", "KO"]
-                }
-              }
-            }
           }
         }
       }

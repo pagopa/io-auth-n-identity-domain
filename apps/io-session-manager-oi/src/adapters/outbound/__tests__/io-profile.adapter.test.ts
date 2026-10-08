@@ -3,19 +3,20 @@ import {
   EmailAddress,
   FiscalCodeSchema,
   GenericError,
+  NonEmptyStringSchema,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { UserProfile } from "../../../domain/entities/profile.entity.js";
-import { createIoProfileAdapter } from "../io-profile.adapter.js";
+import type { NotifyLoginParamsDTO } from "../../../domain/ports/outbound/profile.port.js";
 import {
   createProfile,
   getProfile,
   startNotifyLoginProcess,
 } from "../../../generated/io-profile/sdk.gen.js";
 import { ExtendedProfile } from "../../../generated/io-profile/types.gen.js";
-import type { NotifyLoginParams } from "../../../domain/ports/outbound/profile.port.js";
+import { createIoProfileAdapter } from "../io-profile.adapter.js";
 
 vi.mock("../../../generated/io-profile/client/index.js", () => ({
   createClient: vi.fn(() => ({
@@ -32,8 +33,8 @@ vi.mock("../../../generated/io-profile/sdk.gen.js", () => ({
 const FISCAL_CODE = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 
 const adapter = createIoProfileAdapter({
-  baseUrl: "http://localhost",
-  apiKey: "test-key",
+  baseUrl: new URL("http://localhost"),
+  apiKey: NonEmptyStringSchema.parse("test-key"),
 });
 
 beforeEach(() => {
@@ -190,12 +191,12 @@ describe("createIoProfileAdapter#create", () => {
 });
 
 describe("createIoProfileAdapter#startNotifyLoginProcess", () => {
-  const notifyLoginParams: NotifyLoginParams = {
+  const notifyLoginParams: NotifyLoginParamsDTO = {
     fiscalCode: FISCAL_CODE,
-    name: "Mario" as NotifyLoginParams["name"],
-    familyName: "Rossi" as NotifyLoginParams["familyName"],
+    name: NonEmptyStringSchema.parse("Mario"),
+    familyName: NonEmptyStringSchema.parse("Rossi"),
     email: "user@example.com" as EmailAddress,
-    identityProvider: "spid" as NotifyLoginParams["identityProvider"],
+    identityProvider: NonEmptyStringSchema.parse("spid"),
     ipAddress: "127.0.0.1",
   };
 

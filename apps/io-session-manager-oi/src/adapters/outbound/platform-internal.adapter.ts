@@ -10,10 +10,10 @@ import type {
 } from "../../generated/platform-internal/types.gen.js";
 
 export const createPlatformInternalAdapter = (config: {
-  baseUrl: string;
+  baseUrl: URL;
 }): PlatformInternalPort => {
   const client = createClient({
-    baseUrl: config.baseUrl,
+    baseUrl: config.baseUrl.href,
   });
 
   return {
