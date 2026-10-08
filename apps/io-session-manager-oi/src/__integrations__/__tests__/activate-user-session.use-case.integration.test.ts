@@ -93,6 +93,7 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
 const activateUserSession = (sessionToken: NewSessionToken) =>
   activateUserSessionUseCase({ sessionToken, assertion });
 
+// FIXME: review and fix integration tests (https://pagopa.atlassian.net/browse/IOPID-4193)
 describe("activate-user-session use case (integration)", () => {
   // Provision the database and the session containers on the local Cosmos DB
   // emulator before running any test in this suite.
