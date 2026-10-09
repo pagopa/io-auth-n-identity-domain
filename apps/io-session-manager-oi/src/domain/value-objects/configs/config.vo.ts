@@ -16,6 +16,10 @@ import {
   LollipopActivationCosmosDevelopmentConfigSchema,
   LollipopActivationCosmosProductionConfigSchema,
 } from "./lollipop-activation.vo.js";
+import {
+  LollipopRevocationQueueDevelopmentConfigSchema,
+  LollipopRevocationQueueProductionConfigSchema,
+} from "./lollipop-revocation.vo.js";
 import { LollipopConfigSchema } from "./lollipop.vo.js";
 import { OneIdConfigSchema } from "./one-id.vo.js";
 import { PagopaConfigSchema } from "./pagopa.vo.js";
@@ -74,6 +78,7 @@ export const ProductionConfigSchema = z.object({
   ...SessionCosmosProductionConfigSchema.shape,
   ...AuthEventServiceBusProductionConfigSchema.shape,
   ...LollipopActivationCosmosProductionConfigSchema.shape,
+  ...LollipopRevocationQueueProductionConfigSchema.shape,
 });
 
 export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
@@ -92,6 +97,7 @@ export const DevelopmentConfigSchema = z.object({
   ...SessionCosmosDevelopmentConfigSchema.shape,
   ...AuthEventServiceBusDevelopmentConfigSchema.shape,
   ...LollipopActivationCosmosDevelopmentConfigSchema.shape,
+  ...LollipopRevocationQueueDevelopmentConfigSchema.shape,
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;

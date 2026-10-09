@@ -1,39 +1,40 @@
 import {
   GenericError,
-  NonEmptyString,
+  type NonEmptyString,
   NotFoundError,
-  UseCase,
+  type UseCase,
 } from "@pagopa/hexagonal-core";
-import { IPString } from "@pagopa/io-auth-n-identity-domain";
+import type { IPString } from "@pagopa/io-auth-n-identity-domain";
 import {
-  BaseSession,
+  type BaseSession,
   newActiveSession,
   newPlainSessionTokens,
   toHashedSessionTokens,
 } from "@pagopa/io-auth-n-identity-session/entities";
-import {
+import type {
   LollipopActivationPort,
   SessionPort,
 } from "@pagopa/io-auth-n-identity-session/ports";
 import {
-  LoginType,
+  type LoginType,
   newSessionId,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
-import { err, ok, Result } from "neverthrow";
+import { err, ok, type Result } from "neverthrow";
 
-import { UserProfile } from "../../domain/entities/profile.entity.js";
-import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
-import { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
-import { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
-import { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
-import { IdentityAssertion } from "../../domain/value-objects/assertion.vo.js";
+import type { UserProfile } from "../../domain/entities/profile.entity.js";
+import type { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
+import type { LollipopRevocationPort } from "../../domain/ports/outbound/lollipop-revocation.port.js";
+import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
+import type { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
+import type { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
+import type { IdentityAssertion } from "../../domain/value-objects/assertion.vo.js";
 import {
-  ClientSessionToken,
+  type ClientSessionToken,
   ClientSessionTokenSchema,
   HashedClientSessionTokenSchema,
 } from "../../domain/value-objects/client-session-token.vo.js";
 
-export type NewSessionToken = Omit<
+type NewSessionToken = Omit<
   BaseSession,
   "sessionId" | "expirationDate" | "createdAt"
 > & {
@@ -53,24 +54,26 @@ export type ActivateUserSessionUseCase = UseCase<
   GenericError
 >;
 
+type Dependencies = {
+  sessionPort: SessionPort;
+  profilePort: ProfilePort;
+  platformInternalPort: PlatformInternalPort;
+  authEventPort: AuthEventPort;
+  lollipopActivationPort: LollipopActivationPort;
+  lollipopPort: LollipopPort;
+  lollipopRevocationPort: LollipopRevocationPort;
+};
+
 // ---------------------------------------------
 // ActivateUserSession use-case implementation
 // ---------------------------------------------
 
 export const makeActivateUserSessionUseCase =
-  (deps: {
-    sessionPort: SessionPort;
-    profilePort: ProfilePort;
-    platformInternalPort: PlatformInternalPort;
-    authEventPort: AuthEventPort;
-    lollipopActivationPort: LollipopActivationPort;
-    lollipopPort: LollipopPort;
-  }): ActivateUserSessionUseCase =>
+  (deps: Dependencies): ActivateUserSessionUseCase =>
   async (input) => {
-    const invalidationResult = await invalidatePreviousUserState({
-      sessionPort: deps.sessionPort,
-      platformInternalPort: deps.platformInternalPort,
-    })(input.sessionToken.fiscalCode);
+    const invalidationResult = await invalidatePreviousUserState(deps)(
+      input.sessionToken.fiscalCode,
+    );
 
     if (invalidationResult.isErr()) {
       return err(invalidationResult.error);
@@ -216,25 +219,53 @@ export const makeActivateUserSessionUseCase =
     );
   };
 
-// ----------------
+// -------------------------
 // Private helper functions
-// ----------------
+// -------------------------
 
 const invalidatePreviousUserState =
   (deps: {
     sessionPort: SessionPort;
     platformInternalPort: PlatformInternalPort;
+    lollipopActivationPort: LollipopActivationPort;
+    lollipopRevocationPort: LollipopRevocationPort;
   }) =>
   async (
     fiscalCode: NewSessionToken["fiscalCode"],
   ): Promise<Result<void, GenericError>> => {
     // TODO: invalidate installation id
 
-    // TODO: invalidate lollipop key (revoke previous lollipop activation by sending an event)
+    /************************************************************/
+    /* Revoke the lollipop associated with the previous session */
+    /************************************************************/
+    const lollipopActivationDataResult =
+      await deps.lollipopActivationPort.getByFiscalCode(fiscalCode);
+    if (lollipopActivationDataResult.isOk()) {
+      // Lollipop activation data found, proceed with revocation
+      const lollipopActivationData = lollipopActivationDataResult.value;
+      const lollipopRevocationResult =
+        await deps.lollipopRevocationPort.requestRevocation(
+          lollipopActivationData.assertionRef,
+        );
+      if (lollipopRevocationResult.isErr()) {
+        // fire-and-forget: we log the error but do not block the flow
+        console.error(
+          `Failed to revoke lollipop: ${lollipopRevocationResult.error.message}`,
+        );
+      }
+    } else if (lollipopActivationDataResult.error.kind !== "NotFoundError") {
+      return err(
+        new GenericError(
+          `Failed to retrieve previous lollipop activation data: ${lollipopActivationDataResult.error.message}`,
+        ),
+      );
+    }
 
+    /********************************************************/
+    /* Invalidate the previous session in the session store */
+    /********************************************************/
     const previousSessionInvalidationResult =
       await deps.sessionPort.invalidatePreviousSession(fiscalCode);
-
     if (previousSessionInvalidationResult.isErr()) {
       return err(
         new GenericError(
@@ -242,18 +273,18 @@ const invalidatePreviousUserState =
         ),
       );
     }
-
     const previousHashedSession = previousSessionInvalidationResult.value;
-
     if (previousHashedSession === undefined) {
       return ok(undefined);
     }
 
+    /************************************************************************************/
+    /* Revoke the previous hashed client session token in the platform-internal service */
+    /************************************************************************************/
     const hashedClientSessionTokenParseResult =
       HashedClientSessionTokenSchema.safeParse(
         `${previousHashedSession.sessionId}.${previousHashedSession.hashedSessionToken}`,
       );
-
     // This should never happen, but we check it just in case, to avoid sending an invalid token to the platform-internal service.
     if (!hashedClientSessionTokenParseResult.success) {
       return err(
@@ -262,7 +293,6 @@ const invalidatePreviousUserState =
         ),
       );
     }
-
     const cachedSessionInvalidationResult =
       await deps.platformInternalPort.deleteSession(
         hashedClientSessionTokenParseResult.data,
