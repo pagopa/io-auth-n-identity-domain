@@ -12,5 +12,5 @@
     "lib": ["es2022", "DOM"]
   },
   "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules", "**/__tests__/*", "vite.config.mts"]
+  "exclude": ["dist", "node_modules", "**/__tests__/*", "vite.config.mts", "**/__integrations__/vite.config.mts"]
 }
