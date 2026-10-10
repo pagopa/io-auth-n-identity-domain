@@ -31,8 +31,9 @@ locals {
       // --------------------------
       //  Fast login audit log storage
       // --------------------------
-      FAST_LOGIN_AUDIT_CONNECTION_STRING = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.audit_st_connection_string.versionless_id})"
-      FAST_LOGIN_AUDIT_CONTAINER_NAME    = local.lv_audit_logs_container_name
+      FAST_LOGIN_AUDIT_CONNECTION_STRING       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.audit_st_connection_string.versionless_id})"
+      FAST_LOGIN_AUDIT_CONTAINER_NAME          = local.lv_audit_logs_container_name
+      FAST_LOGIN_AUDIT_STORAGE__blobServiceUri = "https://${module.storage_accounts.audit.name}.blob.core.windows.net"
 
       // --------------------------
       //  Config for session manager internal connection
