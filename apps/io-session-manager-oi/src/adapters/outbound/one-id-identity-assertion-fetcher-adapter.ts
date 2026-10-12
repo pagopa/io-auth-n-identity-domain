@@ -23,23 +23,29 @@ type OneIdIdentityAssertionFetcherAdapterConfig = {
 export class OneIdIdentityAssertionFetcherAdapter
   implements IdentityAssertionFetcherPort, HealthCheckOutboundPort
 {
-  private readonly configByEnv: Partial<
-    Record<OidcEnvironment, { baseUrl: URL }>
+  private readonly clientByEnv: Partial<
+    Record<OidcEnvironment, ReturnType<typeof createClient>>
   >;
-  private readonly client: ReturnType<typeof createClient>;
 
   constructor(config: OneIdIdentityAssertionFetcherAdapterConfig) {
-    this.configByEnv = {
-      PROD: { baseUrl: config.ONEID_PROD_ISSUER },
+    const prodClient = createClient({
+      baseUrl: config.ONEID_PROD_ISSUER.href,
+    });
+
+    this.clientByEnv = {
+      PROD: prodClient,
       ...(config.ONEID_UAT_ISSUER
-        ? { UAT: { baseUrl: config.ONEID_UAT_ISSUER } }
+        ? {
+            UAT: createClient({
+              baseUrl: config.ONEID_UAT_ISSUER.href,
+            }),
+          }
         : {}),
     };
-    this.client = createClient();
   }
   async healthcheck(): Promise<Result<void, GenericError>> {
-    const config = this.configByEnv.PROD;
-    if (!config) {
+    const client = this.clientByEnv.PROD;
+    if (!client) {
       return err(
         new GenericError('Missing OIDC configuration for environment "PROD"'),
       );
@@ -47,8 +53,7 @@ export class OneIdIdentityAssertionFetcherAdapter
 
     try {
       const result = await getRequestHealthCheckFromSdk({
-        client: this.client,
-        baseUrl: config.baseUrl.href,
+        client,
         parseAs: "text",
       });
       const status = result.response?.status;
@@ -75,16 +80,15 @@ export class OneIdIdentityAssertionFetcherAdapter
     env: OidcEnvironment,
     accessToken: NonEmptyString,
   ): Promise<Result<IdentityAssertion, GenericError>> {
-    const config = this.configByEnv[env];
-    if (!config) {
+    const client = this.clientByEnv[env];
+    if (!client) {
       return err(
         new GenericError(`Missing OIDC configuration for environment "${env}"`),
       );
     }
     try {
       const result = await getSamlAssertionFromSdk({
-        client: this.client,
-        baseUrl: config.baseUrl.href,
+        client,
         query: { access_token: accessToken },
         headers: {
           Accept: "application/xml",
@@ -99,7 +103,7 @@ export class OneIdIdentityAssertionFetcherAdapter
         );
       }
 
-      const rawAssertion = await result.data.text();
+      const rawAssertion = result.data;
       const parserErrors: string[] = [];
       const parser = new DOMParser({
         errorHandler: {

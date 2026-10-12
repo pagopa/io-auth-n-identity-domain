@@ -5,7 +5,7 @@ import {
   ValidationError,
 } from "@pagopa/hexagonal-core";
 import {
-  JwkPublicKeyBase64UrlString,
+  JwkPublicKey,
   LollipopJwkHashingAlgorithm,
 } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok } from "neverthrow";
@@ -26,13 +26,12 @@ import { makeReserveUseCase } from "../reserve.use-case.js";
 // Fixtures
 // ---------------------------------------------------------------------------
 
-const LOLLIPOP_PUBLIC_KEY = {
+const LOLLIPOP_PUBLIC_KEY: JwkPublicKey = {
   kty: "EC" as const,
   x: "NYvuK5KwdMSelFJgPnL0fsxizwOKw0WbQyANB4O6l2c",
   y: "qK9Zyso1CCwsUk985hnO5WEP3enSxpuD1n5JqtmZIEE",
   crv: "P-256" as const,
-  alg: "alg",
-} as unknown as JwkPublicKeyBase64UrlString;
+};
 
 const LOLLIPOP_PUBLIC_KEY_THUMBPRINT =
   "iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU";

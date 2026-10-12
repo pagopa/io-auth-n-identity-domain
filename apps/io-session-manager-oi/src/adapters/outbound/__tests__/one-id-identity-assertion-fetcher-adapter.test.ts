@@ -31,12 +31,11 @@ const makeAdapter = (includeUat = true) =>
 
 const aResponse = (status: number, xml = A_VALID_XML) => ({
   response: { status },
-  data: new Blob([xml], { type: "application/xml" }),
+  data: xml,
 });
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sdkMocks.createClient.mockReturnValue({});
   sdkMocks.getRequestHealthCheck.mockResolvedValue({
     response: { status: 200 },
     data: "ok",
@@ -59,7 +58,6 @@ describe("OneIdIdentityAssertionFetcherAdapter#healthcheck", () => {
       expect(result.isOk()).toBe(true);
       expect(sdkMocks.getRequestHealthCheck).toHaveBeenCalledExactlyOnceWith({
         client: expect.anything(),
-        baseUrl: PROD_URL.href,
         parseAs: "text",
       });
     },
@@ -112,7 +110,6 @@ describe("OneIdIdentityAssertionFetcherAdapter#getAssertion", () => {
     });
     expect(sdkMocks.getSamlAssertion).toHaveBeenCalledExactlyOnceWith({
       client: expect.anything(),
-      baseUrl: UAT_URL.href,
       query: { access_token: ACCESS_TOKEN },
       headers: { Accept: "application/xml" },
     });
@@ -132,7 +129,7 @@ describe("OneIdIdentityAssertionFetcherAdapter#getAssertion", () => {
     async (status) => {
       sdkMocks.getSamlAssertion.mockResolvedValueOnce({
         response: status === undefined ? undefined : { status },
-        data: new Blob([A_VALID_XML]),
+        data: A_VALID_XML,
       });
 
       const result = await makeAdapter().getAssertion("PROD", ACCESS_TOKEN);
@@ -190,19 +187,6 @@ describe("OneIdIdentityAssertionFetcherAdapter#getAssertion", () => {
 
     expect(result._unsafeUnwrapErr()).toEqual(
       new GenericError("Failed to get SAML assertion: provider down"),
-    );
-  });
-
-  it("converts response body read errors to GenericError", async () => {
-    sdkMocks.getSamlAssertion.mockResolvedValueOnce({
-      response: { status: 200 },
-      data: { text: vi.fn().mockRejectedValue(new Error("body read failed")) },
-    });
-
-    const result = await makeAdapter().getAssertion("PROD", ACCESS_TOKEN);
-
-    expect(result._unsafeUnwrapErr()).toEqual(
-      new GenericError("Failed to get SAML assertion: body read failed"),
     );
   });
 });

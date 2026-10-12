@@ -1,8 +1,17 @@
-export const IO_PROFILE_BASE_URL = `http://localhost:${process.env.FUNCTION_PROFILE_PORT ?? 7076}/api/v1`;
+import type { NonEmptyString } from "@pagopa/hexagonal-core";
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 
-export const IO_PROFILE_API_KEY = process.env.IO_PROFILE_API_KEY ?? "api_key";
+export const IO_PROFILE_BASE_URL = new URL(
+  `http://localhost:${process.env.FUNCTION_PROFILE_PORT ?? 7076}/api/v1`,
+);
 
-export const PLATFORM_INTERNAL_BASE_URL = `http://localhost:${process.env.FUNCTION_SESSION_MANAGER_INTERNAL_PORT ?? 3009}/api/platform-internal/v1`;
+export const IO_PROFILE_API_KEY: NonEmptyString = NonEmptyStringSchema.parse(
+  process.env.IO_PROFILE_API_KEY ?? "api_key",
+);
+
+export const PLATFORM_INTERNAL_BASE_URL = new URL(
+  `http://localhost:${process.env.FUNCTION_SESSION_MANAGER_INTERNAL_PORT ?? 3009}/api/platform-internal/v1`,
+);
 
 export const ENVIRONMENT = process.env.ENVIRONMENT || "DEV";
 

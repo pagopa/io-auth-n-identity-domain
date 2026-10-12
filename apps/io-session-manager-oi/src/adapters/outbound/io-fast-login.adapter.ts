@@ -19,13 +19,13 @@ import {
 import { FastLoginResponseDto } from "./dtos/io-fast-login.dto.js";
 
 export const createIoFastLoginAdapter = (config: {
-  baseUrl: string;
-  apiKey: string;
+  baseUrl: URL;
+  apiKey: NonEmptyString;
 }): FastLoginPort => {
   const client = createClient({
-    baseUrl: config.baseUrl,
+    baseUrl: config.baseUrl.href,
     headers: {
-      "X-Functions-Key": config.apiKey,
+      "X-Functions-Key": config.apiKey, // TODO: try to use auth property instead of explicit header if possible
     },
   });
 

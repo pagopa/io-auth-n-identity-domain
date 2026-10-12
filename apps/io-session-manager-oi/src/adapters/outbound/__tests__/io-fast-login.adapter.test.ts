@@ -1,9 +1,13 @@
-import { AuthenticationError, GenericError } from "@pagopa/hexagonal-core";
+import {
+  AuthenticationError,
+  GenericError,
+  NonEmptyStringSchema,
+} from "@pagopa/hexagonal-core";
 import {
   LollipopAssertionRefSchema,
+  LollipopAssertionTypeSchema,
   LollipopJwk,
   LollipopMethodSchema,
-  LollipopAssertionTypeSchema,
 } from "@pagopa/io-auth-n-identity-domain";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -16,6 +20,8 @@ import {
   FastLoginParams,
   FastLoginParamsSchema,
 } from "../../../domain/value-objects/fast-login.vo.js";
+import { fastLogin } from "../../../generated/io-fast-login/sdk.gen.js";
+import { createIoFastLoginAdapter } from "../io-fast-login.adapter.js";
 
 vi.mock("../../../generated/io-fast-login/client/client.gen.js", () => ({
   createClient: vi.fn(() => ({
@@ -58,8 +64,8 @@ const aFastLoginPayload: FastLoginParams = FastLoginParamsSchema.parse({
 });
 
 const adapter = createIoFastLoginAdapter({
-  baseUrl: "https://api.example.com",
-  apiKey: "test-api-key",
+  baseUrl: new URL("https://api.example.com"),
+  apiKey: NonEmptyStringSchema.parse("test-api-key"),
 });
 
 beforeEach(() => {

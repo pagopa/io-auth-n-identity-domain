@@ -4,6 +4,7 @@ import {
   ForbiddenError,
   GenericError,
   NonEmptyString,
+  NonEmptyStringSchema,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import {
@@ -106,8 +107,8 @@ const aValidReservePubKeyResult = {
 };
 
 const adapter = createIoLollipopAdapter({
-  baseUrl: "https://api.example.com",
-  apiKey: "test-api-key",
+  baseUrl: new URL("https://api.example.com"),
+  apiKey: NonEmptyStringSchema.parse("test-api-key"),
 });
 
 beforeEach(() => {
