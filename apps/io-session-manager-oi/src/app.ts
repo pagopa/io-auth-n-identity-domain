@@ -208,9 +208,7 @@ export const createApp = async (
   });
 
   const fastLoginAdapter = createIoFastLoginAdapter({
-    // We don't need the base path for the Fast Login API 
-    // since it is already included in the paths of the OpenAPI specification.
-    baseUrl: new URL(config.IO_FAST_LOGIN_API_URL),
+    baseUrl: new URL(config.IO_FAST_LOGIN_API_BASE_PATH, config.IO_FAST_LOGIN_API_URL),
     apiKey: config.IO_FAST_LOGIN_API_KEY,
   });
 

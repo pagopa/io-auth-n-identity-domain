@@ -27,8 +27,10 @@ locals {
     IO_PROFILE_API_BASE_PATH = var.io_profile.base_path
 
     # Fast Login service
-    IO_FAST_LOGIN_API_URL       = var.io_fast_login.base_url
-    IO_FAST_LOGIN_API_BASE_PATH = var.io_fast_login.base_path
+    IO_FAST_LOGIN_API_URL = var.io_fast_login.base_url
+    # We don't need the base path for the Fast Login API 
+    # since it is already included in the paths of the OpenAPI specification.
+    IO_FAST_LOGIN_API_BASE_PATH = "/"
     # IO_FAST_LOGIN_API_KEY       = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sm_io_fast_login_api_key.versionless_id})"
     IO_FAST_LOGIN_API_KEY = "TODO"
 
