@@ -34,8 +34,8 @@ import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-servi
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
-import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
 import { createIoFastLoginAdapter } from "./adapters/outbound/io-fast-login.adapter.js";
+import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
 import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
 import { LollipopRevocationQueueAdapter } from "./adapters/outbound/lollipop-revocation-queue.adapter.js";
