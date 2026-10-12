@@ -21,7 +21,7 @@ module "infra_ci_roles" {
 
 module "infra_cd_roles" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~> 1.1"
+  version = "~> 3.0"
 
   subscription_id = data.azurerm_subscription.current.subscription_id
   principal_id    = module.repo.identities["infra"]["cd"].principal_id

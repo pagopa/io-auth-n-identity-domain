@@ -29,6 +29,9 @@ const CommonInput = t.type({
 });
 type CommonInput = t.TypeOf<typeof CommonInput>;
 
+export const ActivityResult = t.union([t.literal("SUCCESS"), t.literal("FAILURE")]);
+export type ActivityResult = t.TypeOf<typeof ActivityResult>;
+
 const ProfileInput = t.intersection([
   CommonInput,
   t.type({
@@ -69,7 +72,7 @@ export const updateSubscriptionFeed = async (
   tableService: TableService,
   subscriptionFeedTableName: NonEmptyString,
   logPrefix: string = "UpdateServiceSubscriptionFeedActivity",
-) => {
+): Promise<ActivityResult> => {
   const decodedInputOrError = Input.decode(rawInput);
   if (E.isLeft(decodedInputOrError)) {
     context.error(

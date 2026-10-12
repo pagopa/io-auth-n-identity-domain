@@ -352,10 +352,13 @@ components:
     ApplicationInfo:
       type: object
       properties:
-        message:
+        name:
+          type: string
+        version:
           type: string
       required:
-        - message
+        - name
+        - version
     FastLoginResponse:
       type: object
       properties:

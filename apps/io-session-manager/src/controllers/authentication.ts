@@ -14,7 +14,6 @@ import {
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 import { AssertionConsumerServiceT } from "@pagopa/io-spid-commons";
-import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
 import {
   errorsToReadableMessages,
@@ -107,12 +106,10 @@ import {
   withCookieClearanceResponsePermanentRedirect,
 } from "../utils/responses";
 import { getRequestIDFromResponse } from "../utils/spid";
-import { toAppUser, validateSpidUser } from "../utils/user";
+import { toAppUser, ValidateSpidUser } from "../utils/user";
 import { SESSION_ID_LENGTH_BYTES, SESSION_TOKEN_LENGTH_BYTES } from "./session";
 import { AuthenticationController } from ".";
 
-// Minimum user age allowed to login if the Age limit is enabled
-export const AGE_LIMIT = 14;
 // Custom error codes handled by the client to show a specific error page
 export const AGE_LIMIT_ERROR_CODE = 1001;
 export const AUTHENTICATION_LOCKED_ERROR = 1002;
@@ -155,7 +152,7 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
   CreateNewProfileDependencies &
   NotificationsRepo.NotificationsueueDeps &
   AppInsightsDeps &
-  AuthSessionEventsRepo.AuthSessionEventsDeps & 
+  AuthSessionEventsRepo.AuthSessionEventsDeps &
   PlatformInternalServiceDependency & {
     getClientErrorRedirectionUrl: (
       params: ClientErrorRedirectionUrlParams,
@@ -171,6 +168,9 @@ export type AcsDependencies = RedisRepo.RedisRepositoryDeps &
     >;
     isUserElegibleForFastLogin: (fiscalCode: FiscalCode) => boolean;
     isUserElegibleForValidationCookie: (fiscalCode: FiscalCode) => boolean;
+    ageLimit: number;
+    validateSpidUser: ValidateSpidUser;
+    getIdentityProvider: (issuer: string) => T.Task<string>;
   };
 
 export const acs: (
@@ -183,7 +183,7 @@ export const acs: (
     //
     // decode the SPID assertion into a SPID user
     //
-    const errorOrSpidUser = validateSpidUser(userPayload);
+    const errorOrSpidUser = deps.validateSpidUser(userPayload);
 
     if (E.isLeft(errorOrSpidUser)) {
       log.error(
@@ -286,7 +286,7 @@ export const acs: (
       return validationCookieClearanceErrorForbidden;
     }
 
-    if (!isOlderThan(AGE_LIMIT)(parse(spidUser.dateOfBirth), new Date())) {
+    if (!isOlderThan(deps.ageLimit)(parse(spidUser.dateOfBirth), new Date())) {
       // The IO App show the proper error screen if only the `errorCode`
       // query param is provided and `errorMessage` is missing.
       // this constraint could be ignored when this PR https://github.com/pagopa/io-app/pull/3642 is merged,
@@ -295,7 +295,7 @@ export const acs: (
         errorCode: AGE_LIMIT_ERROR_CODE,
       });
       log.error(
-        `acs: the age of the user is less than ${AGE_LIMIT} yo [%s]`,
+        `acs: the age of the user is less than ${deps.ageLimit} yo [%s]`,
         spidUser.dateOfBirth,
       );
       deps.appInsightsTelemetryClient?.trackEvent({
@@ -309,7 +309,7 @@ export const acs: (
       const rejectedLoginEvent: RejectedLoginEvent = {
         ...buildBaseRejectedLoginEvent(spidUser, requestIp),
         rejectionCause: RejectedLoginCauseEnum.AGE_BLOCK,
-        minimumAge: AGE_LIMIT,
+        minimumAge: deps.ageLimit,
         dateOfBirth: spidUser.dateOfBirth,
       };
 
@@ -511,26 +511,37 @@ export const acs: (
       )().catch(() => void 0 as never);
     }
 
-    const errorOrSessionInfoKeys = await RedisSessionStorageService
-      .retrieveSessionInfoKeys(deps.redisClientSelector)(spidUser.fiscalNumber)();
+    const errorOrSessionInfoKeys =
+      await RedisSessionStorageService.retrieveSessionInfoKeys(
+        deps.redisClientSelector,
+      )(spidUser.fiscalNumber)();
 
     if (E.isLeft(errorOrSessionInfoKeys)) {
-        log.error(
-          "acs: error reading session info keys from Redis [%s]",
-          errorOrSessionInfoKeys.left,
-        );
-        return validationCookieClearanceErrorInternal(
-          "Error while reading session info keys from Redis",
-        );
+      log.error(
+        "acs: error reading session info keys from Redis [%s]",
+        errorOrSessionInfoKeys.left,
+      );
+      return validationCookieClearanceErrorInternal(
+        "Error while reading session info keys from Redis",
+      );
     }
 
-    const sessionInfoKeys = RedisSessionStorageService
-      .removePrefixFromSessionInfoKeys(errorOrSessionInfoKeys.right) as ReadonlyArray<SessionToken>;
-    const errorOrCacheDelResult = await deps.platformInternalAPIService.cacheDelSessionTokens(sessionInfoKeys)(deps)();
+    const sessionInfoKeys =
+      RedisSessionStorageService.removePrefixFromSessionInfoKeys(
+        errorOrSessionInfoKeys.right,
+      ) as ReadonlyArray<SessionToken>;
+    const errorOrCacheDelResult =
+      await deps.platformInternalAPIService.cacheDelSessionTokens(
+        sessionInfoKeys,
+      )(deps)();
 
     if (E.isLeft(errorOrCacheDelResult)) {
-      log.error(`acs: error clearing cached session tokens [${errorOrCacheDelResult.left.message}]`);
-      return validationCookieClearanceErrorInternal("Error while clearing cached session tokens");
+      log.error(
+        `acs: error clearing cached session tokens [${errorOrCacheDelResult.left.message}]`,
+      );
+      return validationCookieClearanceErrorInternal(
+        "Error while clearing cached session tokens",
+      );
     }
 
     const errorOrActivatedPubKey = await pipe(
@@ -851,12 +862,7 @@ export const acs: (
           email: userEmail,
           family_name: user.family_name,
           fiscal_code: user.fiscal_code,
-          identity_provider: pipe(
-            Issuer.decode(spidUser.issuer),
-            E.map((issuer) => IDP_NAMES[issuer]),
-            E.chainW(E.fromNullable(null)),
-            E.getOrElse(() => "Sconosciuto"),
-          ),
+          identity_provider: await deps.getIdentityProvider(spidUser.issuer)(),
           ip_address: requestIp,
           is_email_validated: userHasEmailValidated,
           name: user.name,
@@ -1038,7 +1044,7 @@ export const acsTest: (
     const acsResponse = await AuthenticationController.acs(deps)(
       userPayload,
       pipe(
-        validateSpidUser(userPayload),
+        deps.validateSpidUser(userPayload),
         E.chainW((spidUser) =>
           acsRequestMapper(spidUser.getAcsOriginalRequest()),
         ),

@@ -1,0 +1,347 @@
+import { GenericError } from "@pagopa/hexagonal-core";
+import { err, ok } from "neverthrow";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
+import {
+  mockGetProfile,
+  ProfilePortMock,
+  resetProfilePortMock,
+} from "../../../__mocks__/ports/profile-port.mock.js";
+import { SessionPortMock } from "../../../__mocks__/ports/session-port.mock.js";
+import {
+  aBaseSession,
+  aFiscalCode,
+  aGenericError,
+  anEmailAddress,
+  aPlainSessionToken,
+  aSessionId,
+  aSessionWithHashedTokens,
+  aUserProfileWithoutEmail,
+} from "../../../__mocks__/session.mocks.js";
+import {
+  type GetSessionInput,
+  makeGetSessionUseCase,
+} from "../get-session.use-case.js";
+
+type SessionField =
+  GetSessionInput["fieldsFilter"] extends ReadonlySet<infer Field>
+    ? Field
+    : never;
+
+const mocks = vi.hoisted(() => {
+  const anExtendedZendeskToken = "aExtendedZendeskToken";
+  const anHashedSessionToken = "anHashedSessionToken";
+  const aPlainBpdSSOToken = "aPlainBpdSSOToken";
+  const aFimsSSOToken = "aFimsSSOToken";
+  const aPagopaSSOToken = "aPagopaSSOToken";
+  return {
+    anExtendedZendeskToken,
+    anHashedSessionToken,
+    aPlainBpdSSOToken,
+    aFimsSSOToken,
+    aPagopaSSOToken,
+    toExtendedPlainZendeskSSOToken: vi.fn(() => anExtendedZendeskToken),
+    toHashedSessionToken: vi.fn(() => anHashedSessionToken),
+    toPlainBpdSSOToken: vi.fn(() => aPlainBpdSSOToken),
+    toPlainFimsSSOToken: vi.fn(() => aFimsSSOToken),
+    toPlainPagopaSSOToken: vi.fn(() => aPagopaSSOToken),
+  };
+});
+
+vi.mock("@pagopa/io-auth-n-identity-session", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@pagopa/io-auth-n-identity-session")>();
+  return {
+    ...actual,
+    toExtendedPlainZendeskSSOToken: mocks.toExtendedPlainZendeskSSOToken,
+    toHashedSessionToken: mocks.toHashedSessionToken,
+    toPlainBpdSSOToken: mocks.toPlainBpdSSOToken,
+    toPlainFimsSSOToken: mocks.toPlainFimsSSOToken,
+    toPlainPagopaSSOToken: mocks.toPlainPagopaSSOToken,
+  };
+});
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  resetProfilePortMock();
+});
+
+describe("makeGetSessionUseCase", () => {
+  const lollipopActivation = {
+    fiscalCode: aFiscalCode,
+    assertionRef: `sha256-${"a".repeat(43)}`,
+    expirationDate: new Date("2100-01-01"),
+  };
+
+  const getSession = makeGetSessionUseCase({
+    sessionPort: SessionPortMock,
+    lollipopActivationPort: lollipopActivationPortMock,
+    profilePort: ProfilePortMock,
+  });
+
+  const commonExpectations = () => {
+    expect(mocks.toPlainPagopaSSOToken).not.toHaveBeenCalled();
+    expect(mocks.toPlainBpdSSOToken).not.toHaveBeenCalled();
+    expect(mocks.toPlainFimsSSOToken).not.toHaveBeenCalled();
+    expect(mocks.toExtendedPlainZendeskSSOToken).not.toHaveBeenCalled();
+    expect(lollipopActivationPortMock.getByFiscalCode).not.toHaveBeenCalled();
+    expect(mockGetProfile).not.toHaveBeenCalled();
+  };
+  const sessionFields = [
+    {
+      field: "spidLevel",
+      expectedValue: aSessionWithHashedTokens.spidLevel,
+      checkExpectations: commonExpectations,
+    },
+    {
+      field: "expirationDate",
+      expectedValue: aSessionWithHashedTokens.expirationDate,
+      checkExpectations: commonExpectations,
+    },
+    {
+      field: "lollipopAssertionRef",
+      expectedValue: lollipopActivation.assertionRef,
+      checkExpectations: () => {
+        expect(
+          lollipopActivationPortMock.getByFiscalCode,
+        ).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+        expect(mockGetProfile).not.toHaveBeenCalled();
+        expect(mocks.toPlainPagopaSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainBpdSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainFimsSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toExtendedPlainZendeskSSOToken).not.toHaveBeenCalled();
+      },
+    },
+    {
+      field: "walletToken",
+      expectedValue: {
+        walletToken: `${aSessionId}.${mocks.aPagopaSSOToken}`,
+        pagopaToken: `${aSessionId}.${mocks.aPagopaSSOToken}`,
+      },
+      checkExpectations: () => {
+        expect(mocks.toPlainPagopaSSOToken).toHaveBeenCalledExactlyOnceWith(
+          aPlainSessionToken,
+        );
+        expect(mocks.toPlainBpdSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainFimsSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toExtendedPlainZendeskSSOToken).not.toHaveBeenCalled();
+        expect(
+          lollipopActivationPortMock.getByFiscalCode,
+        ).not.toHaveBeenCalled();
+        expect(mockGetProfile).not.toHaveBeenCalled();
+      },
+    },
+    {
+      field: "pagopaToken",
+      expectedValue: {
+        walletToken: `${aSessionId}.${mocks.aPagopaSSOToken}`,
+        pagopaToken: `${aSessionId}.${mocks.aPagopaSSOToken}`,
+      },
+      checkExpectations: () => {
+        expect(mocks.toPlainPagopaSSOToken).toHaveBeenCalledExactlyOnceWith(
+          aPlainSessionToken,
+        );
+        expect(mocks.toPlainBpdSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainFimsSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toExtendedPlainZendeskSSOToken).not.toHaveBeenCalled();
+        expect(
+          lollipopActivationPortMock.getByFiscalCode,
+        ).not.toHaveBeenCalled();
+        expect(mockGetProfile).not.toHaveBeenCalled();
+      },
+    },
+    {
+      field: "bpdToken",
+      expectedValue: `${aSessionId}.${mocks.aPlainBpdSSOToken}`,
+      checkExpectations: () => {
+        expect(mocks.toPlainBpdSSOToken).toHaveBeenCalledExactlyOnceWith(
+          aPlainSessionToken,
+        );
+        expect(mocks.toPlainPagopaSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainFimsSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toExtendedPlainZendeskSSOToken).not.toHaveBeenCalled();
+        expect(
+          lollipopActivationPortMock.getByFiscalCode,
+        ).not.toHaveBeenCalled();
+        expect(mockGetProfile).not.toHaveBeenCalled();
+      },
+    },
+    {
+      field: "zendeskToken",
+      expectedValue: `${aSessionId}.${mocks.anExtendedZendeskToken}`,
+      checkExpectations: () => {
+        expect(mockGetProfile).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+        expect(
+          mocks.toExtendedPlainZendeskSSOToken,
+        ).toHaveBeenCalledExactlyOnceWith(aPlainSessionToken, anEmailAddress);
+        expect(mocks.toPlainPagopaSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainBpdSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainFimsSSOToken).not.toHaveBeenCalled();
+        expect(
+          lollipopActivationPortMock.getByFiscalCode,
+        ).not.toHaveBeenCalled();
+      },
+    },
+    {
+      field: "fimsToken",
+      expectedValue: `${aSessionId}.${mocks.aFimsSSOToken}`,
+      checkExpectations: () => {
+        expect(mocks.toPlainFimsSSOToken).toHaveBeenCalledExactlyOnceWith(
+          aPlainSessionToken,
+        );
+        expect(mocks.toPlainPagopaSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toPlainBpdSSOToken).not.toHaveBeenCalled();
+        expect(mocks.toExtendedPlainZendeskSSOToken).not.toHaveBeenCalled();
+        expect(
+          lollipopActivationPortMock.getByFiscalCode,
+        ).not.toHaveBeenCalled();
+        expect(mockGetProfile).not.toHaveBeenCalled();
+      },
+    },
+  ] as const satisfies ReadonlyArray<{
+    field: SessionField;
+    expectedValue: unknown;
+    checkExpectations: () => void;
+  }>;
+  it.each(sessionFields)(
+    "returns the requested $field field",
+    async ({ field, expectedValue, checkExpectations }) => {
+      // given
+      if (field === "lollipopAssertionRef") {
+        lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
+          ok(lollipopActivation),
+        );
+      }
+
+      const input = {
+        sessionToken: aPlainSessionToken,
+        session: aBaseSession,
+        fieldsFilter: new Set([field]),
+      } satisfies GetSessionInput;
+
+      // when
+      const result = await getSession(input);
+
+      // then
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        const expectedOutput =
+          field === "walletToken" || field === "pagopaToken"
+            ? expectedValue
+            : { [field]: expectedValue };
+        expect(result.value).toEqual(expectedOutput);
+      }
+      checkExpectations();
+    },
+  );
+
+  it("retrieves the Lollipop assertion only when requested", async () => {
+    // given
+    lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
+      ok(lollipopActivation),
+    );
+
+    const input = {
+      sessionToken: aPlainSessionToken,
+      session: aBaseSession,
+      fieldsFilter: new Set(["lollipopAssertionRef"] as const),
+    } satisfies GetSessionInput;
+
+    // when
+    const result = await getSession(input);
+
+    // then
+    expect(result).toMatchObject(
+      ok({ lollipopAssertionRef: lollipopActivation.assertionRef }),
+    );
+    expect(
+      lollipopActivationPortMock.getByFiscalCode,
+    ).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+    expect(mockGetProfile).not.toHaveBeenCalled();
+  });
+
+  it("creates the extended Zendesk token only when requested", async () => {
+    // given
+    const input = {
+      sessionToken: aPlainSessionToken,
+      session: aBaseSession,
+      fieldsFilter: new Set(["zendeskToken"] as const),
+    } satisfies GetSessionInput;
+
+    // when
+    const result = await getSession(input);
+
+    // then
+    expect(result).toEqual(
+      ok({ zendeskToken: `${aSessionId}.${mocks.anExtendedZendeskToken}` }),
+    );
+    expect(mockGetProfile).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+    expect(
+      mocks.toExtendedPlainZendeskSSOToken,
+    ).toHaveBeenCalledExactlyOnceWith(aPlainSessionToken, anEmailAddress);
+    expect(lollipopActivationPortMock.getByFiscalCode).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["the profile has no email", ok(aUserProfileWithoutEmail), undefined],
+    [
+      "the profile email is not validated",
+      ok({
+        ...aUserProfileWithoutEmail,
+        email: anEmailAddress,
+      }),
+      undefined,
+    ],
+    ["the profile cannot be retrieved", err(aGenericError), undefined],
+  ] as const)(
+    "creates the extended Zendesk token without an email when %s",
+    async (_scenario, profileResult, expectedEmail) => {
+      // given
+      mockGetProfile.mockResolvedValueOnce(profileResult);
+
+      const input = {
+        sessionToken: aPlainSessionToken,
+        session: aBaseSession,
+        fieldsFilter: new Set(["zendeskToken"] as const),
+      } satisfies GetSessionInput;
+
+      // when
+      const result = await getSession(input);
+
+      // then
+      expect(result).toEqual(
+        ok({ zendeskToken: `${aSessionId}.${mocks.anExtendedZendeskToken}` }),
+      );
+      expect(mockGetProfile).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+      expect(
+        mocks.toExtendedPlainZendeskSSOToken,
+      ).toHaveBeenCalledExactlyOnceWith(aPlainSessionToken, expectedEmail);
+    },
+  );
+
+  it("returns an error when the requested Lollipop activation cannot be retrieved", async () => {
+    // given
+    lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
+      err(aGenericError),
+    );
+
+    const input = {
+      sessionToken: aPlainSessionToken,
+      session: aBaseSession,
+      fieldsFilter: new Set(["lollipopAssertionRef"] as const),
+    } satisfies GetSessionInput;
+
+    // when
+    const result = await getSession(input);
+
+    // then
+    expect(result).toEqual(
+      err(
+        new GenericError(
+          "An error occurred while retrieving the lollipop activation",
+        ),
+      ),
+    );
+  });
+});

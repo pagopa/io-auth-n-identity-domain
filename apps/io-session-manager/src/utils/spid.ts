@@ -1,19 +1,33 @@
+import * as E from "fp-ts/lib/Either";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import * as S from "fp-ts/lib/string";
 import * as A from "fp-ts/lib/Array";
+import * as T from "fp-ts/lib/Task";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { flow, pipe } from "fp-ts/lib/function";
+import { IDP_NAMES, Issuer } from "@pagopa/io-spid-commons/dist/config";
 import { safeXMLParseFromString } from "@pagopa/io-spid-commons/dist/utils/samlUtils";
+import { XMLValidator } from "fast-xml-parser";
 import { UserWithoutTokens } from "../types/user";
 import { SpidLevel, SpidLevelEnum } from "../types/spid-level";
 import { EmailAddress } from "../generated/backend/EmailAddress";
+import { SpidAuthLevelEnum } from "../generated/backend/SpidAuthLevel";
 import { formatDate } from "./date";
 
 const SAML_NAMESPACE = {
   ASSERTION: "urn:oasis:names:tc:SAML:2.0:assertion",
   PROTOCOL: "urn:oasis:names:tc:SAML:2.0:protocol",
 };
+
+export const getSpidIdpFriendlyName = (issuer: string): T.Task<string> =>
+  pipe(
+    Issuer.decode(issuer),
+    E.map((decodedIssuer) => IDP_NAMES[decodedIssuer]),
+    E.chainW(E.fromNullable(null)),
+    E.getOrElse(() => "Sconosciuto"),
+    T.of,
+  );
 
 export const getIssuerFromSAMLResponse: (
   doc: Document,
@@ -143,3 +157,39 @@ export function getAuthnContextFromResponse(xml: string): O.Option<string> {
     O.chain(getSpidLevelFromSAMLResponse),
   );
 }
+
+/**
+ * Checks that the SAML assertion document is well formed and its content
+ * has not been tampered with, using `fast-xml-parser`'s `XMLValidator` to
+ * strictly validate the serialized XML
+ */
+export const isWellFormedSAMLAssertion = (doc: Document): boolean =>
+  XMLValidator.validate(doc.toString()) === true;
+
+const SPID_LEVEL_ORDER: Record<"SpidL1" | "SpidL2" | "SpidL3", number> = {
+  SpidL1: 1,
+  SpidL2: 2,
+  SpidL3: 3,
+};
+
+const spidLevelSuffix = (
+  level: SpidLevelEnum,
+): "SpidL1" | "SpidL2" | "SpidL3" =>
+  level.replace(
+    "https://www.spid.gov.it/",
+    "",
+  ) as keyof typeof SPID_LEVEL_ORDER;
+
+/**
+ * Compares a SPID level (as carried by the claim, in its
+ * canonical URL form) against a SPID auth level, returning `true` if
+ * `spidLevelReceived` grants an authentication level equal or greater than `minAuthLevel`.
+ *
+ * SpidL1 < SpidL2 < SpidL3
+ */
+export const isSpidLevelGreaterOrEqual = (
+  spidLevelReceived: SpidLevelEnum,
+  minAuthLevel: SpidAuthLevelEnum,
+): boolean =>
+  SPID_LEVEL_ORDER[spidLevelSuffix(spidLevelReceived)] >=
+  SPID_LEVEL_ORDER[minAuthLevel];

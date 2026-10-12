@@ -55,6 +55,10 @@ import {
   getMagicCodeActivityHandler,
 } from "./functions/get-magic-code-activity";
 import {
+  ActivityName as GetProfileVersionsForRecoveryActivityName,
+  getGetProfileVersionsForRecoveryActivityHandler,
+} from "./functions/get-profile-versions-for-recovery-activity";
+import {
   ActivityName as GetServicesPreferencesActivityName,
   GetServicesPreferencesActivityHandler,
 } from "./functions/get-services-preferences-activity";
@@ -62,6 +66,11 @@ import {
   OrchestratorName as NoticeLoginEmailOrchestratorName,
   getNoticeLoginEmailOrchestratorHandler,
 } from "./functions/notice-login-email-orchestrator";
+import {
+  OrchestratorName as RecoverSubscriptionsFeedOrchestratorName,
+  getRecoverSubscriptionsFeedOrchestratorHandler,
+} from "./functions/recover-subscriptions-feed-orchestrator";
+import { RecoverSubscriptionsFeed } from "./functions/recover-subscriptions-feed";
 import {
   ActivityName as SendTemplatedLoginEmailActivityName,
   getSendLoginEmailActivityHandler,
@@ -223,6 +232,10 @@ df.app.activity(GetGeoLocationDataActivityName, {
   handler: getGeoLocationHandler(geoLocationServiceClient),
 });
 
+df.app.activity(GetProfileVersionsForRecoveryActivityName, {
+  handler: getGetProfileVersionsForRecoveryActivityHandler(profileModel),
+});
+
 df.app.activity(GetMagicCodeActivityName, {
   handler: getMagicCodeActivityHandler(
     getMagicLinkServiceClient(
@@ -291,6 +304,40 @@ df.app.orchestration(
   NoticeLoginEmailOrchestratorName,
   getNoticeLoginEmailOrchestratorHandler,
 );
+
+df.app.orchestration(
+  RecoverSubscriptionsFeedOrchestratorName,
+  getRecoverSubscriptionsFeedOrchestratorHandler({
+    dryRun: config.SUBSCRIPTION_FEED_RECOVERY_DRY_RUN,
+    endDate: config.SUBSCRIPTION_FEED_RECOVERY_END_DATE.getTime(),
+    startDate: config.SUBSCRIPTION_FEED_RECOVERY_START_DATE.getTime(),
+    telemetryClient,
+  }),
+);
+
+app.cosmosDB("RecoverSubscriptionsFeed", {
+  connection: "COSMOSDB_CONNECTION_STRING",
+  containerName: PROFILE_COLLECTION_NAME,
+  createLeaseContainerIfNotExists: true,
+  databaseName: config.COSMOSDB_NAME,
+  extraInputs: [df.input.durableClient()],
+  handler: RecoverSubscriptionsFeed({
+    dryRun: config.SUBSCRIPTION_FEED_RECOVERY_DRY_RUN,
+    endDate: config.SUBSCRIPTION_FEED_RECOVERY_END_DATE.getTime(),
+    leasePrefix: config.SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX,
+    startDate: config.SUBSCRIPTION_FEED_RECOVERY_START_DATE.getTime(),
+    telemetryClient,
+  }),
+  leaseContainerName: config.SUBSCRIPTION_FEED_RECOVERY_LEASE_CONTAINER_NAME,
+  leaseContainerPrefix: config.SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX,
+  startFromTime: config.SUBSCRIPTION_FEED_RECOVERY_START_DATE.toISOString(),
+  retry: {
+    strategy: "exponentialBackoff",
+    maxRetryCount: 5,
+    minimumInterval: { seconds: 5 },
+    maximumInterval: { minutes: 1 },
+  },
+});
 
 // ---- HTTP FUNCTIONS ----
 const eventTracker = createTracker(telemetryClient);

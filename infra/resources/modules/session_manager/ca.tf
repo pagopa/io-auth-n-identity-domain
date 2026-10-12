@@ -1,6 +1,6 @@
 module "sm_ca" {
   source  = "pagopa-dx/azure-container-app/azurerm"
-  version = "~> 5.0"
+  version = "~> 7.0"
 
   environment = {
     prefix          = var.prefix
@@ -15,15 +15,42 @@ module "sm_ca" {
 
   log_analytics_workspace_id = var.log_analytics_workspace_id
 
+  secrets = [
+    {
+      name                = "ONEID_PROD_CLIENT_SECRET"
+      key_vault_secret_id = azurerm_key_vault_secret.sm_oneid_prod_client_secret.versionless_id
+    },
+    {
+      name                = "ONEID_UAT_CLIENT_SECRET"
+      key_vault_secret_id = azurerm_key_vault_secret.sm_oneid_uat_client_secret.versionless_id
+    },
+    {
+      name                = "LOLLIPOP_API_KEY"
+      key_vault_secret_id = azurerm_key_vault_secret.sm_lollipop_api_key.versionless_id
+    },
+    {
+      name                = "IO_PROFILE_API_KEY"
+      key_vault_secret_id = azurerm_key_vault_secret.sm_io_profile_api_key.versionless_id
+    },
+    {
+      name                = "JWT_ZENDESK_SUPPORT_TOKEN_SECRET"
+      key_vault_secret_id = azurerm_key_vault_secret.sm_zendesk_support_token_secret.versionless_id
+    },
+  ]
+
   containers = [
     {
       image = "ghcr.io/pagopa/io-auth-sm"
       name  = "${var.prefix}-${var.domain}-${local.app_name}"
 
       app_settings = local.app_settings
+      secret_names = ["ONEID_PROD_CLIENT_SECRET", "ONEID_UAT_CLIENT_SECRET", "LOLLIPOP_API_KEY", "IO_PROFILE_API_KEY", "JWT_ZENDESK_SUPPORT_TOKEN_SECRET"]
 
       liveness_probe = {
-        path = "/api/auth/v2/healthcheck"
+        path = "/api/auth/v2/health/liveness"
+      }
+      readiness_probe = {
+        path = "/api/auth/v2/health/readiness"
       }
     },
   ]

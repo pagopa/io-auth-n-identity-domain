@@ -6,13 +6,16 @@
  */
 
 import { MailerConfig } from "@pagopa/io-functions-commons/dist/src/mailer";
-import { DateFromTimestamp } from "@pagopa/ts-commons/lib/dates";
+import {
+  DateFromTimestamp,
+  UTCISODateFromString,
+} from "@pagopa/ts-commons/lib/dates";
 import { NumberFromString } from "@pagopa/ts-commons/lib/numbers";
 import {
   readableReport,
   readableReportSimplified,
 } from "@pagopa/ts-commons/lib/reporters";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { NonEmptyString} from "@pagopa/ts-commons/lib/strings";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 import * as E from "fp-ts/lib/Either";
@@ -20,6 +23,7 @@ import { flow, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { BooleanFromString, withFallback } from "io-ts-types";
+import { LeasePrefix } from "./types/lease-prefix";
 
 // exclude a specific value from a type
 // as strict equality is performed, allowed input types are constrained to be values not references (object, arrays, etc)
@@ -102,6 +106,21 @@ export const IConfig = t.intersection([
     QueueStorageConnection: NonEmptyString,
 
     SUBSCRIPTIONS_FEED_TABLE: NonEmptyString,
+
+    SUBSCRIPTION_FEED_RECOVERY_START_DATE: UTCISODateFromString,
+    SUBSCRIPTION_FEED_RECOVERY_END_DATE: UTCISODateFromString,
+    SUBSCRIPTION_FEED_RECOVERY_LEASE_CONTAINER_NAME: withFallback(
+      NonEmptyString,
+      "leases" as NonEmptyString,
+    ),
+    // Namespace of a single recovery pass. It is used both as the Cosmos DB
+    // change feed lease prefix and as the orchestration instance id suffix, so
+    // that a new value replays the whole window from scratch without being
+    // deduplicated against the instances of the previous passes (e.g. a dry-run).
+    // The prefix ends up in both a Cosmos DB document id and a Durable
+    // Functions instance id, so it must not contain reserved characters
+    SUBSCRIPTION_FEED_RECOVERY_LEASE_PREFIX: LeasePrefix,
+    SUBSCRIPTION_FEED_RECOVERY_DRY_RUN: withFallback(BooleanFromString, false),
 
     // eslint-disable-next-line sort-keys
     OPT_OUT_EMAIL_SWITCH_DATE: DateFromTimestamp,
@@ -218,5 +237,22 @@ export function getConfigOrThrow(): IConfig {
     E.getOrElseW((errors) => {
       throw new Error(`Invalid configuration: ${readableReport(errors)}`);
     }),
+    (config) => {
+      if (
+        config.SUBSCRIPTION_FEED_RECOVERY_END_DATE.getTime() <=
+        config.SUBSCRIPTION_FEED_RECOVERY_START_DATE.getTime()
+      ) {
+        throw new Error(
+          "SUBSCRIPTION_FEED_RECOVERY_END_DATE must be after SUBSCRIPTION_FEED_RECOVERY_START_DATE",
+        );
+      }
+
+      if (config.SUBSCRIPTION_FEED_RECOVERY_END_DATE.getTime() > Date.now()) {
+        throw new Error(
+          "SUBSCRIPTION_FEED_RECOVERY_END_DATE must not be in the future",
+        );
+      }
+      return config;
+    },
   );
 }

@@ -1,5 +1,12 @@
 # io-session-manager-internal
 
+## 0.18.0
+
+### Minor Changes
+
+- e9925b2: Add `getUserLollipopActivation`
+- 76041b3: Add `softDeleteUserSession`
+
 ## 0.17.1
 
 ### Patch Changes

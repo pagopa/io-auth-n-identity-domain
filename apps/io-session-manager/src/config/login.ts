@@ -12,6 +12,7 @@ import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import * as O from "fp-ts/Option";
 import { Second } from "@pagopa/ts-commons/lib/units";
 import { getIsUserElegibleForIoLoginUrlScheme } from "../utils/login-uri-scheme";
+import { NonNegativeIntegerFromString } from "@pagopa/ts-commons/lib/numbers";
 
 export function decompressFiscalCodeList(envVar?: string): Set<FiscalCode> {
   return pipe(
@@ -84,3 +85,10 @@ export const TEST_LOGIN_PASSWORD = NonEmptyString.decode(
 
 export const isTestUser = (fiscalCode: FiscalCode) =>
   TEST_LOGIN_FISCAL_CODES_COMPRESSED.has(fiscalCode);
+
+const DEFAULT_LOGIN_AGE_LIMIT = 18;
+export const LOGIN_AGE_LIMIT = pipe(
+  process.env.LOGIN_AGE_LIMIT,
+  NonNegativeIntegerFromString.decode,
+  E.getOrElse(() => DEFAULT_LOGIN_AGE_LIMIT),
+);

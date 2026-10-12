@@ -73,6 +73,7 @@ module "storage_account_services" {
 
   tables = [
     local.locked_profiles_table_name,
+    local.technical_locked_profiles_table_name,
     local.profile_emails_table_name
   ]
 

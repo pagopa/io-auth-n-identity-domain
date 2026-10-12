@@ -97,6 +97,14 @@ export default defineWorkspace([
     },
   },
   {
+    extends: "packages/io-auth-n-identity-session/vite.config.mts",
+    test: {
+      name: "io-auth-n-identity-session",
+      include: ["packages/io-auth-n-identity-session/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
+  {
     extends: "packages/io-package-info/vite.config.mts",
     test: {
       name: "io-package-info",
@@ -109,6 +117,15 @@ export default defineWorkspace([
     test: {
       name: "io-session-manager-oi",
       include: ["apps/io-session-manager-oi/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
+  {
+    extends: "packages/azure-sdk/vite.config.mts",
+    test: {
+      name: "azure-sdk",
+      include: ["packages/azure-sdk/**/__tests__/*.test.ts"],
+      exclude: ["**/__integrations__/**"],
       environment: "node",
     },
   },

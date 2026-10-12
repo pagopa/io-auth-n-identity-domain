@@ -49,6 +49,8 @@ locals {
 
   locked_profiles_table_name = "lockedprofile01"
 
+  technical_locked_profiles_table_name = "technicallockedprofile01"
+
   tags = {
     CreatedBy      = "Terraform"
     Environment    = "Prod"

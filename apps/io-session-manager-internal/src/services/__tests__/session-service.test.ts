@@ -41,15 +41,18 @@ import {
   mockDeleteInstallation,
 } from "../../__mocks__/repositories/installation.mock";
 import {
+  anAssertionRef,
   anUnlockCode,
   anUnlockedUserSessionState,
   anotherUnlockCode,
+  anAssertionRef,
   mockSessionToken,
 } from "../../__mocks__/user.mock";
 import {
   forbiddenError,
   toConflictError,
   toGenericError,
+  toNotFoundError,
 } from "../../utils/errors";
 import { aNotReleasedData } from "../../__mocks__/table-client.mock";
 import { LoginTypeEnum } from "../../types/fast-login";
@@ -834,6 +837,155 @@ describe("Session Service#getUserSessionState", () => {
     expect(result).toEqual(
       E.left(
         toGenericError(`Error reading the session info: [${anErrorMessage}]`),
+      ),
+    );
+  });
+});
+
+describe("Session Service#softDeleteUserSession", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const deps = {
+    FastRedisClientTask: RedisClientTaskMock,
+    SafeRedisClientTask: RedisClientTaskMock,
+    RedisRepository: RedisRepositoryMock,
+    LollipopRepository: LollipopRepositoryMock,
+    RevokeAssertionRefQueueClient: {} as QueueClient,
+    PlatformInternalRepository: PlatformInternalRepositoryMock,
+    platformInternalApiClient: {} as PlatformInternalApiClient,
+  };
+
+  it("should succeed soft-deleting an user session without revoking pubkey", async () => {
+    const result =
+      await SessionService.softDeleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionToken: mockSessionToken,
+      }),
+    );
+    // pubkey MUST NOT be revoked
+    expect(mockGetLollipopAssertionRefForUser).not.toHaveBeenCalled();
+    expect(mockfireAndForgetRevokeAssertionRef).not.toHaveBeenCalled();
+    // lollipop activation MUST be disabled
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    // sessions MUST be removed
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    // NO logout event should be emitted
+    expect(mockEmitSessionEvent).not.toHaveBeenCalled();
+    expect(result).toEqual(E.right(null));
+  });
+
+  it("should succeed even if no user session was found", async () => {
+    mockReadSessionInfoKeys.mockReturnValueOnce(TE.left(sessionNotFoundError));
+    const result =
+      await SessionService.softDeleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockReadSessionInfoKeys).toHaveBeenCalledTimes(1);
+    expect(mockCacheDelSessionToken).not.toHaveBeenCalled();
+    expect(mockfireAndForgetRevokeAssertionRef).not.toHaveBeenCalled();
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.right(null));
+  });
+
+  it("should fail when redis is not available", async () => {
+    const anErrorMessage = "ERROR";
+    const expectedError = toGenericError(
+      `Could not establish connection to redis: ${anErrorMessage}`,
+    );
+    const result = await SessionService.softDeleteUserSession(aFiscalCode)({
+      ...deps,
+      FastRedisClientTask: TE.left(Error(anErrorMessage)),
+    })();
+
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return generic error when delete of lollipop data fails", async () => {
+    const anError = Error("ERROR");
+    const expectedError = toGenericError(anError.message);
+    mockDelLollipopDataForUser.mockReturnValueOnce(TE.left(anError));
+
+    const result =
+      await SessionService.softDeleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockDelLollipopDataForUser).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return generic error when delete of all sessions fails", async () => {
+    const anError = Error("ERROR");
+    const expectedError = toGenericError(anError.message);
+    mockDelUserAllSessions.mockReturnValueOnce(TE.left(anError));
+
+    const result =
+      await SessionService.softDeleteUserSession(aFiscalCode)(deps)();
+
+    expect(mockDelUserAllSessions).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.left(expectedError));
+  });
+});
+
+describe("Session Service#getUserLollipopActivation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const deps = {
+    SafeRedisClientTask: RedisClientTaskMock,
+    RedisRepository: RedisRepositoryMock,
+  };
+
+  it("should succeed returning the user assertion ref", async () => {
+    const result =
+      await SessionService.getUserLollipopActivation(aFiscalCode)(deps)();
+
+    expect(mockGetLollipopAssertionRefForUser).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(E.right(anAssertionRef));
+  });
+
+  it("should return NotFoundError when no assertion ref is stored for the user", async () => {
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(TE.right(O.none));
+
+    const result =
+      await SessionService.getUserLollipopActivation(aFiscalCode)(deps)();
+
+    expect(result).toEqual(E.left(toNotFoundError("LollipopActivation")));
+  });
+
+  it("should return generic error when redis is not available", async () => {
+    const anErrorMessage = "ERROR";
+    const expectedError = toGenericError(
+      `Could not establish connection to redis: ${anErrorMessage}`,
+    );
+
+    const result = await SessionService.getUserLollipopActivation(aFiscalCode)({
+      ...deps,
+      SafeRedisClientTask: TE.left(Error(anErrorMessage)),
+    })();
+
+    expect(result).toEqual(E.left(expectedError));
+  });
+
+  it("should return generic error when assertion ref retrieval fails", async () => {
+    const anErrorMessage = "ERROR";
+    mockGetLollipopAssertionRefForUser.mockReturnValueOnce(
+      TE.left(new Error(anErrorMessage)),
+    );
+
+    const result =
+      await SessionService.getUserLollipopActivation(aFiscalCode)(deps)();
+
+    expect(result).toEqual(
+      E.left(
+        toGenericError(
+          `Error reading the lollipop assertion ref: [${anErrorMessage}]`,
+        ),
       ),
     );
   });

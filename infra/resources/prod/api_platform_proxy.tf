@@ -11,6 +11,7 @@ module "io_platform_apim_api_itn" {
   ]
 
   external_api_base_path = "api/auth"
+  session_manager_oi_url = module.session_manager.url
   bpd_api_base_path      = "api/sso/bpd"
   fims_api_base_path     = "api/sso/fims"
   pagopa_api_base_path   = "api/sso/pagopa"

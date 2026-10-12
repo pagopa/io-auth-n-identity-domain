@@ -5,6 +5,7 @@ import { RedisClientSelectorType } from "../types/redis";
 export const mockGet = vi.fn();
 export const mockSet = vi.fn();
 export const mockSetEx = vi.fn();
+export const mockGetDel = vi.fn();
 export const mockMget = vi.fn();
 export const mockSmembers = vi.fn();
 export const mockSismember = vi.fn();
@@ -18,6 +19,7 @@ export const mockSendCommand = vi.fn().mockResolvedValue("cluster_state:ok");
 export const mockRedisClusterType = {
   set: mockSet,
   setEx: mockSetEx,
+  getDel: mockGetDel,
   get: mockGet,
   mGet: mockMget,
   del: mockDel,

@@ -1,7 +1,7 @@
 resource "azurerm_storage_queue" "queues" {
   for_each = var.queues
 
-  name                 = each.value
-  storage_account_name = var.storage_account.name
-  metadata             = local.metadata
+  name               = each.value
+  storage_account_id = var.storage_account.id
+  metadata           = local.metadata
 }

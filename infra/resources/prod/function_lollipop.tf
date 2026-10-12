@@ -59,7 +59,7 @@ data "azurerm_resource_group" "function_lollipop_rg" {
 
 module "function_lollipop" {
   source  = "pagopa-dx/azure-function-app/azurerm"
-  version = "~> 1.0"
+  version = "~> 6.0"
 
   environment = {
     prefix          = local.prefix
@@ -74,7 +74,7 @@ module "function_lollipop" {
   health_check_path   = "/info"
   node_version        = 22
   # P3mv3 SKU and 10 Worker process count
-  tier = "xxl"
+  size = "P3mv3"
 
   subnet_cidr   = local.cidr_subnet_fn_lollipop
   subnet_pep_id = data.azurerm_subnet.private_endpoints_subnet.id
@@ -106,7 +106,7 @@ module "function_lollipop" {
   application_insights_connection_string   = data.azurerm_application_insights.application_insights.connection_string
   application_insights_sampling_percentage = local.function_lollipop.prod_slot_sampling_percentage
 
-  action_group_id = azurerm_monitor_action_group.error_action_group.id
+  action_group_ids = [azurerm_monitor_action_group.error_action_group.id]
 
   tags = local.tags
 }
@@ -128,8 +128,8 @@ module "function_lollipop_autoscale" {
 
   scheduler = {
     normal_load = {
-      minimum = 8
-      default = 10
+      minimum = 15
+      default = 15
     },
     maximum = 30
   }

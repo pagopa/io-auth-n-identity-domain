@@ -1,14 +1,13 @@
 import { GenericError, type UseCase } from "@pagopa/hexagonal-core";
 import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { type PackageInfo } from "@pagopa/io-package-info";
-import { ok, err } from "neverthrow";
+import { err, ok } from "neverthrow";
 import { z } from "zod";
 
-export const HealthCheckOutputSchema = z
-  .object({
-    name: z.string(),
-    version: z.string(),
-  });
+export const HealthCheckOutputSchema = z.object({
+  name: z.string(),
+  version: z.string(),
+});
 
 export type HealthCheckOutput = z.input<typeof HealthCheckOutputSchema>;
 
@@ -20,7 +19,7 @@ type NamedHealthCheckOutboundPort = {
 export const getHealthCheckUseCase =
   (
     packageInfo: PackageInfo,
-    outboundPorts: ReadonlyArray<NamedHealthCheckOutboundPort>,
+    outboundPorts: ReadonlyArray<NamedHealthCheckOutboundPort> = [],
   ): UseCase<Record<never, never>, HealthCheckOutput, GenericError> =>
   async () => {
     const errors = await collectErrors(outboundPorts);

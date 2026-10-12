@@ -33,6 +33,7 @@ import {
   ZendeskController,
   BPDController,
   PagoPAController,
+  OidcController,
 } from "./controllers";
 import {
   applyErrorMiddleware,
@@ -42,7 +43,7 @@ import {
   setupMetadataRefresher,
   AppWithRefresherTimer,
 } from "./utils/express";
-import { withUserFromRequest } from "./utils/user";
+import { validateSpidUser, withUserFromRequest } from "./utils/user";
 import { AdditionalLoginProps, LoginTypeEnum } from "./types/fast-login";
 import { TimeTracer } from "./utils/timer";
 import { RedisClientMode, RedisClientSelectorType } from "./types/redis";
@@ -66,7 +67,10 @@ import {
   PlatformInternalService,
   RedisSessionStorageService,
 } from "./services";
-import { lollipopLoginMiddleware } from "./utils/lollipop";
+import {
+  lollipopLoginMiddleware,
+  lollipopReserveMiddleware,
+} from "./utils/lollipop";
 import { checkIP, withIPFromRequest } from "./utils/network";
 import { expressLollipopMiddleware } from "./utils/lollipop";
 import { bearerZendeskTokenStrategy } from "./auth/bearer-zendesk-token-strategy";
@@ -79,6 +83,7 @@ import {
 } from "./config/spid";
 import {
   isUserElegibleForIoLoginUrlScheme,
+  LOGIN_AGE_LIMIT,
   standardTokenDurationSecs,
 } from "./config/login";
 import { initStorageDependencies } from "./utils/storages";
@@ -88,6 +93,8 @@ import { bearerWalletTokenStrategy } from "./auth/bearer-wallet-token-strategy";
 import { AcsDependencies } from "./controllers/authentication";
 import { localStrategy } from "./auth/local-strategy";
 import { isUserElegibleForValidationCookie } from "./config/validation-cookie";
+import { CallbackDeps } from "./services/oidc";
+import { getSpidIdpFriendlyName } from "./utils/spid";
 
 export interface IAppFactoryParameters {
   readonly appInsightsClient?: appInsights.TelemetryClient;
@@ -179,9 +186,12 @@ export const newApp: (
     ...omit(["spidLogQueueClient"], storageDependencies),
     isUserElegibleForFastLogin,
     isUserElegibleForValidationCookie,
+    validateSpidUser,
+    ageLimit: LOGIN_AGE_LIMIT,
     AuthSessionsTopicRepository,
     authSessionsTopicSender: authSessionsTopicServiceBusSender,
     platformInternalAPIService: PlatformInternalService,
+    getIdentityProvider: getSpidIdpFriendlyName,
     platformInternalAPIClient: APIClients.platformInternalAPIClient,
   };
 
@@ -195,6 +205,10 @@ export const newApp: (
     authMiddlewares,
     REDIS_CLIENT_SELECTOR,
     acsDependencies,
+    {
+      ...acsDependencies,
+      oneIdAPIClient: APIClients.oneIdAPIClient,
+    },
     appInsightsClient,
   );
 
@@ -393,6 +407,7 @@ function setupExternalEndpoints(
   },
   redisClientSelector: RedisClientSelectorType,
   acsDependencies: AcsDependencies,
+  oidcCallbackDependencies: CallbackDeps,
   appInsightsClient?: appInsights.TelemetryClient,
 ) {
   pipe(
@@ -506,6 +521,31 @@ function setupExternalEndpoints(
         platformInternalAPIClient: APIClients.platformInternalAPIClient,
       }),
       ap(withIPFromRequest(FastLoginController.fastLoginEndpoint)),
+    ),
+  );
+
+  app.post(
+    `${basePath}/reserve`,
+    toExpressMiddleware(
+      lollipopReserveMiddleware(
+        APIClients.fnLollipopAPIClient,
+        appInsightsClient,
+      ),
+    ),
+    pipe(
+      toExpressHandler({
+        redisClientSelector,
+        appInsightsTelemetryClient: appInsightsClient,
+      }),
+      ap(OidcController.reserveEndpoint),
+    ),
+  );
+
+  app.get(
+    `${basePath}/callback`,
+    pipe(
+      toExpressHandler(oidcCallbackDependencies),
+      ap(OidcController.callbackEndpoint),
     ),
   );
 }

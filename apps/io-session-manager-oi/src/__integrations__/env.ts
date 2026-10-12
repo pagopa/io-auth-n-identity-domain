@@ -1,6 +1,17 @@
-export const IO_PROFILE_BASE_URL = `http://localhost:${process.env.FUNCTION_PROFILE_PORT ?? 7076}/api/v1`;
+import type { NonEmptyString } from "@pagopa/hexagonal-core";
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 
-export const IO_PROFILE_API_KEY = process.env.IO_PROFILE_API_KEY ?? "api_key";
+export const IO_PROFILE_BASE_URL = new URL(
+  `http://localhost:${process.env.FUNCTION_PROFILE_PORT ?? 7076}/api/v1`,
+);
+
+export const IO_PROFILE_API_KEY: NonEmptyString = NonEmptyStringSchema.parse(
+  process.env.IO_PROFILE_API_KEY ?? "api_key",
+);
+
+export const PLATFORM_INTERNAL_BASE_URL = new URL(
+  `http://localhost:${process.env.FUNCTION_SESSION_MANAGER_INTERNAL_PORT ?? 3009}/api/platform-internal/v1`,
+);
 
 export const ENVIRONMENT = process.env.ENVIRONMENT || "DEV";
 
@@ -8,7 +19,7 @@ export const ENVIRONMENT = process.env.ENVIRONMENT || "DEV";
 // Tests run on the host, so the emulator must be reached through the
 // port published by docker-compose, not through the internal `cosmosdb`
 // hostname used by containers on the `io-fn` network.
-export const COSMOSDB_PORT = Number(process.env.COSMOSDB_PORT ?? 3000);
+export const COSMOSDB_PORT = Number(process.env.COSMOSDB_PORT ?? 443);
 
 export const COSMOSDB_URI =
   process.env.COSMOSDB_URI ?? `https://localhost:${COSMOSDB_PORT}`;
@@ -17,7 +28,34 @@ export const COSMOSDB_KEY = process.env.COSMOSDB_KEY ?? "dummykey";
 
 // Must match the database used by the `io-profile` container
 // (see docker/.env.common.example).
-export const COSMOSDB_NAME = process.env.COSMOSDB_NAME ?? "testdb";
+export const COSMOSDB_NAME = process.env.COSMOSDB_NAME ?? "io-auth-SM";
 
 // Must match PROFILE_COLLECTION_NAME from @pagopa/io-functions-commons.
 export const PROFILE_CONTAINER_NAME = "profiles";
+
+// Containers used by the `SessionCosmosAdapter` to store the user session
+// tokens and the active session metadata.
+export const SESSION_TOKEN_CONTAINER_NAME =
+  process.env.COSMOSDB_SESSION_TOKEN_CONTAINER_NAME ?? "session-tokens";
+
+export const ACTIVE_SESSION_CONTAINER_NAME =
+  process.env.COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME ?? "active-sessions";
+
+export const COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME =
+  process.env.COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME ??
+  "lollipop-activations";
+
+export const AZURITE_TABLE_PORT = Number(
+  process.env.AZURITE_TABLE_PORT ?? 20005,
+);
+
+// Well-known Azurite emulator account/key — safe to hard-code.
+const AZURITE_ACCOUNT = "devstoreaccount1";
+const AZURITE_KEY =
+  "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==";
+
+const AZURITE_CONNECTION_STRING = `DefaultEndpointsProtocol=http;AccountName=${AZURITE_ACCOUNT};AccountKey=${AZURITE_KEY};BlobEndpoint=http://localhost:10000/${AZURITE_ACCOUNT};QueueEndpoint=http://localhost:10001/${AZURITE_ACCOUNT};TableEndpoint=http://localhost:${AZURITE_TABLE_PORT}/${AZURITE_ACCOUNT};`;
+
+export const LOCKED_PROFILES_STORAGE_CONNECTION_STRING =
+  process.env.LOCKED_PROFILES_STORAGE_CONNECTION_STRING ??
+  AZURITE_CONNECTION_STRING;

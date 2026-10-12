@@ -8,6 +8,7 @@ import {
   FnAppRepo,
   FnFastLoginRepo,
   FnLollipopRepo,
+  OneIdRepo,
   PlatformInternalClientRepo,
 } from "../repositories";
 import { httpOrHttpsApiFetch } from "./fetch";
@@ -15,7 +16,8 @@ import { httpOrHttpsApiFetch } from "./fetch";
 export const initAPIClientsDependencies: () => FnAppRepo.FnAppAPIRepositoryDeps &
   FnFastLoginRepo.FnFastLoginRepositoryDeps &
   FnLollipopRepo.LollipopApiDeps &
-  PlatformInternalClientRepo.PlatformInternalClientDeps = () => {
+  PlatformInternalClientRepo.PlatformInternalClientDeps &
+  OneIdRepo.OneIdAPIRepositoryDeps = () => {
   // Create the API client for `io-profile`
   const fnAppAPIClient = FnAppRepo.FnAppAPIClient(
     FnAppConfig.FN_APP_API_URL,
@@ -44,10 +46,13 @@ export const initAPIClientsDependencies: () => FnAppRepo.FnAppAPIRepositoryDeps 
       httpOrHttpsApiFetch,
     );
 
+  const oneIdAPIClient = OneIdRepo.getOneIdAPIClient(httpOrHttpsApiFetch);
+
   return {
     fnAppAPIClient,
     fnFastLoginAPIClient,
     fnLollipopAPIClient,
     platformInternalAPIClient,
+    oneIdAPIClient,
   };
 };

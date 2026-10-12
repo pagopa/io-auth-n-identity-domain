@@ -3,17 +3,20 @@ import {
   EmailAddress,
   FiscalCodeSchema,
   GenericError,
+  NonEmptyStringSchema,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { UserProfile } from "../../../domain/entities/profile.entity.js";
-import { createIoProfileAdapter } from "../io-profile.adapter.js";
+import type { NotifyLoginParamsDTO } from "../../../domain/ports/outbound/profile.port.js";
 import {
   createProfile,
   getProfile,
+  startNotifyLoginProcess,
 } from "../../../generated/io-profile/sdk.gen.js";
 import { ExtendedProfile } from "../../../generated/io-profile/types.gen.js";
+import { createIoProfileAdapter } from "../io-profile.adapter.js";
 
 vi.mock("../../../generated/io-profile/client/index.js", () => ({
   createClient: vi.fn(() => ({
@@ -24,13 +27,14 @@ vi.mock("../../../generated/io-profile/client/index.js", () => ({
 vi.mock("../../../generated/io-profile/sdk.gen.js", () => ({
   createProfile: vi.fn(),
   getProfile: vi.fn(),
+  startNotifyLoginProcess: vi.fn(),
 }));
 
 const FISCAL_CODE = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 
 const adapter = createIoProfileAdapter({
-  baseUrl: "http://localhost",
-  apiKey: "test-key",
+  baseUrl: new URL("http://localhost"),
+  apiKey: NonEmptyStringSchema.parse("test-key"),
 });
 
 beforeEach(() => {
@@ -183,5 +187,50 @@ describe("createIoProfileAdapter#create", () => {
         expect(result._unsafeUnwrapErr()).toBeInstanceOf(errorClass);
       },
     );
+  });
+});
+
+describe("createIoProfileAdapter#startNotifyLoginProcess", () => {
+  const notifyLoginParams: NotifyLoginParamsDTO = {
+    fiscalCode: FISCAL_CODE,
+    name: NonEmptyStringSchema.parse("Mario"),
+    familyName: NonEmptyStringSchema.parse("Rossi"),
+    email: "user@example.com" as EmailAddress,
+    identityProvider: NonEmptyStringSchema.parse("spid"),
+    ipAddress: "127.0.0.1",
+  };
+
+  it("returns ok(void) on 202", async () => {
+    vi.mocked(startNotifyLoginProcess).mockResolvedValue({
+      data: undefined,
+      error: undefined,
+      response: { status: 202 } as Response,
+    });
+
+    const result = await adapter.notifyLogin(notifyLoginParams);
+
+    expect(result.isOk()).toBe(true);
+  });
+
+  describe("error status codes", () => {
+    it.each`
+      status
+      ${400}
+      ${401}
+      ${404}
+      ${429}
+      ${500}
+    `("returns err(GenericError) on $status", async ({ status }) => {
+      vi.mocked(startNotifyLoginProcess).mockResolvedValue({
+        data: undefined,
+        error: {},
+        response: { status } as Response,
+      });
+
+      const result = await adapter.notifyLogin(notifyLoginParams);
+
+      expect(result.isErr()).toBe(true);
+      expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+    });
   });
 });

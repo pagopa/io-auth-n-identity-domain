@@ -1,21 +1,438 @@
+import { CosmosClient } from "@azure/cosmos";
+import { TableClient } from "@azure/data-tables";
+import { DefaultAzureCredential } from "@azure/identity";
+import { ServiceBusClient } from "@azure/service-bus";
+import { QueueServiceClient } from "@azure/storage-queue";
+import formbody from "@fastify/formbody";
+import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
+import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
+import {
+  LollipopActivationCosmosAdapter,
+  SessionCosmosAdapter,
+} from "@pagopa/io-auth-n-identity-session/adapters";
 import { type PackageInfo } from "@pagopa/io-package-info";
+import {
+  createRedisClusterClient,
+  createRedisManagedIdentityClusterClient,
+} from "@pagopa/redis/node-client";
+import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
+import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
+import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
+import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
+import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
+import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
+import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
+import { mountSsoFimsLollipopUserHandler } from "./adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
+import { mountSsoFimsUserHandler } from "./adapters/inbound/fastify/sso-fims-user.handler.js";
+import { mountSsoPagopaUserHandler } from "./adapters/inbound/fastify/sso-pagopa-user.handler.js";
+import { mountSsoZendeskTokenHandler } from "./adapters/inbound/fastify/sso-zendesk-token.handler.js";
+import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
+import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
+import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
+import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
+import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
+import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
+import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
+import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
+import { OneIdIdentityAssertionFetcherAdapter } from "./adapters/outbound/one-id-identity-assertion-fetcher-adapter.js";
+import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
+import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
+import { TechnicalLockedProfilesDataTableAdapter } from "./adapters/outbound/technical-locked-profiles-data-table.adapter.js";
+import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
+import { makeGetLollipopUserForFimsUseCase } from "./application/use-cases/get-lollipop-user-for-fims.use-case.js";
+import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
+import { makeGetTokenForZendeskUseCase } from "./application/use-cases/get-token-for-zendesk.use-case.js";
+import { getUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
+import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-fims.use-case.js";
+import { makeGetUserForPagopaUseCase } from "./application/use-cases/get-user-for-pagopa.use-case.js";
+import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
-import { type Config } from "./domain/value-objects/config.vo.js";
+import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
+import { type Config } from "./domain/value-objects/configs/index.js";
+import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
+import {
+  AuthenticationMiddlewareFactory,
+  TokenParsingStrategyFactory,
+  TokenIntrospectionStrategyFactory,
+  TokenTransportStrategyFactory,
+} from "./middlewares/authentication/index.js";
 
-export const createApp = (
+class AzureCredential {
+  private static instance: DefaultAzureCredential | undefined;
+
+  private constructor() {}
+
+  public static getInstance(): DefaultAzureCredential {
+    if (!AzureCredential.instance) {
+      AzureCredential.instance = new DefaultAzureCredential();
+    }
+    return AzureCredential.instance;
+  }
+}
+
+// eslint-disable-next-line max-lines-per-function
+export const createApp = async (
   config: Config,
   packageInfo: PackageInfo,
-): {
+): Promise<{
   server: FastifyInstance;
-} => {
+}> => {
   const server = fastify({
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
   });
+  server.register(formbody);
 
-  mountHealthCheckHandler(server, getHealthCheckUseCase(packageInfo, []));
+  // --------------------------------------------------
+  // Clients initialization
+  // --------------------------------------------------
+
+  const lockedProfilesTableClient =
+    config.NODE_ENV === "production"
+      ? new TableClient(
+          config.LOCKED_PROFILES_STORAGE_ACCOUNT_URI,
+          config.LOCKED_PROFILES_TABLE_NAME,
+          AzureCredential.getInstance(),
+        )
+      : TableClient.fromConnectionString(
+          config.LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
+          config.LOCKED_PROFILES_TABLE_NAME,
+        );
+
+  const technicalLockedProfilesTableClient =
+    config.NODE_ENV === "production"
+      ? new TableClient(
+          config.TECHNICAL_LOCKED_PROFILES_STORAGE_ACCOUNT_URI,
+          config.TECHNICAL_LOCKED_PROFILES_TABLE_NAME,
+          AzureCredential.getInstance(),
+        )
+      : TableClient.fromConnectionString(
+          config.TECHNICAL_LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
+          config.TECHNICAL_LOCKED_PROFILES_TABLE_NAME,
+        );
+
+  const pushNotificationsQueueServiceClient =
+    config.NODE_ENV === "production"
+      ? new QueueServiceClient(
+          config.PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI,
+          AzureCredential.getInstance(),
+        )
+      : QueueServiceClient.fromConnectionString(
+          config.PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING,
+        );
+
+  const redisClient =
+    config.NODE_ENV === "production"
+      ? await createRedisManagedIdentityClusterClient(
+          {
+            hostname: config.REDIS_HOSTNAME,
+            port: config.REDIS_PORT,
+            enableTls: config.REDIS_TLS_ENABLED,
+          },
+          AzureCredential.getInstance(),
+        )
+      : await createRedisClusterClient({
+          hostname: config.REDIS_HOSTNAME,
+          password: config.REDIS_PASSWORD,
+          port: config.REDIS_PORT,
+          enableTls: config.REDIS_TLS_ENABLED,
+        });
+
+  const cosmosClient =
+    config.NODE_ENV === "production"
+      ? new CosmosClient({
+          endpoint: config.COSMOSDB_URI,
+          aadCredentials: AzureCredential.getInstance(),
+        })
+      : new CosmosClient(config.COSMOSDB_CONNECTION_STRING);
+
+  const serviceBusClient =
+    config.NODE_ENV === "production"
+      ? new ServiceBusClient(
+          config.SERVICE_BUS_HOSTNAME,
+          AzureCredential.getInstance(),
+        )
+      : new ServiceBusClient(config.SERVICE_BUS_CONNECTION_STRING);
+
+  // --------------------------------------------------
+  // Adapters initialization
+  // --------------------------------------------------
+
+  const lockedProfilesAdapter = new LockedProfilesDataTableAdapter(
+    new TableClientWrapper(
+      lockedProfilesTableClient,
+      LockedProfilesDataTableAdapter.schema,
+    ),
+  );
+
+  const technicalLockedProfilesAdapter =
+    new TechnicalLockedProfilesDataTableAdapter(
+      new TableClientWrapper(
+        technicalLockedProfilesTableClient,
+        TechnicalLockedProfilesDataTableAdapter.schema,
+      ),
+    );
+
+  const notificationStorageQueueAdapter = new NotificationStorageQueueAdapter(
+    pushNotificationsQueueServiceClient.getQueueClient(
+      config.PUSH_NOTIFICATIONS_QUEUE_NAME,
+    ),
+  );
+
+  const blockedUsersAdapter = new BlockedUsersRedisAdapter(
+    // Both generics are inferred from the constructor arguments:
+    // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
+    new RedisSetWrapper(redisClient, FiscalCodeSchema),
+  );
+
+  const sessionCosmosAdapter = new SessionCosmosAdapter(
+    cosmosClient,
+    config.COSMOSDB_NAME,
+    config.COSMOSDB_SESSION_TOKEN_CONTAINER_NAME,
+    config.COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME,
+  );
+
+  const auxiliaryStorageAdapter = new AuxiliaryDataRedisAdapter(
+    new RedisObjectWrapper(redisClient, LoginAuxiliaryDataSchema),
+    config.LOGIN_AUXILIARY_DATA_TTL_SECONDS,
+  );
+
+  const fetchLollipopAdapter = createIoLollipopAdapter({
+    baseUrl: new URL(config.LOLLIPOP_API_BASE_PATH, config.LOLLIPOP_API_URL),
+    apiKey: config.LOLLIPOP_API_KEY,
+  });
+
+  const profileAdapter = createIoProfileAdapter({
+    baseUrl: new URL(
+      config.IO_PROFILE_API_BASE_PATH,
+      config.IO_PROFILE_API_URL,
+    ),
+    apiKey: config.IO_PROFILE_API_KEY,
+  });
+
+  const platformInternalAdapter = createPlatformInternalAdapter({
+    baseUrl: new URL(
+      config.PLATFORM_PROXY_API_BASE_PATH,
+      config.PLATFORM_PROXY_API_URL,
+    ),
+  });
+
+  const oidcConfigAdapter = new InMemoryOidcConfigAdapter(config);
+
+  const oidcExchangeAdapter = new OpenIdClientAdapter(
+    oidcConfigAdapter,
+    config.ONEID_HTTP_TIMEOUT_SECONDS,
+  );
+  // Warm up OIDC discovery (metadata + JWKS) so the cost is paid at startup
+  // Best-effort: never blocks boot on a provider outage — the lazy path retries on demand.
+  await oidcExchangeAdapter.warmUp(new Set(["PROD", "UAT"]));
+
+  const authEventServiceBusAdapter = new AuthEventServiceBusAdapter(
+    serviceBusClient.createSender(config.AUTH_SESSIONS_TOPIC_NAME),
+  );
+
+  const lollipopActivationCosmosAdapter = new LollipopActivationCosmosAdapter(
+    cosmosClient,
+    config.COSMOSDB_NAME,
+    config.COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME,
+  );
+
+  const oneIdIdentityAssertionFetcherAdapter =
+    new OneIdIdentityAssertionFetcherAdapter(config);
+
+  // --------------------------------------------------
+  // Use cases initialization
+  // --------------------------------------------------
+
+  const reserveUseCase = makeReserveUseCase({
+    auxiliaryDataPort: auxiliaryStorageAdapter,
+    lollipopPort: fetchLollipopAdapter,
+    oidcClientPort: oidcExchangeAdapter,
+    oidcConfigPort: oidcConfigAdapter,
+  });
+
+  const activateUserSessionUseCase = makeActivateUserSessionUseCase({
+    sessionPort: sessionCosmosAdapter,
+    profilePort: profileAdapter,
+    platformInternalPort: platformInternalAdapter,
+    authEventPort: authEventServiceBusAdapter,
+    lollipopActivationPort: lollipopActivationCosmosAdapter,
+    lollipopPort: fetchLollipopAdapter,
+  });
+
+  const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
+    auxiliaryDataPort: auxiliaryStorageAdapter,
+    oidcPort: oidcExchangeAdapter,
+    identityAssertionFetcherPort: oneIdIdentityAssertionFetcherAdapter,
+    activateUserSessionUseCase,
+  });
+
+  const getSessionUseCase = makeGetSessionUseCase({
+    sessionPort: sessionCosmosAdapter,
+    lollipopActivationPort: lollipopActivationCosmosAdapter,
+    profilePort: profileAdapter,
+  });
+
+  const getUserForFimsUseCase = makeGetUserForFimsUseCase({
+    profilePort: profileAdapter,
+  });
+
+  // --------------------------------------------------
+  // Middlewares definition
+  // --------------------------------------------------
+
+  const authenticationMiddlewareFactory = new AuthenticationMiddlewareFactory(
+    new TokenTransportStrategyFactory(),
+    new TokenParsingStrategyFactory(),
+    new TokenIntrospectionStrategyFactory(sessionCosmosAdapter),
+  );
+  const authenticateSessionMiddleware =
+    authenticationMiddlewareFactory.create("session");
+  const authenticateBpdMiddleware =
+    authenticationMiddlewareFactory.create("bpd");
+  const authenticateFimsMiddleware =
+    authenticationMiddlewareFactory.create("fims");
+  const authenticatePagopaMiddleware =
+    authenticationMiddlewareFactory.create("pagopa");
+  const authenticateZendeskMiddleware =
+    authenticationMiddlewareFactory.create("zendesk");
+
+  // --------------------------------------------------
+  // Endpoints mounting
+  // --------------------------------------------------
+
+  mountHealthCheckHandler("liveness")(
+    server,
+    getHealthCheckUseCase(packageInfo),
+  );
+
+  mountHealthCheckHandler("readiness")(
+    server,
+    getHealthCheckUseCase(packageInfo, [
+      {
+        name: lockedProfilesAdapter.constructor.name,
+        port: lockedProfilesAdapter,
+      },
+      {
+        name: technicalLockedProfilesAdapter.constructor.name,
+        port: technicalLockedProfilesAdapter,
+      },
+      {
+        name: notificationStorageQueueAdapter.constructor.name,
+        port: notificationStorageQueueAdapter,
+      },
+      {
+        name: blockedUsersAdapter.constructor.name,
+        port: blockedUsersAdapter,
+      },
+      {
+        name: auxiliaryStorageAdapter.constructor.name,
+        port: auxiliaryStorageAdapter,
+      },
+      {
+        name: authEventServiceBusAdapter.constructor.name,
+        port: authEventServiceBusAdapter,
+      },
+      {
+        name: sessionCosmosAdapter.constructor.name,
+        port: sessionCosmosAdapter,
+      },
+      {
+        name: lollipopActivationCosmosAdapter.constructor.name,
+        port: lollipopActivationCosmosAdapter,
+      },
+      {
+        name: oneIdIdentityAssertionFetcherAdapter.constructor.name,
+        port: oneIdIdentityAssertionFetcherAdapter,
+      },
+    ]),
+  );
+
+  mountReserveHandler(server, reserveUseCase);
+
+  mountCallbackHandler(server, {
+    handleOidcCallbackUseCase,
+    loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
+    loginErrorRedirectUrl: config.LOGIN_ERROR_REDIRECT_URL,
+  });
+
+  mountSsoBpdUserHandler(server, {
+    allowedIpSourceRange: config.ALLOW_BPD_IP_SOURCE_RANGE,
+    middlewares: [authenticateBpdMiddleware] as const,
+    useCase: getUserForBpdUseCase,
+  });
+
+  mountSsoFimsUserHandler(server, {
+    allowedIpSourceRange: config.ALLOW_FIMS_IP_SOURCE_RANGE,
+    middlewares: [authenticateFimsMiddleware] as const,
+    useCase: getUserForFimsUseCase,
+  });
+
+  mountSsoFimsLollipopUserHandler(server, {
+    allowedIpSourceRange: config.ALLOW_FIMS_IP_SOURCE_RANGE,
+    middlewares: [authenticateFimsMiddleware] as const,
+    useCase: makeGetLollipopUserForFimsUseCase({
+      profilePort: profileAdapter,
+      lollipopPort: fetchLollipopAdapter,
+      lollipopActivationPort: lollipopActivationCosmosAdapter,
+      getUserForFimsUseCase: getUserForFimsUseCase,
+    }),
+  });
+
+  mountSsoPagopaUserHandler(server, {
+    allowedIpSourceRange: config.ALLOW_PAGOPA_IP_SOURCE_RANGE,
+    middlewares: [authenticatePagopaMiddleware] as const,
+    useCase: makeGetUserForPagopaUseCase({
+      profilePort: profileAdapter,
+    }),
+  });
+
+  mountSsoZendeskTokenHandler(server, {
+    allowedIpSourceRange: config.ALLOW_ZENDESK_IP_SOURCE_RANGE,
+    middlewares: [authenticateZendeskMiddleware] as const,
+    useCase: makeGetTokenForZendeskUseCase({
+      profilePort: profileAdapter,
+      config,
+    }),
+  });
+
+  mountGetSessionHandler({
+    middlewares: [authenticateSessionMiddleware] as const,
+    useCase: getSessionUseCase,
+  })(server);
+
+  // --------------------------------------------------
+  // Hooks mounting
+  // --------------------------------------------------
+
+  // Expose the resolved client IP to hexagonal middlewares via `x-client-ip`.
+  server.addHook("onRequest", normalizeClientIpHook);
+
+  // Close external clients cleanly when Fastify shuts down (via
+  // `server.close()`). Run both independent close operations in parallel,
+  // while allowing one failure without preventing the other from completing.
+  server.addHook("onClose", async () => {
+    const results = await Promise.allSettled([
+      redisClient.close(),
+      serviceBusClient.close(),
+    ]);
+
+    const [redisResult, serviceBusResult] = results;
+    if (redisResult.status === "rejected") {
+      server.log.warn(
+        { err: redisResult.reason },
+        "Failed to close Redis client gracefully",
+      );
+    }
+    if (serviceBusResult.status === "rejected") {
+      server.log.warn(
+        { err: serviceBusResult.reason },
+        "Failed to close Service Bus client gracefully",
+      );
+    }
+  });
 
   return { server };
 };

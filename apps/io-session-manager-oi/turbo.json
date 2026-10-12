@@ -1,0 +1,24 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "generate": {
+      "dependsOn": ["generate:clients", "generate:patch-lollipop"]
+    },
+    "generate:clients": {
+      "inputs": [
+        "api/**/*.yaml",
+        "api/**/*.yaml.template",
+        "openapi-ts.config.ts",
+        "one-id-oas.json"
+      ],
+      "outputs": ["src/generated/**/*.ts"],
+      "outputLogs": "hash-only"
+    },
+    "generate:patch-lollipop": {
+      "inputs": ["scripts/patch-io-lollipop-types.ts"],
+      "outputs": ["src/generated/io-lollipop/types.gen.ts"],
+      "dependsOn": ["generate:clients"],
+      "outputLogs": "hash-only"
+    }
+  }
+}

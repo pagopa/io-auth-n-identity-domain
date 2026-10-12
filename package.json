@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "clean": "turbo run clean",
-    "code-review": "turbo run generate && turbo run format:check lint:check test:coverage",
+    "code-review": "turbo run generate && turbo run format:check lint:check test:coverage openapi:check",
     "lint": "turbo run lint",
     "format": "turbo run format",
     "test": "turbo run test",
@@ -28,6 +28,7 @@
     "docker:generate:env:servicebus": "dotenv -e docker/.env.common envsub docker/servicebus/env-dev docker/generated/.env.servicebus",
     "docker:build": "docker compose --env-file docker/.env.common build",
     "docker:start": "docker compose --env-file docker/.env.common up -d",
+    "docker:stop": "docker compose --env-file docker/.env.common stop",
     "docker:start:build": "docker compose --env-file docker/.env.common up --build -d",
     "test:integrations": "pnpm run test:integrations:io-lollipop && pnpm run test:integrations:io-sm-oi",
     "test:integrations:io-lollipop": "docker compose --env-file docker/.env.common exec io-lollipop /bin/bash -c 'pnpm vitest run src/__integrations__/__tests__ -c src/__integrations__/vite.config.mts'",
@@ -47,7 +48,7 @@
     "eslint-plugin-turbo": "^2.5.5",
     "prettier": "catalog:",
     "shx": "^0.3.4",
-    "turbo": "^2.5.5",
+    "turbo": "^2.9.16",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },

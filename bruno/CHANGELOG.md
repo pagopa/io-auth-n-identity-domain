@@ -1,5 +1,23 @@
 # io-auth-n-identity-bruno-collections
 
+## 0.4.3
+
+### Patch Changes
+
+- fd524f9: add all supported fields values
+
+## 0.4.2
+
+### Patch Changes
+
+- 5d62137: Fix BPD SSO API Base Path and centralize its management into dedicated base path file
+
+## 0.4.1
+
+### Patch Changes
+
+- 55db1f1: implement getSession handler and use case and mount it to fastify server
+
 ## 0.4.0
 
 ### Minor Changes

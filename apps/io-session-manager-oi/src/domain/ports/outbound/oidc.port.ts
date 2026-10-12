@@ -1,0 +1,42 @@
+import {
+  type AuthenticationError,
+  type GenericError,
+} from "@pagopa/hexagonal-core";
+import { type Result } from "neverthrow";
+
+import {
+  OidcAuthTokens,
+  type OidcEnvironment,
+} from "../../value-objects/oidc.vo.js";
+
+/**
+ * Parameters required to exchange an OIDC authorization code for tokens.
+ *
+ * `code` and `state` are the values received on the callback; `state` and
+ * `expectedNonce` are validated against the values reserved at the start of the
+ * login flow (stored server-side keyed by `state`) to prevent replay/CSRF.
+ */
+export type OidcExchangeParamsDTO = {
+  env: OidcEnvironment;
+  code: string;
+  state: string;
+  expectedNonce: string;
+};
+
+/**
+ * Outbound port that performs the OpenID Connect authorization-code grant and
+ * returns the validated ID token claims.
+ */
+export interface OidcClientPort {
+  readonly exchange: (
+    params: OidcExchangeParamsDTO,
+  ) => Promise<Result<OidcAuthTokens, AuthenticationError | GenericError>>;
+
+  /**
+   * Returns the OIDC `authorization_endpoint` discovered from the provider
+   * well-known metadata for the given environment.
+   */
+  readonly getAuthorizationEndpoint: (
+    env: OidcEnvironment,
+  ) => Promise<Result<URL, GenericError>>;
+}

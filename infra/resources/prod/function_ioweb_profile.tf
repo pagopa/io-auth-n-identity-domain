@@ -81,7 +81,7 @@ data "azurerm_resource_group" "function_web_profile_rg" {
 
 module "function_web_profile" {
   source  = "pagopa-dx/azure-function-app/azurerm"
-  version = "~> 1.0"
+  version = "~> 6.0"
 
   environment = {
     prefix          = local.prefix
@@ -117,7 +117,7 @@ module "function_web_profile" {
   application_insights_connection_string   = data.azurerm_application_insights.application_insights.connection_string
   application_insights_sampling_percentage = local.function_ioweb_profile.prod_slot_sampling_percentage
 
-  action_group_id = azurerm_monitor_action_group.error_action_group.id
+  action_group_ids = [azurerm_monitor_action_group.error_action_group.id]
 
   tags = local.tags
 }

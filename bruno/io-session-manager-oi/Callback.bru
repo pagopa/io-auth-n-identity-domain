@@ -1,0 +1,25 @@
+meta {
+  name: Callback
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/callback?code=&state=
+  body: none
+  auth: none
+}
+
+params:query {
+  code: 
+  state: 
+}
+
+script:pre-request {
+  req.setMaxRedirects(0);
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

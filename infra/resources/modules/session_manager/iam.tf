@@ -1,24 +1,6 @@
-# # not sure it is required (why cae have to access to kv?!)
-# module "cae_iam" {
-#   source  = "pagopa-dx/azure-role-assignments/azurerm"
-#   version = "~> 1.3"
-
-#   subscription_id = var.subscription_id
-#   principal_id    = module.sm_cae.principal_id
-
-#   key_vault = [{
-#     name                = var.key_vault.name
-#     resource_group_name = var.key_vault.resource_group_name
-#     description         = "Allow CAE to read configuration secrets"
-#     roles = {
-#       secrets = "reader"
-#     }
-#   }]
-# }
-
 module "ca_iam" {
   source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~> 1.3"
+  version = "~> 3.0"
 
   subscription_id = var.subscription_id
   principal_id    = module.sm_ca.principal_id
@@ -32,14 +14,68 @@ module "ca_iam" {
     }
   }]
 
-  # cosmos = [ # TODO: capire su quali DB necessita scrittura/lettura
-  #   {
-  #     account_name        = data.azurerm_cosmosdb_account.cosmos.name
-  #     resource_group_name = data.azurerm_cosmosdb_account.cosmos.resource_group_name
-  #     description         = "Allow Session Manager Container App to write CosmosDB"
-  #     role                = "writer"
-  #     database            = local.app_be.cosmosdb_name
-  #     collections         = ["services"] // TODO: refactor with a local variable
-  #   }
-  # ]
+  storage_table = [
+    {
+      storage_account_name = var.locked_profiles.storage_account.name
+      resource_group_name  = var.locked_profiles.storage_account.resource_group_name
+      table_name           = var.locked_profiles.table_name
+      role                 = "reader"
+      description          = "Allow Session Manager Container App to read the locked profiles table"
+    },
+    {
+      storage_account_name = var.technical_locked_profiles.storage_account.name
+      resource_group_name  = var.technical_locked_profiles.storage_account.resource_group_name
+      table_name           = var.technical_locked_profiles.table_name
+      role                 = "reader"
+      description          = "Allow Session Manager Container App to read the technical locked profiles table"
+    }
+  ]
+
+  storage_queue = [
+    {
+      storage_account_name = data.azurerm_storage_account.io_com.name
+      resource_group_name  = data.azurerm_storage_account.io_com.resource_group_name
+      queue_name           = data.azurerm_storage_queue.push_notifications.name
+      description          = "Allow Session Manager Container App to read from the IO-Communication notification queue"
+      role                 = "reader"
+    },
+    {
+      storage_account_name = data.azurerm_storage_account.io_com.name
+      resource_group_name  = data.azurerm_storage_account.io_com.resource_group_name
+      queue_name           = data.azurerm_storage_queue.push_notifications.name
+      description          = "Allow Session Manager Container App to write to the IO-Communication notification queue"
+      role                 = "writer"
+    }
+  ]
+
+  managed_redis = [{
+    id          = module.managed_redis.id
+    role        = "writer"
+    description = "Allow Session Manager Container App to read/write to the Azure Managed Redis cache"
+  }]
+
+  cosmos = [
+    {
+      account_name        = var.session_cosmos.account_name
+      resource_group_name = var.session_cosmos.resource_group_name
+      description         = "Allow Session Manager Container App to read/write the io-auth-SM CosmosDB database"
+      role                = "writer"
+      database            = azurerm_cosmosdb_sql_database.session_manager.name
+      collections = [
+        azurerm_cosmosdb_sql_container.session_tokens.name,
+        azurerm_cosmosdb_sql_container.active_sessions.name,
+        azurerm_cosmosdb_sql_container.lollipop_activations.name
+      ]
+    }
+  ]
+
+  service_bus = [
+    {
+      namespace_name      = var.service_bus.namespace_name
+      resource_group_name = var.service_bus.resource_group_name
+      description         = "Allow Session Manager Container App to send messages to the AUTH_SESSIONS topic"
+      role                = "writer"
+      topic_names         = [var.service_bus.auth_session_topic_name]
+    }
+  ]
 }

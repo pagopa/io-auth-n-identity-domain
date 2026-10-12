@@ -1,0 +1,213 @@
+import {
+  AuthenticationError,
+  GenericError,
+  NotFoundError,
+} from "@pagopa/hexagonal-core";
+import {
+  type BaseSession,
+  type SessionId,
+  type SessionPort,
+  toHashedBpdSSOToken,
+  toHashedFimsSSOToken,
+  toHashedSessionToken,
+  toHashedPagopaSSOToken,
+  toHashedZendeskSSOToken,
+  toPlainZendeskSSOTokenFromExtended,
+} from "@pagopa/io-auth-n-identity-session";
+import { err, ok, type Result } from "neverthrow";
+
+import type { AuthToken, TokenType } from "../auth-token.js";
+
+/**
+ * Interface for token introspection strategies.
+ * Implementations of this interface are responsible for resolving sessions based on the provided session ID and token.
+ */
+export interface TokenIntrospectionStrategy<T extends TokenType> {
+  resolve(
+    sessionId: SessionId,
+    sessionToken: AuthToken[T]["type"],
+  ): Promise<Result<BaseSession, AuthenticationError | GenericError>>;
+}
+
+/**
+ * Abstract base class for token introspection strategies.
+ * Provides common logic for resolving sessions based on the provided session ID and token (Template Method pattern).
+ */
+abstract class TokenIntrospectionBaseStrategy<T extends TokenType>
+  implements TokenIntrospectionStrategy<T>
+{
+  async resolve(
+    sessionId: SessionId,
+    sessionToken: AuthToken[T]["type"],
+  ): Promise<Result<BaseSession, AuthenticationError | GenericError>> {
+    const hashedToken = this.toHashedToken(sessionToken);
+    const maybeSession = await this.findSessionByToken(sessionId, hashedToken);
+    if (maybeSession.isErr()) {
+      switch (maybeSession.error.kind) {
+        case "NotFoundError":
+          // TODO: log the underlying error for debugging purposes
+          console.warn(
+            "Session not found during authentication:",
+            maybeSession.error.message,
+          );
+          return err(new AuthenticationError());
+        default:
+          // TODO: log the underlying error for debugging purposes
+          console.error(
+            "Unexpected error during authentication:",
+            maybeSession.error.message,
+          );
+          return err(
+            new GenericError(
+              "An unexpected error occurred during authentication.",
+            ),
+          );
+      }
+    }
+    return ok(maybeSession.value);
+  }
+
+  /**
+   * Finds a session by its token.
+   * Must be implemented by subclasses to provide the specific logic for finding a session based on the token type.
+   */
+  protected abstract findSessionByToken(
+    sessionId: SessionId,
+    sessionToken: AuthToken[T]["hashedType"],
+  ): Promise<Result<BaseSession, NotFoundError | GenericError>>;
+
+  /**
+   * Converts the provided session token to its hashed representation.
+   * Must be implemented by subclasses to provide the specific logic for hashing the token based on its type.
+   */
+  protected abstract toHashedToken(
+    sessionToken: AuthToken[T]["type"],
+  ): AuthToken[T]["hashedType"];
+}
+
+/**
+ * Token introspection strategy for session tokens.
+ */
+export class SessionTokenIntrospectionStrategy extends TokenIntrospectionBaseStrategy<"session"> {
+  constructor(private readonly sessionPort: SessionPort) {
+    super();
+  }
+
+  protected override findSessionByToken(
+    sessionId: SessionId,
+    sessionToken: AuthToken["session"]["hashedType"],
+  ): Promise<Result<BaseSession, NotFoundError | GenericError>> {
+    return this.sessionPort.findBySessionToken({
+      sessionId,
+      hashedSessionToken: sessionToken,
+    });
+  }
+
+  protected override toHashedToken(
+    sessionToken: AuthToken["session"]["type"],
+  ): AuthToken["session"]["hashedType"] {
+    return toHashedSessionToken(sessionToken);
+  }
+}
+
+/**
+ * Token introspection strategy for BPD tokens.
+ */
+export class BpdTokenIntrospectionStrategy extends TokenIntrospectionBaseStrategy<"bpd"> {
+  constructor(private readonly sessionPort: SessionPort) {
+    super();
+  }
+
+  protected override findSessionByToken(
+    sessionId: SessionId,
+    sessionToken: AuthToken["bpd"]["hashedType"],
+  ): Promise<Result<BaseSession, NotFoundError | GenericError>> {
+    return this.sessionPort.findByBpdToken({
+      sessionId,
+      hashedBPDSSOToken: sessionToken,
+    });
+  }
+
+  protected override toHashedToken(
+    sessionToken: AuthToken["bpd"]["type"],
+  ): AuthToken["bpd"]["hashedType"] {
+    return toHashedBpdSSOToken(sessionToken);
+  }
+}
+
+/**
+ * Token introspection strategy for FIMS tokens.
+ */
+export class FimsTokenIntrospectionStrategy extends TokenIntrospectionBaseStrategy<"fims"> {
+  constructor(private readonly sessionPort: SessionPort) {
+    super();
+  }
+
+  protected override findSessionByToken(
+    sessionId: SessionId,
+    sessionToken: AuthToken["fims"]["hashedType"],
+  ): Promise<Result<BaseSession, NotFoundError | GenericError>> {
+    return this.sessionPort.findByFimsToken({
+      sessionId,
+      hashedFimsSSOToken: sessionToken,
+    });
+  }
+
+  protected override toHashedToken(
+    sessionToken: AuthToken["fims"]["type"],
+  ): AuthToken["fims"]["hashedType"] {
+    return toHashedFimsSSOToken(sessionToken);
+  }
+}
+
+/**
+ * Token introspection strategy for PagoPA tokens.
+ */
+export class PagopaTokenIntrospectionStrategy extends TokenIntrospectionBaseStrategy<"pagopa"> {
+  constructor(private readonly sessionPort: SessionPort) {
+    super();
+  }
+
+  protected override findSessionByToken(
+    sessionId: SessionId,
+    sessionToken: AuthToken["pagopa"]["hashedType"],
+  ): Promise<Result<BaseSession, NotFoundError | GenericError>> {
+    return this.sessionPort.findByPagopaToken({
+      sessionId,
+      hashedPagopaSSOToken: sessionToken,
+    });
+  }
+
+  protected override toHashedToken(
+    sessionToken: AuthToken["pagopa"]["type"],
+  ): AuthToken["pagopa"]["hashedType"] {
+    return toHashedPagopaSSOToken(sessionToken);
+  }
+}
+
+/**
+ * Token introspection strategy for Zendesk tokens.
+ */
+export class ZendeskTokenIntrospectionStrategy extends TokenIntrospectionBaseStrategy<"zendesk"> {
+  constructor(private readonly sessionPort: SessionPort) {
+    super();
+  }
+
+  protected override findSessionByToken(
+    sessionId: SessionId,
+    sessionToken: AuthToken["zendesk"]["hashedType"],
+  ): Promise<Result<BaseSession, NotFoundError | GenericError>> {
+    return this.sessionPort.findByZendeskToken({
+      sessionId,
+      hashedZendeskSSOToken: sessionToken,
+    });
+  }
+
+  protected override toHashedToken(
+    sessionToken: AuthToken["zendesk"]["type"],
+  ): AuthToken["zendesk"]["hashedType"] {
+    return toHashedZendeskSSOToken(
+      toPlainZendeskSSOTokenFromExtended(sessionToken),
+    );
+  }
+}

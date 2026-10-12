@@ -1,0 +1,244 @@
+import {
+  ConflictError,
+  GenericError,
+  NonEmptyString,
+  ValidationError,
+} from "@pagopa/hexagonal-core";
+import {
+  JwkPublicKey,
+  LollipopJwkHashingAlgorithm,
+} from "@pagopa/io-auth-n-identity-domain";
+import { err, ok } from "neverthrow";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { LoginType } from "@pagopa/io-auth-n-identity-session";
+import { AuxiliaryDataPort } from "../../../domain/ports/outbound/auxiliary-data.port.js";
+import { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
+import { OidcConfigPort } from "../../../domain/ports/outbound/oidc-config.port.js";
+import { OidcClientPort } from "../../../domain/ports/outbound/oidc.port.js";
+import {
+  CurrentUserSchema,
+  SpidAuthLevel,
+} from "../../../domain/value-objects/login.vo.js";
+import { makeReserveUseCase } from "../reserve.use-case.js";
+
+// ---------------------------------------------------------------------------
+// Fixtures
+// ---------------------------------------------------------------------------
+
+const LOLLIPOP_PUBLIC_KEY: JwkPublicKey = {
+  kty: "EC" as const,
+  x: "NYvuK5KwdMSelFJgPnL0fsxizwOKw0WbQyANB4O6l2c",
+  y: "qK9Zyso1CCwsUk985hnO5WEP3enSxpuD1n5JqtmZIEE",
+  crv: "P-256" as const,
+};
+
+const LOLLIPOP_PUBLIC_KEY_THUMBPRINT =
+  "iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU";
+
+const LOLLIPOP_HASH_ALGORITHM = "sha256" as LollipopJwkHashingAlgorithm;
+
+const PROD_CLIENT_ID = "prod-client-id" as NonEmptyString;
+const UAT_CLIENT_ID = "uat-client-id" as NonEmptyString;
+const PROD_BASE_URL = new URL("https://prod.example.com");
+const UAT_BASE_URL = new URL("https://uat.example.com");
+const PROD_AUTHORIZATION_ENDPOINT = new URL(
+  "https://prod.example.com/oidc/authorize",
+);
+const UAT_AUTHORIZATION_ENDPOINT = new URL(
+  "https://uat.example.com/oidc/authorize",
+);
+const CLIENT_REDIRECT_URI = new URL("https://client.example.com/callback");
+
+const MOCKED_RANDOM_BYTES = "a".repeat(24);
+const MOCKED_HEX_RANDOM_BYTES =
+  Buffer.from(MOCKED_RANDOM_BYTES).toString("hex");
+vi.mock("node:crypto", () => {
+  return { randomBytes: vi.fn(() => Buffer.from(MOCKED_RANDOM_BYTES)) };
+});
+
+const aCurrentUser = CurrentUserSchema.parse("a-current-user");
+
+const buildInput = (overrides = {}) => ({
+  oidcConfigurationEnv: "PROD" as const,
+  minAuthLevel: "SpidL2" as SpidAuthLevel,
+  lollipopPublicKey: LOLLIPOP_PUBLIC_KEY,
+  lollipopHashAlgorithm: LOLLIPOP_HASH_ALGORITHM,
+  loginType: "LV" as LoginType,
+  currentUser: aCurrentUser,
+  ...overrides,
+});
+
+const reservePubKeyMock = vi
+  .fn()
+  .mockResolvedValue(
+    ok(`${LOLLIPOP_HASH_ALGORITHM}-${LOLLIPOP_PUBLIC_KEY_THUMBPRINT}`),
+  );
+const lollipopPort = {
+  reservePubKey: reservePubKeyMock,
+} as unknown as LollipopPort;
+
+const saveMock = vi.fn().mockResolvedValue(ok(undefined));
+const auxiliaryDataPort = {
+  save: saveMock,
+} as unknown as AuxiliaryDataPort;
+
+const getConfigMock = vi.fn().mockImplementation((env: "PROD" | "UAT") =>
+  env === "PROD"
+    ? ok({
+        clientId: PROD_CLIENT_ID,
+        baseUrl: PROD_BASE_URL,
+        redirectUri: CLIENT_REDIRECT_URI,
+      })
+    : ok({
+        clientId: UAT_CLIENT_ID,
+        baseUrl: UAT_BASE_URL,
+        redirectUri: CLIENT_REDIRECT_URI,
+      }),
+);
+const oidcConfigPort = {
+  getConfig: getConfigMock,
+} as unknown as OidcConfigPort;
+
+const getAuthorizationEndpointMock = vi
+  .fn()
+  .mockImplementation((env: "PROD" | "UAT") =>
+    env === "PROD"
+      ? ok(PROD_AUTHORIZATION_ENDPOINT)
+      : ok(UAT_AUTHORIZATION_ENDPOINT),
+  );
+const oidcClientPort = {
+  getAuthorizationEndpoint: getAuthorizationEndpointMock,
+} as unknown as OidcClientPort;
+
+const reserveUseCase = makeReserveUseCase({
+  auxiliaryDataPort: auxiliaryDataPort,
+  lollipopPort: lollipopPort,
+  oidcClientPort,
+  oidcConfigPort,
+});
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+// ---------------------------------------------------------------------------
+// success path
+// ---------------------------------------------------------------------------
+
+describe("makeReserveUseCase", () => {
+  it("reserves the pubkey, saves auxiliary data and returns the OIDC parameters (PROD)", async () => {
+    const input = buildInput();
+
+    const result = await reserveUseCase(input);
+
+    expect(reservePubKeyMock).toHaveBeenCalledExactlyOnceWith({
+      algo: LOLLIPOP_HASH_ALGORITHM,
+      pub_key: LOLLIPOP_PUBLIC_KEY,
+    });
+    expect(saveMock).toHaveBeenCalledExactlyOnceWith(MOCKED_HEX_RANDOM_BYTES, {
+      minAuthLevel: input.minAuthLevel,
+      loginType: input.loginType,
+      currentUser: input.currentUser,
+      lollipopAssertionRef: `${LOLLIPOP_HASH_ALGORITHM}-${LOLLIPOP_PUBLIC_KEY_THUMBPRINT}`,
+      clientId: PROD_CLIENT_ID,
+      oidcConfigurationEnv: "PROD",
+      nonce: MOCKED_HEX_RANDOM_BYTES,
+    });
+
+    expect(result.isOk()).toBe(true);
+    const output = result._unsafeUnwrap();
+    expect(output).toEqual({
+      client_id: PROD_CLIENT_ID,
+      state: MOCKED_HEX_RANDOM_BYTES,
+      nonce: MOCKED_HEX_RANDOM_BYTES,
+      redirect_uri: CLIENT_REDIRECT_URI.href,
+      authorization_endpoint: PROD_AUTHORIZATION_ENDPOINT.href,
+    });
+  });
+
+  it("uses the UAT client id and authorization endpoint when configurationEnv is UAT", async () => {
+    const input = buildInput({
+      oidcConfigurationEnv: "UAT" as const,
+    });
+
+    const result = await reserveUseCase(input);
+
+    expect(getConfigMock).toHaveBeenCalledExactlyOnceWith("UAT");
+    expect(getAuthorizationEndpointMock).toHaveBeenCalledExactlyOnceWith("UAT");
+    expect(result.isOk()).toBe(true);
+    const output = result._unsafeUnwrap();
+    expect(output.client_id).toBe(UAT_CLIENT_ID);
+    expect(output.authorization_endpoint).toBe(UAT_AUTHORIZATION_ENDPOINT.href);
+  });
+
+  it("returns err(GenericError) when the authorization endpoint cannot be resolved", async () => {
+    const discoveryError = new GenericError("OIDC discovery failed: boom");
+    getAuthorizationEndpointMock.mockResolvedValueOnce(err(discoveryError));
+
+    const result = await reserveUseCase(buildInput());
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toEqual(discoveryError);
+    expect(reservePubKeyMock).not.toHaveBeenCalled();
+    expect(saveMock).not.toHaveBeenCalled();
+  });
+
+  it("returns err(ValidationError) when the OIDC config port has no configuration for the requested environment", async () => {
+    const validationError = new ValidationError(
+      'Missing OIDC configuration for environment "UAT"',
+    );
+    getConfigMock.mockReturnValueOnce(err(validationError));
+
+    const input = buildInput({
+      oidcConfigurationEnv: "UAT" as const,
+    });
+
+    const result = await reserveUseCase(input);
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toEqual(validationError);
+    expect(reservePubKeyMock).not.toHaveBeenCalled();
+    expect(saveMock).not.toHaveBeenCalled();
+  });
+
+  it("returns err(GenericError) when reservePubKey fails with a GenericError", async () => {
+    reservePubKeyMock.mockResolvedValueOnce(err(new GenericError("boom")));
+
+    const result = await reserveUseCase(buildInput());
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toEqual(
+      new GenericError("cannot reserve pubkey"),
+    );
+    expect(saveMock).not.toHaveBeenCalled();
+  });
+
+  it("returns err(ConflictError) when reservePubKey fails with a ConflictError", async () => {
+    reservePubKeyMock.mockResolvedValueOnce(
+      err(new ConflictError("already reserved")),
+    );
+
+    const result = await reserveUseCase(buildInput());
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toEqual(
+      new ConflictError("Pubkey is already reserved"),
+    );
+    expect(saveMock).not.toHaveBeenCalled();
+  });
+
+  it("returns err(GenericError) when saving auxiliary data fails", async () => {
+    const error = new GenericError("save failed");
+    saveMock.mockResolvedValueOnce(err(error));
+
+    const result = await reserveUseCase(buildInput());
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toEqual(
+      new GenericError(
+        `Could not save auxiliary data, caused by: ${error.message}`,
+      ),
+    );
+  });
+});

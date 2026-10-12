@@ -66,6 +66,7 @@ variable "virtual_network_id" {
 variable "private_dns_zone_resource_group_name" {
   type        = string
   description = "The resource group containing the Private DNS Zone for private endpoints"
+  default     = null
 }
 
 
@@ -77,6 +78,12 @@ variable "log_analytics_workspace_id" {
   type        = string
   description = "Log Analytics Workspace ID for monitoring"
 }
+
+variable "action_group_id" {
+  type        = string
+  description = "The ID of the Action Group to invoke when an alert is triggered"
+}
+
 
 
 ##############
@@ -107,4 +114,69 @@ variable "io_profile" {
     base_path = string
   })
   description = "Configuration for IO Profile service"
+}
+
+variable "io_fast_login" {
+  type = object({
+    base_url  = string
+    base_path = string
+  })
+  description = "Configuration for IO Fast Login service"
+}
+
+variable "locked_profiles" {
+  type = object({
+    storage_account = object({
+      name                = string
+      resource_group_name = string
+    })
+    table_name = string
+  })
+  description = "Azure Table Storage backing the locked profiles feature."
+}
+
+variable "technical_locked_profiles" {
+  type = object({
+    storage_account = object({
+      name                = string
+      resource_group_name = string
+    })
+    table_name = string
+  })
+  description = "Azure Table Storage backing the technical locked profiles feature."
+}
+
+variable "io_session_manager_internal" {
+  type = object({
+    base_url  = string
+    base_path = string
+  })
+  description = "Configuration for IO Session Manager Internal service"
+}
+
+variable "platform_proxy" {
+  type = object({
+    base_url  = string
+    base_path = string
+  })
+  description = "Configuration for Platform Proxy Internal API"
+}
+
+variable "session_cosmos" {
+  type = object({
+    account_uri         = string
+    account_name        = string
+    resource_group_name = string
+  })
+  description = "Cosmos DB (io-auth-SM) accessed by the Session Manager Container App via managed identity"
+}
+
+variable "service_bus" {
+  type = object({
+    hostname                = string
+    namespace_name          = string
+    resource_group_name     = string
+    auth_session_topic_name = string
+  })
+  description = "Service Bus configuration for the Session Manager Container App"
 }

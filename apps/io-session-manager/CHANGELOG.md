@@ -1,5 +1,41 @@
 # io-session-manager
 
+## 1.30.0
+
+### Minor Changes
+
+- 1a5dd14: Added warning events on callback errors
+
+## 1.29.1
+
+### Patch Changes
+
+- 9740922: Renamed ausiliar data references to "auxiliary"
+
+## 1.29.0
+
+### Minor Changes
+
+- e96ec95: Handle Idp Friendly Names
+
+## 1.28.1
+
+### Patch Changes
+
+- c62418f: fix: getdel command not available on legacy redis
+
+## 1.28.0
+
+### Minor Changes
+
+- 59874c7: feat: add OIDC callback and new AGE_LIMIT value (defaults to 18)
+
+## 1.27.0
+
+### Minor Changes
+
+- db5d981: Added reserve endpoint
+
 ## 1.26.0
 
 ### Minor Changes

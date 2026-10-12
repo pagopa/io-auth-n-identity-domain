@@ -27,4 +27,51 @@ module "session_manager" {
     base_url  = "https://${module.function_profile.function_app.function_app.default_hostname}"
     base_path = "/api/v1"
   }
+
+  io_fast_login = {
+    base_url  = "https://${module.function_lv.function_app.function_app.default_hostname}"
+    base_path = "/api/v1"
+  }
+
+  locked_profiles = {
+    storage_account = {
+      name                = module.storage_accounts.session.name
+      resource_group_name = module.storage_accounts.session.resource_group_name
+    }
+    table_name = local.locked_profiles_table_name
+  }
+
+  technical_locked_profiles = {
+    storage_account = {
+      name                = module.storage_accounts.session.name
+      resource_group_name = module.storage_accounts.session.resource_group_name
+    }
+    table_name = local.technical_locked_profiles_table_name
+  }
+
+  io_session_manager_internal = {
+    base_url  = "https://${module.function_session_manager_internal.function_app.function_app.default_hostname}"
+    base_path = "/api/v1"
+  }
+
+  platform_proxy = {
+    base_url  = "https://proxy.internal.io.pagopa.it"
+    base_path = "/api/platform-internal/v1"
+  }
+
+  action_group_id = azurerm_monitor_action_group.error_action_group.id
+
+  session_cosmos = {
+    account_uri         = data.azurerm_cosmosdb_account.cosmos_citizen_auth.endpoint
+    account_name        = data.azurerm_cosmosdb_account.cosmos_citizen_auth.name
+    resource_group_name = data.azurerm_resource_group.core_domain_data_rg.name
+  }
+
+  service_bus = {
+    hostname                = "${data.azurerm_servicebus_namespace.platform_service_bus_namespace.name}.servicebus.windows.net"
+    namespace_name          = data.azurerm_servicebus_namespace.platform_service_bus_namespace.name
+    resource_group_name     = data.azurerm_servicebus_namespace.platform_service_bus_namespace.resource_group_name
+    auth_session_topic_name = azurerm_servicebus_topic.io_auth_sessions_topic.name
+  }
+
 }

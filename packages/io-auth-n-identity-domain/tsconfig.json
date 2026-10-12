@@ -5,6 +5,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
     "inlineSources": true,
     "strict": true,

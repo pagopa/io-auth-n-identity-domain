@@ -1,0 +1,16 @@
+import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+import { FiscalCodeSchema, NonEmptyStringSchema } from "@pagopa/hexagonal-core";
+import { z } from "zod";
+
+extendZodWithOpenApi(z);
+
+export const SsoBpdUserOutputDTO = z
+  .object({
+    name: NonEmptyStringSchema,
+    family_name: NonEmptyStringSchema,
+    fiscal_code: FiscalCodeSchema,
+  })
+  .meta({
+    id: "BPDUser",
+    description: "The user data returned to the BPD backend.",
+  });

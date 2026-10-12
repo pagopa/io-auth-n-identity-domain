@@ -1,5 +1,47 @@
 # @pagopa/io-auth-n-identity-domain
 
+## 0.6.0
+
+### Minor Changes
+
+- e8f3915: Transform `Base64UrlJsonSchema` in a codec
+
+## 0.5.2
+
+### Patch Changes
+
+- a28ecaa: activate declarationMap from tsconfig file
+
+## 0.5.1
+
+### Patch Changes
+
+- 55db1f1: fix regex by using zod built-in schemas and patterns
+
+## 0.5.0
+
+### Minor Changes
+
+- 926424f: add auth event Port and Adapter to send events via Service Bus
+
+## 0.4.0
+
+### Minor Changes
+
+- 04f1496: Upgrade hexagonal libraries + workaround for branded schema
+
+## 0.3.1
+
+### Patch Changes
+
+- 6993b6a: Fix: EC key doesnt require alg field
+
+## 0.3.0
+
+### Minor Changes
+
+- a3672f0: Added more lollipop value objects
+
 ## 0.2.0
 
 ### Minor Changes

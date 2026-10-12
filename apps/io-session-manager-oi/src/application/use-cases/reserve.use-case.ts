@@ -1,0 +1,121 @@
+import { randomBytes } from "node:crypto";
+
+import {
+  ConflictError,
+  GenericError,
+  NonEmptyString,
+  UseCase,
+  ValidationError,
+} from "@pagopa/hexagonal-core";
+import {
+  JwkPublicKey,
+  LollipopJwkHashingAlgorithm,
+} from "@pagopa/io-auth-n-identity-domain";
+import { LoginType } from "@pagopa/io-auth-n-identity-session";
+import { err, ok } from "neverthrow";
+
+import { AuxiliaryDataPort } from "../../domain/ports/outbound/auxiliary-data.port.js";
+import { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
+import { OidcConfigPort } from "../../domain/ports/outbound/oidc-config.port.js";
+import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
+import {
+  CurrentUser,
+  LoginAuxiliaryData,
+  SpidAuthLevel,
+} from "../../domain/value-objects/login.vo.js";
+import { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
+
+type ReserveDeps = {
+  auxiliaryDataPort: AuxiliaryDataPort;
+  lollipopPort: LollipopPort;
+  oidcClientPort: OidcClientPort;
+  oidcConfigPort: OidcConfigPort;
+};
+
+type input = {
+  oidcConfigurationEnv: OidcEnvironment;
+  minAuthLevel: SpidAuthLevel;
+  lollipopPublicKey: JwkPublicKey;
+  lollipopHashAlgorithm: LollipopJwkHashingAlgorithm;
+  loginType: LoginType;
+  currentUser: CurrentUser;
+};
+
+type output = {
+  client_id: NonEmptyString;
+  state: NonEmptyString;
+  nonce: NonEmptyString;
+  redirect_uri: NonEmptyString;
+  authorization_endpoint: NonEmptyString;
+};
+
+export const makeReserveUseCase =
+  (
+    deps: ReserveDeps,
+  ): UseCase<input, output, GenericError | ConflictError | ValidationError> =>
+  async (inputData) => {
+    const oidcConfigResult = deps.oidcConfigPort.getConfig(
+      inputData.oidcConfigurationEnv,
+    );
+    if (oidcConfigResult.isErr()) {
+      return err(oidcConfigResult.error);
+    }
+
+    const { clientId, redirectUri: clientRedirectUri } = oidcConfigResult.value;
+
+    const authorizationEndpointResult =
+      await deps.oidcClientPort.getAuthorizationEndpoint(
+        inputData.oidcConfigurationEnv,
+      );
+    if (authorizationEndpointResult.isErr()) {
+      return err(authorizationEndpointResult.error);
+    }
+
+    const reserveResult = await deps.lollipopPort.reservePubKey({
+      algo: inputData.lollipopHashAlgorithm,
+      pub_key: inputData.lollipopPublicKey,
+    });
+    if (reserveResult.isErr()) {
+      switch (reserveResult.error.kind) {
+        case "GenericError":
+          return err(new GenericError("cannot reserve pubkey"));
+        case "ConflictError":
+          return err(new ConflictError("Pubkey is already reserved"));
+      }
+    }
+
+    const state = randomBytes(24).toString("hex") as NonEmptyString;
+    const nonce = randomBytes(24).toString("hex") as NonEmptyString;
+
+    const auxiliaryData: LoginAuxiliaryData = {
+      minAuthLevel: inputData.minAuthLevel,
+      loginType: inputData.loginType,
+      currentUser: inputData.currentUser,
+      lollipopAssertionRef: reserveResult.value,
+      clientId,
+      oidcConfigurationEnv: inputData.oidcConfigurationEnv,
+      nonce,
+    };
+
+    const auxiliaryDataSaveResult = await deps.auxiliaryDataPort.save(
+      state,
+      auxiliaryData,
+    );
+
+    if (auxiliaryDataSaveResult.isErr()) {
+      return err(
+        new GenericError(
+          `Could not save auxiliary data, caused by: ${auxiliaryDataSaveResult.error.message}`,
+        ),
+      );
+    }
+
+    return ok({
+      client_id: clientId,
+      state,
+      nonce,
+      redirect_uri: clientRedirectUri.href as NonEmptyString,
+      authorization_endpoint: authorizationEndpointResult.value
+        .href as NonEmptyString,
+    });
+  };

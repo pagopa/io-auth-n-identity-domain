@@ -6,17 +6,21 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 
 import {
   HealthProblem,
-  ProblemSource
+  ProblemSource,
 } from "@pagopa/io-functions-commons/dist/src/utils/healthcheck";
 import { httpAzureFunction } from "@pagopa/handler-kit-azure-func";
 import { ApplicationInfo } from "../generated/definitions/internal/ApplicationInfo";
 import { RedisDependency } from "../utils/redis/dependency";
 import { makeRedisDBHealthCheck } from "../utils/redis/health-check";
 import { HealthCheckBuilder } from "../utils/health-check";
+import {
+  getCurrentBackendVersion,
+  getValueFromPackageJson,
+} from "../utils/package";
 
 const applicativeValidation = RTE.getApplicativeReaderTaskValidation(
   Task.ApplicativePar,
-  RA.getSemigroup<HealthProblem<ProblemSource<string>>>()
+  RA.getSemigroup<HealthProblem<ProblemSource<string>>>(),
 );
 
 export const makeInfoHandler: H.Handler<
@@ -27,9 +31,14 @@ export const makeInfoHandler: H.Handler<
   pipe(
     [makeRedisDBHealthCheck] as ReadonlyArray<HealthCheckBuilder>,
     RA.sequence(applicativeValidation),
-    RTE.map(() => H.successJson({ message: "it works!" })),
-    RTE.mapLeft(problems => new H.HttpError(problems.join("\n\n")))
-  )
+    RTE.map(() =>
+      H.successJson({
+        name: getValueFromPackageJson("name"),
+        version: getCurrentBackendVersion(),
+      }),
+    ),
+    RTE.mapLeft((problems) => new H.HttpError(problems.join("\n\n"))),
+  ),
 );
 
 export const InfoFunction = httpAzureFunction(makeInfoHandler);

@@ -1,0 +1,115 @@
+# @pagopa/io-auth-n-identity-session
+
+## 0.10.0
+
+### Minor Changes
+
+- ab27d62: fetch SAML Assertion from One-ID and add lollipop integration within login/callback
+
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies [e8f3915]
+  - @pagopa/io-auth-n-identity-domain@0.6.0
+
+## 0.9.0
+
+### Minor Changes
+
+- 6e04dd6: Add `findByZendeskToken` to `SessionPort` and its Cosmos Adapter
+
+## 0.8.1
+
+### Patch Changes
+
+- 9cfd8fa: fix expiredAt value of successful login event and other minor refactoring/renaming
+
+## 0.8.0
+
+### Minor Changes
+
+- a28ecaa: add a successful login event
+
+### Patch Changes
+
+- Updated dependencies [a28ecaa]
+  - @pagopa/io-auth-n-identity-domain@0.5.2
+
+## 0.7.1
+
+### Patch Changes
+
+- c0b0fe4: Rename Wallet token to PagoPA token
+
+## 0.7.0
+
+### Minor Changes
+
+- 62672ac: Add `findByWalletToken`
+
+## 0.6.1
+
+### Patch Changes
+
+- fd524f9: add `<sessionId>.` prefix to all session tokens
+
+## 0.6.0
+
+### Minor Changes
+
+- f58b71c: Add `findByFimsToken` and include `createdAt` in `BaseSessionSchema`
+
+## 0.5.0
+
+### Minor Changes
+
+- e1c62dd: add health check to both LollipopActivationCosmosAdapter and SessionCosmosAdapter
+
+## 0.4.0
+
+### Minor Changes
+
+- 55db1f1: implement getSession handler and use case and mount it to fastify server
+
+### Patch Changes
+
+- Updated dependencies [55db1f1]
+  - @pagopa/io-auth-n-identity-domain@0.5.1
+
+## 0.3.0
+
+### Minor Changes
+
+- 926424f: add auth event Port and Adapter to send events via Service Bus
+
+### Patch Changes
+
+- Updated dependencies [926424f]
+  - @pagopa/io-auth-n-identity-domain@0.5.0
+
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [04f1496]
+  - @pagopa/io-auth-n-identity-domain@0.4.0
+
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [6993b6a]
+  - @pagopa/io-auth-n-identity-domain@0.3.1
+
+## 0.2.0
+
+### Minor Changes
+
+- cb0227a: Introduce activate user session use-case (base logic)
+
+## 0.1.0
+
+### Minor Changes
+
+- 0a8391e: Added a new package `@pagopa/io-auth-n-identity-session`

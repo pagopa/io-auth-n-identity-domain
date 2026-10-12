@@ -22,6 +22,7 @@ import {
 } from "@pagopa/io-auth-n-identity-commons/types/session-events/logout-event";
 
 import { TableClient } from "@azure/data-tables";
+import { AssertionRef } from "../generated/definitions/internal/AssertionRef";
 import { TypeEnum as LoginTypeEnum } from "../generated/definitions/internal/SessionInfo";
 import { SessionState } from "../generated/definitions/internal/SessionState";
 import { UnlockCode } from "../generated/definitions/internal/UnlockCode";
@@ -38,9 +39,11 @@ import {
   ConflictError,
   ForbiddenError,
   GenericError,
+  NotFoundError,
   forbiddenError,
   toConflictError,
   toGenericError,
+  toNotFoundError,
 } from "../utils/errors";
 import { PlatformInternalRepository } from "../repositories/platform-internal";
 import { PlatformInternalApiClient } from "../utils/platform-internal-client";
@@ -148,7 +151,11 @@ const getUserSessionState: (
     ),
   );
 
-const invalidateUserSession: (fiscalCode: FiscalCode) => RTE.ReaderTaskEither<
+// When `softDelete` is true, the pubkey revocation step is skipped.
+const invalidateUserSession: (
+  fiscalCode: FiscalCode,
+  softDelete?: boolean,
+) => RTE.ReaderTaskEither<
   {
     SafeRedisClient: redisLib.RedisClusterType;
     FastRedisClient: redisLib.RedisClusterType;
@@ -161,67 +168,72 @@ const invalidateUserSession: (fiscalCode: FiscalCode) => RTE.ReaderTaskEither<
   >,
   Error,
   true
-> = (fiscalCode) => (deps) =>
-  pipe(
-    deps.RedisRepository.readSessionInfoKeys({
-      fastClient: deps.FastRedisClient,
-      fiscalCode,
-      toNormalize: true,
-    }),
-    TE.orElse((error) =>
-      // cachedel is not called when read session results in sessionNotFoundError
-      // this behaviour keeps idempotency for this invalidate operation when:
-      // 1. session has naturally expired
-      // 2. error follows later in the operation chain and action is retried
-      error === sessionNotFoundError ? TE.right([]) : TE.left(error),
-    ),
-    TE.chain(
-      flow(
-        TE.traverseSeqArray((token) =>
-          deps.PlatformInternalRepository.cacheDelSessionToken({
-            ...deps,
-            sessionToken: token,
-          }),
+> =
+  (fiscalCode, softDelete = false) =>
+  (deps) =>
+    pipe(
+      deps.RedisRepository.readSessionInfoKeys({
+        fastClient: deps.FastRedisClient,
+        fiscalCode,
+        toNormalize: true,
+      }),
+      TE.orElse((error) =>
+        // cachedel is not called when read session results in sessionNotFoundError
+        // this behaviour keeps idempotency for this invalidate operation when:
+        // 1. session has naturally expired
+        // 2. error follows later in the operation chain and action is retried
+        error === sessionNotFoundError ? TE.right([]) : TE.left(error),
+      ),
+      TE.chain(
+        flow(
+          TE.traverseSeqArray((token) =>
+            deps.PlatformInternalRepository.cacheDelSessionToken({
+              ...deps,
+              sessionToken: token,
+            }),
+          ),
         ),
       ),
-    ),
-    TE.chain((_) =>
-      pipe(
-        AP.sequenceT(TE.ApplicativeSeq)(
-          // revoke pubkey
-          pipe(
-            // retrieve the assertionRef for the user
-            deps.RedisRepository.getLollipopAssertionRefForUser({
-              safeClient: deps.SafeRedisClient,
+      TE.chain((_) =>
+        pipe(
+          AP.sequenceT(TE.ApplicativeSeq)(
+            // revoke pubkey
+            // if `softDelete` is true, we skip the revocation of the pubkey
+            softDelete
+              ? TE.of(true as const)
+              : pipe(
+                  // retrieve the assertionRef for the user
+                  deps.RedisRepository.getLollipopAssertionRefForUser({
+                    safeClient: deps.SafeRedisClient,
+                    fiscalCode,
+                  }),
+                  TE.chainW(
+                    flow(
+                      O.map((assertionRef) =>
+                        deps.LollipopRepository.fireAndForgetRevokeAssertionRef(
+                          assertionRef,
+                        )(deps),
+                      ),
+                      // continue if there's no assertionRef on redis
+                      O.getOrElseW(() => TE.of(true as const)),
+                    ),
+                  ),
+                ),
+            // delete the assertionRef for the user
+            deps.RedisRepository.delLollipopDataForUser({
+              fastClient: deps.FastRedisClient,
               fiscalCode,
             }),
-            TE.chainW(
-              flow(
-                O.map((assertionRef) =>
-                  deps.LollipopRepository.fireAndForgetRevokeAssertionRef(
-                    assertionRef,
-                  )(deps),
-                ),
-                // continue if there's no assertionRef on redis
-                O.getOrElseW(() => TE.of(true as const)),
-              ),
-            ),
+            // removes all sessions
+            deps.RedisRepository.delUserAllSessions({
+              fastClient: deps.FastRedisClient,
+              fiscalCode,
+            }),
           ),
-          // delete the assertionRef for the user
-          deps.RedisRepository.delLollipopDataForUser({
-            fastClient: deps.FastRedisClient,
-            fiscalCode,
-          }),
-          // removes all sessions
-          deps.RedisRepository.delUserAllSessions({
-            fastClient: deps.FastRedisClient,
-            fiscalCode,
-          }),
         ),
       ),
-    ),
-    TE.map(() => true),
-  );
+      TE.map(() => true),
+    );
 
 const clearInstallation: (
   fiscalCode: FiscalCode,
@@ -452,6 +464,79 @@ const emitLogoutEvent: (
       }),
     );
 
+export type SoftDeleteUserSessionDeps = RedisDeps & {
+  LollipopRepository: LollipopRepository;
+  RevokeAssertionRefQueueClient: QueueClient;
+} & PlatformProxyDeps;
+// Invalidates the user session and disables the lollipop activation without revoking the pubkey
+const softDeleteUserSession: (
+  fiscalCode: FiscalCode,
+) => RTE.ReaderTaskEither<SoftDeleteUserSessionDeps, GenericError, null> =
+  (fiscalCode) => (deps) =>
+    pipe(
+      {
+        SafeRedisClient: deps.SafeRedisClientTask,
+        FastRedisClient: deps.FastRedisClientTask,
+      },
+      AP.sequenceS(TE.ApplySeq),
+      TE.mapLeft((err) =>
+        toGenericError(
+          `Could not establish connection to redis: ${err.message}`,
+        ),
+      ),
+      TE.chain(({ FastRedisClient, SafeRedisClient }) =>
+        pipe(
+          invalidateUserSession(
+            fiscalCode,
+            true,
+          )({
+            ...deps,
+            FastRedisClient,
+            SafeRedisClient,
+          }),
+          TE.mapLeft((err) => toGenericError(err.message)),
+        ),
+      ),
+      TE.map((_) => null),
+    );
+
+export type GetUserLollipopActivationDeps = Pick<
+  RedisDeps,
+  "SafeRedisClientTask" | "RedisRepository"
+>;
+const getUserLollipopActivation: (
+  fiscalCode: FiscalCode,
+) => RTE.ReaderTaskEither<
+  GetUserLollipopActivationDeps,
+  GenericError | NotFoundError,
+  AssertionRef
+> = (fiscalCode) => (deps) =>
+  pipe(
+    deps.SafeRedisClientTask,
+    TE.mapLeft((err) =>
+      toGenericError(`Could not establish connection to redis: ${err.message}`),
+    ),
+    TE.chainW((safeClient) =>
+      pipe(
+        deps.RedisRepository.getLollipopAssertionRefForUser({
+          safeClient,
+          fiscalCode,
+        }),
+        TE.mapLeft((err) =>
+          toGenericError(
+            `Error reading the lollipop assertion ref: [${err.message}]`,
+          ),
+        ),
+      ),
+    ),
+    TE.chainW((maybeAssertionRef) =>
+      pipe(
+        maybeAssertionRef,
+        TE.fromOption(() => toNotFoundError("LollipopActivation")),
+      ),
+    ),
+  );
+
 export type SessionService = typeof SessionService;
 export const SessionService = {
   getUserSession,
@@ -460,4 +545,6 @@ export const SessionService = {
   deleteUserSession,
   invalidateUserSession,
   getUserSessionState,
+  softDeleteUserSession,
+  getUserLollipopActivation,
 };

@@ -1,0 +1,112 @@
+import { z } from "zod";
+
+import {
+  AuthEventServiceBusDevelopmentConfigSchema,
+  AuthEventServiceBusProductionConfigSchema,
+} from "./auth-event-service-bus.vo.js";
+import { BPDConfigSchema } from "./bpd.vo.js";
+import { IoFastLoginConfigSchema } from "./fast-login.vo.js";
+import { FimsConfigSchema } from "./fims.vo.js";
+import {
+  LockedProfilesDevelopmentConfigSchema,
+  LockedProfilesProductionConfigSchema,
+} from "./locked-profiles.vo.js";
+import { LoginConfigSchema } from "./login.vo.js";
+import {
+  LollipopActivationCosmosDevelopmentConfigSchema,
+  LollipopActivationCosmosProductionConfigSchema,
+} from "./lollipop-activation.vo.js";
+import { LollipopConfigSchema } from "./lollipop.vo.js";
+import { OneIdConfigSchema } from "./one-id.vo.js";
+import { PagopaConfigSchema } from "./pagopa.vo.js";
+import { PlatformProxyConfigSchema } from "./platform-proxy.vo.js";
+import { IoProfileConfigSchema } from "./profile.vo.js";
+import {
+  PushNotificationsQueueDevelopmentConfigSchema,
+  PushNotificationsQueueProductionConfigSchema,
+} from "./push-notification-queue.vo.js";
+import {
+  RedisDevelopmentConfigSchema,
+  RedisProductionConfigSchema,
+} from "./redis.vo.js";
+import { ServerConfigSchema } from "./server.vo.js";
+import { IoSmIntConfigSchema } from "./session-manager-internal.vo.js";
+import {
+  SessionCosmosDevelopmentConfigSchema,
+  SessionCosmosProductionConfigSchema,
+} from "./session.vo.js";
+import {
+  TechnicalLockedProfilesDevelopmentConfigSchema,
+  TechnicalLockedProfilesProductionConfigSchema,
+} from "./technical-locked-profiles.vo.js";
+import { ZendeskConfigSchema } from "./zendesk.vo.js";
+
+/**
+ * Fields shared by every runtime environment.
+ * Individual environment schemas extend this with their own discriminator + extras.
+ */
+const CommonConfigShape = {
+  ...ServerConfigSchema.shape,
+  ...LollipopConfigSchema.shape,
+  ...IoProfileConfigSchema.shape,
+  ...IoFastLoginConfigSchema.shape,
+  ...IoSmIntConfigSchema.shape,
+  ...PlatformProxyConfigSchema.shape,
+  ...OneIdConfigSchema.shape,
+  ...LoginConfigSchema.shape,
+  ...BPDConfigSchema.shape,
+  ...FimsConfigSchema.shape,
+  ...PagopaConfigSchema.shape,
+  ...ZendeskConfigSchema.shape,
+};
+
+/**
+ * Production configuration schema.
+ * Used when NODE_ENV is "production".
+ */
+export const ProductionConfigSchema = z.object({
+  ...CommonConfigShape,
+  NODE_ENV: z.literal("production"),
+  ...LockedProfilesProductionConfigSchema.shape,
+  ...TechnicalLockedProfilesProductionConfigSchema.shape,
+  ...PushNotificationsQueueProductionConfigSchema.shape,
+  ...RedisProductionConfigSchema.shape,
+  ...SessionCosmosProductionConfigSchema.shape,
+  ...AuthEventServiceBusProductionConfigSchema.shape,
+  ...LollipopActivationCosmosProductionConfigSchema.shape,
+});
+
+export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
+
+/**
+ * Development configuration schema.
+ * Used when NODE_ENV is "development".
+ */
+export const DevelopmentConfigSchema = z.object({
+  ...CommonConfigShape,
+  NODE_ENV: z.literal("development"),
+  ...LockedProfilesDevelopmentConfigSchema.shape,
+  ...TechnicalLockedProfilesDevelopmentConfigSchema.shape,
+  ...PushNotificationsQueueDevelopmentConfigSchema.shape,
+  ...RedisDevelopmentConfigSchema.shape,
+  ...SessionCosmosDevelopmentConfigSchema.shape,
+  ...AuthEventServiceBusDevelopmentConfigSchema.shape,
+  ...LollipopActivationCosmosDevelopmentConfigSchema.shape,
+});
+
+export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;
+
+/**
+ * Application configuration schema.
+ *
+ * Smart parsing: the actual shape is a discriminated union on `NODE_ENV`.
+ *
+ * `NODE_ENV` MUST be set explicitly — the loader fails fast with a clear
+ * `Invalid discriminator value` error otherwise.
+ */
+export const ConfigSchema = z.discriminatedUnion("NODE_ENV", [
+  DevelopmentConfigSchema,
+  ProductionConfigSchema,
+]);
+
+export type Config = z.infer<typeof ConfigSchema>;
