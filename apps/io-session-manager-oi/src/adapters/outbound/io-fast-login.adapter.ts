@@ -3,6 +3,7 @@ import {
   GenericError,
   NonEmptyString,
   NonEmptyStringSchema,
+  type NonEmptyString,
 } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 
