@@ -61,8 +61,7 @@ script:post-response {
   const resolvedAcrValues = acr_values ?? `https://www.spid.gov.it/${req.getBody().min_auth_level}`;
   
   if (![state, nonce, client_id, redirect_uri, authorization_endpoint].every(value => typeof value === "string" && value.length > 0)) {
-    console.warn(new Error("Expected the reserve response to include all authorization parameters"));
-    console.warn(res.body)
+    throw new Error("Expected the reserve response to include all authorization parameters");
   }
   
   const idp = "https://idp.uat.io.oneid.pagopa.it";
