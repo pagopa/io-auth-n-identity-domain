@@ -719,6 +719,7 @@ describe("SessionCosmosAdapter", () => {
 
       expect(result).toEqual(ok(undefined));
       expect(userSession.query).not.toHaveBeenCalled();
+      expect(userSession.itemMock.delete).not.toHaveBeenCalled();
     });
 
     it("GIVEN an active session read error WHEN invalidatePreviousSession is called THEN returns GenericError", async () => {
@@ -761,6 +762,12 @@ describe("SessionCosmosAdapter", () => {
       );
       expect(userSession.bulk).toHaveBeenCalledTimes(1);
       expect(activeSession.itemMock.delete).toHaveBeenCalledTimes(1);
+      expect(activeSession.itemMock.delete).toHaveBeenCalledWith({
+        accessCondition: {
+          type: "IfMatch",
+          condition: aBaseCosmosResource._etag,
+        },
+      });
     });
 
     it("GIVEN no session token item WHEN invalidatePreviousSession is called THEN returns ok(undefined)", async () => {
