@@ -56,8 +56,15 @@ import {
   isWellFormedSAMLAssertion,
 } from "../utils/spid";
 import { getIdpFriendlyName } from "../repositories/idp-friendly-names";
+import { SpidAuthLevelEnum } from "../generated/backend/SpidAuthLevel";
+import { SpidLevelEnum } from "../generated/backend/SpidLevel";
 
 export type ReserveDeps = RedisRepo.RedisRepositoryDeps & AppInsightsDeps;
+
+const acrValuesByAuthLevel: Record<SpidAuthLevelEnum, SpidLevelEnum> = {
+  [SpidAuthLevelEnum.SpidL2]: SpidLevelEnum["https://www.spid.gov.it/SpidL2"],
+  [SpidAuthLevelEnum.SpidL3]: SpidLevelEnum["https://www.spid.gov.it/SpidL3"],
+};
 
 export type ReserveOutput =
   | IResponseErrorValidation
@@ -166,6 +173,7 @@ export const reserve =
     }
 
     return ResponseSuccessJson({
+      acr_values: acrValuesByAuthLevel[input.minAuthLevel],
       client_id: envConfig.clientId,
       authorization_endpoint: errorOrAuthorizationEndpoint.right
         .href as NonEmptyString,

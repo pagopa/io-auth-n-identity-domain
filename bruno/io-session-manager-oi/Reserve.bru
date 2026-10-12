@@ -55,18 +55,32 @@ script:pre-request {
 }
 
 script:post-response {
-  const { state, nonce, client_id, redirect_uri, authorization_endpoint } = res.body;
+  const { URL } = require("node:url");
+  const { state, nonce, client_id, redirect_uri, authorization_endpoint, acr_values } = res.body;
+  // TODO: Remove the fallback in the equivalent io-session-manager-oi PR.
+  const resolvedAcrValues = acr_values ?? `https://www.spid.gov.it/${req.getBody().min_auth_level}`;
   
-  const minAuthLevel = "https://www.spid.gov.it/SpidL2";
+  if (![state, nonce, client_id, redirect_uri, authorization_endpoint].every(value => typeof value === "string" && value.length > 0)) {
+    console.warn(new Error("Expected the reserve response to include all authorization parameters"));
+    console.warn(res.body)
+  }
   
   const idp = "https://idp.uat.io.oneid.pagopa.it";
   //const idp = "https://preproduzione.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
   
-  if (!state || !nonce) {
-    throw new Error("Expected the reserve response to include state and nonce");
+  const redirectUrl = new URL(authorization_endpoint);
+  const parameters = {
+    client_id,
+    redirect_uri,
+    scope: "openid",
+    state,
+    nonce,
+    response_type: "code",
+    acr_values: resolvedAcrValues,
+    idp,
+  };
+  for (const [name, value] of Object.entries(parameters)) {
+    redirectUrl.searchParams.set(name, value);
   }
-  
-  bru.setEnvVar("oidc_redirect_url",  `${authorization_endpoint}?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=openid&state=${state}&nonce=${nonce}&response_type=code&acr_values=${minAuthLevel}&idp=${idp}`)
-  
-  
+  bru.setEnvVar("oidc_redirect_url", redirectUrl.toString());
 }
