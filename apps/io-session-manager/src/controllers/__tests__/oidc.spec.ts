@@ -119,6 +119,7 @@ describe("OidcController#reserveEndpoint", () => {
       env: "PROD",
       min_auth_level: minAuthLevel,
       lollipop_pub_key: AN_ENCODED_JWK,
+      lollipop_hash_algo: "sha256",
     });
 
     const result = await pipe({ ...deps, req }, reserveEndpoint, TE.toUnion)();
