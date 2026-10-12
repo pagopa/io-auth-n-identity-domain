@@ -190,31 +190,45 @@ describe("OidcService#reserve", () => {
     vi.clearAllMocks();
   });
 
-  test("should compute the lollipop assertion ref, save the auxiliary data and return the OIDC parameters", async () => {
-    mockedGetOidcConfiguration.mockResolvedValueOnce(
-      anOidcConfiguration as client.Configuration,
-    );
-    mockSetEx.mockResolvedValueOnce("OK");
+  test.each([SpidAuthLevelEnum.SpidL2, SpidAuthLevelEnum.SpidL3])(
+    "should save the auxiliary data and return the OIDC parameters for %s",
+    async (minAuthLevel) => {
+      mockedGetOidcConfiguration.mockResolvedValueOnce(
+        anOidcConfiguration as client.Configuration,
+      );
+      mockSetEx.mockResolvedValueOnce("OK");
 
-    const result = await reserve(deps)(aReserveInput);
+      const result = await reserve(deps)({ ...aReserveInput, minAuthLevel });
 
-    expect(mockSetEx).toHaveBeenCalledWith(
-      expect.stringContaining("RESERVE-"),
-      expect.any(Number),
-      expect.stringContaining('"lollipopAssertionRef":"sha256-'),
-    );
-    expect(result).toMatchObject({
-      kind: "IResponseSuccessJson",
-      value: {
-        client_id: "prod-client-id",
-        authorization_endpoint: aServerMetadata.authorization_endpoint,
-        redirect_uri: "https://localhost/api/auth/v1/callback",
-        state: expect.any(String),
-        nonce: expect.any(String),
-      },
-    });
-    expect(mockTrackEvent).not.toHaveBeenCalled();
-  });
+      expect(mockSetEx).toHaveBeenCalledTimes(1);
+      const [key, ttl, value] = mockSetEx.mock.calls[0];
+      expect([key, ttl, JSON.parse(value)]).toEqual([
+        expect.stringMatching(/^RESERVE-/),
+        OneIdConfig.LOGIN_AUXILIARY_DATA_TTL_SECONDS,
+        expect.objectContaining({
+          clientId: anEnvConfig.clientId,
+          lollipopAssertionRef: expect.stringMatching(/^sha256-/),
+          minAuthLevel,
+          nonce: expect.stringMatching(/^.+$/),
+          oidcConfigurationEnv: aReserveInput.env,
+        }),
+      ]);
+
+      expect(result).toMatchObject({
+        kind: "IResponseSuccessJson",
+        value: {
+          acr_values: `https://www.spid.gov.it/${minAuthLevel}`,
+          client_id: "prod-client-id",
+          authorization_endpoint: aServerMetadata.authorization_endpoint,
+          redirect_uri: "https://localhost/api/auth/v1/callback",
+          state: expect.any(String),
+          nonce: expect.any(String),
+        },
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    },
+  );
 
   test("should return IResponseErrorValidation when the requested environment is not a valid OidcConfigurationEnv", async () => {
     const result = await reserve(deps)({

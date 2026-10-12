@@ -616,6 +616,8 @@ components:
     ReserveResponse:
       type: object
       properties:
+        acr_values:
+          $ref: "#/components/schemas/SpidLevel"
         client_id:
           type: string
           minLength: 1
@@ -632,12 +634,13 @@ components:
           type: string
           minLength: 1
       required:
+        - acr_values
         - client_id
         - state
         - nonce
         - redirect_uri
         - authorization_endpoint
-      description: The parameters needed to start the OIDC authorization flow.
+      description: The parameters needed to start the OIDC authorization flow. acr_values is the requested minimum SPID level (L2 or L3) in canonical URI form.
     SpidLevel:
       type: string
       description: A SPID level.
