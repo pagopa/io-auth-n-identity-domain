@@ -22,7 +22,9 @@ TECHNICAL_LOCKED_PROFILES_STORAGE_CONNECTION_STRING=${STORAGE_CONN_STRING}
 
 IO_FAST_LOGIN_API_KEY=your-io-fast-login-api-key
 IO_FAST_LOGIN_API_URL=http://${FAST_LOGIN_SERVICE_NAME}:7071
-IO_FAST_LOGIN_API_BASE_PATH=/api/v1
+# We don't need the base path for the Fast Login API 
+# since it is already included in the paths of the OpenAPI specification.
+IO_FAST_LOGIN_API_BASE_PATH=/
 
 IO_SM_INT_API_KEY=your-sm-int-api-key
 IO_SM_INT_API_URL=http://${SESSION_MANAGER_INTERNAL_SERVICE_NAME}:7071
