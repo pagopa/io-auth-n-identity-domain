@@ -20,7 +20,7 @@ export class LollipopRevocationQueueAdapter
     } catch (error) {
       return err(
         new GenericError(
-          `Failed to perform healthcheck on notification queue: ${
+          `Failed to perform healthcheck on Lollipop revocation queue: ${
             error instanceof Error ? error.message : String(error)
           }`,
         ),

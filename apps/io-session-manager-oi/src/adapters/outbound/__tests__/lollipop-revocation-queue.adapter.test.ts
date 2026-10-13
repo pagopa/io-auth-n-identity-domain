@@ -95,7 +95,7 @@ describe("LollipopRevocationQueueAdapter#healthcheck", () => {
 
     expect(result._unsafeUnwrapErr()).toEqual(
       new GenericError(
-        "Failed to perform healthcheck on notification queue: Queue unavailable",
+        "Failed to perform healthcheck on Lollipop revocation queue: Queue unavailable",
       ),
     );
   });
