@@ -112,6 +112,7 @@ describe("OneIdIdentityAssertionFetcherAdapter#getAssertion", () => {
       client: expect.anything(),
       query: { access_token: ACCESS_TOKEN },
       headers: { Accept: "application/xml" },
+      parseAs: "text",
     });
   });
 
