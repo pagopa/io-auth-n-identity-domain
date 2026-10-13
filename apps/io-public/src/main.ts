@@ -1,6 +1,6 @@
-import { app } from "@azure/functions";
-import { TableClient } from "@azure/data-tables";
 import { CosmosClient } from "@azure/cosmos";
+import { TableClient } from "@azure/data-tables";
+import { app } from "@azure/functions";
 
 import {
   PROFILE_COLLECTION_NAME,
@@ -8,13 +8,13 @@ import {
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { DataTableProfileEmailsRepository } from "@pagopa/io-functions-commons/dist/src/utils/unique_email_enforcement/storage";
 
-import { profileEmailTableClient } from "./utils/unique_email_enforcement";
+import { Info } from "./Info/handler";
 import { getConfigOrThrow } from "./utils/config";
+import { profileEmailTableClient } from "./utils/unique_email_enforcement";
 import {
   GetTokenInfo,
   ValidateProfileEmail,
 } from "./ValidateProfileEmailV2/handler";
-import { Info } from "./Info/handler";
 
 // -----------------------------------------------------------------
 // CONFIG SETUP
@@ -25,6 +25,7 @@ const config = getConfigOrThrow();
 const tableClient = TableClient.fromConnectionString(
   config.MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING,
   config.VALIDATION_TOKENS_TABLE_NAME,
+  { allowInsecureConnection: process.env.NODE_ENV === "development" },
 );
 
 const cosmosClient = new CosmosClient({

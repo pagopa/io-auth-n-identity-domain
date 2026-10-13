@@ -1,32 +1,32 @@
 import {
+  GetPropertiesResponse as TableGetPropertiesResponse,
+  TableServiceClient,
+} from "@azure/data-tables";
+import {
+  BlobGetPropertiesResponse,
+  BlobServiceClient,
+} from "@azure/storage-blob";
+import {
   QueueGetPropertiesResponse,
-  QueueServiceClient
+  QueueServiceClient,
 } from "@azure/storage-queue";
 import {
   HealthCheck,
   HealthProblem,
-  toHealthProblems
+  toHealthProblems,
 } from "@pagopa/io-functions-commons/dist/src/utils/healthcheck";
-import * as Task from "fp-ts/lib/Task";
-import * as RA from "fp-ts/lib/ReadonlyArray";
 import * as A from "fp-ts/lib/Array";
+import * as RA from "fp-ts/lib/ReadonlyArray";
+import * as Task from "fp-ts/lib/Task";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import {
-  BlobGetPropertiesResponse,
-  BlobServiceClient
-} from "@azure/storage-blob";
-import {
-  TableServiceClient,
-  GetPropertiesResponse as TableGetPropertiesResponse
-} from "@azure/data-tables";
 import { AzureStorageDependency } from "./dependency";
 
 export type AzureStorageProblemSource = "AzureStorage";
 
 const applicativeValidation = TE.getApplicativeTaskValidation(
   Task.ApplicativePar,
-  RA.getSemigroup<HealthProblem<AzureStorageProblemSource>>()
+  RA.getSemigroup<HealthProblem<AzureStorageProblemSource>>(),
 );
 
 /**
@@ -37,17 +37,19 @@ const applicativeValidation = TE.getApplicativeTaskValidation(
  * @returns either true or an array of error messages
  */
 export const makeAzureStorageHealthCheck = ({
-  connectionString
+  connectionString,
 }: AzureStorageDependency): HealthCheck<AzureStorageProblemSource> =>
   // try to instantiate a client for each product of azure storage
   pipe(
     [
       BlobServiceClient.fromConnectionString(connectionString),
       QueueServiceClient.fromConnectionString(connectionString),
-      TableServiceClient.fromConnectionString(connectionString)
+      TableServiceClient.fromConnectionString(connectionString, {
+        allowInsecureConnection: process.env.NODE_ENV === "development",
+      }),
     ]
       // for each, create a task that wraps getServiceProperties
-      .map(serviceClient =>
+      .map((serviceClient) =>
         TE.tryCatch(
           () =>
             new Promise<
@@ -56,18 +58,18 @@ export const makeAzureStorageHealthCheck = ({
               | TableGetPropertiesResponse
             >((resolve, reject) =>
               serviceClient.getProperties().then(
-                result => {
+                (result) => {
                   resolve(result);
                 },
-                err => {
+                (err) => {
                   reject(err.message.replace(/\n/gim, " "));
-                }
-              )
+                },
+              ),
             ),
-          toHealthProblems("AzureStorage" as const)
-        )
+          toHealthProblems("AzureStorage" as const),
+        ),
       ),
     // run each taskEither and gather validation errors from each one of them, if any
     A.sequence(applicativeValidation),
-    TE.map(_ => true)
+    TE.map((_) => true),
   );

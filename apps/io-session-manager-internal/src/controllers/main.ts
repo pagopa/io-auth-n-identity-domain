@@ -1,40 +1,40 @@
-import { app } from "@azure/functions";
 import { TableClient } from "@azure/data-tables";
+import { app } from "@azure/functions";
 import { DefaultAzureCredential } from "@azure/identity";
-import { QueueClient } from "@azure/storage-queue";
-import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import { ServiceBusClient } from "@azure/service-bus";
 import { BlobServiceClient } from "@azure/storage-blob";
-import { BlobUtil } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
+import { QueueClient } from "@azure/storage-queue";
+import { AuthSessionsTopicRepository } from "@pagopa/io-auth-n-identity-commons/repositories/auth-sessions-topic-repository";
 import { RejectedLoginEvent } from "@pagopa/io-auth-n-identity-commons/types/session-events/rejected-login-event";
-import { CreateRedisClientSingleton } from "../utils/redis-client";
-import { initTelemetryClient } from "../utils/appinsights";
-import { getConfigOrThrow } from "../utils/config";
+import { BlobUtil } from "@pagopa/io-auth-n-identity-commons/utils/storage-blob";
 import { AuthLockRepository } from "../repositories/auth-lock";
+import { BlockedUsersRedisRepository } from "../repositories/blocked-users-redis";
 import { InstallationRepository } from "../repositories/installation";
 import { LollipopRepository } from "../repositories/lollipop";
 import { Package } from "../repositories/package";
+import { PlatformInternalRepository } from "../repositories/platform-internal";
 import { RedisRepository } from "../repositories/redis";
-import { BlockedUsersRedisRepository } from "../repositories/blocked-users-redis";
-import { InfoService } from "../services/info";
-import { SessionService } from "../services/session-service";
-import { BlockedUsersService } from "../services/blocked-users-service";
-import { RejectedLoginAuditLogService } from "../services/rejected-login-audit-log-service";
 import { RejectedLoginAuditLogRepository } from "../repositories/rejected-login-audit-log-repository";
-import { InfoFunction } from "./info";
-import { GetSessionFunction, GetSessionStateFunction } from "./get-session";
-import { UnlockUserSessionFunction } from "./unlock-user-session";
-import { LockUserSessionFunction } from "./lock-user-session";
+import { BlockedUsersService } from "../services/blocked-users-service";
+import { InfoService } from "../services/info";
+import { RejectedLoginAuditLogService } from "../services/rejected-login-audit-log-service";
+import { SessionService } from "../services/session-service";
+import { initTelemetryClient } from "../utils/appinsights";
+import { getConfigOrThrow } from "../utils/config";
+import { getPlatformInternalApiClient } from "../utils/platform-internal-client";
+import { CreateRedisClientSingleton } from "../utils/redis-client";
 import {
   AuthLockFunction,
   DeleteUserSessionFunction,
   ReleaseAuthLockFunction,
 } from "./auth-lock";
-import { RejectedLoginEventProcessorFunction } from "./rejected-login-event-processor";
-import { PlatformInternalRepository } from "../repositories/platform-internal";
-import { getPlatformInternalApiClient } from "../utils/platform-internal-client";
-import { SoftDeleteUserSessionFunction } from "./soft-delete-user-session";
 import { GetUserLollipopActivationFunction } from "./get-lollipop-activation";
+import { GetSessionFunction, GetSessionStateFunction } from "./get-session";
+import { InfoFunction } from "./info";
+import { LockUserSessionFunction } from "./lock-user-session";
+import { RejectedLoginEventProcessorFunction } from "./rejected-login-event-processor";
+import { SoftDeleteUserSessionFunction } from "./soft-delete-user-session";
+import { UnlockUserSessionFunction } from "./unlock-user-session";
 
 const v1BasePath = "api/v1";
 const config = getConfigOrThrow();
@@ -57,6 +57,7 @@ const safeRedisClientTask = CreateRedisClientSingleton(
 const AuthenticationLockTableClient = TableClient.fromConnectionString(
   config.LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
   config.LOCKED_PROFILES_TABLE_NAME,
+  { allowInsecureConnection: process.env.NODE_ENV === "development" },
 );
 
 const RevokeAssertionRefQueueClient = new QueueClient(
