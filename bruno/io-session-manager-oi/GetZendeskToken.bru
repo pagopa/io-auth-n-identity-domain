@@ -1,0 +1,20 @@
+meta {
+  name: GetZendeskToken
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/sso/zendesk/v2/jwt
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  user_token: {{zendeskClientSessionToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
