@@ -240,26 +240,21 @@ const invalidatePreviousUserState =
     /************************************************************/
     const lollipopActivationDataResult =
       await deps.lollipopActivationPort.getByFiscalCode(fiscalCode);
-    if (lollipopActivationDataResult.isOk()) {
-      // Lollipop activation data found, proceed with revocation
-      const lollipopActivationData = lollipopActivationDataResult.value;
-      const lollipopRevocationResult =
-        await deps.lollipopRevocationPort.requestRevocation(
-          lollipopActivationData.assertionRef,
-        );
-      if (lollipopRevocationResult.isErr()) {
-        // fire-and-forget: we log the error but do not block the flow
-        console.error(
-          `Failed to revoke lollipop: ${lollipopRevocationResult.error.message}`,
-        );
-      }
-    } else if (lollipopActivationDataResult.error.kind !== "NotFoundError") {
+    if (lollipopActivationDataResult.isErr()) {
       return err(
         new GenericError(
           `Failed to retrieve previous lollipop activation data: ${lollipopActivationDataResult.error.message}`,
         ),
       );
     }
+    // Lollipop activation data found, proceed with revocation (fire-and-forget)
+    deps.lollipopRevocationPort
+      .requestRevocation(lollipopActivationDataResult.value.assertionRef)
+      .then((result) => {
+        if (result.isErr()) {
+          console.error(`Failed to revoke lollipop: ${result.error.message}`);
+        }
+      });
 
     /********************************************************/
     /* Invalidate the previous session in the session store */

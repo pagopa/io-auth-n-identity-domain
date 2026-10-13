@@ -281,18 +281,23 @@ describe("makeActivateUserSessionUseCase", () => {
       errorSpy.mockRestore();
     });
 
-    it("continues without requesting revocation when no previous activation exists", async () => {
+    it("returns err when the previous Lollipop activation is not found", async () => {
       lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
         err(aNotFoundError),
       );
 
       const result = await activateUserSession(aNewSessionTokenInput);
 
-      expect(result).toMatchObject(ok(aClientSessionToken));
-      expect(mockRequestRevocation).not.toHaveBeenCalled();
-      expect(mockInvalidatePreviousSession).toHaveBeenCalledExactlyOnceWith(
-        aFiscalCode,
+      expect(result).toMatchObject(
+        err(
+          new GenericError(
+            `Failed to retrieve previous lollipop activation data: ${aNotFoundError.message}`,
+          ),
+        ),
       );
+      expect(mockRequestRevocation).not.toHaveBeenCalled();
+      expect(mockInvalidatePreviousSession).not.toHaveBeenCalled();
+      expect(mockSessionCreate).not.toHaveBeenCalled();
     });
 
     it("returns err when retrieving the previous Lollipop activation fails", async () => {
