@@ -10,7 +10,7 @@ import {
   SessionIdSchema,
   SpidLevelSchema,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
