@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.29.2
+
+### Patch Changes
+
+- 12ed2e9: Fix JWT sign call
+
 ## 0.29.1
 
 ### Patch Changes
