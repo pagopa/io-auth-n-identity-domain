@@ -1,5 +1,11 @@
 # io-public
 
+## 2.4.1
+
+### Patch Changes
+
+- 6dd0411: set `allowInsecureConnection` for developlment environment
+
 ## 2.4.0
 
 ### Minor Changes
