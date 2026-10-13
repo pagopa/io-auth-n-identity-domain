@@ -1,5 +1,11 @@
 # io-profile
 
+## 5.34.1
+
+### Patch Changes
+
+- 6dd0411: set `allowInsecureConnection` for developlment environment
+
 ## 5.34.0
 
 ### Minor Changes
