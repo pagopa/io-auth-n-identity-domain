@@ -93,6 +93,8 @@ export class OneIdIdentityAssertionFetcherAdapter
         headers: {
           Accept: "application/xml",
         },
+        // `Content-type: "application/xml"` is auto-parsed as a Blob (also with native fetch); DOMParser (and the generated response type) needs the response body as text.
+        parseAs: "text",
       });
 
       if (result.response?.status !== 200 || result.data === undefined) {

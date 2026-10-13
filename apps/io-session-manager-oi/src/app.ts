@@ -58,8 +58,8 @@ import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
 import {
   AuthenticationMiddlewareFactory,
-  TokenParsingStrategyFactory,
   TokenIntrospectionStrategyFactory,
+  TokenParsingStrategyFactory,
   TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
 
@@ -102,6 +102,7 @@ export const createApp = async (
       : TableClient.fromConnectionString(
           config.LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
           config.LOCKED_PROFILES_TABLE_NAME,
+          { allowInsecureConnection: config.NODE_ENV === "development" },
         );
 
   const technicalLockedProfilesTableClient =
@@ -114,6 +115,7 @@ export const createApp = async (
       : TableClient.fromConnectionString(
           config.TECHNICAL_LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
           config.TECHNICAL_LOCKED_PROFILES_TABLE_NAME,
+          { allowInsecureConnection: config.NODE_ENV === "development" },
         );
 
   const pushNotificationsQueueServiceClient =

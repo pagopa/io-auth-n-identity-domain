@@ -25,6 +25,7 @@
       "installDockerBuildx": true
     }
   },
+  "runArgs": ["--name=io-auth-n-identity-devcontainer"],
   "postStartCommand": {
     "set-workspace-as-safe-dir": "git config --global --add safe.directory ${containerWorkspaceFolder}",
     // Use interactive bash (-i) to load NVM and the correct PATH

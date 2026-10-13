@@ -75,21 +75,58 @@ describe("OidcController#reserveEndpoint", () => {
     vi.clearAllMocks();
   });
 
-  test("should decode the request and return the reserve response", async () => {
-    mockedGetOidcConfiguration.mockResolvedValueOnce(
-      anOidcConfiguration as never,
-    );
-    mockSetEx.mockResolvedValueOnce("OK");
+  test.each(["SpidL2", "SpidL3"])(
+    "should decode %s and return the reserve response",
+    async (minAuthLevel) => {
+      mockedGetOidcConfiguration.mockResolvedValueOnce(
+        anOidcConfiguration as never,
+      );
+      mockSetEx.mockResolvedValueOnce("OK");
 
+      const req = buildReq({
+        env: "PROD",
+        min_auth_level: minAuthLevel,
+        lollipop_pub_key: AN_ENCODED_JWK,
+        lollipop_hash_algo: "sha256",
+      });
+
+      const result = await pipe(
+        { ...deps, req },
+        reserveEndpoint,
+        TE.toUnion,
+      )();
+
+      expect(result).toMatchObject({
+        kind: "IResponseSuccessJson",
+        value: {
+          acr_values: `https://www.spid.gov.it/${minAuthLevel}`,
+          client_id: "prod-client-id",
+          authorization_endpoint: aServerMetadata.authorization_endpoint,
+          redirect_uri: "https://localhost/api/auth/v1/callback",
+          state: expect.any(String),
+          nonce: expect.any(String),
+        },
+      });
+    },
+  );
+
+  test.each([
+    "SpidL1",
+    "https://www.spid.gov.it/SpidL2",
+    "https://www.spid.gov.it/SpidL3",
+  ])("should reject min_auth_level %s", async (minAuthLevel) => {
     const req = buildReq({
       env: "PROD",
-      min_auth_level: "SpidL2",
+      min_auth_level: minAuthLevel,
       lollipop_pub_key: AN_ENCODED_JWK,
       lollipop_hash_algo: "sha256",
     });
 
     const result = await pipe({ ...deps, req }, reserveEndpoint, TE.toUnion)();
-    expect(result).toMatchObject({ kind: "IResponseSuccessJson" });
+
+    expect(result).toMatchObject({ kind: "IResponseErrorValidation" });
+    expect(mockedGetOidcConfiguration).not.toHaveBeenCalled();
+    expect(mockSetEx).not.toHaveBeenCalled();
   });
 
   test("should return IResponseErrorValidation when required params are missing", async () => {
