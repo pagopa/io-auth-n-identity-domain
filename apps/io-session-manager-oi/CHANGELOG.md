@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.29.1
+
+### Patch Changes
+
+- 6dd0411: force parsing GET /saml/assertion response body as raw text
+
 ## 0.29.0
 
 ### Minor Changes

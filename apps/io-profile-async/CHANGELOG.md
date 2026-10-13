@@ -1,5 +1,11 @@
 # io-profile-async
 
+## 1.20.1
+
+### Patch Changes
+
+- 6dd0411: set `allowInsecureConnection` for developlment environment
+
 ## 1.20.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # io-session-manager-internal
 
+## 0.18.1
+
+### Patch Changes
+
+- 6dd0411: set `allowInsecureConnection` for developlment environment
+
 ## 0.18.0
 
 ### Minor Changes
