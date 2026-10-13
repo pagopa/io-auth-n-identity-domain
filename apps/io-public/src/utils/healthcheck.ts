@@ -15,21 +15,21 @@ type ProblemSource = "AzureCosmosDB" | "AzureStorage" | "Config";
 export type HealthProblem<S extends ProblemSource> = string & { __source: S };
 export type HealthCheck<
   S extends ProblemSource = ProblemSource,
-  T = true
+  T = true,
 > = TaskEither<ReadonlyArray<HealthProblem<S>>, T>;
 
 // format and cast a problem message with its source
 const formatProblem = <S extends ProblemSource>(
   source: S,
-  message: string
+  message: string,
 ): HealthProblem<S> => `${source}|${message}` as HealthProblem<S>;
 
 // utility to format an unknown error to an arry of HealthProblem
-const toHealthProblems = <S extends ProblemSource>(source: S) => (
-  e: unknown
-): ReadonlyArray<HealthProblem<S>> => [
-  formatProblem(source, toError(e).message)
-];
+const toHealthProblems =
+  <S extends ProblemSource>(source: S) =>
+  (e: unknown): ReadonlyArray<HealthProblem<S>> => [
+    formatProblem(source, toError(e).message),
+  ];
 
 /**
  * Check application's configuration is correct
@@ -40,10 +40,10 @@ export const checkConfigHealth = (): HealthCheck<"Config", IConfig> =>
   pipe(
     getConfig(),
     TE.fromEither,
-    TE.mapLeft(errors =>
+    TE.mapLeft((errors) =>
       // give each problem its own line
-      errors.map(e => formatProblem("Config", readableReport([e])))
-    )
+      errors.map((e) => formatProblem("Config", readableReport([e]))),
+    ),
   );
 
 /**
@@ -56,14 +56,14 @@ export const checkConfigHealth = (): HealthCheck<"Config", IConfig> =>
  */
 export const checkAzureCosmosDbHealth = (
   dbUri: string,
-  dbKey?: string
+  dbKey?: string,
 ): HealthCheck<"AzureCosmosDB", true> =>
   pipe(
     TE.Do,
     TE.bind("client", () => {
       const client = new CosmosClient({
         endpoint: dbUri,
-        key: dbKey
+        key: dbKey,
       });
       return TE.right(client);
     }),
@@ -71,12 +71,12 @@ export const checkAzureCosmosDbHealth = (
       pipe(
         TE.tryCatch(
           () => client.getDatabaseAccount(),
-          toHealthProblems("AzureCosmosDB")
+          toHealthProblems("AzureCosmosDB"),
         ),
-        T.chainFirst(() => T.of(client.dispose()))
-      )
+        T.chainFirst(() => T.of(client.dispose())),
+      ),
     ),
-    TE.map(_ => true)
+    TE.map((_) => true),
   );
 
 /**
@@ -87,31 +87,33 @@ export const checkAzureCosmosDbHealth = (
  * @returns either true or an array of error messages
  */
 export const checkAzureStorageHealth = (
-  connStr: string
+  connStr: string,
 ): HealthCheck<"AzureStorage"> =>
   pipe(
     [TableServiceClient.fromConnectionString],
     // for each, create a task that wraps getServiceProperties
-    RA.map(createService =>
+    RA.map((createService) =>
       TE.tryCatch(
         () =>
           new Promise<GetPropertiesResponse>((resolve, reject) =>
-            createService(connStr)
+            createService(connStr, {
+              allowInsecureConnection: process.env.NODE_ENV === "development",
+            })
               .getProperties()
               .then(
-                result => {
+                (result) => {
                   resolve(result);
                 },
-                err => {
+                (err) => {
                   reject(err.message.replace(/\n/gim, " ")); // avoid newlines
-                }
-              )
+                },
+              ),
           ),
-        toHealthProblems("AzureStorage")
-      )
+        toHealthProblems("AzureStorage"),
+      ),
     ),
     TE.sequenceSeqArray,
-    TE.map(_ => true)
+    TE.map((_) => true),
   );
 
 /**
@@ -122,16 +124,16 @@ export const checkAzureStorageHealth = (
 export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> =>
   pipe(
     checkConfigHealth(),
-    TE.chainW(config =>
+    TE.chainW((config) =>
       apply.sequenceT(TE.ApplySeq)<
         ReadonlyArray<HealthProblem<ProblemSource>>,
         Array<TaskEither<ReadonlyArray<HealthProblem<ProblemSource>>, true>>
       >(
         checkAzureCosmosDbHealth(config.COSMOSDB_URI, config.COSMOSDB_KEY),
         checkAzureStorageHealth(
-          config.MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING
-        )
-      )
+          config.MAINTENANCE_STORAGE_ACCOUNT_CONNECTION_STRING,
+        ),
+      ),
     ),
-    TE.map(_ => true)
+    TE.map((_) => true),
   );

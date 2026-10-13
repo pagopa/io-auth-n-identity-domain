@@ -1,5 +1,6 @@
 import { GenericError, NonEmptyString } from "@pagopa/hexagonal-core";
 import { Result } from "neverthrow";
+
 import { IdentityAssertion } from "../../value-objects/assertion.vo.js";
 import { OidcEnvironment } from "../../value-objects/oidc.vo.js";
 
