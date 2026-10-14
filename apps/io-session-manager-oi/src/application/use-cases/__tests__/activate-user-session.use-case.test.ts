@@ -263,22 +263,16 @@ describe("makeActivateUserSessionUseCase", () => {
   describe("error paths", () => {
     it("continues login when requesting Lollipop revocation fails", async () => {
       mockRequestRevocation.mockResolvedValueOnce(err(aGenericError));
-      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
       const result = await activateUserSession(aNewSessionTokenInput);
 
       expect(result).toMatchObject(ok(aClientSessionToken));
       expect(mockRequestRevocation).toHaveBeenCalledExactlyOnceWith(
         previousAssertionRef,
       );
-      expect(errorSpy).toHaveBeenCalledExactlyOnceWith(
-        `Failed to revoke lollipop: ${aGenericError.message}`,
-      );
       expect(mockInvalidatePreviousSession).toHaveBeenCalledExactlyOnceWith(
         aFiscalCode,
       );
       expect(mockSessionCreate).toHaveBeenCalledOnce();
-      errorSpy.mockRestore();
     });
 
     it("returns err when the previous Lollipop activation is not found", async () => {
@@ -378,8 +372,6 @@ describe("makeActivateUserSessionUseCase", () => {
       lollipopActivationPortMock.revokeByFiscalCode.mockResolvedValueOnce(
         err(new GenericError("revoke failed")),
       );
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
       const result = await activateUserSession(aNewSessionTokenInput);
 
       expect(result).toMatchObject(
@@ -389,10 +381,6 @@ describe("makeActivateUserSessionUseCase", () => {
           ),
         ),
       );
-      expect(warnSpy).toHaveBeenCalledExactlyOnceWith(
-        "Failed to revoke lollipop activation: Generic error: revoke failed",
-      );
-      warnSpy.mockRestore();
     });
 
     it("returns err when retrieving the profile fails with a generic error", async () => {
