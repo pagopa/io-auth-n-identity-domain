@@ -1,8 +1,10 @@
 import {
   AuthenticationError,
+  FiscalCode,
   GenericError,
   NonEmptyString,
   NotFoundError,
+  ValidationError,
 } from "@pagopa/hexagonal-core";
 import type {
   IPString,
@@ -67,7 +69,8 @@ const CLAIMS = {
 } as unknown as OidcClaims;
 
 const IDENTITY_ASSERTION: IdentityAssertion = {
-  assertionRef: "an-assertion-ref" as LollipopAssertionRef,
+  assertionRef: AUXILIARY_DATA.lollipopAssertionRef,
+  claims: { fiscalCode: CLAIMS.fiscalNumber },
   rawAssertion: "a-raw-saml-assertion" as NonEmptyString,
   assertion: new DOMParser().parseFromString(
     "<Assertion />",
@@ -175,6 +178,97 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(retrieveMock).toHaveBeenCalledExactlyOnceWith(STATE);
     expect(exchangeMock).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
+    expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["SpidL1", "SpidL1", true],
+    ["SpidL1", "SpidL2", true],
+    ["SpidL1", "SpidL3", true],
+    ["SpidL2", "SpidL1", false],
+    ["SpidL2", "SpidL2", true],
+    ["SpidL2", "SpidL3", true],
+    ["SpidL3", "SpidL1", false],
+    ["SpidL3", "SpidL2", false],
+    ["SpidL3", "SpidL3", true],
+  ] as const)(
+    "checks required %s against received %s (accepted: %s)",
+    async (minAuthLevel, receivedLevel, accepted) => {
+      retrieveMock.mockResolvedValueOnce(
+        ok({ ...AUXILIARY_DATA, minAuthLevel }),
+      );
+      exchangeMock.mockResolvedValueOnce(
+        ok({
+          claims: {
+            ...CLAIMS,
+            acr: `https://www.spid.gov.it/${receivedLevel}`,
+          },
+          accessToken: ACCESS_TOKEN,
+        }),
+      );
+
+      const result = await handleOidcCallbackUseCase({
+        callback: SUCCESS_CALLBACK,
+        ipAddress: IP_ADDRESS,
+      });
+
+      if (accepted) {
+        expect(result._unsafeUnwrap()).toEqual({
+          outcome: "success",
+          token: CLIENT_SESSION_TOKEN,
+        });
+        expect(activateUserSessionUseCase).toHaveBeenCalledOnce();
+      } else {
+        expect(result._unsafeUnwrapErr()).toEqual(
+          new ValidationError(
+            `Insufficient SPID level: required ${minAuthLevel}, received ${receivedLevel}`,
+          ),
+        );
+        expect(getAssertionMock).not.toHaveBeenCalled();
+        expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+      }
+    },
+  );
+
+  it("rejects a fiscal number mismatch before activating a session", async () => {
+    getAssertionMock.mockResolvedValueOnce(
+      ok({
+        ...IDENTITY_ASSERTION,
+        claims: { fiscalCode: "RSSMRA80A01H501U" as FiscalCode },
+      }),
+    );
+
+    const result = await handleOidcCallbackUseCase({
+      callback: SUCCESS_CALLBACK,
+      ipAddress: IP_ADDRESS,
+    });
+
+    expect(result._unsafeUnwrapErr()).toEqual(
+      new ValidationError(
+        "Fiscal number mismatch between id token and SAML identity assertion",
+      ),
+    );
+    expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+  });
+
+  it("rejects an assertion reference mismatch before activating a session", async () => {
+    getAssertionMock.mockResolvedValueOnce(
+      ok({
+        ...IDENTITY_ASSERTION,
+        assertionRef: "another-assertion-ref" as LollipopAssertionRef,
+      }),
+    );
+
+    const result = await handleOidcCallbackUseCase({
+      callback: SUCCESS_CALLBACK,
+      ipAddress: IP_ADDRESS,
+    });
+
+    expect(result._unsafeUnwrapErr()).toEqual(
+      new ValidationError(
+        "Assertion reference mismatch between auxiliary data and SAML identity assertion",
+      ),
+    );
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 

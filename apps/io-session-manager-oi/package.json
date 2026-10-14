@@ -43,6 +43,7 @@
     "@pagopa/redis": "workspace:^",
     "@xmldom/xmldom": "catalog:",
     "dotenv": "catalog:",
+    "fast-xml-validator": "^1.4.2",
     "fastify": "catalog:",
     "jsonwebtoken": "catalog:",
     "neverthrow": "catalog:",
