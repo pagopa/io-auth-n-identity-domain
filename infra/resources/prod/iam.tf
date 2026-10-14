@@ -36,6 +36,10 @@ module "iam_kv" {
     "${module.storage_accounts.session.name}" = module.storage_accounts.session.principal_id
     "${module.storage_accounts.audit.name}"   = module.storage_accounts.audit.principal_id
   }
+
+  api_management_principal_ids = {
+    "${data.azurerm_api_management.itn_internal_apim.name}" = data.azurerm_api_management.itn_internal_apim.identity[0].principal_id
+  }
 }
 
 module "iam_kv_ioweb" {

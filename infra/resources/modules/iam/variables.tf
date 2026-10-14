@@ -19,6 +19,12 @@ variable "key_vault" {
   description = "Details of the Key Vault to which the role will be applied"
 }
 
+variable "api_management_principal_ids" {
+  type        = map(string)
+  description = "Map of API Management principal IDs to give secret access as reader"
+  default     = {}
+}
+
 variable "subscription_id" {
   type        = string
   description = "Id of the subscription where the Key Vault is located"
