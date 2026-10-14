@@ -9,13 +9,58 @@ import { createApp } from "./app.js";
 import { ConfigSchema } from "./domain/value-objects/configs/index.js";
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
+let server: Awaited<ReturnType<typeof createApp>>["server"] | undefined;
+let shutdownPromise: Promise<void> | undefined;
 
 /**
- * Loads application configuration and package metadata.
- *
- * @returns The application bootstrap data.
+ * Shares one shutdown operation across repeated signals and fatal errors.
+ * Closes the server, when available, awaiting its onClose resource cleanup hooks.
+ * A later failure overrides a successful exit status, never the reverse.
+ * Forces exit with code 1 if cleanup fails or exceeds SHUTDOWN_TIMEOUT_MS.
+ * @param exitCode 0 for a requested stop, 1 for a fatal error.
  */
-const bootstrap = () => {
+const shutdown = (exitCode: number): Promise<void> => {
+  if (exitCode !== 0 || process.exitCode === undefined) {
+    process.exitCode = exitCode;
+  }
+  if (shutdownPromise) {
+    return shutdownPromise;
+  }
+
+  const timeout = setTimeout(() => {
+    console.error("Application shutdown timed out");
+    process.exit(1);
+  }, SHUTDOWN_TIMEOUT_MS);
+
+  shutdownPromise = (async () => {
+    try {
+      await server?.close();
+    } catch (error) {
+      console.error("Failed to close application:", error);
+      process.exitCode = 1;
+    } finally {
+      clearTimeout(timeout);
+      process.exit(process.exitCode ?? 0);
+    }
+  })();
+  return shutdownPromise;
+};
+
+const handleFatalError = (error: unknown): void => {
+  console.error("Fatal application error:", error);
+  void shutdown(1);
+};
+
+// Termination requested by the orchestrator or kill: drain and clean up.
+process.on("SIGTERM", () => void shutdown(0));
+// Interactive interruption (Ctrl+C): use the same shutdown procedure.
+process.on("SIGINT", () => void shutdown(0));
+// Uncaught exceptions are fatal: attempt bounded cleanup, then exit with failure.
+process.on("uncaughtException", handleFatalError);
+// Treat promises rejected without a handler as fatal rather than log and continue.
+process.on("unhandledRejection", handleFatalError);
+
+const start = async () => {
   const configResult = createConfigLoader(ConfigSchema).load();
   if (configResult.isErr()) {
     throw new Error("Failed to load configuration", {
@@ -34,91 +79,11 @@ const bootstrap = () => {
     });
   }
 
-  return { config, packageInfo: packageInfoResult.value };
+  ({ server } = await createApp(config, packageInfoResult.value));
+  await server.listen({
+    host: config.HOST,
+    port: config.PORT,
+  });
 };
 
-/**
- * Registers process lifecycle handlers with a shared shutdown operation.
- *
- * @param server - Application server.
- * @returns The fatal-error handler.
- */
-const registerLifecycle = (
-  server: Awaited<ReturnType<typeof createApp>>["server"],
-) => {
-  // Shares one shutdown operation across repeated signals and fatal errors.
-  let shutdownPromise: Promise<void> | undefined;
-
-  /**
-   * Closes the application and exits the process within the shutdown timeout.
-   *
-   * @param exitCode - Requested process exit status.
-   * @returns The shared shutdown promise.
-   */
-  const shutdown = (exitCode: number): Promise<void> => {
-    if (exitCode !== 0 || process.exitCode === undefined) {
-      process.exitCode = exitCode;
-    }
-    if (shutdownPromise) {
-      return shutdownPromise;
-    }
-
-    const timeout = setTimeout(() => {
-      console.error("Application shutdown timed out");
-      process.exit(1);
-    }, SHUTDOWN_TIMEOUT_MS);
-
-    shutdownPromise = (async () => {
-      try {
-        await server.close();
-      } catch (error) {
-        console.error("Failed to close application:", error);
-        process.exitCode = 1;
-      } finally {
-        clearTimeout(timeout);
-        process.exit(process.exitCode ?? 0);
-      }
-    })();
-    return shutdownPromise;
-  };
-
-  /**
-   * Logs a fatal error and requests application shutdown.
-   *
-   * @param error - Fatal application error.
-   * @returns Nothing.
-   */
-  const handleFatalError = (error: unknown): void => {
-    console.error("Fatal application error:", error);
-    void shutdown(1);
-  };
-
-  process.on("SIGTERM", () => void shutdown(0));
-  process.on("SIGINT", () => void shutdown(0));
-  process.on("uncaughtException", handleFatalError);
-  process.on("unhandledRejection", handleFatalError);
-
-  return { handleFatalError };
-};
-
-/**
- * Initializes the application and starts the server.
- *
- * @returns A promise for application startup.
- */
-const start = async () => {
-  const { config, packageInfo } = bootstrap();
-  const { server } = await createApp(config, packageInfo);
-  const { handleFatalError } = registerLifecycle(server);
-
-  try {
-    await server.listen({ host: config.HOST, port: config.PORT });
-  } catch (error) {
-    handleFatalError(error);
-  }
-};
-
-await start().catch((error: unknown) => {
-  console.error("Failed to start application:", error);
-  process.exit(1);
-});
+await start().catch(handleFatalError);

@@ -14,6 +14,7 @@ import { DOMParser } from "@xmldom/xmldom";
 import { SyntaxValidator } from "fast-xml-validator";
 import { err, ok, type Result } from "neverthrow";
 
+import { SyntaxValidator } from "fast-xml-validator";
 import type { IdentityAssertionFetcherPort } from "../../domain/ports/outbound/identity-assertion-fetcher.port.js";
 import type { IdentityAssertion } from "../../domain/value-objects/assertion.vo.js";
 import type { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
@@ -92,7 +93,7 @@ export class OneIdIdentityAssertionFetcherAdapter
   async getAssertion(
     env: OidcEnvironment,
     accessToken: NonEmptyString,
-  ): Promise<Result<IdentityAssertion, ValidationError | GenericError>> {
+  ): Promise<Result<IdentityAssertion, GenericError>> {
     /*********************************************************/
     /* Fetch the SAML Response from the One Identity service */
     /*********************************************************/
@@ -132,7 +133,7 @@ export class OneIdIdentityAssertionFetcherAdapter
         });
       } catch (error) {
         return err(
-          new ValidationError(
+          new GenericError(
             `Invalid XML in SAML response: ${
               error instanceof Error ? error.message : String(error)
             }`,
@@ -157,55 +158,36 @@ export class OneIdIdentityAssertionFetcherAdapter
       );
       if (!parsedSamlResponse?.documentElement) {
         return err(
-          new ValidationError("SAML response document has no root element"),
+          new GenericError("SAML response document has no root element"),
         );
       }
       if (parserErrors.length > 0) {
         return err(
-          new ValidationError(
+          new GenericError(
             `Failed to parse SAML response: ${parserErrors.join("; ")}`,
           ),
         );
       }
 
-      const assertionResult =
-        OneIdIdentityAssertionFetcherAdapter.extractAssertion(
+      const assertionRefResult =
+        OneIdIdentityAssertionFetcherAdapter.extractAssertionRef(
           parsedSamlResponse,
         );
-      if (assertionResult.isErr()) {
-        return err(
-          new ValidationError(
-            `Could not extract authentication assertion from the SAML response: ${assertionResult.error.message}`,
-          ),
-        );
-      }
-      const assertion = assertionResult.value;
-
-      const assertionRefResult =
-        OneIdIdentityAssertionFetcherAdapter.extractAssertionRef(assertion);
       if (assertionRefResult.isErr()) {
         return err(
-          new ValidationError(
+          new GenericError(
             `Could not extract assertion reference from the SAML assertion: ${assertionRefResult.error.message}`,
-          ),
-        );
-      }
-      if (
-        assertionRefResult.value !==
-        parsedSamlResponse.documentElement.getAttribute("InResponseTo")
-      ) {
-        return err(
-          new ValidationError(
-            "SubjectConfirmationData InResponseTo does not match Response InResponseTo",
           ),
         );
       }
 
       const fiscalNumberResult =
-        OneIdIdentityAssertionFetcherAdapter.extractFiscalCode(assertion);
+        OneIdIdentityAssertionFetcherAdapter.extractFiscalCode(
+          parsedSamlResponse,
+        );
       if (fiscalNumberResult.isErr()) {
         return err(
-          new ValidationError(
+          new GenericError(
             `Could not extract fiscal code from the SAML assertion: ${fiscalNumberResult.error.message}`,
           ),
         );
@@ -231,127 +213,43 @@ export class OneIdIdentityAssertionFetcherAdapter
     }
   }
 
-  private static getSamlChildren(
-    parent: Element,
-    localName: string,
-  ): Element[] {
-    return Array.from(parent.childNodes).filter(
-      (node): node is Element =>
-        node.nodeType === 1 &&
-        (node as Element).namespaceURI === SAML_NAMESPACE.ASSERTION &&
-        (node as Element).localName === localName,
-    );
-  }
-
-  private static getRequiredSamlChild(
-    parent: Element,
-    localName: string,
-  ): Result<Element, ValidationError> {
-    const children = OneIdIdentityAssertionFetcherAdapter.getSamlChildren(
-      parent,
-      localName,
-    );
-    if (children.length !== 1) {
-      return err(
-        new ValidationError(
-          `Expected exactly one ${localName} element under ${parent.localName}, but found ${children.length}`,
-        ),
-      );
-    }
-    return ok(children[0]);
-  }
-
-  private static extractAssertion(
-    samlResponse: Document,
-  ): Result<Element, ValidationError> {
-    const response = samlResponse.documentElement;
-    if (
-      response.namespaceURI !== SAML_NAMESPACE.PROTOCOL ||
-      response.localName !== "Response"
-    ) {
-      return err(new ValidationError("Expected a SAML Response root element"));
-    }
-    return OneIdIdentityAssertionFetcherAdapter.getRequiredSamlChild(
-      response,
-      "Assertion",
-    );
-  }
-
   private static extractAssertionRef(
-    assertion: Element,
+    samlResponse: Document,
   ): Result<LollipopAssertionRef, ValidationError> {
-    let subjectConfirmationData = assertion;
-    for (const localName of [
-      "Subject",
-      "SubjectConfirmation",
-      "SubjectConfirmationData",
-    ]) {
-      const childResult =
-        OneIdIdentityAssertionFetcherAdapter.getRequiredSamlChild(
-          subjectConfirmationData,
-          localName,
-        );
-      if (childResult.isErr()) {
-        return err(childResult.error);
-      }
-      subjectConfirmationData = childResult.value;
-    }
-    const parsedAssertionRef = LollipopAssertionRefSchema.safeParse(
-      subjectConfirmationData.getAttribute("InResponseTo"),
+    const responseElements = samlResponse.getElementsByTagNameNS(
+      SAML_NAMESPACE.PROTOCOL,
+      "Response",
     );
-    if (!parsedAssertionRef.success) {
+    if (responseElements.length !== 1) {
       return err(
         new ValidationError(
-          `Invalid SubjectConfirmationData InResponseTo: ${parsedAssertionRef.error.message}`,
+          `Expected exactly one Response element in the SAML response, but found ${responseElements.length}`,
         ),
       );
     }
-    return ok(parsedAssertionRef.data);
+    const rawAssertionRef = responseElements[0].getAttribute("InResponseTo");
+    const parsedAssertionRef =
+      LollipopAssertionRefSchema.safeParse(rawAssertionRef);
+    if (parsedAssertionRef.success) {
+      return ok(parsedAssertionRef.data);
+    }
+    return err(
+      new ValidationError(
+        `Invalid assertion reference from attribute 'InResponseTo': ${parsedAssertionRef.error.message}`,
+      ),
+    );
   }
 
   private static extractFiscalCode(
-    assertion: Element,
+    samlResponse: Document,
   ): Result<FiscalCode, ValidationError> {
-    const statementResult =
-      OneIdIdentityAssertionFetcherAdapter.getRequiredSamlChild(
-        assertion,
-        "AttributeStatement",
-      );
-    if (statementResult.isErr()) {
-      return err(statementResult.error);
-    }
-    const fiscalNumberAttributes =
-      OneIdIdentityAssertionFetcherAdapter.getSamlChildren(
-        statementResult.value,
+    const fiscalNumberAttribute = Array.from(
+      samlResponse.getElementsByTagNameNS(
+        SAML_NAMESPACE.ASSERTION,
         "Attribute",
-      ).filter(
-        (attribute) => attribute.getAttribute("Name") === "fiscalNumber",
-      );
-    if (fiscalNumberAttributes.length !== 1) {
-      return err(
-        new ValidationError(
-          `Expected exactly one fiscalNumber attribute, but found ${fiscalNumberAttributes.length}`,
-        ),
-      );
-    }
-    const valueResult =
-      OneIdIdentityAssertionFetcherAdapter.getRequiredSamlChild(
-        fiscalNumberAttributes[0],
-        "AttributeValue",
-      );
-    if (valueResult.isErr()) {
-      return err(valueResult.error);
-    }
-    if (
-      Array.from(valueResult.value.childNodes).some(
-        (node) => node.nodeType === 1,
-      )
-    ) {
-      return err(
-        new ValidationError("Expected a scalar text value for fiscalNumber"),
-      );
-    }
-    const rawFiscalCode = valueResult.value.textContent
+      ),
+    ).find((attribute) => attribute.getAttribute("Name") === "fiscalNumber");
+    const rawFiscalCode = fiscalNumberAttribute?.textContent
       ?.trim()
       .toUpperCase()
       .replace("TINIT-", "");

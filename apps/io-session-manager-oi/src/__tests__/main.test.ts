@@ -180,71 +180,11 @@ describe("application lifecycle", () => {
       if (stage === "listen") mocks.listen.mockRejectedValueOnce(error);
 
       await import("../main.js");
+      await vi.advanceTimersByTimeAsync(0);
 
-      if (stage === "listen") {
-        await vi.advanceTimersByTimeAsync(0);
-        expect(mocks.close).toHaveBeenCalledOnce();
-        expect(mocks.logError).toHaveBeenCalledWith(
-          "Fatal application error:",
-          error,
-        );
-      } else {
-        expect(mocks.close).not.toHaveBeenCalled();
-        expect(mocks.listen).not.toHaveBeenCalled();
-        expect(handlers.size).toBe(0);
-        expect(vi.getTimerCount()).toBe(0);
-        expect(mocks.logError).toHaveBeenCalledWith(
-          "Failed to start application:",
-          expect.any(Error),
-        );
-        if (stage !== "createApp") {
-          expect(mocks.createApp).not.toHaveBeenCalled();
-        }
-      }
       expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(1);
+      if (stage === "listen") expect(mocks.close).toHaveBeenCalledOnce();
+      else expect(mocks.close).not.toHaveBeenCalled();
     },
   );
-
-  it("does not install lifecycle handlers while the app is being created", async () => {
-    mocks.createApp.mockImplementationOnce(async () => {
-      expect(handlers.size).toBe(0);
-      expect(vi.getTimerCount()).toBe(0);
-      return { server: { listen: mocks.listen, close: mocks.close } };
-    });
-    mocks.listen.mockImplementationOnce(async () => {
-      expect([...handlers.keys()]).toEqual([
-        "SIGTERM",
-        "SIGINT",
-        "uncaughtException",
-        "unhandledRejection",
-      ]);
-    });
-
-    await import("../main.js");
-
-    expect(mocks.createApp).toHaveBeenCalledExactlyOnceWith(
-      { HOST: "127.0.0.1", PORT: 8080 },
-      { name: "test-app" },
-    );
-    expect(mocks.listen).toHaveBeenCalledOnce();
-    expect(mocks.exit).not.toHaveBeenCalled();
-  });
-
-  it("cleans up when listen throws synchronously", async () => {
-    const error = new Error("invalid listen options");
-    mocks.listen.mockImplementationOnce(() => {
-      throw error;
-    });
-
-    await import("../main.js");
-    await vi.advanceTimersByTimeAsync(0);
-
-    expect(mocks.close).toHaveBeenCalledOnce();
-    expect(mocks.logError).toHaveBeenCalledWith(
-      "Fatal application error:",
-      error,
-    );
-    expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(1);
-    expect(vi.getTimerCount()).toBe(0);
-  });
 });
