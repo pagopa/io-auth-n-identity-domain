@@ -173,4 +173,72 @@ describe("AuthenticationMiddlewareFactory", () => {
       ).toHaveBeenCalledExactlyOnceWith(tokenType);
     },
   );
+
+  it("skips session authentication when an optional bearer token is absent", async () => {
+    const extract = vi.fn();
+    const tokenTransportStrategyFactory = {
+      create: vi.fn().mockReturnValue({ extract }),
+    } as unknown as TokenTransportStrategyFactory;
+    const tokenParsingStrategyFactory = {
+      create: vi.fn(),
+    } as unknown as TokenParsingStrategyFactory;
+    const tokenIntrospectionStrategyFactory = {
+      create: vi.fn(),
+    } as unknown as TokenIntrospectionStrategyFactory;
+    const factory = new AuthenticationMiddlewareFactory(
+      tokenTransportStrategyFactory,
+      tokenParsingStrategyFactory,
+      tokenIntrospectionStrategyFactory,
+    );
+
+    const result = await factory.create("session", { optional: true })({
+      context: {},
+      payload: { headers: {} },
+    });
+
+    expect(result).toEqual(ok({ authenticated: false }));
+    expect(extract).not.toHaveBeenCalled();
+  });
+
+  it("adds the authenticated fiscal code to optional session context", async () => {
+    const parsedToken: AuthToken["session"]["type"] = aPlainSessionToken;
+    const extract = vi.fn().mockReturnValue(ok("Bearer token"));
+    const parse = vi
+      .fn()
+      .mockReturnValue(
+        ok({ sessionId: aSessionId, sessionToken: parsedToken }),
+      );
+    const resolve = vi.fn().mockResolvedValue(ok(aBaseSession));
+    const tokenTransportStrategyFactory = {
+      create: vi.fn().mockReturnValue({ extract }),
+    } as unknown as TokenTransportStrategyFactory;
+    const tokenParsingStrategyFactory = {
+      create: vi.fn().mockReturnValue({ parse }),
+    } as unknown as TokenParsingStrategyFactory;
+    const tokenIntrospectionStrategyFactory = {
+      create: vi.fn().mockReturnValue({ resolve }),
+    } as unknown as TokenIntrospectionStrategyFactory;
+    const factory = new AuthenticationMiddlewareFactory(
+      tokenTransportStrategyFactory,
+      tokenParsingStrategyFactory,
+      tokenIntrospectionStrategyFactory,
+    );
+
+    const result = await factory.create("session", { optional: true })({
+      context: {},
+      payload: { headers: { authorization: "Bearer token" } },
+    });
+
+    expect(result).toEqual(
+      ok({
+        authenticated: true,
+        value: {
+          session: aBaseSession,
+          sessionId: aSessionId,
+          sessionToken: parsedToken,
+        },
+      }),
+    );
+    expect(resolve).toHaveBeenCalledExactlyOnceWith(aSessionId, parsedToken);
+  });
 });

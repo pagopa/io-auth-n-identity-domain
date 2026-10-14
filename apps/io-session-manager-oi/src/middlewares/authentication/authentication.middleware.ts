@@ -20,25 +20,39 @@ import type { TokenIntrospectionStrategy } from "./strategies/token-introspectio
 import type { TokenParsingStrategy } from "./strategies/token-parsing.strategy.js";
 import type { TokenTransportStrategy } from "./strategies/token-transport.strategy.js";
 
+export type AuthenticationContext<T extends TokenType> = {
+  session: BaseSession;
+  sessionId: SessionId;
+  sessionToken: AuthToken[T]["type"];
+};
+
 export type AuthenticationMiddleware<T extends TokenType> =
   HttpRequestMiddleware<
     EmptyHttpMiddlewareContext,
-    {
-      session: BaseSession;
-      sessionId: SessionId;
-      sessionToken: AuthToken[T]["type"];
-    },
+    AuthenticationContext<T>,
     AuthenticationError | GenericError
   >;
 
-type MakeAuthenticationMiddleware = <T extends TokenType>(
-  tokenTransportStrategy: TokenTransportStrategy,
-  tokenParsingStrategy: TokenParsingStrategy<T>,
-  tokenIntrospectionStrategy: TokenIntrospectionStrategy<T>,
-) => AuthenticationMiddleware<T>;
+export type OptionalAuthenticationContext<Context extends object> =
+  | { authenticated: false }
+  | { authenticated: true; value: Context };
 
-export const makeAuthenticationMiddleware: MakeAuthenticationMiddleware =
-  (tokenTransportStrategy, tokenParsingStrategy, tokenIntrospectionStrategy) =>
+export type OptionalAuthenticationMiddleware<Context extends object> =
+  HttpRequestMiddleware<
+    EmptyHttpMiddlewareContext,
+    OptionalAuthenticationContext<Context>,
+    AuthenticationError | GenericError
+  >;
+
+type AuthenticationMiddlewareOptions = { optional: true };
+type RequiredAuthenticationMiddlewareOptions = { optional?: false };
+
+const makeRequiredAuthenticationMiddleware =
+  <T extends TokenType>(
+    tokenTransportStrategy: TokenTransportStrategy,
+    tokenParsingStrategy: TokenParsingStrategy<T>,
+    tokenIntrospectionStrategy: TokenIntrospectionStrategy<T>,
+  ): AuthenticationMiddleware<T> =>
   async ({ payload }) => {
     // Extract the raw token from the request payload using the transport strategy
     const rawToken: Result<NonEmptyString, AuthenticationError> =
@@ -71,6 +85,63 @@ export const makeAuthenticationMiddleware: MakeAuthenticationMiddleware =
     });
   };
 
+const wrapOptionalAuthentication =
+  <Context extends object>(
+    authenticate: HttpRequestMiddleware<
+      EmptyHttpMiddlewareContext,
+      Context,
+      AuthenticationError | GenericError
+    >,
+  ): OptionalAuthenticationMiddleware<Context> =>
+  async ({ payload }) => {
+    const headers = payload.headers as
+      | Record<string, string | undefined>
+      | undefined;
+    if (headers?.authorization === undefined) {
+      return ok({ authenticated: false });
+    }
+
+    const result = await authenticate({ payload, context: {} });
+    if (result.isErr()) {
+      return err(result.error);
+    }
+
+    return ok({ authenticated: true, value: result.value });
+  };
+
+export function makeAuthenticationMiddleware<T extends TokenType>(
+  tokenTransportStrategy: TokenTransportStrategy,
+  tokenParsingStrategy: TokenParsingStrategy<T>,
+  tokenIntrospectionStrategy: TokenIntrospectionStrategy<T>,
+  options?: RequiredAuthenticationMiddlewareOptions,
+): AuthenticationMiddleware<T>;
+export function makeAuthenticationMiddleware<T extends TokenType>(
+  tokenTransportStrategy: TokenTransportStrategy,
+  tokenParsingStrategy: TokenParsingStrategy<T>,
+  tokenIntrospectionStrategy: TokenIntrospectionStrategy<T>,
+  options: AuthenticationMiddlewareOptions,
+): OptionalAuthenticationMiddleware<AuthenticationContext<T>>;
+export function makeAuthenticationMiddleware<T extends TokenType>(
+  tokenTransportStrategy: TokenTransportStrategy,
+  tokenParsingStrategy: TokenParsingStrategy<T>,
+  tokenIntrospectionStrategy: TokenIntrospectionStrategy<T>,
+  options?:
+    | AuthenticationMiddlewareOptions
+    | RequiredAuthenticationMiddlewareOptions,
+):
+  | AuthenticationMiddleware<T>
+  | OptionalAuthenticationMiddleware<AuthenticationContext<T>> {
+  const requiredMiddleware = makeRequiredAuthenticationMiddleware(
+    tokenTransportStrategy,
+    tokenParsingStrategy,
+    tokenIntrospectionStrategy,
+  );
+
+  return options?.optional
+    ? wrapOptionalAuthentication(requiredMiddleware)
+    : requiredMiddleware;
+}
+
 /**
  * Factory class for creating authentication middleware instances based on the token type.
  */
@@ -81,11 +152,43 @@ export class AuthenticationMiddlewareFactory {
     private readonly tokenIntrospectionStrategyFactory: TokenIntrospectionStrategyFactory,
   ) {}
 
-  create<T extends TokenType>(tokenType: T): AuthenticationMiddleware<T> {
+  create<T extends TokenType>(tokenType: T): AuthenticationMiddleware<T>;
+  create<T extends TokenType>(
+    tokenType: T,
+    options: AuthenticationMiddlewareOptions,
+  ): OptionalAuthenticationMiddleware<AuthenticationContext<T>>;
+  create<T extends TokenType>(
+    tokenType: T,
+    options: RequiredAuthenticationMiddlewareOptions,
+  ): AuthenticationMiddleware<T>;
+  create<T extends TokenType>(
+    tokenType: T,
+    options?:
+      | AuthenticationMiddlewareOptions
+      | RequiredAuthenticationMiddlewareOptions,
+  ):
+    | AuthenticationMiddleware<T>
+    | OptionalAuthenticationMiddleware<AuthenticationContext<T>> {
+    const transportStrategy =
+      this.tokenTransportStrategyFactory.create<T>(tokenType);
+    const parsingStrategy =
+      this.tokenParsingStrategyFactory.create<T>(tokenType);
+    const introspectionStrategy =
+      this.tokenIntrospectionStrategyFactory.create<T>(tokenType);
+
+    if (options?.optional) {
+      return makeAuthenticationMiddleware(
+        transportStrategy,
+        parsingStrategy,
+        introspectionStrategy,
+        { optional: true },
+      );
+    }
     return makeAuthenticationMiddleware(
-      this.tokenTransportStrategyFactory.create<T>(tokenType),
-      this.tokenParsingStrategyFactory.create<T>(tokenType),
-      this.tokenIntrospectionStrategyFactory.create<T>(tokenType),
+      transportStrategy,
+      parsingStrategy,
+      introspectionStrategy,
+      options,
     );
   }
 }
