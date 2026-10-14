@@ -19,8 +19,10 @@ locals {
     FETCH_KEEPALIVE_TIMEOUT             = "60000"
 
     # Lollipop service
-    LOLLIPOP_API_URL       = var.lollipop.base_url
-    LOLLIPOP_API_BASE_PATH = var.lollipop.base_path
+    LOLLIPOP_API_URL                      = var.lollipop.base_url
+    LOLLIPOP_API_BASE_PATH                = var.lollipop.base_path
+    LOLLIPOP_REVOCATION_QUEUE_STORAGE_URI = "https://${var.lollipop.storage_account.name}.table.core.windows.net"
+    LOLLIPOP_REVOCATION_QUEUE_NAME        = var.lollipop.revocation_queue_name
 
     # Profile service
     IO_PROFILE_API_URL       = var.io_profile.base_url
