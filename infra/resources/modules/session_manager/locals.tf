@@ -56,7 +56,7 @@ locals {
     },
     {
       name  = "LOLLIPOP_REVOCATION_QUEUE_STORAGE_URI"
-      value = "https://${var.lollipop.storage_account.name}.table.core.windows.net"
+      value = "https://${var.lollipop.storage_account.name}.queue.core.windows.net"
     },
     {
       name  = "LOLLIPOP_REVOCATION_QUEUE_NAME"
