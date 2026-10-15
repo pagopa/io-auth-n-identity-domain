@@ -104,6 +104,11 @@ variable "lollipop" {
   type = object({
     base_url  = string
     base_path = string
+    storage_account = object({
+      name                = string
+      resource_group_name = string
+    })
+    revocation_queue_name = string
   })
   description = "Configuration for Lollipop service"
 }
