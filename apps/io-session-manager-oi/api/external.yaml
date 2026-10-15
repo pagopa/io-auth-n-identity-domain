@@ -34,6 +34,15 @@ components:
         - title
         - type
       description: RFC 7807 Problem Details for HTTP APIs. See https://www.rfc-editor.org/rfc/rfc7807.
+    GenerateNonceResponse:
+      type: object
+      properties:
+        nonce:
+          type: string
+          format: uuid
+      required:
+        - nonce
+      description: An object containing the generated nonce as a UUID
     ReserveResponse:
       type: object
       properties:
@@ -240,13 +249,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  nonce:
-                    type: string
-                    format: uuid
-                required:
-                  - nonce
+                $ref: "#/components/schemas/GenerateNonceResponse"
         "500":
           description: Server error
           content:
