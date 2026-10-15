@@ -76,6 +76,8 @@ class AzureCredential {
   private static instance: DefaultAzureCredential | undefined;
 
   private constructor() {}
+
+  /** Returns the shared credential, creating it on first use. */
   public static getInstance(): DefaultAzureCredential {
     if (!AzureCredential.instance) {
       AzureCredential.instance = new DefaultAzureCredential();
@@ -89,9 +91,6 @@ const CLEANUP_TIMEOUT_MS = 2_000;
 /**
  * Tracks app-owned resources for startup rollback and Fastify shutdown.
  * Cleanup runs once in reverse registration order, logging failures and timeouts.
- *
- * @param server - Application server.
- * @returns Resource lifecycle operations.
  */
 const createResourceLifecycle = (server: FastifyInstance) => {
   const cleanups: { name: string; close: () => unknown }[] = [];
@@ -100,10 +99,6 @@ const createResourceLifecycle = (server: FastifyInstance) => {
   /**
    * Attempts cleanup within the per-resource timeout without propagating errors.
    * Timing out stops waiting but does not cancel the underlying operation.
-   *
-   * @param name - Resource name.
-   * @param close - Resource cleanup callback.
-   * @returns A promise for the cleanup attempt.
    */
   const closeResource = async (name: string, close: () => unknown) => {
     let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -124,11 +119,7 @@ const createResourceLifecycle = (server: FastifyInstance) => {
     }
   };
 
-  /**
-   * Shares one cleanup promise across rollback and repeated shutdown calls.
-   *
-   * @returns The shared cleanup promise.
-   */
+  /** Shares one cleanup promise across rollback and repeated shutdown calls. */
   const cleanupResources = (): Promise<void> => {
     cleanupPromise ??= Promise.resolve().then(async () => {
       for (const resource of [...cleanups].reverse()) {
@@ -139,32 +130,20 @@ const createResourceLifecycle = (server: FastifyInstance) => {
   };
 
   return {
-    /**
-     * Registers a resource cleanup callback.
-     *
-     * @param name - Resource name.
-     * @param close - Resource cleanup callback.
-     * @returns Nothing.
-     */
     registerCleanup: (name: string, close: () => unknown) => {
       cleanups.push({ name, close });
     },
     cleanupResources,
-    /**
-     * Attempts to close the application server within the cleanup timeout.
-     *
-     * @returns A promise for the server cleanup attempt.
-     */
     closeServer: () => closeResource("Fastify server", () => server.close()),
   };
 };
 
 /**
- * Creates infrastructure clients for the application.
+ * Creates infrastructure clients using credentials appropriate to the environment.
  *
- * @param config - Application configuration.
- * @param registerCleanup - Resource cleanup registration callback.
- * @returns The initialized infrastructure clients.
+ * @param config - Connection settings and environment selection.
+ * @param registerCleanup - Registers each owned, disposable client immediately
+ * after acquisition so partial initialization can be rolled back.
  */
 // eslint-disable-next-line max-lines-per-function
 const createClients = async (
@@ -267,11 +246,8 @@ const createClients = async (
 };
 
 /**
- * Creates and initializes outbound adapters.
- *
- * @param config - Application configuration.
- * @param clients - Infrastructure clients.
- * @returns The initialized outbound adapters.
+ * Builds outbound adapters from the shared clients and warms up OIDC discovery.
+ * Resource ownership remains with the lifecycle registered during client creation.
  */
 // eslint-disable-next-line max-lines-per-function
 const createAdapters = async (
@@ -396,15 +372,9 @@ const createAdapters = async (
   };
 };
 
-/**
- * Creates application use cases.
- *
- * @param adapters - Outbound adapters.
- * @returns The application use cases.
- */
+/** Wires the shared application use cases to their outbound ports. */
 const createUseCases = (
   adapters: Awaited<ReturnType<typeof createAdapters>>,
-  config: Config,
 ) => {
   const reserveUseCase = makeReserveUseCase({
     auxiliaryDataPort: adapters.auxiliaryStorageAdapter,
@@ -421,6 +391,7 @@ const createUseCases = (
   const activateUserSessionUseCase = makeActivateUserSessionUseCase({
     sessionPort: adapters.sessionCosmosAdapter,
     profilePort: adapters.profileAdapter,
+    platformInternalPort: adapters.platformInternalAdapter,
     authEventPort: adapters.authEventServiceBusAdapter,
     lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
     lollipopPort: adapters.fetchLollipopAdapter,
@@ -463,19 +434,13 @@ const createUseCases = (
 
   return {
     reserveUseCase,
-    fastLoginUseCase,
     handleOidcCallbackUseCase,
     getSessionUseCase,
     getUserForFimsUseCase,
   };
 };
 
-/**
- * Creates application authentication middleware.
- *
- * @param sessionCosmosAdapter - Session storage adapter.
- * @returns The authentication middleware.
- */
+/** Creates authentication middleware for each supported token type. */
 const createAuthenticationMiddlewares = (
   sessionCosmosAdapter: Awaited<
     ReturnType<typeof createAdapters>
@@ -506,14 +471,7 @@ const createAuthenticationMiddlewares = (
   };
 };
 
-/**
- * Registers application health-check routes.
- *
- * @param server - Application server.
- * @param packageInfo - Package metadata.
- * @param adapters - Outbound adapters.
- * @returns Nothing.
- */
+/** Registers liveness and readiness checks for the selected adapter dependencies. */
 const mountHealthChecks = (
   server: FastifyInstance,
   packageInfo: PackageInfo,
@@ -571,12 +529,7 @@ const mountHealthChecks = (
   );
 };
 
-/**
- * Registers application routes.
- *
- * @param options - Route dependencies.
- * @returns Nothing.
- */
+/** Registers application routes with their use cases, authentication and IP rules. */
 // eslint-disable-next-line max-lines-per-function
 const mountRoutes = ({
   server,
@@ -597,16 +550,6 @@ const mountRoutes = ({
     server,
     makeGenerateNonceUseCase(adapters.fastLoginAdapter),
   );
-
-  mountFastLoginHandler(server, {
-    middlewares: {
-      optionalSessionMiddleware: optionalSessionMiddleware(
-        middlewares.authenticateSessionMiddleware,
-      ),
-      extractIpMiddleware,
-    },
-    useCase: useCases.fastLoginUseCase,
-  });
 
   mountCallbackHandler(server, {
     handleOidcCallbackUseCase: useCases.handleOidcCallbackUseCase,
@@ -661,11 +604,12 @@ const mountRoutes = ({
 };
 
 /**
- * Creates the application and configures resource cleanup without starting the listener.
+ * Composes the Fastify app and attaches resource cleanup without starting a listener.
  *
- * @param config - Application configuration.
- * @param packageInfo - Package metadata.
- * @returns The configured application server.
+ * @param config - Validated application configuration.
+ * @param packageInfo - Package metadata exposed by health checks.
+ * @returns The configured server; closing it triggers best-effort resource cleanup.
+ * @throws The original initialization error after attempting resource and server cleanup.
  */
 export const createApp = async (
   config: Config,
@@ -682,7 +626,7 @@ export const createApp = async (
 
     const clients = await createClients(config, lifecycle.registerCleanup);
     const adapters = await createAdapters(config, clients);
-    const useCases = createUseCases(adapters, config);
+    const useCases = createUseCases(adapters);
     const middlewares = createAuthenticationMiddlewares(
       adapters.sessionCosmosAdapter,
     );
