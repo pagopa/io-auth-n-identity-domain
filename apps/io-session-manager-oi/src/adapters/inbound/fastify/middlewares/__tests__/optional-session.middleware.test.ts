@@ -8,17 +8,17 @@ import {
   aSessionId,
 } from "../../../../../__mocks__/session.mocks.js";
 import type { AuthenticationMiddleware } from "../../../../../middlewares/authentication/index.js";
-import { withOptionalUserMiddleware } from "../with-optional-user.middleware.js";
+import { optionalSessionMiddleware } from "../optional-session.middleware.js";
 
-describe("withOptionalUserMiddleware", () => {
+describe("optionalSessionMiddleware", () => {
   it("continues anonymously when no Authorization header is present", async () => {
     const authenticateSession =
       vi.fn() as unknown as AuthenticationMiddleware<"session">;
-    const middleware = withOptionalUserMiddleware(authenticateSession);
+    const middleware = optionalSessionMiddleware(authenticateSession);
 
     const result = await middleware({ context: {}, payload: { headers: {} } });
 
-    expect(result).toEqual(ok({ authenticated: false }));
+    expect(result).toEqual(ok({}));
     expect(authenticateSession).not.toHaveBeenCalled();
   });
 
@@ -33,12 +33,12 @@ describe("withOptionalUserMiddleware", () => {
       .mockResolvedValueOnce(
         ok(sessionContext),
       ) as unknown as AuthenticationMiddleware<"session">;
-    const middleware = withOptionalUserMiddleware(authenticateSession);
+    const middleware = optionalSessionMiddleware(authenticateSession);
     const payload = { headers: { authorization: "Bearer token" } };
 
     const result = await middleware({ context: {}, payload });
 
-    expect(result).toEqual(ok({ authenticated: true, value: sessionContext }));
+    expect(result).toEqual(ok(sessionContext));
     expect(authenticateSession).toHaveBeenCalledExactlyOnceWith({
       context: {},
       payload,
@@ -52,7 +52,7 @@ describe("withOptionalUserMiddleware", () => {
       .mockResolvedValueOnce(
         err(authenticationError),
       ) as unknown as AuthenticationMiddleware<"session">;
-    const middleware = withOptionalUserMiddleware(authenticateSession);
+    const middleware = optionalSessionMiddleware(authenticateSession);
 
     const result = await middleware({
       context: {},
