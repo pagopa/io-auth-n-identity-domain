@@ -1,7 +1,6 @@
 import {
   AuthenticationError,
   GenericError,
-  NonEmptyString,
   NonEmptyStringSchema,
   type NonEmptyString,
 } from "@pagopa/hexagonal-core";

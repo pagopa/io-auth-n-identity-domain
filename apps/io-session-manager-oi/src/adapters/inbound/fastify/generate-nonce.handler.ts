@@ -2,7 +2,7 @@ import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
 import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { AnyRouteContract } from "@pagopa/hexagonal-openapi";
 import type { FastifyInstance } from "fastify";
-import { z } from "zod";
+import { GenerateNonceOutputDTO } from "../dtos/generate-nonce.dto.js";
 
 import { makeGenerateNonceUseCase } from "../../../application/use-cases/generate-nonce.use-case.js";
 import { BASE_PATH } from "../base-path.js";
@@ -17,7 +17,7 @@ const generateNonceContract = defineRoute({
   response: {
     200: {
       description: "Success response",
-      schema: z.object({ nonce: z.uuid() }),
+      schema: GenerateNonceOutputDTO,
     },
     500: {
       description: "Server error",
@@ -33,6 +33,7 @@ export const mountGenerateNonceHandler = (
   mountFastifyRoute(server, {
     contract: generateNonceContract,
     inputMapper: () => ({}),
+    outputMapper: (result) => ({ nonce: result }),
     useCase,
   });
 };
