@@ -29,8 +29,10 @@ module "session_manager" {
   }
 
   io_fast_login = {
-    base_url  = "https://${module.function_lv.function_app.function_app.default_hostname}"
-    base_path = "/api/v1"
+    base_url = "https://${module.function_lv.function_app.function_app.default_hostname}"
+    # We don't need the base path for the Fast Login API 
+    # since it is already included in the paths of the OpenAPI specification.
+    base_path = "/"
   }
 
   locked_profiles = {
