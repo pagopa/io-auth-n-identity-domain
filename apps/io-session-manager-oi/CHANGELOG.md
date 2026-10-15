@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.29.3
+
+### Patch Changes
+
+- 979d935: invalidate previous lollipop key
+
 ## 0.29.2
 
 ### Patch Changes
