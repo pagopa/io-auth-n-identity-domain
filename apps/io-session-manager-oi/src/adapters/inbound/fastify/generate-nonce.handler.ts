@@ -33,6 +33,7 @@ export const mountGenerateNonceHandler = (
   mountFastifyRoute(server, {
     contract: generateNonceContract,
     inputMapper: () => ({}),
+    outputMapper: (result) => ({ nonce: result }),
     useCase,
   });
 };
