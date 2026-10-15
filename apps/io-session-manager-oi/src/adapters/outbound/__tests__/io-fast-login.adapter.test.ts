@@ -11,7 +11,6 @@ import {
 } from "@pagopa/io-auth-n-identity-domain";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createIoFastLoginAdapter } from "../io-fast-login.adapter.js";
 import {
   FastLoginParams,
   FastLoginParamsSchema,
@@ -20,6 +19,7 @@ import {
   fastLogin,
   generateNonce,
 } from "../../../generated/io-fast-login/sdk.gen.js";
+import { createIoFastLoginAdapter } from "../io-fast-login.adapter.js";
 
 vi.mock("../../../generated/io-fast-login/client/client.gen.js", () => ({
   createClient: vi.fn(() => ({
