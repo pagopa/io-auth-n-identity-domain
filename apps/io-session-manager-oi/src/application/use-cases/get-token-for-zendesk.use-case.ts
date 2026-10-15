@@ -6,7 +6,7 @@ import {
   UseCase,
 } from "@pagopa/hexagonal-core";
 import { BaseSession } from "@pagopa/io-auth-n-identity-session";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { err, ok } from "neverthrow";
 import { ulid } from "ulid";
 
