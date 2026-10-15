@@ -45,6 +45,13 @@ module "ca_iam" {
       queue_name           = data.azurerm_storage_queue.push_notifications.name
       description          = "Allow Session Manager Container App to write to the IO-Communication notification queue"
       role                 = "writer"
+    },
+    {
+      storage_account_name = var.lollipop.storage_account.name
+      resource_group_name  = var.lollipop.storage_account.resource_group_name
+      queue_name           = var.lollipop.revocation_queue_name
+      description          = "Allow Session Manager Container App to write to the Lollipop revocation queue"
+      role                 = "writer"
     }
   ]
 

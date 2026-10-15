@@ -38,6 +38,7 @@ import { createIoFastLoginAdapter } from "./adapters/outbound/io-fast-login.adap
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
 import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
+import { LollipopRevocationQueueAdapter } from "./adapters/outbound/lollipop-revocation-queue.adapter.js";
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { OneIdIdentityAssertionFetcherAdapter } from "./adapters/outbound/one-id-identity-assertion-fetcher-adapter.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
@@ -128,6 +129,16 @@ export const createApp = async (
           config.PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING,
         );
 
+  const lollipopRevocationQueueServiceClient =
+    config.NODE_ENV === "production"
+      ? new QueueServiceClient(
+          config.LOLLIPOP_REVOCATION_QUEUE_STORAGE_URI,
+          AzureCredential.getInstance(),
+        )
+      : QueueServiceClient.fromConnectionString(
+          config.LOLLIPOP_REVOCATION_QUEUE_STORAGE_CONNECTION_STRING,
+        );
+
   const redisClient =
     config.NODE_ENV === "production"
       ? await createRedisManagedIdentityClusterClient(
@@ -183,6 +194,12 @@ export const createApp = async (
   const notificationStorageQueueAdapter = new NotificationStorageQueueAdapter(
     pushNotificationsQueueServiceClient.getQueueClient(
       config.PUSH_NOTIFICATIONS_QUEUE_NAME,
+    ),
+  );
+
+  const lollipopRevocationQueueAdapter = new LollipopRevocationQueueAdapter(
+    lollipopRevocationQueueServiceClient.getQueueClient(
+      config.LOLLIPOP_REVOCATION_QUEUE_NAME,
     ),
   );
 
@@ -270,6 +287,7 @@ export const createApp = async (
     authEventPort: authEventServiceBusAdapter,
     lollipopActivationPort: lollipopActivationCosmosAdapter,
     lollipopPort: fetchLollipopAdapter,
+    lollipopRevocationPort: lollipopRevocationQueueAdapter,
   });
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
@@ -356,6 +374,10 @@ export const createApp = async (
       {
         name: oneIdIdentityAssertionFetcherAdapter.constructor.name,
         port: oneIdIdentityAssertionFetcherAdapter,
+      },
+      {
+        name: lollipopRevocationQueueAdapter.constructor.name,
+        port: lollipopRevocationQueueAdapter,
       },
     ]),
   );
