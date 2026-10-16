@@ -35,5 +35,5 @@ export const optionalSessionMiddleware =
     }
 
     const result = await authenticateSession({ payload, context: {} });
-    return result.isErr() ? err(result.error) : ok(result.value);
+    return result.isErr() ? ok({}) : ok(result.value);
   };
