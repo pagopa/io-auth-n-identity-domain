@@ -210,18 +210,28 @@ describe("createApp resource ownership", () => {
     expect(mocks.redisClose).not.toHaveBeenCalled();
   });
 
-  it("rolls back resources when warm-up rejects", async () => {
+  it("continues startup when warm-up rejects and cleans up on shutdown", async () => {
     const error = new Error("warm-up failed");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     mocks.warmUp.mockRejectedValueOnce(error);
-    await expect(createApp(config, packageInfo)).rejects.toBe(error);
-    expect(mocks.order).toEqual(["serviceBus", "cosmos", "redis", "fastify"]);
+    const { server } = await createApp(config, packageInfo);
+    expect(warn).toHaveBeenCalledExactlyOnceWith(
+      "Failed to warm up OIDC exchange adapter:",
+      error,
+    );
+    expect(mocks.mountReserve).toHaveBeenCalledOnce();
+    expect(mocks.order).toEqual([]);
+    await server.close();
+    expect(mocks.order).toEqual(["fastify", "serviceBus", "cosmos", "redis"]);
   });
 
   it.each(["throw", "reject"] as const)(
     "continues cleanup after a Service Bus %s",
     async (failure) => {
       const error = new Error("startup failed");
-      mocks.warmUp.mockRejectedValueOnce(error);
+      mocks.mountReserve.mockImplementationOnce(() => {
+        throw error;
+      });
       mocks.serviceBusClose.mockImplementationOnce(() => {
         if (failure === "throw") throw new Error("close failed");
         return Promise.reject(new Error("close failed"));
@@ -250,7 +260,9 @@ describe("createApp resource ownership", () => {
         fastify: mocks.close,
       }[resource];
       close.mockReturnValueOnce(pendingClose);
-      mocks.warmUp.mockRejectedValueOnce(error);
+      mocks.mountReserve.mockImplementationOnce(() => {
+        throw error;
+      });
       const result = expect(createApp(config, packageInfo)).rejects.toBe(error);
 
       await vi.advanceTimersByTimeAsync(1_999);
@@ -286,7 +298,9 @@ describe("createApp resource ownership", () => {
 
   it("preserves startup failure if Fastify close throws", async () => {
     const error = new Error("startup failed");
-    mocks.warmUp.mockRejectedValueOnce(error);
+    mocks.mountReserve.mockImplementationOnce(() => {
+      throw error;
+    });
     mocks.close.mockImplementationOnce(() => {
       throw new Error("Fastify close failed");
     });
