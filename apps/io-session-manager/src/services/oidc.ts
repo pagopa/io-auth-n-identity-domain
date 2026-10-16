@@ -179,7 +179,7 @@ export const reserve =
     }
 
     deps.appInsightsTelemetryClient?.trackEvent({
-      name: "session-manager.oidc.reserve.success",
+      name: "session-manager.oidc.reserve.success.info",
       properties: {
         env: input.env,
         clientId: envConfig.clientId,
@@ -557,7 +557,7 @@ export const OIDCCallback =
     };
 
     deps.appInsightsTelemetryClient?.trackEvent({
-      name: "session-manager.oidc.callback.verified",
+      name: "session-manager.oidc.callback.verified.info",
       properties: {
         env: auxiliaryData.oidcConfigurationEnv,
         state: input.state,

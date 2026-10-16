@@ -267,7 +267,7 @@ describe("OidcService#reserve", () => {
       expect(JSON.parse(value).nonce).toBe(result.value.nonce);
       expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({
-          name: "session-manager.oidc.reserve.success",
+          name: "session-manager.oidc.reserve.success.info",
           properties: expect.objectContaining({
             env: aReserveInput.env,
             state: result.value.state,
@@ -808,20 +808,50 @@ describe("OidcService#OIDCCallback", () => {
     getIdentityProvider: vi.fn(),
   };
 
-  test.each([
-    "redis-rejection",
-    "redis-decode",
-    "token-decode",
-    "claims-decode",
-  ])("should not expose diagnostic values on %s failure", async (failure) => {
-    const sensitiveMessage = "private-diagnostic a-state a-nonce 10.0.0.1";
-    if (failure === "redis-rejection") {
-      mockGet.mockRejectedValueOnce(new Error(sensitiveMessage));
-    } else if (failure === "redis-decode") {
-      mockGet.mockResolvedValueOnce(
-        JSON.stringify({ ...anAuxiliaryData, nonce: { sensitiveMessage } }),
+  test.each(["redis-rejection", "redis-decode"])(
+    "should not expose diagnostic values on %s failure",
+    async (failure) => {
+      const sensitiveMessage = "private-diagnostic a-state a-nonce 10.0.0.1";
+      if (failure === "redis-rejection") {
+        mockGet.mockRejectedValueOnce(new Error(sensitiveMessage));
+      } else {
+        mockGet.mockResolvedValueOnce(
+          JSON.stringify({ ...anAuxiliaryData, nonce: { sensitiveMessage } }),
+        );
+      }
+
+      const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
+
+      expect(result.kind).toBe("IResponseErrorValidation");
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockedAcs).not.toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "session-manager.oidc.callback.auxiliary-data.error",
+          properties: expect.objectContaining({
+            state: aState,
+            ipHash: sha256(callbackDeps.clientIP),
+            failureReason: "auxiliary_data_unavailable",
+          }),
+          tagOverrides: { samplingEnabled: "false" },
+        }),
       );
-    } else {
+      expect(mockTrackEvent.mock.calls[0][0].properties).not.toHaveProperty(
+        "nonce",
+      );
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        "private-diagnostic",
+      );
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        callbackDeps.clientIP,
+      );
+    },
+  );
+
+  test.each(["token-decode", "claims-decode"])(
+    "should not expose diagnostic values on %s failure",
+    async (failure) => {
+      const sensitiveMessage = "private-diagnostic a-state a-nonce 10.0.0.1";
       mockGet.mockResolvedValueOnce(
         JSON.stringify(LoginAuxiliaryData.encode(anAuxiliaryData)),
       );
@@ -837,33 +867,12 @@ describe("OidcService#OIDCCallback", () => {
           acr: sensitiveMessage,
         }),
       } as never);
-    }
 
-    const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
+      const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
 
-    expect(result.kind).toBe(
-      failure.startsWith("redis")
-        ? "IResponseErrorValidation"
-        : "IResponseErrorInternal",
-    );
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    expect(mockedAcs).not.toHaveBeenCalled();
-    if (failure.startsWith("redis")) {
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: "session-manager.oidc.callback.auxiliary-data.error",
-          properties: expect.objectContaining({
-            state: aState,
-            ipHash: sha256(callbackDeps.clientIP),
-            failureReason: "auxiliary_data_unavailable",
-          }),
-          tagOverrides: { samplingEnabled: "false" },
-        }),
-      );
-      expect(mockTrackEvent.mock.calls[0][0].properties).not.toHaveProperty(
-        "nonce",
-      );
-    } else {
+      expect(result.kind).toBe("IResponseErrorInternal");
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockedAcs).not.toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "session-manager.oidc.callback.code-exchange.error",
@@ -876,14 +885,14 @@ describe("OidcService#OIDCCallback", () => {
           tagOverrides: { samplingEnabled: "false" },
         }),
       );
-    }
-    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
-      "private-diagnostic",
-    );
-    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
-      callbackDeps.clientIP,
-    );
-  });
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        "private-diagnostic",
+      );
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        callbackDeps.clientIP,
+      );
+    },
+  );
 
   test("should return IResponseErrorValidation when the login state is missing or expired", async () => {
     mockGet.mockResolvedValueOnce(null);
@@ -1128,7 +1137,7 @@ describe("OidcService#OIDCCallback", () => {
     expect(result).toEqual(anAcsResponse);
     expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
-        name: "session-manager.oidc.callback.verified",
+        name: "session-manager.oidc.callback.verified.info",
         properties: expect.objectContaining({
           state: aState,
           nonce: anAuxiliaryData.nonce,

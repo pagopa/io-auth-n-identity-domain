@@ -29,20 +29,6 @@ import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import { WithIP } from "../utils/network";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 
-const oidcTelemetryErrorCodes = new Set([
-  "invalid_request",
-  "unauthorized_client",
-  "access_denied",
-  "unsupported_response_type",
-  "invalid_scope",
-  "server_error",
-  "temporarily_unavailable",
-  "interaction_required",
-  "login_required",
-  "account_selection_required",
-  "consent_required",
-]);
-
 /**
  * Decodes the JSON request body required by the `reserve` endpoint from the
  * express Request into a `ReserveInput`.
@@ -86,9 +72,11 @@ export const reserveEndpoint: RTE.ReaderTaskEither<
  */
 const decodeAndForwardError = (
   deps: CallbackEndpointDeps,
-): TE.TaskEither<IResponsePermanentRedirect, never> =>
-  pipe(
-    CallbackErrorInput.decode(deps.req.query),
+): TE.TaskEither<IResponsePermanentRedirect, never> => {
+  const decodedErrorInput = CallbackErrorInput.decode(deps.req.query);
+
+  return pipe(
+    decodedErrorInput,
     TE.fromEither,
     TE.fold(
       () =>
@@ -138,7 +126,6 @@ const decodeAndForwardError = (
         ),
     ),
     TE.mapLeft((redirect) => {
-      const decodedErrorInput = CallbackErrorInput.decode(deps.req.query);
       const errorProperties = E.isRight(decodedErrorInput)
         ? withoutUndefinedValues({
             state: decodedErrorInput.right.state,
@@ -160,6 +147,7 @@ const decodeAndForwardError = (
       return redirect;
     }),
   );
+};
 
 const callbackEndpointMiddleware = (deps: CallbackEndpointDeps) =>
   pipe(
