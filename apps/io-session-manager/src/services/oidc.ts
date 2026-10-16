@@ -60,7 +60,6 @@ import { SpidAuthLevelEnum } from "../generated/backend/SpidAuthLevel";
 import { SpidLevelEnum } from "../generated/backend/SpidLevel";
 import { WithIP } from "../utils/network";
 import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
-import { LoginTypeEnum } from "../generated/backend/LoginType";
 
 export type ReserveDeps = RedisRepo.RedisRepositoryDeps & AppInsightsDeps;
 
