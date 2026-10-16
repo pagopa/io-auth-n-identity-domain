@@ -53,10 +53,11 @@ describe("optionalSessionMiddleware", () => {
         err(authenticationError),
       ) as unknown as AuthenticationMiddleware<"session">;
     const middleware = optionalSessionMiddleware(authenticateSession);
+    const payload = { headers: { authorization: "Bearer token" } };
 
     const result = await middleware({
       context: {},
-      payload: { headers: { authorization: "Bearer invalid" } },
+      payload,
     });
 
     expect(result).toEqual(ok({}));
