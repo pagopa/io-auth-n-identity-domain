@@ -10,6 +10,11 @@ import { ConfigSchema } from "./domain/value-objects/configs/index.js";
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 
+/**
+ * Loads application configuration and package metadata.
+ *
+ * @returns The application bootstrap data.
+ */
 const bootstrap = () => {
   const configResult = createConfigLoader(ConfigSchema).load();
   if (configResult.isErr()) {
@@ -32,11 +37,24 @@ const bootstrap = () => {
   return { config, packageInfo: packageInfoResult.value };
 };
 
+/**
+ * Registers process lifecycle handlers with a shared shutdown operation.
+ *
+ * @param server - Application server.
+ * @returns The fatal-error handler.
+ */
 const registerLifecycle = (
   server: Awaited<ReturnType<typeof createApp>>["server"],
 ) => {
+  // Shares one shutdown operation across repeated signals and fatal errors.
   let shutdownPromise: Promise<void> | undefined;
 
+  /**
+   * Closes the application and exits the process within the shutdown timeout.
+   *
+   * @param exitCode - Requested process exit status.
+   * @returns The shared shutdown promise.
+   */
   const shutdown = (exitCode: number): Promise<void> => {
     if (exitCode !== 0 || process.exitCode === undefined) {
       process.exitCode = exitCode;
@@ -64,6 +82,12 @@ const registerLifecycle = (
     return shutdownPromise;
   };
 
+  /**
+   * Logs a fatal error and requests application shutdown.
+   *
+   * @param error - Fatal application error.
+   * @returns Nothing.
+   */
   const handleFatalError = (error: unknown): void => {
     console.error("Fatal application error:", error);
     void shutdown(1);
@@ -77,6 +101,11 @@ const registerLifecycle = (
   return { handleFatalError };
 };
 
+/**
+ * Initializes the application and starts the server.
+ *
+ * @returns A promise for application startup.
+ */
 const start = async () => {
   const { config, packageInfo } = bootstrap();
   const { server } = await createApp(config, packageInfo);
