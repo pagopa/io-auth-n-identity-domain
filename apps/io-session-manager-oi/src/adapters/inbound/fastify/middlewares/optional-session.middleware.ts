@@ -11,9 +11,13 @@ import type {
   AuthenticationMiddleware,
 } from "../../../../middlewares/authentication/index.js";
 
+export type OptionalSessionContext =
+  | AuthenticationContext<"session">
+  | EmptyHttpMiddlewareContext;
+
 export type OptionalSessionMiddleware = HttpRequestMiddleware<
   EmptyHttpMiddlewareContext,
-  AuthenticationContext<"session"> | EmptyHttpMiddlewareContext,
+  OptionalSessionContext,
   AuthenticationError | GenericError
 >;
 
