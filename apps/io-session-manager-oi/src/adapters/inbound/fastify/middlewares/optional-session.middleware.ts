@@ -4,7 +4,7 @@ import type {
   GenericError,
   HttpRequestMiddleware,
 } from "@pagopa/hexagonal-core";
-import { ok } from "neverthrow";
+import { err, ok } from "neverthrow";
 
 import type {
   AuthenticationContext,
@@ -25,15 +25,21 @@ export const optionalSessionMiddleware =
   (
     authenticateSession: AuthenticationMiddleware<"session">,
   ): OptionalSessionMiddleware =>
-  async ({ payload }) => {
+  async ({ payload, context }) => {
     const headers = payload.headers as
       | Record<string, string | undefined>
       | undefined;
 
-    if (headers?.authorization === undefined) {
+    if (!headers?.authorization) {
       return ok({});
     }
 
-    const result = await authenticateSession({ payload, context: {} });
-    return result.isErr() ? ok({}) : ok(result.value);
+    const result = await authenticateSession({ payload, context });
+    if (result.isErr()) {
+      return result.error.kind === "AuthenticationError"
+        ? ok({})
+        : err(result.error);
+    }
+
+    return ok(result.value);
   };
