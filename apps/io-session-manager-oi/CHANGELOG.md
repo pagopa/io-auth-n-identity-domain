@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.30.0
+
+### Minor Changes
+
+- 193eb5a: Add Fast Login Nonce Generation
+
 ## 0.29.3
 
 ### Patch Changes
