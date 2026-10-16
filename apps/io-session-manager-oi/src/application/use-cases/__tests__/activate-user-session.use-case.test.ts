@@ -207,6 +207,29 @@ describe("makeActivateUserSessionUseCase", () => {
       expect(sessionTokensArg).not.toHaveProperty("plainSessionToken");
     });
 
+    it("uses the shared session flow without key activation, old-key revocation, or login event for Fast Login", async () => {
+      const result = await activateUserSessionUseCase({
+        sessionToken: aNewSessionTokenInput,
+        assertionRef,
+        fastLoginRefresh: true,
+      });
+
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(lollipopActivationPortMock.upsert).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          fiscalCode: aFiscalCode,
+          assertionRef,
+          expirationDate: expect.any(Date),
+        }),
+      );
+      expect(lollipopActivationPortMock.getByFiscalCode).not.toHaveBeenCalled();
+      expect(mockRequestRevocation).not.toHaveBeenCalled();
+      expect(mockActivatePubKey).not.toHaveBeenCalled();
+      expect(mockSessionCreate).toHaveBeenCalledOnce();
+      expect(mockSendEvent).not.toHaveBeenCalled();
+      expect(mockNotifyLogin).toHaveBeenCalledOnce();
+    });
+
     it("succeeds without creating a profile nor notifying when the profile exists without email", async () => {
       mockGetProfile.mockResolvedValueOnce(ok(aUserProfileWithoutEmail));
 

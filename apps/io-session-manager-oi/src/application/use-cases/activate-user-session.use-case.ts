@@ -4,7 +4,10 @@ import {
   NotFoundError,
   type UseCase,
 } from "@pagopa/hexagonal-core";
-import type { IPString } from "@pagopa/io-auth-n-identity-domain";
+import type {
+  IPString,
+  LollipopAssertionRef,
+} from "@pagopa/io-auth-n-identity-domain";
 import {
   type BaseSession,
   newActiveSession,
@@ -34,7 +37,7 @@ import {
   HashedClientSessionTokenSchema,
 } from "../../domain/value-objects/client-session-token.vo.js";
 
-type NewSessionToken = Omit<
+export type NewSessionToken = Omit<
   BaseSession,
   "sessionId" | "expirationDate" | "createdAt"
 > & {
@@ -43,10 +46,21 @@ type NewSessionToken = Omit<
   identityProvider: NonEmptyString;
 };
 
-type ActivateUserSessionUseCaseInput = {
+type ActivateUserSessionUse = {
   sessionToken: NewSessionToken;
   assertion: Pick<IdentityAssertion, "assertionRef" | "rawAssertion" | "type">;
+  fastLoginRefresh?: false;
 };
+
+type RefreshUserSessionUse = {
+  sessionToken: NewSessionToken;
+  assertionRef: LollipopAssertionRef;
+  fastLoginRefresh: true;
+};
+
+type ActivateUserSessionUseCaseInput =
+  | ActivateUserSessionUse
+  | RefreshUserSessionUse;
 
 export type ActivateUserSessionUseCase = UseCase<
   ActivateUserSessionUseCaseInput,
@@ -71,9 +85,14 @@ type Dependencies = {
 export const makeActivateUserSessionUseCase =
   (deps: Dependencies): ActivateUserSessionUseCase =>
   async (input) => {
-    const invalidationResult = await invalidatePreviousUserState(deps)(
-      input.sessionToken.fiscalCode,
-    );
+    const isFastLoginRefresh = input.fastLoginRefresh === true;
+    const assertionRef = isFastLoginRefresh
+      ? input.assertionRef
+      : input.assertion.assertionRef;
+    const invalidationResult = await invalidatePreviousUserState(
+      deps,
+      isFastLoginRefresh,
+    )(input.sessionToken.fiscalCode);
 
     if (invalidationResult.isErr()) {
       return err(invalidationResult.error);
@@ -95,7 +114,7 @@ export const makeActivateUserSessionUseCase =
     /*********************************/
     const lollipopUpsertResult = await deps.lollipopActivationPort.upsert({
       fiscalCode: input.sessionToken.fiscalCode,
-      assertionRef: input.assertion.assertionRef,
+      assertionRef,
       expirationDate: activeSession.expirationDate,
     });
     if (lollipopUpsertResult.isErr()) {
@@ -109,29 +128,32 @@ export const makeActivateUserSessionUseCase =
     /**********************************/
     /* Lollipop public key activation */
     /**********************************/
-    const lollipopPubKeyActivationResult =
-      await deps.lollipopPort.activatePubKey(input.assertion.assertionRef, {
-        fiscal_code: input.sessionToken.fiscalCode,
-        assertion: input.assertion.rawAssertion,
-        assertion_type: input.assertion.type,
-        expired_at: activeSession.expirationDate,
-      });
-    if (lollipopPubKeyActivationResult.isErr()) {
-      // try to revoke the lollipop activation if the public key activation fails
-      const revokeResult = await deps.lollipopActivationPort.revokeByFiscalCode(
-        input.sessionToken.fiscalCode,
-      );
-      if (revokeResult.isErr()) {
-        // Log the failure to revoke the lollipop activation
-        console.warn(
-          `Failed to revoke lollipop activation: ${revokeResult.error.message}`,
+    if (!isFastLoginRefresh) {
+      const lollipopPubKeyActivationResult =
+        await deps.lollipopPort.activatePubKey(assertionRef, {
+          fiscal_code: input.sessionToken.fiscalCode,
+          assertion: input.assertion.rawAssertion,
+          assertion_type: input.assertion.type,
+          expired_at: activeSession.expirationDate,
+        });
+      if (lollipopPubKeyActivationResult.isErr()) {
+        // try to revoke the lollipop activation if the public key activation fails
+        const revokeResult =
+          await deps.lollipopActivationPort.revokeByFiscalCode(
+            input.sessionToken.fiscalCode,
+          );
+        if (revokeResult.isErr()) {
+          // Log the failure to revoke the lollipop activation
+          console.warn(
+            `Failed to revoke lollipop activation: ${revokeResult.error.message}`,
+          );
+        }
+        return err(
+          new GenericError(
+            `Failed to activate lollipop public key: ${lollipopPubKeyActivationResult.error.message}`,
+          ),
         );
       }
-      return err(
-        new GenericError(
-          `Failed to activate lollipop public key: ${lollipopPubKeyActivationResult.error.message}`,
-        ),
-      );
     }
 
     /**************************************/
@@ -171,21 +193,23 @@ export const makeActivateUserSessionUseCase =
     /********************/
     /* Send login event */
     /********************/
-    const sendEventResult = await deps.authEventPort.sendEvent({
-      eventType: "login",
-      fiscalCode: userProfile.fiscalCode,
-      ts: activeSession.createdAt,
-      expiredAt: activeSession.expirationDate,
-      loginType: input.sessionToken.loginType === "LEGACY" ? "legacy" : "lv", // TODO: evaluate if a more structured approach is needed
-      scenario: "standard", // TODO: handle also "new_user" and "relogin"
-      idp: input.sessionToken.identityProvider,
-    });
-    if (sendEventResult.isErr()) {
-      return err(
-        new GenericError(
-          `Failed to emit login event: ${sendEventResult.error.message}`,
-        ),
-      );
+    if (!isFastLoginRefresh) {
+      const sendEventResult = await deps.authEventPort.sendEvent({
+        eventType: "login",
+        fiscalCode: userProfile.fiscalCode,
+        ts: activeSession.createdAt,
+        expiredAt: activeSession.expirationDate,
+        loginType: input.sessionToken.loginType === "LEGACY" ? "legacy" : "lv", // TODO: evaluate if a more structured approach is needed
+        scenario: "standard", // TODO: handle also "new_user" and "relogin"
+        idp: input.sessionToken.identityProvider,
+      });
+      if (sendEventResult.isErr()) {
+        return err(
+          new GenericError(
+            `Failed to emit login event: ${sendEventResult.error.message}`,
+          ),
+        );
+      }
     }
 
     /******************************/
@@ -224,37 +248,42 @@ export const makeActivateUserSessionUseCase =
 // -------------------------
 
 const invalidatePreviousUserState =
-  (deps: {
-    sessionPort: SessionPort;
-    platformInternalPort: PlatformInternalPort;
-    lollipopActivationPort: LollipopActivationPort;
-    lollipopRevocationPort: LollipopRevocationPort;
-  }) =>
+  (
+    deps: {
+      sessionPort: SessionPort;
+      platformInternalPort: PlatformInternalPort;
+      lollipopActivationPort: LollipopActivationPort;
+      lollipopRevocationPort: LollipopRevocationPort;
+    },
+    fastLoginRefresh: boolean,
+  ) =>
   async (
     fiscalCode: NewSessionToken["fiscalCode"],
   ): Promise<Result<void, GenericError>> => {
     // TODO: invalidate installation id
 
-    /************************************************************/
-    /* Revoke the lollipop associated with the previous session */
-    /************************************************************/
-    const lollipopActivationDataResult =
-      await deps.lollipopActivationPort.getByFiscalCode(fiscalCode);
-    if (lollipopActivationDataResult.isErr()) {
-      return err(
-        new GenericError(
-          `Failed to retrieve previous lollipop activation data: ${lollipopActivationDataResult.error.message}`,
-        ),
-      );
+    if (!fastLoginRefresh) {
+      /************************************************************/
+      /* Revoke the lollipop associated with the previous session */
+      /************************************************************/
+      const lollipopActivationDataResult =
+        await deps.lollipopActivationPort.getByFiscalCode(fiscalCode);
+      if (lollipopActivationDataResult.isErr()) {
+        return err(
+          new GenericError(
+            `Failed to retrieve previous lollipop activation data: ${lollipopActivationDataResult.error.message}`,
+          ),
+        );
+      }
+      // Lollipop activation data found, proceed with revocation (fire-and-forget)
+      deps.lollipopRevocationPort
+        .requestRevocation(lollipopActivationDataResult.value.assertionRef)
+        .then((result) => {
+          if (result.isErr()) {
+            console.error(`Failed to revoke lollipop: ${result.error.message}`);
+          }
+        });
     }
-    // Lollipop activation data found, proceed with revocation (fire-and-forget)
-    deps.lollipopRevocationPort
-      .requestRevocation(lollipopActivationDataResult.value.assertionRef)
-      .then((result) => {
-        if (result.isErr()) {
-          console.error(`Failed to revoke lollipop: ${result.error.message}`);
-        }
-      });
 
     /********************************************************/
     /* Invalidate the previous session in the session store */
