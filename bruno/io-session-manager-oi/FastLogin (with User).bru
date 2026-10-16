@@ -7,7 +7,7 @@ meta {
 post {
   url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/fast-login
   body: none
-  auth: none
+  auth: inherit
 }
 
 headers {
@@ -82,9 +82,6 @@ script:pre-request {
   req.setHeader("x-pagopa-lollipop-original-url", originalUrl);
   req.setHeader("signature-input", signedHeaders.value.signatureInput);
   req.setHeader("signature", signedHeaders.value.signature);
-  
-  req.setHeader("authorization", `Bearer ${bru.getVar("bearerToken")}`);
-  
   
 }
 
