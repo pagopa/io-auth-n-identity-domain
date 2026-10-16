@@ -168,10 +168,10 @@
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/3.0.1"
   },
   "session_manager.sm_ca": {
-    "hash": "c1da651a33426febe02a55ba8a3b09c8156bf7995fca97358b460bc3d2a74fa6",
-    "version": "8.0.1",
+    "hash": "36254e3b4cb985aa6140838bdff9a76501e12b4838f09d6691a59cb6c66c242a",
+    "version": "8.0.2",
     "name": "unknown",
-    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-container-app/azurerm/8.0.1"
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-container-app/azurerm/8.0.2"
   },
   "session_manager.sm_cae": {
     "hash": "ed2d6bbe6ea16abe0fa67855fe1f807e5c10af6339bd8970d1d39b2c5b9462b9",
