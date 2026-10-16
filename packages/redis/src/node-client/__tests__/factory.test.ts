@@ -28,6 +28,7 @@ vi.mock("@redis/entraid", () => ({
 
 const buildFakeClient = () => ({
   connect: vi.fn().mockResolvedValue(undefined),
+  destroy: vi.fn(),
 });
 
 const lastCreateClientOptions = () => {
@@ -44,8 +45,8 @@ const lastCreateClusterOptions = () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  createClient.mockImplementation(buildFakeClient);
-  createCluster.mockImplementation(buildFakeClient);
+  createClient.mockReset().mockImplementation(buildFakeClient);
+  createCluster.mockReset().mockImplementation(buildFakeClient);
 });
 
 // ---------------------------------------------------------------------------
@@ -202,6 +203,55 @@ describe("createRedisNodeClient — config validation", () => {
 const fakeCredential = { kind: "test-credential" } as never;
 const fakeProvider = { kind: "test-provider" };
 
+describe.each([
+  ["node", () => createRedisNodeClient({ hostname: "cache" })],
+  ["cluster", () => createRedisClusterClient({ hostname: "cache" })],
+  [
+    "managed identity node",
+    () =>
+      createRedisManagedIdentityNodeClient(
+        { hostname: "cache" },
+        fakeCredential,
+      ),
+  ],
+  [
+    "managed identity cluster",
+    () =>
+      createRedisManagedIdentityClusterClient(
+        { hostname: "cache" },
+        fakeCredential,
+      ),
+  ],
+] as const)("%s connection cleanup", (_name, connect) => {
+  it("returns a connected client without destroying it", async () => {
+    const client = buildFakeClient();
+    createClient.mockReturnValueOnce(client);
+    createCluster.mockReturnValueOnce(client);
+
+    expect(await connect()).toBe(client);
+    expect(client.destroy).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])(
+    "preserves connection failure when destroy throws: %s",
+    async (destroyThrows) => {
+      const error = new Error("connection failed");
+      const client = buildFakeClient();
+      client.connect.mockRejectedValueOnce(error);
+      if (destroyThrows) {
+        client.destroy.mockImplementationOnce(() => {
+          throw new Error("destroy failed");
+        });
+      }
+      createClient.mockReturnValueOnce(client);
+      createCluster.mockReturnValueOnce(client);
+
+      await expect(connect()).rejects.toBe(error);
+      expect(client.destroy).toHaveBeenCalledExactlyOnceWith();
+    },
+  );
+});
+
 describe("createRedisManagedIdentityNodeClient", () => {
   beforeEach(() => {
     createForDefaultAzureCredential.mockReturnValue(fakeProvider);
@@ -354,9 +404,9 @@ describe("createRedisClusterClient", () => {
   });
 
   it("rejects an invalid hostname without calling createCluster", async () => {
-    await expect(
-      createRedisClusterClient({ hostname: "" }),
-    ).rejects.toThrow("hostname must be non-empty");
+    await expect(createRedisClusterClient({ hostname: "" })).rejects.toThrow(
+      "hostname must be non-empty",
+    );
     expect(createCluster).not.toHaveBeenCalled();
   });
 });
@@ -434,7 +484,10 @@ describe("createRedisManagedIdentityClusterClient", () => {
     createCluster.mockReturnValueOnce(fake);
 
     await expect(
-      createRedisManagedIdentityClusterClient({ hostname: "cache" }, fakeCredential),
+      createRedisManagedIdentityClusterClient(
+        { hostname: "cache" },
+        fakeCredential,
+      ),
     ).rejects.toThrow("token failure");
   });
 
