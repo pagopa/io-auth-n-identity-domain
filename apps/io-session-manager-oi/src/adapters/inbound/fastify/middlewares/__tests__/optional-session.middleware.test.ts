@@ -45,7 +45,7 @@ describe("optionalSessionMiddleware", () => {
     });
   });
 
-  it("rejects an invalid supplied session token", async () => {
+  it("continues anonymously in case of an invalid session token", async () => {
     const authenticationError = new AuthenticationError();
     const authenticateSession = vi
       .fn()
@@ -59,6 +59,10 @@ describe("optionalSessionMiddleware", () => {
       payload: { headers: { authorization: "Bearer invalid" } },
     });
 
-    expect(result).toEqual(err(authenticationError));
+    expect(result).toEqual(ok({}));
+    expect(authenticateSession).toHaveBeenCalledExactlyOnceWith({
+      context: {},
+      payload,
+    });
   });
 });
