@@ -4,7 +4,7 @@ import type {
   GenericError,
   HttpRequestMiddleware,
 } from "@pagopa/hexagonal-core";
-import { err, ok } from "neverthrow";
+import { ok } from "neverthrow";
 
 import type {
   AuthenticationContext,
