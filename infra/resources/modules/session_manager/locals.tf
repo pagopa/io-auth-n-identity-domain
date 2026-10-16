@@ -84,13 +84,9 @@ locals {
       name  = "IO_FAST_LOGIN_API_BASE_PATH"
       value = var.io_fast_login.base_path
     },
-    # {
-    #   name  = "IO_FAST_LOGIN_API_KEY"
-    #   value = azurerm_key_vault_secret.sm_io_fast_login_api_key.versionless_id
-    # },
     {
       name  = "IO_FAST_LOGIN_API_KEY"
-      value = "TODO"
+      value = azurerm_key_vault_secret.sm_io_fast_login_api_key.versionless_id
     },
     # Locked Profiles table
     {
