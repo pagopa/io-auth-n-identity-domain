@@ -1,0 +1,100 @@
+meta {
+  name: FastLogin (with User)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/fast-login
+  body: none
+  auth: none
+}
+
+headers {
+  x-client-ip: 127.0.0.1
+}
+
+vars:pre-request {
+  originalMethod: GET
+  originalUrl: https://www.example.com
+}
+
+script:pre-request {
+  const crypto = require("node:crypto");
+  const jose = require("node-jose");
+  const mattrglobal = require("@mattrglobal/http-signatures");
+  
+  const nonceUrl = new URL(bru.interpolate(req.getUrl()));
+  nonceUrl.pathname = `${nonceUrl.pathname.replace(/\/+$/, "")}/nonce/generate`;
+  const nonceResponse = await bru.sendRequest({
+    method: "POST",
+    url: nonceUrl.toString(),
+  });
+  if (nonceResponse.status !== 200 || typeof nonceResponse.data?.nonce !== "string") {
+    throw new Error(`Could not generate Fast Login nonce (status ${nonceResponse.status})`);
+  }
+  
+  const encodedPublicKey = bru.getEnvVar("publicKey");
+  const encodedPrivateKey = bru.getEnvVar("privateKey");
+  if (!encodedPublicKey || !encodedPrivateKey) {
+    throw new Error("Run Reserve first to create the Lollipop key pair.");
+  }
+  
+  const publicKeyJwk = JSON.parse(Buffer.from(encodedPublicKey, "base64url").toString("utf8"));
+  const privateKeyJwk = JSON.parse(Buffer.from(encodedPrivateKey, "base64url").toString("utf8"));
+  const keyid = await jose.JWK.asKey(publicKeyJwk)
+    .then(key => key.thumbprint("SHA-256"))
+    .then(thumbprint => thumbprint.toString("base64url"));
+  
+  const originalMethod = bru.getRequestVar("originalMethod");
+  const originalUrl = bru.getRequestVar("originalUrl");
+  if (typeof originalMethod !== "string" || typeof originalUrl !== "string") {
+    throw new Error("Set originalMethod and originalUrl in this request's pre-request variables.");
+  }
+  const sign = async data => crypto
+    .createSign("SHA256")
+    .update(Buffer.from(data))
+    .sign({
+      key: crypto.createPrivateKey({ key: privateKeyJwk, format: "jwk" }),
+      dsaEncoding: "ieee-p1363",
+    });
+  
+  const signedHeaders = await mattrglobal.createSignatureHeader({
+    alg: mattrglobal.AlgorithmTypes["ecdsa-p256-sha256"],
+    nonce: nonceResponse.data.nonce,
+    signer: { keyid, sign },
+    url: originalUrl,
+    method: originalMethod,
+    httpHeaders: {
+      "x-pagopa-lollipop-original-method": originalMethod,
+      "x-pagopa-lollipop-original-url": originalUrl,
+    },
+    coveredFields: [
+      "x-pagopa-lollipop-original-method",
+      "x-pagopa-lollipop-original-url",
+    ].map(name => [name, new Map()]),
+  });
+  if (!signedHeaders.isOk()) {
+    throw new Error(`Could not sign Fast Login request: ${signedHeaders.error.message}`);
+  }
+  
+  req.setHeader("x-pagopa-lollipop-original-method", originalMethod);
+  req.setHeader("x-pagopa-lollipop-original-url", originalUrl);
+  req.setHeader("signature-input", signedHeaders.value.signatureInput);
+  req.setHeader("signature", signedHeaders.value.signature);
+  
+  req.setHeader("authorization", `Bearer ${bru.getVar("bearerToken")}`);
+  
+  
+}
+
+script:post-response {
+  if (res.status === 200 && typeof res.body?.token === "string") {
+    bru.setEnvVar("bearerToken", res.body.token);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
