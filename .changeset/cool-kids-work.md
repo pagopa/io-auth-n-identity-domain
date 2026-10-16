@@ -2,4 +2,4 @@
 "io-session-manager-oi": minor
 ---
 
-Optional Authentication middleware
+Fast Login endpoint
