@@ -26,6 +26,8 @@ import { pipe } from "fp-ts/lib/function";
 import { getAndDelete } from "../services/redis-auxiliary-data";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
+import { WithIP } from "../utils/network";
+import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 
 /**
  * Decodes the JSON request body required by the `reserve` endpoint from the
@@ -41,7 +43,7 @@ const decodeReserveInput = (req: express.Request): t.Validation<ReserveInput> =>
     minAuthLevel: req.body?.min_auth_level,
   });
 
-export type ReserveEndpointDeps = ReserveDeps & WithExpressRequest;
+export type ReserveEndpointDeps = ReserveDeps & WithExpressRequest & WithIP;
 
 /**
  * Reserves the OneIdentity (OIDC) authorization request for the given
@@ -70,9 +72,11 @@ export const reserveEndpoint: RTE.ReaderTaskEither<
  */
 const decodeAndForwardError = (
   deps: CallbackEndpointDeps,
-): TE.TaskEither<IResponsePermanentRedirect, never> =>
-  pipe(
-    CallbackErrorInput.decode(deps.req.query),
+): TE.TaskEither<IResponsePermanentRedirect, never> => {
+  const decodedErrorInput = CallbackErrorInput.decode(deps.req.query);
+
+  return pipe(
+    decodedErrorInput,
     TE.fromEither,
     TE.fold(
       () =>
@@ -94,8 +98,11 @@ const decodeAndForwardError = (
                 deps.appInsightsTelemetryClient?.trackEvent({
                   name: "session-manager.oidc.callback.auxiliary-remediation.warning",
                   properties: {
-                    errorMessage: errorOrData.left.message,
+                    state: errorInput.state,
+                    ipHash: sha256(deps.clientIP),
+                    failureReason: "auxiliary_data_cleanup_failed",
                   },
+                  tagOverrides: { samplingEnabled: "false" },
                 });
               }
             })
@@ -119,17 +126,28 @@ const decodeAndForwardError = (
         ),
     ),
     TE.mapLeft((redirect) => {
-      // warning level because this shouldn't trigger any alert
-      // and is fired only for troubleshooting on custom dashboards.
+      const errorProperties = E.isRight(decodedErrorInput)
+        ? withoutUndefinedValues({
+            state: decodedErrorInput.right.state,
+            oiError: decodedErrorInput.right.error,
+            oiErrorDescription: decodedErrorInput.right.error_description,
+          })
+        : { failureReason: "invalid_callback_input" };
+
       deps.appInsightsTelemetryClient?.trackEvent({
         name: "session-manager.oidc.callback.upstream-error.warning",
         properties: {
+          redirectTarget: "client_error",
           errorLocation: redirect.detail || "UNKNOWN",
+          ipHash: sha256(deps.clientIP),
+          ...errorProperties,
         },
+        tagOverrides: { samplingEnabled: "false" },
       });
       return redirect;
     }),
   );
+};
 
 const callbackEndpointMiddleware = (deps: CallbackEndpointDeps) =>
   pipe(
@@ -138,7 +156,7 @@ const callbackEndpointMiddleware = (deps: CallbackEndpointDeps) =>
     TE.orElseW((_) => decodeAndForwardError(deps)),
   );
 
-export type CallbackEndpointDeps = CallbackDeps & WithExpressRequest;
+export type CallbackEndpointDeps = CallbackDeps & WithExpressRequest & WithIP;
 
 /**
  * Landing endpoint for the OIDC authorization code flow, returning a fresh
