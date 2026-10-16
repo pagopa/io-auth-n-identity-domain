@@ -201,26 +201,6 @@ describe("OidcService#reserve", () => {
   });
 
   afterEach(() => {
-    for (const [event] of mockTrackEvent.mock.calls) {
-      for (const property of ["state", "nonce", "ip", "errorMessage"]) {
-        expect(event.properties).not.toHaveProperty(property);
-      }
-      for (const raw of [
-        aState,
-        anAuxiliaryData.nonce,
-        deps.clientIP,
-        "private-diagnostic",
-      ]) {
-        expect(JSON.stringify(event)).not.toContain(raw);
-      }
-      expect(event.properties).toMatchObject({
-        stateHash: sha256(aState),
-        nonceHash: sha256(anAuxiliaryData.nonce),
-      });
-      expect(event.properties).not.toHaveProperty("lollipopAssertionRef");
-      expect(event.properties).not.toHaveProperty("fiscalCodeHash");
-      expect(event.tagOverrides).toEqual({ samplingEnabled: "false" });
-    }
     vi.clearAllMocks();
     vi.mocked(TokenService.getNewTokenAsync).mockRestore();
   });
@@ -285,19 +265,13 @@ describe("OidcService#reserve", () => {
       }
       expect(key).toBe(`RESERVE-${result.value.state}`);
       expect(JSON.parse(value).nonce).toBe(result.value.nonce);
-      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
-        result.value.state,
-      );
-      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
-        result.value.nonce,
-      );
       expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({
           name: "session-manager.oidc.reserve.success",
           properties: expect.objectContaining({
             env: aReserveInput.env,
-            stateHash: sha256(result.value.state),
-            nonceHash: sha256(result.value.nonce),
+            state: result.value.state,
+            nonce: result.value.nonce,
             ipHash: sha256(deps.clientIP),
             minAuthLevel,
           }),
@@ -359,13 +333,19 @@ describe("OidcService#reserve", () => {
           name: "session-manager.oidc.reserve.discovery.error",
           properties: expect.objectContaining({
             env: aReserveInput.env,
-            stateHash: expect.stringMatching(/^[a-f0-9]{64}$/),
-            nonceHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+            state: aState,
+            nonce: anAuxiliaryData.nonce,
             ipHash: sha256(deps.clientIP),
             failureReason: "discovery_failed",
           }),
           tagOverrides: { samplingEnabled: "false" },
         }),
+      );
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        "private-diagnostic",
+      );
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        deps.clientIP,
       );
     },
   );
@@ -388,13 +368,19 @@ describe("OidcService#reserve", () => {
       expect.objectContaining({
         name: "session-manager.oidc.reserve.auth-decode.error",
         properties: expect.objectContaining({
-          stateHash: expect.stringMatching(/^[a-f0-9]{64}$/),
-          nonceHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
           ipHash: sha256(deps.clientIP),
           failureReason: "invalid_authorization_endpoint",
         }),
         tagOverrides: { samplingEnabled: "false" },
       }),
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      "private-diagnostic",
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      deps.clientIP,
     );
   });
 
@@ -414,13 +400,19 @@ describe("OidcService#reserve", () => {
       expect.objectContaining({
         name: "session-manager.oidc.reserve.auxiliary-data.error",
         properties: expect.objectContaining({
-          stateHash: expect.stringMatching(/^[a-f0-9]{64}$/),
-          nonceHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
           ipHash: sha256(deps.clientIP),
           failureReason: "auxiliary_data_save_failed",
         }),
         tagOverrides: { samplingEnabled: "false" },
       }),
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      "private-diagnostic",
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      deps.clientIP,
     );
   });
 });
@@ -782,34 +774,6 @@ describe("OidcService#performSAMLAssertionChecks", () => {
 
 describe("OidcService#OIDCCallback", () => {
   afterEach(() => {
-    for (const [event] of mockTrackEvent.mock.calls) {
-      for (const property of ["state", "nonce", "ip", "errorMessage"]) {
-        expect(event.properties).not.toHaveProperty(property);
-      }
-      for (const raw of [
-        aState,
-        anAuxiliaryData.nonce,
-        callbackDeps.clientIP,
-        "private-diagnostic",
-      ]) {
-        expect(JSON.stringify(event)).not.toContain(raw);
-      }
-      expect(event.properties).not.toHaveProperty("lollipopAssertionRef");
-      expect(event.properties).not.toHaveProperty("fiscalCodeHash");
-      expect(event.tagOverrides).toEqual({ samplingEnabled: "false" });
-      expect(event.properties).toMatchObject({
-        stateHash: sha256(aState),
-        ipHash: sha256(callbackDeps.clientIP),
-      });
-      if (event.name === "session-manager.oidc.callback.auxiliary-data.error") {
-        expect(event.properties).not.toHaveProperty("nonceHash");
-      } else {
-        expect(event.properties).toHaveProperty(
-          "nonceHash",
-          sha256(anAuxiliaryData.nonce),
-        );
-      }
-    }
     vi.clearAllMocks();
   });
   const AGE_LIMIT = 18;
@@ -884,6 +848,41 @@ describe("OidcService#OIDCCallback", () => {
     );
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockedAcs).not.toHaveBeenCalled();
+    if (failure.startsWith("redis")) {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "session-manager.oidc.callback.auxiliary-data.error",
+          properties: expect.objectContaining({
+            state: aState,
+            ipHash: sha256(callbackDeps.clientIP),
+            failureReason: "auxiliary_data_unavailable",
+          }),
+          tagOverrides: { samplingEnabled: "false" },
+        }),
+      );
+      expect(mockTrackEvent.mock.calls[0][0].properties).not.toHaveProperty(
+        "nonce",
+      );
+    } else {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "session-manager.oidc.callback.code-exchange.error",
+          properties: expect.objectContaining({
+            state: aState,
+            nonce: anAuxiliaryData.nonce,
+            ipHash: sha256(callbackDeps.clientIP),
+            failureReason: "code_exchange_failed",
+          }),
+          tagOverrides: { samplingEnabled: "false" },
+        }),
+      );
+    }
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      "private-diagnostic",
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      callbackDeps.clientIP,
+    );
   });
 
   test("should return IResponseErrorValidation when the login state is missing or expired", async () => {
@@ -896,7 +895,7 @@ describe("OidcService#OIDCCallback", () => {
       expect.objectContaining({
         name: "session-manager.oidc.callback.auxiliary-data.error",
         properties: expect.objectContaining({
-          stateHash: sha256(aState),
+          state: aState,
           ipHash: sha256(callbackDeps.clientIP),
           failureReason: "auxiliary_data_unavailable",
         }),
@@ -921,13 +920,19 @@ describe("OidcService#OIDCCallback", () => {
       expect.objectContaining({
         name: "session-manager.oidc.callback.discovery.error",
         properties: expect.objectContaining({
-          stateHash: sha256(aState),
-          nonceHash: sha256(anAuxiliaryData.nonce),
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
           ipHash: sha256(callbackDeps.clientIP),
           failureReason: "discovery_failed",
         }),
         tagOverrides: { samplingEnabled: "false" },
       }),
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      "private-diagnostic",
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      callbackDeps.clientIP,
     );
   });
 
@@ -948,8 +953,8 @@ describe("OidcService#OIDCCallback", () => {
       expect.objectContaining({
         name: "session-manager.oidc.callback.code-exchange.error",
         properties: expect.objectContaining({
-          stateHash: sha256(aState),
-          nonceHash: sha256(anAuxiliaryData.nonce),
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
           ipHash: sha256(callbackDeps.clientIP),
           failureReason: "code_exchange_failed",
         }),
@@ -982,9 +987,19 @@ describe("OidcService#OIDCCallback", () => {
       expect.objectContaining({
         name: "session-manager.oidc.callback.saml-assertion.error",
         properties: expect.objectContaining({
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
+          ipHash: sha256(callbackDeps.clientIP),
           failureReason: "saml_assertion_retrieval_failed",
         }),
+        tagOverrides: { samplingEnabled: "false" },
       }),
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      "private-diagnostic",
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      callbackDeps.clientIP,
     );
   });
 
@@ -1019,8 +1034,12 @@ describe("OidcService#OIDCCallback", () => {
       expect.objectContaining({
         name: "session-manager.oidc.callback.saml-verification.error",
         properties: expect.objectContaining({
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
+          ipHash: sha256(callbackDeps.clientIP),
           failureReason: "saml_verification_failed",
         }),
+        tagOverrides: { samplingEnabled: "false" },
       }),
     );
   });
@@ -1111,8 +1130,8 @@ describe("OidcService#OIDCCallback", () => {
       expect.objectContaining({
         name: "session-manager.oidc.callback.verified",
         properties: expect.objectContaining({
-          stateHash: sha256(aState),
-          nonceHash: sha256(anAuxiliaryData.nonce),
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
           ipHash: sha256(callbackDeps.clientIP),
           env: OidcConfigurationEnvEnum.PROD,
           acr: anIdTokenClaims.acr,

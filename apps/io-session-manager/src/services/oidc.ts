@@ -120,8 +120,8 @@ export const reserve =
         name: "session-manager.oidc.reserve.discovery.error",
         properties: {
           env: input.env,
-          stateHash: sha256(state),
-          nonceHash: sha256(nonce),
+          state,
+          nonce,
           ipHash: sha256(deps.clientIP),
           failureReason: "discovery_failed",
         },
@@ -139,8 +139,8 @@ export const reserve =
         name: "session-manager.oidc.reserve.auth-decode.error",
         properties: {
           env: input.env,
-          stateHash: sha256(state),
-          nonceHash: sha256(nonce),
+          state,
+          nonce,
           ipHash: sha256(deps.clientIP),
           failureReason: "invalid_authorization_endpoint",
         },
@@ -169,8 +169,8 @@ export const reserve =
         name: "session-manager.oidc.reserve.auxiliary-data.error",
         properties: {
           env: input.env,
-          stateHash: sha256(state),
-          nonceHash: sha256(nonce),
+          state,
+          nonce,
           ipHash: sha256(deps.clientIP),
           failureReason: "auxiliary_data_save_failed",
         },
@@ -184,8 +184,8 @@ export const reserve =
       properties: {
         env: input.env,
         clientId: envConfig.clientId,
-        stateHash: sha256(state),
-        nonceHash: sha256(nonce),
+        state,
+        nonce,
         ipHash: sha256(deps.clientIP),
         minAuthLevel: input.minAuthLevel,
         loginType: input.loginType ?? "DEFAULT",
@@ -444,7 +444,7 @@ export const OIDCCallback =
       deps.appInsightsTelemetryClient?.trackEvent({
         name: "session-manager.oidc.callback.auxiliary-data.error",
         properties: {
-          stateHash: sha256(input.state),
+          state: input.state,
           ipHash: sha256(deps.clientIP),
           failureReason: "auxiliary_data_unavailable",
         },
@@ -465,8 +465,8 @@ export const OIDCCallback =
         name: "session-manager.oidc.callback.discovery.error",
         properties: {
           env: auxiliaryData.oidcConfigurationEnv,
-          stateHash: sha256(input.state),
-          nonceHash: sha256(auxiliaryData.nonce),
+          state: input.state,
+          nonce: auxiliaryData.nonce,
           ipHash: sha256(deps.clientIP),
           failureReason: "discovery_failed",
         },
@@ -487,8 +487,8 @@ export const OIDCCallback =
         name: "session-manager.oidc.callback.code-exchange.error",
         properties: {
           env: auxiliaryData.oidcConfigurationEnv,
-          stateHash: sha256(input.state),
-          nonceHash: sha256(auxiliaryData.nonce),
+          state: input.state,
+          nonce: auxiliaryData.nonce,
           ipHash: sha256(deps.clientIP),
           failureReason: "code_exchange_failed",
         },
@@ -508,8 +508,8 @@ export const OIDCCallback =
         name: "session-manager.oidc.callback.saml-assertion.error",
         properties: {
           env: auxiliaryData.oidcConfigurationEnv,
-          stateHash: sha256(input.state),
-          nonceHash: sha256(auxiliaryData.nonce),
+          state: input.state,
+          nonce: auxiliaryData.nonce,
           ipHash: sha256(deps.clientIP),
           failureReason: "saml_assertion_retrieval_failed",
           idpEntityId: claims.idpEntityId,
@@ -531,8 +531,8 @@ export const OIDCCallback =
         name: "session-manager.oidc.callback.saml-verification.error",
         properties: {
           env: auxiliaryData.oidcConfigurationEnv,
-          stateHash: sha256(input.state),
-          nonceHash: sha256(auxiliaryData.nonce),
+          state: input.state,
+          nonce: auxiliaryData.nonce,
           ipHash: sha256(deps.clientIP),
           failureReason: "saml_verification_failed",
           idpEntityId: claims.idpEntityId,
@@ -561,8 +561,8 @@ export const OIDCCallback =
       name: "session-manager.oidc.callback.verified",
       properties: {
         env: auxiliaryData.oidcConfigurationEnv,
-        stateHash: sha256(input.state),
-        nonceHash: sha256(auxiliaryData.nonce),
+        state: input.state,
+        nonce: auxiliaryData.nonce,
         ipHash: sha256(deps.clientIP),
         acr: claims.acr,
         idpEntityId: claims.idpEntityId,

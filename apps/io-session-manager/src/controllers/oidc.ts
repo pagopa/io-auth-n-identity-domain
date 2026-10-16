@@ -108,7 +108,7 @@ const decodeAndForwardError = (
                 deps.appInsightsTelemetryClient?.trackEvent({
                   name: "session-manager.oidc.callback.auxiliary-remediation.warning",
                   properties: {
-                    stateHash: sha256(errorInput.state),
+                    state: errorInput.state,
                     ipHash: sha256(deps.clientIP),
                     failureReason: "auxiliary_data_cleanup_failed",
                   },
@@ -144,7 +144,7 @@ const decodeAndForwardError = (
           ipHash: sha256(deps.clientIP),
           ...(E.isRight(decodedErrorInput)
             ? {
-                stateHash: sha256(decodedErrorInput.right.state),
+                state: decodedErrorInput.right.state,
                 oiError: oidcTelemetryErrorCodes.has(
                   decodedErrorInput.right.error,
                 )

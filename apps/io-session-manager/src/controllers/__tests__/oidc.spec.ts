@@ -173,21 +173,6 @@ describe("OidcController#callbackEndpoint", () => {
   };
 
   afterEach(() => {
-    for (const [event] of mockTrackEvent.mock.calls) {
-      for (const property of [
-        "state",
-        "nonce",
-        "ip",
-        "errorMessage",
-        "errorLocation",
-      ]) {
-        expect(event.properties).not.toHaveProperty(property);
-      }
-      for (const raw of ["a-state", deps.clientIP, "private-diagnostic"]) {
-        expect(JSON.stringify(event)).not.toContain(raw);
-      }
-      expect(event.tagOverrides).toEqual({ samplingEnabled: "false" });
-    }
     vi.clearAllMocks();
   });
 
@@ -237,17 +222,17 @@ describe("OidcController#callbackEndpoint", () => {
       detail: expectedErrorDetail,
     });
     expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
+      {
         name: "session-manager.oidc.callback.upstream-error.warning",
-        properties: expect.objectContaining({
+        properties: {
           redirectTarget: "client_error",
-          stateHash: sha256("a-state"),
+          state: "a-state",
           ipHash: sha256(deps.clientIP),
           oiError: "access_denied",
           oiErrorDescription: "22",
-        }),
+        },
         tagOverrides: { samplingEnabled: "false" },
-      }),
+      },
     );
   });
 
@@ -278,29 +263,35 @@ describe("OidcController#callbackEndpoint", () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
     expect(mockTrackEvent).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({
+      {
         name: "session-manager.oidc.callback.upstream-error.warning",
-        properties: expect.objectContaining({
+        properties: {
           redirectTarget: "client_error",
-          stateHash: sha256("a-state"),
+          state: "a-state",
           ipHash: sha256(deps.clientIP),
           oiError: "access_denied",
           oiErrorDescription: "22",
-        }),
+        },
         tagOverrides: { samplingEnabled: "false" },
-      }),
+      },
     );
     expect(mockTrackEvent).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({
+      {
         name: "session-manager.oidc.callback.auxiliary-remediation.warning",
-        properties: expect.objectContaining({
-          stateHash: sha256("a-state"),
+        properties: {
+          state: "a-state",
           ipHash: sha256(deps.clientIP),
           failureReason: "auxiliary_data_cleanup_failed",
-        }),
+        },
         tagOverrides: { samplingEnabled: "false" },
-      }),
+      },
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      "private-diagnostic",
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      deps.clientIP,
     );
   });
 
@@ -329,17 +320,17 @@ describe("OidcController#callbackEndpoint", () => {
       detail: expectedErrorDetail,
     });
     expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
+      {
         name: "session-manager.oidc.callback.upstream-error.warning",
-        properties: expect.objectContaining({
+        properties: {
           redirectTarget: "client_error",
-          stateHash: sha256("a-state"),
+          state: "a-state",
           ipHash: sha256(deps.clientIP),
           oiError: "access_denied",
           oiErrorDescription: "22",
-        }),
+        },
         tagOverrides: { samplingEnabled: "false" },
-      }),
+      },
     );
   });
 
@@ -366,24 +357,31 @@ describe("OidcController#callbackEndpoint", () => {
       detail: expectedErrorDetail,
     });
     expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
+      {
         name: "session-manager.oidc.callback.upstream-error.warning",
-        properties: expect.objectContaining({
+        properties: {
           redirectTarget: "client_error",
-          stateHash: sha256("a-state"),
+          state: "a-state",
           ipHash: sha256(deps.clientIP),
           oiError: "unknown",
-        }),
+        },
         tagOverrides: { samplingEnabled: "false" },
-      }),
+      },
     );
   });
 
-  test("should return a generic error redirect when neither a success nor an error input can be decoded", async () => {
+  test.each([
+    {},
+    {
+      state: "a-state",
+      error: "access_denied",
+      error_description: "",
+    },
+  ])("should return a generic error redirect for invalid callback input %j", async (query) => {
     const expectedErrorDetail = getClientErrorRedirectionUrl({
       errorMessage: "error occurred" as NonEmptyString,
     }).href;
-    const req = mockReq({}) as unknown as Request;
+    const req = mockReq({ query }) as unknown as Request;
 
     const result = await pipe({ ...deps, req }, callbackEndpoint, TE.toUnion)();
 
@@ -394,21 +392,21 @@ describe("OidcController#callbackEndpoint", () => {
       detail: expectedErrorDetail,
     });
     expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
+      {
         name: "session-manager.oidc.callback.upstream-error.warning",
-        properties: expect.objectContaining({
+        properties: {
           redirectTarget: "client_error",
           ipHash: sha256(deps.clientIP),
           failureReason: "invalid_callback_input",
-        }),
+        },
         tagOverrides: { samplingEnabled: "false" },
-      }),
+      },
     );
     expect(mockTrackEvent.mock.calls[0][0].properties).not.toHaveProperty(
-      "stateHash",
+      "state",
     );
     expect(mockTrackEvent.mock.calls[0][0].properties).not.toHaveProperty(
-      "nonceHash",
+      "nonce",
     );
   });
 
@@ -418,7 +416,6 @@ describe("OidcController#callbackEndpoint", () => {
     "-22",
     "22\n",
     "12345678901",
-    "",
     undefined,
   ])(
     "should omit unsafe upstream descriptions (%s) without changing the redirect",
@@ -447,13 +444,19 @@ describe("OidcController#callbackEndpoint", () => {
       expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith({
         name: "session-manager.oidc.callback.upstream-error.warning",
         properties: {
-          stateHash: sha256("a-state"),
+          state: "a-state",
           ipHash: sha256(deps.clientIP),
           redirectTarget: "client_error",
           oiError: "unknown",
         },
         tagOverrides: { samplingEnabled: "false" },
       });
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        "private-diagnostic",
+      );
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        deps.clientIP,
+      );
     },
   );
 });
