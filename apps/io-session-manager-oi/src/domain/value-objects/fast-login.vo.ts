@@ -25,3 +25,14 @@ export const FastLoginParamsSchema = z.object({
   publicKey: LollipopJwkSchema,
 });
 export type FastLoginParams = z.infer<typeof FastLoginParamsSchema>;
+
+export const FastLoginLollipopParamsSchema = FastLoginParamsSchema.pick({
+  assertionRef: true,
+  assertionType: true,
+  authJWT: true,
+  userId: true,
+  publicKey: true,
+});
+export type FastLoginLollipopParams = z.infer<
+  typeof FastLoginLollipopParamsSchema
+>;
