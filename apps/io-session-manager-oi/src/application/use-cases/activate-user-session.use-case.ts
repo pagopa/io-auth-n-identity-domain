@@ -4,7 +4,10 @@ import {
   NotFoundError,
   type UseCase,
 } from "@pagopa/hexagonal-core";
-import type { IPString } from "@pagopa/io-auth-n-identity-domain";
+import type {
+  IPString,
+  LollipopAssertionRef,
+} from "@pagopa/io-auth-n-identity-domain";
 import {
   type BaseSession,
   newActiveSession,
@@ -34,7 +37,7 @@ import {
   HashedClientSessionTokenSchema,
 } from "../../domain/value-objects/client-session-token.vo.js";
 
-type NewSessionToken = Omit<
+export type NewSessionToken = Omit<
   BaseSession,
   "sessionId" | "expirationDate" | "createdAt"
 > & {
@@ -43,9 +46,14 @@ type NewSessionToken = Omit<
   identityProvider: NonEmptyString;
 };
 
-type ActivateUserSessionUseCaseInput = {
+export type ActivateUserSessionUseCaseInput = {
   sessionToken: NewSessionToken;
   assertion: Pick<IdentityAssertion, "assertionRef" | "rawAssertion" | "type">;
+};
+
+export type RefreshUserSessionUseCaseInput = {
+  sessionToken: NewSessionToken;
+  assertionRef: LollipopAssertionRef;
 };
 
 export type ActivateUserSessionUseCase = UseCase<
@@ -54,6 +62,17 @@ export type ActivateUserSessionUseCase = UseCase<
   GenericError
 >;
 
+export type RefreshUserSessionUseCase = UseCase<
+  RefreshUserSessionUseCaseInput,
+  ClientSessionToken,
+  GenericError
+>;
+
+type SessionCreationInput = {
+  sessionToken: NewSessionToken;
+  assertionRef: LollipopAssertionRef;
+  assertion?: Pick<IdentityAssertion, "assertionRef" | "rawAssertion" | "type">;
+};
 type Dependencies = {
   sessionPort: SessionPort;
   profilePort: ProfilePort;
@@ -68,12 +87,21 @@ type Dependencies = {
 // ActivateUserSession use-case implementation
 // ---------------------------------------------
 
-export const makeActivateUserSessionUseCase =
-  (deps: Dependencies): ActivateUserSessionUseCase =>
+const makeUserSessionUseCase =
+  (
+    deps: Dependencies,
+    { isFastLoginRefresh }: { isFastLoginRefresh: boolean },
+  ): UseCase<SessionCreationInput, ClientSessionToken, GenericError> =>
   async (input) => {
-    const invalidationResult = await invalidatePreviousUserState(deps)(
-      input.sessionToken.fiscalCode,
-    );
+    if (!isFastLoginRefresh && !input.assertion) {
+      return err(new GenericError("Assertion is required for user activation"));
+    }
+
+    const assertionRef = input.assertionRef;
+    const invalidationResult = await invalidatePreviousUserState(
+      deps,
+      isFastLoginRefresh,
+    )(input.sessionToken.fiscalCode);
 
     if (invalidationResult.isErr()) {
       return err(invalidationResult.error);
@@ -93,45 +121,56 @@ export const makeActivateUserSessionUseCase =
     /*********************************/
     /* Lollipop (session) activation */
     /*********************************/
-    const lollipopUpsertResult = await deps.lollipopActivationPort.upsert({
-      fiscalCode: input.sessionToken.fiscalCode,
-      assertionRef: input.assertion.assertionRef,
-      expirationDate: activeSession.expirationDate,
-    });
-    if (lollipopUpsertResult.isErr()) {
-      return err(
-        new GenericError(
-          `Failed to invalidate previous lollipop activation: ${lollipopUpsertResult.error.message}`,
-        ),
-      );
+    if (!isFastLoginRefresh) {
+      const lollipopUpsertResult = await deps.lollipopActivationPort.upsert({
+        fiscalCode: input.sessionToken.fiscalCode,
+        assertionRef,
+        expirationDate: activeSession.expirationDate,
+      });
+      if (lollipopUpsertResult.isErr()) {
+        return err(
+          new GenericError(
+            `Failed to invalidate previous lollipop activation: ${lollipopUpsertResult.error.message}`,
+          ),
+        );
+      }
     }
 
     /**********************************/
     /* Lollipop public key activation */
     /**********************************/
-    const lollipopPubKeyActivationResult =
-      await deps.lollipopPort.activatePubKey(input.assertion.assertionRef, {
-        fiscal_code: input.sessionToken.fiscalCode,
-        assertion: input.assertion.rawAssertion,
-        assertion_type: input.assertion.type,
-        expired_at: activeSession.expirationDate,
-      });
-    if (lollipopPubKeyActivationResult.isErr()) {
-      // try to revoke the lollipop activation if the public key activation fails
-      const revokeResult = await deps.lollipopActivationPort.revokeByFiscalCode(
-        input.sessionToken.fiscalCode,
-      );
-      if (revokeResult.isErr()) {
-        // Log the failure to revoke the lollipop activation
-        console.warn(
-          `Failed to revoke lollipop activation: ${revokeResult.error.message}`,
+    if (!isFastLoginRefresh) {
+      const assertion = input.assertion;
+      if (!assertion) {
+        return err(
+          new GenericError("Assertion is required for user activation"),
         );
       }
-      return err(
-        new GenericError(
-          `Failed to activate lollipop public key: ${lollipopPubKeyActivationResult.error.message}`,
-        ),
-      );
+      const lollipopPubKeyActivationResult =
+        await deps.lollipopPort.activatePubKey(assertionRef, {
+          fiscal_code: input.sessionToken.fiscalCode,
+          assertion: assertion.rawAssertion,
+          assertion_type: assertion.type,
+          expired_at: activeSession.expirationDate,
+        });
+      if (lollipopPubKeyActivationResult.isErr()) {
+        // try to revoke the lollipop activation if the public key activation fails
+        const revokeResult =
+          await deps.lollipopActivationPort.revokeByFiscalCode(
+            input.sessionToken.fiscalCode,
+          );
+        if (revokeResult.isErr()) {
+          // Log the failure to revoke the lollipop activation
+          console.warn(
+            `Failed to revoke lollipop activation: ${revokeResult.error.message}`,
+          );
+        }
+        return err(
+          new GenericError(
+            `Failed to activate lollipop public key: ${lollipopPubKeyActivationResult.error.message}`,
+          ),
+        );
+      }
     }
 
     /**************************************/
@@ -171,27 +210,29 @@ export const makeActivateUserSessionUseCase =
     /********************/
     /* Send login event */
     /********************/
-    const sendEventResult = await deps.authEventPort.sendEvent({
-      eventType: "login",
-      fiscalCode: userProfile.fiscalCode,
-      ts: activeSession.createdAt,
-      expiredAt: activeSession.expirationDate,
-      loginType: input.sessionToken.loginType === "LEGACY" ? "legacy" : "lv", // TODO: evaluate if a more structured approach is needed
-      scenario: "standard", // TODO: handle also "new_user" and "relogin"
-      idp: input.sessionToken.identityProvider,
-    });
-    if (sendEventResult.isErr()) {
-      return err(
-        new GenericError(
-          `Failed to emit login event: ${sendEventResult.error.message}`,
-        ),
-      );
+    if (!isFastLoginRefresh) {
+      const sendEventResult = await deps.authEventPort.sendEvent({
+        eventType: "login",
+        fiscalCode: userProfile.fiscalCode,
+        ts: activeSession.createdAt,
+        expiredAt: activeSession.expirationDate,
+        loginType: input.sessionToken.loginType === "LEGACY" ? "legacy" : "lv", // TODO: evaluate if a more structured approach is needed
+        scenario: "standard", // TODO: handle also "new_user" and "relogin"
+        idp: input.sessionToken.identityProvider,
+      });
+      if (sendEventResult.isErr()) {
+        return err(
+          new GenericError(
+            `Failed to emit login event: ${sendEventResult.error.message}`,
+          ),
+        );
+      }
     }
 
     /******************************/
     /* Notify login event to user */
     /******************************/
-    if (userProfile.email) {
+    if (!isFastLoginRefresh && userProfile.email) {
       // Notify login event to user
       const notifyLoginResult = await deps.profilePort.notifyLogin({
         fiscalCode: userProfile.fiscalCode,
@@ -219,42 +260,72 @@ export const makeActivateUserSessionUseCase =
     );
   };
 
+export const makeActivateUserSessionUseCase = (
+  deps: Dependencies,
+): ActivateUserSessionUseCase => {
+  const createSession = makeUserSessionUseCase(deps, {
+    isFastLoginRefresh: false,
+  });
+  return (input) =>
+    createSession({
+      sessionToken: input.sessionToken,
+      assertionRef: input.assertion.assertionRef,
+      assertion: input.assertion,
+    });
+};
+
+export const makeRefreshUserSessionUseCase = (
+  deps: Dependencies,
+): RefreshUserSessionUseCase => {
+  const createSession = makeUserSessionUseCase(deps, {
+    isFastLoginRefresh: true,
+  });
+  return (input) => createSession(input);
+};
+
 // -------------------------
 // Private helper functions
 // -------------------------
 
 const invalidatePreviousUserState =
-  (deps: {
-    sessionPort: SessionPort;
-    platformInternalPort: PlatformInternalPort;
-    lollipopActivationPort: LollipopActivationPort;
-    lollipopRevocationPort: LollipopRevocationPort;
-  }) =>
+  (
+    deps: {
+      sessionPort: SessionPort;
+      platformInternalPort: PlatformInternalPort;
+      lollipopActivationPort: LollipopActivationPort;
+      lollipopRevocationPort: LollipopRevocationPort;
+    },
+    fastLoginRefresh: boolean,
+  ) =>
   async (
     fiscalCode: NewSessionToken["fiscalCode"],
   ): Promise<Result<void, GenericError>> => {
     // TODO: invalidate installation id
 
-    /************************************************************/
-    /* Revoke the lollipop associated with the previous session */
-    /************************************************************/
-    const lollipopActivationDataResult =
-      await deps.lollipopActivationPort.getByFiscalCode(fiscalCode);
-    if (lollipopActivationDataResult.isErr()) {
-      return err(
-        new GenericError(
-          `Failed to retrieve previous lollipop activation data: ${lollipopActivationDataResult.error.message}`,
-        ),
-      );
+    if (!fastLoginRefresh) {
+      /************************************************************/
+      /* Revoke the lollipop associated with the previous session */
+      /************************************************************/
+      const lollipopActivationDataResult =
+        await deps.lollipopActivationPort.getByFiscalCode(fiscalCode);
+      if (lollipopActivationDataResult.isErr()) {
+        return err(
+          new GenericError(
+            `Failed to retrieve previous lollipop activation data: ${lollipopActivationDataResult.error.message}`,
+          ),
+        );
+      }
+      // Lollipop activation data found, proceed with revocation (fire-and-forget).
+      // `void` is used to indicate that we intentionally ignore the returned promise
+      // and supress any lint warnings about unhandled promises.
+      void deps.lollipopRevocationPort
+        .requestRevocation(lollipopActivationDataResult.value.assertionRef)
+        .then((result) => {
+          if (result.isErr()) {
+            console.error(`Failed to revoke lollipop: ${result.error.message}`);
+          }
+        });
     }
-    // Lollipop activation data found, proceed with revocation (fire-and-forget)
-    deps.lollipopRevocationPort
-      .requestRevocation(lollipopActivationDataResult.value.assertionRef)
-      .then((result) => {
-        if (result.isErr()) {
-          console.error(`Failed to revoke lollipop: ${result.error.message}`);
-        }
-      });
 
     /********************************************************/
     /* Invalidate the previous session in the session store */

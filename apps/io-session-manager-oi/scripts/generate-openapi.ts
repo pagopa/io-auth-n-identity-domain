@@ -22,6 +22,7 @@ import {
   SSO_ZENDESK_BASE_PATH,
 } from "../src/adapters/inbound/base-path.js";
 import { callbackContract } from "../src/adapters/inbound/fastify/callback.handler.js";
+import { fastLoginRoute } from "../src/adapters/inbound/fastify/fast-login.handler.js";
 import { generateNonceRoute } from "../src/adapters/inbound/fastify/generate-nonce.handler.js";
 import { getSessionContract } from "../src/adapters/inbound/fastify/get-session.handler.js";
 import { reserveRoute } from "../src/adapters/inbound/fastify/reserve.handler.js";
@@ -175,6 +176,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
     outputRelPath: "api/external.yaml",
     routes: [
       { contract: callbackContract },
+      { contract: fastLoginRoute },
       { contract: generateNonceRoute },
       { contract: reserveRoute },
       { contract: getSessionContract },

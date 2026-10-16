@@ -88,6 +88,10 @@ locals {
       name  = "IO_FAST_LOGIN_API_KEY"
       value = azurerm_key_vault_secret.sm_io_fast_login_api_key.versionless_id
     },
+    {
+      name  = "FF_FAST_LOGIN"
+      value = "true"
+    },
     # Locked Profiles table
     {
       name  = "LOCKED_PROFILES_STORAGE_ACCOUNT_URI"
