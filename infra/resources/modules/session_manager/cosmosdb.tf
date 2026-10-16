@@ -1,5 +1,5 @@
 resource "azurerm_cosmosdb_sql_database" "session_manager" {
-  name                = "io-auth-SM"
+  name                = "session-manager"
   resource_group_name = var.session_cosmos.resource_group_name
   account_name        = var.session_cosmos.account_name
 }
