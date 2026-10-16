@@ -105,6 +105,8 @@ const decodeAndForwardError = (
           getAndDelete(errorInput.state)(deps)()
             .then((errorOrData) => {
               if (E.isLeft(errorOrData)) {
+                // warning level because this shouldn't trigger any alert
+                // and is fired only for troubleshooting on custom dashboards.
                 deps.appInsightsTelemetryClient?.trackEvent({
                   name: "session-manager.oidc.callback.auxiliary-remediation.warning",
                   properties: {
@@ -137,29 +139,21 @@ const decodeAndForwardError = (
     ),
     TE.mapLeft((redirect) => {
       const decodedErrorInput = CallbackErrorInput.decode(deps.req.query);
+      const errorProperties = E.isRight(decodedErrorInput)
+        ? withoutUndefinedValues({
+            state: decodedErrorInput.right.state,
+            oiError: decodedErrorInput.right.error,
+            oiErrorDescription: decodedErrorInput.right.error_description,
+          })
+        : { failureReason: "invalid_callback_input" };
+
       deps.appInsightsTelemetryClient?.trackEvent({
         name: "session-manager.oidc.callback.upstream-error.warning",
         properties: {
           redirectTarget: "client_error",
+          errorLocation: redirect.detail || "UNKNOWN",
           ipHash: sha256(deps.clientIP),
-          ...(E.isRight(decodedErrorInput)
-            ? {
-                state: decodedErrorInput.right.state,
-                oiError: oidcTelemetryErrorCodes.has(
-                  decodedErrorInput.right.error,
-                )
-                  ? decodedErrorInput.right.error
-                  : "unknown",
-                ...(/^[0-9]{1,10}$/.test(
-                  decodedErrorInput.right.error_description ?? "",
-                )
-                  ? {
-                      oiErrorDescription:
-                        decodedErrorInput.right.error_description,
-                    }
-                  : {}),
-              }
-            : { failureReason: "invalid_callback_input" }),
+          ...errorProperties,
         },
         tagOverrides: { samplingEnabled: "false" },
       });
