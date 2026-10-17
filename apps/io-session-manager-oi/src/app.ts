@@ -22,6 +22,7 @@ import fastify, { type FastifyInstance } from "fastify";
 import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
 import { mountGenerateNonceHandler } from "./adapters/inbound/fastify/generate-nonce.handler.js";
 import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.handler.js";
+import { mountGetUserIdentityHandler } from "./adapters/inbound/fastify/get-user-identity.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
@@ -48,6 +49,7 @@ import { makeActivateUserSessionUseCase } from "./application/use-cases/activate
 import { makeGenerateNonceUseCase } from "./application/use-cases/generate-nonce.use-case.js";
 import { makeGetLollipopUserForFimsUseCase } from "./application/use-cases/get-lollipop-user-for-fims.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
+import { makeGetUserIdentityUseCase } from "./application/use-cases/get-user-identity.use-case.js";
 import { makeGetTokenForZendeskUseCase } from "./application/use-cases/get-token-for-zendesk.use-case.js";
 import { getUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
 import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-fims.use-case.js";
@@ -227,7 +229,10 @@ export const createApp = async (
   });
 
   const fastLoginAdapter = createIoFastLoginAdapter({
-    baseUrl: new URL(config.IO_FAST_LOGIN_API_BASE_PATH, config.IO_FAST_LOGIN_API_URL),
+    baseUrl: new URL(
+      config.IO_FAST_LOGIN_API_BASE_PATH,
+      config.IO_FAST_LOGIN_API_URL,
+    ),
     apiKey: config.IO_FAST_LOGIN_API_KEY,
   });
 
@@ -435,6 +440,13 @@ export const createApp = async (
   mountGetSessionHandler({
     middlewares: [authenticateSessionMiddleware] as const,
     useCase: getSessionUseCase,
+  })(server);
+
+  mountGetUserIdentityHandler({
+    middlewares: [authenticateSessionMiddleware] as const,
+    useCase: makeGetUserIdentityUseCase({
+      lollipopActivationPort: lollipopActivationCosmosAdapter,
+    }),
   })(server);
 
   // --------------------------------------------------
