@@ -174,6 +174,51 @@ components:
         - fimsToken
       description: "The use of this parameters allows the client to obtain only the requested parameters. NOTE: nested fields retrieval is currently not supported. NOTE: field names are case-sensitive Example: ?fields=(spidLevel,walletToken) For more info, see https://opensource.zalando.com/restful-api-guidelines/#157"
       example: (spidLevel,walletToken)
+    UserIdentityWithTtl:
+      type: object
+      properties:
+        family_name:
+          type: string
+          minLength: 1
+        fiscal_code:
+          type: string
+          pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/i
+        assertion_ref:
+          oneOf:
+            - type: string
+              pattern: ^sha256-[A-Za-z0-9_-]{43}$
+            - type: string
+              pattern: ^sha384-[A-Za-z0-9_-]{64}$
+            - type: string
+              pattern: ^sha512-[A-Za-z0-9_-]{86}$
+        name:
+          type: string
+          minLength: 1
+        date_of_birth:
+          type: string
+          format: date
+        spid_email:
+          type: string
+          pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+        spid_level:
+          type: string
+          enum:
+            - https://www.spid.gov.it/SpidL1
+            - https://www.spid.gov.it/SpidL2
+            - https://www.spid.gov.it/SpidL3
+        created_at:
+          type: number
+        token_remaining_ttl:
+          type: integer
+      required:
+        - family_name
+        - fiscal_code
+        - name
+        - date_of_birth
+        - spid_level
+        - created_at
+        - token_remaining_ttl
+      description: Describes the user's identity while it's authenticated, along with the session TTL.
   parameters: {}
 paths:
   /callback:
@@ -419,6 +464,38 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
         "500":
           description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /user-identity:
+    get:
+      description: Introspect the session token and returns the related user identity
+      operationId: getUserIdentity
+      security:
+        - bearerAuth: []
+      summary: Session token introspection
+      responses:
+        "200":
+          description: Found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserIdentityWithTtl"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Token null or expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: There was an error retrieving user's identity.
           content:
             application/problem+json:
               schema:
