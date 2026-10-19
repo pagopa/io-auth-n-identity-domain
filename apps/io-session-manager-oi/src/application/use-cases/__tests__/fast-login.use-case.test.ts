@@ -15,9 +15,9 @@ import { FastLoginInputDTO } from "../../../adapters/inbound/dtos/fast-login.dto
 import { BlockedUsersPort } from "../../../domain/ports/outbound/blocked-users.port.js";
 import { FastLoginPort } from "../../../domain/ports/outbound/fast-login.port.js";
 import { FastLoginLollipopParams } from "../../../domain/value-objects/fast-login.vo.js";
-import { RefreshUserSessionUseCase } from "../activate-user-session.use-case.js";
 import { makeFastLoginUseCase } from "../fast-login.use-case.js";
 import { GenerateFastLoginLollipopParamsUseCase } from "../generate-fast-login-lollipop-params.use-case.js";
+import { RefreshUserSessionUseCase } from "../refresh-user-session.use-case.js";
 
 const THUMBPRINT = "a".repeat(43);
 const ASSERTION_REF = LollipopAssertionRefSchema.parse(`sha256-${THUMBPRINT}`);
@@ -116,7 +116,6 @@ describe("makeFastLoginUseCase", () => {
         ipAddress: CLIENT_IP,
         loginType: "LV",
       }),
-      assertionRef: ASSERTION_REF,
     });
     expect(isBlocked).toHaveBeenCalledExactlyOnceWith(FISCAL_CODE);
     expect(result._unsafeUnwrap()).toEqual({ token: "session-id.token" });

@@ -47,10 +47,7 @@ import { OneIdIdentityAssertionFetcherAdapter } from "./adapters/outbound/one-id
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
 import { TechnicalLockedProfilesDataTableAdapter } from "./adapters/outbound/technical-locked-profiles-data-table.adapter.js";
-import {
-  makeActivateUserSessionUseCase,
-  makeRefreshUserSessionUseCase,
-} from "./application/use-cases/activate-user-session.use-case.js";
+import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { makeFastLoginUseCase } from "./application/use-cases/fast-login.use-case.js";
 import { makeGenerateFastLoginLollipopParamsUseCase } from "./application/use-cases/generate-fast-login-lollipop-params.use-case.js";
 import { makeGenerateNonceUseCase } from "./application/use-cases/generate-nonce.use-case.js";
@@ -62,6 +59,7 @@ import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-
 import { makeGetUserForPagopaUseCase } from "./application/use-cases/get-user-for-pagopa.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
+import { makeRefreshUserSessionUseCase } from "./application/use-cases/refresh-user-session.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
@@ -318,12 +316,6 @@ export const createApp = async (
       }),
     refreshUserSessionUseCase: makeRefreshUserSessionUseCase({
       sessionPort: sessionCosmosAdapter,
-      profilePort: profileAdapter,
-      platformInternalPort: platformInternalAdapter,
-      authEventPort: authEventServiceBusAdapter,
-      lollipopActivationPort: lollipopActivationCosmosAdapter,
-      lollipopPort: fetchLollipopAdapter,
-      lollipopRevocationPort: lollipopRevocationQueueAdapter,
     }),
     enabled: config.FF_FAST_LOGIN,
   });

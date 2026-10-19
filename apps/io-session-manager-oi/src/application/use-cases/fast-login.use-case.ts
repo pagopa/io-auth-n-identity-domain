@@ -17,11 +17,9 @@ import { BlockedUsersPort } from "../../domain/ports/outbound/blocked-users.port
 import { FastLoginPort } from "../../domain/ports/outbound/fast-login.port.js";
 import type { FastLoginParams } from "../../domain/value-objects/fast-login.vo.js";
 
-import type {
-  NewSessionToken,
-  RefreshUserSessionUseCase,
-} from "./activate-user-session.use-case.js";
+import type { NewSessionToken } from "./activate-user-session.use-case.js";
 import type { GenerateFastLoginLollipopParamsUseCase } from "./generate-fast-login-lollipop-params.use-case.js";
+import type { RefreshUserSessionUseCase } from "./refresh-user-session.use-case.js";
 
 const ASSERTION_NAMESPACE = "urn:oasis:names:tc:SAML:2.0:assertion";
 const DEFAULT_SPID_LEVEL = "https://www.spid.gov.it/SpidL2";
@@ -184,7 +182,6 @@ export const makeFastLoginUseCase =
 
     const sessionResult = await deps.refreshUserSessionUseCase({
       sessionToken: { ...user, ipAddress: clientIp, loginType: "LV" },
-      assertionRef: lollipop.assertionRef,
     });
     if (sessionResult.isErr()) {
       return err(sessionResult.error);

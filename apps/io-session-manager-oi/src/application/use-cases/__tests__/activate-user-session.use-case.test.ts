@@ -51,10 +51,7 @@ import {
 } from "../../../__mocks__/session.mocks.js";
 import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
 import type { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
-import {
-  makeActivateUserSessionUseCase,
-  makeRefreshUserSessionUseCase,
-} from "../activate-user-session.use-case.js";
+import { makeActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 
 // -----------------------------------------------------
 // Setup mocks
@@ -100,16 +97,6 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   lollipopPort,
   lollipopRevocationPort,
 });
-const refreshUserSessionUseCase = makeRefreshUserSessionUseCase({
-  sessionPort: SessionPortMock,
-  profilePort: ProfilePortMock,
-  platformInternalPort: PlatformInternalPortMock,
-  authEventPort: AuthEventPortMock,
-  lollipopActivationPort: lollipopActivationPortMock,
-  lollipopPort,
-  lollipopRevocationPort,
-});
-
 const assertionRef = "a-lollipop-assertion-ref" as LollipopAssertionRef;
 const previousAssertionRef =
   "a-previous-lollipop-assertion-ref" as LollipopAssertionRef;
@@ -217,22 +204,6 @@ describe("makeActivateUserSessionUseCase", () => {
       });
       expect(sessionTokensArg).toHaveProperty("hashedSessionToken");
       expect(sessionTokensArg).not.toHaveProperty("plainSessionToken");
-    });
-
-    it("refreshes the session without changing the Lollipop activation for Fast Login", async () => {
-      const result = await refreshUserSessionUseCase({
-        sessionToken: aNewSessionTokenInput,
-        assertionRef,
-      });
-
-      expect(result).toMatchObject(ok(aClientSessionToken));
-      expect(lollipopActivationPortMock.upsert).not.toHaveBeenCalled();
-      expect(lollipopActivationPortMock.getByFiscalCode).not.toHaveBeenCalled();
-      expect(mockRequestRevocation).not.toHaveBeenCalled();
-      expect(mockActivatePubKey).not.toHaveBeenCalled();
-      expect(mockSessionCreate).toHaveBeenCalledOnce();
-      expect(mockSendEvent).not.toHaveBeenCalled();
-      expect(mockNotifyLogin).not.toHaveBeenCalled();
     });
 
     it("succeeds without creating a profile nor notifying when the profile exists without email", async () => {
