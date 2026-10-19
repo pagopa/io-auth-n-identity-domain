@@ -94,6 +94,14 @@ export interface SessionPort {
   ) => Promise<Result<ActiveSession, NotFoundError | GenericError>>;
 
   /**
+   * Finds all token documents for a session ID.
+   * @param sessionId The session tracking ID used as the token-container partition key.
+   */
+  readonly findSessionTokensBySessionId: (
+    sessionId: SessionId,
+  ) => Promise<Result<SessionWithHashedSSOTokens, NotFoundError | GenericError>>;
+
+  /**
    * Creates a new session with the given session and tokens.
    * @param activeSession The data for the new session.
    * @param sessionTokens The tokens associated with the new session.
@@ -111,6 +119,7 @@ export interface SessionPort {
    */
   readonly refresh: (
     sessionTokens: SessionWithHashedSSOTokens,
+    oldSession: SessionWithHashedSSOTokens,
   ) => Promise<
     Result<SessionWithHashedSSOTokens, ConflictError | GenericError>
   >;
