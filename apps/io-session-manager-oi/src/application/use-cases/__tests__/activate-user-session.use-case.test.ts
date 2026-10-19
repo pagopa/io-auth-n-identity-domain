@@ -97,6 +97,7 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   lollipopPort,
   lollipopRevocationPort,
 });
+
 const assertionRef = "a-lollipop-assertion-ref" as LollipopAssertionRef;
 const previousAssertionRef =
   "a-previous-lollipop-assertion-ref" as LollipopAssertionRef;
