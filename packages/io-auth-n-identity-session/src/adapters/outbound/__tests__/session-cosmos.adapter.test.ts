@@ -435,87 +435,26 @@ describe("SessionCosmosAdapter", () => {
   // -------------------------------------------------------------------------
 
   describe("refresh", () => {
+    it("GIVEN a valid session WHEN refresh is called THEN creates token documents and returns the session", async () => {
+      userSession.batch.mockResolvedValueOnce({ code: 200, result: [] });
+
+      const result = await adapter.refresh(aSessionWithHashedTokens);
+
+      expect(result).toEqual(ok(aSessionWithHashedTokens));
+      expect(userSession.batch).toHaveBeenCalledOnce();
+      expect(userSession.bulk).not.toHaveBeenCalled();
+      expect(activeSession.create).not.toHaveBeenCalled();
+    });
+
     it("GIVEN a conflict WHEN refresh is called THEN returns ConflictError", async () => {
       userSession.batch.mockResolvedValueOnce({
         code: 207,
         result: [{ statusCode: 409 }],
       });
 
-      const result = await adapter.refresh(
-        aSessionWithHashedTokens,
-        aSessionWithHashedTokens,
-      );
+      const result = await adapter.refresh(aSessionWithHashedTokens);
 
       expect(result).toEqual(err(expect.any(ConflictError)));
-    });
-
-    it("GIVEN old token documents WHEN refresh is called THEN deletes the supplied old tokens after creating replacements", async () => {
-      const oldSession = {
-        ...aSessionWithHashedTokens,
-        hashedSessionToken: HashedSessionTokenSchema.parse("b".repeat(64)),
-        ssoTokens: {
-          pagopaHashedToken: HashedPagopaSSOTokenSchema.parse("c".repeat(64)),
-          bpdHashedToken: HashedBpdSSOTokenSchema.parse("d".repeat(64)),
-          fimsHashedToken: HashedFimsSSOTokenSchema.parse("e".repeat(64)),
-          zendeskHashedToken: HashedZendeskSSOTokenSchema.parse("f".repeat(64)),
-        },
-      };
-      userSession.batch.mockResolvedValueOnce({ code: 200, result: [] });
-      userSession.bulk
-        .mockResolvedValueOnce([
-          { statusCode: 204 },
-          { statusCode: 204 },
-          { statusCode: 204 },
-          { statusCode: 204 },
-        ])
-        .mockResolvedValueOnce([{ statusCode: 204 }]);
-
-      const result = await adapter.refresh(
-        aSessionWithHashedTokens,
-        oldSession,
-      );
-
-      expect(result).toEqual(ok(aSessionWithHashedTokens));
-      expect(userSession.batch).toHaveBeenCalledOnce();
-      expect(userSession.bulk).toHaveBeenCalledTimes(2);
-      expect(
-        userSession.bulk.mock.calls[0][0].map(
-          (operation: { id: string }) => operation.id,
-        ),
-      ).toEqual([
-        COSMOS_PAGOPA_PREFIX + oldSession.ssoTokens.pagopaHashedToken,
-        COSMOS_BPD_PREFIX + oldSession.ssoTokens.bpdHashedToken,
-        COSMOS_FIMS_PREFIX + oldSession.ssoTokens.fimsHashedToken,
-        COSMOS_ZENDESK_PREFIX + oldSession.ssoTokens.zendeskHashedToken,
-      ]);
-      expect(userSession.bulk.mock.calls[1][0]).toMatchObject([
-        { id: COSMOS_SESSION_PREFIX + oldSession.hashedSessionToken },
-      ]);
-      expect(activeSession.itemMock.delete).not.toHaveBeenCalled();
-    });
-
-    it("GIVEN deleting old tokens fails WHEN refresh is called THEN returns GenericError", async () => {
-      const oldSession = {
-        ...aSessionWithHashedTokens,
-        hashedSessionToken: HashedSessionTokenSchema.parse("b".repeat(64)),
-        ssoTokens: {
-          pagopaHashedToken: HashedPagopaSSOTokenSchema.parse("c".repeat(64)),
-          bpdHashedToken: HashedBpdSSOTokenSchema.parse("d".repeat(64)),
-          fimsHashedToken: HashedFimsSSOTokenSchema.parse("e".repeat(64)),
-          zendeskHashedToken: HashedZendeskSSOTokenSchema.parse("f".repeat(64)),
-        },
-      };
-      userSession.batch.mockResolvedValueOnce({ code: 200, result: [] });
-      userSession.bulk.mockResolvedValueOnce([{ statusCode: 500 }]);
-
-      const result = await adapter.refresh(
-        aSessionWithHashedTokens,
-        oldSession,
-      );
-
-      expect(result).toEqual(err(expect.any(GenericError)));
-      expect(userSession.batch).toHaveBeenCalledOnce();
-      expect(userSession.bulk).toHaveBeenCalledOnce();
     });
   });
 

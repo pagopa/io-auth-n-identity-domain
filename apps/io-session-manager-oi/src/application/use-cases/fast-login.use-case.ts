@@ -19,7 +19,6 @@ import type { FastLoginParams } from "../../domain/value-objects/fast-login.vo.j
 
 import type { GenerateFastLoginLollipopParamsUseCase } from "./generate-fast-login-lollipop-params.use-case.js";
 import type {
-  PreviousSession,
   RefreshUserSessionUseCase,
   SessionInfo,
 } from "./refresh-user-session.use-case.js";
@@ -37,7 +36,7 @@ type FastLoginHeaders = {
 type FastLoginInput = {
   headers: FastLoginHeaders;
   clientIp: FastLoginParams["clientIp"];
-  currentSession?: PreviousSession;
+  currentUser?: FastLoginParams["userId"];
 };
 
 type FastLoginOutput = { token: NonEmptyString };
@@ -129,16 +128,14 @@ export const makeFastLoginUseCase =
     FastLoginOutput,
     AuthenticationError | ForbiddenError | GenericError | ValidationError
   > =>
-  async ({ headers, clientIp, currentSession }) => {
+  async ({ headers, clientIp, currentUser }) => {
     if (!deps.enabled) {
       return err(new ForbiddenError());
     }
 
     const lollipopResult = await deps.generateFastLoginLollipopParamsUseCase({
       signatureInput: headers["signature-input"],
-      ...(currentSession
-        ? { currentUser: currentSession.session.fiscalCode }
-        : {}),
+      ...(currentUser ? { currentUser } : {}),
     });
     if (lollipopResult.isErr()) {
       return err(lollipopResult.error);
@@ -187,7 +184,6 @@ export const makeFastLoginUseCase =
 
     const sessionResult = await deps.refreshUserSessionUseCase({
       sessionToken: { ...user, ipAddress: clientIp, loginType: "LV" },
-      ...(currentSession ? { oldSession: currentSession } : {}),
     });
     if (sessionResult.isErr()) {
       return err(sessionResult.error);

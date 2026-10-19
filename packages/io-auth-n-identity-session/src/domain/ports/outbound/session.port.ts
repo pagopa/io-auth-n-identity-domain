@@ -102,7 +102,6 @@ export interface SessionPort {
    */
   readonly refresh: (
     sessionTokens: SessionWithHashedSSOTokens,
-    oldSession: SessionWithHashedSSOTokens,
   ) => Promise<
     Result<SessionWithHashedSSOTokens, ConflictError | GenericError>
   >;
@@ -126,4 +125,12 @@ export interface SessionPort {
   ) => Promise<
     Result<HashedSessionTokenWithSessionId | undefined, GenericError>
   >;
+
+  /**
+   * Gets the active session for a fiscal code.
+   * @param fiscalCode The fiscal code associated with the active session.
+   */
+  readonly findActiveSession: (
+    fiscalCode: FiscalCode,
+  ) => Promise<Result<ActiveSession, NotFoundError | GenericError>>;
 }

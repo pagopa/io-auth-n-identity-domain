@@ -68,11 +68,12 @@ export const mountFastLoginHandler = (
       deps.middlewares.extractIpMiddleware,
     ] as const,
     inputMapper: (req, context) => {
-      const currentSession = "session" in context ? context : undefined;
+      const currentUser =
+        "session" in context ? context.session.fiscalCode : undefined;
       return {
         headers: req.headers,
         clientIp: context.ipAddress,
-        ...(currentSession ? { currentSession } : {}),
+        ...(currentUser ? { currentUser } : {}),
       };
     },
     useCase: deps.useCase,

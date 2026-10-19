@@ -182,20 +182,10 @@ export class SessionCosmosAdapter
 
   public async refresh(
     session: SessionWithHashedSSOTokens,
-    oldSession: SessionWithHashedSSOTokens,
   ): Promise<Result<SessionWithHashedSSOTokens, ConflictError | GenericError>> {
     const result = await this.createSessionTokens(session);
     if (result.isErr()) {
       return err(result.error);
-    }
-
-    const deleteResult = await this.deleteUserSession(oldSession);
-    if (deleteResult.isErr()) {
-      return err(
-        new GenericError(
-          `Failed to delete previous session tokens: ${deleteResult.error.message}`,
-        ),
-      );
     }
 
     return ok(session);
@@ -230,7 +220,7 @@ export class SessionCosmosAdapter
   > {
     try {
       // Step 1: read the ActiveSession for the given fiscalCode to get the sessionId
-      const activeSessionResult = await this.getActiveSession(fiscalCode);
+      const activeSessionResult = await this.findActiveSession(fiscalCode);
 
       if (activeSessionResult.isErr()) {
         if (activeSessionResult.error instanceof NotFoundError) {
@@ -307,11 +297,7 @@ export class SessionCosmosAdapter
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Private Methods
-  // ---------------------------------------------------------------------------
-
-  private async getActiveSession(
+  public async findActiveSession(
     fiscalCode: FiscalCode,
   ): Promise<Result<ActiveSession, GenericError | NotFoundError>> {
     const result = await this.readItem(
@@ -322,6 +308,10 @@ export class SessionCosmosAdapter
     );
     return result.andThen(fromDbActiveSession);
   }
+
+  // ---------------------------------------------------------------------------
+  // Private Methods
+  // ---------------------------------------------------------------------------
 
   private async createSessionTokens(
     sessionTokens: SessionWithHashedSSOTokens,

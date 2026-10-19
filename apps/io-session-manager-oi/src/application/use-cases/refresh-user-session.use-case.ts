@@ -4,21 +4,9 @@ import { LoginType } from "@pagopa/io-auth-n-identity-session";
 import {
   type BaseSession,
   newPlainSessionTokens,
-  type SessionWithHashedSSOTokens,
-  type SessionWithPlainSSOTokens,
   toHashedSessionTokens,
 } from "@pagopa/io-auth-n-identity-session/entities";
 import type { SessionPort } from "@pagopa/io-auth-n-identity-session/ports";
-import {
-  toPlainBpdSSOToken,
-  toPlainFimsSSOToken,
-  toPlainPagopaSSOToken,
-  toPlainZendeskSSOToken,
-} from "@pagopa/io-auth-n-identity-session/value-objects";
-import type {
-  PlainSessionToken,
-  SessionId,
-} from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
 
 import {
@@ -37,13 +25,6 @@ export type SessionInfo = Omit<
 
 export type RefreshUserSessionUseCaseInput = {
   sessionToken: SessionInfo;
-  oldSession?: PreviousSession;
-};
-
-export type PreviousSession = {
-  session: BaseSession;
-  sessionId: SessionId;
-  sessionToken: PlainSessionToken;
 };
 
 export type RefreshUserSessionUseCase = UseCase<
@@ -58,8 +39,8 @@ type Dependencies = {
 
 export const makeRefreshUserSessionUseCase =
   (deps: Dependencies): RefreshUserSessionUseCase =>
-  async ({ sessionToken, oldSession }) => {
-    const activeSessionResult = await deps.sessionPort.findActiveSession(
+  async ({ sessionToken }) => {
+    const activeSessionResult = await deps.sessionPort.getActiveSession(
       sessionToken.fiscalCode,
     );
     if (activeSessionResult.isErr()) {
@@ -83,39 +64,7 @@ export const makeRefreshUserSessionUseCase =
     });
 
     const hashedSessionTokens = toHashedSessionTokens(plainSessionTokens);
-    let oldHashedSessionTokens: SessionWithHashedSSOTokens;
-    if (oldSession?.sessionId === activeSession.sessionId) {
-      const oldPlainSessionTokens: SessionWithPlainSSOTokens = {
-        ...oldSession.session,
-        sessionId: oldSession.sessionId,
-        plainSessionToken: oldSession.sessionToken,
-        ssoTokens: {
-          bpdPlainToken: toPlainBpdSSOToken(oldSession.sessionToken),
-          fimsPlainToken: toPlainFimsSSOToken(oldSession.sessionToken),
-          pagopaPlainToken: toPlainPagopaSSOToken(oldSession.sessionToken),
-          zendeskPlainToken: toPlainZendeskSSOToken(oldSession.sessionToken),
-        },
-      };
-      oldHashedSessionTokens = toHashedSessionTokens(oldPlainSessionTokens);
-    } else {
-      const oldSessionResult =
-        await deps.sessionPort.findSessionTokensBySessionId(
-          activeSession.sessionId,
-        );
-      if (oldSessionResult.isErr()) {
-        return err(
-          new GenericError(
-            `Failed to retrieve previous session tokens: ${oldSessionResult.error.message}`,
-          ),
-        );
-      }
-      oldHashedSessionTokens = oldSessionResult.value;
-    }
-
-    const refreshResult = await deps.sessionPort.refresh(
-      hashedSessionTokens,
-      oldHashedSessionTokens,
-    );
+    const refreshResult = await deps.sessionPort.refresh(hashedSessionTokens);
 
     if (refreshResult.isErr()) {
       return err(

@@ -15,11 +15,6 @@ import { FastLoginInputDTO } from "../../../adapters/inbound/dtos/fast-login.dto
 import { BlockedUsersPort } from "../../../domain/ports/outbound/blocked-users.port.js";
 import { FastLoginPort } from "../../../domain/ports/outbound/fast-login.port.js";
 import { FastLoginLollipopParams } from "../../../domain/value-objects/fast-login.vo.js";
-import {
-  aBaseSession,
-  aPlainSessionToken,
-  aSessionId,
-} from "../../../__mocks__/session.mocks.js";
 import { makeFastLoginUseCase } from "../fast-login.use-case.js";
 import { GenerateFastLoginLollipopParamsUseCase } from "../generate-fast-login-lollipop-params.use-case.js";
 import { RefreshUserSessionUseCase } from "../refresh-user-session.use-case.js";
@@ -95,11 +90,7 @@ describe("makeFastLoginUseCase", () => {
     const result = await makeUseCase()({
       headers,
       clientIp: CLIENT_IP,
-      currentSession: {
-        session: aBaseSession,
-        sessionId: aSessionId,
-        sessionToken: aPlainSessionToken,
-      },
+      currentUser: FISCAL_CODE,
     });
     expect(resolveLollipop).toHaveBeenCalledExactlyOnceWith({
       signatureInput: headers["signature-input"],
@@ -125,11 +116,6 @@ describe("makeFastLoginUseCase", () => {
         ipAddress: CLIENT_IP,
         loginType: "LV",
       }),
-      oldSession: {
-        session: aBaseSession,
-        sessionId: aSessionId,
-        sessionToken: aPlainSessionToken,
-      },
     });
     expect(isBlocked).toHaveBeenCalledExactlyOnceWith(FISCAL_CODE);
     expect(result._unsafeUnwrap()).toEqual({ token: "session-id.token" });
@@ -141,11 +127,7 @@ describe("makeFastLoginUseCase", () => {
     const result = await makeUseCase()({
       headers,
       clientIp: CLIENT_IP,
-      currentSession: {
-        session: aBaseSession,
-        sessionId: aSessionId,
-        sessionToken: aPlainSessionToken,
-      },
+      currentUser: FISCAL_CODE,
     });
 
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
@@ -176,11 +158,7 @@ describe("makeFastLoginUseCase", () => {
     const result = await makeUseCase()({
       headers,
       clientIp: CLIENT_IP,
-      currentSession: {
-        session: aBaseSession,
-        sessionId: aSessionId,
-        sessionToken: aPlainSessionToken,
-      },
+      currentUser: FISCAL_CODE,
     });
 
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
