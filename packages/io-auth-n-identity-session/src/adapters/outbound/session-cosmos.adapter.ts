@@ -243,7 +243,17 @@ export class SessionCosmosAdapter
       const sessionId = activeSessionResult.value.sessionId;
 
       // Step 2: delete all token items in userSessionContainer for that sessionId
-      const items = await this.computeSessionTokens(sessionId);
+      const { resources: items } = await this.sessionTokenContainer.items
+        .query<{
+          id: string;
+        }>(
+          {
+            query: "SELECT c.id FROM c WHERE c.sessionId = @sessionId",
+            parameters: [{ name: "@sessionId", value: sessionId }],
+          },
+          { partitionKey: sessionId },
+        )
+        .fetchAll();
 
       // Extract the hashed session token from the SESSION- item before deleting
       const sessionItem = items.find((item) =>
@@ -297,65 +307,11 @@ export class SessionCosmosAdapter
     }
   }
 
-  public async sessionWithHashedSSOTokensFromSessionId(
-    sessionId: SessionId,
-  ): Promise<Result<SessionWithHashedSSOTokens, GenericError | NotFoundError>> {
-    try {
-      const items = await this.computeSessionTokens(sessionId);
-      const sessionItem = items.find((item) =>
-        item.id.startsWith(COSMOS_SESSION_PREFIX),
-      );
-      if (!sessionItem) {
-        return err(
-          new NotFoundError(
-            "UserSession" as NonEmptyString,
-            `User session not found (sessionId: ${sessionId})`,
-          ),
-        );
-      }
+  // ---------------------------------------------------------------------------
+  // Private Methods
+  // ---------------------------------------------------------------------------
 
-      const sessionResult = fromDbSession(sessionItem);
-      if (sessionResult.isErr()) {
-        return err(sessionResult.error);
-      }
-
-      const getTokenDigest = (prefix: string) =>
-        items
-          .find((item) => item.id.startsWith(prefix))
-          ?.id.slice(prefix.length);
-      const parsedSessionTokens = SessionWithHashedSSOTokensSchema.safeParse({
-        ...sessionResult.value,
-        hashedSessionToken: getTokenDigest(COSMOS_SESSION_PREFIX),
-        ssoTokens: {
-          pagopaHashedToken: getTokenDigest(COSMOS_PAGOPA_PREFIX),
-          bpdHashedToken: getTokenDigest(COSMOS_BPD_PREFIX),
-          fimsHashedToken: getTokenDigest(COSMOS_FIMS_PREFIX),
-          zendeskHashedToken: getTokenDigest(COSMOS_ZENDESK_PREFIX),
-        },
-      });
-      if (!parsedSessionTokens.success) {
-        return err(
-          new GenericError(
-            `Error parsing session tokens from DB: ${parsedSessionTokens.error.message}`,
-          ),
-        );
-      }
-
-      return ok(parsedSessionTokens.data);
-    } catch (error) {
-      return this.handleCosmosError(
-        error,
-        "UserSession" as NonEmptyString,
-        "findSessionTokensBySessionId" as NonEmptyString,
-      ).mapErr((cosmosError) =>
-        cosmosError instanceof ConflictError
-          ? new GenericError(cosmosError.message)
-          : cosmosError,
-      );
-    }
-  }
-
-  public async findActiveSession(
+  private async getActiveSession(
     fiscalCode: FiscalCode,
   ): Promise<Result<ActiveSession, GenericError | NotFoundError>> {
     const result = await this.readItem(
@@ -366,10 +322,6 @@ export class SessionCosmosAdapter
     );
     return result.andThen(fromDbActiveSession);
   }
-
-  // ---------------------------------------------------------------------------
-  // Private Methods
-  // ---------------------------------------------------------------------------
 
   private async createSessionTokens(
     sessionTokens: SessionWithHashedSSOTokens,
