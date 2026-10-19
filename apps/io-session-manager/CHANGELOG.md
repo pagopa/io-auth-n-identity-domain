@@ -1,5 +1,11 @@
 # io-session-manager
 
+## 1.32.0
+
+### Minor Changes
+
+- 2322968: Add OIDC events for troubleshooting
+
 ## 1.31.0
 
 ### Minor Changes
