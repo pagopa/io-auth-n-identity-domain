@@ -85,6 +85,15 @@ export interface SessionPort {
   }) => Promise<Result<BaseSession, NotFoundError | GenericError>>;
 
   /**
+   * Finds the active session for a fiscal code.
+   * @param fiscalCode The fiscal code associated with the active session.
+   * @returns The active session, or an error if not found or a generic error happens.
+   */
+  readonly findActiveSession: (
+    fiscalCode: FiscalCode,
+  ) => Promise<Result<ActiveSession, NotFoundError | GenericError>>;
+
+  /**
    * Creates a new session with the given session and tokens.
    * @param activeSession The data for the new session.
    * @param sessionTokens The tokens associated with the new session.

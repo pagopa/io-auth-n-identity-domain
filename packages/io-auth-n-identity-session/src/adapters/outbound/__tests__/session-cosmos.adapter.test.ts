@@ -146,6 +146,35 @@ describe("SessionCosmosAdapter", () => {
   });
 
   // -------------------------------------------------------------------------
+  // findActiveSession
+  // -------------------------------------------------------------------------
+
+  describe("findActiveSession", () => {
+    it("GIVEN an existing active session WHEN findActiveSession is called THEN returns the active session", async () => {
+      activeSession.itemMock.read.mockResolvedValueOnce({
+        resource: aDbActiveSessionResource,
+        statusCode: 200,
+      });
+
+      const result = await adapter.findActiveSession(aFiscalCode);
+
+      expect(result).toEqual(ok(anActiveSession));
+      expect(activeSession.item).toHaveBeenCalledWith(aFiscalCode, aFiscalCode);
+    });
+
+    it("GIVEN no active session WHEN findActiveSession is called THEN returns NotFoundError", async () => {
+      activeSession.itemMock.read.mockResolvedValueOnce({
+        resource: undefined,
+        statusCode: 404,
+      });
+
+      const result = await adapter.findActiveSession(aFiscalCode);
+
+      expect(result).toEqual(err(expect.any(NotFoundError)));
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // healthcheck
   // -------------------------------------------------------------------------
 

@@ -154,6 +154,12 @@ export class SessionCosmosAdapter
     return result.andThen((rawSession) => fromDbSession(rawSession));
   }
 
+  public async findActiveSession(
+    fiscalCode: FiscalCode,
+  ): Promise<Result<ActiveSession, GenericError | NotFoundError>> {
+    return this.getActiveSession(fiscalCode);
+  }
+
   public async create(
     activeSession: ActiveSession,
     session: SessionWithHashedSSOTokens,
