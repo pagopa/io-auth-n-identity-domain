@@ -158,6 +158,24 @@ const expectLoginEvent = (scenario = "standard") => {
 
 describe("makeActivateUserSessionUseCase", () => {
   describe("happy paths", () => {
+    it("continues login without revocation when the previous Lollipop activation is not found", async () => {
+      lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
+        err(aNotFoundError),
+      );
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(mockRequestRevocation).not.toHaveBeenCalled();
+      expect(mockInvalidatePreviousSession).toHaveBeenCalledExactlyOnceWith(
+        aFiscalCode,
+      );
+      expect(lollipopActivationPortMock.upsert).toHaveBeenCalledOnce();
+      expect(mockActivatePubKey).toHaveBeenCalledOnce();
+      expect(mockSessionCreate).toHaveBeenCalledOnce();
+      expectLoginEvent();
+    });
+
     it("returns the client session token and persists the hashed session", async () => {
       const result = await activateUserSession(aNewSessionTokenInput);
       expect(result).toMatchObject(ok(aClientSessionToken));
@@ -273,25 +291,6 @@ describe("makeActivateUserSessionUseCase", () => {
         aFiscalCode,
       );
       expect(mockSessionCreate).toHaveBeenCalledOnce();
-    });
-
-    it("returns err when the previous Lollipop activation is not found", async () => {
-      lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
-        err(aNotFoundError),
-      );
-
-      const result = await activateUserSession(aNewSessionTokenInput);
-
-      expect(result).toMatchObject(
-        err(
-          new GenericError(
-            `Failed to retrieve previous lollipop activation data: ${aNotFoundError.message}`,
-          ),
-        ),
-      );
-      expect(mockRequestRevocation).not.toHaveBeenCalled();
-      expect(mockInvalidatePreviousSession).not.toHaveBeenCalled();
-      expect(mockSessionCreate).not.toHaveBeenCalled();
     });
 
     it("returns err when retrieving the previous Lollipop activation fails", async () => {
