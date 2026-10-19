@@ -1,9 +1,13 @@
-import { describe, test, expect, vi, afterEach } from "vitest";
+import { describe, test, expect, vi, afterEach, beforeEach } from "vitest";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { JwkPublicKey } from "@pagopa/ts-commons/lib/jwk";
-import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import {
+  FiscalCode,
+  IPString,
+  NonEmptyString,
+} from "@pagopa/ts-commons/lib/strings";
 import { UrlFromString } from "@pagopa/ts-commons/lib/url";
 import {
   getClientErrorRedirectionUrl,
@@ -72,6 +76,9 @@ import type * as express from "express";
 import { ResponsePermanentRedirect } from "@pagopa/ts-commons/lib/responses";
 import * as AuthenticationController from "../../controllers/authentication";
 import { DateFromString } from "@pagopa/ts-commons/lib/dates";
+import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
+import * as TokenService from "../token";
+import { WithIP } from "../../utils/network";
 
 vi.mock("../../repositories/oidc-client", () => ({
   getOidcConfiguration: vi.fn(),
@@ -184,10 +191,37 @@ describe("OidcService#reserve", () => {
   const deps = {
     redisClientSelector: mockRedisClientSelector,
     appInsightsTelemetryClient: mockedAppinsightsTelemetryClient,
+    clientIP: "10.0.0.1" as IPString,
   };
+
+  beforeEach(() => {
+    vi.spyOn(TokenService, "getNewTokenAsync")
+      .mockResolvedValueOnce(aState)
+      .mockResolvedValueOnce(anAuxiliaryData.nonce);
+  });
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.mocked(TokenService.getNewTokenAsync).mockRestore();
+  });
+
+  test("should hash the request IP without changing the protocol values", async () => {
+    mockedGetOidcConfiguration.mockResolvedValueOnce(anOidcConfiguration);
+    mockSetEx.mockResolvedValueOnce("OK");
+    const anotherIP = "10.0.0.2" as IPString;
+
+    const result = await reserve({ ...deps, clientIP: anotherIP })(
+      aReserveInput,
+    );
+
+    expect(result).toMatchObject({
+      value: { state: aState, nonce: anAuxiliaryData.nonce },
+    });
+    expect(mockTrackEvent.mock.calls[0][0].properties).toMatchObject({
+      ipHash: sha256(anotherIP),
+    });
+    expect(sha256(anotherIP)).not.toBe(sha256(deps.clientIP));
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(anotherIP);
   });
 
   test.each([SpidAuthLevelEnum.SpidL2, SpidAuthLevelEnum.SpidL3])(
@@ -226,7 +260,24 @@ describe("OidcService#reserve", () => {
         },
       });
 
-      expect(mockTrackEvent).not.toHaveBeenCalled();
+      if (result.kind !== "IResponseSuccessJson") {
+        throw new Error("Expected reserve success");
+      }
+      expect(key).toBe(`RESERVE-${result.value.state}`);
+      expect(JSON.parse(value).nonce).toBe(result.value.nonce);
+      expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          name: "session-manager.oidc.reserve.success.info",
+          properties: expect.objectContaining({
+            env: aReserveInput.env,
+            state: result.value.state,
+            nonce: result.value.nonce,
+            ipHash: sha256(deps.clientIP),
+            minAuthLevel,
+          }),
+          tagOverrides: { samplingEnabled: "false" },
+        }),
+      );
     },
   );
 
@@ -265,8 +316,8 @@ describe("OidcService#reserve", () => {
 
   test.each`
     case                       | value
-    ${"with an error"}         | ${new Error("discovery failed")}
-    ${"with a generic object"} | ${{ foo: "bar" }}
+    ${"with an error"}         | ${new Error("private-diagnostic a-state a-nonce 10.0.0.1")}
+    ${"with a generic object"} | ${{ foo: "private-diagnostic" }}
   `(
     "should return IResponseErrorInternal when OIDC discovery fails $case",
     async ({ value }) => {
@@ -277,13 +328,34 @@ describe("OidcService#reserve", () => {
       expect(result.kind).toEqual("IResponseErrorInternal");
       expect(mockSetEx).not.toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "session-manager.oidc.reserve.discovery.error",
+          properties: expect.objectContaining({
+            env: aReserveInput.env,
+            state: aState,
+            nonce: anAuxiliaryData.nonce,
+            ipHash: sha256(deps.clientIP),
+            failureReason: "discovery_failed",
+          }),
+          tagOverrides: { samplingEnabled: "false" },
+        }),
+      );
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        "private-diagnostic",
+      );
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        deps.clientIP,
+      );
     },
   );
 
   test("should return IResponseErrorInternal when OIDC discovery returns an invalid authorization endpoint", async () => {
     mockedGetOidcConfiguration.mockResolvedValueOnce({
       serverMetadata: () => ({
-        autorization_endpoint: "foo",
+        authorization_endpoint: {
+          sensitiveMessage: "private-diagnostic a-state a-nonce 10.0.0.1",
+        },
       }),
     } as unknown as client.Configuration);
 
@@ -292,18 +364,56 @@ describe("OidcService#reserve", () => {
     expect(result.kind).toEqual("IResponseErrorInternal");
     expect(mockSetEx).not.toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "session-manager.oidc.reserve.auth-decode.error",
+        properties: expect.objectContaining({
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
+          ipHash: sha256(deps.clientIP),
+          failureReason: "invalid_authorization_endpoint",
+        }),
+        tagOverrides: { samplingEnabled: "false" },
+      }),
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      "private-diagnostic",
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      deps.clientIP,
+    );
   });
 
   test("should return IResponseErrorInternal when saving the auxiliary data fails", async () => {
     mockedGetOidcConfiguration.mockResolvedValueOnce(
       anOidcConfiguration as never,
     );
-    mockSetEx.mockRejectedValueOnce(new Error("redis error"));
+    mockSetEx.mockRejectedValueOnce(
+      new Error("private-diagnostic a-state a-nonce 10.0.0.1"),
+    );
 
     const result = await reserve(deps)(aReserveInput);
 
     expect(result.kind).toEqual("IResponseErrorInternal");
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "session-manager.oidc.reserve.auxiliary-data.error",
+        properties: expect.objectContaining({
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
+          ipHash: sha256(deps.clientIP),
+          failureReason: "auxiliary_data_save_failed",
+        }),
+        tagOverrides: { samplingEnabled: "false" },
+      }),
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      "private-diagnostic",
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      deps.clientIP,
+    );
   });
 });
 
@@ -668,7 +778,7 @@ describe("OidcService#OIDCCallback", () => {
   });
   const AGE_LIMIT = 18;
 
-  const callbackDeps: CallbackDeps & { req: express.Request } = {
+  const callbackDeps: CallbackDeps & WithIP & { req: express.Request } = {
     redisClientSelector: mockRedisClientSelector,
     fnAppAPIClient: mockedFnAppAPIClient,
     lockUserTableClient: mockedTableClient,
@@ -692,8 +802,97 @@ describe("OidcService#OIDCCallback", () => {
     platformInternalAPIClient: {} as PlatformInternalAPIClient,
     platformInternalAPIService: mockPlatformInternalAPIService,
     oneIdAPIClient: mockedOneIdAPIClient,
+    clientIP: "10.0.0.1" as IPString,
     req: {} as express.Request,
+    validateSpidUser: vi.fn(),
+    getIdentityProvider: vi.fn(),
   };
+
+  test.each(["redis-rejection", "redis-decode"])(
+    "should not expose diagnostic values on %s failure",
+    async (failure) => {
+      const sensitiveMessage = "private-diagnostic a-state a-nonce 10.0.0.1";
+      if (failure === "redis-rejection") {
+        mockGet.mockRejectedValueOnce(new Error(sensitiveMessage));
+      } else {
+        mockGet.mockResolvedValueOnce(
+          JSON.stringify({ ...anAuxiliaryData, nonce: { sensitiveMessage } }),
+        );
+      }
+
+      const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
+
+      expect(result.kind).toBe("IResponseErrorValidation");
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockedAcs).not.toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "session-manager.oidc.callback.auxiliary-data.error",
+          properties: expect.objectContaining({
+            state: aState,
+            ipHash: sha256(callbackDeps.clientIP),
+            failureReason: "auxiliary_data_unavailable",
+          }),
+          tagOverrides: { samplingEnabled: "false" },
+        }),
+      );
+      expect(mockTrackEvent.mock.calls[0][0].properties).not.toHaveProperty(
+        "nonce",
+      );
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        "private-diagnostic",
+      );
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        callbackDeps.clientIP,
+      );
+    },
+  );
+
+  test.each(["token-decode", "claims-decode"])(
+    "should not expose diagnostic values on %s failure",
+    async (failure) => {
+      const sensitiveMessage = "private-diagnostic a-state a-nonce 10.0.0.1";
+      mockGet.mockResolvedValueOnce(
+        JSON.stringify(LoginAuxiliaryData.encode(anAuxiliaryData)),
+      );
+      mockDel.mockResolvedValueOnce(1);
+      mockedGetOidcConfiguration.mockResolvedValueOnce(anOidcConfiguration);
+      mockedExchangeAuthorizationCode.mockResolvedValueOnce({
+        access_token:
+          failure === "token-decode" ? { sensitiveMessage } : "an-access-token",
+        id_token: anIdToken,
+        claims: () => ({
+          ...anIdTokenClaims,
+          nonce: sensitiveMessage,
+          acr: sensitiveMessage,
+        }),
+      } as never);
+
+      const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
+
+      expect(result.kind).toBe("IResponseErrorInternal");
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockedAcs).not.toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "session-manager.oidc.callback.code-exchange.error",
+          properties: expect.objectContaining({
+            state: aState,
+            nonce: anAuxiliaryData.nonce,
+            ipHash: sha256(callbackDeps.clientIP),
+            failureReason: "code_exchange_failed",
+          }),
+          tagOverrides: { samplingEnabled: "false" },
+        }),
+      );
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        "private-diagnostic",
+      );
+      expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+        callbackDeps.clientIP,
+      );
+    },
+  );
 
   test("should return IResponseErrorValidation when the login state is missing or expired", async () => {
     mockGet.mockResolvedValueOnce(null);
@@ -704,6 +903,12 @@ describe("OidcService#OIDCCallback", () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "session-manager.oidc.callback.auxiliary-data.error",
+        properties: expect.objectContaining({
+          state: aState,
+          ipHash: sha256(callbackDeps.clientIP),
+          failureReason: "auxiliary_data_unavailable",
+        }),
+        tagOverrides: { samplingEnabled: "false" },
       }),
     );
   });
@@ -714,7 +919,7 @@ describe("OidcService#OIDCCallback", () => {
     );
     mockDel.mockResolvedValueOnce(1);
     mockedGetOidcConfiguration.mockRejectedValueOnce(
-      new Error("discovery failed"),
+      new Error("private-diagnostic a-state a-nonce 10.0.0.1"),
     );
 
     const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
@@ -723,7 +928,20 @@ describe("OidcService#OIDCCallback", () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "session-manager.oidc.callback.discovery.error",
+        properties: expect.objectContaining({
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
+          ipHash: sha256(callbackDeps.clientIP),
+          failureReason: "discovery_failed",
+        }),
+        tagOverrides: { samplingEnabled: "false" },
       }),
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      "private-diagnostic",
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      callbackDeps.clientIP,
     );
   });
 
@@ -734,7 +952,7 @@ describe("OidcService#OIDCCallback", () => {
     mockDel.mockResolvedValueOnce(1);
     mockedGetOidcConfiguration.mockResolvedValueOnce(anOidcConfiguration);
     mockedExchangeAuthorizationCode.mockRejectedValueOnce(
-      new Error("code exchange failed"),
+      new Error("private-diagnostic a-state a-nonce 10.0.0.1"),
     );
 
     const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
@@ -743,6 +961,13 @@ describe("OidcService#OIDCCallback", () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "session-manager.oidc.callback.code-exchange.error",
+        properties: expect.objectContaining({
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
+          ipHash: sha256(callbackDeps.clientIP),
+          failureReason: "code_exchange_failed",
+        }),
+        tagOverrides: { samplingEnabled: "false" },
       }),
     );
   });
@@ -761,7 +986,7 @@ describe("OidcService#OIDCCallback", () => {
       claims: () => anIdTokenClaims,
     } as never);
     mockGetSamlAssertion.mockReturnValueOnce(
-      TE.left(new Error("saml assertion error")),
+      TE.left(new Error("private-diagnostic a-state a-nonce 10.0.0.1")),
     );
 
     const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
@@ -770,7 +995,20 @@ describe("OidcService#OIDCCallback", () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "session-manager.oidc.callback.saml-assertion.error",
+        properties: expect.objectContaining({
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
+          ipHash: sha256(callbackDeps.clientIP),
+          failureReason: "saml_assertion_retrieval_failed",
+        }),
+        tagOverrides: { samplingEnabled: "false" },
       }),
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      "private-diagnostic",
+    );
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(
+      callbackDeps.clientIP,
     );
   });
 
@@ -804,6 +1042,13 @@ describe("OidcService#OIDCCallback", () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "session-manager.oidc.callback.saml-verification.error",
+        properties: expect.objectContaining({
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
+          ipHash: sha256(callbackDeps.clientIP),
+          failureReason: "saml_verification_failed",
+        }),
+        tagOverrides: { samplingEnabled: "false" },
       }),
     );
   });
@@ -831,6 +1076,20 @@ describe("OidcService#OIDCCallback", () => {
 
     const result = await OIDCCallback(callbackDeps)(aCallbackSuccessInput);
 
+    expect(mockGet).toHaveBeenCalledWith(`RESERVE-${aState}`);
+    expect(mockDel).toHaveBeenCalledWith(`RESERVE-${aState}`);
+    expect(mockedExchangeAuthorizationCode).toHaveBeenCalledWith(
+      anOidcConfiguration,
+      expect.any(URL),
+      {
+        expectedState: aState,
+        expectedNonce: anAuxiliaryData.nonce,
+        idTokenExpected: true,
+      },
+    );
+    const callbackUrl = mockedExchangeAuthorizationCode.mock.calls[0][1];
+    expect(callbackUrl.searchParams.get("state")).toBe(aState);
+    expect(callbackUrl.searchParams.get("code")).toBe(aCode);
     expect(mockedAcs).toHaveBeenCalledExactlyOnceWith({
       ...callbackDeps,
       isUserElegibleForValidationCookie: expect.any(Function),
@@ -876,6 +1135,19 @@ describe("OidcService#OIDCCallback", () => {
       },
     );
     expect(result).toEqual(anAcsResponse);
-    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        name: "session-manager.oidc.callback.verified.info",
+        properties: expect.objectContaining({
+          state: aState,
+          nonce: anAuxiliaryData.nonce,
+          ipHash: sha256(callbackDeps.clientIP),
+          env: OidcConfigurationEnvEnum.PROD,
+          acr: anIdTokenClaims.acr,
+          idpEntityId: anIdTokenClaims.idpEntityId,
+        }),
+        tagOverrides: { samplingEnabled: "false" },
+      }),
+    );
   });
 });
