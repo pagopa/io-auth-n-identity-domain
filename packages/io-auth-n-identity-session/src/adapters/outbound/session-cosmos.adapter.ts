@@ -157,12 +157,6 @@ export class SessionCosmosAdapter
     return result.andThen((rawSession) => fromDbSession(rawSession));
   }
 
-  public async findActiveSession(
-    fiscalCode: FiscalCode,
-  ): Promise<Result<ActiveSession, GenericError | NotFoundError>> {
-    return this.getActiveSession(fiscalCode);
-  }
-
   public async findSessionTokensBySessionId(
     sessionId: SessionId,
   ): Promise<Result<SessionWithHashedSSOTokens, GenericError | NotFoundError>> {
@@ -361,11 +355,7 @@ export class SessionCosmosAdapter
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Private Methods
-  // ---------------------------------------------------------------------------
-
-  private async getActiveSession(
+  public async findActiveSession(
     fiscalCode: FiscalCode,
   ): Promise<Result<ActiveSession, GenericError | NotFoundError>> {
     const result = await this.readItem(
@@ -376,6 +366,10 @@ export class SessionCosmosAdapter
     );
     return result.andThen(fromDbActiveSession);
   }
+
+  // ---------------------------------------------------------------------------
+  // Private Methods
+  // ---------------------------------------------------------------------------
 
   private async getSessionTokenItems(
     sessionId: SessionId,

@@ -85,21 +85,14 @@ export interface SessionPort {
   }) => Promise<Result<BaseSession, NotFoundError | GenericError>>;
 
   /**
-   * Finds the active session for a fiscal code.
-   * @param fiscalCode The fiscal code associated with the active session.
-   * @returns The active session, or an error if not found or a generic error happens.
-   */
-  readonly findActiveSession: (
-    fiscalCode: FiscalCode,
-  ) => Promise<Result<ActiveSession, NotFoundError | GenericError>>;
-
-  /**
    * Finds all token documents for a session ID.
    * @param sessionId The session tracking ID used as the token-container partition key.
    */
   readonly findSessionTokensBySessionId: (
     sessionId: SessionId,
-  ) => Promise<Result<SessionWithHashedSSOTokens, NotFoundError | GenericError>>;
+  ) => Promise<
+    Result<SessionWithHashedSSOTokens, NotFoundError | GenericError>
+  >;
 
   /**
    * Creates a new session with the given session and tokens.
@@ -143,4 +136,13 @@ export interface SessionPort {
   ) => Promise<
     Result<HashedSessionTokenWithSessionId | undefined, GenericError>
   >;
+
+  /**
+   * Finds the active session for a fiscal code.
+   * @param fiscalCode The fiscal code associated with the active session.
+   * @returns The active session, or an error if not found or a generic error happens.
+   */
+  readonly findActiveSession: (
+    fiscalCode: FiscalCode,
+  ) => Promise<Result<ActiveSession, NotFoundError | GenericError>>;
 }
