@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   mockFindActiveSession,
+  mockFindSessionTokensBySessionId,
   mockRefresh,
   resetSessionPortMock,
   SessionPortMock,
@@ -13,7 +14,9 @@ import {
   aClientSessionToken,
   aFiscalCode,
   aGenericError,
+  aBaseSession,
   aNewSessionTokenInput,
+  aPlainSessionToken,
   aSessionId,
   aSessionWithHashedTokens,
   aSessionWithPlainSSOTokens,
@@ -32,6 +35,11 @@ const mockNewPlainSessionTokens = vi.mocked(newPlainSessionTokens);
 const refreshUserSessionUseCase = makeRefreshUserSessionUseCase({
   sessionPort: SessionPortMock,
 });
+const oldSession = {
+  session: aBaseSession,
+  sessionId: aSessionId,
+  sessionToken: aPlainSessionToken,
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -53,6 +61,7 @@ describe("makeRefreshUserSessionUseCase", () => {
   it("refreshes token documents under the existing active session ID", async () => {
     const result = await refreshUserSessionUseCase({
       sessionToken: aNewSessionTokenInput,
+      oldSession,
     });
 
     expect(result).toEqual(ok(aClientSessionToken));
@@ -69,6 +78,39 @@ describe("makeRefreshUserSessionUseCase", () => {
     });
     expect(mockRefresh).toHaveBeenCalledExactlyOnceWith(
       aSessionWithHashedTokens,
+      aSessionWithHashedTokens,
+    );
+  });
+
+  it("derives old hashed tokens from the authenticated session context", async () => {
+    const result = await refreshUserSessionUseCase({
+      sessionToken: aNewSessionTokenInput,
+      oldSession,
+    });
+
+    expect(result).toEqual(ok(aClientSessionToken));
+    expect(mockRefresh).toHaveBeenCalledExactlyOnceWith(
+      aSessionWithHashedTokens,
+      aSessionWithHashedTokens,
+    );
+  });
+
+  it("looks up old tokens by the active session ID when auth context is missing", async () => {
+    mockFindSessionTokensBySessionId.mockResolvedValueOnce(
+      ok(aSessionWithHashedTokens),
+    );
+
+    const result = await refreshUserSessionUseCase({
+      sessionToken: aNewSessionTokenInput,
+    });
+
+    expect(result).toEqual(ok(aClientSessionToken));
+    expect(mockFindSessionTokensBySessionId).toHaveBeenCalledExactlyOnceWith(
+      aSessionId,
+    );
+    expect(mockRefresh).toHaveBeenCalledExactlyOnceWith(
+      aSessionWithHashedTokens,
+      aSessionWithHashedTokens,
     );
   });
 
@@ -77,6 +119,7 @@ describe("makeRefreshUserSessionUseCase", () => {
 
     const result = await refreshUserSessionUseCase({
       sessionToken: aNewSessionTokenInput,
+      oldSession,
     });
 
     expect(result).toEqual(err(expect.any(GenericError)));
@@ -88,6 +131,7 @@ describe("makeRefreshUserSessionUseCase", () => {
 
     const result = await refreshUserSessionUseCase({
       sessionToken: aNewSessionTokenInput,
+      oldSession,
     });
 
     expect(result).toEqual(err(expect.any(GenericError)));

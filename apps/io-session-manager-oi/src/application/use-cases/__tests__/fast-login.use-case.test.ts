@@ -15,6 +15,11 @@ import { FastLoginInputDTO } from "../../../adapters/inbound/dtos/fast-login.dto
 import { BlockedUsersPort } from "../../../domain/ports/outbound/blocked-users.port.js";
 import { FastLoginPort } from "../../../domain/ports/outbound/fast-login.port.js";
 import { FastLoginLollipopParams } from "../../../domain/value-objects/fast-login.vo.js";
+import {
+  aBaseSession,
+  aPlainSessionToken,
+  aSessionId,
+} from "../../../__mocks__/session.mocks.js";
 import { makeFastLoginUseCase } from "../fast-login.use-case.js";
 import { GenerateFastLoginLollipopParamsUseCase } from "../generate-fast-login-lollipop-params.use-case.js";
 import { RefreshUserSessionUseCase } from "../refresh-user-session.use-case.js";
@@ -90,7 +95,11 @@ describe("makeFastLoginUseCase", () => {
     const result = await makeUseCase()({
       headers,
       clientIp: CLIENT_IP,
-      currentUser: FISCAL_CODE,
+      currentSession: {
+        session: aBaseSession,
+        sessionId: aSessionId,
+        sessionToken: aPlainSessionToken,
+      },
     });
     expect(resolveLollipop).toHaveBeenCalledExactlyOnceWith({
       signatureInput: headers["signature-input"],
@@ -116,6 +125,11 @@ describe("makeFastLoginUseCase", () => {
         ipAddress: CLIENT_IP,
         loginType: "LV",
       }),
+      oldSession: {
+        session: aBaseSession,
+        sessionId: aSessionId,
+        sessionToken: aPlainSessionToken,
+      },
     });
     expect(isBlocked).toHaveBeenCalledExactlyOnceWith(FISCAL_CODE);
     expect(result._unsafeUnwrap()).toEqual({ token: "session-id.token" });
@@ -127,12 +141,32 @@ describe("makeFastLoginUseCase", () => {
     const result = await makeUseCase()({
       headers,
       clientIp: CLIENT_IP,
-      currentUser: FISCAL_CODE,
+      currentSession: {
+        session: aBaseSession,
+        sessionId: aSessionId,
+        sessionToken: aPlainSessionToken,
+      },
     });
 
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
     expect(fastLogin).toHaveBeenCalledOnce();
     expect(activateSession).not.toHaveBeenCalled();
+  });
+
+  it("continues Fast Login without current session context", async () => {
+    const result = await makeUseCase()({ headers, clientIp: CLIENT_IP });
+
+    expect(result).toEqual(ok({ token: "session-id.token" }));
+    expect(resolveLollipop).toHaveBeenCalledExactlyOnceWith({
+      signatureInput: headers["signature-input"],
+    });
+    expect(activateSession).toHaveBeenCalledExactlyOnceWith({
+      sessionToken: expect.objectContaining({
+        fiscalCode: FISCAL_CODE,
+        ipAddress: CLIENT_IP,
+        loginType: "LV",
+      }),
+    });
   });
 
   it("rejects a SAML fiscal code that differs from the Lollipop user", async () => {
@@ -142,6 +176,11 @@ describe("makeFastLoginUseCase", () => {
     const result = await makeUseCase()({
       headers,
       clientIp: CLIENT_IP,
+      currentSession: {
+        session: aBaseSession,
+        sessionId: aSessionId,
+        sessionToken: aPlainSessionToken,
+      },
     });
 
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);

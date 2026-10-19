@@ -17,9 +17,12 @@ import { BlockedUsersPort } from "../../domain/ports/outbound/blocked-users.port
 import { FastLoginPort } from "../../domain/ports/outbound/fast-login.port.js";
 import type { FastLoginParams } from "../../domain/value-objects/fast-login.vo.js";
 
-import type { NewSessionToken } from "./activate-user-session.use-case.js";
 import type { GenerateFastLoginLollipopParamsUseCase } from "./generate-fast-login-lollipop-params.use-case.js";
-import type { RefreshUserSessionUseCase } from "./refresh-user-session.use-case.js";
+import type {
+  PreviousSession,
+  RefreshUserSessionUseCase,
+  SessionInfo,
+} from "./refresh-user-session.use-case.js";
 
 const ASSERTION_NAMESPACE = "urn:oasis:names:tc:SAML:2.0:assertion";
 const DEFAULT_SPID_LEVEL = "https://www.spid.gov.it/SpidL2";
@@ -34,7 +37,7 @@ type FastLoginHeaders = {
 type FastLoginInput = {
   headers: FastLoginHeaders;
   clientIp: FastLoginParams["clientIp"];
-  currentUser?: FastLoginParams["userId"];
+  currentSession?: PreviousSession;
 };
 
 type FastLoginOutput = { token: NonEmptyString };
@@ -50,7 +53,7 @@ const getAttribute = (
   return value ? NonEmptyStringSchema.parse(value) : undefined;
 };
 
-type ParsedSamlUser = Omit<NewSessionToken, "ipAddress" | "loginType">;
+type ParsedSamlUser = Omit<SessionInfo, "ipAddress" | "loginType">;
 
 const parseSamlUser = (samlResponse: string): ParsedSamlUser | undefined => {
   const errors: string[] = [];
@@ -126,14 +129,16 @@ export const makeFastLoginUseCase =
     FastLoginOutput,
     AuthenticationError | ForbiddenError | GenericError | ValidationError
   > =>
-  async ({ headers, clientIp, currentUser }) => {
+  async ({ headers, clientIp, currentSession }) => {
     if (!deps.enabled) {
       return err(new ForbiddenError());
     }
 
     const lollipopResult = await deps.generateFastLoginLollipopParamsUseCase({
       signatureInput: headers["signature-input"],
-      ...(currentUser ? { currentUser } : {}),
+      ...(currentSession
+        ? { currentUser: currentSession.session.fiscalCode }
+        : {}),
     });
     if (lollipopResult.isErr()) {
       return err(lollipopResult.error);
@@ -182,6 +187,7 @@ export const makeFastLoginUseCase =
 
     const sessionResult = await deps.refreshUserSessionUseCase({
       sessionToken: { ...user, ipAddress: clientIp, loginType: "LV" },
+      ...(currentSession ? { oldSession: currentSession } : {}),
     });
     if (sessionResult.isErr()) {
       return err(sessionResult.error);
