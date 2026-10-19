@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.30.1
+
+### Patch Changes
+
+- 7b313b6: do not revoke previous lollipop key if there isn't
+
 ## 0.30.0
 
 ### Minor Changes
