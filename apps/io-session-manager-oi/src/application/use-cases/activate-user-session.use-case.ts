@@ -34,7 +34,7 @@ import {
   HashedClientSessionTokenSchema,
 } from "../../domain/value-objects/client-session-token.vo.js";
 
-export type NewSessionToken = Omit<
+type NewSessionToken = Omit<
   BaseSession,
   "sessionId" | "expirationDate" | "createdAt"
 > & {
@@ -43,7 +43,7 @@ export type NewSessionToken = Omit<
   identityProvider: NonEmptyString;
 };
 
-export type ActivateUserSessionUseCaseInput = {
+type ActivateUserSessionUseCaseInput = {
   sessionToken: NewSessionToken;
   assertion: Pick<IdentityAssertion, "assertionRef" | "rawAssertion" | "type">;
 };
@@ -71,7 +71,6 @@ type Dependencies = {
 export const makeActivateUserSessionUseCase =
   (deps: Dependencies): ActivateUserSessionUseCase =>
   async (input) => {
-    const assertionRef = input.assertion.assertionRef;
     const invalidationResult = await invalidatePreviousUserState(deps)(
       input.sessionToken.fiscalCode,
     );
@@ -96,7 +95,7 @@ export const makeActivateUserSessionUseCase =
     /*********************************/
     const lollipopUpsertResult = await deps.lollipopActivationPort.upsert({
       fiscalCode: input.sessionToken.fiscalCode,
-      assertionRef,
+      assertionRef: input.assertion.assertionRef,
       expirationDate: activeSession.expirationDate,
     });
     if (lollipopUpsertResult.isErr()) {
@@ -111,7 +110,7 @@ export const makeActivateUserSessionUseCase =
     /* Lollipop public key activation */
     /**********************************/
     const lollipopPubKeyActivationResult =
-      await deps.lollipopPort.activatePubKey(assertionRef, {
+      await deps.lollipopPort.activatePubKey(input.assertion.assertionRef, {
         fiscal_code: input.sessionToken.fiscalCode,
         assertion: input.assertion.rawAssertion,
         assertion_type: input.assertion.type,
