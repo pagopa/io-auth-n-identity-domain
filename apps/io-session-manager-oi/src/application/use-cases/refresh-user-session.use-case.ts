@@ -40,7 +40,7 @@ type Dependencies = {
 export const makeRefreshUserSessionUseCase =
   (deps: Dependencies): RefreshUserSessionUseCase =>
   async ({ sessionToken }) => {
-    const activeSessionResult = await deps.sessionPort.getActiveSession(
+    const activeSessionResult = await deps.sessionPort.findActiveSession(
       sessionToken.fiscalCode,
     );
     if (activeSessionResult.isErr()) {

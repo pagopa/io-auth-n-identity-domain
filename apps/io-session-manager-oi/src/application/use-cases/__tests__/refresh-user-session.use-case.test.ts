@@ -4,7 +4,7 @@ import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  mockGetActiveSession,
+  mockFindActiveSession,
   mockRefresh,
   resetSessionPortMock,
   SessionPortMock,
@@ -36,7 +36,7 @@ const refreshUserSessionUseCase = makeRefreshUserSessionUseCase({
 beforeEach(() => {
   vi.clearAllMocks();
   resetSessionPortMock();
-  mockGetActiveSession.mockResolvedValue(
+  mockFindActiveSession.mockResolvedValue(
     ok({
       fiscalCode: aFiscalCode,
       loginType: "LV",
@@ -56,7 +56,7 @@ describe("makeRefreshUserSessionUseCase", () => {
     });
 
     expect(result).toEqual(ok(aClientSessionToken));
-    expect(mockGetActiveSession).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+    expect(mockFindActiveSession).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
     expect(mockNewPlainSessionTokens).toHaveBeenCalledExactlyOnceWith({
       fiscalCode: aFiscalCode,
       name: aNewSessionTokenInput.name,
@@ -73,7 +73,7 @@ describe("makeRefreshUserSessionUseCase", () => {
   });
 
   it("returns an error when there is no active session to refresh", async () => {
-    mockGetActiveSession.mockResolvedValueOnce(err(aGenericError));
+    mockFindActiveSession.mockResolvedValueOnce(err(aGenericError));
 
     const result = await refreshUserSessionUseCase({
       sessionToken: aNewSessionTokenInput,
