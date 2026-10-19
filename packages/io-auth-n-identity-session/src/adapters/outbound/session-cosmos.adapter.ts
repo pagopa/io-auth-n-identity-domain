@@ -21,10 +21,7 @@ import type {
   SessionWithHashedSSOTokens,
   SessionWithHashedToken,
 } from "../../domain/entities/session.entity.js";
-import {
-  BaseSessionSchema,
-  SessionWithHashedSSOTokensSchema,
-} from "../../domain/entities/session.entity.js";
+import { BaseSessionSchema } from "../../domain/entities/session.entity.js";
 import {
   HashedSessionTokenWithSessionId,
   SessionPort,
