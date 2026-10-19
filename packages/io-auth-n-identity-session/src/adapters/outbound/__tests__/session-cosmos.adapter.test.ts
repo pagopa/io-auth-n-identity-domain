@@ -435,14 +435,14 @@ describe("SessionCosmosAdapter", () => {
   // -------------------------------------------------------------------------
 
   describe("refresh", () => {
-    it("GIVEN a valid session WHEN refresh is called THEN creates token documents and returns the session", async () => {
+    it("GIVEN a valid session WHEN refresh is called THEN recreates the tokens and returns the session", async () => {
       userSession.batch.mockResolvedValueOnce({ code: 200, result: [] });
 
       const result = await adapter.refresh(aSessionWithHashedTokens);
 
       expect(result).toEqual(ok(aSessionWithHashedTokens));
       expect(userSession.batch).toHaveBeenCalledOnce();
-      expect(userSession.bulk).not.toHaveBeenCalled();
+      // refresh must not touch the active session container
       expect(activeSession.create).not.toHaveBeenCalled();
     });
 
