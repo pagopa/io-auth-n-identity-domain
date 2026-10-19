@@ -74,21 +74,27 @@ const parseSamlUser = (samlResponse: string): ParsedSamlUser | undefined => {
       .item(0)
       ?.textContent?.trim(),
   );
+
   const rawFiscalCode = getAttribute(document, "fiscalNumber")
     ?.toUpperCase()
     .replace(/^TINIT-/, "");
   const fiscalCode = FiscalCodeSchema.safeParse(rawFiscalCode);
+
   const name = NonEmptyStringSchema.safeParse(getAttribute(document, "name"));
+
   const familyName = NonEmptyStringSchema.safeParse(
     getAttribute(document, "familyName"),
   );
+
   const rawDateOfBirth = getAttribute(document, "dateOfBirth");
   const dateOfBirth = rawDateOfBirth ? new Date(rawDateOfBirth) : undefined;
+
   const rawSpidLevel = document
     .getElementsByTagNameNS(ASSERTION_NAMESPACE, "AuthnContextClassRef")
     .item(0)
     ?.textContent?.trim();
   const parsedSpidLevel = SpidLevelSchema.safeParse(rawSpidLevel);
+
   const spidLevel = parsedSpidLevel.success
     ? parsedSpidLevel.data
     : SpidLevelSchema.parse(DEFAULT_SPID_LEVEL);

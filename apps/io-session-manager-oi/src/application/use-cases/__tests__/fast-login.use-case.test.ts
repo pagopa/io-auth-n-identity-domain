@@ -1,5 +1,6 @@
 import {
   AuthenticationError,
+  FiscalCode,
   FiscalCodeSchema,
   ForbiddenError,
   NonEmptyStringSchema,
@@ -90,7 +91,7 @@ describe("makeFastLoginUseCase", () => {
     const result = await makeUseCase()({
       headers,
       clientIp: CLIENT_IP,
-      currentUser: FISCAL_CODE,
+      currentUser: FISCAL_CODE as FiscalCode,
     });
     expect(resolveLollipop).toHaveBeenCalledExactlyOnceWith({
       signatureInput: headers["signature-input"],
@@ -127,7 +128,7 @@ describe("makeFastLoginUseCase", () => {
     const result = await makeUseCase()({
       headers,
       clientIp: CLIENT_IP,
-      currentUser: FISCAL_CODE,
+      currentUser: FISCAL_CODE as FiscalCode,
     });
 
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
@@ -158,7 +159,7 @@ describe("makeFastLoginUseCase", () => {
     const result = await makeUseCase()({
       headers,
       clientIp: CLIENT_IP,
-      currentUser: FISCAL_CODE,
+      currentUser: FISCAL_CODE as FiscalCode,
     });
 
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
