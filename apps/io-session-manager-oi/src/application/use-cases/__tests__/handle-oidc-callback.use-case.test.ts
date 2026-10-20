@@ -151,7 +151,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
         identityProvider: CLAIMS.iss,
       },
       assertion: {
-        assertionRef: AUXILIARY_DATA.lollipopAssertionRef,
+        assertionRef: IDENTITY_ASSERTION.assertionRef,
         rawAssertion: IDENTITY_ASSERTION.rawAssertion,
         type: IDENTITY_ASSERTION.type,
       },

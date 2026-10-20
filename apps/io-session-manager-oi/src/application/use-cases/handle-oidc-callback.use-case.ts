@@ -173,7 +173,7 @@ export const makeHandleOidcCallbackUseCase =
     const activateResult = await deps.activateUserSessionUseCase({
       sessionToken: newSessionToken,
       assertion: {
-        assertionRef: auxiliaryData.lollipopAssertionRef, // TODO: pick the assertion reference from `assertion` once checks are implemented
+        assertionRef: assertion.assertionRef,
         rawAssertion: assertion.rawAssertion,
         type: assertion.type,
       },
