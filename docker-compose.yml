@@ -35,6 +35,17 @@ services:
       - ${IO_SESSION_MANAGER_OI_PORT}:${IO_SESSION_MANAGER_OI_PORT}
     networks:
       - io-fn
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.io-session-manager-oi.rule=PathPrefix(`/sm-oi`)"
+      - "traefik.http.routers.io-session-manager-oi.entrypoints=websecure"
+      # leveraging TLS termination, traefik will take https external request,
+      # try to forward HTTPS traffic to internal container network, it fails and
+      # tries to forward requests in plain HTTP
+      - "traefik.http.routers.io-session-manager-oi.tls=true"
+      - "traefik.http.services.io-session-manager-oi.loadBalancer.server.port=${IO_SESSION_MANAGER_OI_PORT}"
+      # apply middleware to route
+      - "traefik.http.routers.io-session-manager-oi.middlewares=io-session-manager-oi-stripprefix"
 
   io-session-manager:
     image: io-session-manager
@@ -322,6 +333,7 @@ services:
       #  NOTE: Also remove --entrypoints.web.http.sanitizepath=false CLI option
       - "traefik.http.middlewares.io-lollipop-stripprefix.stripprefix.prefixes=//lollipop"
       - "traefik.http.middlewares.io-public-stripprefix.stripprefix.prefixes=/public"
+      - "traefik.http.middlewares.io-session-manager-oi-stripprefix.stripprefix.prefixes=/sm-oi"
       - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-id=unused"
       - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-subscription-id=unused"
       - "traefik.http.middlewares.setHeader.headers.customrequestheaders.x-user-groups=${REQ_USER_GROUPS}"
