@@ -130,7 +130,7 @@ export const makeHandleOidcCallbackUseCase =
         exchangeResult.value.accessToken,
       );
     if (assertionResult.isErr()) {
-      return err(assertionResult.error);
+      return err(new GenericError(assertionResult.error.message));
     }
     const assertion = assertionResult.value;
 

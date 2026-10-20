@@ -1,4 +1,8 @@
-import { GenericError, NonEmptyString } from "@pagopa/hexagonal-core";
+import {
+  GenericError,
+  NonEmptyString,
+  ValidationError,
+} from "@pagopa/hexagonal-core";
 import { Result } from "neverthrow";
 
 import { IdentityAssertion } from "../../value-objects/assertion.vo.js";
@@ -17,5 +21,5 @@ export interface IdentityAssertionFetcherPort {
   getAssertion(
     env: OidcEnvironment,
     accessToken: NonEmptyString,
-  ): Promise<Result<IdentityAssertion, GenericError>>;
+  ): Promise<Result<IdentityAssertion, ValidationError | GenericError>>;
 }
