@@ -130,17 +130,7 @@ export const makeHandleOidcCallbackUseCase =
         exchangeResult.value.accessToken,
       );
     if (assertionResult.isErr()) {
-      const error = assertionResult.error;
-      switch (error.kind) {
-        case "ValidationError":
-          return err(new GenericError(error.message));
-        case "GenericError":
-          return err(error);
-        default: {
-          const _exhaustiveCheck: never = error;
-          return err(new GenericError("Unhandled error"));
-        }
-      }
+      return err(new GenericError(assertionResult.error.message));
     }
     const assertion = assertionResult.value;
 
