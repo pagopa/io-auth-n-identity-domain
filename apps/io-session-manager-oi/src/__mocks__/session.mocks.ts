@@ -41,6 +41,7 @@ import type { UserProfile } from "../domain/entities/profile.entity.js";
 export type NewSessionToken =
   Parameters<ActivateUserSessionUseCase>[0]["sessionToken"];
 
+  const FriendlyNameMock = "Mock Friendly Name"
 export const aFiscalCode: FiscalCode =
   FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 export const anEmailAddress: EmailAddress =
@@ -48,7 +49,7 @@ export const anEmailAddress: EmailAddress =
 export const aName: NonEmptyString = NonEmptyStringSchema.parse("Mario");
 export const aFamilyName: NonEmptyString = NonEmptyStringSchema.parse("Rossi");
 export const anIdentityProvider: NonEmptyString =
-  NonEmptyStringSchema.parse("spid");
+  NonEmptyStringSchema.parse(FriendlyNameMock);
 export const aSpidLevel = SpidLevelSchema.parse(
   "https://www.spid.gov.it/SpidL2",
 );

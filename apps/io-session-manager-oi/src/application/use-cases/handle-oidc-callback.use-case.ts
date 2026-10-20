@@ -177,8 +177,7 @@ export const makeHandleOidcCallbackUseCase =
       spidEmail: idTokenClaims.email,
       ipAddress,
       loginType: auxiliaryData.loginType,
-      //TODO: map to readable Identity Provider name
-      identityProvider: idTokenClaims.iss,
+      identityProvider: idTokenClaims.idpEntityId,
     };
     const activateResult = await deps.activateUserSessionUseCase({
       sessionToken: newSessionToken,
@@ -187,6 +186,7 @@ export const makeHandleOidcCallbackUseCase =
         rawAssertion: assertion.rawAssertion,
         type: assertion.type,
       },
+      oidcEnvironment: auxiliaryData.oidcConfigurationEnv,
     });
     if (activateResult.isErr()) {
       return err(activateResult.error);

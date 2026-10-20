@@ -33,6 +33,7 @@ vi.mock("openid-client", () => ({
 
 const anIssuer = "https://uat.io.oneid.pagopa.it";
 const anAuthorizationEndpoint = `${anIssuer}/oidc/authorize`;
+const idpEntityId = "https://idp.example.com"
 
 const anEnvConfig: OidcConfig = {
   clientId: "a-client-id" as NonEmptyString,
@@ -49,6 +50,7 @@ const aValidRawClaims = {
   dateOfBirth: aDateOfBirth,
   acr: aSpidLevel,
   iss: anIssuer,
+  idpEntityId: idpEntityId,
 };
 
 const anExchangeParams: OidcExchangeParamsDTO = {

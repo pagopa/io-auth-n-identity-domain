@@ -11,6 +11,7 @@ import {
 import { OidcAuthTokensSchema, OidcEnvironmentSchema } from "../oidc.vo.js";
 
 const anIssuer = "https://uat.io.oneid.pagopa.it";
+const anIdpEntityId = "https://idp.uat.io.oneid.pagopa.it";
 
 const aValidClaims = {
   fiscalNumber: aFiscalCode,
@@ -20,7 +21,10 @@ const aValidClaims = {
   dateOfBirth: aDateOfBirth,
   acr: aSpidLevel,
   iss: anIssuer,
+  idpEntityId: anIdpEntityId
 };
+
+const anAccessToken: string = "an-access-token";
 
 describe("OidcEnvironmentSchema", () => {
   it.each(["UAT", "PROD"])("accepts %s", (environment) => {
@@ -36,11 +40,11 @@ describe("OidcAuthTokensSchema", () => {
   it("accepts claims and an access token", () => {
     const parsed = OidcAuthTokensSchema.parse({
       claims: aValidClaims,
-      accessToken: "an-access-token",
+      accessToken: anAccessToken,
     });
 
     expect(parsed.claims).toEqual(aValidClaims);
-    expect(parsed.accessToken).toBe("an-access-token");
+    expect(parsed.accessToken).toBe(anAccessToken);
   });
 
   it("rejects an empty access token", () => {
