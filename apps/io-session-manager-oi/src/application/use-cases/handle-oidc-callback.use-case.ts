@@ -131,6 +131,7 @@ export const makeHandleOidcCallbackUseCase =
         rawAssertion: assertion.rawAssertion,
         type: assertion.type,
       },
+      oidcEnvironment: auxiliaryData.oidcConfigurationEnv,
     });
     if (activateResult.isErr()) {
       return err(activateResult.error);

@@ -63,6 +63,7 @@ import {
   TokenParsingStrategyFactory,
   TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
+import { IdpFriendlyNameAdapter } from "./adapters/outbound/friendly-name.adapter.js";
 
 class AzureCredential {
   private static instance: DefaultAzureCredential | undefined;
@@ -203,6 +204,12 @@ export const createApp = async (
     ),
   );
 
+  const friendlyNameAdapter = new IdpFriendlyNameAdapter({
+    IDP_FRIENDLY_NAMES_PROD_URL: config.IDP_FRIENDLY_NAMES_PROD_URL,
+    IDP_FRIENDLY_NAMES_UAT_URL: config.IDP_FRIENDLY_NAMES_UAT_URL,
+    IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS: config.IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS,
+  });
+
   const blockedUsersAdapter = new BlockedUsersRedisAdapter(
     // Both generics are inferred from the constructor arguments:
     // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
@@ -288,6 +295,7 @@ export const createApp = async (
     lollipopActivationPort: lollipopActivationCosmosAdapter,
     lollipopPort: fetchLollipopAdapter,
     lollipopRevocationPort: lollipopRevocationQueueAdapter,
+    friendlyNamePort: friendlyNameAdapter,
   });
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({

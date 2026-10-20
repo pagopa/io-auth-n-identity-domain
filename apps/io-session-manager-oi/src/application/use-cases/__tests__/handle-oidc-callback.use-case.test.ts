@@ -152,6 +152,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
         rawAssertion: IDENTITY_ASSERTION.rawAssertion,
         type: IDENTITY_ASSERTION.type,
       },
+      oidcEnvironment: AUXILIARY_DATA.oidcConfigurationEnv,
     });
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toEqual({

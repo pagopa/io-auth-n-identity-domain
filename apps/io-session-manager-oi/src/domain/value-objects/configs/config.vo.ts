@@ -44,6 +44,7 @@ import {
   TechnicalLockedProfilesProductionConfigSchema,
 } from "./technical-locked-profiles.vo.js";
 import { ZendeskConfigSchema } from "./zendesk.vo.js";
+import { FriendlyNameConfigSchema } from "./friendly-name.vo.js";
 
 /**
  * Fields shared by every runtime environment.
@@ -62,6 +63,7 @@ const CommonConfigShape = {
   ...FimsConfigSchema.shape,
   ...PagopaConfigSchema.shape,
   ...ZendeskConfigSchema.shape,
+  ...FriendlyNameConfigSchema.shape,
 };
 
 /**

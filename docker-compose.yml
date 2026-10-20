@@ -20,9 +20,9 @@ services:
       redis-cluster:
         condition: service_healthy
       io-lollipop:
-        condition: service_healthy
+        condition: service_started
       io-profile:
-        condition: service_healthy
+        condition: service_started
       cosmosdb:
         condition: service_healthy
       storage:
