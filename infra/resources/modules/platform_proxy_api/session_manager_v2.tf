@@ -19,7 +19,7 @@ resource "azurerm_api_management_api" "external_api_session_manager_v2" {
 
   import {
     content_format = "openapi-link"
-    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/55db1f15411a839f5d50848961f23a951f638a5a/apps/io-session-manager-oi/api/external.yaml"
+    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/e800b83a3740890de4b2ef0ef36104e05b83dc48/apps/io-session-manager-oi/api/external.yaml"
 
   }
 }
@@ -150,5 +150,43 @@ resource "azurerm_api_management_product_api" "pagopa_api_session_manager_v2" {
 
 resource "azurerm_api_management_api_tag" "pagopa_api_session_manager_v2" {
   api_id = azurerm_api_management_api.pagopa_api_session_manager_v2.id
+  name   = azurerm_api_management_tag.session_manager_tag.name
+}
+
+
+##################
+#    ZENDESK     #
+##################
+resource "azurerm_api_management_api" "zendesk_api_session_manager_v2" {
+  name                  = "io-session-manager-zendesk-api-v2"
+  api_management_name   = var.platform_apim_name
+  resource_group_name   = var.platform_apim_resource_group_name
+  subscription_required = false
+
+  version_set_id = azurerm_api_management_api_version_set.zendesk_v1.id
+  version        = "v2"
+  revision       = 1
+
+  description  = "Auth & Identity Session Manager Zendesk API with OI integration"
+  display_name = "IO SESSION MANAGER OI ZENDESK API"
+  path         = var.zendesk_api_base_path
+  protocols    = ["https"]
+  service_url  = "${var.session_manager_oi_url}/${var.zendesk_api_base_path}/v2"
+
+  import {
+    content_format = "openapi-link"
+    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/287b675025994f74e44b74ed40a93d71989bd1b9/apps/io-session-manager-oi/api/sso/zendesk.yaml"
+  }
+}
+
+resource "azurerm_api_management_product_api" "zendesk_api_session_manager_v2" {
+  api_name            = azurerm_api_management_api.zendesk_api_session_manager_v2.name
+  resource_group_name = var.platform_apim_resource_group_name
+  api_management_name = var.platform_apim_name
+  product_id          = data.azurerm_api_management_product.apim_platform_domain_product.product_id
+}
+
+resource "azurerm_api_management_api_tag" "zendesk_api_session_manager_v2" {
+  api_id = azurerm_api_management_api.zendesk_api_session_manager_v2.id
   name   = azurerm_api_management_tag.session_manager_tag.name
 }

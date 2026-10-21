@@ -170,4 +170,36 @@ export default defineConfig([
       },
     ],
   },
+  {
+    input: "./one-id-oas.json",
+    output: {
+      path: "src/generated/one-identity",
+      module: {
+        extension: ".js",
+      },
+    },
+    parser: {
+      filters: {
+        operations: {
+          include: ["GET /saml/assertion", "GET /status"],
+        },
+      },
+    },
+    plugins: [
+      "@hey-api/client-fetch",
+      "@hey-api/schemas",
+      "@hey-api/sdk",
+      {
+        name: "zod",
+        $resolvers: {
+          // Intercept all string nodes
+          string: stringResolver,
+        },
+      },
+      {
+        enums: "javascript",
+        name: "@hey-api/typescript",
+      },
+    ],
+  },
 ] as ReadonlyArray<UserConfig>);

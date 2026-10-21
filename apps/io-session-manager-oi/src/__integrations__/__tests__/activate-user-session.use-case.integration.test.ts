@@ -1,9 +1,22 @@
 import { CosmosClient } from "@azure/cosmos";
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
+import {
+  LollipopAssertionRefSchema,
+  LollipopAssertionTypeSchema,
+} from "@pagopa/io-auth-n-identity-domain";
 import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
-import { ResultAsync, ok } from "neverthrow";
-import { beforeAll, describe, expect, it } from "vitest";
+import { ok, ResultAsync } from "neverthrow";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
+import { lollipopActivationPortMock } from "../../__mocks__/ports/lollipop-activation-port.mock.js";
+import { createIoProfileAdapter } from "../../adapters/outbound/io-profile.adapter.js";
+import { createPlatformInternalAdapter } from "../../adapters/outbound/platform-internal.adapter.js";
+import {
+  makeActivateUserSessionUseCase,
+  type NewSessionToken,
+} from "../../application/use-cases/activate-user-session.use-case.js";
 import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
+import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import {
   ACTIVE_SESSION_CONTAINER_NAME,
   COSMOSDB_KEY,
@@ -22,9 +35,6 @@ import {
   readSessionTokenItemIds,
   seedSessionCosmosDb,
 } from "../fixtures/sessions.fixture.js";
-import { createIoProfileAdapter } from "../../adapters/outbound/io-profile.adapter.js";
-import { createPlatformInternalAdapter } from "../../adapters/outbound/platform-internal.adapter.js";
-import { makeActivateUserSessionUseCase } from "../../application/use-cases/activate-user-session.use-case.js";
 
 // The number of token documents persisted for a session: the main SESSION-
 // token plus the four SSO tokens (WALLET, BPD, FIMS, ZENDESK).
@@ -57,17 +67,38 @@ const authEventPort: AuthEventPort = {
   healthcheck: async () => ok(undefined),
 };
 
-const activateUserSession = makeActivateUserSessionUseCase(
-  sessionAdapter,
-  adapter,
-  platformInternalAdapter,
-  authEventPort,
-);
+const assertion = {
+  assertionRef: LollipopAssertionRefSchema.parse(
+    "sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU",
+  ),
+  rawAssertion: NonEmptyStringSchema.parse("integration-test-assertion"),
+  type: LollipopAssertionTypeSchema.enum.SAML,
+};
 
+const lollipopPort = {
+  reservePubKey: vi.fn(),
+  activatePubKey: vi.fn().mockResolvedValue(ok(assertion.assertionRef)),
+  generateLCParams: vi.fn(),
+} as unknown as LollipopPort;
+
+const activateUserSessionUseCase = makeActivateUserSessionUseCase({
+  sessionPort: sessionAdapter,
+  profilePort: adapter,
+  platformInternalPort: platformInternalAdapter,
+  authEventPort,
+  lollipopActivationPort: lollipopActivationPortMock,
+  lollipopPort,
+});
+
+const activateUserSession = (sessionToken: NewSessionToken) =>
+  activateUserSessionUseCase({ sessionToken, assertion });
+
+// FIXME: review and fix integration tests (https://pagopa.atlassian.net/browse/IOPID-4193)
 describe("activate-user-session use case (integration)", () => {
   // Provision the database and the session containers on the local Cosmos DB
   // emulator before running any test in this suite.
   beforeAll(async () => {
+    lollipopActivationPortMock.upsert.mockResolvedValue(ok(undefined));
     await seedSessionCosmosDb();
   });
 

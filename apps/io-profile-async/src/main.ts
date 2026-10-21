@@ -1,5 +1,5 @@
-import { app, InvocationContext, output } from "@azure/functions";
 import { CosmosClient } from "@azure/cosmos";
+import { app, InvocationContext, output } from "@azure/functions";
 import { QueueClient } from "@azure/storage-queue";
 
 import { TableClient } from "@azure/data-tables";
@@ -87,6 +87,7 @@ const HTML_TO_TEXT_OPTIONS: HtmlToTextOptions = {
 const itnProfileEmailTableClient = TableClient.fromConnectionString(
   config.AZURE_STORAGE_CONNECTION_STRING_ITN,
   config.PROFILE_EMAIL_STORAGE_TABLE_NAME_ITN,
+  { allowInsecureConnection: config.NODE_ENV === "development" },
 );
 
 const profileModel = new ProfileModel(

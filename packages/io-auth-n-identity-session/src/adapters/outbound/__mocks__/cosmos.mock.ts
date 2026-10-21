@@ -13,6 +13,7 @@ export interface ContainerMock {
   itemMock: { read: MockFn; delete: MockFn };
   item: MockFn;
   create: MockFn;
+  upsert: MockFn;
   batch: MockFn;
   bulk: MockFn;
   fetchAll: MockFn;
@@ -25,6 +26,7 @@ export function makeContainerMock(): ContainerMock {
   const itemMock = { read: vi.fn(), delete: vi.fn() };
   const item = vi.fn(() => itemMock as unknown as Item);
   const create = vi.fn();
+  const upsert = vi.fn();
   const batch = vi.fn();
   const bulk = vi.fn();
   const fetchAll = vi.fn();
@@ -33,13 +35,14 @@ export function makeContainerMock(): ContainerMock {
 
   const container = {
     item,
-    items: { create, batch, bulk, query },
+    items: { create, upsert, batch, bulk, query },
   } as unknown as Container;
 
   return {
     itemMock,
     item,
     create,
+    upsert,
     batch,
     bulk,
     fetchAll,

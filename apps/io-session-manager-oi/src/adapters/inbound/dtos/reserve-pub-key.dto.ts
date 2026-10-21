@@ -1,11 +1,8 @@
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import {
-  NonEmptyStringSchema,
-  NonEmptyStringBrand,
-} from "@pagopa/hexagonal-core";
-import {
-  LollipopJwkHashingAlgorithmSchema,
   JwkPublicKeyBase64UrlStringSchema,
+  LollipopJwkHashingAlgorithmSchema,
 } from "@pagopa/io-auth-n-identity-domain";
 import { LoginTypeSchema } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
@@ -14,14 +11,14 @@ import {
   CurrentUserSchema,
   SpidAuthLevel,
 } from "../../../domain/value-objects/login.vo.js";
-import { OidcConfigurationEnvSchema } from "../../../domain/value-objects/oidc.vo.js";
+import { OidcEnvironmentSchema } from "../../../domain/value-objects/oidc.vo.js";
 
 extendZodWithOpenApi(z);
 
 export const ReserveInputDTO = {
   body: z
     .object({
-      env: OidcConfigurationEnvSchema.meta({
+      env: OidcEnvironmentSchema.meta({
         id: "OidcConfigurationEnv",
         description: "The OneIdentity configuration environment.",
       }),

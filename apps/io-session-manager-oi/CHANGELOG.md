@@ -1,5 +1,56 @@
 # io-session-manager-oi
 
+## 0.30.1
+
+### Patch Changes
+
+- 7b313b6: do not revoke previous lollipop key if there isn't
+
+## 0.30.0
+
+### Minor Changes
+
+- 193eb5a: Add Fast Login Nonce Generation
+
+## 0.29.3
+
+### Patch Changes
+
+- 979d935: invalidate previous lollipop key
+
+## 0.29.2
+
+### Patch Changes
+
+- 12ed2e9: Fix JWT sign call
+
+## 0.29.1
+
+### Patch Changes
+
+- 6dd0411: force parsing GET /saml/assertion response body as raw text
+
+## 0.29.0
+
+### Minor Changes
+
+- 287b675: Zendesk SSO Token endpoint
+
+### Patch Changes
+
+- 2de3d5e: fix API client base URL construction
+
+## 0.28.0
+
+### Minor Changes
+
+- ab27d62: fetch SAML Assertion from One-ID and add lollipop integration within login/callback
+
+### Patch Changes
+
+- Updated dependencies [ab27d62]
+  - @pagopa/io-auth-n-identity-session@0.10.0
+
 ## 0.27.0
 
 ### Minor Changes

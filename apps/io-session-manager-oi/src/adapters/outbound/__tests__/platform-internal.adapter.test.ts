@@ -1,9 +1,9 @@
 import { GenericError } from "@pagopa/hexagonal-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createPlatformInternalAdapter } from "../platform-internal.adapter.js";
-import { deleteSession } from "../../../generated/platform-internal/sdk.gen.js";
 import { HashedClientSessionToken } from "../../../domain/value-objects/client-session-token.vo.js";
+import { deleteSession } from "../../../generated/platform-internal/sdk.gen.js";
+import { createPlatformInternalAdapter } from "../platform-internal.adapter.js";
 
 vi.mock("../../../generated/platform-internal/client/index.js", () => ({
   createClient: vi.fn(() => ({
@@ -19,7 +19,7 @@ const SESSION_TOKEN =
   `aValidSessionId.${"a".repeat(64)}` as HashedClientSessionToken;
 
 const adapter = createPlatformInternalAdapter({
-  baseUrl: "http://localhost",
+  baseUrl: new URL("http://localhost"),
 });
 
 beforeEach(() => {

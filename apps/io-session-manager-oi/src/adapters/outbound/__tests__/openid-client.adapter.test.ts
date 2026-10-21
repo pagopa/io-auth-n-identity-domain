@@ -17,11 +17,11 @@ import {
   aSpidLevel,
 } from "../../../__mocks__/session.mocks.js";
 import {
+  type OidcConfig,
   type OidcConfigPort,
-  type OidcEnvConfig,
 } from "../../../domain/ports/outbound/oidc-config.port.js";
 import { type OidcExchangeParamsDTO } from "../../../domain/ports/outbound/oidc.port.js";
-import { OidcClaimsSchema } from "../../../domain/value-objects/oidc-claims.vo.js";
+import { OidcAuthTokensSchema } from "../../../domain/value-objects/oidc.vo.js";
 import { OpenIdClientAdapter } from "../openid-client.adapter.js";
 
 vi.mock("openid-client", () => ({
@@ -34,7 +34,7 @@ vi.mock("openid-client", () => ({
 const anIssuer = "https://uat.io.oneid.pagopa.it";
 const anAuthorizationEndpoint = `${anIssuer}/oidc/authorize`;
 
-const anEnvConfig: OidcEnvConfig = {
+const anEnvConfig: OidcConfig = {
   clientId: "a-client-id" as NonEmptyString,
   clientSecret: "a-client-secret" as NonEmptyString,
   baseUrl: new URL(anIssuer),
@@ -73,9 +73,16 @@ const oidcConfigPort: OidcConfigPort = {
   getConfig: vi.fn(),
 };
 
-const makeTokens = (claims: unknown) => ({ claims: () => claims }) as never;
+const makeTokens = (claims: unknown, accessToken = "an-access-token") =>
+  ({
+    claims: () => claims,
+    access_token: accessToken,
+  }) as never;
 
-const anExpectedClaims = OidcClaimsSchema.parse(aValidRawClaims);
+const anExpectedTokens = OidcAuthTokensSchema.parse({
+  claims: aValidRawClaims,
+  accessToken: "an-access-token",
+});
 
 let adapter: OpenIdClientAdapter;
 
@@ -90,10 +97,10 @@ beforeEach(() => {
 });
 
 describe("OpenIdClientAdapter#exchange", () => {
-  it("returns ok(claims) with the validated OIDC claims on success", async () => {
+  it("returns validated claims and access token on success", async () => {
     const result = await adapter.exchange(anExchangeParams);
 
-    expect(result).toEqual(ok(anExpectedClaims));
+    expect(result).toEqual(ok(anExpectedTokens));
   });
 
   it("strips a TINIT- prefix from fiscalNumber before returning claims", async () => {
@@ -106,7 +113,7 @@ describe("OpenIdClientAdapter#exchange", () => {
 
     const result = await adapter.exchange(anExchangeParams);
 
-    expect(result).toEqual(ok(anExpectedClaims));
+    expect(result).toEqual(ok(anExpectedTokens));
   });
 
   it("forwards state and nonce to the authorization code grant", async () => {
@@ -141,7 +148,7 @@ describe("OpenIdClientAdapter#exchange", () => {
     expect(firstResult).toEqual(
       err(new GenericError("OIDC discovery failed: discovery down")),
     );
-    expect(secondResult).toEqual(ok(anExpectedClaims));
+    expect(secondResult).toEqual(ok(anExpectedTokens));
     expect(client.discovery).toHaveBeenCalledTimes(2);
   });
 
@@ -189,7 +196,21 @@ describe("OpenIdClientAdapter#exchange", () => {
 
     const result = await adapter.exchange(anExchangeParams);
 
-    expect(result).toEqual(err(new GenericError("Invalid OIDC claims")));
+    expect(result).toEqual(
+      err(new GenericError("Invalid OIDC tokens response")),
+    );
+  });
+
+  it("returns err(GenericError) when the access token is empty", async () => {
+    vi.mocked(client.authorizationCodeGrant).mockResolvedValue(
+      makeTokens(aValidRawClaims, ""),
+    );
+
+    const result = await adapter.exchange(anExchangeParams);
+
+    expect(result).toEqual(
+      err(new GenericError("Invalid OIDC tokens response")),
+    );
   });
 
   it("returns err(AuthenticationError) when the authorization code grant throws", async () => {

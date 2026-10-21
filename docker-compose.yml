@@ -15,8 +15,20 @@ services:
       args:
         SERVER_NAME: "io-session-manager-oi"
     depends_on:
-      - redis-standalone
-      - io-lollipop
+      cluster-builder:
+        condition: service_started
+      redis-cluster:
+        condition: service_healthy
+      io-lollipop:
+        condition: service_healthy
+      io-profile:
+        condition: service_healthy
+      cosmosdb:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+      servicebus:
+        condition: service_started
     env_file:
       - ./docker/generated/.env.io-session-manager-oi
     ports:
@@ -109,6 +121,12 @@ services:
       - "traefik.http.routers.io-lollipop.middlewares=io-lollipop-stripprefix,setHeader"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7071/info"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 2m
 
   io-web-profile:
     image: io-web-profile
@@ -259,6 +277,7 @@ services:
       - ./docker/generated/.env.cosmosdb
     ports:
       - ${COSMOSDB_PORT}:3000
+      - 1234:1234
     networks:
       - io-fn
     healthcheck:

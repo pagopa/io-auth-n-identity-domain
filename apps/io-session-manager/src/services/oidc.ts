@@ -56,8 +56,17 @@ import {
   isWellFormedSAMLAssertion,
 } from "../utils/spid";
 import { getIdpFriendlyName } from "../repositories/idp-friendly-names";
+import { SpidAuthLevelEnum } from "../generated/backend/SpidAuthLevel";
+import { SpidLevelEnum } from "../generated/backend/SpidLevel";
+import { WithIP } from "../utils/network";
+import { sha256 } from "@pagopa/io-functions-commons/dist/src/utils/crypto";
 
 export type ReserveDeps = RedisRepo.RedisRepositoryDeps & AppInsightsDeps;
+
+const acrValuesByAuthLevel: Record<SpidAuthLevelEnum, SpidLevelEnum> = {
+  [SpidAuthLevelEnum.SpidL2]: SpidLevelEnum["https://www.spid.gov.it/SpidL2"],
+  [SpidAuthLevelEnum.SpidL3]: SpidLevelEnum["https://www.spid.gov.it/SpidL3"],
+};
 
 export type ReserveOutput =
   | IResponseErrorValidation
@@ -73,7 +82,7 @@ export type ReserveOutput =
  * this endpoint as a plain express middleware.
  */
 export const reserve =
-  (deps: ReserveDeps) =>
+  (deps: ReserveDeps & WithIP) =>
   async (input: ReserveInput): Promise<ReserveOutput> => {
     const envConfigResult = getOneIdEnvConfig(input.env);
     if (E.isLeft(envConfigResult)) {
@@ -105,15 +114,17 @@ export const reserve =
         envConfig,
         ONEID_HTTP_TIMEOUT_SECONDS,
       );
-    } catch (err) {
-      // reserve operation is retriable, therefore this event can follow
-      // sampling strategy
+    } catch {
       deps.appInsightsTelemetryClient?.trackEvent({
         name: "session-manager.oidc.reserve.discovery.error",
         properties: {
           env: input.env,
-          errorMessage: err instanceof Error ? err.message : String(err),
+          state,
+          nonce,
+          ipHash: sha256(deps.clientIP),
+          failureReason: "discovery_failed",
         },
+        tagOverrides: { samplingEnabled: "false" },
       });
       return ResponseErrorInternal(`OIDC discovery failed`);
     }
@@ -123,16 +134,16 @@ export const reserve =
     );
 
     if (E.isLeft(errorOrAuthorizationEndpoint)) {
-      // reserve operation is retriable, therefore this event can follow
-      // sampling strategy
       deps.appInsightsTelemetryClient?.trackEvent({
         name: "session-manager.oidc.reserve.auth-decode.error",
         properties: {
           env: input.env,
-          errorMessage: readableReportSimplified(
-            errorOrAuthorizationEndpoint.left,
-          ),
+          state,
+          nonce,
+          ipHash: sha256(deps.clientIP),
+          failureReason: "invalid_authorization_endpoint",
         },
+        tagOverrides: { samplingEnabled: "false" },
       });
       return ResponseErrorInternal(`Could not parse auth endpoint`);
     }
@@ -153,19 +164,36 @@ export const reserve =
       LOGIN_AUXILIARY_DATA_TTL_SECONDS,
     )(deps)();
     if (E.isLeft(saveResult)) {
-      // reserve operation is retriable, therefore this event can follow
-      // sampling strategy
       deps.appInsightsTelemetryClient?.trackEvent({
         name: "session-manager.oidc.reserve.auxiliary-data.error",
         properties: {
           env: input.env,
-          errorMessage: saveResult.left.message,
+          state,
+          nonce,
+          ipHash: sha256(deps.clientIP),
+          failureReason: "auxiliary_data_save_failed",
         },
+        tagOverrides: { samplingEnabled: "false" },
       });
       return ResponseErrorInternal(`Could not save auxiliary data`);
     }
 
+    deps.appInsightsTelemetryClient?.trackEvent({
+      name: "session-manager.oidc.reserve.success.info",
+      properties: {
+        env: input.env,
+        clientId: envConfig.clientId,
+        state,
+        nonce,
+        ipHash: sha256(deps.clientIP),
+        minAuthLevel: input.minAuthLevel,
+        loginType: input.loginType ?? "DEFAULT",
+      },
+      tagOverrides: { samplingEnabled: "false" },
+    });
+
     return ResponseSuccessJson({
+      acr_values: acrValuesByAuthLevel[input.minAuthLevel],
       client_id: envConfig.clientId,
       authorization_endpoint: errorOrAuthorizationEndpoint.right
         .href as NonEmptyString,
@@ -406,7 +434,7 @@ export const buildSpidUserPayload = (
 });
 
 export const OIDCCallback =
-  (deps: CallbackDeps & WithExpressRequest) =>
+  (deps: CallbackDeps & WithExpressRequest & WithIP) =>
   async (input: CallbackSuccessInput): Promise<CallbackOutput> => {
     const auxiliaryDataResult = await getLoginAuxiliaryData(deps)(input.state);
     if (E.isLeft(auxiliaryDataResult)) {
@@ -415,8 +443,11 @@ export const OIDCCallback =
       deps.appInsightsTelemetryClient?.trackEvent({
         name: "session-manager.oidc.callback.auxiliary-data.error",
         properties: {
-          errorMessage: auxiliaryDataResult.left.message,
+          state: input.state,
+          ipHash: sha256(deps.clientIP),
+          failureReason: "auxiliary_data_unavailable",
         },
+        tagOverrides: { samplingEnabled: "false" },
       });
       return ResponseErrorValidation(
         "Bad request",
@@ -433,8 +464,12 @@ export const OIDCCallback =
         name: "session-manager.oidc.callback.discovery.error",
         properties: {
           env: auxiliaryData.oidcConfigurationEnv,
-          errorMessage: envConfigurationResult.left.message,
+          state: input.state,
+          nonce: auxiliaryData.nonce,
+          ipHash: sha256(deps.clientIP),
+          failureReason: "discovery_failed",
         },
+        tagOverrides: { samplingEnabled: "false" },
       });
       return ResponseErrorInternal("OIDC discovery failed");
     }
@@ -451,8 +486,12 @@ export const OIDCCallback =
         name: "session-manager.oidc.callback.code-exchange.error",
         properties: {
           env: auxiliaryData.oidcConfigurationEnv,
-          errorMessage: exchangeResult.left.message,
+          state: input.state,
+          nonce: auxiliaryData.nonce,
+          ipHash: sha256(deps.clientIP),
+          failureReason: "code_exchange_failed",
         },
+        tagOverrides: { samplingEnabled: "false" },
       });
       return ResponseErrorInternal("OIDC code exchange failed");
     }
@@ -468,12 +507,14 @@ export const OIDCCallback =
         name: "session-manager.oidc.callback.saml-assertion.error",
         properties: {
           env: auxiliaryData.oidcConfigurationEnv,
-          errorMessage: getSAMLAssertionResult.left.message,
+          state: input.state,
+          nonce: auxiliaryData.nonce,
+          ipHash: sha256(deps.clientIP),
+          failureReason: "saml_assertion_retrieval_failed",
           idpEntityId: claims.idpEntityId,
+          acr: claims.acr,
         },
-        tagOverrides: {
-          samplingEnabled: "false",
-        },
+        tagOverrides: { samplingEnabled: "false" },
       });
       return ResponseErrorInternal("SAML assertion retrieval failed");
     }
@@ -489,12 +530,14 @@ export const OIDCCallback =
         name: "session-manager.oidc.callback.saml-verification.error",
         properties: {
           env: auxiliaryData.oidcConfigurationEnv,
-          errorMessage: verifySAMLAssertionResult.left.message,
+          state: input.state,
+          nonce: auxiliaryData.nonce,
+          ipHash: sha256(deps.clientIP),
+          failureReason: "saml_verification_failed",
           idpEntityId: claims.idpEntityId,
+          acr: claims.acr,
         },
-        tagOverrides: {
-          samplingEnabled: "false",
-        },
+        tagOverrides: { samplingEnabled: "false" },
       });
       return ResponseErrorValidation(
         "Bad request",
@@ -512,6 +555,19 @@ export const OIDCCallback =
       loginType: auxiliaryData.loginType,
       currentUser: auxiliaryData.currentUser,
     };
+
+    deps.appInsightsTelemetryClient?.trackEvent({
+      name: "session-manager.oidc.callback.verified.info",
+      properties: {
+        env: auxiliaryData.oidcConfigurationEnv,
+        state: input.state,
+        nonce: auxiliaryData.nonce,
+        ipHash: sha256(deps.clientIP),
+        acr: claims.acr,
+        idpEntityId: claims.idpEntityId,
+      },
+      tagOverrides: { samplingEnabled: "false" },
+    });
 
     // The validation cookie is not part of the OIDC callback flow, so the user
     // is marked as not eligible to make `acs` skip the cookie check.

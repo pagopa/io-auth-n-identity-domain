@@ -193,6 +193,77 @@ describe("LollipopActivationCosmosAdapter", () => {
   });
 
   // -------------------------------------------------------------------------
+  // upsert
+  // -------------------------------------------------------------------------
+
+  describe("upsert", () => {
+    it("GIVEN a valid activation WHEN upsert is called THEN persists it and returns ok", async () => {
+      lollipop.upsert.mockResolvedValueOnce({ resource: aDbLollipopResource });
+
+      const result = await adapter.upsert(aLollipopActivation);
+
+      expect(result).toEqual(ok(undefined));
+      expect(lollipop.upsert).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          id: aLollipopId,
+          fiscalCode: aFiscalCode,
+          assertionRef: anAssertionRef,
+          expirationDate: anExpirationDate.toISOString(),
+          ttl: expect.any(Number),
+        }),
+      );
+      const [persistedActivation] = lollipop.upsert.mock.calls[0];
+      expect(persistedActivation.ttl).toBeGreaterThan(0);
+    });
+
+    it("GIVEN an expiration date in the past WHEN upsert is called THEN returns GenericError from ttl computation", async () => {
+      const result = await adapter.upsert({
+        ...aLollipopActivation,
+        expirationDate: aPastExpirationDate,
+      });
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+      expect(lollipop.upsert).not.toHaveBeenCalled();
+    });
+
+    it("GIVEN Cosmos returns no resource WHEN upsert is called THEN returns GenericError", async () => {
+      lollipop.upsert.mockResolvedValueOnce({ resource: undefined });
+
+      const result = await adapter.upsert(aLollipopActivation);
+
+      expect(result).toEqual(
+        err(
+          new GenericError(
+            "Error upserting LollipopActivation: no resource returned",
+          ),
+        ),
+      );
+    });
+
+    it("GIVEN a conflict cosmos error WHEN upsert is called THEN returns ConflictError", async () => {
+      lollipop.upsert.mockRejectedValueOnce(makeErrorResponse(409));
+
+      const result = await adapter.upsert(aLollipopActivation);
+
+      expect(result).toEqual(
+        err(
+          new ConflictError(
+            "Conflict error handling LollipopActivation in upsertItem",
+          ),
+        ),
+      );
+    });
+
+    it("GIVEN a cosmos ErrorResponse WHEN upsert is called THEN returns GenericError", async () => {
+      lollipop.upsert.mockRejectedValueOnce(makeErrorResponse(500));
+
+      const result = await adapter.upsert(aLollipopActivation);
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // revokeByFiscalCode
   // -------------------------------------------------------------------------
 

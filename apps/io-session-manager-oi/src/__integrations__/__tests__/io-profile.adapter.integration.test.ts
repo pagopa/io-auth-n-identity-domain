@@ -2,6 +2,7 @@ import {
   ConflictError,
   FiscalCodeSchema,
   GenericError,
+  NonEmptyStringSchema,
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import { beforeAll, describe, expect, it } from "vitest";
@@ -67,7 +68,7 @@ describe("io-profile adapter (integration)", () => {
     }
     const adapterWithBadKey = createIoProfileAdapter({
       baseUrl: IO_PROFILE_BASE_URL,
-      apiKey: "invalid-key",
+      apiKey: NonEmptyStringSchema.parse("invalid-key"),
     });
 
     const result = await adapterWithBadKey.getProfile(EXISTING_FISCAL_CODE);

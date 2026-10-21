@@ -3,18 +3,18 @@ import { err, ok, type Result } from "neverthrow";
 import * as client from "openid-client";
 
 import {
+  type OidcConfig,
   type OidcConfigPort,
-  type OidcEnvConfig,
 } from "../../domain/ports/outbound/oidc-config.port.js";
 import {
-  type OidcExchangeParamsDTO,
   type OidcClientPort,
+  type OidcExchangeParamsDTO,
 } from "../../domain/ports/outbound/oidc.port.js";
 import {
-  type OidcClaims,
-  OidcClaimsSchema,
-} from "../../domain/value-objects/oidc-claims.vo.js";
-import { type OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js";
+  OidcAuthTokens,
+  OidcAuthTokensSchema,
+  type OidcEnvironment,
+} from "../../domain/value-objects/oidc.vo.js";
 
 /**
  *
@@ -23,7 +23,7 @@ import { type OidcConfigurationEnv } from "../../domain/value-objects/oidc.vo.js
  */
 export class OpenIdClientAdapter implements OidcClientPort {
   private readonly discoveryByEnv = new Map<
-    OidcConfigurationEnv,
+    OidcEnvironment,
     Promise<client.Configuration>
   >();
 
@@ -49,13 +49,13 @@ export class OpenIdClientAdapter implements OidcClientPort {
    * Result and are discarded; the lazy path in {@link exchange} and
    * {@link getAuthorizationEndpoint} retries on the next request.
    */
-  warmUp = async (envs: ReadonlySet<OidcConfigurationEnv>): Promise<void> => {
+  async warmUp(envs: ReadonlySet<OidcEnvironment>): Promise<void> {
     await Promise.all([...envs].map((env) => this.resolveConfiguration(env)));
-  };
+  }
 
-  getAuthorizationEndpoint = async (
-    env: OidcConfigurationEnv,
-  ): Promise<Result<URL, GenericError>> => {
+  async getAuthorizationEndpoint(
+    env: OidcEnvironment,
+  ): Promise<Result<URL, GenericError>> {
     const oidcConfigResult = await this.resolveConfiguration(env);
     if (oidcConfigResult.isErr()) {
       return err(oidcConfigResult.error);
@@ -80,11 +80,11 @@ export class OpenIdClientAdapter implements OidcClientPort {
         ),
       );
     }
-  };
+  }
 
-  exchange = async (
+  async exchange(
     params: OidcExchangeParamsDTO,
-  ): Promise<Result<OidcClaims, AuthenticationError | GenericError>> => {
+  ): Promise<Result<OidcAuthTokens, AuthenticationError | GenericError>> {
     const oidcConfigResult = await this.resolveConfiguration(params.env);
     if (oidcConfigResult.isErr()) {
       return err(oidcConfigResult.error);
@@ -126,26 +126,29 @@ export class OpenIdClientAdapter implements OidcClientPort {
         return err(new AuthenticationError());
       }
 
-      const parsedClaims = OidcClaimsSchema.safeParse(rawClaims);
-      if (!parsedClaims.success) {
-        return err(new GenericError("Invalid OIDC claims"));
+      const parsedTokens = OidcAuthTokensSchema.safeParse({
+        claims: rawClaims,
+        accessToken: tokens.access_token,
+      });
+      if (!parsedTokens.success) {
+        return err(new GenericError("Invalid OIDC tokens response"));
       }
 
-      return ok(parsedClaims.data);
+      return ok(parsedTokens.data);
     } catch (error) {
       //TODO: Discriminate between invalid code/state/nonce
       // and other errors (network, provider outage, etc.) to return a more specific error type.
       return err(new AuthenticationError());
     }
-  };
+  }
 
   /**
    * Resolves env config and discovered provider metadata, mapping failures to
    * {@link GenericError} so callers share the same error contract.
    */
-  private resolveConfiguration = async (
-    env: OidcConfigurationEnv,
-  ): Promise<Result<client.Configuration, GenericError>> => {
+  private async resolveConfiguration(
+    env: OidcEnvironment,
+  ): Promise<Result<client.Configuration, GenericError>> {
     const envConfigResult = this.oidcConfigPort.getConfig(env);
     if (envConfigResult.isErr()) {
       return err(
@@ -162,7 +165,7 @@ export class OpenIdClientAdapter implements OidcClientPort {
         new GenericError(`OIDC discovery failed: ${toMessage(error)}`),
       );
     }
-  };
+  }
 
   /**
    * Returns the cached {@link client.Configuration} for `env`, discovering it
@@ -170,8 +173,8 @@ export class OpenIdClientAdapter implements OidcClientPort {
    * and a failed discovery is evicted so the next call retries.
    */
   private getConfiguration(
-    env: OidcConfigurationEnv,
-    envConfig: OidcEnvConfig,
+    env: OidcEnvironment,
+    envConfig: OidcConfig,
   ): Promise<client.Configuration> {
     let discoveryPromise = this.discoveryByEnv.get(env);
     if (!discoveryPromise) {

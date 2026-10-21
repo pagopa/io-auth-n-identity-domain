@@ -21,7 +21,9 @@ script:post-response {
 }
 
 settings {
-  encodeUrl: true
+  encodeUrl: false
   timeout: 0
   forwardAuthorizationHeader: false
+  followRedirects: false
+  maxRedirects: 5
 }

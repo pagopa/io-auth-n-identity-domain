@@ -537,7 +537,7 @@ function setupExternalEndpoints(
         redisClientSelector,
         appInsightsTelemetryClient: appInsightsClient,
       }),
-      ap(OidcController.reserveEndpoint),
+      ap(withIPFromRequest(OidcController.reserveEndpoint)),
     ),
   );
 
@@ -545,7 +545,7 @@ function setupExternalEndpoints(
     `${basePath}/callback`,
     pipe(
       toExpressHandler(oidcCallbackDependencies),
-      ap(OidcController.callbackEndpoint),
+      ap(withIPFromRequest(OidcController.callbackEndpoint)),
     ),
   );
 }

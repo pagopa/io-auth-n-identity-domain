@@ -14,11 +14,11 @@ import {
   BpdBearerTokenParsingStrategy,
   SessionBearerTokenParsingStrategy,
   ZendeskTokenParsingStrategy,
-  type BearerTokenParsingStrategy,
+  type TokenParsingStrategy,
 } from "../token-parsing.strategy.js";
 
 type ParsingStrategyTestCase<T extends TokenType> = {
-  strategy: BearerTokenParsingStrategy<T>;
+  strategy: TokenParsingStrategy<T>;
   validBearerToken: string;
   expectedToken: AuthToken[T]["type"];
 };

@@ -4,18 +4,19 @@ import {
   NonEmptyString,
   NotFoundError,
   UseCase,
+  ValidationError,
 } from "@pagopa/hexagonal-core";
 import { IPString } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok } from "neverthrow";
 
 import { AuxiliaryDataPort } from "../../domain/ports/outbound/auxiliary-data.port.js";
+import { IdentityAssertionFetcherPort } from "../../domain/ports/outbound/identity-assertion-fetcher.port.js";
 import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
 import { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
 
-import {
-  ActivateUserSessionUseCase,
-  NewSessionToken,
-} from "./activate-user-session.use-case.js";
+import { SpidLevel } from "@pagopa/io-auth-n-identity-session";
+import { SpidAuthLevel } from "../../domain/value-objects/login.vo.js";
+import { ActivateUserSessionUseCase } from "./activate-user-session.use-case.js";
 
 // Error code sent to the client error page when the provider returns an error
 // response without an explicit `error` code.
@@ -39,6 +40,7 @@ export type HandleOidcCallbackInput = {
 export type HandleOidcCallbackDeps = {
   auxiliaryDataPort: AuxiliaryDataPort;
   oidcPort: OidcClientPort;
+  identityAssertionFetcherPort: IdentityAssertionFetcherPort;
   activateUserSessionUseCase: ActivateUserSessionUseCase;
 };
 
@@ -66,7 +68,7 @@ export const makeHandleOidcCallbackUseCase =
   ): UseCase<
     HandleOidcCallbackInput,
     HandleOidcCallbackOutput,
-    AuthenticationError | GenericError
+    AuthenticationError | ValidationError | GenericError
   > =>
   async ({ callback, ipAddress }) => {
     // Retrieve (and, once on Redis getDel, consume) the reserved login data
@@ -89,6 +91,10 @@ export const makeHandleOidcCallbackUseCase =
       });
     }
 
+    /**********************/
+    /* OIDC code exchange */
+    /**********************/
+
     const exchangeResult = await deps.oidcPort.exchange({
       env: auxiliaryData.oidcConfigurationEnv,
       code: callback.code,
@@ -98,26 +104,116 @@ export const makeHandleOidcCallbackUseCase =
     if (exchangeResult.isErr()) {
       return err(exchangeResult.error);
     }
-    const claims = exchangeResult.value;
+    const idTokenClaims = exchangeResult.value.claims;
 
-    const newSessionToken: NewSessionToken = {
-      fiscalCode: claims.fiscalNumber,
-      name: claims.name,
-      familyName: claims.familyName,
-      dateOfBirth: claims.dateOfBirth,
-      spidLevel: claims.acr,
-      spidEmail: claims.email,
+    /***********************************/
+    /* OIDC ID token claims validation */
+    /***********************************/
+
+    if (
+      !isSpidLevelGreaterOrEqual(idTokenClaims.acr, auxiliaryData.minAuthLevel)
+    ) {
+      return err(
+        new ValidationError(
+          `Insufficient SPID level: required ${auxiliaryData.minAuthLevel}, received ${idTokenClaims.acr.replace("https://www.spid.gov.it/", "")}`,
+        ),
+      );
+    }
+
+    /********************************/
+    /* Identity assertion retrieval */
+    /********************************/
+
+    const assertionResult =
+      await deps.identityAssertionFetcherPort.getAssertion(
+        auxiliaryData.oidcConfigurationEnv,
+        exchangeResult.value.accessToken,
+      );
+    if (assertionResult.isErr()) {
+      const error = assertionResult.error;
+      switch (error.kind) {
+        case "ValidationError":
+          return err(new GenericError(error.message));
+        case "GenericError":
+          return err(error);
+        default: {
+          const _exhaustiveCheck: never = error;
+          return err(new GenericError("Unhandled error"));
+        }
+      }
+    }
+    const assertion = assertionResult.value;
+
+    /*****************************************/
+    /* Identity assertion consistency checks */
+    /*****************************************/
+
+    if (assertion.claims.fiscalCode !== idTokenClaims.fiscalNumber) {
+      return err(
+        new ValidationError(
+          `Fiscal number mismatch between id token and ${assertion.type} identity assertion`,
+        ),
+      );
+    }
+
+    if (assertion.assertionRef !== auxiliaryData.lollipopAssertionRef) {
+      return err(
+        new ValidationError(
+          `Assertion reference mismatch between auxiliary data and ${assertion.type} identity assertion`,
+        ),
+      );
+    }
+
+    /***************************/
+    /* User session activation */
+    /***************************/
+
+    const newSessionToken = {
+      fiscalCode: idTokenClaims.fiscalNumber,
+      name: idTokenClaims.name,
+      familyName: idTokenClaims.familyName,
+      dateOfBirth: idTokenClaims.dateOfBirth,
+      spidLevel: idTokenClaims.acr,
+      spidEmail: idTokenClaims.email,
       ipAddress,
       loginType: auxiliaryData.loginType,
       //TODO: map to readable Identity Provider name
-      identityProvider: claims.iss,
+      identityProvider: idTokenClaims.iss,
     };
-
-    const activateResult =
-      await deps.activateUserSessionUseCase(newSessionToken);
+    const activateResult = await deps.activateUserSessionUseCase({
+      sessionToken: newSessionToken,
+      assertion: {
+        assertionRef: assertion.assertionRef,
+        rawAssertion: assertion.rawAssertion,
+        type: assertion.type,
+      },
+    });
     if (activateResult.isErr()) {
       return err(activateResult.error);
     }
 
     return ok({ outcome: "success", token: activateResult.value });
   };
+
+const SPID_LEVEL_ORDER: Record<SpidLevel, number> = {
+  "https://www.spid.gov.it/SpidL1": 1,
+  "https://www.spid.gov.it/SpidL2": 2,
+  "https://www.spid.gov.it/SpidL3": 3,
+};
+
+const toFullyQualifiedSpidLevel = (level: SpidAuthLevel): SpidLevel =>
+  `https://www.spid.gov.it/${level}`;
+
+/**
+ * Compares a SPID level (as carried by the claim, in its
+ * canonical URL form) against a SPID auth level, returning `true` if
+ * `spidLevelReceived` grants an authentication level equal or greater than `minAuthLevel`.
+ *
+ * SpidL1 < SpidL2 < SpidL3
+ */
+const isSpidLevelGreaterOrEqual = (
+  spidLevelReceived: SpidLevel,
+  minAuthLevel: SpidAuthLevel,
+): boolean =>
+  SPID_LEVEL_ORDER[spidLevelReceived] >=
+  SPID_LEVEL_ORDER[toFullyQualifiedSpidLevel(minAuthLevel)];

@@ -1,5 +1,17 @@
 # io-session-manager
 
+## 1.32.0
+
+### Minor Changes
+
+- 2322968: Add OIDC events for troubleshooting
+
+## 1.31.0
+
+### Minor Changes
+
+- 1c4efaa: Return the requested minimum SPID authentication level as a canonical URI in the reserve response's acr_values field, so clients can forward it directly to the OIDC authorization endpoint.
+
 ## 1.30.0
 
 ### Minor Changes

@@ -1,5 +1,5 @@
-import { app, output } from "@azure/functions";
 import { CosmosClient } from "@azure/cosmos";
+import { app, output } from "@azure/functions";
 import { QueueServiceClient } from "@azure/storage-queue";
 import { getMailerTransporter } from "@pagopa/io-functions-commons/dist/src/mailer";
 import {
@@ -30,13 +30,15 @@ import { createTableService } from "azure-storage";
 import * as df from "durable-functions";
 import { pipe } from "fp-ts/lib/function";
 import { getConfigOrThrow, getValidationEmailMailerConfig } from "./config";
+import { AbortUserDataProcessing } from "./functions/abort-user-data-processing";
+import { CreateProfile } from "./functions/create-profile";
 import {
   ActivityName as CreateValidationTokenActivityName,
   getCreateValidationTokenActivityHandler,
 } from "./functions/create-validation-token-activity";
 import {
-  OrchestratorName as EmailValidationOrchestratorName,
   EmailValidationOrchestratorHandler,
+  OrchestratorName as EmailValidationOrchestratorName,
 } from "./functions/email-validation-orchestrator";
 import {
   ActivityName as EmitEventActivityName,
@@ -54,23 +56,30 @@ import {
   ActivityName as GetMagicCodeActivityName,
   getMagicCodeActivityHandler,
 } from "./functions/get-magic-code-activity";
+import { GetProfile } from "./functions/get-profile";
+import { GetProfileVersions } from "./functions/get-profile-versions";
 import {
   ActivityName as GetProfileVersionsForRecoveryActivityName,
   getGetProfileVersionsForRecoveryActivityHandler,
 } from "./functions/get-profile-versions-for-recovery-activity";
+import { GetServicePreferences } from "./functions/get-service-preferences";
 import {
-  ActivityName as GetServicesPreferencesActivityName,
   GetServicesPreferencesActivityHandler,
+  ActivityName as GetServicesPreferencesActivityName,
 } from "./functions/get-services-preferences-activity";
+import { GetUserDataProcessing } from "./functions/get-user-data-processing";
+import { Info } from "./functions/info";
+import { NoticeLoginEmail } from "./functions/notice-login-email";
 import {
   OrchestratorName as NoticeLoginEmailOrchestratorName,
   getNoticeLoginEmailOrchestratorHandler,
 } from "./functions/notice-login-email-orchestrator";
+import { Ping } from "./functions/ping";
+import { RecoverSubscriptionsFeed } from "./functions/recover-subscriptions-feed";
 import {
   OrchestratorName as RecoverSubscriptionsFeedOrchestratorName,
   getRecoverSubscriptionsFeedOrchestratorHandler,
 } from "./functions/recover-subscriptions-feed-orchestrator";
-import { RecoverSubscriptionsFeed } from "./functions/recover-subscriptions-feed";
 import {
   ActivityName as SendTemplatedLoginEmailActivityName,
   getSendLoginEmailActivityHandler,
@@ -83,36 +92,27 @@ import {
   ActivityName as SendWelcomeMessagesActivityName,
   getSendWelcomeMessagesActivityFunction,
 } from "./functions/send-welcome-messages-activity";
+import { StartEmailValidationProcess } from "./functions/start-email-validation-process";
+import { UpdateProfile } from "./functions/update-profile";
 import {
   ActivityName as UpdateSubscriptionFeedActivityName,
   updateSubscriptionFeed,
 } from "./functions/update-subscriptions-feed-activity";
+import { UpsertServicePreferences } from "./functions/upsert-service-preferences";
+import { UpsertUserDataProcessing } from "./functions/upsert-user-data-processing";
 import {
   OrchestratorName as UpsertedProfileOrchestratorName,
   getUpsertedProfileOrchestratorHandler,
 } from "./functions/upserted-profile-orchestrator";
-import { Info } from "./functions/info";
-import { Ping } from "./functions/ping";
-import { CreateProfile } from "./functions/create-profile";
-import { GetProfile } from "./functions/get-profile";
-import { UpdateProfile } from "./functions/update-profile";
-import { GetProfileVersions } from "./functions/get-profile-versions";
-import { GetServicePreferences } from "./functions/get-service-preferences";
-import { UpsertServicePreferences } from "./functions/upsert-service-preferences";
-import { GetUserDataProcessing } from "./functions/get-user-data-processing";
-import { AbortUserDataProcessing } from "./functions/abort-user-data-processing";
-import { UpsertUserDataProcessing } from "./functions/upsert-user-data-processing";
-import { NoticeLoginEmail } from "./functions/notice-login-email";
-import { StartEmailValidationProcess } from "./functions/start-email-validation-process";
 import { initTelemetryClient } from "./utils/appinsights";
 import { randomBytes, toHash } from "./utils/crypto";
 import { HTML_TO_TEXT_OPTIONS } from "./utils/email";
 import { getTimeoutFetch } from "./utils/fetch";
 import { geoLocationServiceClient } from "./utils/geo-location";
 import { getMagicLinkServiceClient } from "./utils/magic-code";
-import { getProfileEmailTableClient } from "./utils/unique-email-enforcement";
 import { CreateRedisClientSingleton } from "./utils/redis";
 import { createTracker } from "./utils/tracking";
+import { getProfileEmailTableClient } from "./utils/unique-email-enforcement";
 
 // HTTP external requests timeout in milliseconds
 const REQUEST_TIMEOUT_MS = 5000;
@@ -152,6 +152,7 @@ const profileEmailReader = new DataTableProfileEmailsRepository(
   getProfileEmailTableClient(
     config.PROFILE_EMAIL_STORAGE_CONNECTION_STRING,
     config.PROFILE_EMAIL_STORAGE_TABLE_NAME,
+    { allowInsecureConnection: process.env.NODE_ENV === "development" },
   ),
 );
 
