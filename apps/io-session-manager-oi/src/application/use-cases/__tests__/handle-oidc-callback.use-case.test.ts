@@ -332,27 +332,35 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
-  it.each([
-    new GenericError("fetch failed"),
-    new ValidationError("invalid SAML assertion"),
-  ])(
-    "wraps assertion fetcher error %s as GenericError without activating the session",
-    async (fetchError) => {
-      getAssertionMock.mockResolvedValueOnce(err(fetchError));
+  it("propagates assertion fetcher GenericError without activating the session", async () => {
+    const fetchError = new GenericError("fetch failed");
+    getAssertionMock.mockResolvedValueOnce(err(fetchError));
 
-      const result = await handleOidcCallbackUseCase({
-        callback: SUCCESS_CALLBACK,
-        ipAddress: IP_ADDRESS,
-      });
+    const result = await handleOidcCallbackUseCase({
+      callback: SUCCESS_CALLBACK,
+      ipAddress: IP_ADDRESS,
+    });
 
-      expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
-      expect(result._unsafeUnwrapErr()).not.toBeInstanceOf(ValidationError);
-      expect(result._unsafeUnwrapErr()).toEqual(
-        new GenericError(fetchError.message),
-      );
-      expect(activateUserSessionUseCase).not.toHaveBeenCalled();
-    },
-  );
+    expect(result._unsafeUnwrapErr()).toBe(fetchError);
+    expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+  });
+
+  it("wraps assertion fetcher ValidationError as GenericError without activating the session", async () => {
+    const fetchError = new ValidationError("invalid SAML assertion");
+    getAssertionMock.mockResolvedValueOnce(err(fetchError));
+
+    const result = await handleOidcCallbackUseCase({
+      callback: SUCCESS_CALLBACK,
+      ipAddress: IP_ADDRESS,
+    });
+
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+    expect(result._unsafeUnwrapErr()).not.toBeInstanceOf(ValidationError);
+    expect(result._unsafeUnwrapErr()).toEqual(
+      new GenericError(fetchError.message),
+    );
+    expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+  });
 
   it("propagates activation errors", async () => {
     const activationError = new GenericError("activation failed");
