@@ -64,11 +64,11 @@ import {
   TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
 
+/** Provides a lazily initialized credential shared by the Azure clients. */
 class AzureCredential {
   private static instance: DefaultAzureCredential | undefined;
 
   private constructor() {}
-
   public static getInstance(): DefaultAzureCredential {
     if (!AzureCredential.instance) {
       AzureCredential.instance = new DefaultAzureCredential();
@@ -77,22 +77,95 @@ class AzureCredential {
   }
 }
 
+const CLEANUP_TIMEOUT_MS = 2_000;
+
+/**
+ * Tracks app-owned resources for startup rollback and Fastify shutdown.
+ * Cleanup runs once in reverse registration order, logging failures and timeouts.
+ *
+ * @param server - Application server.
+ * @returns Resource lifecycle operations.
+ */
+const createResourceLifecycle = (server: FastifyInstance) => {
+  const cleanups: { name: string; close: () => unknown }[] = [];
+  let cleanupPromise: Promise<void> | undefined;
+
+  /**
+   * Attempts cleanup within the per-resource timeout without propagating errors.
+   * Timing out stops waiting but does not cancel the underlying operation.
+   *
+   * @param name - Resource name.
+   * @param close - Resource cleanup callback.
+   * @returns A promise for the cleanup attempt.
+   */
+  const closeResource = async (name: string, close: () => unknown) => {
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([
+        Promise.resolve().then(close),
+        new Promise<never>((_resolve, reject) => {
+          timeout = setTimeout(
+            () => reject(new Error(`Cleanup timed out for ${name}`)),
+            CLEANUP_TIMEOUT_MS,
+          );
+        }),
+      ]);
+    } catch (error) {
+      server.log.warn({ err: error }, `Failed to clean up ${name}`);
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+
+  /**
+   * Shares one cleanup promise across rollback and repeated shutdown calls.
+   *
+   * @returns The shared cleanup promise.
+   */
+  const cleanupResources = (): Promise<void> => {
+    cleanupPromise ??= Promise.resolve().then(async () => {
+      for (const resource of [...cleanups].reverse()) {
+        await closeResource(resource.name, resource.close);
+      }
+    });
+    return cleanupPromise;
+  };
+
+  return {
+    /**
+     * Registers a resource cleanup callback.
+     *
+     * @param name - Resource name.
+     * @param close - Resource cleanup callback.
+     * @returns Nothing.
+     */
+    registerCleanup: (name: string, close: () => unknown) => {
+      cleanups.push({ name, close });
+    },
+    cleanupResources,
+    /**
+     * Attempts to close the application server within the cleanup timeout.
+     *
+     * @returns A promise for the server cleanup attempt.
+     */
+    closeServer: () => closeResource("Fastify server", () => server.close()),
+  };
+};
+
+/**
+ * Creates infrastructure clients for the application.
+ *
+ * @param config - Application configuration.
+ * @param registerCleanup - Resource cleanup registration callback.
+ * @returns The initialized infrastructure clients.
+ */
 // eslint-disable-next-line max-lines-per-function
-export const createApp = async (
+const createClients = async (
   config: Config,
-  packageInfo: PackageInfo,
-): Promise<{
-  server: FastifyInstance;
-}> => {
-  const server = fastify({
-    trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
-  });
-  server.register(formbody);
-
-  // --------------------------------------------------
-  // Clients initialization
-  // --------------------------------------------------
-
+  registerCleanup: ReturnType<
+    typeof createResourceLifecycle
+  >["registerCleanup"],
+) => {
   const lockedProfilesTableClient =
     config.NODE_ENV === "production"
       ? new TableClient(
@@ -155,6 +228,7 @@ export const createApp = async (
           port: config.REDIS_PORT,
           enableTls: config.REDIS_TLS_ENABLED,
         });
+  registerCleanup("Redis client", () => redisClient.close());
 
   const cosmosClient =
     config.NODE_ENV === "production"
@@ -163,6 +237,7 @@ export const createApp = async (
           aadCredentials: AzureCredential.getInstance(),
         })
       : new CosmosClient(config.COSMOSDB_CONNECTION_STRING);
+  registerCleanup("Cosmos client", () => cosmosClient.dispose());
 
   const serviceBusClient =
     config.NODE_ENV === "production"
@@ -171,14 +246,34 @@ export const createApp = async (
           AzureCredential.getInstance(),
         )
       : new ServiceBusClient(config.SERVICE_BUS_CONNECTION_STRING);
+  registerCleanup("Service Bus client", () => serviceBusClient.close());
 
-  // --------------------------------------------------
-  // Adapters initialization
-  // --------------------------------------------------
+  return {
+    lockedProfilesTableClient,
+    technicalLockedProfilesTableClient,
+    pushNotificationsQueueServiceClient,
+    lollipopRevocationQueueServiceClient,
+    redisClient,
+    cosmosClient,
+    serviceBusClient,
+  };
+};
 
+/**
+ * Creates and initializes outbound adapters.
+ *
+ * @param config - Application configuration.
+ * @param clients - Infrastructure clients.
+ * @returns The initialized outbound adapters.
+ */
+// eslint-disable-next-line max-lines-per-function
+const createAdapters = async (
+  config: Config,
+  clients: Awaited<ReturnType<typeof createClients>>,
+) => {
   const lockedProfilesAdapter = new LockedProfilesDataTableAdapter(
     new TableClientWrapper(
-      lockedProfilesTableClient,
+      clients.lockedProfilesTableClient,
       LockedProfilesDataTableAdapter.schema,
     ),
   );
@@ -186,19 +281,19 @@ export const createApp = async (
   const technicalLockedProfilesAdapter =
     new TechnicalLockedProfilesDataTableAdapter(
       new TableClientWrapper(
-        technicalLockedProfilesTableClient,
+        clients.technicalLockedProfilesTableClient,
         TechnicalLockedProfilesDataTableAdapter.schema,
       ),
     );
 
   const notificationStorageQueueAdapter = new NotificationStorageQueueAdapter(
-    pushNotificationsQueueServiceClient.getQueueClient(
+    clients.pushNotificationsQueueServiceClient.getQueueClient(
       config.PUSH_NOTIFICATIONS_QUEUE_NAME,
     ),
   );
 
   const lollipopRevocationQueueAdapter = new LollipopRevocationQueueAdapter(
-    lollipopRevocationQueueServiceClient.getQueueClient(
+    clients.lollipopRevocationQueueServiceClient.getQueueClient(
       config.LOLLIPOP_REVOCATION_QUEUE_NAME,
     ),
   );
@@ -206,18 +301,18 @@ export const createApp = async (
   const blockedUsersAdapter = new BlockedUsersRedisAdapter(
     // Both generics are inferred from the constructor arguments:
     // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
-    new RedisSetWrapper(redisClient, FiscalCodeSchema),
+    new RedisSetWrapper(clients.redisClient, FiscalCodeSchema),
   );
 
   const sessionCosmosAdapter = new SessionCosmosAdapter(
-    cosmosClient,
+    clients.cosmosClient,
     config.COSMOSDB_NAME,
     config.COSMOSDB_SESSION_TOKEN_CONTAINER_NAME,
     config.COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME,
   );
 
   const auxiliaryStorageAdapter = new AuxiliaryDataRedisAdapter(
-    new RedisObjectWrapper(redisClient, LoginAuxiliaryDataSchema),
+    new RedisObjectWrapper(clients.redisClient, LoginAuxiliaryDataSchema),
     config.LOGIN_AUXILIARY_DATA_TTL_SECONDS,
   );
 
@@ -227,7 +322,10 @@ export const createApp = async (
   });
 
   const fastLoginAdapter = createIoFastLoginAdapter({
-    baseUrl: new URL(config.IO_FAST_LOGIN_API_BASE_PATH, config.IO_FAST_LOGIN_API_URL),
+    baseUrl: new URL(
+      config.IO_FAST_LOGIN_API_BASE_PATH,
+      config.IO_FAST_LOGIN_API_URL,
+    ),
     apiKey: config.IO_FAST_LOGIN_API_KEY,
   });
 
@@ -254,14 +352,16 @@ export const createApp = async (
   );
   // Warm up OIDC discovery (metadata + JWKS) so the cost is paid at startup
   // Best-effort: never blocks boot on a provider outage — the lazy path retries on demand.
-  await oidcExchangeAdapter.warmUp(new Set(["PROD", "UAT"]));
+  await oidcExchangeAdapter.warmUp(new Set(["PROD", "UAT"])).catch((error) => {
+    console.warn("Failed to warm up OIDC exchange adapter:", error);
+  });
 
   const authEventServiceBusAdapter = new AuthEventServiceBusAdapter(
-    serviceBusClient.createSender(config.AUTH_SESSIONS_TOPIC_NAME),
+    clients.serviceBusClient.createSender(config.AUTH_SESSIONS_TOPIC_NAME),
   );
 
   const lollipopActivationCosmosAdapter = new LollipopActivationCosmosAdapter(
-    cosmosClient,
+    clients.cosmosClient,
     config.COSMOSDB_NAME,
     config.COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME,
   );
@@ -269,48 +369,88 @@ export const createApp = async (
   const oneIdIdentityAssertionFetcherAdapter =
     new OneIdIdentityAssertionFetcherAdapter(config);
 
-  // --------------------------------------------------
-  // Use cases initialization
-  // --------------------------------------------------
+  return {
+    lockedProfilesAdapter,
+    technicalLockedProfilesAdapter,
+    notificationStorageQueueAdapter,
+    lollipopRevocationQueueAdapter,
+    blockedUsersAdapter,
+    sessionCosmosAdapter,
+    auxiliaryStorageAdapter,
+    fetchLollipopAdapter,
+    fastLoginAdapter,
+    profileAdapter,
+    platformInternalAdapter,
+    oidcConfigAdapter,
+    oidcExchangeAdapter,
+    authEventServiceBusAdapter,
+    lollipopActivationCosmosAdapter,
+    oneIdIdentityAssertionFetcherAdapter,
+  };
+};
 
+/**
+ * Creates application use cases.
+ *
+ * @param adapters - Outbound adapters.
+ * @returns The application use cases.
+ */
+const createUseCases = (
+  adapters: Awaited<ReturnType<typeof createAdapters>>,
+) => {
   const reserveUseCase = makeReserveUseCase({
-    auxiliaryDataPort: auxiliaryStorageAdapter,
-    lollipopPort: fetchLollipopAdapter,
-    oidcClientPort: oidcExchangeAdapter,
-    oidcConfigPort: oidcConfigAdapter,
+    auxiliaryDataPort: adapters.auxiliaryStorageAdapter,
+    lollipopPort: adapters.fetchLollipopAdapter,
+    oidcClientPort: adapters.oidcExchangeAdapter,
+    oidcConfigPort: adapters.oidcConfigAdapter,
   });
 
   const activateUserSessionUseCase = makeActivateUserSessionUseCase({
-    sessionPort: sessionCosmosAdapter,
-    profilePort: profileAdapter,
-    platformInternalPort: platformInternalAdapter,
-    authEventPort: authEventServiceBusAdapter,
-    lollipopActivationPort: lollipopActivationCosmosAdapter,
-    lollipopPort: fetchLollipopAdapter,
-    lollipopRevocationPort: lollipopRevocationQueueAdapter,
+    sessionPort: adapters.sessionCosmosAdapter,
+    profilePort: adapters.profileAdapter,
+    platformInternalPort: adapters.platformInternalAdapter,
+    authEventPort: adapters.authEventServiceBusAdapter,
+    lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
+    lollipopPort: adapters.fetchLollipopAdapter,
+    lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
   });
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
-    auxiliaryDataPort: auxiliaryStorageAdapter,
-    oidcPort: oidcExchangeAdapter,
-    identityAssertionFetcherPort: oneIdIdentityAssertionFetcherAdapter,
+    auxiliaryDataPort: adapters.auxiliaryStorageAdapter,
+    oidcPort: adapters.oidcExchangeAdapter,
+    identityAssertionFetcherPort: adapters.oneIdIdentityAssertionFetcherAdapter,
     activateUserSessionUseCase,
   });
 
   const getSessionUseCase = makeGetSessionUseCase({
-    sessionPort: sessionCosmosAdapter,
-    lollipopActivationPort: lollipopActivationCosmosAdapter,
-    profilePort: profileAdapter,
+    sessionPort: adapters.sessionCosmosAdapter,
+    lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
+    profilePort: adapters.profileAdapter,
   });
 
   const getUserForFimsUseCase = makeGetUserForFimsUseCase({
-    profilePort: profileAdapter,
+    profilePort: adapters.profileAdapter,
   });
 
-  // --------------------------------------------------
-  // Middlewares definition
-  // --------------------------------------------------
+  return {
+    reserveUseCase,
+    handleOidcCallbackUseCase,
+    getSessionUseCase,
+    getUserForFimsUseCase,
+  };
+};
 
+/**
+ * Creates application authentication middleware.
+ *
+ * @param sessionCosmosAdapter - Session storage adapter.
+ * @returns The authentication middleware.
+ */
+const createAuthenticationMiddlewares = (
+  sessionCosmosAdapter: Awaited<
+    ReturnType<typeof createAdapters>
+  >["sessionCosmosAdapter"],
+) => {
   const authenticationMiddlewareFactory = new AuthenticationMiddlewareFactory(
     new TokenTransportStrategyFactory(),
     new TokenParsingStrategyFactory(),
@@ -327,10 +467,28 @@ export const createApp = async (
   const authenticateZendeskMiddleware =
     authenticationMiddlewareFactory.create("zendesk");
 
-  // --------------------------------------------------
-  // Endpoints mounting
-  // --------------------------------------------------
+  return {
+    authenticateSessionMiddleware,
+    authenticateBpdMiddleware,
+    authenticateFimsMiddleware,
+    authenticatePagopaMiddleware,
+    authenticateZendeskMiddleware,
+  };
+};
 
+/**
+ * Registers application health-check routes.
+ *
+ * @param server - Application server.
+ * @param packageInfo - Package metadata.
+ * @param adapters - Outbound adapters.
+ * @returns Nothing.
+ */
+const mountHealthChecks = (
+  server: FastifyInstance,
+  packageInfo: PackageInfo,
+  adapters: Awaited<ReturnType<typeof createAdapters>>,
+) => {
   mountHealthCheckHandler("liveness")(
     server,
     getHealthCheckUseCase(packageInfo),
@@ -340,133 +498,163 @@ export const createApp = async (
     server,
     getHealthCheckUseCase(packageInfo, [
       {
-        name: lockedProfilesAdapter.constructor.name,
-        port: lockedProfilesAdapter,
+        name: adapters.lockedProfilesAdapter.constructor.name,
+        port: adapters.lockedProfilesAdapter,
       },
       {
-        name: technicalLockedProfilesAdapter.constructor.name,
-        port: technicalLockedProfilesAdapter,
+        name: adapters.technicalLockedProfilesAdapter.constructor.name,
+        port: adapters.technicalLockedProfilesAdapter,
       },
       {
-        name: notificationStorageQueueAdapter.constructor.name,
-        port: notificationStorageQueueAdapter,
+        name: adapters.notificationStorageQueueAdapter.constructor.name,
+        port: adapters.notificationStorageQueueAdapter,
       },
       {
-        name: blockedUsersAdapter.constructor.name,
-        port: blockedUsersAdapter,
+        name: adapters.blockedUsersAdapter.constructor.name,
+        port: adapters.blockedUsersAdapter,
       },
       {
-        name: auxiliaryStorageAdapter.constructor.name,
-        port: auxiliaryStorageAdapter,
+        name: adapters.auxiliaryStorageAdapter.constructor.name,
+        port: adapters.auxiliaryStorageAdapter,
       },
       {
-        name: authEventServiceBusAdapter.constructor.name,
-        port: authEventServiceBusAdapter,
+        name: adapters.authEventServiceBusAdapter.constructor.name,
+        port: adapters.authEventServiceBusAdapter,
       },
       {
-        name: sessionCosmosAdapter.constructor.name,
-        port: sessionCosmosAdapter,
+        name: adapters.sessionCosmosAdapter.constructor.name,
+        port: adapters.sessionCosmosAdapter,
       },
       {
-        name: lollipopActivationCosmosAdapter.constructor.name,
-        port: lollipopActivationCosmosAdapter,
+        name: adapters.lollipopActivationCosmosAdapter.constructor.name,
+        port: adapters.lollipopActivationCosmosAdapter,
       },
       {
-        name: oneIdIdentityAssertionFetcherAdapter.constructor.name,
-        port: oneIdIdentityAssertionFetcherAdapter,
+        name: adapters.oneIdIdentityAssertionFetcherAdapter.constructor.name,
+        port: adapters.oneIdIdentityAssertionFetcherAdapter,
       },
       {
-        name: lollipopRevocationQueueAdapter.constructor.name,
-        port: lollipopRevocationQueueAdapter,
+        name: adapters.lollipopRevocationQueueAdapter.constructor.name,
+        port: adapters.lollipopRevocationQueueAdapter,
       },
     ]),
   );
+};
 
-  mountReserveHandler(server, reserveUseCase);
+/**
+ * Registers application routes.
+ *
+ * @param options - Route dependencies.
+ * @returns Nothing.
+ */
+// eslint-disable-next-line max-lines-per-function
+const mountRoutes = ({
+  server,
+  config,
+  adapters,
+  useCases,
+  middlewares,
+}: {
+  server: FastifyInstance;
+  config: Config;
+  adapters: Awaited<ReturnType<typeof createAdapters>>;
+  useCases: ReturnType<typeof createUseCases>;
+  middlewares: ReturnType<typeof createAuthenticationMiddlewares>;
+}) => {
+  mountReserveHandler(server, useCases.reserveUseCase);
 
-  mountGenerateNonceHandler(server, makeGenerateNonceUseCase(fastLoginAdapter));
+  mountGenerateNonceHandler(
+    server,
+    makeGenerateNonceUseCase(adapters.fastLoginAdapter),
+  );
 
   mountCallbackHandler(server, {
-    handleOidcCallbackUseCase,
+    handleOidcCallbackUseCase: useCases.handleOidcCallbackUseCase,
     loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
     loginErrorRedirectUrl: config.LOGIN_ERROR_REDIRECT_URL,
   });
 
   mountSsoBpdUserHandler(server, {
     allowedIpSourceRange: config.ALLOW_BPD_IP_SOURCE_RANGE,
-    middlewares: [authenticateBpdMiddleware] as const,
+    middlewares: [middlewares.authenticateBpdMiddleware] as const,
     useCase: getUserForBpdUseCase,
   });
 
   mountSsoFimsUserHandler(server, {
     allowedIpSourceRange: config.ALLOW_FIMS_IP_SOURCE_RANGE,
-    middlewares: [authenticateFimsMiddleware] as const,
-    useCase: getUserForFimsUseCase,
+    middlewares: [middlewares.authenticateFimsMiddleware] as const,
+    useCase: useCases.getUserForFimsUseCase,
   });
 
   mountSsoFimsLollipopUserHandler(server, {
     allowedIpSourceRange: config.ALLOW_FIMS_IP_SOURCE_RANGE,
-    middlewares: [authenticateFimsMiddleware] as const,
+    middlewares: [middlewares.authenticateFimsMiddleware] as const,
     useCase: makeGetLollipopUserForFimsUseCase({
-      profilePort: profileAdapter,
-      lollipopPort: fetchLollipopAdapter,
-      lollipopActivationPort: lollipopActivationCosmosAdapter,
-      getUserForFimsUseCase: getUserForFimsUseCase,
+      profilePort: adapters.profileAdapter,
+      lollipopPort: adapters.fetchLollipopAdapter,
+      lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
+      getUserForFimsUseCase: useCases.getUserForFimsUseCase,
     }),
   });
 
   mountSsoPagopaUserHandler(server, {
     allowedIpSourceRange: config.ALLOW_PAGOPA_IP_SOURCE_RANGE,
-    middlewares: [authenticatePagopaMiddleware] as const,
+    middlewares: [middlewares.authenticatePagopaMiddleware] as const,
     useCase: makeGetUserForPagopaUseCase({
-      profilePort: profileAdapter,
+      profilePort: adapters.profileAdapter,
     }),
   });
 
   mountSsoZendeskTokenHandler(server, {
     allowedIpSourceRange: config.ALLOW_ZENDESK_IP_SOURCE_RANGE,
-    middlewares: [authenticateZendeskMiddleware] as const,
+    middlewares: [middlewares.authenticateZendeskMiddleware] as const,
     useCase: makeGetTokenForZendeskUseCase({
-      profilePort: profileAdapter,
+      profilePort: adapters.profileAdapter,
       config,
     }),
   });
 
   mountGetSessionHandler({
-    middlewares: [authenticateSessionMiddleware] as const,
-    useCase: getSessionUseCase,
+    middlewares: [middlewares.authenticateSessionMiddleware] as const,
+    useCase: useCases.getSessionUseCase,
   })(server);
+};
 
-  // --------------------------------------------------
-  // Hooks mounting
-  // --------------------------------------------------
-
-  // Expose the resolved client IP to hexagonal middlewares via `x-client-ip`.
-  server.addHook("onRequest", normalizeClientIpHook);
-
-  // Close external clients cleanly when Fastify shuts down (via
-  // `server.close()`). Run both independent close operations in parallel,
-  // while allowing one failure without preventing the other from completing.
-  server.addHook("onClose", async () => {
-    const results = await Promise.allSettled([
-      redisClient.close(),
-      serviceBusClient.close(),
-    ]);
-
-    const [redisResult, serviceBusResult] = results;
-    if (redisResult.status === "rejected") {
-      server.log.warn(
-        { err: redisResult.reason },
-        "Failed to close Redis client gracefully",
-      );
-    }
-    if (serviceBusResult.status === "rejected") {
-      server.log.warn(
-        { err: serviceBusResult.reason },
-        "Failed to close Service Bus client gracefully",
-      );
-    }
+/**
+ * Creates the application and configures resource cleanup without starting the listener.
+ *
+ * @param config - Application configuration.
+ * @param packageInfo - Package metadata.
+ * @returns The configured application server.
+ */
+export const createApp = async (
+  config: Config,
+  packageInfo: PackageInfo,
+): Promise<{ server: FastifyInstance }> => {
+  const server = fastify({
+    trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
   });
+  const lifecycle = createResourceLifecycle(server);
 
-  return { server };
+  try {
+    server.addHook("onClose", lifecycle.cleanupResources);
+    server.register(formbody);
+
+    const clients = await createClients(config, lifecycle.registerCleanup);
+    const adapters = await createAdapters(config, clients);
+    const useCases = createUseCases(adapters);
+    const middlewares = createAuthenticationMiddlewares(
+      adapters.sessionCosmosAdapter,
+    );
+
+    mountHealthChecks(server, packageInfo, adapters);
+    mountRoutes({ server, config, adapters, useCases, middlewares });
+    server.addHook("onRequest", normalizeClientIpHook);
+
+    return { server };
+  } catch (error) {
+    await lifecycle.cleanupResources();
+    await lifecycle.closeServer();
+    throw error;
+  }
 };
