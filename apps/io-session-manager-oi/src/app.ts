@@ -397,6 +397,7 @@ const createAdapters = async (
  */
 const createUseCases = (
   adapters: Awaited<ReturnType<typeof createAdapters>>,
+  config: Pick<Config, "TEST_LOGIN_FISCAL_CODES_COMPRESSED">,
 ) => {
   const reserveUseCase = makeReserveUseCase({
     auxiliaryDataPort: adapters.auxiliaryStorageAdapter,
@@ -413,6 +414,7 @@ const createUseCases = (
     lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
     lollipopPort: adapters.fetchLollipopAdapter,
     lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
+    isTestUser: (fiscalCode) => config.TEST_LOGIN_FISCAL_CODES_COMPRESSED.has(fiscalCode),
   });
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
@@ -642,7 +644,7 @@ export const createApp = async (
 
     const clients = await createClients(config, lifecycle.registerCleanup);
     const adapters = await createAdapters(config, clients);
-    const useCases = createUseCases(adapters);
+    const useCases = createUseCases(adapters, config);
     const middlewares = createAuthenticationMiddlewares(
       adapters.sessionCosmosAdapter,
     );

@@ -1,4 +1,5 @@
 import {
+  type FiscalCode,
   GenericError,
   type NonEmptyString,
   NotFoundError,
@@ -62,6 +63,7 @@ type Dependencies = {
   lollipopActivationPort: LollipopActivationPort;
   lollipopPort: LollipopPort;
   lollipopRevocationPort: LollipopRevocationPort;
+  isTestUser: (fiscalCode: FiscalCode) => boolean;
 };
 
 // ---------------------------------------------
@@ -141,6 +143,7 @@ export const makeActivateUserSessionUseCase =
     // This is needed to ensure that the user profile exists before creating a new session.
     const getOrCreateProfileResult = await getOrCreateProfile({
       profilePort: deps.profilePort,
+      isTestUser: deps.isTestUser,
     })(input.sessionToken);
 
     if (getOrCreateProfileResult.isErr()) {
@@ -309,7 +312,10 @@ const invalidatePreviousUserState =
   };
 
 const getOrCreateProfile =
-  (deps: { profilePort: ProfilePort }) =>
+  (deps: {
+    profilePort: ProfilePort;
+    isTestUser: (fiscalCode: FiscalCode) => boolean;
+  }) =>
   async (
     input: NewSessionToken,
   ): Promise<Result<UserProfile & { isNew: boolean }, GenericError>> => {
@@ -334,6 +340,7 @@ const getOrCreateProfile =
       fiscalCode: input.fiscalCode,
       isEmailValidated: false,
       email: input.spidEmail,
+      isTestProfile: deps.isTestUser(input.fiscalCode),
     };
 
     const createProfileResult = await deps.profilePort.create(newUserProfile);
