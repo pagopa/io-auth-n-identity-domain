@@ -1,5 +1,11 @@
 # @pagopa/redis
 
+## 0.4.1
+
+### Patch Changes
+
+- 28a0d26: Add app lifecycle cleanup and tests
+
 ## 0.4.0
 
 ### Minor Changes
