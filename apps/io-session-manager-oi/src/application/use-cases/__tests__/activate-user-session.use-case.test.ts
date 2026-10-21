@@ -94,6 +94,7 @@ const notificationPort: NotificationPort = {
   deleteInstallation: mockDeleteInstallation,
 };
 
+const mockIsTestUser = vi.fn().mockReturnValue(false);
 const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   sessionPort: SessionPortMock,
   profilePort: ProfilePortMock,
@@ -105,6 +106,7 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
     platformInternalPort: PlatformInternalPortMock,
   }),
   notificationPort,
+  isTestUser: mockIsTestUser,
 });
 
 const assertionRef = "a-lollipop-assertion-ref" as LollipopAssertionRef;
@@ -269,9 +271,23 @@ describe("makeActivateUserSessionUseCase", () => {
         fiscalCode: aFiscalCode,
         isEmailValidated: false,
         email: undefined,
+        isTestProfile: false,
       });
       expect(mockNotifyLogin).not.toHaveBeenCalled();
       expectLoginEvent();
+    });
+
+    it("flags the new profile as test profile for test users", async () => {
+      mockGetProfile.mockResolvedValueOnce(err(aNotFoundError));
+      mockIsTestUser.mockReturnValueOnce(true);
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(mockIsTestUser).toHaveBeenCalledWith(aFiscalCode);
+      expect(mockProfileCreate).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ isTestProfile: true }),
+      );
     });
 
     it("creates the profile and notifies login when a spid email is provided", async () => {
@@ -284,6 +300,7 @@ describe("makeActivateUserSessionUseCase", () => {
         fiscalCode: aFiscalCode,
         isEmailValidated: false,
         email: anEmailAddress,
+        isTestProfile: false,
       });
       expect(mockNotifyLogin).toHaveBeenCalledExactlyOnceWith({
         fiscalCode: aFiscalCode,

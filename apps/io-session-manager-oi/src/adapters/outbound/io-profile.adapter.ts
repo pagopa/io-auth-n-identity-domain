@@ -105,6 +105,7 @@ export const createIoProfileAdapter = (config: {
         body: {
           email: newProfile.email,
           is_email_validated: newProfile.isEmailValidated,
+          is_test_profile: newProfile.isTestProfile,
         },
       });
 
