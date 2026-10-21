@@ -1,4 +1,4 @@
-import type { NonEmptyString } from "@pagopa/hexagonal-core";
+import type { FiscalCode, NonEmptyString } from "@pagopa/hexagonal-core";
 import type {
   LollipopAssertionRef,
   LollipopAssertionType,
@@ -9,4 +9,7 @@ export type IdentityAssertion = {
   rawAssertion: NonEmptyString;
   assertion: Document;
   type: LollipopAssertionType;
+  claims: {
+    fiscalCode: FiscalCode;
+  };
 };
