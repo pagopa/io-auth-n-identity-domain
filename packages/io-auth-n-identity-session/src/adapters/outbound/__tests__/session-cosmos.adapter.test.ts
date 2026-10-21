@@ -143,13 +143,14 @@ const aDbActiveSessionResource = {
 
 const userSession = makeContainerMock();
 const activeSession = makeContainerMock();
-activeSession.itemMock.read.mockResolvedValue({
+
+activeSession.itemMock.read = vi.fn(async () => ({
   resource: aDbActiveSessionResource,
   statusCode: 200,
-});
-activeSession.itemMock.delete.mockResolvedValue({
+}));
+activeSession.itemMock.delete = vi.fn(async () => ({
   statusCode: 204,
-});
+}));
 
 const client = makeClientMock((id) =>
   id === USER_SESSION_CONTAINER_ID ? userSession : activeSession,
@@ -163,7 +164,7 @@ const adapter = new SessionCosmosAdapter(
 
 describe("SessionCosmosAdapter", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   // -------------------------------------------------------------------------
@@ -566,7 +567,9 @@ describe("SessionCosmosAdapter", () => {
     });
 
     it("GIVEN active session etag different from the one just read (412 Precondition Failed) WHEN delete is called THEN still deletes the token items", async () => {
-      activeSession.itemMock.delete.mockRejectedValueOnce({ code: 412 });
+      activeSession.itemMock.delete.mockRejectedValueOnce(
+        makeErrorResponse(412),
+      );
 
       userSession.bulk
         .mockResolvedValueOnce([
@@ -580,6 +583,12 @@ describe("SessionCosmosAdapter", () => {
       const result = await adapter.delete(aSessionWithHashedTokens);
 
       expect(result).toEqual(ok(undefined));
+      expect(activeSession.itemMock.delete).toHaveBeenCalledWith({
+        accessCondition: {
+          type: "IfMatch",
+          condition: aBaseCosmosResource._etag,
+        },
+      });
       expect(userSession.bulk).toHaveBeenCalledTimes(2);
     });
 
@@ -720,6 +729,8 @@ describe("SessionCosmosAdapter", () => {
       expect(result).toEqual(ok(undefined));
       expect(userSession.query).not.toHaveBeenCalled();
       expect(userSession.itemMock.delete).not.toHaveBeenCalled();
+      expect(userSession.bulk).not.toHaveBeenCalled();
+      expect(activeSession.itemMock.delete).not.toHaveBeenCalled();
     });
 
     it("GIVEN an active session read error WHEN invalidatePreviousSession is called THEN returns GenericError", async () => {
@@ -824,6 +835,65 @@ describe("SessionCosmosAdapter", () => {
       const result = await adapter.invalidatePreviousSession(aFiscalCode);
 
       expect(result).toEqual(err(expect.any(GenericError)));
+    });
+
+    it.each([
+      { code: 404, description: "already deleted (404 Not Found)" },
+      {
+        code: 412,
+        description:
+          "etag different from the one just read (412 Precondition Failed)",
+      },
+    ])(
+      "GIVEN active session $description WHEN invalidatePreviousSession is called THEN returns the previous token",
+      async ({ code }) => {
+        activeSession.itemMock.read.mockResolvedValueOnce({
+          resource: aDbActiveSessionResource,
+          statusCode: 200,
+        });
+        userSession.fetchAll.mockResolvedValueOnce({
+          resources: [{ id: COSMOS_SESSION_PREFIX + aHashedSessionToken }],
+        });
+        userSession.bulk.mockResolvedValueOnce([{ statusCode: 204 }]);
+        activeSession.itemMock.delete.mockRejectedValueOnce(
+          makeErrorResponse(code),
+        );
+
+        const result = await adapter.invalidatePreviousSession(aFiscalCode);
+
+        expect(result).toEqual(
+          ok({
+            sessionId: aSessionId,
+            hashedSessionToken: aHashedSessionToken,
+          }),
+        );
+        expect(userSession.bulk).toHaveBeenCalledTimes(1);
+        expect(activeSession.itemMock.delete).toHaveBeenCalledWith({
+          accessCondition: {
+            type: "IfMatch",
+            condition: aBaseCosmosResource._etag,
+          },
+        });
+      },
+    );
+
+    it("GIVEN active session deletion fails WHEN invalidatePreviousSession is called THEN returns GenericError", async () => {
+      activeSession.itemMock.read.mockResolvedValueOnce({
+        resource: aDbActiveSessionResource,
+        statusCode: 200,
+      });
+      userSession.fetchAll.mockResolvedValueOnce({
+        resources: [{ id: COSMOS_SESSION_PREFIX + aHashedSessionToken }],
+      });
+      userSession.bulk.mockResolvedValueOnce([{ statusCode: 204 }]);
+      activeSession.itemMock.delete.mockRejectedValueOnce(
+        makeErrorResponse(500),
+      );
+
+      const result = await adapter.invalidatePreviousSession(aFiscalCode);
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+      expect(userSession.bulk).toHaveBeenCalledTimes(1);
     });
   });
 });
