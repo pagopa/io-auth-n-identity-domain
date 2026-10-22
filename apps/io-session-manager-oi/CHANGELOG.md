@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.32.0
+
+### Minor Changes
+
+- 59267e8: Optional Authentication middleware
+
 ## 0.31.0
 
 ### Minor Changes
