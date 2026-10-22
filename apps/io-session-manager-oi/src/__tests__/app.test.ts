@@ -72,6 +72,7 @@ vi.mock("../adapters/outbound/openid-client.adapter.js", () => ({
 }));
 vi.mock("../middlewares/authentication/index.js");
 vi.mock("../adapters/inbound/fastify/callback.handler.js");
+vi.mock("../adapters/inbound/fastify/fast-login.handler.js");
 vi.mock("../adapters/inbound/fastify/generate-nonce.handler.js", () => ({
   mountGenerateNonceHandler: mocks.mountGenerateNonce,
 }));

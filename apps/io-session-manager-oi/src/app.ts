@@ -403,6 +403,7 @@ const createAdapters = async (
  */
 const createUseCases = (
   adapters: Awaited<ReturnType<typeof createAdapters>>,
+  config: Config,
 ) => {
   const reserveUseCase = makeReserveUseCase({
     auxiliaryDataPort: adapters.auxiliaryStorageAdapter,
@@ -429,15 +430,15 @@ const createUseCases = (
   });
 
   const fastLoginUseCase = makeFastLoginUseCase({
-    fastLoginPort: fastLoginAdapter,
-    blockedUsersPort: blockedUsersAdapter,
+    fastLoginPort: adapters.fastLoginAdapter,
+    blockedUsersPort: adapters.blockedUsersAdapter,
     generateFastLoginLollipopParamsUseCase:
       makeGenerateFastLoginLollipopParamsUseCase({
-        lollipopPort: fetchLollipopAdapter,
-        lollipopActivationPort: lollipopActivationCosmosAdapter,
+        lollipopPort: adapters.fetchLollipopAdapter,
+        lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
       }),
     refreshUserSessionUseCase: makeRefreshUserSessionUseCase({
-      sessionPort: sessionCosmosAdapter,
+      sessionPort: adapters.sessionCosmosAdapter,
     }),
     enabled: config.FF_FAST_LOGIN,
   });
@@ -454,6 +455,7 @@ const createUseCases = (
 
   return {
     reserveUseCase,
+    fastLoginUseCase,
     handleOidcCallbackUseCase,
     getSessionUseCase,
     getUserForFimsUseCase,
@@ -591,11 +593,11 @@ const mountRoutes = ({
   mountFastLoginHandler(server, {
     middlewares: {
       optionalSessionMiddleware: optionalSessionMiddleware(
-        authenticateSessionMiddleware,
+        middlewares.authenticateSessionMiddleware,
       ),
       extractIpMiddleware,
     },
-    useCase: fastLoginUseCase,
+    useCase: useCases.fastLoginUseCase,
   });
 
   mountCallbackHandler(server, {
@@ -672,7 +674,7 @@ export const createApp = async (
 
     const clients = await createClients(config, lifecycle.registerCleanup);
     const adapters = await createAdapters(config, clients);
-    const useCases = createUseCases(adapters);
+    const useCases = createUseCases(adapters, config);
     const middlewares = createAuthenticationMiddlewares(
       adapters.sessionCosmosAdapter,
     );
