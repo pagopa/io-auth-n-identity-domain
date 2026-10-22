@@ -60,7 +60,7 @@ export const makeRefreshUserSessionUseCase =
       spidLevel: sessionToken.spidLevel,
       spidEmail: sessionToken.spidEmail,
       sessionId: activeSession.sessionId,
-      loginType: sessionToken.loginType,
+      loginType: "LV",
     });
 
     const hashedSessionTokens = toHashedSessionTokens(plainSessionTokens);
