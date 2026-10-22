@@ -20,14 +20,16 @@ import type { TokenIntrospectionStrategy } from "./strategies/token-introspectio
 import type { TokenParsingStrategy } from "./strategies/token-parsing.strategy.js";
 import type { TokenTransportStrategy } from "./strategies/token-transport.strategy.js";
 
+export type AuthenticationContext<T extends TokenType> = {
+  session: BaseSession;
+  sessionId: SessionId;
+  sessionToken: AuthToken[T]["type"];
+};
+
 export type AuthenticationMiddleware<T extends TokenType> =
   HttpRequestMiddleware<
     EmptyHttpMiddlewareContext,
-    {
-      session: BaseSession;
-      sessionId: SessionId;
-      sessionToken: AuthToken[T]["type"];
-    },
+    AuthenticationContext<T>,
     AuthenticationError | GenericError
   >;
 
