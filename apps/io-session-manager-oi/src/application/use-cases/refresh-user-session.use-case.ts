@@ -63,7 +63,15 @@ export const makeRefreshUserSessionUseCase =
       loginType: "LV",
     });
 
-    const hashedSessionTokens = toHashedSessionTokens(plainSessionTokens);
+    const hashedSessionTokens = toHashedSessionTokens({
+      ...plainSessionTokens,
+      expirationDate: new Date(
+        Math.min(
+          plainSessionTokens.expirationDate.getTime(),
+          activeSession.expirationDate.getTime(),
+        ),
+      ),
+    });
     const refreshResult = await deps.sessionPort.refresh(hashedSessionTokens);
 
     if (refreshResult.isErr()) {
