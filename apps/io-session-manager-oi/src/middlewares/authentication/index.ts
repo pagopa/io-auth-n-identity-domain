@@ -1,5 +1,6 @@
 export {
   AuthenticationMiddlewareFactory,
+  type AuthenticationContext,
   type AuthenticationMiddleware,
 } from "./authentication.middleware.js";
 export { TokenIntrospectionStrategyFactory } from "./factories/token-introspection.factory.js";
