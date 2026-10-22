@@ -1,5 +1,8 @@
 import { GenericError } from "@pagopa/hexagonal-core";
-import { newPlainSessionTokens } from "@pagopa/io-auth-n-identity-session/entities";
+import {
+  newPlainSessionTokens,
+  toHashedSessionTokens,
+} from "@pagopa/io-auth-n-identity-session/entities";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -68,7 +71,29 @@ describe("makeRefreshUserSessionUseCase", () => {
       loginType: "LV",
     });
     expect(mockRefresh).toHaveBeenCalledExactlyOnceWith(
-      aSessionWithHashedTokens,
+      toHashedSessionTokens({
+        ...aSessionWithPlainSSOTokens,
+        expirationDate: new Date("2026-01-01T00:00:00.000Z"),
+      }),
+    );
+  });
+
+  it("preserves the generated token expiry when it precedes the active session expiry", async () => {
+    const generatedTokenExpirationDate = new Date("2025-06-01T00:00:00.000Z");
+    mockNewPlainSessionTokens.mockResolvedValueOnce({
+      ...aSessionWithPlainSSOTokens,
+      expirationDate: generatedTokenExpirationDate,
+    });
+
+    await refreshUserSessionUseCase({
+      sessionToken: aNewSessionTokenInput,
+    });
+
+    expect(mockRefresh).toHaveBeenCalledExactlyOnceWith(
+      toHashedSessionTokens({
+        ...aSessionWithPlainSSOTokens,
+        expirationDate: generatedTokenExpirationDate,
+      }),
     );
   });
 
