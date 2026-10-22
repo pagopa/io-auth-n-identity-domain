@@ -1,3 +1,4 @@
+import { FiscalCodeBrand } from "@pagopa/hexagonal-core";
 import { z } from "zod";
 
 import {
@@ -44,6 +45,9 @@ import {
   TechnicalLockedProfilesProductionConfigSchema,
 } from "./technical-locked-profiles.vo.js";
 import { ZendeskConfigSchema } from "./zendesk.vo.js";
+
+// This is a temporary workaround to ensure that the branded types are included in the type system.
+const _brands = [FiscalCodeBrand];
 
 /**
  * Fields shared by every runtime environment.

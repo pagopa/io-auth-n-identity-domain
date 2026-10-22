@@ -1,6 +1,10 @@
-import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import { gunzipSync } from "node:zlib";
+
+import { FiscalCodeBrand, FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import { z } from "zod";
+
+// This is a temporary workaround to ensure that the branded types are included in the type system.
+const _brands = [FiscalCodeBrand];
 
 // Gzipped (then base64-encoded) comma-separated list of test users' fiscal codes
 const CompressedFiscalCodeSet = z
