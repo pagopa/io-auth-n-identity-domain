@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   aBaseSession,
+  aGenericError,
   aPlainSessionToken,
   aSessionId,
 } from "../../../../../__mocks__/session.mocks.js";
@@ -65,5 +66,19 @@ describe("optionalSessionMiddleware", () => {
       context: {},
       payload,
     });
+  });
+
+  it("propagates unexpected errors instead of continuing anonymously", async () => {
+    const authenticateSession = vi
+      .fn()
+      .mockResolvedValueOnce(
+        err(aGenericError),
+      ) as unknown as AuthenticationMiddleware<"session">;
+    const middleware = optionalSessionMiddleware(authenticateSession);
+    const payload = { headers: { authorization: "******" } };
+
+    const result = await middleware({ context: {}, payload });
+
+    expect(result).toEqual(err(aGenericError));
   });
 });
