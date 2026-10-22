@@ -180,6 +180,18 @@ export class SessionCosmosAdapter
   public async refresh(
     session: SessionWithHashedSSOTokens,
   ): Promise<Result<SessionWithHashedSSOTokens, ConflictError | GenericError>> {
+    // Delete the user session in the session tokens container
+    const deleteSessionInfoResult = await this.deleteSessionTokensForSessionId(
+      session.sessionId,
+    );
+    if (deleteSessionInfoResult.isErr()) {
+      // If an error occurs during the deletion of the old session,
+      // we only propagate it if it's not a NotFoundError
+      if (!(deleteSessionInfoResult.error instanceof NotFoundError)) {
+        return err(deleteSessionInfoResult.error);
+      }
+    }
+
     const result = await this.createSessionTokens(session);
     if (result.isErr()) {
       return err(result.error);
@@ -309,6 +321,38 @@ export class SessionCosmosAdapter
   // ---------------------------------------------------------------------------
   // Private Methods
   // ---------------------------------------------------------------------------
+
+  private async deleteSessionTokensForSessionId(
+    sessionId: NonEmptyString,
+  ): Promise<Result<void, GenericError | NotFoundError>> {
+    const { resources: items } = await this.sessionTokenContainer.items
+      .query<{
+        id: string;
+      }>(
+        {
+          query: "SELECT c.id FROM c WHERE c.sessionId = @sessionId",
+          parameters: [{ name: "@sessionId", value: sessionId }],
+        },
+        { partitionKey: sessionId },
+      )
+      .fetchAll();
+
+    if (items.length === 0) {
+      return err(new NotFoundError("SessionTokens", "Not Found"));
+    }
+
+    const deleteResult = await this.bulkDeleteItems(
+      this.sessionTokenContainer,
+      items.map((item: { id: string }) => item.id as NonEmptyString),
+      sessionId as unknown as NonEmptyString,
+      "UserSession" as NonEmptyString,
+    );
+    if (deleteResult.isErr()) {
+      return err(deleteResult.error);
+    }
+
+    return ok();
+  }
 
   private async createSessionTokens(
     sessionTokens: SessionWithHashedSSOTokens,

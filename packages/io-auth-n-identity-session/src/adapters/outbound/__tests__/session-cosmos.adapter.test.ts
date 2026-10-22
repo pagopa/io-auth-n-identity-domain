@@ -436,17 +436,76 @@ describe("SessionCosmosAdapter", () => {
 
   describe("refresh", () => {
     it("GIVEN a valid session WHEN refresh is called THEN recreates the tokens and returns the session", async () => {
+      userSession.fetchAll.mockResolvedValueOnce({
+        resources: [
+          { id: COSMOS_SESSION_PREFIX + aHashedSessionToken },
+          { id: COSMOS_PAGOPA_PREFIX + aHashedPagopaToken },
+          { id: COSMOS_BPD_PREFIX + aHashedBpdToken },
+          { id: COSMOS_FIMS_PREFIX + aHashedFimsToken },
+          { id: COSMOS_ZENDESK_PREFIX + aHashedZendeskToken },
+        ],
+      });
+      userSession.bulk.mockResolvedValueOnce(
+        Array.from({ length: 5 }, () => ({ statusCode: 204 })),
+      );
       userSession.batch.mockResolvedValueOnce({ code: 200, result: [] });
 
       const result = await adapter.refresh(aSessionWithHashedTokens);
 
       expect(result).toEqual(ok(aSessionWithHashedTokens));
+      expect(userSession.query).toHaveBeenCalledWith(
+        {
+          query: "SELECT c.id FROM c WHERE c.sessionId = @sessionId",
+          parameters: [{ name: "@sessionId", value: aSessionId }],
+        },
+        { partitionKey: aSessionId },
+      );
+      expect(userSession.bulk).toHaveBeenCalledOnce();
+      expect(
+        userSession.bulk.mock.calls[0][0].map(
+          (operation: { id: string }) => operation.id,
+        ),
+      ).toEqual([
+        COSMOS_SESSION_PREFIX + aHashedSessionToken,
+        COSMOS_PAGOPA_PREFIX + aHashedPagopaToken,
+        COSMOS_BPD_PREFIX + aHashedBpdToken,
+        COSMOS_FIMS_PREFIX + aHashedFimsToken,
+        COSMOS_ZENDESK_PREFIX + aHashedZendeskToken,
+      ]);
       expect(userSession.batch).toHaveBeenCalledOnce();
       // refresh must not touch the active session container
       expect(activeSession.create).not.toHaveBeenCalled();
     });
 
+    it("GIVEN no existing tokens WHEN refresh is called THEN creates the tokens", async () => {
+      userSession.fetchAll.mockResolvedValueOnce({ resources: [] });
+      userSession.batch.mockResolvedValueOnce({ code: 200, result: [] });
+
+      const result = await adapter.refresh(aSessionWithHashedTokens);
+
+      expect(result).toEqual(ok(aSessionWithHashedTokens));
+      expect(userSession.bulk).not.toHaveBeenCalled();
+      expect(userSession.batch).toHaveBeenCalledOnce();
+    });
+
+    it("GIVEN deletion of existing tokens fails WHEN refresh is called THEN returns GenericError without recreating tokens", async () => {
+      userSession.fetchAll.mockResolvedValueOnce({
+        resources: [{ id: COSMOS_SESSION_PREFIX + aHashedSessionToken }],
+      });
+      userSession.bulk.mockResolvedValueOnce([{ statusCode: 500 }]);
+
+      const result = await adapter.refresh(aSessionWithHashedTokens);
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+      expect(userSession.bulk).toHaveBeenCalledOnce();
+      expect(userSession.batch).not.toHaveBeenCalled();
+    });
+
     it("GIVEN a conflict WHEN refresh is called THEN returns ConflictError", async () => {
+      userSession.fetchAll.mockResolvedValueOnce({
+        resources: [{ id: COSMOS_SESSION_PREFIX + aHashedSessionToken }],
+      });
+      userSession.bulk.mockResolvedValueOnce([{ statusCode: 204 }]);
       userSession.batch.mockResolvedValueOnce({
         code: 207,
         result: [{ statusCode: 409 }],
