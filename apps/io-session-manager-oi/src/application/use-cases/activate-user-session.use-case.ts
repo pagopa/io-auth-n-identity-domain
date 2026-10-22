@@ -1,5 +1,4 @@
 import {
-  type FiscalCode,
   GenericError,
   type NonEmptyString,
   NotFoundError,
@@ -28,6 +27,7 @@ import type { LollipopRevocationPort } from "../../domain/ports/outbound/lollipo
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import { NotificationPort } from "../../domain/ports/outbound/notification.port.js";
 import type { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
+import type { TestUserPort } from "../../domain/ports/outbound/test-user.port.js";
 import type { IdentityAssertion } from "../../domain/value-objects/assertion.vo.js";
 import {
   type ClientSessionToken,
@@ -64,7 +64,7 @@ type Dependencies = {
   lollipopRevocationPort: LollipopRevocationPort;
   invalidateSessionTokenCacheUseCase: InvalidateSessionTokenCacheUseCase;
   notificationPort: NotificationPort;
-  isTestUser: (fiscalCode: FiscalCode) => boolean;
+  testUserPort: TestUserPort;
 };
 
 // ---------------------------------------------
@@ -144,7 +144,7 @@ export const makeActivateUserSessionUseCase =
     // This is needed to ensure that the user profile exists before creating a new session.
     const getOrCreateProfileResult = await getOrCreateProfile({
       profilePort: deps.profilePort,
-      isTestUser: deps.isTestUser,
+      testUserPort: deps.testUserPort,
     })(input.sessionToken);
 
     if (getOrCreateProfileResult.isErr()) {
@@ -304,7 +304,7 @@ const invalidatePreviousUserState =
 const getOrCreateProfile =
   (deps: {
     profilePort: ProfilePort;
-    isTestUser: (fiscalCode: FiscalCode) => boolean;
+    testUserPort: TestUserPort;
   }) =>
   async (
     input: NewSessionToken,
@@ -330,7 +330,7 @@ const getOrCreateProfile =
       fiscalCode: input.fiscalCode,
       isEmailValidated: false,
       email: input.spidEmail,
-      isTestProfile: deps.isTestUser(input.fiscalCode),
+      isTestProfile: deps.testUserPort.isTestUser(input.fiscalCode),
     };
 
     const createProfileResult = await deps.profilePort.create(newUserProfile);

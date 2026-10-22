@@ -37,6 +37,7 @@ import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-servi
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
+import { InMemoryTestUserAdapter } from "./adapters/outbound/in-memory-test-user.adapter.js";
 import { createIoFastLoginAdapter } from "./adapters/outbound/io-fast-login.adapter.js";
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
 import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
@@ -376,6 +377,8 @@ const createAdapters = async (
   const oneIdIdentityAssertionFetcherAdapter =
     new OneIdIdentityAssertionFetcherAdapter(config);
 
+  const testUserAdapter = new InMemoryTestUserAdapter(config);
+
   return {
     lockedProfilesAdapter,
     technicalLockedProfilesAdapter,
@@ -393,6 +396,7 @@ const createAdapters = async (
     authEventServiceBusAdapter,
     lollipopActivationCosmosAdapter,
     oneIdIdentityAssertionFetcherAdapter,
+    testUserAdapter,
   };
 };
 
@@ -404,7 +408,6 @@ const createAdapters = async (
  */
 const createUseCases = (
   adapters: Awaited<ReturnType<typeof createAdapters>>,
-  config: Pick<Config, "TEST_LOGIN_FISCAL_CODES_COMPRESSED">,
 ) => {
   const reserveUseCase = makeReserveUseCase({
     auxiliaryDataPort: adapters.auxiliaryStorageAdapter,
@@ -428,7 +431,7 @@ const createUseCases = (
     lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
     invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
     notificationPort: adapters.notificationStorageQueueAdapter,
-    isTestUser: (fiscalCode) => config.TEST_LOGIN_FISCAL_CODES_COMPRESSED.has(fiscalCode),
+    testUserPort: adapters.testUserAdapter,
   });
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
@@ -673,7 +676,7 @@ export const createApp = async (
 
     const clients = await createClients(config, lifecycle.registerCleanup);
     const adapters = await createAdapters(config, clients);
-    const useCases = createUseCases(adapters, config);
+    const useCases = createUseCases(adapters);
     const middlewares = createAuthenticationMiddlewares(
       adapters.sessionCosmosAdapter,
     );

@@ -25,6 +25,11 @@ import {
   resetProfilePortMock,
 } from "../../../__mocks__/ports/profile-port.mock.js";
 import {
+  mockIsTestUser,
+  resetTestUserPortMock,
+  TestUserPortMock,
+} from "../../../__mocks__/ports/test-user-port.mock.js";
+import {
   mockInvalidatePreviousSession,
   mockCreate as mockSessionCreate,
   resetSessionPortMock,
@@ -94,7 +99,6 @@ const notificationPort: NotificationPort = {
   deleteInstallation: mockDeleteInstallation,
 };
 
-const mockIsTestUser = vi.fn().mockReturnValue(false);
 const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   sessionPort: SessionPortMock,
   profilePort: ProfilePortMock,
@@ -106,7 +110,7 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
     platformInternalPort: PlatformInternalPortMock,
   }),
   notificationPort,
-  isTestUser: mockIsTestUser,
+  testUserPort: TestUserPortMock,
 });
 
 const assertionRef = "a-lollipop-assertion-ref" as LollipopAssertionRef;
@@ -124,6 +128,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   resetSessionPortMock();
   resetProfilePortMock();
+  resetTestUserPortMock();
   resetPlatformInternalPortMock();
   resetAuthEventPortMock();
   vi.mocked(newSessionId).mockResolvedValue(aSessionId);
