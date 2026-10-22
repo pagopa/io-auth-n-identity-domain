@@ -135,7 +135,7 @@ export const makeHandleOidcCallbackUseCase =
         case "ValidationError":
           return err(new GenericError(error.message));
         case "GenericError":
-          return assertionResult;
+          return err(error);
         default: {
           const _exhaustiveCheck: never = error;
           return err(new GenericError("Unhandled error"));
