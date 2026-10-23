@@ -274,7 +274,9 @@ export class SessionCosmosAdapter
   ): Promise<Result<void, GenericError | NotFoundError>> {
     // First delete the ActiveSession, since fiscalCode is needed
     //  to perform the deletion.
-    const activeSession = await this.getActiveSession(sessionTokens.fiscalCode);
+    const activeSession = await this.findActiveSession(
+      sessionTokens.fiscalCode,
+    );
 
     if (
       activeSession.isErr() &&
