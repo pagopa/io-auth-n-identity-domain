@@ -40,6 +40,24 @@ const getRedisPort = (
 const getRedisScheme = (enableTls: boolean): string =>
   enableTls ? DEFAULT_TLS_SCHEME : DEFAULT_NON_TLS_SCHEME;
 
+const connectRedisClient = async <
+  TClient extends { connect(): Promise<unknown>; destroy(): void },
+>(
+  client: TClient,
+): Promise<TClient> => {
+  try {
+    await client.connect();
+    return client;
+  } catch (error) {
+    try {
+      client.destroy();
+    } catch {
+      throw error;
+    }
+    throw error;
+  }
+};
+
 /**
  * Builds and connects a `node-redis` single-node client with sensible defaults.
  *
@@ -86,8 +104,7 @@ export const createRedisNodeClient = async (
     url: `${scheme}${hostname}:${port}`,
   });
 
-  await client.connect();
-  return client;
+  return connectRedisClient(client);
 };
 
 /**
@@ -145,8 +162,7 @@ export const createRedisManagedIdentityNodeClient = async (
     credentialsProvider: provider,
   });
 
-  await client.connect();
-  return client;
+  return connectRedisClient(client);
 };
 
 /**
@@ -202,8 +218,7 @@ export const createRedisClusterClient = async (
     useReplicas: true,
   });
 
-  await client.connect();
-  return client;
+  return connectRedisClient(client);
 };
 
 /**
@@ -268,6 +283,5 @@ export const createRedisManagedIdentityClusterClient = async (
     useReplicas: true,
   });
 
-  await client.connect();
-  return client;
+  return connectRedisClient(client);
 };

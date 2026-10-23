@@ -1,6 +1,6 @@
 {
   "name": "io-session-manager-oi",
-  "version": "0.30.1",
+  "version": "0.32.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -43,6 +43,7 @@
     "@pagopa/redis": "workspace:^",
     "@xmldom/xmldom": "catalog:",
     "dotenv": "catalog:",
+    "fast-xml-validator": "^1.4.2",
     "fastify": "catalog:",
     "jsonwebtoken": "catalog:",
     "neverthrow": "catalog:",

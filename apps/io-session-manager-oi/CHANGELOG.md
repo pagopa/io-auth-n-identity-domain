@@ -1,5 +1,23 @@
 # io-session-manager-oi
 
+## 0.32.0
+
+### Minor Changes
+
+- 59267e8: Optional Authentication middleware
+
+## 0.31.0
+
+### Minor Changes
+
+- 28a0d26: Add SAML assertion consistency checks- #904
+
+### Patch Changes
+
+- 28a0d26: Add app lifecycle cleanup and tests
+- Updated dependencies [28a0d26]
+  - @pagopa/redis@0.4.1
+
 ## 0.30.1
 
 ### Patch Changes
