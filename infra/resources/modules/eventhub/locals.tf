@@ -101,12 +101,15 @@ locals {
     allowed_sources = {
       subnet_ids = []
       ips = [
-        "18.192.147.151", # PDND (old)
-        "18.159.227.69",  # PDND (old)
-        "3.126.198.129",  # PDND (old)
-        "52.29.215.8",    # PDND
-        "63.181.230.22",  # PDND
-        "52.29.74.207"    # PDND
+        "18.192.147.151", # PDND (1-st batch)
+        "18.159.227.69",  # PDND (1-st batch)
+        "3.126.198.129",  # PDND (1-st batch)
+        "52.29.215.8",    # PDND (2-nd batch)
+        "63.181.230.22",  # PDND (2-nd batch)
+        "52.29.74.207",   # PDND (2-nd batch)
+        "63.184.191.90",  # PDND (3-rd batch)
+        "63.184.95.69",   # PDND (3-rd batch)
+        "93.189.21.104"   # PDND (3-rd batch)
       ]
     }
   }
