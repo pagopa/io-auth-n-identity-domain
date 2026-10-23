@@ -25,6 +25,7 @@ import type { UserProfile } from "../../domain/entities/profile.entity.js";
 import type { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import type { LollipopRevocationPort } from "../../domain/ports/outbound/lollipop-revocation.port.js";
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
+import { NotificationPort } from "../../domain/ports/outbound/notification.port.js";
 import type { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
 import type { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import type { IdentityAssertion } from "../../domain/value-objects/assertion.vo.js";
@@ -62,6 +63,7 @@ type Dependencies = {
   lollipopActivationPort: LollipopActivationPort;
   lollipopPort: LollipopPort;
   lollipopRevocationPort: LollipopRevocationPort;
+  notificationPort: NotificationPort;
 };
 
 // ---------------------------------------------
@@ -229,11 +231,19 @@ const invalidatePreviousUserState =
     platformInternalPort: PlatformInternalPort;
     lollipopActivationPort: LollipopActivationPort;
     lollipopRevocationPort: LollipopRevocationPort;
+    notificationPort: NotificationPort;
   }) =>
   async (
     fiscalCode: NewSessionToken["fiscalCode"],
   ): Promise<Result<void, GenericError>> => {
-    // TODO: invalidate installation id
+    // Fire-and-forget deletion of the installation id associated with the fiscal code
+    deps.notificationPort.deleteInstallation(fiscalCode).then((result) => {
+      if (result.isErr()) {
+        console.error(
+          `Failed to invalidate installation id: ${result.error.message}`,
+        );
+      }
+    });
 
     /************************************************************/
     /* Revoke the lollipop associated with the previous session */

@@ -1,8 +1,7 @@
 import { FiscalCode, GenericError } from "@pagopa/hexagonal-core";
-import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { Result } from "neverthrow";
 
-export interface NotificationPort extends HealthCheckOutboundPort {
+export interface NotificationPort {
   /**
    * Deletes the installation for the given user.
    *

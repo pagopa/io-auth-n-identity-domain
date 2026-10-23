@@ -413,6 +413,7 @@ const createUseCases = (
     lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
     lollipopPort: adapters.fetchLollipopAdapter,
     lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
+    notificationPort: adapters.notificationStorageQueueAdapter,
   });
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
