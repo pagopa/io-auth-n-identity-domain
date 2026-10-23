@@ -33,6 +33,12 @@ const headers = FastLoginInputDTO.headers.parse({
   "signature-input": `sig1=(\"x-pagopa-lollipop-original-method\");created=1618884475;keyid=\"${THUMBPRINT}\";nonce=\"a-nonce\"`,
   signature: "sig1=:AAAA:",
 });
+const signedRequest = {
+  originalMethod: headers["x-pagopa-lollipop-original-method"],
+  originalUrl: headers["x-pagopa-lollipop-original-url"],
+  signatureInput: headers["signature-input"],
+  signature: headers.signature,
+};
 
 const publicKey = Buffer.from(
   JSON.stringify({
@@ -89,19 +95,19 @@ beforeEach(() => {
 describe("makeFastLoginUseCase", () => {
   it("resolves Lollipop data, calls Fast Login, then creates and returns a session", async () => {
     const result = await makeUseCase()({
-      headers,
+      ...signedRequest,
       clientIp: CLIENT_IP,
       currentUser: FISCAL_CODE as FiscalCode,
     });
     expect(resolveLollipop).toHaveBeenCalledExactlyOnceWith({
-      signatureInput: headers["signature-input"],
+      signatureInput: signedRequest.signatureInput,
       currentUser: FISCAL_CODE,
     });
     expect(fastLogin).toHaveBeenCalledExactlyOnceWith({
       originalMethod: "POST",
       originalUrl: "https://api.example.test/session",
       signature: "sig1=:AAAA:",
-      signatureInput: headers["signature-input"],
+      signatureInput: signedRequest.signatureInput,
       assertionRef: ASSERTION_REF,
       assertionType: "SAML",
       authJWT: "a-bearer-token",
@@ -126,7 +132,7 @@ describe("makeFastLoginUseCase", () => {
     isBlocked.mockResolvedValueOnce(ok(true));
 
     const result = await makeUseCase()({
-      headers,
+      ...signedRequest,
       clientIp: CLIENT_IP,
       currentUser: FISCAL_CODE as FiscalCode,
     });
@@ -137,11 +143,14 @@ describe("makeFastLoginUseCase", () => {
   });
 
   it("continues Fast Login without current session context", async () => {
-    const result = await makeUseCase()({ headers, clientIp: CLIENT_IP });
+    const result = await makeUseCase()({
+      ...signedRequest,
+      clientIp: CLIENT_IP,
+    });
 
     expect(result).toEqual(ok({ token: "session-id.token" }));
     expect(resolveLollipop).toHaveBeenCalledExactlyOnceWith({
-      signatureInput: headers["signature-input"],
+      signatureInput: signedRequest.signatureInput,
     });
     expect(activateSession).toHaveBeenCalledExactlyOnceWith({
       sessionToken: expect.objectContaining({
@@ -157,7 +166,7 @@ describe("makeFastLoginUseCase", () => {
       ok({ ...lollipop, userId: OTHER_FISCAL_CODE }),
     );
     const result = await makeUseCase()({
-      headers,
+      ...signedRequest,
       clientIp: CLIENT_IP,
       currentUser: FISCAL_CODE as FiscalCode,
     });
@@ -169,7 +178,7 @@ describe("makeFastLoginUseCase", () => {
 
   it("rejects Fast Login when the boolean feature flag is disabled", async () => {
     const result = await makeUseCase(false)({
-      headers,
+      ...signedRequest,
       clientIp: CLIENT_IP,
     });
 

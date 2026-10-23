@@ -26,15 +26,11 @@ import type {
 const ASSERTION_NAMESPACE = "urn:oasis:names:tc:SAML:2.0:assertion";
 const DEFAULT_SPID_LEVEL = "https://www.spid.gov.it/SpidL2";
 
-type FastLoginHeaders = {
-  "x-pagopa-lollipop-original-method": FastLoginParams["originalMethod"];
-  "x-pagopa-lollipop-original-url": FastLoginParams["originalUrl"];
-  "signature-input": FastLoginParams["signatureInput"];
-  signature: FastLoginParams["signature"];
-};
-
 type FastLoginInput = {
-  headers: FastLoginHeaders;
+  originalMethod: FastLoginParams["originalMethod"];
+  originalUrl: FastLoginParams["originalUrl"];
+  signatureInput: FastLoginParams["signatureInput"];
+  signature: FastLoginParams["signature"];
   clientIp: FastLoginParams["clientIp"];
   currentUser?: FastLoginParams["userId"];
 };
@@ -134,14 +130,14 @@ export const makeFastLoginUseCase =
     FastLoginOutput,
     AuthenticationError | ForbiddenError | GenericError | ValidationError
   > =>
-  async ({ headers, clientIp, currentUser }) => {
+  async (input) => {
     if (!deps.enabled) {
       return err(new ForbiddenError());
     }
 
     const lollipopResult = await deps.generateFastLoginLollipopParamsUseCase({
-      signatureInput: headers["signature-input"],
-      ...(currentUser ? { currentUser } : {}),
+      signatureInput: input.signatureInput,
+      ...(input.currentUser ? { currentUser: input.currentUser } : {}),
     });
     if (lollipopResult.isErr()) {
       return err(lollipopResult.error);
@@ -149,14 +145,14 @@ export const makeFastLoginUseCase =
     const lollipop = lollipopResult.value;
 
     const fastLoginResult = await deps.fastLoginPort.fastLogin({
-      originalMethod: headers["x-pagopa-lollipop-original-method"],
-      originalUrl: headers["x-pagopa-lollipop-original-url"],
-      signature: headers.signature,
-      signatureInput: headers["signature-input"],
+      originalMethod: input.originalMethod,
+      originalUrl: input.originalUrl,
+      signature: input.signature,
+      signatureInput: input.signatureInput,
       assertionRef: lollipop.assertionRef,
       assertionType: lollipop.assertionType,
       authJWT: lollipop.authJWT,
-      clientIp,
+      clientIp: input.clientIp,
       publicKey: lollipop.publicKey,
       userId: lollipop.userId,
     });
@@ -189,7 +185,7 @@ export const makeFastLoginUseCase =
     }
 
     const sessionResult = await deps.refreshUserSessionUseCase({
-      sessionToken: { ...user, ipAddress: clientIp, loginType: "LV" },
+      sessionToken: { ...user, ipAddress: input.clientIp, loginType: "LV" },
     });
     if (sessionResult.isErr()) {
       return err(sessionResult.error);

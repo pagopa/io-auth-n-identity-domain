@@ -71,7 +71,10 @@ export const mountFastLoginHandler = (
       const currentUser =
         "session" in context ? context.session.fiscalCode : undefined;
       return {
-        headers: req.headers,
+        originalMethod: req.headers["x-pagopa-lollipop-original-method"],
+        originalUrl: req.headers["x-pagopa-lollipop-original-url"],
+        signatureInput: req.headers["signature-input"],
+        signature: req.headers["signature"],
         clientIp: context.ipAddress,
         ...(currentUser ? { currentUser } : {}),
       };
