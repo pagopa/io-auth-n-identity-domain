@@ -1,0 +1,38 @@
+meta {
+  name: Test Login
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{IO_SESSION_MANAGER_BASE_URL}}/api/auth/v1/test-login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "{{TEST_USER_USERNAME}}",
+    "password": "{{TEST_USER_PASSWORD}}"
+  }
+}
+
+script:post-response {
+  if(res.status !== 200) {
+    return 0;
+  }
+  
+  const token = res.body["token"];
+  if (!token) {
+    throw new Error("Missing 'token' in response body");
+  }
+  
+  bru.setEnvVar("sessionManagerLegacyBearerToken", token);
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
