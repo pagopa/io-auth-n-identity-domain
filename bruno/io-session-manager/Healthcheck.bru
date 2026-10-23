@@ -1,0 +1,11 @@
+meta {
+  name: Healthcheck
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{IO_SESSION_MANAGER_BASE_URL}}/api/auth/v1/healthcheck
+  body: none
+  auth: none
+}

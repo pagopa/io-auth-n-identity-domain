@@ -14,6 +14,26 @@ import {
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import { err, ok, Result } from "neverthrow";
+import zod from "zod";
+
+// ---------------------------------------------------------------------------
+// Cosmos DB Records
+// ---------------------------------------------------------------------------
+
+export const CosmosDBResourceSchema = zod.object({
+  /** System generated property. The resource ID (_rid) is a unique identifier that is also hierarchical per the resource stack on the resource model. It is used internally for placement and navigation of the item resource. */
+  _rid: zod.string(),
+  /** System generated property. Specifies the last updated timestamp of the resource. The value is a timestamp. */
+  _ts: zod.number(),
+  /** System generated property. The unique addressable URI for the resource. */
+  _self: zod.string(),
+  /** System generated property. Represents the resource etag required for optimistic concurrency control. */
+  _etag: zod.string(),
+});
+
+// ---------------------------------------------------------------------------
+// Cosmos DB Base Adapter
+// ---------------------------------------------------------------------------
 
 export abstract class CosmosBaseAdapter {
   protected readonly client: CosmosClient;
@@ -88,14 +108,12 @@ export abstract class CosmosBaseAdapter {
         .read<JSONObject>();
 
       if (statusCode === 404 || !item) {
-        return err(
-          new NotFoundError(entityName, `${entityName} not found (id: ${id})`),
-        );
+        return err(new NotFoundError(entityName, `${entityName} not found`));
       }
       if (statusCode !== 200) {
         return err(
           new GenericError(
-            `Error reading item (id: ${id}): status code ${statusCode}`,
+            `Error reading item of type ${entityName}: status code ${statusCode}`,
           ),
         );
       }

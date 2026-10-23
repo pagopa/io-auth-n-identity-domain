@@ -17,13 +17,14 @@ script:pre-request {
 }
 
 script:post-response {
-  console.log("OneID authorize location response ---->",res.getHeader("location"))
+  console.log("↓ OneID authorize location response ↓")
+  console.log(res.getHeader("location"))
 }
 
 settings {
   encodeUrl: false
   timeout: 0
-  forwardAuthorizationHeader: false
   followRedirects: false
   maxRedirects: 5
+  forwardAuthorizationHeader: false
 }

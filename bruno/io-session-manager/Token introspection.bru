@@ -1,0 +1,17 @@
+meta {
+  name: Token introspection
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{IO_SESSION_MANAGER_BASE_URL}}/api/auth/v1/user-identity
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
