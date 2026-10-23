@@ -11,4 +11,5 @@ export const IoFastLoginConfigSchema = z.object({
   IO_FAST_LOGIN_API_URL: HttpUrlCodec, // TODO: rename to IO_FAST_LOGIN_API_URL_ORIGIN (since that is what we currently expect)
   IO_FAST_LOGIN_API_BASE_PATH: NonEmptyStringSchema,
   IO_FAST_LOGIN_API_KEY: NonEmptyStringSchema,
+  FF_FAST_LOGIN: z.stringbool(),
 });

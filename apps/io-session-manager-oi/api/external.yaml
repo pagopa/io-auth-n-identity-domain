@@ -34,6 +34,15 @@ components:
         - title
         - type
       description: RFC 7807 Problem Details for HTTP APIs. See https://www.rfc-editor.org/rfc/rfc7807.
+    FastLoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+      required:
+        - token
+      description: The newly created session token.
     GenerateNonceResponse:
       type: object
       properties:
@@ -228,6 +237,82 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
         "401":
           description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /fast-login:
+    post:
+      description: Validates the signed Lollipop request through Fast Login and creates a new user session.
+      operationId: fastLogin
+      security: []
+      summary: Create a session using Lollipop Fast Login
+      tags:
+        - oidc
+      parameters:
+        - schema:
+            type: string
+            description: Optional bearer session token used to bind Fast Login to the current user.
+          required: false
+          description: Optional bearer session token used to bind Fast Login to the current user.
+          name: authorization
+          in: header
+        - schema:
+            type: string
+            enum:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+          required: true
+          name: x-pagopa-lollipop-original-method
+          in: header
+        - schema:
+            type: string
+            pattern: ^https:\/\/
+          required: true
+          name: x-pagopa-lollipop-original-url
+          in: header
+        - schema:
+            type: string
+            pattern: ^(?:sig\d+=[^,]*)(?:,\s*(?:sig\d+=[^,]*))*$
+          required: true
+          name: signature-input
+          in: header
+        - schema:
+            type: string
+            pattern: ^((sig[0-9]+)=:[A-Za-z0-9+/=]*:(, ?)?)+$
+          required: true
+          name: signature
+          in: header
+      responses:
+        "200":
+          description: Fast Login succeeded and a new session was created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FastLoginResponse"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Invalid or expired Lollipop request, invalid session token, blocked user, or mismatched user identity.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Fast Login is disabled or the Lollipop key is not authorized.
           content:
             application/problem+json:
               schema:

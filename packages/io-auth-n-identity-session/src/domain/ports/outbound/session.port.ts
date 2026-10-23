@@ -107,6 +107,17 @@ export interface SessionPort {
   >;
 
   /**
+   * Finds the Session Token hash currently associated with a session ID.
+   * @param sessionId The session tracking ID.
+   * @returns The session token hash with the session ID if found, undefined otherwise. In case of an error, a GenericError is returned.
+   */
+  readonly findSessionTokenBySessionId: (
+    sessionId: SessionId,
+  ) => Promise<
+    Result<HashedSessionTokenWithSessionId | undefined, GenericError>
+  >;
+
+  /**
    * Deletes an existing session.
    * @param sessionTokens The current session tokens.
    * @returns An error if the session is not found or a generic error happens.
@@ -125,4 +136,12 @@ export interface SessionPort {
   ) => Promise<
     Result<HashedSessionTokenWithSessionId | undefined, GenericError>
   >;
+
+  /**
+   * Gets the active session for a fiscal code.
+   * @param fiscalCode The fiscal code associated with the active session.
+   */
+  readonly findActiveSession: (
+    fiscalCode: FiscalCode,
+  ) => Promise<Result<ActiveSession, NotFoundError | GenericError>>;
 }
