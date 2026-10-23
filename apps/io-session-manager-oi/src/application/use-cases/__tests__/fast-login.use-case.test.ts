@@ -9,7 +9,7 @@ import {
   LollipopAssertionRefSchema,
   LollipopAssertionTypeSchema,
 } from "@pagopa/io-auth-n-identity-domain";
-import { ok } from "neverthrow";
+import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FastLoginInputDTO } from "../../../adapters/inbound/dtos/fast-login.dto.js";
@@ -174,6 +174,17 @@ describe("makeFastLoginUseCase", () => {
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
     expect(isBlocked).not.toHaveBeenCalled();
     expect(activateSession).not.toHaveBeenCalled();
+  });
+
+  it("returns AuthenticationError when the session refresh fails authentication", async () => {
+    activateSession.mockResolvedValueOnce(err(new AuthenticationError()));
+
+    const result = await makeUseCase()({
+      ...signedRequest,
+      clientIp: CLIENT_IP,
+    });
+
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
   });
 
   it("rejects Fast Login when the boolean feature flag is disabled", async () => {

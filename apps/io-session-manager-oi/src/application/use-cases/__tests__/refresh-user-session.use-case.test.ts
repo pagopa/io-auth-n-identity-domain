@@ -1,4 +1,4 @@
-import { GenericError } from "@pagopa/hexagonal-core";
+import { AuthenticationError, GenericError } from "@pagopa/hexagonal-core";
 import {
   newPlainSessionTokens,
   toHashedSessionTokens,
@@ -19,6 +19,7 @@ import {
   aGenericError,
   aHashedSessionTokenWithSessionId,
   aNewSessionTokenInput,
+  aNotFoundError,
   aSessionId,
   aSessionWithHashedTokens,
   aSessionWithPlainSSOTokens,
@@ -182,14 +183,32 @@ describe("makeRefreshUserSessionUseCase", () => {
     );
   });
 
-  it("returns an error when there is no active session to refresh", async () => {
+  it("returns AuthenticationError when there is no active session to refresh", async () => {
+    mockFindActiveSession.mockResolvedValueOnce(err(aNotFoundError));
+
+    const result = await refreshUserSessionUseCase({
+      sessionToken: aNewSessionTokenInput,
+    });
+
+    expect(result).toEqual(err(expect.any(AuthenticationError)));
+    expect(mockFindSessionTokenBySessionId).not.toHaveBeenCalled();
+    expect(mockRefresh).not.toHaveBeenCalled();
+  });
+
+  it("returns GenericError when the active session lookup fails", async () => {
     mockFindActiveSession.mockResolvedValueOnce(err(aGenericError));
 
     const result = await refreshUserSessionUseCase({
       sessionToken: aNewSessionTokenInput,
     });
 
-    expect(result).toEqual(err(expect.any(GenericError)));
+    expect(result).toEqual(
+      err(
+        new GenericError(
+          `Failed to retrieve active session: ${aGenericError.message}`,
+        ),
+      ),
+    );
     expect(mockRefresh).not.toHaveBeenCalled();
   });
 

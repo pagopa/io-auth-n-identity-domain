@@ -1,4 +1,5 @@
 import {
+  AuthenticationError,
   GenericError,
   NonEmptyString,
   NotFoundError,
@@ -36,7 +37,7 @@ type RefreshUserSessionUseCaseInput = {
 export type RefreshUserSessionUseCase = UseCase<
   RefreshUserSessionUseCaseInput,
   ClientSessionToken,
-  GenericError
+  AuthenticationError | GenericError
 >;
 
 type Dependencies = {
@@ -54,6 +55,10 @@ export const makeRefreshUserSessionUseCase =
       sessionToken.fiscalCode,
     );
     if (activeSessionResult.isErr()) {
+      // Fast Login can only refresh a session that is still active
+      if (activeSessionResult.error instanceof NotFoundError) {
+        return err(new AuthenticationError());
+      }
       return err(
         new GenericError(
           `Failed to retrieve active session: ${activeSessionResult.error.message}`,
