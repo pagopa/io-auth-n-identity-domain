@@ -1,5 +1,12 @@
 # io-session-manager-oi
 
+## 0.32.1
+
+### Patch Changes
+
+- Updated dependencies [1f0e1cc]
+  - @pagopa/io-auth-n-identity-session@0.10.1
+
 ## 0.32.0
 
 ### Minor Changes

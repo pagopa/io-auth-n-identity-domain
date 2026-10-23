@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.10.1
+
+### Patch Changes
+
+- 1f0e1cc: Check sessionId and etag before deleting the active session, remove PII from errors
+
 ## 0.10.0
 
 ### Minor Changes
