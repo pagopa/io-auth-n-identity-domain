@@ -69,6 +69,7 @@ import {
   TokenParsingStrategyFactory,
   TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
+import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
 
 /** Provides a lazily initialized credential shared by the Azure clients. */
 class AzureCredential {
@@ -412,14 +413,18 @@ const createUseCases = (
     oidcConfigPort: adapters.oidcConfigAdapter,
   });
 
+  const invalidateSessionTokenCacheUseCase = makeInvalidateSessionTokenCacheUseCase({
+    platformInternalPort: adapters.platformInternalAdapter,
+  });
+
   const activateUserSessionUseCase = makeActivateUserSessionUseCase({
     sessionPort: adapters.sessionCosmosAdapter,
     profilePort: adapters.profileAdapter,
-    platformInternalPort: adapters.platformInternalAdapter,
     authEventPort: adapters.authEventServiceBusAdapter,
     lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
     lollipopPort: adapters.fetchLollipopAdapter,
     lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
+    invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
   });
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
@@ -439,6 +444,7 @@ const createUseCases = (
       }),
     refreshUserSessionUseCase: makeRefreshUserSessionUseCase({
       sessionPort: adapters.sessionCosmosAdapter,
+      invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
     }),
     enabled: config.FF_FAST_LOGIN,
   });

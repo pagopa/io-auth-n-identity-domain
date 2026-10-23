@@ -10,6 +10,7 @@ export const mockFindByFimsToken = vi.fn();
 export const mockFindByPagopaToken = vi.fn();
 export const mockFindByZendeskToken = vi.fn();
 export const mockFindActiveSession = vi.fn();
+export const mockFindSessionTokenBySessionId = vi.fn();
 export const mockCreate = vi.fn();
 export const mockRefresh = vi.fn();
 export const mockDelete = vi.fn();
@@ -22,6 +23,7 @@ export const SessionPortMock: SessionPort = {
   findByPagopaToken: mockFindByPagopaToken,
   findByZendeskToken: mockFindByZendeskToken,
   findActiveSession: mockFindActiveSession,
+  findSessionTokenBySessionId: mockFindSessionTokenBySessionId,
   create: mockCreate,
   refresh: mockRefresh,
   delete: mockDelete,
@@ -35,6 +37,7 @@ export const resetSessionPortMock = () => {
   mockFindByPagopaToken.mockReset();
   mockFindByZendeskToken.mockReset();
   mockFindActiveSession.mockReset();
+  mockFindSessionTokenBySessionId.mockReset().mockResolvedValue(ok(undefined));
   mockRefresh.mockReset();
   mockDelete.mockReset();
   mockCreate.mockReset().mockResolvedValue(ok(aSessionWithHashedTokens));

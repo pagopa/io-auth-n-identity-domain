@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   mockFindActiveSession,
+  mockFindSessionTokenBySessionId,
   mockRefresh,
   resetSessionPortMock,
   SessionPortMock,
@@ -16,6 +17,7 @@ import {
   aClientSessionToken,
   aFiscalCode,
   aGenericError,
+  aHashedSessionTokenWithSessionId,
   aNewSessionTokenInput,
   aSessionId,
   aSessionWithHashedTokens,
@@ -32,13 +34,16 @@ vi.mock("@pagopa/io-auth-n-identity-session/entities", async (importActual) => {
 });
 
 const mockNewPlainSessionTokens = vi.mocked(newPlainSessionTokens);
+const mockInvalidateSessionTokenCache = vi.fn();
 const refreshUserSessionUseCase = makeRefreshUserSessionUseCase({
   sessionPort: SessionPortMock,
+  invalidateSessionTokenCacheUseCase: mockInvalidateSessionTokenCache,
 });
 
 beforeEach(() => {
   vi.clearAllMocks();
   resetSessionPortMock();
+  mockInvalidateSessionTokenCache.mockResolvedValue(ok(undefined));
   mockFindActiveSession.mockResolvedValue(
     ok({
       fiscalCode: aFiscalCode,
@@ -76,6 +81,69 @@ describe("makeRefreshUserSessionUseCase", () => {
         expirationDate: new Date("2026-01-01T00:00:00.000Z"),
       }),
     );
+    expect(mockFindSessionTokenBySessionId).toHaveBeenCalledExactlyOnceWith(
+      aSessionId,
+    );
+  });
+
+  it("skips cache invalidation when there is no previous session token", async () => {
+    const result = await refreshUserSessionUseCase({
+      sessionToken: aNewSessionTokenInput,
+    });
+
+    expect(result).toEqual(ok(aClientSessionToken));
+    expect(mockInvalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockRefresh).toHaveBeenCalledOnce();
+  });
+
+  it("invalidates the previous session token cache before refreshing", async () => {
+    mockFindSessionTokenBySessionId.mockResolvedValueOnce(
+      ok(aHashedSessionTokenWithSessionId),
+    );
+
+    const result = await refreshUserSessionUseCase({
+      sessionToken: aNewSessionTokenInput,
+    });
+
+    expect(result).toEqual(ok(aClientSessionToken));
+    expect(mockInvalidateSessionTokenCache).toHaveBeenCalledExactlyOnceWith(
+      aHashedSessionTokenWithSessionId,
+    );
+    expect(
+      mockInvalidateSessionTokenCache.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockRefresh.mock.invocationCallOrder[0]);
+  });
+
+  it("returns an error and does not refresh when the previous session token lookup fails", async () => {
+    mockFindSessionTokenBySessionId.mockResolvedValueOnce(err(aGenericError));
+
+    const result = await refreshUserSessionUseCase({
+      sessionToken: aNewSessionTokenInput,
+    });
+
+    expect(result).toEqual(
+      err(
+        new GenericError(
+          `Failed to retrieve previous session token: ${aGenericError.message}`,
+        ),
+      ),
+    );
+    expect(mockInvalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockRefresh).not.toHaveBeenCalled();
+  });
+
+  it("returns an error and does not refresh when cache invalidation fails", async () => {
+    mockFindSessionTokenBySessionId.mockResolvedValueOnce(
+      ok(aHashedSessionTokenWithSessionId),
+    );
+    mockInvalidateSessionTokenCache.mockResolvedValueOnce(err(aGenericError));
+
+    const result = await refreshUserSessionUseCase({
+      sessionToken: aNewSessionTokenInput,
+    });
+
+    expect(result).toEqual(err(aGenericError));
+    expect(mockRefresh).not.toHaveBeenCalled();
   });
 
   it("preserves the generated token expiry when it precedes the active session expiry", async () => {

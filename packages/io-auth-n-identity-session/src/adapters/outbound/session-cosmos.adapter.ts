@@ -200,6 +200,60 @@ export class SessionCosmosAdapter
     return ok(session);
   }
 
+  public async findSessionTokenBySessionId(
+    sessionId: SessionId,
+  ): Promise<
+    Result<HashedSessionTokenWithSessionId | undefined, GenericError>
+  > {
+    try {
+      const { resources: items } = await this.sessionTokenContainer.items
+        .query<{ id: string }>(
+          {
+            query:
+              "SELECT c.id FROM c WHERE c.sessionId = @sessionId AND STARTSWITH(c.id, @prefix)",
+            parameters: [
+              { name: "@sessionId", value: sessionId },
+              { name: "@prefix", value: COSMOS_SESSION_PREFIX },
+            ],
+          },
+          { partitionKey: sessionId },
+        )
+        .fetchAll();
+
+      const parsed =
+        items.length > 0
+          ? HashedSessionTokenSchema.safeParse(
+              items[0].id.slice(COSMOS_SESSION_PREFIX.length),
+            )
+          : undefined;
+
+      if (!parsed) {
+        return ok(undefined);
+      }
+
+      if (!parsed.success) {
+        return err(
+          new GenericError(
+            `Error parsing session token from DB: ${parsed.error.message}`,
+          ),
+        );
+      }
+
+      return ok({
+        sessionId,
+        hashedSessionToken: parsed.data,
+      });
+    } catch (error) {
+      return this.handleCosmosError(
+        error,
+        "UserSession" as NonEmptyString,
+        "findSessionTokenBySessionId" as NonEmptyString,
+      ).mapErr((e) =>
+        e instanceof ConflictError ? new GenericError(e.message) : e,
+      );
+    }
+  }
+
   public async delete(
     sessionTokens: SessionWithHashedSSOTokens,
   ): Promise<Result<void, GenericError | NotFoundError>> {

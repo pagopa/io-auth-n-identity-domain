@@ -1,4 +1,9 @@
-import { GenericError, NonEmptyString, UseCase } from "@pagopa/hexagonal-core";
+import {
+  GenericError,
+  NonEmptyString,
+  NotFoundError,
+  UseCase,
+} from "@pagopa/hexagonal-core";
 import { IPString } from "@pagopa/io-auth-n-identity-domain";
 import { LoginType } from "@pagopa/io-auth-n-identity-session";
 import {
@@ -13,6 +18,7 @@ import {
   ClientSessionToken,
   ClientSessionTokenSchema,
 } from "../../domain/value-objects/client-session-token.vo.js";
+import { InvalidateSessionTokenCacheUseCase } from "./invalidate-session-token-cache.use-case.js";
 
 export type SessionInfo = Omit<
   BaseSession,
@@ -23,7 +29,7 @@ export type SessionInfo = Omit<
   identityProvider: NonEmptyString;
 };
 
-export type RefreshUserSessionUseCaseInput = {
+type RefreshUserSessionUseCaseInput = {
   sessionToken: SessionInfo;
 };
 
@@ -35,11 +41,15 @@ export type RefreshUserSessionUseCase = UseCase<
 
 type Dependencies = {
   sessionPort: SessionPort;
+  invalidateSessionTokenCacheUseCase: InvalidateSessionTokenCacheUseCase;
 };
 
 export const makeRefreshUserSessionUseCase =
   (deps: Dependencies): RefreshUserSessionUseCase =>
   async ({ sessionToken }) => {
+    /*****************************************************/
+    /* Find the Active Session for the given fiscal code */
+    /*****************************************************/
     const activeSessionResult = await deps.sessionPort.findActiveSession(
       sessionToken.fiscalCode,
     );
@@ -50,8 +60,36 @@ export const makeRefreshUserSessionUseCase =
         ),
       );
     }
-
     const activeSession = activeSessionResult.value;
+
+    /************************************************************/
+    /* Invalidate the previous session token cache if it exists */
+    /************************************************************/
+    const previousSessionTokensResult =
+      await deps.sessionPort.findSessionTokenBySessionId(
+        activeSession.sessionId,
+      );
+
+    if (previousSessionTokensResult.isErr()) {
+      return err(
+        new GenericError(
+          `Failed to retrieve previous session token: ${previousSessionTokensResult.error.message}`,
+        ),
+      );
+    }
+
+    if (previousSessionTokensResult.value) {
+      const invalidationResult = await deps.invalidateSessionTokenCacheUseCase(
+        previousSessionTokensResult.value,
+      );
+      if (invalidationResult.isErr()) {
+        return err(invalidationResult.error);
+      }
+    }
+
+    /*************************************/
+    /* Generate new plain session tokens */
+    /*************************************/
     const plainSessionTokens = await newPlainSessionTokens({
       fiscalCode: sessionToken.fiscalCode,
       name: sessionToken.name,
@@ -72,6 +110,10 @@ export const makeRefreshUserSessionUseCase =
         ),
       ),
     });
+
+    /***************************************/
+    /* Refresh the session with new tokens */
+    /***************************************/
     const refreshResult = await deps.sessionPort.refresh(hashedSessionTokens);
 
     if (refreshResult.isErr()) {

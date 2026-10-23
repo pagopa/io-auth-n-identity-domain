@@ -518,6 +518,69 @@ describe("SessionCosmosAdapter", () => {
   });
 
   // -------------------------------------------------------------------------
+  // findSessionTokenBySessionId
+  // -------------------------------------------------------------------------
+
+  describe("findSessionTokenBySessionId", () => {
+    it("GIVEN a session token item WHEN findSessionTokenBySessionId is called THEN returns the hashed token with the session ID", async () => {
+      userSession.fetchAll.mockResolvedValueOnce({
+        resources: [{ id: COSMOS_SESSION_PREFIX + aHashedSessionToken }],
+      });
+
+      const result = await adapter.findSessionTokenBySessionId(aSessionId);
+
+      expect(result).toEqual(
+        ok({ sessionId: aSessionId, hashedSessionToken: aHashedSessionToken }),
+      );
+      expect(userSession.query).toHaveBeenCalledWith(
+        {
+          query:
+            "SELECT c.id FROM c WHERE c.sessionId = @sessionId AND STARTSWITH(c.id, @prefix)",
+          parameters: [
+            { name: "@sessionId", value: aSessionId },
+            { name: "@prefix", value: COSMOS_SESSION_PREFIX },
+          ],
+        },
+        { partitionKey: aSessionId },
+      );
+    });
+
+    it("GIVEN no session token item WHEN findSessionTokenBySessionId is called THEN returns undefined", async () => {
+      userSession.fetchAll.mockResolvedValueOnce({ resources: [] });
+
+      const result = await adapter.findSessionTokenBySessionId(aSessionId);
+
+      expect(result).toEqual(ok(undefined));
+    });
+
+    it("GIVEN an invalid hash WHEN findSessionTokenBySessionId is called THEN returns GenericError", async () => {
+      userSession.fetchAll.mockResolvedValueOnce({
+        resources: [{ id: `${COSMOS_SESSION_PREFIX}invalid` }],
+      });
+
+      const result = await adapter.findSessionTokenBySessionId(aSessionId);
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+    });
+
+    it("GIVEN the query throws WHEN findSessionTokenBySessionId is called THEN returns GenericError", async () => {
+      userSession.fetchAll.mockRejectedValueOnce(makeErrorResponse(500));
+
+      const result = await adapter.findSessionTokenBySessionId(aSessionId);
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+    });
+
+    it("GIVEN a conflict error is thrown WHEN findSessionTokenBySessionId is called THEN maps it to GenericError", async () => {
+      userSession.fetchAll.mockRejectedValueOnce(makeErrorResponse(409));
+
+      const result = await adapter.findSessionTokenBySessionId(aSessionId);
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // delete
   // -------------------------------------------------------------------------
 

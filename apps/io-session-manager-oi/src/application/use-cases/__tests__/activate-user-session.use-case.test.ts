@@ -52,6 +52,7 @@ import {
 import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
 import type { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
 import { makeActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
+import { makeInvalidateSessionTokenCacheUseCase } from "../invalidate-session-token-cache.use-case.js";
 
 // -----------------------------------------------------
 // Setup mocks
@@ -91,11 +92,13 @@ const lollipopRevocationPort = {
 const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   sessionPort: SessionPortMock,
   profilePort: ProfilePortMock,
-  platformInternalPort: PlatformInternalPortMock,
   authEventPort: AuthEventPortMock,
   lollipopActivationPort: lollipopActivationPortMock,
   lollipopPort,
   lollipopRevocationPort,
+  invalidateSessionTokenCacheUseCase: makeInvalidateSessionTokenCacheUseCase({
+    platformInternalPort: PlatformInternalPortMock,
+  }),
 });
 
 const assertionRef = "a-lollipop-assertion-ref" as LollipopAssertionRef;
