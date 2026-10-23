@@ -420,17 +420,28 @@ export class SessionCosmosAdapter
   private async deleteSessionTokensForSessionId(
     sessionId: NonEmptyString,
   ): Promise<Result<void, GenericError | NotFoundError>> {
-    const { resources: items } = await this.sessionTokenContainer.items
-      .query<{
-        id: string;
-      }>(
-        {
-          query: "SELECT c.id FROM c WHERE c.sessionId = @sessionId",
-          parameters: [{ name: "@sessionId", value: sessionId }],
-        },
-        { partitionKey: sessionId },
-      )
-      .fetchAll();
+    let items: ReadonlyArray<{ id: string }>;
+    try {
+      ({ resources: items } = await this.sessionTokenContainer.items
+        .query<{
+          id: string;
+        }>(
+          {
+            query: "SELECT c.id FROM c WHERE c.sessionId = @sessionId",
+            parameters: [{ name: "@sessionId", value: sessionId }],
+          },
+          { partitionKey: sessionId },
+        )
+        .fetchAll());
+    } catch (error) {
+      return this.handleCosmosError(
+        error,
+        "UserSession" as NonEmptyString,
+        "deleteSessionTokensForSessionId" as NonEmptyString,
+      ).mapErr((e) =>
+        e instanceof ConflictError ? new GenericError(e.message) : e,
+      );
+    }
 
     if (items.length === 0) {
       return err(new NotFoundError("SessionTokens", "Not Found"));

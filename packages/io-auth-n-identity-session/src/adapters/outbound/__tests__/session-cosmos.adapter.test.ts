@@ -523,6 +523,16 @@ describe("SessionCosmosAdapter", () => {
       expect(userSession.batch).not.toHaveBeenCalled();
     });
 
+    it("GIVEN the token query throws WHEN refresh is called THEN returns GenericError without recreating tokens", async () => {
+      userSession.fetchAll.mockRejectedValueOnce(makeErrorResponse(500));
+
+      const result = await adapter.refresh(aSessionWithHashedTokens);
+
+      expect(result).toEqual(err(expect.any(GenericError)));
+      expect(userSession.bulk).not.toHaveBeenCalled();
+      expect(userSession.batch).not.toHaveBeenCalled();
+    });
+
     it("GIVEN a conflict WHEN refresh is called THEN returns ConflictError", async () => {
       userSession.fetchAll.mockResolvedValueOnce({
         resources: [{ id: COSMOS_SESSION_PREFIX + aHashedSessionToken }],
