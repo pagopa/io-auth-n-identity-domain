@@ -2,6 +2,7 @@ import { QueueClient } from "@azure/storage-queue";
 import { FiscalCode, GenericError } from "@pagopa/hexagonal-core";
 import { err, ok, Result, ResultAsync } from "neverthrow";
 
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { NotificationPort } from "../../domain/ports/outbound/notification.port.js";
 import { Base64 } from "../../utils/codec/index.js";
 import { Hash } from "../../utils/crypto/index.js";
@@ -9,7 +10,9 @@ import { Hash } from "../../utils/crypto/index.js";
 /**
  * NotificationStorageQueueAdapter is an implementation of the NotificationPort interface that uses Azure Storage Queue to send messages for deleting installations.
  */
-export class NotificationStorageQueueAdapter implements NotificationPort {
+export class NotificationStorageQueueAdapter
+  implements NotificationPort, HealthCheckOutboundPort
+{
   constructor(private readonly queueClient: QueueClient) {}
 
   async healthcheck(): Promise<Result<void, GenericError>> {

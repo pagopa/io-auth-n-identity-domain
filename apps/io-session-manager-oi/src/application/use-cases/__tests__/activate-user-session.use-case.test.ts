@@ -4,7 +4,7 @@ import type { LollipopAssertionRef } from "@pagopa/io-auth-n-identity-domain";
 import { newPlainSessionTokens } from "@pagopa/io-auth-n-identity-session/entities";
 import { newSessionId } from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   AuthEventPortMock,
@@ -51,6 +51,7 @@ import {
 } from "../../../__mocks__/session.mocks.js";
 import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
 import type { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
+import type { NotificationPort } from "../../../domain/ports/outbound/notification.port.js";
 import { makeActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 
 // -----------------------------------------------------
@@ -87,6 +88,10 @@ const mockRequestRevocation = vi.fn();
 const lollipopRevocationPort = {
   requestRevocation: mockRequestRevocation,
 } as unknown as LollipopRevocationPort;
+const mockDeleteInstallation = vi.fn<NotificationPort["deleteInstallation"]>();
+const notificationPort: NotificationPort = {
+  deleteInstallation: mockDeleteInstallation,
+};
 
 const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   sessionPort: SessionPortMock,
@@ -96,6 +101,7 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   lollipopActivationPort: lollipopActivationPortMock,
   lollipopPort,
   lollipopRevocationPort,
+  notificationPort,
 });
 
 const assertionRef = "a-lollipop-assertion-ref" as LollipopAssertionRef;
@@ -131,9 +137,14 @@ beforeEach(() => {
     .mockResolvedValue(ok(undefined));
   mockActivatePubKey.mockReset().mockResolvedValue(ok(assertionRef));
   mockRequestRevocation.mockReset().mockResolvedValue(ok(undefined));
+  mockDeleteInstallation.mockReset().mockResolvedValue(ok(undefined));
   lollipopActivationPortMock.revokeByFiscalCode.mockResolvedValue(
     ok(undefined),
   );
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 const expectLoginEvent = (scenario = "standard") => {
@@ -179,6 +190,12 @@ describe("makeActivateUserSessionUseCase", () => {
     it("returns the client session token and persists the hashed session", async () => {
       const result = await activateUserSession(aNewSessionTokenInput);
       expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(mockDeleteInstallation).toHaveBeenCalledExactlyOnceWith(
+        aFiscalCode,
+      );
+      expect(mockDeleteInstallation.mock.invocationCallOrder[0]).toBeLessThan(
+        lollipopActivationPortMock.getByFiscalCode.mock.invocationCallOrder[0],
+      );
       expect(mockInvalidatePreviousSession).toHaveBeenCalledExactlyOnceWith(
         aFiscalCode,
       );
@@ -274,6 +291,42 @@ describe("makeActivateUserSessionUseCase", () => {
         ipAddress: anIpAddress,
         isEmailValidated: false,
       });
+      expectLoginEvent();
+    });
+  });
+
+  describe("installation invalidation", () => {
+    it("continues login without waiting for installation deletion to complete", async () => {
+      mockDeleteInstallation.mockImplementationOnce(
+        () => new Promise(() => {}),
+      );
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(mockDeleteInstallation).toHaveBeenCalledExactlyOnceWith(
+        aFiscalCode,
+      );
+      expect(mockSessionCreate).toHaveBeenCalledOnce();
+      expectLoginEvent();
+    });
+
+    it("logs installation deletion errors and continues login", async () => {
+      const consoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => undefined);
+      mockDeleteInstallation.mockResolvedValueOnce(err(aGenericError));
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(mockDeleteInstallation).toHaveBeenCalledExactlyOnceWith(
+        aFiscalCode,
+      );
+      expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+        `Failed to invalidate installation id: ${aGenericError.message}`,
+      );
+      expect(mockSessionCreate).toHaveBeenCalledOnce();
       expectLoginEvent();
     });
   });
