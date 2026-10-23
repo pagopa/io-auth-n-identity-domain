@@ -62,30 +62,22 @@ export const makeRefreshUserSessionUseCase =
     }
     const activeSession = activeSessionResult.value;
 
-    /************************************************************/
-    /* Invalidate the previous session token cache if it exists */
-    /************************************************************/
-    const previousSessionTokensResult =
+    /****************************************************************/
+    /* Find the previous session token, before refresh deletes it   */
+    /****************************************************************/
+    const previousSessionTokenResult =
       await deps.sessionPort.findSessionTokenBySessionId(
         activeSession.sessionId,
       );
 
-    if (previousSessionTokensResult.isErr()) {
+    if (previousSessionTokenResult.isErr()) {
       return err(
         new GenericError(
-          `Failed to retrieve previous session token: ${previousSessionTokensResult.error.message}`,
+          `Failed to retrieve previous session token: ${previousSessionTokenResult.error.message}`,
         ),
       );
     }
-
-    if (previousSessionTokensResult.value) {
-      const invalidationResult = await deps.invalidateSessionTokenCacheUseCase(
-        previousSessionTokensResult.value,
-      );
-      if (invalidationResult.isErr()) {
-        return err(invalidationResult.error);
-      }
-    }
+    const previousSessionToken = previousSessionTokenResult.value;
 
     /*************************************/
     /* Generate new plain session tokens */
@@ -122,6 +114,19 @@ export const makeRefreshUserSessionUseCase =
           `Failed to refresh user session: ${refreshResult.error.message}`,
         ),
       );
+    }
+
+    /******************************************************************/
+    /* Invalidate the previous session token cache                    */
+    /* Done after the refresh, so that a concurrent request using the */
+    /* previous token cannot repopulate the cache from the DB.        */
+    /******************************************************************/
+    if (previousSessionToken) {
+      const invalidationResult =
+        await deps.invalidateSessionTokenCacheUseCase(previousSessionToken);
+      if (invalidationResult.isErr()) {
+        return err(invalidationResult.error);
+      }
     }
 
     return ok(
