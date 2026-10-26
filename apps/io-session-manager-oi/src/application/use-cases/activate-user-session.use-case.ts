@@ -25,14 +25,13 @@ import type { UserProfile } from "../../domain/entities/profile.entity.js";
 import type { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import type { LollipopRevocationPort } from "../../domain/ports/outbound/lollipop-revocation.port.js";
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
-import type { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
 import type { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import type { IdentityAssertion } from "../../domain/value-objects/assertion.vo.js";
 import {
   type ClientSessionToken,
   ClientSessionTokenSchema,
-  HashedClientSessionTokenSchema,
 } from "../../domain/value-objects/client-session-token.vo.js";
+import { InvalidateSessionTokenCacheUseCase } from "./invalidate-session-token-cache.use-case.js";
 
 type NewSessionToken = Omit<
   BaseSession,
@@ -57,11 +56,11 @@ export type ActivateUserSessionUseCase = UseCase<
 type Dependencies = {
   sessionPort: SessionPort;
   profilePort: ProfilePort;
-  platformInternalPort: PlatformInternalPort;
   authEventPort: AuthEventPort;
   lollipopActivationPort: LollipopActivationPort;
   lollipopPort: LollipopPort;
   lollipopRevocationPort: LollipopRevocationPort;
+  invalidateSessionTokenCacheUseCase: InvalidateSessionTokenCacheUseCase;
 };
 
 // ---------------------------------------------
@@ -226,9 +225,9 @@ export const makeActivateUserSessionUseCase =
 const invalidatePreviousUserState =
   (deps: {
     sessionPort: SessionPort;
-    platformInternalPort: PlatformInternalPort;
     lollipopActivationPort: LollipopActivationPort;
     lollipopRevocationPort: LollipopRevocationPort;
+    invalidateSessionTokenCacheUseCase: InvalidateSessionTokenCacheUseCase;
   }) =>
   async (
     fiscalCode: NewSessionToken["fiscalCode"],
@@ -280,29 +279,10 @@ const invalidatePreviousUserState =
     /************************************************************************************/
     /* Revoke the previous hashed client session token in the platform-internal service */
     /************************************************************************************/
-    const hashedClientSessionTokenParseResult =
-      HashedClientSessionTokenSchema.safeParse(
-        `${previousHashedSession.sessionId}.${previousHashedSession.hashedSessionToken}`,
-      );
-    // This should never happen, but we check it just in case, to avoid sending an invalid token to the platform-internal service.
-    if (!hashedClientSessionTokenParseResult.success) {
-      return err(
-        new GenericError(
-          `Failed to parse hashed client session token: ${hashedClientSessionTokenParseResult.error.message}`,
-        ),
-      );
-    }
     const cachedSessionInvalidationResult =
-      await deps.platformInternalPort.deleteSession(
-        hashedClientSessionTokenParseResult.data,
-      );
-
+      await deps.invalidateSessionTokenCacheUseCase(previousHashedSession);
     if (cachedSessionInvalidationResult.isErr()) {
-      return err(
-        new GenericError(
-          `Failed to invalidate previous session on proxy: ${cachedSessionInvalidationResult.error.message}`,
-        ),
-      );
+      return err(cachedSessionInvalidationResult.error);
     }
 
     return ok(undefined);

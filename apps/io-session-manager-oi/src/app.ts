@@ -20,10 +20,13 @@ import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
 import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
+import { mountFastLoginHandler } from "./adapters/inbound/fastify/fast-login.handler.js";
 import { mountGenerateNonceHandler } from "./adapters/inbound/fastify/generate-nonce.handler.js";
 import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
+import { extractIpMiddleware } from "./adapters/inbound/fastify/middlewares/extract-ip.middleware.js";
+import { optionalSessionMiddleware } from "./adapters/inbound/fastify/middlewares/optional-session.middleware.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
 import { mountSsoFimsLollipopUserHandler } from "./adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
@@ -45,6 +48,8 @@ import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.j
 import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
 import { TechnicalLockedProfilesDataTableAdapter } from "./adapters/outbound/technical-locked-profiles-data-table.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
+import { makeFastLoginUseCase } from "./application/use-cases/fast-login.use-case.js";
+import { makeGenerateFastLoginLollipopParamsUseCase } from "./application/use-cases/generate-fast-login-lollipop-params.use-case.js";
 import { makeGenerateNonceUseCase } from "./application/use-cases/generate-nonce.use-case.js";
 import { makeGetLollipopUserForFimsUseCase } from "./application/use-cases/get-lollipop-user-for-fims.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
@@ -54,6 +59,7 @@ import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-
 import { makeGetUserForPagopaUseCase } from "./application/use-cases/get-user-for-pagopa.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
+import { makeRefreshUserSessionUseCase } from "./application/use-cases/refresh-user-session.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
@@ -63,6 +69,7 @@ import {
   TokenParsingStrategyFactory,
   TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
+import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
 
 /** Provides a lazily initialized credential shared by the Azure clients. */
 class AzureCredential {
@@ -397,6 +404,7 @@ const createAdapters = async (
  */
 const createUseCases = (
   adapters: Awaited<ReturnType<typeof createAdapters>>,
+  config: Config,
 ) => {
   const reserveUseCase = makeReserveUseCase({
     auxiliaryDataPort: adapters.auxiliaryStorageAdapter,
@@ -405,14 +413,18 @@ const createUseCases = (
     oidcConfigPort: adapters.oidcConfigAdapter,
   });
 
+  const invalidateSessionTokenCacheUseCase = makeInvalidateSessionTokenCacheUseCase({
+    platformInternalPort: adapters.platformInternalAdapter,
+  });
+
   const activateUserSessionUseCase = makeActivateUserSessionUseCase({
     sessionPort: adapters.sessionCosmosAdapter,
     profilePort: adapters.profileAdapter,
-    platformInternalPort: adapters.platformInternalAdapter,
     authEventPort: adapters.authEventServiceBusAdapter,
     lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
     lollipopPort: adapters.fetchLollipopAdapter,
     lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
+    invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
   });
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
@@ -420,6 +432,21 @@ const createUseCases = (
     oidcPort: adapters.oidcExchangeAdapter,
     identityAssertionFetcherPort: adapters.oneIdIdentityAssertionFetcherAdapter,
     activateUserSessionUseCase,
+  });
+
+  const fastLoginUseCase = makeFastLoginUseCase({
+    fastLoginPort: adapters.fastLoginAdapter,
+    blockedUsersPort: adapters.blockedUsersAdapter,
+    generateFastLoginLollipopParamsUseCase:
+      makeGenerateFastLoginLollipopParamsUseCase({
+        lollipopPort: adapters.fetchLollipopAdapter,
+        lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
+      }),
+    refreshUserSessionUseCase: makeRefreshUserSessionUseCase({
+      sessionPort: adapters.sessionCosmosAdapter,
+      invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
+    }),
+    enabled: config.FF_FAST_LOGIN,
   });
 
   const getSessionUseCase = makeGetSessionUseCase({
@@ -434,6 +461,7 @@ const createUseCases = (
 
   return {
     reserveUseCase,
+    fastLoginUseCase,
     handleOidcCallbackUseCase,
     getSessionUseCase,
     getUserForFimsUseCase,
@@ -568,6 +596,16 @@ const mountRoutes = ({
     makeGenerateNonceUseCase(adapters.fastLoginAdapter),
   );
 
+  mountFastLoginHandler(server, {
+    middlewares: {
+      optionalSessionMiddleware: optionalSessionMiddleware(
+        middlewares.authenticateSessionMiddleware,
+      ),
+      extractIpMiddleware,
+    },
+    useCase: useCases.fastLoginUseCase,
+  });
+
   mountCallbackHandler(server, {
     handleOidcCallbackUseCase: useCases.handleOidcCallbackUseCase,
     loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
@@ -642,7 +680,7 @@ export const createApp = async (
 
     const clients = await createClients(config, lifecycle.registerCleanup);
     const adapters = await createAdapters(config, clients);
-    const useCases = createUseCases(adapters);
+    const useCases = createUseCases(adapters, config);
     const middlewares = createAuthenticationMiddlewares(
       adapters.sessionCosmosAdapter,
     );
