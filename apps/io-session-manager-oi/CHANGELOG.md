@@ -1,5 +1,16 @@
 # io-session-manager-oi
 
+## 0.33.0
+
+### Minor Changes
+
+- e7b5869: Fast Login endpoint
+
+### Patch Changes
+
+- Updated dependencies [e7b5869]
+  - @pagopa/io-auth-n-identity-session@0.11.0
+
 ## 0.32.1
 
 ### Patch Changes
