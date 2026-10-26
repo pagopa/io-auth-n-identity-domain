@@ -19,7 +19,7 @@ resource "azurerm_api_management_api" "external_api_session_manager_v2" {
 
   import {
     content_format = "openapi-link"
-    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/e800b83a3740890de4b2ef0ef36104e05b83dc48/apps/io-session-manager-oi/api/external.yaml"
+    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/a8c39a08b1293a490a840ea7513f9de9ed014173/apps/io-session-manager-oi/api/external.yaml"
 
   }
 }
