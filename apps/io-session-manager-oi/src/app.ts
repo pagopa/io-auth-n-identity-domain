@@ -62,6 +62,7 @@ import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-
 import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
 import { makeRefreshUserSessionUseCase } from "./application/use-cases/refresh-user-session.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
+import { makeValidateProfileLocksUseCase } from "./application/use-cases/validate-profile-locks.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
 import {
@@ -429,10 +430,16 @@ const createUseCases = (
     notificationPort: adapters.notificationStorageQueueAdapter,
   });
 
+  const validateProfileLocksUseCase = makeValidateProfileLocksUseCase({
+    lockedProfilesPort: adapters.lockedProfilesAdapter,
+    technicalLockedProfilesPort: adapters.technicalLockedProfilesAdapter,
+  });
+
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
     auxiliaryDataPort: adapters.auxiliaryStorageAdapter,
     oidcPort: adapters.oidcExchangeAdapter,
     identityAssertionFetcherPort: adapters.oneIdIdentityAssertionFetcherAdapter,
+    validateProfileLocksUseCase,
     activateUserSessionUseCase,
   });
 
