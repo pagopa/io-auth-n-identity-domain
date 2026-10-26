@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.11.0
+
+### Minor Changes
+
+- e7b5869: Add a method to find an active session for a specific user
+
 ## 0.10.1
 
 ### Patch Changes
