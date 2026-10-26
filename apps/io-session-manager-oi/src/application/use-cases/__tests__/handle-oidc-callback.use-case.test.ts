@@ -23,10 +23,14 @@ import { LoginAuxiliaryData } from "../../../domain/value-objects/login.vo.js";
 import { OidcClaims } from "../../../domain/value-objects/oidc.vo.js";
 import { ActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 import {
-  GENERIC_LOGIN_ERROR_CODE,
   makeHandleOidcCallbackUseCase,
   OidcCallbackParams,
 } from "../handle-oidc-callback.use-case.js";
+import {
+  ProfileLockedError,
+  TechnicalProfileLockedError,
+  type ValidateProfileLocksUseCase,
+} from "../validate-profile-locks.use-case.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -99,6 +103,10 @@ const identityAssertionFetcherPort = {
   getAssertion: getAssertionMock,
 } as unknown as IdentityAssertionFetcherPort;
 
+const validateProfileLocksUseCase = vi
+  .fn<ValidateProfileLocksUseCase>()
+  .mockResolvedValue(ok(undefined));
+
 const activateUserSessionUseCase = vi
   .fn()
   .mockResolvedValue(
@@ -109,6 +117,7 @@ const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
   auxiliaryDataPort,
   oidcPort,
   identityAssertionFetcherPort,
+  validateProfileLocksUseCase,
   activateUserSessionUseCase,
 });
 
@@ -121,7 +130,7 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("makeHandleOidcCallbackUseCase", () => {
-  it("retrieves auxiliary data, exchanges the code and activates the session", async () => {
+  it("retrieves auxiliary data, exchanges the code and validates profile locks before activating the session", async () => {
     const result = await handleOidcCallbackUseCase({
       callback: SUCCESS_CALLBACK,
       ipAddress: IP_ADDRESS,
@@ -137,6 +146,15 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(getAssertionMock).toHaveBeenCalledExactlyOnceWith(
       AUXILIARY_DATA.oidcConfigurationEnv,
       ACCESS_TOKEN,
+    );
+    expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
+      fiscalCode: CLAIMS.fiscalNumber,
+    });
+    expect(getAssertionMock.mock.invocationCallOrder[0]).toBeLessThan(
+      validateProfileLocksUseCase.mock.invocationCallOrder[0],
+    );
+    expect(validateProfileLocksUseCase.mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(activateUserSessionUseCase).mock.invocationCallOrder[0],
     );
     expect(activateUserSessionUseCase).toHaveBeenCalledExactlyOnceWith({
       sessionToken: {
@@ -178,6 +196,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(retrieveMock).toHaveBeenCalledExactlyOnceWith(STATE);
     expect(exchangeMock).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
+    expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
@@ -225,6 +244,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
           ),
         );
         expect(getAssertionMock).not.toHaveBeenCalled();
+        expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
         expect(activateUserSessionUseCase).not.toHaveBeenCalled();
       }
     },
@@ -248,6 +268,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
         "Fiscal number mismatch between id token and SAML identity assertion",
       ),
     );
+    expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
@@ -269,6 +290,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
         "Assertion reference mismatch between auxiliary data and SAML identity assertion",
       ),
     );
+    expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
@@ -281,11 +303,12 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toEqual({
       outcome: "error",
-      errorCode: GENERIC_LOGIN_ERROR_CODE,
+      errorCode: "GENERIC_ERROR",
       errorMessage: undefined,
     });
     expect(exchangeMock).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
+    expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
@@ -302,6 +325,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
     expect(exchangeMock).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
+    expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
@@ -316,6 +340,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
     expect(exchangeMock).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
+    expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
@@ -329,6 +354,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     });
 
     expect(result._unsafeUnwrapErr()).toBe(exchangeError);
+    expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
@@ -342,6 +368,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     });
 
     expect(result._unsafeUnwrapErr()).toBe(fetchError);
+    expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
@@ -359,10 +386,78 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(result._unsafeUnwrapErr()).toEqual(
       new GenericError(fetchError.message),
     );
+    expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
-  it("propagates activation errors", async () => {
+  it("returns the authentication locked outcome without activating the session when the profile is locked", async () => {
+    validateProfileLocksUseCase.mockResolvedValueOnce(
+      err(new ProfileLockedError()),
+    );
+
+    const result = await handleOidcCallbackUseCase({
+      callback: SUCCESS_CALLBACK,
+      ipAddress: IP_ADDRESS,
+    });
+
+    expect(result._unsafeUnwrap()).toEqual({
+      outcome: "error",
+      errorCode: "1002",
+    });
+    expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
+      fiscalCode: CLAIMS.fiscalNumber,
+    });
+    expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+  });
+
+  it("propagates the technical profile lock without activating the session", async () => {
+    const validationError = new TechnicalProfileLockedError();
+    validateProfileLocksUseCase.mockResolvedValueOnce(err(validationError));
+
+    const result = await handleOidcCallbackUseCase({
+      callback: SUCCESS_CALLBACK,
+      ipAddress: IP_ADDRESS,
+    });
+
+    expect(result._unsafeUnwrapErr()).toBe(validationError);
+    expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
+      fiscalCode: CLAIMS.fiscalNumber,
+    });
+    expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    "Error checking if profile is locked: storage unavailable",
+    "Error checking if profile is technically locked: storage unavailable",
+  ])("logs and normalizes a validation failure without activating the session: %s", async (message) => {
+    const validationError = new GenericError(message);
+    const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    validateProfileLocksUseCase.mockResolvedValueOnce(err(validationError));
+
+    try {
+      const result = await handleOidcCallbackUseCase({
+        callback: SUCCESS_CALLBACK,
+        ipAddress: IP_ADDRESS,
+      });
+
+      expect(result._unsafeUnwrapErr()).toEqual(
+        new GenericError("Error while validating user"),
+      );
+      expect(result._unsafeUnwrapErr()).not.toBe(validationError);
+      expect(logSpy).toHaveBeenCalledExactlyOnceWith(
+        "Error while validating user:",
+        validationError,
+      );
+      expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
+        fiscalCode: CLAIMS.fiscalNumber,
+      });
+      expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+    } finally {
+      logSpy.mockRestore();
+    }
+  });
+
+  it("propagates activation errors unchanged", async () => {
     const activationError = new GenericError("activation failed");
     vi.mocked(activateUserSessionUseCase).mockResolvedValueOnce(
       err(activationError),

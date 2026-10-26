@@ -72,10 +72,10 @@ type Dependencies = {
 export const makeActivateUserSessionUseCase =
   (deps: Dependencies): ActivateUserSessionUseCase =>
   async (input) => {
+    // Invalidate any previous user state (e.g., active sessions) before creating a new one
     const invalidationResult = await invalidatePreviousUserState(deps)(
       input.sessionToken.fiscalCode,
     );
-
     if (invalidationResult.isErr()) {
       return err(invalidationResult.error);
     }
