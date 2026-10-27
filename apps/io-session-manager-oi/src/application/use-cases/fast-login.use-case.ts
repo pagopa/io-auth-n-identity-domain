@@ -32,10 +32,15 @@ type FastLoginInput = {
   signatureInput: FastLoginParams["signatureInput"];
   signature: FastLoginParams["signature"];
   clientIp: FastLoginParams["clientIp"];
-  currentUser?: FastLoginParams["userId"];
 };
 
 type FastLoginOutput = { token: NonEmptyString };
+
+export type FastLoginUseCase = UseCase<
+  FastLoginInput,
+  FastLoginOutput,
+  AuthenticationError | ForbiddenError | GenericError | ValidationError
+>;
 
 const getAttribute = (
   document: Document,
@@ -125,11 +130,7 @@ export const makeFastLoginUseCase =
     generateFastLoginLollipopParamsUseCase: GenerateFastLoginLollipopParamsUseCase;
     refreshUserSessionUseCase: RefreshUserSessionUseCase;
     enabled: boolean;
-  }): UseCase<
-    FastLoginInput,
-    FastLoginOutput,
-    AuthenticationError | ForbiddenError | GenericError | ValidationError
-  > =>
+  }): FastLoginUseCase =>
   async (input) => {
     if (!deps.enabled) {
       return err(new ForbiddenError());
@@ -137,7 +138,6 @@ export const makeFastLoginUseCase =
 
     const lollipopResult = await deps.generateFastLoginLollipopParamsUseCase({
       signatureInput: input.signatureInput,
-      ...(input.currentUser ? { currentUser: input.currentUser } : {}),
     });
     if (lollipopResult.isErr()) {
       return err(lollipopResult.error);

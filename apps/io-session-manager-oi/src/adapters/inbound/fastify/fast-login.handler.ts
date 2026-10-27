@@ -7,7 +7,7 @@ import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { AnyRouteContract } from "@pagopa/hexagonal-openapi";
 import type { FastifyInstance } from "fastify";
 
-import { makeFastLoginUseCase } from "../../../application/use-cases/fast-login.use-case.js";
+import { type FastLoginUseCase } from "../../../application/use-cases/fast-login.use-case.js";
 import { BASE_PATH } from "../base-path.js";
 import {
   FastLoginInputDTO,
@@ -15,7 +15,6 @@ import {
 } from "../dtos/fast-login.dto.js";
 
 import { extractIpMiddleware } from "./middlewares/extract-ip.middleware.js";
-import type { OptionalSessionMiddleware } from "./middlewares/optional-session.middleware.js";
 
 const _brands = [NonEmptyStringBrand];
 
@@ -51,10 +50,9 @@ export const fastLoginContract = defineRoute({
 
 export type FastLoginHandlerDeps = {
   middlewares: {
-    optionalSessionMiddleware: OptionalSessionMiddleware;
     extractIpMiddleware: typeof extractIpMiddleware;
   };
-  useCase: ReturnType<typeof makeFastLoginUseCase>;
+  useCase: FastLoginUseCase;
 };
 
 export const mountFastLoginHandler = (
@@ -64,21 +62,15 @@ export const mountFastLoginHandler = (
   mountFastifyRoute(server, {
     contract: fastLoginContract,
     middlewares: [
-      deps.middlewares.optionalSessionMiddleware,
       deps.middlewares.extractIpMiddleware,
     ] as const,
-    inputMapper: (req, context) => {
-      const currentUser =
-        "session" in context ? context.session.fiscalCode : undefined;
-      return {
+    inputMapper: (req, context) => ({
         originalMethod: req.headers["x-pagopa-lollipop-original-method"],
         originalUrl: req.headers["x-pagopa-lollipop-original-url"],
         signatureInput: req.headers["signature-input"],
         signature: req.headers["signature"],
         clientIp: context.ipAddress,
-        ...(currentUser ? { currentUser } : {}),
-      };
-    },
+    }),
     useCase: deps.useCase,
   });
 };

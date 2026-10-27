@@ -26,7 +26,6 @@ import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.h
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
 import { extractIpMiddleware } from "./adapters/inbound/fastify/middlewares/extract-ip.middleware.js";
-import { optionalSessionMiddleware } from "./adapters/inbound/fastify/middlewares/optional-session.middleware.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
 import { mountSsoFimsLollipopUserHandler } from "./adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
@@ -607,9 +606,6 @@ const mountRoutes = ({
 
   mountFastLoginHandler(server, {
     middlewares: {
-      optionalSessionMiddleware: optionalSessionMiddleware(
-        middlewares.authenticateSessionMiddleware,
-      ),
       extractIpMiddleware,
     },
     useCase: useCases.fastLoginUseCase,
