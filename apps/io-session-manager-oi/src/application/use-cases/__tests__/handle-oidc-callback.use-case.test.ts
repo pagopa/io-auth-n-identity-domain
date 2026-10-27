@@ -149,6 +149,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     );
     expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
       fiscalCode: CLAIMS.fiscalNumber,
+      spidLevel: CLAIMS.acr,
     });
     expect(getAssertionMock.mock.invocationCallOrder[0]).toBeLessThan(
       validateProfileLocksUseCase.mock.invocationCallOrder[0],
@@ -237,6 +238,10 @@ describe("makeHandleOidcCallbackUseCase", () => {
           token: CLIENT_SESSION_TOKEN,
         });
         expect(activateUserSessionUseCase).toHaveBeenCalledOnce();
+        expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
+          fiscalCode: CLAIMS.fiscalNumber,
+          spidLevel: `https://www.spid.gov.it/${receivedLevel}`,
+        });
       } else {
         expect(result._unsafeUnwrapErr()).toEqual(
           new ValidationError(
@@ -406,6 +411,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     });
     expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
       fiscalCode: CLAIMS.fiscalNumber,
+      spidLevel: CLAIMS.acr,
     });
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
@@ -422,6 +428,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(result._unsafeUnwrapErr()).toBe(validationError);
     expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
       fiscalCode: CLAIMS.fiscalNumber,
+      spidLevel: CLAIMS.acr,
     });
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
@@ -450,6 +457,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
       );
       expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
         fiscalCode: CLAIMS.fiscalNumber,
+        spidLevel: CLAIMS.acr,
       });
       expect(activateUserSessionUseCase).not.toHaveBeenCalled();
     } finally {

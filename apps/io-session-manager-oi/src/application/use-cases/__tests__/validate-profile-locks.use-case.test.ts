@@ -1,4 +1,5 @@
 import { ForbiddenError, GenericError } from "@pagopa/hexagonal-core";
+import type { SpidLevel } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -37,8 +38,14 @@ afterEach(() => {
 });
 
 describe("makeValidateProfileLocksUseCase", () => {
-  it("succeeds when neither lock is present, checking profile locks first", async () => {
-    const result = await validateProfileLocksUseCase({ fiscalCode: aFiscalCode });
+  it.each([
+    "https://www.spid.gov.it/SpidL1",
+    "https://www.spid.gov.it/SpidL2",
+  ] satisfies SpidLevel[])("checks both locks in order for %s", async (spidLevel) => {
+    const result = await validateProfileLocksUseCase({
+      fiscalCode: aFiscalCode,
+      spidLevel,
+    });
 
     expect(result).toEqual(ok(undefined));
     expect(mockIsLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
@@ -68,7 +75,10 @@ describe("makeValidateProfileLocksUseCase", () => {
   }) => {
     mockIsLocked.mockResolvedValueOnce(lockResult);
 
-    const result = await validateProfileLocksUseCase({ fiscalCode: aFiscalCode });
+    const result = await validateProfileLocksUseCase({
+      fiscalCode: aFiscalCode,
+      spidLevel: "https://www.spid.gov.it/SpidL2",
+    });
 
     expect(result._unsafeUnwrapErr()).toEqual(expectedError);
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(expectedError.constructor);
@@ -99,7 +109,10 @@ describe("makeValidateProfileLocksUseCase", () => {
   ])("rejects validation when $title", async ({ lockResult, expectedError }) => {
     mockIsTechnicallyLocked.mockResolvedValueOnce(lockResult);
 
-    const result = await validateProfileLocksUseCase({ fiscalCode: aFiscalCode });
+    const result = await validateProfileLocksUseCase({
+      fiscalCode: aFiscalCode,
+      spidLevel: "https://www.spid.gov.it/SpidL2",
+    });
 
     expect(result._unsafeUnwrapErr()).toEqual(expectedError);
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(expectedError.constructor);
@@ -110,6 +123,51 @@ describe("makeValidateProfileLocksUseCase", () => {
       expect(result._unsafeUnwrapErr()).not.toBeInstanceOf(ForbiddenError);
     }
     expect(mockIsLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+    expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { title: "locked", lockResult: ok(true) },
+    { title: "unavailable", lockResult: err(aGenericError) },
+  ])("skips the regular profile lock check at L3 even when it is $title", async ({ lockResult }) => {
+    mockIsLocked.mockResolvedValueOnce(lockResult);
+
+    const result = await validateProfileLocksUseCase({
+      fiscalCode: aFiscalCode,
+      spidLevel: "https://www.spid.gov.it/SpidL3",
+    });
+
+    expect(result).toEqual(ok(undefined));
+    expect(mockIsLocked).not.toHaveBeenCalled();
+    expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      title: "locked",
+      lockResult: ok(true),
+      expectedError: new TechnicalProfileLockedError(),
+    },
+    {
+      title: "unavailable",
+      lockResult: err(aGenericError),
+      expectedError: new GenericError(
+        `Error checking if profile is technically locked: ${aGenericError.message}`,
+      ),
+    },
+  ])("still rejects L3 when the technical lock is $title", async ({ lockResult, expectedError }) => {
+    mockIsTechnicallyLocked.mockResolvedValueOnce(lockResult);
+
+    const result = await validateProfileLocksUseCase({
+      fiscalCode: aFiscalCode,
+      spidLevel: "https://www.spid.gov.it/SpidL3",
+    });
+
+    expect(result._unsafeUnwrapErr()).toEqual(expectedError);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(expectedError.constructor);
+    expect(mockIsLocked).not.toHaveBeenCalled();
     expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
     expect(console.error).not.toHaveBeenCalled();
   });
