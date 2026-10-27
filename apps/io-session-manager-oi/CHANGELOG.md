@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.33.1
+
+### Patch Changes
+
+- 77b16ef: invalidate previous installation
+
 ## 0.33.0
 
 ### Minor Changes
