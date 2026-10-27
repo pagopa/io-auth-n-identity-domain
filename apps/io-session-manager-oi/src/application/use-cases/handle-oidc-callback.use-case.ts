@@ -170,6 +170,7 @@ export const makeHandleOidcCallbackUseCase =
     /****************************/
     const validateProfileLocksResult = await deps.validateProfileLocksUseCase({
       fiscalCode: idTokenClaims.fiscalNumber,
+      spidLevel: idTokenClaims.acr,
     });
     if (validateProfileLocksResult.isErr()) {
       const error = validateProfileLocksResult.error;

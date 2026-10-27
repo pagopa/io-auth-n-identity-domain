@@ -4,6 +4,7 @@ import {
   GenericError,
   type UseCase,
 } from "@pagopa/hexagonal-core";
+import { SpidLevel } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 import type { LockedProfilesPort } from "../../domain/ports/outbound/locked-profiles.port.js";
 import type { TechnicalLockedProfilesPort } from "../../domain/ports/outbound/technical-locked-profiles.port.js";
@@ -16,8 +17,13 @@ export class TechnicalProfileLockedError extends ForbiddenError {
   override readonly tag = "technical-profile-locked" as const;
 }
 
+type ValidateProfileLocksInput = {
+  fiscalCode: FiscalCode;
+  spidLevel: SpidLevel;
+};
+
 export type ValidateProfileLocksUseCase = UseCase<
-  { fiscalCode: FiscalCode },
+  ValidateProfileLocksInput,
   void,
   ProfileLockedError | TechnicalProfileLockedError | GenericError
 >;
@@ -29,16 +35,18 @@ type Dependencies = {
 
 export const makeValidateProfileLocksUseCase =
   (deps: Dependencies): ValidateProfileLocksUseCase =>
-  async ({ fiscalCode }) => {
-    const isLockedResult = await deps.lockedProfilesPort.isLocked(fiscalCode);
-    if (isLockedResult.isErr()) {
-      return err(
-        new GenericError(
-          `Error checking if profile is locked: ${isLockedResult.error.message}`,
-        ),
-      );
-    } else if (isLockedResult.value) {
-      return err(new ProfileLockedError());
+  async ({ fiscalCode, spidLevel }) => {
+    if (spidLevel !== "https://www.spid.gov.it/SpidL3") {
+      const isLockedResult = await deps.lockedProfilesPort.isLocked(fiscalCode);
+      if (isLockedResult.isErr()) {
+        return err(
+          new GenericError(
+            `Error checking if profile is locked: ${isLockedResult.error.message}`,
+          ),
+        );
+      } else if (isLockedResult.value) {
+        return err(new ProfileLockedError());
+      }
     }
 
     const isTechnicalLockedResult =
