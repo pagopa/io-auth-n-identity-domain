@@ -59,6 +59,7 @@ import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-
 import { makeGetUserForPagopaUseCase } from "./application/use-cases/get-user-for-pagopa.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
+import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
 import { makeRefreshUserSessionUseCase } from "./application/use-cases/refresh-user-session.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
@@ -69,7 +70,6 @@ import {
   TokenParsingStrategyFactory,
   TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
-import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
 
 /** Provides a lazily initialized credential shared by the Azure clients. */
 class AzureCredential {
@@ -413,9 +413,10 @@ const createUseCases = (
     oidcConfigPort: adapters.oidcConfigAdapter,
   });
 
-  const invalidateSessionTokenCacheUseCase = makeInvalidateSessionTokenCacheUseCase({
-    platformInternalPort: adapters.platformInternalAdapter,
-  });
+  const invalidateSessionTokenCacheUseCase =
+    makeInvalidateSessionTokenCacheUseCase({
+      platformInternalPort: adapters.platformInternalAdapter,
+    });
 
   const activateUserSessionUseCase = makeActivateUserSessionUseCase({
     sessionPort: adapters.sessionCosmosAdapter,
@@ -425,6 +426,7 @@ const createUseCases = (
     lollipopPort: adapters.fetchLollipopAdapter,
     lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
     invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
+    notificationPort: adapters.notificationStorageQueueAdapter,
   });
 
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
