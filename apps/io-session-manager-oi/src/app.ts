@@ -25,14 +25,13 @@ import { mountGenerateNonceHandler } from "./adapters/inbound/fastify/generate-n
 import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
-import { extractIpMiddleware } from "./adapters/inbound/fastify/middlewares/extract-ip.middleware.js";
-import { optionalSessionMiddleware } from "./adapters/inbound/fastify/middlewares/optional-session.middleware.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
 import { mountSsoFimsLollipopUserHandler } from "./adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
 import { mountSsoFimsUserHandler } from "./adapters/inbound/fastify/sso-fims-user.handler.js";
 import { mountSsoPagopaUserHandler } from "./adapters/inbound/fastify/sso-pagopa-user.handler.js";
 import { mountSsoZendeskTokenHandler } from "./adapters/inbound/fastify/sso-zendesk-token.handler.js";
+import { mountTestLoginHandler } from "./adapters/inbound/fastify/test-login.handler.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
 import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
@@ -63,6 +62,7 @@ import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-
 import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
 import { makeRefreshUserSessionUseCase } from "./application/use-cases/refresh-user-session.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
+import { makeTestLoginUseCase } from "./application/use-cases/test-login.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
 import {
@@ -467,6 +467,12 @@ const createUseCases = (
     profilePort: adapters.profileAdapter,
   });
 
+  const testLoginUseCase = makeTestLoginUseCase({
+    testUserPort: adapters.testUserAdapter,
+    lollipopPort: adapters.fetchLollipopAdapter,
+    activateUserSessionUseCase,
+  });
+
   return {
     reserveUseCase,
     activateUserSessionUseCase,
@@ -474,6 +480,7 @@ const createUseCases = (
     fastLoginUseCase,
     getSessionUseCase,
     getUserForFimsUseCase,
+    testLoginUseCase,
   };
 };
 
@@ -655,6 +662,15 @@ const mountRoutes = ({
     middlewares: [middlewares.authenticateSessionMiddleware] as const,
     useCase: useCases.getSessionUseCase,
   })(server);
+
+  mountFastLoginHandler(server, {
+    useCase: useCases.fastLoginUseCase,
+    authenticateSessionMiddleware: middlewares.authenticateSessionMiddleware,
+  });
+
+  mountTestLoginHandler(server, {
+    useCase: useCases.testLoginUseCase,
+  });
 };
 
 /**

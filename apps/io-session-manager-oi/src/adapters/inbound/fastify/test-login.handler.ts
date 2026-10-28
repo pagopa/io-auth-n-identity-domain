@@ -45,9 +45,13 @@ const testLoginContract = defineRoute({
   },
 });
 
+type TestLoginHandlerDeps = {
+  useCase: TestLoginUseCase;
+};
+
 export const mountTestLoginHandler = (
   server: FastifyInstance,
-  useCase: TestLoginUseCase,
+  deps: TestLoginHandlerDeps,
 ): void => {
   mountFastifyRoute(server, {
     contract: testLoginContract,
@@ -63,7 +67,7 @@ export const mountTestLoginHandler = (
     outputMapper: (output) => ({
       access_token: output.accessToken,
     }),
-    useCase,
+    useCase: deps.useCase,
   });
 };
 
