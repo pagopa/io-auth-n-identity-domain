@@ -145,7 +145,6 @@ const getLollipopActivation = async (
 const toFastLoginLollipopParams = (
   lcParams: LcParams,
 ): Result<FastLoginLollipopParams, GenericError> => {
-  // Convert the upstream DTO after the fiscal code's activation is validated.
   const parsed = FastLoginLollipopParamsSchema.safeParse({
     assertionRef: lcParams.assertion_ref,
     assertionType: lcParams.assertion_type,
