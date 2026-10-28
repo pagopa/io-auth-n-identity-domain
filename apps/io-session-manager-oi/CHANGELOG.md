@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.33.2
+
+### Patch Changes
+
+- 05c5016: added profile lock checks before session activation
+
 ## 0.33.1
 
 ### Patch Changes
