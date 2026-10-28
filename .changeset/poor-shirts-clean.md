@@ -1,5 +1,5 @@
 ---
-"io-session-manager-oi": patch
+"io-session-manager-oi": minor
 ---
 
-Remove optional session middleware
+Refactor `FastLoginUseCase` to use `ValidateProfileLocksUseCase` and delete `OptionalSessionMiddleware`
