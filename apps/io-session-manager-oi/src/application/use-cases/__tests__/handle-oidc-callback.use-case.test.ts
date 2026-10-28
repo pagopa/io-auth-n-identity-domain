@@ -149,12 +149,14 @@ describe("makeHandleOidcCallbackUseCase", () => {
     );
     expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
       fiscalCode: CLAIMS.fiscalNumber,
-      spidLevel: CLAIMS.acr,
+      checks: ["user-set", "technical"],
     });
     expect(getAssertionMock.mock.invocationCallOrder[0]).toBeLessThan(
       validateProfileLocksUseCase.mock.invocationCallOrder[0],
     );
-    expect(validateProfileLocksUseCase.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(
+      validateProfileLocksUseCase.mock.invocationCallOrder[0],
+    ).toBeLessThan(
       vi.mocked(activateUserSessionUseCase).mock.invocationCallOrder[0],
     );
     expect(activateUserSessionUseCase).toHaveBeenCalledExactlyOnceWith({
@@ -240,7 +242,10 @@ describe("makeHandleOidcCallbackUseCase", () => {
         expect(activateUserSessionUseCase).toHaveBeenCalledOnce();
         expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
           fiscalCode: CLAIMS.fiscalNumber,
-          spidLevel: `https://www.spid.gov.it/${receivedLevel}`,
+          checks:
+            receivedLevel === "SpidL3"
+              ? ["technical"]
+              : ["user-set", "technical"],
         });
       } else {
         expect(result._unsafeUnwrapErr()).toEqual(
@@ -411,7 +416,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     });
     expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
       fiscalCode: CLAIMS.fiscalNumber,
-      spidLevel: CLAIMS.acr,
+      checks: ["user-set", "technical"],
     });
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
@@ -428,7 +433,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(result._unsafeUnwrapErr()).toBe(validationError);
     expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
       fiscalCode: CLAIMS.fiscalNumber,
-      spidLevel: CLAIMS.acr,
+      checks: ["user-set", "technical"],
     });
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
@@ -436,34 +441,39 @@ describe("makeHandleOidcCallbackUseCase", () => {
   it.each([
     "Error checking if profile is locked: storage unavailable",
     "Error checking if profile is technically locked: storage unavailable",
-  ])("logs and normalizes a validation failure without activating the session: %s", async (message) => {
-    const validationError = new GenericError(message);
-    const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    validateProfileLocksUseCase.mockResolvedValueOnce(err(validationError));
+  ])(
+    "logs and normalizes a validation failure without activating the session: %s",
+    async (message) => {
+      const validationError = new GenericError(message);
+      const logSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => undefined);
+      validateProfileLocksUseCase.mockResolvedValueOnce(err(validationError));
 
-    try {
-      const result = await handleOidcCallbackUseCase({
-        callback: SUCCESS_CALLBACK,
-        ipAddress: IP_ADDRESS,
-      });
+      try {
+        const result = await handleOidcCallbackUseCase({
+          callback: SUCCESS_CALLBACK,
+          ipAddress: IP_ADDRESS,
+        });
 
-      expect(result._unsafeUnwrapErr()).toEqual(
-        new GenericError("Error while validating user"),
-      );
-      expect(result._unsafeUnwrapErr()).not.toBe(validationError);
-      expect(logSpy).toHaveBeenCalledExactlyOnceWith(
-        "Error while validating user:",
-        validationError,
-      );
-      expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
-        fiscalCode: CLAIMS.fiscalNumber,
-        spidLevel: CLAIMS.acr,
-      });
-      expect(activateUserSessionUseCase).not.toHaveBeenCalled();
-    } finally {
-      logSpy.mockRestore();
-    }
-  });
+        expect(result._unsafeUnwrapErr()).toEqual(
+          new GenericError("Error while validating user"),
+        );
+        expect(result._unsafeUnwrapErr()).not.toBe(validationError);
+        expect(logSpy).toHaveBeenCalledExactlyOnceWith(
+          "Error while validating user:",
+          validationError,
+        );
+        expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
+          fiscalCode: CLAIMS.fiscalNumber,
+          checks: ["user-set", "technical"],
+        });
+        expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+      } finally {
+        logSpy.mockRestore();
+      }
+    },
+  );
 
   it("propagates activation errors unchanged", async () => {
     const activationError = new GenericError("activation failed");

@@ -4,7 +4,6 @@ import {
   GenericError,
   type UseCase,
 } from "@pagopa/hexagonal-core";
-import { SpidLevel } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 import type { LockedProfilesPort } from "../../domain/ports/outbound/locked-profiles.port.js";
 import type { TechnicalLockedProfilesPort } from "../../domain/ports/outbound/technical-locked-profiles.port.js";
@@ -17,9 +16,11 @@ export class TechnicalProfileLockedError extends ForbiddenError {
   override readonly tag = "technical-profile-locked" as const;
 }
 
+export type ProfileLockCheck = "user-set" | "technical";
+
 type ValidateProfileLocksInput = {
   fiscalCode: FiscalCode;
-  spidLevel: SpidLevel;
+  checks: readonly ProfileLockCheck[];
 };
 
 export type ValidateProfileLocksUseCase = UseCase<
@@ -35,9 +36,17 @@ type Dependencies = {
 
 export const makeValidateProfileLocksUseCase =
   (deps: Dependencies): ValidateProfileLocksUseCase =>
-  async ({ fiscalCode, spidLevel }) => {
-    if (spidLevel !== "https://www.spid.gov.it/SpidL3") {
-      const isLockedResult = await deps.lockedProfilesPort.isLocked(fiscalCode);
+  async ({ fiscalCode, checks }) => {
+    const [isLockedResult, isTechnicalLockedResult] = await Promise.all([
+      checks.includes("user-set")
+        ? deps.lockedProfilesPort.isLocked(fiscalCode)
+        : undefined,
+      checks.includes("technical")
+        ? deps.technicalLockedProfilesPort.isLocked(fiscalCode)
+        : undefined,
+    ]);
+
+    if (isLockedResult !== undefined) {
       if (isLockedResult.isErr()) {
         return err(
           new GenericError(
@@ -49,16 +58,16 @@ export const makeValidateProfileLocksUseCase =
       }
     }
 
-    const isTechnicalLockedResult =
-      await deps.technicalLockedProfilesPort.isLocked(fiscalCode);
-    if (isTechnicalLockedResult.isErr()) {
-      return err(
-        new GenericError(
-          `Error checking if profile is technically locked: ${isTechnicalLockedResult.error.message}`,
-        ),
-      );
-    } else if (isTechnicalLockedResult.value) {
-      return err(new TechnicalProfileLockedError());
+    if (isTechnicalLockedResult !== undefined) {
+      if (isTechnicalLockedResult.isErr()) {
+        return err(
+          new GenericError(
+            `Error checking if profile is technically locked: ${isTechnicalLockedResult.error.message}`,
+          ),
+        );
+      } else if (isTechnicalLockedResult.value) {
+        return err(new TechnicalProfileLockedError());
+      }
     }
 
     return ok(undefined);
