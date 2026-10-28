@@ -26,6 +26,7 @@ import type { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.
 import type { LollipopRevocationPort } from "../../domain/ports/outbound/lollipop-revocation.port.js";
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import { NotificationPort } from "../../domain/ports/outbound/notification.port.js";
+import type { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
 import type { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import type { TestUserPort } from "../../domain/ports/outbound/test-user.port.js";
 import type { IdentityAssertion } from "../../domain/value-objects/assertion.vo.js";
@@ -33,6 +34,7 @@ import {
   type ClientSessionToken,
   ClientSessionTokenSchema,
 } from "../../domain/value-objects/client-session-token.vo.js";
+
 import { InvalidateSessionTokenCacheUseCase } from "./invalidate-session-token-cache.use-case.js";
 
 type NewSessionToken = Omit<
@@ -64,6 +66,7 @@ type Dependencies = {
   lollipopRevocationPort: LollipopRevocationPort;
   invalidateSessionTokenCacheUseCase: InvalidateSessionTokenCacheUseCase;
   notificationPort: NotificationPort;
+  platformInternalPort: PlatformInternalPort;
   testUserPort: TestUserPort;
 };
 

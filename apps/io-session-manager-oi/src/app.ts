@@ -407,6 +407,7 @@ const createAdapters = async (
  * @returns The application use cases.
  */
 const createUseCases = (
+  config: Config,
   adapters: Awaited<ReturnType<typeof createAdapters>>,
 ) => {
   const reserveUseCase = makeReserveUseCase({
@@ -468,7 +469,9 @@ const createUseCases = (
 
   return {
     reserveUseCase,
+    activateUserSessionUseCase,
     handleOidcCallbackUseCase,
+    fastLoginUseCase,
     getSessionUseCase,
     getUserForFimsUseCase,
   };
@@ -676,7 +679,7 @@ export const createApp = async (
 
     const clients = await createClients(config, lifecycle.registerCleanup);
     const adapters = await createAdapters(config, clients);
-    const useCases = createUseCases(adapters);
+    const useCases = createUseCases(config, adapters);
     const middlewares = createAuthenticationMiddlewares(
       adapters.sessionCosmosAdapter,
     );
