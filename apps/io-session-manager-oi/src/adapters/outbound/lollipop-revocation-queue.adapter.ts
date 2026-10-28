@@ -5,6 +5,7 @@ import {
   LollipopAssertionRef,
 } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok, type Result } from "neverthrow";
+
 import type { LollipopRevocationPort } from "../../domain/ports/outbound/lollipop-revocation.port.js";
 import { Base64 } from "../../utils/codec/index.js";
 

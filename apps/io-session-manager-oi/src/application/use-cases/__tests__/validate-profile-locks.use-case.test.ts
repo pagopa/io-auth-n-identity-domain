@@ -1,5 +1,4 @@
 import { ForbiddenError, GenericError } from "@pagopa/hexagonal-core";
-import type { SpidLevel } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -13,6 +12,7 @@ import {
   makeValidateProfileLocksUseCase,
   ProfileLockedError,
   TechnicalProfileLockedError,
+  type ProfileLockCheck,
 } from "../validate-profile-locks.use-case.js";
 
 const mockIsLocked = vi.fn<LockedProfilesPort["isLocked"]>();
@@ -39,22 +39,48 @@ afterEach(() => {
 
 describe("makeValidateProfileLocksUseCase", () => {
   it.each([
-    "https://www.spid.gov.it/SpidL1",
-    "https://www.spid.gov.it/SpidL2",
-  ] satisfies SpidLevel[])("checks both locks in order for %s", async (spidLevel) => {
-    const result = await validateProfileLocksUseCase({
-      fiscalCode: aFiscalCode,
-      spidLevel,
-    });
+    { checks: [], userImposed: false, technical: false },
+    { checks: ["user-set"], userImposed: true, technical: false },
+    { checks: ["technical"], userImposed: false, technical: true },
+    {
+      checks: ["user-set", "technical"],
+      userImposed: true,
+      technical: true,
+    },
+    {
+      checks: ["technical", "user-set"],
+      userImposed: true,
+      technical: true,
+    },
+    { checks: ["technical", "technical"], userImposed: false, technical: true },
+  ] satisfies {
+    checks: ProfileLockCheck[];
+    userImposed: boolean;
+    technical: boolean;
+  }[])(
+    "runs only the selected checks: $checks",
+    async ({ checks, userImposed, technical }) => {
+      const result = await validateProfileLocksUseCase({
+        fiscalCode: aFiscalCode,
+        checks,
+      });
 
-    expect(result).toEqual(ok(undefined));
-    expect(mockIsLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
-    expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
-    expect(mockIsLocked.mock.invocationCallOrder[0]).toBeLessThan(
-      mockIsTechnicallyLocked.mock.invocationCallOrder[0],
-    );
-    expect(console.error).not.toHaveBeenCalled();
-  });
+      expect(result).toEqual(ok(undefined));
+      if (userImposed) {
+        expect(mockIsLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+      } else {
+        expect(mockIsLocked).not.toHaveBeenCalled();
+      }
+      if (technical) {
+        expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(
+          aFiscalCode,
+        );
+      } else {
+        expect(mockIsTechnicallyLocked).not.toHaveBeenCalled();
+      }
+      expect(console.error).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([
     {
@@ -69,15 +95,12 @@ describe("makeValidateProfileLocksUseCase", () => {
         `Error checking if profile is locked: ${aGenericError.message}`,
       ),
     },
-  ])("stops validation when $title", async ({
-    lockResult,
-    expectedError,
-  }) => {
+  ])("stops validation when $title", async ({ lockResult, expectedError }) => {
     mockIsLocked.mockResolvedValueOnce(lockResult);
 
     const result = await validateProfileLocksUseCase({
       fiscalCode: aFiscalCode,
-      spidLevel: "https://www.spid.gov.it/SpidL2",
+      checks: ["user-set", "technical"],
     });
 
     expect(result._unsafeUnwrapErr()).toEqual(expectedError);
@@ -89,7 +112,9 @@ describe("makeValidateProfileLocksUseCase", () => {
       expect(result._unsafeUnwrapErr()).not.toBeInstanceOf(ForbiddenError);
     }
     expect(mockIsLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
-    expect(mockIsTechnicallyLocked).not.toHaveBeenCalled();
+    expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(
+      aFiscalCode,
+    );
     expect(console.error).not.toHaveBeenCalled();
   });
 
@@ -106,43 +131,55 @@ describe("makeValidateProfileLocksUseCase", () => {
         `Error checking if profile is technically locked: ${aGenericError.message}`,
       ),
     },
-  ])("rejects validation when $title", async ({ lockResult, expectedError }) => {
-    mockIsTechnicallyLocked.mockResolvedValueOnce(lockResult);
+  ])(
+    "rejects validation when $title",
+    async ({ lockResult, expectedError }) => {
+      mockIsTechnicallyLocked.mockResolvedValueOnce(lockResult);
 
-    const result = await validateProfileLocksUseCase({
-      fiscalCode: aFiscalCode,
-      spidLevel: "https://www.spid.gov.it/SpidL2",
-    });
+      const result = await validateProfileLocksUseCase({
+        fiscalCode: aFiscalCode,
+        checks: ["user-set", "technical"],
+      });
 
-    expect(result._unsafeUnwrapErr()).toEqual(expectedError);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(expectedError.constructor);
-    if (lockResult.isOk()) {
-      expect(result._unsafeUnwrapErr()).toBeInstanceOf(ForbiddenError);
-      expect(result._unsafeUnwrapErr().tag).toBe("technical-profile-locked");
-    } else {
-      expect(result._unsafeUnwrapErr()).not.toBeInstanceOf(ForbiddenError);
-    }
-    expect(mockIsLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
-    expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
-    expect(console.error).not.toHaveBeenCalled();
-  });
+      expect(result._unsafeUnwrapErr()).toEqual(expectedError);
+      expect(result._unsafeUnwrapErr()).toBeInstanceOf(
+        expectedError.constructor,
+      );
+      if (lockResult.isOk()) {
+        expect(result._unsafeUnwrapErr()).toBeInstanceOf(ForbiddenError);
+        expect(result._unsafeUnwrapErr().tag).toBe("technical-profile-locked");
+      } else {
+        expect(result._unsafeUnwrapErr()).not.toBeInstanceOf(ForbiddenError);
+      }
+      expect(mockIsLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+      expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(
+        aFiscalCode,
+      );
+      expect(console.error).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([
     { title: "locked", lockResult: ok(true) },
     { title: "unavailable", lockResult: err(aGenericError) },
-  ])("skips the regular profile lock check at L3 even when it is $title", async ({ lockResult }) => {
-    mockIsLocked.mockResolvedValueOnce(lockResult);
+  ])(
+    "skips the unselected user-set check even when it is $title",
+    async ({ lockResult }) => {
+      mockIsLocked.mockResolvedValueOnce(lockResult);
 
-    const result = await validateProfileLocksUseCase({
-      fiscalCode: aFiscalCode,
-      spidLevel: "https://www.spid.gov.it/SpidL3",
-    });
+      const result = await validateProfileLocksUseCase({
+        fiscalCode: aFiscalCode,
+        checks: ["technical"],
+      });
 
-    expect(result).toEqual(ok(undefined));
-    expect(mockIsLocked).not.toHaveBeenCalled();
-    expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
-    expect(console.error).not.toHaveBeenCalled();
-  });
+      expect(result).toEqual(ok(undefined));
+      expect(mockIsLocked).not.toHaveBeenCalled();
+      expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(
+        aFiscalCode,
+      );
+      expect(console.error).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([
     {
@@ -157,18 +194,92 @@ describe("makeValidateProfileLocksUseCase", () => {
         `Error checking if profile is technically locked: ${aGenericError.message}`,
       ),
     },
-  ])("still rejects L3 when the technical lock is $title", async ({ lockResult, expectedError }) => {
-    mockIsTechnicallyLocked.mockResolvedValueOnce(lockResult);
+  ])(
+    "rejects technical-only validation when the technical lock is $title",
+    async ({ lockResult, expectedError }) => {
+      mockIsTechnicallyLocked.mockResolvedValueOnce(lockResult);
 
-    const result = await validateProfileLocksUseCase({
-      fiscalCode: aFiscalCode,
-      spidLevel: "https://www.spid.gov.it/SpidL3",
-    });
+      const result = await validateProfileLocksUseCase({
+        fiscalCode: aFiscalCode,
+        checks: ["technical"],
+      });
 
-    expect(result._unsafeUnwrapErr()).toEqual(expectedError);
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(expectedError.constructor);
-    expect(mockIsLocked).not.toHaveBeenCalled();
-    expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
-    expect(console.error).not.toHaveBeenCalled();
-  });
+      expect(result._unsafeUnwrapErr()).toEqual(expectedError);
+      expect(result._unsafeUnwrapErr()).toBeInstanceOf(
+        expectedError.constructor,
+      );
+      expect(mockIsLocked).not.toHaveBeenCalled();
+      expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(
+        aFiscalCode,
+      );
+      expect(console.error).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    { title: "locked", lockResult: ok(true) },
+    { title: "unavailable", lockResult: err(aGenericError) },
+  ])(
+    "skips the unselected technical check even when it is $title",
+    async ({ lockResult }) => {
+      mockIsTechnicallyLocked.mockResolvedValueOnce(lockResult);
+
+      const result = await validateProfileLocksUseCase({
+        fiscalCode: aFiscalCode,
+        checks: ["user-set"],
+      });
+
+      expect(result).toEqual(ok(undefined));
+      expect(mockIsLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+      expect(mockIsTechnicallyLocked).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    {
+      title: "locked",
+      userResult: ok(true),
+      technicalResult: ok(true),
+      expectedError: new ProfileLockedError(),
+    },
+    {
+      title: "unavailable",
+      userResult: err(aGenericError),
+      technicalResult: err(aGenericError),
+      expectedError: new GenericError(
+        `Error checking if profile is locked: ${aGenericError.message}`,
+      ),
+    },
+  ])(
+    "starts checks in parallel and prioritizes the user-set result when both are $title",
+    async ({ userResult, technicalResult, expectedError }) => {
+      let releaseUserCheck: (() => void) | undefined;
+      mockIsLocked.mockReturnValueOnce(
+        new Promise((resolve) => {
+          releaseUserCheck = () => resolve(userResult);
+        }),
+      );
+      mockIsTechnicallyLocked.mockResolvedValueOnce(technicalResult);
+
+      const resultPromise = validateProfileLocksUseCase({
+        fiscalCode: aFiscalCode,
+        checks: ["technical", "user-set"],
+      });
+
+      try {
+        expect(mockIsLocked).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+        expect(mockIsTechnicallyLocked).toHaveBeenCalledExactlyOnceWith(
+          aFiscalCode,
+        );
+      } finally {
+        releaseUserCheck?.();
+      }
+
+      const result = await resultPromise;
+      expect(result._unsafeUnwrapErr()).toEqual(expectedError);
+      expect(result._unsafeUnwrapErr()).toBeInstanceOf(
+        expectedError.constructor,
+      );
+    },
+  );
 });
