@@ -44,6 +44,7 @@ import {
   TechnicalLockedProfilesDevelopmentConfigSchema,
   TechnicalLockedProfilesProductionConfigSchema,
 } from "./technical-locked-profiles.vo.js";
+import { TestLoginConfigSchema } from "./test-login.js";
 import { ZendeskConfigSchema } from "./zendesk.vo.js";
 
 // This is a temporary workaround to ensure that the branded types are included in the type system.
@@ -66,6 +67,7 @@ const CommonConfigShape = {
   ...FimsConfigSchema.shape,
   ...PagopaConfigSchema.shape,
   ...ZendeskConfigSchema.shape,
+  ...TestLoginConfigSchema.shape
 };
 
 /**
