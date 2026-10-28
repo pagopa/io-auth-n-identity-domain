@@ -2,6 +2,7 @@ import {
   AuthenticationError,
   FiscalCodeSchema,
   ForbiddenError,
+  GenericError,
   NonEmptyStringSchema,
 } from "@pagopa/hexagonal-core";
 import {
@@ -12,12 +13,15 @@ import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FastLoginInputDTO } from "../../../adapters/inbound/dtos/fast-login.dto.js";
-import { BlockedUsersPort } from "../../../domain/ports/outbound/blocked-users.port.js";
 import { FastLoginPort } from "../../../domain/ports/outbound/fast-login.port.js";
 import { FastLoginLollipopParams } from "../../../domain/value-objects/fast-login.vo.js";
 import { makeFastLoginUseCase } from "../fast-login.use-case.js";
 import { GenerateFastLoginLollipopParamsUseCase } from "../generate-fast-login-lollipop-params.use-case.js";
 import { RefreshUserSessionUseCase } from "../refresh-user-session.use-case.js";
+import {
+  TechnicalProfileLockedError,
+  type ValidateProfileLocksUseCase,
+} from "../validate-profile-locks.use-case.js";
 
 const THUMBPRINT = "a".repeat(43);
 const ASSERTION_REF = LollipopAssertionRefSchema.parse(`sha256-${THUMBPRINT}`);
@@ -56,7 +60,7 @@ const lollipop = {
 } as FastLoginLollipopParams;
 
 const fastLogin = vi.fn();
-const isBlocked = vi.fn();
+const validateProfileLocks = vi.fn();
 const activateSession = vi.fn();
 const resolveLollipop = vi.fn();
 
@@ -65,19 +69,17 @@ const fastLoginPort = {
   fastLogin,
 } as unknown as FastLoginPort;
 
-const blockedUsersPort = {
-  isBlocked,
-} as unknown as BlockedUsersPort;
-
 const refreshUserSessionUseCase =
   activateSession as unknown as RefreshUserSessionUseCase;
 const generateFastLoginLollipopParamsUseCase =
   resolveLollipop as unknown as GenerateFastLoginLollipopParamsUseCase;
+const validateProfileLocksUseCase =
+  validateProfileLocks as unknown as ValidateProfileLocksUseCase;
 
 const makeUseCase = (enabled = true) =>
   makeFastLoginUseCase({
     fastLoginPort,
-    blockedUsersPort,
+    validateProfileLocksUseCase,
     generateFastLoginLollipopParamsUseCase,
     refreshUserSessionUseCase,
     enabled,
@@ -86,7 +88,7 @@ const makeUseCase = (enabled = true) =>
 beforeEach(() => {
   vi.clearAllMocks();
   fastLogin.mockResolvedValue(ok(NonEmptyStringSchema.parse(SAML_RESPONSE)));
-  isBlocked.mockResolvedValue(ok(false));
+  validateProfileLocks.mockResolvedValue(ok(undefined));
   resolveLollipop.mockResolvedValue(ok(lollipop));
   activateSession.mockResolvedValue(ok("session-id.token"));
 });
@@ -121,12 +123,17 @@ describe("makeFastLoginUseCase", () => {
         loginType: "LV",
       }),
     });
-    expect(isBlocked).toHaveBeenCalledExactlyOnceWith(FISCAL_CODE);
+    expect(validateProfileLocks).toHaveBeenCalledExactlyOnceWith({
+      fiscalCode: FISCAL_CODE,
+      checks: ["technical"],
+    });
     expect(result._unsafeUnwrap()).toEqual({ token: "session-id.token" });
   });
 
-  it("rejects blocked users before activating a new session", async () => {
-    isBlocked.mockResolvedValueOnce(ok(true));
+  it("rejects technically locked users before activating a new session", async () => {
+    validateProfileLocks.mockResolvedValueOnce(
+      err(new TechnicalProfileLockedError()),
+    );
 
     const result = await makeUseCase()({
       ...signedRequest,
@@ -135,6 +142,28 @@ describe("makeFastLoginUseCase", () => {
 
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
     expect(fastLogin).toHaveBeenCalledOnce();
+    expect(validateProfileLocks).toHaveBeenCalledExactlyOnceWith({
+      fiscalCode: FISCAL_CODE,
+      checks: ["technical"],
+    });
+    expect(activateSession).not.toHaveBeenCalled();
+  });
+
+  it("returns a generic error when the technical lock check fails", async () => {
+    validateProfileLocks.mockResolvedValueOnce(
+      err(new GenericError("technical lock storage unavailable")),
+    );
+
+    const result = await makeUseCase()({
+      ...signedRequest,
+      clientIp: CLIENT_IP,
+    });
+
+    expect(result._unsafeUnwrapErr()).toEqual(
+      new GenericError(
+        "Error while validating profile locks: Generic error: technical lock storage unavailable",
+      ),
+    );
     expect(activateSession).not.toHaveBeenCalled();
   });
 
@@ -167,7 +196,7 @@ describe("makeFastLoginUseCase", () => {
     });
 
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
-    expect(isBlocked).not.toHaveBeenCalled();
+    expect(validateProfileLocks).not.toHaveBeenCalled();
     expect(activateSession).not.toHaveBeenCalled();
   });
 

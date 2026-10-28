@@ -444,7 +444,7 @@ const createUseCases = (
 
   const fastLoginUseCase = makeFastLoginUseCase({
     fastLoginPort: adapters.fastLoginAdapter,
-    blockedUsersPort: adapters.blockedUsersAdapter,
+    validateProfileLocksUseCase,
     generateFastLoginLollipopParamsUseCase:
       makeGenerateFastLoginLollipopParamsUseCase({
         lollipopPort: adapters.fetchLollipopAdapter,

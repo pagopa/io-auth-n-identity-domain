@@ -13,7 +13,6 @@ import { SpidLevelSchema } from "@pagopa/io-auth-n-identity-session";
 import { DOMParser } from "@xmldom/xmldom";
 import { err, ok } from "neverthrow";
 
-import { BlockedUsersPort } from "../../domain/ports/outbound/blocked-users.port.js";
 import { FastLoginPort } from "../../domain/ports/outbound/fast-login.port.js";
 import type { FastLoginParams } from "../../domain/value-objects/fast-login.vo.js";
 
@@ -22,6 +21,7 @@ import type {
   RefreshUserSessionUseCase,
   SessionInfo,
 } from "./refresh-user-session.use-case.js";
+import type { ValidateProfileLocksUseCase } from "./validate-profile-locks.use-case.js";
 
 const ASSERTION_NAMESPACE = "urn:oasis:names:tc:SAML:2.0:assertion";
 const DEFAULT_SPID_LEVEL = "https://www.spid.gov.it/SpidL2";
@@ -126,7 +126,7 @@ const parseSamlUser = (samlResponse: string): ParsedSamlUser | undefined => {
 export const makeFastLoginUseCase =
   (deps: {
     fastLoginPort: FastLoginPort;
-    blockedUsersPort: BlockedUsersPort;
+    validateProfileLocksUseCase: ValidateProfileLocksUseCase;
     generateFastLoginLollipopParamsUseCase: GenerateFastLoginLollipopParamsUseCase;
     refreshUserSessionUseCase: RefreshUserSessionUseCase;
     enabled: boolean;
@@ -170,18 +170,26 @@ export const makeFastLoginUseCase =
       return err(new AuthenticationError());
     }
 
-    const blockedUserResult = await deps.blockedUsersPort.isBlocked(
-      lollipop.userId,
-    );
-    if (blockedUserResult.isErr()) {
-      return err(
-        new GenericError(
-          `Error while checking blocked-user status: ${blockedUserResult.error.message}`,
-        ),
-      );
-    }
-    if (blockedUserResult.value) {
-      return err(new AuthenticationError());
+    const validateProfileLocksResult = await deps.validateProfileLocksUseCase({
+      fiscalCode: user.fiscalCode,
+      checks: ["technical"],
+    });
+    if (validateProfileLocksResult.isErr()) {
+      const error = validateProfileLocksResult.error;
+      switch (error.kind) {
+        case "ForbiddenError":
+          return err(new AuthenticationError());
+        case "GenericError":
+          return err(
+            new GenericError(
+              `Error while validating profile locks: ${error.message}`,
+            ),
+          );
+        default: {
+          const _exhaustiveCheck: never = error;
+          return err(new GenericError("Unhandled error"));
+        }
+      }
     }
 
     const sessionResult = await deps.refreshUserSessionUseCase({
