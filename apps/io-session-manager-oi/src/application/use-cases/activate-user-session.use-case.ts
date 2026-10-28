@@ -32,6 +32,7 @@ import {
   type ClientSessionToken,
   ClientSessionTokenSchema,
 } from "../../domain/value-objects/client-session-token.vo.js";
+
 import { InvalidateSessionTokenCacheUseCase } from "./invalidate-session-token-cache.use-case.js";
 
 type NewSessionToken = Omit<

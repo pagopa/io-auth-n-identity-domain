@@ -5,6 +5,7 @@ import {
   type UseCase,
 } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
+
 import type { LockedProfilesPort } from "../../domain/ports/outbound/locked-profiles.port.js";
 import type { TechnicalLockedProfilesPort } from "../../domain/ports/outbound/technical-locked-profiles.port.js";
 
