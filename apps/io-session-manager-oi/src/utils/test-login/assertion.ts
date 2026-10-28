@@ -38,6 +38,7 @@ export const getMockedSamlAssertion = ({
     ID="_43568006-96d4-4dcc-84da-d98e01ea3a28"
     IssueInstant="2020-02-26T07:32:05Z"
     Version="2.0"
+    xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   >
