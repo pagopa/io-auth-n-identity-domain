@@ -47,7 +47,7 @@ export const makeValidateProfileLocksUseCase =
         : undefined,
     ]);
 
-    if (isLockedResult !== undefined) {
+    if (isLockedResult) {
       if (isLockedResult.isErr()) {
         return err(
           new GenericError(
@@ -59,7 +59,7 @@ export const makeValidateProfileLocksUseCase =
       }
     }
 
-    if (isTechnicalLockedResult !== undefined) {
+    if (isTechnicalLockedResult) {
       if (isTechnicalLockedResult.isErr()) {
         return err(
           new GenericError(
