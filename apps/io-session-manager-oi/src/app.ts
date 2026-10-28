@@ -434,7 +434,6 @@ const createUseCases = (
     lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
     invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
     notificationPort: adapters.notificationStorageQueueAdapter,
-    platformInternalPort: adapters.platformInternalAdapter,
     testUserPort: adapters.testUserAdapter,
   });
 
