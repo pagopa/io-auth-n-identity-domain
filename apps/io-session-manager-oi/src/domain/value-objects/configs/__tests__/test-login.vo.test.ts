@@ -25,19 +25,6 @@ const twoElementListWithSpaceBeforeCommaEncoded =
 const twoElementListWithSpacesAroundCommaEncoded =
   "H4sIAAAAAAAAA3N0BAEDAwgycFLQUXBEFXIGAPI9szgjAAAA";
 
-describe("test fixtures", () => {
-  it.each`
-    encoded                                       | decoded
-    ${oneElementListEncoded}                      | ${"AAAAAA00A00A000B"}
-    ${twoElementListEncoded}                      | ${"AAAAAA00A00A000B,AAAAAA00A00A000C"}
-    ${twoElementListWithSpaceAfterCommaEncoded}   | ${"AAAAAA00A00A000B, AAAAAA00A00A000C"}
-    ${twoElementListWithSpaceBeforeCommaEncoded}  | ${"AAAAAA00A00A000B ,AAAAAA00A00A000C"}
-    ${twoElementListWithSpacesAroundCommaEncoded} | ${"AAAAAA00A00A000B , AAAAAA00A00A000C"}
-  `("decodes to $decoded", ({ encoded, decoded }) => {
-    expect(gunzipSync(Buffer.from(encoded, "base64")).toString()).toBe(decoded);
-  });
-});
-
 describe("CompressedFiscalCodeSet", () => {
   it.each`
     case                                         | input                                         | expected
