@@ -2,4 +2,4 @@
 "io-session-manager-oi": minor
 ---
 
-Add SAML assertion consistency checks
+Add Test Login

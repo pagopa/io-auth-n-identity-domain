@@ -14,7 +14,6 @@ import {
   FastLoginOutputDTO,
 } from "../dtos/fast-login.dto.js";
 
-
 import { extractIpMiddleware } from "./middlewares/extract-ip.middleware.js";
 import type { OptionalSessionMiddleware } from "./middlewares/optional-session.middleware.js";
 
@@ -54,7 +53,7 @@ export type FastLoginHandlerDeps = {
   middlewares: {
     optionalSessionMiddleware: OptionalSessionMiddleware;
     extractIpMiddleware: typeof extractIpMiddleware;
-  }
+  };
   useCase: ReturnType<typeof makeFastLoginUseCase>;
 };
 
