@@ -458,10 +458,10 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
   /test-login:
     post:
-      description: " Login Test User with password and Fiscal Code."
+      description: Login Test User with password and Fiscal Code.
       operationId: testLogin
       security: []
-      summary: " Login Test User with password"
+      summary: Login Test User with password
       tags:
         - test
       requestBody:
