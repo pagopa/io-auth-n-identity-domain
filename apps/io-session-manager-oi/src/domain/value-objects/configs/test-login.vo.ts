@@ -11,7 +11,7 @@ import { z } from "zod";
 const _brands = [FiscalCodeBrand];
 
 // Gzipped (then base64-encoded) comma-separated list of test users' fiscal codes
-const CompressedFiscalCodeSet = z
+export const CompressedFiscalCodeSet = z
   .string()
   .transform((raw, ctx) => {
     if (raw.trim() === "") {
@@ -36,9 +36,7 @@ const CompressedFiscalCodeSet = z
 
 export const TestLoginConfigSchema = z.object({
   // Fiscal codes of test users; profiles created for them are flagged as test profiles
-  TEST_LOGIN_FISCAL_CODES_COMPRESSED: CompressedFiscalCodeSet.default(
-    new Set(),
-  ),
+  TEST_LOGIN_FISCAL_CODES_COMPRESSED: CompressedFiscalCodeSet,
   TEST_LOGIN_PASSWORD: NonEmptyStringSchema,
 });
 

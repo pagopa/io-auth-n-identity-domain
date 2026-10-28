@@ -1,7 +1,7 @@
 import type { FiscalCode, NonEmptyString } from "@pagopa/hexagonal-core";
 
 import type { TestUserPort } from "../../domain/ports/outbound/test-user.port.js";
-import type { TestLoginConfig } from "../../domain/value-objects/configs/test-login.js";
+import type { TestLoginConfig } from "../../domain/value-objects/configs/test-login.vo.js";
 
 export class InMemoryTestUserAdapter implements TestUserPort {
   private readonly testUsers: ReadonlySet<FiscalCode>;
