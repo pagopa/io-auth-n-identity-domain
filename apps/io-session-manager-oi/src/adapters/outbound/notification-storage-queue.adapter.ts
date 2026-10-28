@@ -1,8 +1,8 @@
 import { QueueClient } from "@azure/storage-queue";
 import { FiscalCode, GenericError } from "@pagopa/hexagonal-core";
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok, Result, ResultAsync } from "neverthrow";
 
-import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { NotificationPort } from "../../domain/ports/outbound/notification.port.js";
 import { Base64 } from "../../utils/codec/index.js";
 import { Hash } from "../../utils/crypto/index.js";

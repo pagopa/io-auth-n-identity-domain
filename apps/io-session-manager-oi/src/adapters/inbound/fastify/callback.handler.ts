@@ -45,6 +45,10 @@ export const callbackContract = defineRoute({
       description: "Unauthorized",
       schema: ProblemJson,
     },
+    403: {
+      description: "Forbidden",
+      schema: ProblemJson,
+    },
     500: {
       description: "Internal error",
       schema: ProblemJson,
