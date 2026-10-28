@@ -17,8 +17,8 @@ const testLoginContract = defineRoute({
   operationId: "testLogin",
   path: `${BASE_PATH}/test-login`,
   request: TestLoginInputDTO,
-  summary: " Login Test User with password",
-  description: " Login Test User with password and Fiscal Code.",
+  summary: "Login Test User with password",
+  description: "Login Test User with password and Fiscal Code.",
   tags: ["test"],
   security: [],
   response: {
