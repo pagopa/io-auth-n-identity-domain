@@ -67,3 +67,13 @@ resource "azurerm_key_vault_secret" "sm_test_login_fiscal_codes_compressed" {
 
   tags = var.tags
 }
+
+resource "azurerm_key_vault_secret" "sm_test_login_password" {
+  name         = "sm-test-login-password"
+  key_vault_id = var.key_vault.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = var.tags
+}
