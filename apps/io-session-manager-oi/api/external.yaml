@@ -174,6 +174,39 @@ components:
         - fimsToken
       description: "The use of this parameters allows the client to obtain only the requested parameters. NOTE: nested fields retrieval is currently not supported. NOTE: field names are case-sensitive Example: ?fields=(spidLevel,walletToken) For more info, see https://opensource.zalando.com/restful-api-guidelines/#157"
       example: (spidLevel,walletToken)
+    TestLoginOutput:
+      type: object
+      properties:
+        access_token:
+          type: string
+          minLength: 1
+      required:
+        - access_token
+      description: Access Token obtained after a successful test login.
+    TestLoginInput:
+      type: object
+      properties:
+        username:
+          type: string
+          pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/i
+        password:
+          type: string
+          minLength: 1
+        lollipop_pub_key:
+          type: string
+          minLength: 1
+          format: base64url
+          pattern: ^[A-Za-z0-9_-]*$
+          description: The Lollipop public key, encoded as a Base64url JSON JWK.
+        lollipop_hash_algo:
+          $ref: "#/components/schemas/LollipopHashAlgorithm"
+        login_type:
+          $ref: "#/components/schemas/LoginType"
+      required:
+        - username
+        - password
+        - lollipop_pub_key
+      description: Input for the test login endpoint.
   parameters: {}
 paths:
   /callback:
@@ -407,6 +440,51 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
         "401":
           description: Bearer token null or expired
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /test-login:
+    post:
+      description: " Login Test User with password and Fiscal Code."
+      operationId: testLogin
+      security: []
+      summary: " Login Test User with password"
+      tags:
+        - test
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestLoginInput"
+      responses:
+        "200":
+          description: Access token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestLoginOutput"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Invalid credentials
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: Lollipop public key already reserved
           content:
             application/problem+json:
               schema:
