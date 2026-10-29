@@ -77,7 +77,10 @@ export const mountSsoFimsLollipopUserHandler = (
         session: context.session,
         operationId: req.body.operation_id,
       }),
-      outputMapper: ({ profile, lcParams }) => ({
+      outputMapper: ({
+        profile,
+        lcParams,
+      }) => ({
         profile: {
           name: profile.name,
           family_name: profile.familyName,

@@ -37,26 +37,26 @@ describe("callback handler login outcomes and errors", () => {
     { error: new ForbiddenError(), status: 403 },
     { error: new TechnicalProfileLockedError(), status: 403 },
     { error: new GenericError("Error while validating user"), status: 500 },
-  ])(
-    "returns HTTP $status instead of redirecting for $error.kind",
-    async ({ error, status }) => {
-      handleOidcCallbackUseCase.mockResolvedValueOnce(err(error));
+  ])("returns HTTP $status instead of redirecting for $error.kind", async ({
+    error,
+    status,
+  }) => {
+    handleOidcCallbackUseCase.mockResolvedValueOnce(err(error));
 
-      const response = await server.inject({
-        method: "GET",
-        url: `${callbackContract.path}?state=a-state&code=a-code`,
-        headers: { "x-forwarded-for": "203.0.113.7" },
-      });
+    const response = await server.inject({
+      method: "GET",
+      url: `${callbackContract.path}?state=a-state&code=a-code`,
+      headers: { "x-forwarded-for": "203.0.113.7" },
+    });
 
-      expect(handleOidcCallbackUseCase).toHaveBeenCalledExactlyOnceWith({
-        callback: { state: "a-state", code: "a-code" },
-        ipAddress: "203.0.113.7",
-      });
-      expect(response.statusCode).toBe(status);
-      expect(response.json()).toMatchObject({ status });
-      expect(response.headers.location).toBeUndefined();
-    },
-  );
+    expect(handleOidcCallbackUseCase).toHaveBeenCalledExactlyOnceWith({
+      callback: { state: "a-state", code: "a-code" },
+      ipAddress: "203.0.113.7",
+    });
+    expect(response.statusCode).toBe(status);
+    expect(response.json()).toMatchObject({ status });
+    expect(response.headers.location).toBeUndefined();
+  });
 
   it("redirects a profile locked outcome with code 1002 and no error message", async () => {
     handleOidcCallbackUseCase.mockResolvedValueOnce(
