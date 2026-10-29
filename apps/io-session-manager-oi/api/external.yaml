@@ -200,6 +200,9 @@ components:
         spid_email:
           type: string
           pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+        spid_idp:
+          type: string
+          minLength: 1
         spid_level:
           type: string
           enum:
@@ -219,6 +222,7 @@ components:
         - assertion_ref
         - name
         - date_of_birth
+        - spid_idp
         - spid_level
         - created_at
         - token_remaining_ttl

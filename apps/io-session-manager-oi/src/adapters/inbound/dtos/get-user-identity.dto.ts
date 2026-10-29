@@ -19,6 +19,7 @@ export const GetUserIdentityOutputDTO = z
     name: NonEmptyStringSchema,
     date_of_birth: z.iso.date(),
     spid_email: EmailAddressSchema.optional(),
+    spid_idp: NonEmptyStringSchema,
     spid_level: SpidLevelSchema,
     created_at: z.number(),
     token_remaining_ttl: z.number().int(),

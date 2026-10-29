@@ -69,7 +69,7 @@ export const mountGetUserIdentityHandler =
         session_tracking_id: identity.sessionId,
         // TODO: check if can be renamed into a simpler field name
         // since the IdP could be CIE which is not a SPID provider.
-        spid_idp: "TODO",
+        spid_idp: identity.identityProvider,
       }),
       useCase: deps.useCase,
     });
