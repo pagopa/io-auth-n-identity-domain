@@ -44,6 +44,18 @@ describe("ReserveInputDTO", () => {
   });
 
   it.each([
+    aCurrentUserHash.toUpperCase(),
+    "aBcDeF0123456789".repeat(4),
+  ])("normalizes the current user hash %s to lowercase", (currentUser) => {
+    const parsed = ReserveInputDTO.body.parse({
+      ...aValidReserveRequest,
+      current_user: currentUser,
+    });
+
+    expect(parsed.current_user).toBe(aCurrentUserHash);
+  });
+
+  it.each([
     "",
     "current-user-id",
     "a".repeat(63),

@@ -21,7 +21,10 @@ import { IdentityAssertionFetcherPort } from "../../../domain/ports/outbound/ide
 import { OidcClientPort } from "../../../domain/ports/outbound/oidc.port.js";
 import type { IdentityAssertion } from "../../../domain/value-objects/assertion.vo.js";
 import { ClientSessionToken } from "../../../domain/value-objects/client-session-token.vo.js";
-import { LoginAuxiliaryData } from "../../../domain/value-objects/login.vo.js";
+import {
+  CurrentUserSchema,
+  LoginAuxiliaryData,
+} from "../../../domain/value-objects/login.vo.js";
 import { OidcClaims } from "../../../domain/value-objects/oidc.vo.js";
 import { ActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 import {
@@ -218,33 +221,42 @@ describe("makeHandleOidcCallbackUseCase", () => {
       );
     });
 
-    it("continues login when the current user hash matches the authenticated fiscal code", async () => {
-      exchangeMock.mockResolvedValueOnce(
-        ok({
-          claims: { ...CLAIMS, fiscalNumber: "RSSMRA80A01H501U" as FiscalCode },
-          accessToken: ACCESS_TOKEN,
-        }),
-      );
-      getAssertionMock.mockResolvedValueOnce(
-        ok({
-          ...IDENTITY_ASSERTION,
-          claims: { fiscalCode: "RSSMRA80A01H501U" as FiscalCode },
-        }),
-      );
+    it.each([currentUser, currentUser.toUpperCase()])(
+      "continues login when the parsed current user hash %s matches the authenticated fiscal code",
+      async (hash) => {
+        retrieveMock.mockReset().mockResolvedValueOnce(
+          ok({
+            ...AUXILIARY_DATA,
+            currentUser: CurrentUserSchema.parse(hash),
+          }),
+        );
+        exchangeMock.mockResolvedValueOnce(
+          ok({
+            claims: { ...CLAIMS, fiscalNumber: "RSSMRA80A01H501U" as FiscalCode },
+            accessToken: ACCESS_TOKEN,
+          }),
+        );
+        getAssertionMock.mockResolvedValueOnce(
+          ok({
+            ...IDENTITY_ASSERTION,
+            claims: { fiscalCode: "RSSMRA80A01H501U" as FiscalCode },
+          }),
+        );
 
-      const result = await handleOidcCallbackUseCase({
-        callback: SUCCESS_CALLBACK,
-        ipAddress: IP_ADDRESS,
-      });
+        const result = await handleOidcCallbackUseCase({
+          callback: SUCCESS_CALLBACK,
+          ipAddress: IP_ADDRESS,
+        });
 
-      expect(result._unsafeUnwrap()).toEqual({
-        outcome: "success",
-        token: CLIENT_SESSION_TOKEN,
-      });
-      expect(activateUserSessionUseCase).toHaveBeenCalledOnce();
-      expect(sendEventMock).not.toHaveBeenCalled();
-      expect(console.warn).not.toHaveBeenCalled();
-    });
+        expect(result._unsafeUnwrap()).toEqual({
+          outcome: "success",
+          token: CLIENT_SESSION_TOKEN,
+        });
+        expect(activateUserSessionUseCase).toHaveBeenCalledOnce();
+        expect(sendEventMock).not.toHaveBeenCalled();
+        expect(console.warn).not.toHaveBeenCalled();
+      },
+    );
 
     it("returns code 1004 and emits a rejected login event on a current-user mismatch", async () => {
       const startedAt = Date.now();
