@@ -1,6 +1,5 @@
 import {
   GenericError,
-  type NonEmptyString,
   NotFoundError,
   type UseCase,
 } from "@pagopa/hexagonal-core";
@@ -41,7 +40,6 @@ type NewSessionToken = Omit<
 > & {
   ipAddress: IPString;
   loginType: LoginType;
-  identityProvider: NonEmptyString;
 };
 
 type ActivateUserSessionUseCaseInput = {

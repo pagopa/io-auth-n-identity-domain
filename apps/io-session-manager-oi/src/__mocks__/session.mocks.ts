@@ -86,6 +86,7 @@ export const aBaseSession: BaseSession = {
   dateOfBirth: aDateOfBirth,
   spidLevel: aSpidLevel,
   spidEmail: anEmailAddress,
+  identityProvider: anIdentityProvider,
   expirationDate: new Date("2100-01-01"),
   createdAt: new Date("2099-12-01"),
 };
