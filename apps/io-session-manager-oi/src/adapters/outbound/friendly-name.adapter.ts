@@ -3,13 +3,18 @@ import { err, ok, Result } from "neverthrow";
 import { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
 import { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
 import z from "zod";
+
+import type { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
+import type { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
+
+import { PositiveIntegerSchema } from "../../domain/value-objects/positive-integer.vo.js";
 import { HttpUrlCodec } from "../../utils/codec/url.js";
 import { NonEmptyString } from "@pagopa/hexagonal-core";
 
 export const IdpFriendlyNameConfigSchema = z.object({
   IDP_FRIENDLY_NAMES_PROD_URL: HttpUrlCodec,
   IDP_FRIENDLY_NAMES_UAT_URL: HttpUrlCodec,
-  IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS: z.coerce.number().int().positive(),
+  IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS: PositiveIntegerSchema,
 });
 
 type CacheIdpFriendlyNames = {
