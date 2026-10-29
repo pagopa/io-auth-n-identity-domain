@@ -12,7 +12,7 @@ import type {
 } from "@pagopa/io-auth-n-identity-domain";
 import { DOMParser } from "@xmldom/xmldom";
 import { toSha256 } from "@pagopa/io-auth-n-identity-session";
-import { err, ok, ResultAsync } from "neverthrow";
+import { err, errAsync, ok, ResultAsync } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AuthEventPort } from "../../../domain/ports/outbound/auth-event.port.js";
@@ -292,6 +292,28 @@ describe("makeHandleOidcCallbackUseCase", () => {
         errorCode: "1004",
       });
       expect(sendEventMock).toHaveBeenCalledOnce();
+      expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+    });
+
+    it("logs an event-send Err result without changing the login outcome", async () => {
+      const sendError = new GenericError("Failed to send auth event");
+      sendEventMock.mockReturnValueOnce(errAsync(sendError));
+
+      const result = await handleOidcCallbackUseCase({
+        callback: SUCCESS_CALLBACK,
+        ipAddress: IP_ADDRESS,
+      });
+
+      expect(result._unsafeUnwrap()).toEqual({
+        outcome: "error",
+        errorCode: "1004",
+      });
+      await vi.waitFor(() => {
+        expect(console.error).toHaveBeenCalledExactlyOnceWith(
+          "Failed to send rejected_login (cf_mismatch) auth event:",
+          sendError,
+        );
+      });
       expect(activateUserSessionUseCase).not.toHaveBeenCalled();
     });
 

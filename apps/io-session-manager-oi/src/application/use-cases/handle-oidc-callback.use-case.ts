@@ -143,7 +143,14 @@ export const makeHandleOidcCallbackUseCase =
           ts: new Date(),
         })
         .then(
-          () => void 0,
+          (result) => {
+            if (result.isErr()) {
+              console.error(
+                "Failed to send rejected_login (cf_mismatch) auth event:",
+                result.error,
+              );
+            }
+          },
           (error) => {
             console.error(
               "Failed to send rejected_login (cf_mismatch) auth event:",
