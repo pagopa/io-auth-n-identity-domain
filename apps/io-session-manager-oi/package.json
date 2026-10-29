@@ -41,6 +41,7 @@
     "@pagopa/io-env-config": "workspace:^",
     "@pagopa/io-package-info": "workspace:^",
     "@pagopa/redis": "workspace:^",
+    "@pagopa/ts-commons": "catalog:",
     "@xmldom/xmldom": "catalog:",
     "dotenv": "catalog:",
     "fast-xml-validator": "^1.4.2",

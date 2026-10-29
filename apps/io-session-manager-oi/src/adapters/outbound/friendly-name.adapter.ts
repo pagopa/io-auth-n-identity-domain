@@ -2,11 +2,17 @@ import {
   NonEmptyStringSchema,
   type NonEmptyString,
 } from "@pagopa/hexagonal-core";
+import { agent } from "@pagopa/ts-commons";
+import {
+  AbortableFetch,
+  setFetchTimeout,
+  toFetch,
+} from "@pagopa/ts-commons/lib/fetch.js";
+import type { Millisecond } from "@pagopa/ts-commons/lib/units.js";
 import z from "zod";
 
 import type { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
 import type { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
-
 import { PositiveIntegerSchema } from "../../domain/value-objects/positive-integer.vo.js";
 import { HttpUrlCodec } from "../../utils/codec/url.js";
 
@@ -14,6 +20,7 @@ export const IdpFriendlyNameConfigSchema = z.object({
   IDP_FRIENDLY_NAMES_PROD_URL: HttpUrlCodec,
   IDP_FRIENDLY_NAMES_UAT_URL: HttpUrlCodec,
   IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS: PositiveIntegerSchema,
+  IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS: PositiveIntegerSchema,
 });
 
 type CacheIdpFriendlyNames = {
@@ -33,6 +40,7 @@ const resolveFriendlyName = (
 export class IdpFriendlyNameAdapter implements IdpFriendlyNamePort {
   private readonly urlsByEnv: Record<OidcEnvironment, URL | undefined>;
   private readonly cacheTtlSeconds: number;
+  private readonly fetchApi: typeof fetch;
   private cache: Map<OidcEnvironment, CacheIdpFriendlyNames>;
 
   constructor(config: IdpFriendlyNameConfig) {
@@ -41,6 +49,12 @@ export class IdpFriendlyNameAdapter implements IdpFriendlyNamePort {
       UAT: config.IDP_FRIENDLY_NAMES_UAT_URL,
     };
     this.cacheTtlSeconds = config.IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS;
+    const abortableFetch = AbortableFetch(agent.getFetch(process.env));
+    const fetchWithTimeout = setFetchTimeout(
+      (config.IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS * 1000) as Millisecond,
+      abortableFetch,
+    );
+    this.fetchApi = toFetch(fetchWithTimeout) as unknown as typeof fetch;
     this.cache = new Map();
   }
 
@@ -67,7 +81,7 @@ export class IdpFriendlyNameAdapter implements IdpFriendlyNamePort {
     }
 
     try {
-      const response = await fetch(url);
+      const response = await this.fetchApi(url);
 
       if (!response.ok) {
         return issuer;

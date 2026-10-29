@@ -1360,6 +1360,9 @@ importers:
       '@pagopa/redis':
         specifier: workspace:^
         version: link:../../packages/redis
+      '@pagopa/ts-commons':
+        specifier: 'catalog:'
+        version: 13.1.2(fp-ts@2.16.9)(io-ts@2.2.22(fp-ts@2.16.9))
       '@xmldom/xmldom':
         specifier: 'catalog:'
         version: 0.8.10
@@ -12108,7 +12111,7 @@ snapshots:
       '@usebruno/lang': 0.27.0
       '@usebruno/requests': 0.7.0(debug@4.4.1)
       '@usebruno/vm2': 3.9.19
-      aws4-axios: 3.4.0(axios@1.11.0)
+      aws4-axios: 3.4.0(axios@1.11.0(debug@4.4.1))
       axios: 1.11.0(debug@4.4.1)
       axios-ntlm: 1.4.4(debug@4.4.1)
       chai: 4.5.0
@@ -12522,7 +12525,7 @@ snapshots:
 
   aws-sign2@0.7.0: {}
 
-  aws4-axios@3.4.0(axios@1.11.0):
+  aws4-axios@3.4.0(axios@1.11.0(debug@4.4.1)):
     dependencies:
       '@aws-sdk/client-sts': 3.862.0
       aws4: 1.13.2
