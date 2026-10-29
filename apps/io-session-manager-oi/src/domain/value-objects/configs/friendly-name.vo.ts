@@ -1,5 +1,4 @@
 import z from "zod";
-
 import { HttpUrlCodec } from "../../../utils/codec/url.js";
 import { PositiveIntegerSchema } from "../positive-integer.vo.js";
 

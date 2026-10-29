@@ -2,13 +2,6 @@ import {
   NonEmptyStringSchema,
   type NonEmptyString,
 } from "@pagopa/hexagonal-core";
-import { agent } from "@pagopa/ts-commons";
-import {
-  AbortableFetch,
-  setFetchTimeout,
-  toFetch,
-} from "@pagopa/ts-commons/lib/fetch.js";
-import type { Millisecond } from "@pagopa/ts-commons/lib/units.js";
 import z from "zod";
 
 import type { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
@@ -40,7 +33,7 @@ const resolveFriendlyName = (
 export class IdpFriendlyNameAdapter implements IdpFriendlyNamePort {
   private readonly urlsByEnv: Record<OidcEnvironment, URL | undefined>;
   private readonly cacheTtlSeconds: number;
-  private readonly fetchApi: typeof fetch;
+  private readonly timeoutFetchSeconds: number;
   private cache: Map<OidcEnvironment, CacheIdpFriendlyNames>;
 
   constructor(config: IdpFriendlyNameConfig) {
@@ -49,12 +42,7 @@ export class IdpFriendlyNameAdapter implements IdpFriendlyNamePort {
       UAT: config.IDP_FRIENDLY_NAMES_UAT_URL,
     };
     this.cacheTtlSeconds = config.IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS;
-    const abortableFetch = AbortableFetch(agent.getFetch(process.env));
-    const fetchWithTimeout = setFetchTimeout(
-      (config.IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS * 1000) as Millisecond,
-      abortableFetch,
-    );
-    this.fetchApi = toFetch(fetchWithTimeout) as unknown as typeof fetch;
+    this.timeoutFetchSeconds = config.IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS;
     this.cache = new Map();
   }
 
@@ -81,7 +69,9 @@ export class IdpFriendlyNameAdapter implements IdpFriendlyNamePort {
     }
 
     try {
-      const response = await this.fetchApi(url);
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(this.timeoutFetchSeconds * 1000),
+      });
 
       if (!response.ok) {
         return issuer;
