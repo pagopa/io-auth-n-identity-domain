@@ -667,18 +667,30 @@ const mountRoutes = ({
     middlewares: [middlewares.authenticateSessionMiddleware] as const,
     useCase: useCases.getSessionUseCase,
   })(server);
-};
 
   mountGetUserIdentityHandler({
-    middlewares: [authenticateSessionMiddleware] as const,
+    middlewares: [middlewares.authenticateSessionMiddleware] as const,
     useCase: makeGetUserIdentityUseCase({
-      lollipopActivationPort: lollipopActivationCosmosAdapter,
+      lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
     }),
   })(server);
+};
 
-  // --------------------------------------------------
-  // Hooks mounting
-  // --------------------------------------------------
+/**
+ * Creates the application and configures resource cleanup without starting the listener.
+ *
+ * @param config - Application configuration.
+ * @param packageInfo - Package metadata.
+ * @returns The configured application server.
+ */
+export const createApp = async (
+  config: Config,
+  packageInfo: PackageInfo,
+): Promise<{ server: FastifyInstance }> => {
+  const server = fastify({
+    trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
+  });
+  const lifecycle = createResourceLifecycle(server);
 
   try {
     server.addHook("onClose", lifecycle.cleanupResources);

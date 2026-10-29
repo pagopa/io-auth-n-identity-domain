@@ -78,27 +78,21 @@ describe("makeGetUserIdentityUseCase", () => {
     expect(result._unsafeUnwrap().tokenRemainingTtl).toBe(1);
   });
 
-  it("should omit the assertion ref when the user has no lollipop activation", async () => {
-    lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
-      err(aNotFoundError),
-    );
+  it.each([
+    { title: "fails", error: aGenericError },
+    { title: "is not found", error: aNotFoundError },
+  ])(
+    "should return an error when the lollipop activation retrieval $title",
+    async ({ error }) => {
+      lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
+        err(error),
+      );
 
-    const result = await getUserIdentity({ session: aSession });
+      const result = await getUserIdentity({ session: aSession });
 
-    const identity = result._unsafeUnwrap();
-    expect(identity.assertionRef).toBeUndefined();
-    expect(identity.tokenRemainingTtl).toBe(ttlSeconds);
-  });
-
-  it("should return an error when the lollipop activation retrieval fails", async () => {
-    lollipopActivationPortMock.getByFiscalCode.mockResolvedValueOnce(
-      err(aGenericError),
-    );
-
-    const result = await getUserIdentity({ session: aSession });
-
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
-  });
+      expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+    },
+  );
 
   it.each([
     { title: "expired", offsetMs: -1000 },

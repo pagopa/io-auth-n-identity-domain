@@ -210,14 +210,19 @@ components:
           type: number
         token_remaining_ttl:
           type: integer
+        session_tracking_id:
+          type: string
+          minLength: 1
       required:
         - family_name
         - fiscal_code
+        - assertion_ref
         - name
         - date_of_birth
         - spid_level
         - created_at
         - token_remaining_ttl
+        - session_tracking_id
       description: Describes the user's identity while it's authenticated, along with the session TTL.
   parameters: {}
 paths:

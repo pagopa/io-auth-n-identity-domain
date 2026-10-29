@@ -1,4 +1,4 @@
-import { GenericError, NotFoundError, UseCase } from "@pagopa/hexagonal-core";
+import { GenericError, UseCase } from "@pagopa/hexagonal-core";
 import type {
   BaseSession,
   LollipopActivation,
@@ -16,7 +16,7 @@ export type GetUserIdentityInput = {
 
 export type GetUserIdentityOutput = Omit<BaseSession, "expirationDate"> & {
   tokenRemainingTtl: number;
-  assertionRef?: LollipopActivation["assertionRef"];
+  assertionRef: LollipopActivation["assertionRef"];
 };
 
 export const makeGetUserIdentityUseCase =
@@ -34,11 +34,7 @@ export const makeGetUserIdentityUseCase =
     const maybeActivation = await deps.lollipopActivationPort.getByFiscalCode(
       session.fiscalCode,
     );
-    // The assertion ref is optional: the user may not have a lollipop session
-    if (
-      maybeActivation.isErr() &&
-      !(maybeActivation.error instanceof NotFoundError)
-    ) {
+    if (maybeActivation.isErr()) {
       return err(
         new GenericError(
           "An error occurred while retrieving the lollipop activation",
@@ -49,9 +45,7 @@ export const makeGetUserIdentityUseCase =
     return ok({
       familyName: session.familyName,
       fiscalCode: session.fiscalCode,
-      assertionRef: maybeActivation.isOk()
-        ? maybeActivation.value.assertionRef
-        : undefined,
+      assertionRef: maybeActivation.value.assertionRef,
       name: session.name,
       dateOfBirth: session.dateOfBirth,
       spidEmail: session.spidEmail,
