@@ -70,11 +70,14 @@ const CLAIMS = {
   dateOfBirth: new Date("1990-01-01"),
   acr: "https://www.spid.gov.it/SpidL2",
   iss: "https://oneid.example.com",
+  idpEntityId: "https://idp.example.com",
 } as unknown as OidcClaims;
 
 const IDENTITY_ASSERTION: IdentityAssertion = {
   assertionRef: AUXILIARY_DATA.lollipopAssertionRef,
-  claims: { fiscalCode: CLAIMS.fiscalNumber },
+  claims: {
+    fiscalCode: CLAIMS.fiscalNumber,
+  },
   rawAssertion: "a-raw-saml-assertion" as NonEmptyString,
   assertion: new DOMParser().parseFromString(
     "<Assertion />",
@@ -169,13 +172,14 @@ describe("makeHandleOidcCallbackUseCase", () => {
         spidEmail: CLAIMS.email,
         ipAddress: IP_ADDRESS,
         loginType: AUXILIARY_DATA.loginType,
-        identityProvider: CLAIMS.iss,
+        identityProvider: CLAIMS.idpEntityId,
       },
       assertion: {
         assertionRef: IDENTITY_ASSERTION.assertionRef,
         rawAssertion: IDENTITY_ASSERTION.rawAssertion,
         type: IDENTITY_ASSERTION.type,
       },
+      oidcEnvironment: AUXILIARY_DATA.oidcConfigurationEnv,
     });
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toEqual({

@@ -39,6 +39,7 @@ export const createIoLollipopAdapter = (config: {
 
   return {
     reservePubKey: async (payload) => {
+
       const { response, data } = await reservePubKey({
         client,
         body: {

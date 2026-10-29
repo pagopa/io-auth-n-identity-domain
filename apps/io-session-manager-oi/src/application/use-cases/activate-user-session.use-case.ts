@@ -34,6 +34,8 @@ import {
 } from "../../domain/value-objects/client-session-token.vo.js";
 
 import { InvalidateSessionTokenCacheUseCase } from "./invalidate-session-token-cache.use-case.js";
+import { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
+import { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
 
 type NewSessionToken = Omit<
   BaseSession,
@@ -47,6 +49,7 @@ type NewSessionToken = Omit<
 type ActivateUserSessionUseCaseInput = {
   sessionToken: NewSessionToken;
   assertion: Pick<IdentityAssertion, "assertionRef" | "rawAssertion" | "type">;
+  oidcEnvironment: OidcEnvironment;
 };
 
 export type ActivateUserSessionUseCase = UseCase<
@@ -64,6 +67,7 @@ type Dependencies = {
   lollipopRevocationPort: LollipopRevocationPort;
   invalidateSessionTokenCacheUseCase: InvalidateSessionTokenCacheUseCase;
   notificationPort: NotificationPort;
+  friendlyNamePort: IdpFriendlyNamePort;
 };
 
 // ---------------------------------------------
@@ -194,13 +198,20 @@ export const makeActivateUserSessionUseCase =
     /* Notify login event to user */
     /******************************/
     if (userProfile.email) {
+
+    const friendlyNameResult =
+      await deps.friendlyNamePort.getFriendlyName(
+      input.sessionToken.identityProvider,
+      input.oidcEnvironment,
+    );
+
       // Notify login event to user
       const notifyLoginResult = await deps.profilePort.notifyLogin({
         fiscalCode: userProfile.fiscalCode,
         name: input.sessionToken.name,
         familyName: input.sessionToken.familyName,
         email: userProfile.email,
-        identityProvider: input.sessionToken.identityProvider,
+        identityProvider: friendlyNameResult,
         ipAddress: input.sessionToken.ipAddress,
         isEmailValidated: userProfile.isEmailValidated,
       });

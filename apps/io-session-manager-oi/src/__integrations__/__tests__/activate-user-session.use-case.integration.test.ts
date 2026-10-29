@@ -35,6 +35,8 @@ import {
   readSessionTokenItemIds,
   seedSessionCosmosDb,
 } from "../fixtures/sessions.fixture.js";
+import { IdpFriendlyNamePortMock } from "../../__mocks__/ports/friendly-name-port.mocks.js";
+import { lollipopRevocationPortMock } from "../../__mocks__/ports/lollipop-revocation-port.mock.js";
 
 // The number of token documents persisted for a session: the main SESSION-
 // token plus the four SSO tokens (WALLET, BPD, FIMS, ZENDESK).
@@ -81,17 +83,24 @@ const lollipopPort = {
   generateLCParams: vi.fn(),
 } as unknown as LollipopPort;
 
+const mockGetFriendlyName = vi.fn();
+const friendlyNamePortMock = {
+  getFriendlyName: mockGetFriendlyName,
+} as unknown as typeof IdpFriendlyNamePortMock;
+
 const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   sessionPort: sessionAdapter,
   profilePort: adapter,
   platformInternalPort: platformInternalAdapter,
-  authEventPort,
+  authEventPort: authEventPort,
   lollipopActivationPort: lollipopActivationPortMock,
-  lollipopPort,
+  lollipopPort: lollipopPort,
+  lollipopRevocationPort: lollipopRevocationPortMock,
+  friendlyNamePort: friendlyNamePortMock,
 });
 
 const activateUserSession = (sessionToken: NewSessionToken) =>
-  activateUserSessionUseCase({ sessionToken, assertion });
+  activateUserSessionUseCase({ sessionToken, assertion, oidcEnvironment: "UAT" });
 
 // FIXME: review and fix integration tests (https://pagopa.atlassian.net/browse/IOPID-4193)
 describe("activate-user-session use case (integration)", () => {

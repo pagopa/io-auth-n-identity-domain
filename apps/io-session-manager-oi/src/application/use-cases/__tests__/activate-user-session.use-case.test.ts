@@ -54,6 +54,8 @@ import type { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.
 import type { NotificationPort } from "../../../domain/ports/outbound/notification.port.js";
 import { makeActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 import { makeInvalidateSessionTokenCacheUseCase } from "../invalidate-session-token-cache.use-case.js";
+import { IdpFriendlyNamePortMock } from "../../../__mocks__/ports/friendly-name-port.mocks.js";
+import { OidcEnvironment } from "../../../domain/value-objects/oidc.vo.js";
 
 // -----------------------------------------------------
 // Setup mocks
@@ -94,6 +96,11 @@ const notificationPort: NotificationPort = {
   deleteInstallation: mockDeleteInstallation,
 };
 
+const mockGetFriendlyName = vi.fn();
+const IdpfriendlyNamePortMock = {
+  getFriendlyName: mockGetFriendlyName,
+} as unknown as typeof IdpFriendlyNamePortMock;
+
 const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   sessionPort: SessionPortMock,
   profilePort: ProfilePortMock,
@@ -101,6 +108,7 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   lollipopActivationPort: lollipopActivationPortMock,
   lollipopPort,
   lollipopRevocationPort,
+  friendlyNamePort: IdpfriendlyNamePortMock,
   invalidateSessionTokenCacheUseCase: makeInvalidateSessionTokenCacheUseCase({
     platformInternalPort: PlatformInternalPortMock,
   }),
@@ -115,8 +123,11 @@ const assertionInput = {
   rawAssertion: "a-raw-saml-assertion" as NonEmptyString,
   type: "SAML" as const,
 };
+
+const oidcEnvironment: OidcEnvironment = "UAT";
+
 const activateUserSession = (sessionToken: NewSessionToken) =>
-  activateUserSessionUseCase({ sessionToken, assertion: assertionInput });
+  activateUserSessionUseCase({ sessionToken, assertion: assertionInput, oidcEnvironment: oidcEnvironment });
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -144,6 +155,7 @@ beforeEach(() => {
   lollipopActivationPortMock.revokeByFiscalCode.mockResolvedValue(
     ok(undefined),
   );
+  IdpfriendlyNamePortMock.getFriendlyName.mockReset().mockResolvedValue("Mock Friendly Name" as NonEmptyString);
 });
 
 afterEach(() => {

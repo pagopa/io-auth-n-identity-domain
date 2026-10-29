@@ -30,8 +30,9 @@ export const OidcClaimsSchema = z.object({
   dateOfBirth: z.coerce.date(),
   // `acr` carries the SPID authentication level as its canonical URL.
   acr: SpidLevelSchema,
-  // `iss` is the OneID issuer, used as the identity provider reference.
+  // `iss` identifies OneID; `idpEntityId` identifies the SPID identity provider.
   iss: NonEmptyStringSchema,
+  idpEntityId: NonEmptyStringSchema,
 });
 
 export type OidcClaims = z.infer<typeof OidcClaimsSchema>;

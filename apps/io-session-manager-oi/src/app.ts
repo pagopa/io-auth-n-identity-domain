@@ -71,6 +71,7 @@ import {
   TokenParsingStrategyFactory,
   TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
+import { IdpFriendlyNameAdapter } from "./adapters/outbound/friendly-name.adapter.js";
 
 /** Provides a lazily initialized credential shared by the Azure clients. */
 class AzureCredential {
@@ -306,6 +307,14 @@ const createAdapters = async (
     ),
   );
 
+  const idpFriendlyNameAdapter = new IdpFriendlyNameAdapter({
+    IDP_FRIENDLY_NAMES_PROD_URL: config.IDP_FRIENDLY_NAMES_PROD_URL,
+    IDP_FRIENDLY_NAMES_UAT_URL: config.IDP_FRIENDLY_NAMES_UAT_URL,
+    IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS: config.IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS,
+    IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS:
+      config.IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS,
+  });
+
   const blockedUsersAdapter = new BlockedUsersRedisAdapter(
     // Both generics are inferred from the constructor arguments:
     // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
@@ -394,6 +403,7 @@ const createAdapters = async (
     authEventServiceBusAdapter,
     lollipopActivationCosmosAdapter,
     oneIdIdentityAssertionFetcherAdapter,
+    idpFriendlyNameAdapter,
   };
 };
 
@@ -428,6 +438,7 @@ const createUseCases = (
     lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
     invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
     notificationPort: adapters.notificationStorageQueueAdapter,
+    friendlyNamePort: adapters.idpFriendlyNameAdapter,
   });
 
   const validateProfileLocksUseCase = makeValidateProfileLocksUseCase({
