@@ -15,7 +15,7 @@ export const GetUserIdentityOutputDTO = z
   .object({
     family_name: NonEmptyStringSchema,
     fiscal_code: FiscalCodeSchema,
-    assertion_ref: LollipopAssertionRefSchema.optional(),
+    assertion_ref: LollipopAssertionRefSchema,
     name: NonEmptyStringSchema,
     date_of_birth: z.iso.date(),
     spid_email: EmailAddressSchema.optional(),
