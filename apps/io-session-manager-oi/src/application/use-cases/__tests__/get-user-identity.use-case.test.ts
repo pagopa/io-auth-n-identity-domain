@@ -57,6 +57,7 @@ describe("makeGetUserIdentityUseCase", () => {
       createdAt: aSession.createdAt,
       tokenRemainingTtl: ttlSeconds,
       sessionId: aSession.sessionId,
+      identityProvider: aSession.identityProvider,
     });
     expect(lollipopActivationPortMock.getByFiscalCode).toHaveBeenCalledWith(
       aSession.fiscalCode,

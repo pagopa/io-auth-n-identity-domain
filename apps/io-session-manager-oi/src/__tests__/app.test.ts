@@ -79,6 +79,9 @@ vi.mock("../adapters/inbound/fastify/generate-nonce.handler.js", () => ({
 vi.mock("../adapters/inbound/fastify/get-session.handler.js", () => ({
   mountGetSessionHandler: () => vi.fn(),
 }));
+vi.mock("../adapters/inbound/fastify/get-user-identity.handler.js", () => ({
+  mountGetUserIdentityHandler: () => vi.fn(),
+}));
 vi.mock("../adapters/inbound/fastify/health-check.handler.js", () => ({
   mountHealthCheckHandler: () => vi.fn(),
 }));
