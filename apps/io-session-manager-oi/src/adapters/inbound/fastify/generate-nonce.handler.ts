@@ -3,6 +3,7 @@ import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { AnyRouteContract } from "@pagopa/hexagonal-openapi";
 import type { FastifyInstance } from "fastify";
 
+
 import { makeGenerateNonceUseCase } from "../../../application/use-cases/generate-nonce.use-case.js";
 import { BASE_PATH } from "../base-path.js";
 import { GenerateNonceOutputDTO } from "../dtos/generate-nonce.dto.js";
