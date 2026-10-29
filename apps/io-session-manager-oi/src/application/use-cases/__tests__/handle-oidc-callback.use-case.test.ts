@@ -11,9 +11,11 @@ import type {
   LollipopAssertionRef,
 } from "@pagopa/io-auth-n-identity-domain";
 import { DOMParser } from "@xmldom/xmldom";
-import { err, ok } from "neverthrow";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { toSha256 } from "@pagopa/io-auth-n-identity-session";
+import { err, ok, ResultAsync } from "neverthrow";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { AuthEventPort } from "../../../domain/ports/outbound/auth-event.port.js";
 import { AuxiliaryDataPort } from "../../../domain/ports/outbound/auxiliary-data.port.js";
 import { IdentityAssertionFetcherPort } from "../../../domain/ports/outbound/identity-assertion-fetcher.port.js";
 import { OidcClientPort } from "../../../domain/ports/outbound/oidc.port.js";
@@ -113,16 +115,36 @@ const activateUserSessionUseCase = vi
     ok(CLIENT_SESSION_TOKEN),
   ) as unknown as ActivateUserSessionUseCase;
 
+const sendEventMock = vi.fn<AuthEventPort["sendEvent"]>();
+
 const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
   auxiliaryDataPort,
   oidcPort,
   identityAssertionFetcherPort,
   validateProfileLocksUseCase,
   activateUserSessionUseCase,
+  authEventPort: { sendEvent: sendEventMock },
 });
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  retrieveMock.mockReset().mockResolvedValue(ok(AUXILIARY_DATA));
+  exchangeMock
+    .mockReset()
+    .mockResolvedValue(ok({ claims: CLAIMS, accessToken: ACCESS_TOKEN }));
+  getAssertionMock.mockReset().mockResolvedValue(ok(IDENTITY_ASSERTION));
+  validateProfileLocksUseCase.mockReset().mockResolvedValue(ok(undefined));
+  vi.mocked(activateUserSessionUseCase)
+    .mockReset()
+    .mockResolvedValue(ok(CLIENT_SESSION_TOKEN));
+  sendEventMock
+    .mockReset()
+    .mockImplementation(() =>
+      ResultAsync.fromSafePromise(Promise.resolve(undefined)),
+    );
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 // ---------------------------------------------------------------------------
@@ -181,6 +203,139 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(result._unsafeUnwrap()).toEqual({
       outcome: "success",
       token: CLIENT_SESSION_TOKEN,
+    });
+    expect(sendEventMock).not.toHaveBeenCalled();
+  });
+
+  describe("current user validation", () => {
+    const currentUser = toSha256("RSSMRA80A01H501U");
+
+    beforeEach(() => {
+      vi.spyOn(console, "warn").mockImplementation(() => undefined);
+      vi.spyOn(console, "error").mockImplementation(() => undefined);
+      retrieveMock.mockResolvedValueOnce(
+        ok({ ...AUXILIARY_DATA, currentUser }),
+      );
+    });
+
+    it("continues login when the current user hash matches the authenticated fiscal code", async () => {
+      exchangeMock.mockResolvedValueOnce(
+        ok({
+          claims: { ...CLAIMS, fiscalNumber: "RSSMRA80A01H501U" as FiscalCode },
+          accessToken: ACCESS_TOKEN,
+        }),
+      );
+      getAssertionMock.mockResolvedValueOnce(
+        ok({
+          ...IDENTITY_ASSERTION,
+          claims: { fiscalCode: "RSSMRA80A01H501U" as FiscalCode },
+        }),
+      );
+
+      const result = await handleOidcCallbackUseCase({
+        callback: SUCCESS_CALLBACK,
+        ipAddress: IP_ADDRESS,
+      });
+
+      expect(result._unsafeUnwrap()).toEqual({
+        outcome: "success",
+        token: CLIENT_SESSION_TOKEN,
+      });
+      expect(activateUserSessionUseCase).toHaveBeenCalledOnce();
+      expect(sendEventMock).not.toHaveBeenCalled();
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
+    it("returns code 1004 and emits a rejected login event on a current-user mismatch", async () => {
+      const startedAt = Date.now();
+      const result = await handleOidcCallbackUseCase({
+        callback: SUCCESS_CALLBACK,
+        ipAddress: IP_ADDRESS,
+      });
+
+      expect(result._unsafeUnwrap()).toEqual({
+        outcome: "error",
+        errorCode: "1004",
+      });
+      expect(sendEventMock).toHaveBeenCalledExactlyOnceWith({
+        eventType: "rejected_login",
+        rejectionCause: "cf_mismatch",
+        fiscalCode: CLAIMS.fiscalNumber,
+        currentFiscalCodeHash: currentUser,
+        ip: IP_ADDRESS,
+        loginId: AUXILIARY_DATA.lollipopAssertionRef,
+        ts: expect.any(Date),
+      });
+      const [event] = sendEventMock.mock.calls[0];
+      expect(event.ts.getTime()).toBeGreaterThanOrEqual(startedAt);
+      expect(event.ts.getTime()).toBeLessThanOrEqual(Date.now());
+      expect(console.warn).toHaveBeenCalledExactlyOnceWith(
+        "Current user mismatch between auxiliary data and id token",
+      );
+      expect(getAssertionMock).not.toHaveBeenCalled();
+      expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
+      expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+    });
+
+    it("does not wait for the rejected login event to finish sending", async () => {
+      sendEventMock.mockReturnValueOnce(
+        ResultAsync.fromSafePromise(new Promise<void>(() => undefined)),
+      );
+
+      const result = await handleOidcCallbackUseCase({
+        callback: SUCCESS_CALLBACK,
+        ipAddress: IP_ADDRESS,
+      });
+
+      expect(result._unsafeUnwrap()).toEqual({
+        outcome: "error",
+        errorCode: "1004",
+      });
+      expect(sendEventMock).toHaveBeenCalledOnce();
+      expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+    });
+
+    it("logs an unexpected event-send rejection without changing the login outcome", async () => {
+      const sendError = new Error("Unexpected event-send rejection");
+      sendEventMock.mockReturnValueOnce(
+        ResultAsync.fromSafePromise(Promise.reject(sendError)),
+      );
+
+      const result = await handleOidcCallbackUseCase({
+        callback: SUCCESS_CALLBACK,
+        ipAddress: IP_ADDRESS,
+      });
+
+      expect(result._unsafeUnwrap()).toEqual({
+        outcome: "error",
+        errorCode: "1004",
+      });
+      await vi.waitFor(() => {
+        expect(console.error).toHaveBeenCalledExactlyOnceWith(
+          "Failed to send rejected_login (cf_mismatch) auth event:",
+          sendError,
+        );
+      });
+      expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+    });
+
+    it("validates the authentication level before checking the current user", async () => {
+      exchangeMock.mockResolvedValueOnce(
+        ok({
+          claims: { ...CLAIMS, acr: "https://www.spid.gov.it/SpidL1" },
+          accessToken: ACCESS_TOKEN,
+        }),
+      );
+
+      const result = await handleOidcCallbackUseCase({
+        callback: SUCCESS_CALLBACK,
+        ipAddress: IP_ADDRESS,
+      });
+
+      expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
+      expect(sendEventMock).not.toHaveBeenCalled();
+      expect(getAssertionMock).not.toHaveBeenCalled();
+      expect(activateUserSessionUseCase).not.toHaveBeenCalled();
     });
   });
 

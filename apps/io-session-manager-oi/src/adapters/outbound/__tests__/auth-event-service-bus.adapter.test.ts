@@ -3,6 +3,7 @@ import { FiscalCodeSchema, GenericError } from "@pagopa/hexagonal-core";
 import {
   type AuthEvent,
   AuthEventSchema,
+  toSha256,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -70,6 +71,37 @@ describe("AuthEventServiceBusAdapter#sendEvent", () => {
       );
     }
     expect(mocks.serviceBusSender.sendMessages).not.toHaveBeenCalled();
+  });
+
+  it("sends a current-user mismatch event without an expiration timestamp", async () => {
+    mocks.serviceBusSender.sendMessages.mockResolvedValue(undefined);
+    const event: AuthEvent = {
+      eventType: "rejected_login",
+      rejectionCause: "cf_mismatch",
+      fiscalCode: AUTH_EVENT.fiscalCode,
+      ts: AUTH_EVENT.ts,
+      ip: "192.0.2.1",
+      currentFiscalCodeHash: toSha256("RSSMRA80A01H501U"),
+    };
+
+    const result = await adapter.sendEvent(event);
+
+    expect(result).toEqual(ok(undefined));
+    expect(mocks.serviceBusSender.sendMessages).toHaveBeenCalledExactlyOnceWith(
+      {
+        body: {
+          eventType: "rejected_login",
+          rejectionCause: "cf_mismatch",
+          fiscalCode: event.fiscalCode,
+          ts: event.ts.getTime(),
+          ip: event.ip,
+          currentFiscalCodeHash: event.currentFiscalCodeHash,
+        },
+        contentType: "application/json",
+        applicationProperties: { eventType: "rejected_login" },
+        sessionId: event.fiscalCode,
+      },
+    );
   });
 
   it("returns a GenericError when Service Bus rejects with an Error", async () => {

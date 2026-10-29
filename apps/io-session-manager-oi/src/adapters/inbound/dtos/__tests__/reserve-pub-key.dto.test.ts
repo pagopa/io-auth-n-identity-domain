@@ -18,6 +18,8 @@ const aValidReserveRequest = {
   lollipop_hash_algo: "sha256",
 };
 
+const aCurrentUserHash = "abcdef0123456789".repeat(4);
+
 describe("ReserveInputDTO", () => {
   it.each(["PROD", "UAT"])("accepts the %s environment", (env) => {
     const parsed = ReserveInputDTO.body.parse({
@@ -30,15 +32,40 @@ describe("ReserveInputDTO", () => {
     expect(parsed.current_user).toBeUndefined();
   });
 
-  it("preserves the requested login type and current user", () => {
+  it("preserves the requested login type and SHA-256 current user hash", () => {
     const parsed = ReserveInputDTO.body.parse({
       ...aValidReserveRequest,
       login_type: "LV",
-      current_user: "current-user-id",
+      current_user: aCurrentUserHash,
     });
 
     expect(parsed.login_type).toBe("LV");
-    expect(parsed.current_user).toBe("current-user-id");
+    expect(parsed.current_user).toBe(aCurrentUserHash);
+  });
+
+  it.each([
+    "",
+    "current-user-id",
+    "a".repeat(63),
+    "a".repeat(65),
+    "g".repeat(64),
+    `${"a".repeat(63)} `,
+    null,
+    123,
+  ])("rejects an invalid current user hash %j", (currentUser) => {
+    const result = ReserveInputDTO.body.safeParse({
+      ...aValidReserveRequest,
+      current_user: currentUser,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ path: ["current_user"] }),
+        ]),
+      );
+    }
   });
 
   it.each(["DEV", "prod", ""])("rejects invalid environment %j", (env) => {

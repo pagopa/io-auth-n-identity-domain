@@ -6,12 +6,15 @@ import {
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, Result, ResultAsync } from "neverthrow";
 
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import type { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 
 /**
  * AuthEventServiceBusAdapter is an implementation of the AuthEventPort interface that uses Azure Service Bus to send authentication events.
  */
-export class AuthEventServiceBusAdapter implements AuthEventPort {
+export class AuthEventServiceBusAdapter
+  implements AuthEventPort, HealthCheckOutboundPort
+{
   constructor(private readonly serviceBusSender: ServiceBusSender) {}
 
   sendEvent(eventData: AuthEvent): ResultAsync<void, GenericError> {
