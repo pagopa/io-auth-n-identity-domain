@@ -438,6 +438,7 @@ const createUseCases = (
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
     auxiliaryDataPort: adapters.auxiliaryStorageAdapter,
     oidcPort: adapters.oidcExchangeAdapter,
+    authEventPort: adapters.authEventServiceBusAdapter,
     identityAssertionFetcherPort: adapters.oneIdIdentityAssertionFetcherAdapter,
     validateProfileLocksUseCase,
     activateUserSessionUseCase,
