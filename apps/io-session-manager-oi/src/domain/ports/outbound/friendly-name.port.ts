@@ -1,9 +1,10 @@
-import { GenericError, NonEmptyString  } from "@pagopa/hexagonal-core";
-import { Result } from "neverthrow";
-import { OidcEnvironment } from "../../value-objects/oidc.vo.js";
+import type { NonEmptyString } from "@pagopa/hexagonal-core";
 
-
+import type { OidcEnvironment } from "../../value-objects/oidc.vo.js";
 
 export interface IdpFriendlyNamePort {
-  getFriendlyName(issuer: string, env: OidcEnvironment): Promise<NonEmptyString>;
+  getFriendlyName(
+    issuer: NonEmptyString,
+    env: OidcEnvironment,
+  ): Promise<NonEmptyString>;
 }

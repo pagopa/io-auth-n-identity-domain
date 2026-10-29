@@ -1,3 +1,4 @@
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -5,8 +6,8 @@ import {
   IdpFriendlyNameConfigSchema,
 } from "../friendly-name.adapter.js";
 
-const ISSUER = "https://idp.example.com";
-const FRIENDLY_NAME = "Identity Provider";
+const ISSUER = NonEmptyStringSchema.parse("https://idp.example.com");
+const FRIENDLY_NAME = NonEmptyStringSchema.parse("Identity Provider");
 
 const makeAdapter = () =>
   new IdpFriendlyNameAdapter(
@@ -59,5 +60,42 @@ describe("IdpFriendlyNameAdapter#getFriendlyName", () => {
     expect(fetch).toHaveBeenCalledExactlyOnceWith(
       new URL("https://names.example.com/prod"),
     );
+  });
+
+  it.each(["constructor", "__proto__"])(
+    "does not use inherited properties for issuer %s",
+    async (issuer) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          new Response(JSON.stringify({ [ISSUER]: FRIENDLY_NAME }), {
+            status: 200,
+          }),
+        ),
+      );
+
+      const nonEmptyIssuer = NonEmptyStringSchema.parse(issuer);
+      const result = await makeAdapter().getFriendlyName(
+        nonEmptyIssuer,
+        "PROD",
+      );
+
+      expect(result).toBe(nonEmptyIssuer);
+    },
+  );
+
+  it("falls back to the issuer when a friendly name is empty", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ [ISSUER]: "" }), {
+          status: 200,
+        }),
+      ),
+    );
+
+    const result = await makeAdapter().getFriendlyName(ISSUER, "PROD");
+
+    expect(result).toBe(ISSUER);
   });
 });

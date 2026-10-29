@@ -1,7 +1,7 @@
-import { GenericError } from "@pagopa/hexagonal-core";
-import { err, ok, Result } from "neverthrow";
-import { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
-import { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
+import {
+  NonEmptyStringSchema,
+  type NonEmptyString,
+} from "@pagopa/hexagonal-core";
 import z from "zod";
 
 import type { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
@@ -9,7 +9,6 @@ import type { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
 
 import { PositiveIntegerSchema } from "../../domain/value-objects/positive-integer.vo.js";
 import { HttpUrlCodec } from "../../utils/codec/url.js";
-import { NonEmptyString } from "@pagopa/hexagonal-core";
 
 export const IdpFriendlyNameConfigSchema = z.object({
   IDP_FRIENDLY_NAMES_PROD_URL: HttpUrlCodec,
@@ -18,65 +17,73 @@ export const IdpFriendlyNameConfigSchema = z.object({
 });
 
 type CacheIdpFriendlyNames = {
-    map: Record<string, string>;
-    lastUpdated: number;
-}
+  map: Record<string, NonEmptyString>;
+  lastUpdated: number;
+};
 
-type IdpFriendlyNameConfig = z.output<
-  typeof IdpFriendlyNameConfigSchema
->;
+type IdpFriendlyNameConfig = z.output<typeof IdpFriendlyNameConfigSchema>;
 
-const FriendlyNamesSchema = z.record(
-  z.string(),
-  z.string(),
-);
-``
+const FriendlyNamesSchema = z.record(z.string(), NonEmptyStringSchema);
+
+const resolveFriendlyName = (
+  map: Record<string, NonEmptyString>,
+  issuer: NonEmptyString,
+): NonEmptyString => (Object.hasOwn(map, issuer) ? map[issuer] : issuer);
+
 export class IdpFriendlyNameAdapter implements IdpFriendlyNamePort {
   private readonly urlsByEnv: Record<OidcEnvironment, URL | undefined>;
   private readonly cacheTtlSeconds: number;
-  private cache: CacheIdpFriendlyNames;
+  private cache: Map<OidcEnvironment, CacheIdpFriendlyNames>;
 
   constructor(config: IdpFriendlyNameConfig) {
     this.urlsByEnv = {
       PROD: config.IDP_FRIENDLY_NAMES_PROD_URL,
       UAT: config.IDP_FRIENDLY_NAMES_UAT_URL,
     };
-    this.cacheTtlSeconds = config.IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS 
-    this.cache = {
-      map: {},
-      lastUpdated: 0,
-    };
+    this.cacheTtlSeconds = config.IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS;
+    this.cache = new Map();
   }
 
   private getUrl(env: OidcEnvironment): URL | undefined {
     return this.urlsByEnv[env];
   }
 
-  async getFriendlyName(issuer: string, env: OidcEnvironment): Promise<NonEmptyString> {
+  async getFriendlyName(
+    issuer: NonEmptyString,
+    env: OidcEnvironment,
+  ): Promise<NonEmptyString> {
     const currentTimestamp = Date.now();
-    if (currentTimestamp - this.cache.lastUpdated < this.cacheTtlSeconds * 1000) {
-      return (this.cache.map[issuer] ?? issuer) as NonEmptyString;
+    const cachedValue = this.cache.get(env);
+    if (
+      cachedValue &&
+      currentTimestamp - cachedValue.lastUpdated < this.cacheTtlSeconds * 1000
+    ) {
+      return resolveFriendlyName(cachedValue.map, issuer);
     }
+
     const url = this.getUrl(env);
     if (!url) {
-      return issuer as NonEmptyString;
+      return issuer;
     }
 
-    const response = await fetch(url);
+    try {
+      const response = await fetch(url);
 
-    if (!response.ok) {
-        return issuer as NonEmptyString;
+      if (!response.ok) {
+        return issuer;
+      }
+
+      const body: unknown = await response.json();
+      const map = FriendlyNamesSchema.parse(body);
+
+      this.cache.set(env, {
+        map,
+        lastUpdated: currentTimestamp,
+      });
+
+      return resolveFriendlyName(map, issuer);
+    } catch {
+      return issuer;
     }
-
-    const body = await response.json();
-    const map = FriendlyNamesSchema.parse(body)
-
-    this.cache = {
-      map,
-      lastUpdated: currentTimestamp,
-    };
-    
-    return (map[issuer] ?? issuer) as NonEmptyString
   }
 }
-
