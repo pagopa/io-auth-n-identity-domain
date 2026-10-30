@@ -2,4 +2,4 @@
 "io-session-manager-oi": minor
 ---
 
-Implement frienldy name
+Implement friendly name
