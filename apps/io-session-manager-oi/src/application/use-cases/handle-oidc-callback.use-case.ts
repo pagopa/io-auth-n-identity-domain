@@ -8,7 +8,7 @@ import {
   ValidationError,
 } from "@pagopa/hexagonal-core";
 import { IPString } from "@pagopa/io-auth-n-identity-domain";
-import { SpidLevel } from "@pagopa/io-auth-n-identity-session";
+import { SpidLevel, toSha256 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 
 import { AuxiliaryDataPort } from "../../domain/ports/outbound/auxiliary-data.port.js";
@@ -17,6 +17,7 @@ import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
 import { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
 import { SpidAuthLevel } from "../../domain/value-objects/login.vo.js";
 
+import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import { ActivateUserSessionUseCase } from "./activate-user-session.use-case.js";
 import type { ValidateProfileLocksUseCase } from "./validate-profile-locks.use-case.js";
 
@@ -25,6 +26,7 @@ import type { ValidateProfileLocksUseCase } from "./validate-profile-locks.use-c
 const GENERIC_LOGIN_ERROR_CODE = "GENERIC_ERROR" as NonEmptyString;
 
 const AUTHENTICATION_LOCKED_ERROR = "1002" as NonEmptyString;
+const DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE = "1004" as NonEmptyString;
 
 // Decoded OIDC callback: `state` is always present; a present `code` marks a
 // success response, otherwise it is a provider error response
@@ -44,6 +46,7 @@ export type HandleOidcCallbackInput = {
 export type HandleOidcCallbackDeps = {
   auxiliaryDataPort: AuxiliaryDataPort;
   oidcPort: OidcClientPort;
+  authEventPort: AuthEventPort;
   identityAssertionFetcherPort: IdentityAssertionFetcherPort;
   validateProfileLocksUseCase: ValidateProfileLocksUseCase;
   activateUserSessionUseCase: ActivateUserSessionUseCase;
@@ -121,6 +124,44 @@ export const makeHandleOidcCallbackUseCase =
           `Insufficient SPID level: required ${auxiliaryData.minAuthLevel}, received ${idTokenClaims.acr.replace("https://www.spid.gov.it/", "")}`,
         ),
       );
+    }
+
+    if (
+      auxiliaryData.currentUser &&
+      auxiliaryData.currentUser !== toSha256(idTokenClaims.fiscalNumber)
+    ) {
+      console.warn("Current user mismatch between auxiliary data and id token");
+      // Send a fire-and-forget rejected_login auth event for current user mismatch
+      deps.authEventPort
+        .sendEvent({
+          eventType: "rejected_login",
+          rejectionCause: "cf_mismatch",
+          fiscalCode: idTokenClaims.fiscalNumber,
+          currentFiscalCodeHash: auxiliaryData.currentUser,
+          ip: ipAddress,
+          loginId: auxiliaryData.lollipopAssertionRef as NonEmptyString,
+          ts: new Date(),
+        })
+        .then(
+          (result) => {
+            if (result.isErr()) {
+              console.error(
+                "Failed to send rejected_login (cf_mismatch) auth event:",
+                result.error,
+              );
+            }
+          },
+          (error) => {
+            console.error(
+              "Failed to send rejected_login (cf_mismatch) auth event:",
+              error,
+            );
+          },
+        );
+      return ok({
+        outcome: "error",
+        errorCode: DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
+      });
     }
 
     /********************************/
