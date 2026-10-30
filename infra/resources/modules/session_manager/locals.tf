@@ -255,5 +255,21 @@ locals {
       name  = "JWT_ZENDESK_SUPPORT_TOKEN_SECRET"
       value = azurerm_key_vault_secret.sm_zendesk_support_token_secret.versionless_id
     },
+    {
+      name  = "IDP_FRIENDLY_NAMES_PROD_URL"
+      value = "https://assets.io.oneid.pagopa.it/assets/idpFriendlyNameList.json"
+    },
+    {
+      name  = "IDP_FRIENDLY_NAMES_UAT_URL"
+      value = "https://assets.uat.io.oneid.pagopa.it/assets/idpFriendlyNameList.json"
+    },
+    {
+      name  = "IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS"
+      value = "3600"
+    },
+    {
+      name  = "IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS"
+      value = "4"
+    }
   ]
 }
