@@ -9,8 +9,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   BLOCKED_USERS_SET_KEY,
-  BlockedUsersRedisAdapter,
-} from "../blocked-users-redis.adapter.js";
+  TechnicalLockedProfilesRedisAdapter,
+} from "../technical-locked-profiles-redis.adapter.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -27,21 +27,21 @@ const wrapperStub = {
   getClient: getClientMock,
 } as unknown as RedisSetWrapper<typeof FiscalCodeSchema, RedisNodeClient>;
 
-const adapter = new BlockedUsersRedisAdapter(wrapperStub);
+const adapter = new TechnicalLockedProfilesRedisAdapter(wrapperStub);
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
 // ---------------------------------------------------------------------------
-// isBlocked
+// isLocked
 // ---------------------------------------------------------------------------
 
-describe("BlockedUsersRedisAdapter#isBlocked", () => {
+describe("TechnicalLockedProfilesRedisAdapter#isLocked", () => {
   it("returns ok(true) when SISMEMBER reports membership", async () => {
     isMemberMock.mockResolvedValueOnce(ok(true));
 
-    const result = await adapter.isBlocked(FISCAL_CODE);
+    const result = await adapter.isLocked(FISCAL_CODE);
 
     expect(isMemberMock).toHaveBeenCalledExactlyOnceWith(
       BLOCKED_USERS_SET_KEY,
@@ -53,7 +53,7 @@ describe("BlockedUsersRedisAdapter#isBlocked", () => {
   it("returns ok(false) when SISMEMBER reports non-membership", async () => {
     isMemberMock.mockResolvedValueOnce(ok(false));
 
-    const result = await adapter.isBlocked(FISCAL_CODE);
+    const result = await adapter.isLocked(FISCAL_CODE);
 
     expect(isMemberMock).toHaveBeenCalledExactlyOnceWith(
       BLOCKED_USERS_SET_KEY,
@@ -66,10 +66,10 @@ describe("BlockedUsersRedisAdapter#isBlocked", () => {
     const wrapperError = new GenericError("SISMEMBER failed");
     isMemberMock.mockResolvedValueOnce(err(wrapperError));
 
-    const result = await adapter.isBlocked(FISCAL_CODE);
+    const result = await adapter.isLocked(FISCAL_CODE);
 
     expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toEqual(new GenericError(`Redis isBlocked failed: ${wrapperError.message}`));
+    expect(result._unsafeUnwrapErr()).toEqual(new GenericError(`Redis isLocked failed: ${wrapperError.message}`));
   });
 });
 
@@ -77,7 +77,7 @@ describe("BlockedUsersRedisAdapter#isBlocked", () => {
 // healthcheck
 // ---------------------------------------------------------------------------
 
-describe("BlockedUsersRedisAdapter#healthcheck", () => {
+describe("TechnicalLockedProfilesRedisAdapter#healthcheck", () => {
   it("returns ok(undefined) when PING replies PONG", async () => {
     pingMock.mockResolvedValueOnce("PONG");
 

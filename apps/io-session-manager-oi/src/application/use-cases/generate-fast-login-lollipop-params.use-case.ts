@@ -32,15 +32,6 @@ const SIGNATURE_NONCE_REGEX = /(?:^|;)\s*nonce="([^"]+)"/;
 type GenerateLcParamsInput = {
   keyThumbprint: NonEmptyString;
   operationId: NonEmptyString;
-  currentUser?: FiscalCode;
-};
-
-type GenerateLcParamsForUserInput = GenerateLcParamsInput & {
-  currentUser: FiscalCode;
-};
-
-type GenerateLcParamsForAnonymousUserInput = GenerateLcParamsInput & {
-  currentUser?: never;
 };
 
 // TODO: the Lollipop Port return type should a domain type instead of a DTO.
@@ -49,7 +40,6 @@ type LcParams = LcParamsDto;
 
 export type GenerateFastLoginLollipopParamsInput = {
   signatureInput: LollipopSignatureInput;
-  currentUser?: FiscalCode;
 };
 
 export type GenerateFastLoginLollipopParamsUseCase = UseCase<
@@ -150,19 +140,16 @@ const getLollipopActivation = async (
  * Converts Lollipop LC parameters into the values required by Fast Login.
  *
  * @param lcParams The parameters returned by Lollipop.
- * @param userId The validated current user, when the caller is authenticated.
  * @returns Fast Login Lollipop parameters, or a validation error.
  */
 const toFastLoginLollipopParams = (
   lcParams: LcParams,
-  userId: FiscalCode = lcParams.fiscal_code,
 ): Result<FastLoginLollipopParams, GenericError> => {
-  // Convert the upstream DTO and pin the user ID for authenticated requests.
   const parsed = FastLoginLollipopParamsSchema.safeParse({
     assertionRef: lcParams.assertion_ref,
     assertionType: lcParams.assertion_type,
     authJWT: lcParams.lc_authentication_bearer,
-    userId,
+    userId: lcParams.fiscal_code,
     publicKey: lcParams.pub_key,
   });
   return parsed.success
@@ -171,70 +158,12 @@ const toFastLoginLollipopParams = (
 };
 
 /**
- * Creates the LC-parameter generation function for a signed-in user.
- *
- * @param deps - Ports used to retrieve activation data and LC parameters.
- * @returns A function that generates LC parameters for the user's stored key.
- */
-const makeGenerateLcParamsForUser =
-  (deps: Dependencies) =>
-  /**
-   * Generates LC parameters after checking the user's stored activation.
-   *
-   * @param input - The key thumbprint, operation ID, and current user.
-   * @returns The LC parameters, or an authentication/upstream error.
-   */
-  async (
-    input: GenerateLcParamsForUserInput,
-  ): Promise<Result<LcParams, ForbiddenError | GenericError>> => {
-    // Signed-in users must use the key in their own stored activation.
-    const activationResult = await getLollipopActivation(
-      input.keyThumbprint,
-      input.currentUser,
-      deps.lollipopActivationPort,
-    );
-    if (activationResult.isErr()) {
-      return err(activationResult.error);
-    }
-
-    const assertionRef = LollipopAssertionRefSchema.parse(
-      activationResult.value.assertionRef,
-    );
-    const lcParamsResult = await deps.lollipopPort.generateLCParams(
-      assertionRef,
-      { operation_id: input.operationId },
-    );
-    if (lcParamsResult.isErr()) {
-      return err(
-        lcParamsResult.error instanceof NotFoundError
-          ? new ForbiddenError()
-          : lcParamsResult.error,
-      );
-    }
-
-    const lcParams = lcParamsResult.value;
-    // Check both values returned by Lollipop before using its credentials.
-    if (lcParams.assertion_ref !== assertionRef) {
-      return err(
-        new GenericError("Lollipop returned a mismatched assertion reference"),
-      );
-    }
-    if (lcParams.fiscal_code !== input.currentUser) {
-      return err(
-        new GenericError("Lollipop returned a mismatched fiscal code"),
-      );
-    }
-
-    return ok(lcParams);
-  };
-
-/**
- * Creates the LC-parameter generation function for anonymous users.
+ * Creates the LC-parameter generation function.
  *
  * @param deps - Ports used to retrieve LC parameters and activation data.
  * @returns A function that tries each supported assertion reference.
  */
-const makeGenerateLcParamsForAnonymousUser =
+const makeGenerateLcParams =
   (deps: Dependencies) =>
   /**
    * Tries each supported assertion reference and returns the generated LC params.
@@ -243,7 +172,7 @@ const makeGenerateLcParamsForAnonymousUser =
    * @returns The LC parameters, or an authentication/upstream error.
    */
   async (
-    input: GenerateLcParamsForAnonymousUserInput,
+    input: GenerateLcParamsInput,
   ): Promise<Result<LcParams, ForbiddenError | GenericError>> => {
     // Anonymous requests do not identify an assertion hash algorithm, so try
     // each supported reference until Lollipop recognizes one.
@@ -291,43 +220,6 @@ const makeGenerateLcParamsForAnonymousUser =
   };
 
 /**
- * Generates LC parameters for the current request, handling signed-in and
- * anonymous users with their respective key-selection rules.
- *
- * @param deps - Ports used to generate LC parameters and retrieve activations.
- * @returns A function that returns Fast Login Lollipop parameters.
- */
-const makeGenerateLcParams =
-  (deps: Dependencies) =>
-  /**
-   * Generates LC parameters for the current request.
-   *
-   * @param input - The optional current user, key thumbprint, and operation ID.
-   * @returns The generated Fast Login Lollipop parameters, or an error.
-   */
-  async (
-    input: GenerateLcParamsInput,
-  ): Promise<
-    Result<FastLoginLollipopParams, ForbiddenError | GenericError>
-  > => {
-    // Use the authenticated user's fiscal code when available; anonymous calls
-    // have to discover the assertion reference from the signed key thumbprint.
-    const result = input.currentUser
-      ? await makeGenerateLcParamsForUser(deps)({
-          ...input,
-          currentUser: input.currentUser,
-        })
-      : await makeGenerateLcParamsForAnonymousUser(deps)({
-          keyThumbprint: input.keyThumbprint,
-          operationId: input.operationId,
-        });
-
-    return result.isErr()
-      ? err(result.error)
-      : toFastLoginLollipopParams(result.value, input.currentUser);
-  };
-
-/**
  * Creates the use case that generates Fast Login Lollipop parameters from the
  * signed request.
  *
@@ -336,7 +228,7 @@ const makeGenerateLcParams =
  */
 export const makeGenerateFastLoginLollipopParamsUseCase =
   (deps: Dependencies): GenerateFastLoginLollipopParamsUseCase =>
-  async ({ signatureInput, currentUser }) => {
+  async ({ signatureInput }) => {
     const keyThumbprint = getKeyThumbprint(signatureInput);
     if (!keyThumbprint) {
       return err(
@@ -344,9 +236,11 @@ export const makeGenerateFastLoginLollipopParamsUseCase =
       );
     }
 
-    return makeGenerateLcParams(deps)({
+    const result = await makeGenerateLcParams(deps)({
       keyThumbprint,
       operationId: getOperationId(signatureInput),
-      ...(currentUser ? { currentUser } : {}),
     });
+    return result.isErr()
+      ? err(result.error)
+      : toFastLoginLollipopParams(result.value);
   };

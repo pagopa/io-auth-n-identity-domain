@@ -26,7 +26,6 @@ import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.h
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
 import { extractIpMiddleware } from "./adapters/inbound/fastify/middlewares/extract-ip.middleware.js";
-import { optionalSessionMiddleware } from "./adapters/inbound/fastify/middlewares/optional-session.middleware.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
 import { mountSsoFimsLollipopUserHandler } from "./adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
@@ -35,7 +34,7 @@ import { mountSsoPagopaUserHandler } from "./adapters/inbound/fastify/sso-pagopa
 import { mountSsoZendeskTokenHandler } from "./adapters/inbound/fastify/sso-zendesk-token.handler.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
-import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
+import { TechnicalLockedProfilesRedisAdapter } from "./adapters/outbound/technical-locked-profiles-redis.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
 import { createIoFastLoginAdapter } from "./adapters/outbound/io-fast-login.adapter.js";
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
@@ -306,11 +305,12 @@ const createAdapters = async (
     ),
   );
 
-  const blockedUsersAdapter = new BlockedUsersRedisAdapter(
-    // Both generics are inferred from the constructor arguments:
-    // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
-    new RedisSetWrapper(clients.redisClient, FiscalCodeSchema),
-  );
+  const technicalLockedProfilesRedisAdapter =
+    new TechnicalLockedProfilesRedisAdapter(
+      // Both generics are inferred from the constructor arguments:
+      // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
+      new RedisSetWrapper(clients.redisClient, FiscalCodeSchema),
+    );
 
   const sessionCosmosAdapter = new SessionCosmosAdapter(
     clients.cosmosClient,
@@ -380,9 +380,9 @@ const createAdapters = async (
   return {
     lockedProfilesAdapter,
     technicalLockedProfilesAdapter,
+    technicalLockedProfilesRedisAdapter,
     notificationStorageQueueAdapter,
     lollipopRevocationQueueAdapter,
-    blockedUsersAdapter,
     sessionCosmosAdapter,
     auxiliaryStorageAdapter,
     fetchLollipopAdapter,
@@ -445,7 +445,7 @@ const createUseCases = (
 
   const fastLoginUseCase = makeFastLoginUseCase({
     fastLoginPort: adapters.fastLoginAdapter,
-    blockedUsersPort: adapters.blockedUsersAdapter,
+    validateProfileLocksUseCase,
     generateFastLoginLollipopParamsUseCase:
       makeGenerateFastLoginLollipopParamsUseCase({
         lollipopPort: adapters.fetchLollipopAdapter,
@@ -543,12 +543,12 @@ const mountHealthChecks = (
         port: adapters.technicalLockedProfilesAdapter,
       },
       {
-        name: adapters.notificationStorageQueueAdapter.constructor.name,
-        port: adapters.notificationStorageQueueAdapter,
+        name: adapters.technicalLockedProfilesRedisAdapter.constructor.name,
+        port: adapters.technicalLockedProfilesRedisAdapter,
       },
       {
-        name: adapters.blockedUsersAdapter.constructor.name,
-        port: adapters.blockedUsersAdapter,
+        name: adapters.notificationStorageQueueAdapter.constructor.name,
+        port: adapters.notificationStorageQueueAdapter,
       },
       {
         name: adapters.auxiliaryStorageAdapter.constructor.name,
@@ -607,9 +607,6 @@ const mountRoutes = ({
 
   mountFastLoginHandler(server, {
     middlewares: {
-      optionalSessionMiddleware: optionalSessionMiddleware(
-        middlewares.authenticateSessionMiddleware,
-      ),
       extractIpMiddleware,
     },
     useCase: useCases.fastLoginUseCase,
