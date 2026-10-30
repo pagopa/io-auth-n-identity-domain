@@ -32,8 +32,8 @@ const resolveFriendlyName = (
 
 export class IdpFriendlyNameAdapter implements IdpFriendlyNamePort {
   private readonly urlsByEnv: Record<OidcEnvironment, URL | undefined>;
-  private readonly cacheTtlSeconds: number;
-  private readonly timeoutFetchSeconds: number;
+  private readonly cacheTtlMilliSeconds: number;
+  private readonly timeoutMilliFetchSeconds: number;
   private cache: Map<OidcEnvironment, CacheIdpFriendlyNames>;
 
   constructor(config: IdpFriendlyNameConfig) {
@@ -41,8 +41,8 @@ export class IdpFriendlyNameAdapter implements IdpFriendlyNamePort {
       PROD: config.IDP_FRIENDLY_NAMES_PROD_URL,
       UAT: config.IDP_FRIENDLY_NAMES_UAT_URL,
     };
-    this.cacheTtlSeconds = config.IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS;
-    this.timeoutFetchSeconds = config.IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS;
+    this.cacheTtlMilliSeconds = config.IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS * 1000;
+    this.timeoutMilliFetchSeconds = config.IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS * 1000;
     this.cache = new Map();
   }
 
@@ -58,7 +58,7 @@ export class IdpFriendlyNameAdapter implements IdpFriendlyNamePort {
     const cachedValue = this.cache.get(env);
     if (
       cachedValue &&
-      currentTimestamp - cachedValue.lastUpdated < this.cacheTtlSeconds * 1000
+      currentTimestamp - cachedValue.lastUpdated < this.cacheTtlMilliSeconds
     ) {
       return resolveFriendlyName(cachedValue.map, issuer);
     }
@@ -70,7 +70,7 @@ export class IdpFriendlyNameAdapter implements IdpFriendlyNamePort {
 
     try {
       const response = await fetch(url, {
-        signal: AbortSignal.timeout(this.timeoutFetchSeconds * 1000),
+        signal: AbortSignal.timeout(this.timeoutMilliFetchSeconds),
       });
 
       if (!response.ok) {
