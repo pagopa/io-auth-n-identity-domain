@@ -25,6 +25,7 @@ import { callbackContract } from "../src/adapters/inbound/fastify/callback.handl
 import { fastLoginRoute } from "../src/adapters/inbound/fastify/fast-login.handler.js";
 import { generateNonceRoute } from "../src/adapters/inbound/fastify/generate-nonce.handler.js";
 import { getSessionContract } from "../src/adapters/inbound/fastify/get-session.handler.js";
+import { getUserIdentityRoute } from "../src/adapters/inbound/fastify/get-user-identity.handler.js";
 import { reserveRoute } from "../src/adapters/inbound/fastify/reserve.handler.js";
 import { ssoBpdUserRoute } from "../src/adapters/inbound/fastify/sso-bpd-user.handler.js";
 import { ssoFimsLollipopUserRoute } from "../src/adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
@@ -180,6 +181,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
       { contract: generateNonceRoute },
       { contract: reserveRoute },
       { contract: getSessionContract },
+      { contract: getUserIdentityRoute },
     ],
     securitySchemes: ["bearerAuth"],
     tags: [
