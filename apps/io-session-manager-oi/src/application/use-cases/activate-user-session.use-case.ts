@@ -197,12 +197,20 @@ export const makeActivateUserSessionUseCase =
     /* Notify login event to user */
     /******************************/
     if (userProfile.email) {
+      let friendlyName: NonEmptyString;
+      const friendlyNameResult = await deps.friendlyNamePort.getFriendlyName(
+        input.sessionToken.identityProvider,
+        input.oidcEnvironment,
+      );
 
-    const friendlyNameResult =
-      await deps.friendlyNamePort.getFriendlyName(
-      input.sessionToken.identityProvider,
-      input.oidcEnvironment,
-    );
+      if (friendlyNameResult.isOk()) {
+        friendlyName = friendlyNameResult.value;
+      } else {
+        console.warn(
+          `Failed to retrieve friendly name for issuer ${input.sessionToken.identityProvider} in env ${input.oidcEnvironment}: ${friendlyNameResult.error.message}`,
+        );
+        friendlyName = input.sessionToken.identityProvider;
+      }
 
       // Notify login event to user
       const notifyLoginResult = await deps.profilePort.notifyLogin({
@@ -210,7 +218,7 @@ export const makeActivateUserSessionUseCase =
         name: input.sessionToken.name,
         familyName: input.sessionToken.familyName,
         email: userProfile.email,
-        identityProvider: friendlyNameResult,
+        identityProvider: friendlyName,
         ipAddress: input.sessionToken.ipAddress,
         isEmailValidated: userProfile.isEmailValidated,
       });
