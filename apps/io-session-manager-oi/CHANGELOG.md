@@ -1,5 +1,13 @@
 # io-session-manager-oi
 
+## 0.34.2
+
+### Patch Changes
+
+- 68d9d8b: Store the identity provider in the session and carry it over on session refresh
+- Updated dependencies [68d9d8b]
+  - @pagopa/io-auth-n-identity-session@0.12.0
+
 ## 0.34.1
 
 ### Patch Changes
