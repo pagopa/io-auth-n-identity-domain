@@ -25,6 +25,11 @@ import {
   resetProfilePortMock,
 } from "../../../__mocks__/ports/profile-port.mock.js";
 import {
+  mockIsTestUser,
+  resetTestUserPortMock,
+  TestUserPortMock,
+} from "../../../__mocks__/ports/test-user-port.mock.js";
+import {
   mockInvalidatePreviousSession,
   mockCreate as mockSessionCreate,
   resetSessionPortMock,
@@ -105,6 +110,7 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
     platformInternalPort: PlatformInternalPortMock,
   }),
   notificationPort,
+  testUserPort: TestUserPortMock,
 });
 
 const assertionRef = "a-lollipop-assertion-ref" as LollipopAssertionRef;
@@ -122,6 +128,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   resetSessionPortMock();
   resetProfilePortMock();
+  resetTestUserPortMock();
   resetPlatformInternalPortMock();
   resetAuthEventPortMock();
   vi.mocked(newSessionId).mockResolvedValue(aSessionId);
@@ -269,9 +276,23 @@ describe("makeActivateUserSessionUseCase", () => {
         fiscalCode: aFiscalCode,
         isEmailValidated: false,
         email: undefined,
+        isTestProfile: false,
       });
       expect(mockNotifyLogin).not.toHaveBeenCalled();
       expectLoginEvent();
+    });
+
+    it("flags the new profile as test profile for test users", async () => {
+      mockGetProfile.mockResolvedValueOnce(err(aNotFoundError));
+      mockIsTestUser.mockReturnValueOnce(true);
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(mockIsTestUser).toHaveBeenCalledWith(aFiscalCode);
+      expect(mockProfileCreate).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ isTestProfile: true }),
+      );
     });
 
     it("creates the profile and notifies login when a spid email is provided", async () => {
@@ -284,6 +305,7 @@ describe("makeActivateUserSessionUseCase", () => {
         fiscalCode: aFiscalCode,
         isEmailValidated: false,
         email: anEmailAddress,
+        isTestProfile: false,
       });
       expect(mockNotifyLogin).toHaveBeenCalledExactlyOnceWith({
         fiscalCode: aFiscalCode,

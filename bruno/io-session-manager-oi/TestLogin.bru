@@ -1,0 +1,78 @@
+meta {
+  name: TestLogin
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{IO_SESSION_MANAGER_OI_BASE_URL}}/api/auth/v2/test-login
+  body: json
+  auth: none
+}
+
+headers {
+  x-client-ip: 127.0.0.1
+}
+
+body:json {
+  {
+    "username": "{{TEST_USER_USERNAME}}",
+    "password": "{{TEST_USER_PASSWORD}}",
+    "lollipop_pub_key": "SET_IN_PREREQUEST",
+    "lollipop_hash_algo": "sha256",
+    "login_type": "LV"
+  }
+}
+
+script:pre-request {
+  const crypto = require("node:crypto");
+  const jose = require("node-jose");
+  
+  const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
+    namedCurve: "P-256",
+    publicKeyEncoding: {
+      type: "spki",
+      format: "jwk",
+    },
+    privateKeyEncoding: {
+      type: "pkcs8",
+      format: "jwk"
+    }
+  });
+  
+  const jwk = JSON.stringify(publicKey);
+  const encodedPubKey = Buffer.from(jwk).toString("base64url");
+  const encodedPrivateKey = Buffer.from(JSON.stringify(privateKey)).toString("base64url");
+  
+  const thumbprint = await jose.JWK.asKey(jwk)
+    .then(key => key.thumbprint("SHA-256"))
+    .then(value => value.toString("base64url"));
+  
+  const body = req.getBody();
+  body.lollipop_pub_key = encodedPubKey;
+  req.setBody(body);
+  
+  // Stored so that the Lollipop-signed requests (e.g. FastLogin) can reuse the key pair
+  bru.setEnvVar("publicKey", encodedPubKey);
+  bru.setEnvVar("privateKey", encodedPrivateKey);
+  bru.setEnvVar("assertionRef", `sha256-${thumbprint}`);
+}
+
+script:post-response {
+  if (res.status !== 200) {
+    return;
+  }
+  
+  const token = res.body["access_token"];
+  if (!token) {
+    throw new Error("Missing 'access_token' in response body");
+  }
+  
+  bru.setEnvVar("bearerToken", token);
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

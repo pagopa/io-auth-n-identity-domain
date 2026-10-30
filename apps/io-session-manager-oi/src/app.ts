@@ -32,10 +32,12 @@ import { mountSsoFimsLollipopUserHandler } from "./adapters/inbound/fastify/sso-
 import { mountSsoFimsUserHandler } from "./adapters/inbound/fastify/sso-fims-user.handler.js";
 import { mountSsoPagopaUserHandler } from "./adapters/inbound/fastify/sso-pagopa-user.handler.js";
 import { mountSsoZendeskTokenHandler } from "./adapters/inbound/fastify/sso-zendesk-token.handler.js";
+import { mountTestLoginHandler } from "./adapters/inbound/fastify/test-login.handler.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
 import { TechnicalLockedProfilesRedisAdapter } from "./adapters/outbound/technical-locked-profiles-redis.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
+import { InMemoryTestUserAdapter } from "./adapters/outbound/in-memory-test-user.adapter.js";
 import { createIoFastLoginAdapter } from "./adapters/outbound/io-fast-login.adapter.js";
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
 import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
@@ -61,6 +63,7 @@ import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-
 import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
 import { makeRefreshUserSessionUseCase } from "./application/use-cases/refresh-user-session.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
+import { makeTestLoginUseCase } from "./application/use-cases/test-login.use-case.js";
 import { makeValidateProfileLocksUseCase } from "./application/use-cases/validate-profile-locks.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
@@ -377,6 +380,8 @@ const createAdapters = async (
   const oneIdIdentityAssertionFetcherAdapter =
     new OneIdIdentityAssertionFetcherAdapter(config);
 
+  const testUserAdapter = new InMemoryTestUserAdapter(config);
+
   return {
     lockedProfilesAdapter,
     technicalLockedProfilesAdapter,
@@ -394,6 +399,7 @@ const createAdapters = async (
     authEventServiceBusAdapter,
     lollipopActivationCosmosAdapter,
     oneIdIdentityAssertionFetcherAdapter,
+    testUserAdapter,
   };
 };
 
@@ -404,8 +410,8 @@ const createAdapters = async (
  * @returns The application use cases.
  */
 const createUseCases = (
-  adapters: Awaited<ReturnType<typeof createAdapters>>,
   config: Config,
+  adapters: Awaited<ReturnType<typeof createAdapters>>,
 ) => {
   const reserveUseCase = makeReserveUseCase({
     auxiliaryDataPort: adapters.auxiliaryStorageAdapter,
@@ -428,6 +434,7 @@ const createUseCases = (
     lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
     invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
     notificationPort: adapters.notificationStorageQueueAdapter,
+    testUserPort: adapters.testUserAdapter,
   });
 
   const validateProfileLocksUseCase = makeValidateProfileLocksUseCase({
@@ -468,12 +475,20 @@ const createUseCases = (
     profilePort: adapters.profileAdapter,
   });
 
+  const testLoginUseCase = makeTestLoginUseCase({
+    testUserPort: adapters.testUserAdapter,
+    lollipopPort: adapters.fetchLollipopAdapter,
+    activateUserSessionUseCase,
+  });
+
   return {
     reserveUseCase,
-    fastLoginUseCase,
+    activateUserSessionUseCase,
     handleOidcCallbackUseCase,
+    fastLoginUseCase,
     getSessionUseCase,
     getUserForFimsUseCase,
+    testLoginUseCase,
   };
 };
 
@@ -662,6 +677,10 @@ const mountRoutes = ({
     middlewares: [middlewares.authenticateSessionMiddleware] as const,
     useCase: useCases.getSessionUseCase,
   })(server);
+
+  mountTestLoginHandler(server, {
+    useCase: useCases.testLoginUseCase,
+  });
 };
 
 /**
@@ -686,7 +705,7 @@ export const createApp = async (
 
     const clients = await createClients(config, lifecycle.registerCleanup);
     const adapters = await createAdapters(config, clients);
-    const useCases = createUseCases(adapters, config);
+    const useCases = createUseCases(config, adapters);
     const middlewares = createAuthenticationMiddlewares(
       adapters.sessionCosmosAdapter,
     );

@@ -90,6 +90,7 @@ vi.mock("../adapters/inbound/fastify/sso-fims-lollipop-user.handler.js");
 vi.mock("../adapters/inbound/fastify/sso-fims-user.handler.js");
 vi.mock("../adapters/inbound/fastify/sso-pagopa-user.handler.js");
 vi.mock("../adapters/inbound/fastify/sso-zendesk-token.handler.js");
+vi.mock("../adapters/inbound/fastify/test-login.handler.js");
 
 import { createApp } from "../app.js";
 
