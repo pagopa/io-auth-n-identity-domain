@@ -73,7 +73,7 @@ describe("makeRefreshUserSessionUseCase", () => {
       dateOfBirth: aNewSessionTokenInput.dateOfBirth,
       spidLevel: aNewSessionTokenInput.spidLevel,
       spidEmail: aNewSessionTokenInput.spidEmail,
-      identityProvider: aNewSessionTokenInput.identityProvider,
+      idp: aNewSessionTokenInput.idp,
       sessionId: aSessionId,
       loginType: "LV",
     });

@@ -169,7 +169,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
         spidEmail: CLAIMS.email,
         ipAddress: IP_ADDRESS,
         loginType: AUXILIARY_DATA.loginType,
-        identityProvider: CLAIMS.iss,
+        idp: CLAIMS.iss,
       },
       assertion: {
         assertionRef: IDENTITY_ASSERTION.assertionRef,

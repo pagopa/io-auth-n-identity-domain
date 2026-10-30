@@ -93,7 +93,7 @@ export const makeRefreshUserSessionUseCase =
       dateOfBirth: sessionToken.dateOfBirth,
       spidLevel: sessionToken.spidLevel,
       spidEmail: sessionToken.spidEmail,
-      identityProvider: sessionToken.identityProvider,
+      idp: sessionToken.idp,
       sessionId: activeSession.sessionId,
       loginType: "LV",
     });

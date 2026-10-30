@@ -215,7 +215,7 @@ export const makeHandleOidcCallbackUseCase =
       ipAddress,
       loginType: auxiliaryData.loginType,
       //TODO: map to readable Identity Provider name
-      identityProvider: idTokenClaims.iss,
+      idp: idTokenClaims.iss,
     };
     const activateResult = await deps.activateUserSessionUseCase({
       sessionToken: newSessionToken,

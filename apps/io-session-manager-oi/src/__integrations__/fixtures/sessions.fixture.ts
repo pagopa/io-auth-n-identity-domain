@@ -45,7 +45,7 @@ export const buildNewSessionTokenInput = (
   spidLevel: "https://www.spid.gov.it/SpidL2",
   ipAddress: "127.0.0.1", // TODO: use a valid IP string
   loginType: "LEGACY",
-  identityProvider: NonEmptyStringSchema.parse("spid"),
+  idp: NonEmptyStringSchema.parse("spid"),
 });
 
 /**
