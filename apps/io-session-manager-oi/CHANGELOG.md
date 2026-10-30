@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.34.0
+
+### Minor Changes
+
+- 2ef4c69: Refactor `FastLoginUseCase` to use `ValidateProfileLocksUseCase` and delete `OptionalSessionMiddleware`
+
 ## 0.33.2
 
 ### Patch Changes
