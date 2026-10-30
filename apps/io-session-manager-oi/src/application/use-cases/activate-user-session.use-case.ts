@@ -1,6 +1,5 @@
 import {
   GenericError,
-  type NonEmptyString,
   NotFoundError,
   type UseCase,
 } from "@pagopa/hexagonal-core";
@@ -41,7 +40,6 @@ type NewSessionToken = Omit<
 > & {
   ipAddress: IPString;
   loginType: LoginType;
-  identityProvider: NonEmptyString;
 };
 
 type ActivateUserSessionUseCaseInput = {
@@ -180,7 +178,7 @@ export const makeActivateUserSessionUseCase =
       expiredAt: activeSession.expirationDate,
       loginType: input.sessionToken.loginType === "LEGACY" ? "legacy" : "lv", // TODO: evaluate if a more structured approach is needed
       scenario: "standard", // TODO: handle also "new_user" and "relogin"
-      idp: input.sessionToken.identityProvider,
+      idp: input.sessionToken.idp,
     });
     if (sendEventResult.isErr()) {
       return err(
@@ -200,7 +198,7 @@ export const makeActivateUserSessionUseCase =
         name: input.sessionToken.name,
         familyName: input.sessionToken.familyName,
         email: userProfile.email,
-        identityProvider: input.sessionToken.identityProvider,
+        identityProvider: input.sessionToken.idp,
         ipAddress: input.sessionToken.ipAddress,
         isEmailValidated: userProfile.isEmailValidated,
       });

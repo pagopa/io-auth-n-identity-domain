@@ -1,7 +1,6 @@
 import {
   AuthenticationError,
   GenericError,
-  NonEmptyString,
   NotFoundError,
   UseCase,
 } from "@pagopa/hexagonal-core";
@@ -28,7 +27,6 @@ export type SessionInfo = Omit<
 > & {
   ipAddress: IPString;
   loginType: LoginType;
-  identityProvider: NonEmptyString;
 };
 
 type RefreshUserSessionUseCaseInput = {
@@ -95,6 +93,7 @@ export const makeRefreshUserSessionUseCase =
       dateOfBirth: sessionToken.dateOfBirth,
       spidLevel: sessionToken.spidLevel,
       spidEmail: sessionToken.spidEmail,
+      idp: sessionToken.idp,
       sessionId: activeSession.sessionId,
       loginType: "LV",
     });
