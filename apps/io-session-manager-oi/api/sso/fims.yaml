@@ -87,10 +87,13 @@ components:
         assertion_ref:
           oneOf:
             - type: string
+              minLength: 1
               pattern: ^sha256-[A-Za-z0-9_-]{43}$
             - type: string
+              minLength: 1
               pattern: ^sha384-[A-Za-z0-9_-]{64}$
             - type: string
+              minLength: 1
               pattern: ^sha512-[A-Za-z0-9_-]{86}$
         pub_key:
           type: string

@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-domain
 
+## 0.6.1
+
+### Patch Changes
+
+- 4ea827a: Validate active user during OIDC callback
+
 ## 0.6.0
 
 ### Minor Changes

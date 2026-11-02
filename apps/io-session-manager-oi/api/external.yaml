@@ -96,7 +96,8 @@ components:
           $ref: "#/components/schemas/LoginType"
         current_user:
           type: string
-          minLength: 1
+          format: sha256_hex
+          pattern: ^[0-9a-fA-F]{64}$
           description: Optional identifier of the user currently logged in.
       required:
         - env
@@ -145,10 +146,13 @@ components:
         lollipopAssertionRef:
           oneOf:
             - type: string
+              minLength: 1
               pattern: ^sha256-[A-Za-z0-9_-]{43}$
             - type: string
+              minLength: 1
               pattern: ^sha384-[A-Za-z0-9_-]{64}$
             - type: string
+              minLength: 1
               pattern: ^sha512-[A-Za-z0-9_-]{86}$
         walletToken:
           type: string

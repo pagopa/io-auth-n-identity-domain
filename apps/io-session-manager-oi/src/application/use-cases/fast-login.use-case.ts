@@ -119,7 +119,7 @@ const parseSamlUser = (samlResponse: string): ParsedSamlUser | undefined => {
     dateOfBirth,
     spidLevel,
     ...(email.success ? { spidEmail: email.data } : {}),
-    identityProvider: issuer.data,
+    idp: issuer.data,
   };
 };
 

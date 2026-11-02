@@ -47,7 +47,7 @@ export const BaseSessionSchema = z.object({
   dateOfBirth: z.date(),
   spidLevel: SpidLevelSchema,
   spidEmail: EmailAddressSchema.optional(),
-  identityProvider: NonEmptyStringSchema,
+  idp: NonEmptyStringSchema,
   expirationDate: z.date(),
   createdAt: z.date(),
 });

@@ -38,7 +38,6 @@ describe("AuthEventSchema", () => {
         rejectionCause: "cf_mismatch",
         fiscalCode,
         ts: new Date("2026-08-06T00:00:00.000Z"),
-        expiredAt: new Date("2026-08-06T01:00:00.000Z"),
         ip: "192.0.2.1",
         currentFiscalCodeHash: fiscalCodeHash,
       }),
@@ -47,7 +46,6 @@ describe("AuthEventSchema", () => {
       rejectionCause: "cf_mismatch",
       fiscalCode: "AAAAAA00A00A000A",
       ts: 1_785_974_400_000,
-      expiredAt: 1_785_978_000_000,
       ip: "192.0.2.1",
       currentFiscalCodeHash:
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -61,7 +59,6 @@ describe("AuthEventSchema", () => {
         rejectionCause: "auth_lock",
         fiscalCode: "AAAAAA00A00A000A",
         ts: 1_785_974_400_000,
-        expiredAt: 1_785_978_000_000,
         ip: "192.0.2.1",
       }),
     ).toEqual({
@@ -69,7 +66,6 @@ describe("AuthEventSchema", () => {
       rejectionCause: "auth_lock",
       fiscalCode: "AAAAAA00A00A000A",
       ts: new Date("2026-08-06T00:00:00.000Z"),
-      expiredAt: new Date("2026-08-06T01:00:00.000Z"),
       ip: "192.0.2.1",
     });
   });

@@ -10,7 +10,6 @@ const BaseRejectedLoginSchema = z.object({
   eventType: z.literal("rejected_login"),
   fiscalCode: FiscalCodeSchema,
   ts: TimestampMillisToDate,
-  expiredAt: TimestampMillisToDate,
   ip: IPStringSchema,
   loginId: NonEmptyStringSchema.optional(),
 });

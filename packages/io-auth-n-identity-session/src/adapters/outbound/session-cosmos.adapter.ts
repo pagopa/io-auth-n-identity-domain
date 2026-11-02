@@ -638,7 +638,7 @@ function fromDbSession(raw: JSONObject): Result<BaseSession, GenericError> {
     expirationDate: new Date(raw.expirationDate as string),
     createdAt: new Date(raw.createdAt as string),
     spidEmail: raw.spidEmail ?? undefined,
-    identityProvider: raw.identityProvider,
+    idp: raw.idp,
   });
 
   if (parsedSession.success) {
@@ -662,7 +662,7 @@ function toDbSessionToken(
     spidLevel: sessionToken.spidLevel,
     expirationDate: sessionToken.expirationDate.toISOString(),
     spidEmail: sessionToken.spidEmail ?? null,
-    identityProvider: sessionToken.identityProvider,
+    idp: sessionToken.idp,
     ttl,
     createdAt: sessionToken.createdAt.toISOString(),
   };

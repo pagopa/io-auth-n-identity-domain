@@ -57,7 +57,7 @@ vi.mock("node:crypto", () => {
   return { randomBytes: vi.fn(() => Buffer.from(MOCKED_RANDOM_BYTES)) };
 });
 
-const aCurrentUser = CurrentUserSchema.parse("a-current-user");
+const aCurrentUser = CurrentUserSchema.parse("abcdef0123456789".repeat(4));
 
 const buildInput = (overrides = {}) => ({
   oidcConfigurationEnv: "PROD" as const,
