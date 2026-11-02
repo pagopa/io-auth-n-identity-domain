@@ -9,7 +9,8 @@ import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import { Result, err, ok } from "neverthrow";
 import { RedisClientType, RedisClusterType } from "redis";
 
-import { BlockedUsersPort } from "../../domain/ports/outbound/blocked-users.port.js";
+import { TechnicalLockedProfilesPort } from "../../domain/ports/outbound/technical-locked-profiles.port.js";
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 
 export const BLOCKED_USERS_SET_KEY = "BLOCKEDUSERS";
 
@@ -18,7 +19,9 @@ export const BLOCKED_USERS_SET_KEY = "BLOCKEDUSERS";
  */
 const EXPECTED_PING_REPLY = "PONG";
 
-export class BlockedUsersRedisAdapter implements BlockedUsersPort {
+export class TechnicalLockedProfilesRedisAdapter
+  implements TechnicalLockedProfilesPort, HealthCheckOutboundPort
+{
   constructor(
     private readonly redis: RedisSetWrapper<
       typeof FiscalCodeSchema,
@@ -51,13 +54,13 @@ export class BlockedUsersRedisAdapter implements BlockedUsersPort {
     }
   }
 
-  async isBlocked(
+  async isLocked(
     fiscalCode: FiscalCode,
-  ): Promise<Result<boolean, RedisError | ValidationError>> {
+  ): Promise<Result<boolean, RedisError | GenericError>> {
     const result = await this.redis.isMember(BLOCKED_USERS_SET_KEY, fiscalCode);
     if (result.isErr()) {
       return err(
-        new GenericError(`Redis isBlocked failed: ${result.error.message}`),
+        new GenericError(`Redis isLocked failed: ${result.error.message}`),
       );
     }
     return ok(result.value);

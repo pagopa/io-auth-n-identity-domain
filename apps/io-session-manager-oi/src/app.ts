@@ -23,10 +23,10 @@ import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handle
 import { mountFastLoginHandler } from "./adapters/inbound/fastify/fast-login.handler.js";
 import { mountGenerateNonceHandler } from "./adapters/inbound/fastify/generate-nonce.handler.js";
 import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.handler.js";
+import { mountGetUserIdentityHandler } from "./adapters/inbound/fastify/get-user-identity.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
 import { extractIpMiddleware } from "./adapters/inbound/fastify/middlewares/extract-ip.middleware.js";
-import { optionalSessionMiddleware } from "./adapters/inbound/fastify/middlewares/optional-session.middleware.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
 import { mountSsoFimsLollipopUserHandler } from "./adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
@@ -36,7 +36,6 @@ import { mountSsoZendeskTokenHandler } from "./adapters/inbound/fastify/sso-zend
 import { mountTestLoginHandler } from "./adapters/inbound/fastify/test-login.handler.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
-import { BlockedUsersRedisAdapter } from "./adapters/outbound/blocked-users-redis.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
 import { InMemoryTestUserAdapter } from "./adapters/outbound/in-memory-test-user.adapter.js";
 import { createIoFastLoginAdapter } from "./adapters/outbound/io-fast-login.adapter.js";
@@ -49,6 +48,7 @@ import { OneIdIdentityAssertionFetcherAdapter } from "./adapters/outbound/one-id
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
 import { TechnicalLockedProfilesDataTableAdapter } from "./adapters/outbound/technical-locked-profiles-data-table.adapter.js";
+import { TechnicalLockedProfilesRedisAdapter } from "./adapters/outbound/technical-locked-profiles-redis.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { makeFastLoginUseCase } from "./application/use-cases/fast-login.use-case.js";
 import { makeGenerateFastLoginLollipopParamsUseCase } from "./application/use-cases/generate-fast-login-lollipop-params.use-case.js";
@@ -59,6 +59,7 @@ import { makeGetTokenForZendeskUseCase } from "./application/use-cases/get-token
 import { getUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
 import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-fims.use-case.js";
 import { makeGetUserForPagopaUseCase } from "./application/use-cases/get-user-for-pagopa.use-case.js";
+import { makeGetUserIdentityUseCase } from "./application/use-cases/get-user-identity.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
@@ -309,11 +310,12 @@ const createAdapters = async (
     ),
   );
 
-  const blockedUsersAdapter = new BlockedUsersRedisAdapter(
-    // Both generics are inferred from the constructor arguments:
-    // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
-    new RedisSetWrapper(clients.redisClient, FiscalCodeSchema),
-  );
+  const technicalLockedProfilesRedisAdapter =
+    new TechnicalLockedProfilesRedisAdapter(
+      // Both generics are inferred from the constructor arguments:
+      // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
+      new RedisSetWrapper(clients.redisClient, FiscalCodeSchema),
+    );
 
   const sessionCosmosAdapter = new SessionCosmosAdapter(
     clients.cosmosClient,
@@ -385,9 +387,9 @@ const createAdapters = async (
   return {
     lockedProfilesAdapter,
     technicalLockedProfilesAdapter,
+    technicalLockedProfilesRedisAdapter,
     notificationStorageQueueAdapter,
     lollipopRevocationQueueAdapter,
-    blockedUsersAdapter,
     sessionCosmosAdapter,
     auxiliaryStorageAdapter,
     fetchLollipopAdapter,
@@ -445,6 +447,7 @@ const createUseCases = (
   const handleOidcCallbackUseCase = makeHandleOidcCallbackUseCase({
     auxiliaryDataPort: adapters.auxiliaryStorageAdapter,
     oidcPort: adapters.oidcExchangeAdapter,
+    authEventPort: adapters.authEventServiceBusAdapter,
     identityAssertionFetcherPort: adapters.oneIdIdentityAssertionFetcherAdapter,
     validateProfileLocksUseCase,
     activateUserSessionUseCase,
@@ -452,7 +455,7 @@ const createUseCases = (
 
   const fastLoginUseCase = makeFastLoginUseCase({
     fastLoginPort: adapters.fastLoginAdapter,
-    blockedUsersPort: adapters.blockedUsersAdapter,
+    validateProfileLocksUseCase,
     generateFastLoginLollipopParamsUseCase:
       makeGenerateFastLoginLollipopParamsUseCase({
         lollipopPort: adapters.fetchLollipopAdapter,
@@ -558,12 +561,12 @@ const mountHealthChecks = (
         port: adapters.technicalLockedProfilesAdapter,
       },
       {
-        name: adapters.notificationStorageQueueAdapter.constructor.name,
-        port: adapters.notificationStorageQueueAdapter,
+        name: adapters.technicalLockedProfilesRedisAdapter.constructor.name,
+        port: adapters.technicalLockedProfilesRedisAdapter,
       },
       {
-        name: adapters.blockedUsersAdapter.constructor.name,
-        port: adapters.blockedUsersAdapter,
+        name: adapters.notificationStorageQueueAdapter.constructor.name,
+        port: adapters.notificationStorageQueueAdapter,
       },
       {
         name: adapters.auxiliaryStorageAdapter.constructor.name,
@@ -622,9 +625,6 @@ const mountRoutes = ({
 
   mountFastLoginHandler(server, {
     middlewares: {
-      optionalSessionMiddleware: optionalSessionMiddleware(
-        middlewares.authenticateSessionMiddleware,
-      ),
       extractIpMiddleware,
     },
     useCase: useCases.fastLoginUseCase,
@@ -684,6 +684,13 @@ const mountRoutes = ({
   mountTestLoginHandler(server, {
     useCase: useCases.testLoginUseCase,
   });
+
+  mountGetUserIdentityHandler({
+    middlewares: [middlewares.authenticateSessionMiddleware] as const,
+    useCase: makeGetUserIdentityUseCase({
+      lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
+    }),
+  })(server);
 };
 
 /**

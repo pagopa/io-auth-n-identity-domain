@@ -1,3 +1,4 @@
+import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 import { z } from "zod";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -32,17 +33,20 @@ const sha512AssertionRefPattern = new RegExp(
   `^sha512-${Sha512Base64UrlPattern.source.slice(1, -1)}$`,
 );
 
-const Sha256AssertionRefSchema = z
-  .string()
-  .regex(sha256AssertionRefPattern, "Invalid sha256 assertion ref format");
+const Sha256AssertionRefSchema = NonEmptyStringSchema.regex(
+  sha256AssertionRefPattern,
+  "Invalid sha256 assertion ref format",
+);
 
-const Sha384AssertionRefSchema = z
-  .string()
-  .regex(sha384AssertionRefPattern, "Invalid sha384 assertion ref format");
+const Sha384AssertionRefSchema = NonEmptyStringSchema.regex(
+  sha384AssertionRefPattern,
+  "Invalid sha384 assertion ref format",
+);
 
-const Sha512AssertionRefSchema = z
-  .string()
-  .regex(sha512AssertionRefPattern, "Invalid sha512 assertion ref format");
+const Sha512AssertionRefSchema = NonEmptyStringSchema.regex(
+  sha512AssertionRefPattern,
+  "Invalid sha512 assertion ref format",
+);
 
 /**
  * Lollipop assertion reference: a `{algo}-{base64url-thumbprint}` string

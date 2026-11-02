@@ -45,11 +45,8 @@ const generateFastLoginLollipopParamsUseCase =
     } as unknown as LollipopActivationPort,
   });
 
-const invoke = (signatureInput = SIGNATURE_INPUT, currentUser?: string) =>
-  generateFastLoginLollipopParamsUseCase({
-    signatureInput,
-    ...(currentUser ? { currentUser } : {}),
-  });
+const invoke = (signatureInput = SIGNATURE_INPUT) =>
+  generateFastLoginLollipopParamsUseCase({ signatureInput });
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -100,36 +97,7 @@ describe("makeGenerateFastLoginLollipopParamsUseCase", () => {
     });
   });
 
-  it("validates the current user's stored assertion reference", async () => {
-    const result = await invoke(SIGNATURE_INPUT, lcParams.fiscal_code);
-
-    expect(getByFiscalCode).toHaveBeenCalledExactlyOnceWith(
-      lcParams.fiscal_code,
-    );
-    expect(generateLCParams).toHaveBeenCalledExactlyOnceWith(ASSERTION_REF, {
-      operation_id: "a-nonce",
-    });
-    expect(result.isOk()).toBe(true);
-  });
-
-  it("rejects a current user when the stored assertion does not match the key", async () => {
-    getByFiscalCode.mockResolvedValueOnce(
-      ok({
-        fiscalCode: lcParams.fiscal_code,
-        assertionRef: LollipopAssertionRefSchema.parse(
-          `sha256-${"b".repeat(43)}`,
-        ),
-        expirationDate: new Date("2030-01-01T00:00:00.000Z"),
-      }),
-    );
-
-    const result = await invoke(SIGNATURE_INPUT, lcParams.fiscal_code);
-
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ForbiddenError);
-    expect(generateLCParams).not.toHaveBeenCalled();
-  });
-
-  it("rejects an anonymous lookup when the returned fiscal code does not own the key", async () => {
+  it("rejects when the returned fiscal code does not own the key", async () => {
     getByFiscalCode.mockResolvedValueOnce(
       ok({
         fiscalCode: lcParams.fiscal_code,

@@ -1,6 +1,11 @@
 ##################
 #    EXTERNAL    #
 ##################
+
+locals {
+  external_api_session_manager_v2_openapi = yamldecode(data.http.external_api_session_manager_v2_openapi.response_body)
+}
+
 resource "azurerm_api_management_api" "external_api_session_manager_v2" {
   name                  = "io-session-manager-external-api-v2"
   api_management_name   = var.platform_apim_name
@@ -11,15 +16,14 @@ resource "azurerm_api_management_api" "external_api_session_manager_v2" {
   version        = "v2"
   revision       = 1
 
-  description  = "Auth & Identity Session Manager External API with OI integration"
-  display_name = "IO SESSION MANAGER OI EXTERNAL API"
+  display_name = local.external_api_session_manager_v2_openapi.info.title
   path         = var.external_api_base_path
   protocols    = ["https"]
   service_url  = "${var.session_manager_oi_url}/${var.external_api_base_path}/v2"
 
   import {
-    content_format = "openapi-link"
-    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/a8c39a08b1293a490a840ea7513f9de9ed014173/apps/io-session-manager-oi/api/external.yaml"
+    content_format = "openapi"
+    content_value  = data.http.external_api_session_manager_v2_openapi.response_body
 
   }
 }

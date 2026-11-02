@@ -1,5 +1,32 @@
 # io-session-manager-oi
 
+## 0.35.0
+
+### Minor Changes
+
+- 0ce098a: Token introspection endpoint
+
+### Patch Changes
+
+- 68d9d8b: Store the identity provider in the session and carry it over on session refresh
+- Updated dependencies [68d9d8b]
+  - @pagopa/io-auth-n-identity-session@0.12.0
+
+## 0.34.1
+
+### Patch Changes
+
+- 4ea827a: Validate active user during OIDC callback
+- Updated dependencies [4ea827a]
+  - @pagopa/io-auth-n-identity-session@0.11.1
+  - @pagopa/io-auth-n-identity-domain@0.6.1
+
+## 0.34.0
+
+### Minor Changes
+
+- 2ef4c69: Refactor `FastLoginUseCase` to use `ValidateProfileLocksUseCase` and delete `OptionalSessionMiddleware`
+
 ## 0.33.2
 
 ### Patch Changes
