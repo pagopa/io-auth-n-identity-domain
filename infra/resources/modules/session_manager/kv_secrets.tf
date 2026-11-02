@@ -62,7 +62,7 @@ resource "azurerm_key_vault_secret" "sm_test_login_fiscal_codes_compressed" {
   name         = "sm-test-login-fiscal-codes-compressed"
   key_vault_id = var.key_vault.id
 
-  value_wo         = ""
+  value_wo         = "TODO_REMOVE_THIS_INIT_PLACEHOLDER_VALUE"
   value_wo_version = 1
 
   tags = var.tags
@@ -72,7 +72,7 @@ resource "azurerm_key_vault_secret" "sm_test_login_password" {
   name         = "sm-test-login-password"
   key_vault_id = var.key_vault.id
 
-  value_wo         = ""
+  value_wo         = "TODO_REMOVE_THIS_INIT_PLACEHOLDER_VALUE"
   value_wo_version = 1
 
   tags = var.tags
