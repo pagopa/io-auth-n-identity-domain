@@ -97,7 +97,7 @@ export const makeTestLoginUseCase =
         spidLevel: TEST_LOGIN_USER_DATA.spidLevel,
         ipAddress: input.ipAddress,
         loginType: input.loginType,
-        identityProvider: TEST_LOGIN_USER_DATA.identityProvider,
+        idp: TEST_LOGIN_USER_DATA.identityProvider,
       },
       assertion: {
         assertionRef,
