@@ -48,6 +48,7 @@ describe("createIoProfileAdapter#getProfile", () => {
         data: {
           is_email_validated: true,
           email: "user@example.com",
+          is_test_profile: false,
         } as unknown as ExtendedProfile,
         error: undefined,
         response: { status: 200 } as Response,
@@ -60,12 +61,13 @@ describe("createIoProfileAdapter#getProfile", () => {
         fiscalCode: FISCAL_CODE,
         email: "user@example.com",
         isEmailValidated: true,
+        isTestProfile: false,
       });
     });
 
     it("returns ok(UserProfile) without email", async () => {
       vi.mocked(getProfile).mockResolvedValue({
-        data: { is_email_validated: false } as unknown as ExtendedProfile,
+        data: { is_email_validated: false, is_test_profile: false } as unknown as ExtendedProfile,
         error: undefined,
         response: { status: 200 } as Response,
       });
@@ -76,6 +78,27 @@ describe("createIoProfileAdapter#getProfile", () => {
       expect(result._unsafeUnwrap()).toEqual({
         fiscalCode: FISCAL_CODE,
         isEmailValidated: false,
+        isTestProfile: false,
+      });
+    });
+
+    it("returns ok(UserProfile) when is_test_profile is undefined", async () => {
+      vi.mocked(getProfile).mockResolvedValue({
+        data: {
+          is_email_validated: true,
+          email: "user@example.com",
+        } as unknown as ExtendedProfile,
+        error: undefined,
+        response: { status: 200 } as Response,
+      });
+
+      const result = await adapter.getProfile(FISCAL_CODE);
+
+      expect(result.isOk()).toBe(true);
+      expect(result._unsafeUnwrap()).toEqual({
+        fiscalCode: FISCAL_CODE,
+        email: "user@example.com",
+        isEmailValidated: true,
       });
     });
 
@@ -130,6 +153,28 @@ describe("createIoProfileAdapter#create", () => {
 
   describe("200 OK", () => {
     it("returns ok(UserProfile) with email", async () => {
+      vi.mocked(createProfile).mockResolvedValue({
+        data: {
+          is_email_validated: false,
+          email: "user@example.com",
+          is_test_profile: false,
+        } as unknown as ExtendedProfile,
+        error: undefined,
+        response: { status: 200 } as Response,
+      });
+
+      const result = await adapter.create(newProfile);
+
+      expect(result.isOk()).toBe(true);
+      expect(result._unsafeUnwrap()).toEqual({
+        fiscalCode: FISCAL_CODE,
+        email: "user@example.com",
+        isEmailValidated: false,
+        isTestProfile: false,
+      });
+    });
+
+    it("returns ok(UserProfile) when is_test_profile is undefined", async () => {
       vi.mocked(createProfile).mockResolvedValue({
         data: {
           is_email_validated: false,
