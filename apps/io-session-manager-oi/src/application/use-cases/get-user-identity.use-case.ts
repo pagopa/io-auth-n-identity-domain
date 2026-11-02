@@ -53,6 +53,6 @@ export const makeGetUserIdentityUseCase =
       createdAt: session.createdAt,
       tokenRemainingTtl,
       sessionId: session.sessionId,
-      identityProvider: session.identityProvider,
+      idp: session.idp,
     });
   };
