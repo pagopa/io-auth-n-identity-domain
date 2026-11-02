@@ -14,12 +14,6 @@ const BaseRejectedLoginSchema = z.object({
   loginId: NonEmptyStringSchema.optional(),
 });
 
-const AgeBlockRejectedLoginSchema = BaseRejectedLoginSchema.extend({
-  rejectionCause: z.literal("age_block"),
-  minimumAge: z.number(),
-  dateOfBirth: z.string(),
-});
-
 const AuthLockRejectedLoginSchema = BaseRejectedLoginSchema.extend({
   rejectionCause: z.literal("auth_lock"),
 });
@@ -34,7 +28,6 @@ const OngoingUserDeletionRejectedLoginSchema = BaseRejectedLoginSchema.extend({
 });
 
 export const RejectedLoginEventSchema = z.discriminatedUnion("rejectionCause", [
-  AgeBlockRejectedLoginSchema,
   AuthLockRejectedLoginSchema,
   UserMismatchRejectedLoginSchema,
   OngoingUserDeletionRejectedLoginSchema,
