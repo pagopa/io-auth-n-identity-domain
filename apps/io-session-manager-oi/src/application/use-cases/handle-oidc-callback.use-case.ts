@@ -29,9 +29,6 @@ import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import { ActivateUserSessionUseCase } from "./activate-user-session.use-case.js";
 import type { ValidateProfileLocksUseCase } from "./validate-profile-locks.use-case.js";
 
-// This is a temporary workaround to ensure that the branded types are included in the type system.
-// const _brands = [FiscalCodeBrand];
-
 // Error code sent to the client error page when the provider returns an error
 // response without an explicit `error` code.
 const GENERIC_LOGIN_ERROR_CODE = "GENERIC_ERROR" as NonEmptyString;
@@ -215,7 +212,7 @@ export const makeHandleOidcCallbackUseCase =
         case "ForbiddenError":
           switch (error.tag) {
             case "profile-locked":
-              console.error("User is locked:", error);
+              console.warn("User is locked:", error);
               sendRejectedLoginEvent(deps)({
                 ...createBaseRejectedLoginEventData(
                   idTokenClaims.fiscalNumber,
@@ -229,7 +226,7 @@ export const makeHandleOidcCallbackUseCase =
                 errorCode: AUTHENTICATION_LOCKED_ERROR,
               });
             case "technical-profile-locked": {
-              console.error("User is technical-locked:", error);
+              console.warn("User is technical-locked:", error);
               sendRejectedLoginEvent(deps)({
                 ...createBaseRejectedLoginEventData(
                   idTokenClaims.fiscalNumber,
