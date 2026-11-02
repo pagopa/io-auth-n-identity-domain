@@ -1,8 +1,8 @@
-import { NonEmptyStringBrand } from "@pagopa/hexagonal-core";
 import {
   EmailAddressSchema,
   FiscalCodeSchema,
   NonEmptyStringSchema,
+  NonEmptyStringBrand,
 } from "@pagopa/hexagonal-core";
 import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 import { SpidLevelSchema } from "@pagopa/io-auth-n-identity-session";
