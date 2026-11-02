@@ -27,7 +27,7 @@ import type { ActivateUserSessionUseCase } from "./activate-user-session.use-cas
 export type TestLoginDeps = {
   testUserPort: TestUserPort;
   lollipopPort: LollipopPort;
-  activateUserSessionUseCase: ActivateUserSessionUseCase;
+  activateTestUserSessionUseCase: ActivateUserSessionUseCase;
 };
 
 export type TestLoginInput = {
@@ -88,7 +88,7 @@ export const makeTestLoginUseCase =
       inResponseTo: assertionRef,
     });
 
-    const activateResult = await deps.activateUserSessionUseCase({
+    const activateResult = await deps.activateTestUserSessionUseCase({
       sessionToken: {
         fiscalCode: input.username,
         name: TEST_LOGIN_USER_DATA.name,

@@ -49,20 +49,20 @@ const mockReservePubKey = vi.fn();
 const lollipopPort = {
   reservePubKey: mockReservePubKey,
 } as unknown as LollipopPort;
-const mockActivateUserSession = vi.fn();
+const mockActivateTestUserSession = vi.fn();
 
 const testLogin = makeTestLoginUseCase({
   testUserPort: TestUserPortMock,
   lollipopPort,
-  activateUserSessionUseCase:
-    mockActivateUserSession as unknown as ActivateUserSessionUseCase,
+  activateTestUserSessionUseCase:
+    mockActivateTestUserSession as unknown as ActivateUserSessionUseCase,
 });
 
 beforeEach(() => {
   resetTestUserPortMock();
   mockIsTestCredentials.mockReturnValue(true);
   mockReservePubKey.mockReset().mockResolvedValue(ok(anAssertionRef));
-  mockActivateUserSession.mockReset().mockResolvedValue(ok(aClientSessionToken));
+  mockActivateTestUserSession.mockReset().mockResolvedValue(ok(aClientSessionToken));
 });
 
 describe("TestLoginUseCase", () => {
@@ -78,7 +78,7 @@ describe("TestLoginUseCase", () => {
       algo: input.lollipopHashAlgorithm,
       pub_key: input.lollipopPublicKey,
     });
-    expect(mockActivateUserSession).toHaveBeenCalledExactlyOnceWith({
+    expect(mockActivateTestUserSession).toHaveBeenCalledExactlyOnceWith({
       sessionToken: {
         fiscalCode: aFiscalCode,
         name: TEST_LOGIN_USER_DATA.name,
@@ -98,7 +98,7 @@ describe("TestLoginUseCase", () => {
       },
     });
     const { rawAssertion } =
-      mockActivateUserSession.mock.calls[0][0].assertion;
+      mockActivateTestUserSession.mock.calls[0][0].assertion;
     expect(rawAssertion).toContain(`TINIT-${aFiscalCode}`);
   });
 
@@ -109,7 +109,7 @@ describe("TestLoginUseCase", () => {
 
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
     expect(mockReservePubKey).not.toHaveBeenCalled();
-    expect(mockActivateUserSession).not.toHaveBeenCalled();
+    expect(mockActivateTestUserSession).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -123,13 +123,13 @@ describe("TestLoginUseCase", () => {
       const result = await testLogin(input);
 
       expect(result._unsafeUnwrapErr()).toBeInstanceOf(expectedErrorClass);
-      expect(mockActivateUserSession).not.toHaveBeenCalled();
+      expect(mockActivateTestUserSession).not.toHaveBeenCalled();
     },
   );
 
   it("propagates session activation failures", async () => {
     const anError = new GenericError("activation failed");
-    mockActivateUserSession.mockResolvedValue(err(anError));
+    mockActivateTestUserSession.mockResolvedValue(err(anError));
 
     const result = await testLogin(input);
 
