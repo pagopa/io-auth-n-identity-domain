@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.12.0
+
+### Minor Changes
+
+- 68d9d8b: Persist the identity provider in the session
+
 ## 0.11.1
 
 ### Patch Changes
