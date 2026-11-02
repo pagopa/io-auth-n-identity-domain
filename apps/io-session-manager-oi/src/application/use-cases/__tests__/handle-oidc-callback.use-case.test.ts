@@ -232,7 +232,10 @@ describe("makeHandleOidcCallbackUseCase", () => {
         );
         exchangeMock.mockResolvedValueOnce(
           ok({
-            claims: { ...CLAIMS, fiscalNumber: "RSSMRA80A01H501U" as FiscalCode },
+            claims: {
+              ...CLAIMS,
+              fiscalNumber: "RSSMRA80A01H501U" as FiscalCode,
+            },
             accessToken: ACCESS_TOKEN,
           }),
         );
@@ -608,6 +611,14 @@ describe("makeHandleOidcCallbackUseCase", () => {
       checks: ["user-set", "technical"],
     });
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+    expect(sendEventMock).toHaveBeenCalledExactlyOnceWith({
+      eventType: "rejected_login",
+      rejectionCause: "auth_lock",
+      fiscalCode: CLAIMS.fiscalNumber,
+      ip: IP_ADDRESS,
+      loginId: AUXILIARY_DATA.lollipopAssertionRef,
+      ts: expect.any(Date),
+    });
   });
 
   it("propagates the technical profile lock without activating the session", async () => {
@@ -625,7 +636,85 @@ describe("makeHandleOidcCallbackUseCase", () => {
       checks: ["user-set", "technical"],
     });
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+    expect(sendEventMock).toHaveBeenCalledExactlyOnceWith({
+      eventType: "rejected_login",
+      rejectionCause: "ongoing_user_deletion",
+      fiscalCode: CLAIMS.fiscalNumber,
+      ip: IP_ADDRESS,
+      loginId: AUXILIARY_DATA.lollipopAssertionRef,
+      ts: expect.any(Date),
+    });
   });
+
+  describe.each([
+    { rejectionCause: "auth_lock", error: new ProfileLockedError() },
+    {
+      rejectionCause: "ongoing_user_deletion",
+      error: new TechnicalProfileLockedError(),
+    },
+  ] as const)(
+    "rejected login event for $rejectionCause",
+    ({ rejectionCause, error }) => {
+      beforeEach(() => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        validateProfileLocksUseCase.mockResolvedValueOnce(err(error));
+      });
+
+      const expectLoginOutcome = (
+        result: Awaited<ReturnType<typeof handleOidcCallbackUseCase>>,
+      ) => {
+        if (rejectionCause === "auth_lock") {
+          expect(result._unsafeUnwrap()).toEqual({
+            outcome: "error",
+            errorCode: "1002",
+          });
+        } else {
+          expect(result._unsafeUnwrapErr()).toBe(error);
+        }
+        expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+      };
+
+      it("does not wait for event delivery", async () => {
+        sendEventMock.mockReturnValueOnce(
+          ResultAsync.fromSafePromise(new Promise<void>(() => undefined)),
+        );
+
+        expectLoginOutcome(
+          await handleOidcCallbackUseCase({
+            callback: SUCCESS_CALLBACK,
+            ipAddress: IP_ADDRESS,
+          }),
+        );
+        expect(sendEventMock).toHaveBeenCalledOnce();
+      });
+
+      it.each(["Err", "rejection"] as const)(
+        "logs an event-send %s without changing the login outcome",
+        async (failure) => {
+          const sendError = new GenericError("Failed to send auth event");
+          sendEventMock.mockReturnValueOnce(
+            failure === "Err"
+              ? errAsync(sendError)
+              : ResultAsync.fromSafePromise(Promise.reject(sendError)),
+          );
+
+          expectLoginOutcome(
+            await handleOidcCallbackUseCase({
+              callback: SUCCESS_CALLBACK,
+              ipAddress: IP_ADDRESS,
+            }),
+          );
+
+          await vi.waitFor(() => {
+            expect(console.error).toHaveBeenCalledWith(
+              `Failed to send rejected_login (${rejectionCause}) auth event:`,
+              sendError,
+            );
+          });
+        },
+      );
+    },
+  );
 
   it.each([
     "Error checking if profile is locked: storage unavailable",
@@ -649,10 +738,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
           new GenericError("Error while validating user"),
         );
         expect(result._unsafeUnwrapErr()).not.toBe(validationError);
-        expect(logSpy).toHaveBeenCalledExactlyOnceWith(
-          "Error while validating user:",
-          validationError,
-        );
+        expect(logSpy).toHaveBeenCalledExactlyOnceWith(validationError);
         expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
           fiscalCode: CLAIMS.fiscalNumber,
           checks: ["user-set", "technical"],

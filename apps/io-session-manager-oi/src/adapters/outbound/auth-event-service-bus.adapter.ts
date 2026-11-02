@@ -1,12 +1,12 @@
 import type { ServiceBusSender } from "@azure/service-bus";
 import { GenericError } from "@pagopa/hexagonal-core";
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import {
   type AuthEvent,
   AuthEventSchema,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, Result, ResultAsync } from "neverthrow";
 
-import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import type { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 
 /**
