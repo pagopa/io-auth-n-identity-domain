@@ -35,7 +35,6 @@ import { mountSsoPagopaUserHandler } from "./adapters/inbound/fastify/sso-pagopa
 import { mountSsoZendeskTokenHandler } from "./adapters/inbound/fastify/sso-zendesk-token.handler.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
-import { TechnicalLockedProfilesRedisAdapter } from "./adapters/outbound/technical-locked-profiles-redis.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
 import { createIoFastLoginAdapter } from "./adapters/outbound/io-fast-login.adapter.js";
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
@@ -47,17 +46,18 @@ import { OneIdIdentityAssertionFetcherAdapter } from "./adapters/outbound/one-id
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
 import { TechnicalLockedProfilesDataTableAdapter } from "./adapters/outbound/technical-locked-profiles-data-table.adapter.js";
+import { TechnicalLockedProfilesRedisAdapter } from "./adapters/outbound/technical-locked-profiles-redis.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { makeFastLoginUseCase } from "./application/use-cases/fast-login.use-case.js";
 import { makeGenerateFastLoginLollipopParamsUseCase } from "./application/use-cases/generate-fast-login-lollipop-params.use-case.js";
 import { makeGenerateNonceUseCase } from "./application/use-cases/generate-nonce.use-case.js";
 import { makeGetLollipopUserForFimsUseCase } from "./application/use-cases/get-lollipop-user-for-fims.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
-import { makeGetUserIdentityUseCase } from "./application/use-cases/get-user-identity.use-case.js";
 import { makeGetTokenForZendeskUseCase } from "./application/use-cases/get-token-for-zendesk.use-case.js";
 import { getUserForBpdUseCase } from "./application/use-cases/get-user-for-bpd.use-case.js";
 import { makeGetUserForFimsUseCase } from "./application/use-cases/get-user-for-fims.use-case.js";
 import { makeGetUserForPagopaUseCase } from "./application/use-cases/get-user-for-pagopa.use-case.js";
+import { makeGetUserIdentityUseCase } from "./application/use-cases/get-user-identity.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
