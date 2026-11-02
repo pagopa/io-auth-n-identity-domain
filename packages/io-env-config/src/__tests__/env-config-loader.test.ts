@@ -40,6 +40,19 @@ describe("createEnvConfigLoader", () => {
       });
     });
 
+    it("applies mappings without mutating the supplied environment", () => {
+      const environment = { PORT: "3000", PORT_ALIAS: "8080" };
+      const schema = z.object({ PORT: z.coerce.number().int().positive() });
+
+      const result = createEnvConfigLoader(schema, environment, {
+        PORT: "PORT_ALIAS",
+      }).load();
+
+      expect(result.isOk()).toBe(true);
+      expect(result._unsafeUnwrap()).toEqual({ PORT: 8080 });
+      expect(environment).toEqual({ PORT: "3000", PORT_ALIAS: "8080" });
+    });
+
     it("returns Err with a ConfigError when a required variable is missing", () => {
       process.env.DEBUG = "false";
       process.env.NODE_ENV = "test";

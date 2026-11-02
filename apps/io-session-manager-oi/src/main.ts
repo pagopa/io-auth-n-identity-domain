@@ -16,7 +16,11 @@ const SHUTDOWN_TIMEOUT_MS = 10_000;
  * @returns The application bootstrap data.
  */
 const bootstrap = () => {
-  const configResult = createConfigLoader(ConfigSchema).load();
+  const configResult = createConfigLoader(ConfigSchema, {
+    mappings: {
+      TEST_LOGIN_FISCAL_CODES: "TEST_LOGIN_FISCAL_CODES_COMPRESSED",
+    },
+  }).load();
   if (configResult.isErr()) {
     throw new Error("Failed to load configuration", {
       cause: configResult.error,

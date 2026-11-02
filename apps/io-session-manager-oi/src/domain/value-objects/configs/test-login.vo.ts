@@ -39,10 +39,11 @@ export const FiscalCodeSetFromCompressedFiscalCodeArray = z
 const TestLoginFiscalCodes: z.ZodType<ReadonlyFiscalCodeSet> =
   FiscalCodeSetFromCompressedFiscalCodeArray;
 
-export const TestLoginConfigSchema = z.object({
-  // Fiscal codes of test users; profiles created for them are flagged as test profiles
-  TEST_LOGIN_FISCAL_CODES: TestLoginFiscalCodes,
-  TEST_LOGIN_PASSWORD: NonEmptyStringSchema,
-});
+export const TestLoginConfigSchema = z
+  .object({
+    // Fiscal codes of test users; profiles created for them are flagged as test profiles
+    TEST_LOGIN_FISCAL_CODES: TestLoginFiscalCodes,
+    TEST_LOGIN_PASSWORD: NonEmptyStringSchema,
+  });
 
 export type TestLoginConfig = z.infer<typeof TestLoginConfigSchema>;
