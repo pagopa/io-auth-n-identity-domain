@@ -10,8 +10,10 @@ import { z } from "zod";
 // This is a temporary workaround to ensure that the branded types are included in the type system.
 const _brands = [FiscalCodeBrand];
 
+type ReadonlyFiscalCodeSet = ReadonlySet<z.infer<typeof FiscalCodeSchema>>;
+
 // Gzipped (then base64-encoded) comma-separated list of test users' fiscal codes
-export const CompressedFiscalCodeSet = z
+export const FiscalCodeSetFromCompressedFiscalCodeArray = z
   .string()
   .transform((raw, ctx) => {
     if (raw.trim() === "") {
@@ -32,11 +34,14 @@ export const CompressedFiscalCodeSet = z
     }
   })
   .pipe(z.array(FiscalCodeSchema))
-  .transform((codes) => new Set(codes));
+  .transform((codes) => new Set(codes) as ReadonlyFiscalCodeSet);
+
+const TestLoginFiscalCodes: z.ZodType<ReadonlyFiscalCodeSet> =
+  FiscalCodeSetFromCompressedFiscalCodeArray;
 
 export const TestLoginConfigSchema = z.object({
   // Fiscal codes of test users; profiles created for them are flagged as test profiles
-  TEST_LOGIN_FISCAL_CODES_COMPRESSED: CompressedFiscalCodeSet,
+  TEST_LOGIN_FISCAL_CODES: TestLoginFiscalCodes,
   TEST_LOGIN_PASSWORD: NonEmptyStringSchema,
 });
 

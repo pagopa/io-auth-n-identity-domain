@@ -10,7 +10,7 @@ const aWrongPassword = NonEmptyStringSchema.parse("wrong-password");
 
 describe("InMemoryTestUserAdapter", () => {
   const adapter = new InMemoryTestUserAdapter({
-    TEST_LOGIN_FISCAL_CODES_COMPRESSED: new Set([aTestFiscalCode]),
+    TEST_LOGIN_FISCAL_CODES: new Set([aTestFiscalCode]),
     TEST_LOGIN_PASSWORD: aPassword,
   });
 

@@ -2,7 +2,7 @@
 import { gunzipSync } from "node:zlib";
 
 import { describe, expect, it } from "vitest";
-import { CompressedFiscalCodeSet } from "../test-login.vo.js";
+import { FiscalCodeSetFromCompressedFiscalCodeArray } from "../test-login.vo.js";
 
 const fiscalCodeB = "AAAAAA00A00A000B";
 const fiscalCodeC = "AAAAAA00A00A000C";
@@ -35,7 +35,7 @@ describe("CompressedFiscalCodeSet", () => {
     ${"2 element list with space before comma"}  | ${twoElementListWithSpaceBeforeCommaEncoded}  | ${new Set(twoElementList)}
     ${"2 element list with spaces around comma"} | ${twoElementListWithSpacesAroundCommaEncoded} | ${new Set(twoElementList)}
   `("parses $case correctly", async ({ input, expected }) => {
-    const result = CompressedFiscalCodeSet.parse(input);
+    const result = FiscalCodeSetFromCompressedFiscalCodeArray.parse(input);
     expect(result).toEqual(expected);
   });
 });

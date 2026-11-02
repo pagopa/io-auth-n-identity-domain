@@ -8,7 +8,7 @@ export class InMemoryTestUserAdapter implements TestUserPort {
   private readonly testPassword: NonEmptyString;
 
   constructor(config: TestLoginConfig) {
-    this.testUsers = config.TEST_LOGIN_FISCAL_CODES_COMPRESSED;
+    this.testUsers = config.TEST_LOGIN_FISCAL_CODES;
     this.testPassword = config.TEST_LOGIN_PASSWORD;
   }
 
