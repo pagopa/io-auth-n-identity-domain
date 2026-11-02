@@ -87,7 +87,7 @@ describe("TestLoginUseCase", () => {
         spidLevel: TEST_LOGIN_USER_DATA.spidLevel,
         ipAddress: anIpAddress,
         loginType: "LV",
-        identityProvider: TEST_LOGIN_USER_DATA.identityProvider,
+        idp: TEST_LOGIN_USER_DATA.identityProvider,
       },
       assertion: {
         assertionRef: anAssertionRef,
