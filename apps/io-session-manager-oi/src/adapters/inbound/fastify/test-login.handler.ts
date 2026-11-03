@@ -46,6 +46,7 @@ const testLoginContract = defineRoute({
 });
 
 type TestLoginHandlerDeps = {
+  middlewares: readonly [typeof extractIpMiddleware];
   useCase: TestLoginUseCase;
 };
 
@@ -55,7 +56,7 @@ export const mountTestLoginHandler = (
 ): void => {
   mountFastifyRoute(server, {
     contract: testLoginContract,
-    middlewares: [extractIpMiddleware] as const,
+    middlewares: deps.middlewares,
     inputMapper: (req, context) => ({
       lollipopHashAlgorithm: req.body.lollipop_hash_algo,
       lollipopPublicKey: req.body.lollipop_pub_key,
