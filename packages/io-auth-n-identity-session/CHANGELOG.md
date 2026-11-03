@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.12.1
+
+### Patch Changes
+
+- abba77c: Emit rejected-login events
+
 ## 0.12.0
 
 ### Minor Changes

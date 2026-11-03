@@ -1,5 +1,6 @@
 import {
   AuthenticationError,
+  FiscalCode,
   ForbiddenError,
   GenericError,
   NonEmptyString,
@@ -7,17 +8,24 @@ import {
   UseCase,
   ValidationError,
 } from "@pagopa/hexagonal-core";
-import { IPString } from "@pagopa/io-auth-n-identity-domain";
-import { SpidLevel, toSha256 } from "@pagopa/io-auth-n-identity-session";
+import {
+  IPString,
+  LollipopAssertionRef,
+} from "@pagopa/io-auth-n-identity-domain";
+import {
+  AuthEvent,
+  SpidLevel,
+  toSha256,
+} from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 
+import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import { AuxiliaryDataPort } from "../../domain/ports/outbound/auxiliary-data.port.js";
 import { IdentityAssertionFetcherPort } from "../../domain/ports/outbound/identity-assertion-fetcher.port.js";
 import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
 import { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
 import { SpidAuthLevel } from "../../domain/value-objects/login.vo.js";
 
-import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import { ActivateUserSessionUseCase } from "./activate-user-session.use-case.js";
 import type { ValidateProfileLocksUseCase } from "./validate-profile-locks.use-case.js";
 
@@ -131,33 +139,15 @@ export const makeHandleOidcCallbackUseCase =
       auxiliaryData.currentUser !== toSha256(idTokenClaims.fiscalNumber)
     ) {
       console.warn("Current user mismatch between auxiliary data and id token");
-      // Send a fire-and-forget rejected_login auth event for current user mismatch
-      deps.authEventPort
-        .sendEvent({
-          eventType: "rejected_login",
-          rejectionCause: "cf_mismatch",
-          fiscalCode: idTokenClaims.fiscalNumber,
-          currentFiscalCodeHash: auxiliaryData.currentUser,
-          ip: ipAddress,
-          loginId: auxiliaryData.lollipopAssertionRef as NonEmptyString,
-          ts: new Date(),
-        })
-        .then(
-          (result) => {
-            if (result.isErr()) {
-              console.error(
-                "Failed to send rejected_login (cf_mismatch) auth event:",
-                result.error,
-              );
-            }
-          },
-          (error) => {
-            console.error(
-              "Failed to send rejected_login (cf_mismatch) auth event:",
-              error,
-            );
-          },
-        );
+      sendRejectedLoginEvent(deps)({
+        ...createBaseRejectedLoginEventData(
+          idTokenClaims.fiscalNumber,
+          ipAddress,
+          auxiliaryData.lollipopAssertionRef,
+        ),
+        rejectionCause: "cf_mismatch",
+        currentFiscalCodeHash: auxiliaryData.currentUser,
+      });
       return ok({
         outcome: "error",
         errorCode: DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
@@ -222,19 +212,38 @@ export const makeHandleOidcCallbackUseCase =
         case "ForbiddenError":
           switch (error.tag) {
             case "profile-locked":
+              console.warn("User is locked:", error);
+              sendRejectedLoginEvent(deps)({
+                ...createBaseRejectedLoginEventData(
+                  idTokenClaims.fiscalNumber,
+                  ipAddress,
+                  auxiliaryData.lollipopAssertionRef,
+                ),
+                rejectionCause: "auth_lock",
+              });
               return ok({
                 outcome: "error",
                 errorCode: AUTHENTICATION_LOCKED_ERROR,
               });
-            case "technical-profile-locked":
+            case "technical-profile-locked": {
+              console.warn("User is technical-locked:", error);
+              sendRejectedLoginEvent(deps)({
+                ...createBaseRejectedLoginEventData(
+                  idTokenClaims.fiscalNumber,
+                  ipAddress,
+                  auxiliaryData.lollipopAssertionRef,
+                ),
+                rejectionCause: "ongoing_user_deletion",
+              });
               return err(error);
+            }
             default:
               const _exhaustiveCheck: never = error;
               return err(new GenericError("Unhandled forbidden error"));
           }
         case "GenericError":
           const genericErrorMessage = "Error while validating user";
-          console.error(`${genericErrorMessage}:`, error);
+          console.error(error);
           return err(new GenericError(genericErrorMessage));
         default: {
           const _exhaustiveCheck: never = error;
@@ -295,3 +304,39 @@ const isSpidLevelGreaterOrEqual = (
 ): boolean =>
   SPID_LEVEL_ORDER[spidLevelReceived] >=
   SPID_LEVEL_ORDER[toFullyQualifiedSpidLevel(minAuthLevel)];
+
+const createBaseRejectedLoginEventData = (
+  fiscalCode: FiscalCode,
+  ip: IPString,
+  lollipopAssertionRef: LollipopAssertionRef,
+): Omit<
+  Extract<AuthEvent, { eventType: "rejected_login" }>,
+  "rejectionCause"
+> => ({
+  eventType: "rejected_login",
+  fiscalCode,
+  ip,
+  loginId: lollipopAssertionRef as NonEmptyString,
+  ts: new Date(),
+});
+
+/**
+ * Sends a fire-and-forget rejected login event using the provided authEventPort.
+ * @param deps The dependencies required to send the rejected login event, including the authEventPort.
+ * @returns A function that takes a rejected login event and sends it (fire-and-forget) using the provided authEventPort.
+ */
+const sendRejectedLoginEvent =
+  (deps: { authEventPort: AuthEventPort }) =>
+  (event: Extract<AuthEvent, { eventType: "rejected_login" }>): void => {
+    const logFailure = (error: unknown): void =>
+      console.error(
+        `Failed to send rejected_login (${event.rejectionCause}) auth event:`,
+        error,
+      );
+
+    deps.authEventPort.sendEvent(event).then((result) => {
+      if (result.isErr()) {
+        logFailure(result.error);
+      }
+    }, logFailure);
+  };

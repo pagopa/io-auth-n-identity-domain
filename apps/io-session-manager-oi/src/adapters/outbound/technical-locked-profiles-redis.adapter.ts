@@ -4,13 +4,13 @@ import {
   GenericError,
   ValidationError,
 } from "@pagopa/hexagonal-core";
+import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { RedisError } from "@pagopa/redis";
 import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import { Result, err, ok } from "neverthrow";
 import { RedisClientType, RedisClusterType } from "redis";
 
 import { TechnicalLockedProfilesPort } from "../../domain/ports/outbound/technical-locked-profiles.port.js";
-import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 
 export const BLOCKED_USERS_SET_KEY = "BLOCKEDUSERS";
 

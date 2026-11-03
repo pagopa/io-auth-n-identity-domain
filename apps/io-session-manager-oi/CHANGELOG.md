@@ -1,5 +1,13 @@
 # io-session-manager-oi
 
+## 0.35.1
+
+### Patch Changes
+
+- abba77c: Emit rejected-login events
+- Updated dependencies [abba77c]
+  - @pagopa/io-auth-n-identity-session@0.12.1
+
 ## 0.35.0
 
 ### Minor Changes
