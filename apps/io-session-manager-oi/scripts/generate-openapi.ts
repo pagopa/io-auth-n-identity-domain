@@ -32,6 +32,7 @@ import { ssoFimsLollipopUserRoute } from "../src/adapters/inbound/fastify/sso-fi
 import { ssoFimsUserRoute } from "../src/adapters/inbound/fastify/sso-fims-user.handler.js";
 import { ssoPagopaUserRoute } from "../src/adapters/inbound/fastify/sso-pagopa-user.handler.js";
 import { ssoZendeskTokenRoute } from "../src/adapters/inbound/fastify/sso-zendesk-token.handler.js";
+import { testLoginRoute } from "../src/adapters/inbound/fastify/test-login.handler.js";
 
 const check = process.argv.includes("--check");
 
@@ -181,6 +182,7 @@ const specs: ReadonlyArray<DocumentSpec> = [
       { contract: generateNonceRoute },
       { contract: reserveRoute },
       { contract: getSessionContract },
+      { contract: testLoginRoute },
       { contract: getUserIdentityRoute },
     ],
     securitySchemes: ["bearerAuth"],

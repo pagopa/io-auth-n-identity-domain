@@ -6,6 +6,7 @@ import {
   NotFoundError,
 } from "@pagopa/hexagonal-core";
 import { err, ok, type Result } from "neverthrow";
+import { z } from "zod";
 
 import { type UserProfile } from "../../domain/entities/profile.entity.js";
 import type {
@@ -32,6 +33,9 @@ import { zGetProfileResponse } from "../../generated/io-profile/zod.gen.js";
 const RestrictedUserProfileSchema = zGetProfileResponse.pick({
   email: true,
   is_email_validated: true,
+  is_test_profile: true,
+}).extend({
+  is_test_profile: z.boolean().optional(),
 });
 
 export const createIoProfileAdapter = (config: {
@@ -72,6 +76,9 @@ export const createIoProfileAdapter = (config: {
             fiscalCode,
             email: parsed.data.email,
             isEmailValidated: parsed.data.is_email_validated,
+            ...(parsed.data.is_test_profile !== undefined && {
+              isTestProfile: parsed.data.is_test_profile,
+            }),
           };
           return ok(userProfile);
         }
@@ -105,6 +112,7 @@ export const createIoProfileAdapter = (config: {
         body: {
           email: newProfile.email,
           is_email_validated: newProfile.isEmailValidated,
+          is_test_profile: newProfile.isTestProfile,
         },
       });
 
@@ -126,6 +134,9 @@ export const createIoProfileAdapter = (config: {
             fiscalCode: newProfile.fiscalCode,
             email: parsed.data.email,
             isEmailValidated: parsed.data.is_email_validated,
+            ...(parsed.data.is_test_profile !== undefined && {
+              isTestProfile: parsed.data.is_test_profile,
+            }),
           };
           return ok(userProfile);
         }

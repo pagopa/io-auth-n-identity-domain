@@ -255,5 +255,13 @@ locals {
       name  = "JWT_ZENDESK_SUPPORT_TOKEN_SECRET"
       value = azurerm_key_vault_secret.sm_zendesk_support_token_secret.versionless_id
     },
+    {
+      name  = "TEST_LOGIN_FISCAL_CODES_COMPRESSED"
+      value = azurerm_key_vault_secret.sm_test_login_fiscal_codes_compressed.versionless_id
+    },
+    {
+      name  = "TEST_LOGIN_PASSWORD"
+      value = azurerm_key_vault_secret.sm_test_login_password.versionless_id
+    },
   ]
 }

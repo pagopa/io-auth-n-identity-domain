@@ -5,6 +5,7 @@ export const UserProfileSchema = z.object({
   fiscalCode: FiscalCodeSchema,
   email: EmailAddressSchema.optional(),
   isEmailValidated: z.boolean(),
+  isTestProfile: z.boolean().optional(),
 });
 
 export type UserProfile = z.infer<typeof UserProfileSchema>;

@@ -33,12 +33,15 @@ import { mountSsoFimsLollipopUserHandler } from "./adapters/inbound/fastify/sso-
 import { mountSsoFimsUserHandler } from "./adapters/inbound/fastify/sso-fims-user.handler.js";
 import { mountSsoPagopaUserHandler } from "./adapters/inbound/fastify/sso-pagopa-user.handler.js";
 import { mountSsoZendeskTokenHandler } from "./adapters/inbound/fastify/sso-zendesk-token.handler.js";
+import { mountTestLoginHandler } from "./adapters/inbound/fastify/test-login.handler.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
+import { InMemoryTestUserAdapter } from "./adapters/outbound/in-memory-test-user.adapter.js";
 import { createIoFastLoginAdapter } from "./adapters/outbound/io-fast-login.adapter.js";
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
 import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
+import { createIoTestProfileAdapter } from "./adapters/outbound/io-test-profile.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
 import { LollipopRevocationQueueAdapter } from "./adapters/outbound/lollipop-revocation-queue.adapter.js";
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
@@ -63,6 +66,7 @@ import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-
 import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
 import { makeRefreshUserSessionUseCase } from "./application/use-cases/refresh-user-session.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
+import { makeTestLoginUseCase } from "./application/use-cases/test-login.use-case.js";
 import { makeValidateProfileLocksUseCase } from "./application/use-cases/validate-profile-locks.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
@@ -347,6 +351,8 @@ const createAdapters = async (
     apiKey: config.IO_PROFILE_API_KEY,
   });
 
+  const testProfileAdapter = createIoTestProfileAdapter(profileAdapter);
+
   const platformInternalAdapter = createPlatformInternalAdapter({
     baseUrl: new URL(
       config.PLATFORM_PROXY_API_BASE_PATH,
@@ -379,6 +385,8 @@ const createAdapters = async (
   const oneIdIdentityAssertionFetcherAdapter =
     new OneIdIdentityAssertionFetcherAdapter(config);
 
+  const testUserAdapter = new InMemoryTestUserAdapter(config);
+
   return {
     lockedProfilesAdapter,
     technicalLockedProfilesAdapter,
@@ -390,12 +398,14 @@ const createAdapters = async (
     fetchLollipopAdapter,
     fastLoginAdapter,
     profileAdapter,
+    testProfileAdapter,
     platformInternalAdapter,
     oidcConfigAdapter,
     oidcExchangeAdapter,
     authEventServiceBusAdapter,
     lollipopActivationCosmosAdapter,
     oneIdIdentityAssertionFetcherAdapter,
+    testUserAdapter,
   };
 };
 
@@ -406,8 +416,8 @@ const createAdapters = async (
  * @returns The application use cases.
  */
 const createUseCases = (
-  adapters: Awaited<ReturnType<typeof createAdapters>>,
   config: Config,
+  adapters: Awaited<ReturnType<typeof createAdapters>>,
 ) => {
   const reserveUseCase = makeReserveUseCase({
     auxiliaryDataPort: adapters.auxiliaryStorageAdapter,
@@ -424,6 +434,19 @@ const createUseCases = (
   const activateUserSessionUseCase = makeActivateUserSessionUseCase({
     sessionPort: adapters.sessionCosmosAdapter,
     profilePort: adapters.profileAdapter,
+    authEventPort: adapters.authEventServiceBusAdapter,
+    lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
+    lollipopPort: adapters.fetchLollipopAdapter,
+    lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
+    invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
+    notificationPort: adapters.notificationStorageQueueAdapter,
+  });
+
+  // This use case is specifically for activating test user sessions.
+  // It uses the test profile adapter instead of the regular profile adapter.
+  const activateTestUserSessionUseCase = makeActivateUserSessionUseCase({
+    sessionPort: adapters.sessionCosmosAdapter,
+    profilePort: adapters.testProfileAdapter,
     authEventPort: adapters.authEventServiceBusAdapter,
     lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
     lollipopPort: adapters.fetchLollipopAdapter,
@@ -471,12 +494,20 @@ const createUseCases = (
     profilePort: adapters.profileAdapter,
   });
 
+  const testLoginUseCase = makeTestLoginUseCase({
+    testUserPort: adapters.testUserAdapter,
+    lollipopPort: adapters.fetchLollipopAdapter,
+    activateTestUserSessionUseCase,
+  });
+
   return {
     reserveUseCase,
-    fastLoginUseCase,
+    activateUserSessionUseCase,
     handleOidcCallbackUseCase,
+    fastLoginUseCase,
     getSessionUseCase,
     getUserForFimsUseCase,
+    testLoginUseCase,
   };
 };
 
@@ -666,6 +697,10 @@ const mountRoutes = ({
     useCase: useCases.getSessionUseCase,
   })(server);
 
+  mountTestLoginHandler(server, {
+    useCase: useCases.testLoginUseCase,
+  });
+
   mountGetUserIdentityHandler({
     middlewares: [middlewares.authenticateSessionMiddleware] as const,
     useCase: makeGetUserIdentityUseCase({
@@ -696,7 +731,7 @@ export const createApp = async (
 
     const clients = await createClients(config, lifecycle.registerCleanup);
     const adapters = await createAdapters(config, clients);
-    const useCases = createUseCases(adapters, config);
+    const useCases = createUseCases(config, adapters);
     const middlewares = createAuthenticationMiddlewares(
       adapters.sessionCosmosAdapter,
     );

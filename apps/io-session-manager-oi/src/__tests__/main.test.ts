@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   loadConfig: vi.fn(),
   loadPackageInfo: vi.fn(),
+  createConfigLoader: vi.fn(),
   createApp: vi.fn(),
   listen: vi.fn(),
   close: vi.fn(),
@@ -16,7 +17,7 @@ vi.mock("@pagopa/io-package-info", () => ({
   createPackageInfoAdapter: () => ({ load: mocks.loadPackageInfo }),
 }));
 vi.mock("../adapters/outbound/config-loader.js", () => ({
-  createConfigLoader: () => ({ load: mocks.loadConfig }),
+  createConfigLoader: mocks.createConfigLoader,
 }));
 vi.mock("../domain/value-objects/configs/index.js", () => ({
   ConfigSchema: {},
@@ -42,6 +43,9 @@ beforeEach(() => {
   mocks.loadConfig
     .mockReset()
     .mockReturnValue(ok({ HOST: "127.0.0.1", PORT: 8080 }));
+  mocks.createConfigLoader
+    .mockReset()
+    .mockReturnValue({ load: mocks.loadConfig });
   mocks.loadPackageInfo.mockReset().mockReturnValue(ok({ name: "test-app" }));
   mocks.listen.mockReset().mockResolvedValue(undefined);
   mocks.close.mockReset().mockResolvedValue(undefined);
@@ -66,6 +70,14 @@ describe("application lifecycle", () => {
   it("starts the server without exiting", async () => {
     await import("../main.js");
 
+    expect(mocks.createConfigLoader).toHaveBeenCalledExactlyOnceWith(
+      expect.anything(),
+      {
+        mappings: {
+          TEST_LOGIN_FISCAL_CODES: "TEST_LOGIN_FISCAL_CODES_COMPRESSED",
+        },
+      },
+    );
     expect(mocks.listen).toHaveBeenCalledExactlyOnceWith({
       host: "127.0.0.1",
       port: 8080,
