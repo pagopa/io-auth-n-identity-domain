@@ -1,5 +1,16 @@
 # io-session-manager-oi
 
+## 0.36.0
+
+### Minor Changes
+
+- 9f15b4a: Add Test Login
+
+### Patch Changes
+
+- Updated dependencies [9f15b4a]
+  - @pagopa/io-env-config@0.2.0
+
 ## 0.35.1
 
 ### Patch Changes
