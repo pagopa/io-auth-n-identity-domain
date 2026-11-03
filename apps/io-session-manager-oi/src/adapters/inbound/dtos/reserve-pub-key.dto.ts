@@ -52,6 +52,7 @@ export const ReserveInputDTO = {
 
 export const ReserveOutputDTO = z
   .object({
+    acr_values: NonEmptyStringSchema,
     client_id: NonEmptyStringSchema,
     state: NonEmptyStringSchema,
     nonce: NonEmptyStringSchema,

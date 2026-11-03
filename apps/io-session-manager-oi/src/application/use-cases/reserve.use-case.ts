@@ -42,11 +42,17 @@ type input = {
 };
 
 type output = {
+  acr_values: NonEmptyString;
   client_id: NonEmptyString;
   state: NonEmptyString;
   nonce: NonEmptyString;
   redirect_uri: NonEmptyString;
   authorization_endpoint: NonEmptyString;
+};
+
+const acrValuesByAuthLevel: Record<SpidAuthLevel, NonEmptyString> = {
+  SpidL2: "https://www.spid.gov.it/SpidL2" as NonEmptyString,
+  SpidL3: "https://www.spid.gov.it/SpidL3" as NonEmptyString,
 };
 
 export const makeReserveUseCase =
@@ -111,6 +117,7 @@ export const makeReserveUseCase =
     }
 
     return ok({
+      acr_values: acrValuesByAuthLevel[inputData.minAuthLevel],
       client_id: clientId,
       state,
       nonce,
