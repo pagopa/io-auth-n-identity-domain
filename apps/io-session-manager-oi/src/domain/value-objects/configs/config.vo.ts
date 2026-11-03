@@ -46,6 +46,7 @@ import {
 } from "./technical-locked-profiles.vo.js";
 import { TestLoginConfigSchema } from "./test-login.vo.js";
 import { ZendeskConfigSchema } from "./zendesk.vo.js";
+import { IdpFriendlyNameConfigSchema } from "./friendly-name.vo.js";
 
 // This is a temporary workaround to ensure that the branded types are included in the type system.
 const _brands = [FiscalCodeBrand];
@@ -67,6 +68,7 @@ const CommonConfigShape = {
   ...FimsConfigSchema.shape,
   ...PagopaConfigSchema.shape,
   ...ZendeskConfigSchema.shape,
+  ...IdpFriendlyNameConfigSchema.shape,
   ...TestLoginConfigSchema.shape,
 };
 

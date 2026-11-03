@@ -6,6 +6,12 @@
 
 - 553bcb3: Inject Extract IP Middleware instead of direct import
 
+## 0.36.1
+
+### Patch Changes
+
+- 553bcb3: Inject Extract IP Middleware instead of direct import
+
 ## 0.36.0
 
 ### Minor Changes
