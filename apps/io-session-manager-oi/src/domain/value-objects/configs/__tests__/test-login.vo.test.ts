@@ -1,5 +1,4 @@
 // Test for CompressedFiscalCodeSet
-import { gunzipSync } from "node:zlib";
 
 import { describe, expect, it } from "vitest";
 import { FiscalCodeSetFromCompressedFiscalCodeArray } from "../test-login.vo.js";
