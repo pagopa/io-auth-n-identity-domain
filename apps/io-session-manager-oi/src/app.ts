@@ -640,13 +640,12 @@ const mountRoutes = ({
   );
 
   mountFastLoginHandler(server, {
-    middlewares: {
-      extractIpMiddleware,
-    },
+    middlewares: [extractIpMiddleware] as const,
     useCase: useCases.fastLoginUseCase,
   });
 
   mountCallbackHandler(server, {
+    middlewares: [extractIpMiddleware] as const,
     handleOidcCallbackUseCase: useCases.handleOidcCallbackUseCase,
     loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
     loginErrorRedirectUrl: config.LOGIN_ERROR_REDIRECT_URL,
@@ -698,6 +697,7 @@ const mountRoutes = ({
   })(server);
 
   mountTestLoginHandler(server, {
+    middlewares: [extractIpMiddleware] as const,
     useCase: useCases.testLoginUseCase,
   });
 

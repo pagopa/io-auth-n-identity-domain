@@ -13,6 +13,7 @@ import {
   type CallbackHandlerDeps,
   mountCallbackHandler,
 } from "../callback.handler.js";
+import { extractIpMiddleware } from "../middlewares/extract-ip.middleware.js";
 
 describe("callback handler login outcomes and errors", () => {
   let server: ReturnType<typeof fastify>;
@@ -23,6 +24,7 @@ describe("callback handler login outcomes and errors", () => {
     handleOidcCallbackUseCase.mockReset();
     server = fastify();
     mountCallbackHandler(server, {
+      middlewares: [extractIpMiddleware] as const,
       handleOidcCallbackUseCase,
       loginSuccessRedirectUrl: "https://app.example.com/success",
       loginErrorRedirectUrl: "https://app.example.com/error",

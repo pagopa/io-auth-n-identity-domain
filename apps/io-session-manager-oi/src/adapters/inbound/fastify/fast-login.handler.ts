@@ -49,9 +49,7 @@ export const fastLoginContract = defineRoute({
 });
 
 export type FastLoginHandlerDeps = {
-  middlewares: {
-    extractIpMiddleware: typeof extractIpMiddleware;
-  };
+  middlewares: readonly [typeof extractIpMiddleware];
   useCase: FastLoginUseCase;
 };
 
@@ -61,9 +59,7 @@ export const mountFastLoginHandler = (
 ): void => {
   mountFastifyRoute(server, {
     contract: fastLoginContract,
-    middlewares: [
-      deps.middlewares.extractIpMiddleware,
-    ] as const,
+    middlewares: deps.middlewares,
     inputMapper: (req, context) => ({
         originalMethod: req.headers["x-pagopa-lollipop-original-method"],
         originalUrl: req.headers["x-pagopa-lollipop-original-url"],

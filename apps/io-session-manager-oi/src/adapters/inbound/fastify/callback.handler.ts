@@ -57,6 +57,7 @@ export const callbackContract = defineRoute({
 });
 
 export type CallbackHandlerDeps = {
+  middlewares: readonly [typeof extractIpMiddleware];
   handleOidcCallbackUseCase: ReturnType<typeof makeHandleOidcCallbackUseCase>;
   loginSuccessRedirectUrl: string;
   loginErrorRedirectUrl: string;
@@ -68,7 +69,7 @@ export const mountCallbackHandler = (
 ): void => {
   mountFastifyRoute(server, {
     contract: callbackContract,
-    middlewares: [extractIpMiddleware] as const,
+    middlewares: deps.middlewares,
     inputMapper: (req, context): HandleOidcCallbackInput => ({
       callback: req.query,
       ipAddress: context.ipAddress,
