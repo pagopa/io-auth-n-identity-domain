@@ -24,7 +24,7 @@ describe("callback handler login outcomes and errors", () => {
     handleOidcCallbackUseCase.mockReset();
     server = fastify();
     mountCallbackHandler(server, {
-      middlewares: [extractIpMiddleware],
+      middlewares: [extractIpMiddleware] as const,
       handleOidcCallbackUseCase,
       loginSuccessRedirectUrl: "https://app.example.com/success",
       loginErrorRedirectUrl: "https://app.example.com/error",
