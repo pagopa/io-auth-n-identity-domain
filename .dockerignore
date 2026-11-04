@@ -1,5 +1,9 @@
 **/dist
 **/node_modules
+**/coverage
+**/.env
+**/.env.*
+.git
 .changeset
 .github
 .turbo
