@@ -1433,6 +1433,18 @@ importers:
 
   apps/io-web-auth-service:
     dependencies:
+      '@asteasolutions/zod-to-openapi':
+        specifier: 'catalog:'
+        version: 8.5.0(zod@4.4.3)
+      '@pagopa/hexagonal-core':
+        specifier: 'catalog:'
+        version: 0.5.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+      '@pagopa/hexagonal-fastify':
+        specifier: 'catalog:'
+        version: 0.3.0(@standard-schema/spec@1.1.0)(fastify@5.8.5)(neverthrow@8.2.0)(zod@4.4.3)
+      '@pagopa/io-auth-n-identity-domain':
+        specifier: workspace:^
+        version: link:../../packages/io-auth-n-identity-domain
       '@pagopa/io-env-config':
         specifier: workspace:^
         version: link:../../packages/io-env-config
@@ -1445,10 +1457,16 @@ importers:
       fastify:
         specifier: 'catalog:'
         version: 5.8.5
+      neverthrow:
+        specifier: 'catalog:'
+        version: 8.2.0
       zod:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@pagopa/hexagonal-openapi':
+        specifier: 'catalog:'
+        version: 0.1.2(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       '@pagopa/typescript-config-node22':
         specifier: workspace:^
         version: link:../../packages/typescript-config-node22
@@ -1464,9 +1482,6 @@ importers:
       eslint-config-monorepo:
         specifier: workspace:^
         version: link:../../packages/eslint-config-monorepo
-      neverthrow:
-        specifier: 'catalog:'
-        version: 8.2.0
       shx:
         specifier: 'catalog:'
         version: 0.4.0
@@ -12157,7 +12172,7 @@ snapshots:
       '@usebruno/lang': 0.27.0
       '@usebruno/requests': 0.7.0(debug@4.4.1)
       '@usebruno/vm2': 3.9.19
-      aws4-axios: 3.4.0(axios@1.11.0)
+      aws4-axios: 3.4.0(axios@1.11.0(debug@4.4.1))
       axios: 1.11.0(debug@4.4.1)
       axios-ntlm: 1.4.4(debug@4.4.1)
       chai: 4.5.0
@@ -12571,7 +12586,7 @@ snapshots:
 
   aws-sign2@0.7.0: {}
 
-  aws4-axios@3.4.0(axios@1.11.0):
+  aws4-axios@3.4.0(axios@1.11.0(debug@4.4.1)):
     dependencies:
       '@aws-sdk/client-sts': 3.862.0
       aws4: 1.13.2

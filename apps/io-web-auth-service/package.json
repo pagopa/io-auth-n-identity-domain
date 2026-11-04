@@ -20,19 +20,24 @@
     "test:coverage": "vitest run --coverage -c ./vite.config.mts"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "catalog:",
+    "@pagopa/hexagonal-core": "catalog:",
+    "@pagopa/hexagonal-fastify": "catalog:",
+    "@pagopa/io-auth-n-identity-domain": "workspace:^",
     "@pagopa/io-env-config": "workspace:^",
     "@pagopa/io-package-info": "workspace:^",
     "dotenv": "catalog:",
     "fastify": "catalog:",
+    "neverthrow": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@pagopa/hexagonal-openapi": "catalog:",
     "@pagopa/typescript-config-node22": "workspace:^",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
     "eslint-config-monorepo": "workspace:^",
-    "neverthrow": "catalog:",
     "shx": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
