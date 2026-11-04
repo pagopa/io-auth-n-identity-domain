@@ -7,6 +7,19 @@
 name: io-mock
 
 services:
+  io-web-auth-service:
+    image: io-web-auth-service
+    build:
+      context: ./
+      dockerfile: ./apps/io-web-auth-service/Dockerfile
+    env_file:
+      - ./docker/generated/.env.io-web-auth-service
+    ports:
+      - "${IO_WEB_AUTH_SERVICE_PORT}:8080"
+    networks:
+      - io-fn
+    stop_grace_period: 15s
+
   io-session-manager-oi:
     image: io-session-manager-oi
     build:
