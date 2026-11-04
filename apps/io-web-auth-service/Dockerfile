@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22.22.2-alpine AS base
+FROM public.ecr.aws/docker/library/node:24.22.1-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -19,7 +19,7 @@ COPY --from=pruner /repo/out/full/ ./
 RUN pnpm exec turbo run build --filter=io-web-auth-service...
 RUN pnpm --filter io-web-auth-service --prod deploy --legacy /repo/deploy
 
-FROM node:22.22.2-alpine AS runtime
+FROM public.ecr.aws/docker/library/node:24.22.1-alpine AS runtime
 WORKDIR /app
 COPY --chown=node:node --from=builder /repo/deploy/node_modules ./node_modules
 COPY --chown=node:node --from=builder /repo/deploy/dist ./dist
