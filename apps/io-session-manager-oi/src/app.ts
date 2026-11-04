@@ -497,6 +497,7 @@ const createUseCases = (
   const testLoginUseCase = makeTestLoginUseCase({
     testUserPort: adapters.testUserAdapter,
     lollipopPort: adapters.fetchLollipopAdapter,
+    validateProfileLocksUseCase,
     activateTestUserSessionUseCase,
   });
 
