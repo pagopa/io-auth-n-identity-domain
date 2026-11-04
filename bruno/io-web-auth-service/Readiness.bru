@@ -1,0 +1,16 @@
+meta {
+  name: Readiness
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{IO_WEB_AUTH_SERVICE_BASE_URL}}/health/readiness
+  body: none
+  auth: none
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
