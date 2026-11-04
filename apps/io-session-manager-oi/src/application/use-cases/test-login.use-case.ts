@@ -62,7 +62,7 @@ export const makeTestLoginUseCase =
 
     // Using the default test user SPID level for the assertion.
     // If needed, this can be extended to accept different SPID levels for the test user
-    // in the input parameters of the use case if needed.
+    // in the input parameters of the use case.
     const spidLevel = TEST_LOGIN_USER_DATA.spidLevel;
 
     // Check profile locks before reserving a key or activating the session.
