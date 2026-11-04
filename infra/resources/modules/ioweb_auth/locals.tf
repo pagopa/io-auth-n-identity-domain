@@ -1,6 +1,6 @@
 locals {
   app_name      = "ioweb-auth"
-  auth_ca_image = "gchr.io/pagopa/io-web-auth-service"
+  auth_ca_image = "ghcr.io/pagopa/io-web-auth-service"
 
   listen_port = 8080
 
