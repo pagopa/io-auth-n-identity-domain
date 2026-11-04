@@ -33,8 +33,7 @@ const aPublicKey: JwkPublicKey = {
   y: "qK9Zyso1CCwsUk985hnO5WEP3enSxpuD1n5JqtmZIEE",
   crv: "P-256",
 };
-const anAssertionRef =
-  "sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU";
+const anAssertionRef = "sha256-iwBFlFaCWaLnrCckGIyWMJBnfDkEJ-mgxZVzGICmkwU";
 
 const input = {
   username: aFiscalCode,
@@ -56,13 +55,16 @@ const testLogin = makeTestLoginUseCase({
   lollipopPort,
   activateTestUserSessionUseCase:
     mockActivateTestUserSession as unknown as ActivateUserSessionUseCase,
+  oidcEnvironment: "UAT",
 });
 
 beforeEach(() => {
   resetTestUserPortMock();
   mockIsTestCredentials.mockReturnValue(true);
   mockReservePubKey.mockReset().mockResolvedValue(ok(anAssertionRef));
-  mockActivateTestUserSession.mockReset().mockResolvedValue(ok(aClientSessionToken));
+  mockActivateTestUserSession
+    .mockReset()
+    .mockResolvedValue(ok(aClientSessionToken));
 });
 
 describe("TestLoginUseCase", () => {
@@ -96,6 +98,7 @@ describe("TestLoginUseCase", () => {
         ),
         type: "SAML",
       },
+      oidcEnvironment: "UAT",
     });
     const { rawAssertion } =
       mockActivateTestUserSession.mock.calls[0][0].assertion;

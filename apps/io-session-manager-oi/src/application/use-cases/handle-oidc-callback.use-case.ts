@@ -265,7 +265,7 @@ export const makeHandleOidcCallbackUseCase =
       ipAddress,
       loginType: auxiliaryData.loginType,
       //TODO: map to readable Identity Provider name
-      idp: idTokenClaims.iss,
+      idp: idTokenClaims.idpEntityId,
     };
     const activateResult = await deps.activateUserSessionUseCase({
       sessionToken: newSessionToken,
@@ -274,6 +274,7 @@ export const makeHandleOidcCallbackUseCase =
         rawAssertion: assertion.rawAssertion,
         type: assertion.type,
       },
+      oidcEnvironment: auxiliaryData.oidcConfigurationEnv,
     });
     if (activateResult.isErr()) {
       return err(activateResult.error);

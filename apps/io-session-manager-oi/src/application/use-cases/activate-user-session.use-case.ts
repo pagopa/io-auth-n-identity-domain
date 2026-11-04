@@ -1,5 +1,6 @@
 import {
   GenericError,
+  NonEmptyString,
   NotFoundError,
   type UseCase,
 } from "@pagopa/hexagonal-core";
@@ -33,6 +34,8 @@ import {
 } from "../../domain/value-objects/client-session-token.vo.js";
 
 import { InvalidateSessionTokenCacheUseCase } from "./invalidate-session-token-cache.use-case.js";
+import { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
+import { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
 
 type NewSessionToken = Omit<
   BaseSession,
@@ -45,6 +48,7 @@ type NewSessionToken = Omit<
 type ActivateUserSessionUseCaseInput = {
   sessionToken: NewSessionToken;
   assertion: Pick<IdentityAssertion, "assertionRef" | "rawAssertion" | "type">;
+  oidcEnvironment: OidcEnvironment;
 };
 
 export type ActivateUserSessionUseCase = UseCase<
@@ -62,6 +66,7 @@ type Dependencies = {
   lollipopRevocationPort: LollipopRevocationPort;
   invalidateSessionTokenCacheUseCase: InvalidateSessionTokenCacheUseCase;
   notificationPort: NotificationPort;
+  friendlyNamePort: IdpFriendlyNamePort;
 };
 
 // ---------------------------------------------
@@ -192,13 +197,28 @@ export const makeActivateUserSessionUseCase =
     /* Notify login event to user */
     /******************************/
     if (userProfile.email) {
+      let friendlyName: NonEmptyString;
+      const friendlyNameResult = await deps.friendlyNamePort.getFriendlyName(
+        input.sessionToken.idp,
+        input.oidcEnvironment,
+      );
+
+      if (friendlyNameResult.isOk()) {
+        friendlyName = friendlyNameResult.value;
+      } else {
+        console.warn(
+          `Failed to retrieve friendly name for issuer ${input.sessionToken.idp} in env ${input.oidcEnvironment}: ${friendlyNameResult.error.message}`,
+        );
+        friendlyName = input.sessionToken.idp;
+      }
+
       // Notify login event to user
       const notifyLoginResult = await deps.profilePort.notifyLogin({
         fiscalCode: userProfile.fiscalCode,
         name: input.sessionToken.name,
         familyName: input.sessionToken.familyName,
         email: userProfile.email,
-        identityProvider: input.sessionToken.idp,
+        identityProvider: friendlyName,
         ipAddress: input.sessionToken.ipAddress,
         isEmailValidated: userProfile.isEmailValidated,
       });
