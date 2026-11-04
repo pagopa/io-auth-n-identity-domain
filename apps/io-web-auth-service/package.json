@@ -1,0 +1,41 @@
+{
+  "name": "io-web-auth-service",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/main.js",
+  "files": [
+    "dist/*"
+  ],
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "typecheck": "tsc --noEmit",
+    "lint": "pnpm lint:check --fix",
+    "lint:check": "eslint .",
+    "start": "node dist/main.js",
+    "test": "vitest run -c ./vite.config.mts",
+    "test:coverage": "vitest run --coverage -c ./vite.config.mts"
+  },
+  "dependencies": {
+    "@pagopa/io-env-config": "workspace:^",
+    "@pagopa/io-package-info": "workspace:^",
+    "dotenv": "catalog:",
+    "fastify": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@pagopa/typescript-config-node22": "workspace:^",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-monorepo": "workspace:^",
+    "neverthrow": "catalog:",
+    "shx": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
