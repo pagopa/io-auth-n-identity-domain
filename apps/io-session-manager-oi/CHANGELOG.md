@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.37.0
+
+### Minor Changes
+
+- e8ce3bd: Implement friendly name
+
 ## 0.36.1
 
 ### Patch Changes
