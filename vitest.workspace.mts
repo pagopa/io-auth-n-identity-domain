@@ -4,6 +4,14 @@ import { config } from "dotenv";
 // defineWorkspace provides a nice type hinting DX
 export default defineWorkspace([
   {
+    extends: "apps/io-web-auth-service/vite.config.mts",
+    test: {
+      name: "io-web-auth-service",
+      include: ["apps/io-web-auth-service/src/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
+  {
     extends: "apps/io-session-manager/vite.config.mts",
     test: {
       name: "session-manager",
