@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   release:
-    uses: pagopa/dx/.github/workflows/release-azure-containerapp-v1.yaml@main
+    uses: pagopa/dx/.github/workflows/release-azure-containerapp-v1.yaml@0b35a5611dbbbddedde5b3e7d25ed989eb66664e
     name: Deploy
     secrets: inherit
     with:
