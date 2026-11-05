@@ -79,7 +79,7 @@ export const makeTestLoginUseCase =
       const error = validateProfileLocksResult.error;
       switch (error.kind) {
         case "ForbiddenError":
-          return err(new GenericError(`Profile is locked: ${error.message}`));
+          return err(new AuthenticationError());
         case "GenericError":
           return err(
             new GenericError(
