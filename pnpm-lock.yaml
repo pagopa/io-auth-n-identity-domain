@@ -39,9 +39,15 @@ catalogs:
     '@mattrglobal/http-signatures':
       specifier: ^4.1.0
       version: 4.1.1
+    '@opentelemetry/api-logs':
+      specifier: ^0.223.0
+      version: 0.223.0
     '@pagopa/azure-storage-migration-kit':
       specifier: ^0.0.2
       version: 0.0.2
+    '@pagopa/azure-tracing':
+      specifier: ^0.5.11
+      version: 0.5.11
     '@pagopa/eslint-config':
       specifier: ^4.0.6
       version: 4.0.6
@@ -1336,11 +1342,14 @@ importers:
       '@fastify/formbody':
         specifier: 'catalog:'
         version: 8.0.2
+      '@opentelemetry/api-logs':
+        specifier: 'catalog:'
+        version: 0.223.0
       '@pagopa/azure-sdk':
         specifier: workspace:^
         version: link:../../packages/azure-sdk
       '@pagopa/azure-tracing':
-        specifier: ^0.5.11
+        specifier: 'catalog:'
         version: 0.5.11(typescript@5.8.3)
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
@@ -1441,10 +1450,10 @@ importers:
         version: 8.5.0(zod@4.4.3)
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
-        version: 0.5.1(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+        version: 0.5.1(@pagopa/azure-tracing@0.5.11(typescript@5.8.3))(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       '@pagopa/hexagonal-fastify':
         specifier: 'catalog:'
-        version: 0.3.0(@standard-schema/spec@1.1.0)(fastify@5.8.5)(neverthrow@8.2.0)(zod@4.4.3)
+        version: 0.3.0(@pagopa/azure-tracing@0.5.11(typescript@5.8.3))(@standard-schema/spec@1.1.0)(fastify@5.8.5)(neverthrow@8.2.0)(zod@4.4.3)
       '@pagopa/io-auth-n-identity-domain':
         specifier: workspace:^
         version: link:../../packages/io-auth-n-identity-domain
@@ -1469,7 +1478,7 @@ importers:
     devDependencies:
       '@pagopa/hexagonal-openapi':
         specifier: 'catalog:'
-        version: 0.1.2(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
+        version: 0.1.2(@pagopa/azure-tracing@0.5.11(typescript@5.8.3))(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       '@pagopa/typescript-config-node22':
         specifier: workspace:^
         version: link:../../packages/typescript-config-node22
@@ -3546,8 +3555,17 @@ packages:
   '@microsoft/applicationinsights-web-snippet@1.2.3':
     resolution: {integrity: sha512-59ex4x1/PabGQIg+o0GKG5olqAJYBvMOiXec/9HCD3hK2y36YMWT0ivq5mequvtS5+21kco3SOnMB6QyScLPIA==}
 
+  '@nodable/base-output-builder@2.0.1':
+    resolution: {integrity: sha512-dZ5tRk1YEjKjwEJh/xcPlKWfuuuILj7Nqltlswm4GImQ4pFX94wF83UJ+0Q1YLCTlw8czA7yTGOTbX3++mfbTw==}
+
+  '@nodable/compact-builder@2.0.1':
+    resolution: {integrity: sha512-DyDr1Fo2HW2gXF1AdFHM1X7sGK8Fx7zd+P4bveXymOWyP6kn9HXhtSxBDpTAmGvafQb/pBlQVAPhH8haHv//yA==}
+
   '@nodable/entities@3.0.0':
     resolution: {integrity: sha512-8L9xFeTYKhm49xfIypoe2W5wV1m/3Z58kT+7kR9A8OyFxcPduI4VmxaUMQyKYrRjUoLLSXv6EKKID5Tvj9cUVw==}
+
+  '@nodable/entities@3.1.0':
+    resolution: {integrity: sha512-LsS/DjHr+uDM647Gru/cA8+J3a3HfhttwCKLyuoyN7yXTFCxKBtSgMQBvrW9yNPa2/zDRUNuGPaH5QUFoa4arQ==}
 
   '@nodable/flexible-xml-parser@1.11.3':
     resolution: {integrity: sha512-fNX6VI3qlgTogvjnE80OWoGrFJ05oeq3lTr13mCtl64zbOEW+cqAKnxTxE+n6S4dGXcBzDVuCK9K7UvcWZPniA==}
@@ -3619,8 +3637,8 @@ packages:
     resolution: {integrity: sha512-OlanaW1vv7ufTqQ3/fPLI4arGt5ZoM+P8abOMki6uEYnpRazepSWDwDnnw+la7kE26SHVC18//SMccrDvLKOXQ==}
     engines: {node: '>=8.0.0'}
 
-  '@opentelemetry/api@1.8.0':
-    resolution: {integrity: sha512-I/s6F7yKUDdtMsoBWXJe8Qz40Tui5vsuKCWJEWVL+5q9sSWRzzx6v2KeNsOBEwd94j0eWkpWCH4yB6rZg9Mf0w==}
+  '@opentelemetry/api-logs@0.223.0':
+    resolution: {integrity: sha512-Oepm6etVPFCn0VWB1t833iOTgz1eYBDUPxcrOR/XvwzD1+Ag9VzSPSrrKAFNJ/haatj+8CXbG47pZXvdNQKDJw==}
     engines: {node: '>=8.0.0'}
 
   '@opentelemetry/api@1.9.1':
@@ -6951,11 +6969,11 @@ packages:
     resolution: {integrity: sha512-mrGpVd0fs7WWLfVsStvgF6iEJnbjDFZh9/emhRDcGWTduTfNHd9CHeUwH3gYIjdbwo4On6hunkztwOaAw0yllQ==}
     engines: {node: '>=0.10.0'}
 
-  is-unsafe@1.0.1:
-    resolution: {integrity: sha512-CLK2+VdgERgD96EYm5lUQssZYlRg2tkZnbsxZoacmSiRxiFJ4Nk4SzjCl+Ur+v3kXIY9dTIdb3IH22y1mZ56LA==}
-
   is-unsafe@2.0.2:
     resolution: {integrity: sha512-HgbIHPBH0KHHCcjLfGsCvhtPTVxjaAZlXjwdz7/GQC40SjSe4sfQsar8J5VFo8JOSbarkpV0OLG95bbaNd9aAQ==}
+
+  is-unsafe@2.0.3:
+    resolution: {integrity: sha512-ZBllczCCO267vgdFb6Tq3pv+LhHaCiGMdr+ZsuL+OopruAg7S+3ZDs1vD0RPC0uSrkjzbraxaGjtX1YBxjPeFQ==}
 
   is-weakref@1.0.2:
     resolution: {integrity: sha512-qctsuLZmIQ0+vSSMfoVvyFe2+GSEvnmZ2ezTup1SBse9+twCCeial6EEi3Nc2KFcf6+qz2FBPnjXsk8xhKSaPQ==}
@@ -7472,9 +7490,6 @@ packages:
     resolution: {integrity: sha512-NyJpuqXMUI190sZePU+dBcwlGaqhfFC+UL5WyNSxmNLOHATg9cVSgRpbY+mUbwUj7t5trb4vYscgXArKevYsdA==}
     engines: {node: '>=8.0.0'}
     hasBin: true
-
-  module-details-from-path@1.0.3:
-    resolution: {integrity: sha512-ySViT69/76t8VhE1xXHK6Ch4NcDd26gx0MzKXLO+F7NOtnqH68d9zF94nT8ZWSxXh8ELOERsnJO/sWt1xZYw5A==}
 
   module-details-from-path@1.0.4:
     resolution: {integrity: sha512-EGWKgxALGMgzvxYF1UyGTy0HXX/2vHLkw6+NvDKW2jypWbHpjQuj4UMcqQWXHERJhVGKikolT06G3bcKe4fi7w==}
@@ -8674,6 +8689,9 @@ packages:
 
   strnum@2.4.2:
     resolution: {integrity: sha512-rDG3Ah4TV0k1hWvLSzkZtMmLN9+eS+h3knq4MP6A42Y3Yh5qGNnOUs1jJkoSr8FG5dsL28c7KgkIBzSEykqtuw==}
+
+  strnum@2.5.1:
+    resolution: {integrity: sha512-UM4nTLWzQiDBseVxUGxN0wJzIk0UU89Qi7pKXz9qISo+lhviJikTuikBsK/oFRlpvYHvSdz0TVoLyQ+sEpYwxA==}
 
   structured-headers@0.5.0:
     resolution: {integrity: sha512-oLnmXSsjhud+LxRJpvokwP8ImEB2wTg8sg30buwfVViKMuluTv3BlOJHUX9VW9pJ2nQOxmx87Z0kB86O4cphag==}
@@ -10350,7 +10368,7 @@ snapshots:
 
   '@azure/core-tracing@1.0.0-preview.13':
     dependencies:
-      '@opentelemetry/api': 1.8.0
+      '@opentelemetry/api': 1.9.1
       tslib: 2.8.1
 
   '@azure/core-tracing@1.3.1':
@@ -10461,7 +10479,7 @@ snapshots:
       '@azure/core-auth': 1.10.1
       '@azure/core-client': 1.9.0
       '@azure/core-process': 1.0.0
-      '@azure/core-rest-pipeline': 1.22.2
+      '@azure/core-rest-pipeline': 1.25.0
       '@azure/core-tracing': 1.3.1
       '@azure/core-util': 1.13.1
       '@azure/logger': 1.3.0
@@ -10484,7 +10502,7 @@ snapshots:
       '@azure-rest/core-client': 2.9.0
       '@azure/core-auth': 1.10.1
       '@azure/core-client': 1.9.0
-      '@azure/core-rest-pipeline': 1.22.2
+      '@azure/core-rest-pipeline': 1.25.0
       '@azure/core-util': 1.13.1
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/api-logs': 0.218.0
@@ -10503,7 +10521,7 @@ snapshots:
       '@azure-rest/core-client': 2.9.0
       '@azure/core-auth': 1.10.1
       '@azure/core-client': 1.9.0
-      '@azure/core-rest-pipeline': 1.22.2
+      '@azure/core-rest-pipeline': 1.25.0
       '@azure/core-util': 1.13.1
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/api-logs': 0.220.0
@@ -10521,7 +10539,7 @@ snapshots:
     dependencies:
       '@azure-rest/core-client': 2.9.0
       '@azure/core-auth': 1.10.1
-      '@azure/core-rest-pipeline': 1.22.2
+      '@azure/core-rest-pipeline': 1.25.0
       '@azure/core-tracing': 1.3.1
       '@azure/identity': 4.14.1
       '@azure/logger': 1.3.0
@@ -11557,12 +11575,26 @@ snapshots:
 
   '@microsoft/applicationinsights-web-snippet@1.2.3': {}
 
+  '@nodable/base-output-builder@2.0.1':
+    dependencies:
+      '@nodable/entities': 3.1.0
+      is-unsafe: 2.0.3
+      path-expression-matcher: 1.6.2
+      strnum: 2.5.1
+
+  '@nodable/compact-builder@2.0.1':
+    dependencies:
+      '@nodable/base-output-builder': 2.0.1
+      path-expression-matcher: 1.6.2
+
   '@nodable/entities@3.0.0': {}
+
+  '@nodable/entities@3.1.0': {}
 
   '@nodable/flexible-xml-parser@1.11.3':
     dependencies:
-      '@nodable/base-output-builder': 2.0.0
-      '@nodable/compact-builder': 2.0.0
+      '@nodable/base-output-builder': 2.0.1
+      '@nodable/compact-builder': 2.0.1
       path-expression-matcher: 1.6.2
       xml-naming: 0.3.0
 
@@ -11672,7 +11704,9 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.1
 
-  '@opentelemetry/api@1.8.0': {}
+  '@opentelemetry/api-logs@0.223.0':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
 
   '@opentelemetry/api@1.9.1': {}
 
@@ -11881,7 +11915,7 @@ snapshots:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/core': 2.12.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/instrumentation': 0.221.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/semantic-conventions': 1.24.1
+      '@opentelemetry/semantic-conventions': 1.44.0
     transitivePeerDependencies:
       - supports-color
 
@@ -14386,8 +14420,8 @@ snapshots:
 
   detailed-xml-validator@2.2.0:
     dependencies:
-      '@nodable/base-output-builder': 2.0.0
-      '@nodable/compact-builder': 2.0.0
+      '@nodable/base-output-builder': 2.0.1
+      '@nodable/compact-builder': 2.0.1
       '@nodable/flexible-xml-parser': 1.11.3
 
   detect-indent@6.1.0: {}
@@ -15612,7 +15646,7 @@ snapshots:
       acorn: 8.15.0
       acorn-import-assertions: 1.9.0(acorn@8.15.0)
       cjs-module-lexer: 1.3.1
-      module-details-from-path: 1.0.3
+      module-details-from-path: 1.0.4
 
   import-in-the-middle@2.0.6:
     dependencies:
@@ -15801,9 +15835,9 @@ snapshots:
     dependencies:
       unc-path-regex: 0.1.2
 
-  is-unsafe@1.0.1: {}
-
   is-unsafe@2.0.2: {}
+
+  is-unsafe@2.0.3: {}
 
   is-weakref@1.0.2:
     dependencies:
@@ -16330,8 +16364,6 @@ snapshots:
       progress: 2.0.3
       rimraf: 2.7.1
       subdirs: 1.0.1
-
-  module-details-from-path@1.0.3: {}
 
   module-details-from-path@1.0.4: {}
 
@@ -17176,7 +17208,7 @@ snapshots:
   require-in-the-middle@7.3.0:
     dependencies:
       debug: 4.4.3
-      module-details-from-path: 1.0.3
+      module-details-from-path: 1.0.4
       resolve: 1.22.8
     transitivePeerDependencies:
       - supports-color
@@ -17184,7 +17216,7 @@ snapshots:
   require-in-the-middle@8.0.1:
     dependencies:
       debug: 4.4.3
-      module-details-from-path: 1.0.3
+      module-details-from-path: 1.0.4
     transitivePeerDependencies:
       - supports-color
 
@@ -17638,6 +17670,10 @@ snapshots:
   strnum@1.0.5: {}
 
   strnum@2.4.2:
+    dependencies:
+      anynum: 1.0.1
+
+  strnum@2.5.1:
     dependencies:
       anynum: 1.0.1
 
