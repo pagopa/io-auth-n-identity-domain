@@ -17,7 +17,9 @@
     "lint:check": "eslint .",
     "start": "node dist/main.js",
     "test": "vitest run -c ./vite.config.mts",
-    "test:coverage": "vitest run --coverage -c ./vite.config.mts"
+    "test:coverage": "vitest run --coverage -c ./vite.config.mts",
+    "openapi:generate": "tsx scripts/generate-openapi.ts",
+    "openapi:check": "tsx scripts/generate-openapi.ts --check"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "catalog:",
