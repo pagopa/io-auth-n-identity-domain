@@ -26,6 +26,7 @@ import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.h
 import { mountGetUserIdentityHandler } from "./adapters/inbound/fastify/get-user-identity.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
+import { mountLogoutHandler } from "./adapters/inbound/fastify/logout.handler.js";
 import { extractIpMiddleware } from "./adapters/inbound/fastify/middlewares/extract-ip.middleware.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
@@ -63,7 +64,9 @@ import { makeGetUserForPagopaUseCase } from "./application/use-cases/get-user-fo
 import { makeGetUserIdentityUseCase } from "./application/use-cases/get-user-identity.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
+import { makeInvalidatePreviousUserStateUseCase } from "./application/use-cases/invalidate-previous-user-state.use-case.js";
 import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
+import { makeLogoutUseCase } from "./application/use-cases/logout.use-case.js";
 import { makeRefreshUserSessionUseCase } from "./application/use-cases/refresh-user-session.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
 import { makeTestLoginUseCase } from "./application/use-cases/test-login.use-case.js";
@@ -441,14 +444,21 @@ const createUseCases = (
       platformInternalPort: adapters.platformInternalAdapter,
     });
 
+  const invalidatePreviousUserStateUseCase =
+    makeInvalidatePreviousUserStateUseCase({
+      sessionPort: adapters.sessionCosmosAdapter,
+      lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
+      lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
+      invalidateSessionTokenCacheUseCase,
+    });
+
   const activateUserSessionUseCase = makeActivateUserSessionUseCase({
     sessionPort: adapters.sessionCosmosAdapter,
     profilePort: adapters.profileAdapter,
     authEventPort: adapters.authEventServiceBusAdapter,
     lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
     lollipopPort: adapters.fetchLollipopAdapter,
-    lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
-    invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
+    invalidatePreviousUserStateUseCase,
     notificationPort: adapters.notificationStorageQueueAdapter,
     friendlyNamePort: adapters.idpFriendlyNameAdapter,
   });
@@ -461,8 +471,7 @@ const createUseCases = (
     authEventPort: adapters.authEventServiceBusAdapter,
     lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
     lollipopPort: adapters.fetchLollipopAdapter,
-    lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
-    invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
+    invalidatePreviousUserStateUseCase,
     notificationPort: adapters.notificationStorageQueueAdapter,
     friendlyNamePort: adapters.idpFriendlyNameAdapter,
   });
@@ -506,6 +515,11 @@ const createUseCases = (
     profilePort: adapters.profileAdapter,
   });
 
+  const logoutUseCase = makeLogoutUseCase({
+    authEventPort: adapters.authEventServiceBusAdapter,
+    invalidatePreviousUserStateUseCase,
+  });
+
   const testLoginUseCase = makeTestLoginUseCase({
     testUserPort: adapters.testUserAdapter,
     lollipopPort: adapters.fetchLollipopAdapter,
@@ -521,6 +535,7 @@ const createUseCases = (
     fastLoginUseCase,
     getSessionUseCase,
     getUserForFimsUseCase,
+    logoutUseCase,
     testLoginUseCase,
   };
 };
@@ -708,6 +723,11 @@ const mountRoutes = ({
   mountGetSessionHandler({
     middlewares: [middlewares.authenticateSessionMiddleware] as const,
     useCase: useCases.getSessionUseCase,
+  })(server);
+
+  mountLogoutHandler({
+    middlewares: [middlewares.authenticateSessionMiddleware] as const,
+    useCase: useCases.logoutUseCase,
   })(server);
 
   mountTestLoginHandler(server, {

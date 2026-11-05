@@ -11,6 +11,7 @@ import {
   mockSendEvent,
   resetAuthEventPortMock,
 } from "../../../__mocks__/ports/auth-event-port.mock.js";
+import { IdpFriendlyNamePortMock } from "../../../__mocks__/ports/friendly-name-port.mocks.js";
 import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
 import {
   mockDeletePlatformInternalSession,
@@ -54,10 +55,10 @@ import {
 import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
 import type { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
 import type { NotificationPort } from "../../../domain/ports/outbound/notification.port.js";
-import { makeActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
-import { makeInvalidateSessionTokenCacheUseCase } from "../invalidate-session-token-cache.use-case.js";
-import { IdpFriendlyNamePortMock } from "../../../__mocks__/ports/friendly-name-port.mocks.js";
 import { OidcEnvironment } from "../../../domain/value-objects/oidc.vo.js";
+import { makeActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
+import { makeInvalidatePreviousUserStateUseCase } from "../invalidate-previous-user-state.use-case.js";
+import { makeInvalidateSessionTokenCacheUseCase } from "../invalidate-session-token-cache.use-case.js";
 
 // -----------------------------------------------------
 // Setup mocks
@@ -109,10 +110,14 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   authEventPort: AuthEventPortMock,
   lollipopActivationPort: lollipopActivationPortMock,
   lollipopPort,
-  lollipopRevocationPort,
   friendlyNamePort: IdpfriendlyNamePortMock,
-  invalidateSessionTokenCacheUseCase: makeInvalidateSessionTokenCacheUseCase({
-    platformInternalPort: PlatformInternalPortMock,
+  invalidatePreviousUserStateUseCase: makeInvalidatePreviousUserStateUseCase({
+    sessionPort: SessionPortMock,
+    lollipopActivationPort: lollipopActivationPortMock,
+    lollipopRevocationPort,
+    invalidateSessionTokenCacheUseCase: makeInvalidateSessionTokenCacheUseCase({
+      platformInternalPort: PlatformInternalPortMock,
+    }),
   }),
   notificationPort,
 });
@@ -158,9 +163,9 @@ beforeEach(() => {
   mockActivatePubKey.mockReset().mockResolvedValue(ok(assertionRef));
   mockRequestRevocation.mockReset().mockResolvedValue(ok(undefined));
   mockDeleteInstallation.mockReset().mockResolvedValue(ok(undefined));
-  lollipopActivationPortMock.revokeByFiscalCode.mockResolvedValue(
-    ok(undefined),
-  );
+  lollipopActivationPortMock.revokeByFiscalCode
+    .mockReset()
+    .mockResolvedValue(ok(undefined));
   IdpfriendlyNamePortMock.getFriendlyName
     .mockReset()
     .mockResolvedValue(ok(aFriendlyName));
@@ -474,16 +479,19 @@ describe("makeActivateUserSessionUseCase", () => {
       );
       expect(
         lollipopActivationPortMock.revokeByFiscalCode,
-      ).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
+      ).toHaveBeenCalledTimes(2);
+      expect(
+        lollipopActivationPortMock.revokeByFiscalCode,
+      ).toHaveBeenNthCalledWith(2, aFiscalCode);
       expect(mockGetProfile).not.toHaveBeenCalled();
       expect(mockSessionCreate).not.toHaveBeenCalled();
     });
 
     it("continues returning the activation error when revocation also fails", async () => {
       mockActivatePubKey.mockResolvedValueOnce(err(aGenericError));
-      lollipopActivationPortMock.revokeByFiscalCode.mockResolvedValueOnce(
-        err(new GenericError("revoke failed")),
-      );
+      lollipopActivationPortMock.revokeByFiscalCode
+        .mockResolvedValueOnce(ok(undefined))
+        .mockResolvedValueOnce(err(new GenericError("revoke failed")));
       const result = await activateUserSession(aNewSessionTokenInput);
 
       expect(result).toMatchObject(
@@ -573,7 +581,10 @@ describe("makeActivateUserSessionUseCase", () => {
       );
     });
 
-    it("returns err when proxy deleteSession fails", async () => {
+    it("logs proxy deleteSession failures and continues login", async () => {
+      const consoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       mockInvalidatePreviousSession.mockResolvedValueOnce(
         ok(aHashedSessionTokenWithSessionId),
       );
@@ -583,19 +594,38 @@ describe("makeActivateUserSessionUseCase", () => {
 
       const result = await activateUserSession(aNewSessionTokenInput);
 
-      expect(result).toMatchObject(
-        err(
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+        `Failed to invalidate session token cache: ${
           new GenericError(
             `Failed to invalidate previous session on proxy: ${aGenericError.message}`,
-          ),
-        ),
+          ).message
+        }`,
       );
-      expect(mockSessionCreate).not.toHaveBeenCalled();
-      expect(mockSendEvent).not.toHaveBeenCalled();
+      expect(mockSessionCreate).toHaveBeenCalledOnce();
+      expectLoginEvent();
     });
   });
 
   describe("proxy deleteSession", () => {
+    it("continues login without waiting for proxy deleteSession to complete", async () => {
+      mockInvalidatePreviousSession.mockResolvedValueOnce(
+        ok(aHashedSessionTokenWithSessionId),
+      );
+      mockDeletePlatformInternalSession.mockImplementationOnce(
+        () => new Promise(() => {}),
+      );
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
+        `${aHashedSessionTokenWithSessionId.sessionId}.${aHashedSessionTokenWithSessionId.hashedSessionToken}`,
+      );
+      expect(mockSessionCreate).toHaveBeenCalledOnce();
+      expectLoginEvent();
+    });
+
     it("calls deleteSession with the hashed session token when a previous session exists", async () => {
       mockInvalidatePreviousSession.mockResolvedValueOnce(
         ok(aHashedSessionTokenWithSessionId),

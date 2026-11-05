@@ -184,6 +184,16 @@ components:
         - fimsToken
       description: "The use of this parameters allows the client to obtain only the requested parameters. NOTE: nested fields retrieval is currently not supported. NOTE: field names are case-sensitive Example: ?fields=(spidLevel,walletToken) For more info, see https://opensource.zalando.com/restful-api-guidelines/#157"
       example: (spidLevel,walletToken)
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          enum:
+            - ok
+      required:
+        - message
+      description: Logout completed successfully.
     TestLoginOutput:
       type: object
       properties:
@@ -519,6 +529,38 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
         "500":
           description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /logout:
+    post:
+      description: Delete user's active session and tokens.
+      operationId: logout
+      security:
+        - bearerAuth: []
+      summary: Execute the logout
+      responses:
+        "200":
+          description: Logout succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Token null or expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: There was an error logging out the user.
           content:
             application/problem+json:
               schema:

@@ -23,7 +23,6 @@ import { err, ok, type Result } from "neverthrow";
 
 import type { UserProfile } from "../../domain/entities/profile.entity.js";
 import type { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
-import type { LollipopRevocationPort } from "../../domain/ports/outbound/lollipop-revocation.port.js";
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import { NotificationPort } from "../../domain/ports/outbound/notification.port.js";
 import type { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
@@ -33,9 +32,9 @@ import {
   ClientSessionTokenSchema,
 } from "../../domain/value-objects/client-session-token.vo.js";
 
-import { InvalidateSessionTokenCacheUseCase } from "./invalidate-session-token-cache.use-case.js";
 import { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
 import { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
+import type { InvalidatePreviousUserStateUseCase } from "./invalidate-previous-user-state.use-case.js";
 
 type NewSessionToken = Omit<
   BaseSession,
@@ -63,8 +62,7 @@ type Dependencies = {
   authEventPort: AuthEventPort;
   lollipopActivationPort: LollipopActivationPort;
   lollipopPort: LollipopPort;
-  lollipopRevocationPort: LollipopRevocationPort;
-  invalidateSessionTokenCacheUseCase: InvalidateSessionTokenCacheUseCase;
+  invalidatePreviousUserStateUseCase: InvalidatePreviousUserStateUseCase;
   notificationPort: NotificationPort;
   friendlyNamePort: IdpFriendlyNamePort;
 };
@@ -76,8 +74,18 @@ type Dependencies = {
 export const makeActivateUserSessionUseCase =
   (deps: Dependencies): ActivateUserSessionUseCase =>
   async (input) => {
+    void deps.notificationPort
+      .deleteInstallation(input.sessionToken.fiscalCode)
+      .then((result) => {
+        if (result.isErr()) {
+          console.error(
+            `Failed to invalidate installation id: ${result.error.message}`,
+          );
+        }
+      });
+
     // Invalidate any previous user state (e.g., active sessions) before creating a new one
-    const invalidationResult = await invalidatePreviousUserState(deps)(
+    const invalidationResult = await deps.invalidatePreviousUserStateUseCase(
       input.sessionToken.fiscalCode,
     );
     if (invalidationResult.isErr()) {
@@ -242,80 +250,6 @@ export const makeActivateUserSessionUseCase =
 // -------------------------
 // Private helper functions
 // -------------------------
-
-const invalidatePreviousUserState =
-  (deps: {
-    sessionPort: SessionPort;
-    lollipopActivationPort: LollipopActivationPort;
-    lollipopRevocationPort: LollipopRevocationPort;
-    invalidateSessionTokenCacheUseCase: InvalidateSessionTokenCacheUseCase;
-    notificationPort: NotificationPort;
-  }) =>
-  async (
-    fiscalCode: NewSessionToken["fiscalCode"],
-  ): Promise<Result<void, GenericError>> => {
-    // Fire-and-forget deletion of the installation id associated with the fiscal code
-    deps.notificationPort.deleteInstallation(fiscalCode).then((result) => {
-      if (result.isErr()) {
-        console.error(
-          `Failed to invalidate installation id: ${result.error.message}`,
-        );
-      }
-    });
-
-    /************************************************************/
-    /* Revoke the lollipop associated with the previous session */
-    /************************************************************/
-    const lollipopActivationDataResult =
-      await deps.lollipopActivationPort.getByFiscalCode(fiscalCode);
-    if (lollipopActivationDataResult.isOk()) {
-      // Lollipop activation data found, proceed with revocation (fire-and-forget)
-      deps.lollipopRevocationPort
-        .requestRevocation(lollipopActivationDataResult.value.assertionRef)
-        .then((result) => {
-          if (result.isErr()) {
-            console.error(`Failed to revoke lollipop: ${result.error.message}`);
-          }
-        });
-    } else if (
-      lollipopActivationDataResult.isErr() &&
-      !(lollipopActivationDataResult.error instanceof NotFoundError)
-    ) {
-      return err(
-        new GenericError(
-          `Failed to retrieve previous lollipop activation data: ${lollipopActivationDataResult.error.message}`,
-        ),
-      );
-    }
-
-    /********************************************************/
-    /* Invalidate the previous session in the session store */
-    /********************************************************/
-    const previousSessionInvalidationResult =
-      await deps.sessionPort.invalidatePreviousSession(fiscalCode);
-    if (previousSessionInvalidationResult.isErr()) {
-      return err(
-        new GenericError(
-          `Failed to invalidate previous sessions: ${previousSessionInvalidationResult.error.message}`,
-        ),
-      );
-    }
-    const previousHashedSession = previousSessionInvalidationResult.value;
-    if (previousHashedSession === undefined) {
-      return ok(undefined);
-    }
-
-    /************************************************************************************/
-    /* Revoke the previous hashed client session token in the platform-internal service */
-    /************************************************************************************/
-    const cachedSessionInvalidationResult =
-      await deps.invalidateSessionTokenCacheUseCase(previousHashedSession);
-    if (cachedSessionInvalidationResult.isErr()) {
-      return err(cachedSessionInvalidationResult.error);
-    }
-
-    return ok(undefined);
-  };
 
 const getOrCreateProfile =
   (deps: { profilePort: ProfilePort }) =>
