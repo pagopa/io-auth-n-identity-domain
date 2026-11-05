@@ -34,6 +34,7 @@
     "@azure/storage-queue": "catalog:",
     "@fastify/formbody": "catalog:",
     "@pagopa/azure-sdk": "workspace:^",
+    "@pagopa/azure-tracing": "catalog:",
     "@pagopa/hexagonal-core": "catalog:",
     "@pagopa/hexagonal-fastify": "catalog:",
     "@pagopa/io-auth-n-identity-domain": "workspace:^",
