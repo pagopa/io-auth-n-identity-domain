@@ -220,5 +220,11 @@
     "version": "3.0.1",
     "name": "unknown",
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-managed-redis/azurerm/3.0.1"
+  },
+  "ioweb_auth_service.auth_ca_iam": {
+    "hash": "c8d6298ea600da874b3702de2069e390491fac3fbc5e75e758feb0271cfa8fad",
+    "version": "5.0.1",
+    "name": "unknown",
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/5.0.1"
   }
 }
