@@ -17,7 +17,9 @@
     "lint:check": "eslint .",
     "start": "node dist/main.js",
     "test": "vitest run -c ./vite.config.mts",
-    "test:coverage": "vitest run --coverage -c ./vite.config.mts"
+    "test:coverage": "vitest run --coverage -c ./vite.config.mts",
+    "openapi:generate": "tsx scripts/generate-openapi.ts",
+    "openapi:check": "tsx scripts/generate-openapi.ts --check"
   },
   "dependencies": {
     "@pagopa/io-env-config": "workspace:^",
@@ -27,6 +29,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@pagopa/hexagonal-openapi": "catalog:",
     "@pagopa/typescript-config-node22": "workspace:^",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
