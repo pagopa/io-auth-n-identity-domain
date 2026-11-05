@@ -57,7 +57,9 @@ components:
       properties:
         acr_values:
           type: string
-          minLength: 1
+          enum:
+            - https://www.spid.gov.it/SpidL2
+            - https://www.spid.gov.it/SpidL3
         client_id:
           type: string
           minLength: 1
