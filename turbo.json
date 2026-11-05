@@ -40,7 +40,7 @@
       "inputs": [
         "src/**/*.ts",
         "scripts/generate-openapi.ts",
-        "api/external.yaml",
+        "api/**/*.yaml",
         "package.json"
       ],
       "outputs": [],
