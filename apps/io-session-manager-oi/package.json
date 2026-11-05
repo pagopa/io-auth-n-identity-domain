@@ -15,7 +15,7 @@
     "typecheck": "tsc --noemit",
     "lint": "pnpm lint:check --fix",
     "lint:check": "eslint .",
-    "start": "node dist/main.js",
+    "start": "node --import ./dist/instrumentation.js dist/main.js",
     "test": "vitest run -c ./vite.config.mts",
     "test:integration": "vitest run -c ./src/__integrations__/vite.config.mts",
     "test:coverage": "vitest run --coverage -c ./vite.config.mts",
