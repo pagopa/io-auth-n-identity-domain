@@ -202,5 +202,23 @@
     "version": "1.3.3",
     "name": "azure_role_assignments",
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/1.3.3"
+  },
+  "ioweb_auth_service.auth_service_ca": {
+    "hash": "2036352e9e99a806c165b431e3f9fc3669ffc067cca2abf112a7343c7939c38a",
+    "version": "9.1.1",
+    "name": "unknown",
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-container-app/azurerm/9.1.1"
+  },
+  "ioweb_auth_service.auth_service_cae": {
+    "hash": "d9e3c86ba1ab5baeb96d4f426c95705e3e67c12b6e6d4cc98149cf950a25db31",
+    "version": "5.0.1",
+    "name": "unknown",
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-container-app-environment/azurerm/5.0.1"
+  },
+  "ioweb_auth_service.managed_redis": {
+    "hash": "70d68e2ec7f0b405fe1ccd435ab63224d1189dd12cf237ce738b5ae80d2e0904",
+    "version": "3.0.1",
+    "name": "unknown",
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-managed-redis/azurerm/3.0.1"
   }
 }
