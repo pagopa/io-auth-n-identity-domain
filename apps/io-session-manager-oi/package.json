@@ -33,6 +33,7 @@
     "@azure/service-bus": "catalog:",
     "@azure/storage-queue": "catalog:",
     "@fastify/formbody": "catalog:",
+    "@opentelemetry/api-logs": "catalog:",
     "@pagopa/azure-sdk": "workspace:^",
     "@pagopa/azure-tracing": "catalog:",
     "@pagopa/hexagonal-core": "catalog:",

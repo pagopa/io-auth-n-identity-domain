@@ -2,11 +2,13 @@ import "dotenv/config";
 
 import { fileURLToPath } from "node:url";
 
+import { logs } from "@opentelemetry/api-logs";
 import { createPackageInfoAdapter } from "@pagopa/io-package-info";
 
 import { createConfigLoader } from "./adapters/outbound/config-loader.js";
 import { createApp } from "./app.js";
 import { ConfigSchema } from "./domain/value-objects/configs/index.js";
+import { makeTelemetryClient } from "./telemetry-client.js";
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 
@@ -114,9 +116,19 @@ const start = async () => {
   const { config, packageInfo } = bootstrap();
   const { server } = await createApp(config, packageInfo);
   const { handleFatalError } = registerLifecycle(server);
+  const telemetryClient = makeTelemetryClient(
+    logs.getLogger(`${packageInfo.name}@${packageInfo.version}`),
+  );
 
   try {
     await server.listen({ host: config.HOST, port: config.PORT });
+    telemetryClient.trackEvent({
+      name: "server_started",
+      properties: {
+        host: config.HOST,
+        port: config.PORT,
+      },
+    });
   } catch (error) {
     handleFatalError(error);
   }
