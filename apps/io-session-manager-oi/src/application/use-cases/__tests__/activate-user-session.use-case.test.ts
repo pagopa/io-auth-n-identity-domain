@@ -34,6 +34,7 @@ import {
   aClientSessionToken,
   aFamilyName,
   aFiscalCode,
+  aFriendlyName,
   aGenericError,
   aHashedSessionTokenWithSessionId,
   aName,
@@ -46,6 +47,7 @@ import {
   aSessionId,
   aSessionWithPlainSSOTokens,
   aUserProfileWithEmail,
+  aUserProfileWithEmailNotValidated,
   aUserProfileWithoutEmail,
   type NewSessionToken,
 } from "../../../__mocks__/session.mocks.js";
@@ -54,6 +56,8 @@ import type { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.
 import type { NotificationPort } from "../../../domain/ports/outbound/notification.port.js";
 import { makeActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 import { makeInvalidateSessionTokenCacheUseCase } from "../invalidate-session-token-cache.use-case.js";
+import { IdpFriendlyNamePortMock } from "../../../__mocks__/ports/friendly-name-port.mocks.js";
+import { OidcEnvironment } from "../../../domain/value-objects/oidc.vo.js";
 
 // -----------------------------------------------------
 // Setup mocks
@@ -94,6 +98,11 @@ const notificationPort: NotificationPort = {
   deleteInstallation: mockDeleteInstallation,
 };
 
+const mockGetFriendlyName = vi.fn();
+const IdpfriendlyNamePortMock = {
+  getFriendlyName: mockGetFriendlyName,
+} as unknown as typeof IdpFriendlyNamePortMock;
+
 const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   sessionPort: SessionPortMock,
   profilePort: ProfilePortMock,
@@ -101,6 +110,7 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   lollipopActivationPort: lollipopActivationPortMock,
   lollipopPort,
   lollipopRevocationPort,
+  friendlyNamePort: IdpfriendlyNamePortMock,
   invalidateSessionTokenCacheUseCase: makeInvalidateSessionTokenCacheUseCase({
     platformInternalPort: PlatformInternalPortMock,
   }),
@@ -115,8 +125,15 @@ const assertionInput = {
   rawAssertion: "a-raw-saml-assertion" as NonEmptyString,
   type: "SAML" as const,
 };
+
+const oidcEnvironment: OidcEnvironment = "UAT";
+
 const activateUserSession = (sessionToken: NewSessionToken) =>
-  activateUserSessionUseCase({ sessionToken, assertion: assertionInput });
+  activateUserSessionUseCase({
+    sessionToken,
+    assertion: assertionInput,
+    oidcEnvironment: oidcEnvironment,
+  });
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -144,6 +161,9 @@ beforeEach(() => {
   lollipopActivationPortMock.revokeByFiscalCode.mockResolvedValue(
     ok(undefined),
   );
+  IdpfriendlyNamePortMock.getFriendlyName
+    .mockReset()
+    .mockResolvedValue(ok(aFriendlyName));
 });
 
 afterEach(() => {
@@ -229,10 +249,13 @@ describe("makeActivateUserSessionUseCase", () => {
         name: aName,
         familyName: aFamilyName,
         email: anEmailAddress,
-        identityProvider: anIdentityProvider,
+        identityProvider: aFriendlyName,
         ipAddress: anIpAddress,
         isEmailValidated: aUserProfileWithEmail.isEmailValidated,
       });
+      expect(
+        IdpfriendlyNamePortMock.getFriendlyName,
+      ).toHaveBeenCalledExactlyOnceWith(anIdentityProvider, oidcEnvironment);
       expectLoginEvent();
 
       const [activeSessionArg, sessionTokensArg] =
@@ -290,10 +313,44 @@ describe("makeActivateUserSessionUseCase", () => {
         name: aName,
         familyName: aFamilyName,
         email: anEmailAddress,
+        identityProvider: aFriendlyName,
+        ipAddress: anIpAddress,
+        isEmailValidated: false,
+      });
+      expect(
+        IdpfriendlyNamePortMock.getFriendlyName,
+      ).toHaveBeenCalledExactlyOnceWith(anIdentityProvider, oidcEnvironment);
+      expectLoginEvent();
+    });
+
+    it("falls back to the identity provider when friendly-name lookup fails", async () => {
+      mockGetProfile.mockResolvedValueOnce(err(aNotFoundError));
+      mockProfileCreate.mockResolvedValueOnce(
+        ok(aUserProfileWithEmailNotValidated),
+      );
+      mockGetFriendlyName.mockResolvedValueOnce(
+        err(new Error("friendly name lookup failed")),
+      );
+      const consoleWarn = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
+
+      const result = await activateUserSession(aNewSessionTokenInput);
+
+      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(mockNotifyLogin).toHaveBeenCalledExactlyOnceWith({
+        fiscalCode: aFiscalCode,
+        name: aName,
+        familyName: aFamilyName,
+        email: anEmailAddress,
         identityProvider: anIdentityProvider,
         ipAddress: anIpAddress,
         isEmailValidated: false,
       });
+      expect(
+        IdpfriendlyNamePortMock.getFriendlyName,
+      ).toHaveBeenCalledExactlyOnceWith(anIdentityProvider, oidcEnvironment);
+      expect(consoleWarn).toHaveBeenCalledOnce();
       expectLoginEvent();
     });
   });

@@ -17,6 +17,7 @@ import { err, ok } from "neverthrow";
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import type { TestUserPort } from "../../domain/ports/outbound/test-user.port.js";
 import type { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
+import type { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
 import {
   getMockedSamlAssertion,
   TEST_LOGIN_USER_DATA,
@@ -30,6 +31,7 @@ export type TestLoginDeps = {
   lollipopPort: LollipopPort;
   validateProfileLocksUseCase: ValidateProfileLocksUseCase;
   activateTestUserSessionUseCase: ActivateUserSessionUseCase;
+  oidcEnvironment: OidcEnvironment;
 };
 
 export type TestLoginInput = {
@@ -138,6 +140,7 @@ export const makeTestLoginUseCase =
         rawAssertion,
         type: "SAML",
       },
+      oidcEnvironment: deps.oidcEnvironment,
     });
     if (activateResult.isErr()) {
       return err(activateResult.error);

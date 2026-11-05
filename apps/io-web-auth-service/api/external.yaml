@@ -1,0 +1,11 @@
+openapi: 3.1.0
+info:
+  title: IO Web Auth Service API
+  version: 0.1.0
+  description: OpenID Connect (OneIdentity) login endpoints exposed by io-web-auth-service.
+servers:
+  - url: https://api-web.io.pagopa.it/ioweb/auth/v2
+components:
+  schemas: {}
+  parameters: {}
+paths: {}

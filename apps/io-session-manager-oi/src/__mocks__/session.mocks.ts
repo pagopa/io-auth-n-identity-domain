@@ -47,8 +47,11 @@ export const anEmailAddress: EmailAddress =
   EmailAddressSchema.parse("user@example.com");
 export const aName: NonEmptyString = NonEmptyStringSchema.parse("Mario");
 export const aFamilyName: NonEmptyString = NonEmptyStringSchema.parse("Rossi");
-export const anIdentityProvider: NonEmptyString =
-  NonEmptyStringSchema.parse("spid");
+export const anIdentityProvider: NonEmptyString = NonEmptyStringSchema.parse(
+  "https://idp.example.com",
+);
+export const aFriendlyName: NonEmptyString =
+  NonEmptyStringSchema.parse("Mock Friendly Name");
 export const aSpidLevel = SpidLevelSchema.parse(
   "https://www.spid.gov.it/SpidL2",
 );

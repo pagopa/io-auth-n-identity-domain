@@ -76,6 +76,7 @@ import {
   TokenParsingStrategyFactory,
   TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
+import { IdpFriendlyNameAdapter } from "./adapters/outbound/friendly-name.adapter.js";
 
 /** Provides a lazily initialized credential shared by the Azure clients. */
 class AzureCredential {
@@ -317,6 +318,14 @@ const createAdapters = async (
       // `TSchema` from `FiscalCodeSchema` and `TClient` from `redisClient`.
       new RedisSetWrapper(clients.redisClient, FiscalCodeSchema),
     );
+  const idpFriendlyNameAdapter = new IdpFriendlyNameAdapter({
+    IDP_FRIENDLY_NAMES_PROD_URL: config.IDP_FRIENDLY_NAMES_PROD_URL,
+    IDP_FRIENDLY_NAMES_UAT_URL: config.IDP_FRIENDLY_NAMES_UAT_URL,
+    IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS:
+      config.IDP_FRIENDLY_NAMES_CACHE_TTL_SECONDS,
+    IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS:
+      config.IDP_FRIENDLY_NAMES_HTTP_TIMEOUT_SECONDS,
+  });
 
   const sessionCosmosAdapter = new SessionCosmosAdapter(
     clients.cosmosClient,
@@ -405,6 +414,7 @@ const createAdapters = async (
     authEventServiceBusAdapter,
     lollipopActivationCosmosAdapter,
     oneIdIdentityAssertionFetcherAdapter,
+    idpFriendlyNameAdapter,
     testUserAdapter,
   };
 };
@@ -440,6 +450,7 @@ const createUseCases = (
     lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
     invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
     notificationPort: adapters.notificationStorageQueueAdapter,
+    friendlyNamePort: adapters.idpFriendlyNameAdapter,
   });
 
   // This use case is specifically for activating test user sessions.
@@ -453,6 +464,7 @@ const createUseCases = (
     lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
     invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
     notificationPort: adapters.notificationStorageQueueAdapter,
+    friendlyNamePort: adapters.idpFriendlyNameAdapter,
   });
 
   const validateProfileLocksUseCase = makeValidateProfileLocksUseCase({
@@ -499,6 +511,7 @@ const createUseCases = (
     lollipopPort: adapters.fetchLollipopAdapter,
     validateProfileLocksUseCase,
     activateTestUserSessionUseCase,
+    oidcEnvironment: config.NODE_ENV === "production" ? "PROD" : "UAT",
   });
 
   return {
