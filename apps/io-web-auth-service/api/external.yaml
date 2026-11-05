@@ -4,7 +4,7 @@ info:
   version: 0.1.0
   description: OpenID Connect (OneIdentity) login endpoints exposed by io-web-auth-service.
 servers:
-  - url: https://api-app.internal.io.pagopa.it/ioweb/auth/v2
+  - url: https://api-web.io.pagopa.it/ioweb/auth/v2
 components:
   schemas: {}
   parameters: {}

@@ -25,7 +25,7 @@ const document = {
         description:
           "OpenID Connect (OneIdentity) login endpoints exposed by io-web-auth-service.",
       },
-      servers: [{ url: "https://api-app.internal.io.pagopa.it/ioweb/auth/v2" }],
+      servers: [{ url: "https://api-web.io.pagopa.it/ioweb/auth/v2" }],
     },
     routes,
   }),
