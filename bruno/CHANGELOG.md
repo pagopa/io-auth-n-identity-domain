@@ -1,5 +1,11 @@
 # io-auth-n-identity-bruno-collections
 
+## 0.5.0
+
+### Minor Changes
+
+- 1c02924: Added io-web-auth-service healthcheck endpoints
+
 ## 0.4.3
 
 ### Patch Changes
