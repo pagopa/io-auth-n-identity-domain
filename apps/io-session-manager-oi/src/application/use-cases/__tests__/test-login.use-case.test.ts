@@ -71,9 +71,6 @@ beforeEach(() => {
   mockReservePubKey.mockReset().mockResolvedValue(ok(anAssertionRef));
   mockValidateProfileLocks.mockReset().mockResolvedValue(ok(undefined));
   mockActivateTestUserSession.mockReset().mockResolvedValue(ok(aClientSessionToken));
-  mockActivateTestUserSession
-    .mockReset()
-    .mockResolvedValue(ok(aClientSessionToken));
 });
 
 describe("TestLoginUseCase", () => {
