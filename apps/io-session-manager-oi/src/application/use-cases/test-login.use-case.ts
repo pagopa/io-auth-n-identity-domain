@@ -24,10 +24,12 @@ import {
 } from "../../utils/test-login/index.js";
 
 import type { ActivateUserSessionUseCase } from "./activate-user-session.use-case.js";
+import type { ValidateProfileLocksUseCase } from "./validate-profile-locks.use-case.js";
 
 export type TestLoginDeps = {
   testUserPort: TestUserPort;
   lollipopPort: LollipopPort;
+  validateProfileLocksUseCase: ValidateProfileLocksUseCase;
   activateTestUserSessionUseCase: ActivateUserSessionUseCase;
   oidcEnvironment: OidcEnvironment;
 };
@@ -60,6 +62,37 @@ export const makeTestLoginUseCase =
       return err(new AuthenticationError());
     }
 
+    // Using the default test user SPID level for the assertion.
+    // If needed, this can be extended to accept different SPID levels for the test user
+    // in the input parameters of the use case.
+    const spidLevel = TEST_LOGIN_USER_DATA.spidLevel;
+
+    // Check profile locks before reserving a key or activating the session.
+    const validateProfileLocksResult = await deps.validateProfileLocksUseCase({
+      fiscalCode: input.username,
+      checks:
+        spidLevel === "https://www.spid.gov.it/SpidL3"
+          ? ["technical"]
+          : ["user-set", "technical"],
+    });
+    if (validateProfileLocksResult.isErr()) {
+      const error = validateProfileLocksResult.error;
+      switch (error.kind) {
+        case "ForbiddenError":
+          return err(new AuthenticationError());
+        case "GenericError":
+          return err(
+            new GenericError(
+              `Error while validating profile locks: ${error.message}`,
+            ),
+          );
+        default: {
+          const _exhaustiveCheck: never = error;
+          return err(new GenericError("Unhandled error"));
+        }
+      }
+    }
+
     // Reserve the lollipop public key.
     // We avoid reusing the Reserve Use Case since we don't need the Authorization
     // endpoint and what it entails.
@@ -88,6 +121,7 @@ export const makeTestLoginUseCase =
     const rawAssertion = getMockedSamlAssertion({
       fiscalCode: input.username,
       inResponseTo: assertionRef,
+      spidLevel,
     });
 
     const activateResult = await deps.activateTestUserSessionUseCase({

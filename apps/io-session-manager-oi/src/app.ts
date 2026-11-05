@@ -509,6 +509,7 @@ const createUseCases = (
   const testLoginUseCase = makeTestLoginUseCase({
     testUserPort: adapters.testUserAdapter,
     lollipopPort: adapters.fetchLollipopAdapter,
+    validateProfileLocksUseCase,
     activateTestUserSessionUseCase,
     oidcEnvironment: config.NODE_ENV === "production" ? "PROD" : "UAT",
   });

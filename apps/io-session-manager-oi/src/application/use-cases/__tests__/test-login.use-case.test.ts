@@ -26,6 +26,10 @@ import type { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.
 import { TEST_LOGIN_USER_DATA } from "../../../utils/test-login/index.js";
 import type { ActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 import { makeTestLoginUseCase } from "../test-login.use-case.js";
+import {
+  ProfileLockedError,
+  type ValidateProfileLocksUseCase,
+} from "../validate-profile-locks.use-case.js";
 
 const aPublicKey: JwkPublicKey = {
   kty: "EC",
@@ -48,11 +52,14 @@ const mockReservePubKey = vi.fn();
 const lollipopPort = {
   reservePubKey: mockReservePubKey,
 } as unknown as LollipopPort;
+const mockValidateProfileLocks = vi.fn();
 const mockActivateTestUserSession = vi.fn();
 
 const testLogin = makeTestLoginUseCase({
   testUserPort: TestUserPortMock,
   lollipopPort,
+  validateProfileLocksUseCase:
+    mockValidateProfileLocks as unknown as ValidateProfileLocksUseCase,
   activateTestUserSessionUseCase:
     mockActivateTestUserSession as unknown as ActivateUserSessionUseCase,
   oidcEnvironment: "UAT",
@@ -62,9 +69,8 @@ beforeEach(() => {
   resetTestUserPortMock();
   mockIsTestCredentials.mockReturnValue(true);
   mockReservePubKey.mockReset().mockResolvedValue(ok(anAssertionRef));
-  mockActivateTestUserSession
-    .mockReset()
-    .mockResolvedValue(ok(aClientSessionToken));
+  mockValidateProfileLocks.mockReset().mockResolvedValue(ok(undefined));
+  mockActivateTestUserSession.mockReset().mockResolvedValue(ok(aClientSessionToken));
 });
 
 describe("TestLoginUseCase", () => {
@@ -80,6 +86,13 @@ describe("TestLoginUseCase", () => {
       algo: input.lollipopHashAlgorithm,
       pub_key: input.lollipopPublicKey,
     });
+    expect(mockValidateProfileLocks).toHaveBeenCalledExactlyOnceWith({
+      fiscalCode: input.username,
+      checks: ["user-set", "technical"],
+    });
+    expect(
+      mockValidateProfileLocks.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockReservePubKey.mock.invocationCallOrder[0]);
     expect(mockActivateTestUserSession).toHaveBeenCalledExactlyOnceWith({
       sessionToken: {
         fiscalCode: aFiscalCode,
@@ -112,6 +125,7 @@ describe("TestLoginUseCase", () => {
 
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
     expect(mockReservePubKey).not.toHaveBeenCalled();
+    expect(mockValidateProfileLocks).not.toHaveBeenCalled();
     expect(mockActivateTestUserSession).not.toHaveBeenCalled();
   });
 
@@ -129,6 +143,31 @@ describe("TestLoginUseCase", () => {
       expect(mockActivateTestUserSession).not.toHaveBeenCalled();
     },
   );
+
+  it("returns an AuthenticationError when the profile is locked", async () => {
+    mockValidateProfileLocks.mockResolvedValue(err(new ProfileLockedError()));
+
+    const result = await testLogin(input);
+
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(AuthenticationError);
+    expect(mockReservePubKey).not.toHaveBeenCalled();
+    expect(mockActivateTestUserSession).not.toHaveBeenCalled();
+  });
+
+  it("returns a GenericError when profile lock validation fails unexpectedly", async () => {
+    mockValidateProfileLocks.mockResolvedValue(err(new GenericError("boom")));
+
+    const result = await testLogin(input);
+
+    expect(result).toEqual(
+      err(
+        new GenericError(
+          "Error while validating profile locks: Generic error: boom",
+        ),
+      ),
+    );
+    expect(mockActivateTestUserSession).not.toHaveBeenCalled();
+  });
 
   it("propagates session activation failures", async () => {
     const anError = new GenericError("activation failed");
