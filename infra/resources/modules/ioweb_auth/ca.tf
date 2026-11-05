@@ -67,18 +67,16 @@ module "auth_service_ca" {
   tags = var.tags
 }
 
-# Apply after the resources are created to resolve unknown resource attributes
-#
-# module "auth_ca_iam" {
-#   source  = "pagopa-dx/azure-role-assignments/azurerm"
-#   version = "~> 5.0"
-#
-#   subscription_id = var.subscription_id
-#   principal_id    = module.auth_service_ca.principal_id
-#
-#   managed_redis = [{
-#     id          = module.managed_redis.id
-#     role        = "writer"
-#     description = "Allow the ioweb auth Container App to read/write the Azure Managed Redis cache"
-#   }]
-# }
+module "auth_ca_iam" {
+  source  = "pagopa-dx/azure-role-assignments/azurerm"
+  version = "~> 5.0"
+
+  subscription_id = var.subscription_id
+  principal_id    = module.auth_service_ca.principal_id
+
+  managed_redis = [{
+    id          = module.managed_redis.id
+    role        = "writer"
+    description = "Allow the ioweb auth Container App to read/write the Azure Managed Redis cache"
+  }]
+}
