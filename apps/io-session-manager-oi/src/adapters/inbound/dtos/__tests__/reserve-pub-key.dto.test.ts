@@ -86,6 +86,15 @@ describe("ReserveInputDTO", () => {
     ).toBe(false);
   });
 
+  it("rejects SpidL1 as the minimum authentication level", () => {
+    expect(
+      ReserveInputDTO.body.safeParse({
+        ...aValidReserveRequest,
+        min_auth_level: "SpidL1",
+      }).success,
+    ).toBe(false);
+  });
+
   it("rejects an invalid public key", () => {
     expect(
       ReserveInputDTO.body.safeParse({
@@ -108,5 +117,18 @@ describe("ReserveOutputDTO", () => {
         authorization_endpoint: "https://oneid.example.com/authorize",
       }).success,
     ).toBe(true);
+  });
+
+  it("rejects SpidL1 as an authorization level", () => {
+    expect(
+      ReserveOutputDTO.safeParse({
+        acr_values: "https://www.spid.gov.it/SpidL1",
+        client_id: "a-client-id",
+        state: "a-state",
+        nonce: "a-nonce",
+        redirect_uri: "https://app.example.com/callback",
+        authorization_endpoint: "https://oneid.example.com/authorize",
+      }).success,
+    ).toBe(false);
   });
 });
