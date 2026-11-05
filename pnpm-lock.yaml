@@ -1349,7 +1349,7 @@ importers:
         specifier: workspace:^
         version: link:../../packages/azure-sdk
       '@pagopa/azure-tracing':
-        specifier: ^0.5.11
+        specifier: 'catalog:'
         version: 0.5.11(typescript@5.8.3)
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
@@ -1450,10 +1450,10 @@ importers:
         version: 8.5.0(zod@4.6.7)
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
-        version: 0.5.1(@pagopa/azure-tracing@0.5.11(typescript@5.8.3))(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.6.7)
+        version: 0.5.1(@pagopa/azure-tracing@0.5.11(typescript@5.8.3))(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       '@pagopa/hexagonal-fastify':
         specifier: 'catalog:'
-        version: 0.3.0(@pagopa/azure-tracing@0.5.11(typescript@5.8.3))(@standard-schema/spec@1.1.0)(fastify@5.8.5)(neverthrow@8.2.0)(zod@4.6.7)
+        version: 0.3.0(@pagopa/azure-tracing@0.5.11(typescript@5.8.3))(@standard-schema/spec@1.1.0)(fastify@5.8.5)(neverthrow@8.2.0)(zod@4.4.3)
       '@pagopa/io-auth-n-identity-domain':
         specifier: workspace:^
         version: link:../../packages/io-auth-n-identity-domain
@@ -1478,7 +1478,7 @@ importers:
     devDependencies:
       '@pagopa/hexagonal-openapi':
         specifier: 'catalog:'
-        version: 0.1.2(@pagopa/azure-tracing@0.5.11(typescript@5.8.3))(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.6.7)
+        version: 0.1.2(@pagopa/azure-tracing@0.5.11(typescript@5.8.3))(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.4.3)
       '@pagopa/typescript-config-node22':
         specifier: workspace:^
         version: link:../../packages/typescript-config-node22
@@ -3555,6 +3555,12 @@ packages:
   '@microsoft/applicationinsights-web-snippet@1.2.3':
     resolution: {integrity: sha512-59ex4x1/PabGQIg+o0GKG5olqAJYBvMOiXec/9HCD3hK2y36YMWT0ivq5mequvtS5+21kco3SOnMB6QyScLPIA==}
 
+  '@nodable/base-output-builder@2.0.1':
+    resolution: {integrity: sha512-dZ5tRk1YEjKjwEJh/xcPlKWfuuuILj7Nqltlswm4GImQ4pFX94wF83UJ+0Q1YLCTlw8czA7yTGOTbX3++mfbTw==}
+
+  '@nodable/compact-builder@2.0.1':
+    resolution: {integrity: sha512-DyDr1Fo2HW2gXF1AdFHM1X7sGK8Fx7zd+P4bveXymOWyP6kn9HXhtSxBDpTAmGvafQb/pBlQVAPhH8haHv//yA==}
+
   '@nodable/entities@3.0.0':
     resolution: {integrity: sha512-8L9xFeTYKhm49xfIypoe2W5wV1m/3Z58kT+7kR9A8OyFxcPduI4VmxaUMQyKYrRjUoLLSXv6EKKID5Tvj9cUVw==}
 
@@ -3631,8 +3637,8 @@ packages:
     resolution: {integrity: sha512-OlanaW1vv7ufTqQ3/fPLI4arGt5ZoM+P8abOMki6uEYnpRazepSWDwDnnw+la7kE26SHVC18//SMccrDvLKOXQ==}
     engines: {node: '>=8.0.0'}
 
-  '@opentelemetry/api@1.8.0':
-    resolution: {integrity: sha512-I/s6F7yKUDdtMsoBWXJe8Qz40Tui5vsuKCWJEWVL+5q9sSWRzzx6v2KeNsOBEwd94j0eWkpWCH4yB6rZg9Mf0w==}
+  '@opentelemetry/api-logs@0.223.0':
+    resolution: {integrity: sha512-Oepm6etVPFCn0VWB1t833iOTgz1eYBDUPxcrOR/XvwzD1+Ag9VzSPSrrKAFNJ/haatj+8CXbG47pZXvdNQKDJw==}
     engines: {node: '>=8.0.0'}
 
   '@opentelemetry/api@1.9.1':
@@ -7488,9 +7494,6 @@ packages:
   module-details-from-path@1.0.4:
     resolution: {integrity: sha512-EGWKgxALGMgzvxYF1UyGTy0HXX/2vHLkw6+NvDKW2jypWbHpjQuj4UMcqQWXHERJhVGKikolT06G3bcKe4fi7w==}
 
-  module-details-from-path@1.0.4:
-    resolution: {integrity: sha512-EGWKgxALGMgzvxYF1UyGTy0HXX/2vHLkw6+NvDKW2jypWbHpjQuj4UMcqQWXHERJhVGKikolT06G3bcKe4fi7w==}
-
   moment-timezone@0.5.47:
     resolution: {integrity: sha512-UbNt/JAWS0m/NJOebR0QMRHBk0hu03r5dx9GK8Cs0AS3I81yDcOc9k+DytPItgVvBP7J6Mf6U2n3BPAacAV9oA==}
 
@@ -10476,7 +10479,7 @@ snapshots:
       '@azure/core-auth': 1.10.1
       '@azure/core-client': 1.9.0
       '@azure/core-process': 1.0.0
-      '@azure/core-rest-pipeline': 1.22.2
+      '@azure/core-rest-pipeline': 1.25.0
       '@azure/core-tracing': 1.3.1
       '@azure/core-util': 1.13.1
       '@azure/logger': 1.3.0
@@ -10499,7 +10502,7 @@ snapshots:
       '@azure-rest/core-client': 2.9.0
       '@azure/core-auth': 1.10.1
       '@azure/core-client': 1.9.0
-      '@azure/core-rest-pipeline': 1.22.2
+      '@azure/core-rest-pipeline': 1.25.0
       '@azure/core-util': 1.13.1
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/api-logs': 0.218.0
@@ -10518,7 +10521,7 @@ snapshots:
       '@azure-rest/core-client': 2.9.0
       '@azure/core-auth': 1.10.1
       '@azure/core-client': 1.9.0
-      '@azure/core-rest-pipeline': 1.22.2
+      '@azure/core-rest-pipeline': 1.25.0
       '@azure/core-util': 1.13.1
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/api-logs': 0.220.0
@@ -10536,7 +10539,7 @@ snapshots:
     dependencies:
       '@azure-rest/core-client': 2.9.0
       '@azure/core-auth': 1.10.1
-      '@azure/core-rest-pipeline': 1.22.2
+      '@azure/core-rest-pipeline': 1.25.0
       '@azure/core-tracing': 1.3.1
       '@azure/identity': 4.14.1
       '@azure/logger': 1.3.0
@@ -11572,6 +11575,18 @@ snapshots:
 
   '@microsoft/applicationinsights-web-snippet@1.2.3': {}
 
+  '@nodable/base-output-builder@2.0.1':
+    dependencies:
+      '@nodable/entities': 3.1.0
+      is-unsafe: 2.0.3
+      path-expression-matcher: 1.6.2
+      strnum: 2.5.1
+
+  '@nodable/compact-builder@2.0.1':
+    dependencies:
+      '@nodable/base-output-builder': 2.0.1
+      path-expression-matcher: 1.6.2
+
   '@nodable/entities@3.0.0': {}
 
   '@nodable/entities@3.1.0': {}
@@ -11689,7 +11704,9 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.1
 
-  '@opentelemetry/api@1.8.0': {}
+  '@opentelemetry/api-logs@0.223.0':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
 
   '@opentelemetry/api@1.9.1': {}
 
@@ -11898,7 +11915,7 @@ snapshots:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/core': 2.12.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/instrumentation': 0.221.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/semantic-conventions': 1.24.1
+      '@opentelemetry/semantic-conventions': 1.44.0
     transitivePeerDependencies:
       - supports-color
 
@@ -15644,19 +15661,6 @@ snapshots:
       es-module-lexer: 3.0.4
       module-details-from-path: 1.0.4
 
-  import-in-the-middle@2.0.6:
-    dependencies:
-      acorn: 8.15.0
-      acorn-import-attributes: 1.9.5(acorn@8.15.0)
-      cjs-module-lexer: 2.3.0
-      module-details-from-path: 1.0.4
-
-  import-in-the-middle@3.5.3:
-    dependencies:
-      cjs-module-lexer: 2.3.0
-      es-module-lexer: 3.0.4
-      module-details-from-path: 1.0.4
-
   imurmurhash@0.1.4: {}
 
   indent-string@4.0.0: {}
@@ -16360,8 +16364,6 @@ snapshots:
       progress: 2.0.3
       rimraf: 2.7.1
       subdirs: 1.0.1
-
-  module-details-from-path@1.0.4: {}
 
   module-details-from-path@1.0.4: {}
 
@@ -17214,7 +17216,7 @@ snapshots:
   require-in-the-middle@8.0.1:
     dependencies:
       debug: 4.4.3
-      module-details-from-path: 1.0.3
+      module-details-from-path: 1.0.4
     transitivePeerDependencies:
       - supports-color
 
