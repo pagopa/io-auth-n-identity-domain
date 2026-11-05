@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.37.1
+
+### Patch Changes
+
+- 6170d98: Add profile lock validation to test login use case
+
 ## 0.37.0
 
 ### Minor Changes
