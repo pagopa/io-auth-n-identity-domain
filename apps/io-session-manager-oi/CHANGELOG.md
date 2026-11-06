@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.39.0
+
+### Minor Changes
+
+- 0352758: add logout handler
+
 ## 0.38.0
 
 ### Minor Changes
