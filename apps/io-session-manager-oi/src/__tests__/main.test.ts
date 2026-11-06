@@ -201,13 +201,12 @@ describe("application lifecycle", () => {
       emit("SIGINT");
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(mocks.loggerError).toHaveBeenCalledWith(
-        `Failed to close application: ${message}`,
-      );
-      expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(1);
-      expect(vi.getTimerCount()).toBe(0);
-    },
-  );
+    expect(mocks.loggerError).toHaveBeenCalledWith(
+      `Failed to close application: ${String(error)}`,
+    );
+    expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
 
   it.each(["configuration", "package info", "createApp", "listen"])(
     "handles %s startup failure",
