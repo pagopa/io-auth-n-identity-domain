@@ -88,7 +88,9 @@ const registerLifecycle = (
         try {
           await server.close();
         } catch (error) {
-          logger.error(`Failed to close application: ${String(error)}`);
+          const message =
+            error instanceof Error ? error.stack ?? error.message : String(error);
+          logger.error(`Failed to close application: ${message}`);
           process.exitCode = 1;
         } finally {
           clearTimeout(timeout);
