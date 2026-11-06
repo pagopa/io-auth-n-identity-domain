@@ -1,13 +1,22 @@
-import { SeverityNumber, Logger, logs } from "@opentelemetry/api-logs";
+import {
+  SeverityNumber,
+  Logger as OpenTelemetryLogger,
+  logs,
+} from "@opentelemetry/api-logs";
 import { emitCustomEvent } from "@pagopa/azure-tracing/logger";
 import { NonEmptyString } from "@pagopa/hexagonal-core";
-import type { AppInsightsTelemetryClient } from "@pagopa/hexagonal-core/adapters/logger";
-import { makeApplicationInsightsLogger } from "@pagopa/hexagonal-core/adapters/logger";
+import {
+  type AppInsightsTelemetryClient,
+  makeApplicationInsightsLogger,
+} from "@pagopa/hexagonal-core/adapters/logger";
+import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 
 const stringify = (p?: Record<string, unknown>): Record<string, string> =>
   Object.fromEntries(Object.entries(p ?? {}).map(([k, v]) => [k, String(v)]));
 
-const makeTelemetryClient = (aiLogger: Logger): AppInsightsTelemetryClient => ({
+const makeTelemetryClient = (
+  aiLogger: OpenTelemetryLogger,
+): AppInsightsTelemetryClient => ({
   trackEvent: ({ name, properties }) =>
     emitCustomEvent(name, stringify(properties))(),
   trackException: ({ exception, properties }) =>
@@ -27,12 +36,8 @@ const makeTelemetryClient = (aiLogger: Logger): AppInsightsTelemetryClient => ({
     }),
 });
 
-export const getLogger = (
-  service: NonEmptyString,
-  version: string | undefined = undefined,
-) => {
-  const name = version ? `${service}@${version}` : service;
-  const logger = logs.getLogger(name);
+export const getLogger = (service: NonEmptyString): Logger => {
+  const logger = logs.getLogger(service);
   const client = makeTelemetryClient(logger);
 
   return makeApplicationInsightsLogger({
