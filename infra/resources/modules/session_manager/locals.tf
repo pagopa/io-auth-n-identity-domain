@@ -279,5 +279,13 @@ locals {
       name  = "TEST_LOGIN_PASSWORD"
       value = azurerm_key_vault_secret.sm_test_login_password.versionless_id
     },
+    {
+      name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+      value = azurerm_key_vault_secret.sm_application_insights_connection_string.versionless_id
+    },
+    {
+      name  = "APPLICATIONINSIGHTS_ENTRA_ID_AUTH_ENABLED"
+      value = "true"
+    }
   ]
 }
