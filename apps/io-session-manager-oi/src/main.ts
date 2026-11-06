@@ -89,7 +89,9 @@ const registerLifecycle = (
           await server.close();
         } catch (error) {
           const message =
-            error instanceof Error ? error.stack ?? error.message : String(error);
+            error instanceof Error
+              ? error.stack ?? error.message
+              : String(error);
           logger.error(`Failed to close application: ${message}`);
           process.exitCode = 1;
         } finally {
@@ -127,8 +129,7 @@ const registerLifecycle = (
  * @returns A promise for application startup.
  */
 const start = async () => {
-  const logger = getLogger("io-session-manager-oi" as NonEmptyString);
-  const { config, packageInfo } = bootstrap();
+  const { config, packageInfo, logger } = bootstrap();
   const { server } = await createApp(config, packageInfo);
   const { handleFatalError } = registerLifecycle(server, logger);
 
