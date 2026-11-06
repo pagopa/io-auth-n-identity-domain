@@ -1,5 +1,15 @@
 # io-session-manager-oi
 
+## 0.38.0
+
+### Minor Changes
+
+- b4a5f0f: Return acr_values on reserve
+
+### Patch Changes
+
+- 48f94ca: Bump Node.js container version to `24.22.2`
+
 ## 0.37.1
 
 ### Patch Changes
