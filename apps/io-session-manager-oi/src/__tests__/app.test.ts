@@ -85,6 +85,9 @@ vi.mock("../adapters/inbound/fastify/get-user-identity.handler.js", () => ({
 vi.mock("../adapters/inbound/fastify/health-check.handler.js", () => ({
   mountHealthCheckHandler: () => vi.fn(),
 }));
+vi.mock("../adapters/inbound/fastify/logout.handler.js", () => ({
+  mountLogoutHandler: () => vi.fn(),
+}));
 vi.mock("../adapters/inbound/fastify/reserve.handler.js", () => ({
   mountReserveHandler: mocks.mountReserve,
 }));

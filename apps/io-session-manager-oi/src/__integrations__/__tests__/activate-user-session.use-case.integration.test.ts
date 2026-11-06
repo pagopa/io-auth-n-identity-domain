@@ -1,20 +1,24 @@
 import { CosmosClient } from "@azure/cosmos";
-import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
+import { NonEmptyStringSchema, NotFoundError } from "@pagopa/hexagonal-core";
 import {
   LollipopAssertionRefSchema,
   LollipopAssertionTypeSchema,
 } from "@pagopa/io-auth-n-identity-domain";
 import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
-import { ok, ResultAsync } from "neverthrow";
+import { err, ok, ResultAsync } from "neverthrow";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
+import { IdpFriendlyNamePortMock } from "../../__mocks__/ports/friendly-name-port.mocks.js";
 import { lollipopActivationPortMock } from "../../__mocks__/ports/lollipop-activation-port.mock.js";
+import { lollipopRevocationPortMock } from "../../__mocks__/ports/lollipop-revocation-port.mock.js";
 import { createIoProfileAdapter } from "../../adapters/outbound/io-profile.adapter.js";
 import { createPlatformInternalAdapter } from "../../adapters/outbound/platform-internal.adapter.js";
 import {
   makeActivateUserSessionUseCase,
-  type NewSessionToken,
+  type ActivateUserSessionUseCase,
 } from "../../application/use-cases/activate-user-session.use-case.js";
+import { makeInvalidatePreviousUserStateUseCase } from "../../application/use-cases/invalidate-previous-user-state.use-case.js";
+import { makeInvalidateSessionTokenCacheUseCase } from "../../application/use-cases/invalidate-session-token-cache.use-case.js";
 import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import {
@@ -35,8 +39,6 @@ import {
   readSessionTokenItemIds,
   seedSessionCosmosDb,
 } from "../fixtures/sessions.fixture.js";
-import { IdpFriendlyNamePortMock } from "../../__mocks__/ports/friendly-name-port.mocks.js";
-import { lollipopRevocationPortMock } from "../../__mocks__/ports/lollipop-revocation-port.mock.js";
 
 // The number of token documents persisted for a session: the main SESSION-
 // token plus the four SSO tokens (WALLET, BPD, FIMS, ZENDESK).
@@ -66,7 +68,6 @@ const platformInternalAdapter = createPlatformInternalAdapter({
 });
 const authEventPort: AuthEventPort = {
   sendEvent: () => ResultAsync.fromSafePromise(Promise.resolve(undefined)),
-  healthcheck: async () => ok(undefined),
 };
 
 const assertion = {
@@ -91,15 +92,27 @@ const friendlyNamePortMock = {
 const activateUserSessionUseCase = makeActivateUserSessionUseCase({
   sessionPort: sessionAdapter,
   profilePort: adapter,
-  platformInternalPort: platformInternalAdapter,
   authEventPort: authEventPort,
   lollipopActivationPort: lollipopActivationPortMock,
   lollipopPort: lollipopPort,
   lollipopRevocationPort: lollipopRevocationPortMock,
   friendlyNamePort: friendlyNamePortMock,
+  invalidatePreviousUserStateUseCase: makeInvalidatePreviousUserStateUseCase({
+    sessionPort: sessionAdapter,
+    lollipopActivationPort: lollipopActivationPortMock,
+    lollipopRevocationPort: {
+      requestRevocation: async () => ok(undefined),
+    },
+    invalidateSessionTokenCacheUseCase: makeInvalidateSessionTokenCacheUseCase({
+      platformInternalPort: platformInternalAdapter,
+    }),
+  }),
+  notificationPort: { deleteInstallation: async () => ok(undefined) },
 });
 
-const activateUserSession = (sessionToken: NewSessionToken) =>
+const activateUserSession = (
+  sessionToken: Parameters<ActivateUserSessionUseCase>[0]["sessionToken"],
+) =>
   activateUserSessionUseCase({
     sessionToken,
     assertion,
@@ -111,6 +124,12 @@ describe("activate-user-session use case (integration)", () => {
   // Provision the database and the session containers on the local Cosmos DB
   // emulator before running any test in this suite.
   beforeAll(async () => {
+    lollipopActivationPortMock.getByFiscalCode.mockResolvedValue(
+      err(new NotFoundError("LollipopActivation", "not found")),
+    );
+    lollipopActivationPortMock.revokeByFiscalCode.mockResolvedValue(
+      ok(undefined),
+    );
     lollipopActivationPortMock.upsert.mockResolvedValue(ok(undefined));
     await seedSessionCosmosDb();
   });
