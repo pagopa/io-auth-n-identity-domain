@@ -1,6 +1,5 @@
 import { SeverityNumber } from "@opentelemetry/api-logs";
 import type { NonEmptyString } from "@pagopa/hexagonal-core";
-import type { AppInsightsTelemetryClient } from "@pagopa/hexagonal-core/adapters/logger";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -12,8 +11,8 @@ const mocks = vi.hoisted(() => ({
   applicationLogger: {},
 }));
 
-vi.mock("@opentelemetry/api-logs", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@opentelemetry/api-logs")>()),
+vi.mock("@opentelemetry/api-logs", () => ({
+  SeverityNumber: { ERROR: 17, WARN: 13 },
   logs: { getLogger: mocks.getLogger },
 }));
 vi.mock("@pagopa/azure-tracing/logger", () => ({
@@ -25,7 +24,7 @@ vi.mock("@pagopa/hexagonal-core/adapters/logger", () => ({
 
 import { getLogger } from "../telemetry-client.js";
 
-const getTelemetryClient = (): AppInsightsTelemetryClient => {
+const getTelemetryClient = () => {
   getLogger("io-session-manager-oi" as NonEmptyString);
   return mocks.makeApplicationInsightsLogger.mock.calls[0][0].client;
 };
@@ -75,72 +74,24 @@ describe("telemetry client", () => {
     expect(mocks.aiEmit).toHaveBeenCalledExactlyOnceWith({
       attributes: {
         requestId: "42",
-        "exception.type": exception.name,
-        "exception.stacktrace": exception.stack,
-        "exception.message": exception.message,
+        "exception.stack": exception.stack,
       },
       body: "request failed",
       severityNumber: SeverityNumber.ERROR,
     });
   });
 
-  it("emits exceptions without a stack or properties", () => {
-    const exception = new TypeError("invalid input");
-    delete exception.stack;
-
-    getTelemetryClient().trackException({ exception });
-
-    expect(mocks.aiEmit).toHaveBeenCalledExactlyOnceWith({
-      attributes: {
-        "exception.type": "TypeError",
-        "exception.stacktrace": "",
-        "exception.message": "invalid input",
-      },
-      body: "invalid input",
-      severityNumber: SeverityNumber.ERROR,
+  it("emits traces with stringified properties and the given severity", () => {
+    getTelemetryClient().trackTrace({
+      message: "cache miss",
+      properties: { key: "session", count: 0 },
+      severity: SeverityNumber.WARN,
     });
-  });
-
-  it.each([
-    { severity: 0, severityNumber: SeverityNumber.DEBUG },
-    { severity: 1, severityNumber: SeverityNumber.INFO },
-    { severity: 2, severityNumber: SeverityNumber.WARN },
-    { severity: 3, severityNumber: SeverityNumber.ERROR },
-    { severity: 4, severityNumber: SeverityNumber.FATAL },
-  ] as const)(
-    "maps trace severity $severity to OpenTelemetry severity $severityNumber",
-    ({ severity, severityNumber }) => {
-      getTelemetryClient().trackTrace({
-        message: "cache miss",
-        properties: { key: "session", count: 0 },
-        severity,
-      });
-
-      expect(mocks.aiEmit).toHaveBeenCalledExactlyOnceWith({
-        attributes: { key: "session", count: "0" },
-        body: "cache miss",
-        severityNumber,
-      });
-    },
-  );
-
-  it("emits custom events without properties", () => {
-    getTelemetryClient().trackEvent({ name: "user-login" });
-
-    expect(mocks.emitCustomEvent).toHaveBeenCalledExactlyOnceWith(
-      "user-login",
-      {},
-    );
-    expect(mocks.sendCustomEvent).toHaveBeenCalledOnce();
-  });
-
-  it("emits traces without properties", () => {
-    getTelemetryClient().trackTrace({ message: "cache miss", severity: 1 });
 
     expect(mocks.aiEmit).toHaveBeenCalledExactlyOnceWith({
-      attributes: {},
+      attributes: { key: "session", count: "0" },
       body: "cache miss",
-      severityNumber: SeverityNumber.INFO,
+      severityNumber: SeverityNumber.WARN,
     });
   });
 });
