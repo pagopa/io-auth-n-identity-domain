@@ -17,6 +17,8 @@ const SHUTDOWN_TIMEOUT_MS = 10_000;
  * @returns The application bootstrap data.
  */
 const bootstrap = () => {
+  const logger = getLogger("io-session-manager-oi" as NonEmptyString);
+
   const configResult = createConfigLoader(ConfigSchema, {
     mappings: {
       TEST_LOGIN_FISCAL_CODES: "TEST_LOGIN_FISCAL_CODES_COMPRESSED",
@@ -39,7 +41,7 @@ const bootstrap = () => {
     });
   }
 
-  return { config, packageInfo: packageInfoResult.value };
+  return { config, packageInfo: packageInfoResult.value, logger };
 };
 
 /**
@@ -87,7 +89,9 @@ const registerLifecycle = (
           await server.close();
         } catch (error) {
           const message =
-            error instanceof Error ? error.stack ?? error.message : String(error);
+            error instanceof Error
+              ? error.stack ?? error.message
+              : String(error);
           logger.error(`Failed to close application: ${message}`);
           process.exitCode = 1;
         } finally {
@@ -125,8 +129,7 @@ const registerLifecycle = (
  * @returns A promise for application startup.
  */
 const start = async () => {
-  const logger = getLogger("io-session-manager-oi" as NonEmptyString);
-  const { config, packageInfo } = bootstrap();
+  const { config, packageInfo, logger } = bootstrap();
   const { server } = await createApp(config, packageInfo);
   const { handleFatalError } = registerLifecycle(server, logger);
 
