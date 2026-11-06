@@ -55,6 +55,11 @@ components:
     ReserveResponse:
       type: object
       properties:
+        acr_values:
+          type: string
+          enum:
+            - https://www.spid.gov.it/SpidL2
+            - https://www.spid.gov.it/SpidL3
         client_id:
           type: string
           minLength: 1
@@ -71,6 +76,7 @@ components:
           type: string
           minLength: 1
       required:
+        - acr_values
         - client_id
         - state
         - nonce

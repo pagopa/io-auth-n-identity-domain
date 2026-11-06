@@ -28,6 +28,7 @@ import { SpidAuthLevel } from "../../domain/value-objects/login.vo.js";
 
 import { ActivateUserSessionUseCase } from "./activate-user-session.use-case.js";
 import type { ValidateProfileLocksUseCase } from "./validate-profile-locks.use-case.js";
+import { toFullyQualifiedSpidLevel } from "../../utils/spid.js";
 
 // Error code sent to the client error page when the provider returns an error
 // response without an explicit `error` code.
@@ -288,9 +289,6 @@ const SPID_LEVEL_ORDER: Record<SpidLevel, number> = {
   "https://www.spid.gov.it/SpidL2": 2,
   "https://www.spid.gov.it/SpidL3": 3,
 };
-
-const toFullyQualifiedSpidLevel = (level: SpidAuthLevel): SpidLevel =>
-  `https://www.spid.gov.it/${level}`;
 
 /**
  * Compares a SPID level (as carried by the claim, in its

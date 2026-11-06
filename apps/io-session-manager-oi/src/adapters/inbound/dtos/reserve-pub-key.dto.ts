@@ -4,7 +4,7 @@ import {
   JwkPublicKeyBase64UrlStringSchema,
   LollipopJwkHashingAlgorithmSchema,
 } from "@pagopa/io-auth-n-identity-domain";
-import { LoginTypeSchema } from "@pagopa/io-auth-n-identity-session";
+import { LoginTypeSchema, SpidLevelSchema } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
 
 import {
@@ -52,6 +52,7 @@ export const ReserveInputDTO = {
 
 export const ReserveOutputDTO = z
   .object({
+    acr_values: SpidLevelSchema.exclude(["https://www.spid.gov.it/SpidL1"]),
     client_id: NonEmptyStringSchema,
     state: NonEmptyStringSchema,
     nonce: NonEmptyStringSchema,

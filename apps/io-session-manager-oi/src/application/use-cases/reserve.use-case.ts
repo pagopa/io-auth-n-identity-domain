@@ -11,7 +11,7 @@ import {
   JwkPublicKey,
   LollipopJwkHashingAlgorithm,
 } from "@pagopa/io-auth-n-identity-domain";
-import { LoginType } from "@pagopa/io-auth-n-identity-session";
+import { LoginType, SpidLevel } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 
 import { AuxiliaryDataPort } from "../../domain/ports/outbound/auxiliary-data.port.js";
@@ -24,6 +24,7 @@ import {
   SpidAuthLevel,
 } from "../../domain/value-objects/login.vo.js";
 import { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
+import { toFullyQualifiedSpidLevel } from "../../utils/spid.js";
 
 type ReserveDeps = {
   auxiliaryDataPort: AuxiliaryDataPort;
@@ -42,6 +43,7 @@ type input = {
 };
 
 type output = {
+  acr_values: Exclude<SpidLevel, "https://www.spid.gov.it/SpidL1">;
   client_id: NonEmptyString;
   state: NonEmptyString;
   nonce: NonEmptyString;
@@ -111,6 +113,7 @@ export const makeReserveUseCase =
     }
 
     return ok({
+      acr_values: toFullyQualifiedSpidLevel(inputData.minAuthLevel),
       client_id: clientId,
       state,
       nonce,

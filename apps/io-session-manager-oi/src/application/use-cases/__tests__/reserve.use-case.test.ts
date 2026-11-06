@@ -149,6 +149,7 @@ describe("makeReserveUseCase", () => {
     expect(result.isOk()).toBe(true);
     const output = result._unsafeUnwrap();
     expect(output).toEqual({
+      acr_values: "https://www.spid.gov.it/SpidL2",
       client_id: PROD_CLIENT_ID,
       state: MOCKED_HEX_RANDOM_BYTES,
       nonce: MOCKED_HEX_RANDOM_BYTES,
@@ -170,6 +171,17 @@ describe("makeReserveUseCase", () => {
     const output = result._unsafeUnwrap();
     expect(output.client_id).toBe(UAT_CLIENT_ID);
     expect(output.authorization_endpoint).toBe(UAT_AUTHORIZATION_ENDPOINT.href);
+  });
+
+  it("returns the corresponding acr_values for the requested SPID level", async () => {
+    const result = await reserveUseCase(
+      buildInput({ minAuthLevel: "SpidL3" as SpidAuthLevel }),
+    );
+
+    expect(result.isOk()).toBe(true);
+    expect(result._unsafeUnwrap().acr_values).toBe(
+      "https://www.spid.gov.it/SpidL3",
+    );
   });
 
   it("returns err(GenericError) when the authorization endpoint cannot be resolved", async () => {

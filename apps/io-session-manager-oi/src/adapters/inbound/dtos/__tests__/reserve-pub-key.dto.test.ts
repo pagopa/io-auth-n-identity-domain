@@ -43,17 +43,17 @@ describe("ReserveInputDTO", () => {
     expect(parsed.current_user).toBe(aCurrentUserHash);
   });
 
-  it.each([
-    aCurrentUserHash.toUpperCase(),
-    "aBcDeF0123456789".repeat(4),
-  ])("normalizes the current user hash %s to lowercase", (currentUser) => {
-    const parsed = ReserveInputDTO.body.parse({
-      ...aValidReserveRequest,
-      current_user: currentUser,
-    });
+  it.each([aCurrentUserHash.toUpperCase(), "aBcDeF0123456789".repeat(4)])(
+    "normalizes the current user hash %s to lowercase",
+    (currentUser) => {
+      const parsed = ReserveInputDTO.body.parse({
+        ...aValidReserveRequest,
+        current_user: currentUser,
+      });
 
-    expect(parsed.current_user).toBe(aCurrentUserHash);
-  });
+      expect(parsed.current_user).toBe(aCurrentUserHash);
+    },
+  );
 
   it.each([
     "",
@@ -86,6 +86,15 @@ describe("ReserveInputDTO", () => {
     ).toBe(false);
   });
 
+  it("rejects SpidL1 as the minimum authentication level", () => {
+    expect(
+      ReserveInputDTO.body.safeParse({
+        ...aValidReserveRequest,
+        min_auth_level: "SpidL1",
+      }).success,
+    ).toBe(false);
+  });
+
   it("rejects an invalid public key", () => {
     expect(
       ReserveInputDTO.body.safeParse({
@@ -100,6 +109,7 @@ describe("ReserveOutputDTO", () => {
   it("accepts the authorization parameters returned by the reserve flow", () => {
     expect(
       ReserveOutputDTO.safeParse({
+        acr_values: "https://www.spid.gov.it/SpidL2",
         client_id: "a-client-id",
         state: "a-state",
         nonce: "a-nonce",
@@ -107,5 +117,18 @@ describe("ReserveOutputDTO", () => {
         authorization_endpoint: "https://oneid.example.com/authorize",
       }).success,
     ).toBe(true);
+  });
+
+  it("rejects SpidL1 as an authorization level", () => {
+    expect(
+      ReserveOutputDTO.safeParse({
+        acr_values: "https://www.spid.gov.it/SpidL1",
+        client_id: "a-client-id",
+        state: "a-state",
+        nonce: "a-nonce",
+        redirect_uri: "https://app.example.com/callback",
+        authorization_endpoint: "https://oneid.example.com/authorize",
+      }).success,
+    ).toBe(false);
   });
 });
