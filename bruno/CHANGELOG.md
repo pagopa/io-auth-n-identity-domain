@@ -1,5 +1,11 @@
 # io-auth-n-identity-bruno-collections
 
+## 0.6.0
+
+### Minor Changes
+
+- 0352758: add logout to bruno collection
+
 ## 0.5.0
 
 ### Minor Changes
