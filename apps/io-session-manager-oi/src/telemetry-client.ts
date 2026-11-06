@@ -1,8 +1,4 @@
-import {
-  SeverityNumber,
-  Logger as OpenTelemetryLogger,
-  logs,
-} from "@opentelemetry/api-logs";
+import { SeverityNumber, logs, type Logger as OpenTelemetryLogger } from "@opentelemetry/api-logs";
 import { emitCustomEvent } from "@pagopa/azure-tracing/logger";
 import { NonEmptyString } from "@pagopa/hexagonal-core";
 import {
