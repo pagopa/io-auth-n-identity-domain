@@ -1,6 +1,5 @@
 import { fileURLToPath } from "node:url";
 
-import { logs } from "@opentelemetry/api-logs";
 import type { NonEmptyString } from "@pagopa/hexagonal-core";
 import { createPackageInfoAdapter } from "@pagopa/io-package-info";
 
