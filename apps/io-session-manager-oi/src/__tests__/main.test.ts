@@ -174,20 +174,40 @@ describe("application lifecycle", () => {
     );
   });
 
-  it("exits with failure when closing fails", async () => {
-    const error = new Error("close failed");
-    mocks.close.mockRejectedValueOnce(error);
-    await import("../main.js");
+  it.each([
+    {
+      scenario: "an error with a stack",
+      error: Object.assign(new Error("close failed"), {
+        stack: "Error: close failed\n    at server.close",
+      }),
+      message: "Error: close failed\n    at server.close",
+    },
+    {
+      scenario: "an error without a stack",
+      error: Object.assign(new Error("close failed"), { stack: undefined }),
+      message: "close failed",
+    },
+    {
+      scenario: "a non-Error rejection",
+      error: "close failed",
+      message: "close failed",
+    },
+  ])(
+    "exits with failure when closing fails with $scenario",
+    async ({ error, message }) => {
+      mocks.close.mockRejectedValueOnce(error);
+      await import("../main.js");
 
-    emit("SIGINT");
-    await vi.advanceTimersByTimeAsync(0);
+      emit("SIGINT");
+      await vi.advanceTimersByTimeAsync(0);
 
-    expect(mocks.loggerError).toHaveBeenCalledWith(
-      `Failed to close application: ${String(error)}`,
-    );
-    expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(1);
-    expect(vi.getTimerCount()).toBe(0);
-  });
+      expect(mocks.loggerError).toHaveBeenCalledWith(
+        `Failed to close application: ${message}`,
+      );
+      expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(1);
+      expect(vi.getTimerCount()).toBe(0);
+    },
+  );
 
   it.each(["configuration", "package info", "createApp", "listen"])(
     "handles %s startup failure",
