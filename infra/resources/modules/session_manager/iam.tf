@@ -93,3 +93,11 @@ module "ca_iam" {
     }
   ]
 }
+
+resource "azurerm_role_assignment" "sm_ca_appinsights_metrics_publisher" {
+  scope                = var.application_insights.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = module.sm_ca.principal_id
+  description          = "Allow session manager container app to publish telemetry to Application Insights"
+}
+
