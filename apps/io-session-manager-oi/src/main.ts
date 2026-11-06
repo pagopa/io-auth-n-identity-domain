@@ -1,12 +1,13 @@
-import "dotenv/config";
-
 import { fileURLToPath } from "node:url";
 
+import type { NonEmptyString } from "@pagopa/hexagonal-core";
+import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import { createPackageInfoAdapter } from "@pagopa/io-package-info";
 
 import { createConfigLoader } from "./adapters/outbound/config-loader.js";
 import { createApp } from "./app.js";
 import { ConfigSchema } from "./domain/value-objects/configs/index.js";
+import { getLogger } from "./telemetry-client.js";
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 
@@ -16,6 +17,8 @@ const SHUTDOWN_TIMEOUT_MS = 10_000;
  * @returns The application bootstrap data.
  */
 const bootstrap = () => {
+  const logger = getLogger("io-session-manager-oi" as NonEmptyString);
+
   const configResult = createConfigLoader(ConfigSchema, {
     mappings: {
       TEST_LOGIN_FISCAL_CODES: "TEST_LOGIN_FISCAL_CODES_COMPRESSED",
@@ -38,7 +41,7 @@ const bootstrap = () => {
     });
   }
 
-  return { config, packageInfo: packageInfoResult.value };
+  return { config, packageInfo: packageInfoResult.value, logger };
 };
 
 /**
@@ -49,42 +52,57 @@ const bootstrap = () => {
  */
 const registerLifecycle = (
   server: Awaited<ReturnType<typeof createApp>>["server"],
+  logger: Logger,
 ) => {
   // Shares one shutdown operation across repeated signals and fatal errors.
   let shutdownPromise: Promise<void> | undefined;
 
   /**
-   * Closes the application and exits the process within the shutdown timeout.
+   * Creates a shutdown function that closes the application and exits the process.
    *
-   * @param exitCode - Requested process exit status.
-   * @returns The shared shutdown promise.
+   * @param logger - Logger instance for shutdown messages.
+   * @returns The shutdown function.
    */
-  const shutdown = (exitCode: number): Promise<void> => {
-    if (exitCode !== 0 || process.exitCode === undefined) {
-      process.exitCode = exitCode;
-    }
-    if (shutdownPromise) {
-      return shutdownPromise;
-    }
-
-    const timeout = setTimeout(() => {
-      console.error("Application shutdown timed out");
-      process.exit(1);
-    }, SHUTDOWN_TIMEOUT_MS);
-
-    shutdownPromise = (async () => {
-      try {
-        await server.close();
-      } catch (error) {
-        console.error("Failed to close application:", error);
-        process.exitCode = 1;
-      } finally {
-        clearTimeout(timeout);
-        process.exit(process.exitCode ?? 0);
+  const makeShutdown =
+    (logger: Logger) =>
+    /**
+     * Closes the application and exits the process within the shutdown timeout.
+     *
+     * @param exitCode - Requested process exit status.
+     * @returns The shared shutdown promise.
+     */
+    (exitCode: number): Promise<void> => {
+      if (exitCode !== 0 || process.exitCode === undefined) {
+        process.exitCode = exitCode;
       }
-    })();
-    return shutdownPromise;
-  };
+      if (shutdownPromise) {
+        return shutdownPromise;
+      }
+
+      const timeout = setTimeout(() => {
+        logger.error("Application shutdown timed out");
+        process.exit(1);
+      }, SHUTDOWN_TIMEOUT_MS);
+
+      shutdownPromise = (async () => {
+        try {
+          await server.close();
+        } catch (error) {
+          const message =
+            error instanceof Error
+              ? error.stack ?? error.message
+              : String(error);
+          logger.error(`Failed to close application: ${message}`);
+          process.exitCode = 1;
+        } finally {
+          clearTimeout(timeout);
+          process.exit(process.exitCode ?? 0);
+        }
+      })();
+      return shutdownPromise;
+    };
+
+  const shutdown = makeShutdown(logger);
 
   /**
    * Logs a fatal error and requests application shutdown.
@@ -93,7 +111,7 @@ const registerLifecycle = (
    * @returns Nothing.
    */
   const handleFatalError = (error: unknown): void => {
-    console.error("Fatal application error:", error);
+    logger.error(`Fatal application error: ${String(error)}`);
     void shutdown(1);
   };
 
@@ -111,12 +129,16 @@ const registerLifecycle = (
  * @returns A promise for application startup.
  */
 const start = async () => {
-  const { config, packageInfo } = bootstrap();
+  const { config, packageInfo, logger } = bootstrap();
   const { server } = await createApp(config, packageInfo);
-  const { handleFatalError } = registerLifecycle(server);
+  const { handleFatalError } = registerLifecycle(server, logger);
 
   try {
     await server.listen({ host: config.HOST, port: config.PORT });
+    logger.info("Server listening", {
+      host: config.HOST,
+      port: config.PORT,
+    });
   } catch (error) {
     handleFatalError(error);
   }
