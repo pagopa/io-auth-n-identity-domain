@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 
 import type { NonEmptyString } from "@pagopa/hexagonal-core";
+import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import { createPackageInfoAdapter } from "@pagopa/io-package-info";
 
 import { createConfigLoader } from "./adapters/outbound/config-loader.js";
@@ -87,11 +88,7 @@ const registerLifecycle = (
         try {
           await server.close();
         } catch (error) {
-          const message =
-            error instanceof Error
-              ? error.stack ?? error.message
-              : String(error);
-          logger.error(`Failed to close application: ${message}`);
+          logger.error(`Failed to close application: ${String(error)}`);
           process.exitCode = 1;
         } finally {
           clearTimeout(timeout);
@@ -128,17 +125,14 @@ const registerLifecycle = (
  * @returns A promise for application startup.
  */
 const start = async () => {
-  const { config, packageInfo, logger } = bootstrap();
+  const logger = getLogger("io-session-manager-oi" as NonEmptyString);
+  const { config, packageInfo } = bootstrap();
   const { server } = await createApp(config, packageInfo);
-  const { handleFatalError } = registerLifecycle(server);
-  const logger = getLogger(
-    packageInfo.name as NonEmptyString,
-    packageInfo.version,
-  );
+  const { handleFatalError } = registerLifecycle(server, logger);
 
   try {
     await server.listen({ host: config.HOST, port: config.PORT });
-    logger.info("Server started", {
+    logger.info("Server listening", {
       host: config.HOST,
       port: config.PORT,
     });
