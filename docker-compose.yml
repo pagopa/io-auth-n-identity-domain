@@ -24,7 +24,7 @@ services:
     image: io-session-manager-oi
     build:
       context: ./
-      dockerfile: ./docker/server/Dockerfile
+      dockerfile: ./apps/io-session-manager-oi/Dockerfile
       args:
         SERVER_NAME: "io-session-manager-oi"
     depends_on:
