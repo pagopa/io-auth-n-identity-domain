@@ -48,6 +48,11 @@ variable "error_action_group" {
   description = "Error action group ID to be used for alerts"
 }
 
+variable "log_analytics_workspace_id" {
+  type        = string
+  description = "Log Analytics Workspace ID for monitoring"
+}
+
 ################
 #  Networking  #
 ################
