@@ -5,7 +5,12 @@ import { ServiceBusClient } from "@azure/service-bus";
 import { QueueServiceClient } from "@azure/storage-queue";
 import formbody from "@fastify/formbody";
 import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
-import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
+import {
+  type BaseError,
+  FiscalCodeSchema,
+  type UseCase,
+} from "@pagopa/hexagonal-core";
+import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import {
   LollipopActivationCosmosAdapter,
   SessionCosmosAdapter,
@@ -28,6 +33,7 @@ import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
 import { mountLogoutHandler } from "./adapters/inbound/fastify/logout.handler.js";
 import { extractIpMiddleware } from "./adapters/inbound/fastify/middlewares/extract-ip.middleware.js";
+import { withErrorResultLogging } from "./adapters/inbound/fastify/middlewares/result-logging.middleware.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
 import { mountSsoFimsLollipopUserHandler } from "./adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
@@ -594,56 +600,59 @@ const mountHealthChecks = (
   server: FastifyInstance,
   packageInfo: PackageInfo,
   adapters: Awaited<ReturnType<typeof createAdapters>>,
+  logger: Logger,
 ) => {
   mountHealthCheckHandler("liveness")(
     server,
-    getHealthCheckUseCase(packageInfo),
+    withErrorResultLogging(logger)(getHealthCheckUseCase(packageInfo)),
   );
 
   mountHealthCheckHandler("readiness")(
     server,
-    getHealthCheckUseCase(packageInfo, [
-      {
-        name: adapters.lockedProfilesAdapter.constructor.name,
-        port: adapters.lockedProfilesAdapter,
-      },
-      {
-        name: adapters.technicalLockedProfilesAdapter.constructor.name,
-        port: adapters.technicalLockedProfilesAdapter,
-      },
-      {
-        name: adapters.technicalLockedProfilesRedisAdapter.constructor.name,
-        port: adapters.technicalLockedProfilesRedisAdapter,
-      },
-      {
-        name: adapters.notificationStorageQueueAdapter.constructor.name,
-        port: adapters.notificationStorageQueueAdapter,
-      },
-      {
-        name: adapters.auxiliaryStorageAdapter.constructor.name,
-        port: adapters.auxiliaryStorageAdapter,
-      },
-      {
-        name: adapters.authEventServiceBusAdapter.constructor.name,
-        port: adapters.authEventServiceBusAdapter,
-      },
-      {
-        name: adapters.sessionCosmosAdapter.constructor.name,
-        port: adapters.sessionCosmosAdapter,
-      },
-      {
-        name: adapters.lollipopActivationCosmosAdapter.constructor.name,
-        port: adapters.lollipopActivationCosmosAdapter,
-      },
-      {
-        name: adapters.oneIdIdentityAssertionFetcherAdapter.constructor.name,
-        port: adapters.oneIdIdentityAssertionFetcherAdapter,
-      },
-      {
-        name: adapters.lollipopRevocationQueueAdapter.constructor.name,
-        port: adapters.lollipopRevocationQueueAdapter,
-      },
-    ]),
+    withErrorResultLogging(logger)(
+      getHealthCheckUseCase(packageInfo, [
+        {
+          name: adapters.lockedProfilesAdapter.constructor.name,
+          port: adapters.lockedProfilesAdapter,
+        },
+        {
+          name: adapters.technicalLockedProfilesAdapter.constructor.name,
+          port: adapters.technicalLockedProfilesAdapter,
+        },
+        {
+          name: adapters.technicalLockedProfilesRedisAdapter.constructor.name,
+          port: adapters.technicalLockedProfilesRedisAdapter,
+        },
+        {
+          name: adapters.notificationStorageQueueAdapter.constructor.name,
+          port: adapters.notificationStorageQueueAdapter,
+        },
+        {
+          name: adapters.auxiliaryStorageAdapter.constructor.name,
+          port: adapters.auxiliaryStorageAdapter,
+        },
+        {
+          name: adapters.authEventServiceBusAdapter.constructor.name,
+          port: adapters.authEventServiceBusAdapter,
+        },
+        {
+          name: adapters.sessionCosmosAdapter.constructor.name,
+          port: adapters.sessionCosmosAdapter,
+        },
+        {
+          name: adapters.lollipopActivationCosmosAdapter.constructor.name,
+          port: adapters.lollipopActivationCosmosAdapter,
+        },
+        {
+          name: adapters.oneIdIdentityAssertionFetcherAdapter.constructor.name,
+          port: adapters.oneIdIdentityAssertionFetcherAdapter,
+        },
+        {
+          name: adapters.lollipopRevocationQueueAdapter.constructor.name,
+          port: adapters.lollipopRevocationQueueAdapter,
+        },
+      ]),
+    ),
   );
 };
 
@@ -759,6 +768,7 @@ const mountRoutes = ({
 export const createApp = async (
   config: Config,
   packageInfo: PackageInfo,
+  logger: Logger,
 ): Promise<{ server: FastifyInstance }> => {
   const server = fastify({
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
@@ -776,7 +786,7 @@ export const createApp = async (
       adapters.sessionCosmosAdapter,
     );
 
-    mountHealthChecks(server, packageInfo, adapters);
+    mountHealthChecks(server, packageInfo, adapters, logger);
     mountRoutes({ server, config, adapters, useCases, middlewares });
     server.addHook("onRequest", normalizeClientIpHook);
 

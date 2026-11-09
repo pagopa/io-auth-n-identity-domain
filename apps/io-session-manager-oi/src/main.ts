@@ -132,7 +132,7 @@ const registerLifecycle = (
  */
 const start = async () => {
   const { config, packageInfo, logger } = bootstrap();
-  const { server } = await createApp(config, packageInfo);
+  const { server } = await createApp(config, packageInfo, logger);
   const { handleFatalError } = registerLifecycle(server, logger);
 
   try {
