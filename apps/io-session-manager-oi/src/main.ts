@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { fileURLToPath } from "node:url";
 
 import type { NonEmptyString } from "@pagopa/hexagonal-core";
