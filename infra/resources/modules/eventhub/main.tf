@@ -1,6 +1,6 @@
 module "eventhub" {
   source  = "pagopa-dx/azure-event-hub/azurerm"
-  version = "~> 0.1.0"
+  version = "~> 0.2.0"
 
   environment = {
     prefix          = var.prefix
@@ -24,6 +24,11 @@ module "eventhub" {
   metric_alerts   = local.evhns.metric_alerts
 
   use_case = local.evhns.use_case
+
+  diagnostic_settings = {
+    enabled                    = true
+    log_analytics_workspace_id = var.log_analytics_workspace_id
+  }
 
   tags = var.tags
 }

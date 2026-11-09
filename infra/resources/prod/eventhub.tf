@@ -15,5 +15,7 @@ module "eventhub" {
 
   error_action_group = azurerm_monitor_action_group.error_action_group.id
 
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.common_law.id
+
   tags = local.tags
 }
