@@ -14,7 +14,8 @@ const logoutContract = defineRoute({
   path: `${BASE_PATH}/logout`,
   request: {},
   summary: "Execute the logout",
-  description: "Delete user's active session and tokens.",
+  description:
+    "Delete the authenticated session and its tokens, revoke Lollipop and invalidate the session token cache.",
   response: {
     200: {
       description: "Logout succeeded",
@@ -49,6 +50,7 @@ export const mountLogoutHandler =
       middlewares: deps.middlewares,
       inputMapper: (_, context) => ({
         session: context.session,
+        sessionToken: context.sessionToken,
       }),
       outputMapper: (): LogoutOutputDTO => ({ message: "ok" }),
       useCase: deps.useCase,

@@ -535,7 +535,7 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
   /logout:
     post:
-      description: Delete user's active session and tokens.
+      description: Delete the authenticated session and its tokens, revoke Lollipop and invalidate the session token cache.
       operationId: logout
       security:
         - bearerAuth: []
