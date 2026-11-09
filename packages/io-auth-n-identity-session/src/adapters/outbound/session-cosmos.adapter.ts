@@ -270,7 +270,10 @@ export class SessionCosmosAdapter
   }
 
   public async delete(
-    sessionTokens: SessionWithHashedSSOTokens,
+    sessionTokens: Pick<
+      SessionWithHashedSSOTokens,
+      "ssoTokens" | "sessionId" | "hashedSessionToken" | "fiscalCode"
+    >,
   ): Promise<Result<void, GenericError | NotFoundError>> {
     // First delete the ActiveSession, since fiscalCode is needed
     //  to perform the deletion.
@@ -553,7 +556,10 @@ export class SessionCosmosAdapter
   }
 
   private async deleteUserSession(
-    userSessionWithTokens: SessionWithHashedSSOTokens,
+    userSessionWithTokens: Pick<
+      SessionWithHashedSSOTokens,
+      "ssoTokens" | "sessionId" | "hashedSessionToken"
+    >,
   ): Promise<Result<void, GenericError | NotFoundError>> {
     // First delete the SSO token items. The main SESSION- token is deleted last
     // so that, if an SSO deletion fails, it survives as the "anchor" that allows
