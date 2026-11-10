@@ -112,5 +112,8 @@ resource "azurerm_key_vault_secret" "sm_application_insights_connection_string" 
   name         = "sm-application-insights-connection-string"
   key_vault_id = var.key_vault.id
 
-  value_wo = ""
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = var.tags
 }
