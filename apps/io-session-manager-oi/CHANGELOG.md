@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.40.0
+
+### Minor Changes
+
+- 4a90410: Add monitoring stack to Session Manager OI
+
 ## 0.39.0
 
 ### Minor Changes
