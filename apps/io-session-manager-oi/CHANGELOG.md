@@ -1,5 +1,13 @@
 # io-session-manager-oi
 
+## 0.40.1
+
+### Patch Changes
+
+- b180757: invalidate provided user state on logout
+- Updated dependencies [b180757]
+  - @pagopa/io-auth-n-identity-session@0.12.2
+
 ## 0.40.0
 
 ### Minor Changes
