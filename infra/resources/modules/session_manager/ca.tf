@@ -2,14 +2,7 @@ module "sm_ca" {
   source  = "pagopa-dx/azure-container-app/azurerm"
   version = "~> 8.0"
 
-  environment = {
-    prefix          = var.prefix
-    env_short       = var.env_short
-    location        = var.location
-    domain          = var.domain
-    app_name        = local.app_name
-    instance_number = "01"
-  }
+  environment = local.environment
 
   container_app_environment_id = module.sm_cae.id
 

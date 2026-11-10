@@ -2,6 +2,25 @@ locals {
   app_name    = "sm"
   listen_port = 8080
 
+  environment = {
+    prefix          = var.prefix
+    env_short       = var.env_short
+    location        = var.location
+    domain          = var.domain
+    app_name        = local.app_name
+    instance_number = "01"
+  }
+
+  sm_ca_name = provider::dx::resource_name({
+    prefix          = local.environment.prefix
+    environment     = local.environment.env_short
+    location        = local.environment.location
+    domain          = local.environment.domain
+    name            = local.environment.app_name
+    instance_number = tonumber(local.environment.instance_number)
+    resource_type   = "container_app"
+  })
+
   environment_variables = [
     {
       name  = "NODE_ENV"
@@ -285,6 +304,10 @@ locals {
     {
       name  = "APPLICATIONINSIGHTS_ENTRA_ID_AUTH_ENABLED"
       value = "true"
+    },
+    {
+      name  = "OTEL_SERVICE_NAME"
+      value = local.sm_ca_name
     }
   ]
 }
