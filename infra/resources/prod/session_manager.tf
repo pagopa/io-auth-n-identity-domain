@@ -15,6 +15,9 @@ module "session_manager" {
   private_dns_zone_resource_group_name = data.azurerm_resource_group.rg_common.name
 
   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.common_law.id
+  application_insights = {
+    id = data.azurerm_application_insights.application_insights.id
+  }
 
   key_vault = module.key_vaults.auth
 

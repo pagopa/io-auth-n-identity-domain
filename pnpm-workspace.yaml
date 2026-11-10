@@ -15,7 +15,9 @@ catalog:
   '@fastify/formbody': ^8.0.2
   '@hey-api/openapi-ts': ^0.99.0
   '@mattrglobal/http-signatures': ^4.1.0
+  '@opentelemetry/api-logs': ^0.223.0
   '@pagopa/azure-storage-migration-kit': ^0.0.2
+  '@pagopa/azure-tracing': ^0.5.11
   '@pagopa/eslint-config': ^4.0.6
   '@pagopa/express-azure-functions': ^4.0.1
   '@pagopa/handler-kit': ^1.1.1
@@ -106,7 +108,7 @@ catalog:
   winston-transport: ^4.9.0
   xml-crypto: 2.1.6
   yaml: ^2.6.0
-  zod: ^4.0.0
+  zod: ^4.6.7
 
 cleanupUnusedCatalogs: false
 
