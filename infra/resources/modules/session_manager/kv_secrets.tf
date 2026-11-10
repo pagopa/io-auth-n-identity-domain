@@ -67,7 +67,7 @@ resource "azurerm_key_vault_secret" "sm_test_login_password" {
 
   tags = var.tags
 }
-  
+
 resource "azurerm_key_vault_secret" "sm_allow_bpd_ip_source_range" {
   name         = "sm-allow-bpd-ip-source-range"
   key_vault_id = var.key_vault.id
@@ -112,5 +112,5 @@ resource "azurerm_key_vault_secret" "sm_application_insights_connection_string" 
   name         = "sm-application-insights-connection-string"
   key_vault_id = var.key_vault.id
 
-  value_wo         = ""
+  value_wo = ""
 }
