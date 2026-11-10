@@ -31,7 +31,9 @@ const makeTelemetryClient = (
     aiLogger.emit({
       attributes: {
         ...stringify(properties),
-        "exception.stack": exception.stack ?? "",
+        "exception.type": exception.name,
+        "exception.stacktrace": exception.stack ?? "",
+        "exception.message": exception.message,
       },
       body: exception.message,
       severityNumber: SeverityNumber.ERROR,
