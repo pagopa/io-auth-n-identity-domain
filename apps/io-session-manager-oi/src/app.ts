@@ -37,6 +37,7 @@ import { mountSsoZendeskTokenHandler } from "./adapters/inbound/fastify/sso-zend
 import { mountTestLoginHandler } from "./adapters/inbound/fastify/test-login.handler.js";
 import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
+import { IdpFriendlyNameAdapter } from "./adapters/outbound/friendly-name.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
 import { InMemoryTestUserAdapter } from "./adapters/outbound/in-memory-test-user.adapter.js";
 import { createIoFastLoginAdapter } from "./adapters/outbound/io-fast-login.adapter.js";
@@ -65,6 +66,7 @@ import { makeGetUserIdentityUseCase } from "./application/use-cases/get-user-ide
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeInvalidatePreviousUserStateUseCase } from "./application/use-cases/invalidate-previous-user-state.use-case.js";
+import { makeInvalidateProvidedUserStateUseCase } from "./application/use-cases/invalidate-provided-user-state.use-case.js";
 import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
 import { makeLogoutUseCase } from "./application/use-cases/logout.use-case.js";
 import { makeRefreshUserSessionUseCase } from "./application/use-cases/refresh-user-session.use-case.js";
@@ -79,7 +81,6 @@ import {
   TokenParsingStrategyFactory,
   TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
-import { IdpFriendlyNameAdapter } from "./adapters/outbound/friendly-name.adapter.js";
 
 /** Provides a lazily initialized credential shared by the Azure clients. */
 class AzureCredential {
@@ -517,7 +518,12 @@ const createUseCases = (
 
   const logoutUseCase = makeLogoutUseCase({
     authEventPort: adapters.authEventServiceBusAdapter,
-    invalidatePreviousUserStateUseCase,
+    invalidateProvidedUserStateUseCase: makeInvalidateProvidedUserStateUseCase({
+      sessionPort: adapters.sessionCosmosAdapter,
+      lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
+      lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
+      invalidateSessionTokenCacheUseCase,
+    }),
   });
 
   const testLoginUseCase = makeTestLoginUseCase({

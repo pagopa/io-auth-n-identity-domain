@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
 import {
+  mockDelete,
   mockInvalidatePreviousSession,
   resetSessionPortMock,
   SessionPortMock,
@@ -69,6 +70,7 @@ describe("makeInvalidatePreviousUserStateUseCase", () => {
     expect(mockInvalidatePreviousSession).toHaveBeenCalledExactlyOnceWith(
       aFiscalCode,
     );
+    expect(mockDelete).not.toHaveBeenCalled();
     expect(invalidateSessionTokenCache).toHaveBeenCalledExactlyOnceWith(
       aHashedSessionTokenWithSessionId,
     );

@@ -123,7 +123,10 @@ export interface SessionPort {
    * @returns An error if the session is not found or a generic error happens.
    */
   readonly delete: (
-    sessionTokens: SessionWithHashedSSOTokens,
+    sessionTokens: Pick<
+      SessionWithHashedSSOTokens,
+      "ssoTokens" | "sessionId" | "hashedSessionToken" | "fiscalCode"
+    >,
   ) => Promise<Result<void, NotFoundError | GenericError>>;
 
   /**
