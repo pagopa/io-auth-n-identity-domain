@@ -18,7 +18,7 @@ export const withErrorResultLogging =
         }
         default:
           logger.trackEvent({
-            name: "UnhandledError",
+            name: "Error",
             properties: {
               error: JSON.stringify(result.error),
             },
