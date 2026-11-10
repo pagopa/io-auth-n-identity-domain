@@ -226,22 +226,21 @@ locals {
       name  = "SERVICE_BUS_HOSTNAME"
       value = var.service_bus.hostname
     },
-    # TODO: Restrict the allowed IP source range for the following
     {
       name  = "ALLOW_BPD_IP_SOURCE_RANGE"
-      value = "0.0.0.0/0"
+      value = azurerm_key_vault_secret.sm_allow_bpd_ip_source_range.versionless_id
     },
     {
       name  = "ALLOW_FIMS_IP_SOURCE_RANGE"
-      value = "0.0.0.0/0"
+      value = azurerm_key_vault_secret.sm_allow_fims_ip_source_range.versionless_id
     },
     {
       name  = "ALLOW_PAGOPA_IP_SOURCE_RANGE"
-      value = "0.0.0.0/0"
+      value = azurerm_key_vault_secret.sm_allow_pagopa_ip_source_range.versionless_id
     },
     {
       name  = "ALLOW_ZENDESK_IP_SOURCE_RANGE"
-      value = "0.0.0.0/0"
+      value = azurerm_key_vault_secret.sm_allow_zendesk_ip_source_range.versionless_id
     },
     {
       name  = "JWT_ZENDESK_SUPPORT_TOKEN_EXPIRATION"
