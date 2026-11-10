@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.12.2
+
+### Patch Changes
+
+- b180757: invalidate provided user state on logout
+
 ## 0.12.1
 
 ### Patch Changes
