@@ -2,13 +2,24 @@ import "dotenv/config";
 
 import { fileURLToPath } from "node:url";
 
+import type { NonEmptyString } from "@pagopa/hexagonal-core";
+import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import { createPackageInfoAdapter } from "@pagopa/io-package-info";
 
 import { createConfigLoader } from "./adapters/outbound/config-loader.js";
 import { createApp } from "./app.js";
 import { ConfigSchema } from "./domain/value-objects/configs/index.js";
+import { getLogger } from "./telemetry-client.js";
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
+const logger = getLogger("io-web-auth-service" as NonEmptyString);
+
+const reportError = (logger: Logger, message: string, error: unknown): void => {
+  logger.trackException({
+    error: error instanceof Error ? error : new Error(String(error)),
+    properties: { message },
+  });
+};
 
 const bootstrap = () => {
   const configResult = createConfigLoader(ConfigSchema).load();
@@ -32,6 +43,7 @@ const bootstrap = () => {
 
 const registerLifecycle = (
   server: Awaited<ReturnType<typeof createApp>>["server"],
+  logger: Logger,
 ) => {
   let shutdownPromise: Promise<void> | undefined;
 
@@ -44,6 +56,7 @@ const registerLifecycle = (
     }
 
     const timeout = setTimeout(() => {
+      logger.error("Application shutdown timed out");
       console.error("Application shutdown timed out");
       process.exit(1);
     }, SHUTDOWN_TIMEOUT_MS);
@@ -52,18 +65,24 @@ const registerLifecycle = (
       try {
         await server.close();
       } catch (error) {
-        console.error("Failed to close application:", error);
+        reportError(logger, "Failed to close application", error);
         process.exitCode = 1;
       } finally {
-        clearTimeout(timeout);
-        process.exit(process.exitCode ?? 0);
+        try {
+          await logger.flush();
+        } catch (error) {
+          console.error("Failed to flush telemetry:", error);
+        } finally {
+          clearTimeout(timeout);
+          process.exit(process.exitCode ?? 0);
+        }
       }
     })();
     return shutdownPromise;
   };
 
   const handleFatalError = (error: unknown): void => {
-    console.error("Fatal application error:", error);
+    reportError(logger, "Fatal application error", error);
     void shutdown(1);
   };
 
@@ -78,11 +97,12 @@ const registerLifecycle = (
 const start = async () => {
   const { config, packageInfo } = bootstrap();
   const { server } = await createApp(config, packageInfo);
-  const { handleFatalError } = registerLifecycle(server);
+  const { handleFatalError } = registerLifecycle(server, logger);
 
-  server.log.info(packageInfo, "Starting application");
+  logger.info("Starting application", { ...packageInfo });
   try {
     await server.listen({ host: config.HOST, port: config.PORT });
+    logger.info("Server listening", { host: config.HOST, port: config.PORT });
   } catch (error) {
     handleFatalError(error);
   }
@@ -92,7 +112,15 @@ const start = async () => {
 // Start the application
 // -------------------------
 
-await start().catch((error: unknown) => {
-  console.error("Failed to start application:", error);
-  process.exit(1);
+await start().catch(async (error: unknown) => {
+  reportError(logger, "Failed to start application", error);
+  const timeout = setTimeout(() => process.exit(1), SHUTDOWN_TIMEOUT_MS);
+  try {
+    await logger.flush();
+  } catch (flushError) {
+    console.error("Failed to flush telemetry:", flushError);
+  } finally {
+    clearTimeout(timeout);
+    process.exit(1);
+  }
 });

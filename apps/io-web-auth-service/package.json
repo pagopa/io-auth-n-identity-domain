@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "pnpm lint:check --fix",
     "lint:check": "eslint .",
-    "start": "node dist/main.js",
+    "start": "node --import ./dist/instrumentation.js dist/main.js",
     "test": "vitest run -c ./vite.config.mts",
     "test:coverage": "vitest run --coverage -c ./vite.config.mts",
     "openapi:generate": "tsx scripts/generate-openapi.ts",
@@ -23,6 +23,9 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "catalog:",
+    "@azure/identity": "catalog:",
+    "@opentelemetry/api-logs": "catalog:",
+    "@pagopa/azure-tracing": "catalog:",
     "@pagopa/hexagonal-core": "catalog:",
     "@pagopa/hexagonal-fastify": "catalog:",
     "@pagopa/io-auth-n-identity-domain": "workspace:^",

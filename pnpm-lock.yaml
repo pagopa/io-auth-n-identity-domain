@@ -1448,6 +1448,15 @@ importers:
       '@asteasolutions/zod-to-openapi':
         specifier: 'catalog:'
         version: 8.5.0(zod@4.6.7)
+      '@azure/identity':
+        specifier: 'catalog:'
+        version: 4.10.1
+      '@opentelemetry/api-logs':
+        specifier: 'catalog:'
+        version: 0.223.0
+      '@pagopa/azure-tracing':
+        specifier: 'catalog:'
+        version: 0.5.11(typescript@5.8.3)
       '@pagopa/hexagonal-core':
         specifier: 'catalog:'
         version: 0.5.1(@pagopa/azure-tracing@0.5.11(typescript@5.8.3))(@standard-schema/spec@1.1.0)(neverthrow@8.2.0)(zod@4.6.7)

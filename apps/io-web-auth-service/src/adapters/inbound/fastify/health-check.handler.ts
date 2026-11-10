@@ -1,4 +1,5 @@
 import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
+import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { FastifyInstance } from "fastify";
 // IMPORT statement needed to extend RouteContract with operationId field
@@ -58,10 +59,24 @@ export const mountHealthCheckHandler =
   (
     server: FastifyInstance,
     useCase: ReturnType<typeof getHealthCheckUseCase>,
+    logger?: Pick<Logger, "trackEvent" | "debug" | "info" | "warn" | "error">,
   ): void => {
     mountFastifyRoute(server, {
       contract: healthcheckContract(healthCheckContractTemplates[type]),
-      inputMapper: () => ({}),
+      inputMapper: () => {
+        if (type === "readiness") {
+          const properties = { path: healthCheckContractTemplates[type].path };
+          logger?.debug("ReadinessCheck-debug", properties);
+          logger?.info("ReadinessCheck-info", properties);
+          logger?.warn("ReadinessCheck-warn", properties);
+          logger?.error("ReadinessCheck-error", properties);
+          logger?.trackEvent({
+            name: "ReadinessCheck",
+            properties,
+          });
+        }
+        return {};
+      },
       useCase,
     });
   };
