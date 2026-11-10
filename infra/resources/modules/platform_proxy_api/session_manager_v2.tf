@@ -16,6 +16,7 @@ resource "azurerm_api_management_api" "external_api_session_manager_v2" {
   version        = "v2"
   revision       = 1
 
+  description  = local.external_api_session_manager_v2_openapi.info.description
   display_name = local.external_api_session_manager_v2_openapi.info.title
   path         = var.external_api_base_path
   protocols    = ["https"]
