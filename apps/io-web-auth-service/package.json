@@ -6,7 +6,8 @@
   "type": "module",
   "main": "dist/main.js",
   "files": [
-    "dist/*"
+    "dist/*",
+    "applicationinsights.json"
   ],
   "scripts": {
     "clean": "shx rm -rf dist",
@@ -23,8 +24,9 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "catalog:",
-    "@azure/identity": "catalog:",
+    "@opentelemetry/api": "catalog:",
     "@opentelemetry/api-logs": "catalog:",
+    "@opentelemetry/sdk-logs": "catalog:",
     "@pagopa/azure-tracing": "catalog:",
     "@pagopa/hexagonal-core": "catalog:",
     "@pagopa/hexagonal-fastify": "catalog:",

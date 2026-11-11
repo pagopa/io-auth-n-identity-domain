@@ -1,3 +1,4 @@
+import { context, trace, TraceFlags } from "@opentelemetry/api";
 import {
   type LogRecord,
   type LoggerProvider,
@@ -30,6 +31,22 @@ const severities = {
   4: SeverityNumber.FATAL,
 } as const;
 
+const withoutSampling = (emit: () => void): void => {
+  const activeContext = context.active();
+  const spanContext = trace.getSpanContext(activeContext);
+  if (!spanContext) {
+    emit();
+    return;
+  }
+  context.with(
+    trace.setSpanContext(activeContext, {
+      ...spanContext,
+      traceFlags: TraceFlags.SAMPLED,
+    }),
+    emit,
+  );
+};
+
 export const getLogger = (service: NonEmptyString): Logger => {
   const logger = logs.getLogger(service);
   const telemetryEnabled = Boolean(
@@ -55,22 +72,32 @@ export const getLogger = (service: NonEmptyString): Logger => {
     },
     trackEvent: ({ name, properties }) => {
       if (telemetryEnabled) {
-        emitCustomEvent(name, stringify(properties))();
+        const emitEvent = () => emitCustomEvent(name, stringify(properties))();
+        if (
+          properties?.samplingEnabled === false ||
+          properties?.samplingEnabled === "false"
+        ) {
+          withoutSampling(emitEvent);
+        } else {
+          emitEvent();
+        }
       } else {
         emit({ body: name, attributes: stringify(properties) });
       }
     },
     trackException: ({ exception, properties }) =>
-      emit({
-        attributes: {
-          ...stringify(properties),
-          "exception.message": exception.message,
-          "exception.type": exception.name,
-          "exception.stacktrace": exception.stack ?? "",
-        },
-        body: exception.message,
-        severityNumber: SeverityNumber.ERROR,
-      }),
+      withoutSampling(() =>
+        emit({
+          attributes: {
+            ...stringify(properties),
+            "exception.message": exception.message,
+            "exception.type": exception.name,
+            "exception.stacktrace": exception.stack ?? "",
+          },
+          body: exception.message,
+          severityNumber: SeverityNumber.ERROR,
+        }),
+      ),
     trackTrace: ({ message, properties, severity }) =>
       emit({
         attributes: stringify(properties),

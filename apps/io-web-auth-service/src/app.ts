@@ -22,7 +22,6 @@ export const createApp = async (
   mountHealthCheckHandler("readiness")(
     server,
     getHealthCheckUseCase(packageInfo, []),
-    logger,
   );
 
   return { server };
