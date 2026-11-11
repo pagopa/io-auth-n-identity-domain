@@ -758,7 +758,6 @@ const mountRoutes = ({
 
 /**
  * Creates the application and configures resource cleanup without starting the listener.
- * Request logs include URL paths without query parameters.
  *
  * @param config - Application configuration.
  * @param packageInfo - Package metadata.
