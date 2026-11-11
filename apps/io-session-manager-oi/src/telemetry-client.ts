@@ -46,12 +46,16 @@ const makeTelemetryClient = (
     }),
 });
 
-export const getLogger = (service: NonEmptyString): Logger => {
-  const logger = logs.getLogger(service);
-  const client = makeTelemetryClient(logger);
+export type LoggerBuilder = (component: string) => Logger;
 
-  return makeApplicationInsightsLogger({
-    client: client,
-    baseProperties: { service },
-  });
-};
+export const getLoggerBuilder =
+  (service: NonEmptyString, version: NonEmptyString): LoggerBuilder => {
+    const logger = logs.getLogger(service);
+    const client = makeTelemetryClient(logger);
+
+    return (component: string): Logger =>
+      makeApplicationInsightsLogger({
+        client,
+        baseProperties: { service, version, component },
+      });
+  };

@@ -6,6 +6,8 @@ const mocks = vi.hoisted(() => ({
   loadPackageInfo: vi.fn(),
   createConfigLoader: vi.fn(),
   createApp: vi.fn(),
+  getLoggerBuilder: vi.fn(),
+  loggerBuilder: vi.fn(),
   listen: vi.fn(),
   close: vi.fn(),
   exit: vi.fn<typeof process.exit>(() => undefined as never),
@@ -26,7 +28,7 @@ vi.mock("../domain/value-objects/configs/index.js", () => ({
 }));
 vi.mock("../app.js", () => ({ createApp: mocks.createApp }));
 vi.mock("../telemetry-client.js", () => ({
-  getLogger: () => ({ info: mocks.loggerInfo, error: mocks.loggerError }),
+  getLoggerBuilder: mocks.getLoggerBuilder,
 }));
 
 const handlers = new Map<string, (...args: unknown[]) => void>();
@@ -45,6 +47,11 @@ beforeEach(() => {
   mocks.logError.mockReset();
   mocks.loggerInfo.mockReset();
   mocks.loggerError.mockReset();
+  mocks.loggerBuilder.mockReset().mockImplementation(() => ({
+    info: mocks.loggerInfo,
+    error: mocks.loggerError,
+  }));
+  mocks.getLoggerBuilder.mockReset().mockReturnValue(mocks.loggerBuilder);
   vi.spyOn(process, "exit").mockImplementation(mocks.exit);
   vi.spyOn(console, "error").mockImplementation(mocks.logError);
   mocks.loadConfig
@@ -53,7 +60,9 @@ beforeEach(() => {
   mocks.createConfigLoader
     .mockReset()
     .mockReturnValue({ load: mocks.loadConfig });
-  mocks.loadPackageInfo.mockReset().mockReturnValue(ok({ name: "test-app" }));
+  mocks.loadPackageInfo
+    .mockReset()
+    .mockReturnValue(ok({ name: "test-app", version: "1.0.0" }));
   mocks.listen.mockReset().mockResolvedValue(undefined);
   mocks.close.mockReset().mockResolvedValue(undefined);
   mocks.createApp.mockReset().mockResolvedValue({
@@ -93,6 +102,7 @@ describe("application lifecycle", () => {
       "Server listening",
       { host: "127.0.0.1", port: 8080 },
     );
+    expect(mocks.loggerBuilder).toHaveBeenCalledWith("main");
     expect(mocks.exit).not.toHaveBeenCalled();
   });
 
@@ -264,8 +274,8 @@ describe("application lifecycle", () => {
 
     expect(mocks.createApp).toHaveBeenCalledExactlyOnceWith(
       { HOST: "127.0.0.1", PORT: 8080 },
-      { name: "test-app" },
-      { info: mocks.loggerInfo, error: mocks.loggerError },
+      { name: "test-app", version: "1.0.0" },
+      mocks.loggerBuilder,
     );
     expect(mocks.listen).toHaveBeenCalledOnce();
     expect(mocks.exit).not.toHaveBeenCalled();

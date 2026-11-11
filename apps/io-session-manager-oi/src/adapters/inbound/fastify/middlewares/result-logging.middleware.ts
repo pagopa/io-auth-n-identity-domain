@@ -18,7 +18,7 @@ export const withErrorResultLogging =
         }
         default:
           logger.warn(
-            `Unhandled error kind: ${result.error.kind}. Error: ${JSON.stringify(result.error)}`,
+            `${result.error.kind}. Error: ${JSON.stringify(result.error)}`,
           );
           break;
       }
