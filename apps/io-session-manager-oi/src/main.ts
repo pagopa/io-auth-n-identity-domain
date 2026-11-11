@@ -19,8 +19,6 @@ const SHUTDOWN_TIMEOUT_MS = 10_000;
  * @returns The application bootstrap data.
  */
 const bootstrap = () => {
-  const logger = getLogger("io-session-manager-oi" as NonEmptyString);
-
   const configResult = createConfigLoader(ConfigSchema, {
     mappings: {
       TEST_LOGIN_FISCAL_CODES: "TEST_LOGIN_FISCAL_CODES_COMPRESSED",
@@ -42,6 +40,8 @@ const bootstrap = () => {
       cause: packageInfoResult.error,
     });
   }
+
+  const logger = getLogger(packageInfoResult.value.name as NonEmptyString);
 
   return { config, packageInfo: packageInfoResult.value, logger };
 };

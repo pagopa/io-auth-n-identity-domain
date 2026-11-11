@@ -1,4 +1,5 @@
 import type { PackageInfo } from "@pagopa/io-package-info";
+import fastify from "fastify";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Config } from "../domain/value-objects/configs/index.js";
@@ -23,13 +24,13 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("fastify", () => ({
-  default: () => ({
+  default: vi.fn(() => ({
     register: mocks.register,
     addHook: (name: string, hook: () => Promise<void>) =>
       mocks.hooks.set(name, hook),
     close: mocks.close,
     log: { warn: mocks.warn },
-  }),
+  })),
 }));
 vi.mock("@azure/cosmos", () => ({ CosmosClient: mocks.cosmos }));
 vi.mock("@azure/service-bus", () => ({ ServiceBusClient: mocks.serviceBus }));
@@ -164,6 +165,10 @@ describe("createApp resource ownership", () => {
     "closes clients once in reverse order in %s",
     async (NODE_ENV) => {
       const { server } = await createApp(createConfig(NODE_ENV), packageInfo);
+      expect(fastify).toHaveBeenCalledExactlyOnceWith({
+        logger: true,
+        trustProxy: true,
+      });
       expect(mocks.mountGenerateNonce).toHaveBeenCalledExactlyOnceWith(
         server,
         expect.any(Function),

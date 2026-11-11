@@ -265,6 +265,7 @@ describe("application lifecycle", () => {
     expect(mocks.createApp).toHaveBeenCalledExactlyOnceWith(
       { HOST: "127.0.0.1", PORT: 8080 },
       { name: "test-app" },
+      { info: mocks.loggerInfo, error: mocks.loggerError },
     );
     expect(mocks.listen).toHaveBeenCalledOnce();
     expect(mocks.exit).not.toHaveBeenCalled();

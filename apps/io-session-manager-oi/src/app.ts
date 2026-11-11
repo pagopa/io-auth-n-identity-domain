@@ -5,11 +5,7 @@ import { ServiceBusClient } from "@azure/service-bus";
 import { QueueServiceClient } from "@azure/storage-queue";
 import formbody from "@fastify/formbody";
 import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
-import {
-  type BaseError,
-  FiscalCodeSchema,
-  type UseCase,
-} from "@pagopa/hexagonal-core";
+import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import {
   LollipopActivationCosmosAdapter,
@@ -669,12 +665,14 @@ const mountRoutes = ({
   adapters,
   useCases,
   middlewares,
+  logger,
 }: {
   server: FastifyInstance;
   config: Config;
   adapters: Awaited<ReturnType<typeof createAdapters>>;
   useCases: ReturnType<typeof createUseCases>;
   middlewares: ReturnType<typeof createAuthenticationMiddlewares>;
+  logger: Logger;
 }) => {
   mountReserveHandler(server, useCases.reserveUseCase);
 
@@ -747,7 +745,7 @@ const mountRoutes = ({
 
   mountTestLoginHandler(server, {
     middlewares: [extractIpMiddleware] as const,
-    useCase: useCases.testLoginUseCase,
+    useCase: withErrorResultLogging(logger)(useCases.testLoginUseCase),
   });
 
   mountGetUserIdentityHandler({
@@ -760,6 +758,7 @@ const mountRoutes = ({
 
 /**
  * Creates the application and configures resource cleanup without starting the listener.
+ * Request logs include URL paths without query parameters.
  *
  * @param config - Application configuration.
  * @param packageInfo - Package metadata.
@@ -771,6 +770,7 @@ export const createApp = async (
   logger: Logger,
 ): Promise<{ server: FastifyInstance }> => {
   const server = fastify({
+    logger: true,
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
   });
   const lifecycle = createResourceLifecycle(server);
@@ -787,7 +787,7 @@ export const createApp = async (
     );
 
     mountHealthChecks(server, packageInfo, adapters, logger);
-    mountRoutes({ server, config, adapters, useCases, middlewares });
+    mountRoutes({ server, config, adapters, useCases, middlewares, logger });
     server.addHook("onRequest", normalizeClientIpHook);
 
     return { server };

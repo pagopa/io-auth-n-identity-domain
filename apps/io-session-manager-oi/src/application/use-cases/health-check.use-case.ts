@@ -16,12 +16,11 @@ type NamedHealthCheckOutboundPort = {
   port: HealthCheckOutboundPort;
 };
 
-export const getHealthCheckUseCase =
-  (
-    packageInfo: PackageInfo,
-    outboundPorts: ReadonlyArray<NamedHealthCheckOutboundPort> = [],
-  ): UseCase<Record<never, never>, HealthCheckOutput, GenericError> =>
-  async () => {
+export const getHealthCheckUseCase = (
+  packageInfo: PackageInfo,
+  outboundPorts: ReadonlyArray<NamedHealthCheckOutboundPort> = [],
+): UseCase<Record<never, never>, HealthCheckOutput, GenericError> =>
+  async function healthcheck() {
     const errors = await collectErrors(outboundPorts);
 
     if (errors.length > 0) {
