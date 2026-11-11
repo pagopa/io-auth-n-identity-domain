@@ -7,9 +7,9 @@ import { withErrorResultLogging } from "../result-logging.middleware.js";
 
 const createMockLogger = (): Pick<
   Logger,
-  "trackEvent" | "trackException"
+  "warn" | "trackException"
 > => ({
-  trackEvent: vi.fn(),
+  warn: vi.fn(),
   trackException: vi.fn(),
 });
 
@@ -27,10 +27,10 @@ describe("withErrorResultLogging", () => {
     expect(mockLogger.trackException).toHaveBeenCalledWith({
       error: failure.error,
     });
-    expect(mockLogger.trackEvent).not.toHaveBeenCalled();
+    expect(mockLogger.warn).not.toHaveBeenCalled();
   });
 
-  it("logs other error results as events and returns them unchanged", async () => {
+  it("logs other error results as warnings and returns them unchanged", async () => {
     const mockLogger = createMockLogger();
     const failure = err(new ValidationError("Invalid input"));
     const wrappedUseCase = withErrorResultLogging(mockLogger)(
@@ -40,10 +40,9 @@ describe("withErrorResultLogging", () => {
     const result = await wrappedUseCase({});
 
     expect(result).toBe(failure);
-    expect(mockLogger.trackEvent).toHaveBeenCalledWith({
-      name: "Error",
-      properties: { error: JSON.stringify(failure.error) },
-    });
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      `Unhandled error kind: ${failure.error.kind}. Error: ${JSON.stringify(failure.error)}`,
+    );
     expect(mockLogger.trackException).not.toHaveBeenCalled();
   });
 
@@ -56,7 +55,7 @@ describe("withErrorResultLogging", () => {
     const result = await wrappedUseCase({});
 
     expect(result).toBe(success);
-    expect(mockLogger.trackEvent).not.toHaveBeenCalled();
+    expect(mockLogger.warn).not.toHaveBeenCalled();
     expect(mockLogger.trackException).not.toHaveBeenCalled();
   });
 });
