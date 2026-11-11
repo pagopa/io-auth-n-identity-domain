@@ -769,7 +769,6 @@ export const createApp = async (
   logger: Logger,
 ): Promise<{ server: FastifyInstance }> => {
   const server = fastify({
-    logger: true,
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
   });
   const lifecycle = createResourceLifecycle(server);

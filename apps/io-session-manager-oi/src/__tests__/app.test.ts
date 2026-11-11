@@ -181,7 +181,6 @@ describe("createApp resource ownership", () => {
         logger,
       );
       expect(fastify).toHaveBeenCalledExactlyOnceWith({
-        logger: true,
         trustProxy: true,
       });
       expect(mocks.mountGenerateNonce).toHaveBeenCalledExactlyOnceWith(
