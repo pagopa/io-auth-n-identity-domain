@@ -83,7 +83,7 @@ import {
   TokenParsingStrategyFactory,
   TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
-import { getLoggerBuilder, LoggerBuilder } from "./telemetry-client.js";
+import { getLogger } from "./telemetry-client.js";
 
 /** Provides a lazily initialized credential shared by the Azure clients. */
 class AzureCredential {
@@ -597,18 +597,18 @@ const mountHealthChecks = (
   server: FastifyInstance,
   packageInfo: PackageInfo,
   adapters: Awaited<ReturnType<typeof createAdapters>>,
-  loggerBuilder: LoggerBuilder,
+  logger: Logger,
 ) => {
   mountHealthCheckHandler("liveness")(
     server,
-    withErrorResultLogging(loggerBuilder("Liveness"))(
+    withErrorResultLogging(logger)(
       getHealthCheckUseCase(packageInfo),
     ),
   );
 
   mountHealthCheckHandler("readiness")(
     server,
-    withErrorResultLogging(loggerBuilder("Readiness"))(
+    withErrorResultLogging(logger)(
       getHealthCheckUseCase(packageInfo, [
         {
           name: adapters.lockedProfilesAdapter.constructor.name,
@@ -668,14 +668,14 @@ const mountRoutes = ({
   adapters,
   useCases,
   middlewares,
-  loggerBuilder,
+  logger,
 }: {
   server: FastifyInstance;
   config: Config;
   adapters: Awaited<ReturnType<typeof createAdapters>>;
   useCases: ReturnType<typeof createUseCases>;
   middlewares: ReturnType<typeof createAuthenticationMiddlewares>;
-  loggerBuilder: LoggerBuilder;
+  logger: Logger;
 }) => {
   mountReserveHandler(server, useCases.reserveUseCase);
 
@@ -748,7 +748,7 @@ const mountRoutes = ({
 
   mountTestLoginHandler(server, {
     middlewares: [extractIpMiddleware] as const,
-    useCase: withErrorResultLogging(loggerBuilder("TestLogin"))(
+    useCase: withErrorResultLogging(logger)(
       useCases.testLoginUseCase,
     ),
   });
@@ -771,7 +771,7 @@ const mountRoutes = ({
 export const createApp = async (
   config: Config,
   packageInfo: PackageInfo,
-  loggerBuilder: LoggerBuilder,
+  logger: Logger,
 ): Promise<{ server: FastifyInstance }> => {
   const server = fastify({
     trustProxy: true, // Enable trust proxy to get correct client IPs behind proxies (necessary for check-ip hook)
@@ -789,14 +789,14 @@ export const createApp = async (
       adapters.sessionCosmosAdapter,
     );
 
-    mountHealthChecks(server, packageInfo, adapters, loggerBuilder);
+    mountHealthChecks(server, packageInfo, adapters, logger);
     mountRoutes({
       server,
       config,
       adapters,
       useCases,
       middlewares,
-      loggerBuilder,
+      logger,
     });
     server.addHook("onRequest", normalizeClientIpHook);
 

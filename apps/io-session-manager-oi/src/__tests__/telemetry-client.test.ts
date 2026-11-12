@@ -23,13 +23,13 @@ vi.mock("@pagopa/hexagonal-core/adapters/logger", () => ({
   makeApplicationInsightsLogger: mocks.makeApplicationInsightsLogger,
 }));
 
-import { getLoggerBuilder } from "../telemetry-client.js";
+import { getLogger } from "../telemetry-client.js";
 
 const getTelemetryClient = (): AppInsightsTelemetryClient => {
-  getLoggerBuilder(
+  getLogger(
     "io-session-manager-oi" as NonEmptyString,
     "1.0.0" as NonEmptyString,
-  )("test");
+  );
   return mocks.makeApplicationInsightsLogger.mock.calls[0][0].client;
 };
 
@@ -43,29 +43,21 @@ describe("telemetry client", () => {
     mocks.emitCustomEvent.mockReturnValue(mocks.sendCustomEvent);
   });
 
-  it("creates component-scoped loggers over a shared telemetry client", () => {
+  it("creates a service logger over a shared telemetry client", () => {
     const service = "io-session-manager-oi" as NonEmptyString;
     const version = "1.0.0" as NonEmptyString;
-    const loggerBuilder = getLoggerBuilder(service, version);
+    const logger = getLogger(service, version);
 
     expect(mocks.getLogger).toHaveBeenCalledExactlyOnceWith(service);
-    expect(loggerBuilder("main")).toBe(mocks.applicationLogger);
-    expect(loggerBuilder("Readiness")).toBe(mocks.applicationLogger);
-    expect(mocks.getLogger).toHaveBeenCalledExactlyOnceWith(service);
-    expect(mocks.makeApplicationInsightsLogger).toHaveBeenCalledTimes(2);
-    const [mainLogger, readinessLogger] =
-      mocks.makeApplicationInsightsLogger.mock.calls.map(([deps]) => deps);
-    expect(mainLogger).toEqual({
-      client: readinessLogger?.client,
-      baseProperties: { service, version, component: "main" },
+    expect(logger).toBe(mocks.applicationLogger);
+    expect(mocks.makeApplicationInsightsLogger).toHaveBeenCalledExactlyOnceWith({
+      client: expect.objectContaining({
+        trackEvent: expect.any(Function),
+        trackException: expect.any(Function),
+        trackTrace: expect.any(Function),
+      }),
+      baseProperties: { service, version },
     });
-    expect(readinessLogger).toEqual({
-      client: mainLogger?.client,
-      baseProperties: { service, version, component: "Readiness" },
-    });
-    expect(mainLogger?.client).toBe(readinessLogger?.client);
-    expect(mainLogger?.client).toBeDefined();
-    expect(readinessLogger?.client).toBeDefined();
   });
 
   it("emits custom events with stringified properties", () => {

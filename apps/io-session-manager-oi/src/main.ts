@@ -9,7 +9,7 @@ import { createPackageInfoAdapter } from "@pagopa/io-package-info";
 import { createConfigLoader } from "./adapters/outbound/config-loader.js";
 import { createApp } from "./app.js";
 import { ConfigSchema } from "./domain/value-objects/configs/index.js";
-import { getLoggerBuilder } from "./telemetry-client.js";
+import { getLogger } from "./telemetry-client.js";
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 
@@ -41,12 +41,12 @@ const bootstrap = () => {
     });
   }
 
-  const loggerBuilder = getLoggerBuilder(
+  const logger = getLogger(
     packageInfoResult.value.name as NonEmptyString,
     packageInfoResult.value.version as NonEmptyString,
   );
 
-  return { config, packageInfo: packageInfoResult.value, loggerBuilder };
+  return { config, packageInfo: packageInfoResult.value, logger };
 };
 
 /**
@@ -134,9 +134,8 @@ const registerLifecycle = (
  * @returns A promise for application startup.
  */
 const start = async () => {
-  const { config, packageInfo, loggerBuilder } = bootstrap();
-  const { server } = await createApp(config, packageInfo, loggerBuilder);
-  const logger = loggerBuilder("main");
+  const { config, packageInfo, logger } = bootstrap();
+  const { server } = await createApp(config, packageInfo, logger);
   const { handleFatalError } = registerLifecycle(server, logger);
 
   try {
