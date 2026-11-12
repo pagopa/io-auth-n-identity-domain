@@ -83,7 +83,6 @@ import {
   TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
 import { withErrorResultLogging } from "./middlewares/result-logging.middleware.js";
-import { getLogger } from "./telemetry-client.js";
 
 /** Provides a lazily initialized credential shared by the Azure clients. */
 class AzureCredential {
