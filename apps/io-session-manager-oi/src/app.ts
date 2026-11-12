@@ -29,7 +29,6 @@ import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
 import { mountLogoutHandler } from "./adapters/inbound/fastify/logout.handler.js";
 import { extractIpMiddleware } from "./adapters/inbound/fastify/middlewares/extract-ip.middleware.js";
-import { withErrorResultLogging } from "./adapters/inbound/fastify/middlewares/result-logging.middleware.js";
 import { mountReserveHandler } from "./adapters/inbound/fastify/reserve.handler.js";
 import { mountSsoBpdUserHandler } from "./adapters/inbound/fastify/sso-bpd-user.handler.js";
 import { mountSsoFimsLollipopUserHandler } from "./adapters/inbound/fastify/sso-fims-lollipop-user.handler.js";
@@ -83,6 +82,7 @@ import {
   TokenParsingStrategyFactory,
   TokenTransportStrategyFactory,
 } from "./middlewares/authentication/index.js";
+import { withErrorResultLogging } from "./middlewares/result-logging.middleware.js";
 import { getLogger } from "./telemetry-client.js";
 
 /** Provides a lazily initialized credential shared by the Azure clients. */
@@ -601,9 +601,7 @@ const mountHealthChecks = (
 ) => {
   mountHealthCheckHandler("liveness")(
     server,
-    withErrorResultLogging(logger)(
-      getHealthCheckUseCase(packageInfo),
-    ),
+    withErrorResultLogging(logger)(getHealthCheckUseCase(packageInfo)),
   );
 
   mountHealthCheckHandler("readiness")(
@@ -748,9 +746,7 @@ const mountRoutes = ({
 
   mountTestLoginHandler(server, {
     middlewares: [extractIpMiddleware] as const,
-    useCase: withErrorResultLogging(logger)(
-      useCases.testLoginUseCase,
-    ),
+    useCase: withErrorResultLogging(logger)(useCases.testLoginUseCase),
   });
 
   mountGetUserIdentityHandler({

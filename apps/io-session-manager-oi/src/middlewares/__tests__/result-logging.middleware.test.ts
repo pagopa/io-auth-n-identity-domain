@@ -41,7 +41,7 @@ describe("withErrorResultLogging", () => {
 
     expect(result).toBe(failure);
     expect(mockLogger.warn).toHaveBeenCalledWith(
-      `Unhandled error kind: ${failure.error.kind}. Error: ${JSON.stringify(failure.error)}`,
+      `${failure.error.kind}. Error: ${JSON.stringify(failure.error)}`,
     );
     expect(mockLogger.trackException).not.toHaveBeenCalled();
   });
