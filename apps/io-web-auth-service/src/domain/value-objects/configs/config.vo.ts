@@ -1,9 +1,11 @@
 import { z } from "zod";
 
+import { RedisConfigSchema } from "./redis.vo.js";
 import { ServerConfigSchema } from "./server.vo.js";
 
 const CommonConfigShape = {
   ...ServerConfigSchema.shape,
+  ...RedisConfigSchema.shape,
 };
 
 export const ProductionConfigSchema = z.object({

@@ -31,8 +31,9 @@ export const getHealthCheckUseCase =
         ),
       );
     }
+    throw new Error("my custom error");
 
-    return ok(packageInfo);
+    // return ok(packageInfo);
   };
 
 const collectErrors = async (

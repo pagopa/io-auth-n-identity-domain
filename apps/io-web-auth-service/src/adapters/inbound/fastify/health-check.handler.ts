@@ -1,11 +1,16 @@
-import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
+import { defineRoute, GenericError, ProblemJson } from "@pagopa/hexagonal-core";
+import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { FastifyInstance } from "fastify";
 // IMPORT statement needed to extend RouteContract with operationId field
 import * as _hexApi from "@pagopa/hexagonal-openapi";
 
-import { getHealthCheckUseCase } from "../../../application/use-cases/health-check.use-case.js";
+import {
+  getHealthCheckUseCase,
+  HealthCheckOutput,
+} from "../../../application/use-cases/health-check.use-case.js";
 import { HealthCheckResponseDto } from "../dtos/health-check.dto.js";
+import { ok, Result } from "neverthrow";
 
 type HealthCheckType = "liveness" | "readiness";
 type HealthCheckContractTemplate = {
@@ -58,10 +63,38 @@ export const mountHealthCheckHandler =
   (
     server: FastifyInstance,
     useCase: ReturnType<typeof getHealthCheckUseCase>,
+    logger?: Pick<
+      Logger,
+      "trackEvent" | "trackException" | "debug" | "info" | "warn" | "error"
+    >,
   ): void => {
     mountFastifyRoute(server, {
       contract: healthcheckContract(healthCheckContractTemplates[type]),
-      inputMapper: () => ({}),
-      useCase,
+      inputMapper: () => {
+        if (type === "readiness") {
+          const properties = { path: healthCheckContractTemplates[type].path };
+          logger?.debug("ReadinessCheck-debug", properties);
+          logger?.info("ReadinessCheck-info", properties);
+          logger?.warn("ReadinessCheck-warn", properties);
+          logger?.error("ReadinessCheck-error", properties);
+          logger?.trackEvent({
+            name: "ReadinessCheck",
+            properties,
+          });
+        }
+        return {};
+      },
+      useCase: async (_: {}) => {
+        await useCase({}).catch((error: Error) => {
+          logger?.error(error.message);
+          logger?.trackException({
+            error,
+          });
+        });
+        return ok({ name: "foo", version: "0.0.0" }) as Result<
+          HealthCheckOutput,
+          GenericError
+        >;
+      },
     });
   };
