@@ -30,6 +30,23 @@
       "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
       "localRoot": "${workspaceFolder}",
       "remoteRoot": "/usr/src/app"
+    },
+    {
+      "type": "pwa-node",
+      "request": "attach",
+      "name": "Attach to io-web-auth-service (container)",
+      "port": 5861,
+      "address": "localhost",
+      "sourceMaps": true,
+      "protocol": "inspector",
+      "cwd": "${workspaceFolder}",
+      "resolveSourceMapsLocation": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "localRoot": "${workspaceFolder}/apps/io-web-auth-service",
+      "remoteRoot": "/app"
     }
   ]
 }

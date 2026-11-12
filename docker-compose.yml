@@ -9,6 +9,8 @@ name: io-mock
 services:
   io-web-auth-service:
     image: io-web-auth-service
+    depends_on:
+      - redis-standalone
     build:
       context: ./
       dockerfile: ./apps/io-web-auth-service/Dockerfile
@@ -16,6 +18,9 @@ services:
       - ./docker/generated/.env.io-web-auth-service
     ports:
       - "${IO_WEB_AUTH_SERVICE_PORT}:8080"
+      # DEBUG port
+      - 5861:5859
+    command: ["npm", "run", "start:debug"]
     networks:
       - io-fn
     stop_grace_period: 15s
