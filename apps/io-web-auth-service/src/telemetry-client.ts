@@ -67,6 +67,12 @@ export const getLogger = (service: NonEmptyString): Logger => {
           "exception.message": exception.message,
           "exception.type": exception.name,
           "exception.stacktrace": exception.stack ?? "",
+          "exception.cause":
+            exception.cause instanceof Error
+              ? exception.cause.stack ?? exception.cause.message
+              : exception.cause === undefined
+                ? ""
+                : String(exception.cause),
         },
         body: exception.message,
         severityNumber: SeverityNumber.ERROR,

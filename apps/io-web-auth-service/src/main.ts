@@ -14,10 +14,14 @@ import { getLogger } from "./telemetry-client.js";
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 const logger = getLogger("io-web-auth-service" as NonEmptyString);
 
-const reportError = (logger: Logger, message: string, error: unknown): void => {
+const reportError = (
+  logger: Logger,
+  contextMessage: string,
+  error: unknown,
+): void => {
   logger.trackException({
     error: error instanceof Error ? error : new Error(String(error)),
-    properties: { message },
+    properties: { contextMessage },
   });
 };
 
