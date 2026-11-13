@@ -129,6 +129,14 @@ export default defineWorkspace([
     },
   },
   {
+    extends: "apps/io-session-manager-internal-oi/vite.config.mts",
+    test: {
+      name: "io-session-manager-internal-oi",
+      include: ["apps/io-session-manager-internal-oi/**/__tests__/*.test.ts"],
+      environment: "node",
+    },
+  },
+  {
     extends: "packages/azure-sdk/vite.config.mts",
     test: {
       name: "azure-sdk",
