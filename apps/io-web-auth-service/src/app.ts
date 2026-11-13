@@ -12,6 +12,7 @@ export const createApp = async (
   packageInfo: PackageInfo,
 ): Promise<{ server: FastifyInstance }> => {
   const server = fastify({ trustProxy: true });
+  //@typescript-eslint/no-unused-vars: disable-next-line
   const logger = getLogger(packageInfo.name as NonEmptyString);
 
   mountHealthCheckHandler("liveness")(
