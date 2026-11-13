@@ -17,7 +17,8 @@ module "ioweb_auth_service" {
 
   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.common_law.id
   application_insights = {
-    id = data.azurerm_application_insights.application_insights.id
+    id                = data.azurerm_application_insights.application_insights.id
+    connection_string = data.azurerm_application_insights.application_insights.connection_string
   }
   key_vault = module.key_vaults.auth
 }

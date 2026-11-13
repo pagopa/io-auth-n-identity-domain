@@ -81,7 +81,8 @@ variable "log_analytics_workspace_id" {
 
 variable "application_insights" {
   type = object({
-    id = string
+    id                = string
+    connection_string = string
   })
   description = "Application Insights resource receiving telemetry"
 }
