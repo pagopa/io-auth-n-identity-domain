@@ -1,4 +1,6 @@
 import type { PackageInfo } from "@pagopa/io-package-info";
+import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
+import fastify from "fastify";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Config } from "../domain/value-objects/configs/index.js";
@@ -23,13 +25,13 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("fastify", () => ({
-  default: () => ({
+  default: vi.fn(() => ({
     register: mocks.register,
     addHook: (name: string, hook: () => Promise<void>) =>
       mocks.hooks.set(name, hook),
     close: mocks.close,
     log: { warn: mocks.warn },
-  }),
+  })),
 }));
 vi.mock("@azure/cosmos", () => ({ CosmosClient: mocks.cosmos }));
 vi.mock("@azure/service-bus", () => ({ ServiceBusClient: mocks.serviceBus }));
@@ -114,6 +116,16 @@ const createConfig = (NODE_ENV: Config["NODE_ENV"] = "development"): Config =>
   }) as unknown as Config;
 const config = createConfig();
 const packageInfo = { name: "test-app" } as PackageInfo;
+const logger: Logger = {
+  debug: vi.fn(),
+  error: vi.fn(),
+  flush: vi.fn().mockResolvedValue(undefined),
+  info: vi.fn(),
+  trackEvent: vi.fn(),
+  trackException: vi.fn(),
+  warn: vi.fn(),
+  with: vi.fn(),
+};
 
 const closeClients = () => {
   const hook = mocks.hooks.get("onClose");
@@ -126,6 +138,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   mocks.hooks.clear();
   mocks.order.length = 0;
+  vi.mocked(logger.with).mockReturnValue(logger);
   mocks.redis.mockResolvedValue({ close: mocks.redisClose });
   mocks.managedRedis.mockResolvedValue({ close: mocks.redisClose });
   mocks.cosmos.mockImplementation(() => ({ dispose: mocks.dispose }));
@@ -163,7 +176,14 @@ describe("createApp resource ownership", () => {
   it.each(["development", "production"] as const)(
     "closes clients once in reverse order in %s",
     async (NODE_ENV) => {
-      const { server } = await createApp(createConfig(NODE_ENV), packageInfo);
+      const { server } = await createApp(
+        createConfig(NODE_ENV),
+        packageInfo,
+        logger,
+      );
+      expect(fastify).toHaveBeenCalledExactlyOnceWith({
+        trustProxy: true,
+      });
       expect(mocks.mountGenerateNonce).toHaveBeenCalledExactlyOnceWith(
         server,
         expect.any(Function),
@@ -183,6 +203,14 @@ describe("createApp resource ownership", () => {
       expect(mocks.redisClose).toHaveBeenCalledOnce();
     },
   );
+
+  it("creates component-scoped loggers for logged use cases", async () => {
+    await createApp(config, packageInfo, logger);
+
+    expect(logger.with).toHaveBeenCalledWith({ component: "liveness" });
+    expect(logger.with).toHaveBeenCalledWith({ component: "readiness" });
+    expect(logger.with).toHaveBeenCalledWith({ component: "testLogin" });
+  });
 
   it.each([
     ["plugin registration", mocks.register, ["fastify"]],
@@ -205,7 +233,7 @@ describe("createApp resource ownership", () => {
       failureMock.mockImplementationOnce(() => {
         throw error;
       });
-      await expect(createApp(config, packageInfo)).rejects.toBe(error);
+      await expect(createApp(config, packageInfo, logger)).rejects.toBe(error);
       expect(mocks.order).toEqual(expected);
     },
   );
@@ -213,7 +241,7 @@ describe("createApp resource ownership", () => {
   it("closes Fastify when Redis initialization rejects", async () => {
     const error = new Error("Redis connect failed");
     mocks.redis.mockRejectedValueOnce(error);
-    await expect(createApp(config, packageInfo)).rejects.toBe(error);
+    await expect(createApp(config, packageInfo, logger)).rejects.toBe(error);
     expect(mocks.order).toEqual(["fastify"]);
     expect(mocks.redisClose).not.toHaveBeenCalled();
   });
@@ -222,7 +250,7 @@ describe("createApp resource ownership", () => {
     const error = new Error("warm-up failed");
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     mocks.warmUp.mockRejectedValueOnce(error);
-    const { server } = await createApp(config, packageInfo);
+    const { server } = await createApp(config, packageInfo, logger);
     expect(warn).toHaveBeenCalledExactlyOnceWith(
       "Failed to warm up OIDC exchange adapter:",
       error,
@@ -247,7 +275,7 @@ describe("createApp resource ownership", () => {
       mocks.dispose.mockImplementationOnce(() => {
         throw new Error("dispose failed");
       });
-      await expect(createApp(config, packageInfo)).rejects.toBe(error);
+      await expect(createApp(config, packageInfo, logger)).rejects.toBe(error);
       expect(mocks.redisClose).toHaveBeenCalledOnce();
       expect(mocks.close).toHaveBeenCalledOnce();
       expect(mocks.warn).toHaveBeenCalledTimes(2);
@@ -271,7 +299,9 @@ describe("createApp resource ownership", () => {
       mocks.mountReserve.mockImplementationOnce(() => {
         throw error;
       });
-      const result = expect(createApp(config, packageInfo)).rejects.toBe(error);
+      const result = expect(
+        createApp(config, packageInfo, logger),
+      ).rejects.toBe(error);
 
       await vi.advanceTimersByTimeAsync(1_999);
       expect(mocks.warn).not.toHaveBeenCalled();
@@ -296,7 +326,7 @@ describe("createApp resource ownership", () => {
   );
 
   it("continues normal onClose after a rejected client close", async () => {
-    const { server } = await createApp(config, packageInfo);
+    const { server } = await createApp(config, packageInfo, logger);
     mocks.serviceBusClose.mockRejectedValueOnce(new Error("close failed"));
     await server.close();
     expect(mocks.dispose).toHaveBeenCalledOnce();
@@ -312,7 +342,7 @@ describe("createApp resource ownership", () => {
     mocks.close.mockImplementationOnce(() => {
       throw new Error("Fastify close failed");
     });
-    await expect(createApp(config, packageInfo)).rejects.toBe(error);
+    await expect(createApp(config, packageInfo, logger)).rejects.toBe(error);
     expect(mocks.warn).toHaveBeenCalledWith(
       { err: expect.any(Error) },
       "Failed to clean up Fastify server",

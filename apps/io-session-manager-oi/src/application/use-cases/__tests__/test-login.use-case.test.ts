@@ -155,17 +155,16 @@ describe("TestLoginUseCase", () => {
   });
 
   it("returns a GenericError when profile lock validation fails unexpectedly", async () => {
-    mockValidateProfileLocks.mockResolvedValue(err(new GenericError("boom")));
+    const profileLockError = new GenericError("boom");
+    const expectedError = new GenericError(
+      "Error while validating profile locks",
+    );
+    expectedError.cause = profileLockError;
+    mockValidateProfileLocks.mockResolvedValue(err(profileLockError));
 
     const result = await testLogin(input);
 
-    expect(result).toEqual(
-      err(
-        new GenericError(
-          "Error while validating profile locks: Generic error: boom",
-        ),
-      ),
-    );
+    expect(result).toEqual(err(expectedError));
     expect(mockActivateTestUserSession).not.toHaveBeenCalled();
   });
 

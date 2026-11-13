@@ -78,17 +78,21 @@ export const makeTestLoginUseCase =
     if (validateProfileLocksResult.isErr()) {
       const error = validateProfileLocksResult.error;
       switch (error.kind) {
-        case "ForbiddenError":
-          return err(new AuthenticationError());
-        case "GenericError":
-          return err(
-            new GenericError(
-              `Error while validating profile locks: ${error.message}`,
-            ),
-          );
+        case "ForbiddenError": {
+          const e = new AuthenticationError();
+          e.cause = error;
+          return err(e);
+        }
+        case "GenericError": {
+          const e = new GenericError("Error while validating profile locks");
+          e.cause = error;
+          return err(e);
+        }
         default: {
           const _exhaustiveCheck: never = error;
-          return err(new GenericError("Unhandled error"));
+          const e = new GenericError("Unhandled error");
+          e.cause = error;
+          return err(e);
         }
       }
     }
@@ -102,15 +106,21 @@ export const makeTestLoginUseCase =
     });
     if (reserveResult.isErr()) {
       switch (reserveResult.error.kind) {
-        case "GenericError":
-          return err(new GenericError("cannot reserve pubkey"));
-        case "ConflictError":
-          return err(new ConflictError("Pubkey is already reserved"));
+        case "GenericError": {
+          const e = new GenericError("Cannot reserve pubkey");
+          e.cause = reserveResult.error;
+          return err(e);
+        }
+        case "ConflictError": {
+          const e = new ConflictError("Pubkey is already reserved");
+          e.cause = reserveResult.error;
+          return err(e);
+        }
         default: {
           const _exhaustiveCheck: never = reserveResult.error;
-          return err(
-            new GenericError("Unexpected error while reserving pubkey"),
-          );
+          const e = new GenericError("Unexpected error while reserving pubkey");
+          e.cause = reserveResult.error;
+          return err(e);
         }
       }
     }
