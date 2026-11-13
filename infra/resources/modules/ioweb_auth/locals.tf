@@ -18,6 +18,23 @@ locals {
       name  = "PORT"
       value = tostring(local.listen_port)
     },
+    {
+      name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+      value = azurerm_key_vault_secret.auth_application_insights_connection_string.versionless_id
+    },
+    {
+      name  = "APPLICATIONINSIGHTS_ENTRA_ID_AUTH_ENABLED"
+      value = "true"
+    },
+    {
+      name  = "APPLICATIONINSIGHTS_CONFIGURATION_FILE"
+      value = "/app/applicationinsights.json"
+    },
+    #Low-request service
+    {
+      name  = "APPINSIGHTS_SAMPLING_PERCENTAGE"
+      value = "100"
+    },
     # Values aligned with the WEU session-manager configuration.
     {
       name  = "FETCH_KEEPALIVE_ENABLED"

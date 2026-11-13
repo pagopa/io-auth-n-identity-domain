@@ -9,6 +9,9 @@ const mocks = vi.hoisted(() => ({
   listen: vi.fn(),
   close: vi.fn(),
   info: vi.fn(),
+  error: vi.fn(),
+  trackException: vi.fn(),
+  flush: vi.fn(),
   exit: vi.fn<typeof process.exit>(() => undefined as never),
   logError: vi.fn<typeof console.error>(),
 }));
@@ -24,6 +27,14 @@ vi.mock("../domain/value-objects/configs/index.js", () => ({
   ConfigSchema: {},
 }));
 vi.mock("../app.js", () => ({ createApp: mocks.createApp }));
+vi.mock("../telemetry-client.js", () => ({
+  getLogger: () => ({
+    info: mocks.info,
+    error: mocks.error,
+    trackException: mocks.trackException,
+    flush: mocks.flush,
+  }),
+}));
 
 const handlers = new Map<string, (...args: unknown[]) => void>();
 const originalExitCode = process.exitCode;
@@ -40,6 +51,9 @@ beforeEach(() => {
   mocks.exit.mockClear();
   mocks.logError.mockReset();
   mocks.info.mockReset();
+  mocks.error.mockReset();
+  mocks.trackException.mockReset();
+  mocks.flush.mockReset().mockResolvedValue(undefined);
   // Never terminate the test runner; real exits are tested in child processes.
   vi.spyOn(process, "exit").mockImplementation(mocks.exit);
   vi.spyOn(console, "error").mockImplementation(mocks.logError);
@@ -88,10 +102,10 @@ describe("bootstrap and lifecycle", () => {
       { HOST: "127.0.0.1", PORT: 3000, NODE_ENV: "development" },
       { name: "io-web-auth-service", version: "0.1.0" },
     );
-    expect(mocks.info).toHaveBeenCalledWith(
-      { name: "io-web-auth-service", version: "0.1.0" },
-      "Starting application",
-    );
+    expect(mocks.info).toHaveBeenCalledWith("Starting application", {
+      name: "io-web-auth-service",
+      version: "0.1.0",
+    });
     expect(mocks.listen).toHaveBeenCalledExactlyOnceWith({
       host: "127.0.0.1",
       port: 3000,
@@ -116,6 +130,7 @@ describe("bootstrap and lifecycle", () => {
       expect(mocks.exit).not.toHaveBeenCalled();
       finishClose();
       await vi.advanceTimersByTimeAsync(0);
+      expect(mocks.flush).toHaveBeenCalledOnce();
       expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(0);
       expect(vi.getTimerCount()).toBe(0);
     },
@@ -143,10 +158,10 @@ describe("bootstrap and lifecycle", () => {
       emit(event, error);
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(mocks.logError).toHaveBeenCalledWith(
-        "Fatal application error:",
+      expect(mocks.trackException).toHaveBeenCalledWith({
         error,
-      );
+        properties: { contextMessage: "Fatal application error" },
+      });
       expect(mocks.close).toHaveBeenCalledOnce();
       expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(1);
       expect(vi.getTimerCount()).toBe(0);
@@ -164,10 +179,10 @@ describe("bootstrap and lifecycle", () => {
       emit("SIGINT");
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(mocks.logError).toHaveBeenCalledWith(
-        "Fatal application error:",
+      expect(mocks.trackException).toHaveBeenCalledWith({
         error,
-      );
+        properties: { contextMessage: "Fatal application error" },
+      });
       expect(mocks.close).toHaveBeenCalledOnce();
       expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(1);
     },
@@ -183,6 +198,7 @@ describe("bootstrap and lifecycle", () => {
     await vi.advanceTimersByTimeAsync(1);
 
     expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(1);
+    expect(mocks.error).toHaveBeenCalledWith("Application shutdown timed out");
     expect(mocks.logError).toHaveBeenCalledWith(
       "Application shutdown timed out",
     );
@@ -196,10 +212,10 @@ describe("bootstrap and lifecycle", () => {
     emit("SIGINT");
     await vi.advanceTimersByTimeAsync(0);
 
-    expect(mocks.logError).toHaveBeenCalledWith(
-      "Failed to close application:",
+    expect(mocks.trackException).toHaveBeenCalledWith({
       error,
-    );
+      properties: { contextMessage: "Failed to close application" },
+    });
     expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(1);
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -224,22 +240,32 @@ describe("bootstrap and lifecycle", () => {
 
       if (stage === "listen") {
         expect(mocks.close).toHaveBeenCalledOnce();
-        expect(mocks.logError).toHaveBeenCalledWith(
-          "Fatal application error:",
+        expect(mocks.trackException).toHaveBeenCalledWith({
           error,
-        );
+          properties: { contextMessage: "Fatal application error" },
+        });
       } else {
         expect(mocks.close).not.toHaveBeenCalled();
         expect(mocks.listen).not.toHaveBeenCalled();
         expect(handlers.size).toBe(0);
-        expect(mocks.logError).toHaveBeenCalledWith(
-          "Failed to start application:",
-          expect.any(Error),
-        );
+        expect(mocks.trackException).toHaveBeenCalledWith({
+          error:
+            stage === "createApp"
+              ? error
+              : expect.objectContaining({
+                  message:
+                    stage === "configuration"
+                      ? "Failed to load configuration"
+                      : "Failed to load package info",
+                  cause: error,
+                }),
+          properties: { contextMessage: "Failed to start application" },
+        });
         if (stage !== "createApp") {
           expect(mocks.createApp).not.toHaveBeenCalled();
         }
       }
+      expect(mocks.flush).toHaveBeenCalledOnce();
       expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(1);
       expect(vi.getTimerCount()).toBe(0);
     },
@@ -286,10 +312,10 @@ describe("bootstrap and lifecycle", () => {
     await vi.advanceTimersByTimeAsync(0);
 
     expect(mocks.close).toHaveBeenCalledOnce();
-    expect(mocks.logError).toHaveBeenCalledWith(
-      "Fatal application error:",
+    expect(mocks.trackException).toHaveBeenCalledWith({
       error,
-    );
+      properties: { contextMessage: "Fatal application error" },
+    });
     expect(mocks.exit).toHaveBeenCalledExactlyOnceWith(1);
     expect(vi.getTimerCount()).toBe(0);
   });

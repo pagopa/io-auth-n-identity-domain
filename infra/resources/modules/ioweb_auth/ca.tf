@@ -74,9 +74,25 @@ module "auth_ca_iam" {
   subscription_id = var.subscription_id
   principal_id    = module.auth_service_ca.principal_id
 
+  key_vault = [{
+    name                = var.key_vault.name
+    resource_group_name = var.key_vault.resource_group_name
+    description         = "Allow the ioweb auth Container App to read secrets"
+    roles = {
+      secrets = "reader"
+    }
+  }]
+
   managed_redis = [{
     id          = module.managed_redis.id
     role        = "writer"
     description = "Allow the ioweb auth Container App to read/write the Azure Managed Redis cache"
   }]
+}
+
+resource "azurerm_role_assignment" "auth_ca_appinsights_metrics_publisher" {
+  scope                = var.application_insights.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = module.auth_service_ca.principal_id
+  description          = "Allow the ioweb auth Container App to publish telemetry to Application Insights"
 }
