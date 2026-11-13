@@ -26,7 +26,6 @@
     "@asteasolutions/zod-to-openapi": "catalog:",
     "@opentelemetry/api": "catalog:",
     "@opentelemetry/api-logs": "catalog:",
-    "@opentelemetry/sdk-logs": "catalog:",
     "@pagopa/azure-tracing": "catalog:",
     "@pagopa/hexagonal-core": "catalog:",
     "@pagopa/hexagonal-fastify": "catalog:",
