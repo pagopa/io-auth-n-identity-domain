@@ -138,6 +138,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   mocks.hooks.clear();
   mocks.order.length = 0;
+  vi.mocked(logger.with).mockReturnValue(logger);
   mocks.redis.mockResolvedValue({ close: mocks.redisClose });
   mocks.managedRedis.mockResolvedValue({ close: mocks.redisClose });
   mocks.cosmos.mockImplementation(() => ({ dispose: mocks.dispose }));
@@ -202,6 +203,14 @@ describe("createApp resource ownership", () => {
       expect(mocks.redisClose).toHaveBeenCalledOnce();
     },
   );
+
+  it("creates component-scoped loggers for logged use cases", async () => {
+    await createApp(config, packageInfo, logger);
+
+    expect(logger.with).toHaveBeenCalledWith({ component: "liveness" });
+    expect(logger.with).toHaveBeenCalledWith({ component: "readiness" });
+    expect(logger.with).toHaveBeenCalledWith({ component: "testLogin" });
+  });
 
   it.each([
     ["plugin registration", mocks.register, ["fastify"]],

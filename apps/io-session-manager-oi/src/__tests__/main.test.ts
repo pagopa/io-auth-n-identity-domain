@@ -7,7 +7,8 @@ const mocks = vi.hoisted(() => ({
   createConfigLoader: vi.fn(),
   createApp: vi.fn(),
   getLogger: vi.fn(),
-  logger: { info: vi.fn(), error: vi.fn() },
+  loggerWith: vi.fn(),
+  logger: { info: vi.fn(), error: vi.fn(), with: vi.fn() },
   listen: vi.fn(),
   close: vi.fn(),
   exit: vi.fn<typeof process.exit>(() => undefined as never),
@@ -49,6 +50,8 @@ beforeEach(() => {
   mocks.loggerError.mockReset();
   mocks.logger.info = mocks.loggerInfo;
   mocks.logger.error = mocks.loggerError;
+  mocks.loggerWith.mockReset().mockReturnValue(mocks.logger);
+  mocks.logger.with = mocks.loggerWith;
   mocks.getLogger.mockReset().mockReturnValue(mocks.logger);
   vi.spyOn(process, "exit").mockImplementation(mocks.exit);
   vi.spyOn(console, "error").mockImplementation(mocks.logError);
@@ -104,6 +107,8 @@ describe("application lifecycle", () => {
       "test-app",
       "1.0.0",
     );
+    expect(mocks.loggerWith).toHaveBeenCalledWith({ component: "lifecycle" });
+    expect(mocks.loggerWith).toHaveBeenCalledWith({ component: "main" });
     expect(mocks.exit).not.toHaveBeenCalled();
   });
 

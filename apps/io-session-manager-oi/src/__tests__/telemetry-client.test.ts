@@ -50,14 +50,16 @@ describe("telemetry client", () => {
 
     expect(mocks.getLogger).toHaveBeenCalledExactlyOnceWith(service);
     expect(logger).toBe(mocks.applicationLogger);
-    expect(mocks.makeApplicationInsightsLogger).toHaveBeenCalledExactlyOnceWith({
-      client: expect.objectContaining({
-        trackEvent: expect.any(Function),
-        trackException: expect.any(Function),
-        trackTrace: expect.any(Function),
-      }),
-      baseProperties: { service, version },
-    });
+    expect(mocks.makeApplicationInsightsLogger).toHaveBeenCalledExactlyOnceWith(
+      {
+        client: expect.objectContaining({
+          trackEvent: expect.any(Function),
+          trackException: expect.any(Function),
+          trackTrace: expect.any(Function),
+        }),
+        baseProperties: { service, version },
+      },
+    );
   });
 
   it("emits custom events with stringified properties", () => {

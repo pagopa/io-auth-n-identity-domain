@@ -46,13 +46,18 @@ const makeTelemetryClient = (
     }),
 });
 
-export const getLogger =
-  (service: NonEmptyString, version: NonEmptyString): Logger => {
-    const logger = logs.getLogger(service);
-    const client = makeTelemetryClient(logger);
-
-    return makeApplicationInsightsLogger({
-      client,
-      baseProperties: { service, version },
-    });
-  };
+/**
+ * Creates a service logger whose component-scoped variants share one telemetry client.
+ *
+ * @param service - Service name used as the OpenTelemetry logger name.
+ * @param version - Service version attached to every record.
+ * @returns The service logger.
+ */
+export const getLogger = (
+  service: NonEmptyString,
+  version: NonEmptyString,
+): Logger =>
+  makeApplicationInsightsLogger({
+    client: makeTelemetryClient(logs.getLogger(service)),
+    baseProperties: { service, version },
+  });

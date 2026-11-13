@@ -590,6 +590,7 @@ const createAuthenticationMiddlewares = (
  * @param server - Application server.
  * @param packageInfo - Package metadata.
  * @param adapters - Outbound adapters.
+ * @param logger - Application logger used to create component-scoped loggers.
  * @returns Nothing.
  */
 const mountHealthChecks = (
@@ -598,14 +599,18 @@ const mountHealthChecks = (
   adapters: Awaited<ReturnType<typeof createAdapters>>,
   logger: Logger,
 ) => {
-  mountHealthCheckHandler("liveness")(
+  const liveness = "liveness";
+  mountHealthCheckHandler(liveness)(
     server,
-    withErrorResultLogging(logger)(getHealthCheckUseCase(packageInfo)),
+    withErrorResultLogging(logger.with({ component: liveness }))(
+      getHealthCheckUseCase(packageInfo),
+    ),
   );
 
-  mountHealthCheckHandler("readiness")(
+  const readiness = "readiness";
+  mountHealthCheckHandler(readiness)(
     server,
-    withErrorResultLogging(logger)(
+    withErrorResultLogging(logger.with({ component: readiness }))(
       getHealthCheckUseCase(packageInfo, [
         {
           name: adapters.lockedProfilesAdapter.constructor.name,
@@ -655,7 +660,7 @@ const mountHealthChecks = (
 /**
  * Registers application routes.
  *
- * @param options - Route dependencies.
+ * @param options - Route dependencies, including the application logger.
  * @returns Nothing.
  */
 // eslint-disable-next-line max-lines-per-function
@@ -745,7 +750,9 @@ const mountRoutes = ({
 
   mountTestLoginHandler(server, {
     middlewares: [extractIpMiddleware] as const,
-    useCase: withErrorResultLogging(logger)(useCases.testLoginUseCase),
+    useCase: withErrorResultLogging(logger.with({ component: "testLogin" }))(
+      useCases.testLoginUseCase,
+    ),
   });
 
   mountGetUserIdentityHandler({
@@ -761,6 +768,7 @@ const mountRoutes = ({
  *
  * @param config - Application configuration.
  * @param packageInfo - Package metadata.
+ * @param logger - Application logger used for component-specific logging.
  * @returns The configured application server.
  */
 export const createApp = async (
