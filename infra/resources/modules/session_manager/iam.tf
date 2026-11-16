@@ -94,10 +94,34 @@ module "ca_iam" {
   ]
 }
 
+module "sm_int_iam" {
+  source  = "pagopa-dx/azure-role-assignments/azurerm"
+  version = "~> 3.0"
+
+  subscription_id = var.subscription_id
+  principal_id    = module.sm_int_ca.principal_id
+
+  key_vault = [{
+    name                = var.key_vault.name
+    resource_group_name = var.key_vault.resource_group_name
+    description         = "Allow Session Manager Internal Container App to read secrets"
+    roles = {
+      secrets = "reader"
+    }
+  }]
+}
+
 resource "azurerm_role_assignment" "sm_ca_appinsights_metrics_publisher" {
   scope                = var.application_insights.id
   role_definition_name = "Monitoring Metrics Publisher"
   principal_id         = module.sm_ca.principal_id
   description          = "Allow session manager container app to publish telemetry to Application Insights"
+}
+
+resource "azurerm_role_assignment" "sm_int_ca_appinsights_metrics_publisher" {
+  scope                = var.application_insights.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = module.sm_int_ca.principal_id
+  description          = "Allow Session Manager Internal container app to publish telemetry to Application Insights"
 }
 

@@ -2,7 +2,7 @@ locals {
   app_name    = "sm"
   listen_port = 8080
 
-  environment_variables = [
+  env_vars_common = [
     {
       name  = "NODE_ENV"
       value = "production"
@@ -41,6 +41,9 @@ locals {
       name  = "FETCH_KEEPALIVE_TIMEOUT"
       value = "60000"
     },
+  ]
+
+  env_vars_sm = [
     # Lollipop service
     {
       name  = "LOLLIPOP_API_URL"
@@ -287,4 +290,6 @@ locals {
       value = "true"
     }
   ]
+
+  env_vars_sm_int = []
 }
