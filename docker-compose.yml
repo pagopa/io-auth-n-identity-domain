@@ -7,6 +7,19 @@
 name: io-mock
 
 services:
+  io-session-manager-internal-oi:
+    image: io-session-manager-internal-oi
+    build:
+      context: ./
+      dockerfile: ./apps/io-session-manager-internal-oi/Dockerfile
+    env_file:
+      - ./docker/generated/.env.io-session-manager-internal-oi
+    ports:
+      - "${IO_SESSION_MANAGER_INTERNAL_OI_PORT:-8082}:8080"
+    networks:
+      - io-fn
+    stop_grace_period: 15s
+
   io-web-auth-service:
     image: io-web-auth-service
     build:
