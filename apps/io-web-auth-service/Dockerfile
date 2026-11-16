@@ -24,6 +24,7 @@ WORKDIR /app
 COPY --chown=node:node --from=builder /repo/deploy/node_modules ./node_modules
 COPY --chown=node:node --from=builder /repo/deploy/dist ./dist
 COPY --chown=node:node --from=builder /repo/deploy/package.json ./package.json
+COPY --chown=node:node --from=builder /repo/deploy/applicationinsights.json ./applicationinsights.json
 
 USER node
 EXPOSE 8080

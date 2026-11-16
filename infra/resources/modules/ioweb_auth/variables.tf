@@ -79,6 +79,23 @@ variable "log_analytics_workspace_id" {
   description = "Log Analytics Workspace ID for monitoring"
 }
 
+variable "application_insights" {
+  type = object({
+    id                = string
+    connection_string = string
+  })
+  description = "Application Insights resource receiving telemetry"
+}
+
+variable "key_vault" {
+  type = object({
+    id                  = string
+    name                = string
+    resource_group_name = string
+  })
+  description = "Key Vault for storing secrets"
+}
+
 variable "action_group_id" {
   type        = string
   description = "The ID of the Action Group to invoke when an alert is triggered"
