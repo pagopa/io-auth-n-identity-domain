@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.40.2
+
+### Patch Changes
+
+- 9733d8d: Add error logging middleware
+
 ## 0.40.1
 
 ### Patch Changes
