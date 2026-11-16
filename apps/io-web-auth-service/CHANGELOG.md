@@ -1,5 +1,11 @@
 # io-web-auth-service
 
+## 0.4.0
+
+### Minor Changes
+
+- 6b65a4d: Add Azure Monitor and OpenTelemetry lifecycle logging with severity mapping, exception stacks, and bounded telemetry flushing on shutdown.
+
 ## 0.3.0
 
 ### Minor Changes
