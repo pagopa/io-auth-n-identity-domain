@@ -13,6 +13,7 @@ catalog:
   '@azure/storage-blob': ^12.29.1
   '@azure/storage-queue': ^12.22.0
   '@fastify/formbody': ^8.0.2
+  '@fastify/otel': 0.21.0
   '@hey-api/openapi-ts': ^0.99.0
   '@mattrglobal/http-signatures': ^4.1.0
   '@opentelemetry/api-logs': ^0.223.0

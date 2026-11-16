@@ -26,7 +26,10 @@ vi.mock("@pagopa/hexagonal-core/adapters/logger", () => ({
 import { getLogger } from "../telemetry-client.js";
 
 const getTelemetryClient = (): AppInsightsTelemetryClient => {
-  getLogger("io-session-manager-oi" as NonEmptyString);
+  getLogger(
+    "io-session-manager-oi" as NonEmptyString,
+    "1.0.0" as NonEmptyString,
+  );
   return mocks.makeApplicationInsightsLogger.mock.calls[0][0].client;
 };
 
@@ -40,15 +43,23 @@ describe("telemetry client", () => {
     mocks.emitCustomEvent.mockReturnValue(mocks.sendCustomEvent);
   });
 
-  it("creates a service-scoped application insights logger", () => {
+  it("creates a service logger over a shared telemetry client", () => {
     const service = "io-session-manager-oi" as NonEmptyString;
+    const version = "1.0.0" as NonEmptyString;
+    const logger = getLogger(service, version);
 
-    expect(getLogger(service)).toBe(mocks.applicationLogger);
     expect(mocks.getLogger).toHaveBeenCalledExactlyOnceWith(service);
-    expect(mocks.makeApplicationInsightsLogger).toHaveBeenCalledWith({
-      client: expect.any(Object),
-      baseProperties: { service },
-    });
+    expect(logger).toBe(mocks.applicationLogger);
+    expect(mocks.makeApplicationInsightsLogger).toHaveBeenCalledExactlyOnceWith(
+      {
+        client: expect.objectContaining({
+          trackEvent: expect.any(Function),
+          trackException: expect.any(Function),
+          trackTrace: expect.any(Function),
+        }),
+        baseProperties: { service, version },
+      },
+    );
   });
 
   it("emits custom events with stringified properties", () => {

@@ -2,12 +2,17 @@ import { FiscalCodeBrand } from "@pagopa/hexagonal-core";
 import { z } from "zod";
 
 import {
+  ApplicationInsightsDevelopmentConfigSchema,
+  ApplicationInsightsProductionConfigSchema,
+} from "./application-insights.vo.js";
+import {
   AuthEventServiceBusDevelopmentConfigSchema,
   AuthEventServiceBusProductionConfigSchema,
 } from "./auth-event-service-bus.vo.js";
 import { BPDConfigSchema } from "./bpd.vo.js";
 import { IoFastLoginConfigSchema } from "./fast-login.vo.js";
 import { FimsConfigSchema } from "./fims.vo.js";
+import { IdpFriendlyNameConfigSchema } from "./friendly-name.vo.js";
 import {
   LockedProfilesDevelopmentConfigSchema,
   LockedProfilesProductionConfigSchema,
@@ -46,7 +51,6 @@ import {
 } from "./technical-locked-profiles.vo.js";
 import { TestLoginConfigSchema } from "./test-login.vo.js";
 import { ZendeskConfigSchema } from "./zendesk.vo.js";
-import { IdpFriendlyNameConfigSchema } from "./friendly-name.vo.js";
 
 // This is a temporary workaround to ensure that the branded types are included in the type system.
 const _brands = [FiscalCodeBrand];
@@ -87,6 +91,7 @@ export const ProductionConfigSchema = z.object({
   ...AuthEventServiceBusProductionConfigSchema.shape,
   ...LollipopActivationCosmosProductionConfigSchema.shape,
   ...LollipopRevocationQueueProductionConfigSchema.shape,
+  ...ApplicationInsightsProductionConfigSchema.shape,
 });
 
 export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
@@ -106,6 +111,7 @@ export const DevelopmentConfigSchema = z.object({
   ...AuthEventServiceBusDevelopmentConfigSchema.shape,
   ...LollipopActivationCosmosDevelopmentConfigSchema.shape,
   ...LollipopRevocationQueueDevelopmentConfigSchema.shape,
+  ...ApplicationInsightsDevelopmentConfigSchema.shape,
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;

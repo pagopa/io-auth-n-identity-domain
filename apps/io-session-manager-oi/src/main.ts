@@ -14,13 +14,12 @@ import { getLogger } from "./telemetry-client.js";
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 
 /**
- * Loads application configuration and package metadata.
+ * Loads application configuration and package metadata, and creates the
+ * application logger.
  *
  * @returns The application bootstrap data.
  */
 const bootstrap = () => {
-  const logger = getLogger("io-session-manager-oi" as NonEmptyString);
-
   const configResult = createConfigLoader(ConfigSchema, {
     mappings: {
       TEST_LOGIN_FISCAL_CODES: "TEST_LOGIN_FISCAL_CODES_COMPRESSED",
@@ -43,6 +42,11 @@ const bootstrap = () => {
     });
   }
 
+  const logger = getLogger(
+    packageInfoResult.value.name as NonEmptyString,
+    packageInfoResult.value.version as NonEmptyString,
+  );
+
   return { config, packageInfo: packageInfoResult.value, logger };
 };
 
@@ -50,6 +54,7 @@ const bootstrap = () => {
  * Registers process lifecycle handlers with a shared shutdown operation.
  *
  * @param server - Application server.
+ * @param logger - Logger used for lifecycle messages.
  * @returns The fatal-error handler.
  */
 const registerLifecycle = (
@@ -132,12 +137,15 @@ const registerLifecycle = (
  */
 const start = async () => {
   const { config, packageInfo, logger } = bootstrap();
-  const { server } = await createApp(config, packageInfo);
-  const { handleFatalError } = registerLifecycle(server, logger);
+  const { server } = await createApp(config, packageInfo, logger);
+  const { handleFatalError } = registerLifecycle(
+    server,
+    logger.with({ component: "lifecycle" }),
+  );
 
   try {
     await server.listen({ host: config.HOST, port: config.PORT });
-    logger.info("Server listening", {
+    logger.with({ component: "main" }).info("Server listening", {
       host: config.HOST,
       port: config.PORT,
     });
