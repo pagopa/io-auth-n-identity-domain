@@ -19,7 +19,11 @@ vi.mock(
   },
 );
 
-const config = ConfigSchema.parse({});
+const config = ConfigSchema.parse({
+  HOST: "0.0.0.0",
+  PORT: "8080",
+  NODE_ENV: "development",
+});
 const packageInfo: PackageInfo = {
   name: "io-session-manager-internal-oi",
   version: "0.0.0",
