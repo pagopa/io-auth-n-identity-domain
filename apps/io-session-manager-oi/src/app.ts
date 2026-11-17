@@ -11,8 +11,8 @@ import {
   LollipopActivationCosmosAdapter,
   SessionCosmosAdapter,
 } from "@pagopa/io-auth-n-identity-session/adapters";
-import { TechnicalLockedProfilesDataTableAdapter } from "@pagopa/io-session-manager-core";
 import { type PackageInfo } from "@pagopa/io-package-info";
+import { TechnicalLockedProfilesDataTableAdapter } from "@pagopa/io-session-manager-core";
 import {
   createRedisClusterClient,
   createRedisManagedIdentityClusterClient,
