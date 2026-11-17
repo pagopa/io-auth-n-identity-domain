@@ -208,7 +208,6 @@ describe("makeHandleOidcCallbackUseCase", () => {
     });
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toEqual({
-      outcome: "success",
       token: CLIENT_SESSION_TOKEN,
     });
     expect(sendEventMock).not.toHaveBeenCalled();
@@ -256,7 +255,6 @@ describe("makeHandleOidcCallbackUseCase", () => {
         });
 
         expect(result._unsafeUnwrap()).toEqual({
-          outcome: "success",
           token: CLIENT_SESSION_TOKEN,
         });
         expect(activateUserSessionUseCase).toHaveBeenCalledOnce();
@@ -273,7 +271,6 @@ describe("makeHandleOidcCallbackUseCase", () => {
       });
 
       expect(result._unsafeUnwrap()).toEqual({
-        outcome: "error",
         errorCode: "1004",
       });
       expect(sendEventMock).toHaveBeenCalledExactlyOnceWith({
@@ -307,7 +304,6 @@ describe("makeHandleOidcCallbackUseCase", () => {
       });
 
       expect(result._unsafeUnwrap()).toEqual({
-        outcome: "error",
         errorCode: "1004",
       });
       expect(sendEventMock).toHaveBeenCalledOnce();
@@ -324,7 +320,6 @@ describe("makeHandleOidcCallbackUseCase", () => {
       });
 
       expect(result._unsafeUnwrap()).toEqual({
-        outcome: "error",
         errorCode: "1004",
       });
       await vi.waitFor(() => {
@@ -348,7 +343,6 @@ describe("makeHandleOidcCallbackUseCase", () => {
       });
 
       expect(result._unsafeUnwrap()).toEqual({
-        outcome: "error",
         errorCode: "1004",
       });
       await vi.waitFor(() => {
@@ -380,7 +374,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     });
   });
 
-  it("validates the state then returns an error outcome on an OIDC error response", async () => {
+  it("returns an error outcome on an OIDC error response", async () => {
     const result = await handleOidcCallbackUseCase({
       callback: ERROR_CALLBACK,
       ipAddress: IP_ADDRESS,
@@ -388,15 +382,30 @@ describe("makeHandleOidcCallbackUseCase", () => {
 
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toEqual({
-      outcome: "error",
-      errorCode: ERROR_CALLBACK.error,
-      errorMessage: ERROR_CALLBACK.error_description,
+      errorCode: undefined,
+      errorMessage: ERROR_CALLBACK.error,
     });
     expect(retrieveMock).toHaveBeenCalledExactlyOnceWith(STATE);
     expect(exchangeMock).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
     expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+  });
+
+  it("returns a numeric error code parsed from error_description", async () => {
+    const result = await handleOidcCallbackUseCase({
+      callback: {
+        state: STATE,
+        error: ERROR_CALLBACK.error,
+        error_description: "22" as NonEmptyString,
+      },
+      ipAddress: IP_ADDRESS,
+    });
+
+    expect(result._unsafeUnwrap()).toEqual({
+      errorCode: "22",
+      errorMessage: ERROR_CALLBACK.error,
+    });
   });
 
   it.each([
@@ -432,7 +441,6 @@ describe("makeHandleOidcCallbackUseCase", () => {
 
       if (accepted) {
         expect(result._unsafeUnwrap()).toEqual({
-          outcome: "success",
           token: CLIENT_SESSION_TOKEN,
         });
         expect(activateUserSessionUseCase).toHaveBeenCalledOnce();
@@ -500,7 +508,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
-  it("falls back to the generic error code when the provider omits the error", async () => {
+  it("returns the generic error message when the callback contains neither code nor error", async () => {
     const result = await handleOidcCallbackUseCase({
       callback: { state: STATE },
       ipAddress: IP_ADDRESS,
@@ -508,9 +516,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
 
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toEqual({
-      outcome: "error",
-      errorCode: "GENERIC_ERROR",
-      errorMessage: undefined,
+      errorMessage: "error occurred",
     });
     expect(exchangeMock).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
@@ -607,7 +613,6 @@ describe("makeHandleOidcCallbackUseCase", () => {
     });
 
     expect(result._unsafeUnwrap()).toEqual({
-      outcome: "error",
       errorCode: "1002",
     });
     expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
@@ -669,7 +674,6 @@ describe("makeHandleOidcCallbackUseCase", () => {
       ) => {
         if (rejectionCause === "auth_lock") {
           expect(result._unsafeUnwrap()).toEqual({
-            outcome: "error",
             errorCode: "1002",
           });
         } else {
