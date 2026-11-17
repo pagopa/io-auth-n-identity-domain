@@ -226,5 +226,17 @@
     "version": "5.0.1",
     "name": "unknown",
     "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/5.0.1"
+  },
+  "session_manager.sm_int_ca": {
+    "hash": "1b22b0e7d3a0159918027d803245cc73356e0fd597dfb085cb2d51edadb38570",
+    "version": "8.0.3",
+    "name": "unknown",
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-container-app/azurerm/8.0.3"
+  },
+  "session_manager.sm_int_iam": {
+    "hash": "8afefbb742a762be737c3d4a7f99e61f353cd2022357d4af6c9a894ee052aece",
+    "version": "3.0.1",
+    "name": "azure_role_assignments",
+    "source": "https://registry.terraform.io/modules/pagopa-dx/azure-role-assignments/azurerm/3.0.1"
   }
 }

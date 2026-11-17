@@ -2,7 +2,7 @@ locals {
   app_name    = "sm"
   listen_port = 8080
 
-  environment_variables = [
+  env_vars_common = [
     {
       name  = "NODE_ENV"
       value = "production"
@@ -41,6 +41,17 @@ locals {
       name  = "FETCH_KEEPALIVE_TIMEOUT"
       value = "60000"
     },
+    {
+      name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+      value = azurerm_key_vault_secret.sm_application_insights_connection_string.versionless_id
+    },
+    {
+      name  = "APPLICATIONINSIGHTS_ENTRA_ID_AUTH_ENABLED"
+      value = "true"
+    }
+  ]
+
+  env_vars_sm = [
     # Lollipop service
     {
       name  = "LOLLIPOP_API_URL"
@@ -278,13 +289,7 @@ locals {
       name  = "TEST_LOGIN_PASSWORD"
       value = azurerm_key_vault_secret.sm_test_login_password.versionless_id
     },
-    {
-      name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
-      value = azurerm_key_vault_secret.sm_application_insights_connection_string.versionless_id
-    },
-    {
-      name  = "APPLICATIONINSIGHTS_ENTRA_ID_AUTH_ENABLED"
-      value = "true"
-    }
   ]
+
+  env_vars_sm_int = []
 }
