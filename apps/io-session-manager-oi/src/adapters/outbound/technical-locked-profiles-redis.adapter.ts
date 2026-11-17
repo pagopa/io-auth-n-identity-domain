@@ -10,7 +10,7 @@ import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import { Result, err, ok } from "neverthrow";
 import { RedisClientType, RedisClusterType } from "redis";
 
-import { TechnicalLockedProfilesPort } from "../../domain/ports/outbound/technical-locked-profiles.port.js";
+import { TechnicalLockedProfilesPort } from "@pagopa/io-session-manager-core";
 
 export const BLOCKED_USERS_SET_KEY = "BLOCKEDUSERS";
 
