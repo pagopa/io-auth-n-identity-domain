@@ -18,9 +18,11 @@ import {
 } from "@pagopa/io-session-manager-core";
 import fastify, { type FastifyInstance } from "fastify";
 
+import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { mountTechnicalLockUserSessionHandler } from "./adapters/inbound/fastify/technical-lock-user-session.handler.js";
 import { mountTechnicalUnlockUserSessionHandler } from "./adapters/inbound/fastify/technical-unlock-user-session.handler.js";
+import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeTechnicalLockUserSessionUseCase } from "./application/use-cases/technical-lock-user-session.use-case.js";
 import { makeTechnicalUnlockUserSessionUseCase } from "./application/use-cases/technical-unlock-user-session.use-case.js";
@@ -233,9 +235,12 @@ const createUseCases = (
       adapters.technicalLockedProfilesAdapter,
     );
 
+  const getSessionUseCase = makeGetSessionUseCase(adapters.sessionCosmosAdapter);
+
   return {
     technicalLockUserSessionUseCase,
     technicalUnlockUserSessionUseCase,
+    getSessionUseCase,
   };
 };
 
@@ -280,6 +285,8 @@ const mountRoutes = ({
     server,
     useCases.technicalUnlockUserSessionUseCase,
   );
+
+  mountGetSessionHandler(server, useCases.getSessionUseCase);
 };
 
 export const createApp = async (
