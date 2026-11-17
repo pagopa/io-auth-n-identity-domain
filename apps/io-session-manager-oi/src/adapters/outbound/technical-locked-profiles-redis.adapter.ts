@@ -2,15 +2,13 @@ import {
   FiscalCode,
   FiscalCodeSchema,
   GenericError,
-  ValidationError,
 } from "@pagopa/hexagonal-core";
+import type { TechnicalLockedProfilesPort } from "@pagopa/io-session-manager-core";
 import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { RedisError } from "@pagopa/redis";
 import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import { Result, err, ok } from "neverthrow";
 import { RedisClientType, RedisClusterType } from "redis";
-
-import { TechnicalLockedProfilesPort } from "@pagopa/io-session-manager-core";
 
 export const BLOCKED_USERS_SET_KEY = "BLOCKEDUSERS";
 
