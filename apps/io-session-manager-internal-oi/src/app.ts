@@ -18,10 +18,12 @@ import {
 } from "@pagopa/io-session-manager-core";
 import fastify, { type FastifyInstance } from "fastify";
 
+import { mountGetSessionStateHandler } from "./adapters/inbound/fastify/get-session-state.handler.js";
 import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { mountTechnicalLockUserSessionHandler } from "./adapters/inbound/fastify/technical-lock-user-session.handler.js";
 import { mountTechnicalUnlockUserSessionHandler } from "./adapters/inbound/fastify/technical-unlock-user-session.handler.js";
+import { makeGetSessionStateUseCase } from "./application/use-cases/get-session-state.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeTechnicalLockUserSessionUseCase } from "./application/use-cases/technical-lock-user-session.use-case.js";
@@ -236,11 +238,20 @@ const createUseCases = (
     );
 
   const getSessionUseCase = makeGetSessionUseCase(adapters.sessionCosmosAdapter);
+  const getSessionStateUseCase = makeGetSessionStateUseCase({
+    findActiveSession: adapters.sessionCosmosAdapter.findActiveSession.bind(
+      adapters.sessionCosmosAdapter,
+    ),
+    isLocked: adapters.technicalLockedProfilesAdapter.isLocked.bind(
+      adapters.technicalLockedProfilesAdapter,
+    ),
+  });
 
   return {
     technicalLockUserSessionUseCase,
     technicalUnlockUserSessionUseCase,
     getSessionUseCase,
+    getSessionStateUseCase,
   };
 };
 
@@ -287,6 +298,7 @@ const mountRoutes = ({
   );
 
   mountGetSessionHandler(server, useCases.getSessionUseCase);
+  mountGetSessionStateHandler(server, useCases.getSessionStateUseCase);
 };
 
 export const createApp = async (

@@ -74,6 +74,10 @@ beforeEach(() => {
   vi.spyOn(SessionCosmosAdapter.prototype, "findActiveSession").mockResolvedValue(
     err(new NotFoundError("ActiveSession", "ActiveSession not found")),
   );
+  vi.spyOn(
+    TechnicalLockedProfilesDataTableAdapter.prototype,
+    "isLocked",
+  ).mockResolvedValue(ok(false));
 });
 
 describe("createApp", () => {
@@ -181,6 +185,44 @@ describe("createApp", () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.json()).toEqual({ active: false });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns the complete session state for a valid fiscal code", async () => {
+    vi.mocked(SessionCosmosAdapter.prototype.findActiveSession).mockResolvedValue(
+      ok({
+        fiscalCode,
+        loginType: "LV",
+        sessionId: SessionIdSchema.parse("test-session-id"),
+        createdAt: new Date("2025-01-01T00:00:00.000Z"),
+        expirationDate: new Date(Date.now() + 60_000),
+        _rid: "rid",
+        _ts: 1,
+        _self: "self",
+        _etag: "etag",
+      }),
+    );
+    vi.mocked(
+      TechnicalLockedProfilesDataTableAdapter.prototype.isLocked,
+    ).mockResolvedValue(ok(true));
+    const { server } = await createTestApp();
+    try {
+      const response = await server.inject({
+        method: "GET",
+        url: `/api/auth/v2/sessions/${fiscalCode}/state`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({
+        access_enabled: false,
+        session_info: {
+          active: true,
+          expiration_date: expect.any(String),
+          type: "LV",
+        },
+      });
     } finally {
       await server.close();
     }
