@@ -98,7 +98,7 @@ describe("makeRefreshUserSessionUseCase", () => {
     expect(mockRefresh).toHaveBeenCalledOnce();
   });
 
-  it("invalidates the previous session token cache after refreshing", async () => {
+  it("invalidates the previous session token cache before refreshing", async () => {
     mockFindSessionTokenBySessionId.mockResolvedValueOnce(
       ok(aHashedSessionTokenWithSessionId),
     );
@@ -114,9 +114,9 @@ describe("makeRefreshUserSessionUseCase", () => {
     expect(
       mockFindSessionTokenBySessionId.mock.invocationCallOrder[0],
     ).toBeLessThan(mockRefresh.mock.invocationCallOrder[0]);
-    expect(mockRefresh.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(
       mockInvalidateSessionTokenCache.mock.invocationCallOrder[0],
-    );
+    ).toBeLessThan(mockRefresh.mock.invocationCallOrder[0]);
   });
 
   it("returns an error and does not refresh when the previous session token lookup fails", async () => {
@@ -137,7 +137,7 @@ describe("makeRefreshUserSessionUseCase", () => {
     expect(mockRefresh).not.toHaveBeenCalled();
   });
 
-  it("returns an error when cache invalidation fails after refreshing", async () => {
+  it("returns an error and does not refresh when cache invalidation fails", async () => {
     mockFindSessionTokenBySessionId.mockResolvedValueOnce(
       ok(aHashedSessionTokenWithSessionId),
     );
@@ -148,10 +148,10 @@ describe("makeRefreshUserSessionUseCase", () => {
     });
 
     expect(result).toEqual(err(aGenericError));
-    expect(mockRefresh).toHaveBeenCalledOnce();
+    expect(mockRefresh).not.toHaveBeenCalled();
   });
 
-  it("does not invalidate the cache when refresh fails", async () => {
+  it("invalidates the cache before returning a refresh failure", async () => {
     mockFindSessionTokenBySessionId.mockResolvedValueOnce(
       ok(aHashedSessionTokenWithSessionId),
     );
@@ -162,7 +162,9 @@ describe("makeRefreshUserSessionUseCase", () => {
     });
 
     expect(result).toEqual(err(expect.any(GenericError)));
-    expect(mockInvalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockInvalidateSessionTokenCache).toHaveBeenCalledExactlyOnceWith(
+      aHashedSessionTokenWithSessionId,
+    );
   });
 
   it("preserves the generated token expiry when it precedes the active session expiry", async () => {

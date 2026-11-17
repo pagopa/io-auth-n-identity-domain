@@ -67,7 +67,8 @@ export const makeRefreshUserSessionUseCase =
     const activeSession = activeSessionResult.value;
 
     /****************************************************************/
-    /* Find the previous session token, before refresh deletes it   */
+    /* Find the previous session token, before refresh deletes it,  */
+    /* and invalidate its cache if it exists.                       */
     /****************************************************************/
     const previousSessionTokenResult =
       await deps.sessionPort.findSessionTokenBySessionId(
@@ -82,6 +83,14 @@ export const makeRefreshUserSessionUseCase =
       );
     }
     const previousSessionToken = previousSessionTokenResult.value;
+
+    if (previousSessionToken) {
+      const invalidationResult =
+        await deps.invalidateSessionTokenCacheUseCase(previousSessionToken);
+      if (invalidationResult.isErr()) {
+        return err(invalidationResult.error);
+      }
+    }
 
     /*************************************/
     /* Generate new plain session tokens */
@@ -119,19 +128,6 @@ export const makeRefreshUserSessionUseCase =
           `Failed to refresh user session: ${refreshResult.error.message}`,
         ),
       );
-    }
-
-    /******************************************************************/
-    /* Invalidate the previous session token cache                    */
-    /* Done after the refresh, so that a concurrent request using the */
-    /* previous token cannot repopulate the cache from the DB.        */
-    /******************************************************************/
-    if (previousSessionToken) {
-      const invalidationResult =
-        await deps.invalidateSessionTokenCacheUseCase(previousSessionToken);
-      if (invalidationResult.isErr()) {
-        return err(invalidationResult.error);
-      }
     }
 
     return ok(
