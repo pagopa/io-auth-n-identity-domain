@@ -11,6 +11,7 @@ import {
   LollipopActivationCosmosAdapter,
   SessionCosmosAdapter,
 } from "@pagopa/io-auth-n-identity-session/adapters";
+import { TechnicalLockedProfilesDataTableAdapter } from "@pagopa/io-session-manager-core";
 import { type PackageInfo } from "@pagopa/io-package-info";
 import {
   createRedisClusterClient,
@@ -51,7 +52,6 @@ import { NotificationStorageQueueAdapter } from "./adapters/outbound/notificatio
 import { OneIdIdentityAssertionFetcherAdapter } from "./adapters/outbound/one-id-identity-assertion-fetcher-adapter.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
-import { TechnicalLockedProfilesDataTableAdapter } from "./adapters/outbound/technical-locked-profiles-data-table.adapter.js";
 import { TechnicalLockedProfilesRedisAdapter } from "./adapters/outbound/technical-locked-profiles-redis.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { makeFastLoginUseCase } from "./application/use-cases/fast-login.use-case.js";

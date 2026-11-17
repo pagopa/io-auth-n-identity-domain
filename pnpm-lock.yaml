@@ -1439,6 +1439,9 @@ importers:
       '@pagopa/io-package-info':
         specifier: workspace:^
         version: link:../../packages/io-package-info
+      '@pagopa/io-session-manager-core':
+        specifier: workspace:^
+        version: link:../../packages/io-session-manager-core
       '@pagopa/redis':
         specifier: workspace:^
         version: link:../../packages/redis
