@@ -6,6 +6,88 @@ info:
 servers:
   - url: https://api-web.io.pagopa.it/ioweb/auth/v2
 components:
-  schemas: {}
+  schemas:
+    ProblemDetails:
+      type: object
+      properties:
+        detail:
+          type: string
+        status:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          format: uri
+      required:
+        - detail
+        - status
+        - title
+        - type
+      description: RFC 7807 Problem Details for HTTP APIs. See https://www.rfc-editor.org/rfc/rfc7807.
+    OidcConfigurationEnv:
+      type: string
+      enum:
+        - UAT
+        - PROD
+      default: PROD
+      description: The OneIdentity configuration environment. Defaults to `PROD` when omitted.
+    SpidAuthLevel:
+      type: string
+      enum:
+        - SpidL1
+        - SpidL2
+        - SpidL3
+      description: The minimum SPID authentication level requested.
   parameters: {}
-paths: {}
+paths:
+  /login:
+    get:
+      description: Prepares an OpenID Connect authorization request towards OneIdentity and redirects the client to its authorization endpoint.
+      operationId: startLogin
+      security: []
+      summary: Start the OIDC login flow
+      tags:
+        - oidc
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/OidcConfigurationEnv"
+          required: false
+          description: The OneIdentity configuration environment. Defaults to `PROD` when omitted.
+          name: env
+          in: query
+        - schema:
+            $ref: "#/components/schemas/SpidAuthLevel"
+          required: true
+          description: The minimum SPID authentication level requested.
+          name: min_auth_level
+          in: query
+        - schema:
+            type: string
+            minLength: 1
+            description: The identity provider the user wants to log in with, forwarded to OneIdentity.
+          required: true
+          description: The identity provider the user wants to log in with, forwarded to OneIdentity.
+          name: idp
+          in: query
+      responses:
+        "302":
+          description: Redirect (`302`) to the OneIdentity authorization endpoint carrying the authorization request parameters in the query string.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: "`<authorization_endpoint>?client_id=…&redirect_uri=…&scope=openid&state=…&nonce=…&response_type=code&acr_values=…&idp=…`"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"

@@ -9,12 +9,14 @@ import {
   writeOpenApiYaml,
 } from "@pagopa/hexagonal-openapi";
 
+import { loginRoute } from "../src/adapters/inbound/fastify/login.handler.js";
+
 const check = process.argv.includes("--check");
 const outputPath = fileURLToPath(
   new URL("../api/external.yaml", import.meta.url),
 );
 
-const routes: ReadonlyArray<AnyRouteContract> = [];
+const routes: ReadonlyArray<AnyRouteContract> = [loginRoute];
 
 const document = {
   ...buildOpenApiDocument({
