@@ -95,9 +95,14 @@ describe("createApp", () => {
         expect(mocks.managedRedis).toHaveBeenCalledWith(
           expect.any(Object),
           vi.mocked(DefaultAzureCredential).mock.instances[0],
+          expect.any(Function),
         );
       } else {
         expect(DefaultAzureCredential).not.toHaveBeenCalled();
+        expect(mocks.redis).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.any(Function),
+        );
       }
 
       await server.close();

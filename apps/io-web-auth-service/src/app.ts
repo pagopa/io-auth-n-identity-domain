@@ -103,6 +103,7 @@ const createResourceLifecycle = (server: FastifyInstance) => {
  *
  * @param config - Application configuration.
  * @param registerCleanup - Resource cleanup registration callback.
+ * @param logger - Application logger for infrastructure client errors.
  * @returns The initialized infrastructure clients.
  */
 const createClients = async (
@@ -110,7 +111,11 @@ const createClients = async (
   registerCleanup: ReturnType<
     typeof createResourceLifecycle
   >["registerCleanup"],
+  logger: Logger,
 ) => {
+  const onRedisError = (error: Error): void =>
+    logger.error("Redis client error", { error: error.message });
+
   if (config.NODE_ENV === "production") {
     // Production: use Azure-managed services with a shared Azure credential.
     const azureCredential = new DefaultAzureCredential();
@@ -121,17 +126,21 @@ const createClients = async (
         enableTls: config.REDIS_TLS_ENABLED,
       },
       azureCredential,
+      onRedisError,
     );
     registerCleanup("Redis client", () => redisClient.close());
     return { redisClient };
   } else {
     // Development: use local services without depending on Azure credentials.
-    const redisClient = await createRedisClusterClient({
-      hostname: config.REDIS_HOSTNAME,
-      password: config.REDIS_PASSWORD,
-      port: config.REDIS_PORT,
-      enableTls: config.REDIS_TLS_ENABLED,
-    });
+    const redisClient = await createRedisClusterClient(
+      {
+        hostname: config.REDIS_HOSTNAME,
+        password: config.REDIS_PASSWORD,
+        port: config.REDIS_PORT,
+        enableTls: config.REDIS_TLS_ENABLED,
+      },
+      onRedisError,
+    );
     registerCleanup("Redis client", () => redisClient.close());
     return { redisClient };
   }
@@ -221,7 +230,11 @@ export const createApp = async (
   try {
     server.addHook("onClose", lifecycle.cleanupResources);
 
-    const clients = await createClients(config, lifecycle.registerCleanup);
+    const clients = await createClients(
+      config,
+      lifecycle.registerCleanup,
+      logger,
+    );
     const adapters = await createAdapters(config, clients, logger);
 
     mountRoutes(server, packageInfo, adapters, logger);
