@@ -174,7 +174,7 @@ export const createRedisManagedIdentityNodeClient = async (
  * const client = await createRedisClusterClient({ hostname, password });
  * ```
  *
- * @param onError - Optional listener for client errors, registered before connecting.
+ * @param onError - Optional listener for cluster and node errors, registered before connecting.
  * @throws Any error thrown by `client.connect()`. The caller decides
  *   whether to retry or fail-fast.
  */
@@ -222,6 +222,7 @@ export const createRedisClusterClient = async (
 
   if (onError) {
     client.on("error", onError);
+    client.on("node-error", onError);
   }
   return connectRedisClient(client);
 };
@@ -234,7 +235,7 @@ export const createRedisClusterClient = async (
  * const client = await createRedisManagedIdentityClusterClient({ hostname }, credential);
  * ```
  *
- * @param onError - Optional listener for client errors, registered before connecting.
+ * @param onError - Optional listener for cluster and node errors, registered before connecting.
  * @throws Any error thrown by `client.connect()`. The caller decides
  *   whether to retry or fail-fast.
  */
@@ -292,6 +293,7 @@ export const createRedisManagedIdentityClusterClient = async (
 
   if (onError) {
     client.on("error", onError);
+    client.on("node-error", onError);
   }
 
   return connectRedisClient(client);

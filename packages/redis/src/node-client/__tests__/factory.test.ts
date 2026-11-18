@@ -221,7 +221,7 @@ describe.each([
       ),
   ],
 ] as const)("%s cluster errors", (_name, create) => {
-  it("reports errors emitted during connect and after startup", async () => {
+  it("reports cluster errors during connect and after startup", async () => {
     const client = Object.assign(new EventEmitter(), buildFakeClient());
     const connectError = new Error("temporary connection error");
     const runtimeError = new Error("socket closed");
@@ -235,6 +235,26 @@ describe.each([
     client.emit("error", runtimeError);
 
     expect(onError.mock.calls).toEqual([[connectError], [runtimeError]]);
+  });
+
+  it("reports individual node errors during connect and after startup", async () => {
+    const client = Object.assign(new EventEmitter(), buildFakeClient());
+    const node = { host: "cache", port: 6379 };
+    const connectError = new Error("temporary node connection error");
+    const runtimeError = new Error("node socket closed");
+    const onError = vi.fn();
+    client.connect.mockImplementationOnce(async () => {
+      client.emit("node-error", connectError, node);
+    });
+    createCluster.mockReturnValueOnce(client);
+
+    expect(await create(onError)).toBe(client);
+    client.emit("node-error", runtimeError, node);
+
+    expect(onError.mock.calls).toEqual([
+      [connectError, node],
+      [runtimeError, node],
+    ]);
   });
 });
 
