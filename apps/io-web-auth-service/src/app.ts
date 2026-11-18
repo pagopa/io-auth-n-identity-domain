@@ -30,9 +30,10 @@ const CLEANUP_TIMEOUT_MS = 2_000;
  * Cleanup runs once in reverse registration order, logging failures and timeouts.
  *
  * @param server - Application server.
+ * @param logger - Application logger for cleanup failures.
  * @returns Resource lifecycle operations.
  */
-const createResourceLifecycle = (server: FastifyInstance) => {
+const createResourceLifecycle = (server: FastifyInstance, logger: Logger) => {
   const cleanups: { name: string; close: () => unknown }[] = [];
   let cleanupPromise: Promise<void> | undefined;
 
@@ -57,7 +58,9 @@ const createResourceLifecycle = (server: FastifyInstance) => {
         }),
       ]);
     } catch (error) {
-      server.log.warn({ err: error }, `Failed to clean up ${name}`);
+      logger.error(`Failed to clean up ${name}`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       clearTimeout(timeout);
     }
@@ -224,8 +227,8 @@ export const createApp = async (
 ): Promise<{ server: FastifyInstance }> => {
   // Trust proxy to resolve the real client IP behind the Application Gateway.
   const server = fastify({ trustProxy: true });
-  const lifecycle = createResourceLifecycle(server);
   const logger = getLogger(packageInfo.name as NonEmptyString);
+  const lifecycle = createResourceLifecycle(server, logger);
 
   try {
     server.addHook("onClose", lifecycle.cleanupResources);

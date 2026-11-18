@@ -111,6 +111,19 @@ describe("createApp", () => {
     },
   );
 
+  it("logs Redis cleanup failures without failing shutdown", async () => {
+    vi.stubEnv("APPLICATIONINSIGHTS_CONNECTION_STRING", "");
+    mocks.redisClose.mockRejectedValueOnce(new Error("Redis close failed"));
+    const { server } = await createApp(config, packageInfo);
+
+    await server.close();
+
+    expect(console.error).toHaveBeenCalledWith(
+      "Failed to clean up Redis client",
+      expect.objectContaining({ error: "Redis close failed" }),
+    );
+  });
+
   it("fails startup when the Redis client cannot be created", async () => {
     const error = new Error("Redis connect failed");
     mocks.redis.mockRejectedValueOnce(error);
