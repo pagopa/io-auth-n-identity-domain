@@ -13,5 +13,7 @@ export const RedisProductionConfigSchema = z.object({
 });
 
 export const RedisDevelopmentConfigSchema = RedisProductionConfigSchema.extend({
-  REDIS_PASSWORD: NonEmptyStringSchema.optional(),
+  REDIS_PASSWORD: NonEmptyStringSchema.or(
+    z.literal("").transform(() => undefined),
+  ).optional(),
 });

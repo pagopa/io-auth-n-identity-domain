@@ -3,6 +3,10 @@ import { z } from "zod";
 
 import { HttpUrlCodec } from "../../../utils/codec/url.js";
 
+const OptionalUatCredentialSchema = NonEmptyStringSchema.or(
+  z.literal("").transform(() => undefined),
+).optional();
+
 export const OneIdConfigSchema = z.object({
   ONEID_PROD_CLIENT_ID: NonEmptyStringSchema,
   ONEID_PROD_CLIENT_SECRET: NonEmptyStringSchema,
@@ -10,9 +14,11 @@ export const OneIdConfigSchema = z.object({
   // Callback URL registered on OneIdentity, shared by the PROD and UAT clients.
   ONEID_PROD_REDIRECT_URI: HttpUrlCodec,
 
-  ONEID_UAT_CLIENT_ID: NonEmptyStringSchema.optional(),
-  ONEID_UAT_CLIENT_SECRET: NonEmptyStringSchema.optional(),
-  ONEID_UAT_ISSUER: HttpUrlCodec.optional(),
+  ONEID_UAT_CLIENT_ID: OptionalUatCredentialSchema,
+  ONEID_UAT_CLIENT_SECRET: OptionalUatCredentialSchema,
+  ONEID_UAT_ISSUER: HttpUrlCodec.or(
+    z.literal("").transform(() => undefined),
+  ).optional(),
 
   // Timeout (seconds) applied to every HTTP request towards the OIDC provider
   // (discovery, JWKS, token endpoint). Prevents slow upstream responses from
