@@ -1,0 +1,32 @@
+meta {
+  name: Login
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{IO_WEB_AUTH_SERVICE_BASE_URL}}/login?env=UAT&min_auth_level=SpidL2&idp=https://idp.uat.io.oneid.pagopa.it
+  body: none
+  auth: none
+}
+
+params:query {
+  env: UAT
+  min_auth_level: SpidL2
+  idp: https://idp.uat.io.oneid.pagopa.it
+}
+
+script:pre-request {
+  req.setMaxRedirects(0);
+}
+
+script:post-response {
+  console.log("↓ OneID authorize location ↓")
+  console.log(res.getHeader("location"))
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+}
