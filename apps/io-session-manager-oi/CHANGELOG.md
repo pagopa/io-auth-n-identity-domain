@@ -1,5 +1,17 @@
 # io-session-manager-oi
 
+## 0.40.3
+
+### Patch Changes
+
+- f2329b3: Integrate library `@pagopa/io-session-manager-core`.
+
+  Update `TechnicalLockedProfilesPort` and `TechnicalLockedProfilesDataTableAdapter` references.
+
+- fdb160e: Update cache deletion order in Refresh Use Case
+- Updated dependencies [f2329b3]
+  - @pagopa/io-session-manager-core@0.1.0
+
 ## 0.40.2
 
 ### Patch Changes

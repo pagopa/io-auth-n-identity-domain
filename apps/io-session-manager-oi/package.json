@@ -1,6 +1,6 @@
 {
   "name": "io-session-manager-oi",
-  "version": "0.40.2",
+  "version": "0.40.3",
   "private": true,
   "license": "MIT",
   "type": "module",
