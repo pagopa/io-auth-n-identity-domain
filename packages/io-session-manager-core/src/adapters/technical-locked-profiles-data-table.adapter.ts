@@ -12,7 +12,7 @@ import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok, Result } from "neverthrow";
 import z from "zod";
 
-import { TechnicalLockedProfilesPort } from "../../domain/ports/outbound/technical-locked-profiles.port.js";
+import { TechnicalLockedProfilesPort } from "../domain/ports/technical-locked-profiles.port.js";
 
 export class TechnicalLockedProfilesDataTableAdapter
   implements TechnicalLockedProfilesPort, HealthCheckOutboundPort

@@ -37,6 +37,7 @@
     "@opentelemetry/api-logs": "catalog:",
     "@pagopa/azure-sdk": "workspace:^",
     "@pagopa/azure-tracing": "catalog:",
+    "@pagopa/io-session-manager-core": "workspace:^",
     "@pagopa/hexagonal-core": "catalog:",
     "@pagopa/hexagonal-fastify": "catalog:",
     "@pagopa/io-auth-n-identity-domain": "workspace:^",
