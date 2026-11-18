@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{IO_WEB_AUTH_SERVICE_BASE_URL}}/login?env=UAT&min_auth_level=SpidL2&idp=https://idp.uat.io.oneid.pagopa.it
+  url: {{IO_WEB_AUTH_SERVICE_BASE_URL}}/login?env=UAT&min_auth_level=SpidL2&idp=https://idp.uat.oneid.pagopa.it
   body: none
   auth: none
 }
@@ -13,7 +13,7 @@ get {
 params:query {
   env: UAT
   min_auth_level: SpidL2
-  idp: https://idp.uat.io.oneid.pagopa.it
+  idp: https://idp.uat.oneid.pagopa.it
 }
 
 script:pre-request {
