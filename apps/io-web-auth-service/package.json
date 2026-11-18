@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "catalog:",
+    "@azure/identity": "catalog:",
     "@opentelemetry/api-logs": "catalog:",
     "@pagopa/azure-tracing": "catalog:",
     "@pagopa/hexagonal-core": "catalog:",
@@ -31,9 +32,12 @@
     "@pagopa/io-auth-n-identity-domain": "workspace:^",
     "@pagopa/io-env-config": "workspace:^",
     "@pagopa/io-package-info": "workspace:^",
+    "@pagopa/redis": "workspace:^",
     "dotenv": "catalog:",
     "fastify": "catalog:",
     "neverthrow": "catalog:",
+    "openid-client": "^6.8.4",
+    "redis": "^6.2.1",
     "zod": "catalog:"
   },
   "devDependencies": {
