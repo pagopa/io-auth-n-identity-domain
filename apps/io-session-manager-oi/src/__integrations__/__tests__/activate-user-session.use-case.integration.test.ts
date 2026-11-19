@@ -18,7 +18,6 @@ import {
   type ActivateUserSessionUseCase,
 } from "../../application/use-cases/activate-user-session.use-case.js";
 import { makeInvalidatePreviousUserStateUseCase } from "../../application/use-cases/invalidate-previous-user-state.use-case.js";
-import { makeInvalidateSessionTokenCacheUseCase } from "../../application/use-cases/invalidate-session-token-cache.use-case.js";
 import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import {
@@ -103,9 +102,7 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
     lollipopRevocationPort: {
       requestRevocation: async () => ok(undefined),
     },
-    invalidateSessionTokenCacheUseCase: makeInvalidateSessionTokenCacheUseCase({
-      platformInternalPort: platformInternalAdapter,
-    }),
+    platformInternalPort: platformInternalAdapter,
   }),
   notificationPort: { deleteInstallation: async () => ok(undefined) },
 });

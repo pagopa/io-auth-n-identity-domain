@@ -9,13 +9,12 @@ import type { LollipopActivationPort } from "@pagopa/io-auth-n-identity-session/
 import { err, ok } from "neverthrow";
 
 import type { LollipopRevocationPort } from "../../domain/ports/outbound/lollipop-revocation.port.js";
-
-import type { InvalidateSessionTokenCacheUseCase } from "./invalidate-session-token-cache.use-case.js";
+import type { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
 
 export type UserStateInvalidationDeps = {
   lollipopActivationPort: LollipopActivationPort;
   lollipopRevocationPort: LollipopRevocationPort;
-  invalidateSessionTokenCacheUseCase: InvalidateSessionTokenCacheUseCase;
+  platformInternalPort: PlatformInternalPort;
 };
 
 /**
@@ -29,7 +28,7 @@ export type UserStateInvalidationDeps = {
  * the workflow.
  *
  * @typeParam Input - Strategy input containing the user's fiscal code.
- * @param deps - Shared ports, cache invalidation use case and session strategy.
+ * @param deps - Shared ports and session invalidation strategy.
  * @param deps.invalidateSession - Session operation returning the token to
  * invalidate in cache, or undefined when no session was found.
  * @returns A use case sharing the workflow independently of the session operation.
@@ -82,8 +81,10 @@ export const makeInvalidateUserStateUseCase =
 
     if (invalidationResult.value !== undefined) {
       // Cache invalidation remains best-effort and starts only after session removal.
-      void deps
-        .invalidateSessionTokenCacheUseCase(invalidationResult.value)
+      void deps.platformInternalPort
+        .deleteSession(
+          `${invalidationResult.value.sessionId}.${invalidationResult.value.hashedSessionToken}`,
+        )
         .then((result) => {
           if (result.isErr()) {
             console.error(

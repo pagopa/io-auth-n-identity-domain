@@ -1,27 +1,22 @@
-import { NonEmptyStringBrand } from "@pagopa/hexagonal-core/domain/value-objects";
 import {
+  type HashedSessionToken,
   HashedSessionTokenSchema,
+  type PlainSessionToken,
   PlainSessionTokenSchema,
-  _plainSessionTokenBrand,
+  type SessionId,
   SessionIdSchema,
-  _sessionIdBrand,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
 import z from "zod";
 
-
-
-export const _clientSessionTokenBrand: unique symbol =
-  Symbol("ClientSessionToken");
-
-export const ClientSessionTokenSchema = z
-  .templateLiteral([SessionIdSchema, ".", PlainSessionTokenSchema])
-  .brand(_clientSessionTokenBrand);
+// Use public type aliases so declaration emit can avoid expanding unique-symbol brands (TS2527).
+export const ClientSessionTokenSchema: z.ZodTemplateLiteral<`${SessionId}.${PlainSessionToken}`> =
+  z.templateLiteral([SessionIdSchema, ".", PlainSessionTokenSchema]);
 
 export type ClientSessionToken = z.infer<typeof ClientSessionTokenSchema>;
 
-export const HashedClientSessionTokenSchema = z
-  .templateLiteral([SessionIdSchema, ".", HashedSessionTokenSchema])
-  .brand<"HashedClientSessionToken">();
+// Use public type aliases so declaration emit can avoid expanding unique-symbol brands (TS2527).
+export const HashedClientSessionTokenSchema: z.ZodTemplateLiteral<`${SessionId}.${HashedSessionToken}`> =
+  z.templateLiteral([SessionIdSchema, ".", HashedSessionTokenSchema]);
 
 export type HashedClientSessionToken = z.infer<
   typeof HashedClientSessionTokenSchema

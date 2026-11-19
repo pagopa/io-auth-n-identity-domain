@@ -5,6 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
 import {
+  mockDeletePlatformInternalSession,
+  PlatformInternalPortMock,
+  resetPlatformInternalPortMock,
+} from "../../../__mocks__/ports/platform-internal-port.mock.js";
+import {
   mockDelete,
   mockInvalidatePreviousSession,
   resetSessionPortMock,
@@ -13,23 +18,22 @@ import {
 import {
   aFiscalCode,
   aGenericError,
+  aHashedClientSessionToken,
   aHashedSessionTokenWithSessionId,
   aNotFoundError,
 } from "../../../__mocks__/session.mocks.js";
 import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
 import { makeInvalidatePreviousUserStateUseCase } from "../invalidate-previous-user-state.use-case.js";
-import type { InvalidateSessionTokenCacheUseCase } from "../invalidate-session-token-cache.use-case.js";
 
 const assertionRef = LollipopAssertionRefSchema.parse(
   `sha256-${"a".repeat(43)}`,
 );
 const requestRevocation = vi.fn<LollipopRevocationPort["requestRevocation"]>();
-const invalidateSessionTokenCache = vi.fn<InvalidateSessionTokenCacheUseCase>();
 const invalidatePreviousUserState = makeInvalidatePreviousUserStateUseCase({
   sessionPort: SessionPortMock,
   lollipopActivationPort: lollipopActivationPortMock,
   lollipopRevocationPort: { requestRevocation },
-  invalidateSessionTokenCacheUseCase: invalidateSessionTokenCache,
+  platformInternalPort: PlatformInternalPortMock,
 });
 
 beforeEach(() => {
@@ -48,7 +52,7 @@ beforeEach(() => {
     .mockReset()
     .mockResolvedValue(ok(undefined));
   requestRevocation.mockReset().mockResolvedValue(ok(undefined));
-  invalidateSessionTokenCache.mockReset().mockResolvedValue(ok(undefined));
+  resetPlatformInternalPortMock();
 });
 
 afterEach(() => {
@@ -71,8 +75,8 @@ describe("makeInvalidatePreviousUserStateUseCase", () => {
       aFiscalCode,
     );
     expect(mockDelete).not.toHaveBeenCalled();
-    expect(invalidateSessionTokenCache).toHaveBeenCalledExactlyOnceWith(
-      aHashedSessionTokenWithSessionId,
+    expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
+      aHashedClientSessionToken,
     );
     expect(requestRevocation.mock.invocationCallOrder[0]).toBeLessThan(
       lollipopActivationPortMock.revokeByFiscalCode.mock.invocationCallOrder[0],
@@ -82,7 +86,7 @@ describe("makeInvalidatePreviousUserStateUseCase", () => {
     ).toBeLessThan(mockInvalidatePreviousSession.mock.invocationCallOrder[0]);
     expect(
       mockInvalidatePreviousSession.mock.invocationCallOrder[0],
-    ).toBeLessThan(invalidateSessionTokenCache.mock.invocationCallOrder[0]);
+    ).toBeLessThan(mockDeletePlatformInternalSession.mock.invocationCallOrder[0]);
   });
 
   it("continues without a public-key revocation when no activation exists", async () => {
@@ -98,7 +102,7 @@ describe("makeInvalidatePreviousUserStateUseCase", () => {
       lollipopActivationPortMock.revokeByFiscalCode,
     ).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
     expect(mockInvalidatePreviousSession).toHaveBeenCalledOnce();
-    expect(invalidateSessionTokenCache).toHaveBeenCalledOnce();
+    expect(mockDeletePlatformInternalSession).toHaveBeenCalledOnce();
   });
 
   it("skips cache invalidation when no previous session exists", async () => {
@@ -107,7 +111,7 @@ describe("makeInvalidatePreviousUserStateUseCase", () => {
     expect(await invalidatePreviousUserState(aFiscalCode)).toEqual(
       ok(undefined),
     );
-    expect(invalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
   });
 
   it("does not wait for public-key revocation", async () => {
@@ -116,7 +120,7 @@ describe("makeInvalidatePreviousUserStateUseCase", () => {
     expect(await invalidatePreviousUserState(aFiscalCode)).toEqual(
       ok(undefined),
     );
-    expect(invalidateSessionTokenCache).toHaveBeenCalledOnce();
+    expect(mockDeletePlatformInternalSession).toHaveBeenCalledOnce();
   });
 
   it("logs public-key revocation failures and continues invalidation", async () => {
@@ -131,7 +135,7 @@ describe("makeInvalidatePreviousUserStateUseCase", () => {
     expect(consoleError).toHaveBeenCalledExactlyOnceWith(
       `Failed to revoke lollipop: ${aGenericError.message}`,
     );
-    expect(invalidateSessionTokenCache).toHaveBeenCalledOnce();
+    expect(mockDeletePlatformInternalSession).toHaveBeenCalledOnce();
   });
 
   it("stops when retrieving the Lollipop activation fails", async () => {
@@ -151,7 +155,7 @@ describe("makeInvalidatePreviousUserStateUseCase", () => {
       lollipopActivationPortMock.revokeByFiscalCode,
     ).not.toHaveBeenCalled();
     expect(mockInvalidatePreviousSession).not.toHaveBeenCalled();
-    expect(invalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
   });
 
   it("stops when revoking the Lollipop association fails", async () => {
@@ -167,7 +171,7 @@ describe("makeInvalidatePreviousUserStateUseCase", () => {
       ),
     );
     expect(mockInvalidatePreviousSession).not.toHaveBeenCalled();
-    expect(invalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
   });
 
   it("stops when session invalidation fails", async () => {
@@ -180,19 +184,19 @@ describe("makeInvalidatePreviousUserStateUseCase", () => {
         ),
       ),
     );
-    expect(invalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
   });
 
   it("does not wait for session token cache invalidation", async () => {
-    invalidateSessionTokenCache.mockImplementationOnce(
+    mockDeletePlatformInternalSession.mockImplementationOnce(
       () => new Promise(() => {}),
     );
 
     expect(await invalidatePreviousUserState(aFiscalCode)).toEqual(
       ok(undefined),
     );
-    expect(invalidateSessionTokenCache).toHaveBeenCalledExactlyOnceWith(
-      aHashedSessionTokenWithSessionId,
+    expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
+      aHashedClientSessionToken,
     );
   });
 
@@ -200,13 +204,13 @@ describe("makeInvalidatePreviousUserStateUseCase", () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
-    invalidateSessionTokenCache.mockResolvedValueOnce(err(aGenericError));
+    mockDeletePlatformInternalSession.mockResolvedValueOnce(err(aGenericError));
 
     const result = await invalidatePreviousUserState(aFiscalCode);
 
     expect(result).toEqual(ok(undefined));
-    expect(invalidateSessionTokenCache).toHaveBeenCalledExactlyOnceWith(
-      aHashedSessionTokenWithSessionId,
+    expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
+      aHashedClientSessionToken,
     );
     expect(consoleError).toHaveBeenCalledExactlyOnceWith(
       `Failed to invalidate session token cache: ${aGenericError.message}`,
