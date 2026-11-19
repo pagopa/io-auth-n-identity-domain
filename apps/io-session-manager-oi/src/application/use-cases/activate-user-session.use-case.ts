@@ -27,10 +27,7 @@ import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js"
 import { NotificationPort } from "../../domain/ports/outbound/notification.port.js";
 import type { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import type { IdentityAssertion } from "../../domain/value-objects/assertion.vo.js";
-import {
-  type ClientSessionToken,
-  ClientSessionTokenSchema,
-} from "../../domain/value-objects/client-session-token.vo.js";
+import type { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
 
 import { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
 import { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
@@ -240,10 +237,8 @@ export const makeActivateUserSessionUseCase =
       }
     }
 
-    return ok(
-      ClientSessionTokenSchema.parse(
-        `${plainSessionTokens.sessionId}.${plainSessionTokens.plainSessionToken}`,
-      ),
+    return ok<ClientSessionToken>(
+      `${plainSessionTokens.sessionId}.${plainSessionTokens.plainSessionToken}`,
     );
   };
 

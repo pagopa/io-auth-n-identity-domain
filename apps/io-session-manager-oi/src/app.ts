@@ -68,7 +68,6 @@ import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oi
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeInvalidatePreviousUserStateUseCase } from "./application/use-cases/invalidate-previous-user-state.use-case.js";
 import { makeInvalidateProvidedUserStateUseCase } from "./application/use-cases/invalidate-provided-user-state.use-case.js";
-import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.use-case.js";
 import { makeLogoutUseCase } from "./application/use-cases/logout.use-case.js";
 import { makeRefreshUserSessionUseCase } from "./application/use-cases/refresh-user-session.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";
@@ -442,17 +441,12 @@ const createUseCases = (
     oidcConfigPort: adapters.oidcConfigAdapter,
   });
 
-  const invalidateSessionTokenCacheUseCase =
-    makeInvalidateSessionTokenCacheUseCase({
-      platformInternalPort: adapters.platformInternalAdapter,
-    });
-
   const invalidatePreviousUserStateUseCase =
     makeInvalidatePreviousUserStateUseCase({
       sessionPort: adapters.sessionCosmosAdapter,
       lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
       lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
-      invalidateSessionTokenCacheUseCase,
+      platformInternalPort: adapters.platformInternalAdapter,
     });
 
   const activateUserSessionUseCase = makeActivateUserSessionUseCase({
@@ -503,7 +497,7 @@ const createUseCases = (
       }),
     refreshUserSessionUseCase: makeRefreshUserSessionUseCase({
       sessionPort: adapters.sessionCosmosAdapter,
-      invalidateSessionTokenCacheUseCase: invalidateSessionTokenCacheUseCase,
+      platformInternalPort: adapters.platformInternalAdapter,
     }),
     enabled: config.FF_FAST_LOGIN,
   });
@@ -524,7 +518,7 @@ const createUseCases = (
       sessionPort: adapters.sessionCosmosAdapter,
       lollipopActivationPort: adapters.lollipopActivationCosmosAdapter,
       lollipopRevocationPort: adapters.lollipopRevocationQueueAdapter,
-      invalidateSessionTokenCacheUseCase,
+      platformInternalPort: adapters.platformInternalAdapter,
     }),
   });
 
