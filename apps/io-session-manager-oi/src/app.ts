@@ -177,6 +177,7 @@ const createResourceLifecycle = (server: FastifyInstance) => {
  *
  * @param config - Application configuration.
  * @param registerCleanup - Resource cleanup registration callback.
+ * @param logger - Application logger for infrastructure client errors.
  * @returns The initialized infrastructure clients.
  */
 // eslint-disable-next-line max-lines-per-function
@@ -185,6 +186,7 @@ const createClients = async (
   registerCleanup: ReturnType<
     typeof createResourceLifecycle
   >["registerCleanup"],
+  logger: Logger,
 ) => {
   const lockedProfilesTableClient =
     config.NODE_ENV === "production"
@@ -232,6 +234,9 @@ const createClients = async (
           config.LOLLIPOP_REVOCATION_QUEUE_STORAGE_CONNECTION_STRING,
         );
 
+  const onRedisError = (error: Error): void =>
+    logger.error("Redis client error", { error: error.message });
+
   const redisClient =
     config.NODE_ENV === "production"
       ? await createRedisManagedIdentityClusterClient(
@@ -241,13 +246,17 @@ const createClients = async (
             enableTls: config.REDIS_TLS_ENABLED,
           },
           AzureCredential.getInstance(),
+          onRedisError,
         )
-      : await createRedisClusterClient({
-          hostname: config.REDIS_HOSTNAME,
-          password: config.REDIS_PASSWORD,
-          port: config.REDIS_PORT,
-          enableTls: config.REDIS_TLS_ENABLED,
-        });
+      : await createRedisClusterClient(
+          {
+            hostname: config.REDIS_HOSTNAME,
+            password: config.REDIS_PASSWORD,
+            port: config.REDIS_PORT,
+            enableTls: config.REDIS_TLS_ENABLED,
+          },
+          onRedisError,
+        );
   registerCleanup("Redis client", () => redisClient.close());
 
   const cosmosClient =
@@ -785,7 +794,11 @@ export const createApp = async (
     server.addHook("onClose", lifecycle.cleanupResources);
     server.register(formbody);
 
-    const clients = await createClients(config, lifecycle.registerCleanup);
+    const clients = await createClients(
+      config,
+      lifecycle.registerCleanup,
+      logger,
+    );
     const adapters = await createAdapters(config, clients);
     const useCases = createUseCases(config, adapters);
     const middlewares = createAuthenticationMiddlewares(

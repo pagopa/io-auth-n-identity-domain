@@ -213,6 +213,38 @@ describe("createApp resource ownership", () => {
   });
 
   it.each([
+    ["development", mocks.redis, 1],
+    ["production", mocks.managedRedis, 2],
+  ] as const)(
+    "logs Redis errors during and after connection in %s",
+    async (NODE_ENV, factory, callbackIndex) => {
+      const connectError = new Error("connect error");
+      const runtimeError = new Error("runtime error");
+      factory.mockImplementationOnce(async (...args) => {
+        args[callbackIndex](connectError);
+        return { close: mocks.redisClose };
+      });
+
+      const { server } = await createApp(
+        createConfig(NODE_ENV),
+        packageInfo,
+        logger,
+      );
+      const onError = factory.mock.calls[0][callbackIndex];
+      onError(runtimeError);
+
+      expect(logger.error).toHaveBeenNthCalledWith(1, "Redis client error", {
+        error: connectError.message,
+      });
+      expect(logger.error).toHaveBeenNthCalledWith(2, "Redis client error", {
+        error: runtimeError.message,
+      });
+      expect(logger.error).toHaveBeenCalledTimes(2);
+      await server.close();
+    },
+  );
+
+  it.each([
     ["plugin registration", mocks.register, ["fastify"]],
     ["table construction", mocks.table, ["fastify"]],
     ["Cosmos construction", mocks.cosmos, ["redis", "fastify"]],
