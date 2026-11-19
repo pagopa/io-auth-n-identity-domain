@@ -3,8 +3,8 @@ import {
   FiscalCodeSchema,
   GenericError,
 } from "@pagopa/hexagonal-core";
-import type { TechnicalLockedProfilesPort } from "@pagopa/io-session-manager-core";
 import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
+import type { TechnicalLockedProfilesReadonlyPort } from "@pagopa/io-session-manager-core";
 import { RedisError } from "@pagopa/redis";
 import { RedisSetWrapper } from "@pagopa/redis/set-wrapper";
 import { Result, err, ok } from "neverthrow";
@@ -18,7 +18,7 @@ export const BLOCKED_USERS_SET_KEY = "BLOCKEDUSERS";
 const EXPECTED_PING_REPLY = "PONG";
 
 export class TechnicalLockedProfilesRedisAdapter
-  implements TechnicalLockedProfilesPort, HealthCheckOutboundPort
+  implements TechnicalLockedProfilesReadonlyPort, HealthCheckOutboundPort
 {
   constructor(
     private readonly redis: RedisSetWrapper<

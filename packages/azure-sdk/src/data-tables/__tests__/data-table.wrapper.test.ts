@@ -51,6 +51,7 @@ const RK = "row-1";
 interface MockedClient {
   tableName: string;
   createEntity: ReturnType<typeof vi.fn>;
+  deleteEntity: ReturnType<typeof vi.fn>;
   getEntity: ReturnType<typeof vi.fn>;
   updateEntity: ReturnType<typeof vi.fn>;
   listEntities: ReturnType<typeof vi.fn>;
@@ -59,6 +60,7 @@ interface MockedClient {
 const buildMockClient = (): MockedClient => ({
   tableName: TABLE_NAME,
   createEntity: vi.fn(),
+  deleteEntity: vi.fn(),
   getEntity: vi.fn(),
   updateEntity: vi.fn(),
   listEntities: vi.fn(),
@@ -291,6 +293,65 @@ describe("TableClientWrapper - getEntity", () => {
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(NotFoundError);
     expect(result._unsafeUnwrapErr().message).toContain("getEntity failed");
+  });
+});
+
+describe("TableClientWrapper - deleteEntity", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("deletes the entity and returns ok(undefined)", async () => {
+    const { wrapper, client } = buildWrapper();
+    client.deleteEntity.mockResolvedValue({});
+
+    const result = await wrapper.deleteEntity(PK, RK);
+
+    expect(result).toEqual(ok(undefined));
+    expect(client.deleteEntity).toHaveBeenCalledExactlyOnceWith(
+      PK,
+      RK,
+      undefined,
+    );
+  });
+
+  it("forwards delete options untouched", async () => {
+    const { wrapper, client } = buildWrapper();
+    client.deleteEntity.mockResolvedValue({});
+    const options = { etag: 'W/"etag-1"' };
+
+    const result = await wrapper.deleteEntity(PK, RK, options);
+
+    expect(result).toEqual(ok(undefined));
+    expect(client.deleteEntity).toHaveBeenCalledExactlyOnceWith(PK, RK, options);
+  });
+
+  it.each([
+    { status: 404, ctor: NotFoundError },
+    { status: 412, ctor: PreconditionFailedError },
+  ])(
+    "maps an SDK $status error into $ctor.name",
+    async ({ status, ctor }) => {
+      const { wrapper, client } = buildWrapper();
+      client.deleteEntity.mockRejectedValue(buildRestError(status));
+
+      const result = await wrapper.deleteEntity(PK, RK);
+
+      expect(result.isErr()).toBe(true);
+      expect(result._unsafeUnwrapErr()).toBeInstanceOf(ctor);
+      expect(result._unsafeUnwrapErr().message).toContain("deleteEntity failed");
+    },
+  );
+
+  it("wraps an unexpected SDK error into a GenericError", async () => {
+    const { wrapper, client } = buildWrapper();
+    client.deleteEntity.mockRejectedValue(new Error("boom"));
+
+    const result = await wrapper.deleteEntity(PK, RK);
+
+    expect(result.isErr()).toBe(true);
+    const error = result._unsafeUnwrapErr();
+    expect(error).toBeInstanceOf(GenericError);
+    expect(error.message).toContain("deleteEntity failed");
+    expect(error.message).toContain("boom");
   });
 });
 

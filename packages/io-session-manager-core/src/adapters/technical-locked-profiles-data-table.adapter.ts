@@ -3,6 +3,7 @@ import {
   TableStorageError,
 } from "@pagopa/azure-sdk/data-tables";
 import {
+  ConflictError,
   FiscalCode,
   FiscalCodeSchema,
   GenericError,
@@ -45,6 +46,12 @@ export class TechnicalLockedProfilesDataTableAdapter
     return ok(undefined);
   }
 
+  /**
+   * Checks if a user's session is locked by looking up the entry in the technical locked profiles table.
+   *
+   * @param fiscalCode The fiscal code of the user to check.
+   * @returns A result indicating whether the user's session is locked or not.
+   */
   async isLocked(
     fiscalCode: FiscalCode,
   ): Promise<Result<boolean, Exclude<TableStorageError, NotFoundError>>> {
@@ -59,5 +66,50 @@ export class TechnicalLockedProfilesDataTableAdapter
       return err(maybeEntity.error);
     }
     return ok(true);
+  }
+
+  /**
+   * Locks a user's session by creating an entry in the technical locked profiles table.
+   * If the profile is already locked, the operation succeeds without error.
+   *
+   * @param fiscalCode The fiscal code of the user to lock.
+   * @returns A result indicating success or failure of the lock operation.
+   */
+  async lock(fiscalCode: FiscalCode): Promise<Result<void, TableStorageError>> {
+    const result = await this.tableClientWrapper.createEntity({
+      partitionKey: fiscalCode,
+      rowKey: fiscalCode,
+      createdAt: new Date(),
+    });
+    if (result.isErr()) {
+      if (result.error instanceof ConflictError) {
+        return ok(undefined);
+      }
+      return err(result.error);
+    }
+    return ok(undefined);
+  }
+
+  /**
+   * Unlocks a user's session by deleting the entry in the technical locked profiles table.
+   * If the profile is not locked, the operation succeeds without error.
+   *
+   * @param fiscalCode The fiscal code of the user to unlock.
+   * @returns A result indicating success or failure of the unlock operation.
+   */
+  async unlock(
+    fiscalCode: FiscalCode,
+  ): Promise<Result<void, TableStorageError>> {
+    const result = await this.tableClientWrapper.deleteEntity(
+      fiscalCode,
+      fiscalCode,
+    );
+    if (result.isErr()) {
+      if (result.error instanceof NotFoundError) {
+        return ok(undefined);
+      }
+      return err(result.error);
+    }
+    return ok(undefined);
   }
 }
