@@ -19,7 +19,7 @@ import {
 } from "../../domain/value-objects/oidc.vo.js";
 
 export type HandleOidcCallbackInput = {
-  callback: OidcCallbackSuccessParams | OidcCallbackErrorParams;
+  callback: Partial<OidcCallbackSuccessParams & OidcCallbackErrorParams>;
 };
 
 export type HandleOidcCallbackDeps = {
@@ -38,25 +38,26 @@ export type HandleOidcCallbackOutput =
       readonly errorMessage: NonEmptyString;
     };
 
+const DEFAULT_ERROR_MESSAGE = "error occurred" as NonEmptyString;
+
 const parseCallbackQueryParamsError = (
   params: unknown,
 ): HandleOidcCallbackOutput => {
   const errorDecode = OidcCallbackErrorParamsSchema.safeParse(params);
-  let data: HandleOidcCallbackOutput = {
-    outcome: "error",
-    errorCode: undefined,
-    errorMessage: "error occurred" as NonEmptyString,
-  };
-  if (errorDecode.success) {
-    data = {
-      ...data,
-      errorCode:
-        parseInt(errorDecode.data.error_description || "", 10) ?? undefined,
-      errorMessage: errorDecode.data.error,
+  if (!errorDecode.success) {
+    return {
+      outcome: "error",
+      errorCode: undefined,
+      errorMessage: DEFAULT_ERROR_MESSAGE,
     };
   }
-
-  return data;
+  // The provider error code, when present, is carried by error_description
+  const errorCode = parseInt(errorDecode.data.error_description ?? "", 10);
+  return {
+    outcome: "error",
+    errorCode: Number.isNaN(errorCode) ? undefined : errorCode,
+    errorMessage: errorDecode.data.error,
+  };
 };
 
 export const makeHandleOidcCallbackUseCase =
