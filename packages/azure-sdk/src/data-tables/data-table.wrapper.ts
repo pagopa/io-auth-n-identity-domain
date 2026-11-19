@@ -1,6 +1,7 @@
 import { OperationOptions } from "@azure/core-client";
 import {
   CreateTableEntityResponse,
+  DeleteTableEntityOptions,
   GetTableEntityOptions,
   ListTableEntitiesOptions,
   RestError,
@@ -250,6 +251,26 @@ export class TableClientWrapper<S extends TableEntitySchema> {
       return this.parseEntity(response, "getEntity");
     } catch (error) {
       return err(this.handleError(error, "getEntity"));
+    }
+  }
+
+  /**
+   * Deletes an entity from the table by its partition key and row key.
+   * @param partitionKey - The partition key of the entity to delete.
+   * @param rowKey - The row key of the entity to delete.
+   * @param options - Optional SDK request options.
+   * @returns A `Result` indicating success or containing a `TableStorageError` if the operation fails.
+   */
+  public async deleteEntity(
+    partitionKey: string,
+    rowKey: string,
+    options?: DeleteTableEntityOptions,
+  ): Promise<Result<void, TableStorageError>> {
+    try {
+      await this.client.deleteEntity(partitionKey, rowKey, options);
+      return ok(undefined);
+    } catch (error) {
+      return err(this.handleError(error, "deleteEntity"));
     }
   }
 
