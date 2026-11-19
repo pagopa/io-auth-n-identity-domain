@@ -21,9 +21,9 @@ export const CallbackInputDTO = {
       description:
         "The authorization code returned by the identity provider on success.",
     }),
-    error: NonEmptyStringSchema.meta({
+    error: NonEmptyStringSchema.optional().meta({
       description:
-        "The error code returned by the identity provider on failure.",
+        "The error code returned by the identity provider on failure. It's required in error scenarios",
     }),
     error_description: NonEmptyStringSchema.optional().meta({
       description:

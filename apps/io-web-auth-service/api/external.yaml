@@ -91,3 +91,80 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+  /callback:
+    get:
+      description: Handles the OpenID Connect callback from the identity provider. On success it mints a fresh session token and redirects the client to the success URL carrying the token; on a login error it redirects to the error URL carrying the error code.
+      operationId: callback
+      security: []
+      summary: Handle the OIDC callback
+      tags:
+        - oidc
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            description: The opaque value used to maintain state between the request and the callback.
+          required: true
+          description: The opaque value used to maintain state between the request and the callback.
+          name: state
+          in: query
+        - schema:
+            type: string
+            minLength: 1
+            description: The authorization code returned by the identity provider on success.
+          required: false
+          description: The authorization code returned by the identity provider on success.
+          name: code
+          in: query
+        - schema:
+            type: string
+            minLength: 1
+            description: The error code returned by the identity provider on failure. It's required in error scenarios
+          required: false
+          description: The error code returned by the identity provider on failure. It's required in error scenarios
+          name: error
+          in: query
+        - schema:
+            type: string
+            minLength: 1
+            description: The human-readable error description returned by the identity provider on failure.
+          required: false
+          description: The human-readable error description returned by the identity provider on failure.
+          name: error_description
+          in: query
+      responses:
+        "302":
+          description: |-
+            Redirect (`302`) back to the client; the outcome is encoded in the `Location` URL.
+            - **Success** — the success redirect URL with the fresh session token in the URL **fragment**: `<successUrl>#token=<sessionToken>`.
+            - **Login error** — the error redirect URL with the error in the **query string**: `<errorUrl>?errorCode=<code>[&errorMessage=<message>]` (`errorMessage` is present only when the identity provider returned one).
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: "Client redirect URL. On success: `<successUrl>#token=<sessionToken>` (token in the fragment). On login error: `<errorUrl>?errorCode=<code>[&errorMessage=<message>]` (params in the query string)."
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"

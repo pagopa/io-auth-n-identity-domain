@@ -1,4 +1,8 @@
-import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
+import {
+  defineRoute,
+  NonEmptyString,
+  ProblemJson,
+} from "@pagopa/hexagonal-core";
 import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import { FastifyInstance } from "fastify";
 
@@ -66,7 +70,10 @@ export const mountCallbackHandler = (
   mountFastifyRoute(server, {
     contract: callbackContract,
     inputMapper: (req, _context): HandleOidcCallbackInput => ({
-      callback: req.query,
+      callback: {
+        ...req.query,
+        error: req.query.error || ("error occurred" as NonEmptyString),
+      },
     }),
     outputMapper: (result) => {
       if (result.outcome === "error") {
