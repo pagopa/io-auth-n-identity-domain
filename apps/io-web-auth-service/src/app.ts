@@ -1,4 +1,6 @@
 import { DefaultAzureCredential } from "@azure/identity";
+import { createPrivateKey } from "node:crypto";
+
 import type { NonEmptyString } from "@pagopa/hexagonal-core";
 import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import { type PackageInfo } from "@pagopa/io-package-info";
@@ -22,6 +24,9 @@ import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
 import { withErrorResultLogging } from "./middlewares/result-logging.middleware.js";
 import { getLogger } from "./telemetry-client.js";
+import { JwtSessionAdapter } from "./adapters/outbound/jwt-session.js";
+import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
+import { makeHandleOidcCallbackUseCase } from "./application/use-cases/oidc-callback.use-case.js";
 
 const CLEANUP_TIMEOUT_MS = 2_000;
 
@@ -172,10 +177,17 @@ const createAdapters = async (
     });
   });
 
+  const sessionAdapter = new JwtSessionAdapter(
+    createPrivateKey(config.JWT_TOKEN_PRIVATE_KEY.replace(/\\n/g, "\n")),
+    config.JWT_TOKEN_ISSUER,
+    config.JWT_TOKEN_TTL_SECONDS,
+  );
+
   return {
     auxiliaryDataAdapter,
     oidcConfigAdapter,
     oidcClientAdapter,
+    sessionAdapter,
   };
 };
 
@@ -183,6 +195,7 @@ const mountRoutes = (
   server: FastifyInstance,
   packageInfo: PackageInfo,
   adapters: Awaited<ReturnType<typeof createAdapters>>,
+  config: Config,
   logger: Logger,
 ) => {
   mountHealthCheckHandler("liveness")(
@@ -216,6 +229,18 @@ const mountRoutes = (
       }),
     ),
   });
+
+  mountCallbackHandler(server, {
+    handleOidcCallbackUseCase: withErrorResultLogging(
+      logger.with({ component: "callback" }),
+    )(
+      makeHandleOidcCallbackUseCase({
+        sessionPort: adapters.sessionAdapter,
+      }),
+    ),
+    loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
+    loginErrorRedirectUrl: config.LOGIN_ERROR_REDIRECT_URL,
+  });
 };
 
 /**
@@ -240,7 +265,7 @@ export const createApp = async (
     );
     const adapters = await createAdapters(config, clients, logger);
 
-    mountRoutes(server, packageInfo, adapters, logger);
+    mountRoutes(server, packageInfo, adapters, config, logger);
     server.addHook("onRequest", normalizeClientIpHook);
 
     return { server };
