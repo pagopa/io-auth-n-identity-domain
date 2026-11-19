@@ -1,5 +1,16 @@
 # io-session-manager-oi
 
+## 0.40.4
+
+### Patch Changes
+
+- c637935: Update `TechnicalLockedProfilesRedisAdapter` to implement `TechnicalLockedProfilesReadonlyPort` rather than `TechnicalLockedProfilesPort`
+- 5f23257: Simplify client session token handling
+- Updated dependencies [c637935]
+- Updated dependencies [c637935]
+  - @pagopa/azure-sdk@0.3.0
+  - @pagopa/io-session-manager-core@0.2.0
+
 ## 0.40.3
 
 ### Patch Changes
