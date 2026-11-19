@@ -104,8 +104,17 @@ describe("TechnicalLockedProfilesDataTableAdapter#lock", () => {
     });
   });
 
+  it("returns ok when the profile is already locked", async () => {
+    createEntityMock.mockResolvedValue(
+      err(new ConflictError("profile already locked")),
+    );
+
+    const result = await adapter.lock(FISCAL_CODE);
+
+    expect(result).toEqual(ok(undefined));
+  });
+
   it.each([
-    new ConflictError("profile already locked"),
     new NotFoundError("TechnicalLockedProfiles", "table not found"),
     new GenericError("table unavailable"),
   ])("propagates $kind", async (storageError) => {
@@ -131,10 +140,18 @@ describe("TechnicalLockedProfilesDataTableAdapter#unlock", () => {
     );
   });
 
-  it.each([
-    new NotFoundError("TechnicalLockedProfiles", "lock not found"),
-    new GenericError("table unavailable"),
-  ])("propagates $kind", async (storageError) => {
+  it("returns ok when the lock does not exist", async () => {
+    deleteEntityMock.mockResolvedValue(
+      err(new NotFoundError("TechnicalLockedProfiles", "lock not found")),
+    );
+
+    const result = await adapter.unlock(FISCAL_CODE);
+
+    expect(result).toEqual(ok(undefined));
+  });
+
+  it("propagates storage errors other than NotFoundError", async () => {
+    const storageError = new GenericError("table unavailable");
     deleteEntityMock.mockResolvedValue(err(storageError));
 
     const result = await adapter.unlock(FISCAL_CODE);
