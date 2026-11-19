@@ -8,3 +8,8 @@ export interface TechnicalLockedProfilesPort {
 
   unlock(fiscalCode: FiscalCode): Promise<Result<void, BaseError>>;
 }
+
+export type TechnicalLockedProfilesReadonlyPort = Pick<
+  TechnicalLockedProfilesPort,
+  "isLocked"
+>;
