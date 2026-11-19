@@ -1,5 +1,11 @@
 # @pagopa/azure-sdk
 
+## 0.3.0
+
+### Minor Changes
+
+- c637935: Add `deleteEntity` method in `TableClientWrapper`
+
 ## 0.2.1
 
 ### Patch Changes
