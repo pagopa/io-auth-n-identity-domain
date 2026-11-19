@@ -62,7 +62,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
       expect(sessionPort.create).not.toHaveBeenCalled();
     });
 
-    it("returns a NaN code when error_description is missing", async () => {
+    it("returns no code when error_description is missing", async () => {
       const result = await useCase({
         callback: { state: STATE, error: "access_denied" as NonEmptyString },
       });
@@ -72,8 +72,34 @@ describe("makeHandleOidcCallbackUseCase", () => {
         outcome: "error",
         errorMessage: "access_denied",
       });
-      expect(output).toHaveProperty("errorCode", NaN);
+      expect(output).toHaveProperty("errorCode", undefined);
       expect(sessionPort.create).not.toHaveBeenCalled();
+    });
+
+    it("returns no code when error_description is not numeric", async () => {
+      const result = await useCase({
+        callback: {
+          state: STATE,
+          error: "access_denied" as NonEmptyString,
+          error_description: "not-a-number" as NonEmptyString,
+        },
+      });
+
+      expect(result._unsafeUnwrap()).toMatchObject({
+        outcome: "error",
+        errorCode: undefined,
+        errorMessage: "access_denied",
+      });
+    });
+
+    it("returns the default error when neither code nor error is present", async () => {
+      const result = await useCase({ callback: { state: STATE } });
+
+      expect(result._unsafeUnwrap()).toEqual({
+        outcome: "error",
+        errorCode: undefined,
+        errorMessage: "error occurred",
+      });
     });
 
     it("returns a generic error when the params are not decodable", async () => {

@@ -101,7 +101,7 @@ describe("callback handler login outcomes and errors", () => {
     handleOidcCallbackUseCase.mockResolvedValueOnce(
       ok({
         outcome: "error",
-        errorCode: NaN,
+        errorCode: undefined,
         errorMessage: "error occurred" as NonEmptyString,
       }),
     );
