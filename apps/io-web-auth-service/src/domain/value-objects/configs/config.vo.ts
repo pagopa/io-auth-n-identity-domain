@@ -1,9 +1,13 @@
 import { z } from "zod";
 
+import { JwtConfigSchema } from "./jwt.vo.js";
+import { LoginRedirectConfigSchema } from "./login-redirect.vo.js";
 import { ServerConfigSchema } from "./server.vo.js";
 
 const CommonConfigShape = {
   ...ServerConfigSchema.shape,
+  ...JwtConfigSchema.shape,
+  ...LoginRedirectConfigSchema.shape,
 };
 
 export const ProductionConfigSchema = z.object({
