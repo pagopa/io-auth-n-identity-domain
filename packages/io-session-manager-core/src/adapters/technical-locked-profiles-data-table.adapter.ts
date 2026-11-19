@@ -60,4 +60,29 @@ export class TechnicalLockedProfilesDataTableAdapter
     }
     return ok(true);
   }
+
+  async lock(fiscalCode: FiscalCode): Promise<Result<void, TableStorageError>> {
+    const result = await this.tableClientWrapper.createEntity({
+      partitionKey: fiscalCode,
+      rowKey: fiscalCode,
+      createdAt: new Date(),
+    });
+    if (result.isErr()) {
+      return err(result.error);
+    }
+    return ok(undefined);
+  }
+
+  async unlock(
+    fiscalCode: FiscalCode,
+  ): Promise<Result<void, TableStorageError>> {
+    const result = await this.tableClientWrapper.deleteEntity(
+      fiscalCode,
+      fiscalCode,
+    );
+    if (result.isErr()) {
+      return err(result.error);
+    }
+    return ok(undefined);
+  }
 }

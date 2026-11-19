@@ -5,4 +5,12 @@ export interface TechnicalLockedProfilesPort {
   isLocked(
     fiscalCode: FiscalCode,
   ): Promise<Result<boolean, BaseError>>;
+
+  lock(
+    fiscalCode: FiscalCode,
+  ): Promise<Result<void, BaseError>>;
+
+  unlock(
+    fiscalCode: FiscalCode,
+  ): Promise<Result<void, BaseError>>;
 }
