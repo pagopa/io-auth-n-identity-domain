@@ -7,7 +7,6 @@ import {
   UseCase,
   ValidationError,
 } from "@pagopa/hexagonal-core";
-import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import { err, ok } from "neverthrow";
 
 import { ActiveSession } from "../../domain/entitites/active-session.entity.js";
