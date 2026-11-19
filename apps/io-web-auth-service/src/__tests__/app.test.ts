@@ -4,11 +4,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../app.js";
 import { type Config } from "../domain/value-objects/configs/index.js";
+import { generateKeyPairSync } from "node:crypto";
+import { NonEmptyString } from "@pagopa/hexagonal-core";
 
 const config: Config = {
   HOST: "127.0.0.1",
   PORT: 3000,
   NODE_ENV: "development",
+  JWT_TOKEN_PRIVATE_KEY: generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).privateKey.export({ type: "pkcs8", format: "pem" }) as NonEmptyString,
 };
 const packageInfo = createPackageInfoAdapter(
   fileURLToPath(new URL("../../package.json", import.meta.url)),
