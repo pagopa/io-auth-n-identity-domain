@@ -4,6 +4,7 @@ import {
   AuthenticationError,
   GenericError,
   NonEmptyString,
+  NonEmptyStringSchema,
 } from "@pagopa/hexagonal-core";
 import { errors, jwtVerify, SignJWT } from "jose";
 import { err, ok, Result } from "neverthrow";
@@ -55,14 +56,14 @@ export class JwtSessionAdapter implements SessionPort {
         .setIssuedAt()
         .setExpirationTime(`${this.ttlSeconds}s`)
         .sign(this.privateKey);
-      return ok(token as NonEmptyString);
+      return ok(NonEmptyStringSchema.parse(token));
     } catch (cause) {
       return err(new GenericError(`Unable to sign session JWT: ${cause}`));
     }
   }
 
   /**
-   * Verifies signature, algorithm, issuer and expiration of the given JWT.
+   * Verifies signature, algorithm, issuer and the presence of a valid expiration of the given JWT.
    */
   async check(
     sessionToken: NonEmptyString,
@@ -71,6 +72,7 @@ export class JwtSessionAdapter implements SessionPort {
       await jwtVerify(sessionToken, this.publicKey, {
         algorithms: [this.algorithm],
         issuer: this.issuer,
+        requiredClaims: ["exp"],
       });
       return ok(undefined);
     } catch (cause) {

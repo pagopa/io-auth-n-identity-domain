@@ -99,6 +99,17 @@ describe("JwtSessionAdapter", () => {
       );
     });
 
+    it("rejects a token without the exp claim", async () => {
+      const token = await new SignJWT({ ...aSession })
+        .setProtectedHeader({ alg: "RS256" })
+        .setIssuer(ISSUER)
+        .sign(privateKey);
+
+      expect(
+        (await adapter.check(token as NonEmptyString))._unsafeUnwrapErr(),
+      ).toBeInstanceOf(AuthenticationError);
+    });
+
     it("rejects a token signed with a different algorithm", async () => {
       const token = await new SignJWT({})
         .setProtectedHeader({ alg: "RS512" })

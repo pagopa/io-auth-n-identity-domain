@@ -24,12 +24,12 @@ export const callbackContract = defineRoute({
       description:
         "Redirect (`302`) back to the client; the outcome is encoded in the `Location` URL.\n" +
         "- **Success** — the success redirect URL with the fresh session token in the URL **fragment**: `<successUrl>#token=<sessionToken>`.\n" +
-        "- **Login error** — the error redirect URL with the error in the **query string**: `<errorUrl>?errorCode=<code>[&errorMessage=<message>]` (`errorMessage` is present only when the identity provider returned one).",
+        "- **Login error** — the error redirect URL with the error in the **query string**: `<errorUrl>?[errorCode=<code>&]errorMessage=<message>` (`errorCode` is optional, present only when it can be derived from the callback; `errorMessage` is always present, falling back to a default message when the callback carries none).",
       redirect: true,
       headers: {
         Location: {
           description:
-            "Client redirect URL. On success: `<successUrl>#token=<sessionToken>` (token in the fragment). On login error: `<errorUrl>?errorCode=<code>[&errorMessage=<message>]` (params in the query string).",
+            "Client redirect URL. On success: `<successUrl>#token=<sessionToken>` (token in the fragment). On login error: `<errorUrl>?[errorCode=<code>&]errorMessage=<message>` (params in the query string).",
           schema: { type: "string", format: "uri" },
         },
       },
@@ -74,9 +74,7 @@ export const mountCallbackHandler = (
         if (result.errorCode) {
           errorUrl.searchParams.set("errorCode", result.errorCode.toString());
         }
-        if (result.errorMessage !== undefined) {
-          errorUrl.searchParams.set("errorMessage", result.errorMessage);
-        }
+        errorUrl.searchParams.set("errorMessage", result.errorMessage);
         return errorUrl.href;
       } else {
         const redirectUrl = new URL(deps.loginSuccessRedirectUrl);
