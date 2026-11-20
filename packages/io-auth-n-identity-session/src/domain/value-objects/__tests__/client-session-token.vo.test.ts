@@ -1,15 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  aClientSessionToken,
-  aHashedClientSessionToken,
-  aPlainSessionToken,
-  aSessionId,
-} from "../../../../../../apps/io-session-manager-oi/src/__mocks__/session.mocks.js";
+import { SessionIdSchema } from "../session-id.vo.js";
+import { PlainSessionTokenSchema } from "../tokens/index.js";
 import {
   ClientSessionTokenSchema,
   HashedClientSessionTokenSchema,
 } from "../client-session-token.vo.js";
+
+const aSessionId = SessionIdSchema.parse("aValidSessionId");
+const aPlainSessionToken = PlainSessionTokenSchema.parse(
+  "aValidPlainSessionToken",
+);
+const aClientSessionToken = `${aSessionId}.${aPlainSessionToken}`;
+const aHashedClientSessionToken = `${aSessionId}.${"a".repeat(64)}`;
 
 describe("ClientSessionTokenSchema", () => {
   it("accepts a session ID and plain token separated by a period", () => {
