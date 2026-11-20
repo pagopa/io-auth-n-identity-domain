@@ -1,5 +1,20 @@
 # io-session-manager-oi
 
+## 0.41.0
+
+### Minor Changes
+
+- 6c4c99c: Consume user-state invalidation, platform-internal and Lollipop revocation from `@pagopa/io-session-manager-core`
+
+### Patch Changes
+
+- Updated dependencies [6c4c99c]
+- Updated dependencies [6c4c99c]
+- Updated dependencies [6c4c99c]
+  - @pagopa/io-auth-n-identity-session@0.13.0
+  - @pagopa/io-auth-n-identity-domain@0.7.0
+  - @pagopa/io-session-manager-core@0.3.0
+
 ## 0.40.4
 
 ### Patch Changes

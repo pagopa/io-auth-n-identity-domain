@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-domain
 
+## 0.7.0
+
+### Minor Changes
+
+- 6c4c99c: Add `Base64` codec utilities to the domain package
+
 ## 0.6.1
 
 ### Patch Changes

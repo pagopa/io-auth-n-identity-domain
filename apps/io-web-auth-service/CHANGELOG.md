@@ -1,5 +1,12 @@
 # io-web-auth-service
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [6c4c99c]
+  - @pagopa/io-auth-n-identity-domain@0.7.0
+
 ## 0.4.0
 
 ### Minor Changes
