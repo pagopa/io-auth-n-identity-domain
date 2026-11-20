@@ -14,12 +14,9 @@ import {
 import type { SessionPort } from "@pagopa/io-auth-n-identity-session/ports";
 import { err, ok } from "neverthrow";
 
-import {
-  ClientSessionToken,
-  ClientSessionTokenSchema,
-} from "../../domain/value-objects/client-session-token.vo.js";
+import type { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
 
-import { InvalidateSessionTokenCacheUseCase } from "./invalidate-session-token-cache.use-case.js";
+import { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
 
 export type SessionInfo = Omit<
   BaseSession,
@@ -41,7 +38,7 @@ export type RefreshUserSessionUseCase = UseCase<
 
 type Dependencies = {
   sessionPort: SessionPort;
-  invalidateSessionTokenCacheUseCase: InvalidateSessionTokenCacheUseCase;
+  platformInternalPort: PlatformInternalPort;
 };
 
 export const makeRefreshUserSessionUseCase =
@@ -67,7 +64,8 @@ export const makeRefreshUserSessionUseCase =
     const activeSession = activeSessionResult.value;
 
     /****************************************************************/
-    /* Find the previous session token, before refresh deletes it   */
+    /* Find the previous session token, before refresh deletes it,  */
+    /* and invalidate its cache if it exists.                       */
     /****************************************************************/
     const previousSessionTokenResult =
       await deps.sessionPort.findSessionTokenBySessionId(
@@ -82,6 +80,19 @@ export const makeRefreshUserSessionUseCase =
       );
     }
     const previousSessionToken = previousSessionTokenResult.value;
+
+    if (previousSessionToken) {
+      const invalidationResult = await deps.platformInternalPort.deleteSession(
+        `${previousSessionToken.sessionId}.${previousSessionToken.hashedSessionToken}`,
+      );
+      if (invalidationResult.isErr()) {
+        const error = new GenericError(
+          `Failed to invalidate previous session on proxy`,
+        );
+        error.cause = invalidationResult.error;
+        return err(error);
+      }
+    }
 
     /*************************************/
     /* Generate new plain session tokens */
@@ -121,22 +132,7 @@ export const makeRefreshUserSessionUseCase =
       );
     }
 
-    /******************************************************************/
-    /* Invalidate the previous session token cache                    */
-    /* Done after the refresh, so that a concurrent request using the */
-    /* previous token cannot repopulate the cache from the DB.        */
-    /******************************************************************/
-    if (previousSessionToken) {
-      const invalidationResult =
-        await deps.invalidateSessionTokenCacheUseCase(previousSessionToken);
-      if (invalidationResult.isErr()) {
-        return err(invalidationResult.error);
-      }
-    }
-
-    return ok(
-      ClientSessionTokenSchema.parse(
-        `${plainSessionTokens.sessionId}.${plainSessionTokens.plainSessionToken}`,
-      ),
+    return ok<ClientSessionToken>(
+      `${plainSessionTokens.sessionId}.${plainSessionTokens.plainSessionToken}`,
     );
   };

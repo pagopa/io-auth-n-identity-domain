@@ -10,6 +10,11 @@ import {
 } from "../../../__mocks__/ports/auth-event-port.mock.js";
 import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
 import {
+  mockDeletePlatformInternalSession,
+  PlatformInternalPortMock,
+  resetPlatformInternalPortMock,
+} from "../../../__mocks__/ports/platform-internal-port.mock.js";
+import {
   mockDelete,
   mockInvalidatePreviousSession,
   resetSessionPortMock,
@@ -19,7 +24,7 @@ import {
   aBaseSession,
   aFiscalCode,
   aGenericError,
-  aHashedSessionTokenWithSessionId,
+  aHashedClientSessionToken,
   aNotFoundError,
   aPlainSessionToken,
   aSessionWithHashedTokens,
@@ -29,21 +34,19 @@ import {
   type InvalidateProvidedUserStateUseCase,
   makeInvalidateProvidedUserStateUseCase,
 } from "../invalidate-provided-user-state.use-case.js";
-import type { InvalidateSessionTokenCacheUseCase } from "../invalidate-session-token-cache.use-case.js";
 import { makeLogoutUseCase } from "../logout.use-case.js";
 
 const assertionRef = LollipopAssertionRefSchema.parse(
   `sha256-${"a".repeat(43)}`,
 );
 const requestRevocation = vi.fn<LollipopRevocationPort["requestRevocation"]>();
-const invalidateSessionTokenCache = vi.fn<InvalidateSessionTokenCacheUseCase>();
 const logout = makeLogoutUseCase({
   authEventPort: AuthEventPortMock,
   invalidateProvidedUserStateUseCase: makeInvalidateProvidedUserStateUseCase({
     sessionPort: SessionPortMock,
     lollipopActivationPort: lollipopActivationPortMock,
     lollipopRevocationPort: { requestRevocation },
-    invalidateSessionTokenCacheUseCase: invalidateSessionTokenCache,
+    platformInternalPort: PlatformInternalPortMock,
   }),
 });
 const input = { session: aBaseSession, sessionToken: aPlainSessionToken };
@@ -63,7 +66,7 @@ beforeEach(() => {
     .mockReset()
     .mockResolvedValue(ok(undefined));
   requestRevocation.mockReset().mockResolvedValue(ok(undefined));
-  invalidateSessionTokenCache.mockReset().mockResolvedValue(ok(undefined));
+  resetPlatformInternalPortMock();
 });
 
 afterEach(() => {
@@ -117,8 +120,8 @@ describe("makeLogoutUseCase", () => {
       aSessionWithHashedTokens,
     );
     expect(mockInvalidatePreviousSession).not.toHaveBeenCalled();
-    expect(invalidateSessionTokenCache).toHaveBeenCalledExactlyOnceWith(
-      aHashedSessionTokenWithSessionId,
+    expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
+      aHashedClientSessionToken,
     );
     expect(mockSendEvent).toHaveBeenCalledExactlyOnceWith({
       eventType: "logout",
@@ -130,10 +133,10 @@ describe("makeLogoutUseCase", () => {
       lollipopActivationPortMock.revokeByFiscalCode.mock.invocationCallOrder[0],
     ).toBeLessThan(mockDelete.mock.invocationCallOrder[0]);
     expect(mockDelete.mock.invocationCallOrder[0]).toBeLessThan(
-      invalidateSessionTokenCache.mock.invocationCallOrder[0],
+      mockDeletePlatformInternalSession.mock.invocationCallOrder[0],
     );
     expect(
-      invalidateSessionTokenCache.mock.invocationCallOrder[0],
+      mockDeletePlatformInternalSession.mock.invocationCallOrder[0],
     ).toBeLessThan(mockSendEvent.mock.invocationCallOrder[0]);
   });
 
@@ -162,7 +165,7 @@ describe("makeLogoutUseCase", () => {
       ),
     );
     expect(mockDelete).not.toHaveBeenCalled();
-    expect(invalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
     expect(mockSendEvent).not.toHaveBeenCalled();
   });
 
@@ -192,14 +195,14 @@ describe("makeLogoutUseCase", () => {
           new GenericError(`Failed to delete user session: ${error.message}`),
         ),
       );
-      expect(invalidateSessionTokenCache).not.toHaveBeenCalled();
+      expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
       expect(mockSendEvent).not.toHaveBeenCalled();
     },
   );
 
   it("does not wait for public-key revocation or cache invalidation", async () => {
     requestRevocation.mockImplementationOnce(() => new Promise(() => {}));
-    invalidateSessionTokenCache.mockImplementationOnce(
+    mockDeletePlatformInternalSession.mockImplementationOnce(
       () => new Promise(() => {}),
     );
 
@@ -212,7 +215,7 @@ describe("makeLogoutUseCase", () => {
       .spyOn(console, "error")
       .mockImplementation(() => {});
     requestRevocation.mockResolvedValueOnce(err(aGenericError));
-    invalidateSessionTokenCache.mockResolvedValueOnce(err(aGenericError));
+    mockDeletePlatformInternalSession.mockResolvedValueOnce(err(aGenericError));
 
     expect(await logout(input)).toEqual(ok(undefined));
     expect(consoleError).toHaveBeenCalledWith(

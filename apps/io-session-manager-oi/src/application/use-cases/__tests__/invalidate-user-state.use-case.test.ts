@@ -10,13 +10,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
 import {
+  mockDeletePlatformInternalSession,
+  PlatformInternalPortMock,
+  resetPlatformInternalPortMock,
+} from "../../../__mocks__/ports/platform-internal-port.mock.js";
+import {
   aFiscalCode,
   aGenericError,
+  aHashedClientSessionToken,
   aHashedSessionTokenWithSessionId,
   aNotFoundError,
 } from "../../../__mocks__/session.mocks.js";
 import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
-import type { InvalidateSessionTokenCacheUseCase } from "../invalidate-session-token-cache.use-case.js";
 import { makeInvalidateUserStateUseCase } from "../invalidate-user-state.use-case.js";
 
 const input = { fiscalCode: aFiscalCode };
@@ -29,8 +34,6 @@ const activation = {
 };
 const requestRevocation =
   vi.fn<LollipopRevocationPort["requestRevocation"]>();
-const invalidateSessionTokenCache =
-  vi.fn<InvalidateSessionTokenCacheUseCase>();
 const invalidateSession =
   vi.fn<
     UseCase<
@@ -42,7 +45,7 @@ const invalidateSession =
 const invalidateUserState = makeInvalidateUserStateUseCase({
   lollipopActivationPort: lollipopActivationPortMock,
   lollipopRevocationPort: { requestRevocation },
-  invalidateSessionTokenCacheUseCase: invalidateSessionTokenCache,
+  platformInternalPort: PlatformInternalPortMock,
   invalidateSession,
 });
 
@@ -57,7 +60,7 @@ beforeEach(() => {
   invalidateSession
     .mockReset()
     .mockResolvedValue(ok(aHashedSessionTokenWithSessionId));
-  invalidateSessionTokenCache.mockReset().mockResolvedValue(ok(undefined));
+  resetPlatformInternalPortMock();
 });
 
 afterEach(() => {
@@ -78,8 +81,8 @@ describe("makeInvalidateUserStateUseCase", () => {
     ).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
     expect(invalidateSession).toHaveBeenCalledExactlyOnceWith(input);
     expect(invalidateSession.mock.calls[0][0]).toBe(input);
-    expect(invalidateSessionTokenCache).toHaveBeenCalledExactlyOnceWith(
-      aHashedSessionTokenWithSessionId,
+    expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
+      aHashedClientSessionToken,
     );
     expect(requestRevocation.mock.invocationCallOrder[0]).toBeLessThan(
       lollipopActivationPortMock.revokeByFiscalCode.mock
@@ -90,7 +93,7 @@ describe("makeInvalidateUserStateUseCase", () => {
         .invocationCallOrder[0],
     ).toBeLessThan(invalidateSession.mock.invocationCallOrder[0]);
     expect(invalidateSession.mock.invocationCallOrder[0]).toBeLessThan(
-      invalidateSessionTokenCache.mock.invocationCallOrder[0],
+      mockDeletePlatformInternalSession.mock.invocationCallOrder[0],
     );
   });
 
@@ -105,7 +108,7 @@ describe("makeInvalidateUserStateUseCase", () => {
       lollipopActivationPortMock.revokeByFiscalCode,
     ).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
     expect(invalidateSession).toHaveBeenCalledExactlyOnceWith(input);
-    expect(invalidateSessionTokenCache).toHaveBeenCalledOnce();
+    expect(mockDeletePlatformInternalSession).toHaveBeenCalledOnce();
   });
 
   it("stops the workflow when activation retrieval fails", async () => {
@@ -125,7 +128,7 @@ describe("makeInvalidateUserStateUseCase", () => {
       lollipopActivationPortMock.revokeByFiscalCode,
     ).not.toHaveBeenCalled();
     expect(invalidateSession).not.toHaveBeenCalled();
-    expect(invalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
   });
 
   it("stops before invoking the session strategy when association revocation fails", async () => {
@@ -141,7 +144,7 @@ describe("makeInvalidateUserStateUseCase", () => {
       ),
     );
     expect(invalidateSession).not.toHaveBeenCalled();
-    expect(invalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
   });
 
   it("propagates the session strategy error without invalidating the cache", async () => {
@@ -150,7 +153,7 @@ describe("makeInvalidateUserStateUseCase", () => {
     const result = await invalidateUserState(input);
 
     expect(result._unsafeUnwrapErr()).toBe(aGenericError);
-    expect(invalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
   });
 
   it("skips cache invalidation when the strategy returns no session", async () => {
@@ -158,7 +161,7 @@ describe("makeInvalidateUserStateUseCase", () => {
 
     expect(await invalidateUserState(input)).toEqual(ok(undefined));
     expect(invalidateSession).toHaveBeenCalledExactlyOnceWith(input);
-    expect(invalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
   });
 
   it("waits for session invalidation before clearing the cache and returning success", async () => {
@@ -177,27 +180,27 @@ describe("makeInvalidateUserStateUseCase", () => {
     await vi.waitFor(() =>
       expect(invalidateSession).toHaveBeenCalledOnce(),
     );
-    expect(invalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
     expect(completed).not.toHaveBeenCalled();
 
     completeInvalidation();
     await execution;
 
-    expect(invalidateSessionTokenCache).toHaveBeenCalledExactlyOnceWith(
-      aHashedSessionTokenWithSessionId,
+    expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
+      aHashedClientSessionToken,
     );
     expect(completed).toHaveBeenCalledExactlyOnceWith(ok(undefined));
   });
 
   it("does not wait for public-key revocation or cache invalidation", async () => {
     requestRevocation.mockImplementationOnce(() => new Promise(() => {}));
-    invalidateSessionTokenCache.mockImplementationOnce(
+    mockDeletePlatformInternalSession.mockImplementationOnce(
       () => new Promise(() => {}),
     );
 
     expect(await invalidateUserState(input)).toEqual(ok(undefined));
     expect(invalidateSession).toHaveBeenCalledExactlyOnceWith(input);
-    expect(invalidateSessionTokenCache).toHaveBeenCalledOnce();
+    expect(mockDeletePlatformInternalSession).toHaveBeenCalledOnce();
   });
 
   it("logs best-effort errors without failing the workflow", async () => {
@@ -205,7 +208,7 @@ describe("makeInvalidateUserStateUseCase", () => {
       .spyOn(console, "error")
       .mockImplementation(() => {});
     requestRevocation.mockResolvedValueOnce(err(aGenericError));
-    invalidateSessionTokenCache.mockResolvedValueOnce(err(aGenericError));
+    mockDeletePlatformInternalSession.mockResolvedValueOnce(err(aGenericError));
 
     expect(await invalidateUserState(input)).toEqual(ok(undefined));
     expect(consoleError).toHaveBeenCalledTimes(2);

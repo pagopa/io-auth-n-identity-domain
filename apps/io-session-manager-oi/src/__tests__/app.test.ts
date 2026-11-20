@@ -56,6 +56,7 @@ vi.mock("@pagopa/redis/object-wrapper");
 vi.mock("@pagopa/redis/set-wrapper");
 vi.mock("@pagopa/azure-sdk/data-tables");
 vi.mock("@pagopa/io-auth-n-identity-session/adapters");
+vi.mock("@pagopa/io-session-manager-core");
 vi.mock("../adapters/outbound/auth-event-service-bus.adapter.js");
 vi.mock("../adapters/outbound/auxiliary-data.adapter.js");
 vi.mock("../adapters/outbound/blocked-users-redis.adapter.js");
@@ -68,7 +69,6 @@ vi.mock("../adapters/outbound/lollipop-revocation-queue.adapter.js");
 vi.mock("../adapters/outbound/notification-storage-queue.adapter.js");
 vi.mock("../adapters/outbound/one-id-identity-assertion-fetcher-adapter.js");
 vi.mock("../adapters/outbound/platform-internal.adapter.js");
-vi.mock("../adapters/outbound/technical-locked-profiles-data-table.adapter.js");
 vi.mock("../adapters/outbound/openid-client.adapter.js", () => ({
   OpenIdClientAdapter: vi.fn(() => ({ warmUp: mocks.warmUp })),
 }));

@@ -2,7 +2,11 @@ import type { NonEmptyString } from "@pagopa/hexagonal-core";
 import { GenericError } from "@pagopa/hexagonal-core";
 import type { LollipopAssertionRef } from "@pagopa/io-auth-n-identity-domain";
 import { newPlainSessionTokens } from "@pagopa/io-auth-n-identity-session/entities";
-import { newSessionId } from "@pagopa/io-auth-n-identity-session/value-objects";
+import {
+  HashedSessionTokenSchema,
+  newSessionId,
+  SessionIdSchema,
+} from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -58,7 +62,6 @@ import type { NotificationPort } from "../../../domain/ports/outbound/notificati
 import { OidcEnvironment } from "../../../domain/value-objects/oidc.vo.js";
 import { makeActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 import { makeInvalidatePreviousUserStateUseCase } from "../invalidate-previous-user-state.use-case.js";
-import { makeInvalidateSessionTokenCacheUseCase } from "../invalidate-session-token-cache.use-case.js";
 
 // -----------------------------------------------------
 // Setup mocks
@@ -115,9 +118,7 @@ const activateUserSessionUseCase = makeActivateUserSessionUseCase({
     sessionPort: SessionPortMock,
     lollipopActivationPort: lollipopActivationPortMock,
     lollipopRevocationPort,
-    invalidateSessionTokenCacheUseCase: makeInvalidateSessionTokenCacheUseCase({
-      platformInternalPort: PlatformInternalPortMock,
-    }),
+    platformInternalPort: PlatformInternalPortMock,
   }),
   notificationPort,
 });
@@ -596,11 +597,7 @@ describe("makeActivateUserSessionUseCase", () => {
 
       expect(result).toMatchObject(ok(aClientSessionToken));
       expect(consoleError).toHaveBeenCalledExactlyOnceWith(
-        `Failed to invalidate session token cache: ${
-          new GenericError(
-            `Failed to invalidate previous session on proxy: ${aGenericError.message}`,
-          ).message
-        }`,
+        `Failed to invalidate session token cache: ${aGenericError.message}`,
       );
       expect(mockSessionCreate).toHaveBeenCalledOnce();
       expectLoginEvent();
@@ -626,16 +623,20 @@ describe("makeActivateUserSessionUseCase", () => {
       expectLoginEvent();
     });
 
-    it("calls deleteSession with the hashed session token when a previous session exists", async () => {
+    it("deletes the previous cache key and returns the new plain client token", async () => {
+      const previousSession = {
+        sessionId: SessionIdSchema.parse("previousSessionId"),
+        hashedSessionToken: HashedSessionTokenSchema.parse("a".repeat(64)),
+      };
       mockInvalidatePreviousSession.mockResolvedValueOnce(
-        ok(aHashedSessionTokenWithSessionId),
+        ok(previousSession),
       );
 
       const result = await activateUserSession(aNewSessionTokenInput);
 
-      expect(result).toMatchObject(ok(aClientSessionToken));
+      expect(result).toEqual(ok(aClientSessionToken));
       expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
-        `${aHashedSessionTokenWithSessionId.sessionId}.${aHashedSessionTokenWithSessionId.hashedSessionToken}`,
+        `${previousSession.sessionId}.${previousSession.hashedSessionToken}`,
       );
       expectLoginEvent();
     });

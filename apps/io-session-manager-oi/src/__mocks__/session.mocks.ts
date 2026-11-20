@@ -120,6 +120,9 @@ export const aHashedSessionTokenWithSessionId: {
   hashedSessionToken: aSessionWithHashedTokens.hashedSessionToken,
 };
 
+export const aHashedClientSessionToken =
+  `${aHashedSessionTokenWithSessionId.sessionId}.${aHashedSessionTokenWithSessionId.hashedSessionToken}`;
+
 export const aUserProfileWithEmail: UserProfile = {
   fiscalCode: aFiscalCode,
   email: anEmailAddress,

@@ -3,9 +3,15 @@ import {
   newPlainSessionTokens,
   toHashedSessionTokens,
 } from "@pagopa/io-auth-n-identity-session/entities";
+import { HashedSessionTokenSchema } from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  mockDeletePlatformInternalSession,
+  PlatformInternalPortMock,
+  resetPlatformInternalPortMock,
+} from "../../../__mocks__/ports/platform-internal-port.mock.js";
 import {
   mockFindActiveSession,
   mockFindSessionTokenBySessionId,
@@ -17,6 +23,7 @@ import {
   aClientSessionToken,
   aFiscalCode,
   aGenericError,
+  aHashedClientSessionToken,
   aHashedSessionTokenWithSessionId,
   aNewSessionTokenInput,
   aNotFoundError,
@@ -35,16 +42,15 @@ vi.mock("@pagopa/io-auth-n-identity-session/entities", async (importActual) => {
 });
 
 const mockNewPlainSessionTokens = vi.mocked(newPlainSessionTokens);
-const mockInvalidateSessionTokenCache = vi.fn();
 const refreshUserSessionUseCase = makeRefreshUserSessionUseCase({
   sessionPort: SessionPortMock,
-  invalidateSessionTokenCacheUseCase: mockInvalidateSessionTokenCache,
+  platformInternalPort: PlatformInternalPortMock,
 });
 
 beforeEach(() => {
   vi.clearAllMocks();
   resetSessionPortMock();
-  mockInvalidateSessionTokenCache.mockResolvedValue(ok(undefined));
+  resetPlatformInternalPortMock();
   mockFindActiveSession.mockResolvedValue(
     ok({
       fiscalCode: aFiscalCode,
@@ -94,28 +100,44 @@ describe("makeRefreshUserSessionUseCase", () => {
     });
 
     expect(result).toEqual(ok(aClientSessionToken));
-    expect(mockInvalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
     expect(mockRefresh).toHaveBeenCalledOnce();
   });
 
-  it("invalidates the previous session token cache after refreshing", async () => {
+  it("waits for the proxy to delete the previous hashed token before issuing the new client token", async () => {
+    const previousHash = HashedSessionTokenSchema.parse("a".repeat(64));
     mockFindSessionTokenBySessionId.mockResolvedValueOnce(
-      ok(aHashedSessionTokenWithSessionId),
+      ok({ sessionId: aSessionId, hashedSessionToken: previousHash }),
+    );
+    const completeDeletion = vi.fn<() => void>();
+    mockDeletePlatformInternalSession.mockReturnValueOnce(
+      new Promise((resolve) => {
+        completeDeletion.mockImplementation(() => resolve(ok(undefined)));
+      }),
     );
 
-    const result = await refreshUserSessionUseCase({
+    const execution = refreshUserSessionUseCase({
       sessionToken: aNewSessionTokenInput,
     });
 
-    expect(result).toEqual(ok(aClientSessionToken));
-    expect(mockInvalidateSessionTokenCache).toHaveBeenCalledExactlyOnceWith(
-      aHashedSessionTokenWithSessionId,
+    await vi.waitFor(() =>
+      expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
+        `${aSessionId}.${previousHash}`,
+      ),
     );
     expect(
       mockFindSessionTokenBySessionId.mock.invocationCallOrder[0],
-    ).toBeLessThan(mockRefresh.mock.invocationCallOrder[0]);
-    expect(mockRefresh.mock.invocationCallOrder[0]).toBeLessThan(
-      mockInvalidateSessionTokenCache.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockDeletePlatformInternalSession.mock.invocationCallOrder[0]);
+    expect(mockNewPlainSessionTokens).not.toHaveBeenCalled();
+    expect(mockRefresh).not.toHaveBeenCalled();
+
+    completeDeletion();
+    expect(await execution).toEqual(ok(aClientSessionToken));
+    expect(mockRefresh).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        sessionId: aSessionId,
+        hashedSessionToken: aSessionWithHashedTokens.hashedSessionToken,
+      }),
     );
   });
 
@@ -133,25 +155,31 @@ describe("makeRefreshUserSessionUseCase", () => {
         ),
       ),
     );
-    expect(mockInvalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
     expect(mockRefresh).not.toHaveBeenCalled();
   });
 
-  it("returns an error when cache invalidation fails after refreshing", async () => {
+  it("returns an error and does not refresh when cache invalidation fails", async () => {
     mockFindSessionTokenBySessionId.mockResolvedValueOnce(
       ok(aHashedSessionTokenWithSessionId),
     );
-    mockInvalidateSessionTokenCache.mockResolvedValueOnce(err(aGenericError));
+    mockDeletePlatformInternalSession.mockResolvedValueOnce(err(aGenericError));
 
     const result = await refreshUserSessionUseCase({
       sessionToken: aNewSessionTokenInput,
     });
 
-    expect(result).toEqual(err(aGenericError));
-    expect(mockRefresh).toHaveBeenCalledOnce();
+    const error = result._unsafeUnwrapErr();
+    expect(error).toBeInstanceOf(GenericError);
+    expect(error.message).toBe(
+      new GenericError("Failed to invalidate previous session on proxy").message,
+    );
+    expect(error.cause).toBe(aGenericError);
+    expect(mockNewPlainSessionTokens).not.toHaveBeenCalled();
+    expect(mockRefresh).not.toHaveBeenCalled();
   });
 
-  it("does not invalidate the cache when refresh fails", async () => {
+  it("invalidates the cache before returning a refresh failure", async () => {
     mockFindSessionTokenBySessionId.mockResolvedValueOnce(
       ok(aHashedSessionTokenWithSessionId),
     );
@@ -161,8 +189,16 @@ describe("makeRefreshUserSessionUseCase", () => {
       sessionToken: aNewSessionTokenInput,
     });
 
-    expect(result).toEqual(err(expect.any(GenericError)));
-    expect(mockInvalidateSessionTokenCache).not.toHaveBeenCalled();
+    expect(result).toEqual(
+      err(
+        new GenericError(
+          `Failed to refresh user session: ${aGenericError.message}`,
+        ),
+      ),
+    );
+    expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
+      aHashedClientSessionToken,
+    );
   });
 
   it("preserves the generated token expiry when it precedes the active session expiry", async () => {

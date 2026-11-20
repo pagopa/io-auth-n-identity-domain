@@ -1,13 +1,13 @@
 import { ForbiddenError, GenericError } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { TechnicalLockedProfilesPort } from "@pagopa/io-session-manager-core";
 
 import {
   aFiscalCode,
   aGenericError,
 } from "../../../__mocks__/session.mocks.js";
 import type { LockedProfilesPort } from "../../../domain/ports/outbound/locked-profiles.port.js";
-import type { TechnicalLockedProfilesPort } from "../../../domain/ports/outbound/technical-locked-profiles.port.js";
 import {
   makeValidateProfileLocksUseCase,
   ProfileLockedError,
