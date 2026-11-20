@@ -154,30 +154,39 @@ describe("makeStartLoginUseCase", () => {
   });
 
   it.each([
-    ["discovery_failed", "ioweb-auth.oidc.login.discovery.error"],
-    ["invalid_authorization_endpoint", "ioweb-auth.oidc.login.auth-decode.error"],
-  ] as const)("tracks %s with correlation IDs", async (reason, eventName) => {
-    const error = new GenericError("Upstream error detail");
-    oidcClientPort.getAuthorizationEndpoint.mockResolvedValueOnce(
-      err({ reason, error }),
-    );
+    {
+      reason: "discovery_failed",
+      expectedEventName: "ioweb-auth.oidc.login.discovery.error",
+    },
+    {
+      reason: "invalid_authorization_endpoint",
+      expectedEventName: "ioweb-auth.oidc.login.auth-decode.error",
+    },
+  ] as const)(
+    "tracks $expectedEventName with correlation IDs when the port returns $reason",
+    async ({ reason, expectedEventName }) => {
+      const error = new GenericError("Upstream error detail");
+      oidcClientPort.getAuthorizationEndpoint.mockResolvedValueOnce(
+        err({ reason, error }),
+      );
 
-    const result = await useCase(anInput);
+      const result = await useCase(anInput);
 
-    expect(result).toEqual(err(error));
-    expect(auxiliaryDataPort.save).not.toHaveBeenCalled();
-    expect(trackedProperties(eventName)).toEqual({
-      samplingEnabled: false,
-      timestamp: expect.any(String),
-      failureReason: reason,
-      env: anInput.oidcConfigurationEnv,
-      ipHash: IP_HASH,
-      idp: anInput.idp,
-      minAuthLevel: anInput.minAuthLevel,
-      state: MOCKED_HEX,
-      nonce: MOCKED_HEX,
-    });
-  });
+      expect(result).toEqual(err(error));
+      expect(auxiliaryDataPort.save).not.toHaveBeenCalled();
+      expect(trackedProperties(expectedEventName)).toEqual({
+        samplingEnabled: false,
+        timestamp: expect.any(String),
+        failureReason: reason,
+        env: anInput.oidcConfigurationEnv,
+        ipHash: IP_HASH,
+        idp: anInput.idp,
+        minAuthLevel: anInput.minAuthLevel,
+        state: MOCKED_HEX,
+        nonce: MOCKED_HEX,
+      });
+    },
+  );
 
   it("returns a GenericError and tracks it with the correlation ids when saving fails", async () => {
     auxiliaryDataPort.save.mockResolvedValueOnce(
