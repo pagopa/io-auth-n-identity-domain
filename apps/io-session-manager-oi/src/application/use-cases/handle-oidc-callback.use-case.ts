@@ -30,10 +30,7 @@ import { ActivateUserSessionUseCase } from "./activate-user-session.use-case.js"
 import type { ValidateProfileLocksUseCase } from "./validate-profile-locks.use-case.js";
 import { toFullyQualifiedSpidLevel } from "../../utils/spid.js";
 
-// Error code sent to the client error page when the provider returns an error
-// response without an explicit `error` code.
-const GENERIC_LOGIN_ERROR_CODE = "GENERIC_ERROR" as NonEmptyString;
-
+const INVALID_CALLBACK_ERROR_MESSAGE = "error occurred" as NonEmptyString;
 const AUTHENTICATION_LOCKED_ERROR = "1002" as NonEmptyString;
 const DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE = "1004" as NonEmptyString;
 
@@ -61,15 +58,13 @@ export type HandleOidcCallbackDeps = {
   activateUserSessionUseCase: ActivateUserSessionUseCase;
 };
 
-// Business outcome of the callback: a session token on success, or a login
-// error code (with an optional message) forwarded to the client error page.
-// Both variants are turned into a client redirect by the inbound handler;
-// unexpected failures stay on the error channel and become a problem+json.
+// Business outcome of the callback, matching the legacy callback response:
+// either a session token or the optional error query parameters forwarded to
+// the client error page.
 export type HandleOidcCallbackOutput =
-  | { readonly outcome: "success"; readonly token: ClientSessionToken }
+  | { readonly token: ClientSessionToken }
   | {
-      readonly outcome: "error";
-      readonly errorCode: NonEmptyString;
+      readonly errorCode?: NonEmptyString;
       readonly errorMessage?: NonEmptyString;
     };
 
@@ -90,6 +85,7 @@ export const makeHandleOidcCallbackUseCase =
   async ({ callback, ipAddress }) => {
     // Retrieve (and, once on Redis getDel, consume) the reserved login data
     // even for an error response, so the state cannot be replayed.
+
     const auxiliaryDataResult = await deps.auxiliaryDataPort.retrieve(
       callback.state,
     );
@@ -101,10 +97,13 @@ export const makeHandleOidcCallbackUseCase =
     const auxiliaryData = auxiliaryDataResult.value;
 
     if (callback.code === undefined) {
+      if (callback.error === undefined) {
+        return ok({ errorMessage: INVALID_CALLBACK_ERROR_MESSAGE });
+      }
+
       return ok({
-        outcome: "error",
-        errorCode: callback.error ?? GENERIC_LOGIN_ERROR_CODE,
-        errorMessage: callback.error_description,
+        errorCode: parseErrorCode(callback.error_description),
+        errorMessage: callback.error,
       });
     }
 
@@ -150,7 +149,6 @@ export const makeHandleOidcCallbackUseCase =
         currentFiscalCodeHash: auxiliaryData.currentUser,
       });
       return ok({
-        outcome: "error",
         errorCode: DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
       });
     }
@@ -223,7 +221,6 @@ export const makeHandleOidcCallbackUseCase =
                 rejectionCause: "auth_lock",
               });
               return ok({
-                outcome: "error",
                 errorCode: AUTHENTICATION_LOCKED_ERROR,
               });
             case "technical-profile-locked": {
@@ -281,8 +278,17 @@ export const makeHandleOidcCallbackUseCase =
       return err(activateResult.error);
     }
 
-    return ok({ outcome: "success", token: activateResult.value });
+    return ok({ token: activateResult.value });
   };
+
+const parseErrorCode = (
+  errorDescription?: NonEmptyString,
+): NonEmptyString | undefined => {
+  const parsedErrorCode = Number.parseInt(errorDescription ?? "", 10);
+  return parsedErrorCode
+    ? (String(parsedErrorCode) as NonEmptyString)
+    : undefined;
+};
 
 const SPID_LEVEL_ORDER: Record<SpidLevel, number> = {
   "https://www.spid.gov.it/SpidL1": 1,
