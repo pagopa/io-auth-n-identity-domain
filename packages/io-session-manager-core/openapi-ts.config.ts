@@ -1,4 +1,4 @@
-import { defineConfig, UserConfig } from "@hey-api/openapi-ts";
+import { defineConfig, type UserConfig } from "@hey-api/openapi-ts";
 import { FiscalCodeSchema } from "@pagopa/hexagonal-core";
 
 const stringResolver = (ctx: {
