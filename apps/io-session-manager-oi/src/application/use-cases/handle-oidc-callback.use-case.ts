@@ -17,18 +17,18 @@ import {
   SpidLevel,
   toSha256,
 } from "@pagopa/io-auth-n-identity-session";
+import type { ClientSessionToken } from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
 
 import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import { AuxiliaryDataPort } from "../../domain/ports/outbound/auxiliary-data.port.js";
 import { IdentityAssertionFetcherPort } from "../../domain/ports/outbound/identity-assertion-fetcher.port.js";
 import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
-import { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
 import { SpidAuthLevel } from "../../domain/value-objects/login.vo.js";
+import { toFullyQualifiedSpidLevel } from "../../utils/spid.js";
 
 import { ActivateUserSessionUseCase } from "./activate-user-session.use-case.js";
 import type { ValidateProfileLocksUseCase } from "./validate-profile-locks.use-case.js";
-import { toFullyQualifiedSpidLevel } from "../../utils/spid.js";
 
 // Error code sent to the client error page when the provider returns an error
 // response without an explicit `error` code.

@@ -1,7 +1,7 @@
 import { ok } from "neverthrow";
 import { vi } from "vitest";
 
-import { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
+import { PlatformInternalPort } from "@pagopa/io-session-manager-core";
 
 export const mockDeletePlatformInternalSession = vi.fn();
 

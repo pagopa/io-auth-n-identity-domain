@@ -16,22 +16,21 @@ import type {
   SessionPort,
 } from "@pagopa/io-auth-n-identity-session/ports";
 import {
+  type ClientSessionToken,
   type LoginType,
   newSessionId,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
+import type { InvalidatePreviousUserStateUseCase } from "@pagopa/io-session-manager-core";
 import { err, ok, type Result } from "neverthrow";
 
 import type { UserProfile } from "../../domain/entities/profile.entity.js";
 import type { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
+import { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import { NotificationPort } from "../../domain/ports/outbound/notification.port.js";
 import type { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import type { IdentityAssertion } from "../../domain/value-objects/assertion.vo.js";
-import type { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
-
-import { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
 import { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
-import type { InvalidatePreviousUserStateUseCase } from "./invalidate-previous-user-state.use-case.js";
 
 type NewSessionToken = Omit<
   BaseSession,

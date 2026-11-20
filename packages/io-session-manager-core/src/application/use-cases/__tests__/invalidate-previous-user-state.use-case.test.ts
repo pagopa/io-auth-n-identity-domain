@@ -3,18 +3,18 @@ import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
+import { lollipopActivationPortMock } from "../../../__mocks__/domain/ports/lollipop-activation.port.mock.js";
 import {
   mockDeletePlatformInternalSession,
   PlatformInternalPortMock,
   resetPlatformInternalPortMock,
-} from "../../../__mocks__/ports/platform-internal-port.mock.js";
+} from "../../../__mocks__/domain/ports/platform-internal.port.mock.js";
 import {
   mockDelete,
   mockInvalidatePreviousSession,
   resetSessionPortMock,
   SessionPortMock,
-} from "../../../__mocks__/ports/session-port.mock.js";
+} from "../../../__mocks__/domain/ports/session.port.mock.js";
 import {
   aFiscalCode,
   aGenericError,
@@ -22,7 +22,7 @@ import {
   aHashedSessionTokenWithSessionId,
   aNotFoundError,
 } from "../../../__mocks__/session.mocks.js";
-import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
+import type { LollipopRevocationPort } from "../../../domain/ports/lollipop-revocation.port.js";
 import { makeInvalidatePreviousUserStateUseCase } from "../invalidate-previous-user-state.use-case.js";
 
 const assertionRef = LollipopAssertionRefSchema.parse(
@@ -86,7 +86,9 @@ describe("makeInvalidatePreviousUserStateUseCase", () => {
     ).toBeLessThan(mockInvalidatePreviousSession.mock.invocationCallOrder[0]);
     expect(
       mockInvalidatePreviousSession.mock.invocationCallOrder[0],
-    ).toBeLessThan(mockDeletePlatformInternalSession.mock.invocationCallOrder[0]);
+    ).toBeLessThan(
+      mockDeletePlatformInternalSession.mock.invocationCallOrder[0],
+    );
   });
 
   it("continues without a public-key revocation when no activation exists", async () => {

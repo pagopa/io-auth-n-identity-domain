@@ -23,7 +23,10 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock("../../../utils/codec/index.js", () => ({
+vi.mock("@pagopa/io-auth-n-identity-domain", async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import("@pagopa/io-auth-n-identity-domain")
+  >()),
   Base64: mocks.Base64,
 }));
 

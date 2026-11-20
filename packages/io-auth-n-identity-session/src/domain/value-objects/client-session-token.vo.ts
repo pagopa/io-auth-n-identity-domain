@@ -1,12 +1,12 @@
+import { z } from "zod";
+
+import { type SessionId, SessionIdSchema } from "./session-id.vo.js";
 import {
   type HashedSessionToken,
   HashedSessionTokenSchema,
   type PlainSessionToken,
   PlainSessionTokenSchema,
-  type SessionId,
-  SessionIdSchema,
-} from "@pagopa/io-auth-n-identity-session/value-objects";
-import z from "zod";
+} from "./tokens/index.js";
 
 // Use public type aliases so declaration emit can avoid expanding unique-symbol brands (TS2527).
 export const ClientSessionTokenSchema: z.ZodTemplateLiteral<`${SessionId}.${PlainSessionToken}`> =

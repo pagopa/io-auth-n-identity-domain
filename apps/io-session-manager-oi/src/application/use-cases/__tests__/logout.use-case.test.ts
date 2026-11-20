@@ -29,11 +29,11 @@ import {
   aPlainSessionToken,
   aSessionWithHashedTokens,
 } from "../../../__mocks__/session.mocks.js";
-import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
 import {
   type InvalidateProvidedUserStateUseCase,
   makeInvalidateProvidedUserStateUseCase,
-} from "../invalidate-provided-user-state.use-case.js";
+  type LollipopRevocationPort,
+} from "@pagopa/io-session-manager-core";
 import { makeLogoutUseCase } from "../logout.use-case.js";
 
 const assertionRef = LollipopAssertionRefSchema.parse(

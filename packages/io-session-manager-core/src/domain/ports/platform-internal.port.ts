@@ -1,7 +1,6 @@
 import { type GenericError } from "@pagopa/hexagonal-core";
+import { HashedClientSessionToken } from "@pagopa/io-auth-n-identity-session";
 import { type Result } from "neverthrow";
-
-import { HashedClientSessionToken } from "../../value-objects/client-session-token.vo.js";
 
 export interface PlatformInternalPort {
   deleteSession(

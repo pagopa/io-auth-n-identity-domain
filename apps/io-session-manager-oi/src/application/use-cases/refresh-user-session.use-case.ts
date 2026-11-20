@@ -5,18 +5,18 @@ import {
   UseCase,
 } from "@pagopa/hexagonal-core";
 import { IPString } from "@pagopa/io-auth-n-identity-domain";
-import { LoginType } from "@pagopa/io-auth-n-identity-session";
+import {
+  LoginType,
+  type ClientSessionToken,
+} from "@pagopa/io-auth-n-identity-session";
 import {
   type BaseSession,
   newPlainSessionTokens,
   toHashedSessionTokens,
 } from "@pagopa/io-auth-n-identity-session/entities";
 import type { SessionPort } from "@pagopa/io-auth-n-identity-session/ports";
+import { PlatformInternalPort } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";
-
-import type { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
-
-import { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
 
 export type SessionInfo = Omit<
   BaseSession,

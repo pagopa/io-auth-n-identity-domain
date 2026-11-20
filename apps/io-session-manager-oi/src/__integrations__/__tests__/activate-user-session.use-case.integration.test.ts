@@ -12,12 +12,14 @@ import { IdpFriendlyNamePortMock } from "../../__mocks__/ports/friendly-name-por
 import { lollipopActivationPortMock } from "../../__mocks__/ports/lollipop-activation-port.mock.js";
 import { lollipopRevocationPortMock } from "../../__mocks__/ports/lollipop-revocation-port.mock.js";
 import { createIoProfileAdapter } from "../../adapters/outbound/io-profile.adapter.js";
-import { createPlatformInternalAdapter } from "../../adapters/outbound/platform-internal.adapter.js";
+import {
+  createPlatformInternalAdapter,
+  makeInvalidatePreviousUserStateUseCase,
+} from "@pagopa/io-session-manager-core";
 import {
   makeActivateUserSessionUseCase,
   type ActivateUserSessionUseCase,
 } from "../../application/use-cases/activate-user-session.use-case.js";
-import { makeInvalidatePreviousUserStateUseCase } from "../../application/use-cases/invalidate-previous-user-state.use-case.js";
 import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import {

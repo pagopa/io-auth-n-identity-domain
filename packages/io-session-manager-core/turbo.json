@@ -1,0 +1,13 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "generate": {
+      "dependsOn": ["generate:clients"]
+    },
+    "generate:clients": {
+      "inputs": ["openapi-ts.config.ts"],
+      "outputs": ["src/generated/**/*.ts"],
+      "outputLogs": "hash-only"
+    }
+  }
+}

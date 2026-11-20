@@ -8,11 +8,10 @@ import {
   toPlainPagopaSSOToken,
   toPlainZendeskSSOToken,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
+import type { InvalidateProvidedUserStateUseCase } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";
 
 import type { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
-
-import type { InvalidateProvidedUserStateUseCase } from "./invalidate-provided-user-state.use-case.js";
 
 type LogoutInput = {
   session: BaseSession;

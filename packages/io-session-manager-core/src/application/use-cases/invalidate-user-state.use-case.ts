@@ -8,8 +8,10 @@ import type { HashedSessionTokenWithSessionId } from "@pagopa/io-auth-n-identity
 import type { LollipopActivationPort } from "@pagopa/io-auth-n-identity-session/ports";
 import { err, ok } from "neverthrow";
 
-import type { LollipopRevocationPort } from "../../domain/ports/outbound/lollipop-revocation.port.js";
-import type { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
+import type {
+  LollipopRevocationPort,
+  PlatformInternalPort,
+} from "../../domain/ports/index.js";
 
 export type UserStateInvalidationDeps = {
   lollipopActivationPort: LollipopActivationPort;

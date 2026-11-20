@@ -18,12 +18,16 @@
     "lint": "pnpm lint:check --fix",
     "lint:check": "eslint . --ext .ts --cache",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "generate:clients": "openapi-ts"
   },
   "dependencies": {
+    "@azure/storage-queue": "catalog:",
+    "@hey-api/openapi-ts": "catalog:",
     "@pagopa/azure-sdk": "workspace:^",
-    "@pagopa/io-auth-n-identity-domain": "workspace:^",
     "@pagopa/hexagonal-core": "catalog:",
+    "@pagopa/io-auth-n-identity-domain": "workspace:^",
+    "@pagopa/io-auth-n-identity-session": "workspace:^",
     "neverthrow": "catalog:",
     "zod": "catalog:"
   },
