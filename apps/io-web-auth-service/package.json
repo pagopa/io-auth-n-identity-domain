@@ -33,6 +33,7 @@
     "@pagopa/io-package-info": "workspace:^",
     "dotenv": "catalog:",
     "fastify": "catalog:",
+    "jose": "catalog:",
     "neverthrow": "catalog:",
     "zod": "catalog:"
   },
