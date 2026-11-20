@@ -64,7 +64,8 @@ locals {
 
   repo_secrets = [
     "SONAR_TOKEN",
-    "SLACK_WEBHOOK_URL"
+    "SLACK_WEBHOOK_URL",
+    "GH_TOKEN_DEPLOYMENT_APPROVAL"
   ]
 
   tags = {
