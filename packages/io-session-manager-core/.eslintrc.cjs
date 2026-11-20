@@ -10,7 +10,12 @@ module.exports = {
     project: "./tsconfig.eslint.json",
     tsconfigRootDir: __dirname,
   },
-  ignorePatterns: ["*.yaml", "dist/**/*", "vite.config.mts"],
+  ignorePatterns: [
+    "*.yaml",
+    "dist/**/*",
+    "vite.config.mts",
+    "openapi-ts.config.ts",
+  ],
   plugins: ["import"],
   rules: {
     "import/order": [

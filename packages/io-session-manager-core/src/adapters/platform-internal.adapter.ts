@@ -1,13 +1,13 @@
 import { GenericError } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 
-import type { PlatformInternalPort } from "../../domain/ports/outbound/platform-internal.port.js";
-import { createClient } from "../../generated/platform-internal/client/index.js";
-import { deleteSession } from "../../generated/platform-internal/sdk.gen.js";
+import type { PlatformInternalPort } from "../domain/ports/platform-internal.port.js";
+import { createClient } from "../generated/platform-internal/client/index.js";
+import { deleteSession } from "../generated/platform-internal/sdk.gen.js";
 import type {
   DeleteSessionErrors,
   DeleteSessionResponses,
-} from "../../generated/platform-internal/types.gen.js";
+} from "../generated/platform-internal/types.gen.js";
 
 export const createPlatformInternalAdapter = (config: {
   baseUrl: URL;

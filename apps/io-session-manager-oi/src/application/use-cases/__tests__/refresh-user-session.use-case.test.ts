@@ -18,7 +18,7 @@ import {
   mockRefresh,
   resetSessionPortMock,
   SessionPortMock,
-} from "../../../__mocks__/ports/session-port.mock.js";
+} from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/session.port.mock.js";
 import {
   aClientSessionToken,
   aFiscalCode,
@@ -127,7 +127,9 @@ describe("makeRefreshUserSessionUseCase", () => {
     );
     expect(
       mockFindSessionTokenBySessionId.mock.invocationCallOrder[0],
-    ).toBeLessThan(mockDeletePlatformInternalSession.mock.invocationCallOrder[0]);
+    ).toBeLessThan(
+      mockDeletePlatformInternalSession.mock.invocationCallOrder[0],
+    );
     expect(mockNewPlainSessionTokens).not.toHaveBeenCalled();
     expect(mockRefresh).not.toHaveBeenCalled();
 
@@ -172,7 +174,8 @@ describe("makeRefreshUserSessionUseCase", () => {
     const error = result._unsafeUnwrapErr();
     expect(error).toBeInstanceOf(GenericError);
     expect(error.message).toBe(
-      new GenericError("Failed to invalidate previous session on proxy").message,
+      new GenericError("Failed to invalidate previous session on proxy")
+        .message,
     );
     expect(error.cause).toBe(aGenericError);
     expect(mockNewPlainSessionTokens).not.toHaveBeenCalled();

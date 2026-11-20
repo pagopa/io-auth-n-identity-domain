@@ -10,18 +10,18 @@ import {
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
+import { lollipopActivationPortMock } from "../../../__mocks__/domain/ports/lollipop-activation.port.mock.js";
 import {
   mockDeletePlatformInternalSession,
   PlatformInternalPortMock,
   resetPlatformInternalPortMock,
-} from "../../../__mocks__/ports/platform-internal-port.mock.js";
+} from "../../../__mocks__/domain/ports/platform-internal.port.mock.js";
 import {
   mockDelete,
   mockInvalidatePreviousSession,
   resetSessionPortMock,
   SessionPortMock,
-} from "../../../__mocks__/ports/session-port.mock.js";
+} from "../../../__mocks__/domain/ports/session.port.mock.js";
 import {
   aFiscalCode,
   aGenericError,
@@ -30,19 +30,16 @@ import {
   aSessionWithHashedTokens,
   aSessionWithPlainSSOTokens,
 } from "../../../__mocks__/session.mocks.js";
-import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
+import type { LollipopRevocationPort } from "../../../domain/ports/lollipop-revocation.port.js";
 import { makeInvalidateProvidedUserStateUseCase } from "../invalidate-provided-user-state.use-case.js";
 
-const requestRevocation =
-  vi.fn<LollipopRevocationPort["requestRevocation"]>();
-const invalidateProvidedUserState = makeInvalidateProvidedUserStateUseCase(
-  {
-    sessionPort: SessionPortMock,
-    lollipopActivationPort: lollipopActivationPortMock,
-    lollipopRevocationPort: { requestRevocation },
-    platformInternalPort: PlatformInternalPortMock,
-  },
-);
+const requestRevocation = vi.fn<LollipopRevocationPort["requestRevocation"]>();
+const invalidateProvidedUserState = makeInvalidateProvidedUserStateUseCase({
+  sessionPort: SessionPortMock,
+  lollipopActivationPort: lollipopActivationPortMock,
+  lollipopRevocationPort: { requestRevocation },
+  platformInternalPort: PlatformInternalPortMock,
+});
 
 beforeEach(() => {
   resetSessionPortMock();
@@ -59,9 +56,9 @@ beforeEach(() => {
 
 describe("makeInvalidateProvidedUserStateUseCase", () => {
   it("deletes the authenticated session rather than invalidating the user's current session", async () => {
-    expect(
-      await invalidateProvidedUserState(aSessionWithHashedTokens),
-    ).toEqual(ok(undefined));
+    expect(await invalidateProvidedUserState(aSessionWithHashedTokens)).toEqual(
+      ok(undefined),
+    );
     expect(
       lollipopActivationPortMock.getByFiscalCode,
     ).toHaveBeenCalledExactlyOnceWith(aFiscalCode);
@@ -74,8 +71,7 @@ describe("makeInvalidateProvidedUserStateUseCase", () => {
       aHashedClientSessionToken,
     );
     expect(
-      lollipopActivationPortMock.revokeByFiscalCode.mock
-        .invocationCallOrder[0],
+      lollipopActivationPortMock.revokeByFiscalCode.mock.invocationCallOrder[0],
     ).toBeLessThan(mockDelete.mock.invocationCallOrder[0]);
     expect(mockDelete.mock.invocationCallOrder[0]).toBeLessThan(
       mockDeletePlatformInternalSession.mock.invocationCallOrder[0],
@@ -91,9 +87,7 @@ describe("makeInvalidateProvidedUserStateUseCase", () => {
       ),
     });
 
-    expect(await invalidateProvidedUserState(session)).toEqual(
-      ok(undefined),
-    );
+    expect(await invalidateProvidedUserState(session)).toEqual(ok(undefined));
     expect(mockDelete).toHaveBeenCalledExactlyOnceWith(session);
     expect(mockInvalidatePreviousSession).not.toHaveBeenCalled();
     expect(mockDeletePlatformInternalSession).toHaveBeenCalledExactlyOnceWith(
@@ -110,9 +104,7 @@ describe("makeInvalidateProvidedUserStateUseCase", () => {
         await invalidateProvidedUserState(aSessionWithHashedTokens),
       ).toEqual(
         err(
-          new GenericError(
-            `Failed to delete user session: ${error.message}`,
-          ),
+          new GenericError(`Failed to delete user session: ${error.message}`),
         ),
       );
       expect(mockDelete).toHaveBeenCalledExactlyOnceWith(
@@ -128,9 +120,7 @@ describe("makeInvalidateProvidedUserStateUseCase", () => {
       err(aGenericError),
     );
 
-    expect(
-      await invalidateProvidedUserState(aSessionWithHashedTokens),
-    ).toEqual(
+    expect(await invalidateProvidedUserState(aSessionWithHashedTokens)).toEqual(
       err(
         new GenericError(
           `Failed to revoke the "fiscal code - lollipop" association: ${aGenericError.message}`,

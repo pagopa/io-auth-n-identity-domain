@@ -6,6 +6,7 @@ import {
   Sha256HexStringSchema,
   toSha256,
 } from "../../../utils/hash.js";
+
 import { PlainSessionToken } from "./session-token.vo.js";
 
 const SHA256_HEX_LENGTH = 64;

@@ -8,7 +8,7 @@ import {
   mockSendEvent,
   resetAuthEventPortMock,
 } from "../../../__mocks__/ports/auth-event-port.mock.js";
-import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
+import { lollipopActivationPortMock } from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/lollipop-activation.port.mock.js";
 import {
   mockDeletePlatformInternalSession,
   PlatformInternalPortMock,
@@ -19,7 +19,7 @@ import {
   mockInvalidatePreviousSession,
   resetSessionPortMock,
   SessionPortMock,
-} from "../../../__mocks__/ports/session-port.mock.js";
+} from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/session.port.mock.js";
 import {
   aBaseSession,
   aFiscalCode,
@@ -29,11 +29,11 @@ import {
   aPlainSessionToken,
   aSessionWithHashedTokens,
 } from "../../../__mocks__/session.mocks.js";
-import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
 import {
   type InvalidateProvidedUserStateUseCase,
   makeInvalidateProvidedUserStateUseCase,
-} from "../invalidate-provided-user-state.use-case.js";
+  type LollipopRevocationPort,
+} from "@pagopa/io-session-manager-core";
 import { makeLogoutUseCase } from "../logout.use-case.js";
 
 const assertionRef = LollipopAssertionRefSchema.parse(

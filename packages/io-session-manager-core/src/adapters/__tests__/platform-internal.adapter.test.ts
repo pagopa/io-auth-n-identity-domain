@@ -1,17 +1,17 @@
 import { GenericError } from "@pagopa/hexagonal-core";
+import type { HashedClientSessionToken } from "@pagopa/io-auth-n-identity-session";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { HashedClientSessionToken } from "../../../domain/value-objects/client-session-token.vo.js";
-import { deleteSession } from "../../../generated/platform-internal/sdk.gen.js";
+import { deleteSession } from "../../generated/platform-internal/sdk.gen.js";
 import { createPlatformInternalAdapter } from "../platform-internal.adapter.js";
 
-vi.mock("../../../generated/platform-internal/client/index.js", () => ({
+vi.mock("../../generated/platform-internal/client/index.js", () => ({
   createClient: vi.fn(() => ({
     interceptors: { request: { use: vi.fn() } },
   })),
 }));
 
-vi.mock("../../../generated/platform-internal/sdk.gen.js", () => ({
+vi.mock("../../generated/platform-internal/sdk.gen.js", () => ({
   deleteSession: vi.fn(),
 }));
 

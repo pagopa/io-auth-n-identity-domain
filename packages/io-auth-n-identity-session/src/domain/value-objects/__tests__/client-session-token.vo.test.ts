@@ -5,7 +5,7 @@ import {
   aHashedClientSessionToken,
   aPlainSessionToken,
   aSessionId,
-} from "../../../__mocks__/session.mocks.js";
+} from "../../../../../../apps/io-session-manager-oi/src/__mocks__/session.mocks.js";
 import {
   ClientSessionTokenSchema,
   HashedClientSessionTokenSchema,
@@ -29,15 +29,17 @@ describe("ClientSessionTokenSchema", () => {
 
 describe("HashedClientSessionTokenSchema", () => {
   it("accepts a session ID and SHA-256 token hash separated by a period", () => {
-    expect(HashedClientSessionTokenSchema.parse(aHashedClientSessionToken)).toBe(
-      aHashedClientSessionToken,
-    );
+    expect(
+      HashedClientSessionTokenSchema.parse(aHashedClientSessionToken),
+    ).toBe(aHashedClientSessionToken);
   });
 
-  it.each([
-    `${aSessionId}.not-a-hash`,
-    `${aSessionId}${"a".repeat(64)}`,
-  ])("rejects malformed proxy cache keys: %s", (value) => {
-    expect(HashedClientSessionTokenSchema.safeParse(value).success).toBe(false);
-  });
+  it.each([`${aSessionId}.not-a-hash`, `${aSessionId}${"a".repeat(64)}`])(
+    "rejects malformed proxy cache keys: %s",
+    (value) => {
+      expect(HashedClientSessionTokenSchema.safeParse(value).success).toBe(
+        false,
+      );
+    },
+  );
 });

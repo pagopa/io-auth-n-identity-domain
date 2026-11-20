@@ -14,6 +14,12 @@ import {
 import { type PackageInfo } from "@pagopa/io-package-info";
 import { TechnicalLockedProfilesDataTableAdapter } from "@pagopa/io-session-manager-core";
 import {
+  createPlatformInternalAdapter,
+  LollipopRevocationQueueAdapter,
+  makeInvalidatePreviousUserStateUseCase,
+  makeInvalidateProvidedUserStateUseCase,
+} from "@pagopa/io-session-manager-core";
+import {
   createRedisClusterClient,
   createRedisManagedIdentityClusterClient,
 } from "@pagopa/redis/node-client";
@@ -47,11 +53,9 @@ import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter
 import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
 import { createIoTestProfileAdapter } from "./adapters/outbound/io-test-profile.adapter.js";
 import { LockedProfilesDataTableAdapter } from "./adapters/outbound/locked-profiles-data-table.adapter.js";
-import { LollipopRevocationQueueAdapter } from "./adapters/outbound/lollipop-revocation-queue.adapter.js";
 import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { OneIdIdentityAssertionFetcherAdapter } from "./adapters/outbound/one-id-identity-assertion-fetcher-adapter.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
-import { createPlatformInternalAdapter } from "./adapters/outbound/platform-internal.adapter.js";
 import { TechnicalLockedProfilesRedisAdapter } from "./adapters/outbound/technical-locked-profiles-redis.adapter.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { makeFastLoginUseCase } from "./application/use-cases/fast-login.use-case.js";
@@ -66,8 +70,6 @@ import { makeGetUserForPagopaUseCase } from "./application/use-cases/get-user-fo
 import { makeGetUserIdentityUseCase } from "./application/use-cases/get-user-identity.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/handle-oidc-callback.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
-import { makeInvalidatePreviousUserStateUseCase } from "./application/use-cases/invalidate-previous-user-state.use-case.js";
-import { makeInvalidateProvidedUserStateUseCase } from "./application/use-cases/invalidate-provided-user-state.use-case.js";
 import { makeLogoutUseCase } from "./application/use-cases/logout.use-case.js";
 import { makeRefreshUserSessionUseCase } from "./application/use-cases/refresh-user-session.use-case.js";
 import { makeReserveUseCase } from "./application/use-cases/reserve.use-case.js";

@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import { LollipopRevocationPort } from "../../domain/ports/outbound/lollipop-revocation.port.js";
+import { LollipopRevocationPort } from "@pagopa/io-session-manager-core";
 
 export const lollipopRevocationPortMock = {
   requestRevocation: vi.fn(),

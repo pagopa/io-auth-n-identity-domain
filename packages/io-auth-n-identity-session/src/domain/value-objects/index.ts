@@ -1,3 +1,4 @@
+export * from "./client-session-token.vo.js";
 export * from "./events/index.js";
 export * from "./login-type.vo.js";
 export * from "./session-id.vo.js";

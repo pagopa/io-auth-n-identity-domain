@@ -16,7 +16,7 @@ import {
   resetAuthEventPortMock,
 } from "../../../__mocks__/ports/auth-event-port.mock.js";
 import { IdpFriendlyNamePortMock } from "../../../__mocks__/ports/friendly-name-port.mocks.js";
-import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
+import { lollipopActivationPortMock } from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/lollipop-activation.port.mock.js";
 import {
   mockDeletePlatformInternalSession,
   PlatformInternalPortMock,
@@ -34,7 +34,7 @@ import {
   mockCreate as mockSessionCreate,
   resetSessionPortMock,
   SessionPortMock,
-} from "../../../__mocks__/ports/session-port.mock.js";
+} from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/session.port.mock.js";
 import {
   aClientSessionToken,
   aFamilyName,
@@ -56,12 +56,12 @@ import {
   aUserProfileWithoutEmail,
   type NewSessionToken,
 } from "../../../__mocks__/session.mocks.js";
-import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
+import type { LollipopRevocationPort } from "@pagopa/io-session-manager-core";
 import type { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
 import type { NotificationPort } from "../../../domain/ports/outbound/notification.port.js";
 import { OidcEnvironment } from "../../../domain/value-objects/oidc.vo.js";
+import { makeInvalidatePreviousUserStateUseCase } from "@pagopa/io-session-manager-core";
 import { makeActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
-import { makeInvalidatePreviousUserStateUseCase } from "../invalidate-previous-user-state.use-case.js";
 
 // -----------------------------------------------------
 // Setup mocks
@@ -628,9 +628,7 @@ describe("makeActivateUserSessionUseCase", () => {
         sessionId: SessionIdSchema.parse("previousSessionId"),
         hashedSessionToken: HashedSessionTokenSchema.parse("a".repeat(64)),
       };
-      mockInvalidatePreviousSession.mockResolvedValueOnce(
-        ok(previousSession),
-      );
+      mockInvalidatePreviousSession.mockResolvedValueOnce(ok(previousSession));
 
       const result = await activateUserSession(aNewSessionTokenInput);
 

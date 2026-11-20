@@ -12,11 +12,11 @@ import type {
   LollipopJwkHashingAlgorithm,
 } from "@pagopa/io-auth-n-identity-domain";
 import type { LoginType } from "@pagopa/io-auth-n-identity-session";
+import type { ClientSessionToken } from "@pagopa/io-auth-n-identity-session/value-objects";
 import { err, ok } from "neverthrow";
 
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import type { TestUserPort } from "../../domain/ports/outbound/test-user.port.js";
-import type { ClientSessionToken } from "../../domain/value-objects/client-session-token.vo.js";
 import type { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
 import {
   getMockedSamlAssertion,

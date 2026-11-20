@@ -8,12 +8,12 @@ import type { HashedSessionTokenWithSessionId } from "@pagopa/io-auth-n-identity
 import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
+import { lollipopActivationPortMock } from "../../../__mocks__/domain/ports/lollipop-activation.port.mock.js";
 import {
   mockDeletePlatformInternalSession,
   PlatformInternalPortMock,
   resetPlatformInternalPortMock,
-} from "../../../__mocks__/ports/platform-internal-port.mock.js";
+} from "../../../__mocks__/domain/ports/platform-internal.port.mock.js";
 import {
   aFiscalCode,
   aGenericError,
@@ -21,19 +21,16 @@ import {
   aHashedSessionTokenWithSessionId,
   aNotFoundError,
 } from "../../../__mocks__/session.mocks.js";
-import type { LollipopRevocationPort } from "../../../domain/ports/outbound/lollipop-revocation.port.js";
+import type { LollipopRevocationPort } from "../../../domain/ports/lollipop-revocation.port.js";
 import { makeInvalidateUserStateUseCase } from "../invalidate-user-state.use-case.js";
 
 const input = { fiscalCode: aFiscalCode };
 const activation = {
   fiscalCode: aFiscalCode,
-  assertionRef: LollipopAssertionRefSchema.parse(
-    `sha256-${"a".repeat(43)}`,
-  ),
+  assertionRef: LollipopAssertionRefSchema.parse(`sha256-${"a".repeat(43)}`),
   expirationDate: new Date("2100-01-01"),
 };
-const requestRevocation =
-  vi.fn<LollipopRevocationPort["requestRevocation"]>();
+const requestRevocation = vi.fn<LollipopRevocationPort["requestRevocation"]>();
 const invalidateSession =
   vi.fn<
     UseCase<
@@ -85,12 +82,10 @@ describe("makeInvalidateUserStateUseCase", () => {
       aHashedClientSessionToken,
     );
     expect(requestRevocation.mock.invocationCallOrder[0]).toBeLessThan(
-      lollipopActivationPortMock.revokeByFiscalCode.mock
-        .invocationCallOrder[0],
+      lollipopActivationPortMock.revokeByFiscalCode.mock.invocationCallOrder[0],
     );
     expect(
-      lollipopActivationPortMock.revokeByFiscalCode.mock
-        .invocationCallOrder[0],
+      lollipopActivationPortMock.revokeByFiscalCode.mock.invocationCallOrder[0],
     ).toBeLessThan(invalidateSession.mock.invocationCallOrder[0]);
     expect(invalidateSession.mock.invocationCallOrder[0]).toBeLessThan(
       mockDeletePlatformInternalSession.mock.invocationCallOrder[0],
@@ -166,20 +161,18 @@ describe("makeInvalidateUserStateUseCase", () => {
 
   it("waits for session invalidation before clearing the cache and returning success", async () => {
     const completeInvalidation = vi.fn<() => void>();
-    const pending = new Promise<
-      Awaited<ReturnType<typeof invalidateSession>>
-    >((resolve) => {
-      completeInvalidation.mockImplementation(() =>
-        resolve(ok(aHashedSessionTokenWithSessionId)),
-      );
-    });
+    const pending = new Promise<Awaited<ReturnType<typeof invalidateSession>>>(
+      (resolve) => {
+        completeInvalidation.mockImplementation(() =>
+          resolve(ok(aHashedSessionTokenWithSessionId)),
+        );
+      },
+    );
     invalidateSession.mockReturnValueOnce(pending);
     const completed = vi.fn();
     const execution = invalidateUserState(input).then(completed);
 
-    await vi.waitFor(() =>
-      expect(invalidateSession).toHaveBeenCalledOnce(),
-    );
+    await vi.waitFor(() => expect(invalidateSession).toHaveBeenCalledOnce());
     expect(mockDeletePlatformInternalSession).not.toHaveBeenCalled();
     expect(completed).not.toHaveBeenCalled();
 

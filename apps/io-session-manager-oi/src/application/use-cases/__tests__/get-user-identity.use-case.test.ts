@@ -2,7 +2,7 @@ import { GenericError } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
+import { lollipopActivationPortMock } from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/lollipop-activation.port.mock.js";
 import {
   aBaseSession,
   aFiscalCode,
