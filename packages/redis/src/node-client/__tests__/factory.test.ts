@@ -1,3 +1,5 @@
+import { EventEmitter } from "node:events";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -202,6 +204,59 @@ describe("createRedisNodeClient — config validation", () => {
 
 const fakeCredential = { kind: "test-credential" } as never;
 const fakeProvider = { kind: "test-provider" };
+
+describe.each([
+  [
+    "password",
+    (onError: (error: Error) => void) =>
+      createRedisClusterClient({ hostname: "cache" }, onError),
+  ],
+  [
+    "managed identity",
+    (onError: (error: Error) => void) =>
+      createRedisManagedIdentityClusterClient(
+        { hostname: "cache" },
+        fakeCredential,
+        onError,
+      ),
+  ],
+] as const)("%s cluster errors", (_name, create) => {
+  it("reports cluster errors during connect and after startup", async () => {
+    const client = Object.assign(new EventEmitter(), buildFakeClient());
+    const connectError = new Error("temporary connection error");
+    const runtimeError = new Error("socket closed");
+    const onError = vi.fn();
+    client.connect.mockImplementationOnce(async () => {
+      client.emit("error", connectError);
+    });
+    createCluster.mockReturnValueOnce(client);
+
+    expect(await create(onError)).toBe(client);
+    client.emit("error", runtimeError);
+
+    expect(onError.mock.calls).toEqual([[connectError], [runtimeError]]);
+  });
+
+  it("reports individual node errors during connect and after startup", async () => {
+    const client = Object.assign(new EventEmitter(), buildFakeClient());
+    const node = { host: "cache", port: 6379 };
+    const connectError = new Error("temporary node connection error");
+    const runtimeError = new Error("node socket closed");
+    const onError = vi.fn();
+    client.connect.mockImplementationOnce(async () => {
+      client.emit("node-error", connectError, node);
+    });
+    createCluster.mockReturnValueOnce(client);
+
+    expect(await create(onError)).toBe(client);
+    client.emit("node-error", runtimeError, node);
+
+    expect(onError.mock.calls).toEqual([
+      [connectError, node],
+      [runtimeError, node],
+    ]);
+  });
+});
 
 describe.each([
   ["node", () => createRedisNodeClient({ hostname: "cache" })],
