@@ -41,8 +41,10 @@ export type StartLoginOutput = {
   authorizationEndpoint: URL;
   clientId: NonEmptyString;
   redirectUri: URL;
+  scope: "openid";
   state: NonEmptyString;
   nonce: NonEmptyString;
+  responseType: "code";
   acrValues: SpidLevel;
   idp: Idp;
 };
@@ -150,8 +152,10 @@ export const makeStartLoginUseCase =
     return ok({
       acrValues: toFullyQualifiedSpidLevel(input.minAuthLevel),
       clientId,
+      scope: "openid",
       state,
       nonce,
+      responseType: "code",
       redirectUri,
       authorizationEndpoint: authorizationEndpointResult.value,
       idp: input.idp,

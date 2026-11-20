@@ -52,10 +52,10 @@ export const toAuthorizationRequestUrl = (output: StartLoginOutput): string => {
   const parameters = {
     client_id: output.clientId,
     redirect_uri: output.redirectUri.href,
-    scope: "openid",
+    scope: output.scope,
     state: output.state,
     nonce: output.nonce,
-    response_type: "code",
+    response_type: output.responseType,
     acr_values: output.acrValues,
     idp: output.idp,
   };
