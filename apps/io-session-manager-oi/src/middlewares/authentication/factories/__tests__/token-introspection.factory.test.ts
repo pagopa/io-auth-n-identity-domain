@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { SessionPortMock } from "../../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/session.port.mock.js";
+import { SessionPortMock } from "../../../../__mocks__/ports/session-port.mock.js";
 import {
   BpdTokenIntrospectionStrategy,
   FimsTokenIntrospectionStrategy,

@@ -2,13 +2,13 @@ import { GenericError } from "@pagopa/hexagonal-core";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { lollipopActivationPortMock } from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/lollipop-activation.port.mock.js";
+import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
 import {
   mockGetProfile,
   ProfilePortMock,
   resetProfilePortMock,
 } from "../../../__mocks__/ports/profile-port.mock.js";
-import { SessionPortMock } from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/session.port.mock.js";
+import { SessionPortMock } from "../../../__mocks__/ports/session-port.mock.js";
 import {
   aBaseSession,
   aFiscalCode,

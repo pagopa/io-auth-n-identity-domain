@@ -8,7 +8,7 @@ import {
   mockSendEvent,
   resetAuthEventPortMock,
 } from "../../../__mocks__/ports/auth-event-port.mock.js";
-import { lollipopActivationPortMock } from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/lollipop-activation.port.mock.js";
+import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
 import {
   mockDeletePlatformInternalSession,
   PlatformInternalPortMock,
@@ -19,7 +19,7 @@ import {
   mockInvalidatePreviousSession,
   resetSessionPortMock,
   SessionPortMock,
-} from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/session.port.mock.js";
+} from "../../../__mocks__/ports/session-port.mock.js";
 import {
   aBaseSession,
   aFiscalCode,

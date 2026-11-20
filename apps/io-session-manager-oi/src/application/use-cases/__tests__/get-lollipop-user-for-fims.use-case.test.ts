@@ -7,7 +7,7 @@ import {
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { lollipopActivationPortMock } from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/lollipop-activation.port.mock.js";
+import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
 import { ProfilePortMock } from "../../../__mocks__/ports/profile-port.mock.js";
 import { aSessionWithHashedTokens } from "../../../__mocks__/session.mocks.js";
 import { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";

@@ -9,7 +9,7 @@ import { err, ok, ResultAsync } from "neverthrow";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { IdpFriendlyNamePortMock } from "../../__mocks__/ports/friendly-name-port.mocks.js";
-import { lollipopActivationPortMock } from "../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/lollipop-activation.port.mock.js";
+import { lollipopActivationPortMock } from "../../__mocks__/ports/lollipop-activation-port.mock.js";
 import { lollipopRevocationPortMock } from "../../__mocks__/ports/lollipop-revocation-port.mock.js";
 import { createIoProfileAdapter } from "../../adapters/outbound/io-profile.adapter.js";
 import {

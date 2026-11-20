@@ -9,7 +9,7 @@ import {
   mockFindByZendeskToken,
   resetSessionPortMock,
   SessionPortMock,
-} from "../../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/session.port.mock.js";
+} from "../../../../__mocks__/ports/session-port.mock.js";
 import {
   aBaseSession,
   aGenericError,

@@ -16,7 +16,7 @@ import {
   resetAuthEventPortMock,
 } from "../../../__mocks__/ports/auth-event-port.mock.js";
 import { IdpFriendlyNamePortMock } from "../../../__mocks__/ports/friendly-name-port.mocks.js";
-import { lollipopActivationPortMock } from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/lollipop-activation.port.mock.js";
+import { lollipopActivationPortMock } from "../../../__mocks__/ports/lollipop-activation-port.mock.js";
 import {
   mockDeletePlatformInternalSession,
   PlatformInternalPortMock,
@@ -34,7 +34,7 @@ import {
   mockCreate as mockSessionCreate,
   resetSessionPortMock,
   SessionPortMock,
-} from "../../../../../../packages/io-session-manager-core/src/__mocks__/domain/ports/session.port.mock.js";
+} from "../../../__mocks__/ports/session-port.mock.js";
 import {
   aClientSessionToken,
   aFamilyName,
