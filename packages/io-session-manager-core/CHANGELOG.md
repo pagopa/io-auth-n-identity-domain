@@ -1,5 +1,18 @@
 # @pagopa/io-session-manager-core
 
+## 0.3.0
+
+### Minor Changes
+
+- 6c4c99c: Move platform-internal and Lollipop revocation adapters, ports and user-state invalidation use cases into core
+
+### Patch Changes
+
+- Updated dependencies [6c4c99c]
+- Updated dependencies [6c4c99c]
+  - @pagopa/io-auth-n-identity-session@0.13.0
+  - @pagopa/io-auth-n-identity-domain@0.7.0
+
 ## 0.2.0
 
 ### Minor Changes

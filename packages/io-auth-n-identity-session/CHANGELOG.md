@@ -1,5 +1,16 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.13.0
+
+### Minor Changes
+
+- 6c4c99c: Move `ClientSessionToken` and `HashedClientSessionToken` value objects into the session package
+
+### Patch Changes
+
+- Updated dependencies [6c4c99c]
+  - @pagopa/io-auth-n-identity-domain@0.7.0
+
 ## 0.12.2
 
 ### Patch Changes
