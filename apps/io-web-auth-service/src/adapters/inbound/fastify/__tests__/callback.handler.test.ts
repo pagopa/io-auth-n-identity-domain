@@ -42,11 +42,11 @@ describe("callback handler login outcomes and errors", () => {
 
       const response = await server.inject({
         method: "GET",
-        url: `${callbackContract.path}?state=a-state&code=a-code&error=an-error`,
+        url: `${callbackContract.path}?state=a-state&error=an-error`,
       });
 
       expect(handleOidcCallbackUseCase).toHaveBeenCalledExactlyOnceWith({
-        callback: { state: "a-state", code: "a-code", error: "an-error" },
+        callback: { state: "a-state", error: "an-error" },
       });
       expect(response.statusCode).toBe(status);
       expect(response.json()).toMatchObject({ status });
@@ -61,7 +61,7 @@ describe("callback handler login outcomes and errors", () => {
 
     const response = await server.inject({
       method: "GET",
-      url: `${callbackContract.path}?state=a-state&code=a-code&error=an-error`,
+      url: `${callbackContract.path}?state=a-state&code=a-code`,
     });
 
     expect(response.statusCode).toBe(302);
