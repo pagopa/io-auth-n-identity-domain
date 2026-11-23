@@ -69,6 +69,30 @@ variable "private_dns_zone_resource_group_name" {
   default     = null
 }
 
+##########
+#  APIM  #
+##########
+
+variable "apim_name" {
+  type        = string
+  description = "APIM Resource name"
+}
+
+variable "apim_resource_group_name" {
+  type        = string
+  description = "APIM Resource group name"
+}
+
+variable "apim_id" {
+  type        = string
+  description = "APIM Resource ID"
+}
+
+variable "external_api_base_path" {
+  type        = string
+  description = "Base path for API"
+}
+
 
 ##############
 # Monitoring #
