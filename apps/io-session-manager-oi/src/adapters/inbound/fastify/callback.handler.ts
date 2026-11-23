@@ -4,6 +4,7 @@ import { FastifyInstance } from "fastify";
 
 import {
   makeHandleOidcCallbackUseCase,
+  OUTCOME_ERROR,
   type HandleOidcCallbackInput,
 } from "../../../application/use-cases/handle-oidc-callback.use-case.js";
 import { BASE_PATH } from "../base-path.js";
@@ -77,7 +78,7 @@ export const mountCallbackHandler = (
       };
     },
     outputMapper: (result) => {
-      if (!("token" in result)) {
+      if (result.outcome === OUTCOME_ERROR) {
         const errorUrl = new URL(deps.loginErrorRedirectUrl);
         if (result.errorCode !== undefined) {
           errorUrl.searchParams.set("errorCode", result.errorCode);

@@ -63,6 +63,7 @@ describe("callback handler login outcomes and errors", () => {
   it("redirects a profile locked outcome with code 1002 and no error message", async () => {
     handleOidcCallbackUseCase.mockResolvedValueOnce(
       ok({
+        outcome: "error",
         errorCode: NonEmptyStringSchema.parse("1002"),
       }),
     );

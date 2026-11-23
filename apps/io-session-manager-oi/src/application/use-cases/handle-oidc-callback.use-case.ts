@@ -31,8 +31,12 @@ import type { ValidateProfileLocksUseCase } from "./validate-profile-locks.use-c
 import { toFullyQualifiedSpidLevel } from "../../utils/spid.js";
 
 const INVALID_CALLBACK_ERROR_MESSAGE = "error occurred" as NonEmptyString;
-const AUTHENTICATION_LOCKED_ERROR = "1002" as NonEmptyString;
-const DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE = "1004" as NonEmptyString;
+export const AUTHENTICATION_LOCKED_ERROR = "1002" as NonEmptyString;
+export const DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE =
+  "1004" as NonEmptyString;
+
+export const OUTCOME_SUCCESS = "success";
+export const OUTCOME_ERROR = "error";
 
 // Decoded OIDC callback: `state` is always present; a present `code` marks a
 // success response, otherwise it is a provider error response
@@ -58,12 +62,17 @@ export type HandleOidcCallbackDeps = {
   activateUserSessionUseCase: ActivateUserSessionUseCase;
 };
 
-// Business outcome of the callback, matching the legacy callback response:
-// either a session token or the optional error query parameters forwarded to
+// Business outcome of the callback.
+// Either a session token or the optional error query parameters forwarded to
 // the client error page.
+// Field "outcome" is used to make the code clearer and easier to read but it has not any functional use.
 export type HandleOidcCallbackOutput =
-  | { readonly token: ClientSessionToken }
   | {
+      readonly outcome: typeof OUTCOME_SUCCESS;
+      readonly token: ClientSessionToken;
+    }
+  | {
+      readonly outcome: typeof OUTCOME_ERROR;
       readonly errorCode?: NonEmptyString;
       readonly errorMessage?: NonEmptyString;
     };
@@ -97,13 +106,10 @@ export const makeHandleOidcCallbackUseCase =
     const auxiliaryData = auxiliaryDataResult.value;
 
     if (callback.code === undefined) {
-      if (callback.error === undefined) {
-        return ok({ errorMessage: INVALID_CALLBACK_ERROR_MESSAGE });
-      }
-
       return ok({
+        outcome: OUTCOME_ERROR,
         errorCode: parseErrorCode(callback.error_description),
-        errorMessage: callback.error,
+        errorMessage: callback.error ?? INVALID_CALLBACK_ERROR_MESSAGE,
       });
     }
 
@@ -149,6 +155,7 @@ export const makeHandleOidcCallbackUseCase =
         currentFiscalCodeHash: auxiliaryData.currentUser,
       });
       return ok({
+        outcome: OUTCOME_ERROR,
         errorCode: DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
       });
     }
@@ -221,6 +228,7 @@ export const makeHandleOidcCallbackUseCase =
                 rejectionCause: "auth_lock",
               });
               return ok({
+                outcome: OUTCOME_ERROR,
                 errorCode: AUTHENTICATION_LOCKED_ERROR,
               });
             case "technical-profile-locked": {
@@ -278,7 +286,7 @@ export const makeHandleOidcCallbackUseCase =
       return err(activateResult.error);
     }
 
-    return ok({ token: activateResult.value });
+    return ok({ outcome: OUTCOME_SUCCESS, token: activateResult.value });
   };
 
 const parseErrorCode = (
