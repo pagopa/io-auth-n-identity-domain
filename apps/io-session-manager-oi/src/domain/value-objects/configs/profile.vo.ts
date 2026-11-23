@@ -1,7 +1,7 @@
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
+import { HttpUrlCodec } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
 
-import { HttpUrlCodec } from "../../../utils/codec/url.js";
 
 /**
  * IO Profile configuration schema.

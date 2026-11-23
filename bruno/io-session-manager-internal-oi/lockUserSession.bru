@@ -1,0 +1,16 @@
+meta {
+  name: lockUserSession
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{IO_SESSION_MANAGER_INTERNAL_OI_BASE_URL}}/api/auth/v2/sessions/{{FISCAL_CODE}}/lock
+  body: none
+  auth: none
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

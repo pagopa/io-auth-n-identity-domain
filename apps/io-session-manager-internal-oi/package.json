@@ -20,7 +20,13 @@
     "test:coverage": "vitest run --coverage -c ./vite.config.mts"
   },
   "dependencies": {
+    "@azure/cosmos": "catalog:",
+    "@azure/data-tables": "catalog:",
+    "@azure/identity": "catalog:",
+    "@azure/service-bus": "catalog:",
+    "@azure/storage-queue": "catalog:",
     "@opentelemetry/api-logs": "catalog:",
+    "@pagopa/azure-sdk": "workspace:^",
     "@pagopa/azure-tracing": "catalog:",
     "@pagopa/hexagonal-core": "catalog:",
     "@pagopa/hexagonal-fastify": "catalog:",
@@ -28,6 +34,7 @@
     "@pagopa/io-auth-n-identity-session": "workspace:^",
     "@pagopa/io-env-config": "workspace:^",
     "@pagopa/io-package-info": "workspace:^",
+    "@pagopa/io-session-manager-core": "workspace:^",
     "dotenv": "catalog:",
     "fastify": "catalog:",
     "neverthrow": "catalog:",
