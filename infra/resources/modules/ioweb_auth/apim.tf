@@ -41,6 +41,8 @@ resource "azurerm_api_management_api" "external_api_ioweb_auth_service_v2" {
 }
 
 resource "azurerm_api_management_api_policy" "external_api_ioweb_auth_service_v2" {
+  depends_on = [azapi_resource.ioweb_auth_service_pool]
+
   api_name            = azurerm_api_management_api.external_api_ioweb_auth_service_v2.name
   api_management_name = var.apim_name
   resource_group_name = var.apim_resource_group_name
