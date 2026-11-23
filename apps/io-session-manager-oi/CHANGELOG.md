@@ -1,5 +1,12 @@
 # io-session-manager-oi
 
+## 0.41.1
+
+### Patch Changes
+
+- Updated dependencies [81806d3]
+  - @pagopa/redis@0.5.0
+
 ## 0.41.0
 
 ### Minor Changes
