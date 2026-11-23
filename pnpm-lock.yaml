@@ -2149,6 +2149,9 @@ importers:
 
   packages/io-session-manager-core:
     dependencies:
+      '@azure/service-bus':
+        specifier: 'catalog:'
+        version: 7.9.5
       '@azure/storage-queue':
         specifier: 'catalog:'
         version: 12.25.0

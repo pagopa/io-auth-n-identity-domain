@@ -1,13 +1,13 @@
 import type { ServiceBusSender } from "@azure/service-bus";
 import { GenericError } from "@pagopa/hexagonal-core";
-import { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
+import type { HealthCheckOutboundPort } from "@pagopa/io-auth-n-identity-domain";
 import {
   type AuthEvent,
   AuthEventSchema,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok, Result, ResultAsync } from "neverthrow";
 
-import type { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
+import type { AuthEventPort } from "../domain/ports/auth-event.port.js";
 
 /**
  * AuthEventServiceBusAdapter is an implementation of the AuthEventPort interface that uses Azure Service Bus to send authentication events.
@@ -19,10 +19,12 @@ export class AuthEventServiceBusAdapter
 
   sendEvent(eventData: AuthEvent): ResultAsync<void, GenericError> {
     return Result.fromThrowable(
-      AuthEventSchema.encode,
+      (event: AuthEvent) => AuthEventSchema.encode(event),
       (error) =>
         new GenericError(
-          `Failed to encode auth event message: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to encode auth event message: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
         ),
     )(eventData)
       .asyncAndThen((body) =>

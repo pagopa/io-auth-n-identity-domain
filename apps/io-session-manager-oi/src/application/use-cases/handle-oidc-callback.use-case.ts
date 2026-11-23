@@ -18,9 +18,9 @@ import {
   toSha256,
 } from "@pagopa/io-auth-n-identity-session";
 import type { ClientSessionToken } from "@pagopa/io-auth-n-identity-session/value-objects";
+import type { AuthEventPort } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";
 
-import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import { AuxiliaryDataPort } from "../../domain/ports/outbound/auxiliary-data.port.js";
 import { IdentityAssertionFetcherPort } from "../../domain/ports/outbound/identity-assertion-fetcher.port.js";
 import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
