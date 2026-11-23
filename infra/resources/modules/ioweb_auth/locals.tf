@@ -60,5 +60,49 @@ locals {
       name  = "FETCH_KEEPALIVE_TIMEOUT"
       value = "60000"
     },
+    # Redis
+    # Authentication is Microsoft Entra ID only (no access key): the CA's
+    # system-assigned identity is granted data-plane access via `auth_ca_iam`.
+    {
+      name  = "REDIS_HOSTNAME"
+      value = split(":", module.managed_redis.endpoint)[0]
+    },
+    {
+      name  = "REDIS_PORT"
+      value = split(":", module.managed_redis.endpoint)[1]
+    },
+    {
+      name  = "REDIS_TLS_ENABLED"
+      value = "true"
+    },
+    # One Identity configs
+    {
+      name  = "ONEID_PROD_CLIENT_ID"
+      value = azurerm_key_vault_secret.oneid_prod_client_id.versionless_id
+    },
+    {
+      name  = "ONEID_PROD_CLIENT_SECRET"
+      value = azurerm_key_vault_secret.oneid_prod_client_secret.versionless_id
+    },
+    {
+      name  = "ONEID_PROD_ISSUER"
+      value = "https://oneid.pagopa.it"
+    },
+    {
+      name  = "ONEID_PROD_REDIRECT_URI"
+      value = "https://api-web.io.pagopa.it/ioweb/auth/v2/callback"
+    },
+    {
+      name  = "ONEID_UAT_CLIENT_ID"
+      value = azurerm_key_vault_secret.oneid_uat_client_id.versionless_id
+    },
+    {
+      name  = "ONEID_UAT_CLIENT_SECRET"
+      value = azurerm_key_vault_secret.oneid_uat_client_secret.versionless_id
+    },
+    {
+      name  = "ONEID_UAT_ISSUER"
+      value = "https://uat.oneid.pagopa.it"
+    },
   ]
 }
