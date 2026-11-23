@@ -23,6 +23,23 @@ const config = ConfigSchema.parse({
   HOST: "0.0.0.0",
   PORT: "8080",
   NODE_ENV: "development",
+  PLATFORM_PROXY_API_URL: "http://localhost:3009",
+  PLATFORM_PROXY_API_BASE_PATH: "/api/platform-internal/v1",
+  AUTH_SESSIONS_TOPIC_NAME: "auth-sessions",
+  SERVICE_BUS_CONNECTION_STRING:
+    "Endpoint=sb://localhost/;SharedAccessKeyName=Root;SharedAccessKey=key",
+  COSMOSDB_NAME: "io-auth-SM",
+  COSMOSDB_CONNECTION_STRING:
+    "AccountEndpoint=https://localhost:8081/;AccountKey=Zm9v;",
+  COSMOSDB_SESSION_TOKEN_CONTAINER_NAME: "session-tokens",
+  COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME: "active-sessions",
+  COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME: "lollipop-activations",
+  LOLLIPOP_REVOCATION_QUEUE_NAME: "pubkeys-revoke",
+  LOLLIPOP_REVOCATION_QUEUE_STORAGE_CONNECTION_STRING:
+    "UseDevelopmentStorage=true",
+  TECHNICAL_LOCKED_PROFILES_TABLE_NAME: "technical-locked-profiles",
+  TECHNICAL_LOCKED_PROFILES_STORAGE_CONNECTION_STRING:
+    "UseDevelopmentStorage=true",
 });
 const packageInfo: PackageInfo = {
   name: "io-session-manager-internal-oi",
@@ -52,11 +69,20 @@ describe("createApp", () => {
     },
   );
 
-  it("leaves business routes unmounted", async () => {
+  it("mounts the technical lock routes and validates fiscal codes", async () => {
     const { server } = await createApp(config, packageInfo);
     try {
-      const response = await server.inject({ method: "GET", url: "/" });
-      expect(response.statusCode).toBe(404);
+      const lockResponse = await server.inject({
+        method: "POST",
+        url: "/api/auth/v2/sessions/invalid/lock",
+      });
+      const unlockResponse = await server.inject({
+        method: "DELETE",
+        url: "/api/auth/v2/sessions/invalid/lock",
+      });
+
+      expect(lockResponse.statusCode).toBe(400);
+      expect(unlockResponse.statusCode).toBe(400);
     } finally {
       await server.close();
     }
