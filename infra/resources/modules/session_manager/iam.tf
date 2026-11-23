@@ -115,6 +115,12 @@ module "sm_int_iam" {
     queue_name           = var.lollipop.revocation_queue_name
     description          = "Allow Session Manager Internal Container App to write to the Lollipop revocation queue"
     role                 = "writer"
+  }, {
+    storage_account_name = var.lollipop.storage_account.name
+    resource_group_name  = var.lollipop.storage_account.resource_group_name
+    queue_name           = var.lollipop.revocation_queue_name
+    description          = "Allow Session Manager Internal Container App to read Lollipop revocation queue properties for health checks"
+    role                 = "reader"
   }]
 
   cosmos = [{
