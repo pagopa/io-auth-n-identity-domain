@@ -101,6 +101,14 @@ module "sm_int_iam" {
   subscription_id = var.subscription_id
   principal_id    = module.sm_int_ca.principal_id
 
+  storage_table = [{
+    storage_account_name = var.technical_locked_profiles.storage_account.name
+    resource_group_name  = var.technical_locked_profiles.storage_account.resource_group_name
+    table_name           = var.technical_locked_profiles.table_name
+    role                 = "writer"
+    description          = "Allow Session Manager Internal Container App to perform technical lock/unlock operations"
+  }]
+
   key_vault = [{
     name                = var.key_vault.name
     resource_group_name = var.key_vault.resource_group_name

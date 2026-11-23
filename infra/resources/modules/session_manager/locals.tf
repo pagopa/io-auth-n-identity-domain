@@ -48,7 +48,16 @@ locals {
     {
       name  = "APPLICATIONINSIGHTS_ENTRA_ID_AUTH_ENABLED"
       value = "true"
-    }
+    },
+    # Technical Locked Profiles table
+    {
+      name  = "TECHNICAL_LOCKED_PROFILES_STORAGE_ACCOUNT_URI"
+      value = "https://${var.technical_locked_profiles.storage_account.name}.table.core.windows.net"
+    },
+    {
+      name  = "TECHNICAL_LOCKED_PROFILES_TABLE_NAME"
+      value = var.technical_locked_profiles.table_name
+    },
   ]
 
   env_vars_sm = [
@@ -111,15 +120,6 @@ locals {
     {
       name  = "LOCKED_PROFILES_TABLE_NAME"
       value = var.locked_profiles.table_name
-    },
-    # Technical Locked Profiles table
-    {
-      name  = "TECHNICAL_LOCKED_PROFILES_STORAGE_ACCOUNT_URI"
-      value = "https://${var.technical_locked_profiles.storage_account.name}.table.core.windows.net"
-    },
-    {
-      name  = "TECHNICAL_LOCKED_PROFILES_TABLE_NAME"
-      value = var.technical_locked_profiles.table_name
     },
     # Session Manager Internal service
     {
