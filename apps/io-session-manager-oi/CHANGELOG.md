@@ -1,5 +1,11 @@
 # io-session-manager-oi
 
+## 0.41.2
+
+### Patch Changes
+
+- 7001026: Improve error management of callback
+
 ## 0.41.1
 
 ### Patch Changes
