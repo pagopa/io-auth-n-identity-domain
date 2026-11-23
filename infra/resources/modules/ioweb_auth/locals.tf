@@ -12,7 +12,7 @@ locals {
       <inbound>
           <base />
           <set-backend-service id="apim-pool-ioweb-auth-service" backend-id="${local.apim_pool_name}" />
-          <rewrite-uri template='@(context.Request.Url.Path.Replace("/${var.external_api_base_path}/v2", ""))' />
+          <rewrite-uri template='@(context.Request.Url.Path.Replace("/${var.external_api_base_path}/v2", "") + context.Request.Url.QueryString)' copy-unmatched-params="false" />
       </inbound>
       <backend>
           <base />
