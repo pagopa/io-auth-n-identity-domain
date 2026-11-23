@@ -109,6 +109,35 @@ module "sm_int_iam" {
     description          = "Allow Session Manager Internal Container App to perform technical lock/unlock operations"
   }]
 
+  storage_queue = [{
+    storage_account_name = var.lollipop.storage_account.name
+    resource_group_name  = var.lollipop.storage_account.resource_group_name
+    queue_name           = var.lollipop.revocation_queue_name
+    description          = "Allow Session Manager Internal Container App to write to the Lollipop revocation queue"
+    role                 = "writer"
+  }]
+
+  cosmos = [{
+    account_name        = var.session_cosmos.account_name
+    resource_group_name = var.session_cosmos.resource_group_name
+    description         = "Allow Session Manager Internal Container App to read/write the io-auth-SM CosmosDB database"
+    role                = "writer"
+    database            = azurerm_cosmosdb_sql_database.session_manager.name
+    collections = [
+      azurerm_cosmosdb_sql_container.session_tokens.name,
+      azurerm_cosmosdb_sql_container.active_sessions.name,
+      azurerm_cosmosdb_sql_container.lollipop_activations.name
+    ]
+  }]
+
+  service_bus = [{
+    namespace_name      = var.service_bus.namespace_name
+    resource_group_name = var.service_bus.resource_group_name
+    description         = "Allow Session Manager Internal Container App to send messages to the AUTH_SESSIONS topic"
+    role                = "writer"
+    topic_names         = [var.service_bus.auth_session_topic_name]
+  }]
+
   key_vault = [{
     name                = var.key_vault.name
     resource_group_name = var.key_vault.resource_group_name
