@@ -226,6 +226,8 @@ const createUseCases = (
     });
 
   const technicalLockUserSessionUseCase = makeTechnicalLockUserSessionUseCase({
+    platformInternalPort: adapters.platformInternalAdapter,
+    sessionPort: adapters.sessionCosmosAdapter,
     technicalLockedProfilesPort: adapters.technicalLockedProfilesAdapter,
     authEventPort: adapters.authEventServiceBusAdapter,
     invalidatePreviousUserStateUseCase,

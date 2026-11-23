@@ -1,7 +1,13 @@
-import { FiscalCodeSchema, GenericError } from "@pagopa/hexagonal-core";
+import {
+  FiscalCodeSchema,
+  GenericError,
+  NotFoundError,
+} from "@pagopa/hexagonal-core";
+import type { SessionPort } from "@pagopa/io-auth-n-identity-session/ports";
 import type {
   AuthEventPort,
   InvalidatePreviousUserStateUseCase,
+  PlatformInternalPort,
   TechnicalLockedProfilesPort,
 } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";
@@ -23,17 +29,46 @@ const technicalLockedProfilesPort: TechnicalLockedProfilesPort = {
   unlock,
 };
 const authEventPort: AuthEventPort = { sendEvent };
+const findActiveSession = vi.fn<SessionPort["findActiveSession"]>();
+const findSessionTokenBySessionId =
+  vi.fn<SessionPort["findSessionTokenBySessionId"]>();
+const deleteSession = vi.fn<PlatformInternalPort["deleteSession"]>();
+const sessionTokenWithId = {
+  sessionId: "session-id",
+  hashedSessionToken: "hashed-token",
+} as unknown as NonNullable<
+  Awaited<ReturnType<SessionPort["findSessionTokenBySessionId"]>> extends {
+    value: infer V;
+  }
+    ? V
+    : never
+>;
 
 const lockUserSession = makeTechnicalLockUserSessionUseCase({
   technicalLockedProfilesPort,
   authEventPort,
   invalidatePreviousUserStateUseCase: invalidatePreviousUserState,
+  platformInternalPort: { deleteSession },
+  sessionPort: { findActiveSession, findSessionTokenBySessionId },
 });
 const unlockUserSession = makeTechnicalUnlockUserSessionUseCase(
   technicalLockedProfilesPort,
 );
 
 beforeEach(() => {
+  findActiveSession
+    .mockReset()
+    .mockResolvedValue(
+      ok({ sessionId: "session-id" } as Awaited<
+        ReturnType<SessionPort["findActiveSession"]>
+      > extends { value: infer V }
+        ? V
+        : never),
+    );
+  findSessionTokenBySessionId
+    .mockReset()
+    .mockResolvedValue(ok(sessionTokenWithId));
+  deleteSession.mockReset().mockResolvedValue(ok(undefined));
   lock.mockReset().mockResolvedValue(ok(undefined));
   unlock.mockReset().mockResolvedValue(ok(undefined));
   sendEvent.mockReset().mockResolvedValue(ok(undefined));
@@ -73,6 +108,40 @@ describe("makeTechnicalLockUserSessionUseCase", () => {
     expect(
       invalidatePreviousUserState.mock.invocationCallOrder[0],
     ).toBeLessThan(sendEvent.mock.invocationCallOrder[0]);
+  });
+
+  it("invalidates the session token cache before locking", async () => {
+    await lockUserSession({ fiscalCode });
+
+    expect(deleteSession).toHaveBeenCalledExactlyOnceWith(
+      "session-id.hashed-token",
+    );
+    expect(deleteSession.mock.invocationCallOrder[0]).toBeLessThan(
+      lock.mock.invocationCallOrder[0],
+    );
+  });
+
+  it("skips the cache invalidation when there is no active session", async () => {
+    findActiveSession.mockResolvedValueOnce(err(new NotFoundError("none")));
+
+    expect(await lockUserSession({ fiscalCode })).toEqual(ok(undefined));
+    expect(deleteSession).not.toHaveBeenCalled();
+    expect(lock).toHaveBeenCalledExactlyOnceWith(fiscalCode);
+  });
+
+  it("does not lock when the cache invalidation fails", async () => {
+    const cacheError = new GenericError("cache down");
+    deleteSession.mockResolvedValueOnce(err(cacheError));
+
+    expect(await lockUserSession({ fiscalCode })).toEqual(
+      err(
+        new GenericError(
+          `Failed to invalidate session token cache: ${cacheError.message}`,
+        ),
+      ),
+    );
+    expect(lock).not.toHaveBeenCalled();
+    expect(sendEvent).not.toHaveBeenCalled();
   });
 
   it("stops when the technical profile lock fails", async () => {
