@@ -244,6 +244,7 @@ const createUseCases = (
 const mountHealthChecks = (
   server: FastifyInstance,
   packageInfo: PackageInfo,
+  adapters: Awaited<ReturnType<typeof createAdapters>>,
 ) => {
   mountHealthCheckHandler("liveness")(
     server,
@@ -251,7 +252,16 @@ const mountHealthChecks = (
   );
   mountHealthCheckHandler("readiness")(
     server,
-    getHealthCheckUseCase(packageInfo),
+    getHealthCheckUseCase(
+      packageInfo,
+      [
+        adapters.technicalLockedProfilesAdapter,
+        adapters.authEventServiceBusAdapter,
+        adapters.sessionCosmosAdapter,
+        adapters.lollipopActivationCosmosAdapter,
+        adapters.lollipopRevocationQueueAdapter,
+      ].map((port) => ({ name: port.constructor.name, port })),
+    ),
   );
 };
 
@@ -288,7 +298,7 @@ export const createApp = async (
     const adapters = await createAdapters(config, clients);
     const useCases = createUseCases(config, adapters);
 
-    mountHealthChecks(server, packageInfo);
+    mountHealthChecks(server, packageInfo, adapters);
     mountRoutes({ server, config, useCases });
 
     return { server };

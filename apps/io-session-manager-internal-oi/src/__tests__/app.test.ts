@@ -1,5 +1,16 @@
 import type { PackageInfo } from "@pagopa/io-package-info";
 import type { FastifyInstance } from "fastify";
+import { GenericError } from "@pagopa/hexagonal-core";
+import {
+  LollipopActivationCosmosAdapter,
+  SessionCosmosAdapter,
+} from "@pagopa/io-auth-n-identity-session";
+import {
+  AuthEventServiceBusAdapter,
+  LollipopRevocationQueueAdapter,
+  TechnicalLockedProfilesDataTableAdapter,
+} from "@pagopa/io-session-manager-core";
+import { err, ok } from "neverthrow";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { mountHealthCheckHandler } from "../adapters/inbound/fastify/health-check.handler.js";
@@ -51,18 +62,47 @@ afterEach(() => {
 });
 
 describe("createApp", () => {
-  it.each(["liveness", "readiness"])(
-    "mounts %s without outbound adapters",
-    async (type) => {
+  it("mounts liveness without checking outbound adapters", async () => {
+    const { server } = await createApp(config, packageInfo);
+    try {
+      const response = await server.inject({
+        method: "GET",
+        url: "/api/auth/v2/health/liveness",
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual(packageInfo);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it.each([
+    { queueResult: ok(undefined), statusCode: 200 },
+    { queueResult: err(new GenericError("queue down")), statusCode: 500 },
+  ])(
+    "mounts readiness checking outbound adapters ($statusCode)",
+    async ({ queueResult, statusCode }) => {
+      for (const adapter of [
+        TechnicalLockedProfilesDataTableAdapter,
+        AuthEventServiceBusAdapter,
+        SessionCosmosAdapter,
+        LollipopActivationCosmosAdapter,
+      ]) {
+        vi.spyOn(adapter.prototype, "healthcheck").mockResolvedValue(
+          ok(undefined),
+        );
+      }
+      vi.spyOn(
+        LollipopRevocationQueueAdapter.prototype,
+        "healthcheck",
+      ).mockResolvedValue(queueResult);
       const { server } = await createApp(config, packageInfo);
       try {
-        expect(server.server.listening).toBe(false);
         const response = await server.inject({
           method: "GET",
-          url: `/api/auth/v2/health/${type}`,
+          url: "/api/auth/v2/health/readiness",
         });
-        expect(response.statusCode).toBe(200);
-        expect(response.json()).toEqual(packageInfo);
+        expect(response.statusCode).toBe(statusCode);
       } finally {
         await server.close();
       }
