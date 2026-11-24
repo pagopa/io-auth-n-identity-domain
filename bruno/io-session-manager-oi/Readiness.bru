@@ -10,6 +10,12 @@ get {
   auth: none
 }
 
+script:pre-request {
+  if (bru.getEnvName() === "Production") {
+    req.setUrl(bru.interpolate("{{process.env.IO_SESSION_MANAGER_OI_CONTAINER_APPLICATION_URL}}/api/auth/v2/health/readiness"));
+  }
+}
+
 settings {
   encodeUrl: true
   timeout: 0
