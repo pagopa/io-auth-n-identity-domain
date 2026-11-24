@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-domain
 
+## 0.8.0
+
+### Minor Changes
+
+- a0b361a: Add `HttpUrlCodec` for URL encoding/decoding
+
 ## 0.7.0
 
 ### Minor Changes
