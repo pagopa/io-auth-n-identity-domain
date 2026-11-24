@@ -8,12 +8,3 @@ export const TechnicalLockUserSessionOutputDto = z
     id: "TechnicalLockUserSessionOutputResponse",
     description: "User session lock operation succeeded.",
   });
-
-export const TechnicalUnlockUserSessionOutputDto = z
-  .object({
-    message: z.literal("ok"),
-  })
-  .meta({
-    id: "TechnicalUnlockUserSessionOutputResponse",
-    description: "User session unlock operation succeeded.",
-  });

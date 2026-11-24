@@ -19,15 +19,11 @@ import {
 import fastify, { type FastifyInstance } from "fastify";
 
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
-import {
-  mountTechnicalLockUserSessionHandler,
-  mountTechnicalUnlockUserSessionHandler,
-} from "./adapters/inbound/fastify/technical-lock-user-session.handler.js";
+import { mountTechnicalLockUserSessionHandler } from "./adapters/inbound/fastify/technical-lock-user-session.handler.js";
+import { mountTechnicalUnlockUserSessionHandler } from "./adapters/inbound/fastify/technical-unlock-user-session.handler.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
-import {
-  makeTechnicalLockUserSessionUseCase,
-  makeTechnicalUnlockUserSessionUseCase,
-} from "./application/use-cases/technical-lock-user-session.use-case.js";
+import { makeTechnicalLockUserSessionUseCase } from "./application/use-cases/technical-lock-user-session.use-case.js";
+import { makeTechnicalUnlockUserSessionUseCase } from "./application/use-cases/technical-unlock-user-session.use-case.js";
 import type { Config } from "./domain/value-objects/configs/index.js";
 
 const CLEANUP_TIMEOUT_MS = 2_000;

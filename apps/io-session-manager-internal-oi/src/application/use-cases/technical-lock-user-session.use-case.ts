@@ -108,24 +108,3 @@ export const makeTechnicalLockUserSessionUseCase =
       await deps.authEventPort.sendEvent(logoutEvent);
     return eventResult.isErr() ? err(eventResult.error) : ok(undefined);
   };
-
-export type TechnicalUnlockUserSessionUseCase = UseCase<
-  TechnicalLockUserSessionInput,
-  void,
-  GenericError
->;
-
-export const makeTechnicalUnlockUserSessionUseCase =
-  (
-    technicalLockedProfilesPort: TechnicalLockedProfilesPort,
-  ): TechnicalUnlockUserSessionUseCase =>
-  async ({ fiscalCode }) => {
-    const unlockResult = await technicalLockedProfilesPort.unlock(fiscalCode);
-    return unlockResult.isErr()
-      ? err(
-          new GenericError(
-            `Failed to unlock technical profile: ${unlockResult.error.message}`,
-          ),
-        )
-      : ok(undefined);
-  };

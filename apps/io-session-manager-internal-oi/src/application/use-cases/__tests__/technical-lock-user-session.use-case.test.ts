@@ -13,20 +13,16 @@ import type {
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  makeTechnicalLockUserSessionUseCase,
-  makeTechnicalUnlockUserSessionUseCase,
-} from "../technical-lock-user-session.use-case.js";
+import { makeTechnicalLockUserSessionUseCase } from "../technical-lock-user-session.use-case.js";
 
 const fiscalCode = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 const lock = vi.fn<TechnicalLockedProfilesPort["lock"]>();
-const unlock = vi.fn<TechnicalLockedProfilesPort["unlock"]>();
 const sendEvent = vi.fn<AuthEventPort["sendEvent"]>();
 const invalidatePreviousUserState = vi.fn<InvalidatePreviousUserStateUseCase>();
 const technicalLockedProfilesPort: TechnicalLockedProfilesPort = {
   isLocked: vi.fn<TechnicalLockedProfilesPort["isLocked"]>(),
   lock,
-  unlock,
+  unlock: vi.fn<TechnicalLockedProfilesPort["unlock"]>(),
 };
 const authEventPort: AuthEventPort = { sendEvent };
 const findActiveSession = vi.fn<SessionPort["findActiveSession"]>();
@@ -51,9 +47,6 @@ const lockUserSession = makeTechnicalLockUserSessionUseCase({
   platformInternalPort: { deleteSession },
   sessionPort: { findActiveSession, findSessionTokenBySessionId },
 });
-const unlockUserSession = makeTechnicalUnlockUserSessionUseCase(
-  technicalLockedProfilesPort,
-);
 
 beforeEach(() => {
   findActiveSession
@@ -70,7 +63,6 @@ beforeEach(() => {
     .mockResolvedValue(ok(sessionTokenWithId));
   deleteSession.mockReset().mockResolvedValue(ok(undefined));
   lock.mockReset().mockResolvedValue(ok(undefined));
-  unlock.mockReset().mockResolvedValue(ok(undefined));
   sendEvent.mockReset().mockResolvedValue(ok(undefined));
   invalidatePreviousUserState.mockReset().mockResolvedValue(ok(undefined));
 });
@@ -182,26 +174,6 @@ describe("makeTechnicalLockUserSessionUseCase", () => {
     expect(lock).toHaveBeenCalledExactlyOnceWith(fiscalCode);
     expect(invalidatePreviousUserState).toHaveBeenCalledExactlyOnceWith(
       fiscalCode,
-    );
-  });
-});
-
-describe("makeTechnicalUnlockUserSessionUseCase", () => {
-  it("unlocks the profile", async () => {
-    expect(await unlockUserSession({ fiscalCode })).toEqual(ok(undefined));
-    expect(unlock).toHaveBeenCalledExactlyOnceWith(fiscalCode);
-  });
-
-  it("converts a technical profile unlock failure to a generic error", async () => {
-    const storageError = new GenericError("table unavailable");
-    unlock.mockResolvedValueOnce(err(storageError));
-
-    expect(await unlockUserSession({ fiscalCode })).toEqual(
-      err(
-        new GenericError(
-          `Failed to unlock technical profile: ${storageError.message}`,
-        ),
-      ),
     );
   });
 });
