@@ -48,7 +48,64 @@ locals {
     {
       name  = "APPLICATIONINSIGHTS_ENTRA_ID_AUTH_ENABLED"
       value = "true"
-    }
+    },
+    # Session Cosmos DB - accessed via managed identity
+    {
+      name  = "COSMOSDB_URI"
+      value = var.session_cosmos.account_uri
+    },
+    {
+      name  = "COSMOSDB_NAME"
+      value = azurerm_cosmosdb_sql_database.session_manager.name
+    },
+    {
+      name  = "COSMOSDB_SESSION_TOKEN_CONTAINER_NAME"
+      value = azurerm_cosmosdb_sql_container.session_tokens.name
+    },
+    {
+      name  = "COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME"
+      value = azurerm_cosmosdb_sql_container.active_sessions.name
+    },
+    {
+      name  = "COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME"
+      value = azurerm_cosmosdb_sql_container.lollipop_activations.name
+    },
+    # Service Bus configuration
+    {
+      name  = "AUTH_SESSIONS_TOPIC_NAME"
+      value = var.service_bus.auth_session_topic_name
+    },
+    {
+      name  = "SERVICE_BUS_HOSTNAME"
+      value = var.service_bus.hostname
+    },
+    # Lollipop Revocations
+    {
+      name  = "LOLLIPOP_REVOCATION_QUEUE_STORAGE_URI"
+      value = "https://${var.lollipop.storage_account.name}.queue.core.windows.net"
+    },
+    {
+      name  = "LOLLIPOP_REVOCATION_QUEUE_NAME"
+      value = var.lollipop.revocation_queue_name
+    },
+    # Platform Proxy Internal API
+    {
+      name  = "PLATFORM_PROXY_API_URL"
+      value = var.platform_proxy.base_url
+    },
+    {
+      name  = "PLATFORM_PROXY_API_BASE_PATH"
+      value = var.platform_proxy.base_path
+    },
+    # Technical Locked Profiles table
+    {
+      name  = "TECHNICAL_LOCKED_PROFILES_STORAGE_ACCOUNT_URI"
+      value = "https://${var.technical_locked_profiles.storage_account.name}.table.core.windows.net"
+    },
+    {
+      name  = "TECHNICAL_LOCKED_PROFILES_TABLE_NAME"
+      value = var.technical_locked_profiles.table_name
+    },
   ]
 
   env_vars_sm = [
@@ -64,14 +121,6 @@ locals {
     {
       name  = "LOLLIPOP_API_KEY"
       value = azurerm_key_vault_secret.sm_lollipop_api_key.versionless_id
-    },
-    {
-      name  = "LOLLIPOP_REVOCATION_QUEUE_STORAGE_URI"
-      value = "https://${var.lollipop.storage_account.name}.queue.core.windows.net"
-    },
-    {
-      name  = "LOLLIPOP_REVOCATION_QUEUE_NAME"
-      value = var.lollipop.revocation_queue_name
     },
     # Profile service
     {
@@ -112,15 +161,6 @@ locals {
       name  = "LOCKED_PROFILES_TABLE_NAME"
       value = var.locked_profiles.table_name
     },
-    # Technical Locked Profiles table
-    {
-      name  = "TECHNICAL_LOCKED_PROFILES_STORAGE_ACCOUNT_URI"
-      value = "https://${var.technical_locked_profiles.storage_account.name}.table.core.windows.net"
-    },
-    {
-      name  = "TECHNICAL_LOCKED_PROFILES_TABLE_NAME"
-      value = var.technical_locked_profiles.table_name
-    },
     # Session Manager Internal service
     {
       name  = "IO_SM_INT_API_URL"
@@ -137,15 +177,6 @@ locals {
     {
       name  = "IO_SM_INT_API_KEY"
       value = "TODO"
-    },
-    # Platform Proxy Internal API
-    {
-      name  = "PLATFORM_PROXY_API_URL"
-      value = var.platform_proxy.base_url
-    },
-    {
-      name  = "PLATFORM_PROXY_API_BASE_PATH"
-      value = var.platform_proxy.base_path
     },
     # IO-Communication notification queue
     {
@@ -170,27 +201,6 @@ locals {
     {
       name  = "REDIS_TLS_ENABLED"
       value = "true"
-    },
-    # Session Cosmos DB (io-auth-SM) - accessed via managed identity
-    {
-      name  = "COSMOSDB_URI"
-      value = var.session_cosmos.account_uri
-    },
-    {
-      name  = "COSMOSDB_NAME"
-      value = azurerm_cosmosdb_sql_database.session_manager.name
-    },
-    {
-      name  = "COSMOSDB_SESSION_TOKEN_CONTAINER_NAME"
-      value = azurerm_cosmosdb_sql_container.session_tokens.name
-    },
-    {
-      name  = "COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME"
-      value = azurerm_cosmosdb_sql_container.active_sessions.name
-    },
-    {
-      name  = "COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME"
-      value = azurerm_cosmosdb_sql_container.lollipop_activations.name
     },
     # One Identity configs
     {
@@ -228,14 +238,6 @@ locals {
     {
       name  = "LOGIN_ERROR_REDIRECT_URL"
       value = "https://${trimsuffix(data.azurerm_dns_a_record.api_app_io_pagopa_it.fqdn, ".")}/error.html"
-    },
-    {
-      name  = "AUTH_SESSIONS_TOPIC_NAME"
-      value = var.service_bus.auth_session_topic_name
-    },
-    {
-      name  = "SERVICE_BUS_HOSTNAME"
-      value = var.service_bus.hostname
     },
     {
       name  = "ALLOW_BPD_IP_SOURCE_RANGE"

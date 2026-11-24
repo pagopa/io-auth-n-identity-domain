@@ -5,6 +5,11 @@ import {
   LollipopAssertionTypeSchema,
 } from "@pagopa/io-auth-n-identity-domain";
 import { SessionCosmosAdapter } from "@pagopa/io-auth-n-identity-session/adapters";
+import {
+  type AuthEventPort,
+  createPlatformInternalAdapter,
+  makeInvalidatePreviousUserStateUseCase,
+} from "@pagopa/io-session-manager-core";
 import { err, ok, ResultAsync } from "neverthrow";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -13,14 +18,9 @@ import { lollipopActivationPortMock } from "../../__mocks__/ports/lollipop-activ
 import { lollipopRevocationPortMock } from "../../__mocks__/ports/lollipop-revocation-port.mock.js";
 import { createIoProfileAdapter } from "../../adapters/outbound/io-profile.adapter.js";
 import {
-  createPlatformInternalAdapter,
-  makeInvalidatePreviousUserStateUseCase,
-} from "@pagopa/io-session-manager-core";
-import {
   makeActivateUserSessionUseCase,
   type ActivateUserSessionUseCase,
 } from "../../application/use-cases/activate-user-session.use-case.js";
-import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
 import {
   ACTIVE_SESSION_CONTAINER_NAME,

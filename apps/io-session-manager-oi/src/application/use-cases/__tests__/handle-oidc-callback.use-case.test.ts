@@ -10,17 +10,19 @@ import type {
   IPString,
   LollipopAssertionRef,
 } from "@pagopa/io-auth-n-identity-domain";
+import {
+  toSha256,
+  type ClientSessionToken,
+} from "@pagopa/io-auth-n-identity-session";
+import type { AuthEventPort } from "@pagopa/io-session-manager-core";
 import { DOMParser } from "@xmldom/xmldom";
-import { toSha256 } from "@pagopa/io-auth-n-identity-session";
 import { err, errAsync, ok, ResultAsync } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { AuthEventPort } from "../../../domain/ports/outbound/auth-event.port.js";
 import { AuxiliaryDataPort } from "../../../domain/ports/outbound/auxiliary-data.port.js";
 import { IdentityAssertionFetcherPort } from "../../../domain/ports/outbound/identity-assertion-fetcher.port.js";
 import { OidcClientPort } from "../../../domain/ports/outbound/oidc.port.js";
 import type { IdentityAssertion } from "../../../domain/value-objects/assertion.vo.js";
-import { ClientSessionToken } from "../../../domain/value-objects/client-session-token.vo.js";
 import {
   CurrentUserSchema,
   LoginAuxiliaryData,
