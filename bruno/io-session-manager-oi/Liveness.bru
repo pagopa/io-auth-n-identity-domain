@@ -12,7 +12,9 @@ get {
 
 script:pre-request {
   if (bru.getEnvName() === "Production") {
-    req.setUrl(bru.interpolate("{{process.env.IO_SESSION_MANAGER_OI_CONTAINER_APPLICATION_URL}}/api/auth/v2/health/liveness"));
+    const url = new URL(bru.interpolate(req.getUrl()));
+    const containerUrl = bru.interpolate("{{process.env.IO_SESSION_MANAGER_OI_CONTAINER_APPLICATION_URL}}");
+    req.setUrl(new URL(url.pathname, containerUrl).toString());
   }
 }
 
