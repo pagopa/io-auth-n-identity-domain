@@ -25,8 +25,11 @@ import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
 import { withErrorResultLogging } from "./middlewares/result-logging.middleware.js";
 import { getLogger } from "./telemetry-client.js";
 import { JwtSessionAdapter } from "./adapters/outbound/jwt-session.js";
+import { RedisSessionBlacklistAdapter } from "./adapters/outbound/redis-session-blacklist.adapter.js";
 import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
+import { mountIntrospectHandler } from "./adapters/inbound/fastify/introspect.handler.js";
+import { makeIntrospectionUseCase } from "./application/use-cases/introspection.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/oidc-callback.use-case.js";
 
 const CLEANUP_TIMEOUT_MS = 2_000;
@@ -184,11 +187,16 @@ const createAdapters = async (
     config.JWT_TOKEN_TTL_SECONDS,
   );
 
+  const sessionBlacklistAdapter = new RedisSessionBlacklistAdapter(
+    clients.redisClient,
+  );
+
   return {
     auxiliaryDataAdapter,
     oidcConfigAdapter,
     oidcClientAdapter,
     sessionAdapter,
+    sessionBlacklistAdapter,
   };
 };
 
@@ -246,6 +254,17 @@ const mountRoutes = (
     ),
     loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
     loginErrorRedirectUrl: config.LOGIN_ERROR_REDIRECT_URL,
+  });
+
+  mountIntrospectHandler(server, {
+    introspectionUseCase: withErrorResultLogging(
+      logger.with({ component: "introspect" }),
+    )(
+      makeIntrospectionUseCase({
+        sessionBlacklistPort: adapters.sessionBlacklistAdapter,
+        sessionPort: adapters.sessionAdapter,
+      }),
+    ),
   });
 };
 
