@@ -1,7 +1,7 @@
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core/domain/value-objects";
+import { getRandomBytesHex } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
 
-import { getRandomBytesHex } from "../../utils/hash.js";
 
 export declare const _sessionIdBrand: unique symbol;
 

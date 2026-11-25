@@ -1,5 +1,9 @@
+import {
+  Sha256HexStringSchema,
+  toSha256,
+} from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
-import { Sha256HexStringSchema, toSha256 } from "../../../utils/hash.js";
+
 import { PlainSessionToken } from "./session-token.vo.js";
 
 // ------------------------------------------------------------------------------

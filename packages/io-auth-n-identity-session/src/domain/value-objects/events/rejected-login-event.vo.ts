@@ -3,8 +3,8 @@ import {
   IPStringSchema,
   TimestampMillisToDate,
 } from "@pagopa/io-auth-n-identity-domain";
+import { Sha256HexStringSchema } from "@pagopa/io-auth-n-identity-domain";
 import { z } from "zod";
-import { Sha256HexStringSchema } from "../../../utils/hash.js";
 
 const BaseRejectedLoginSchema = z.object({
   eventType: z.literal("rejected_login"),

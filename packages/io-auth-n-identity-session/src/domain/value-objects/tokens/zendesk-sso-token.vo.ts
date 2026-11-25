@@ -1,11 +1,11 @@
 import { EmailAddress } from "@pagopa/hexagonal-core";
 import { HEX_CHAR_PATTERN } from "@pagopa/io-auth-n-identity-domain";
-import { z } from "zod";
 import {
   getRandomBytesHex,
   Sha256HexStringSchema,
   toSha256,
-} from "../../../utils/hash.js";
+} from "@pagopa/io-auth-n-identity-domain";
+import { z } from "zod";
 
 import { PlainSessionToken } from "./session-token.vo.js";
 
