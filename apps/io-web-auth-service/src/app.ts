@@ -1,6 +1,6 @@
-import { DefaultAzureCredential } from "@azure/identity";
 import { createPrivateKey } from "node:crypto";
 
+import { DefaultAzureCredential } from "@azure/identity";
 import type { NonEmptyString } from "@pagopa/hexagonal-core";
 import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import { type PackageInfo } from "@pagopa/io-package-info";
@@ -17,15 +17,15 @@ import { mountLoginHandler } from "./adapters/inbound/fastify/login.handler.js";
 import { extractIpMiddleware } from "./adapters/inbound/fastify/middlewares/extract-ip.middleware.js";
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
+import { JwtSessionAdapter } from "./adapters/outbound/jwt-session.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
+import { RedisSessionBlacklistAdapter } from "./adapters/outbound/redis-session-blacklist.adapter.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeStartLoginUseCase } from "./application/use-cases/start-login.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
 import { withErrorResultLogging } from "./middlewares/result-logging.middleware.js";
 import { getLogger } from "./telemetry-client.js";
-import { JwtSessionAdapter } from "./adapters/outbound/jwt-session.js";
-import { RedisSessionBlacklistAdapter } from "./adapters/outbound/redis-session-blacklist.adapter.js";
 import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
 import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { mountIntrospectHandler } from "./adapters/inbound/fastify/introspect.handler.js";
