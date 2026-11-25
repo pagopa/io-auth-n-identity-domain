@@ -59,6 +59,15 @@ describe("introspection use case", () => {
     );
   });
 
+  it("propagates the generic error without querying the blacklist", async () => {
+    sessionPort.check.mockResolvedValueOnce(err(new GenericError("boom")));
+
+    const result = await introspect({ token: aToken });
+
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+    expect(sessionBlacklistPort.isBlacklisted).not.toHaveBeenCalled();
+  });
+
   it("propagates the authentication error without querying the blacklist", async () => {
     sessionPort.check.mockResolvedValueOnce(err(new AuthenticationError()));
 
