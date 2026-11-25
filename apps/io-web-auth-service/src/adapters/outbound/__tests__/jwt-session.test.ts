@@ -61,10 +61,29 @@ describe("JwtSessionAdapter", () => {
   });
 
   describe("check", () => {
-    it("accepts a token created by the adapter", async () => {
+    it("accepts a token created by the adapter and returns its metadata and user", async () => {
       const token = (await adapter.create(aSession))._unsafeUnwrap();
+      const claims = decodeJwt(token);
 
-      expect((await adapter.check(token)).isOk()).toBe(true);
+      expect((await adapter.check(token))._unsafeUnwrap()).toEqual({
+        metadata: {
+          expiresAtSeconds: claims.exp as number,
+          id: claims.jti,
+        },
+        user: aSession,
+      });
+    });
+
+    it("rejects a token without the jti claim", async () => {
+      const token = await new SignJWT({ ...aSession })
+        .setProtectedHeader({ alg: "RS256" })
+        .setIssuer(ISSUER)
+        .setExpirationTime("1h")
+        .sign(privateKey);
+
+      expect(
+        (await adapter.check(token as NonEmptyString))._unsafeUnwrapErr(),
+      ).toBeInstanceOf(AuthenticationError);
     });
 
     it("rejects a token signed with a different key", async () => {
