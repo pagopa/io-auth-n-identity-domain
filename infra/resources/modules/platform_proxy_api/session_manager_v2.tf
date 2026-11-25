@@ -25,7 +25,6 @@ resource "azurerm_api_management_api" "external_api_session_manager_v2" {
   import {
     content_format = "openapi"
     content_value  = data.http.external_api_session_manager_v2_openapi.response_body
-
   }
 }
 
@@ -39,6 +38,17 @@ resource "azurerm_api_management_product_api" "external_api_session_manager_v2" 
 resource "azurerm_api_management_api_tag" "external_api_session_manager_v2" {
   api_id = azurerm_api_management_api.external_api_session_manager_v2.id
   name   = azurerm_api_management_tag.session_manager_tag.name
+}
+
+resource "azurerm_api_management_api_operation_policy" "routing_based_on_token_version" {
+  for_each = toset(["getUserIdentity", "getSession", "logout"])
+
+  api_name            = azurerm_api_management_api.external_api_session_manager_v2.name
+  api_management_name = var.platform_apim_name
+  resource_group_name = var.platform_apim_resource_group_name
+  operation_id        = each.key
+
+  xml_content = file("${path.module}/policies/session_manager_v2/routing_based_on_token_version_policy.xml")
 }
 
 
@@ -62,9 +72,8 @@ resource "azurerm_api_management_api" "bpd_api_session_manager_v2" {
   service_url  = "${var.session_manager_oi_url}/${var.bpd_api_base_path}/v2"
 
   import {
-    content_format = "openapi-link"
-    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/9b64e4db4341e8b0d2fd68a902917c12df5576d1/apps/io-session-manager-oi/api/sso/bpd.yaml"
-
+    content_format = "openapi"
+    content_value  = data.http.sso_bpd_api_session_manager_v2_openapi.response_body
   }
 }
 
@@ -78,6 +87,14 @@ resource "azurerm_api_management_product_api" "bpd_api_session_manager_v2" {
 resource "azurerm_api_management_api_tag" "bpd_api_session_manager_v2" {
   api_id = azurerm_api_management_api.bpd_api_session_manager_v2.id
   name   = azurerm_api_management_tag.session_manager_tag.name
+}
+
+resource "azurerm_api_management_api_policy" "bpd_routing_based_on_token_version" {
+  api_name            = azurerm_api_management_api.bpd_api_session_manager_v2.name
+  api_management_name = var.platform_apim_name
+  resource_group_name = var.platform_apim_resource_group_name
+
+  xml_content = file("${path.module}/policies/session_manager_v2/routing_based_on_token_version_policy.xml")
 }
 
 
@@ -101,9 +118,8 @@ resource "azurerm_api_management_api" "fims_api_session_manager_v2" {
   service_url  = "${var.session_manager_oi_url}/${var.fims_api_base_path}/v2"
 
   import {
-    content_format = "openapi-link"
-    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/b2bffa7aee304555ffaa5391441ecfbdf489c16f/apps/io-session-manager-oi/api/sso/fims.yaml"
-
+    content_format = "openapi"
+    content_value  = data.http.sso_fims_api_session_manager_v2_openapi.response_body
   }
 }
 
@@ -117,6 +133,14 @@ resource "azurerm_api_management_product_api" "fims_api_session_manager_v2" {
 resource "azurerm_api_management_api_tag" "fims_api_session_manager_v2" {
   api_id = azurerm_api_management_api.fims_api_session_manager_v2.id
   name   = azurerm_api_management_tag.session_manager_tag.name
+}
+
+resource "azurerm_api_management_api_policy" "fims_routing_based_on_token_version" {
+  api_name            = azurerm_api_management_api.fims_api_session_manager_v2.name
+  api_management_name = var.platform_apim_name
+  resource_group_name = var.platform_apim_resource_group_name
+
+  xml_content = file("${path.module}/policies/session_manager_v2/routing_based_on_token_version_policy.xml")
 }
 
 
@@ -140,8 +164,8 @@ resource "azurerm_api_management_api" "pagopa_api_session_manager_v2" {
   service_url  = "${var.session_manager_oi_url}/${var.pagopa_api_base_path}/v2"
 
   import {
-    content_format = "openapi-link"
-    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/e5596cc6e345bd1eb0387cb9aa2161a6f5dc7a56/apps/io-session-manager-oi/api/sso/pagopa.yaml"
+    content_format = "openapi"
+    content_value  = data.http.sso_pagopa_api_session_manager_v2_openapi.response_body
 
   }
 }
@@ -156,6 +180,14 @@ resource "azurerm_api_management_product_api" "pagopa_api_session_manager_v2" {
 resource "azurerm_api_management_api_tag" "pagopa_api_session_manager_v2" {
   api_id = azurerm_api_management_api.pagopa_api_session_manager_v2.id
   name   = azurerm_api_management_tag.session_manager_tag.name
+}
+
+resource "azurerm_api_management_api_policy" "pagopa_routing_based_on_token_version" {
+  api_name            = azurerm_api_management_api.pagopa_api_session_manager_v2.name
+  api_management_name = var.platform_apim_name
+  resource_group_name = var.platform_apim_resource_group_name
+
+  xml_content = file("${path.module}/policies/session_manager_v2/routing_based_on_token_version_policy.xml")
 }
 
 
@@ -179,8 +211,8 @@ resource "azurerm_api_management_api" "zendesk_api_session_manager_v2" {
   service_url  = "${var.session_manager_oi_url}/${var.zendesk_api_base_path}/v2"
 
   import {
-    content_format = "openapi-link"
-    content_value  = "https://raw.githubusercontent.com/pagopa/io-auth-n-identity-domain/287b675025994f74e44b74ed40a93d71989bd1b9/apps/io-session-manager-oi/api/sso/zendesk.yaml"
+    content_format = "openapi"
+    content_value  = data.http.sso_zendesk_api_session_manager_v2_openapi.response_body
   }
 }
 
@@ -194,4 +226,12 @@ resource "azurerm_api_management_product_api" "zendesk_api_session_manager_v2" {
 resource "azurerm_api_management_api_tag" "zendesk_api_session_manager_v2" {
   api_id = azurerm_api_management_api.zendesk_api_session_manager_v2.id
   name   = azurerm_api_management_tag.session_manager_tag.name
+}
+
+resource "azurerm_api_management_api_policy" "zendesk_routing_based_on_token_version" {
+  api_name            = azurerm_api_management_api.zendesk_api_session_manager_v2.name
+  api_management_name = var.platform_apim_name
+  resource_group_name = var.platform_apim_resource_group_name
+
+  xml_content = file("${path.module}/policies/session_manager_v2/routing_based_on_token_version_policy.xml")
 }
