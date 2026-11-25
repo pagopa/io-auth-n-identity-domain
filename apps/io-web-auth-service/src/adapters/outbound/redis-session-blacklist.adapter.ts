@@ -19,9 +19,11 @@ export class RedisSessionBlacklistAdapter implements SessionBlacklistPort {
     ttlSeconds: PositiveInteger,
   ): Promise<Result<void, GenericError>> {
     try {
-      await this.redis.set(`${REDIS_BLACKLIST_PREFIX}${id}`, "1", {
-        expiration: { type: "EX", value: ttlSeconds },
-      });
+      await this.redis.setEx(
+        `${REDIS_BLACKLIST_PREFIX}${id}`,
+        ttlSeconds,
+        "1",
+      );
       return ok(undefined);
     } catch (cause) {
       return err(

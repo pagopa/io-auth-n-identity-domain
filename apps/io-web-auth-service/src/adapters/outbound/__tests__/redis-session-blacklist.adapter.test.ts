@@ -12,7 +12,7 @@ const anId = "a-jti" as NonEmptyString;
 const aTtl = 120 as PositiveInteger;
 
 const setup = () => {
-  const redis = { exists: vi.fn(), set: vi.fn() };
+  const redis = { exists: vi.fn(), setEx: vi.fn() };
   const adapter = new RedisSessionBlacklistAdapter(
     redis as unknown as RedisClientType,
   );
@@ -23,21 +23,21 @@ describe("RedisSessionBlacklistAdapter", () => {
   describe("blacklist", () => {
     it("stores the prefixed id with the given expiration", async () => {
       const { adapter, redis } = setup();
-      redis.set.mockResolvedValue("OK");
+      redis.setEx.mockResolvedValue("OK");
 
       const result = await adapter.blacklist(anId, aTtl);
 
       expect(result.isOk()).toBe(true);
-      expect(redis.set).toHaveBeenCalledWith(
+      expect(redis.setEx).toHaveBeenCalledWith(
         `${REDIS_BLACKLIST_PREFIX}${anId}`,
+        aTtl,
         "1",
-        { expiration: { type: "EX", value: aTtl } },
       );
     });
 
     it("returns a GenericError when Redis fails", async () => {
       const { adapter, redis } = setup();
-      redis.set.mockRejectedValue(new Error("boom"));
+      redis.setEx.mockRejectedValue(new Error("boom"));
 
       const error = (await adapter.blacklist(anId, aTtl))._unsafeUnwrapErr();
 
