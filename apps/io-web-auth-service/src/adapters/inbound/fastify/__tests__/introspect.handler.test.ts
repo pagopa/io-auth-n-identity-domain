@@ -2,6 +2,7 @@ import {
   AuthenticationError,
   FiscalCode,
   ForbiddenError,
+  GenericError,
   NonEmptyString,
 } from "@pagopa/hexagonal-core";
 import fastify from "fastify";
@@ -67,10 +68,29 @@ describe("introspect handler", () => {
     const response = await inject({ token: "a-token" });
 
     expect(response.statusCode).toBe(401);
+    expect(response.json()).toMatchObject({ status: 401 });
+    expect(response.json()).not.toHaveProperty("active");
+  });
+
+  it("returns 500 for a generic error", async () => {
+    introspectionUseCase.mockResolvedValueOnce(err(new GenericError("boom")));
+
+    const response = await inject({ token: "a-token" });
+
+    expect(response.statusCode).toBe(500);
+    expect(response.json()).toMatchObject({ status: 500 });
   });
 
   it("returns 400 when the token is missing", async () => {
     const response = await inject({});
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toMatchObject({ status: 400 });
+    expect(introspectionUseCase).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when the token is an empty string", async () => {
+    const response = await inject({ token: "" });
 
     expect(response.statusCode).toBe(400);
     expect(introspectionUseCase).not.toHaveBeenCalled();
