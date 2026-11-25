@@ -39,6 +39,66 @@ components:
         - SpidL2
         - SpidL3
       description: The minimum SPID authentication level requested.
+    IntrospectActiveResponse:
+      type: object
+      properties:
+        active:
+          type: boolean
+          enum:
+            - true
+          description: "Always `true`: the session token is valid."
+        user:
+          type: object
+          properties:
+            name:
+              type: string
+              minLength: 1
+            family_name:
+              type: string
+              minLength: 1
+            fiscal_number:
+              type: string
+              pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/i
+            spid_level:
+              type: string
+              enum:
+                - https://www.spid.gov.it/SpidL1
+                - https://www.spid.gov.it/SpidL2
+                - https://www.spid.gov.it/SpidL3
+          required:
+            - name
+            - family_name
+            - fiscal_number
+            - spid_level
+          description: The user data carried by the session token.
+      required:
+        - active
+        - user
+      description: Introspection result of a valid session token.
+    IntrospectInactiveResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+        status:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          format: uri
+        active:
+          type: boolean
+          enum:
+            - false
+          default: false
+          description: "Always `false`: the session token has been invalidated."
+      required:
+        - detail
+        - status
+        - title
+        - type
+      description: Problem details of an invalidated session token.
   parameters: {}
 paths:
   /login:
@@ -156,6 +216,58 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /introspect:
+    post:
+      description: Verifies the session token provided in the request body and checks that it has not been invalidated. On success it returns the user data carried by the token.
+      operationId: introspect
+      security: []
+      summary: Introspect a session token
+      tags:
+        - session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  minLength: 1
+                  description: The session token to introspect.
+              required:
+                - token
+      responses:
+        "200":
+          description: The session token is valid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntrospectActiveResponse"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: The session token has been invalidated.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/IntrospectInactiveResponse"
         "500":
           description: Internal error
           content:
