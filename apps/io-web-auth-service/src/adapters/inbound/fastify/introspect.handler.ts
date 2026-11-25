@@ -60,7 +60,6 @@ export const mountIntrospectHandler = (
     inputMapper: (req, _context): IntrospectionInput => ({
       token: req.body.token,
     }),
-    outputMapper: (result) => result,
     useCase: deps.introspectionUseCase,
   });
 };
