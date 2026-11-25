@@ -233,5 +233,5 @@ resource "azurerm_api_management_api_policy" "zendesk_routing_based_on_token_ver
   api_management_name = var.platform_apim_name
   resource_group_name = var.platform_apim_resource_group_name
 
-  xml_content = file("${path.module}/policies/session_manager_v2/routing_based_on_token_version_policy.xml")
+  xml_content = file("${path.module}/policies/session_manager_v2/zendesk_routing_based_on_token_version_policy.xml")
 }

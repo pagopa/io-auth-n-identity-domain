@@ -1,0 +1,60 @@
+<!--
+    - Policies are applied in the order they appear.
+    - Position <base/> inside a section to inherit policies from the outer scope.
+    - Comments within policies are not preserved.
+-->
+<!-- Add policies as children to the <inbound>, <outbound>, <backend>, and <on-error> elements -->
+<policies>
+    <!-- Throttle, authorize, validate, cache, or transform the requests -->
+    <inbound>
+        <base />
+        <set-variable name="zendeskSessionTokenVersion" value="@{
+            var contentType = context.Request.Headers.GetValueOrDefault("Content-Type", "").Split(';')[0].Trim();
+            if (context.Request.Body == null || !contentType.Equals("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
+            {
+                return "";
+            }
+
+            var form = context.Request.Body.AsFormUrlEncodedContent(preserveContent: true);
+            if (!form.ContainsKey("user_token") || form["user_token"].Count != 1)
+            {
+                return "";
+            }
+
+            var token = form["user_token"][0];
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return "";
+            }
+
+            return token.Contains(".") ? "v2" : "v1";
+        }" />
+        <choose>
+            <when condition="@((string)context.Variables["zendeskSessionTokenVersion"] == "")">
+                <return-response>
+                    <set-status code="401" reason="Unauthorized" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/problem+json</value>
+                    </set-header>
+                    <set-body>{"title": "Unauthorized", "status": 401, "detail": "Missing or invalid user_token"}</set-body>
+                </return-response>
+            </when>
+            <when condition="@((string)context.Variables["zendeskSessionTokenVersion"] == "v1")">
+                <set-backend-service backend-id="session-manager-pool" />
+                <rewrite-uri template="@(context.Request.OriginalUrl.Path.Replace("/v2/", "/v1/"))" />
+            </when>
+        </choose>
+    </inbound>
+    <!-- Control if and how the requests are forwarded to services  -->
+    <backend>
+        <base />
+    </backend>
+    <!-- Customize the responses -->
+    <outbound>
+        <base />
+    </outbound>
+    <!-- Handle exceptions and customize error responses  -->
+    <on-error>
+        <base />
+    </on-error>
+</policies>
