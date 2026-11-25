@@ -19,6 +19,7 @@ import {
   LollipopRevocationQueueAdapter,
   makeInvalidatePreviousUserStateUseCase,
   makeInvalidateProvidedUserStateUseCase,
+  NotificationStorageQueueAdapter,
 } from "@pagopa/io-session-manager-core";
 import { LockedProfilesDataTableAdapter } from "@pagopa/io-session-manager-core";
 import {
@@ -53,7 +54,6 @@ import { createIoFastLoginAdapter } from "./adapters/outbound/io-fast-login.adap
 import { createIoLollipopAdapter } from "./adapters/outbound/io-lollipop.adapter.js";
 import { createIoProfileAdapter } from "./adapters/outbound/io-profile.adapter.js";
 import { createIoTestProfileAdapter } from "./adapters/outbound/io-test-profile.adapter.js";
-import { NotificationStorageQueueAdapter } from "./adapters/outbound/notification-storage-queue.adapter.js";
 import { OneIdIdentityAssertionFetcherAdapter } from "./adapters/outbound/one-id-identity-assertion-fetcher-adapter.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
 import { TechnicalLockedProfilesRedisAdapter } from "./adapters/outbound/technical-locked-profiles-redis.adapter.js";

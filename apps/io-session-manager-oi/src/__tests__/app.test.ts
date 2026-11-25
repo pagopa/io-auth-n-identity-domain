@@ -66,7 +66,6 @@ vi.mock("../adapters/outbound/io-lollipop.adapter.js");
 vi.mock("../adapters/outbound/io-profile.adapter.js");
 vi.mock("../adapters/outbound/locked-profiles-data-table.adapter.js");
 vi.mock("../adapters/outbound/lollipop-revocation-queue.adapter.js");
-vi.mock("../adapters/outbound/notification-storage-queue.adapter.js");
 vi.mock("../adapters/outbound/one-id-identity-assertion-fetcher-adapter.js");
 vi.mock("../adapters/outbound/platform-internal.adapter.js");
 vi.mock("../adapters/outbound/openid-client.adapter.js", () => ({

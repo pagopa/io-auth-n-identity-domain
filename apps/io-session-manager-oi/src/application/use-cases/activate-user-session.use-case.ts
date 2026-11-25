@@ -20,13 +20,16 @@ import {
   type LoginType,
   newSessionId,
 } from "@pagopa/io-auth-n-identity-session/value-objects";
-import type { AuthEventPort, InvalidatePreviousUserStateUseCase } from "@pagopa/io-session-manager-core";
+import type {
+  AuthEventPort,
+  InvalidatePreviousUserStateUseCase,
+  NotificationPort,
+} from "@pagopa/io-session-manager-core";
 import { err, ok, type Result } from "neverthrow";
 
 import type { UserProfile } from "../../domain/entities/profile.entity.js";
 import { IdpFriendlyNamePort } from "../../domain/ports/outbound/friendly-name.port.js";
 import type { LollipopPort } from "../../domain/ports/outbound/lollipop.port.js";
-import { NotificationPort } from "../../domain/ports/outbound/notification.port.js";
 import type { ProfilePort } from "../../domain/ports/outbound/profile.port.js";
 import type { IdentityAssertion } from "../../domain/value-objects/assertion.vo.js";
 import { OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";

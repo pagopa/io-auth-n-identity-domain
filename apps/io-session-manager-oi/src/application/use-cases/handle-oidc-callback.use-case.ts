@@ -11,12 +11,9 @@ import {
 import {
   IPString,
   LollipopAssertionRef,
-} from "@pagopa/io-auth-n-identity-domain";
-import {
-  AuthEvent,
-  SpidLevel,
   toSha256,
-} from "@pagopa/io-auth-n-identity-session";
+} from "@pagopa/io-auth-n-identity-domain";
+import { AuthEvent, SpidLevel } from "@pagopa/io-auth-n-identity-session";
 import type { ClientSessionToken } from "@pagopa/io-auth-n-identity-session/value-objects";
 import type { AuthEventPort } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";

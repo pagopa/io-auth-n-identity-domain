@@ -6,14 +6,12 @@ import {
   NotFoundError,
   ValidationError,
 } from "@pagopa/hexagonal-core";
-import type {
-  IPString,
-  LollipopAssertionRef,
-} from "@pagopa/io-auth-n-identity-domain";
 import {
+  type IPString,
+  type LollipopAssertionRef,
   toSha256,
-  type ClientSessionToken,
-} from "@pagopa/io-auth-n-identity-session";
+} from "@pagopa/io-auth-n-identity-domain";
+import type { ClientSessionToken } from "@pagopa/io-auth-n-identity-session";
 import type { AuthEventPort } from "@pagopa/io-session-manager-core";
 import { DOMParser } from "@xmldom/xmldom";
 import { err, errAsync, ok, ResultAsync } from "neverthrow";
