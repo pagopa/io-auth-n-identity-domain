@@ -19,6 +19,22 @@ script:pre-request {
   req.setMaxRedirects(0);
 }
 
+script:post-response {
+  const location=res.headers["location"]
+  
+  if (!location || location.length == 0){
+    throw new Error("Expected a location")
+  }
+  
+  const sessionToken=location.replace(/^.*\#token\=/,"")
+  
+  if (sessionToken.length == 0){
+    throw new Error("Expected a token")
+  }
+  
+  bru.setEnvVar("IO_WEB_AUTH_SERVICE_TOKEN", sessionToken)
+}
+
 settings {
   encodeUrl: true
   timeout: 0

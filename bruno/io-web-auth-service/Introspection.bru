@@ -1,0 +1,29 @@
+meta {
+  name: Introspection
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{IO_WEB_AUTH_SERVICE_BASE_URL}}/introspect
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "token": "{{IO_WEB_AUTH_SERVICE_TOKEN}}"
+  }
+}
+
+script:pre-request {
+  req.setMaxRedirects(0);
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
+}
