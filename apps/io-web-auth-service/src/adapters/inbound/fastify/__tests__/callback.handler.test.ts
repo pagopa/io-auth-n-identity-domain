@@ -76,7 +76,7 @@ describe("callback handler login outcomes and errors", () => {
       url: `${callbackContract.path}?state=a-state&code=a-code`,
     });
 
-    expect(response.statusCode).toBe(301);
+    expect(response.statusCode).toBe(302);
     expect(response.headers.location).toBe(
       "https://app.example.com/success#token=a-token",
     );
@@ -105,7 +105,7 @@ describe("callback handler login outcomes and errors", () => {
       },
       ipAddress: CLIENT_IP,
     });
-    expect(response.statusCode).toBe(301);
+    expect(response.statusCode).toBe(302);
     expect(response.headers.location).toBe(
       "https://app.example.com/error?errorCode=1002&errorMessage=access_denied",
     );
@@ -126,7 +126,7 @@ describe("callback handler login outcomes and errors", () => {
       url: `${callbackContract.path}?state=a-state&error=access_denied`,
     });
 
-    expect(response.statusCode).toBe(301);
+    expect(response.statusCode).toBe(302);
     expect(response.headers.location).toBe(
       "https://app.example.com/error?errorMessage=error+occurred",
     );

@@ -133,9 +133,9 @@ paths:
           name: error_description
           in: query
       responses:
-        "301":
+        "302":
           description: |-
-            Permanent redirect (`301`) back to the client; the outcome is encoded in the `Location` URL.
+            Redirect (`302`) back to the client; the outcome is encoded in the `Location` URL.
             - **Success** — the success redirect URL with the fresh session token in the URL **fragment**: `<successUrl>#token=<sessionToken>`.
             - **Login error** — the error redirect URL with the error in the **query string**: `<errorUrl>?[errorCode=<code>&]errorMessage=<message>` (`errorCode` is optional, present only when it can be derived from the callback; `errorMessage` is always present, falling back to a default message when the callback carries none).
           headers:

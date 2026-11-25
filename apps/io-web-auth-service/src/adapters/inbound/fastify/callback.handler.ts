@@ -22,9 +22,9 @@ export const callbackContract = defineRoute({
   // Public endpoint: part of the pre-authentication OIDC login flow.
   security: [],
   response: {
-    301: {
+    302: {
       description:
-        "Permanent redirect (`301`) back to the client; the outcome is encoded in the `Location` URL.\n" +
+        "Redirect (`302`) back to the client; the outcome is encoded in the `Location` URL.\n" +
         "- **Success** — the success redirect URL with the fresh session token in the URL **fragment**: `<successUrl>#token=<sessionToken>`.\n" +
         "- **Login error** — the error redirect URL with the error in the **query string**: `<errorUrl>?[errorCode=<code>&]errorMessage=<message>` (`errorCode` is optional, present only when it can be derived from the callback; `errorMessage` is always present, falling back to a default message when the callback carries none).",
       redirect: true,
