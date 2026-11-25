@@ -2170,6 +2170,9 @@ importers:
 
   packages/io-session-manager-core:
     dependencies:
+      '@azure/data-tables':
+        specifier: 'catalog:'
+        version: 13.3.2
       '@azure/service-bus':
         specifier: 'catalog:'
         version: 7.9.5
