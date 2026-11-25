@@ -130,33 +130,44 @@ describe("makeHandleOidcCallbackUseCase", () => {
       });
     });
 
-    it.each([
-      {
-        case: "unknown or already consumed",
-        error: new NotFoundError("LoginAuxiliaryData", "not found"),
-      },
-      { case: "not retrievable", error: new GenericError("redis down") },
-    ])(
-      "returns ValidationError and tracks it when the login state is $case",
-      async ({ error }) => {
-        auxiliaryDataPort.retrieve.mockResolvedValueOnce(err(error));
+    it("returns ValidationError and tracks it when the login state is unknown or already consumed", async () => {
+      auxiliaryDataPort.retrieve.mockResolvedValueOnce(
+        err(new NotFoundError("LoginAuxiliaryData", "not found")),
+      );
 
-        const result = await runCallback({ state: STATE, code: CODE });
+      const result = await runCallback({ state: STATE, code: CODE });
 
-        expect(result._unsafeUnwrapErr()).toEqual(
-          new ValidationError("Missing or expired login state"),
-        );
-        expect(oidcClientPort.exchange).not.toHaveBeenCalled();
-        expect(activateUserSessionUseCase).not.toHaveBeenCalled();
-        expect(
-          trackedEvent("ioweb-auth.oidc.callback.auxiliary-data.error"),
-        ).toEqual({
-          ...commonProperties,
-          state: STATE,
-          failureReason: "auxiliary_data_unavailable",
-        });
-      },
-    );
+      expect(result._unsafeUnwrapErr()).toEqual(
+        new ValidationError("Missing or expired login state"),
+      );
+      expect(oidcClientPort.exchange).not.toHaveBeenCalled();
+      expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+      expect(
+        trackedEvent("ioweb-auth.oidc.callback.auxiliary-data.error"),
+      ).toEqual({
+        ...commonProperties,
+        state: STATE,
+        failureReason: "auxiliary_data_unavailable",
+      });
+    });
+
+    it("propagates the infrastructure error and tracks it when the login state cannot be retrieved", async () => {
+      const error = new GenericError("redis down");
+      auxiliaryDataPort.retrieve.mockResolvedValueOnce(err(error));
+
+      const result = await runCallback({ state: STATE, code: CODE });
+
+      expect(result._unsafeUnwrapErr()).toBe(error);
+      expect(oidcClientPort.exchange).not.toHaveBeenCalled();
+      expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+      expect(
+        trackedEvent("ioweb-auth.oidc.callback.auxiliary-data-retrieval.error"),
+      ).toEqual({
+        ...commonProperties,
+        state: STATE,
+        failureReason: "auxiliary_data_retrieval_failed",
+      });
+    });
 
     it.each([
       {

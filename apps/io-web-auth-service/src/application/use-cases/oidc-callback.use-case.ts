@@ -248,20 +248,32 @@ const retrieveAuxiliaryData = async (
   auxiliaryDataPort: AuxiliaryDataPort,
   state: NonEmptyString,
   logger: Logger,
-): Promise<Result<LoginAuxiliaryData, ValidationError>> => {
+): Promise<Result<LoginAuxiliaryData, ValidationError | GenericError>> => {
   const result = await auxiliaryDataPort.retrieve(state);
   if (result.isErr()) {
-    // the state is either unknown/forged or has already been consumed,
-    // hence not retriable
+    if (result.error instanceof NotFoundError) {
+      // the state is either unknown/forged or has already been consumed,
+      // hence not retriable
+      logger.trackEvent({
+        name: "ioweb-auth.oidc.callback.auxiliary-data.error",
+        properties: {
+          samplingEnabled: false,
+          state,
+          failureReason: "auxiliary_data_unavailable",
+        },
+      });
+      return err(new ValidationError("Missing or expired login state"));
+    }
+
     logger.trackEvent({
-      name: "ioweb-auth.oidc.callback.auxiliary-data.error",
+      name: "ioweb-auth.oidc.callback.auxiliary-data-retrieval.error",
       properties: {
         samplingEnabled: false,
         state,
-        failureReason: "auxiliary_data_unavailable",
+        failureReason: "auxiliary_data_retrieval_failed",
       },
     });
-    return err(new ValidationError("Missing or expired login state"));
+    return err(result.error);
   }
   return ok(result.value);
 };
