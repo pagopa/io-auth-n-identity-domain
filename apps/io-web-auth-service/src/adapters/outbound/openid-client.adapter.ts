@@ -1,15 +1,25 @@
-import { GenericError } from "@pagopa/hexagonal-core";
 import { err, ok, type Result } from "neverthrow";
 import * as client from "openid-client";
 
+import {
+  type AuthorizationEndpointError,
+  type ExchangeError,
+  InvalidAuthorizationEndpointError,
+  OidcCodeExchangeError,
+  OidcDiscoveryError,
+} from "../../domain/errors/oidc.errors.js";
 import {
   type OidcConfig,
   type OidcConfigPort,
 } from "../../domain/ports/outbound/oidc-config.port.js";
 import {
-  type AuthorizationEndpointError,
   type OidcClientPort,
+  type OidcExchangeParams,
 } from "../../domain/ports/outbound/oidc.port.js";
+import {
+  type OidcClaims,
+  OidcClaimsSchema,
+} from "../../domain/value-objects/oidc-claims.vo.js";
 import { type OidcEnvironment } from "../../domain/value-objects/oidc.vo.js";
 
 /**
@@ -54,42 +64,93 @@ export class OpenIdClientAdapter implements OidcClientPort {
   ): Promise<Result<URL, AuthorizationEndpointError>> {
     const oidcConfigResult = await this.resolveConfiguration(env);
     if (oidcConfigResult.isErr()) {
-      return err({
-        reason: "discovery_failed",
-        error: oidcConfigResult.error,
-      });
+      return err(oidcConfigResult.error);
     }
 
     const authorizationEndpoint =
       oidcConfigResult.value.serverMetadata().authorization_endpoint;
     if (!authorizationEndpoint) {
-      return err({
-        reason: "invalid_authorization_endpoint",
-        error: new GenericError(
+      return err(
+        new InvalidAuthorizationEndpointError(
           "OIDC discovery metadata is missing authorization_endpoint",
         ),
-      });
+      );
     }
 
     try {
       return ok(new URL(authorizationEndpoint));
     } catch {
-      return err({
-        reason: "invalid_authorization_endpoint",
-        error: new GenericError(
+      return err(
+        new InvalidAuthorizationEndpointError(
           `Invalid authorization_endpoint from OIDC discovery: ${authorizationEndpoint}`,
         ),
-      });
+      );
+    }
+  }
+
+  async exchange(
+    params: OidcExchangeParams,
+  ): Promise<Result<OidcClaims, ExchangeError>> {
+    const oidcConfigResult = await this.resolveConfiguration(params.env);
+    if (oidcConfigResult.isErr()) {
+      return err(oidcConfigResult.error);
+    }
+    const oidcConfig = oidcConfigResult.value;
+
+    const envConfigResult = this.oidcConfigPort.getConfig(params.env);
+    if (envConfigResult.isErr()) {
+      return err(
+        new OidcDiscoveryError(
+          `Missing OIDC configuration: ${envConfigResult.error.message}`,
+        ),
+      );
+    }
+    const envConfig = envConfigResult.value;
+
+    try {
+      // Reconstruct the callback URL from the registered redirect URI so the
+      // `redirect_uri` sent to the token endpoint matches the auth request,
+      // even when the app runs behind a reverse proxy.
+      const callbackUrl = new URL(envConfig.redirectUri.href);
+      callbackUrl.searchParams.set("code", params.code);
+      callbackUrl.searchParams.set("state", params.state);
+
+      const tokens = await client.authorizationCodeGrant(
+        oidcConfig,
+        callbackUrl,
+        {
+          expectedState: params.state,
+          expectedNonce: params.expectedNonce,
+          idTokenExpected: true,
+        },
+      );
+
+      const parsedClaims = OidcClaimsSchema.safeParse(tokens.claims());
+      if (!parsedClaims.success) {
+        return err(
+          new OidcCodeExchangeError(
+            "OIDC code exchange failed: invalid ID token claims",
+          ),
+        );
+      }
+
+      return ok(parsedClaims.data);
+    } catch (error) {
+      return err(
+        new OidcCodeExchangeError(
+          `OIDC code exchange failed: ${toMessage(error)}`,
+        ),
+      );
     }
   }
 
   private async resolveConfiguration(
     env: OidcEnvironment,
-  ): Promise<Result<client.Configuration, GenericError>> {
+  ): Promise<Result<client.Configuration, OidcDiscoveryError>> {
     const envConfigResult = this.oidcConfigPort.getConfig(env);
     if (envConfigResult.isErr()) {
       return err(
-        new GenericError(
+        new OidcDiscoveryError(
           `Missing OIDC configuration: ${envConfigResult.error.message}`,
         ),
       );
@@ -99,7 +160,7 @@ export class OpenIdClientAdapter implements OidcClientPort {
       return ok(await this.getConfiguration(env, envConfigResult.value));
     } catch (error) {
       return err(
-        new GenericError(`OIDC discovery failed: ${toMessage(error)}`),
+        new OidcDiscoveryError(`OIDC discovery failed: ${toMessage(error)}`),
       );
     }
   }

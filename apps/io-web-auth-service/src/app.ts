@@ -26,6 +26,7 @@ import { withErrorResultLogging } from "./middlewares/result-logging.middleware.
 import { getLogger } from "./telemetry-client.js";
 import { JwtSessionAdapter } from "./adapters/outbound/jwt-session.js";
 import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
+import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { makeHandleOidcCallbackUseCase } from "./application/use-cases/oidc-callback.use-case.js";
 
 const CLEANUP_TIMEOUT_MS = 2_000;
@@ -230,12 +231,17 @@ const mountRoutes = (
     ),
   });
 
+  const callbackLogger = logger.with({ component: "callback" });
   mountCallbackHandler(server, {
-    handleOidcCallbackUseCase: withErrorResultLogging(
-      logger.with({ component: "callback" }),
-    )(
+    middlewares: [extractIpMiddleware] as const,
+    handleOidcCallbackUseCase: withErrorResultLogging(callbackLogger)(
       makeHandleOidcCallbackUseCase({
-        sessionPort: adapters.sessionAdapter,
+        auxiliaryDataPort: adapters.auxiliaryDataAdapter,
+        oidcClientPort: adapters.oidcClientAdapter,
+        activateUserSessionUseCase: makeActivateUserSessionUseCase({
+          sessionPort: adapters.sessionAdapter,
+        }),
+        logger: callbackLogger,
       }),
     ),
     loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
