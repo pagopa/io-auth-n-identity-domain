@@ -19,6 +19,7 @@ import {
   OidcCallbackSuccessParamsSchema,
 } from "../../domain/value-objects/oidc.vo.js";
 import { sha256 } from "../../utils/crypto/hash.js";
+import { isSpidLevelGreaterOrEqual } from "../../utils/spid.js";
 
 import { type ActivateUserSessionUseCase } from "./activate-user-session.use-case.js";
 
@@ -113,6 +114,28 @@ export const makeHandleOidcCallbackUseCase =
       acr: idTokenClaims.acr,
       idpEntityId: idTokenClaims.idpEntityId,
     };
+
+    /***********************************/
+    /* OIDC ID token claims validation */
+    /***********************************/
+    if (
+      !isSpidLevelGreaterOrEqual(idTokenClaims.acr, auxiliaryData.minAuthLevel)
+    ) {
+      logger.trackEvent({
+        name: "ioweb-auth.oidc.callback.spid-level.error",
+        properties: {
+          samplingEnabled: false,
+          ...identityProperties,
+          minAuthLevel: auxiliaryData.minAuthLevel,
+          failureReason: "insufficient_spid_level",
+        },
+      });
+      return err(
+        new ValidationError(
+          `Insufficient SPID level: required ${auxiliaryData.minAuthLevel}, received ${idTokenClaims.acr.replace("https://www.spid.gov.it/", "")}`,
+        ),
+      );
+    }
 
     /***************************/
     /* User session activation */

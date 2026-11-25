@@ -197,6 +197,52 @@ describe("makeHandleOidcCallbackUseCase", () => {
         failureReason: "session_activation_failed",
       });
     });
+
+    it.each([
+      { minAuthLevel: "SpidL1", acr: "https://www.spid.gov.it/SpidL2" },
+      { minAuthLevel: "SpidL2", acr: "https://www.spid.gov.it/SpidL2" },
+      { minAuthLevel: "SpidL2", acr: "https://www.spid.gov.it/SpidL3" },
+    ] as const)(
+      "activates the session when the granted level $acr satisfies $minAuthLevel",
+      async ({ minAuthLevel, acr }) => {
+        auxiliaryDataPort.retrieve.mockResolvedValueOnce(
+          ok({ ...anAuxiliaryData, minAuthLevel }),
+        );
+        oidcClientPort.exchange.mockResolvedValueOnce(ok({ ...aClaims, acr }));
+
+        const result = await runCallback({ state: STATE, code: CODE });
+
+        expect(result._unsafeUnwrap()).toEqual({
+          outcome: "success",
+          token: TOKEN,
+        });
+        expect(activateUserSessionUseCase).toHaveBeenCalledOnce();
+      },
+    );
+
+    it("rejects an insufficient SPID level without activating the session", async () => {
+      auxiliaryDataPort.retrieve.mockResolvedValueOnce(
+        ok({ ...anAuxiliaryData, minAuthLevel: "SpidL3" }),
+      );
+
+      const result = await runCallback({ state: STATE, code: CODE });
+
+      expect(result._unsafeUnwrapErr()).toEqual(
+        new ValidationError(
+          "Insufficient SPID level: required SpidL3, received SpidL2",
+        ),
+      );
+      expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+      expect(trackedEvent("ioweb-auth.oidc.callback.spid-level.error")).toEqual(
+        {
+          ...flowProperties,
+          acr: aClaims.acr,
+          idpEntityId: aClaims.idpEntityId,
+          minAuthLevel: "SpidL3",
+          failureReason: "insufficient_spid_level",
+        },
+      );
+    });
   });
 
   describe("error callback", () => {
