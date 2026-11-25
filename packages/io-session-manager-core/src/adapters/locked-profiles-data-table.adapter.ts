@@ -12,7 +12,7 @@ import {
 import { err, ok, Result } from "neverthrow";
 import z from "zod";
 
-import { LockedProfilesPort } from "../../domain/ports/outbound/locked-profiles.port.js";
+import { LockedProfilesPort } from "../domain/ports/locked-profiles.port.js";
 
 export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
   static readonly schema = z.object({

@@ -5,9 +5,9 @@ import {
   type UseCase,
 } from "@pagopa/hexagonal-core";
 import type { TechnicalLockedProfilesPort } from "@pagopa/io-session-manager-core";
+import type { LockedProfilesPort } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";
 
-import type { LockedProfilesPort } from "../../domain/ports/outbound/locked-profiles.port.js";
 
 export class ProfileLockedError extends ForbiddenError {
   override readonly tag = "profile-locked" as const;

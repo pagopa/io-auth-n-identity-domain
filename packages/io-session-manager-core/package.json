@@ -22,6 +22,7 @@
     "generate:clients": "openapi-ts"
   },
   "dependencies": {
+    "@azure/data-tables": "catalog:",
     "@azure/service-bus": "catalog:",
     "@azure/storage-queue": "catalog:",
     "@hey-api/openapi-ts": "catalog:",
