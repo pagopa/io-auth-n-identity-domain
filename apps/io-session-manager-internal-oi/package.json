@@ -25,6 +25,7 @@
     "@azure/identity": "catalog:",
     "@azure/service-bus": "catalog:",
     "@azure/storage-queue": "catalog:",
+    "@fastify/otel": "catalog:",
     "@opentelemetry/api-logs": "catalog:",
     "@pagopa/azure-sdk": "workspace:^",
     "@pagopa/azure-tracing": "catalog:",
