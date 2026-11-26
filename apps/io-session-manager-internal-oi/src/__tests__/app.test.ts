@@ -1,21 +1,28 @@
-import type { PackageInfo } from "@pagopa/io-package-info";
-import type { FastifyInstance } from "fastify";
-import { GenericError } from "@pagopa/hexagonal-core";
+import {
+  FiscalCodeSchema,
+  GenericError,
+  NotFoundError,
+} from "@pagopa/hexagonal-core";
 import {
   LollipopActivationCosmosAdapter,
   SessionCosmosAdapter,
+  SessionIdSchema,
 } from "@pagopa/io-auth-n-identity-session";
+import type { PackageInfo } from "@pagopa/io-package-info";
+import type { FastifyInstance } from "fastify";
 import {
   AuthEventServiceBusAdapter,
   LollipopRevocationQueueAdapter,
   TechnicalLockedProfilesDataTableAdapter,
 } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { mountHealthCheckHandler } from "../adapters/inbound/fastify/health-check.handler.js";
 import { createApp } from "../app.js";
 import { ConfigSchema } from "../domain/value-objects/configs/index.js";
+
+const fiscalCode = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 
 vi.mock(
   "../adapters/inbound/fastify/health-check.handler.js",
@@ -57,8 +64,16 @@ const packageInfo: PackageInfo = {
   version: "0.0.0",
 };
 
+const createTestApp = () => createApp(config, packageInfo);
+
 afterEach(() => {
   vi.restoreAllMocks();
+});
+
+beforeEach(() => {
+  vi.spyOn(SessionCosmosAdapter.prototype, "findActiveSession").mockResolvedValue(
+    err(new NotFoundError("ActiveSession", "ActiveSession not found")),
+  );
 });
 
 describe("createApp", () => {
@@ -128,8 +143,96 @@ describe("createApp", () => {
     }
   });
 
+  it("returns only the active flag for a valid fiscal code", async () => {
+    vi.mocked(SessionCosmosAdapter.prototype.findActiveSession).mockResolvedValue(
+      ok({
+        fiscalCode,
+        loginType: "LV",
+        sessionId: SessionIdSchema.parse("test-session-id"),
+        createdAt: new Date("2025-01-01T00:00:00.000Z"),
+        expirationDate: new Date(Date.now() + 60_000),
+        _rid: "rid",
+        _ts: 1,
+        _self: "self",
+        _etag: "etag",
+      }),
+    );
+    const { server } = await createTestApp();
+    try {
+      const response = await server.inject({
+        method: "GET",
+        url: `/api/auth/v2/sessions/${fiscalCode}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({ active: true });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns active false when there is no session", async () => {
+    const { server } = await createTestApp();
+    try {
+      const response = await server.inject({
+        method: "GET",
+        url: `/api/auth/v2/sessions/${fiscalCode}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({ active: false });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns 400 for an invalid fiscal code", async () => {
+    const { server } = await createTestApp();
+    try {
+      const response = await server.inject({
+        method: "GET",
+        url: "/api/auth/v2/sessions/invalid",
+      });
+
+      expect(response.statusCode).toBe(400);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns 404 when the fiscal code is missing", async () => {
+    const { server } = await createTestApp();
+    try {
+      const response = await server.inject({
+        method: "GET",
+        url: "/api/auth/v2/sessions",
+      });
+
+      expect(response.statusCode).toBe(404);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns 500 when reading the session fails", async () => {
+    vi.mocked(SessionCosmosAdapter.prototype.findActiveSession).mockResolvedValue(
+      err(new GenericError("Cosmos unavailable")),
+    );
+    const { server } = await createTestApp();
+    try {
+      const response = await server.inject({
+        method: "GET",
+        url: `/api/auth/v2/sessions/${fiscalCode}`,
+      });
+
+      expect(response.statusCode).toBe(500);
+    } finally {
+      await server.close();
+    }
+  });
+
   it("allows repeated shutdown without repeating close hooks", async () => {
-    const { server } = await createApp(config, packageInfo);
+    const { server } = await createTestApp();
     const onClose = vi.fn().mockResolvedValue(undefined);
     server.addHook("onClose", () => onClose());
 
@@ -152,7 +255,7 @@ describe("createApp", () => {
       },
     );
 
-    await expect(createApp(config, packageInfo)).rejects.toBe(startupError);
+    await expect(createTestApp()).rejects.toBe(startupError);
 
     expect(captured.server?.close).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -172,7 +275,7 @@ describe("createApp", () => {
     );
 
     try {
-      await expect(createApp(config, packageInfo)).rejects.toBe(startupError);
+      await expect(createTestApp()).rejects.toBe(startupError);
       expect(captured.server?.log.warn).toHaveBeenCalledWith(
         { err: cleanupError },
         "Failed to clean up Fastify server",
@@ -186,25 +289,31 @@ describe("createApp", () => {
     vi.useFakeTimers();
     const startupError = new Error("Failed to mount health checks");
     const captured: { server?: FastifyInstance } = {};
+    let finishClose: (() => void) | undefined;
     vi.mocked(mountHealthCheckHandler).mockImplementationOnce(
       () => (server) => {
         captured.server = server;
         vi.spyOn(server.log, "warn");
-        vi.spyOn(server, "close").mockImplementationOnce(
-          () => new Promise<void>(() => {}),
+        server.addHook(
+          "onClose",
+          () =>
+            new Promise<void>((resolve) => {
+              finishClose = resolve;
+            }),
         );
         throw startupError;
       },
     );
 
     try {
-      const outcome = expect(createApp(config, packageInfo)).rejects.toBe(
-        startupError,
+      const outcome = createTestApp().then(
+        () => undefined,
+        (error: unknown) => error,
       );
       await vi.advanceTimersByTimeAsync(1999);
       expect(captured.server?.log.warn).not.toHaveBeenCalled();
       await vi.advanceTimersByTimeAsync(1);
-      await outcome;
+      await expect(outcome).resolves.toBe(startupError);
       expect(captured.server?.log.warn).toHaveBeenCalledWith(
         {
           err: expect.objectContaining({
@@ -216,6 +325,7 @@ describe("createApp", () => {
       expect(vi.getTimerCount()).toBe(0);
     } finally {
       vi.useRealTimers();
+      finishClose?.();
       await captured.server?.close();
     }
   });
