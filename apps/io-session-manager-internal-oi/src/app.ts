@@ -187,7 +187,7 @@ const createClients = (
  * @param clients - Infrastructure clients.
  * @returns The initialized outbound adapters.
  */
-const createAdapters = async (
+const createAdapters = (
   config: Config,
   clients: Awaited<ReturnType<typeof createClients>>,
 ) => {
@@ -345,7 +345,6 @@ const mountHealthChecks = (
 
 const mountRoutes = ({
   server,
-  config,
   useCases,
 }: {
   server: FastifyInstance;
@@ -381,7 +380,7 @@ export const createApp = async (
     server.addHook("onClose", lifecycle.cleanupResources);
 
     const clients = createClients(config, lifecycle.registerCleanup);
-    const adapters = await createAdapters(config, clients);
+    const adapters = createAdapters(config, clients);
     const useCases = createUseCases(config, logger, adapters);
 
     mountHealthChecks(server, packageInfo, adapters);
