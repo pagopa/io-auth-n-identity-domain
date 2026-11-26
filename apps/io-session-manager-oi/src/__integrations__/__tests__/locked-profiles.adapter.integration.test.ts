@@ -8,11 +8,11 @@ import {
   FiscalCodeSchema,
   GenericError,
 } from "@pagopa/hexagonal-core";
+import { LockedProfilesDataTableAdapter } from "@pagopa/io-session-manager-core";
 import { ok, Result } from "neverthrow";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import z from "zod";
 
-import { LockedProfilesDataTableAdapter } from "../../adapters/outbound/locked-profiles-data-table.adapter.js";
 import { LOCKED_PROFILES_STORAGE_CONNECTION_STRING } from "../env.js";
 import {
   LOCK_ID,
