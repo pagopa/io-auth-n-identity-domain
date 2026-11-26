@@ -107,6 +107,12 @@ module "sm_int_iam" {
     table_name           = var.technical_locked_profiles.table_name
     role                 = "writer"
     description          = "Allow Session Manager Internal Container App to perform technical lock/unlock operations"
+    }, {
+    storage_account_name = var.locked_profiles.storage_account.name
+    resource_group_name  = var.locked_profiles.storage_account.resource_group_name
+    table_name           = var.locked_profiles.table_name
+    role                 = "writer"
+    description          = "Allow Session Manager Internal Container App to perform user lock/release-lock operations"
   }]
 
   storage_queue = [{
@@ -120,6 +126,18 @@ module "sm_int_iam" {
     resource_group_name  = var.lollipop.storage_account.resource_group_name
     queue_name           = var.lollipop.revocation_queue_name
     description          = "Allow Session Manager Internal Container App to read Lollipop revocation queue properties for health checks"
+    role                 = "reader"
+    }, {
+    storage_account_name = data.azurerm_storage_account.io_com.name
+    resource_group_name  = data.azurerm_storage_account.io_com.resource_group_name
+    queue_name           = data.azurerm_storage_queue.push_notifications.name
+    description          = "Allow Session Manager Internal Container App to write to the IO-Communication notification queue"
+    role                 = "writer"
+    }, {
+    storage_account_name = data.azurerm_storage_account.io_com.name
+    resource_group_name  = data.azurerm_storage_account.io_com.resource_group_name
+    queue_name           = data.azurerm_storage_queue.push_notifications.name
+    description          = "Allow Session Manager Internal Container App to read from the IO-Communication notification queue (currently only for health checks purposes)"
     role                 = "reader"
   }]
 
