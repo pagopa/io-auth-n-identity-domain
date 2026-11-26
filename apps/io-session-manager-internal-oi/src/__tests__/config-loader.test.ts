@@ -19,6 +19,7 @@ const sharedEnvironment = {
   COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME: "lollipop-activations",
   LOLLIPOP_REVOCATION_QUEUE_NAME: "pubkeys-revoke",
   TECHNICAL_LOCKED_PROFILES_TABLE_NAME: "technical-locked-profiles",
+  LOCKED_PROFILES_TABLE_NAME: "authentication-lock",
 };
 
 const baseEnvironment = {
@@ -32,6 +33,8 @@ const baseEnvironment = {
     "UseDevelopmentStorage=true",
   TECHNICAL_LOCKED_PROFILES_STORAGE_CONNECTION_STRING:
     "UseDevelopmentStorage=true",
+  LOCKED_PROFILES_STORAGE_CONNECTION_STRING:
+    "UseDevelopmentStorage=true",
 };
 
 const productionEnvironment = {
@@ -42,6 +45,7 @@ const productionEnvironment = {
   COSMOSDB_URI: "https://cosmos.example.com",
   LOLLIPOP_REVOCATION_QUEUE_STORAGE_URI: "https://storage.example.com",
   TECHNICAL_LOCKED_PROFILES_STORAGE_ACCOUNT_URI: "https://storage.example.com",
+  LOCKED_PROFILES_STORAGE_ACCOUNT_URI: "https://storage.example.com",
 };
 
 describe("createConfigLoader", () => {

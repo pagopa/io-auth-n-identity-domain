@@ -8,8 +8,8 @@ import type {
   LoginType,
   SessionPort,
 } from "@pagopa/io-auth-n-identity-session";
-import type { TechnicalLockedProfilesPort } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";
+import type { AuthLockPort } from "../../domain/ports/auth-lock.port.js";
 
 export type GetSessionStateInput = {
   fiscalCode: FiscalCode;
@@ -38,7 +38,10 @@ export type GetSessionStateUseCase = UseCase<
 
 type GetSessionStateDeps = {
   sessionPort: Pick<SessionPort, "findActiveSession">;
-  technicalLockedProfilesPort: Pick<TechnicalLockedProfilesPort, "isLocked">;
+  authenticationLockPort: Pick<
+    AuthLockPort,
+    "isUserAuthenticationLocked"
+  >;
 };
 
 export const makeGetSessionStateUseCase =
@@ -46,7 +49,7 @@ export const makeGetSessionStateUseCase =
   async ({ fiscalCode }) => {
     const [activeSessionResult, lockResult] = await Promise.all([
       deps.sessionPort.findActiveSession(fiscalCode),
-      deps.technicalLockedProfilesPort.isLocked(fiscalCode),
+      deps.authenticationLockPort.isUserAuthenticationLocked(fiscalCode),
     ]);
 
     if (lockResult.isErr()) {

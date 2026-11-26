@@ -7,12 +7,12 @@ import {
   SessionIdSchema,
   type SessionPort,
 } from "@pagopa/io-auth-n-identity-session";
-import type { TechnicalLockedProfilesPort } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { makeGetSessionStateUseCase } from "../get-session-state.use-case.js";
 import { LoginType } from "../../../../../../packages/io-auth-n-identity-session/src/index.js";
+import type { AuthLockPort } from "../../../domain/ports/auth-lock.port.js";
 
 const fiscalCode = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 
@@ -26,11 +26,11 @@ const activeSession = (loginType: LoginType, expirationDate: Date) => ({
 
 const createUseCase = (
   findActiveSession: SessionPort["findActiveSession"],
-  isLocked: TechnicalLockedProfilesPort["isLocked"],
+  isUserAuthenticationLocked: AuthLockPort["isUserAuthenticationLocked"],
 ) =>
   makeGetSessionStateUseCase({
     sessionPort: { findActiveSession },
-    technicalLockedProfilesPort: { isLocked },
+    authenticationLockPort: { isUserAuthenticationLocked },
   });
 
 afterEach(() => {
@@ -45,19 +45,19 @@ describe("makeGetSessionStateUseCase", () => {
       .mockResolvedValue(
         ok(activeSession("LV", new Date("2025-01-03T00:00:00.000Z"))),
       );
-    const isLocked = vi
-      .fn<TechnicalLockedProfilesPort["isLocked"]>()
+    const isUserAuthenticationLocked = vi
+      .fn<AuthLockPort["isUserAuthenticationLocked"]>()
       .mockResolvedValue(ok(true));
 
     const result = await createUseCase(
       findActiveSession,
-      isLocked,
+      isUserAuthenticationLocked,
     )({
       fiscalCode,
     });
 
     expect(findActiveSession).toHaveBeenCalledWith(fiscalCode);
-    expect(isLocked).toHaveBeenCalledWith(fiscalCode);
+    expect(isUserAuthenticationLocked).toHaveBeenCalledWith(fiscalCode);
     expect(result).toEqual(
       ok({
         access_enabled: false,
@@ -78,7 +78,7 @@ describe("makeGetSessionStateUseCase", () => {
           err(new NotFoundError("ActiveSession", "ActiveSession not found")),
         ),
       vi
-        .fn<TechnicalLockedProfilesPort["isLocked"]>()
+        .fn<AuthLockPort["isUserAuthenticationLocked"]>()
         .mockResolvedValue(ok(false)),
     )({ fiscalCode });
 
@@ -99,7 +99,7 @@ describe("makeGetSessionStateUseCase", () => {
           ok(activeSession("LEGACY", new Date("2025-01-01T23:59:59.999Z"))),
         ),
       vi
-        .fn<TechnicalLockedProfilesPort["isLocked"]>()
+        .fn<AuthLockPort["isUserAuthenticationLocked"]>()
         .mockResolvedValue(ok(false)),
     )({ fiscalCode });
 
@@ -120,7 +120,7 @@ describe("makeGetSessionStateUseCase", () => {
           err(new NotFoundError("ActiveSession", "ActiveSession not found")),
         ),
       vi
-        .fn<TechnicalLockedProfilesPort["isLocked"]>()
+        .fn<AuthLockPort["isUserAuthenticationLocked"]>()
         .mockResolvedValue(err(storageError)),
     )({ fiscalCode });
 
@@ -141,7 +141,7 @@ describe("makeGetSessionStateUseCase", () => {
         .fn<SessionPort["findActiveSession"]>()
         .mockResolvedValue(err(storageError)),
       vi
-        .fn<TechnicalLockedProfilesPort["isLocked"]>()
+        .fn<AuthLockPort["isUserAuthenticationLocked"]>()
         .mockResolvedValue(ok(false)),
     )({ fiscalCode });
 

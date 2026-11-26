@@ -107,6 +107,13 @@ module "sm_int_iam" {
     table_name           = var.technical_locked_profiles.table_name
     role                 = "writer"
     description          = "Allow Session Manager Internal Container App to perform technical lock/unlock operations"
+    },
+    {
+      storage_account_name = var.locked_profiles.storage_account.name
+      resource_group_name  = var.locked_profiles.storage_account.resource_group_name
+      table_name           = var.locked_profiles.table_name
+      role                 = "writer"
+      description          = "Allow Session Manager Internal Container App to perform lock/unlock operations"
   }]
 
   storage_queue = [{

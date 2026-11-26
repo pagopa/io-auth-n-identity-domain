@@ -18,6 +18,8 @@ import {
 import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { AuthLockDataTableAdapter } from "../adapters/outbound/auth-lock-data-table.adapter.js";
+
 import { mountHealthCheckHandler } from "../adapters/inbound/fastify/health-check.handler.js";
 import { createApp } from "../app.js";
 import { ConfigSchema } from "../domain/value-objects/configs/index.js";
@@ -58,6 +60,9 @@ const config = ConfigSchema.parse({
   TECHNICAL_LOCKED_PROFILES_TABLE_NAME: "technical-locked-profiles",
   TECHNICAL_LOCKED_PROFILES_STORAGE_CONNECTION_STRING:
     "UseDevelopmentStorage=true",
+  LOCKED_PROFILES_TABLE_NAME: "authentication-lock",
+  LOCKED_PROFILES_STORAGE_CONNECTION_STRING:
+    "UseDevelopmentStorage=true",
 });
 const packageInfo: PackageInfo = {
   name: "io-session-manager-internal-oi",
@@ -75,8 +80,8 @@ beforeEach(() => {
     err(new NotFoundError("ActiveSession", "ActiveSession not found")),
   );
   vi.spyOn(
-    TechnicalLockedProfilesDataTableAdapter.prototype,
-    "isLocked",
+    AuthLockDataTableAdapter.prototype,
+    "isUserAuthenticationLocked",
   ).mockResolvedValue(ok(false));
 });
 
@@ -102,6 +107,7 @@ describe("createApp", () => {
     "mounts readiness checking outbound adapters ($statusCode)",
     async ({ queueResult, statusCode }) => {
       for (const adapter of [
+        AuthLockDataTableAdapter,
         TechnicalLockedProfilesDataTableAdapter,
         AuthEventServiceBusAdapter,
         SessionCosmosAdapter,
@@ -205,7 +211,7 @@ describe("createApp", () => {
       }),
     );
     vi.mocked(
-      TechnicalLockedProfilesDataTableAdapter.prototype.isLocked,
+      AuthLockDataTableAdapter.prototype.isUserAuthenticationLocked,
     ).mockResolvedValue(ok(true));
     const { server } = await createTestApp();
     try {

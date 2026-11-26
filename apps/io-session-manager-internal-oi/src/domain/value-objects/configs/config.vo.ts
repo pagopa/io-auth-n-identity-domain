@@ -15,6 +15,10 @@ import {
   TechnicalLockedProfilesDevelopmentConfigSchema,
   TechnicalLockedProfilesProductionConfigSchema,
 } from "./technical-locked-profiles.vo.js";
+import {
+  AuthLockDevelopmentConfigSchema,
+  AuthLockProductionConfigSchema,
+} from "./auth-lock.vo.js";
 
 // This is a temporary workaround to ensure that the branded types are included in the type system.
 const _brands = [NonEmptyStringBrand];
@@ -33,6 +37,7 @@ export const ProductionConfigSchema = z.object({
   ...LollipopRevocationQueueProductionConfigSchema.shape,
   ...SessionCosmosProductionConfigSchema.shape,
   ...TechnicalLockedProfilesProductionConfigSchema.shape,
+  ...AuthLockProductionConfigSchema.shape,
 });
 
 export type ProductionConfig = z.infer<typeof ProductionConfigSchema>;
@@ -46,6 +51,7 @@ export const DevelopmentConfigSchema = z.object({
   ...LollipopRevocationQueueDevelopmentConfigSchema.shape,
   ...SessionCosmosDevelopmentConfigSchema.shape,
   ...TechnicalLockedProfilesDevelopmentConfigSchema.shape,
+  ...AuthLockDevelopmentConfigSchema.shape,
 });
 
 export type DevelopmentConfig = z.infer<typeof DevelopmentConfigSchema>;
