@@ -237,7 +237,9 @@ const createUseCases = (
       adapters.technicalLockedProfilesAdapter,
     );
 
-  const getSessionUseCase = makeGetSessionUseCase(adapters.sessionCosmosAdapter);
+  const getSessionUseCase = makeGetSessionUseCase(
+    adapters.sessionCosmosAdapter,
+  );
   const getSessionStateUseCase = makeGetSessionStateUseCase({
     sessionPort: adapters.sessionCosmosAdapter,
     technicalLockedProfilesPort: adapters.technicalLockedProfilesAdapter,

@@ -4,7 +4,10 @@ import {
   NotFoundError,
   type UseCase,
 } from "@pagopa/hexagonal-core";
-import type { SessionPort } from "@pagopa/io-auth-n-identity-session";
+import type {
+  LoginType,
+  SessionPort,
+} from "@pagopa/io-auth-n-identity-session";
 import type { TechnicalLockedProfilesPort } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";
 
@@ -19,9 +22,9 @@ type SessionInfo =
   | {
       active: true;
       expiration_date: string;
-      type: "LV" | "LEGACY";
+      type: LoginType;
     };
-  
+
 export type GetSessionStateOutput = {
   access_enabled: boolean;
   session_info: SessionInfo;
@@ -47,21 +50,16 @@ export const makeGetSessionStateUseCase =
     ]);
 
     if (lockResult.isErr()) {
-      const error = new GenericError(
-        `Failed to retrieve user access status`,
-      );
+      const error = new GenericError(`Failed to retrieve user access status`);
       error.cause = lockResult.error;
       return err(error);
     }
 
     if (activeSessionResult.isErr()) {
       if (!(activeSessionResult.error instanceof NotFoundError)) {
-
-      const error = new GenericError(
-        `Failed to retrieve active session`,
-      );
-      error.cause = activeSessionResult.error;
-      return err(error);
+        const error = new GenericError(`Failed to retrieve active session`);
+        error.cause = activeSessionResult.error;
+        return err(error);
       }
 
       return ok({

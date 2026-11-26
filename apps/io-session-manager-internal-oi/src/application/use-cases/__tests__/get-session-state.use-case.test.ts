@@ -12,10 +12,11 @@ import { err, ok } from "neverthrow";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { makeGetSessionStateUseCase } from "../get-session-state.use-case.js";
+import { LoginType } from "../../../../../../packages/io-auth-n-identity-session/src/index.js";
 
 const fiscalCode = FiscalCodeSchema.parse("ISPXNB32R82Y766D");
 
-const activeSession = (loginType: "LV" | "LEGACY", expirationDate: Date) => ({
+const activeSession = (loginType: LoginType, expirationDate: Date) => ({
   fiscalCode,
   loginType,
   sessionId: SessionIdSchema.parse("01J5M8K2W3R7A6B9C0D1E2F3G4"),
@@ -126,7 +127,9 @@ describe("makeGetSessionStateUseCase", () => {
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(GenericError);
-      expect(result.error.message).toContain("Failed to retrieve user access status");
+      expect(result.error.message).toContain(
+        "Failed to retrieve user access status",
+      );
       expect(result.error.cause).toBe(storageError);
     }
   });
@@ -145,7 +148,9 @@ describe("makeGetSessionStateUseCase", () => {
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(GenericError);
-      expect(result.error.message).toContain("Failed to retrieve active session");
+      expect(result.error.message).toContain(
+        "Failed to retrieve active session",
+      );
       expect(result.error.cause).toBe(storageError);
     }
   });
