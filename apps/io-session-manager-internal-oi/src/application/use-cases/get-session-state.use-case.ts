@@ -33,15 +33,17 @@ export type GetSessionStateUseCase = UseCase<
   GenericError
 >;
 
-type Dependencies = Pick<SessionPort, "findActiveSession"> &
-  Pick<TechnicalLockedProfilesPort, "isLocked">;
+type GetSessionStateDeps = {
+  sessionPort: Pick<SessionPort, "findActiveSession">;
+  technicalLockedProfilesPort: Pick<TechnicalLockedProfilesPort, "isLocked">;
+};
 
 export const makeGetSessionStateUseCase =
-  (deps: Dependencies): GetSessionStateUseCase =>
+  (deps: GetSessionStateDeps): GetSessionStateUseCase =>
   async ({ fiscalCode }) => {
     const [activeSessionResult, lockResult] = await Promise.all([
-      deps.findActiveSession(fiscalCode),
-      deps.isLocked(fiscalCode),
+      deps.sessionPort.findActiveSession(fiscalCode),
+      deps.technicalLockedProfilesPort.isLocked(fiscalCode),
     ]);
 
     if (lockResult.isErr()) {

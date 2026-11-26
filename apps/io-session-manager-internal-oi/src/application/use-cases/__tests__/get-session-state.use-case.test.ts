@@ -28,8 +28,8 @@ const createUseCase = (
   isLocked: TechnicalLockedProfilesPort["isLocked"],
 ) =>
   makeGetSessionStateUseCase({
-    findActiveSession,
-    isLocked,
+    sessionPort: { findActiveSession },
+    technicalLockedProfilesPort: { isLocked },
   });
 
 afterEach(() => {
