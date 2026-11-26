@@ -7,17 +7,19 @@ import {
   BaseError,
   FiscalCode,
   FiscalCodeSchema,
+  ForbiddenError,
   GenericError,
 } from "@pagopa/hexagonal-core";
 import { err, ok, Result } from "neverthrow";
 import z from "zod";
 
+import { type UnlockCode, UnlockCodeSchema } from "../domain/index.js";
 import { LockedProfilesPort } from "../domain/ports/locked-profiles.port.js";
 
 export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
   static readonly schema = z.object({
     partitionKey: FiscalCodeSchema,
-    rowKey: z.string().regex(/^\d{9}$/, "unlockCode must be 9 digits"), // UnlockCode
+    rowKey: UnlockCodeSchema,
     CreatedAt: z.coerce.date(),
     Released: z.boolean().optional(),
   });
@@ -78,5 +80,98 @@ export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
         ),
       );
     }
+  }
+
+  async lock(
+    fiscalCode: FiscalCode,
+    unlockCode: UnlockCode,
+  ): Promise<Result<void, TableStorageError | BaseError>> {
+    const entity = {
+      partitionKey: fiscalCode,
+      rowKey: unlockCode,
+      CreatedAt: new Date(),
+    };
+
+    const result =
+      await this.lockedProfilesTableClientWrapper.createEntity(entity);
+
+    if (result.isErr()) {
+      return err(result.error);
+    }
+
+    return ok(undefined);
+  }
+
+  async unlock(
+    fiscalCode: FiscalCode,
+    unlockCode?: UnlockCode,
+  ): Promise<Result<void, TableStorageError | BaseError>> {
+    const getuUnreleasedLockCodesResult = await this.getUnreleasedLockCodes(fiscalCode);
+    if (getuUnreleasedLockCodesResult.isErr()) {
+      return err(getuUnreleasedLockCodesResult.error);
+    }
+    const unreleasedLockCodes = getuUnreleasedLockCodesResult.value;
+
+    if (unreleasedLockCodes.length === 0) {
+      return ok(undefined);
+    }
+
+    if (unlockCode === undefined) {
+      return this.releaseLocks(fiscalCode, unreleasedLockCodes);
+    }
+
+    if (!unreleasedLockCodes.includes(unlockCode)) {
+      return err(new ForbiddenError());
+    }
+    return this.releaseLock(fiscalCode, unlockCode);
+  }
+
+  private async getUnreleasedLockCodes(
+    fiscalCode: FiscalCode,
+  ): Promise<Result<UnlockCode[], TableStorageError | BaseError>> {
+    const keys: UnlockCode[] = [];
+    for await (const item of this.lockedProfilesTableClientWrapper.listEntities(
+      {
+        queryOptions: {
+          filter: odata`PartitionKey eq ${fiscalCode} and not Released`,
+        },
+      },
+    )) {
+      if (item.isErr()) {
+        return err(item.error);
+      }
+      keys.push(item.value.entity.rowKey);
+    }
+    return ok(keys);
+  }
+
+  private async releaseLock(
+    fiscalCode: FiscalCode,
+    unlockCode: UnlockCode,
+  ): Promise<Result<void, TableStorageError | BaseError>> {
+    const result = await this.lockedProfilesTableClientWrapper.patchEntity({
+      partitionKey: fiscalCode,
+      rowKey: unlockCode,
+      Released: true,
+    });
+    if (result.isErr()) {
+      return err(result.error);
+    }
+
+    return ok(undefined);
+  }
+
+  private async releaseLocks(
+    fiscalCode: FiscalCode,
+    unlockCodes: UnlockCode[],
+  ): Promise<Result<void, TableStorageError | BaseError>> {
+    for (const unlockCode of unlockCodes) {
+      const result = await this.releaseLock(fiscalCode, unlockCode);
+      if (result.isErr()) {
+        return err(result.error);
+      }
+    }
+
+    return ok(undefined);
   }
 }
