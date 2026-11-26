@@ -4,8 +4,6 @@ import { type Result } from "neverthrow";
 import {
   type AuthorizationEndpointError,
   type ExchangeError,
-  type OidcCodeExchangeError,
-  type OidcDiscoveryError,
 } from "../../errors/oidc.errors.js";
 import { type OidcClaims } from "../../value-objects/oidc-claims.vo.js";
 import { type OidcEnvironment } from "../../value-objects/oidc.vo.js";
@@ -29,9 +27,10 @@ export interface OidcClientPort {
   /**
    * Performs the authorization-code grant and returns the validated ID token
    * claims.
-   * Returns an {@link OidcDiscoveryError} when the provider configuration
-   * cannot be resolved, or an {@link OidcCodeExchangeError} when the grant fails
-   * or the ID token claims are invalid.
+   * Returns a `MissingOidcConfigurationError` when the environment is
+   * not configured, an `OidcDiscoveryError` when provider discovery fails,
+   * or an `OidcCodeExchangeError` when the grant fails or the ID token
+   * claims are invalid.
    */
   readonly exchange: (
     params: OidcExchangeParams,
@@ -40,6 +39,8 @@ export interface OidcClientPort {
   /**
    * Returns the OIDC `authorization_endpoint` discovered from the provider
    * well-known metadata for the given environment.
+   * Missing environment configuration is reported separately from provider
+   * discovery failures.
    */
   readonly getAuthorizationEndpoint: (
     env: OidcEnvironment,

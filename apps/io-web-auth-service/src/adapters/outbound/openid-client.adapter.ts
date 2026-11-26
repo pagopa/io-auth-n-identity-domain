@@ -5,7 +5,9 @@ import {
   type AuthorizationEndpointError,
   type ExchangeError,
   InvalidAuthorizationEndpointError,
+  MissingOidcConfigurationError,
   OidcCodeExchangeError,
+  type OidcConfigurationError,
   OidcDiscoveryError,
 } from "../../domain/errors/oidc.errors.js";
 import {
@@ -100,7 +102,7 @@ export class OpenIdClientAdapter implements OidcClientPort {
     const envConfigResult = this.oidcConfigPort.getConfig(params.env);
     if (envConfigResult.isErr()) {
       return err(
-        new OidcDiscoveryError(
+        new MissingOidcConfigurationError(
           `Missing OIDC configuration: ${envConfigResult.error.message}`,
         ),
       );
@@ -146,11 +148,11 @@ export class OpenIdClientAdapter implements OidcClientPort {
 
   private async resolveConfiguration(
     env: OidcEnvironment,
-  ): Promise<Result<client.Configuration, OidcDiscoveryError>> {
+  ): Promise<Result<client.Configuration, OidcConfigurationError>> {
     const envConfigResult = this.oidcConfigPort.getConfig(env);
     if (envConfigResult.isErr()) {
       return err(
-        new OidcDiscoveryError(
+        new MissingOidcConfigurationError(
           `Missing OIDC configuration: ${envConfigResult.error.message}`,
         ),
       );

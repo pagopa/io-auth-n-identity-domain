@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { aFiscalCode, aValidClaims } from "../../../__mocks__/session.mocks.js";
 import {
   InvalidAuthorizationEndpointError,
+  MissingOidcConfigurationError,
   OidcCodeExchangeError,
   OidcDiscoveryError,
 } from "../../../domain/errors/oidc.errors.js";
@@ -134,7 +135,7 @@ describe("OpenIdClientAdapter#exchange", () => {
     );
   });
 
-  it("returns a discovery_failed error when the environment is not configured", async () => {
+  it("returns MissingOidcConfigurationError when the environment is not configured", async () => {
     vi.mocked(oidcConfigPort.getConfig).mockReturnValue(
       err(new ValidationError("missing config")),
     );
@@ -142,9 +143,23 @@ describe("OpenIdClientAdapter#exchange", () => {
     const result = await adapter.exchange(anExchangeParams);
 
     const error = result._unsafeUnwrapErr();
-    expect(error).toBeInstanceOf(OidcDiscoveryError);
+    expect(error).toBeInstanceOf(MissingOidcConfigurationError);
     expect(error.message).toContain(
       "Missing OIDC configuration: Validation error: missing config",
+    );
+    expect(client.discovery).not.toHaveBeenCalled();
+    expect(client.authorizationCodeGrant).not.toHaveBeenCalled();
+  });
+
+  it("returns MissingOidcConfigurationError when the redirect URI configuration cannot be retrieved", async () => {
+    vi.mocked(oidcConfigPort.getConfig)
+      .mockReturnValueOnce(ok(anEnvConfig))
+      .mockReturnValueOnce(err(new ValidationError("missing config")));
+
+    const result = await adapter.exchange(anExchangeParams);
+
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(
+      MissingOidcConfigurationError,
     );
     expect(client.authorizationCodeGrant).not.toHaveBeenCalled();
   });
@@ -236,7 +251,7 @@ describe("OpenIdClientAdapter#getAuthorizationEndpoint", () => {
     expect(client.discovery).toHaveBeenCalledTimes(2);
   });
 
-  it("returns OidcDiscoveryError when the environment is not configured", async () => {
+  it("returns MissingOidcConfigurationError when the environment is not configured", async () => {
     vi.mocked(oidcConfigPort.getConfig).mockReturnValue(
       err(new ValidationError("missing config")),
     );
@@ -244,7 +259,7 @@ describe("OpenIdClientAdapter#getAuthorizationEndpoint", () => {
     const result = await adapter.getAuthorizationEndpoint("UAT");
 
     const error = result._unsafeUnwrapErr();
-    expect(error).toBeInstanceOf(OidcDiscoveryError);
+    expect(error).toBeInstanceOf(MissingOidcConfigurationError);
     expect(error.message).toContain(
       "Missing OIDC configuration: Validation error: missing config",
     );
