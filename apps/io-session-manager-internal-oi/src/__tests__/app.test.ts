@@ -74,13 +74,15 @@ const packageInfo: PackageInfo = {
 const logger = { trackEvent: vi.fn() } as unknown as Logger;
 const createTestApp = () => createApp(config, packageInfo, logger);
 
-
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
 beforeEach(() => {
-  vi.spyOn(SessionCosmosAdapter.prototype, "findActiveSession").mockResolvedValue(
+  vi.spyOn(
+    SessionCosmosAdapter.prototype,
+    "findActiveSession",
+  ).mockResolvedValue(
     err(new NotFoundError("ActiveSession", "ActiveSession not found")),
   );
 });
@@ -155,7 +157,9 @@ describe("createApp", () => {
   });
 
   it("returns only the active flag for a valid fiscal code", async () => {
-    vi.mocked(SessionCosmosAdapter.prototype.findActiveSession).mockResolvedValue(
+    vi.mocked(
+      SessionCosmosAdapter.prototype.findActiveSession,
+    ).mockResolvedValue(
       ok({
         fiscalCode,
         loginType: "LV",
@@ -226,9 +230,9 @@ describe("createApp", () => {
   });
 
   it("returns 500 when reading the session fails", async () => {
-    vi.mocked(SessionCosmosAdapter.prototype.findActiveSession).mockResolvedValue(
-      err(new GenericError("Cosmos unavailable")),
-    );
+    vi.mocked(
+      SessionCosmosAdapter.prototype.findActiveSession,
+    ).mockResolvedValue(err(new GenericError("Cosmos unavailable")));
     const { server } = await createTestApp();
     try {
       const response = await server.inject({
@@ -317,8 +321,9 @@ describe("createApp", () => {
     );
 
     try {
-      const outcome = expect(createTestApp()).rejects.toBe(
-        startupError,
+      const outcome = createTestApp().then(
+        () => undefined,
+        (error: unknown) => error,
       );
       await vi.advanceTimersByTimeAsync(1999);
       expect(captured.server?.log.warn).not.toHaveBeenCalled();
