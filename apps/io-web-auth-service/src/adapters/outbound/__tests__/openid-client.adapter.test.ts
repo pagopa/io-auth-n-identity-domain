@@ -215,6 +215,27 @@ describe("OpenIdClientAdapter#exchange", () => {
       "OIDC code exchange failed: nonce mismatch",
     );
   });
+    it("caches provider discovery across exchanges for the same environment", async () => {
+    await adapter.exchange(anExchangeParams);
+    await adapter.exchange(anExchangeParams);
+
+    expect(client.discovery).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries discovery on the next exchange after a failed discovery", async () => {
+    vi.mocked(client.discovery).mockRejectedValueOnce(
+      new Error("discovery down"),
+    );
+
+    const firstResult = await adapter.exchange(anExchangeParams);
+    const secondResult = await adapter.exchange(anExchangeParams);
+
+    expect(firstResult).toEqual(
+      err(new OidcDiscoveryError("OIDC discovery failed: discovery down")),
+    );
+    expect(secondResult).toEqual(ok(aValidClaims));
+    expect(client.discovery).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("OpenIdClientAdapter#getAuthorizationEndpoint", () => {
