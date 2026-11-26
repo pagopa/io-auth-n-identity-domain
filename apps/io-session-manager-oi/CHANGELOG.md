@@ -1,5 +1,30 @@
 # io-session-manager-oi
 
+## 0.41.3
+
+### Patch Changes
+
+- a0b361a: Use `HttpUrlCodec` from `@pagopa/io-auth-n-identity-domain`
+- a0b361a: Use `AuthEventPort` and `AuthEventServiceBusAdapter` from `@pagopa/io-session-manager-core`
+- Updated dependencies [a0b361a]
+- Updated dependencies [a0b361a]
+  - @pagopa/io-session-manager-core@0.4.0
+  - @pagopa/io-auth-n-identity-domain@0.8.0
+  - @pagopa/io-auth-n-identity-session@0.13.1
+
+## 0.41.2
+
+### Patch Changes
+
+- 7001026: Improve error management of callback
+
+## 0.41.1
+
+### Patch Changes
+
+- Updated dependencies [81806d3]
+  - @pagopa/redis@0.5.0
+
 ## 0.41.0
 
 ### Minor Changes

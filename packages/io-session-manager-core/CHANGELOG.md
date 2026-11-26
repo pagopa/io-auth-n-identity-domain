@@ -1,5 +1,17 @@
 # @pagopa/io-session-manager-core
 
+## 0.4.0
+
+### Minor Changes
+
+- a0b361a: Add `AuthEventPort` and `AuthEventServiceBusAdapter`
+
+### Patch Changes
+
+- Updated dependencies [a0b361a]
+  - @pagopa/io-auth-n-identity-domain@0.8.0
+  - @pagopa/io-auth-n-identity-session@0.13.1
+
 ## 0.3.0
 
 ### Minor Changes

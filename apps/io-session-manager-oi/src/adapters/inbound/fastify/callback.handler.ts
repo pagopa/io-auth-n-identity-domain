@@ -4,6 +4,7 @@ import { FastifyInstance } from "fastify";
 
 import {
   makeHandleOidcCallbackUseCase,
+  OUTCOME_ERROR,
   type HandleOidcCallbackInput,
 } from "../../../application/use-cases/handle-oidc-callback.use-case.js";
 import { BASE_PATH } from "../base-path.js";
@@ -70,14 +71,18 @@ export const mountCallbackHandler = (
   mountFastifyRoute(server, {
     contract: callbackContract,
     middlewares: deps.middlewares,
-    inputMapper: (req, context): HandleOidcCallbackInput => ({
-      callback: req.query,
-      ipAddress: context.ipAddress,
-    }),
+    inputMapper: (req, context): HandleOidcCallbackInput => {
+      return {
+        callback: req.query,
+        ipAddress: context.ipAddress,
+      };
+    },
     outputMapper: (result) => {
-      if (result.outcome === "error") {
+      if (result.outcome === OUTCOME_ERROR) {
         const errorUrl = new URL(deps.loginErrorRedirectUrl);
-        errorUrl.searchParams.set("errorCode", result.errorCode);
+        if (result.errorCode !== undefined) {
+          errorUrl.searchParams.set("errorCode", result.errorCode);
+        }
         if (result.errorMessage !== undefined) {
           errorUrl.searchParams.set("errorMessage", result.errorMessage);
         }

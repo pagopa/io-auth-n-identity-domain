@@ -10,17 +10,19 @@ import type {
   IPString,
   LollipopAssertionRef,
 } from "@pagopa/io-auth-n-identity-domain";
+import {
+  toSha256,
+  type ClientSessionToken,
+} from "@pagopa/io-auth-n-identity-session";
+import type { AuthEventPort } from "@pagopa/io-session-manager-core";
 import { DOMParser } from "@xmldom/xmldom";
-import { toSha256 } from "@pagopa/io-auth-n-identity-session";
 import { err, errAsync, ok, ResultAsync } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { AuthEventPort } from "../../../domain/ports/outbound/auth-event.port.js";
 import { AuxiliaryDataPort } from "../../../domain/ports/outbound/auxiliary-data.port.js";
 import { IdentityAssertionFetcherPort } from "../../../domain/ports/outbound/identity-assertion-fetcher.port.js";
 import { OidcClientPort } from "../../../domain/ports/outbound/oidc.port.js";
 import type { IdentityAssertion } from "../../../domain/value-objects/assertion.vo.js";
-import { ClientSessionToken } from "../../../domain/value-objects/client-session-token.vo.js";
 import {
   CurrentUserSchema,
   LoginAuxiliaryData,
@@ -28,8 +30,12 @@ import {
 import { OidcClaims } from "../../../domain/value-objects/oidc.vo.js";
 import { ActivateUserSessionUseCase } from "../activate-user-session.use-case.js";
 import {
+  AUTHENTICATION_LOCKED_ERROR,
+  DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
   makeHandleOidcCallbackUseCase,
   OidcCallbackParams,
+  OUTCOME_ERROR,
+  OUTCOME_SUCCESS,
 } from "../handle-oidc-callback.use-case.js";
 import {
   ProfileLockedError,
@@ -208,7 +214,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     });
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toEqual({
-      outcome: "success",
+      outcome: OUTCOME_SUCCESS,
       token: CLIENT_SESSION_TOKEN,
     });
     expect(sendEventMock).not.toHaveBeenCalled();
@@ -256,7 +262,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
         });
 
         expect(result._unsafeUnwrap()).toEqual({
-          outcome: "success",
+          outcome: OUTCOME_SUCCESS,
           token: CLIENT_SESSION_TOKEN,
         });
         expect(activateUserSessionUseCase).toHaveBeenCalledOnce();
@@ -265,7 +271,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
       },
     );
 
-    it("returns code 1004 and emits a rejected login event on a current-user mismatch", async () => {
+    it("returns code DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE and emits a rejected login event on a current-user mismatch", async () => {
       const startedAt = Date.now();
       const result = await handleOidcCallbackUseCase({
         callback: SUCCESS_CALLBACK,
@@ -273,8 +279,8 @@ describe("makeHandleOidcCallbackUseCase", () => {
       });
 
       expect(result._unsafeUnwrap()).toEqual({
-        outcome: "error",
-        errorCode: "1004",
+        outcome: OUTCOME_ERROR,
+        errorCode: DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
       });
       expect(sendEventMock).toHaveBeenCalledExactlyOnceWith({
         eventType: "rejected_login",
@@ -307,8 +313,8 @@ describe("makeHandleOidcCallbackUseCase", () => {
       });
 
       expect(result._unsafeUnwrap()).toEqual({
-        outcome: "error",
-        errorCode: "1004",
+        outcome: OUTCOME_ERROR,
+        errorCode: DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
       });
       expect(sendEventMock).toHaveBeenCalledOnce();
       expect(activateUserSessionUseCase).not.toHaveBeenCalled();
@@ -324,8 +330,8 @@ describe("makeHandleOidcCallbackUseCase", () => {
       });
 
       expect(result._unsafeUnwrap()).toEqual({
-        outcome: "error",
-        errorCode: "1004",
+        outcome: OUTCOME_ERROR,
+        errorCode: DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
       });
       await vi.waitFor(() => {
         expect(console.error).toHaveBeenCalledExactlyOnceWith(
@@ -348,8 +354,8 @@ describe("makeHandleOidcCallbackUseCase", () => {
       });
 
       expect(result._unsafeUnwrap()).toEqual({
-        outcome: "error",
-        errorCode: "1004",
+        outcome: OUTCOME_ERROR,
+        errorCode: DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
       });
       await vi.waitFor(() => {
         expect(console.error).toHaveBeenCalledExactlyOnceWith(
@@ -380,7 +386,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     });
   });
 
-  it("validates the state then returns an error outcome on an OIDC error response", async () => {
+  it("returns an error outcome on an OIDC error response", async () => {
     const result = await handleOidcCallbackUseCase({
       callback: ERROR_CALLBACK,
       ipAddress: IP_ADDRESS,
@@ -388,15 +394,32 @@ describe("makeHandleOidcCallbackUseCase", () => {
 
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toEqual({
-      outcome: "error",
-      errorCode: ERROR_CALLBACK.error,
-      errorMessage: ERROR_CALLBACK.error_description,
+      outcome: OUTCOME_ERROR,
+      errorCode: undefined,
+      errorMessage: ERROR_CALLBACK.error,
     });
     expect(retrieveMock).toHaveBeenCalledExactlyOnceWith(STATE);
     expect(exchangeMock).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
     expect(validateProfileLocksUseCase).not.toHaveBeenCalled();
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
+  });
+
+  it("returns a numeric error code parsed from error_description", async () => {
+    const result = await handleOidcCallbackUseCase({
+      callback: {
+        state: STATE,
+        error: ERROR_CALLBACK.error,
+        error_description: "22" as NonEmptyString,
+      },
+      ipAddress: IP_ADDRESS,
+    });
+
+    expect(result._unsafeUnwrap()).toEqual({
+      outcome: OUTCOME_ERROR,
+      errorCode: "22",
+      errorMessage: ERROR_CALLBACK.error,
+    });
   });
 
   it.each([
@@ -432,7 +455,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
 
       if (accepted) {
         expect(result._unsafeUnwrap()).toEqual({
-          outcome: "success",
+          outcome: OUTCOME_SUCCESS,
           token: CLIENT_SESSION_TOKEN,
         });
         expect(activateUserSessionUseCase).toHaveBeenCalledOnce();
@@ -500,7 +523,7 @@ describe("makeHandleOidcCallbackUseCase", () => {
     expect(activateUserSessionUseCase).not.toHaveBeenCalled();
   });
 
-  it("falls back to the generic error code when the provider omits the error", async () => {
+  it("returns the generic error message when the callback contains neither code nor error", async () => {
     const result = await handleOidcCallbackUseCase({
       callback: { state: STATE },
       ipAddress: IP_ADDRESS,
@@ -508,9 +531,8 @@ describe("makeHandleOidcCallbackUseCase", () => {
 
     expect(result.isOk()).toBe(true);
     expect(result._unsafeUnwrap()).toEqual({
-      outcome: "error",
-      errorCode: "GENERIC_ERROR",
-      errorMessage: undefined,
+      outcome: OUTCOME_ERROR,
+      errorMessage: "error occurred",
     });
     expect(exchangeMock).not.toHaveBeenCalled();
     expect(getAssertionMock).not.toHaveBeenCalled();
@@ -607,8 +629,8 @@ describe("makeHandleOidcCallbackUseCase", () => {
     });
 
     expect(result._unsafeUnwrap()).toEqual({
-      outcome: "error",
-      errorCode: "1002",
+      outcome: OUTCOME_ERROR,
+      errorCode: AUTHENTICATION_LOCKED_ERROR,
     });
     expect(validateProfileLocksUseCase).toHaveBeenCalledExactlyOnceWith({
       fiscalCode: CLAIMS.fiscalNumber,
@@ -669,8 +691,8 @@ describe("makeHandleOidcCallbackUseCase", () => {
       ) => {
         if (rejectionCause === "auth_lock") {
           expect(result._unsafeUnwrap()).toEqual({
-            outcome: "error",
-            errorCode: "1002",
+            outcome: OUTCOME_ERROR,
+            errorCode: AUTHENTICATION_LOCKED_ERROR,
           });
         } else {
           expect(result._unsafeUnwrapErr()).toBe(error);

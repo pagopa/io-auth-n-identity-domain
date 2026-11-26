@@ -7,6 +7,7 @@ import {
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { AuthEventServiceBusAdapter } from "../auth-event-service-bus.adapter.js";
 
 const mocks = vi.hoisted(() => ({

@@ -1321,9 +1321,27 @@ importers:
 
   apps/io-session-manager-internal-oi:
     dependencies:
+      '@azure/cosmos':
+        specifier: 'catalog:'
+        version: 4.2.0
+      '@azure/data-tables':
+        specifier: 'catalog:'
+        version: 13.3.2
+      '@azure/identity':
+        specifier: 'catalog:'
+        version: 4.10.1
+      '@azure/service-bus':
+        specifier: 'catalog:'
+        version: 7.9.5
+      '@azure/storage-queue':
+        specifier: 'catalog:'
+        version: 12.25.0
       '@opentelemetry/api-logs':
         specifier: 'catalog:'
         version: 0.223.0
+      '@pagopa/azure-sdk':
+        specifier: workspace:^
+        version: link:../../packages/azure-sdk
       '@pagopa/azure-tracing':
         specifier: 'catalog:'
         version: 0.5.11(typescript@5.8.3)
@@ -1345,6 +1363,9 @@ importers:
       '@pagopa/io-package-info':
         specifier: workspace:^
         version: link:../../packages/io-package-info
+      '@pagopa/io-session-manager-core':
+        specifier: workspace:^
+        version: link:../../packages/io-session-manager-core
       dotenv:
         specifier: 'catalog:'
         version: 16.4.7
@@ -2152,6 +2173,9 @@ importers:
 
   packages/io-session-manager-core:
     dependencies:
+      '@azure/service-bus':
+        specifier: 'catalog:'
+        version: 7.9.5
       '@azure/storage-queue':
         specifier: 'catalog:'
         version: 12.25.0
