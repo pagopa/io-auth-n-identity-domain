@@ -35,9 +35,9 @@ const anEnvConfig: OidcConfig = {
 
 const anExchangeParams: OidcExchangeParams = {
   env: "PROD",
-  code: "an-auth-code",
-  state: "a-state",
-  expectedNonce: "a-nonce",
+  code: "an-auth-code" as NonEmptyString,
+  state: "a-state" as NonEmptyString,
+  expectedNonce: "a-nonce" as NonEmptyString,
 };
 
 const makeConfiguration = (
