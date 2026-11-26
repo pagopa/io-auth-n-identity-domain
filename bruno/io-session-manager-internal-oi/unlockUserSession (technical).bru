@@ -1,0 +1,16 @@
+meta {
+  name: unlockUserSession (technical)
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{IO_SESSION_MANAGER_INTERNAL_OI_BASE_URL}}/api/auth/v2/sessions/{{TEST_USER_USERNAME}}/lock
+  body: none
+  auth: none
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
