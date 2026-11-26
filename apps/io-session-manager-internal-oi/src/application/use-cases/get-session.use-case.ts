@@ -34,11 +34,13 @@ export const makeGetSessionUseCase =
       if (activeSessionResult.error instanceof NotFoundError) {
         return ok({ active: false });
       }
-      return err(
-        new GenericError(
-          `Failed to retrieve active session: ${activeSessionResult.error.message}`,
-        ),
+      const error = new GenericError(
+        `Failed to retrieve active session`,
       );
+
+      error.cause = activeSessionResult.error;
+
+      return err(error);
     }
 
     return ok({
