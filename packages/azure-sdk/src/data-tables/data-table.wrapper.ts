@@ -8,6 +8,7 @@ import {
   TableClient,
   TableEntity,
   TableEntityResult,
+  TransactionAction,
   UpdateTableEntityOptions,
 } from "@azure/data-tables";
 import {
@@ -281,6 +282,52 @@ export class TableClientWrapper<S extends TableEntitySchema> {
       return ok(undefined);
     } catch (error) {
       return err(this.handleError(error, "patchEntity"));
+    }
+  }
+
+  /**
+   * Applies several partial patches (SDK `"Merge"` mode) in a single Table
+   * Storage transaction: either every patch is applied or none is.
+   *
+   * Azure restricts a transaction to one partition and at most 100 actions;
+   * a batch violating the first rule is rejected here with a
+   * `ValidationError` without calling the SDK.
+   *
+   * Fails with:
+   * - `ValidationError` if a patch is invalid or the patches span partitions.
+   * - Other {@link TableStorageError} variants for SDK errors; in that case
+   *   no patch has been applied.
+   *
+   * @param patches - Keys plus the payload fields to change, per row.
+   */
+  public async patchEntitiesTransactionally(
+    patches: EntityPatchOf<S>[],
+  ): Promise<Result<void, TableStorageError>> {
+    if (patches.length === 0) return ok(undefined);
+
+    const actions: TransactionAction[] = [];
+    for (const patch of patches) {
+      const validated = this.validateEntity(patch, true);
+      if (validated.isErr()) return err(validated.error);
+      actions.push(["update", validated.value, "Merge"]);
+    }
+
+    const partitionKeys = new Set(
+      actions.map(([, entity]) => entity.partitionKey),
+    );
+    if (partitionKeys.size > 1) {
+      return err(
+        new ValidationError(
+          "Invalid transaction: all patches must share the same partitionKey",
+        ),
+      );
+    }
+
+    try {
+      await this.client.submitTransaction(actions);
+      return ok(undefined);
+    } catch (error) {
+      return err(this.handleError(error, "patchEntitiesTransactionally"));
     }
   }
 

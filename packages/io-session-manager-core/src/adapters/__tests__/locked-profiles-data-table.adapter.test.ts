@@ -19,10 +19,10 @@ const TABLE_NAME = "lockedprofile01";
 const ROW_KEY = "123456789";
 
 const listEntitiesMock = vi.fn();
-const patchEntityMock = vi.fn();
+const patchEntitiesMock = vi.fn();
 const wrapperStub = {
   listEntities: listEntitiesMock,
-  patchEntity: patchEntityMock,
+  patchEntitiesTransactionally: patchEntitiesMock,
 } as unknown as TableClientWrapper<
   typeof LockedProfilesDataTableAdapter.schema
 >;
@@ -139,7 +139,7 @@ describe("LockedProfilesDataTableAdapter#unlock", () => {
     const result = await adapter.unlock(FISCAL_CODE, ROW_KEY);
 
     expect(result).toEqual(ok(undefined));
-    expect(patchEntityMock).not.toHaveBeenCalled();
+    expect(patchEntitiesMock).not.toHaveBeenCalled();
   });
 
   it("returns ok without writing when there are no open locks and no code is given", async () => {
@@ -148,35 +148,28 @@ describe("LockedProfilesDataTableAdapter#unlock", () => {
     const result = await adapter.unlock(FISCAL_CODE);
 
     expect(result).toEqual(ok(undefined));
-    expect(patchEntityMock).not.toHaveBeenCalled();
+    expect(patchEntitiesMock).not.toHaveBeenCalled();
   });
 
-  it("releases every unreleased lock when no code is given", async () => {
+  it("releases every unreleased lock in a single transaction when no code is given", async () => {
     listEntitiesMock.mockReturnValue(
       asyncIterableOf([
         okEntity({ rowKey: ROW_KEY }),
         okEntity({ rowKey: OTHER_ROW_KEY }),
       ]),
     );
-    patchEntityMock.mockResolvedValue(ok(undefined));
+    patchEntitiesMock.mockResolvedValue(ok(undefined));
 
     const result = await adapter.unlock(FISCAL_CODE);
 
     expect(result).toEqual(ok(undefined));
-    expect(patchEntityMock).toHaveBeenCalledTimes(2);
-    expect(patchEntityMock).toHaveBeenCalledWith({
-      partitionKey: FISCAL_CODE,
-      rowKey: ROW_KEY,
-      Released: true,
-    });
-    expect(patchEntityMock).toHaveBeenCalledWith({
-      partitionKey: FISCAL_CODE,
-      rowKey: OTHER_ROW_KEY,
-      Released: true,
-    });
+    expect(patchEntitiesMock).toHaveBeenCalledExactlyOnceWith([
+      { partitionKey: FISCAL_CODE, rowKey: ROW_KEY, Released: true },
+      { partitionKey: FISCAL_CODE, rowKey: OTHER_ROW_KEY, Released: true },
+    ]);
   });
 
-  it("stops releasing and returns the error when a patch fails", async () => {
+  it("returns the error without any per-lock write when the transaction fails after the first update", async () => {
     const patchError = new NotFoundError(TABLE_NAME, "gone");
     listEntitiesMock.mockReturnValue(
       asyncIterableOf([
@@ -184,12 +177,14 @@ describe("LockedProfilesDataTableAdapter#unlock", () => {
         okEntity({ rowKey: OTHER_ROW_KEY }),
       ]),
     );
-    patchEntityMock.mockResolvedValue(err(patchError));
+    // The transaction is rejected as a whole, e.g. because the second row is gone.
+    patchEntitiesMock.mockResolvedValue(err(patchError));
 
     const result = await adapter.unlock(FISCAL_CODE);
 
     expect(result).toEqual(err(patchError));
-    expect(patchEntityMock).toHaveBeenCalledOnce();
+    expect(patchEntitiesMock).toHaveBeenCalledOnce();
+    expect(patchEntitiesMock.mock.calls[0]?.[0]).toHaveLength(2);
   });
 
   it("marks only the matching lock as released when the code matches", async () => {
@@ -199,16 +194,14 @@ describe("LockedProfilesDataTableAdapter#unlock", () => {
         okEntity({ rowKey: OTHER_ROW_KEY }),
       ]),
     );
-    patchEntityMock.mockResolvedValue(ok(undefined));
+    patchEntitiesMock.mockResolvedValue(ok(undefined));
 
     const result = await adapter.unlock(FISCAL_CODE, ROW_KEY);
 
     expect(result).toEqual(ok(undefined));
-    expect(patchEntityMock).toHaveBeenCalledExactlyOnceWith({
-      partitionKey: FISCAL_CODE,
-      rowKey: ROW_KEY,
-      Released: true,
-    });
+    expect(patchEntitiesMock).toHaveBeenCalledExactlyOnceWith([
+      { partitionKey: FISCAL_CODE, rowKey: ROW_KEY, Released: true },
+    ]);
   });
 
   it("returns ForbiddenError and writes nothing when the code matches no open lock", async () => {
@@ -220,7 +213,7 @@ describe("LockedProfilesDataTableAdapter#unlock", () => {
 
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr()).toBeInstanceOf(ForbiddenError);
-    expect(patchEntityMock).not.toHaveBeenCalled();
+    expect(patchEntitiesMock).not.toHaveBeenCalled();
   });
 
   it("returns the listing error without writing", async () => {
@@ -230,7 +223,7 @@ describe("LockedProfilesDataTableAdapter#unlock", () => {
     const result = await adapter.unlock(FISCAL_CODE, ROW_KEY);
 
     expect(result).toEqual(err(listError));
-    expect(patchEntityMock).not.toHaveBeenCalled();
+    expect(patchEntitiesMock).not.toHaveBeenCalled();
   });
 
   it("returns the patch error", async () => {
@@ -238,7 +231,7 @@ describe("LockedProfilesDataTableAdapter#unlock", () => {
     listEntitiesMock.mockReturnValue(
       asyncIterableOf([okEntity({ rowKey: ROW_KEY })]),
     );
-    patchEntityMock.mockResolvedValue(err(patchError));
+    patchEntitiesMock.mockResolvedValue(err(patchError));
 
     const result = await adapter.unlock(FISCAL_CODE, ROW_KEY);
 

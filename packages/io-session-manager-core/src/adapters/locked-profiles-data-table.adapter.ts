@@ -106,7 +106,8 @@ export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
     fiscalCode: FiscalCode,
     unlockCode?: UnlockCode,
   ): Promise<Result<void, TableStorageError | BaseError>> {
-    const getuUnreleasedLockCodesResult = await this.getUnreleasedLockCodes(fiscalCode);
+    const getuUnreleasedLockCodesResult =
+      await this.getUnreleasedLockCodes(fiscalCode);
     if (getuUnreleasedLockCodesResult.isErr()) {
       return err(getuUnreleasedLockCodesResult.error);
     }
@@ -123,7 +124,7 @@ export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
     if (!unreleasedLockCodes.includes(unlockCode)) {
       return err(new ForbiddenError());
     }
-    return this.releaseLock(fiscalCode, unlockCode);
+    return this.releaseLocks(fiscalCode, [unlockCode]);
   }
 
   private async getUnreleasedLockCodes(
@@ -145,31 +146,20 @@ export class LockedProfilesDataTableAdapter implements LockedProfilesPort {
     return ok(keys);
   }
 
-  private async releaseLock(
-    fiscalCode: FiscalCode,
-    unlockCode: UnlockCode,
-  ): Promise<Result<void, TableStorageError | BaseError>> {
-    const result = await this.lockedProfilesTableClientWrapper.patchEntity({
-      partitionKey: fiscalCode,
-      rowKey: unlockCode,
-      Released: true,
-    });
-    if (result.isErr()) {
-      return err(result.error);
-    }
-
-    return ok(undefined);
-  }
-
   private async releaseLocks(
     fiscalCode: FiscalCode,
     unlockCodes: UnlockCode[],
   ): Promise<Result<void, TableStorageError | BaseError>> {
-    for (const unlockCode of unlockCodes) {
-      const result = await this.releaseLock(fiscalCode, unlockCode);
-      if (result.isErr()) {
-        return err(result.error);
-      }
+    const result =
+      await this.lockedProfilesTableClientWrapper.patchEntitiesTransactionally(
+        unlockCodes.map((unlockCode) => ({
+          partitionKey: fiscalCode,
+          rowKey: unlockCode,
+          Released: true,
+        })),
+      );
+    if (result.isErr()) {
+      return err(result.error);
     }
 
     return ok(undefined);
