@@ -1,3 +1,4 @@
+import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import {
   FiscalCodeSchema,
   GenericError,
@@ -70,7 +71,9 @@ const packageInfo: PackageInfo = {
   version: "0.0.0",
 };
 
-const createTestApp = () => createApp(config, packageInfo);
+const logger = { trackEvent: vi.fn() } as unknown as Logger;
+const createTestApp = () => createApp(config, packageInfo, logger);
+
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -84,7 +87,7 @@ beforeEach(() => {
 
 describe("createApp", () => {
   it("mounts liveness without checking outbound adapters", async () => {
-    const { server } = await createApp(config, packageInfo);
+    const { server } = await createTestApp();
     try {
       const response = await server.inject({
         method: "GET",
@@ -119,7 +122,7 @@ describe("createApp", () => {
         LollipopRevocationQueueAdapter.prototype,
         "healthcheck",
       ).mockResolvedValue(queueResult);
-      const { server } = await createApp(config, packageInfo);
+      const { server } = await createTestApp();
       try {
         const response = await server.inject({
           method: "GET",
@@ -133,7 +136,7 @@ describe("createApp", () => {
   );
 
   it("mounts the technical lock routes and validates fiscal codes", async () => {
-    const { server } = await createApp(config, packageInfo);
+    const { server } = await createTestApp();
     try {
       const lockResponse = await server.inject({
         method: "POST",
@@ -314,9 +317,8 @@ describe("createApp", () => {
     );
 
     try {
-      const outcome = createTestApp().then(
-        () => undefined,
-        (error: unknown) => error,
+      const outcome = expect(createTestApp()).rejects.toBe(
+        startupError,
       );
       await vi.advanceTimersByTimeAsync(1999);
       expect(captured.server?.log.warn).not.toHaveBeenCalled();

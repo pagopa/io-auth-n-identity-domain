@@ -4,6 +4,7 @@ import { DefaultAzureCredential } from "@azure/identity";
 import { ServiceBusClient } from "@azure/service-bus";
 import { QueueServiceClient } from "@azure/storage-queue";
 import { TableClientWrapper } from "@pagopa/azure-sdk/data-tables";
+import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import {
   LollipopActivationCosmosAdapter,
   SessionCosmosAdapter,
@@ -12,18 +13,26 @@ import type { PackageInfo } from "@pagopa/io-package-info";
 import {
   AuthEventServiceBusAdapter,
   createPlatformInternalAdapter,
+  LockedProfilesDataTableAdapter,
   LollipopRevocationQueueAdapter,
   makeInvalidatePreviousUserStateUseCase,
+  NotificationStorageQueueAdapter,
   TechnicalLockedProfilesDataTableAdapter,
 } from "@pagopa/io-session-manager-core";
 import fastify, { type FastifyInstance } from "fastify";
 
 import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
+import { mountLockUserSessionHandler } from "./adapters/inbound/fastify/lock-user-session.handler.js";
+import { mountReleaseUserSessionLockHandler } from "./adapters/inbound/fastify/release-user-session-lock.handler.js";
 import { mountTechnicalLockUserSessionHandler } from "./adapters/inbound/fastify/technical-lock-user-session.handler.js";
 import { mountTechnicalUnlockUserSessionHandler } from "./adapters/inbound/fastify/technical-unlock-user-session.handler.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
+import { makeInvalidateSessionTokenCacheUseCase } from "./application/use-cases/invalidate-session-token-cache.js";
+import { makeLockUserSessionUseCase } from "./application/use-cases/lock-user-session.use-case.js";
+import { makeReleaseUserSessionLockUseCase } from "./application/use-cases/release-user-session-lock.use-case.js";
+import { makeSendLogoutEventUseCase } from "./application/use-cases/send-logout-event.js";
 import { makeTechnicalLockUserSessionUseCase } from "./application/use-cases/technical-lock-user-session.use-case.js";
 import { makeTechnicalUnlockUserSessionUseCase } from "./application/use-cases/technical-unlock-user-session.use-case.js";
 import type { Config } from "./domain/value-objects/configs/index.js";
@@ -116,6 +125,29 @@ const createClients = (
           config.LOLLIPOP_REVOCATION_QUEUE_STORAGE_CONNECTION_STRING,
         );
 
+  const lockedProfilesTableClient =
+    config.NODE_ENV === "production"
+      ? new TableClient(
+          config.LOCKED_PROFILES_STORAGE_ACCOUNT_URI,
+          config.LOCKED_PROFILES_TABLE_NAME,
+          AzureCredential.getInstance(),
+        )
+      : TableClient.fromConnectionString(
+          config.LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
+          config.LOCKED_PROFILES_TABLE_NAME,
+          { allowInsecureConnection: config.NODE_ENV === "development" },
+        );
+
+  const pushNotificationsQueueServiceClient =
+    config.NODE_ENV === "production"
+      ? new QueueServiceClient(
+          config.PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI,
+          AzureCredential.getInstance(),
+        )
+      : QueueServiceClient.fromConnectionString(
+          config.PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING,
+        );
+
   const technicalLockedProfilesTableClient =
     config.NODE_ENV === "production"
       ? new TableClient(
@@ -141,6 +173,8 @@ const createClients = (
   return {
     cosmosClient,
     lollipopRevocationQueueServiceClient,
+    lockedProfilesTableClient,
+    pushNotificationsQueueServiceClient,
     technicalLockedProfilesTableClient,
     serviceBusClient,
   };
@@ -187,6 +221,19 @@ const createAdapters = async (
     config.COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME,
   );
 
+  const lockedProfilesAdapter = new LockedProfilesDataTableAdapter(
+    new TableClientWrapper(
+      clients.lockedProfilesTableClient,
+      LockedProfilesDataTableAdapter.schema,
+    ),
+  );
+
+  const notificationStorageQueueAdapter = new NotificationStorageQueueAdapter(
+    clients.pushNotificationsQueueServiceClient.getQueueClient(
+      config.PUSH_NOTIFICATIONS_QUEUE_NAME,
+    ),
+  );
+
   const technicalLockedProfilesAdapter =
     new TechnicalLockedProfilesDataTableAdapter(
       new TableClientWrapper(
@@ -197,8 +244,10 @@ const createAdapters = async (
 
   return {
     authEventServiceBusAdapter,
+    lockedProfilesAdapter,
     lollipopActivationCosmosAdapter,
     lollipopRevocationQueueAdapter,
+    notificationStorageQueueAdapter,
     platformInternalAdapter,
     sessionCosmosAdapter,
     technicalLockedProfilesAdapter,
@@ -213,8 +262,20 @@ const createAdapters = async (
  */
 const createUseCases = (
   config: Config,
+  logger: Logger,
   adapters: Awaited<ReturnType<typeof createAdapters>>,
 ) => {
+  const invalidateSessionTokenCacheUseCase =
+    makeInvalidateSessionTokenCacheUseCase({
+      platformInternalPort: adapters.platformInternalAdapter,
+      sessionPort: adapters.sessionCosmosAdapter,
+    });
+
+  const sendLogoutEventUseCase = makeSendLogoutEventUseCase({
+    authEventPort: adapters.authEventServiceBusAdapter,
+    logger,
+  });
+
   const invalidatePreviousUserStateUseCase =
     makeInvalidatePreviousUserStateUseCase({
       sessionPort: adapters.sessionCosmosAdapter,
@@ -223,11 +284,21 @@ const createUseCases = (
       platformInternalPort: adapters.platformInternalAdapter,
     });
 
+  const lockUserSessionUseCase = makeLockUserSessionUseCase({
+    lockedProfilesPort: adapters.lockedProfilesAdapter,
+    notificationPort: adapters.notificationStorageQueueAdapter,
+    invalidateSessionTokenCacheUseCase,
+    sendLogoutEventUseCase,
+    invalidatePreviousUserStateUseCase,
+  });
+  const releaseUserSessionLockUseCase = makeReleaseUserSessionLockUseCase(
+    adapters.lockedProfilesAdapter,
+  );
+
   const technicalLockUserSessionUseCase = makeTechnicalLockUserSessionUseCase({
-    platformInternalPort: adapters.platformInternalAdapter,
-    sessionPort: adapters.sessionCosmosAdapter,
     technicalLockedProfilesPort: adapters.technicalLockedProfilesAdapter,
-    authEventPort: adapters.authEventServiceBusAdapter,
+    invalidateSessionTokenCacheUseCase,
+    sendLogoutEventUseCase,
     invalidatePreviousUserStateUseCase,
   });
   const technicalUnlockUserSessionUseCase =
@@ -238,6 +309,8 @@ const createUseCases = (
   const getSessionUseCase = makeGetSessionUseCase(adapters.sessionCosmosAdapter);
 
   return {
+    lockUserSessionUseCase,
+    releaseUserSessionLockUseCase,
     technicalLockUserSessionUseCase,
     technicalUnlockUserSessionUseCase,
     getSessionUseCase,
@@ -258,6 +331,8 @@ const mountHealthChecks = (
     getHealthCheckUseCase(
       packageInfo,
       [
+        adapters.lockedProfilesAdapter,
+        adapters.notificationStorageQueueAdapter,
         adapters.technicalLockedProfilesAdapter,
         adapters.authEventServiceBusAdapter,
         adapters.sessionCosmosAdapter,
@@ -277,6 +352,11 @@ const mountRoutes = ({
   config: Config;
   useCases: ReturnType<typeof createUseCases>;
 }) => {
+  mountLockUserSessionHandler(server, useCases.lockUserSessionUseCase);
+  mountReleaseUserSessionLockHandler(
+    server,
+    useCases.releaseUserSessionLockUseCase,
+  );
   mountTechnicalLockUserSessionHandler(
     server,
     useCases.technicalLockUserSessionUseCase,
@@ -292,6 +372,7 @@ const mountRoutes = ({
 export const createApp = async (
   config: Config,
   packageInfo: PackageInfo,
+  logger: Logger,
 ): Promise<{ server: FastifyInstance }> => {
   const server = fastify();
   const lifecycle = createResourceLifecycle(server);
@@ -301,7 +382,7 @@ export const createApp = async (
 
     const clients = createClients(config, lifecycle.registerCleanup);
     const adapters = await createAdapters(config, clients);
-    const useCases = createUseCases(config, adapters);
+    const useCases = createUseCases(config, logger, adapters);
 
     mountHealthChecks(server, packageInfo, adapters);
     mountRoutes({ server, config, useCases });
