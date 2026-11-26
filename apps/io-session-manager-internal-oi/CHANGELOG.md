@@ -1,5 +1,11 @@
 # io-session-manager-internal-oi
 
+## 0.3.0
+
+### Minor Changes
+
+- 8eb35ff: Implement getSession
+
 ## 0.2.0
 
 ### Minor Changes
