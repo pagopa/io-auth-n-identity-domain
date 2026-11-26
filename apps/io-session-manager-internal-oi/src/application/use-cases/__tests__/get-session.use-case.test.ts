@@ -92,7 +92,8 @@ describe("makeGetSessionUseCase", () => {
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(GenericError);
-      expect(result.error.message).toContain("Cosmos unavailable");
+      expect(result.error.message).toContain("Failed to retrieve active session");
+      expect(result.error.cause).toBe(storageError);
     }
   });
 });
