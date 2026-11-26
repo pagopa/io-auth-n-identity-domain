@@ -8,6 +8,8 @@ import {
 } from "../../../application/use-cases/oidc-callback.use-case.js";
 import { CallbackInputDTO } from "../dtos/callback.dto.js";
 
+import { extractIpMiddleware } from "./middlewares/extract-ip.middleware.js";
+
 export const callbackContract = defineRoute({
   method: "get",
   operationId: "callback",
@@ -15,7 +17,7 @@ export const callbackContract = defineRoute({
   request: CallbackInputDTO,
   summary: "Handle the OIDC callback",
   description:
-    "Handles the OpenID Connect callback from the identity provider. On success it mints a fresh session token and redirects the client to the success URL carrying the token; on a login error it redirects to the error URL carrying the error code.",
+    "Handles the OpenID Connect callback from the identity provider. On success it mints a fresh session token and redirects the client to the success URL carrying the token; on a login error it redirects to the error URL carrying the error details.",
   tags: ["oidc"],
   // Public endpoint: part of the pre-authentication OIDC login flow.
   security: [],
@@ -35,11 +37,7 @@ export const callbackContract = defineRoute({
       },
     },
     400: {
-      description: "Bad request",
-      schema: ProblemJson,
-    },
-    401: {
-      description: "Unauthorized",
+      description: "Invalid callback query or missing or expired login state",
       schema: ProblemJson,
     },
     403: {
@@ -54,6 +52,7 @@ export const callbackContract = defineRoute({
 });
 
 export type CallbackHandlerDeps = {
+  middlewares: readonly [typeof extractIpMiddleware];
   handleOidcCallbackUseCase: ReturnType<typeof makeHandleOidcCallbackUseCase>;
   loginSuccessRedirectUrl: string;
   loginErrorRedirectUrl: string;
@@ -65,8 +64,10 @@ export const mountCallbackHandler = (
 ): void => {
   mountFastifyRoute(server, {
     contract: callbackContract,
-    inputMapper: (req, _context): HandleOidcCallbackInput => ({
+    middlewares: deps.middlewares,
+    inputMapper: (req, context): HandleOidcCallbackInput => ({
       callback: req.query,
+      ipAddress: context.ipAddress,
     }),
     outputMapper: (result) => {
       if (result.outcome === "error") {

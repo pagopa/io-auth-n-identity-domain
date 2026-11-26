@@ -83,7 +83,6 @@ export const makeStartLoginUseCase =
         name: "ioweb-auth.oidc.login.config.error",
         properties: {
           ...commonEventProperties,
-          timestamp: new Date().toISOString(),
           failureReason: "environment_not_configured",
         },
       });
@@ -98,7 +97,8 @@ export const makeStartLoginUseCase =
         input.oidcConfigurationEnv,
       );
     if (authorizationEndpointResult.isErr()) {
-      const { reason, error } = authorizationEndpointResult.error;
+      const error = authorizationEndpointResult.error;
+      const { reason } = error;
       deps.logger.trackEvent({
         name:
           reason === "discovery_failed"
@@ -106,7 +106,6 @@ export const makeStartLoginUseCase =
             : "ioweb-auth.oidc.login.auth-decode.error",
         properties: {
           ...commonEventProperties,
-          timestamp: new Date().toISOString(),
           failureReason: reason,
           state,
           nonce,
@@ -129,7 +128,6 @@ export const makeStartLoginUseCase =
         name: "ioweb-auth.oidc.login.auxiliary-data.error",
         properties: {
           ...commonEventProperties,
-          timestamp: new Date().toISOString(),
           failureReason: "auxiliary_data_save_failed",
           state,
           nonce,
@@ -142,7 +140,6 @@ export const makeStartLoginUseCase =
       name: "ioweb-auth.oidc.login.success.info",
       properties: {
         ...commonEventProperties,
-        timestamp: new Date().toISOString(),
         state,
         nonce,
         clientId,

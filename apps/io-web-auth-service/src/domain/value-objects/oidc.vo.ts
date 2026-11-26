@@ -1,5 +1,8 @@
+import {
+  type NonEmptyString,
+  NonEmptyStringSchema,
+} from "@pagopa/hexagonal-core";
 import { z } from "zod";
-import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
 
 export const OidcEnvironmentSchema = z.enum(["UAT", "PROD"]);
 export type OidcEnvironment = z.infer<typeof OidcEnvironmentSchema>;
@@ -7,6 +10,13 @@ export type OidcEnvironment = z.infer<typeof OidcEnvironmentSchema>;
 // Decoded OIDC callback: `state` is always present; a present `code` marks a
 // success response, otherwise it is a provider error response
 // (`error`/`error_description`, RFC 6749 §4.1.2.1).
+export type OidcCallbackParams = {
+  state: NonEmptyString;
+  code?: NonEmptyString;
+  error?: NonEmptyString;
+  error_description?: NonEmptyString;
+};
+
 export const OidcCallbackSuccessParamsSchema = z.object({
   state: NonEmptyStringSchema,
   code: NonEmptyStringSchema,
