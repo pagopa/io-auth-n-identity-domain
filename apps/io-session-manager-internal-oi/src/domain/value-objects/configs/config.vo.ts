@@ -5,12 +5,32 @@ import {
   AuthEventServiceBusProductionConfigSchema,
   AuthEventServiceBusDevelopmentConfigSchema,
 } from "./auth-event-service-bus.vo.js";
-import { CosmosProductionConfigSchema, CosmosDevelopmentConfigSchema } from "./cosmos.vo.js";
-import { LollipopActivationCosmosProductionConfigSchema, LollipopActivationCosmosDevelopmentConfigSchema } from "./lollipop-activation.vo.js";
-import { LollipopRevocationQueueProductionConfigSchema, LollipopRevocationQueueDevelopmentConfigSchema } from "./lollipop-revocation.vo.js";
+import {
+  CosmosProductionConfigSchema,
+  CosmosDevelopmentConfigSchema,
+} from "./cosmos.vo.js";
+import {
+  LockedProfilesDevelopmentConfigSchema,
+  LockedProfilesProductionConfigSchema,
+} from "./locked-profiles.vo.js";
+import {
+  LollipopActivationCosmosProductionConfigSchema,
+  LollipopActivationCosmosDevelopmentConfigSchema,
+} from "./lollipop-activation.vo.js";
+import {
+  LollipopRevocationQueueProductionConfigSchema,
+  LollipopRevocationQueueDevelopmentConfigSchema,
+} from "./lollipop-revocation.vo.js";
 import { PlatformProxyConfigSchema } from "./platform-proxy.vo.js";
+import {
+  PushNotificationsQueueDevelopmentConfigSchema,
+  PushNotificationsQueueProductionConfigSchema,
+} from "./push-notification-queue.vo.js";
 import { ServerConfigSchema } from "./server.vo.js";
-import { SessionCosmosProductionConfigSchema, SessionCosmosDevelopmentConfigSchema } from "./session.vo.js";
+import {
+  SessionCosmosProductionConfigSchema,
+  SessionCosmosDevelopmentConfigSchema,
+} from "./session.vo.js";
 import {
   TechnicalLockedProfilesDevelopmentConfigSchema,
   TechnicalLockedProfilesProductionConfigSchema,
@@ -29,8 +49,10 @@ export const ProductionConfigSchema = z.object({
   NODE_ENV: z.literal("production"),
   ...AuthEventServiceBusProductionConfigSchema.shape,
   ...CosmosProductionConfigSchema.shape,
+  ...LockedProfilesProductionConfigSchema.shape,
   ...LollipopActivationCosmosProductionConfigSchema.shape,
   ...LollipopRevocationQueueProductionConfigSchema.shape,
+  ...PushNotificationsQueueProductionConfigSchema.shape,
   ...SessionCosmosProductionConfigSchema.shape,
   ...TechnicalLockedProfilesProductionConfigSchema.shape,
 });
@@ -42,8 +64,10 @@ export const DevelopmentConfigSchema = z.object({
   NODE_ENV: z.literal("development"),
   ...AuthEventServiceBusDevelopmentConfigSchema.shape,
   ...CosmosDevelopmentConfigSchema.shape,
+  ...LockedProfilesDevelopmentConfigSchema.shape,
   ...LollipopActivationCosmosDevelopmentConfigSchema.shape,
   ...LollipopRevocationQueueDevelopmentConfigSchema.shape,
+  ...PushNotificationsQueueDevelopmentConfigSchema.shape,
   ...SessionCosmosDevelopmentConfigSchema.shape,
   ...TechnicalLockedProfilesDevelopmentConfigSchema.shape,
 });

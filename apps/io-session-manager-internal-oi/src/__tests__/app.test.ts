@@ -12,7 +12,9 @@ import type { PackageInfo } from "@pagopa/io-package-info";
 import type { FastifyInstance } from "fastify";
 import {
   AuthEventServiceBusAdapter,
+  LockedProfilesDataTableAdapter,
   LollipopRevocationQueueAdapter,
+  NotificationStorageQueueAdapter,
   TechnicalLockedProfilesDataTableAdapter,
 } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";
@@ -55,6 +57,10 @@ const config = ConfigSchema.parse({
   LOLLIPOP_REVOCATION_QUEUE_NAME: "pubkeys-revoke",
   LOLLIPOP_REVOCATION_QUEUE_STORAGE_CONNECTION_STRING:
     "UseDevelopmentStorage=true",
+  LOCKED_PROFILES_TABLE_NAME: "locked-profiles",
+  LOCKED_PROFILES_STORAGE_CONNECTION_STRING: "UseDevelopmentStorage=true",
+  PUSH_NOTIFICATIONS_QUEUE_NAME: "push-notifications",
+  PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING: "UseDevelopmentStorage=true",
   TECHNICAL_LOCKED_PROFILES_TABLE_NAME: "technical-locked-profiles",
   TECHNICAL_LOCKED_PROFILES_STORAGE_CONNECTION_STRING:
     "UseDevelopmentStorage=true",
@@ -98,10 +104,12 @@ describe("createApp", () => {
     "mounts readiness checking outbound adapters ($statusCode)",
     async ({ queueResult, statusCode }) => {
       for (const adapter of [
+        LockedProfilesDataTableAdapter,
         TechnicalLockedProfilesDataTableAdapter,
         AuthEventServiceBusAdapter,
         SessionCosmosAdapter,
         LollipopActivationCosmosAdapter,
+        NotificationStorageQueueAdapter,
       ]) {
         vi.spyOn(adapter.prototype, "healthcheck").mockResolvedValue(
           ok(undefined),

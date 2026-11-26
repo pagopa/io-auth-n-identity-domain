@@ -18,6 +18,8 @@ const sharedEnvironment = {
   COSMOSDB_ACTIVE_SESSION_CONTAINER_NAME: "active-sessions",
   COSMOSDB_LOLLIPOP_ACTIVATION_CONTAINER_NAME: "lollipop-activations",
   LOLLIPOP_REVOCATION_QUEUE_NAME: "pubkeys-revoke",
+  LOCKED_PROFILES_TABLE_NAME: "locked-profiles",
+  PUSH_NOTIFICATIONS_QUEUE_NAME: "push-notifications",
   TECHNICAL_LOCKED_PROFILES_TABLE_NAME: "technical-locked-profiles",
 };
 
@@ -30,6 +32,8 @@ const baseEnvironment = {
     "AccountEndpoint=https://localhost:8081/;AccountKey=Zm9v;",
   LOLLIPOP_REVOCATION_QUEUE_STORAGE_CONNECTION_STRING:
     "UseDevelopmentStorage=true",
+  LOCKED_PROFILES_STORAGE_CONNECTION_STRING: "UseDevelopmentStorage=true",
+  PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING: "UseDevelopmentStorage=true",
   TECHNICAL_LOCKED_PROFILES_STORAGE_CONNECTION_STRING:
     "UseDevelopmentStorage=true",
 };
@@ -41,6 +45,8 @@ const productionEnvironment = {
   SERVICE_BUS_HOSTNAME: "servicebus.example.com",
   COSMOSDB_URI: "https://cosmos.example.com",
   LOLLIPOP_REVOCATION_QUEUE_STORAGE_URI: "https://storage.example.com",
+  LOCKED_PROFILES_STORAGE_ACCOUNT_URI: "https://storage.example.com",
+  PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI: "https://storage.example.com",
   TECHNICAL_LOCKED_PROFILES_STORAGE_ACCOUNT_URI: "https://storage.example.com",
 };
 
