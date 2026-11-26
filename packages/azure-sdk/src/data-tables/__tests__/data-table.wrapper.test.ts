@@ -296,6 +296,53 @@ describe("TableClientWrapper - getEntity", () => {
   });
 });
 
+describe("TableClientWrapper - patchEntity", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("merges a partial patch and returns ok(undefined)", async () => {
+    const { wrapper, client } = buildWrapper();
+    client.updateEntity.mockResolvedValue({});
+
+    const result = await wrapper.patchEntity({
+      partitionKey: PK,
+      rowKey: RK,
+      active: false,
+    });
+
+    expect(result).toEqual(ok(undefined));
+    expect(client.updateEntity).toHaveBeenCalledExactlyOnceWith(
+      { partitionKey: PK, rowKey: RK, active: false },
+      "Merge",
+      undefined,
+    );
+  });
+
+  it("returns a ValidationError without calling the SDK when the patch is invalid", async () => {
+    const { wrapper, client } = buildWrapper();
+
+    const result = await wrapper.patchEntity({
+      partitionKey: PK,
+      rowKey: RK,
+      count: "not-a-number",
+    } as never);
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
+    expect(client.updateEntity).not.toHaveBeenCalled();
+  });
+
+  it("maps an SDK 404 into NotFoundError", async () => {
+    const { wrapper, client } = buildWrapper();
+    client.updateEntity.mockRejectedValue(buildRestError(404));
+
+    const result = await wrapper.patchEntity({ partitionKey: PK, rowKey: RK });
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(NotFoundError);
+    expect(result._unsafeUnwrapErr().message).toContain("patchEntity failed");
+  });
+});
+
 describe("TableClientWrapper - deleteEntity", () => {
   beforeEach(() => vi.clearAllMocks());
 

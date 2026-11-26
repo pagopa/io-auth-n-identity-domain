@@ -8,6 +8,7 @@ import {
   TableClient,
   TableEntity,
   TableEntityResult,
+  UpdateTableEntityOptions,
 } from "@azure/data-tables";
 import {
   AuthenticationError,
@@ -251,6 +252,35 @@ export class TableClientWrapper<S extends TableEntitySchema> {
       return this.parseEntity(response, "getEntity");
     } catch (error) {
       return err(this.handleError(error, "getEntity"));
+    }
+  }
+
+  /**
+   * Partially updates an existing entity, merging the provided fields into
+   * the stored row (SDK `"Merge"` mode). Fields not present in `patch` are
+   * left untouched.
+   *
+   * Fails with:
+   * - `ValidationError` if the patch does not match the partial schema.
+   * - `NotFoundError` if the row does not exist (HTTP `404`).
+   * - `PreconditionFailedError` if `options.etag` does not match (HTTP `412`).
+   * - Other {@link TableStorageError} variants for the remaining SDK errors.
+   *
+   * @param patch   - Keys plus the payload fields to change.
+   * @param options - Optional SDK request options (e.g. `etag`).
+   */
+  public async patchEntity(
+    patch: EntityPatchOf<S>,
+    options?: UpdateTableEntityOptions,
+  ): Promise<Result<void, TableStorageError>> {
+    const validated = this.validateEntity(patch, true);
+    if (validated.isErr()) return err(validated.error);
+
+    try {
+      await this.client.updateEntity(validated.value, "Merge", options);
+      return ok(undefined);
+    } catch (error) {
+      return err(this.handleError(error, "patchEntity"));
     }
   }
 
