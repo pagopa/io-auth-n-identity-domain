@@ -1,0 +1,44 @@
+<!--
+    - Policies are applied in the order they appear.
+    - Position <base/> inside a section to inherit policies from the outer scope.
+    - Comments within policies are not preserved.
+-->
+<!-- Add policies as children to the <inbound>, <outbound>, <backend>, and <on-error> elements -->
+<policies>
+    <!-- Throttle, authorize, validate, cache, or transform the requests -->
+    <inbound>
+        <base />
+        <set-variable name="authHeader" value="@(context.Request.Headers.GetValueOrDefault("Authorization", ""))" />
+        <choose>
+            <when condition="@(!context.Variables.GetValueOrDefault<string>("authHeader").StartsWith("Bearer "))">
+                <return-response>
+                    <set-status code="401" reason="Unauthorized" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-body>{"title": "Unauthorized", "status": 401, "detail": "Missing or invalid Authorization header"}</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <!-- Determine if the session token is v2 based on the presence of a dot -->
+        <set-variable name="isV2SessionToken" value="@(((string)context.Variables["authHeader"]).Substring("Bearer ".Length).Trim().Contains("."))" />
+        <choose>
+            <when condition="@(!(bool)context.Variables["isV2SessionToken"])">
+                <set-backend-service backend-id="session-manager-pool" />
+                <rewrite-uri template="@(context.Request.OriginalUrl.Path.Replace("/v2/", "/v1/"))" />
+            </when>
+        </choose>
+    </inbound>
+    <!-- Control if and how the requests are forwarded to services  -->
+    <backend>
+        <base />
+    </backend>
+    <!-- Customize the responses -->
+    <outbound>
+        <base />
+    </outbound>
+    <!-- Handle exceptions and customize error responses  -->
+    <on-error>
+        <base />
+    </on-error>
+</policies>

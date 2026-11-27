@@ -12,8 +12,9 @@ import {
   SessionCosmosAdapter,
 } from "@pagopa/io-auth-n-identity-session/adapters";
 import { type PackageInfo } from "@pagopa/io-package-info";
-import { TechnicalLockedProfilesDataTableAdapter } from "@pagopa/io-session-manager-core";
 import {
+  AuthEventServiceBusAdapter,
+  TechnicalLockedProfilesDataTableAdapter,
   createPlatformInternalAdapter,
   LollipopRevocationQueueAdapter,
   makeInvalidatePreviousUserStateUseCase,
@@ -43,7 +44,6 @@ import { mountSsoFimsUserHandler } from "./adapters/inbound/fastify/sso-fims-use
 import { mountSsoPagopaUserHandler } from "./adapters/inbound/fastify/sso-pagopa-user.handler.js";
 import { mountSsoZendeskTokenHandler } from "./adapters/inbound/fastify/sso-zendesk-token.handler.js";
 import { mountTestLoginHandler } from "./adapters/inbound/fastify/test-login.handler.js";
-import { AuthEventServiceBusAdapter } from "./adapters/outbound/auth-event-service-bus.adapter.js";
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
 import { IdpFriendlyNameAdapter } from "./adapters/outbound/friendly-name.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";

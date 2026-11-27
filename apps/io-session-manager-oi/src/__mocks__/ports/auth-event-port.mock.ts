@@ -1,7 +1,6 @@
 import { ok } from "neverthrow";
 import { vi } from "vitest";
-
-import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
+import type { AuthEventPort } from "@pagopa/io-session-manager-core";
 
 export const mockSendEvent = vi.fn();
 

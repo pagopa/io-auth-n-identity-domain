@@ -1,5 +1,6 @@
+import { HttpUrlCodec } from "@pagopa/io-auth-n-identity-domain";
 import z from "zod";
-import { HttpUrlCodec } from "../../../utils/codec/url.js";
+
 import { PositiveIntegerSchema } from "../positive-integer.vo.js";
 
 export const IdpFriendlyNameConfigSchema = z.object({

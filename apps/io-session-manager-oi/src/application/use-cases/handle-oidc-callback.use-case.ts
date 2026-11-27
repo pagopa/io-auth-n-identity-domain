@@ -18,9 +18,9 @@ import {
   toSha256,
 } from "@pagopa/io-auth-n-identity-session";
 import type { ClientSessionToken } from "@pagopa/io-auth-n-identity-session/value-objects";
+import type { AuthEventPort } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";
 
-import { AuthEventPort } from "../../domain/ports/outbound/auth-event.port.js";
 import { AuxiliaryDataPort } from "../../domain/ports/outbound/auxiliary-data.port.js";
 import { IdentityAssertionFetcherPort } from "../../domain/ports/outbound/identity-assertion-fetcher.port.js";
 import { OidcClientPort } from "../../domain/ports/outbound/oidc.port.js";
@@ -30,12 +30,13 @@ import { toFullyQualifiedSpidLevel } from "../../utils/spid.js";
 import { ActivateUserSessionUseCase } from "./activate-user-session.use-case.js";
 import type { ValidateProfileLocksUseCase } from "./validate-profile-locks.use-case.js";
 
-// Error code sent to the client error page when the provider returns an error
-// response without an explicit `error` code.
-const GENERIC_LOGIN_ERROR_CODE = "GENERIC_ERROR" as NonEmptyString;
+const INVALID_CALLBACK_ERROR_MESSAGE = "error occurred" as NonEmptyString;
+export const AUTHENTICATION_LOCKED_ERROR = "1002" as NonEmptyString;
+export const DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE =
+  "1004" as NonEmptyString;
 
-const AUTHENTICATION_LOCKED_ERROR = "1002" as NonEmptyString;
-const DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE = "1004" as NonEmptyString;
+export const OUTCOME_SUCCESS = "success";
+export const OUTCOME_ERROR = "error";
 
 // Decoded OIDC callback: `state` is always present; a present `code` marks a
 // success response, otherwise it is a provider error response
@@ -61,15 +62,18 @@ export type HandleOidcCallbackDeps = {
   activateUserSessionUseCase: ActivateUserSessionUseCase;
 };
 
-// Business outcome of the callback: a session token on success, or a login
-// error code (with an optional message) forwarded to the client error page.
-// Both variants are turned into a client redirect by the inbound handler;
-// unexpected failures stay on the error channel and become a problem+json.
+// Business outcome of the callback.
+// Either a session token or the optional error query parameters forwarded to
+// the client error page.
+// Field "outcome" is used to make the code clearer and easier to read but it has not any functional use.
 export type HandleOidcCallbackOutput =
-  | { readonly outcome: "success"; readonly token: ClientSessionToken }
   | {
-      readonly outcome: "error";
-      readonly errorCode: NonEmptyString;
+      readonly outcome: typeof OUTCOME_SUCCESS;
+      readonly token: ClientSessionToken;
+    }
+  | {
+      readonly outcome: typeof OUTCOME_ERROR;
+      readonly errorCode?: NonEmptyString;
       readonly errorMessage?: NonEmptyString;
     };
 
@@ -90,6 +94,7 @@ export const makeHandleOidcCallbackUseCase =
   async ({ callback, ipAddress }) => {
     // Retrieve (and, once on Redis getDel, consume) the reserved login data
     // even for an error response, so the state cannot be replayed.
+
     const auxiliaryDataResult = await deps.auxiliaryDataPort.retrieve(
       callback.state,
     );
@@ -102,9 +107,9 @@ export const makeHandleOidcCallbackUseCase =
 
     if (callback.code === undefined) {
       return ok({
-        outcome: "error",
-        errorCode: callback.error ?? GENERIC_LOGIN_ERROR_CODE,
-        errorMessage: callback.error_description,
+        outcome: OUTCOME_ERROR,
+        errorCode: parseErrorCode(callback.error_description),
+        errorMessage: callback.error ?? INVALID_CALLBACK_ERROR_MESSAGE,
       });
     }
 
@@ -150,7 +155,7 @@ export const makeHandleOidcCallbackUseCase =
         currentFiscalCodeHash: auxiliaryData.currentUser,
       });
       return ok({
-        outcome: "error",
+        outcome: OUTCOME_ERROR,
         errorCode: DIFFERENT_USER_ACTIVE_SESSION_LOGIN_ERROR_CODE,
       });
     }
@@ -223,7 +228,7 @@ export const makeHandleOidcCallbackUseCase =
                 rejectionCause: "auth_lock",
               });
               return ok({
-                outcome: "error",
+                outcome: OUTCOME_ERROR,
                 errorCode: AUTHENTICATION_LOCKED_ERROR,
               });
             case "technical-profile-locked": {
@@ -281,8 +286,17 @@ export const makeHandleOidcCallbackUseCase =
       return err(activateResult.error);
     }
 
-    return ok({ outcome: "success", token: activateResult.value });
+    return ok({ outcome: OUTCOME_SUCCESS, token: activateResult.value });
   };
+
+const parseErrorCode = (
+  errorDescription?: NonEmptyString,
+): NonEmptyString | undefined => {
+  const parsedErrorCode = Number.parseInt(errorDescription ?? "", 10);
+  return parsedErrorCode
+    ? (String(parsedErrorCode) as NonEmptyString)
+    : undefined;
+};
 
 const SPID_LEVEL_ORDER: Record<SpidLevel, number> = {
   "https://www.spid.gov.it/SpidL1": 1,
