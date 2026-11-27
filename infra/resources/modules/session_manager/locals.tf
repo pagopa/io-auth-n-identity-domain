@@ -161,15 +161,6 @@ locals {
       name  = "FF_FAST_LOGIN"
       value = "true"
     },
-    # Locked Profiles table
-    {
-      name  = "LOCKED_PROFILES_STORAGE_ACCOUNT_URI"
-      value = "https://${var.locked_profiles.storage_account.name}.table.core.windows.net"
-    },
-    {
-      name  = "LOCKED_PROFILES_TABLE_NAME"
-      value = var.locked_profiles.table_name
-    },
     # Session Manager Internal service
     {
       name  = "IO_SM_INT_API_URL"
