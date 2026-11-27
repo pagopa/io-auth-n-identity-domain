@@ -11,6 +11,12 @@ const developmentConfig = {
   ONEID_PROD_ISSUER: "https://oneid.example.com",
   ONEID_PROD_REDIRECT_URI: "https://app.example.com/callback",
   REDIS_HOSTNAME: "localhost",
+
+  JWT_TOKEN_ISSUER: "io-web-auth-service",
+  JWT_TOKEN_PRIVATE_KEY: "example",
+  JWT_TOKEN_TTL_SECONDS: 3600,
+  LOGIN_SUCCESS_REDIRECT_URL: "http://localhost:3000/success",
+  LOGIN_ERROR_REDIRECT_URL: "http://localhost:3000/error",
 };
 
 describe("ConfigSchema", () => {

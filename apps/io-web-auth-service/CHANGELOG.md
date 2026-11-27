@@ -1,5 +1,11 @@
 # io-web-auth-service
 
+## 0.6.0
+
+### Minor Changes
+
+- b62a567: Handle OIDC errors and events on the `GET /callback` endpoint
+
 ## 0.5.1
 
 ### Patch Changes

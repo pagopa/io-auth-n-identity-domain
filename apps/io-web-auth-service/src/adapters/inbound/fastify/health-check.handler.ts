@@ -1,8 +1,6 @@
 import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core";
 import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
 import type { FastifyInstance } from "fastify";
-// IMPORT statement needed to extend RouteContract with operationId field
-import * as _hexApi from "@pagopa/hexagonal-openapi";
 
 import { getHealthCheckUseCase } from "../../../application/use-cases/health-check.use-case.js";
 import { HealthCheckResponseDto } from "../dtos/health-check.dto.js";
