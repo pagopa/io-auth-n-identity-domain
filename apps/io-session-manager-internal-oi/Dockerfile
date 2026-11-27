@@ -1,6 +1,6 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
 
-FROM public.ecr.aws/docker/library/node:24.22.2-alpine AS base
+FROM public.ecr.aws/docker/library/node:24.22.2-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -22,7 +22,7 @@ RUN pnpm exec turbo run build --filter io-session-manager-internal-oi
 
 RUN pnpm --filter io-session-manager-internal-oi --prod deploy --legacy /repo/deploy
 
-FROM public.ecr.aws/docker/library/node:24.22.2-alpine AS runtime
+FROM public.ecr.aws/docker/library/node:24.22.2-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8 AS runtime
 WORKDIR /app
 
 COPY --chown=node:node --from=builder /repo/deploy/node_modules ./node_modules
