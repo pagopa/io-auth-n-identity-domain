@@ -1,5 +1,13 @@
 # @pagopa/io-auth-n-identity-session
 
+## 0.13.2
+
+### Patch Changes
+
+- 15d215e: Import hashing functionalities from `@pagopa/io-auth-n-identity-domain`
+- Updated dependencies [15d215e]
+  - @pagopa/io-auth-n-identity-domain@0.9.0
+
 ## 0.13.1
 
 ### Patch Changes

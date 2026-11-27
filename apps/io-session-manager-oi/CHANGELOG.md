@@ -1,5 +1,19 @@
 # io-session-manager-oi
 
+## 0.41.4
+
+### Patch Changes
+
+- 15d215e: Import `LockedProfilesPort` and `LockedProfilesDataTableAdapter` from `@pagopa/io-session-manager-core`
+- 15d215e: Import `NotificationPort` and `NotificationStorageQueueAdapter` from `@pagopa/io-session-manager-core`
+- Updated dependencies [15d215e]
+- Updated dependencies [15d215e]
+- Updated dependencies [15d215e]
+- Updated dependencies [15d215e]
+  - @pagopa/io-auth-n-identity-domain@0.9.0
+  - @pagopa/io-session-manager-core@0.5.0
+  - @pagopa/io-auth-n-identity-session@0.13.2
+
 ## 0.41.3
 
 ### Patch Changes

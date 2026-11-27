@@ -1,5 +1,11 @@
 # @pagopa/io-auth-n-identity-domain
 
+## 0.9.0
+
+### Minor Changes
+
+- 15d215e: Add hashing functionalities
+
 ## 0.8.0
 
 ### Minor Changes
