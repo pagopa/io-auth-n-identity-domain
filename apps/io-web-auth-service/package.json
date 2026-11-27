@@ -35,6 +35,7 @@
     "@pagopa/redis": "workspace:^",
     "dotenv": "catalog:",
     "fastify": "catalog:",
+    "jose": "catalog:",
     "neverthrow": "catalog:",
     "openid-client": "^6.8.4",
     "redis": "^6.2.1",

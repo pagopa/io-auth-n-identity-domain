@@ -1,6 +1,7 @@
 locals {
   app_name      = "ioweb-auth"
   auth_ca_image = "ghcr.io/pagopa/io-web-auth-service"
+  fe_domain     = "https://account.ioapp.it"
 
   listen_port = 8080
 
@@ -34,6 +35,26 @@ locals {
     {
       name  = "APPINSIGHTS_SAMPLING_PERCENTAGE"
       value = "100"
+    },
+    {
+      name  = "LOGIN_SUCCESS_REDIRECT_URL"
+      value = "${local.fe_domain}/it/accedi/"
+    },
+    {
+      name  = "LOGIN_ERROR_REDIRECT_URL"
+      value = "${local.fe_domain}/it/accedi/errore/"
+    },
+    {
+      name  = "JWT_TOKEN_ISSUER"
+      value = "api-web.io.pagopa.it/ioweb/auth"
+    },
+    {
+      name  = "JWT_TOKEN_TTL_SECONDS"
+      value = "3600"
+    },
+    {
+      name  = "JWT_TOKEN_PRIVATE_KEY"
+      value = azurerm_key_vault_secret.auth_jwt_private_key.versionless_id
     },
     # Values aligned with the WEU session-manager configuration.
     {

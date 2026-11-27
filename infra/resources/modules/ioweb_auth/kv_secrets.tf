@@ -48,3 +48,13 @@ resource "azurerm_key_vault_secret" "oneid_uat_client_secret" {
 
   tags = var.tags
 }
+
+resource "azurerm_key_vault_secret" "auth_jwt_private_key" {
+  name         = "ioweb-auth-jwt-private-key"
+  key_vault_id = var.key_vault.id
+
+  value_wo         = ""
+  value_wo_version = 1
+
+  tags = var.tags
+}
