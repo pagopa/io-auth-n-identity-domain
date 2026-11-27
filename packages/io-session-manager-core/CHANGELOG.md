@@ -1,5 +1,19 @@
 # @pagopa/io-session-manager-core
 
+## 0.5.0
+
+### Minor Changes
+
+- 15d215e: Add `LockedProfilesPort` and `LockedProfilesDataTableAdapter`
+- 15d215e: Add `NotificationPort` and `NotificationStorageQueueAdapter`
+
+### Patch Changes
+
+- Updated dependencies [15d215e]
+- Updated dependencies [15d215e]
+  - @pagopa/io-auth-n-identity-domain@0.9.0
+  - @pagopa/io-auth-n-identity-session@0.13.2
+
 ## 0.4.0
 
 ### Minor Changes

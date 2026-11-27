@@ -1,5 +1,17 @@
 # io-session-manager-internal-oi
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [15d215e]
+- Updated dependencies [15d215e]
+- Updated dependencies [15d215e]
+- Updated dependencies [15d215e]
+  - @pagopa/io-auth-n-identity-domain@0.9.0
+  - @pagopa/io-session-manager-core@0.5.0
+  - @pagopa/io-auth-n-identity-session@0.13.2
+
 ## 0.3.0
 
 ### Minor Changes
