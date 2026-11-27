@@ -3,11 +3,11 @@ import { FiscalCode, GenericError } from "@pagopa/hexagonal-core";
 import {
   Base64,
   HealthCheckOutboundPort,
+  Hash,
 } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok, Result, ResultAsync } from "neverthrow";
 
-import { NotificationPort } from "../../domain/ports/outbound/notification.port.js";
-import { Hash } from "../../utils/crypto/index.js";
+import { NotificationPort } from "../domain/ports/notification.port.js";
 
 /**
  * NotificationStorageQueueAdapter is an implementation of the NotificationPort interface that uses Azure Storage Queue to send messages for deleting installations.
@@ -38,7 +38,7 @@ export class NotificationStorageQueueAdapter
     return ResultAsync.fromPromise(
       this.queueClient.sendMessage(
         Base64.encode({
-          installationId: Hash.sha256(fiscalCode),
+          installationId: Hash.toSha256(fiscalCode),
           kind: "DeleteInstallation",
         }),
       ),

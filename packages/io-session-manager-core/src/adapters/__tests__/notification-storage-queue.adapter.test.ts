@@ -5,7 +5,8 @@ import { NotificationStorageQueueAdapter } from "../notification-storage-queue.a
 
 const MOCKED_FISCAL_CODE = FiscalCodeSchema.parse("AAAAAA00A00A000A");
 const mocks = vi.hoisted(() => {
-  const HASHED_INSTALLATION_ID = "hashed-installation-id";
+  const HASHED_INSTALLATION_ID =
+    "69c91b400de1b28c17fef445c0ab36b16f2b5b8df0b996448f9860895868371d";
   const ENCODED_MESSAGE = "base64-encoded-message";
   return {
     HASHED_INSTALLATION_ID,
@@ -17,9 +18,6 @@ const mocks = vi.hoisted(() => {
     Base64: {
       encode: vi.fn(() => ENCODED_MESSAGE),
     },
-    Hash: {
-      sha256: vi.fn(() => HASHED_INSTALLATION_ID),
-    },
   };
 });
 
@@ -28,10 +26,6 @@ vi.mock("@pagopa/io-auth-n-identity-domain", async (importOriginal) => ({
     typeof import("@pagopa/io-auth-n-identity-domain")
   >()),
   Base64: mocks.Base64,
-}));
-
-vi.mock("../../../utils/crypto/index.js", () => ({
-  Hash: mocks.Hash,
 }));
 
 beforeEach(() => {
@@ -48,7 +42,6 @@ describe("NotificationStorageQueueAdapter#deleteInstallation", () => {
     const result = await adapter.deleteInstallation(MOCKED_FISCAL_CODE);
 
     expect(result.isOk()).toBe(true);
-    expect(mocks.Hash.sha256).toHaveBeenCalledWith(MOCKED_FISCAL_CODE);
     expect(mocks.Base64.encode).toHaveBeenCalledWith({
       installationId: mocks.HASHED_INSTALLATION_ID,
       kind: "DeleteInstallation",

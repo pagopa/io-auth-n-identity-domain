@@ -1,9 +1,9 @@
 import type { ServiceBusSender } from "@azure/service-bus";
 import { FiscalCodeSchema, GenericError } from "@pagopa/hexagonal-core";
+import { toSha256 } from "@pagopa/io-auth-n-identity-domain";
 import {
   type AuthEvent,
   AuthEventSchema,
-  toSha256,
 } from "@pagopa/io-auth-n-identity-session";
 import { err, ok } from "neverthrow";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

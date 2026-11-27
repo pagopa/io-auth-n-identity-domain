@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { Sha256HexStringSchema, toSha256 } from "../hash.js";
+import {
+  Sha256HexStringSchema,
+  toSha256,
+} from "../hash.js";
 
 const hash = "abcdef0123456789".repeat(4);
 

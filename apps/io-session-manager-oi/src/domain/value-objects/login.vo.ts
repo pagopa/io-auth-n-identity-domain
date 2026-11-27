@@ -1,9 +1,9 @@
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
-import { LollipopAssertionRefSchema } from "@pagopa/io-auth-n-identity-domain";
 import {
-  LoginTypeSchema,
+  LollipopAssertionRefSchema,
   Sha256HexStringSchema,
-} from "@pagopa/io-auth-n-identity-session";
+} from "@pagopa/io-auth-n-identity-domain";
+import { LoginTypeSchema } from "@pagopa/io-auth-n-identity-session";
 import { z } from "zod";
 
 import { OidcEnvironmentSchema } from "./oidc.vo.js";

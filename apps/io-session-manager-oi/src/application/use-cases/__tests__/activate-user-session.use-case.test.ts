@@ -58,7 +58,7 @@ import {
 } from "../../../__mocks__/session.mocks.js";
 import type { LollipopRevocationPort } from "@pagopa/io-session-manager-core";
 import type { LollipopPort } from "../../../domain/ports/outbound/lollipop.port.js";
-import type { NotificationPort } from "../../../domain/ports/outbound/notification.port.js";
+import type { NotificationPort } from "@pagopa/io-session-manager-core";
 import { OidcEnvironment } from "../../../domain/value-objects/oidc.vo.js";
 import { makeInvalidatePreviousUserStateUseCase } from "@pagopa/io-session-manager-core";
 import { makeActivateUserSessionUseCase } from "../activate-user-session.use-case.js";

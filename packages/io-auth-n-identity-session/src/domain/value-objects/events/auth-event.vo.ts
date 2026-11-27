@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { LoginEventSchema } from "./login-event.vo.js";
 import { LogoutEventSchema } from "./logout-event.vo.js";
 import { RejectedLoginEventSchema } from "./rejected-login-event.vo.js";

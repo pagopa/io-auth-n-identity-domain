@@ -1,11 +1,11 @@
 import { NonEmptyStringSchema } from "@pagopa/hexagonal-core";
-import { z } from "zod";
-
 import {
   getRandomBytesHex,
   Sha256HexStringSchema,
   toSha256,
-} from "../../../utils/hash.js";
+} from "@pagopa/io-auth-n-identity-domain";
+import { z } from "zod";
+
 
 // ------------------------------------------------------------------------------
 // Plain Session Token Value Object
