@@ -54,6 +54,7 @@ interface MockedClient {
   deleteEntity: ReturnType<typeof vi.fn>;
   getEntity: ReturnType<typeof vi.fn>;
   updateEntity: ReturnType<typeof vi.fn>;
+  submitTransaction: ReturnType<typeof vi.fn>;
   listEntities: ReturnType<typeof vi.fn>;
 }
 
@@ -63,6 +64,7 @@ const buildMockClient = (): MockedClient => ({
   deleteEntity: vi.fn(),
   getEntity: vi.fn(),
   updateEntity: vi.fn(),
+  submitTransaction: vi.fn(),
   listEntities: vi.fn(),
 });
 
@@ -296,6 +298,121 @@ describe("TableClientWrapper - getEntity", () => {
   });
 });
 
+describe("TableClientWrapper - patchEntity", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("merges a partial patch and returns ok(undefined)", async () => {
+    const { wrapper, client } = buildWrapper();
+    client.updateEntity.mockResolvedValue({});
+
+    const result = await wrapper.patchEntity({
+      partitionKey: PK,
+      rowKey: RK,
+      active: false,
+    });
+
+    expect(result).toEqual(ok(undefined));
+    expect(client.updateEntity).toHaveBeenCalledExactlyOnceWith(
+      { partitionKey: PK, rowKey: RK, active: false },
+      "Merge",
+      undefined,
+    );
+  });
+
+  it("returns a ValidationError without calling the SDK when the patch is invalid", async () => {
+    const { wrapper, client } = buildWrapper();
+
+    const result = await wrapper.patchEntity({
+      partitionKey: PK,
+      rowKey: RK,
+      count: "not-a-number",
+    } as never);
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
+    expect(client.updateEntity).not.toHaveBeenCalled();
+  });
+
+  it("maps an SDK 404 into NotFoundError", async () => {
+    const { wrapper, client } = buildWrapper();
+    client.updateEntity.mockRejectedValue(buildRestError(404));
+
+    const result = await wrapper.patchEntity({ partitionKey: PK, rowKey: RK });
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(NotFoundError);
+    expect(result._unsafeUnwrapErr().message).toContain("patchEntity failed");
+  });
+});
+
+describe("TableClientWrapper - patchEntitiesTransactionally", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("submits all patches as a single merge transaction", async () => {
+    const { wrapper, client } = buildWrapper();
+    client.submitTransaction.mockResolvedValue({ status: 202 });
+
+    const result = await wrapper.patchEntitiesTransactionally([
+      { partitionKey: PK, rowKey: "rk-1", active: false },
+      { partitionKey: PK, rowKey: "rk-2", active: false },
+    ]);
+
+    expect(result).toEqual(ok(undefined));
+    expect(client.submitTransaction).toHaveBeenCalledExactlyOnceWith([
+      ["update", { partitionKey: PK, rowKey: "rk-1", active: false }, "Merge"],
+      ["update", { partitionKey: PK, rowKey: "rk-2", active: false }, "Merge"],
+    ]);
+    expect(client.updateEntity).not.toHaveBeenCalled();
+  });
+
+  it("does nothing for an empty batch", async () => {
+    const { wrapper, client } = buildWrapper();
+
+    const result = await wrapper.patchEntitiesTransactionally([]);
+
+    expect(result).toEqual(ok(undefined));
+    expect(client.submitTransaction).not.toHaveBeenCalled();
+  });
+
+  it("returns a ValidationError without calling the SDK when a later patch is invalid", async () => {
+    const { wrapper, client } = buildWrapper();
+
+    const result = await wrapper.patchEntitiesTransactionally([
+      { partitionKey: PK, rowKey: "rk-1", active: false },
+      { partitionKey: PK, rowKey: "rk-2", count: "nope" } as never,
+    ]);
+
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
+    expect(client.submitTransaction).not.toHaveBeenCalled();
+  });
+
+  it("rejects patches spanning different partitions", async () => {
+    const { wrapper, client } = buildWrapper();
+
+    const result = await wrapper.patchEntitiesTransactionally([
+      { partitionKey: PK, rowKey: "rk-1" },
+      { partitionKey: "other-pk", rowKey: "rk-2" },
+    ]);
+
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
+    expect(client.submitTransaction).not.toHaveBeenCalled();
+  });
+
+  it("maps an SDK failure into a TableStorageError", async () => {
+    const { wrapper, client } = buildWrapper();
+    client.submitTransaction.mockRejectedValue(buildRestError(404));
+
+    const result = await wrapper.patchEntitiesTransactionally([
+      { partitionKey: PK, rowKey: "rk-1" },
+    ]);
+
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(NotFoundError);
+    expect(result._unsafeUnwrapErr().message).toContain(
+      "patchEntitiesTransactionally failed",
+    );
+  });
+});
+
 describe("TableClientWrapper - deleteEntity", () => {
   beforeEach(() => vi.clearAllMocks());
 
@@ -321,25 +438,26 @@ describe("TableClientWrapper - deleteEntity", () => {
     const result = await wrapper.deleteEntity(PK, RK, options);
 
     expect(result).toEqual(ok(undefined));
-    expect(client.deleteEntity).toHaveBeenCalledExactlyOnceWith(PK, RK, options);
+    expect(client.deleteEntity).toHaveBeenCalledExactlyOnceWith(
+      PK,
+      RK,
+      options,
+    );
   });
 
   it.each([
     { status: 404, ctor: NotFoundError },
     { status: 412, ctor: PreconditionFailedError },
-  ])(
-    "maps an SDK $status error into $ctor.name",
-    async ({ status, ctor }) => {
-      const { wrapper, client } = buildWrapper();
-      client.deleteEntity.mockRejectedValue(buildRestError(status));
+  ])("maps an SDK $status error into $ctor.name", async ({ status, ctor }) => {
+    const { wrapper, client } = buildWrapper();
+    client.deleteEntity.mockRejectedValue(buildRestError(status));
 
-      const result = await wrapper.deleteEntity(PK, RK);
+    const result = await wrapper.deleteEntity(PK, RK);
 
-      expect(result.isErr()).toBe(true);
-      expect(result._unsafeUnwrapErr()).toBeInstanceOf(ctor);
-      expect(result._unsafeUnwrapErr().message).toContain("deleteEntity failed");
-    },
-  );
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ctor);
+    expect(result._unsafeUnwrapErr().message).toContain("deleteEntity failed");
+  });
 
   it("wraps an unexpected SDK error into a GenericError", async () => {
     const { wrapper, client } = buildWrapper();
