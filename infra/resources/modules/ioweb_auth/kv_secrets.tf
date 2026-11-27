@@ -55,6 +55,7 @@ resource "azurerm_key_vault_secret" "auth_jwt_private_key" {
 
   value_wo         = ""
   value_wo_version = 1
+  content_type     = "WARNING: use \\n instead of newline"
 
   tags = var.tags
 }
