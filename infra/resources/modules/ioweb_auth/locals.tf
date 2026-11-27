@@ -2,6 +2,30 @@ locals {
   app_name      = "ioweb-auth"
   auth_ca_image = "ghcr.io/pagopa/io-web-auth-service"
 
+  apim_pool_name = "ioweb-auth-service-pool"
+
+  # Add an entry here to increase backends inside the pool
+  ioweb_auth_service_urls = ["https://${module.auth_service_ca.url}"]
+
+  apim_base_policy_pool = <<XML
+  <policies>
+      <inbound>
+          <base />
+          <set-backend-service id="apim-pool-ioweb-auth-service" backend-id="${local.apim_pool_name}" />
+          <rewrite-uri template='@(context.Request.Url.Path.Replace("/${var.external_api_base_path}/v2", "") + context.Request.Url.QueryString)' copy-unmatched-params="false" />
+      </inbound>
+      <backend>
+          <base />
+      </backend>
+      <outbound>
+          <base />
+      </outbound>
+      <on-error>
+          <base />
+      </on-error>
+  </policies>
+  XML
+
   listen_port = 8080
 
   environment_variables = [

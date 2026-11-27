@@ -21,4 +21,10 @@ module "ioweb_auth_service" {
     connection_string = data.azurerm_application_insights.application_insights.connection_string
   }
   key_vault = module.key_vaults.auth
+
+  apim_name                = data.azurerm_api_management.itn_internal_apim.name
+  apim_resource_group_name = data.azurerm_api_management.itn_internal_apim.resource_group_name
+  apim_id                  = data.azurerm_api_management.itn_internal_apim.id
+
+  external_api_base_path = "ioweb/auth"
 }
