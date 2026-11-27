@@ -1,5 +1,11 @@
 # io-auth-n-identity-bruno-collections
 
+## 0.7.0
+
+### Minor Changes
+
+- 8eb35ff: Implement getSession
+
 ## 0.6.0
 
 ### Minor Changes

@@ -9,6 +9,10 @@ import { type IPString } from "@pagopa/io-auth-n-identity-domain";
 import { err, ok } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  InvalidAuthorizationEndpointError,
+  OidcDiscoveryError,
+} from "../../../domain/errors/oidc.errors.js";
 import { type AuxiliaryDataPort } from "../../../domain/ports/outbound/auxiliary-data.port.js";
 import { type OidcConfigPort } from "../../../domain/ports/outbound/oidc-config.port.js";
 import { type OidcClientPort } from "../../../domain/ports/outbound/oidc.port.js";
@@ -47,6 +51,7 @@ const auxiliaryDataPort = {
   healthcheck: vi.fn(),
 } satisfies AuxiliaryDataPort;
 const oidcClientPort = {
+  exchange: vi.fn(),
   getAuthorizationEndpoint: vi.fn(),
 } satisfies OidcClientPort;
 const oidcConfigPort = { getConfig: vi.fn() } satisfies OidcConfigPort;
@@ -121,7 +126,6 @@ describe("makeStartLoginUseCase", () => {
     const properties = trackedProperties("ioweb-auth.oidc.login.success.info");
     expect(properties).toEqual({
       samplingEnabled: false,
-      timestamp: expect.any(String),
       ipHash: IP_HASH,
       clientId: CLIENT_ID,
       env: "PROD",
@@ -144,7 +148,6 @@ describe("makeStartLoginUseCase", () => {
     expect(auxiliaryDataPort.save).not.toHaveBeenCalled();
     expect(trackedProperties("ioweb-auth.oidc.login.config.error")).toEqual({
       samplingEnabled: false,
-      timestamp: expect.any(String),
       failureReason: "environment_not_configured",
       env: "UAT",
       ipHash: IP_HASH,
@@ -156,27 +159,25 @@ describe("makeStartLoginUseCase", () => {
   it.each([
     {
       reason: "discovery_failed",
+      error: new OidcDiscoveryError("Upstream error detail"),
       expectedEventName: "ioweb-auth.oidc.login.discovery.error",
     },
     {
       reason: "invalid_authorization_endpoint",
+      error: new InvalidAuthorizationEndpointError("Upstream error detail"),
       expectedEventName: "ioweb-auth.oidc.login.auth-decode.error",
     },
   ] as const)(
-    "tracks $expectedEventName with correlation IDs when the port returns $reason",
-    async ({ reason, expectedEventName }) => {
-      const error = new GenericError("Upstream error detail");
-      oidcClientPort.getAuthorizationEndpoint.mockResolvedValueOnce(
-        err({ reason, error }),
-      );
+    "tracks $expectedEventName with correlation IDs when the port fails",
+    async ({ reason, error, expectedEventName }) => {
+      oidcClientPort.getAuthorizationEndpoint.mockResolvedValueOnce(err(error));
 
       const result = await useCase(anInput);
 
-      expect(result).toEqual(err(error));
+      expect(result._unsafeUnwrapErr()).toBe(error);
       expect(auxiliaryDataPort.save).not.toHaveBeenCalled();
       expect(trackedProperties(expectedEventName)).toEqual({
         samplingEnabled: false,
-        timestamp: expect.any(String),
         failureReason: reason,
         env: anInput.oidcConfigurationEnv,
         ipHash: IP_HASH,
@@ -204,7 +205,6 @@ describe("makeStartLoginUseCase", () => {
       trackedProperties("ioweb-auth.oidc.login.auxiliary-data.error"),
     ).toEqual({
       samplingEnabled: false,
-      timestamp: expect.any(String),
       failureReason: "auxiliary_data_save_failed",
       env: anInput.oidcConfigurationEnv,
       ipHash: IP_HASH,

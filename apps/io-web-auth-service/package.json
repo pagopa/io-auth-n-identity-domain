@@ -1,6 +1,6 @@
 {
   "name": "io-web-auth-service",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -35,6 +35,7 @@
     "@pagopa/redis": "workspace:^",
     "dotenv": "catalog:",
     "fastify": "catalog:",
+    "jose": "catalog:",
     "neverthrow": "catalog:",
     "openid-client": "^6.8.4",
     "redis": "^6.2.1",
