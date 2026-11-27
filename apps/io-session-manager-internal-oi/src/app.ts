@@ -18,10 +18,13 @@ import {
 } from "@pagopa/io-session-manager-core";
 import fastify, { type FastifyInstance } from "fastify";
 
+import { AuthLockDataTableAdapter } from "./adapters/outbound/auth-lock-data-table.adapter.js";
+import { mountGetSessionStateHandler } from "./adapters/inbound/fastify/get-session-state.handler.js";
 import { mountGetSessionHandler } from "./adapters/inbound/fastify/get-session.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { mountTechnicalLockUserSessionHandler } from "./adapters/inbound/fastify/technical-lock-user-session.handler.js";
 import { mountTechnicalUnlockUserSessionHandler } from "./adapters/inbound/fastify/technical-unlock-user-session.handler.js";
+import { makeGetSessionStateUseCase } from "./application/use-cases/get-session-state.use-case.js";
 import { makeGetSessionUseCase } from "./application/use-cases/get-session.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
 import { makeTechnicalLockUserSessionUseCase } from "./application/use-cases/technical-lock-user-session.use-case.js";
@@ -129,6 +132,19 @@ const createClients = (
           { allowInsecureConnection: config.NODE_ENV === "development" },
         );
 
+  const authenticationLockTableClient =
+    config.NODE_ENV === "production"
+      ? new TableClient(
+          config.LOCKED_PROFILES_STORAGE_ACCOUNT_URI,
+          config.LOCKED_PROFILES_TABLE_NAME,
+          AzureCredential.getInstance(),
+        )
+      : TableClient.fromConnectionString(
+          config.LOCKED_PROFILES_STORAGE_CONNECTION_STRING,
+          config.LOCKED_PROFILES_TABLE_NAME,
+          { allowInsecureConnection: config.NODE_ENV === "development" },
+        );
+
   const serviceBusClient =
     config.NODE_ENV === "production"
       ? new ServiceBusClient(
@@ -139,6 +155,7 @@ const createClients = (
   registerCleanup("Service Bus client", () => serviceBusClient.close());
 
   return {
+    authenticationLockTableClient,
     cosmosClient,
     lollipopRevocationQueueServiceClient,
     technicalLockedProfilesTableClient,
@@ -194,8 +211,15 @@ const createAdapters = async (
         TechnicalLockedProfilesDataTableAdapter.schema,
       ),
     );
+  const authenticationLockAdapter = new AuthLockDataTableAdapter(
+    new TableClientWrapper(
+      clients.authenticationLockTableClient,
+      AuthLockDataTableAdapter.schema,
+    ),
+  );
 
   return {
+    authenticationLockAdapter,
     authEventServiceBusAdapter,
     lollipopActivationCosmosAdapter,
     lollipopRevocationQueueAdapter,
@@ -235,12 +259,19 @@ const createUseCases = (
       adapters.technicalLockedProfilesAdapter,
     );
 
-  const getSessionUseCase = makeGetSessionUseCase(adapters.sessionCosmosAdapter);
+  const getSessionUseCase = makeGetSessionUseCase(
+    adapters.sessionCosmosAdapter,
+  );
+  const getSessionStateUseCase = makeGetSessionStateUseCase({
+    sessionPort: adapters.sessionCosmosAdapter,
+    authenticationLockPort: adapters.authenticationLockAdapter,
+  });
 
   return {
     technicalLockUserSessionUseCase,
     technicalUnlockUserSessionUseCase,
     getSessionUseCase,
+    getSessionStateUseCase,
   };
 };
 
@@ -258,6 +289,7 @@ const mountHealthChecks = (
     getHealthCheckUseCase(
       packageInfo,
       [
+        adapters.authenticationLockAdapter,
         adapters.technicalLockedProfilesAdapter,
         adapters.authEventServiceBusAdapter,
         adapters.sessionCosmosAdapter,
@@ -287,6 +319,7 @@ const mountRoutes = ({
   );
 
   mountGetSessionHandler(server, useCases.getSessionUseCase);
+  mountGetSessionStateHandler(server, useCases.getSessionStateUseCase);
 };
 
 export const createApp = async (

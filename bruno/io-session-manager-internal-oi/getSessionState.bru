@@ -1,0 +1,16 @@
+meta {
+  name: getSessionState
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{IO_SESSION_MANAGER_INTERNAL_OI_BASE_URL}}/api/auth/v2/sessions/{{FISCAL_CODE}}/state
+  body: none
+  auth: none
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
