@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { type Config } from "../domain/value-objects/configs/index.js";
+import { generateKeyPairSync } from "node:crypto";
+import { NonEmptyString } from "@pagopa/hexagonal-core";
 
 const mocks = vi.hoisted(() => ({
   redis: vi.fn(),
@@ -36,6 +38,14 @@ const createConfig = (NODE_ENV: Config["NODE_ENV"] = "development"): Config =>
     ONEID_PROD_REDIRECT_URI:
       "https://api-web.io.pagopa.it/ioweb/auth/v2/callback",
     REDIS_HOSTNAME: "localhost",
+
+    JWT_TOKEN_PRIVATE_KEY: generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+    }).privateKey.export({ type: "pkcs8", format: "pem" }) as NonEmptyString,
+    JWT_TOKEN_ISSUER: "io-web-auth-service",
+    JWT_TOKEN_TTL_SECONDS: 3600,
+    LOGIN_SUCCESS_REDIRECT_URL: "http://localhost:3000/success",
+    LOGIN_ERROR_REDIRECT_URL: "http://localhost:3000/error",
   });
 const config = createConfig();
 const packageInfo = createPackageInfoAdapter(
