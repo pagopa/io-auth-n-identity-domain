@@ -1,0 +1,22 @@
+meta {
+  name: lockUser (auth lock)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{IO_SESSION_MANAGER_INTERNAL_OI_BASE_URL}}/api/auth/v2/auth/{{FISCAL_CODE}}/lock
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "unlock_code": "000000000"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

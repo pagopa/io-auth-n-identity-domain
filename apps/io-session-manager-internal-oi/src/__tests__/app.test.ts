@@ -1,3 +1,4 @@
+import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import {
   FiscalCodeSchema,
   GenericError,
@@ -12,7 +13,9 @@ import type { PackageInfo } from "@pagopa/io-package-info";
 import type { FastifyInstance } from "fastify";
 import {
   AuthEventServiceBusAdapter,
+  LockedProfilesDataTableAdapter,
   LollipopRevocationQueueAdapter,
+  NotificationStorageQueueAdapter,
   TechnicalLockedProfilesDataTableAdapter,
 } from "@pagopa/io-session-manager-core";
 import { err, ok } from "neverthrow";
@@ -55,6 +58,10 @@ const config = ConfigSchema.parse({
   LOLLIPOP_REVOCATION_QUEUE_NAME: "pubkeys-revoke",
   LOLLIPOP_REVOCATION_QUEUE_STORAGE_CONNECTION_STRING:
     "UseDevelopmentStorage=true",
+  LOCKED_PROFILES_TABLE_NAME: "locked-profiles",
+  LOCKED_PROFILES_STORAGE_CONNECTION_STRING: "UseDevelopmentStorage=true",
+  PUSH_NOTIFICATIONS_QUEUE_NAME: "push-notifications",
+  PUSH_NOTIFICATIONS_STORAGE_CONNECTION_STRING: "UseDevelopmentStorage=true",
   TECHNICAL_LOCKED_PROFILES_TABLE_NAME: "technical-locked-profiles",
   TECHNICAL_LOCKED_PROFILES_STORAGE_CONNECTION_STRING:
     "UseDevelopmentStorage=true",
@@ -64,21 +71,25 @@ const packageInfo: PackageInfo = {
   version: "0.0.0",
 };
 
-const createTestApp = () => createApp(config, packageInfo);
+const logger = { trackEvent: vi.fn() } as unknown as Logger;
+const createTestApp = () => createApp(config, packageInfo, logger);
 
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
 beforeEach(() => {
-  vi.spyOn(SessionCosmosAdapter.prototype, "findActiveSession").mockResolvedValue(
+  vi.spyOn(
+    SessionCosmosAdapter.prototype,
+    "findActiveSession",
+  ).mockResolvedValue(
     err(new NotFoundError("ActiveSession", "ActiveSession not found")),
   );
 });
 
 describe("createApp", () => {
   it("mounts liveness without checking outbound adapters", async () => {
-    const { server } = await createApp(config, packageInfo);
+    const { server } = await createTestApp();
     try {
       const response = await server.inject({
         method: "GET",
@@ -98,10 +109,12 @@ describe("createApp", () => {
     "mounts readiness checking outbound adapters ($statusCode)",
     async ({ queueResult, statusCode }) => {
       for (const adapter of [
+        LockedProfilesDataTableAdapter,
         TechnicalLockedProfilesDataTableAdapter,
         AuthEventServiceBusAdapter,
         SessionCosmosAdapter,
         LollipopActivationCosmosAdapter,
+        NotificationStorageQueueAdapter,
       ]) {
         vi.spyOn(adapter.prototype, "healthcheck").mockResolvedValue(
           ok(undefined),
@@ -111,7 +124,7 @@ describe("createApp", () => {
         LollipopRevocationQueueAdapter.prototype,
         "healthcheck",
       ).mockResolvedValue(queueResult);
-      const { server } = await createApp(config, packageInfo);
+      const { server } = await createTestApp();
       try {
         const response = await server.inject({
           method: "GET",
@@ -125,7 +138,7 @@ describe("createApp", () => {
   );
 
   it("mounts the technical lock routes and validates fiscal codes", async () => {
-    const { server } = await createApp(config, packageInfo);
+    const { server } = await createTestApp();
     try {
       const lockResponse = await server.inject({
         method: "POST",
@@ -144,7 +157,9 @@ describe("createApp", () => {
   });
 
   it("returns only the active flag for a valid fiscal code", async () => {
-    vi.mocked(SessionCosmosAdapter.prototype.findActiveSession).mockResolvedValue(
+    vi.mocked(
+      SessionCosmosAdapter.prototype.findActiveSession,
+    ).mockResolvedValue(
       ok({
         fiscalCode,
         loginType: "LV",
@@ -215,9 +230,9 @@ describe("createApp", () => {
   });
 
   it("returns 500 when reading the session fails", async () => {
-    vi.mocked(SessionCosmosAdapter.prototype.findActiveSession).mockResolvedValue(
-      err(new GenericError("Cosmos unavailable")),
-    );
+    vi.mocked(
+      SessionCosmosAdapter.prototype.findActiveSession,
+    ).mockResolvedValue(err(new GenericError("Cosmos unavailable")));
     const { server } = await createTestApp();
     try {
       const response = await server.inject({

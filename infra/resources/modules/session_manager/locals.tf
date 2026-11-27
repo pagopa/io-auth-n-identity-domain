@@ -106,6 +106,24 @@ locals {
       name  = "TECHNICAL_LOCKED_PROFILES_TABLE_NAME"
       value = var.technical_locked_profiles.table_name
     },
+    # Locked Profiles table
+    {
+      name  = "LOCKED_PROFILES_STORAGE_ACCOUNT_URI"
+      value = "https://${var.locked_profiles.storage_account.name}.table.core.windows.net"
+    },
+    {
+      name  = "LOCKED_PROFILES_TABLE_NAME"
+      value = var.locked_profiles.table_name
+    },
+    # IO-Communication notification queue
+    {
+      name  = "PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI"
+      value = data.azurerm_storage_account.io_com.primary_queue_endpoint
+    },
+    {
+      name  = "PUSH_NOTIFICATIONS_QUEUE_NAME"
+      value = data.azurerm_storage_queue.push_notifications.name
+    },
   ]
 
   env_vars_sm = [
@@ -152,15 +170,6 @@ locals {
       name  = "FF_FAST_LOGIN"
       value = "true"
     },
-    # Locked Profiles table
-    {
-      name  = "LOCKED_PROFILES_STORAGE_ACCOUNT_URI"
-      value = "https://${var.locked_profiles.storage_account.name}.table.core.windows.net"
-    },
-    {
-      name  = "LOCKED_PROFILES_TABLE_NAME"
-      value = var.locked_profiles.table_name
-    },
     # Session Manager Internal service
     {
       name  = "IO_SM_INT_API_URL"
@@ -177,15 +186,6 @@ locals {
     {
       name  = "IO_SM_INT_API_KEY"
       value = "TODO"
-    },
-    # IO-Communication notification queue
-    {
-      name  = "PUSH_NOTIFICATIONS_QUEUE_STORAGE_URI"
-      value = data.azurerm_storage_account.io_com.primary_queue_endpoint
-    },
-    {
-      name  = "PUSH_NOTIFICATIONS_QUEUE_NAME"
-      value = data.azurerm_storage_queue.push_notifications.name
     },
     # Redis
     # Authentication is Microsoft Entra ID only (no access key): the CA's
