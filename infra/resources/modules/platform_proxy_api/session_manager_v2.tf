@@ -3,7 +3,11 @@
 ##################
 
 locals {
-  external_api_session_manager_v2_openapi = yamldecode(data.http.external_api_session_manager_v2_openapi.response_body)
+  external_api_session_manager_v2_openapi    = yamldecode(data.http.external_api_session_manager_v2_openapi.response_body)
+  sso_bpd_api_session_manager_v2_openapi     = yamldecode(data.http.sso_bpd_api_session_manager_v2_openapi.response_body)
+  sso_fims_api_session_manager_v2_openapi    = yamldecode(data.http.sso_fims_api_session_manager_v2_openapi.response_body)
+  sso_pagopa_api_session_manager_v2_openapi  = yamldecode(data.http.sso_pagopa_api_session_manager_v2_openapi.response_body)
+  sso_zendesk_api_session_manager_v2_openapi = yamldecode(data.http.sso_zendesk_api_session_manager_v2_openapi.response_body)
 }
 
 resource "azurerm_api_management_api" "external_api_session_manager_v2" {
@@ -65,8 +69,8 @@ resource "azurerm_api_management_api" "bpd_api_session_manager_v2" {
   version        = "v2"
   revision       = 1
 
-  description  = "Auth & Identity Session Manager BPD API with OI integration"
-  display_name = "IO SESSION MANAGER OI BPD API"
+  description  = local.sso_bpd_api_session_manager_v2_openapi.info.description
+  display_name = local.sso_bpd_api_session_manager_v2_openapi.info.title
   path         = var.bpd_api_base_path
   protocols    = ["https"]
   service_url  = "${var.session_manager_oi_url}/${var.bpd_api_base_path}/v2"
@@ -111,8 +115,8 @@ resource "azurerm_api_management_api" "fims_api_session_manager_v2" {
   version        = "v2"
   revision       = 1
 
-  description  = "Auth & Identity Session Manager FIMS API with OI integration"
-  display_name = "IO SESSION MANAGER OI FIMS API"
+  description  = local.sso_fims_api_session_manager_v2_openapi.info.description
+  display_name = local.sso_fims_api_session_manager_v2_openapi.info.title
   path         = var.fims_api_base_path
   protocols    = ["https"]
   service_url  = "${var.session_manager_oi_url}/${var.fims_api_base_path}/v2"
@@ -157,8 +161,8 @@ resource "azurerm_api_management_api" "pagopa_api_session_manager_v2" {
   version        = "v2"
   revision       = 1
 
-  description  = "Auth & Identity Session Manager PagoPA API with OI integration"
-  display_name = "IO SESSION MANAGER OI PAGOPA API"
+  description  = local.sso_pagopa_api_session_manager_v2_openapi.info.description
+  display_name = local.sso_pagopa_api_session_manager_v2_openapi.info.title
   path         = var.pagopa_api_base_path
   protocols    = ["https"]
   service_url  = "${var.session_manager_oi_url}/${var.pagopa_api_base_path}/v2"
@@ -200,15 +204,16 @@ resource "azurerm_api_management_api" "zendesk_api_session_manager_v2" {
   resource_group_name   = var.platform_apim_resource_group_name
   subscription_required = false
 
+  description  = local.sso_zendesk_api_session_manager_v2_openapi.info.description
+  display_name = local.sso_zendesk_api_session_manager_v2_openapi.info.title
+
   version_set_id = azurerm_api_management_api_version_set.zendesk_v1.id
   version        = "v2"
   revision       = 1
 
-  description  = "Auth & Identity Session Manager Zendesk API with OI integration"
-  display_name = "IO SESSION MANAGER OI ZENDESK API"
-  path         = var.zendesk_api_base_path
-  protocols    = ["https"]
-  service_url  = "${var.session_manager_oi_url}/${var.zendesk_api_base_path}/v2"
+  path        = var.zendesk_api_base_path
+  protocols   = ["https"]
+  service_url = "${var.session_manager_oi_url}/${var.zendesk_api_base_path}/v2"
 
   import {
     content_format = "openapi"
