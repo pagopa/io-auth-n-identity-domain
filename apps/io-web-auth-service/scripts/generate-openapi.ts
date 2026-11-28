@@ -8,7 +8,9 @@ import {
   buildOpenApiDocument,
   writeOpenApiYaml,
 } from "@pagopa/hexagonal-openapi";
+
 import { callbackContract } from "../src/adapters/inbound/fastify/callback.handler.js";
+import { introspectContract } from "../src/adapters/inbound/fastify/introspect.handler.js";
 import { loginRoute } from "../src/adapters/inbound/fastify/login.handler.js";
 
 const check = process.argv.includes("--check");
@@ -16,7 +18,11 @@ const outputPath = fileURLToPath(
   new URL("../api/external.yaml", import.meta.url),
 );
 
-const routes: ReadonlyArray<AnyRouteContract> = [loginRoute, callbackContract];
+const routes: ReadonlyArray<AnyRouteContract> = [
+  loginRoute,
+  callbackContract,
+  introspectContract,
+];
 
 const document = {
   ...buildOpenApiDocument({

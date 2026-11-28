@@ -1,12 +1,12 @@
 import { z } from "zod";
 
+import { JwtConfigSchema } from "./jwt.vo.js";
+import { LoginRedirectConfigSchema } from "./login-redirect.vo.js";
 import { OneIdConfigSchema } from "./one-id.vo.js";
 import {
   RedisDevelopmentConfigSchema,
   RedisProductionConfigSchema,
 } from "./redis.vo.js";
-import { JwtConfigSchema } from "./jwt.vo.js";
-import { LoginRedirectConfigSchema } from "./login-redirect.vo.js";
 import { ServerConfigSchema } from "./server.vo.js";
 
 const CommonConfigShape = {

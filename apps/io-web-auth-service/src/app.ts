@@ -1,6 +1,6 @@
-import { DefaultAzureCredential } from "@azure/identity";
 import { createPrivateKey } from "node:crypto";
 
+import { DefaultAzureCredential } from "@azure/identity";
 import type { NonEmptyString } from "@pagopa/hexagonal-core";
 import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
 import { type PackageInfo } from "@pagopa/io-package-info";
@@ -11,23 +11,26 @@ import {
 import { RedisObjectWrapper } from "@pagopa/redis/object-wrapper";
 import fastify, { type FastifyInstance } from "fastify";
 
+import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
 import { mountHealthCheckHandler } from "./adapters/inbound/fastify/health-check.handler.js";
 import { normalizeClientIpHook } from "./adapters/inbound/fastify/hooks/client-ip.hook.js";
+import { mountIntrospectHandler } from "./adapters/inbound/fastify/introspect.handler.js";
 import { mountLoginHandler } from "./adapters/inbound/fastify/login.handler.js";
 import { extractIpMiddleware } from "./adapters/inbound/fastify/middlewares/extract-ip.middleware.js";
 import { AuxiliaryDataRedisAdapter } from "./adapters/outbound/auxiliary-data.adapter.js";
 import { InMemoryOidcConfigAdapter } from "./adapters/outbound/in-memory-oidc-config.adapter.js";
+import { JwtSessionAdapter } from "./adapters/outbound/jwt-session.js";
 import { OpenIdClientAdapter } from "./adapters/outbound/openid-client.adapter.js";
+import { RedisSessionBlacklistAdapter } from "./adapters/outbound/redis-session-blacklist.adapter.js";
+import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
 import { getHealthCheckUseCase } from "./application/use-cases/health-check.use-case.js";
+import { makeIntrospectionUseCase } from "./application/use-cases/introspection.use-case.js";
+import { makeHandleOidcCallbackUseCase } from "./application/use-cases/oidc-callback.use-case.js";
 import { makeStartLoginUseCase } from "./application/use-cases/start-login.use-case.js";
 import { type Config } from "./domain/value-objects/configs/index.js";
 import { LoginAuxiliaryDataSchema } from "./domain/value-objects/login.vo.js";
 import { withErrorResultLogging } from "./middlewares/result-logging.middleware.js";
 import { getLogger } from "./telemetry-client.js";
-import { JwtSessionAdapter } from "./adapters/outbound/jwt-session.js";
-import { mountCallbackHandler } from "./adapters/inbound/fastify/callback.handler.js";
-import { makeActivateUserSessionUseCase } from "./application/use-cases/activate-user-session.use-case.js";
-import { makeHandleOidcCallbackUseCase } from "./application/use-cases/oidc-callback.use-case.js";
 
 const CLEANUP_TIMEOUT_MS = 2_000;
 
@@ -184,11 +187,16 @@ const createAdapters = async (
     config.JWT_TOKEN_TTL_SECONDS,
   );
 
+  const sessionBlacklistAdapter = new RedisSessionBlacklistAdapter(
+    clients.redisClient,
+  );
+
   return {
     auxiliaryDataAdapter,
     oidcConfigAdapter,
     oidcClientAdapter,
     sessionAdapter,
+    sessionBlacklistAdapter,
   };
 };
 
@@ -246,6 +254,17 @@ const mountRoutes = (
     ),
     loginSuccessRedirectUrl: config.LOGIN_SUCCESS_REDIRECT_URL,
     loginErrorRedirectUrl: config.LOGIN_ERROR_REDIRECT_URL,
+  });
+
+  mountIntrospectHandler(server, {
+    introspectionUseCase: withErrorResultLogging(
+      logger.with({ component: "introspect" }),
+    )(
+      makeIntrospectionUseCase({
+        sessionBlacklistPort: adapters.sessionBlacklistAdapter,
+        sessionPort: adapters.sessionAdapter,
+      }),
+    ),
   });
 };
 

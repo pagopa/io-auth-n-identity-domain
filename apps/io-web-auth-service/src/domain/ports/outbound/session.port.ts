@@ -5,7 +5,10 @@ import {
 } from "@pagopa/hexagonal-core";
 import { Result } from "neverthrow";
 
-import { ActiveSession } from "../../entitites/active-session.entity.js";
+import {
+  ActiveSession,
+  VerifiedActiveSession,
+} from "../../entitites/active-session.entity.js";
 
 /**
  * Outbound port managing user sessions. A session is represented by an opaque
@@ -27,10 +30,13 @@ export interface SessionPort {
    * Checks that a session token identifies a valid, non-expired session.
    *
    * @param sessionToken the session token to check
-   * @returns `AuthenticationError` if the session is not valid, `GenericError`
-   * on unexpected failures.
+   * @returns the identity and the user data of the verified session,
+   * `AuthenticationError` if the session is not valid, `GenericError` on
+   * unexpected failures.
    */
   readonly check: (
     sessionToken: NonEmptyString,
-  ) => Promise<Result<void, AuthenticationError | GenericError>>;
+  ) => Promise<
+    Result<VerifiedActiveSession, AuthenticationError | GenericError>
+  >;
 }

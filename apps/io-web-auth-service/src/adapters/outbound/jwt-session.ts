@@ -9,7 +9,11 @@ import {
 import { errors, jwtVerify, SignJWT } from "jose";
 import { err, ok, Result } from "neverthrow";
 
-import { ActiveSession } from "../../domain/entitites/active-session.entity.js";
+import {
+  ActiveSession,
+  VerifiedActiveSession,
+  VerifiedActiveSessionSchema,
+} from "../../domain/entitites/active-session.entity.js";
 import { SessionPort } from "../../domain/ports/outbound/session.port.js";
 import { PositiveInteger } from "../../domain/value-objects/positive-integer.vo.js";
 
@@ -67,14 +71,23 @@ export class JwtSessionAdapter implements SessionPort {
    */
   async check(
     sessionToken: NonEmptyString,
-  ): Promise<Result<void, AuthenticationError | GenericError>> {
+  ): Promise<
+    Result<VerifiedActiveSession, AuthenticationError | GenericError>
+  > {
     try {
-      await jwtVerify(sessionToken, this.publicKey, {
+      const { payload } = await jwtVerify(sessionToken, this.publicKey, {
         algorithms: [this.algorithm],
         issuer: this.issuer,
-        requiredClaims: ["exp"],
+        requiredClaims: ["exp", "jti"],
       });
-      return ok(undefined);
+      const verified = VerifiedActiveSessionSchema.parse({
+        metadata: {
+          id: payload.jti,
+          expiresAtSeconds: payload.exp as number,
+        },
+        user: payload,
+      });
+      return ok(verified);
     } catch (cause) {
       if (cause instanceof errors.JOSEError) {
         return err(new AuthenticationError());
